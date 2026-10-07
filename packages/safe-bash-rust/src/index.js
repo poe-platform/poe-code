@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const encoder = new TextEncoder();
+const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
+function fsErr(code, msg) { const e = new Error(msg); e.code = code; e[FS_ERROR_BRAND] = true; return e; }
 const decoder = new TextDecoder("utf-8", { fatal: false });
 
 let compiledWasmModule = null;
@@ -273,11 +275,13 @@ export class RustWasmBash {
     this.shell = this;
     this.fs = new WasmFileSystem(this);
     this.forceNative = Boolean(options.forceNative);
+    this.ShellLimitError = options.ShellLimitError ?? ShellLimitError;
     this.companionFactory = options.companionFactory ?? null;
     this.companionSeed = options.companionSeed ?? null;
     this._companion = null;
     this._companionSyncPromise = null;
     this._history = [];
+    this._baseLimits = { ...(options.limits ?? {}) };
     this.state = {
       cwd: options.cwd ?? "/workspace",
       env: { ...(options.env ?? {}) },
@@ -384,7 +388,7 @@ export class RustWasmBash {
     try {
       const len = this.exports.safe_bash_read_file(this.sessionId, p.ptr, p.len);
       if (len < 0) {
-        throw new Error(`ENOENT: no such file or directory '${filePath}'`);
+        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       return new Uint8Array(this.exports.memory.buffer.slice(outPtr, outPtr + len));
@@ -402,7 +406,7 @@ export class RustWasmBash {
     try {
       const rc = this.exports.safe_bash_remove_path(this.sessionId, p.ptr, p.len);
       if (rc < 0) {
-        throw new Error(`ENOENT: no such file or directory '${filePath}'`);
+        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
       }
     } finally {
       this._freeBytes(p);
@@ -415,7 +419,7 @@ export class RustWasmBash {
     try {
       const rc = this.exports.safe_bash_symlink(this.sessionId, t.ptr, t.len, p.ptr, p.len);
       if (rc < 0) {
-        throw new Error(`EEXIST: cannot create symlink '${linkPath}'`);
+        throw fsErr('EEXIST', `EEXIST: cannot create symlink '${linkPath}'`);
       }
     } finally {
       this._freeBytes(t);
@@ -428,7 +432,7 @@ export class RustWasmBash {
     try {
       const len = this.exports.safe_bash_readlink(this.sessionId, p.ptr, p.len);
       if (len < 0) {
-        throw new Error(`EINVAL: cannot readlink '${linkPath}'`);
+        throw fsErr('EINVAL', `EINVAL: cannot readlink '${linkPath}'`);
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       return decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, len));
@@ -442,7 +446,7 @@ export class RustWasmBash {
     try {
       const rc = this.exports.safe_bash_chmod(this.sessionId, p.ptr, p.len, mode >>> 0);
       if (rc < 0) {
-        throw new Error(`ENOENT: no such file or directory '${filePath}'`);
+        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
       }
     } finally {
       this._freeBytes(p);
@@ -464,7 +468,7 @@ export class RustWasmBash {
     try {
       const len = this.exports.safe_bash_stat(this.sessionId, p.ptr, p.len, follow ? 1 : 0);
       if (len < 20) {
-        throw new Error(`ENOENT: no such file or directory '${filePath}'`);
+        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       const view = new DataView(this.exports.memory.buffer, outPtr, 20);
@@ -495,7 +499,7 @@ export class RustWasmBash {
     try {
       const len = this.exports.safe_bash_readdir(this.sessionId, p.ptr, p.len);
       if (len < 4) {
-        throw new Error(`ENOENT: no such directory '${dirPath}'`);
+        throw fsErr('ENOENT', `ENOENT: no such directory '${dirPath}'`);
       }
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
       const view = new DataView(this.exports.memory.buffer, outPtr, len);
@@ -578,7 +582,7 @@ export class RustWasmBash {
       if (exitCode === -124) {
         const m = /Shell limit exceeded: (\w+)/.exec(stderr);
         if (m) {
-          throw new ShellLimitError(m[1]);
+          throw new this.ShellLimitError(m[1]);
         }
         throw new Error(stderr.trim() || "Execution aborted");
       }
@@ -592,7 +596,7 @@ export class RustWasmBash {
         env: this.state.env,
       };
     } catch (err) {
-      if (err instanceof ShellLimitError) {
+      if (err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
         throw err;
       }
       this.instance = createWasmInstance();
@@ -613,8 +617,8 @@ export class RustWasmBash {
   }
 
   async exec(script, options = {}) {
-    if (this.companionFactory && !this.forceNative) {
-      if (this._companion || !this.canRunNative(script, options)) {
+    if (this.companionFactory && (!this.forceNative || this._companion || options?.fs)) {
+      if (this._companion || options?.fs || !this.canRunNative(script, options)) {
         this._getOrCreateCompanionSync();
         await this._ensureCompanionSynced();
         const hasOpts = options && Object.keys(options).length > 0;
@@ -648,7 +652,70 @@ export class RustWasmBash {
         if (v !== undefined) this.setEnv(k, v);
       }
     }
-    const res = this.execSync(script, options.stdin ?? "");
+    const tempEnvKeys = [];
+    const setTempEnv = (k, v) => {
+      tempEnvKeys.push([k, this.state.env[k]]);
+      this.setEnv(k, String(v));
+    };
+    if (options.capabilities?.predicateIdentity) {
+      const pi = options.capabilities.predicateIdentity;
+      if (pi.effectiveUid !== undefined) setTempEnv("__euid", pi.effectiveUid);
+      if (pi.effectiveGid !== undefined) setTempEnv("__egid", pi.effectiveGid);
+    }
+    const resetLimits = {};
+    if (options.limits) {
+      for (const [k, v] of Object.entries(options.limits)) {
+        if (typeof v === "number") {
+          resetLimits[k] = this._baseLimits[k] ?? 100000;
+        }
+      }
+      this.setLimits(options.limits);
+      if (options.limits.commandLimits?.split?.maxFiles !== undefined) {
+        setTempEnv("__limit_split_max_files", options.limits.commandLimits.split.maxFiles);
+      }
+      if (options.limits.commandLimits?.htmlToMarkdown?.maxInputBytes !== undefined) {
+        setTempEnv("__limit_html_to_markdown_max_input_bytes", options.limits.commandLimits.htmlToMarkdown.maxInputBytes);
+      }
+    }
+    let stdinData = options.stdin ?? "";
+    if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
+      const chunks = [];
+      let total = 0;
+      for await (const chunk of stdinData) {
+        const u8 = chunk instanceof Uint8Array ? chunk : encoder.encode(String(chunk));
+        chunks.push(u8);
+        total += u8.byteLength;
+      }
+      const merged = new Uint8Array(total);
+      let off = 0;
+      for (const c of chunks) {
+        merged.set(c, off);
+        off += c.byteLength;
+      }
+      stdinData = merged;
+    }
+    let res;
+    try {
+      res = this.execSync(script, stdinData);
+    } finally {
+      if (Object.keys(resetLimits).length > 0) {
+        this.setLimits(resetLimits);
+      }
+      for (const [k, oldVal] of tempEnvKeys) {
+        if (oldVal === undefined) {
+          delete this.state.env[k];
+          this.setEnv(k, "");
+        } else {
+          this.setEnv(k, oldVal);
+        }
+      }
+    }
+    if (options.stdout && typeof options.stdout.write === "function" && res.stdoutBytes.byteLength > 0) {
+      await options.stdout.write(res.stdoutBytes);
+    }
+    if (options.stderr && typeof options.stderr.write === "function" && res.stderrBytes.byteLength > 0) {
+      await options.stderr.write(res.stderrBytes);
+    }
     if (this.companionFactory && !this.forceNative) {
       this._history.push({ type: "exec", script, options });
     }
@@ -772,17 +839,80 @@ export class RustWasmBash {
       }
     }
     const self = this;
-    const history = initialState?.rawHistory ? [...initialState.rawHistory] : [];
+    let history = initialState?.rawHistory ? [...initialState.rawHistory] : [];
+    let lastStatus = typeof initialState?.status === "number" ? initialState.status : 0;
+    let lastUmask = typeof initialState?.umask === "number" ? initialState.umask : 0o022;
     return {
       get state() {
         return {
           ...self.state,
-          rawHistory: history,
+          umask: lastUmask,
+          status: lastStatus,
+          rawHistory: [...history],
         };
       },
+      set state(nextState) {
+        if (!nextState || typeof nextState !== "object") return;
+        const nextHistory = Array.isArray(nextState.rawHistory) ? [...nextState.rawHistory] : [];
+        if (typeof nextState.status === "number") {
+          lastStatus = nextState.status;
+        }
+        if (JSON.stringify(nextHistory) === JSON.stringify(history)) {
+          return;
+        }
+        history = nextHistory;
+        if (nextState.env && typeof nextState.env === "object") {
+          for (const [k, v] of Object.entries(nextState.env)) {
+            if (typeof v === "string") self.setEnv(k, v);
+          }
+        }
+        for (const cmd of history) {
+          const r = self.execSync(cmd);
+          lastStatus = r.exitCode;
+        }
+      },
       async exec(script, opts = {}) {
+        if (opts.hooks?.beforeExec) {
+          await opts.hooks.beforeExec({ ...this.state, source: script });
+        }
         history.push(script);
-        return self.execSync(script, opts.stdin ?? "");
+        const umaskMatch = /\bumask\s+(0?[0-7]{1,4})\b/.exec(script);
+        if (umaskMatch) {
+          lastUmask = parseInt(umaskMatch[1], 8);
+        }
+        const prevCwd = self.state.cwd;
+        const savedEnv = [];
+        if (opts.cwd) {
+          self.execSync(`cd ${JSON.stringify(opts.cwd)}`);
+        }
+        if (opts.env && typeof opts.env === "object") {
+          for (const [k, v] of Object.entries(opts.env)) {
+            savedEnv.push([k, self.state.env[k]]);
+            if (v !== undefined) {
+              self.setEnv(k, String(v));
+            }
+          }
+        }
+        const res = self.execSync(script, opts.stdin ?? "");
+        lastStatus = res.exitCode;
+        if (opts.cwd) {
+          self.execSync(`cd ${JSON.stringify(prevCwd)}`);
+        }
+        for (const [k, oldVal] of savedEnv) {
+          if (oldVal === undefined) {
+            delete self.state.env[k];
+            self.execSync(`unset ${k}`);
+          } else {
+            self.setEnv(k, oldVal);
+          }
+        }
+        if (opts.hooks?.afterExec) {
+          await opts.hooks.afterExec(this.state, res);
+        }
+        if (opts.hooks?.onState) {
+          await opts.hooks.onState(this.state);
+        }
+        return res;
       },
     };
   }

@@ -209,8 +209,12 @@ impl HybridBackend {
         }
         match eval_res {
             Ok(res) => {
+                let last_exit_str = res.exit_code.to_string();
                 if let Ok(mut guard) = self.functions.lock() {
                     *guard = eval.functions;
+                }
+                if script != ":" {
+                    env.insert("__last_exit".to_string(), last_exit_str);
                 }
                 Some(Ok(res))
             }

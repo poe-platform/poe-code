@@ -2,10 +2,18 @@ use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{
     SafeBashFs, VfsEntryKind, basename_posix_path, normalize_posix_path, resolve_posix_path,
 };
+use std::collections::{BTreeMap, VecDeque};
+use std::sync::{Mutex, OnceLock};
+
+fn atime_store() -> &'static Mutex<BTreeMap<String, u64>> {
+    static STORE: OnceLock<Mutex<BTreeMap<String, u64>>> = OnceLock::new();
+    STORE.get_or_init(|| Mutex::new(BTreeMap::new()))
+}
 
 pub fn try_run_fs_command(
     cmd: &str,
     args: &[String],
+    stdin: &str,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -14,7 +22,7 @@ pub fn try_run_fs_command(
         "ls" => Some(cmd_ls(args, cwd, fs)),
         "mkdir" => Some(cmd_mkdir(args, cwd, env, fs)),
         "rmdir" => Some(cmd_rmdir(args, cwd, fs)),
-        "rm" => Some(cmd_rm(args, cwd, fs)),
+        "rm" => Some(cmd_rm(args, stdin, cwd, fs)),
         "cp" => Some(cmd_cp(args, cwd, fs)),
         "mv" => Some(cmd_mv(args, cwd, fs)),
         "touch" => Some(cmd_touch(args, cwd, env, fs)),
@@ -24,7 +32,7 @@ pub fn try_run_fs_command(
         "chmod" => Some(cmd_chmod(args, cwd, fs)),
         "stat" => Some(cmd_stat(args, cwd, fs)),
         "du" => Some(cmd_du(args, cwd, fs)),
-        "df" => Some(cmd_df()),
+        "df" => Some(cmd_df(args, cwd, fs)),
         "mktemp" => Some(cmd_mktemp(args, cwd, fs)),
         "tree" => Some(cmd_tree(args, cwd, fs)),
         "file" => Some(cmd_file(args, cwd, fs)),
@@ -40,16 +48,77 @@ fn ok_out(s: &str) -> BuiltinOutcome {
     }
 }
 
+fn natural_version_cmp(a: &str, b: &str) -> std::cmp::Ordering {
+    let ab = a.as_bytes();
+    let bb = b.as_bytes();
+    let mut ia = 0usize;
+    let mut ib = 0usize;
+    while ia < ab.len() && ib < bb.len() {
+        if ab[ia].is_ascii_digit() && bb[ib].is_ascii_digit() {
+            let sa = ia;
+            while ia < ab.len() && ab[ia].is_ascii_digit() {
+                ia += 1;
+            }
+            let sb = ib;
+            while ib < bb.len() && bb[ib].is_ascii_digit() {
+                ib += 1;
+            }
+            let na = a[sa..ia].parse::<u64>().unwrap_or(0);
+            let nb = b[sb..ib].parse::<u64>().unwrap_or(0);
+            let ord = na.cmp(&nb);
+            if ord != std::cmp::Ordering::Equal {
+                return ord;
+            }
+        } else {
+            let ord = ab[ia].cmp(&bb[ib]);
+            if ord != std::cmp::Ordering::Equal {
+                return ord;
+            }
+            ia += 1;
+            ib += 1;
+        }
+    }
+    ab.len().cmp(&bb.len())
+}
+
+fn file_ext_key(name: &str) -> &str {
+    let base = basename_posix_path(name);
+    match base.rfind('.') {
+        Some(idx) if idx > 0 => {
+            let (_, after) = name.rsplit_once('.').unwrap_or(("", ""));
+            after
+        }
+        _ => "",
+    }
+}
+
 fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut show_all = false;
+    let mut show_dots = false;
     let mut dir_only = false;
+    let mut sort_mtime = false;
+    let mut sort_size = false;
+    let mut sort_version = false;
+    let mut sort_ext = false;
+    let mut reverse = false;
+    let mut classify = false;
     let mut targets = Vec::new();
     for a in args {
         if a.starts_with('-') && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
-                    'a' | 'A' => show_all = true,
+                    'a' => {
+                        show_all = true;
+                        show_dots = true;
+                    }
+                    'A' => show_all = true,
                     'd' => dir_only = true,
+                    't' => sort_mtime = true,
+                    'S' => sort_size = true,
+                    'v' => sort_version = true,
+                    'X' => sort_ext = true,
+                    'r' => reverse = true,
+                    'F' => classify = true,
                     _ => {}
                 }
             }
@@ -61,21 +130,72 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         targets.push(".".to_string());
     }
     let mut out = Vec::new();
+    let mut file_targets = Vec::new();
     let mut stderr = String::new();
     let mut code = 0;
     for t in &targets {
         let p = resolve_posix_path(cwd, t);
         if dir_only || (!fs.is_dir(&p) && fs.exists(&p)) {
-            out.push(t.clone());
+            file_targets.push(t.clone());
         } else if fs.is_dir(&p) {
             match fs.list_dir(&p) {
                 Ok(mut entries) => {
-                    entries.sort();
+                    if show_dots {
+                        entries.push(".".to_string());
+                        entries.push("..".to_string());
+                    }
+                    if sort_mtime {
+                        entries.sort_by(|a, b| {
+                            let pa = resolve_posix_path(&p, a);
+                            let pb = resolve_posix_path(&p, b);
+                            let ma = fs.lstat(&pa).map(|s| s.mtime_ms).unwrap_or(0);
+                            let mb = fs.lstat(&pb).map(|s| s.mtime_ms).unwrap_or(0);
+                            mb.cmp(&ma).then_with(|| a.cmp(b))
+                        });
+                    } else if sort_size {
+                        entries.sort_by(|a, b| {
+                            let pa = resolve_posix_path(&p, a);
+                            let pb = resolve_posix_path(&p, b);
+                            let sa = if fs.is_dir(&pa) {
+                                0
+                            } else {
+                                fs.lstat(&pa).map(|s| s.size).unwrap_or(0)
+                            };
+                            let sb = if fs.is_dir(&pb) {
+                                0
+                            } else {
+                                fs.lstat(&pb).map(|s| s.size).unwrap_or(0)
+                            };
+                            sb.cmp(&sa).then_with(|| a.cmp(b))
+                        });
+                    } else if sort_version {
+                        entries.sort_by(|a, b| natural_version_cmp(a, b));
+                    } else if sort_ext {
+                        entries.sort_by(|a, b| {
+                            file_ext_key(a).cmp(file_ext_key(b)).then_with(|| a.cmp(b))
+                        });
+                    } else {
+                        entries.sort();
+                    }
+                    if reverse {
+                        entries.reverse();
+                    }
                     for e in entries {
                         if !show_all && e.starts_with('.') {
                             continue;
                         }
-                        out.push(e);
+                        let mut disp = e.clone();
+                        if classify {
+                            let pe = resolve_posix_path(&p, &e);
+                            if fs.readlink(&pe).is_ok() {
+                                disp.push('@');
+                            } else if fs.is_dir(&pe) {
+                                disp.push('/');
+                            } else if fs.stat(&pe).map(|s| s.mode & 0o111 != 0).unwrap_or(false) {
+                                disp.push('*');
+                            }
+                        }
+                        out.push(disp);
                     }
                 }
                 Err(e) => {
@@ -87,6 +207,47 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             stderr.push_str(&format!("ls: cannot access '{t}': No such file or directory\n"));
             code = 2;
         }
+    }
+    if !file_targets.is_empty() {
+        if sort_mtime {
+            file_targets.sort_by(|a, b| {
+                let pa = resolve_posix_path(cwd, a);
+                let pb = resolve_posix_path(cwd, b);
+                let ma = fs.lstat(&pa).map(|s| s.mtime_ms).unwrap_or(0);
+                let mb = fs.lstat(&pb).map(|s| s.mtime_ms).unwrap_or(0);
+                mb.cmp(&ma).then_with(|| a.cmp(b))
+            });
+        } else if sort_size {
+            file_targets.sort_by(|a, b| {
+                let pa = resolve_posix_path(cwd, a);
+                let pb = resolve_posix_path(cwd, b);
+                let sa = if fs.is_dir(&pa) {
+                    0
+                } else {
+                    fs.lstat(&pa).map(|s| s.size).unwrap_or(0)
+                };
+                let sb = if fs.is_dir(&pb) {
+                    0
+                } else {
+                    fs.lstat(&pb).map(|s| s.size).unwrap_or(0)
+                };
+                sb.cmp(&sa).then_with(|| a.cmp(b))
+            });
+        } else if sort_version {
+            file_targets.sort_by(|a, b| natural_version_cmp(a, b));
+        } else if sort_ext {
+            file_targets.sort_by(|a, b| {
+                file_ext_key(a).cmp(file_ext_key(b)).then_with(|| a.cmp(b))
+            });
+        } else {
+            file_targets.sort();
+        }
+        if reverse {
+            file_targets.reverse();
+        }
+        let mut combined = file_targets;
+        combined.extend(out);
+        out = combined;
     }
     BuiltinOutcome {
         stdout: if out.is_empty() {
@@ -145,8 +306,12 @@ fn cmd_mkdir(
 fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut stderr = String::new();
     let mut code = 0;
+    let mut parents = false;
     for a in args {
         if a.starts_with('-') {
+            if a.contains('p') {
+                parents = true;
+            }
             continue;
         }
         let p = resolve_posix_path(cwd, a);
@@ -165,6 +330,25 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         if let Err(e) = fs.remove_path(&p) {
             stderr.push_str(&format!("rmdir: failed to remove '{a}': {e}\n"));
             code = 1;
+        } else if parents {
+            let mut cur = a.trim_end_matches('/').to_string();
+            while let Some((parent_rel, _)) = cur.rsplit_once('/') {
+                if parent_rel.is_empty() {
+                    break;
+                }
+                let pp = resolve_posix_path(cwd, parent_rel);
+                if pp == "/" || pp == cwd {
+                    break;
+                }
+                if let Ok(entries) = fs.list_dir(&pp)
+                    && entries.is_empty()
+                {
+                    let _ = fs.remove_path(&pp);
+                    cur = parent_rel.to_string();
+                } else {
+                    break;
+                }
+            }
         }
     }
     BuiltinOutcome {
@@ -174,8 +358,9 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     }
 }
 
-fn cmd_rm(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut force = false;
+    let mut interactive = false;
     let mut targets = Vec::new();
     let mut opts_done = false;
     for a in args {
@@ -186,6 +371,9 @@ fn cmd_rm(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         if !opts_done && a.starts_with('-') && a.len() > 1 {
             if a.contains('f') || a == "--force" {
                 force = true;
+                interactive = false;
+            } else if a.contains('i') {
+                interactive = true;
             }
         } else {
             targets.push(a.clone());
@@ -193,7 +381,15 @@ fn cmd_rm(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     }
     let mut stderr = String::new();
     let mut code = 0;
+    let mut stdin_lines = stdin.lines();
     for t in targets {
+        if interactive && !force {
+            let ans = stdin_lines.next().unwrap_or("");
+            let first = ans.trim().chars().next().unwrap_or('n');
+            if first != 'y' && first != 'Y' {
+                continue;
+            }
+        }
         let p = resolve_posix_path(cwd, &t);
         if let Err(e) = fs.remove_path(&p)
             && !force
@@ -210,12 +406,26 @@ fn cmd_rm(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
 }
 
 fn copy_recursive(src: &str, dst: &str, fs: &dyn SafeBashFs) -> Result<(), String> {
-    if let Ok(link_target) = fs.readlink(src) {
+    copy_recursive_ext(src, dst, fs, 'P', true)
+}
+
+fn copy_recursive_ext(
+    src: &str,
+    dst: &str,
+    fs: &dyn SafeBashFs,
+    deref_mode: char,
+    top: bool,
+) -> Result<(), String> {
+    let preserve_link = deref_mode == 'P' || (deref_mode == 'H' && !top);
+    if preserve_link && let Ok(link_target) = fs.readlink(src) {
         let _ = fs.remove_path(dst);
         return fs.symlink(&link_target, dst);
     }
     if fs.is_dir(src) {
         fs.mkdir_all(dst)?;
+        if let Ok(st) = fs.stat(src) {
+            let _ = fs.chmod(dst, st.mode);
+        }
         for name in fs.list_dir(src)? {
             let s_child = if src == "/" {
                 format!("/{name}")
@@ -227,11 +437,14 @@ fn copy_recursive(src: &str, dst: &str, fs: &dyn SafeBashFs) -> Result<(), Strin
             } else {
                 format!("{dst}/{name}")
             };
-            copy_recursive(&s_child, &d_child, fs)?;
+            copy_recursive_ext(&s_child, &d_child, fs, deref_mode, false)?;
         }
         Ok(())
     } else {
         let data = fs.read_file(src)?;
+        if fs.readlink(dst).is_ok() {
+            let _ = fs.remove_path(dst);
+        }
         fs.write_file(dst, &data)?;
         if let Ok(st) = fs.stat(src) {
             let _ = fs.chmod(dst, st.mode);
@@ -243,15 +456,93 @@ fn copy_recursive(src: &str, dst: &str, fs: &dyn SafeBashFs) -> Result<(), Strin
 fn cmd_cp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut operands: Vec<&String> = Vec::new();
     let mut end_opts = false;
-    for a in args {
+    let mut no_clobber = false;
+    let mut update_only = false;
+    let mut hard_link = false;
+    let mut sym_link = false;
+    let mut backup_numbered = false;
+    let mut backup_simple = false;
+    let mut backup_suffix = "~".to_string();
+    let mut recursive = false;
+    let mut deref_opt: Option<char> = None;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
         if !end_opts && a == "--" {
             end_opts = true;
+            i += 1;
+            continue;
+        }
+        if !end_opts && (a == "-S" || a == "--suffix") && i + 1 < args.len() {
+            backup_suffix = args[i + 1].clone();
+            i += 2;
             continue;
         }
         if !end_opts && a.starts_with('-') && a != "-" {
+            if a == "--no-clobber" {
+                no_clobber = true;
+            } else if a == "--update" {
+                update_only = true;
+            } else if a == "--link" {
+                hard_link = true;
+            } else if a == "--symbolic-link" {
+                sym_link = true;
+            } else if a == "--dereference" {
+                deref_opt = Some('L');
+            } else if a == "--no-dereference" {
+                deref_opt = Some('P');
+            } else if a == "--archive" {
+                recursive = true;
+                deref_opt = Some('P');
+            } else if a == "--recursive" {
+                recursive = true;
+            } else if a == "--backup=numbered" || a == "--backup=t" {
+                backup_numbered = true;
+            } else if a.starts_with("--backup") {
+                backup_simple = true;
+            } else if let Some(s) = a.strip_prefix("--suffix=") {
+                backup_suffix = s.to_string();
+            } else if !a.starts_with("--") {
+                if a.contains('n') {
+                    no_clobber = true;
+                }
+                if a.contains('u') {
+                    update_only = true;
+                }
+                if a.contains('l') {
+                    hard_link = true;
+                }
+                if a.contains('s') {
+                    sym_link = true;
+                }
+                if a.contains('b') {
+                    backup_simple = true;
+                }
+                for ch in a.chars().skip(1) {
+                    match ch {
+                        'r' | 'R' => recursive = true,
+                        'a' => {
+                            recursive = true;
+                            deref_opt = Some('P');
+                        }
+                        'd' | 'P' => {
+                            deref_opt = Some('P');
+                        }
+                        'L' => {
+                            deref_opt = Some('L');
+                        }
+                        'H' => {
+                            deref_opt = Some('H');
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            i += 1;
             continue;
         }
         operands.push(a);
+        i += 1;
     }
     if operands.len() < 2 {
         return BuiltinOutcome {
@@ -260,6 +551,7 @@ fn cmd_cp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             exit_code: 1,
         };
     }
+    let deref_mode = deref_opt.unwrap_or(if recursive { 'P' } else { 'H' });
     let dst_raw = operands.last().unwrap();
     let dst_base = resolve_posix_path(cwd, dst_raw);
     let dst_is_dir = fs.is_dir(&dst_base);
@@ -278,7 +570,40 @@ fn cmd_cp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         } else {
             dst_base.clone()
         };
-        if let Err(e) = copy_recursive(&src, &target, fs) {
+        if fs.exists(&target) {
+            if no_clobber {
+                continue;
+            }
+            if update_only {
+                let sm = fs.stat(&src).map(|s| s.mtime_ms).unwrap_or(0);
+                let tm = fs.stat(&target).map(|s| s.mtime_ms).unwrap_or(0);
+                if sm <= tm {
+                    continue;
+                }
+            }
+            if backup_numbered {
+                for k in 1..1000usize {
+                    let bak = format!("{target}.~{k}~");
+                    if !fs.exists(&bak) {
+                        let _ = copy_recursive(&target, &bak, fs);
+                        break;
+                    }
+                }
+            } else if backup_simple {
+                let bak = format!("{target}{backup_suffix}");
+                let _ = copy_recursive(&target, &bak, fs);
+            }
+        }
+        let copy_res = if sym_link {
+            let _ = fs.remove_path(&target);
+            fs.symlink(src_raw, &target)
+        } else if hard_link {
+            let _ = fs.remove_path(&target);
+            fs.symlink(&format!("__hardlink__:{src}"), &target)
+        } else {
+            copy_recursive_ext(&src, &target, fs, deref_mode, true)
+        };
+        if let Err(e) = copy_res {
             stderr.push_str(&format!("cp: cannot copy '{src_raw}': {e}\n"));
             code = 1;
         }
@@ -293,15 +618,51 @@ fn cmd_cp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
 fn cmd_mv(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut operands: Vec<&String> = Vec::new();
     let mut end_opts = false;
-    for a in args {
+    let mut no_clobber = false;
+    let mut update_only = false;
+    let mut backup_numbered = false;
+    let mut backup_simple = false;
+    let mut backup_suffix = "~".to_string();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
         if !end_opts && a == "--" {
             end_opts = true;
+            i += 1;
+            continue;
+        }
+        if !end_opts && (a == "-S" || a == "--suffix") && i + 1 < args.len() {
+            backup_suffix = args[i + 1].clone();
+            i += 2;
             continue;
         }
         if !end_opts && a.starts_with('-') && a != "-" {
+            if a == "--no-clobber" {
+                no_clobber = true;
+            } else if a == "--update" {
+                update_only = true;
+            } else if a == "--backup=numbered" || a == "--backup=t" {
+                backup_numbered = true;
+            } else if a.starts_with("--backup") {
+                backup_simple = true;
+            } else if let Some(s) = a.strip_prefix("--suffix=") {
+                backup_suffix = s.to_string();
+            } else if !a.starts_with("--") {
+                if a.contains('n') {
+                    no_clobber = true;
+                }
+                if a.contains('u') {
+                    update_only = true;
+                }
+                if a.contains('b') {
+                    backup_simple = true;
+                }
+            }
+            i += 1;
             continue;
         }
         operands.push(a);
+        i += 1;
     }
     if operands.len() < 2 {
         return BuiltinOutcome {
@@ -331,6 +692,30 @@ fn cmd_mv(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         if src == target {
             continue;
         }
+        if fs.exists(&target) {
+            if no_clobber {
+                continue;
+            }
+            if update_only {
+                let sm = fs.stat(&src).map(|s| s.mtime_ms).unwrap_or(0);
+                let tm = fs.stat(&target).map(|s| s.mtime_ms).unwrap_or(0);
+                if sm <= tm {
+                    continue;
+                }
+            }
+            if backup_numbered {
+                for k in 1..1000usize {
+                    let bak = format!("{target}.~{k}~");
+                    if !fs.exists(&bak) {
+                        let _ = copy_recursive(&target, &bak, fs);
+                        break;
+                    }
+                }
+            } else if backup_simple {
+                let bak = format!("{target}{backup_suffix}");
+                let _ = copy_recursive(&target, &bak, fs);
+            }
+        }
         if let Err(e) = copy_recursive(&src, &target, fs).and_then(|_| fs.remove_path(&src)) {
             stderr.push_str(&format!("mv: cannot move '{src_raw}': {e}\n"));
             code = 1;
@@ -350,7 +735,10 @@ fn cmd_touch(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut no_create = false;
+    let mut only_atime = false;
+    let mut only_mtime = false;
     let mut ref_mtime: Option<u64> = None;
+    let mut ref_atime: Option<u64> = None;
     let umask_val = env
         .get("__umask")
         .and_then(|s| u32::from_str_radix(s, 8).ok())
@@ -362,12 +750,20 @@ fn cmd_touch(
             let rp = resolve_posix_path(cwd, &args[i + 1]);
             if let Ok(st) = fs.stat(&rp) {
                 ref_mtime = Some(st.mtime_ms);
+                let at = atime_store()
+                    .lock()
+                    .ok()
+                    .and_then(|m| m.get(&rp).copied())
+                    .unwrap_or(st.mtime_ms);
+                ref_atime = Some(at);
             }
             i += 2;
             continue;
         }
         if (a == "-d" || a == "-t") && i + 1 < args.len() {
-            ref_mtime = Some(parse_touch_timestamp_ms(&args[i + 1]));
+            let ts = parse_touch_timestamp_ms(&args[i + 1]);
+            ref_mtime = Some(ts);
+            ref_atime = Some(ts);
             i += 2;
             continue;
         }
@@ -375,25 +771,62 @@ fn cmd_touch(
             if a.contains('c') {
                 no_create = true;
             }
+            if a.contains('a') {
+                only_atime = true;
+            }
+            if a.contains('m') {
+                only_mtime = true;
+            }
             i += 1;
             continue;
         }
+        let touch_a = !only_mtime || only_atime;
+        let touch_m = !only_atime || only_mtime;
         let p = resolve_posix_path(cwd, a);
         if !fs.exists(&p) {
             if !no_create {
                 let _ = fs.write_file(&p, &[]);
                 let mode = (0o666 & !umask_val) & 0o777;
                 let _ = fs.chmod(&p, mode);
+                let ms = ref_mtime.unwrap_or(1_700_000_000_000);
+                let _ = fs.set_mtime(&p, ms);
+                if let Ok(mut map) = atime_store().lock() {
+                    map.insert(p, ref_atime.unwrap_or(ms));
+                }
+            }
+        } else {
+            let cur_mtime = fs.stat(&p).map(|st| st.mtime_ms).unwrap_or(1_700_000_000_000);
+            if touch_m && !touch_a {
+                if let Ok(mut map) = atime_store().lock() {
+                    map.entry(p.clone()).or_insert(cur_mtime);
+                }
+            }
+            if touch_m {
                 if let Some(ms) = ref_mtime {
                     let _ = fs.set_mtime(&p, ms);
                 }
             }
-        } else if let Some(ms) = ref_mtime {
-            let _ = fs.set_mtime(&p, ms);
+            if touch_a {
+                if let Some(at) = ref_atime.or(ref_mtime) {
+                    if let Ok(mut map) = atime_store().lock() {
+                        map.insert(p, at);
+                    }
+                }
+            }
         }
         i += 1;
     }
     ok_out("")
+}
+
+fn civil_to_epoch_days(year: i64, month: i64, day: i64) -> i64 {
+    let y = year - if month <= 2 { 1 } else { 0 };
+    let era = if y >= 0 { y } else { y - 399 } / 400;
+    let yoe = y - era * 400;
+    let m_adj = month + if month > 2 { -3 } else { 9 };
+    let doy = (153 * m_adj + 2) / 5 + day - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146097 + doe - 719468
 }
 
 fn parse_touch_timestamp_ms(s: &str) -> u64 {
@@ -401,31 +834,78 @@ fn parse_touch_timestamp_ms(s: &str) -> u64 {
     if let Some(epoch) = trimmed.strip_prefix('@') {
         return epoch.parse::<u64>().unwrap_or(1_700_000_000) * 1000;
     }
+    let (main_part, sec_frac) = trimmed.split_once('.').unwrap_or((trimmed, ""));
+    if main_part.chars().all(|c| c.is_ascii_digit()) && (main_part.len() == 12 || main_part.len() == 10) {
+        let (y, rest) = if main_part.len() == 12 {
+            (main_part[0..4].parse::<i64>().unwrap_or(1970), &main_part[4..])
+        } else {
+            let yy = main_part[0..2].parse::<i64>().unwrap_or(70);
+            let year = if yy >= 69 { 1900 + yy } else { 2000 + yy };
+            (year, &main_part[2..])
+        };
+        let m = rest[0..2].parse::<i64>().unwrap_or(1).clamp(1, 12);
+        let d = rest[2..4].parse::<i64>().unwrap_or(1).clamp(1, 31);
+        let hh = rest[4..6].parse::<i64>().unwrap_or(0).clamp(0, 23);
+        let mm = rest[6..8].parse::<i64>().unwrap_or(0).clamp(0, 59);
+        let ss = sec_frac
+            .chars()
+            .take(2)
+            .collect::<String>()
+            .parse::<i64>()
+            .unwrap_or(0)
+            .clamp(0, 59);
+        let days = civil_to_epoch_days(y, m, d);
+        let secs = days * 86400 + hh * 3600 + mm * 60 + ss;
+        return secs.max(0) as u64 * 1000;
+    }
     let digits: Vec<u64> = trimmed
         .split(|c: char| !c.is_ascii_digit())
         .filter(|p| !p.is_empty())
         .filter_map(|p| p.parse::<u64>().ok())
         .collect();
     if digits.len() >= 3 && digits[0] >= 1970 {
-        let y = digits[0];
-        let m = digits.get(1).copied().unwrap_or(1).clamp(1, 12);
-        let d = digits.get(2).copied().unwrap_or(1).clamp(1, 31);
-        let hh = digits.get(3).copied().unwrap_or(0).clamp(0, 23);
-        let mm = digits.get(4).copied().unwrap_or(0).clamp(0, 59);
-        let ss = digits.get(5).copied().unwrap_or(0).clamp(0, 59);
-        let days = (y - 1970) * 365 + (y - 1969) / 4 + (m - 1) * 30 + (d - 1);
-        return (days * 86400 + hh * 3600 + mm * 60 + ss) * 1000;
+        let y = digits[0] as i64;
+        let m = digits.get(1).copied().unwrap_or(1).clamp(1, 12) as i64;
+        let d = digits.get(2).copied().unwrap_or(1).clamp(1, 31) as i64;
+        let hh = digits.get(3).copied().unwrap_or(0).clamp(0, 23) as i64;
+        let mm = digits.get(4).copied().unwrap_or(0).clamp(0, 59) as i64;
+        let ss = digits.get(5).copied().unwrap_or(0).clamp(0, 59) as i64;
+        let days = civil_to_epoch_days(y, m, d);
+        let secs = days * 86400 + hh * 3600 + mm * 60 + ss;
+        return secs.max(0) as u64 * 1000;
     }
     1_700_000_000_000
 }
 
 fn cmd_ln(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut force = false;
+    let mut symbolic = false;
+    let mut relative = false;
+    let mut backup_numbered = false;
+    let mut backup_simple = false;
     let mut operands = Vec::new();
     for a in args {
-        if a.starts_with('-') {
+        if a.starts_with("--") {
+            match a.as_str() {
+                "--force" => force = true,
+                "--symbolic" => symbolic = true,
+                "--relative" => relative = true,
+                "--backup=numbered" | "--backup=t" => backup_numbered = true,
+                s if s.starts_with("--backup") => backup_simple = true,
+                _ => {}
+            }
+        } else if a.starts_with('-') && a.len() > 1 {
             if a.contains('f') {
                 force = true;
+            }
+            if a.contains('s') {
+                symbolic = true;
+            }
+            if a.contains('r') {
+                relative = true;
+            }
+            if a.contains('b') {
+                backup_simple = true;
             }
         } else {
             operands.push(a.clone());
@@ -440,10 +920,36 @@ fn cmd_ln(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     }
     let target = &operands[0];
     let link_path = resolve_posix_path(cwd, &operands[1]);
-    if force {
+    if fs.exists(&link_path) || fs.lstat(&link_path).is_ok() {
+        if backup_numbered {
+            for k in 1..1000usize {
+                let bak = format!("{link_path}.~{k}~");
+                if !fs.exists(&bak) && fs.lstat(&bak).is_err() {
+                    let _ = copy_recursive(&link_path, &bak, fs);
+                    break;
+                }
+            }
+        } else if backup_simple {
+            let bak = format!("{link_path}~");
+            let _ = copy_recursive(&link_path, &bak, fs);
+        }
+    }
+    if force || backup_numbered || backup_simple {
         let _ = fs.remove_path(&link_path);
     }
-    if let Err(e) = fs.symlink(target, &link_path) {
+    let stored_target = if symbolic {
+        if relative {
+            let target_full = resolve_posix_path(cwd, target);
+            let link_dir = crate::vfs::dirname_posix_path(&link_path);
+            relative_posix_path(&link_dir, &target_full)
+        } else {
+            target.clone()
+        }
+    } else {
+        let target_full = resolve_posix_path(cwd, target);
+        format!("__hardlink__:{target_full}")
+    };
+    if let Err(e) = fs.symlink(&stored_target, &link_path) {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: format!("ln: {e}\n"),
@@ -470,15 +976,16 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             exit_code: 1,
         };
     };
-    let p = resolve_posix_path(cwd, first);
     if canonical {
-        if let Ok(link_t) = fs.readlink(&p) {
-            let parent = crate::vfs::dirname_posix_path(&p);
-            let resolved = resolve_posix_path(&parent, &link_t);
-            return ok_out(&format!("{resolved}\n"));
-        }
-        return ok_out(&format!("{p}\n"));
+        let raw = if first.starts_with('/') {
+            first.clone()
+        } else {
+            format!("{}/{first}", cwd.trim_end_matches('/'))
+        };
+        let resolved = resolve_canonical_target(&raw, fs);
+        return ok_out(&format!("{resolved}\n"));
     }
+    let p = resolve_posix_path(cwd, first);
     match fs.readlink(&p) {
         Ok(t) => ok_out(&format!("{t}\n")),
         Err(_) => BuiltinOutcome {
@@ -490,12 +997,44 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
 }
 
 fn resolve_canonical_target(p: &str, fs: &dyn SafeBashFs) -> String {
-    if let Ok(link_t) = fs.readlink(p) {
-        let parent = crate::vfs::dirname_posix_path(p);
-        resolve_posix_path(&parent, &link_t)
-    } else {
-        p.to_string()
+    let mut queue: VecDeque<String> = p
+        .split('/')
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect();
+    let mut cur = String::from("/");
+    let mut hops = 0usize;
+    while let Some(part) = queue.pop_front() {
+        if part == "." {
+            continue;
+        }
+        if part == ".." {
+            cur = crate::vfs::dirname_posix_path(&cur);
+            continue;
+        }
+        let next = if cur == "/" {
+            format!("/{part}")
+        } else {
+            format!("{cur}/{part}")
+        };
+        if let Ok(link_t) = fs.readlink(&next)
+            && !link_t.starts_with("__hardlink__:")
+        {
+            hops += 1;
+            if hops > 32 {
+                return next;
+            }
+            if link_t.starts_with('/') {
+                cur = "/".to_string();
+            }
+            for seg in link_t.split('/').filter(|s| !s.is_empty()).rev() {
+                queue.push_front(seg.to_string());
+            }
+        } else {
+            cur = next;
+        }
     }
+    cur
 }
 
 fn relative_posix_path(base: &str, target: &str) -> String {
@@ -518,6 +1057,8 @@ fn relative_posix_path(base: &str, target: &str) -> String {
 
 fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut rel_to: Option<String> = None;
+    let mut rel_base: Option<String> = None;
+    let mut no_symlinks = false;
     let mut targets = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -528,6 +1069,15 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         } else if a == "--relative-to" && i + 1 < args.len() {
             rel_to = Some(args[i + 1].clone());
             i += 2;
+        } else if let Some(r) = a.strip_prefix("--relative-base=") {
+            rel_base = Some(r.to_string());
+            i += 1;
+        } else if a == "--relative-base" && i + 1 < args.len() {
+            rel_base = Some(args[i + 1].clone());
+            i += 2;
+        } else if a == "-s" || a == "--strip" || a == "--no-symlinks" {
+            no_symlinks = true;
+            i += 1;
         } else if !a.starts_with('-') {
             targets.push(a.clone());
             i += 1;
@@ -535,13 +1085,30 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             i += 1;
         }
     }
-    let base_resolved = rel_to.map(|b| resolve_canonical_target(&resolve_posix_path(cwd, &b), fs));
+    let resolve_fn = |p: &str| {
+        if no_symlinks {
+            normalize_posix_path(p)
+        } else {
+            resolve_canonical_target(p, fs)
+        }
+    };
+    let to_resolved = rel_to.map(|b| resolve_fn(&resolve_posix_path(cwd, &b)));
+    let base_resolved = rel_base.map(|b| resolve_fn(&resolve_posix_path(cwd, &b)));
     let mut out = String::new();
     for a in targets {
         let p = resolve_posix_path(cwd, &a);
-        let resolved = resolve_canonical_target(&p, fs);
-        if let Some(ref base) = base_resolved {
+        let resolved = resolve_fn(&p);
+        if let Some(ref base) = to_resolved {
             out.push_str(&format!("{}\n", relative_posix_path(base, &resolved)));
+        } else if let Some(ref rbase) = base_resolved {
+            let under_base = resolved == *rbase
+                || *rbase == "/"
+                || resolved.starts_with(&format!("{}/", rbase.trim_end_matches('/')));
+            if under_base {
+                out.push_str(&format!("{}\n", relative_posix_path(rbase, &resolved)));
+            } else {
+                out.push_str(&format!("{resolved}\n"));
+            }
         } else {
             out.push_str(&format!("{resolved}\n"));
         }
@@ -549,11 +1116,12 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     ok_out(&out)
 }
 
-fn eval_chmod_mode(spec: &str, current: u32) -> u32 {
+fn eval_chmod_mode(spec: &str, current: u32, is_dir: bool) -> u32 {
     if let Ok(oct) = u32::from_str_radix(spec, 8) {
         return oct;
     }
     let mut mode = current & 0o7777;
+    let had_exec = is_dir || (mode & 0o111) != 0;
     for clause in spec.split(',') {
         let mut chars = clause.chars().peekable();
         let mut who_mask = 0u32;
@@ -574,15 +1142,35 @@ fn eval_chmod_mode(spec: &str, current: u32) -> u32 {
                 break;
             }
             let mut perm_bits = 0u32;
+            let mut special_bits = 0u32;
             while let Some(&p) = chars.peek() {
                 match p {
                     'r' => { perm_bits |= 0o444; chars.next(); }
                     'w' => { perm_bits |= 0o222; chars.next(); }
-                    'x' | 'X' => { perm_bits |= 0o111; chars.next(); }
+                    'x' => { perm_bits |= 0o111; chars.next(); }
+                    'X' => {
+                        if had_exec || (mode & 0o111) != 0 {
+                            perm_bits |= 0o111;
+                        }
+                        chars.next();
+                    }
+                    's' => {
+                        if (who_mask & 0o400) != 0 {
+                            special_bits |= 0o4000;
+                        }
+                        if (who_mask & 0o040) != 0 {
+                            special_bits |= 0o2000;
+                        }
+                        chars.next();
+                    }
+                    't' => {
+                        special_bits |= 0o1000;
+                        chars.next();
+                    }
                     _ => break,
                 }
             }
-            let masked = perm_bits & who_mask;
+            let masked = (perm_bits & who_mask) | special_bits;
             match op {
                 '+' => mode |= masked,
                 '-' => mode &= !masked,
@@ -598,7 +1186,8 @@ fn eval_chmod_mode(spec: &str, current: u32) -> u32 {
 
 fn apply_chmod_recursive(path: &str, mode_spec: &str, recursive: bool, fs: &dyn SafeBashFs) -> Result<(), String> {
     let cur = fs.stat(path).map(|st| st.mode).unwrap_or(0o644);
-    let new_mode = eval_chmod_mode(mode_spec, cur);
+    let is_dir = fs.is_dir(path);
+    let new_mode = eval_chmod_mode(mode_spec, cur, is_dir);
     fs.chmod(path, new_mode)?;
     if recursive && fs.is_dir(path) {
         for name in fs.list_dir(path)? {
@@ -615,27 +1204,41 @@ fn apply_chmod_recursive(path: &str, mode_spec: &str, recursive: bool, fs: &dyn 
 
 fn cmd_chmod(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut recursive = false;
+    let mut ref_file: Option<String> = None;
     let mut positional = Vec::new();
-    for a in args {
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
         if a == "-R" || a == "--recursive" {
             recursive = true;
+        } else if let Some(rf) = a.strip_prefix("--reference=") {
+            ref_file = Some(rf.to_string());
+        } else if a == "--reference" && i + 1 < args.len() {
+            i += 1;
+            ref_file = Some(args[i].clone());
         } else if !a.starts_with('-') {
             positional.push(a.clone());
         }
+        i += 1;
     }
-    if positional.len() < 2 {
+    let (mode_str, targets_slice): (String, &[String]) = if let Some(rf) = ref_file {
+        let rp = resolve_posix_path(cwd, &rf);
+        let ref_mode = fs.stat(&rp).map(|s| s.mode & 0o7777).unwrap_or(0o644);
+        (format!("{ref_mode:o}"), &positional[..])
+    } else if positional.len() >= 2 {
+        (positional[0].clone(), &positional[1..])
+    } else {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: "chmod: missing operand\n".to_string(),
             exit_code: 1,
         };
-    }
-    let mode_str = &positional[0];
+    };
     let mut stderr = String::new();
     let mut code = 0;
-    for t in &positional[1..] {
+    for t in targets_slice {
         let p = resolve_posix_path(cwd, t);
-        if let Err(e) = apply_chmod_recursive(&p, mode_str, recursive, fs) {
+        if let Err(e) = apply_chmod_recursive(&p, &mode_str, recursive, fs) {
             stderr.push_str(&format!("chmod: {t}: {e}\n"));
             code = 1;
         }
@@ -649,14 +1252,29 @@ fn cmd_chmod(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
 
 fn cmd_stat(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut fmt_spec: Option<String> = None;
+    let mut is_printf = false;
+    let mut deref = false;
     let mut targets = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         if (args[i] == "-c" || args[i] == "--format") && i + 1 < args.len() {
             fmt_spec = Some(args[i + 1].clone());
+            is_printf = false;
             i += 2;
         } else if let Some(rest) = args[i].strip_prefix("--format=") {
             fmt_spec = Some(rest.to_string());
+            is_printf = false;
+            i += 1;
+        } else if args[i] == "--printf" && i + 1 < args.len() {
+            fmt_spec = Some(args[i + 1].clone());
+            is_printf = true;
+            i += 2;
+        } else if let Some(rest) = args[i].strip_prefix("--printf=") {
+            fmt_spec = Some(rest.to_string());
+            is_printf = true;
+            i += 1;
+        } else if args[i] == "-L" || args[i] == "--dereference" {
+            deref = true;
             i += 1;
         } else if !args[i].starts_with('-') {
             targets.push(args[i].clone());
@@ -671,7 +1289,8 @@ fn cmd_stat(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
 
     for t in targets {
         let p = resolve_posix_path(cwd, &t);
-        match fs.stat(&p) {
+        let st_res = if deref { fs.stat(&p) } else { fs.lstat(&p) };
+        match st_res {
             Ok(st) => {
                 let perm = st.mode & 0o7777;
                 let ftype = match st.kind {
@@ -686,14 +1305,87 @@ fn cmd_stat(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     VfsEntryKind::Symlink => "symbolic link",
                 };
                 if let Some(ref spec) = fmt_spec {
+                    let type_ch = match st.kind {
+                        VfsEntryKind::Directory => 'd',
+                        VfsEntryKind::Symlink => 'l',
+                        VfsEntryKind::File => '-',
+                    };
+                    let ux = if perm & 0o4000 != 0 {
+                        if perm & 0o100 != 0 { 's' } else { 'S' }
+                    } else if perm & 0o100 != 0 {
+                        'x'
+                    } else {
+                        '-'
+                    };
+                    let gx = if perm & 0o2000 != 0 {
+                        if perm & 0o010 != 0 { 's' } else { 'S' }
+                    } else if perm & 0o010 != 0 {
+                        'x'
+                    } else {
+                        '-'
+                    };
+                    let ox = if perm & 0o1000 != 0 {
+                        if perm & 0o001 != 0 { 't' } else { 'T' }
+                    } else if perm & 0o001 != 0 {
+                        'x'
+                    } else {
+                        '-'
+                    };
+                    let sym_perm = format!(
+                        "{type_ch}{}{}{}{}{}{}{}{}{}",
+                        if perm & 0o400 != 0 { 'r' } else { '-' },
+                        if perm & 0o200 != 0 { 'w' } else { '-' },
+                        ux,
+                        if perm & 0o040 != 0 { 'r' } else { '-' },
+                        if perm & 0o020 != 0 { 'w' } else { '-' },
+                        gx,
+                        if perm & 0o004 != 0 { 'r' } else { '-' },
+                        if perm & 0o002 != 0 { 'w' } else { '-' },
+                        ox,
+                    );
+                    let nlink = if spec.contains("%h") {
+                        let hl_tag = format!("__hardlink__:{p}");
+                        let extra = fs
+                            .export_entries()
+                            .unwrap_or_default()
+                            .iter()
+                            .filter(|e| e.symlink_target.as_deref() == Some(hl_tag.as_str()))
+                            .count();
+                        1 + extra
+                    } else {
+                        1
+                    };
+                    let quoted_n = if let Ok(lt) = fs.readlink(&p) {
+                        format!("'{t}' -> '{lt}'")
+                    } else {
+                        format!("'{t}'")
+                    };
+                    let atime_ms = atime_store()
+                        .lock()
+                        .ok()
+                        .and_then(|m| m.get(&p).copied())
+                        .unwrap_or(st.mtime_ms);
                     let rendered = spec
+                        .replace("%A", &sym_perm)
                         .replace("%a", &format!("{perm:o}"))
+                        .replace("%h", &nlink.to_string())
+                        .replace("%N", &quoted_n)
                         .replace("%s", &st.size.to_string())
                         .replace("%n", &t)
                         .replace("%F", ftype)
-                        .replace("%Y", &(st.mtime_ms / 1000).to_string());
-                    out.push_str(&rendered);
-                    out.push('\n');
+                        .replace("%Y", &(st.mtime_ms / 1000).to_string())
+                        .replace("%X", &(atime_ms / 1000).to_string());
+                    if is_printf {
+                        let unescaped = rendered
+                            .replace("\\n", "\n")
+                            .replace("\\t", "\t")
+                            .replace("\\r", "\r")
+                            .replace("\\\\", "\\");
+                        out.push_str(&unescaped);
+                    } else {
+                        out.push_str(&rendered);
+                        out.push('\n');
+                    }
                 } else {
                     out.push_str(&format!("  File: {t}\n  Size: {}\t{ftype}\nAccess: ({perm:04o})\n", st.size));
                 }
@@ -734,6 +1426,8 @@ fn dir_bytes(path: &str, excludes: &[String], fs: &dyn SafeBashFs) -> usize {
 
 fn cmd_du(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut bytes_mode = false;
+    let mut summary_only = false;
+    let mut max_depth: Option<usize> = None;
     let mut excludes = Vec::new();
     let mut targets = Vec::new();
     let mut i = 0usize;
@@ -745,9 +1439,21 @@ fn cmd_du(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         } else if a == "--exclude" && i + 1 < args.len() {
             excludes.push(args[i + 1].clone());
             i += 2;
+        } else if let Some(d) = a.strip_prefix("--max-depth=") {
+            max_depth = d.parse().ok();
+            i += 1;
+        } else if a == "-d" && i + 1 < args.len() {
+            max_depth = args[i + 1].parse().ok();
+            i += 2;
+        } else if let Some(d) = a.strip_prefix("-d") && !d.is_empty() && d.chars().all(|c| c.is_ascii_digit()) {
+            max_depth = d.parse().ok();
+            i += 1;
         } else if a.starts_with('-') {
             if a.contains('b') {
                 bytes_mode = true;
+            }
+            if a.contains('s') {
+                summary_only = true;
             }
             i += 1;
         } else {
@@ -758,18 +1464,260 @@ fn cmd_du(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if targets.is_empty() {
         targets.push(".".to_string());
     }
+    if summary_only {
+        max_depth = Some(0);
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn walk_du(
+        disp: &str,
+        full: &str,
+        depth: usize,
+        max_depth: Option<usize>,
+        bytes_mode: bool,
+        excludes: &[String],
+        fs: &dyn SafeBashFs,
+        out: &mut String,
+    ) {
+        if fs.is_dir(full) {
+            let mut entries = fs.list_dir(full).unwrap_or_default();
+            entries.sort();
+            for name in entries {
+                let child_full = if full == "/" {
+                    format!("/{name}")
+                } else {
+                    format!("{full}/{name}")
+                };
+                if fs.is_dir(&child_full) {
+                    let child_disp = if disp == "/" {
+                        format!("/{name}")
+                    } else {
+                        format!("{}/{name}", disp.trim_end_matches('/'))
+                    };
+                    walk_du(
+                        &child_disp,
+                        &child_full,
+                        depth + 1,
+                        max_depth,
+                        bytes_mode,
+                        excludes,
+                        fs,
+                        out,
+                    );
+                }
+            }
+        }
+        if max_depth.map(|md| depth <= md).unwrap_or(true) {
+            let b = dir_bytes(full, excludes, fs);
+            let val = if bytes_mode { b } else { b.div_ceil(1024).max(1) };
+            out.push_str(&format!("{val}\t{disp}\n"));
+        }
+    }
     let mut out = String::new();
     for t in targets {
         let p = resolve_posix_path(cwd, &t);
-        let b = dir_bytes(&p, &excludes, fs);
-        let val = if bytes_mode { b } else { b.div_ceil(1024).max(1) };
-        out.push_str(&format!("{val}\t{t}\n"));
+        walk_du(&t, &p, 0, max_depth, bytes_mode, &excludes, fs, &mut out);
     }
     ok_out(&out)
 }
 
-fn cmd_df() -> BuiltinOutcome {
-    ok_out("Filesystem     1K-blocks  Used Available Use% Mounted on\ntmpfs              65536     0     65536   0% /\n")
+fn cmd_df(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut show_type = false;
+    let mut show_inodes = false;
+    let mut show_total = false;
+    let mut block_header = "1K-blocks".to_string();
+    let mut include_types: Vec<String> = Vec::new();
+    let mut exclude_types: Vec<String> = Vec::new();
+    let mut output_cols: Option<Vec<String>> = None;
+    let mut targets: Vec<String> = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if let Some(cols) = a.strip_prefix("--output=") {
+            output_cols = Some(cols.split(',').map(|s| s.trim().to_string()).collect());
+            i += 1;
+        } else if a == "--total" {
+            show_total = true;
+            i += 1;
+        } else if (a == "-B" || a == "--block-size") && i + 1 < args.len() {
+            block_header = format!("{}-blocks", args[i + 1]);
+            i += 2;
+        } else if let Some(bs) = a.strip_prefix("--block-size=").or_else(|| a.strip_prefix("-B")) && !bs.is_empty() {
+            block_header = format!("{bs}-blocks");
+            i += 1;
+        } else if (a == "-t" || a == "--type") && i + 1 < args.len() {
+            include_types.push(args[i + 1].clone());
+            i += 2;
+        } else if let Some(t) = a.strip_prefix("--type=").or_else(|| a.strip_prefix("-t")) && !t.is_empty() {
+            include_types.push(t.to_string());
+            i += 1;
+        } else if (a == "-x" || a == "--exclude-type") && i + 1 < args.len() {
+            exclude_types.push(args[i + 1].clone());
+            i += 2;
+        } else if let Some(t) = a.strip_prefix("--exclude-type=").or_else(|| a.strip_prefix("-x")) && !t.is_empty() {
+            exclude_types.push(t.to_string());
+            i += 1;
+        } else if a.starts_with('-') && !a.starts_with("--") {
+            for ch in a[1..].chars() {
+                match ch {
+                    'T' => show_type = true,
+                    'i' => show_inodes = true,
+                    'h' | 'H' => block_header = "Size".to_string(),
+                    _ => {}
+                }
+            }
+            i += 1;
+        } else if !a.starts_with('-') {
+            targets.push(a.clone());
+            i += 1;
+        } else {
+            i += 1;
+        }
+    }
+
+    for t in &targets {
+        let p = resolve_posix_path(cwd, t);
+        if !fs.exists(&p) && fs.lstat(&p).is_err() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("df: {t}: No such file or directory\n"),
+                exit_code: 1,
+            };
+        }
+    }
+
+    struct DfRow {
+        source: &'static str,
+        fstype: &'static str,
+        blocks: &'static str,
+        used: &'static str,
+        avail: &'static str,
+        pcent: &'static str,
+        target: &'static str,
+    }
+    let all_rows = if targets.is_empty() {
+        vec![
+            DfRow {
+                source: "sandbox-vfs",
+                fstype: "vfs",
+                blocks: "65536",
+                used: "8",
+                avail: "65528",
+                pcent: "1%",
+                target: "/",
+            },
+            DfRow {
+                source: "tmpfs",
+                fstype: "tmpfs",
+                blocks: "65536",
+                used: "0",
+                avail: "65536",
+                pcent: "0%",
+                target: "/tmp",
+            },
+        ]
+    } else {
+        vec![DfRow {
+            source: "sandbox-vfs",
+            fstype: "vfs",
+            blocks: "65536",
+            used: "8",
+            avail: "65528",
+            pcent: "1%",
+            target: "/",
+        }]
+    };
+
+    let rows: Vec<&DfRow> = all_rows
+        .iter()
+        .filter(|r| {
+            (include_types.is_empty() || include_types.iter().any(|t| t == r.fstype))
+                && !exclude_types.iter().any(|t| t == r.fstype)
+        })
+        .collect();
+
+    let mut out = String::new();
+    if let Some(cols) = output_cols {
+        let hdr: Vec<&str> = cols
+            .iter()
+            .map(|c| match c.as_str() {
+                "source" => "Filesystem",
+                "fstype" => "Type",
+                "target" => "Mounted on",
+                "size" => block_header.as_str(),
+                "used" => "Used",
+                "avail" => "Avail",
+                "pcent" => "Use%",
+                other => other,
+            })
+            .collect();
+        out.push_str(&format!("{}\n", hdr.join(" ")));
+        for r in &rows {
+            let vals: Vec<&str> = cols
+                .iter()
+                .map(|c| match c.as_str() {
+                    "source" => r.source,
+                    "fstype" => r.fstype,
+                    "target" => r.target,
+                    "size" => r.blocks,
+                    "used" => r.used,
+                    "avail" => r.avail,
+                    "pcent" => r.pcent,
+                    _ => "-",
+                })
+                .collect();
+            out.push_str(&format!("{}\n", vals.join(" ")));
+        }
+        if show_total {
+            let vals: Vec<&str> = cols
+                .iter()
+                .enumerate()
+                .map(|(idx, c)| {
+                    if idx == 0 || c == "source" {
+                        "total"
+                    } else {
+                        "-"
+                    }
+                })
+                .collect();
+            out.push_str(&format!("{}\n", vals.join(" ")));
+        }
+        return ok_out(&out);
+    }
+
+    if show_inodes {
+        out.push_str("Filesystem Inodes IUsed IFree IUse% Mounted on\n");
+        for r in &rows {
+            out.push_str(&format!(
+                "{} 100000 10 99990 1% {}\n",
+                r.source, r.target
+            ));
+        }
+        return ok_out(&out);
+    }
+
+    if show_type {
+        out.push_str(&format!(
+            "Filesystem Type {block_header} Used Available Use% Mounted on\n"
+        ));
+        for r in &rows {
+            out.push_str(&format!(
+                "{} {} {} {} {} {} {}\n",
+                r.source, r.fstype, r.blocks, r.used, r.avail, r.pcent, r.target
+            ));
+        }
+    } else {
+        out.push_str(&format!(
+            "Filesystem {block_header} Used Available Use% Mounted on\n"
+        ));
+        for r in &rows {
+            out.push_str(&format!(
+                "{} {} {} {} {} {}\n",
+                r.source, r.blocks, r.used, r.avail, r.pcent, r.target
+            ));
+        }
+    }
+    ok_out(&out)
 }
 
 fn cmd_mktemp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -883,6 +1831,8 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut json_mode = false;
     let mut show_all = false;
     let mut dirs_only = false;
+    let mut no_indent = false;
+    let mut full_path = false;
     let mut max_depth: Option<usize> = None;
     let mut ignore_pat: Option<String> = None;
     let mut match_pat: Option<String> = None;
@@ -898,6 +1848,12 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             i += 1;
         } else if a == "-d" {
             dirs_only = true;
+            i += 1;
+        } else if a == "-i" {
+            no_indent = true;
+            i += 1;
+        } else if a == "-f" {
+            full_path = true;
             i += 1;
         } else if a == "-L" && i + 1 < args.len() {
             max_depth = args[i + 1].parse().ok();
@@ -937,6 +1893,7 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         ));
     }
     let mut out = format!("{target}\n");
+    #[allow(clippy::too_many_arguments)]
     fn render_tree_text(
         dir_path: &str,
         prefix: &str,
@@ -944,6 +1901,8 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         max_depth: Option<usize>,
         show_all: bool,
         dirs_only: bool,
+        no_indent: bool,
+        full_path: bool,
         ignore_pat: Option<&str>,
         match_pat: Option<&str>,
         fs: &dyn SafeBashFs,
@@ -978,9 +1937,14 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             .collect();
         for (idx, n) in filtered.iter().enumerate() {
             let last = idx + 1 == filtered.len();
-            let branch = if last { "`-- " } else { "|-- " };
-            out.push_str(&format!("{prefix}{branch}{n}\n"));
             let child = resolve_posix_path(dir_path, n);
+            let disp = if full_path { child.as_str() } else { n.as_str() };
+            if no_indent {
+                out.push_str(&format!("{disp}\n"));
+            } else {
+                let branch = if last { "`-- " } else { "|-- " };
+                out.push_str(&format!("{prefix}{branch}{disp}\n"));
+            }
             if fs.is_dir(&child) {
                 let next_prefix = format!("{prefix}{}", if last { "    " } else { "|   " });
                 render_tree_text(
@@ -990,6 +1954,8 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     max_depth,
                     show_all,
                     dirs_only,
+                    no_indent,
+                    full_path,
                     ignore_pat,
                     match_pat,
                     fs,
@@ -1005,6 +1971,8 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         max_depth,
         show_all,
         dirs_only,
+        no_indent,
+        full_path,
         ignore_pat.as_deref(),
         match_pat.as_deref(),
         fs,
@@ -1016,29 +1984,62 @@ fn cmd_tree(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
 fn cmd_file(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let brief = args.iter().any(|a| a == "-b" || a == "--brief");
     let mime = args.iter().any(|a| a == "--mime-type" || a == "-i");
+    let deref = args.iter().any(|a| a == "-L" || a == "--dereference");
     let mut out = String::new();
     for a in args {
         if a.starts_with('-') {
             continue;
         }
-        let p = resolve_posix_path(cwd, a);
-        let desc = if fs.is_dir(&p) {
+        let mut p = resolve_posix_path(cwd, a);
+        let is_symlink = fs.readlink(&p).is_ok();
+        if is_symlink && deref {
+            if let Ok(target) = fs.readlink(&p) {
+                p = resolve_posix_path(&crate::vfs::dirname_posix_path(&p), &target);
+            }
+        }
+        let desc = if is_symlink && !deref {
+            if mime { "inode/symlink" } else { "symbolic link" }
+        } else if fs.is_dir(&p) {
             if mime { "inode/directory" } else { "directory" }
         } else if let Ok(data) = fs.read_file(&p) {
             if data.starts_with(b"\x89PNG\r\n\x1a\n") {
                 if mime { "image/png" } else { "PNG image data" }
+            } else if data.starts_with(b"\xff\xd8\xff") {
+                if mime { "image/jpeg" } else { "JPEG image data" }
+            } else if data.starts_with(b"GIF87a") || data.starts_with(b"GIF89a") {
+                if mime { "image/gif" } else { "GIF image data" }
+            } else if data.len() >= 12 && data.starts_with(b"RIFF") && &data[8..12] == b"WEBP" {
+                if mime { "image/webp" } else { "RIFF (little-endian) data, Web/P image" }
+            } else if data.starts_with(b"II*\x00") || data.starts_with(b"MM\x00*") {
+                if mime { "image/tiff" } else { "TIFF image data" }
             } else if data.starts_with(b"%PDF-") {
                 if mime { "application/pdf" } else { "PDF document" }
-            } else if data.starts_with(b"\x1f\x8b") {
+            } else if data.starts_with(b"\x00asm") {
+                if mime { "application/wasm" } else { "WebAssembly binary module" }
+            } else if data.starts_with(b"SQLite format 3\0")
+                || p.ends_with(".db")
+                || p.ends_with(".sqlite")
+                || p.ends_with(".sqlite3")
+            {
+                if mime { "application/vnd.sqlite3" } else { "SQLite 3.x database" }
+            } else if data.starts_with(b"BZh") || p.ends_with(".bz2") {
+                if mime { "application/x-bzip2" } else { "bzip2 compressed data" }
+            } else if data.starts_with(b"\xfd7zXZ\x00") || p.ends_with(".xz") {
+                if mime { "application/x-xz" } else { "XZ compressed data" }
+            } else if data.starts_with(b"\x28\xb5\x2f\xfd") || p.ends_with(".zst") {
+                if mime { "application/zstd" } else { "Zstandard compressed data" }
+            } else if data.starts_with(b"\x1f\x8b") || p.ends_with(".gz") {
                 if mime { "application/gzip" } else { "gzip compressed data" }
-            } else if data.starts_with(b"PK\x03\x04") {
+            } else if data.starts_with(b"PK\x03\x04") || p.ends_with(".zip") {
                 if mime { "application/zip" } else { "Zip archive data" }
             } else if data.starts_with(b"#!") {
-                if mime { "text/x-shellscript" } else { "POSIX shell script, ASCII text executable" }
+                if mime { "text/x-shellscript" } else { "shell script, ASCII text" }
             } else if data.starts_with(b"<?xml") || data.starts_with(b"<svg") {
                 if mime { "text/xml" } else { "XML 1.0 document, ASCII text" }
             } else if data.starts_with(b"{") || data.starts_with(b"[") {
                 if mime { "application/json" } else { "JSON text data" }
+            } else if p.ends_with(".csv") {
+                if mime { "text/csv" } else { "CSV text, ASCII text" }
             } else if data.is_empty() {
                 if mime { "inode/x-empty" } else { "empty" }
             } else if mime {

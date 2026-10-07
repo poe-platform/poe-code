@@ -1,4 +1,4 @@
-use crate::vfs::path::{normalize_posix_path, parent_posix_path, resolve_posix_path};
+use crate::vfs::path::{normalize_posix_path, parent_posix_path};
 use crate::vfs::{FileStat, FsError, FsErrorCode, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -96,7 +96,9 @@ impl MemoryVfs {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|_| FsError::new(FsErrorCode::Io, "lock poisoned"))?;
         match guard.nodes.get(&norm) {
-            Some(MemoryNode::Symlink { target, .. }) => Ok(target.as_bytes().to_vec()),
+            Some(MemoryNode::Symlink { target, .. }) if !target.starts_with("__hardlink__:") => {
+                Ok(target.as_bytes().to_vec())
+            }
             Some(_) => Err(FsError::new(FsErrorCode::InvalidInput, format!("EINVAL: not a symlink '{norm}'"))),
             None => Err(FsError::new(FsErrorCode::NotFound, format!("ENOENT: no such file or directory '{norm}'"))),
         }
@@ -116,11 +118,22 @@ impl MemoryVfs {
             return Ok(norm);
         }
         let mut hops = 0usize;
-        let parts: Vec<&str> = norm.split('/').filter(|p| !p.is_empty()).collect();
+        let mut queue: std::collections::VecDeque<String> = norm
+            .split('/')
+            .filter(|p| !p.is_empty())
+            .map(String::from)
+            .collect();
         let mut current = String::from("/");
 
-        for (idx, part) in parts.iter().enumerate() {
-            let is_last = idx + 1 == parts.len();
+        while let Some(part) = queue.pop_front() {
+            if part == "." || part.is_empty() {
+                continue;
+            }
+            if part == ".." {
+                current = parent_posix_path(&current).unwrap_or_else(|| "/".to_string());
+                continue;
+            }
+            let is_last = queue.is_empty();
             let candidate = if current == "/" {
                 format!("/{part}")
             } else {
@@ -132,8 +145,7 @@ impl MemoryVfs {
                 break;
             }
 
-            let mut resolved = candidate;
-            while let Some(MemoryNode::Symlink { target, .. }) = state.nodes.get(&resolved) {
+            if let Some(MemoryNode::Symlink { target, .. }) = state.nodes.get(&candidate) {
                 hops += 1;
                 if hops > state.limits.max_symlink_hops {
                     return Err(FsError::new(
@@ -141,10 +153,21 @@ impl MemoryVfs {
                         format!("ELOOP: too many symbolic links encountered '{path}'"),
                     ));
                 }
-                let parent = parent_posix_path(&resolved).unwrap_or_else(|| "/".to_string());
-                resolved = resolve_posix_path(&parent, target);
+                let clean_target = target.strip_prefix("__hardlink__:").unwrap_or(target);
+                if clean_target.starts_with('/') {
+                    current = String::from("/");
+                }
+                let target_parts: Vec<String> = clean_target
+                    .split('/')
+                    .filter(|p| !p.is_empty())
+                    .map(String::from)
+                    .collect();
+                for tp in target_parts.into_iter().rev() {
+                    queue.push_front(tp);
+                }
+            } else {
+                current = candidate;
             }
-            current = resolved;
         }
         Ok(current)
     }
@@ -280,8 +303,29 @@ impl SafeBashFs for MemoryVfs {
             ));
         }
         for k in keys {
-            if let Some(MemoryNode::File { data, .. }) = guard.nodes.remove(&k) {
-                guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+            if let Some(MemoryNode::File { data, mode, mtime_ms }) = guard.nodes.remove(&k) {
+                let hl_marker = format!("__hardlink__:{k}");
+                let survivor = guard
+                    .nodes
+                    .iter()
+                    .find_map(|(nk, nv)| match nv {
+                        MemoryNode::Symlink { target, .. } if target == &hl_marker => {
+                            Some(nk.clone())
+                        }
+                        _ => None,
+                    });
+                if let Some(surv_key) = survivor {
+                    guard.nodes.insert(
+                        surv_key,
+                        MemoryNode::File {
+                            data,
+                            mode,
+                            mtime_ms,
+                        },
+                    );
+                } else {
+                    guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+                }
             }
         }
         drop(guard);
@@ -461,6 +505,10 @@ impl SafeBashFs for MemoryVfs {
                 mode: *mode,
                 mtime_ms: *mtime_ms,
             }),
+            Some(MemoryNode::Symlink { target, .. }) if target.starts_with("__hardlink__:") => {
+                drop(guard);
+                self.stat(&norm)
+            }
             Some(MemoryNode::Symlink { target, mode, mtime_ms }) => Ok(FileStat {
                 kind: VfsEntryKind::Symlink,
                 size: target.len(),

@@ -235,7 +235,7 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 current.push(ch);
                 i += 1;
             }
-            '(' | ')' if in_double_bracket => {
+            '(' | ')' if in_double_bracket && !(ch == '(' && current.ends_with(['?', '*', '+', '@', '!'])) => {
                 if !current.is_empty() {
                     tokens.push(Token::Word(std::mem::take(&mut current)));
                 }
@@ -496,6 +496,51 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     tokens.push(Token::RedirectIn(fd));
                 } else {
                     tokens.push(Token::RedirectIn(fd));
+                }
+            }
+            '[' if !current.is_empty()
+                && current.chars().enumerate().all(|(idx, c)| {
+                    if idx == 0 {
+                        c.is_ascii_alphabetic() || c == '_'
+                    } else {
+                        c.is_ascii_alphanumeric() || c == '_'
+                    }
+                }) =>
+            {
+                let mut j = i + 1;
+                let mut depth = 1usize;
+                let mut in_q: Option<char> = None;
+                while j < chars.len() && chars[j] != '\n' && depth > 0 {
+                    let c = chars[j];
+                    if let Some(q) = in_q {
+                        if c == '\\' && q == '"' && j + 1 < chars.len() {
+                            j += 2;
+                            continue;
+                        }
+                        if c == q {
+                            in_q = None;
+                        }
+                    } else if c == '"' || c == '\'' {
+                        in_q = Some(c);
+                    } else if c == '[' {
+                        depth += 1;
+                    } else if c == ']' {
+                        depth -= 1;
+                    }
+                    j += 1;
+                }
+                let is_assign_sub = depth == 0
+                    && j < chars.len()
+                    && (chars[j] == '='
+                        || (chars[j] == '+' && j + 1 < chars.len() && chars[j + 1] == '='));
+                if is_assign_sub {
+                    while i < j {
+                        current.push(chars[i]);
+                        i += 1;
+                    }
+                } else {
+                    current.push('[');
+                    i += 1;
                 }
             }
             other => {

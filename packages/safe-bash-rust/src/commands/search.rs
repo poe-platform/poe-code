@@ -18,7 +18,7 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     match cmd {
-        "grep" | "egrep" | "fgrep" => Some(cmd_grep(
+        "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
             cmd,
             args,
             stdin,
@@ -218,6 +218,11 @@ pub fn is_known_command(name: &str) -> bool {
             | "grep"
             | "egrep"
             | "fgrep"
+            | "rgrep"
+            | "wdiff"
+            | "openssl"
+            | "gpg"
+            | "mdq"
             | "rg"
             | "find"
             | "fd"
@@ -237,13 +242,22 @@ pub fn is_known_command(name: &str) -> bool {
             | "dos2unix"
             | "unix2dos"
             | "timeout"
-            | "unxz"
-            | "unzstd"
             | "disown"
             | "kill"
             | "csvcut"
             | "csvgrep"
             | "csvstat"
+            | "csvsort"
+            | "csvstack"
+            | "csvjoin"
+            | "csvjson"
+            | "in2csv"
+            | "csvformat"
+            | "csvlook"
+            | "csvsql"
+            | "sql2csv"
+            | "csvclean"
+            | "xq"
             | "xan"
             | "xmllint"
             | "htmlq"
@@ -253,9 +267,23 @@ pub fn is_known_command(name: &str) -> bool {
             | "gzip"
             | "gunzip"
             | "zcat"
+            | "bzip2"
+            | "bunzip2"
+            | "bzcat"
+            | "xz"
+            | "unxz"
+            | "xzcat"
+            | "lzma"
+            | "unlzma"
+            | "lzcat"
+            | "zstd"
+            | "unzstd"
+            | "zstdcat"
             | "zip"
             | "unzip"
             | "sha256sum"
+            | "sha224sum"
+            | "sha384sum"
             | "sha512sum"
             | "sha1sum"
             | "md5sum"
@@ -263,6 +291,7 @@ pub fn is_known_command(name: &str) -> bool {
             | "base64"
             | "base32"
             | "xxd"
+            | "strings"
             | "od"
             | "hexdump"
             | "hd"
@@ -276,6 +305,53 @@ pub fn is_known_command(name: &str) -> bool {
             | "less"
             | "more"
             | "pathchk"
+            | "dd"
+            | "install"
+            | "gawk"
+            | "mawk"
+            | "diff3"
+            | "html-to-markdown"
+            | "mmdc"
+            | "sha256"
+            | "sha224"
+            | "sha384"
+            | "sha512"
+            | "sha1"
+            | "md5"
+            | "b2sum"
+            | "blake2b"
+            | "ffmpeg"
+            | "ffprobe"
+            | "soffice"
+            | "libreoffice"
+            | "wkhtmltopdf"
+            | "pdfunite"
+            | "pdfseparate"
+            | "qpdf"
+            | "pdftk"
+            | "pdfinfo"
+            | "pdffonts"
+            | "pdfdetach"
+            | "pdftotext"
+            | "pdftohtml"
+            | "pdftoppm"
+            | "pdftocairo"
+            | "pdfimages"
+            | "diffpdf"
+            | "pdfdiff"
+            | "svgo"
+            | "rsvg-convert"
+            | "sox"
+            | "soxi"
+            | "qrencode"
+            | "ssh"
+            | "ssh-keygen"
+            | "magick"
+            | "convert"
+            | "mogrify"
+            | "sips"
+            | "exiftool"
+            | "identify"
     )
 }
 
@@ -347,7 +423,9 @@ fn find_single_pattern(
     line_regexp: bool,
 ) -> Vec<(usize, usize)> {
     if !fixed_strings {
-        if let Some(alts) = split_top_level_alternation(pat) {
+        if let Some(alts) = split_top_level_alternation(pat)
+            && !alts.iter().any(|p| p.is_empty())
+        {
             let mut all = Vec::new();
             for alt in alts {
                 all.extend(find_single_pattern(
@@ -506,7 +584,21 @@ enum RxAtom {
     Space(bool),
     Class { negate: bool, chars: Vec<(char, char)> },
     Group(Vec<String>),
+    Backref(usize),
     WordBoundary,
+    WordStart,
+    WordEnd,
+}
+
+fn check_boundary_atom(atom: &RxAtom, hay: &[(usize, char)], pos: usize) -> Option<bool> {
+    let before_word = pos > 0 && is_word_char(hay[pos - 1].1);
+    let after_word = pos < hay.len() && is_word_char(hay[pos].1);
+    match atom {
+        RxAtom::WordBoundary => Some(before_word != after_word),
+        RxAtom::WordStart => Some(!before_word && after_word),
+        RxAtom::WordEnd => Some(before_word && !after_word),
+        _ => None,
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -514,6 +606,7 @@ struct RxToken {
     atom: RxAtom,
     min: usize,
     max: Option<usize>,
+    lazy: bool,
 }
 
 fn has_unescaped_ere_syntax(pat: &str) -> bool {
@@ -554,6 +647,7 @@ fn normalize_bre_escapes(pat: &str) -> String {
     }
     let mut out = String::new();
     let mut chars = pat.chars().peekable();
+    let mut in_bre_interval = false;
     while let Some(c) = chars.next() {
         if c == '\\' {
             if let Some(&nc) = chars.peek() {
@@ -561,13 +655,18 @@ fn normalize_bre_escapes(pat: &str) -> String {
                     out.push(chars.next().unwrap());
                     continue;
                 }
-                if nc == '{' || nc == '}' {
+                if nc == '{' {
                     let mut clone = chars.clone();
                     let _ = clone.next();
-                    if nc == '}' || clone.peek().is_some_and(|d| d.is_ascii_digit()) {
+                    if clone.peek().is_some_and(|d| d.is_ascii_digit()) {
+                        in_bre_interval = true;
                         out.push(chars.next().unwrap());
                         continue;
                     }
+                } else if nc == '}' && in_bre_interval {
+                    in_bre_interval = false;
+                    out.push(chars.next().unwrap());
+                    continue;
                 }
                 out.push(c);
                 out.push(chars.next().unwrap());
@@ -579,6 +678,79 @@ fn normalize_bre_escapes(pat: &str) -> String {
     out
 }
 
+fn preprocess_ere_pattern(pat: &str, dotall: bool) -> String {
+    let chs: Vec<char> = pat.chars().collect();
+    let mut out = String::with_capacity(pat.len() + 8);
+    let mut k = 0usize;
+    let mut in_bracket = false;
+    while k < chs.len() {
+        if chs[k] == '\\' && k + 1 < chs.len() {
+            let nc = chs[k + 1];
+            if !in_bracket && matches!(nc, '(' | ')' | '+' | '?' | '{' | '}') {
+                out.push('[');
+                out.push(nc);
+                out.push(']');
+            } else {
+                out.push('\\');
+                out.push(nc);
+            }
+            k += 2;
+        } else if chs[k] == '[' && !in_bracket {
+            in_bracket = true;
+            out.push('[');
+            k += 1;
+        } else if chs[k] == ']' && in_bracket {
+            in_bracket = false;
+            out.push(']');
+            k += 1;
+        } else if !in_bracket && dotall && chs[k] == '.' {
+            out.push_str("[\\D]");
+            k += 1;
+        } else {
+            out.push(chs[k]);
+            k += 1;
+        }
+    }
+    out
+}
+
+fn has_unsupported_regex_features(pat: &str) -> bool {
+    let chs: Vec<char> = pat.chars().collect();
+    let mut k = 0usize;
+    let mut in_bracket = false;
+    while k < chs.len() {
+        if chs[k] == '\\' && k + 1 < chs.len() {
+            let nc = chs[k + 1];
+            if !in_bracket && nc.is_ascii_digit() && nc != '0' {
+                return true;
+            }
+            k += 2;
+            continue;
+        }
+        if chs[k] == '[' && !in_bracket {
+            in_bracket = true;
+            k += 1;
+            continue;
+        }
+        if chs[k] == ']' && in_bracket {
+            in_bracket = false;
+            k += 1;
+            continue;
+        }
+        if !in_bracket && chs[k] == '(' && k + 2 < chs.len() && chs[k + 1] == '?' {
+            let third = chs[k + 2];
+            if third == '=' || third == '!' {
+                return true;
+            }
+            if third == '<' && k + 3 < chs.len() && (chs[k + 3] == '=' || chs[k + 3] == '!') {
+                return true;
+            }
+        }
+        k += 1;
+    }
+    false
+}
+
 fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
     if fixed {
         return pat
@@ -587,6 +759,7 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                 atom: RxAtom::Char(c),
                 min: 1,
                 max: Some(1),
+                lazy: false,
             })
             .collect();
     }
@@ -612,9 +785,12 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                     's' => RxAtom::Space(false),
                     'S' => RxAtom::Space(true),
                     'b' => RxAtom::WordBoundary,
+                    '<' => RxAtom::WordStart,
+                    '>' => RxAtom::WordEnd,
                     'n' => RxAtom::Char('\n'),
                     't' => RxAtom::Char('\t'),
                     'r' => RxAtom::Char('\r'),
+                    d @ '1'..='9' => RxAtom::Backref((d as u8 - b'1') as usize),
                     other => RxAtom::Char(other),
                 }
             }
@@ -646,6 +822,11 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                                     ranges.push(('0', '9'));
                                     ranges.push(('a', 'z'));
                                     ranges.push(('A', 'Z'));
+                                }
+                                "[:xdigit:]" => {
+                                    ranges.push(('0', '9'));
+                                    ranges.push(('a', 'f'));
+                                    ranges.push(('A', 'F'));
                                 }
                                 "[:space:]" => {
                                     for ws in [' ', '\t', '\n', '\r'] {
@@ -721,7 +902,21 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                     inner.push(chars[idx]);
                     idx += 1;
                 }
-                let inner_clean = inner.strip_prefix("?:").unwrap_or(&inner);
+                let inner_clean = if let Some(rest) = inner.strip_prefix("?:") {
+                    rest
+                } else if let Some(rest) = inner.strip_prefix("?P<").or_else(|| inner.strip_prefix("?<")) {
+                    if !rest.starts_with('=') && !rest.starts_with('!') {
+                        if let Some(gt) = rest.find('>') {
+                            &rest[gt + 1..]
+                        } else {
+                            &inner
+                        }
+                    } else {
+                        &inner
+                    }
+                } else {
+                    &inner
+                };
                 let alts = split_top_level_alternation(inner_clean)
                     .unwrap_or_else(|| vec![inner_clean.to_string()]);
                 RxAtom::Group(alts)
@@ -734,8 +929,17 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
 
         let mut min = 1usize;
         let mut max = Some(1usize);
-        if matches!(atom, RxAtom::WordBoundary) {
-            out.push(RxToken { atom, min: 1, max: Some(1) });
+        let mut lazy = false;
+        if matches!(
+            atom,
+            RxAtom::WordBoundary | RxAtom::WordStart | RxAtom::WordEnd
+        ) {
+            out.push(RxToken {
+                atom,
+                min: 1,
+                max: Some(1),
+                lazy: false,
+            });
             continue;
         }
         if idx < chars.len() {
@@ -765,10 +969,16 @@ fn parse_rx(pat: &str, fixed: bool) -> Vec<RxToken> {
                 _ => {}
             }
             if idx < chars.len() && chars[idx] == '?' && (min != 1 || max != Some(1)) {
+                lazy = true;
                 idx += 1;
             }
         }
-        out.push(RxToken { atom, min, max });
+        out.push(RxToken {
+            atom,
+            min,
+            max,
+            lazy,
+        });
     }
     out
 }
@@ -790,6 +1000,14 @@ fn parse_quantifier(chars: &[char]) -> Option<(usize, Option<usize>, usize)> {
     }
 }
 
+fn has_backref_token(tokens: &[RxToken]) -> bool {
+    tokens.iter().any(|t| match &t.atom {
+        RxAtom::Backref(_) => true,
+        RxAtom::Group(alts) => alts.iter().any(|a| has_backref_token(&parse_rx(a, false))),
+        _ => false,
+    })
+}
+
 fn match_at_chars(
     pat: &str,
     hay: &[(usize, char)],
@@ -798,6 +1016,9 @@ fn match_at_chars(
     fixed: bool,
 ) -> Option<usize> {
     let tokens = parse_rx(pat, fixed);
+    if !fixed && has_backref_token(&tokens) {
+        return match_tokens_with_caps(&tokens, hay, "", pos, ignore_case).map(|(end, _)| end);
+    }
     match_tokens(&tokens, hay, pos, ignore_case)
 }
 
@@ -813,11 +1034,23 @@ fn match_tokens(
     let tok = &tokens[0];
     let rest = &tokens[1..];
 
-    if matches!(tok.atom, RxAtom::WordBoundary) {
-        let before_word = pos > 0 && is_word_char(hay[pos - 1].1);
-        let after_word = pos < hay.len() && is_word_char(hay[pos].1);
-        if before_word != after_word {
+    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
+        if ok {
             return match_tokens(rest, hay, pos, ignore_case);
+        }
+        return None;
+    }
+    if let RxAtom::Group(alts) = &tok.atom
+        && tok.min == 1
+        && tok.max == Some(1)
+    {
+        for alt in alts {
+            let sub_tokens = parse_rx(alt, false);
+            for end_pos in match_tokens_candidates(&sub_tokens, hay, pos, ignore_case) {
+                if let Some(final_pos) = match_tokens(rest, hay, end_pos, ignore_case) {
+                    return Some(final_pos);
+                }
+            }
         }
         return None;
     }
@@ -843,12 +1076,75 @@ fn match_tokens(
         return None;
     }
 
-    for idx in (tok.min..positions.len()).rev() {
-        if let Some(final_pos) = match_tokens(rest, hay, positions[idx], ignore_case) {
-            return Some(final_pos);
+    if tok.lazy {
+        for &step_pos in &positions[tok.min..positions.len()] {
+            if let Some(final_pos) = match_tokens(rest, hay, step_pos, ignore_case) {
+                return Some(final_pos);
+            }
+        }
+    } else {
+        for idx in (tok.min..positions.len()).rev() {
+            if let Some(final_pos) = match_tokens(rest, hay, positions[idx], ignore_case) {
+                return Some(final_pos);
+            }
         }
     }
     None
+}
+
+fn match_tokens_candidates(
+    tokens: &[RxToken],
+    hay: &[(usize, char)],
+    pos: usize,
+    ignore_case: bool,
+) -> Vec<usize> {
+    if tokens.is_empty() {
+        return vec![pos];
+    }
+    let tok = &tokens[0];
+    let rest = &tokens[1..];
+    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
+        if ok {
+            return match_tokens_candidates(rest, hay, pos, ignore_case);
+        }
+        return Vec::new();
+    }
+    if let RxAtom::Group(alts) = &tok.atom
+        && tok.min == 1
+        && tok.max == Some(1)
+    {
+        let mut out = Vec::new();
+        for alt in alts {
+            let sub_tokens = parse_rx(alt, false);
+            for end_pos in match_tokens_candidates(&sub_tokens, hay, pos, ignore_case) {
+                out.extend(match_tokens_candidates(rest, hay, end_pos, ignore_case));
+            }
+        }
+        return out;
+    }
+    let mut positions = vec![pos];
+    let mut count = 0usize;
+    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
+    while count < max_limit {
+        let cur_pos = *positions.last().unwrap();
+        if let Some(next_pos) = match_single_atom(&tok.atom, hay, cur_pos, ignore_case) {
+            if next_pos == cur_pos && count >= tok.min {
+                break;
+            }
+            positions.push(next_pos);
+            count += 1;
+        } else {
+            break;
+        }
+    }
+    if positions.len() - 1 < tok.min {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for idx in (tok.min..positions.len()).rev() {
+        out.extend(match_tokens_candidates(rest, hay, positions[idx], ignore_case));
+    }
+    out
 }
 
 fn match_single_atom(
@@ -901,7 +1197,11 @@ fn match_single_atom(
                     }
                     inside ^ negate
                 }
-                RxAtom::Group(_) | RxAtom::WordBoundary => false,
+                RxAtom::Group(_)
+                | RxAtom::Backref(_)
+                | RxAtom::WordBoundary
+                | RxAtom::WordStart
+                | RxAtom::WordEnd => false,
             };
             if matched { Some(pos + 1) } else { None }
         }
@@ -954,17 +1254,93 @@ fn match_tokens_with_caps(
     pos: usize,
     ignore_case: bool,
 ) -> Option<(usize, Vec<String>)> {
+    match_tokens_with_caps_ctx(tokens, hay, text, pos, ignore_case, &[])
+}
+
+fn match_tokens_with_caps_ctx(
+    tokens: &[RxToken],
+    hay: &[(usize, char)],
+    text: &str,
+    pos: usize,
+    ignore_case: bool,
+    prior_caps: &[String],
+) -> Option<(usize, Vec<String>)> {
     if tokens.is_empty() {
         return Some((pos, Vec::new()));
     }
     let tok = &tokens[0];
     let rest = &tokens[1..];
 
-    if matches!(tok.atom, RxAtom::WordBoundary) {
-        let before_word = pos > 0 && is_word_char(hay[pos - 1].1);
-        let after_word = pos < hay.len() && is_word_char(hay[pos].1);
-        if before_word != after_word {
-            return match_tokens_with_caps(rest, hay, text, pos, ignore_case);
+    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
+        if ok {
+            return match_tokens_with_caps_ctx(rest, hay, text, pos, ignore_case, prior_caps);
+        }
+        return None;
+    }
+    if let RxAtom::Backref(idx) = &tok.atom {
+        let expected = prior_caps.get(*idx)?;
+        let exp_chars: Vec<char> = expected.chars().collect();
+        let mut cur_pos = pos;
+        let mut positions = vec![cur_pos];
+        let mut count = 0usize;
+        let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
+        while count < max_limit {
+            if cur_pos + exp_chars.len() > hay.len() {
+                break;
+            }
+            let ok = exp_chars.iter().enumerate().all(|(k, &ec)| {
+                let hc = hay[cur_pos + k].1;
+                if ignore_case {
+                    hc.to_ascii_lowercase() == ec.to_ascii_lowercase()
+                } else {
+                    hc == ec
+                }
+            });
+            if !ok {
+                break;
+            }
+            let next_pos = cur_pos + exp_chars.len();
+            if next_pos == cur_pos && count >= tok.min {
+                break;
+            }
+            cur_pos = next_pos;
+            positions.push(cur_pos);
+            count += 1;
+        }
+        if positions.len() - 1 < tok.min {
+            return None;
+        }
+        for step_idx in (tok.min..positions.len()).rev() {
+            if let Some((final_pos, rest_caps)) =
+                match_tokens_with_caps_ctx(rest, hay, text, positions[step_idx], ignore_case, prior_caps)
+            {
+                return Some((final_pos, rest_caps));
+            }
+        }
+        return None;
+    }
+    if let RxAtom::Group(alts) = &tok.atom
+        && tok.min == 1
+        && tok.max == Some(1)
+    {
+        for alt in alts {
+            let sub_tokens = parse_rx(alt, false);
+            for (end_pos, sub_caps) in
+                match_tokens_candidates_with_caps(&sub_tokens, hay, text, pos, ignore_case)
+            {
+                let captured_str: String = hay[pos..end_pos].iter().map(|&(_, c)| c).collect();
+                let mut next_prior = prior_caps.to_vec();
+                next_prior.push(captured_str.clone());
+                next_prior.extend(sub_caps.clone());
+                if let Some((final_pos, rest_caps)) =
+                    match_tokens_with_caps_ctx(rest, hay, text, end_pos, ignore_case, &next_prior)
+                {
+                    let mut combined = vec![captured_str];
+                    combined.extend(sub_caps);
+                    combined.extend(rest_caps);
+                    return Some((final_pos, combined));
+                }
+            }
         }
         return None;
     }
@@ -994,8 +1370,10 @@ fn match_tokens_with_caps(
 
     for idx in (tok.min..steps.len()).rev() {
         let (step_pos, ref step_caps) = steps[idx];
+        let mut next_prior = prior_caps.to_vec();
+        next_prior.extend(step_caps.clone());
         if let Some((final_pos, rest_caps)) =
-            match_tokens_with_caps(rest, hay, text, step_pos, ignore_case)
+            match_tokens_with_caps_ctx(rest, hay, text, step_pos, ignore_case, &next_prior)
         {
             let mut combined = step_caps.clone();
             combined.extend(rest_caps);
@@ -1003,6 +1381,82 @@ fn match_tokens_with_caps(
         }
     }
     None
+}
+
+fn match_tokens_candidates_with_caps(
+    tokens: &[RxToken],
+    hay: &[(usize, char)],
+    text: &str,
+    pos: usize,
+    ignore_case: bool,
+) -> Vec<(usize, Vec<String>)> {
+    if tokens.is_empty() {
+        return vec![(pos, Vec::new())];
+    }
+    let tok = &tokens[0];
+    let rest = &tokens[1..];
+    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
+        if ok {
+            return match_tokens_candidates_with_caps(rest, hay, text, pos, ignore_case);
+        }
+        return Vec::new();
+    }
+    if let RxAtom::Group(alts) = &tok.atom
+        && tok.min == 1
+        && tok.max == Some(1)
+    {
+        let mut out = Vec::new();
+        for alt in alts {
+            let sub_tokens = parse_rx(alt, false);
+            for (end_pos, sub_caps) in
+                match_tokens_candidates_with_caps(&sub_tokens, hay, text, pos, ignore_case)
+            {
+                let grp_str: String = hay[pos..end_pos].iter().map(|&(_, c)| c).collect();
+                let mut grp_caps = vec![grp_str];
+                grp_caps.extend(sub_caps);
+                for (final_pos, rest_caps) in
+                    match_tokens_candidates_with_caps(rest, hay, text, end_pos, ignore_case)
+                {
+                    let mut combined = grp_caps.clone();
+                    combined.extend(rest_caps);
+                    out.push((final_pos, combined));
+                }
+            }
+        }
+        return out;
+    }
+    let mut steps: Vec<(usize, Vec<String>)> = vec![(pos, Vec::new())];
+    let mut count = 0usize;
+    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
+    while count < max_limit {
+        let cur_pos = steps.last().unwrap().0;
+        if let Some((next_pos, step_caps)) =
+            match_single_atom_with_caps(&tok.atom, hay, text, cur_pos, ignore_case)
+        {
+            if next_pos == cur_pos && count >= tok.min {
+                break;
+            }
+            steps.push((next_pos, step_caps));
+            count += 1;
+        } else {
+            break;
+        }
+    }
+    if steps.len() - 1 < tok.min {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for idx in (tok.min..steps.len()).rev() {
+        let (step_pos, ref step_caps) = steps[idx];
+        for (final_pos, rest_caps) in
+            match_tokens_candidates_with_caps(rest, hay, text, step_pos, ignore_case)
+        {
+            let mut combined = step_caps.clone();
+            combined.extend(rest_caps);
+            out.push((final_pos, combined));
+        }
+    }
+    out
 }
 
 fn match_single_atom_with_caps(
@@ -1019,13 +1473,8 @@ fn match_single_atom_with_caps(
                 if let Some((end_pos, sub_caps)) =
                     match_tokens_with_caps(&sub_tokens, hay, text, pos, ignore_case)
                 {
-                    let start_byte = if pos < hay.len() { hay[pos].0 } else { text.len() };
-                    let end_byte = if end_pos < hay.len() {
-                        hay[end_pos].0
-                    } else {
-                        text.len()
-                    };
-                    let mut caps = vec![text[start_byte..end_byte].to_string()];
+                    let grp_str: String = hay[pos..end_pos].iter().map(|&(_, c)| c).collect();
+                    let mut caps = vec![grp_str];
                     caps.extend(sub_caps);
                     return Some((end_pos, caps));
                 }
@@ -1037,28 +1486,82 @@ fn match_single_atom_with_caps(
 }
 
 fn expand_regex_replacement(replacement: &str, matched_str: &str, caps: &[String]) -> String {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum CaseMode {
+        None,
+        UpperAll,
+        LowerAll,
+    }
+    let mut mode = CaseMode::None;
+    let mut next_char_case: Option<bool> = None;
+    let push_converted = |out: &mut String, s: &str, mode: CaseMode, next_case: &mut Option<bool>| {
+        for ch in s.chars() {
+            if let Some(upper) = next_case.take() {
+                if upper {
+                    for uc in ch.to_uppercase() {
+                        out.push(uc);
+                    }
+                } else {
+                    for lc in ch.to_lowercase() {
+                        out.push(lc);
+                    }
+                }
+            } else {
+                match mode {
+                    CaseMode::None => out.push(ch),
+                    CaseMode::UpperAll => {
+                        for uc in ch.to_uppercase() {
+                            out.push(uc);
+                        }
+                    }
+                    CaseMode::LowerAll => {
+                        for lc in ch.to_lowercase() {
+                            out.push(lc);
+                        }
+                    }
+                }
+            }
+        }
+    };
     let mut out = String::new();
     let mut chars = replacement.chars().peekable();
     while let Some(c) = chars.next() {
         if c == '\\' {
             match chars.next() {
+                Some('0') => {
+                    push_converted(&mut out, matched_str, mode, &mut next_char_case);
+                }
                 Some(d @ '1'..='9') => {
                     let idx = (d as u8 - b'1') as usize;
                     if let Some(cap) = caps.get(idx + 1) {
-                        out.push_str(cap);
+                        push_converted(&mut out, cap, mode, &mut next_char_case);
                     }
                 }
+                Some('U') => mode = CaseMode::UpperAll,
+                Some('L') => mode = CaseMode::LowerAll,
+                Some('E') => {
+                    mode = CaseMode::None;
+                    next_char_case = None;
+                }
+                Some('u') => next_char_case = Some(true),
+                Some('l') => next_char_case = Some(false),
                 Some('&') => out.push('&'),
                 Some('n') => out.push('\n'),
                 Some('t') => out.push('\t'),
                 Some('r') => out.push('\r'),
-                Some(other) => out.push(other),
+                Some(other) => {
+                    let mut tmp = String::new();
+                    tmp.push(other);
+                    push_converted(&mut out, &tmp, mode, &mut next_char_case);
+                }
                 None => out.push('\\'),
             }
         } else if c == '&' {
-            out.push_str(matched_str);
+            push_converted(&mut out, matched_str, mode, &mut next_char_case);
         } else {
-            out.push(c);
+            let mut tmp = String::new();
+            tmp.push(c);
+            push_converted(&mut out, &tmp, mode, &mut next_char_case);
         }
     }
     out
@@ -1072,10 +1575,22 @@ pub fn replace_regex_in_text(
     global: bool,
     nth: Option<usize>,
 ) -> (String, bool) {
+    let (out, count) = replace_regex_count_in_text(text, pat, replacement, ignore_case, global, nth);
+    (out, count > 0)
+}
+
+pub fn replace_regex_count_in_text(
+    text: &str,
+    pat: &str,
+    replacement: &str,
+    ignore_case: bool,
+    global: bool,
+    nth: Option<usize>,
+) -> (String, usize) {
     let rx = ZeroRegex::new(vec![pat.to_string()], ignore_case, false, false, false);
     let matches = rx.find_all(text);
     if matches.is_empty() {
-        return (text.to_string(), false);
+        return (text.to_string(), 0);
     }
     let no_caret = pat.strip_prefix('^').unwrap_or(pat);
     let core_pat = if has_unescaped_trailing_dollar(no_caret) {
@@ -1085,7 +1600,7 @@ pub fn replace_regex_in_text(
     };
     let mut out = String::new();
     let mut last_end = 0usize;
-    let mut replaced = false;
+    let mut replace_count = 0usize;
     for (idx, (s, e)) in matches.into_iter().enumerate() {
         if s < last_end {
             continue;
@@ -1104,14 +1619,14 @@ pub fn replace_regex_in_text(
                 .unwrap_or_else(|| vec![matched_str.to_string()]);
             let expanded = expand_regex_replacement(replacement, matched_str, &caps);
             out.push_str(&expanded);
-            replaced = true;
+            replace_count += 1;
         } else {
             out.push_str(&text[s..e]);
         }
         last_end = e;
     }
     out.push_str(&text[last_end..]);
-    (out, replaced)
+    (out, replace_count)
 }
 
 fn apply_rg_line_replace(
@@ -1136,14 +1651,55 @@ fn apply_rg_line_replace(
         let caps = regex_captures(&format!("^{pat0}$"), matched_slice, ignore_case)
             .or_else(|| regex_captures(pat0, matched_slice, ignore_case))
             .unwrap_or_else(|| vec![matched_slice.to_string()]);
-        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps));
+        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps, pat0));
         last = e;
     }
     out.push_str(&line[last..]);
     out
 }
 
-fn expand_rg_replacement(replacement: &str, matched_str: &str, caps: &[String]) -> String {
+fn extract_named_capture_groups(pat: &str) -> Vec<(String, usize)> {
+    let chs: Vec<char> = pat.chars().collect();
+    let mut out = Vec::new();
+    let mut idx = 0usize;
+    let mut in_bracket = false;
+    let mut group_num = 0usize;
+    while idx < chs.len() {
+        if chs[idx] == '\\' && idx + 1 < chs.len() {
+            idx += 2;
+            continue;
+        }
+        if chs[idx] == '[' && !in_bracket {
+            in_bracket = true;
+            idx += 1;
+            continue;
+        }
+        if chs[idx] == ']' && in_bracket {
+            in_bracket = false;
+            idx += 1;
+            continue;
+        }
+        if !in_bracket && chs[idx] == '(' {
+            group_num += 1;
+            let rest: String = chs[idx + 1..].iter().collect();
+            if let Some(after_p) = rest.strip_prefix("?P<").or_else(|| rest.strip_prefix("?<")) {
+                if !after_p.starts_with('=') && !after_p.starts_with('!') {
+                    if let Some(gt) = after_p.find('>') {
+                        let name = &after_p[..gt];
+                        if !name.is_empty() {
+                            out.push((name.to_string(), group_num));
+                        }
+                    }
+                }
+            }
+        }
+        idx += 1;
+    }
+    out
+}
+
+fn expand_rg_replacement(replacement: &str, matched_str: &str, caps: &[String], pat0: &str) -> String {
+    let named_groups = extract_named_capture_groups(pat0);
     let mut out = String::new();
     let mut chars = replacement.chars().peekable();
     while let Some(c) = chars.next() {
@@ -1158,6 +1714,44 @@ fn expand_rg_replacement(replacement: &str, matched_str: &str, caps: &[String]) 
                     let idx = (d as u8 - b'1') as usize;
                     if let Some(cap) = caps.get(idx + 1) {
                         out.push_str(cap);
+                    }
+                }
+                Some('{') => {
+                    chars.next();
+                    let mut token = String::new();
+                    while let Some(&nc) = chars.peek() {
+                        chars.next();
+                        if nc == '}' {
+                            break;
+                        }
+                        token.push(nc);
+                    }
+                    if token == "0" {
+                        out.push_str(matched_str);
+                    } else if let Ok(n) = token.parse::<usize>() {
+                        if let Some(cap) = caps.get(n) {
+                            out.push_str(cap);
+                        }
+                    } else if let Some((_, gidx)) = named_groups.iter().find(|(nm, _)| nm == &token) {
+                        if let Some(cap) = caps.get(*gidx) {
+                            out.push_str(cap);
+                        }
+                    }
+                }
+                Some(nc) if nc.is_ascii_alphabetic() || nc == '_' => {
+                    let mut token = String::new();
+                    while let Some(&ch) = chars.peek() {
+                        if ch.is_ascii_alphanumeric() || ch == '_' {
+                            token.push(ch);
+                            chars.next();
+                        } else {
+                            break;
+                        }
+                    }
+                    if let Some((_, gidx)) = named_groups.iter().find(|(nm, _)| nm == &token) {
+                        if let Some(cap) = caps.get(*gidx) {
+                            out.push_str(cap);
+                        }
                     }
                 }
                 Some('$') => {
@@ -1190,7 +1784,7 @@ fn json_escape_str(s: &str) -> String {
 }
 
 fn cmd_grep(
-    _invoked_as: &str,
+    invoked_as: &str,
     args: &[String],
     stdin: &str,
     cwd: &str,
@@ -1203,20 +1797,24 @@ fn cmd_grep(
     let mut line_number = false;
     let mut byte_offset = false;
     let mut null_delim = false;
+    let mut null_data = false;
     let mut files_with_matches = false;
     let mut files_without_match = false;
     let mut only_matching = false;
     let mut word_regexp = false;
     let mut line_regexp = false;
     let mut fixed_strings = default_fixed;
-    let mut recursive = false;
+    let mut extended_regexp = invoked_as == "egrep";
+    let mut recursive = invoked_as == "rgrep";
     let mut quiet = false;
     let mut no_filename = false;
+    let mut ignore_binary = false;
     let mut with_filename = false;
     let mut max_count: Option<usize> = None;
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
     let mut multiline = false;
+    let mut context_separator: Option<String> = Some("--".to_string());
     let mut globs: Vec<String> = Vec::new();
     let mut patterns: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
@@ -1238,17 +1836,24 @@ fn cmd_grep(
                 "--line-number" => line_number = true,
                 "--byte-offset" => byte_offset = true,
                 "--null" => null_delim = true,
+                "--null-data" => null_data = true,
                 "--files-with-matches" => files_with_matches = true,
                 "--files-without-match" => files_without_match = true,
                 "--only-matching" => only_matching = true,
                 "--word-regexp" => word_regexp = true,
                 "--line-regexp" => line_regexp = true,
                 "--fixed-strings" => fixed_strings = true,
-                "--extended-regexp" | "--basic-regexp" => {}
+                "--extended-regexp" => extended_regexp = true,
+                "--basic-regexp" => extended_regexp = false,
                 "--recursive" => recursive = true,
                 "--quiet" | "--silent" => quiet = true,
                 "--no-filename" => no_filename = true,
                 "--with-filename" => with_filename = true,
+                "--no-group-separator" => context_separator = None,
+                "--group-separator" if i + 1 < args.len() => {
+                    i += 1;
+                    context_separator = Some(args[i].clone());
+                }
                 "--include" if i + 1 < args.len() => {
                     i += 1;
                     globs.push(args[i].clone());
@@ -1277,6 +1882,8 @@ fn cmd_grep(
                         globs.push(format!("!{val}"));
                     } else if let Some(val) = a.strip_prefix("--exclude-dir=") {
                         globs.push(format!("!{val}"));
+                    } else if let Some(val) = a.strip_prefix("--group-separator=") {
+                        context_separator = Some(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--file=") {
                         let resolved = resolve_posix_path(cwd, val);
                         if let Ok(bytes) = fs.read_file(&resolved) {
@@ -1284,6 +1891,8 @@ fn cmd_grep(
                                 patterns.push(line.to_string());
                             }
                         }
+                    } else if a == "--binary-files=without-match" {
+                        ignore_binary = true;
                     }
                 }
             }
@@ -1301,17 +1910,21 @@ fn cmd_grep(
                     'n' => line_number = true,
                     'b' => byte_offset = true,
                     'Z' => null_delim = true,
+                    'z' => null_data = true,
                     'l' => files_with_matches = true,
                     'L' => files_without_match = true,
                     'o' => only_matching = true,
                     'w' => word_regexp = true,
                     'x' => line_regexp = true,
                     'F' => fixed_strings = true,
-                    'E' | 'G' | 'P' => {}
+                    'E' | 'P' => extended_regexp = true,
+                    'G' => extended_regexp = false,
                     'r' | 'R' => recursive = true,
                     'q' | 's' => quiet = true,
                     'h' => no_filename = true,
                     'H' => with_filename = true,
+                    'I' => ignore_binary = true,
+                    'a' => ignore_binary = false,
                     'U' => multiline = true,
                     'e' => {
                         let rest: String = chars[ci + 1..].iter().collect();
@@ -1381,6 +1994,55 @@ fn cmd_grep(
         i += 1;
     }
 
+    if !fixed_strings && patterns.iter().any(|p| has_unsupported_regex_features(p)) {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "grep: invalid or unsupported regular expression\n".to_string(),
+            exit_code: 2,
+        };
+    }
+
+    if extended_regexp && !fixed_strings {
+        patterns = patterns
+            .into_iter()
+            .map(|pat| preprocess_ere_pattern(&pat, false))
+            .collect();
+    } else if !extended_regexp && !fixed_strings {
+        patterns = patterns
+            .into_iter()
+            .map(|pat| {
+                let mut out = String::with_capacity(pat.len() + 4);
+                let chs: Vec<char> = pat.chars().collect();
+                let mut k = 0usize;
+                let mut in_bracket = false;
+                while k < chs.len() {
+                    if chs[k] == '\\' && k + 1 < chs.len() {
+                        out.push('\\');
+                        out.push(chs[k + 1]);
+                        k += 2;
+                    } else if chs[k] == '[' && !in_bracket {
+                        in_bracket = true;
+                        out.push('[');
+                        k += 1;
+                    } else if chs[k] == ']' && in_bracket {
+                        in_bracket = false;
+                        out.push(']');
+                        k += 1;
+                    } else if !in_bracket && (chs[k] == '(' || chs[k] == ')') {
+                        out.push('[');
+                        out.push(chs[k]);
+                        out.push(']');
+                        k += 1;
+                    } else {
+                        out.push(chs[k]);
+                        k += 1;
+                    }
+                }
+                out
+            })
+            .collect();
+    }
+
     run_grep_engine(
         patterns,
         targets,
@@ -1413,9 +2075,20 @@ fn cmd_grep(
             unrestricted_level: 3,
             byte_offset,
             null_delim,
+            null_data,
             json_output: false,
             replace: None,
             multiline,
+            show_column: false,
+            ignore_binary,
+            max_depth: None,
+            max_filesize: None,
+            count_matches: false,
+            include_zero: true,
+            trim: false,
+            heading: false,
+            crlf: false,
+            context_separator,
         },
     )
 }
@@ -1425,7 +2098,13 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut smart_case = false;
     let mut invert = false;
     let mut count_only = false;
+    let mut count_matches = false;
+    let mut include_zero = false;
+    let mut trim = false;
+    let mut heading = false;
+    let mut crlf = false;
     let mut line_number = false;
+    let mut show_column = false;
     let mut byte_offset = false;
     let mut null_delim = false;
     let mut files_with_matches = false;
@@ -1442,10 +2121,14 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut unrestricted_level = 0usize;
     let mut json_output = false;
     let mut multiline = false;
+    let mut multiline_dotall = false;
     let mut replace: Option<String> = None;
     let mut max_count: Option<usize> = None;
+    let mut max_depth: Option<usize> = None;
+    let mut max_filesize: Option<usize> = None;
     let mut before_ctx = 0usize;
     let mut after_ctx = 0usize;
+    let mut context_separator: Option<String> = Some("--".to_string());
     let mut globs: Vec<String> = Vec::new();
     let mut types_include: Vec<String> = Vec::new();
     let mut types_exclude: Vec<String> = Vec::new();
@@ -1466,9 +2149,31 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--files" => list_files_only = true,
                 "--ignore-case" => ignore_case = true,
                 "--smart-case" => smart_case = true,
+                "--case-sensitive" => {
+                    ignore_case = false;
+                    smart_case = false;
+                }
                 "--invert-match" => invert = true,
-                "--count" | "--count-matches" => count_only = true,
+                "--count" => count_only = true,
+                "--count-matches" => {
+                    count_only = true;
+                    count_matches = true;
+                }
+                "--include-zero" => include_zero = true,
+                "--trim" => trim = true,
+                "--heading" => heading = true,
+                "--no-heading" => heading = false,
+                "--crlf" => crlf = true,
+                "--no-context-separator" => context_separator = None,
+                "--context-separator" if i + 1 < args.len() => {
+                    i += 1;
+                    context_separator = Some(args[i].clone());
+                }
                 "--line-number" => line_number = true,
+                "--column" => {
+                    show_column = true;
+                    line_number = true;
+                }
                 "--no-line-number" => line_number = false,
                 "--byte-offset" => byte_offset = true,
                 "--null" => null_delim = true,
@@ -1476,7 +2181,11 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--no-ignore" => unrestricted_level = unrestricted_level.max(1),
                 "--unrestricted" => unrestricted_level += 1,
                 "--json" => json_output = true,
-                "--multiline" | "--multiline-dotall" => multiline = true,
+                "--multiline" => multiline = true,
+                "--multiline-dotall" => {
+                    multiline = true;
+                    multiline_dotall = true;
+                }
                 "--file" if i + 1 < args.len() => {
                     i += 1;
                     let resolved = resolve_posix_path(cwd, &args[i]);
@@ -1495,8 +2204,14 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--line-regexp" => line_regexp = true,
                 "--fixed-strings" => fixed_strings = true,
                 "--quiet" => quiet = true,
-                "--no-filename" | "--no-heading" => no_filename = true,
-                "--with-filename" => with_filename = true,
+                "--no-filename" => {
+                    no_filename = true;
+                    with_filename = false;
+                }
+                "--with-filename" => {
+                    with_filename = true;
+                    no_filename = false;
+                }
                 "--replace" if i + 1 < args.len() => {
                     i += 1;
                     replace = Some(args[i].clone());
@@ -1513,6 +2228,10 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     i += 1;
                     globs.push(args[i].clone());
                 }
+                "--iglob" if i + 1 < args.len() => {
+                    i += 1;
+                    globs.push(format!("i:{}", args[i]));
+                }
                 "--regexp" if i + 1 < args.len() => {
                     i += 1;
                     patterns.push(args[i].clone());
@@ -1521,11 +2240,27 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     i += 1;
                     max_count = args[i].parse().ok();
                 }
+                "--max-depth" if i + 1 < args.len() => {
+                    i += 1;
+                    max_depth = args[i].parse().ok();
+                }
+                "--max-filesize" if i + 1 < args.len() => {
+                    i += 1;
+                    max_filesize = parse_rg_filesize(&args[i]);
+                }
                 _ => {
                     if let Some(g) = a.strip_prefix("--glob=") {
                         globs.push(g.to_string());
+                    } else if let Some(ig) = a.strip_prefix("--iglob=") {
+                        globs.push(format!("i:{ig}"));
+                    } else if let Some(cs) = a.strip_prefix("--context-separator=") {
+                        context_separator = Some(cs.to_string());
                     } else if let Some(m) = a.strip_prefix("--max-count=") {
                         max_count = m.parse().ok();
+                    } else if let Some(d) = a.strip_prefix("--max-depth=") {
+                        max_depth = d.parse().ok();
+                    } else if let Some(fsz) = a.strip_prefix("--max-filesize=") {
+                        max_filesize = parse_rg_filesize(fsz);
                     } else if let Some(r) = a.strip_prefix("--replace=") {
                         replace = Some(r.to_string());
                     } else if let Some(t) = a.strip_prefix("--type=") {
@@ -1544,6 +2279,10 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             while ci < chars.len() {
                 match chars[ci] {
                     'i' => ignore_case = true,
+                    's' => {
+                        ignore_case = false;
+                        smart_case = false;
+                    }
                     'S' => smart_case = true,
                     'v' => invert = true,
                     'c' => count_only = true,
@@ -1559,8 +2298,14 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     'x' => line_regexp = true,
                     'F' => fixed_strings = true,
                     'q' => quiet = true,
-                    'I' => no_filename = true,
-                    'H' => with_filename = true,
+                    'I' => {
+                        no_filename = true;
+                        with_filename = false;
+                    }
+                    'H' => {
+                        with_filename = true;
+                        no_filename = false;
+                    }
                     'r' => {
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
@@ -1693,6 +2438,9 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 show_hidden,
                 unrestricted_level == 0,
                 &Vec::new(),
+                0,
+                max_depth,
+                max_filesize,
                 &mut files,
             );
         }
@@ -1711,6 +2459,21 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         if !has_upper {
             ignore_case = true;
         }
+    }
+
+    if !fixed_strings && patterns.iter().any(|p| has_unsupported_regex_features(p)) {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "rg: invalid or unsupported regular expression\n".to_string(),
+            exit_code: 2,
+        };
+    }
+
+    if !fixed_strings {
+        patterns = patterns
+            .into_iter()
+            .map(|pat| preprocess_ere_pattern(&pat, multiline_dotall))
+            .collect();
     }
 
     let recursive = targets.is_empty()
@@ -1756,9 +2519,20 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             unrestricted_level,
             byte_offset,
             null_delim,
+            null_data: false,
             json_output,
             replace,
             multiline,
+            show_column,
+            ignore_binary: false,
+            max_depth,
+            max_filesize,
+            count_matches,
+            include_zero,
+            trim,
+            heading,
+            crlf,
+            context_separator,
         },
     )
 }
@@ -1789,23 +2563,47 @@ struct GrepConfig {
     unrestricted_level: usize,
     byte_offset: bool,
     null_delim: bool,
+    null_data: bool,
     json_output: bool,
     replace: Option<String>,
     multiline: bool,
+    show_column: bool,
+    ignore_binary: bool,
+    max_depth: Option<usize>,
+    max_filesize: Option<usize>,
+    count_matches: bool,
+    include_zero: bool,
+    trim: bool,
+    heading: bool,
+    crlf: bool,
+    context_separator: Option<String>,
+}
+
+fn parse_rg_filesize(s: &str) -> Option<usize> {
+    let trimmed = s.trim();
+    if let Some(num) = trimmed.strip_suffix(['K', 'k']) {
+        num.trim().parse::<usize>().ok().map(|n| n * 1024)
+    } else if let Some(num) = trimmed.strip_suffix(['M', 'm']) {
+        num.trim().parse::<usize>().ok().map(|n| n * 1024 * 1024)
+    } else if let Some(num) = trimmed.strip_suffix(['G', 'g']) {
+        num.trim().parse::<usize>().ok().map(|n| n * 1024 * 1024 * 1024)
+    } else {
+        trimmed.parse::<usize>().ok()
+    }
 }
 
 fn file_matches_rg_type(base: &str, t: &str) -> bool {
     match t {
-        "ts" => base.ends_with(".ts") || base.ends_with(".tsx"),
-        "js" => {
+        "ts" | "typescript" => base.ends_with(".ts") || base.ends_with(".tsx"),
+        "js" | "javascript" => {
             base.ends_with(".js")
                 || base.ends_with(".jsx")
                 || base.ends_with(".mjs")
                 || base.ends_with(".cjs")
         }
-        "py" => base.ends_with(".py"),
-        "rs" => base.ends_with(".rs"),
-        "md" => base.ends_with(".md"),
+        "py" | "python" => base.ends_with(".py"),
+        "rs" | "rust" => base.ends_with(".rs"),
+        "md" | "markdown" => base.ends_with(".md"),
         "json" => base.ends_with(".json"),
         "yaml" | "yml" => base.ends_with(".yaml") || base.ends_with(".yml"),
         "sh" => base.ends_with(".sh") || base.ends_with(".bash"),
@@ -1853,11 +2651,19 @@ fn collect_search_files(
     show_hidden: bool,
     respect_ignore_files: bool,
     parent_ignore_rules: &[String],
+    cur_depth: usize,
+    max_depth: Option<usize>,
+    max_filesize: Option<usize>,
     out: &mut Vec<(String, String)>,
 ) {
     let resolved = resolve_posix_path(cwd, target);
     if fs.is_dir(&resolved) {
         if !recursive {
+            return;
+        }
+        if let Some(md) = max_depth
+            && cur_depth >= md
+        {
             return;
         }
         let mut local_rules = parent_ignore_rules.to_vec();
@@ -1889,6 +2695,17 @@ fn collect_search_files(
                 } else {
                     format!("{}/{}", target.trim_end_matches('/'), e)
                 };
+                if child_is_dir {
+                    let excluded_dir = globs.iter().any(|g| {
+                        g.strip_prefix('!').is_some_and(|neg| {
+                            let clean = neg.trim_end_matches('/');
+                            glob_match(clean, &e) || glob_match(clean, &disp)
+                        })
+                    });
+                    if excluded_dir {
+                        continue;
+                    }
+                }
                 collect_search_files(
                     &disp,
                     cwd,
@@ -1900,11 +2717,20 @@ fn collect_search_files(
                     show_hidden,
                     respect_ignore_files,
                     &local_rules,
+                    cur_depth + 1,
+                    max_depth,
+                    max_filesize,
                     out,
                 );
             }
         }
     } else if fs.exists(&resolved) {
+        if let Some(max_sz) = max_filesize {
+            match fs.read_file(&resolved) {
+                Ok(bytes) if bytes.len() <= max_sz => {}
+                _ => return,
+            }
+        }
         let base = basename_posix_path(&resolved);
         if !types_include.is_empty() && !types_include.iter().any(|t| file_matches_rg_type(&base, t))
         {
@@ -1918,13 +2744,30 @@ fn collect_search_files(
             let mut has_pos = false;
             let mut pos_matched = false;
             for g in globs {
-                if let Some(neg) = g.strip_prefix('!') {
-                    if glob_match(neg, &base) || glob_match(neg, target) {
+                let (icase, raw_g) = if let Some(rest) = g.strip_prefix("i:") {
+                    (true, rest)
+                } else {
+                    (false, g.as_str())
+                };
+                if let Some(neg) = raw_g.strip_prefix('!') {
+                    let matched = if icase {
+                        glob_match(&neg.to_ascii_lowercase(), &base.to_ascii_lowercase())
+                            || glob_match(&neg.to_ascii_lowercase(), &target.to_ascii_lowercase())
+                    } else {
+                        glob_match(neg, &base) || glob_match(neg, target)
+                    };
+                    if matched {
                         include = false;
                     }
                 } else {
                     has_pos = true;
-                    if glob_match(g, &base) || glob_match(g, target) {
+                    let matched = if icase {
+                        glob_match(&raw_g.to_ascii_lowercase(), &base.to_ascii_lowercase())
+                            || glob_match(&raw_g.to_ascii_lowercase(), &target.to_ascii_lowercase())
+                    } else {
+                        glob_match(raw_g, &base) || glob_match(raw_g, target)
+                    };
+                    if matched {
                         pos_matched = true;
                     }
                 }
@@ -1953,17 +2796,17 @@ fn run_grep_engine(
         cfg.line_regexp,
     );
 
-    let mut inputs: Vec<(Option<String>, String)> = Vec::new();
+    let mut inputs: Vec<(Option<String>, String, Option<usize>)> = Vec::new();
     let mut err = String::new();
     let mut had_error = false;
 
     if targets.is_empty() {
-        inputs.push((None, stdin.to_string()));
+        inputs.push((None, stdin.to_string(), None));
     } else {
         let mut file_list = Vec::new();
         for t in &targets {
             if t == "-" {
-                inputs.push((Some("(standard input)".to_string()), stdin.to_string()));
+                inputs.push((Some("(standard input)".to_string()), stdin.to_string(), None));
                 continue;
             }
             let resolved = resolve_posix_path(cwd, t);
@@ -1985,12 +2828,20 @@ fn run_grep_engine(
                 cfg.show_hidden,
                 cfg.is_rg && cfg.unrestricted_level == 0,
                 &Vec::new(),
+                0,
+                cfg.max_depth,
+                cfg.max_filesize,
                 &mut file_list,
             );
         }
         for (disp, full) in file_list {
             if let Ok(bytes) = fs.read_file(&full) {
-                inputs.push((Some(disp), String::from_utf8_lossy(&bytes).into_owned()));
+                let nul_off = if !cfg.null_data {
+                    bytes.iter().position(|&b| b == 0)
+                } else {
+                    None
+                };
+                inputs.push((Some(disp), String::from_utf8_lossy(&bytes).into_owned(), nul_off));
             }
         }
     }
@@ -2009,8 +2860,26 @@ fn run_grep_engine(
     let mut total_matched_lines = 0usize;
     let mut searches_with_match = 0usize;
 
-    for (fname, content) in &inputs {
-        let lines: Vec<&str> = content.lines().collect();
+    let rec_term = if cfg.null_data { '\0' } else { '\n' };
+    for (fname, content, nul_off) in &inputs {
+        if nul_off.is_some() && cfg.ignore_binary {
+            continue;
+        }
+        let lines: Vec<&str> = if cfg.null_data {
+            let mut v: Vec<&str> = content.split('\0').collect();
+            if v.last() == Some(&"") {
+                v.pop();
+            }
+            v
+        } else if cfg.crlf {
+            let mut v: Vec<&str> = content.split('\n').collect();
+            if v.last() == Some(&"") {
+                v.pop();
+            }
+            v
+        } else {
+            content.lines().collect()
+        };
         let mut line_offsets: Vec<usize> = Vec::with_capacity(lines.len());
         let mut cur_off = 0usize;
         for l in &lines {
@@ -2018,6 +2887,7 @@ fn run_grep_engine(
             cur_off += l.len() + 1;
         }
         let mut match_indices = Vec::new();
+        let mut multiline_spans: Vec<(usize, usize, usize, usize)> = Vec::new();
         let mut matched_count = 0usize;
         let mut file_submatch_count = 0usize;
 
@@ -2025,6 +2895,8 @@ fn run_grep_engine(
             let full_spans = rx.find_all(content);
             for (s, e) in full_spans {
                 let mut span_matched = false;
+                let mut first_line = None;
+                let mut last_line = 0usize;
                 for (idx, line) in lines.iter().enumerate() {
                     let l_start = line_offsets[idx];
                     let l_end = l_start + line.len();
@@ -2034,6 +2906,10 @@ fn run_grep_engine(
                             return ok_out("");
                         }
                         span_matched = true;
+                        if first_line.is_none() {
+                            first_line = Some(idx);
+                        }
+                        last_line = idx;
                         if !match_indices.iter().any(|(i, _)| *i == idx) {
                             let rel_s = s.saturating_sub(l_start).min(line.len());
                             let rel_e = e.saturating_sub(l_start).min(line.len());
@@ -2042,13 +2918,21 @@ fn run_grep_engine(
                     }
                 }
                 if span_matched {
+                    if let Some(fl) = first_line {
+                        multiline_spans.push((fl, last_line, s, e));
+                    }
                     matched_count += 1;
                     file_submatch_count += 1;
                 }
             }
         } else {
             for (idx, line) in lines.iter().enumerate() {
-                let line_matches = rx.find_all(line);
+                let match_subject = if cfg.crlf {
+                    line.strip_suffix('\r').unwrap_or(line)
+                } else {
+                    line
+                };
+                let line_matches = rx.find_all(match_subject);
                 let is_matched = if cfg.invert {
                     line_matches.is_empty()
                 } else {
@@ -2130,6 +3014,28 @@ fn run_grep_engine(
             continue;
         }
 
+        if let Some(off) = nul_off
+            && cfg.is_rg
+            && !cfg.files_with_matches
+            && !cfg.files_without_match
+            && !cfg.count_only
+        {
+            if matched_count > 0 {
+                if show_filename {
+                    if let Some(f) = fname {
+                        out.push_str(&format!(
+                            "{f}: binary file matches (found \"\\0\" byte around offset {off})\n"
+                        ));
+                        continue;
+                    }
+                }
+                out.push_str(&format!(
+                    "binary file matches (found \"\\0\" byte around offset {off})\n"
+                ));
+            }
+            continue;
+        }
+
         let file_sep = if cfg.null_delim { '\0' } else { '\n' };
         if cfg.files_with_matches {
             if matched_count > 0 {
@@ -2150,25 +3056,39 @@ fn run_grep_engine(
             continue;
         }
         if cfg.count_only {
-            if cfg.is_rg && matched_count == 0 {
+            let count_val = if cfg.count_matches {
+                file_submatch_count
+            } else {
+                matched_count
+            };
+            if cfg.is_rg && count_val == 0 && !cfg.include_zero {
                 continue;
             }
             if show_filename {
                 if let Some(f) = fname {
-                    out.push_str(&format!("{f}:{matched_count}\n"));
+                    out.push_str(&format!("{f}:{count_val}\n"));
                     continue;
                 }
             }
-            out.push_str(&format!("{matched_count}\n"));
+            out.push_str(&format!("{count_val}\n"));
             continue;
         }
+
+        let use_heading = cfg.heading && show_filename && !match_indices.is_empty();
+        if use_heading {
+            if let Some(f) = fname {
+                out.push_str(f);
+                out.push('\n');
+            }
+        }
+        let line_show_filename = show_filename && !use_heading;
 
         if cfg.only_matching && !cfg.invert {
             for (idx, spans) in &match_indices {
                 let line = lines[*idx];
                 let line_off = line_offsets.get(*idx).copied().unwrap_or(0);
                 for &(s, e) in spans {
-                    if show_filename {
+                    if line_show_filename {
                         if let Some(f) = fname {
                             out.push_str(&format!("{f}:"));
                         }
@@ -2185,7 +3105,7 @@ fn run_grep_engine(
                         let caps = regex_captures(&format!("^{pat0}$"), matched_slice, cfg.ignore_case)
                             .or_else(|| regex_captures(pat0, matched_slice, cfg.ignore_case))
                             .unwrap_or_else(|| vec![matched_slice.to_string()]);
-                        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps));
+                        out.push_str(&expand_rg_replacement(rep, matched_slice, &caps, pat0));
                     } else {
                         out.push_str(matched_slice);
                     }
@@ -2213,12 +3133,15 @@ fn run_grep_engine(
                 }
                 if let Some(prev) = prev_printed {
                     if idx > prev + 1 {
-                        out.push_str("--\n");
+                        if let Some(sep_str) = &cfg.context_separator {
+                            out.push_str(sep_str);
+                            out.push('\n');
+                        }
                     }
                 }
                 prev_printed = Some(idx);
                 let sep = if match_map.contains_key(&idx) { ':' } else { '-' };
-                if show_filename {
+                if line_show_filename {
                     if let Some(f) = fname {
                         out.push_str(&format!("{f}{sep}"));
                     }
@@ -2226,16 +3149,52 @@ fn run_grep_engine(
                 if cfg.line_number {
                     out.push_str(&format!("{}{sep}", idx + 1));
                 }
-                if let (Some(rep), Some(spans)) = (&cfg.replace, match_map.get(&idx)) {
-                    out.push_str(&apply_rg_line_replace(lines[idx], spans, rep, &rx, cfg.ignore_case));
+                let rendered_line = if let (Some(rep), Some(spans)) = (&cfg.replace, match_map.get(&idx)) {
+                    apply_rg_line_replace(lines[idx], spans, rep, &rx, cfg.ignore_case)
                 } else {
-                    out.push_str(lines[idx]);
+                    lines[idx].to_string()
+                };
+                if cfg.trim {
+                    out.push_str(rendered_line.trim_start_matches([' ', '\t']));
+                } else {
+                    out.push_str(&rendered_line);
                 }
                 out.push('\n');
             }
+        } else if cfg.multiline && !cfg.invert && cfg.replace.is_some() {
+            let rep = cfg.replace.as_deref().unwrap_or("");
+            for &(fl, ll, s, e) in &multiline_spans {
+                if line_show_filename {
+                    if let Some(f) = fname {
+                        out.push_str(&format!("{f}:"));
+                    }
+                }
+                if cfg.line_number {
+                    out.push_str(&format!("{}:", fl + 1));
+                }
+                let b_start = line_offsets.get(fl).copied().unwrap_or(0);
+                let b_end = line_offsets.get(ll).copied().unwrap_or(0) + lines.get(ll).map(|l| l.len()).unwrap_or(0);
+                if cfg.show_column {
+                    let col = s.saturating_sub(b_start) + 1;
+                    out.push_str(&format!("{col}:"));
+                }
+                if cfg.byte_offset {
+                    out.push_str(&format!("{b_start}:"));
+                }
+                let block_slice = &content[b_start..b_end.min(content.len())];
+                let rel_s = s.saturating_sub(b_start).min(block_slice.len());
+                let rel_e = e.saturating_sub(b_start).min(block_slice.len());
+                let rendered_line = apply_rg_line_replace(block_slice, &[(rel_s, rel_e)], rep, &rx, cfg.ignore_case);
+                if cfg.trim {
+                    out.push_str(rendered_line.trim_start_matches([' ', '\t']));
+                } else {
+                    out.push_str(&rendered_line);
+                }
+                out.push(rec_term);
+            }
         } else {
             for (idx, spans) in &match_indices {
-                if show_filename {
+                if line_show_filename {
                     if let Some(f) = fname {
                         out.push_str(&format!("{f}:"));
                     }
@@ -2243,16 +3202,25 @@ fn run_grep_engine(
                 if cfg.line_number {
                     out.push_str(&format!("{}:", idx + 1));
                 }
+                if cfg.show_column {
+                    let col = spans.first().map(|(s, _)| s + 1).unwrap_or(1);
+                    out.push_str(&format!("{col}:"));
+                }
                 if cfg.byte_offset {
                     let line_off = line_offsets.get(*idx).copied().unwrap_or(0);
                     out.push_str(&format!("{line_off}:"));
                 }
-                if let Some(rep) = &cfg.replace {
-                    out.push_str(&apply_rg_line_replace(lines[*idx], spans, rep, &rx, cfg.ignore_case));
+                let rendered_line = if let Some(rep) = &cfg.replace {
+                    apply_rg_line_replace(lines[*idx], spans, rep, &rx, cfg.ignore_case)
                 } else {
-                    out.push_str(lines[*idx]);
+                    lines[*idx].to_string()
+                };
+                if cfg.trim {
+                    out.push_str(rendered_line.trim_start_matches([' ', '\t']));
+                } else {
+                    out.push_str(&rendered_line);
                 }
-                out.push('\n');
+                out.push(rec_term);
             }
         }
     }
@@ -2279,16 +3247,25 @@ fn run_grep_engine(
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum FindFollowMode {
+    Never,
+    RootsOnly,
+    Always,
+}
+
 #[derive(Clone)]
 enum FindPred {
     Name { pat: String, ignore_case: bool },
     Path { pat: String, ignore_case: bool },
+    Regex { pat: String, ignore_case: bool },
     Type(char),
     Empty,
     Size { op: i8, bytes: usize },
     Perm { mode_kind: char, mask: u32 },
     Newer(u64),
     Prune,
+    Quit,
     Print { null_delim: bool },
     Printf(String),
     Group(Box<FindPred>),
@@ -2297,13 +3274,102 @@ enum FindPred {
     Or(Box<FindPred>, Box<FindPred>),
 }
 
+fn render_find_printf(
+    fmt: &str,
+    disp_path: &str,
+    root_disp: &str,
+    full_path: &str,
+    depth: usize,
+    fs: &dyn SafeBashFs,
+) -> String {
+    let base = basename_posix_path(disp_path);
+    let dir = crate::vfs::dirname_posix_path(disp_path);
+    let st_opt = fs.lstat(full_path).ok();
+    let sz = st_opt
+        .as_ref()
+        .map(|st| {
+            if st.kind == VfsEntryKind::Directory {
+                0
+            } else {
+                st.size
+            }
+        })
+        .unwrap_or(0);
+    let type_ch = st_opt
+        .as_ref()
+        .map(|st| match st.kind {
+            VfsEntryKind::File => "f",
+            VfsEntryKind::Directory => "d",
+            VfsEntryKind::Symlink => "l",
+        })
+        .unwrap_or("?");
+    let root_trimmed = root_disp.trim_end_matches('/');
+    let rel_p = if disp_path == root_disp || disp_path == root_trimmed {
+        ""
+    } else if root_trimmed.is_empty() || root_trimmed == "/" {
+        disp_path.trim_start_matches('/')
+    } else if let Some(rest) = disp_path.strip_prefix(root_trimmed) {
+        rest.trim_start_matches('/')
+    } else {
+        disp_path
+    };
+
+    let mut out = String::new();
+    let chars: Vec<char> = fmt.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] == '\\' && i + 1 < chars.len() {
+            match chars[i + 1] {
+                'n' => out.push('\n'),
+                't' => out.push('\t'),
+                'r' => out.push('\r'),
+                '\\' => out.push('\\'),
+                '0' => out.push('\0'),
+                other => {
+                    out.push('\\');
+                    out.push(other);
+                }
+            }
+            i += 2;
+        } else if chars[i] == '%' && i + 1 < chars.len() {
+            match chars[i + 1] {
+                '%' => out.push('%'),
+                'p' => out.push_str(disp_path),
+                'P' => out.push_str(rel_p),
+                'H' => out.push_str(root_disp),
+                'f' => out.push_str(&base),
+                'h' => out.push_str(&dir),
+                's' => out.push_str(&sz.to_string()),
+                'd' => out.push_str(&depth.to_string()),
+                'y' => out.push_str(type_ch),
+                'm' => {
+                    let mode = st_opt.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0);
+                    out.push_str(&format!("{mode:o}"));
+                }
+                other => {
+                    out.push('%');
+                    out.push(other);
+                }
+            }
+            i += 2;
+        } else {
+            out.push(chars[i]);
+            i += 1;
+        }
+    }
+    out
+}
+
+#[allow(clippy::too_many_arguments)]
 fn eval_find_pred(
     pred: &FindPred,
     disp_path: &str,
+    root_disp: &str,
     full_path: &str,
     depth: usize,
     fs: &dyn SafeBashFs,
     pruned: &mut bool,
+    quit: &mut bool,
     printed: &mut Vec<(String, bool)>,
 ) -> bool {
     match pred {
@@ -2325,6 +3391,10 @@ fn eval_find_pred(
             } else {
                 glob_match(pat, disp_path)
             }
+        }
+        FindPred::Regex { pat, ignore_case } => {
+            let rx = ZeroRegex::new(vec![pat.clone()], *ignore_case, false, false, true);
+            rx.is_match(disp_path)
         }
         FindPred::Type(t) => match fs.lstat(full_path) {
             Ok(st) => match t {
@@ -2373,38 +3443,35 @@ fn eval_find_pred(
             *pruned = true;
             true
         }
+        FindPred::Quit => {
+            *quit = true;
+            true
+        }
         FindPred::Print { null_delim } => {
             printed.push((disp_path.to_string(), *null_delim));
             true
         }
         FindPred::Printf(fmt) => {
-            let base = basename_posix_path(disp_path);
-            let dir = crate::vfs::dirname_posix_path(disp_path);
-            let sz = fs.stat(full_path).map(|st| st.size).unwrap_or(0);
-            let rendered = fmt
-                .replace("%f", &base)
-                .replace("%p", disp_path)
-                .replace("%h", &dir)
-                .replace("%s", &sz.to_string())
-                .replace("\\n", "\n")
-                .replace("\\t", "\t");
+            let rendered = render_find_printf(fmt, disp_path, root_disp, full_path, depth, fs);
             let trimmed = rendered.strip_suffix('\n').unwrap_or(&rendered);
             printed.push((trimmed.to_string(), false));
             true
         }
         FindPred::Group(inner) => {
-            eval_find_pred(inner, disp_path, full_path, depth, fs, pruned, printed)
+            eval_find_pred(inner, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
         }
         FindPred::Not(inner) => {
-            !eval_find_pred(inner, disp_path, full_path, depth, fs, pruned, printed)
+            !eval_find_pred(inner, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
         }
         FindPred::And(a, b) => {
-            eval_find_pred(a, disp_path, full_path, depth, fs, pruned, printed)
-                && eval_find_pred(b, disp_path, full_path, depth, fs, pruned, printed)
+            eval_find_pred(a, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
+                && !*quit
+                && eval_find_pred(b, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
         }
         FindPred::Or(a, b) => {
-            eval_find_pred(a, disp_path, full_path, depth, fs, pruned, printed)
-                || eval_find_pred(b, disp_path, full_path, depth, fs, pruned, printed)
+            eval_find_pred(a, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
+                || (!*quit
+                    && eval_find_pred(b, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed))
         }
     }
 }
@@ -2433,13 +3500,50 @@ fn parse_size_arg(s: &str) -> (i8, usize) {
 }
 
 fn parse_perm_arg(s: &str) -> (char, u32) {
-    if let Some(rest) = s.strip_prefix('-') {
-        ('-', u32::from_str_radix(rest, 8).unwrap_or(0))
+    let (kind, rest) = if let Some(r) = s.strip_prefix('-') {
+        ('-', r)
     } else if let Some(rest) = s.strip_prefix('/') {
-        ('/', u32::from_str_radix(rest, 8).unwrap_or(0))
+        ('/', rest)
     } else {
-        ('=', u32::from_str_radix(s, 8).unwrap_or(0))
+        ('=', s)
+    };
+    if rest.chars().all(|c| c.is_ascii_digit()) {
+        return (kind, u32::from_str_radix(rest, 8).unwrap_or(0));
     }
+    let mut mask = 0u32;
+    for clause in rest.split(',') {
+        let mut who_mask = 0u32;
+        let mut perm_bits = 0u32;
+        let mut seen_op = false;
+        for ch in clause.chars() {
+            if !seen_op {
+                match ch {
+                    'u' => who_mask |= 0o700,
+                    'g' => who_mask |= 0o070,
+                    'o' => who_mask |= 0o007,
+                    'a' => who_mask |= 0o777,
+                    '+' | '-' | '=' => {
+                        if who_mask == 0 {
+                            who_mask = 0o777;
+                        }
+                        seen_op = true;
+                    }
+                    _ => {}
+                }
+            } else {
+                match ch {
+                    'r' => perm_bits |= 0o444,
+                    'w' => perm_bits |= 0o222,
+                    'x' => perm_bits |= 0o111,
+                    's' => perm_bits |= 0o6000,
+                    't' => perm_bits |= 0o1000,
+                    _ => {}
+                }
+            }
+        }
+        mask |= (who_mask & perm_bits) | (perm_bits & 0o7000);
+    }
+    (kind, mask)
 }
 
 fn cmd_find<F>(
@@ -2452,8 +3556,26 @@ fn cmd_find<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
+    let mut follow_mode = FindFollowMode::Never;
     let mut roots = Vec::new();
     let mut idx = 0usize;
+    while idx < args.len() {
+        match args[idx].as_str() {
+            "-P" => {
+                follow_mode = FindFollowMode::Never;
+                idx += 1;
+            }
+            "-H" => {
+                follow_mode = FindFollowMode::RootsOnly;
+                idx += 1;
+            }
+            "-L" => {
+                follow_mode = FindFollowMode::Always;
+                idx += 1;
+            }
+            _ => break,
+        }
+    }
     while idx < args.len() {
         let a = &args[idx];
         if a.starts_with('-') || a == "!" || a == "(" {
@@ -2536,6 +3658,10 @@ where
                 combine_pred(&mut pred, FindPred::Prune, &mut pending_not, &mut pending_or);
                 idx += 1;
             }
+            "-quit" => {
+                combine_pred(&mut pred, FindPred::Quit, &mut pending_not, &mut pending_or);
+                idx += 1;
+            }
             "-depth" => {
                 depth_first = true;
                 idx += 1;
@@ -2577,6 +3703,14 @@ where
                 let p = FindPred::Path {
                     pat: args[idx + 1].clone(),
                     ignore_case: a == "-ipath",
+                };
+                combine_pred(&mut pred, p, &mut pending_not, &mut pending_or);
+                idx += 2;
+            }
+            "-regex" | "-iregex" if idx + 1 < args.len() => {
+                let p = FindPred::Regex {
+                    pat: preprocess_ere_pattern(&args[idx + 1], false),
+                    ignore_case: a == "-iregex",
                 };
                 combine_pred(&mut pred, p, &mut pending_not, &mut pending_or);
                 idx += 2;
@@ -2655,25 +3789,32 @@ where
     let mut explicit_prints: Vec<(String, bool)> = Vec::new();
     let mut err = String::new();
     let mut exit_code = 0;
+    let mut quit = false;
 
     for r in &roots {
+        if quit {
+            break;
+        }
         let full = resolve_posix_path(cwd, r);
-        if !fs.exists(&full) {
+        if !fs.exists(&full) && fs.lstat(&full).is_err() {
             err.push_str(&format!("find: '{r}': No such file or directory\n"));
             exit_code = 1;
             continue;
         }
         walk_find(
             r,
+            r,
             &full,
             0,
             min_depth,
             max_depth,
             depth_first,
+            follow_mode,
             &pred,
             fs,
             &mut matched_paths,
             &mut explicit_prints,
+            &mut quit,
         );
     }
 
@@ -2782,16 +3923,22 @@ fn combine_pred(
 #[allow(clippy::too_many_arguments)]
 fn walk_find(
     disp: &str,
+    root_disp: &str,
     full: &str,
     depth: usize,
     min_depth: usize,
     max_depth: Option<usize>,
     depth_first: bool,
+    follow_mode: FindFollowMode,
     pred: &Option<FindPred>,
     fs: &dyn SafeBashFs,
     out: &mut Vec<(String, String)>,
     explicit_prints: &mut Vec<(String, bool)>,
+    quit: &mut bool,
 ) {
+    if *quit {
+        return;
+    }
     if let Some(max_d) = max_depth {
         if depth > max_d {
             return;
@@ -2800,19 +3947,42 @@ fn walk_find(
     let mut pruned = false;
     if !depth_first && depth >= min_depth {
         let ok = match pred {
-            Some(p) => eval_find_pred(p, disp, full, depth, fs, &mut pruned, explicit_prints),
+            Some(p) => eval_find_pred(
+                p,
+                disp,
+                root_disp,
+                full,
+                depth,
+                fs,
+                &mut pruned,
+                quit,
+                explicit_prints,
+            ),
             None => true,
         };
         if ok {
             out.push((disp.to_string(), full.to_string()));
         }
+        if *quit {
+            return;
+        }
     }
     let can_descend = !pruned && max_depth.map(|max_d| depth < max_d).unwrap_or(true);
     if can_descend {
-        if let Ok(st) = fs.lstat(full) {
+        let st_res = if follow_mode == FindFollowMode::Always
+            || (follow_mode == FindFollowMode::RootsOnly && depth == 0)
+        {
+            fs.stat(full).or_else(|_| fs.lstat(full))
+        } else {
+            fs.lstat(full)
+        };
+        if let Ok(st) = st_res {
             if st.kind == VfsEntryKind::Directory {
                 if let Ok(entries) = fs.read_dir(full) {
                     for e in entries {
+                        if *quit {
+                            return;
+                        }
                         let child_disp = if disp == "/" {
                             format!("/{e}")
                         } else {
@@ -2821,15 +3991,18 @@ fn walk_find(
                         let child_full = normalize_posix_path(&format!("{full}/{e}"));
                         walk_find(
                             &child_disp,
+                            root_disp,
                             &child_full,
                             depth + 1,
                             min_depth,
                             max_depth,
                             depth_first,
+                            follow_mode,
                             pred,
                             fs,
                             out,
                             explicit_prints,
+                            quit,
                         );
                     }
                 }
@@ -2837,8 +4010,21 @@ fn walk_find(
         }
     }
     if depth_first && depth >= min_depth {
+        if *quit {
+            return;
+        }
         let ok = match pred {
-            Some(p) => eval_find_pred(p, disp, full, depth, fs, &mut pruned, explicit_prints),
+            Some(p) => eval_find_pred(
+                p,
+                disp,
+                root_disp,
+                full,
+                depth,
+                fs,
+                &mut pruned,
+                quit,
+                explicit_prints,
+            ),
             None => true,
         };
         if ok {
@@ -2962,6 +4148,7 @@ struct FdConfig {
     ignore_case: bool,
     prune: bool,
     pattern: Option<String>,
+    and_patterns: Vec<String>,
 }
 
 fn cmd_fd<F>(
@@ -2983,6 +4170,7 @@ where
     let mut sizes: Vec<(char, usize)> = Vec::new();
     let mut show_hidden = false;
     let mut respect_ignore = true;
+    let mut no_ignore_parent = false;
     let mut unrestricted = 0usize;
     let mut follow = false;
     let mut full_path = false;
@@ -2997,6 +4185,7 @@ where
     let mut base_dir: Option<String> = None;
     let mut exec_cmd: Vec<String> = Vec::new();
     let mut exec_batch = false;
+    let mut and_patterns: Vec<String> = Vec::new();
     let mut operands: Vec<String> = Vec::new();
     let mut search_paths: Vec<String> = Vec::new();
 
@@ -3022,7 +4211,8 @@ where
         if !end_of_opts && a.starts_with("--") {
             match a.as_str() {
                 "--hidden" => show_hidden = true,
-                "--no-ignore" | "--no-ignore-vcs" | "--no-ignore-parent" => respect_ignore = false,
+                "--no-ignore" | "--no-ignore-vcs" => respect_ignore = false,
+                "--no-ignore-parent" => no_ignore_parent = true,
                 "--unrestricted" => {
                     unrestricted += 1;
                     respect_ignore = false;
@@ -3091,6 +4281,10 @@ where
                     i += 1;
                     base_dir = Some(args[i].clone());
                 }
+                "--and" if i + 1 < args.len() => {
+                    i += 1;
+                    and_patterns.push(args[i].clone());
+                }
                 _ => {
                     if let Some(v) = a.strip_prefix("--extension=") {
                         extensions.push(v.trim_start_matches('.').to_ascii_lowercase());
@@ -3121,6 +4315,8 @@ where
                         search_paths.push(v.to_string());
                     } else if let Some(v) = a.strip_prefix("--base-directory=") {
                         base_dir = Some(v.to_string());
+                    } else if let Some(v) = a.strip_prefix("--and=") {
+                        and_patterns.push(v.to_string());
                     }
                 }
             }
@@ -3215,10 +4411,15 @@ where
 
     let ignore_case = match case_override {
         Some(ic) => ic,
-        None => !pattern
-            .as_ref()
-            .map(|p| p.chars().any(|c| c.is_ascii_uppercase()))
-            .unwrap_or(false),
+        None => {
+            !pattern
+                .as_ref()
+                .map(|p| p.chars().any(|c| c.is_ascii_uppercase()))
+                .unwrap_or(false)
+                && !and_patterns
+                    .iter()
+                    .any(|p| p.chars().any(|c| c.is_ascii_uppercase()))
+        }
     };
 
     let effective_cwd = match &base_dir {
@@ -3244,6 +4445,7 @@ where
         ignore_case,
         prune,
         pattern,
+        and_patterns,
     };
 
     let mut results: Vec<(String, bool)> = Vec::new();
@@ -3251,13 +4453,27 @@ where
         let full = resolve_posix_path(&effective_cwd, r);
         let mut init_rules = Vec::new();
         if cfg.respect_ignore {
-            for ign_name in [".gitignore", ".ignore", ".fdignore"] {
-                let ign_path = normalize_posix_path(&format!("{full}/{ign_name}"));
-                if let Ok(bytes) = fs.read_file(&ign_path) {
-                    for line in String::from_utf8_lossy(&bytes).lines() {
-                        let t = line.trim();
-                        if !t.is_empty() && !t.starts_with('#') {
-                            init_rules.push(t.to_string());
+            let mut ancestor_dirs = Vec::new();
+            if !no_ignore_parent {
+                ancestor_dirs.push("/".to_string());
+                let mut accum = String::new();
+                for seg in full.split('/').filter(|s| !s.is_empty()) {
+                    accum.push('/');
+                    accum.push_str(seg);
+                    ancestor_dirs.push(accum.clone());
+                }
+            } else {
+                ancestor_dirs.push(full.clone());
+            }
+            for dir_path in ancestor_dirs {
+                for ign_name in [".gitignore", ".ignore", ".fdignore"] {
+                    let ign_path = normalize_posix_path(&format!("{dir_path}/{ign_name}"));
+                    if let Ok(bytes) = fs.read_file(&ign_path) {
+                        for line in String::from_utf8_lossy(&bytes).lines() {
+                            let t = line.trim();
+                            if !t.is_empty() && !t.starts_with('#') {
+                                init_rules.push(t.to_string());
+                            }
                         }
                     }
                 }
@@ -3475,16 +4691,16 @@ fn walk_fd(
             }
 
             if matches {
-                if let Some(pat) = &cfg.pattern {
-                    let subj = if cfg.full_path {
-                        if cfg.absolute_path {
-                            full
-                        } else {
-                            disp
-                        }
+                let subj = if cfg.full_path {
+                    if cfg.absolute_path {
+                        full
                     } else {
-                        &base
-                    };
+                        disp
+                    }
+                } else {
+                    &base
+                };
+                if let Some(pat) = &cfg.pattern {
                     if cfg.glob_mode {
                         if cfg.ignore_case {
                             matches = glob_match(&pat.to_ascii_lowercase(), &subj.to_ascii_lowercase());
@@ -3500,6 +4716,33 @@ fn walk_fd(
                             false,
                         );
                         matches = rx.is_match(subj);
+                    }
+                }
+                if matches && !cfg.and_patterns.is_empty() {
+                    for and_pat in &cfg.and_patterns {
+                        let and_ok = if cfg.glob_mode {
+                            if cfg.ignore_case {
+                                glob_match(
+                                    &and_pat.to_ascii_lowercase(),
+                                    &subj.to_ascii_lowercase(),
+                                )
+                            } else {
+                                glob_match(and_pat, subj)
+                            }
+                        } else {
+                            let rx = ZeroRegex::new(
+                                vec![and_pat.clone()],
+                                cfg.ignore_case,
+                                cfg.fixed_mode,
+                                false,
+                                false,
+                            );
+                            rx.is_match(subj)
+                        };
+                        if !and_ok {
+                            matches = false;
+                            break;
+                        }
                     }
                 }
             }

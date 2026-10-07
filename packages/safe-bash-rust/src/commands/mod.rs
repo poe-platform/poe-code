@@ -73,12 +73,19 @@ where
         let mut idx = 0usize;
         let mut sig_num = 15i32;
         let mut preserve_status = false;
+        let mut has_kill_after = false;
         while idx < args.len() && args[idx].starts_with('-') {
             let a = &args[idx];
             if a == "--preserve-status" {
                 preserve_status = true;
                 idx += 1;
+            } else if a.starts_with("--kill-after=") || (a.starts_with("-k") && a.len() > 2) {
+                has_kill_after = true;
+                idx += 1;
             } else if (a == "-s" || a == "--signal" || a == "-k" || a == "--kill-after") && idx + 1 < args.len() {
+                if a == "-k" || a == "--kill-after" {
+                    has_kill_after = true;
+                }
                 if a == "-s" || a == "--signal" {
                     let s = args[idx + 1].trim().to_uppercase();
                     let clean = s.strip_prefix("SIG").unwrap_or(&s);
@@ -102,6 +109,13 @@ where
             } else {
                 idx += 1;
             }
+        }
+        if has_kill_after {
+            return Some(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "timeout: worker escalation cannot preserve finite shared interpreter quotas\n".to_string(),
+                exit_code: 125,
+            });
         }
         if idx + 1 < args.len() {
             let dur_s = parse_duration_seconds(&args[idx]);
@@ -130,19 +144,19 @@ where
     if let Some(res) = coreutils::try_run_coreutil(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
-    if let Some(res) = fs::try_run_fs_command(cmd, args, cwd, env, fs) {
+    if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = search::try_run_search_command(cmd, args, stdin, cwd, env, fs, exec_sub) {
         return Some(res);
     }
-    if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, fs) {
+    if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = structured::try_run_structured_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
-    if let Some(res) = archive::try_run_archive_command(cmd, args, stdin, cwd, fs) {
+    if let Some(res) = archive::try_run_archive_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     None

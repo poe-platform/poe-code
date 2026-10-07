@@ -36,6 +36,7 @@ pub struct EvalState<'a> {
     pub custom_commands: &'a BTreeMap<String, RustCommand>,
     pub functions: BTreeMap<String, Script>,
     pub exported_functions: BTreeSet<String>,
+    pub func_stack: Vec<String>,
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
     pub in_fds: BTreeMap<u32, String>,
@@ -54,6 +55,8 @@ pub struct EvalState<'a> {
     pub procsub_seq: usize,
     pub in_prefix_assignment: bool,
     pub pending_out_procsubs: Vec<(String, String)>,
+    pub pending_stdout: String,
+    pub pending_stderr: String,
     pub exit_requested: Option<i32>,
     pub return_requested: Option<i32>,
     pub break_count: usize,
@@ -80,6 +83,10 @@ impl<'a> EvalState<'a> {
         let nounset = env.get("__set_nounset").map(|v| v == "1").unwrap_or(false);
         let pipefail = env.get("__set_pipefail").map(|v| v == "1").unwrap_or(false);
         let noclobber = env.get("__set_noclobber").map(|v| v == "1").unwrap_or(false);
+        let last_exit = env
+            .get("__last_exit")
+            .and_then(|v| v.parse::<i32>().ok())
+            .unwrap_or(0);
         Self {
             cwd,
             env,
@@ -88,12 +95,13 @@ impl<'a> EvalState<'a> {
             custom_commands,
             functions: BTreeMap::new(),
             exported_functions: BTreeSet::new(),
+            func_stack: Vec::new(),
             local_scopes: Vec::new(),
             fd_table,
             in_fds: BTreeMap::new(),
             traps: BTreeMap::new(),
             pos_args: Vec::new(),
-            last_exit: 0,
+            last_exit,
             errexit,
             nounset,
             pipefail,
@@ -106,6 +114,8 @@ impl<'a> EvalState<'a> {
             procsub_seq: 0,
             in_prefix_assignment: false,
             pending_out_procsubs: Vec::new(),
+            pending_stdout: String::new(),
+            pending_stderr: String::new(),
             exit_requested: None,
             return_requested: None,
             break_count: 0,
@@ -131,6 +141,12 @@ impl<'a> EvalState<'a> {
             child_traps.remove("DEBUG");
             child_traps.remove("RETURN");
         }
+        let cur_subshell = env
+            .get("BASH_SUBSHELL")
+            .and_then(|v| v.parse::<u32>().ok())
+            .unwrap_or(0);
+        env.insert("BASH_SUBSHELL".to_string(), (cur_subshell + 1).to_string());
+        env.insert("__unexported__BASH_SUBSHELL".to_string(), "1".to_string());
         EvalState {
             cwd,
             env,
@@ -139,6 +155,7 @@ impl<'a> EvalState<'a> {
             custom_commands: self.custom_commands,
             functions: self.functions.clone(),
             exported_functions: self.exported_functions.clone(),
+            func_stack: self.func_stack.clone(),
             local_scopes: Vec::new(),
             fd_table: self.fd_table.clone(),
             in_fds: self.in_fds.clone(),
@@ -157,6 +174,8 @@ impl<'a> EvalState<'a> {
             procsub_seq: self.procsub_seq,
             in_prefix_assignment: false,
             pending_out_procsubs: Vec::new(),
+            pending_stdout: String::new(),
+            pending_stderr: String::new(),
             exit_requested: None,
             return_requested: None,
             break_count: 0,
@@ -274,6 +293,12 @@ impl<'a> EvalState<'a> {
             self.budget
                 .record_stderr(out.stderr.len())
                 .map_err(EvalError::Budget)?;
+            if !self.pending_stdout.is_empty() {
+                stdout.push_str(&std::mem::take(&mut self.pending_stdout));
+            }
+            if !self.pending_stderr.is_empty() {
+                stderr.push_str(&std::mem::take(&mut self.pending_stderr));
+            }
             stdout.push_str(&out.stdout);
             stderr.push_str(&out.stderr);
             last_code = out.exit_code;
@@ -382,6 +407,29 @@ impl<'a> EvalState<'a> {
             self.env.insert(format!("PIPESTATUS[{i}]"), c.to_string());
         }
         sync_array_metadata("PIPESTATUS", self.env);
+    }
+
+    fn sync_funcname(&mut self) {
+        let old_keys: Vec<String> = self
+            .env
+            .keys()
+            .filter(|k| k.starts_with("FUNCNAME["))
+            .cloned()
+            .collect();
+        for k in old_keys {
+            self.env.remove(&k);
+        }
+        if self.func_stack.is_empty() {
+            self.env.remove("FUNCNAME[#]");
+            self.env.remove("FUNCNAME[*]");
+            self.env.remove("FUNCNAME[@]");
+            self.env.remove("__keys__FUNCNAME");
+        } else {
+            for (i, f) in self.func_stack.iter().enumerate() {
+                self.env.insert(format!("FUNCNAME[{i}]"), f.clone());
+            }
+            sync_array_metadata("FUNCNAME", self.env);
+        }
     }
 
     fn eval_pipeline(&mut self, pipe: &Pipeline, stdin: &mut String) -> Result<BuiltinOutcome, EvalError> {
@@ -624,7 +672,22 @@ impl<'a> EvalState<'a> {
                 let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
                 let mut expanded_items = Vec::new();
                 for raw in items {
-                    expanded_items.extend(self.expand_word_to_fields(raw)?);
+                    match self.expand_word_to_fields(raw) {
+                        Ok(fields) => expanded_items.extend(fields),
+                        Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
+                            self.fd_table.insert(1, body_fd1);
+                            self.fd_table.insert(2, body_fd2);
+                            let mut out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{msg}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut out);
+                            self.restore_redirects(saved_fds, saved_in);
+                            return Ok(out);
+                        }
+                        Err(e) => return Err(e),
+                    }
                 }
                 let mut stdout = String::new();
                 let mut stderr = String::new();
@@ -995,6 +1058,17 @@ impl<'a> EvalState<'a> {
                 }
             }
             CommandNode::FuncDef { name, body } => {
+                if self
+                    .env
+                    .get(&format!("__readonly_fn__{name}"))
+                    .is_some_and(|v| v == "1")
+                {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{name}: readonly function\n"),
+                        exit_code: 1,
+                    });
+                }
                 self.functions.insert(name.clone(), body.clone());
                 Ok(BuiltinOutcome {
                     stdout: String::new(),
@@ -1321,7 +1395,7 @@ impl<'a> EvalState<'a> {
                 } else {
                     None
                 };
-                if matches!(prev, Some("==" | "=" | "!=")) {
+                if matches!(prev, Some("==" | "=" | "!=" | "=~")) {
                     expanded_words.push(self.expand_word_for_pattern(w)?);
                 } else {
                     expanded_words.push(self.expand_word_to_string(w)?);
@@ -1353,7 +1427,22 @@ impl<'a> EvalState<'a> {
                         expanded_words.push(self.expand_word_to_string(w)?);
                     }
                 } else {
-                    expanded_words.extend(self.expand_word_to_fields(w)?);
+                    match self.expand_word_to_fields(w) {
+                        Ok(fields) => expanded_words.extend(fields),
+                        Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
+                            let mut out = BuiltinOutcome {
+                                stdout: debug_out.stdout,
+                                stderr: format!("{}{msg}\n", debug_out.stderr),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut out);
+                            if self.errexit && !self.in_condition {
+                                self.exit_requested = Some(1);
+                            }
+                            return Ok(out);
+                        }
+                        Err(e) => return Err(e),
+                    }
                 }
             }
         }
@@ -1529,11 +1618,12 @@ impl<'a> EvalState<'a> {
                     .first()
                     .and_then(|s| s.trim().parse::<i32>().ok())
                     .unwrap_or(self.last_exit);
+                let prev_exit = self.last_exit;
                 self.return_requested = Some(code);
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: String::new(),
-                    exit_code: code,
+                    exit_code: prev_exit,
                 });
             }
             "break" => {
@@ -1653,10 +1743,12 @@ impl<'a> EvalState<'a> {
                             if let Some(prev) = saved_args {
                                 self.pos_args = prev;
                             }
+                            self.last_exit = out.exit_code;
+                            self.fire_return_trap(&mut out);
                             if let Some(ret_code) = self.return_requested.take() {
                                 out.exit_code = ret_code;
                             }
-                            self.fire_return_trap(&mut out);
+                            self.last_exit = out.exit_code;
                             return Ok(out);
                         }
                         Err(_) => {
@@ -1814,16 +1906,19 @@ impl<'a> EvalState<'a> {
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
             let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
+            self.func_stack.insert(0, cmd.to_string());
+            self.sync_funcname();
             self.local_scopes.push(BTreeMap::new());
             let prev_return_trap = self.traps.get("RETURN").cloned();
             let res = self.eval_script(&func_body, stdin);
             let out = match res {
                 Ok(mut o) => {
+                    self.last_exit = o.exit_code;
+                    self.fire_return_trap(&mut o);
                     if let Some(ret_code) = self.return_requested.take() {
                         o.exit_code = ret_code;
                     }
                     self.last_exit = o.exit_code;
-                    self.fire_return_trap(&mut o);
                     Ok(o)
                 }
                 Err(e) => Err(e),
@@ -1853,6 +1948,10 @@ impl<'a> EvalState<'a> {
                 }
             }
             self.pos_args = prev_args;
+            if !self.func_stack.is_empty() {
+                self.func_stack.remove(0);
+            }
+            self.sync_funcname();
             self.budget.leave_recursion();
             let out = out?;
             match prev_return_trap {
@@ -1896,6 +1995,7 @@ impl<'a> EvalState<'a> {
                     custom_commands: custom_ref,
                     functions: funcs_clone.clone(),
                     exported_functions: exported_clone.clone(),
+                    func_stack: Vec::new(),
                     local_scopes: Vec::new(),
                     fd_table,
                     in_fds: BTreeMap::new(),
@@ -1914,6 +2014,8 @@ impl<'a> EvalState<'a> {
                     procsub_seq: 0,
                     in_prefix_assignment: false,
                     pending_out_procsubs: Vec::new(),
+            pending_stdout: String::new(),
+            pending_stderr: String::new(),
                     exit_requested: None,
                     return_requested: None,
                     break_count: 0,
@@ -1943,6 +2045,10 @@ impl<'a> EvalState<'a> {
             sub_env.insert("0".to_string(), cmd.clone());
             let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
             sub.pos_args = args.to_vec();
+            sub.func_stack.clear();
+            sub.sync_funcname();
+            sub.env.remove("BASH_SUBSHELL");
+            sub.env.remove("__unexported__BASH_SUBSHELL");
             let res = sub.eval_script_str(&script_str, stdin)?;
             *stdin = String::new();
             return Ok(BuiltinOutcome {
@@ -2263,6 +2369,10 @@ impl<'a> EvalState<'a> {
             idx += 1;
         }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+        sub.func_stack.clear();
+        sub.sync_funcname();
+        sub.env.remove("BASH_SUBSHELL");
+        sub.env.remove("__unexported__BASH_SUBSHELL");
         sub.errexit = errexit;
         sub.nounset = nounset;
         sub.pipefail = pipefail;
@@ -2372,6 +2482,13 @@ impl<'a> EvalState<'a> {
                         'x' => self.apply_set_option("xtrace", enable),
                         'T' => self.apply_set_option("functrace", enable),
                         'E' => self.apply_set_option("errtrace", enable),
+                        'o' => {
+                            if i + 1 < args.len() && !args[i + 1].starts_with('-') {
+                                i += 1;
+                                let opt_name = args[i].clone();
+                                self.apply_set_option(&opt_name, enable);
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -2593,6 +2710,17 @@ impl<'a> EvalState<'a> {
                 exit_code: 0,
             });
         }
+        if func_mode && is_readonly {
+            for name in &operands {
+                self.env
+                    .insert(format!("__readonly_fn__{name}"), "1".to_string());
+            }
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            });
+        }
 
         if print_mode {
             let mut out = String::new();
@@ -2743,6 +2871,17 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             if unset_func {
+                if self
+                    .env
+                    .get(&format!("__readonly_fn__{arg}"))
+                    .is_some_and(|v| v == "1")
+                {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("unset: {arg}: cannot unset: readonly function\n"),
+                        exit_code: 1,
+                    };
+                }
                 self.functions.remove(arg);
                 self.exported_functions.remove(arg);
                 continue;
@@ -3695,12 +3834,38 @@ impl<'a> EvalState<'a> {
             return Ok(self.pos_args.clone());
         }
         if split_and_glob
-            && let Some(inner) = word.strip_prefix("\"${").and_then(|s| s.strip_suffix("}\""))
-            && !inner.contains('"')
-            && !inner.contains('}')
-            && let Some(items) = expand_double_quoted_at_expr(inner, self.env, &self.pos_args)
+            && let Some(dq_body) = word.strip_prefix('"').and_then(|s| s.strip_suffix('"'))
+            && !dq_body.contains('"')
         {
-            return Ok(items);
+            if let Some(start_brace) = dq_body.find("${")
+                && let Some(rel_end) = dq_body[start_brace + 2..].find('}')
+            {
+                let end_brace = start_brace + 2 + rel_end;
+                let prefix = &dq_body[..start_brace];
+                let inner = &dq_body[start_brace + 2..end_brace];
+                let suffix = &dq_body[end_brace + 1..];
+                if !suffix.contains("${")
+                    && let Some(mut items) =
+                        expand_double_quoted_at_expr(inner, self.env, &self.pos_args)
+                {
+                    if prefix.is_empty() && suffix.is_empty() {
+                        return Ok(items);
+                    }
+                    let pre_s = self.expand_word_to_string(&format!("\"{prefix}\""))?;
+                    let suf_s = self.expand_word_to_string(&format!("\"{suffix}\""))?;
+                    if items.is_empty() {
+                        if pre_s.is_empty() && suf_s.is_empty() {
+                            return Ok(Vec::new());
+                        }
+                        return Ok(vec![format!("{pre_s}{suf_s}")]);
+                    }
+                    items[0] = format!("{pre_s}{}", items[0]);
+                    if let Some(last) = items.last_mut() {
+                        last.push_str(&suf_s);
+                    }
+                    return Ok(items);
+                }
+            }
         }
         if split_and_glob && (word == "$@" || word == "${@}") {
             let ifs = self
@@ -3851,7 +4016,7 @@ impl<'a> EvalState<'a> {
             if c == '\\' {
                 if idx + 1 < chars.len() {
                     let nc = chars[idx + 1];
-                    if escape_quoted_glob && matches!(nc, '*' | '?' | '[' | '\\') {
+                    if escape_quoted_glob && matches!(nc, '*' | '?' | '[' | ']' | '(' | ')' | '.' | '^' | '$' | '+' | '{' | '}' | '|' | '\\') {
                         segments.push((format!("\\{nc}"), true));
                     } else {
                         segments.push((nc.to_string(), true));
@@ -3981,8 +4146,23 @@ impl<'a> EvalState<'a> {
         }
 
         let mut globbed = Vec::new();
+        let failglob = self
+            .env
+            .get("__shopt_failglob")
+            .map(|v| v == "1")
+            .unwrap_or(false);
         for w in words {
-            globbed.extend(expand_globs_in_word(&w, self.cwd, self.fs, self.env));
+            let expanded = expand_globs_in_word(&w, self.cwd, self.fs, self.env);
+            if failglob
+                && crate::shell::expand::has_glob_meta(&w)
+                && (expanded.is_empty()
+                    || (expanded.len() == 1
+                        && expanded[0] == w
+                        && !self.fs.exists(&resolve_posix_path(self.cwd, &w))))
+            {
+                return Err(EvalError::Syntax(format!("bash: no match: {w}")));
+            }
+            globbed.extend(expanded);
         }
         Ok(globbed)
     }
@@ -4062,11 +4242,8 @@ impl<'a> EvalState<'a> {
                 name.push(chars[*idx]);
                 *idx += 1;
             }
-            let resolved = resolve_nameref_base(&name, self.env).to_string();
-            if self.nounset && !self.env.contains_key(&resolved) {
-                return Err(EvalError::Syntax(format!("{name}: unbound variable")));
-            }
-            return Ok(self.env.get(&resolved).cloned().unwrap_or_default());
+            return expand_parameter_expr(&name, self.env, self.last_exit, &self.pos_args)
+                .map_err(EvalError::Syntax);
         }
         Ok("$".to_string())
     }
@@ -4133,6 +4310,8 @@ impl<'a> EvalState<'a> {
                 exit_code: 0,
             };
             self.write_to_fd_target(&fd2, &out.stderr, &mut dummy);
+            self.pending_stdout.push_str(&dummy.stdout);
+            self.pending_stderr.push_str(&dummy.stderr);
         }
         self.last_exit = out.exit_code;
         Ok(out.stdout)
@@ -4364,6 +4543,10 @@ fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, Ev
             out.push(c);
             out.push(chars[*idx + 1]);
             *idx += 2;
+        } else if c == '\\' && *idx + 1 < chars.len() {
+            out.push(c);
+            out.push(chars[*idx + 1]);
+            *idx += 2;
         } else if c == '\'' {
             out.push(c);
             *idx += 1;
@@ -4430,6 +4613,10 @@ fn scan_nested_brace_sub(chars: &[char], idx: &mut usize) -> Result<String, Eval
                     in_dq = false;
                 }
             }
+        } else if c == '\\' && *idx + 1 < chars.len() {
+            out.push(c);
+            out.push(chars[*idx + 1]);
+            *idx += 2;
         } else if c == '\'' {
             out.push(c);
             *idx += 1;

@@ -16,6 +16,7 @@ export interface RustWasmBashOptions {
   readonly companionFactory?: () => { shell: unknown; fs: unknown };
   readonly companionSeed?: (fs: unknown) => Promise<void>;
   readonly profile?: "warm-memory-fastpath" | "overlay-cow-fs" | "strict-budgets-mount-dev";
+  readonly ShellLimitError?: unknown;
 }
 
 export interface RustWasmExecResult {

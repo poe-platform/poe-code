@@ -1140,7 +1140,7 @@ fn eval_test_primary(
         return match op {
             "-z" => val.is_empty(),
             "-n" => !val.is_empty(),
-            "-e" | "-a" => fs.exists(&path),
+            "-e" | "-a" => fs.stat(&path).is_ok(),
             "-f" => fs.exists(&path) && !fs.is_dir(&path),
             "-d" => fs.is_dir(&path),
             "-s" => fs.read_file(&path).map(|b| !b.is_empty()).unwrap_or(false),
@@ -1159,6 +1159,20 @@ fn eval_test_primary(
                 .get(&format!("__set_{val}"))
                 .map(|v| v == "1")
                 .unwrap_or(false),
+            "-O" => {
+                let euid = env
+                    .get("__euid")
+                    .and_then(|v| v.parse::<u32>().ok())
+                    .unwrap_or(0);
+                fs.exists(&path) && euid == 0
+            }
+            "-G" => {
+                let egid = env
+                    .get("__egid")
+                    .and_then(|v| v.parse::<u32>().ok())
+                    .unwrap_or(0);
+                fs.exists(&path) && egid == 0
+            }
             _ => fs.exists(&path),
         };
     }

@@ -1064,6 +1064,9 @@ pub fn expand_parameter_expr(
             names.sort();
             return Ok(names.join(" "));
         }
+        if env.contains_key(&format!("__nameref__{rest}")) {
+            return Ok(resolve_nameref_base(rest, env).to_string());
+        }
         let target_name = lookup_var(rest, env, last_exit, pos_args);
         if target_name.is_empty() {
             return Ok(String::new());
@@ -1308,39 +1311,39 @@ pub fn expand_parameter_expr(
 
         // Case conversion ^^, ^, ,, , (with optional pattern)
         if let Some(pat) = op_rest.strip_prefix("^^") {
-            let val = lookup_var(var, env, last_exit, pos_args);
             let p = if pat.is_empty() { None } else { Some(pat) };
-            if var.ends_with("[*]") || var.ends_with("[@]") {
-                let items: Vec<String> = val.split_whitespace().map(|w| bash_uppercase(w, p, true)).collect();
+            if let Some(elems) = lookup_array_elements(var, env, pos_args) {
+                let items: Vec<String> = elems.iter().map(|w| bash_uppercase(w, p, true)).collect();
                 return Ok(items.join(" "));
             }
+            let val = lookup_var(var, env, last_exit, pos_args);
             return Ok(bash_uppercase(&val, p, true));
         }
         if let Some(pat) = op_rest.strip_prefix('^') {
-            let val = lookup_var(var, env, last_exit, pos_args);
             let p = if pat.is_empty() { None } else { Some(pat) };
-            if var.ends_with("[*]") || var.ends_with("[@]") {
-                let items: Vec<String> = val.split_whitespace().map(|w| bash_uppercase(w, p, false)).collect();
+            if let Some(elems) = lookup_array_elements(var, env, pos_args) {
+                let items: Vec<String> = elems.iter().map(|w| bash_uppercase(w, p, false)).collect();
                 return Ok(items.join(" "));
             }
+            let val = lookup_var(var, env, last_exit, pos_args);
             return Ok(bash_uppercase(&val, p, false));
         }
         if let Some(pat) = op_rest.strip_prefix(",,") {
-            let val = lookup_var(var, env, last_exit, pos_args);
             let p = if pat.is_empty() { None } else { Some(pat) };
-            if var.ends_with("[*]") || var.ends_with("[@]") {
-                let items: Vec<String> = val.split_whitespace().map(|w| bash_lowercase(w, p, true)).collect();
+            if let Some(elems) = lookup_array_elements(var, env, pos_args) {
+                let items: Vec<String> = elems.iter().map(|w| bash_lowercase(w, p, true)).collect();
                 return Ok(items.join(" "));
             }
+            let val = lookup_var(var, env, last_exit, pos_args);
             return Ok(bash_lowercase(&val, p, true));
         }
         if let Some(pat) = op_rest.strip_prefix(',') {
-            let val = lookup_var(var, env, last_exit, pos_args);
             let p = if pat.is_empty() { None } else { Some(pat) };
-            if var.ends_with("[*]") || var.ends_with("[@]") {
-                let items: Vec<String> = val.split_whitespace().map(|w| bash_lowercase(w, p, false)).collect();
+            if let Some(elems) = lookup_array_elements(var, env, pos_args) {
+                let items: Vec<String> = elems.iter().map(|w| bash_lowercase(w, p, false)).collect();
                 return Ok(items.join(" "));
             }
+            let val = lookup_var(var, env, last_exit, pos_args);
             return Ok(bash_lowercase(&val, p, false));
         }
 
@@ -1567,6 +1570,81 @@ pub fn expand_double_quoted_at_expr(
                 .collect();
             return Some(filtered);
         }
+        let var_end = find_var_name_end(expr);
+        if var_end > 0 && var_end < expr.len() {
+            let var = &expr[..var_end];
+            let op_rest = &expr[var_end..];
+            if (var == "@" || var.ends_with("[@]"))
+                && let Some(elems) = lookup_array_elements(var, env, pos_args)
+            {
+                if let Some(pat_raw) = op_rest.strip_prefix("##") {
+                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
+                    return Some(elems.iter().map(|e| strip_prefix_glob(e, &pat, true)).collect());
+                }
+                if let Some(pat_raw) = op_rest.strip_prefix('#') {
+                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
+                    return Some(elems.iter().map(|e| strip_prefix_glob(e, &pat, false)).collect());
+                }
+                if let Some(pat_raw) = op_rest.strip_prefix("%%") {
+                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
+                    return Some(elems.iter().map(|e| strip_suffix_glob(e, &pat, true)).collect());
+                }
+                if let Some(pat_raw) = op_rest.strip_prefix('%') {
+                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
+                    return Some(elems.iter().map(|e| strip_suffix_glob(e, &pat, false)).collect());
+                }
+                if let Some(rest) = op_rest.strip_prefix("//") {
+                    let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
+                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
+                    let rep = expand_nested_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
+                    return Some(elems.iter().map(|e| replace_glob_pattern(e, &pat, &rep, true)).collect());
+                }
+                if let Some(rest) = op_rest.strip_prefix('/') {
+                    let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
+                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
+                    let rep = expand_nested_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
+                    return Some(elems.iter().map(|e| replace_glob_pattern(e, &pat, &rep, false)).collect());
+                }
+                if let Some(pat) = op_rest.strip_prefix("^^") {
+                    let p = if pat.is_empty() { None } else { Some(pat) };
+                    return Some(elems.iter().map(|e| bash_uppercase(e, p, true)).collect());
+                }
+                if let Some(pat) = op_rest.strip_prefix('^') {
+                    let p = if pat.is_empty() { None } else { Some(pat) };
+                    return Some(elems.iter().map(|e| bash_uppercase(e, p, false)).collect());
+                }
+                if let Some(pat) = op_rest.strip_prefix(",,") {
+                    let p = if pat.is_empty() { None } else { Some(pat) };
+                    return Some(elems.iter().map(|e| bash_lowercase(e, p, true)).collect());
+                }
+                if let Some(pat) = op_rest.strip_prefix(',') {
+                    let p = if pat.is_empty() { None } else { Some(pat) };
+                    return Some(elems.iter().map(|e| bash_lowercase(e, p, false)).collect());
+                }
+                if let Some(op) = op_rest.strip_prefix('@') {
+                    match op {
+                        "Q" => return Some(elems.iter().map(|e| bash_quote_value(e)).collect()),
+                        "U" => return Some(elems.iter().map(|e| e.to_uppercase()).collect()),
+                        "u" => {
+                            return Some(
+                                elems
+                                    .iter()
+                                    .map(|e| {
+                                        let mut c = e.chars();
+                                        match c.next() {
+                                            Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+                                            None => String::new(),
+                                        }
+                                    })
+                                    .collect(),
+                            )
+                        }
+                        "L" => return Some(elems.iter().map(|e| e.to_lowercase()).collect()),
+                        _ => {}
+                    }
+                }
+            }
+        }
     }
     None
 }
@@ -1603,6 +1681,9 @@ fn find_var_name_end(expr: &str) -> usize {
 }
 
 fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -> bool {
+    if name == "BASH_SUBSHELL" {
+        return true;
+    }
     if let Ok(idx) = name.parse::<usize>()
         && idx >= 1
     {
@@ -1612,7 +1693,7 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
         return !pos_args.is_empty();
     }
     let resolved = resolve_var_key_for_lookup(name, env);
-    env.contains_key(&resolved)
+    env.contains_key(&resolved) || env.contains_key(&format!("{resolved}[0]"))
 }
 
 fn expand_nested_operand(
@@ -1731,7 +1812,7 @@ fn replace_glob_pattern(val: &str, pat: &str, rep: &str, global: bool) -> String
         }
         return val.to_string();
     }
-    if !pat.contains('*') && !pat.contains('?') && !pat.contains('[') {
+    if !has_glob_meta(pat) {
         return if global {
             val.replace(pat, rep)
         } else {
@@ -1937,6 +2018,12 @@ pub fn lookup_var(
     last_exit: i32,
     pos_args: &[String],
 ) -> String {
+    if name == "BASH_SUBSHELL" {
+        return env
+            .get("BASH_SUBSHELL")
+            .cloned()
+            .unwrap_or_else(|| "0".to_string());
+    }
     if name == "?" {
         return last_exit.to_string();
     }
@@ -1944,6 +2031,20 @@ pub fn lookup_var(
         return pos_args.len().to_string();
     }
     if name == "@" || name == "*" {
+        if name == "*" {
+            let sep = env
+                .get("IFS")
+                .and_then(|s| s.chars().next())
+                .map(|c| c.to_string())
+                .unwrap_or_else(|| {
+                    if env.contains_key("IFS") {
+                        String::new()
+                    } else {
+                        " ".to_string()
+                    }
+                });
+            return pos_args.join(&sep);
+        }
         return pos_args.join(" ");
     }
     if let Ok(idx) = name.parse::<usize>()
@@ -1952,6 +2053,7 @@ pub fn lookup_var(
         return pos_args.get(idx - 1).cloned().unwrap_or_default();
     }
     if let Some(arr_base) = name.strip_suffix("[@]").or_else(|| name.strip_suffix("[*]")) {
+        let is_star = name.ends_with("[*]");
         let resolved = resolve_nameref_base(arr_base, env);
         let prefix = format!("{resolved}[");
         let is_assoc = env
@@ -1974,10 +2076,27 @@ pub fn lookup_var(
             return env.get(&format!("{resolved}[*]")).cloned().unwrap_or_default();
         }
         let vals: Vec<String> = entries.into_iter().map(|(_, v)| v).collect();
+        if is_star {
+            let sep = env
+                .get("IFS")
+                .and_then(|s| s.chars().next())
+                .map(|c| c.to_string())
+                .unwrap_or_else(|| {
+                    if env.contains_key("IFS") {
+                        String::new()
+                    } else {
+                        " ".to_string()
+                    }
+                });
+            return vals.join(&sep);
+        }
         return vals.join(" ");
     }
     let key = resolve_var_key_for_lookup(name, env);
-    env.get(&key).cloned().unwrap_or_default()
+    env.get(&key)
+        .or_else(|| env.get(&format!("{key}[0]")))
+        .cloned()
+        .unwrap_or_default()
 }
 
 fn strip_prefix_glob(val: &str, pat: &str, longest: bool) -> String {
@@ -2020,7 +2139,7 @@ fn strip_suffix_glob(val: &str, pat: &str, longest: bool) -> String {
     val.to_string()
 }
 
-fn has_glob_meta(word: &str) -> bool {
+pub fn has_glob_meta(word: &str) -> bool {
     word.contains('*')
         || word.contains('?')
         || word.contains('[')

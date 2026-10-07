@@ -91,14 +91,15 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       close() { closed = true; return close(); },
     };
   };
-  let cachedCallerSignal: AbortSignal | undefined;
-  let cachedCombinedSignal: AbortSignal | undefined;
+  let combinedSignals = new WeakMap<AbortSignal, AbortSignal>();
   const combineSignal = (callerSignal: AbortSignal | undefined): AbortSignal => {
     if (!callerSignal || callerSignal === signal) return signal;
-    if (callerSignal === cachedCallerSignal && cachedCombinedSignal) return cachedCombinedSignal;
-    cachedCallerSignal = callerSignal;
-    cachedCombinedSignal = AbortSignal.any([signal, callerSignal]);
-    return cachedCombinedSignal;
+    let combined = combinedSignals.get(callerSignal);
+    if (!combined) {
+      combined = AbortSignal.any([signal, callerSignal]);
+      combinedSignals.set(callerSignal, combined);
+    }
+    return combined;
   };
   const resizeOptions = <Options extends FsOptions>(options: Options): Options => {
     const scopedOptions = {
@@ -494,8 +495,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
   retargeters.set(view, (nextCharge, nextSignal, nextCleanupCharge, nextMaxPathComponents) => {
     charge = nextCharge;
     if (signal !== nextSignal) {
-      cachedCallerSignal = undefined;
-      cachedCombinedSignal = undefined;
+      combinedSignals = new WeakMap();
     }
     signal = nextSignal;
     cleanupCharge = nextCleanupCharge;

@@ -86,6 +86,7 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     signal?.throwIfAborted();
   };
   let defaultFsOptions!: { signal: AbortSignal };
+  const callerOptions = new WeakMap<AbortSignal, { signal: AbortSignal }>();
   const run = <Result>(syscall: string, forwarded: FsOptions,
     action: (retained: FileDescriptor, options: FsOptions) => Promise<Result>): Promise<Result> => {
     const signal = forwarded.signal;
@@ -95,7 +96,15 @@ export async function openCommandFile(context: FileOutputContext & { readonly cl
     } catch (error) { return Promise.reject(error); }
     const operation = work.then(async () => {
       check(signal);
-      const supplied = signal ? { signal: AbortSignal.any([scope!, signal]) } : defaultFsOptions;
+      let supplied = defaultFsOptions;
+      if (signal && signal !== scope) {
+        const cached = callerOptions.get(signal);
+        if (cached) supplied = cached;
+        else {
+          supplied = { signal: AbortSignal.any([scope!, signal]) };
+          callerOptions.set(signal, supplied);
+        }
+      }
       try {
         const result = await action(descriptor!, supplied);
         if (syscall !== "write" || !context.preserveWriteReceipt) check(signal);

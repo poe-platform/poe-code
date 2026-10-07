@@ -298,3 +298,21 @@ for (const branch of ["before", "after"]) for (const outcome of closeOutcomes) {
     assert.equal(returns, 1);
   });
 }
+
+test('alternating caller signals reuse scoped cancellation without cross-cancelling callers',async()=>{
+ const memory=new MemoryFileSystem();await memory.writeFile('/file',new Uint8Array());
+ const observed:AbortSignal[]=[];
+ const backing=new Proxy(memory,{get(target,key){
+  if(key==='open')return async(...args:Parameters<MemoryFileSystem['open']>)=>{const descriptor=await target.open(...args);return new Proxy(descriptor,{get(handle,method){if(method==='stat')return (options?:{signal?:AbortSignal})=>{observed.push(options!.signal!);return handle.stat(options);};const value=Reflect.get(handle,method);return typeof value==='function'?value.bind(handle):value;}});};
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const parent=new AbortController(),first=new AbortController(),second=new AbortController();
+ const scoped=scopeFileSystem(backing,()=>{},parent.signal);
+ const descriptor=await scoped.open!('/file',{access:'read',creation:'never'});
+ for(const signal of [first.signal,second.signal,first.signal,second.signal])await descriptor.stat({signal});
+ assert.equal(observed[0],observed[2]);assert.equal(observed[1],observed[3]);
+ first.abort('first stopped');
+ assert.equal(observed[0]!.reason,'first stopped');assert.equal(observed[1]!.aborted,false);
+ parent.abort('scope stopped');assert.equal(observed[1]!.reason,'scope stopped');
+ await descriptor.close();
+});

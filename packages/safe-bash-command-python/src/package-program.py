@@ -128,6 +128,7 @@ def _safe_validate(roots):
     raise ValueError('Python package wheel version conflict: ' + str(root))
 from collections.abc import MutableSet as _SafeMutableSet
 class _SafeNames(_SafeMutableSet):
+ files = ('entry',)
  def __init__(self, names=()):
   import os, tempfile
   self.root = tempfile.mkdtemp(dir=_safe_installation_root, prefix='.names-')
@@ -135,10 +136,10 @@ class _SafeNames(_SafeMutableSet):
   self.count = self.serial = 0
   with open(self.journal, 'w', encoding='utf-8'):pass
   self.update(names)
- def path(self, name):
+ def path(self, name, filename='entry'):
   import os
   key = name.encode('utf-8', 'surrogatepass').hex()
-  return os.path.join(self.root, 'keys', *(key[i:i+100] for i in range(0, len(key), 100)), 'entry')
+  return os.path.join(self.root, 'keys', *(key[i:i+100] for i in range(0, len(key), 100)), filename)
  def entry(self, name):
   try:
    with open(self.path(name), encoding='utf-8') as source:ordinal = source.read(len(str(self.serial)) + 1)
@@ -179,8 +180,9 @@ class _SafeNames(_SafeMutableSet):
    for line in source:
     _, name = json.loads(line)
     path = self.path(name)
-    try:os.unlink(path)
-    except FileNotFoundError:pass
+    for filename in self.files:
+     try:os.unlink(self.path(name, filename))
+     except FileNotFoundError:pass
     parent = os.path.dirname(path)
     while parent != self.root:
      try:os.rmdir(parent)
@@ -191,6 +193,17 @@ class _SafeNames(_SafeMutableSet):
      parent = os.path.dirname(parent)
   os.unlink(self.journal)
   os.rmdir(self.root)
+
+class _SafeValues(_SafeNames):
+ files = ('entry', 'value')
+ def put(self, name, value):
+  import json
+  self.add(name)
+  with open(self.path(name, 'value'), 'w', encoding='utf-8') as output:json.dump(value, output)
+ def get(self, name, default=None):
+  import json
+  if name not in self:return default
+  with open(self.path(name, 'value'), encoding='utf-8') as source:return json.load(source)
 
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = {}
@@ -214,13 +227,14 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
    requirement.specifier = _SafeRequirement(requirement.name).specifier
   return requirement
  _safe_roots = [constrain(root) for root in _safe_roots if not root.marker or root.marker.evaluate({'extra': ''})]
- _safe_extras = {}
+ _safe_extras = _SafeValues()
  for _safe_root in _safe_roots:
   if not _safe_root.marker or _safe_root.marker.evaluate({'extra': ''}):
-   _safe_extras.setdefault(_safe_name(_safe_root.name), set()).update(_safe_root.extras)
+   name = _safe_name(_safe_root.name)
+   _safe_extras.put(name, sorted(set(_safe_extras.get(name, ())) | _safe_root.extras))
  for _safe_root in _safe_roots:
   _safe_root.extras.update(_safe_extras.get(_safe_name(_safe_root.name), set()))
- _safe_requested_names = set(_safe_extras)
+ _safe_requested_names = _SafeNames(_safe_extras)
  import micropip.package_manager as _safe_pm
  _SafeTransaction = _safe_pm.Transaction
  class _SafeReplacementTransaction(_SafeTransaction):
@@ -251,8 +265,11 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  _safe_managed = _SafeNames(_safe_requested_names)
  if no_deps:
   _safe_validate(_safe_roots)
+  _safe_extras.close()
+  _safe_requested_names.close()
   return _safe_managed
  _safe_previous_pending = set()
+ _safe_versions = None
  def dependencies(versions=None):
   for distribution in _safe_metadata.distributions():
    name = distribution.metadata['Name']
@@ -261,8 +278,8 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
     continue
    name = _safe_name(name)
    if versions is not None:
-    versions[name] = distribution.version
-   contexts = {''} | _safe_extras.get(name, set())
+    versions.put(name, distribution.version)
+   contexts = {''} | set(_safe_extras.get(name, ()))
    for dependency in distribution.requires or []:
     requirement = _SafeRequirement(dependency)
     if requirement.marker and not any(requirement.marker.evaluate({'extra': extra}) for extra in contexts):
@@ -274,15 +291,17 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  while True:
   while True:
    _safe_changed = False
-   _safe_versions = {}
+   if _safe_versions is not None:_safe_versions.close()
+   _safe_versions = _SafeValues()
    for _safe_requirement in dependencies(_safe_versions):
     _safe_dependency_name = _safe_name(_safe_requirement.name)
     if _safe_dependency_name not in _safe_managed:
      _safe_managed.add(_safe_dependency_name)
      _safe_changed = True
-    _safe_selected = _safe_extras.setdefault(_safe_dependency_name, set())
+    _safe_selected = set(_safe_extras.get(_safe_dependency_name, ()))
     if not _safe_requirement.extras.issubset(_safe_selected):
      _safe_selected.update(_safe_requirement.extras)
+     _safe_extras.put(_safe_dependency_name, sorted(_safe_selected))
      _safe_changed = True
    if not _safe_changed:
     break
@@ -301,6 +320,9 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
   _safe_previous_pending.add(frozenset(_safe_pending))
   await _safe_install(sorted(_safe_pending))
  _safe_validate(_safe_roots)
+ _safe_versions.close()
+ _safe_extras.close()
+ _safe_requested_names.close()
  return _safe_managed
 def _safe_removal_listing(_safe_dist):
  from micropip._utils import get_files_in_distribution as _safe_distribution_files

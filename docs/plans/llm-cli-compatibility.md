@@ -229,9 +229,13 @@ It no longer retains every dependency edge as a parsed requirement. Managed and
 restored package-name membership now uses installation-root key files and a streamed
 ordinal journal. Discard/re-add does not duplicate enumeration, and publication
 retires both stores; failed installation remains covered by installation-root
-retirement. This does not bound host manifests, individual records, requested-name/
-extras/version maps, pending requirements, native executable allocation, or the
-remaining ZIP fallback.
+retirement. Resolver requested-name snapshots, extras and per-pass version maps
+also use caller storage. Version overwrites preserve last-distribution precedence;
+each superseded version pass retires before the next, and resolution retires its
+requested/extras state before returning managed names. Individual graph records
+remain materialized. This does not bound host manifests, root/constraint records,
+pending requirements and convergence signatures, final inventory collections,
+native executable allocation, or the remaining ZIP fallback.
 JSPI package transfers and native metadata filesystem operations share one dispatch
 lane before reaching the host's single-request transport. This preserves dependency
 installation after a prior `--no-deps` install; cancellation and descriptor retirement

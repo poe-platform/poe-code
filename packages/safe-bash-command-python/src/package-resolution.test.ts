@@ -51,7 +51,12 @@ micropip.package_manager = pm
 sys.modules['micropip'] = micropip
 sys.modules['micropip.package_manager'] = pm
 namespace = {'_SafeRequirement':Requirement, '_safe_name':canonicalize_name, '_safe_preloaded':set(), '_safe_metadata':types.SimpleNamespace(distributions=distributions), '_safe_manager':types.SimpleNamespace(install=install), '_safe_validate':validate, '_safe_package_pre':False}
-namespace['_SafeNames'] = set
+class Names(set):
+ def close(self):pass
+class Values(dict):
+ put=dict.__setitem__
+ def close(self):pass
+namespace.update(_SafeNames=Names,_SafeValues=Values)
 exec(compile(ast.Module(body=selected,type_ignores=[]), '<package-resolution>', 'exec'), namespace)
 try:
  result = asyncio.run(namespace['_safe_resolve']([Requirement('root')], no_deps=no_deps))

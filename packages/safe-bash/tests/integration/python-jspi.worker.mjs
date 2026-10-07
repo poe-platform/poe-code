@@ -18,20 +18,29 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
-async function qualifyNativeWheel(backend,createExecutor,micropip) {
+async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false) {
+  let stagedBytes=0,maxWrite=0;
+  const storage=new Proxy(backend,{get(target,key){
+    if(key==='createStagedFile')return async(...args)=>{
+      const stage=await target.createStagedFile(...args);
+      return {...stage,writer:{...stage.writer,async write(bytes,options){maxWrite=Math.max(maxWrite,bytes.length);if(bytes.length>65536)throw new Error("Unbounded package staging write");await stage.writer.write(bytes,options);stagedBytes+=bytes.length;}}};
+    };
+    if(key==='readFile'||key==='writeFile')return (...args)=>{if(args[0].includes('-sha256-'))throw new Error("Whole package buffer access");return target[key](...args);};
+    const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+  }});
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
   const artifacts=new Map(nativeWheelAssets.map(({file,bytes})=>[base+file,bytes]));
   artifacts.set(base+'micropip-0.11.1-py3-none-any.whl',micropip);
   const requests=[],diagnostics=[];
-  const environment=createPythonPackageEnvironment({requirements:['pydantic-core==2.41.5'],cacheDirectory:'/work/wheel-cache',
+  const environment=createPythonPackageEnvironment({requirements:['pydantic-core==2.41.5'],...defaultCache?{}:{cacheDirectory:'/work/wheel-cache'},
     authorize:({url})=>artifacts.has(url),transport:async({url})=>{
       requests.push(url);
-      return {status:200,headers:[],body:(async function*(){yield artifacts.get(url);})(),async dispose(){}};
+      return {status:200,headers:[],body:(async function*(){const bytes=artifacts.get(url),start=stagedBytes;for(let offset=0;offset<bytes.length;offset+=65536){if(stagedBytes-start!==offset)throw new Error('Package download did not apply storage backpressure');yield bytes.subarray(offset,offset+65536);}})(),async dispose(){}};
     }});
-  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
+  const shell=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
   try {
     const result=await shell.exec(`python -c 'from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
-    return {result,requests,diagnostics};
+    return {result,requests,diagnostics,stagedBytes,maxWrite};
   }finally{await shell.dispose();await environment.dispose();}
 }
 
@@ -1872,7 +1881,7 @@ export default {
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

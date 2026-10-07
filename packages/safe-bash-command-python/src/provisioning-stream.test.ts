@@ -36,7 +36,7 @@ test('old cache records remain replayable and malformed response URLs fail befor
  }
 });
 
-for(const noCache of [false,true])test(`network wheel uses bounded caller staging; noCache=${noCache}`,async()=>{
+for(const configured of [false,true])for(const noCache of [false,true])test(`network wheel uses bounded caller staging; configured=${configured}; noCache=${noCache}`,async()=>{
  const backing=new MemoryFileSystem();let written=0,requests=0,disposed=0;
  const fs=new Proxy(backing,{get(target,key){
   if(key==='readFile')return async(path:string,...args:Parameters<typeof target.readFile> extends [string,...infer Rest]?Rest:never)=>{
@@ -52,7 +52,7 @@ for(const noCache of [false,true])test(`network wheel uses bounded caller stagin
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
  const total=65536*3+7;
- const environment=createPythonPackageEnvironment({cacheDirectory:'/cache',noCache,authorize:()=>true,transport:async()=>{
+ const environment=createPythonPackageEnvironment({...configured?{cacheDirectory:'/cache'}:{},noCache,authorize:()=>true,transport:async()=>{
   requests++;return {status:200,statusText:'OK',headers:[],body:(async function*(){let sent=0;while(sent<total){if(sent)assert.equal(written,sent,'backpressure must stage each chunk before pulling another');const count=Math.min(65536,total-sent);yield new Uint8Array(count).fill(23);sent+=count;}})(),async dispose(){disposed++;}};
  }});
  const context={fs,cwd:'/',signal:new AbortController().signal};
@@ -139,4 +139,21 @@ test('download refuses staging changed between sealing and retained acquisition'
  const context={fs,cwd:'/',signal:new AbortController().signal},start=await environment.prepare(context);
  try{await assert.rejects(environment.dispatch('package-open',[start.session,'https://packages.example/wheel'],context),/changed/);}
  finally{await environment.finish(start);await environment.dispose();}
+});
+
+test('default caller cache survives environment retirement without persisting implicit manifests',async()=>{
+ const fs=new MemoryFileSystem(),context={fs,cwd:'/',signal:new AbortController().signal};let requests=0;
+ const first=createPythonPackageEnvironment({authorize:()=>true,transport:async()=>{requests++;return {status:200,statusText:'OK',headers:[],body:(async function*(){yield Uint8Array.of(7,8,9);})(),async dispose(){}};}});
+ const start=await first.prepare(context);
+ const opened=await first.dispatch('package-open',[start.session,'https://packages.example/wheel'],context) as {key:string};
+ await first.dispatch('package-commit',[start.session,['fixture==1']],context);
+ await first.finish(start);await first.dispose();
+ const second=createPythonPackageEnvironment({offline:true});
+ const restored=await second.prepare(context);
+ try{
+  assert.deepEqual(restored.requirements,[],'implicit manifest ownership must remain per environment');
+  const cached=await second.dispatch('package-open',[restored.session,'https://packages.example/wheel'],context) as {key:string};
+  assert.equal(cached.key,opened.key);assert.equal(requests,1);
+  assert.deepEqual(await second.dispatch('package-read',[restored.session,cached.key,0,3],context),[7,8,9]);
+ }finally{await second.finish(restored);await second.dispose();}
 });

@@ -138,7 +138,7 @@ All rows require deterministic differential fixtures against the pinned distribu
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |
 
 
-Canonical wheel transport now authenticates and replays through caller-filesystem retained handles, with bounded reads, version/identity revalidation, cancellation checkpoints and awaited retirement. Canonical files no longer populate a redundant full-byte artifact cache. Cache-directory network acquisition now writes caller staging in at most 64 KiB chunks and publishes only after integrity and sealed-identity checks; cache replay uses retained reads. No-cache acquisition uses the same staging path. Stalled response cancellation, source/integrity/limit/progress failures, corrupted/missing cache artifacts and staging races have regressions. Buffered filesystem fallback, legacy/memory-cache acquisition and interpreter extraction remain explicit transport gaps. Cleanup failures are reported after confirmed interpreter capacity is released.
+Canonical wheel transport now authenticates and replays through caller-filesystem retained handles, with bounded reads, version/identity revalidation, cancellation checkpoints and awaited retirement. Canonical files no longer populate a redundant full-byte artifact cache. Cache-directory network acquisition now writes caller staging in at most 64 KiB chunks and publishes only after integrity and sealed-identity checks; cache replay uses retained reads. No-cache acquisition uses the same staging path. Stalled response cancellation, source/integrity/limit/progress failures, corrupted/missing cache artifacts and staging races have regressions. Default network acquisition now uses caller-backed .python-packages/cache storage as well, while implicit manifest ownership and durable local-wheel paths stay unchanged. Explicit buffered cache adapters, weak filesystem fallback and interpreter extraction remain transport gaps. Cleanup failures are reported after confirmed interpreter capacity is released.
 
 
 ## Remaining interpreter extraction boundary
@@ -188,7 +188,7 @@ registration remain intact. Successful publication, finish,
 cancellation and disposal retire retained sources; publication closes them before
 user Python can execute. Close failures still drain every handle and remain
 observable. ZIP directory/package metadata and extracted package files still use
-interpreter memory. Legacy/memory-cache acquisition is still buffered, so this is
+interpreter memory. Explicit buffered cache adapters still materialize artifacts, so this is
 not full caller-backed storage qualification.
 
 The next implementation must cover three separate retention points: authenticated

@@ -40,7 +40,7 @@ export interface PythonPackageOptions extends PythonPackageInstallOptions {
  readonly cache?: PythonPackageCache;
  readonly manifestStore?: PythonPackageManifestStore;
  readonly scope?: string;
- /** Canonical filesystem directory, scoped to this package environment. */
+ /** Canonical cache directory. Network artifacts otherwise use caller cwd/.python-packages/cache; explicit buffered caches keep their own storage. */
  readonly cacheDirectory?: string;
  readonly maxDownloadBytes?: number;
  readonly maxManifestBytes?: number;
@@ -105,6 +105,7 @@ function normalizeRequirement(value: string, cwd: string): string {
 interface PackageArtifact {url?:string;readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
 interface Session extends PythonPackageContext {
  readonly cacheDirectory: string | undefined;
+ readonly artifactDirectory: string | undefined;
  readonly noCache: boolean;
  readonly cache: PythonPackageCache;
  readonly offline: boolean;
@@ -181,9 +182,13 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const context = { ...input, signal };
   signal.throwIfAborted();
   const directory = options.cacheDirectory === undefined ? undefined : resolve(context.cwd,options.cacheDirectory,runtimeKey);
-  const cache = options.cache ?? (directory === undefined ? defaultCache : {
-   async get(key: string) { try { return await context.fs.readFile(resolve(directory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
-   async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(directory,{recursive:true,signal});await context.fs.writeFile(resolve(directory,key),bytes,{signal}); },
+  const noCache=context.noCache??options.noCache??false;
+  // Keep the implicit environment manifest in its original owner. Artifact
+  // payloads default to caller storage instead of an unbounded memory cache.
+  const artifactDirectory=directory??(!options.cache&&!noCache?resolve(context.cwd,'.python-packages','cache',runtimeKey):undefined);
+  const cache = options.cache ?? (artifactDirectory === undefined ? defaultCache : {
+   async get(key: string) { try { return await context.fs.readFile(resolve(artifactDirectory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
+   async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },
   });
   const manifestCache = options.cacheDirectory === undefined ? defaultCache : cache;
   let snapshot: PythonPackageManifest | undefined;
@@ -225,7 +230,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current,true);}};
   const offline=context.offline??options.offline??false;
-  sessions.set(session,{...context,cacheDirectory:directory,noCache:context.noCache??options.noCache??false,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
+  sessions.set(session,{...context,cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   signal.addEventListener('abort',aborted,{once:true});
   const controls: {pre?:boolean;upgrade?:boolean;forceReinstall?:boolean}={};
   for(const key of ['pre','upgrade','forceReinstall'] as const)if(context[key]??options[key])controls[key]=true;
@@ -312,7 +317,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   session.opening=true;
   try {
   await release(session);checkSession(session);
-  const url=args[1],{cacheDirectory,noCache}=session;const expected=args[2];let responseUrl=url;
+  const url=args[1],{artifactDirectory:cacheDirectory,noCache}=session;const expected=args[2];let responseUrl=url;
   const verifyIntegrity=(key:string)=>{if(expected&&key!==expected)throw failure(`Package integrity mismatch: ${url}`);};
   if(expected!==undefined && expected!==null && !validDigest(expected))throw failure('Invalid SHA-256 package integrity value');
   const address=runtimeKey+'-url-'+digest(encoder.encode(url));

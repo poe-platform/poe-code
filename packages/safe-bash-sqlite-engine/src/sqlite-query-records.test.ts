@@ -120,3 +120,18 @@ test('staged query fields reject changes to their retained caller snapshot',asyn
  });
  assert.deepEqual((await fs.readdir('/')).map(e=>e.name),['main']);
 });
+test('database filenames preserve caller paths, including repeated attached sources',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await fs.mkdir('/nested');await transactSqlite({fs,path:'/nested/界.db',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ const actual:string[][]=[];
+ await withSqliteQueryRecords({fs,path:'/main',directory:'/',signal,...limits,attachments:[{alias:'other',path:'/nested/界.db'},{alias:'again',path:'/main'}],sql:'SELECT name,file FROM pragma_database_list'},async rows=>{
+  for await(const row of rows){const values:string[]=[];for(const field of row){assert.ok(field&&typeof field==='object');let value='';for await(const bytes of field.bytes)value+=new TextDecoder().decode(bytes);values.push(value);}actual.push(values);}
+ });
+ assert.deepEqual(actual,[['main','/main'],['other','/nested/界.db'],['again','/main']]);
+});
+test('database filenames use the retained source resolution through symlinked directories',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/actual');await transactSqlite({fs,path:'/actual/main',signal,...limits},s=>s.execute('CREATE TABLE sample(id INTEGER)'));
+ await fs.symlink('/actual','/alias');let filename='';
+ await withSqliteQueryRecords({fs,path:'/alias/main',directory:'/',signal,...limits,sql:'SELECT file FROM pragma_database_list'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');for await(const bytes of field.bytes)filename+=new TextDecoder().decode(bytes);}});
+ assert.equal(filename,'/actual/main');
+});

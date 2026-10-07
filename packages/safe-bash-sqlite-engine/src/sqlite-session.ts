@@ -15,6 +15,7 @@ export interface PrivateSqliteSession extends SqliteRuntime {
 export async function withPrivateSqliteSession<T>(options: {
   fs: SqliteFileSystem; directory: string; path: string; signal: AbortSignal;
   maxOpenFiles: number; maxFileBytes: number;
+  filenames?: readonly {path:string;name:string}[];
 }, operation: (session: PrivateSqliteSession) => Promise<T>): Promise<T> {
   const {directory, path, signal} = options;
   signal.throwIfAborted();
@@ -31,7 +32,7 @@ export async function withPrivateSqliteSession<T>(options: {
     const vfs = 'sqlite-private';
     // The facade defaults to 64 bytes, shorter than an owned UUID directory.
     // Include room for SQLite journal/temp names and longer caller prefixes.
-    const mxPathname = Math.max(4096, new TextEncoder().encode(path).length + 256);
+    const mxPathname = Math.max(4096, new TextEncoder().encode(path).length + 256, ...(options.filenames??[]).map(file=>new TextEncoder().encode(file.name).length+256));
     const code = runtime.module.vfs_register(Object.assign(new FacadeVFS(vfs, runtime.module), callbacks, {mxPathname}), true);
     if (code !== 0) throw new FsError('EIO', {message: `SQLite VFS registration failed (${code})`});
     value = await withSqliteDatabase(runtime.module, {path, vfs, signal, check: callbacks.throwIfFailed}, connection =>

@@ -11,6 +11,8 @@ export type SqliteFileSystem = Pick<FileSystem, 'open' | 'stat' | 'unlink'>;
 export function createSqliteVfs(options: {
   fs: SqliteFileSystem; directory: string; signal: AbortSignal;
   maxOpenFiles: number; maxFileBytes: number;
+  /** Caller-visible database names backed only by these owned private files. */
+  filenames?: readonly {path:string;name:string}[];
 }) {
   const { fs, directory, signal, maxOpenFiles, maxFileBytes } = options;
   if (!fs.open || !fs.unlink) throw new FsError('ENOTSUP', { message: 'SQLite requires positioned file descriptors' });
@@ -29,10 +31,28 @@ export function createSqliteVfs(options: {
     if (failed) throw failure;
     signal.throwIfAborted();
   };
-  const filename = (name: string): string => {
+  const confined = (name: string): string => {
     const prefix = directory + '/', leaf = name.slice(prefix.length);
     if (!name.startsWith(prefix) || !leaf || leaf.includes('/') || leaf.includes('\0') || leaf === '.' || leaf === '..') throw new FsError('EACCES', { path: name, message: 'SQLite file is outside its private directory' });
     return name;
+  };
+  const visible=new Map<string,string>(),backing=new Map<string,string>();
+  for(const {path,name}of options.filenames??[]){
+    confined(path);
+    if(!name.startsWith('/')||name.includes('\0')||name.split('/').slice(1).some(part=>!part||part==='.'||part==='..'))throw new RangeError('Invalid SQLite visible filename');
+    if(visible.has(path))throw new TypeError('Duplicate SQLite backing filename');
+    visible.set(path,name);
+    // Repeated attachments name the same private snapshot, just as native
+    // SQLite opens the same caller file through more than one database alias.
+    if(!backing.has(name))backing.set(name,path);
+  }
+  const shared=new Set(backing.values());
+  const filename=(name:string):string=>{
+    const exact=backing.get(name);if(exact)return exact;
+    for(const suffix of ['-journal','-wal','-shm'])if(name.endsWith(suffix)){
+      const path=backing.get(name.slice(0,-suffix.length));if(path)return confined(path+suffix);
+    }
+    return confined(name);
   };
   const entry = (id: number): Entry => {
     const value = handles.get(id);
@@ -65,12 +85,21 @@ export function createSqliteVfs(options: {
     return task;
   };
   return {
+    jFullPathname(name:string,out:Uint8Array):number {
+      try{
+        admit();filename(name);
+        const value=visible.get(name)??name;
+        const {read,written}=new TextEncoder().encodeInto(value,out);
+        if(read!==value.length||written>=out.length)throw new FsError('ENAMETOOLONG',{path:value});
+        out[written]=0;return 0;
+      }catch(error){fail(error);return 10;}
+    },
     async jOpen(name: string | null, id: number, flags: number, out: DataView): Promise<number> {
       return execute(async () => {
         if (handles.has(id) || opening.has(id) || handles.size + opening.size >= maxOpenFiles) throw new FsError('EMFILE', { message: 'SQLite open file limit exceeded' });
         const temporary = name === null;
         const path = filename(name ?? `${directory}/sqlite-temp-${crypto.randomUUID()}`);
-        if ([...opening.values()].includes(path) || [...handles.values()].some(value => value.name === path)) throw new FsError('EBUSY', { path, message: 'SQLite private files require a single connection' });
+        if ([...opening.values()].includes(path) || (!shared.has(path) && [...handles.values()].some(value => value.name === path))) throw new FsError('EBUSY', { path, message: 'SQLite private files require a single connection' });
         opening.set(id, path);
         try {
           const file = await open(path, { access: flags & 1 ? 'read' : 'readwrite', creation: temporary || flags & 16 ? 'exclusive' : flags & 4 ? 'ifMissing' : 'never', noFollow: true, mode: 0o600, signal });

@@ -69,3 +69,20 @@ test('read sessions bound source reads and retain an immutable snapshot after ac
  assert.ok(reads>0);assert.deepEqual(rows,[['original']]);assert.deepEqual(await fs.readFile('/main'),new Uint8Array([7]));
  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['main']);
 });
+test('visible attached filenames recover hot journals only inside retained snapshots',async()=>{
+ const {withPrivateSqliteSession}=await import('./sqlite-session.js');
+ const fs=new MemoryFileSystem();await fs.mkdir('/private');let database!:Uint8Array,journal!:Uint8Array;
+ await withPrivateSqliteSession({fs,directory:'/private',path:'/private/database',signal,...limits},async session=>{
+  await session.execute('PRAGMA page_size=512; PRAGMA cache_size=2; CREATE TABLE sample(value); WITH RECURSIVE n(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM n WHERE x<100) INSERT INTO sample SELECT zeroblob(1000) FROM n;');
+  await session.execute('BEGIN IMMEDIATE; UPDATE sample SET value=zeroblob(1100);');
+  database=await fs.readFile('/private/database');journal=await fs.readFile('/private/database-journal');
+  await session.execute('ROLLBACK');
+ });
+ await fs.writeFile('/recovery',database);await fs.writeFile('/recovery-journal',journal);
+ await transactSqlite({fs,path:'/main',signal,...limits},session=>session.execute('CREATE TABLE empty(value)'));
+ const actual=await withSqliteReadSession({fs,path:'/main',directory:'/',signal,...limits,attachments:[{alias:'recovered',path:'/recovery'},{alias:'again',path:'/recovery'}]},session=>withSqliteStatement(session.module,{...session,signal,sql:'SELECT count(*),sum(length(value)) FROM again.sample'},async statement=>{
+  const rows=[];for await(const row of statement.rows([],['integer','integer']))rows.push(row);return rows;
+ }));
+ assert.deepEqual(actual,[[100n,100000n]]);assert.deepEqual(await fs.readFile('/recovery'),database);assert.deepEqual(await fs.readFile('/recovery-journal'),journal);
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['main','private','recovery','recovery-journal']);
+});

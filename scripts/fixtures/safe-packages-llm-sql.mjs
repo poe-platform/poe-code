@@ -37,6 +37,11 @@ export async function verifyLlmSqlImports(){
   for await(const entry of entries){attachedCount=entry.id;await entry.input.dispose();}
  });
  if(attachedCount!=='11')throw new Error('Result storage consumed native attachment capacity');
+ const filenames=[];
+ await withSqlEmbeddingEntries({...limits,fs,path:'/source.db',directory:'/',signal,attachments:[{alias:'again',path:'/source.db'}],sql:'SELECT name,file FROM pragma_database_list'},async entries=>{
+  for await(const entry of entries){let path='';for await(const bytes of entry.input.bytes)path+=new TextDecoder().decode(bytes);filenames.push([entry.id,path]);}
+ });
+ if(JSON.stringify(filenames)!=='[["main","/source.db"],["again","/source.db"]]')throw new Error('SQLite filenames exposed snapshots: '+JSON.stringify(filenames));
  const after=await fs.readFile('/source.db');if(after.length!==before.length||after.some((byte,index)=>byte!==before[index]))throw new Error('SQL source changed');
  if(JSON.stringify((await fs.readdir('/')).map(entry=>entry.name))!=='["broken.db","created.db","empty.db","failed.db","new.db","prepared.db","source.db","target.db"]')throw new Error('SQL result storage leaked');
  return {sqlImports:true,largeBytes};

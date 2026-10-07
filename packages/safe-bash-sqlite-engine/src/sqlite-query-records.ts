@@ -21,7 +21,8 @@ export async function withSqliteQueryRecords<T>(options:SqliteInputSnapshotsOpti
   const check=()=>{signal.throwIfAborted();if(!accepting)throw new FsError('EBADF',{message:'SQLite query results are closed'});};
   try{
    let columns:readonly string[]=[];
-   await withPrivateSqliteSession({...options,fs:storage.fs,directory:storage.directory,path:storage.directory+'/database-0'},async session=>{
+   await withPrivateSqliteSession({...options,fs:storage.fs,directory:storage.directory,path:storage.directory+'/database-0',filenames:inputs.map((input,index)=>({path:storage.directory+'/database-'+index,name:input.path}))},async session=>{
+   await session.execute('PRAGMA query_only=ON');
     for(let index=1;index<inputs.length;index++)await withSqliteStatement(session.module,{...session,signal,sql:'ATTACH DATABASE ? AS "'+inputs[index]!.alias.replaceAll('"','""')+'"'},async statement=>{
      for await(const ignored of statement.rows([storage.directory+'/database-'+index],[]))signal.throwIfAborted();
     });

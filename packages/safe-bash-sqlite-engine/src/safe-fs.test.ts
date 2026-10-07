@@ -146,3 +146,29 @@ test('pending native opens reserve the file budget before acquiring descriptors'
   assert.equal(closed, 1);
   assert.throws(() => vfs.throwIfFailed(), { code: 'EMFILE' });
 });
+test('visible database names route IO and recovery sidecars only to owned backing files',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/private');await fs.mkdir('/caller');
+ for(const path of ['/private/db','/private/db-journal','/caller/db','/caller/db-journal'])await fs.writeFile(path,Uint8Array.of(7));
+ const vfs=createSqliteVfs({fs,directory:'/private',signal:new AbortController().signal,maxOpenFiles:4,maxFileBytes:1024,filenames:[{path:'/private/db',name:'/caller/db'}]});
+ const name=new Uint8Array(64);assert.equal(vfs.jFullPathname('/private/db',name),0);
+ assert.equal(new TextDecoder().decode(name.subarray(0,name.indexOf(0))),'/caller/db');
+ const out=new DataView(new ArrayBuffer(4));
+ assert.equal(await vfs.jOpen('/caller/db',1,6,out),0);assert.equal(await vfs.jOpen('/caller/db',2,6,out),0);
+ assert.equal(await vfs.jWrite(1,Uint8Array.of(9),0),0);
+ const bytes=new Uint8Array(1);assert.equal(await vfs.jRead(2,bytes,0),0);assert.deepEqual(bytes,Uint8Array.of(9));
+ assert.equal(await vfs.jAccess('/caller/db-journal',0,out),0);assert.equal(out.getInt32(0,true),1);
+ assert.equal(await vfs.jDelete('/caller/db-journal'),0);
+ await vfs.dispose();assert.deepEqual(await fs.readFile('/caller/db'),Uint8Array.of(7));assert.deepEqual(await fs.readFile('/caller/db-journal'),Uint8Array.of(7));
+ assert.deepEqual((await fs.readdir('/private')).map(entry=>entry.name),['db']);
+});
+test('visible names do not grant access outside their exact backing namespace',async()=>{
+ const fs=new MemoryFileSystem();await fs.mkdir('/private');
+ const options={fs,directory:'/private',signal:new AbortController().signal,maxOpenFiles:4,maxFileBytes:1024};
+ assert.throws(()=>createSqliteVfs({...options,filenames:[{path:'/outside/db',name:'/caller/db'}]}),{code:'EACCES'});
+ for(const name of ['/caller/secret','/caller/db/../secret','/caller/db-journal/secret']){
+  const vfs=createSqliteVfs({...options,filenames:[{path:'/private/db',name:'/caller/db'}]});
+  assert.equal(await vfs.jOpen(name,1,6,new DataView(new ArrayBuffer(4))),14);
+  assert.throws(()=>vfs.throwIfFailed(),{code:'EACCES'});await vfs.dispose();
+ }
+ assert.deepEqual(await fs.readdir('/private'),[]);
+});

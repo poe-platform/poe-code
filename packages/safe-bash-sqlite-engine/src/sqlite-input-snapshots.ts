@@ -23,6 +23,7 @@ export async function withSqliteInputSnapshots<T>(options:SqliteInputSnapshotsOp
    try{
     if(!sources.database)throw new FsError('ENOENT',{path:input.path});
     await copySqliteSnapshot({...options,sources,storage,path:`${storage.directory}/database-${index}`});
+    input.path=sources.path;
    }finally{await sources.close();}
   }
   value=await operation(storage,inputs);

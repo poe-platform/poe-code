@@ -393,8 +393,10 @@ write_wheel('worker_provider-1.0-py3-none-any.whl', provider)
 `));
     if(created.exitCode)throw new Error(JSON.stringify({stage:'create',created,diagnostics}));
     if(provenanceOnly){
-      const installed=await shell.exec(prefix+' install ./worker_fixture-1.0-py3-none-any.whl');
-      const inspect='python -c '+quote('import json; from importlib.metadata import distribution; print(json.dumps({name:distribution(name).read_text("direct_url.json") for name in ["worker-fixture","worker-dependency"]}))');
+      const installed=await shell.exec(prefix+' install --no-cache-dir ./worker_fixture-1.0-py3-none-any.whl');
+      await backend.unlink('/work/worker_fixture-1.0-py3-none-any.whl');
+      await backend.unlink('/work/worker_dependency-1.0-py3-none-any.whl');
+      const inspect='python -c '+quote('import json, worker_fixture, worker_dependency; assert worker_fixture.answer + worker_dependency.answer == 146; from importlib.metadata import distribution; print(json.dumps({name:distribution(name).read_text("direct_url.json") for name in ["worker-fixture","worker-dependency"]}))');
       const provenance=await shell.exec(inspect);
       const restored=await shell.exec(inspect);
       const file=await backend.openReadFile('/work/worker_provider-1.0-py3-none-any.whl');

@@ -8,11 +8,11 @@ async function fixture() {
  const backing=new MemoryFileSystem();
  const bytes=new Uint8Array(1024*1024+7).map((_,index)=>index%251);
  await backing.writeFile('/wheel.whl',bytes);
- let closes=0,reads=0;
+ let closes=0,reads=0,opens=0;
  const fs=new Proxy(backing,{get(target,key){
   if(key==='readFile')return ()=>assert.fail('canonical artifact was fully buffered');
   if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{
-   const handle=await target.openReadFile(...args);
+   const handle=await target.openReadFile(...args);opens++;
    return {stat:handle.stat.bind(handle),async read(offset:number,count:number,settings:Parameters<typeof handle.read>[2]){assert.ok(count<=65536);reads++;return handle.read(offset,count,settings);},async close(){closes++;await handle.close();}};
   };
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
@@ -21,7 +21,7 @@ async function fixture() {
  const controller=new AbortController();
  const context={fs,cwd:'/',signal:controller.signal};
  const start=await environment.prepare(context);
- return {fs,bytes,environment,controller,context,start,count:()=>({closes,reads})};
+ return {fs,bytes,environment,controller,context,start,count:()=>({closes,reads,opens})};
 }
 
 test('canonical wheels authenticate and replay bounded retained reads without caching full bytes',async()=>{
@@ -164,33 +164,34 @@ for(const retire of ['commit','finish','abort','dispose'] as const)test(`leased 
   assert.equal(retained.key,opened.key);
   await f.environment.dispatch('package-close',[f.start.session,opened.key],f.context);
   await f.environment.dispatch('package-open',[f.start.session,'file:///wheel.whl'],f.context);
-  assert.equal(f.count().closes,0);
+  assert.equal(f.count().closes,f.count().opens-2);
   assert.deepEqual(await f.environment.dispatch('package-read-retained',[f.start.session,retained.token,65530,32],f.context),Array.from(f.bytes.subarray(65530,65562)));
   if(retire==='commit')await f.environment.dispatch('package-commit',[f.start.session,[]],f.context);
   if(retire==='finish')await f.environment.finish(f.start);
   if(retire==='abort')f.controller.abort(new Error('cancelled'));
  }finally{await f.environment.dispose();}
- assert.equal(f.count().closes,2);
+ assert.equal(f.count().closes,f.count().opens);
 });
 
 test('retained wheel reads reject changed content and close every source after one close fails',async()=>{
  const f=await fixture(),failure=new Error('retained close failed');
  await f.environment.finish(f.start);
- let sequence=0;
+ let sequence=0,failedIndex=0;
  const fs=new Proxy(f.fs,{get(target,key){
   if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{
    const handle=await target.openReadFile(...args),index=++sequence;
-   return {...handle,async close(){await handle.close();if(index===1)throw failure;}};
+   return {...handle,async close(){await handle.close();if(index===failedIndex)throw failure;}};
   };
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
  const context={...f.context,fs},start=await f.environment.prepare(context);
  const opened=await f.environment.dispatch('package-open',[start.session,'file:///wheel.whl'],context) as {key:string};
- const receipt=await f.environment.dispatch('package-retain',[start.session,opened.key],context) as {token:string};
+ const receipt=await f.environment.dispatch('package-retain',[start.session,opened.key],context) as {token:string;url:string};
+ failedIndex=sequence;
  await f.environment.dispatch('package-open',[start.session,'file:///wheel.whl'],context);
- await f.fs.writeFile('/wheel.whl',new Uint8Array(f.bytes.length));
+ await f.fs.writeFile(decodeURIComponent(new URL(receipt.url).pathname),new Uint8Array(f.bytes.length));
  await assert.rejects(f.environment.dispatch('package-read-retained',[start.session,receipt.token,0,1],context),/changed/);
  await assert.rejects(Promise.resolve(f.environment.finish(start)),error=>error===failure);
  await assert.rejects(f.environment.dispose(),error=>error===failure);
- assert.equal(f.count().closes,2);
+ assert.equal(f.count().closes,f.count().opens);
 });

@@ -1,8 +1,9 @@
+import {publishPythonBuildWheel} from './build-wheel.js';
 import {stagePythonPackage} from "./package-download.js";
 import {openPythonPackageFile} from './package-file.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import type { FileSystem } from "safe-bash-contracts/filesystem";
-import { resolvePath as resolve, dirname } from "safe-bash-contracts/path";
+import { resolvePath as resolve, dirname, basename } from "safe-bash-contracts/path";
 import type { HttpTransport, NetworkAuthorizer } from "safe-bash-network-engine/types";
 import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
 import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifest, type PythonPackageManifestStore, type PythonInstalledSnapshot, type PythonPackageRecord } from './manifest.js';
@@ -101,7 +102,7 @@ function normalizeRequirement(value: string, cwd: string): string {
  if (requirement.endsWith('.whl') && !requirement.includes('://')) return 'file://' + resolve(cwd,requirement).split('/').map(encodeURIComponent).join('/');
  return requirement;
 }
-interface PackageArtifact {readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
+interface PackageArtifact {url?:string;readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
 interface Session extends PythonPackageContext {
  readonly cacheDirectory: string | undefined;
  readonly noCache: boolean;
@@ -111,6 +112,7 @@ interface Session extends PythonPackageContext {
  opened?: PackageArtifact | undefined;
  readonly retained:Map<string,PackageArtifact>;
  retiring?: Promise<void>;
+ retaining?: Promise<void> | undefined;
  opening: boolean;
  closed: boolean;
  readonly manifest: string;
@@ -271,15 +273,42 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    const bytes=await artifact.read(offset as number,length as number);checkSession(session);return Array.from(bytes);
   }
   if(op==='package-retain'){
-   const artifact=session.opened;
+   let artifact=session.opened;
    if(!artifact||artifact.key!==String(args[1]))throw failure('Invalid package retention request');
+   if(artifact.url&&artifact.close){
+    const source=artifact;
+    const retaining=(async()=>{
+    const path=decodeURIComponent(new URL(source.url!).pathname);
+    const directory=resolve(session.cacheDirectory??resolve(session.cwd,'.python-packages'),'installed');
+    const capabilities=await session.fs.capabilitiesFor?.(directory,{signal:session.signal})??session.fs.capabilities;
+    if(!session.fs.confineExtraction||!session.fs.prepareDirectory||!capabilities.retainedStagingWrite||!capabilities.retainedStagingCleanup||!capabilities.retainedRead||!capabilities.atomicFileStaging)return;
+    const target=resolve(directory,source.key,basename(path));
+    if(path!==target){
+     await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
+     checkSession(session);
+     session.opened=undefined;
+     const published=await publishPythonBuildWheel({filename:basename(path),artifact:source},directory,maxBytes,session);
+     artifact=await openPythonPackageFile(session,decodeURIComponent(new URL(published.url).pathname),maxBytes);
+     if(!artifact)throw failure('Installed Python wheels require retained reads');
+     if(artifact.key!==published.digest){await artifact.close?.();throw failure('Installed Python wheel changed');}
+     session.opened=artifact;
+     artifact.url=published.url;
+     try{checkSession(session);}catch(error){await release(session);throw error;}
+    }
+    const durable=new URL(artifact!.url!);durable.hash='sha256='+artifact!.key;artifact!.url=durable.href;
+    })();
+    session.retaining=retaining;
+    try{await retaining;}finally{session.retaining=undefined;}
+   }
+   checkSession(session);
+   if(!artifact)throw failure('Installed Python wheel unavailable');
    const token=String(++counter);
    session.retained.set(token,artifact);session.opened=undefined;
-   return {token,key:artifact.key,size:artifact.size};
+   return {token,key:artifact.key,size:artifact.size,...artifact.url?{url:artifact.url}:{}};
   }
   if(op==='package-close') {if(session.opened?.key===String(args[1]))await release(session);return null;}
   if(op!=='package-open'||typeof args[1]!=='string')throw failure('Invalid package operation');
-  if(session.opening)throw failure('Package download already in progress');
+  if(session.opening||session.retaining)throw failure('Package download already in progress');
   session.opening=true;
   try {
   await release(session);checkSession(session);
@@ -294,6 +323,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   let key="",bytes:Uint8Array|undefined;let headers:readonly(readonly[string,string])[]=[];
   const adopt=async(artifact:PackageArtifact,ready:()=>void|Promise<void>)=>{
    session.opened=artifact;
+   if(canonicalWheel)artifact.url=url;
    try{checkSession(session);await ready();checkSession(session);return {key:artifact.key,size:artifact.size,headers,url:responseUrl};}
    catch(error){await release(session);throw error;}
   };
@@ -388,7 +418,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   }
   checkSession(session);
   verifyIntegrity(key);
-  const value=bytes;session.opened={key,size:bytes.length,read:(offset,length)=>value.subarray(offset,offset+length)};
+  const value=bytes;session.opened={key,size:bytes.length,...canonicalWheel?{url}:{},read:(offset,length)=>value.subarray(offset,offset+length)};
   return {key,size:bytes.length,headers,url:responseUrl};
   } finally {session.opening=false;}
  }
@@ -396,7 +426,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   prepare:admit(prepare),dispatch:admit(dispatch),
   finish(start:PythonPackageStart){
    const session=sessions.get(start.session);
-   if(session){session.closed=true;session.signal.removeEventListener('abort',session.aborted);session.controller.abort(failure('Python package session is closed'));sessions.delete(start.session);return release(session,true);}
+   if(session){session.closed=true;session.signal.removeEventListener('abort',session.aborted);session.controller.abort(failure('Python package session is closed'));sessions.delete(start.session);const retired=release(session,true);return Promise.allSettled([session.retaining,retired]).then(async()=>{try{await retired;}finally{await release(session,true);}});}
   },
   dispose(){
    if(!disposing){

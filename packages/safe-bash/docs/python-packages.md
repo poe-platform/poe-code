@@ -93,6 +93,8 @@ to an already installed package. Requirement-file options, nested `-r`, and line
 than being ignored. Requirements from stdin (`-r -`) are unsupported. Each
 requirements file is limited to 1 MiB.
 
+Local wheels on filesystems with confined retained atomic staging are copied into durable installation storage, so later invocations can import them after the original wheel is removed. Installed bytes live in `installed` beneath the configured, runtime-scoped cache directory, or `.python-packages/installed` beneath the invocation directory when no cache directory is configured. These installed bytes survive `noCache`; that option controls the download cache. Original direct-URL provenance is retained separately. Legacy filesystem adapters without these staging capabilities retain their source-dependent behavior. ZIP metadata and extracted interpreter storage remain separate limitations.
+
 ## Scope, cache identity, conflicts and integrity
 
 Without an explicit store, the environment and cache live in the plugin

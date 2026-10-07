@@ -45,7 +45,7 @@ async def _safe_wheel_install(self, target, compat_layer):
  if not self._data:
   raise RuntimeError('Micropip internal error: attempted to install wheel before downloading it?')
  source = 'pypi' if self.sha256 is not None else self.url
- metadata = {'PYODIDE_SOURCE': source, 'PYODIDE_URL': self.url, 'PYODIDE_SHA256': self._data['key'], 'INSTALLER': 'micropip'}
+ metadata = {'PYODIDE_SOURCE': source, 'PYODIDE_URL': self._data.get('url', self.url), 'PYODIDE_SHA256': self._data['key'], 'INSTALLER': 'micropip'}
  if _safe_restoring:
   origin = (_safe_prior_origins or {}).get(_safe_name(self.name))
   if origin is not None: metadata['direct_url.json'] = origin

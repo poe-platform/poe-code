@@ -187,39 +187,44 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
   _safe_validate(_safe_roots)
   return _safe_managed
  _safe_previous_pending = set()
+ def dependencies(versions=None):
+  for distribution in _safe_metadata.distributions():
+   name = distribution.metadata['Name']
+   if not name or _safe_name(name) not in _safe_managed:
+    del distribution
+    continue
+   name = _safe_name(name)
+   if versions is not None:
+    versions[name] = distribution.version
+   contexts = {''} | _safe_extras.get(name, set())
+   for dependency in distribution.requires or []:
+    requirement = _SafeRequirement(dependency)
+    if requirement.marker and not any(requirement.marker.evaluate({'extra': extra}) for extra in contexts):
+     continue
+    requirement = constrain(requirement)
+    requirement.marker = None
+    yield requirement
+   del distribution
  while True:
   while True:
    _safe_changed = False
-   _safe_dependencies = []
    _safe_versions = {}
-   for _safe_dist in _safe_metadata.distributions():
-    _safe_dist_name = _safe_dist.metadata['Name']
-    if not _safe_dist_name:
-     continue
-    _safe_dist_name = _safe_name(_safe_dist_name)
-    if _safe_dist_name not in _safe_managed:
-     continue
-    _safe_versions[_safe_dist_name] = _safe_dist.version
-    _safe_contexts = {''} | _safe_extras.get(_safe_dist_name, set())
-    for _safe_dep in _safe_dist.requires or []:
-     _safe_requirement = _SafeRequirement(_safe_dep)
-     if _safe_requirement.marker and not any(_safe_requirement.marker.evaluate({'extra': extra}) for extra in _safe_contexts):
-      continue
-     _safe_requirement = constrain(_safe_requirement)
-     _safe_requirement.marker = None
-     _safe_dependencies.append(_safe_requirement)
-     _safe_dependency_name = _safe_name(_safe_requirement.name)
-     if _safe_dependency_name not in _safe_managed:
-      _safe_managed.add(_safe_dependency_name)
-      _safe_changed = True
-     _safe_selected = _safe_extras.setdefault(_safe_name(_safe_requirement.name), set())
-     if not _safe_requirement.extras.issubset(_safe_selected):
-      _safe_selected.update(_safe_requirement.extras)
-      _safe_changed = True
+   for _safe_requirement in dependencies(_safe_versions):
+    _safe_dependency_name = _safe_name(_safe_requirement.name)
+    if _safe_dependency_name not in _safe_managed:
+     _safe_managed.add(_safe_dependency_name)
+     _safe_changed = True
+    _safe_selected = _safe_extras.setdefault(_safe_dependency_name, set())
+    if not _safe_requirement.extras.issubset(_safe_selected):
+     _safe_selected.update(_safe_requirement.extras)
+     _safe_changed = True
    if not _safe_changed:
     break
   _safe_pending = set()
-  for _safe_requirement in _safe_dependencies:
+  # Revisit the stable graph instead of retaining all dependency objects. Keep
+  # the completed version snapshot so native duplicate-distribution ordering
+  # remains last-wins even when a dependency precedes its final distribution.
+  for _safe_requirement in dependencies():
    _safe_version = _safe_versions.get(_safe_name(_safe_requirement.name))
    if _safe_version is None or not _safe_requirement.specifier.contains(_safe_version, prereleases=True):
     _safe_pending.add(str(_safe_requirement))

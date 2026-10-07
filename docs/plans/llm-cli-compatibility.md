@@ -222,8 +222,16 @@ FastPath retains its mtime/cache policy. Searches own their snapshot through ite
 retirement, and scratch cleanup replays streamed creation records without mutating an
 active directory cursor. Fixed bootstrap and ZIP
 metadata lookup still use the native implementation. Plain runtimes without a package
-environment do not install this adapter. This does not bound host manifests, individual
-records, dependency graphs, native executable allocation, or the remaining ZIP fallback.
+environment do not install this adapter. Dependency expansion now consumes parsed
+requirements lazily and revisits the stable graph for pending installs, preserving
+extras propagation, constraints and native last-distribution version precedence.
+It no longer retains every dependency edge as a parsed requirement. This does not
+bound host manifests, individual records, dependency-name/version maps, pending
+requirements, native executable allocation, or the remaining ZIP fallback.
+JSPI package transfers and native metadata filesystem operations share one dispatch
+lane before reaching the host's single-request transport. This preserves dependency
+installation after a prior `--no-deps` install; cancellation and descriptor retirement
+still use the existing executor lifecycle.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

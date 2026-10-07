@@ -52,6 +52,8 @@ const receipt = await transactSqlite({
 
 `withSqliteQueryRecords({ ...snapshotOptions, sql }, async (rows, columns) => ...)` stages SELECT/WITH/VALUES results in a separate private caller-backed database and exposes ordered `SqliteRecordValue` field streams. Column names retain original duplicates; UTF-16 result text converts to UTF-8 in bounded windows. Sources and native connections close before consumption, and result streams expire with the callback. Computed queries yield cooperatively to cancellation. The extra private result attachment is visible to database-list introspection; native expression evaluation can still allocate complete SQLite values. This API bounds JavaScript field transfers and result storage, not arbitrary native expression working memory.
 
+`prepareSqliteAttachments({ ...snapshotOptions, attachments })` validates sqlite-utils attachment aliases and database contents in order before application migrations. Missing main and attachment files are created empty; existing data is validated through owned snapshots without publication. Failed aliases do not create their attachment file, and failures/cancellation retire private storage.
+
 The supplied filesystem must support retained reads, synchronous binding guards,
 conditional file ownership and atomic source-set publication. All private files
 and staging use that filesystem. The native page cache is bounded; file copying,

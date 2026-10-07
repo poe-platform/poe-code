@@ -1,7 +1,7 @@
 import {MemoryFileSystem} from '@poe-platform/safe-fs/core';
 import {Shell} from '@poe-platform/safe-bash/shell';
 import {llmCommands} from '@poe-platform/safe-bash/commands/llm';
-import {withLlmCollections,createLlmCollectionCommands,withSqlEmbeddingEntries} from '@poe-platform/safe-bash/commands/llm/collections';
+import {withLlmCollections,createLlmCollectionCommands,withSqlEmbeddingEntries,prepareSqliteAttachments} from '@poe-platform/safe-bash/commands/llm/collections';
 
 export async function verifyLlmSqlImports(){
  const fs=new MemoryFileSystem(),signal=new AbortController().signal,limits={maxFileBytes:8388608,maxIndexBytes:1048576,maxOpenFiles:16};
@@ -13,6 +13,13 @@ export async function verifyLlmSqlImports(){
  try{
   const result=await shell.exec('llm embed-multi docs --attach source /source.db --sql "SELECT id,name,model FROM source.collections" -m embed -d /target.db --store');
   if(result.exitCode!==0||result.stdout!=='Embedding\n'||JSON.stringify(calls)!=='[["source embed"]]')throw new Error('SQL CLI import failed: '+JSON.stringify({result,calls}));
+  await prepareSqliteAttachments({...limits,fs,path:'/prepared.db',directory:'/',signal,attachments:[{alias:'source',path:'/source.db'},{alias:'empty',path:'/empty.db'}]});
+  if((await fs.stat('/prepared.db')).size!==0||(await fs.stat('/empty.db')).size!==0)throw new Error('SDK attachment preparation changed empty files');
+  await fs.writeFile('/broken.db',new TextEncoder().encode('not sqlite'));
+  const failure=await shell.exec('llm embed-multi docs --attach source /broken.db - --format csv -m embed -d /failed.db',{stdin:'id,content\n1,ok\n'});
+  if(failure.exitCode!==1||!failure.stderr.includes('file is not a database')||(await fs.stat('/failed.db')).size!==0)throw new Error('Unused attachment validation failed: '+JSON.stringify(failure));
+  const missing=await shell.exec('llm embed-multi docs --attach source /new.db --sql "SELECT 1,\'created\'" -m embed -d /created.db');
+  if(missing.exitCode!==0||(await fs.stat('/new.db')).size!==0)throw new Error('Missing attachment creation failed: '+JSON.stringify(missing));
  }finally{await shell.dispose();}
  let largeBytes=0;
  await withSqlEmbeddingEntries({...limits,fs,path:'/source.db',directory:'/',signal,sql:"SELECT 1,replace(hex(zeroblob(131073)),'00','界')"},async entries=>{
@@ -20,6 +27,6 @@ export async function verifyLlmSqlImports(){
  });
  if(largeBytes!==393219)throw new Error('Large SQL text changed');
  const after=await fs.readFile('/source.db');if(after.length!==before.length||after.some((byte,index)=>byte!==before[index]))throw new Error('SQL source changed');
- if(JSON.stringify((await fs.readdir('/')).map(entry=>entry.name))!=='["source.db","target.db"]')throw new Error('SQL result storage leaked');
+ if(JSON.stringify((await fs.readdir('/')).map(entry=>entry.name))!=='["broken.db","created.db","empty.db","failed.db","new.db","prepared.db","source.db","target.db"]')throw new Error('SQL result storage leaked');
  return {sqlImports:true,largeBytes};
 }

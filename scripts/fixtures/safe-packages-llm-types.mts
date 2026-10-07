@@ -2,7 +2,7 @@ import { Shell, MemoryFileSystem, llmCommands, createLlmCommands, createOpenAiPr
 import { llmCommands as subpathPlugin, createLlmCommands as subpathCommands, createLlmService, type LlmService, type LlmStreamEvent, type LlmEmbeddingResponse, type LlmServiceRequest } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider as openAi, createElevenLabsProvider as elevenLabs, type OpenAiProviderOptions, type ElevenLabsProviderOptions, type LlmProviderLimits } from "@poe-platform/safe-bash/commands/llm/providers";
 import { createLlmUrlSource, getLlmAttachmentUrlId, type LlmInputSource, type LlmSourceAttachment } from "@poe-platform/safe-bash/commands/llm";
-import { withSqlEmbeddingEntries, withLlmCollections, type LlmCollectionCatalog, type LlmCollection } from "@poe-platform/safe-bash/commands/llm/collections";
+import { prepareSqliteAttachments, withSqlEmbeddingEntries, withLlmCollections, type LlmCollectionCatalog, type LlmCollection } from "@poe-platform/safe-bash/commands/llm/collections";
 
 const catalogReceipt = withLlmCollections({ fs: new MemoryFileSystem(), path: "/embeddings.db",
   signal: new AbortController().signal, maxFileBytes: 1048576, maxIndexBytes: 1048576,
@@ -53,3 +53,5 @@ void remoteDirectory;
 void withSqlEmbeddingEntries({fs:new MemoryFileSystem(),path:'/embeddings.db',directory:'/',signal:new AbortController().signal,
  sql:'SELECT id,content FROM source.posts',attachments:[{alias:'source',path:'/posts.db'}],maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:16,
  prefix:'post:',prepend:'Document: ',admit(bytes:number){void bytes;}},async entries=>{for await(const entry of entries){const id:string=entry.id;void id;await entry.input.dispose();}});
+
+void prepareSqliteAttachments({fs:new MemoryFileSystem(),path:"/embeddings.db",directory:"/",signal:new AbortController().signal,maxFileBytes:8388608,maxIndexBytes:1048576,maxOpenFiles:16,attachments:[{alias:"source",path:"/source.db"}]});

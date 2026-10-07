@@ -204,3 +204,5 @@ export {withFileEmbeddingEntries,type LlmEmbeddingFile,type LlmFileEmbeddingOpti
 export {withEmbeddingFileGlob,type LlmEmbeddingGlob} from "./import-glob.js";
 
 export {withSqlEmbeddingEntries} from './import-sql.js';
+
+export {prepareSqliteAttachments} from 'safe-bash-sqlite-engine/storage';

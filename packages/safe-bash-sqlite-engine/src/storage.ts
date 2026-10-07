@@ -12,3 +12,5 @@ export type {SqliteFinalizer} from './sqlite-finalization.js';
 export {withSqliteReadSession} from './sqlite-read-session.js';
 
 export {withSqliteQueryRecords} from './sqlite-query-records.js';
+
+export {prepareSqliteAttachments} from './sqlite-attachments.js';

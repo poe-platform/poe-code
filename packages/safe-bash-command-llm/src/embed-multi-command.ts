@@ -1,7 +1,7 @@
 import {pathOf} from 'safe-bash-contracts/path';
 import {FsError} from 'safe-bash-contracts';
 import type {LlmCollectionCommands} from './collections-command-types.js';
-import {withLlmCollections} from './collections.js';
+import {withLlmCollections,prepareSqliteAttachments} from './collections.js';
 import {createLlmConfiguration} from './configuration.js';
 import {withCsvEmbeddingEntries} from './import-csv.js';
 import {withJsonEmbeddingEntries,countJsonEmbeddingRows} from './import-json.js';
@@ -22,7 +22,7 @@ const usage='Usage: llm embed-multi [OPTIONS] COLLECTION [INPUT_PATH]\n';
 export async function embedMultiCommand(invocation:Parameters<LlmCollectionCommands['execute']>[0],limits:{maxFileBytes:number;maxIndexBytes:number;maxOpenFiles:number;now:()=>Date}):Promise<number>{
  const {context,tokens,service,diagnostic,maxConfigurationBytes,maxInputBytes,step}=invocation;
  const fail=async(message:string,code=2)=>{await diagnostic((code===2?usage+"Try 'llm embed-multi -h' for help.\n\n":'')+`Error: ${message}\n`);return code;};
- const values:Record<string,string>={},operands:string[]=[],encodings:string[]=[],attachments:{alias:string;path:string}[]=[],files:(LlmEmbeddingGlob & {originalDirectory:string})[]=[];let store=false,binary=false,ended=false,help=false;
+ const values:Record<string,string>={},operands:string[]=[],encodings:string[]=[],attachments:{alias:string;path:string;originalPath:string}[]=[],files:(LlmEmbeddingGlob & {originalDirectory:string})[]=[];let store=false,binary=false,ended=false,help=false;
  for(let index=0;index<tokens.length;index++){
   await step();const token=tokens[index]!;
   if(!ended&&token==='--'){ended=true;continue;}
@@ -36,7 +36,7 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
    if(flag==='--attach'){
     const alias=(equals<0?undefined:token.slice(equals+1))??tokens[++index],path=tokens[++index];
     if(alias===undefined||path===undefined)return fail("Option '--attach' requires 2 arguments.");
-    attachments.push({alias,path:pathOf(context,path)});break;
+    attachments.push({alias,path:pathOf(context,path),originalPath:path});break;
    }
    if(flag==='--files'){
     const directory=(equals<0?undefined:token.slice(equals+1))??tokens[++index],pattern=tokens[++index];
@@ -53,6 +53,10 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
  if(help){await invocation.write(new TextEncoder().encode(usage+'\n  Store embeddings from files or CSV, TSV, JSON or JSONL input. Use - to read stdin.\n\nOptions:\n  --sql TEXT                  Read input using this SQL query\n  --attach TEXT FILE          Additional databases to attach (repeatable)\n  --files DIRECTORY GLOB     Files to embed (repeatable)\n  --encoding TEXT             File encoding (repeatable)\n  --binary                    Embed files as binary data\n  --format [json|csv|tsv|nl]  Input format (auto-detected by default)\n  --batch-size INTEGER        Batch size to use when running embeddings\n  --prefix TEXT               Prefix to add to the IDs\n  -m, --model TEXT            Embedding model to use\n  --prepend TEXT              Prepend this string to all content\n  --store                     Store the text itself in the database\n  -d, --database FILE         Path to embeddings database\n  -h, --help                  Show this message and exit.\n'));return 0;}
  if(!operands.length)return fail("Missing argument 'COLLECTION'.");
  if(operands.length>2)return fail(`Got unexpected extra argument${operands.length===3?'':'s'} (${operands.slice(2).join(' ')})`);
+ for(const input of attachments){
+  try{if((await context.fs.stat(input.path,{signal:context.signal})).type==='directory')return fail(`Invalid value for '--attach': File '${input.originalPath}' is a directory.`);}
+  catch(error){if(!(error instanceof FsError)||error.code!=='ENOENT')throw error;}
+ }
  if(binary&&!files.length)return fail('--binary must be used with --files');
  if(binary&&encodings.length)return fail('--binary cannot be used with --encoding');
  if(!operands[1]&&!files.length&&!values.sql)return fail('Either --sql or input path or --files is required');
@@ -69,6 +73,7 @@ export async function embedMultiCommand(invocation:Parameters<LlmCollectionComma
  const config=createLlmConfiguration(context,maxConfigurationBytes),database=values.database||context.env.LLM_EMBEDDINGS_DB;
  if(!database)await context.fs.mkdir(config.directory,{recursive:true,signal:context.signal});
  const options={...limits,fs:context.fs,path:pathOf(context,database||config.directory+'/embeddings.db'),signal:context.signal};
+ await prepareSqliteAttachments({...options,directory:context.cwd,attachments});
  const name=operands[0]!;let model='';
  let missingModel=false;
  await withLlmCollections(options,async catalog=>{

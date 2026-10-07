@@ -32,7 +32,7 @@ export async function prepareSqliteAttachments(options:SqliteInputSnapshotsOptio
      if(error instanceof FsError&&['ENOENT','ENOTDIR','EACCES','EISDIR'].includes(error.code))throw new FsError('EIO',{message:'unable to open database: '+input.path});
      throw error;
     }
-    const sources=await acquireSqliteSources(fs,input.path,signal);
+    const sources=await acquireSqliteSources(fs,input.path,signal,{followFinalSymlink:true});
     const path=storage.directory+'/database-'+(index+1);
     try{await copySqliteSnapshot({...options,sources,storage,path});}finally{await sources.close();}
     await execute('DETACH DATABASE ['+input.alias+']');

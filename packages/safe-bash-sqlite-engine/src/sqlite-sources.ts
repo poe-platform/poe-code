@@ -22,7 +22,7 @@ export interface SqliteSources {
  * 16 KiB. Closing any member closes the set. No source payload is buffered here.
  * Hosts without synchronous binding guards must supply a stronger acquisition
  * implementation; sequential path stats are not a substitute. */
-export async function acquireSqliteSources(fs: FileSystem, path: string, signal: AbortSignal): Promise<SqliteSources> {
+export async function acquireSqliteSources(fs: FileSystem, path: string, signal: AbortSignal, options: {followFinalSymlink?:boolean} = {}): Promise<SqliteSources> {
   signal.throwIfAborted();
   const resolutions: FileStagingResolution[] = [];
   const handles: FileReadHandle[] = [];
@@ -40,17 +40,21 @@ export async function acquireSqliteSources(fs: FileSystem, path: string, signal:
     signal.throwIfAborted();
     return true;
   };
-  const resolve = async (sourcePath: string): Promise<FileStagingResolution> => {
-    const capabilities = await fs.capabilitiesFor?.(sourcePath, { signal, stagingResolution: true }) ?? fs.capabilities;
-    if (capabilities.synchronousStagingResolution !== true || capabilities.retainedRead !== true || !fs.prepareStagingResolution || !fs.openReadFile) {
+  const resolve = async (sourcePath: string, followFinalSymlink = false): Promise<FileStagingResolution> => {
+    const capabilities = await fs.capabilitiesFor?.(sourcePath, { signal, stagingResolution: true, followFinalSymlink }) ?? fs.capabilities;
+    if (capabilities.synchronousStagingResolution !== true || followFinalSymlink && capabilities.synchronousFollowedStagingResolution !== true || capabilities.retainedRead !== true || !fs.prepareStagingResolution || !fs.openReadFile) {
       throw new FsError('ENOTSUP', { path: sourcePath, message: 'SQLite source acquisition requires retained reads and synchronous binding guards' });
     }
-    const resolution = await fs.prepareStagingResolution(sourcePath, { signal });
+    const resolution = await fs.prepareStagingResolution(sourcePath, { signal, followFinalSymlink });
     resolutions.push(resolution);
     return resolution;
   };
   try {
-    const database = await resolve(path);
+    // Follow only the database: native SQLite rejects symlinked recovery files.
+    // A followed receipt guards the complete link chain. A race from a regular
+    // entry to a symlink fails final-entry admission instead.
+    const follow = options.followFinalSymlink === true && (await fs.lstat(path,{signal})).type === 'symlink';
+    const database = await resolve(path,follow);
     for (const suffix of ['wal', 'journal', 'shm']) await resolve(`${database.path}-${suffix}`);
     validate();
     const sources: (SqliteSource | null)[] = [];

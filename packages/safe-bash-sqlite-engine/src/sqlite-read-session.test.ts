@@ -86,3 +86,12 @@ test('visible attached filenames recover hot journals only inside retained snaps
  assert.deepEqual(actual,[[100n,100000n]]);assert.deepEqual(await fs.readFile('/recovery'),database);assert.deepEqual(await fs.readFile('/recovery-journal'),journal);
  assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['main','private','recovery','recovery-journal']);
 });
+test('read snapshots reject symlinked WAL files as native SQLite does',async()=>{
+ const {default:fixture}=await import('./fixtures/sqlite-wal-records.json',{with:{type:'json'}});
+ const variant=fixture.variants[0]!;const fs=new MemoryFileSystem();
+ await fs.writeFile('/main',Buffer.from(fixture.database,'base64'));await fs.writeFile('/wal-bytes',Buffer.from(variant.wal,'base64'));await fs.symlink('/wal-bytes','/main-wal');
+ const original=await fs.readFile('/main'),wal=await fs.readFile('/wal-bytes');
+ await assert.rejects(withSqliteReadSession({fs,path:'/main',directory:'/',signal,...limits},async()=>{assert.fail('native SQLite rejects a symlinked WAL');}),{code:'ENOTSUP'});
+ assert.deepEqual(await fs.readFile('/main'),original);assert.deepEqual(await fs.readFile('/wal-bytes'),wal);assert.equal(await fs.readlink('/main-wal'),'/wal-bytes');
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['main','main-wal','wal-bytes']);
+});

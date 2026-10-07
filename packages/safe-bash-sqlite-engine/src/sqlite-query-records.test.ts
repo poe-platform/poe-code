@@ -135,3 +135,36 @@ test('database filenames use the retained source resolution through symlinked di
  await withSqliteQueryRecords({fs,path:'/alias/main',directory:'/',signal,...limits,sql:'SELECT file FROM pragma_database_list'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');for await(const bytes of field.bytes)filename+=new TextDecoder().decode(bytes);}});
  assert.equal(filename,'/actual/main');
 });
+test('query sources follow final symlinks with canonical filenames',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/actual',signal,...limits},s=>s.execute("CREATE TABLE sample(value); INSERT INTO sample VALUES ('original')"));
+ await fs.symlink('/actual','/link');const before=await fs.readFile('/actual');
+ const values:string[]=[];
+ await withSqliteQueryRecords({fs,path:'/link',directory:'/',signal,...limits,attachments:[{alias:'again',path:'/link'}],sql:'SELECT file FROM pragma_database_list UNION ALL SELECT value FROM again.sample'},async rows=>{for await(const row of rows){const field=row[0];assert.ok(field&&typeof field==='object');let value='';for await(const bytes of field.bytes)value+=new TextDecoder().decode(bytes);values.push(value);}});
+ assert.deepEqual(values,['/actual','/actual','original']);assert.equal(await fs.readlink('/link'),'/actual');assert.deepEqual(await fs.readFile('/actual'),before);
+});
+test('retargeted final source symlinks fail before copying bytes or exposing rows',async()=>{
+ const fs=new MemoryFileSystem();for(const path of ['/actual','/other'])await transactSqlite({fs,path,signal,...limits},s=>s.execute('CREATE TABLE sample(value)'));
+ await fs.symlink('/actual','/link');let changed=false,reads=0,admitted=false;
+ const view=new Proxy(fs,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof fs.openReadFile>)=>{
+   const file=await target.openReadFile(...args);
+   if(!changed){changed=true;await target.unlink('/link');await target.symlink('/other','/link');}
+   return {...file,async read(...args:Parameters<typeof file.read>){reads++;return file.read(...args);}};
+  };
+  const value:unknown=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ await assert.rejects(withSqliteQueryRecords({fs:view,path:'/link',directory:'/',signal,...limits,sql:'SELECT 1'},async()=>{admitted=true;}));
+ assert.equal(changed,true);assert.equal(reads,0);assert.equal(admitted,false);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['actual','link','other']);
+});
+test('final source symlinks require synchronous followed resolution guards',async()=>{
+ const fs=new MemoryFileSystem();await transactSqlite({fs,path:'/actual',signal,...limits},s=>s.execute('CREATE TABLE sample(value)'));
+ await fs.symlink('/actual','/link');let followed=false;
+ const view=new Proxy(fs,{get(target,key){
+  if(key==='capabilitiesFor')return async(_path:string,options?:{followFinalSymlink?:boolean})=>{
+   followed||=options?.followFinalSymlink===true;return {...target.capabilities,synchronousFollowedStagingResolution:false};
+  };
+  const value:unknown=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ await assert.rejects(withSqliteQueryRecords({fs:view,path:'/link',directory:'/',signal,...limits,sql:'SELECT 1'},async()=>{assert.fail('unguarded source');}),{code:'ENOTSUP'});
+ assert.equal(followed,true);assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['actual','link']);
+});

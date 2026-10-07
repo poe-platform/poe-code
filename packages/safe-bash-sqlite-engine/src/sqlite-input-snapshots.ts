@@ -19,7 +19,7 @@ export async function withSqliteInputSnapshots<T>(options:SqliteInputSnapshotsOp
  const errors:unknown[]=[];let value!:T;
  try{
   for(const [index,input]of inputs.entries()){
-   const sources=await acquireSqliteSources(fs,input.path,signal);
+   const sources=await acquireSqliteSources(fs,input.path,signal,{followFinalSymlink:true});
    try{
     if(!sources.database)throw new FsError('ENOENT',{path:input.path});
     await copySqliteSnapshot({...options,sources,storage,path:`${storage.directory}/database-${index}`});

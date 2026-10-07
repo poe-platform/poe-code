@@ -6,6 +6,7 @@ import {withLlmCollections,createLlmCollectionCommands,withSqlEmbeddingEntries,p
 export async function verifyLlmSqlImports(){
  const fs=new MemoryFileSystem(),signal=new AbortController().signal,limits={maxFileBytes:8388608,maxIndexBytes:1048576,maxOpenFiles:16};
  await withLlmCollections({...limits,fs,path:'/source.db',signal,now:()=>new Date(0)},catalog=>catalog.collection('source',{model:'embed'}));
+ await fs.symlink('/source.db','/source-link.db');
  const before=await fs.readFile('/source.db'),calls=[];
  const shell=new Shell({fs}).use(llmCommands({collections:createLlmCollectionCommands(limits),providers:[{name:'fixture',models:[{id:'embed',capabilities:['embed'],embeddingBatchSize:2}],async *complete(){},async embedSources(request){
   const values=[];for(const input of request.inputs){let value='';for await(const bytes of input.bytes)value+=new TextDecoder().decode(bytes);values.push(value);}calls.push(values);return {model:'embed',vectors:values.map(()=>[1,1])};
@@ -13,6 +14,8 @@ export async function verifyLlmSqlImports(){
  try{
   const result=await shell.exec('llm embed-multi docs --attach source /source.db --sql "SELECT id,name,model FROM source.collections" -m embed -d /target.db --store');
   if(result.exitCode!==0||result.stdout!=='Embedding\n'||JSON.stringify(calls)!=='[["source embed"]]')throw new Error('SQL CLI import failed: '+JSON.stringify({result,calls}));
+  const linked=await shell.exec('llm embed-multi linked --attach source /source-link.db --sql "SELECT id,name,model FROM source.collections" -m embed -d /linked.db');
+  if(linked.exitCode!==0)throw new Error('Symlink SQL attachment failed: '+JSON.stringify(linked));
   await prepareSqliteAttachments({...limits,fs,path:'/prepared.db',directory:'/',signal,attachments:[{alias:'source',path:'/source.db'},{alias:'empty',path:'/empty.db'}]});
   if((await fs.stat('/prepared.db')).size!==0||(await fs.stat('/empty.db')).size!==0)throw new Error('SDK attachment preparation changed empty files');
   await fs.writeFile('/broken.db',new TextEncoder().encode('not sqlite'));
@@ -43,6 +46,6 @@ export async function verifyLlmSqlImports(){
  });
  if(JSON.stringify(filenames)!=='[["main","/source.db"],["again","/source.db"]]')throw new Error('SQLite filenames exposed snapshots: '+JSON.stringify(filenames));
  const after=await fs.readFile('/source.db');if(after.length!==before.length||after.some((byte,index)=>byte!==before[index]))throw new Error('SQL source changed');
- if(JSON.stringify((await fs.readdir('/')).map(entry=>entry.name))!=='["broken.db","created.db","empty.db","failed.db","new.db","prepared.db","source.db","target.db"]')throw new Error('SQL result storage leaked');
+ if(JSON.stringify((await fs.readdir('/')).map(entry=>entry.name))!=='["broken.db","created.db","empty.db","failed.db","linked.db","new.db","prepared.db","source-link.db","source.db","target.db"]')throw new Error('SQL result storage leaked');
  return {sqlImports:true,largeBytes};
 }

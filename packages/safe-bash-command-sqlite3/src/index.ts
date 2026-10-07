@@ -1094,7 +1094,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         return;
       }
 
-      if (cmd === ".parameter") {
+      if (cmd === ".parameter" || cmd === ".param") {
         const sub = (parts[1] ?? "").toLowerCase();
         if (sub === "set") {
           const key = parts[2] ?? "";
@@ -1587,6 +1587,29 @@ export function evalSyncSqlite3(
         const targetFile = parts[parts.length - 1];
         if (!targetFile || targetFile === "-" || !writeFileSync) return false;
         pendingSaves.push({ file: targetFile, bytes: db.serializeToBytes() });
+        return true;
+      }
+      if (cmd === ".parameter" || cmd === ".param") {
+        const sub = (parts[1] ?? "").toLowerCase();
+        if (sub === "set") {
+          const key = parts[2] ?? "";
+          const valRaw = parts[3] ?? "";
+          let val: SqlValue = valRaw;
+          if (/^-?\d+(\.\d+)?$/.test(valRaw)) {
+            val = Number(valRaw);
+          } else if (valRaw.startsWith("'") && valRaw.endsWith("'")) {
+            val = valRaw.slice(1, -1);
+          }
+          db.parameters?.set(key, val);
+        } else if (sub === "unset") {
+          db.parameters?.delete(parts[2] ?? "");
+        } else if (sub === "clear" || sub === "init") {
+          db.parameters?.clear();
+        } else if (sub === "list") {
+          for (const [k, v] of (db.parameters?.entries() ?? [])) {
+            emitOutput(`${k} ${formatSqlQuote(v)}\n`);
+          }
+        }
         return true;
       }
       if (cmd === ".read") {

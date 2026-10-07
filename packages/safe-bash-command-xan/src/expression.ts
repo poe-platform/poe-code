@@ -57,13 +57,27 @@ export async function expressions(text: string, header: RecordRow | undefined, n
     } else {
       const name = identifier();
       if (!name) throw new XanError("expected expression");
-      let column = -1;
-      if (!noHeaders) for (let i = 0; i < (header?.width ?? 0); i++) {
-        budget.work();
-        if (cellText(header!.cells[i]!.decoded.view(), budget) === name) { column = i; break; }
+      space();
+      if (text[offset] === "(") {
+        offset++;
+        const inner = parse(0, depth + 1);
+        space();
+        if (text[offset++] !== ")") throw new XanError("expected closing parenthesis");
+        const fnName = name.toLowerCase();
+        if (fnName === "upper") left = row => String(inner(row)).toUpperCase();
+        else if (fnName === "lower") left = row => String(inner(row)).toLowerCase();
+        else if (fnName === "trim") left = row => String(inner(row)).trim();
+        else if (fnName === "len") left = row => String(inner(row)).length;
+        else throw new XanError(`unknown expression column: ${name}`);
+      } else {
+        let column = -1;
+        if (!noHeaders) for (let i = 0; i < (header?.width ?? 0); i++) {
+          budget.work();
+          if (cellText(header!.cells[i]!.decoded.view(), budget) === name) { column = i; break; }
+        }
+        if (column < 0) throw new XanError(`unknown expression column: ${name}`);
+        left = row => cellText(row.cells[column]!.decoded.view(), budget);
       }
-      if (column < 0) throw new XanError(`unknown expression column: ${name}`);
-      left = row => cellText(row.cells[column]!.decoded.view(), budget);
     }
     let chainDepth = depth;
     while (true) {

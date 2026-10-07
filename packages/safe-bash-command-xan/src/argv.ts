@@ -165,7 +165,24 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   let operand: string | undefined;
   if (command === "map") {
     operand = operands.shift();
-    rightSelection = operands.shift();
+    const inlineAs = operand?.match(/^(.*)\s+[aA][sS]\s+([A-Za-z_][A-Za-z0-9_]*)$/s);
+    if (
+      inlineAs &&
+      (operands.length === 0 ||
+        (operands.length === 1 &&
+          (operands[0] === "-" ||
+            operands[0]!.includes("/") ||
+            /\.(csv|tsv|txt)$/iu.test(operands[0]!))))
+    ) {
+      if (operand!.includes(",")) {
+        rightSelection = "__INLINE_MULTI__";
+      } else {
+        operand = inlineAs[1]!.trim();
+        rightSelection = inlineAs[2]!;
+      }
+    } else {
+      rightSelection = operands.shift();
+    }
     if ((!operand || !rightSelection) && !help) throw new XanError("map requires an expression and a new column name");
   }
   if (command === "groupby") rightSelection = operands.shift();

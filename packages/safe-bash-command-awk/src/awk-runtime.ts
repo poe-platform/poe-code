@@ -373,7 +373,7 @@ export class AwkRuntime {
     }
     return this.split(value, separator, paragraph);
   }
-  private async split(value: string, separator: string | Pattern, paragraph = false): Promise<Scalar[]> {
+  private async split(value: string, separator: string | Pattern, paragraph = false, sepsOut?: Scalar[]): Promise<Scalar[]> {
     // Admit the byte scan/copy before building fields; regex matching charges its own work.
     this.budget.step(value.length);
     const parts: Scalar[] = [];
@@ -383,11 +383,15 @@ export class AwkRuntime {
     };
     if (separator === " ") {
       let start = -1;
+      let sepStart = -1;
       for (let index = 0; index < value.length; index++) {
         if (index % 256 === 0) await this.budget.checkpointSync();
         if (" \t\n".includes(value[index]!)) {
-          if (start >= 0) { append(start, index); start = -1; }
-        } else if (start < 0) start = index;
+          if (start >= 0) { append(start, index); start = -1; sepStart = index; }
+        } else if (start < 0) {
+          if (sepsOut && sepStart >= 0 && parts.length > 0) sepsOut.push(string(value.slice(sepStart, index)));
+          start = index;
+        }
       }
       if (start >= 0) append(start, value.length);
     } else if (separator === "") {
@@ -397,7 +401,7 @@ export class AwkRuntime {
         append(index, index + 1);
       }
     } else if (typeof separator === "string" && separator.length === 1) {
-      if (!paragraph && value.length < 256) {
+      if (!paragraph && value.length < 256 && !sepsOut) {
         if (value !== "") {
           let start = 0;
           let idx: number;
@@ -416,7 +420,9 @@ export class AwkRuntime {
           if (p) await p;
         }
         if (value[index] === separator || paragraph && value[index] === "\n") {
-          append(start, index); start = index + 1;
+          append(start, index);
+          if (sepsOut) sepsOut.push(string(value[index]!));
+          start = index + 1;
         }
       }
       if (value !== "") append(start, value.length);
@@ -436,7 +442,9 @@ export class AwkRuntime {
         const match = await matcher.find(value, this.budget, search);
         if (!match) break;
         if (match.start === match.end) { search = match.end + 1; continue; }
-        await segment(consumed, match.start); consumed = match.end; search = match.end;
+        await segment(consumed, match.start);
+        if (sepsOut) sepsOut.push(string(value.slice(match.start, match.end)));
+        consumed = match.end; search = match.end;
       }
       if (value !== "") await segment(consumed, value.length);
     }
@@ -1247,7 +1255,8 @@ export class AwkRuntime {
       const value = this.asText(await this.scalarExpression(args[0]!));
       const target = this.array((args[1] as Extract<Expression, { kind: "variable" }>).name);
       const separator = args[2]?.kind === "regex" ? args[2].pattern : args[2] ? this.asText(await this.scalarExpression(args[2])) : this.varText("FS");
-      const parts = await this.split(value, separator);
+      const seps: Scalar[] | undefined = args[3] ? [] : undefined;
+      const parts = await this.split(value, separator, false, seps);
       if (this.entries - target.entries.size + parts.length > (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
       let size = 0;
       for (let index = 0; index < parts.length; index++) {
@@ -1262,11 +1271,28 @@ export class AwkRuntime {
       target.entries.clear();
       for (const [key, part] of entries) target.entries.set(key, part);
       allocation.bytes = size;
+      if (args[3] && seps) {
+        const sepsTarget = this.array((args[3] as Extract<Expression, { kind: "variable" }>).name);
+        sepsTarget.entries.clear();
+        for (let i = 0; i < seps.length; i++) {
+          sepsTarget.entries.set(String(i + 1), ownScalar(seps[i]!));
+        }
+      }
       return numeric(parts.length);
     }
     if (name === "match") {
       const value = this.asText(await this.scalarExpression(args[0]!));
       const matched = await (await this.regex(args[1]!)).find(value, this.budget);
+      if (args[2]) {
+        const target = this.array((args[2] as Extract<Expression, { kind: "variable" }>).name);
+        target.entries.clear();
+        if (matched) {
+          for (let g = 0; g < matched.groups.length; g++) {
+            const grp = matched.groups[g];
+            if (grp !== undefined) target.entries.set(String(g), ownScalar(string(grp)));
+          }
+        }
+      }
       this.set("RSTART", numeric(matched ? matched.start + 1 : 0));
       this.set("RLENGTH", numeric(matched ? matched.end - matched.start : -1));
       return this.get("RSTART");
@@ -1274,6 +1300,15 @@ export class AwkRuntime {
     const values: Scalar[] = [];
     for (const argument of args) values.push(await this.scalarExpression(argument));
     const first = values[0] ?? unset;
+    if (name === "strtonum") {
+      const raw = this.asText(first).trim();
+      const sign = raw.startsWith("-") ? -1 : 1;
+      const body = raw.startsWith("-") || raw.startsWith("+") ? raw.slice(1) : raw;
+      if (/^0[xX][0-9a-fA-F]+/.test(body)) return numeric(sign * parseInt(body.slice(2), 16));
+      if (/^0[0-7]+/.test(body)) return numeric(sign * parseInt(body, 8));
+      const num = parseFloat(raw);
+      return numeric(Number.isFinite(num) ? num : 0);
+    }
     if (name === "systime") return numeric(Math.floor(Date.now() / 1000));
     if (name === "strftime" || name === "mktime") {
       const utc = number(values[name === "strftime" ? 2 : 1] ?? unset) !== 0;

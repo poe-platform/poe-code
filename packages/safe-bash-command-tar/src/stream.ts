@@ -62,6 +62,7 @@ export async function* autodetected(source: ByteSource, signal: AbortSignal, lim
     })();
     const format = size >= 2 && prefix[0] === 31 && prefix[1] === 139 ? "gzip"
       : size >= 3 && prefix[0] === 66 && prefix[1] === 90 && prefix[2] === 104 ? "bzip2"
+      : size >= 4 && prefix[0] === 0x28 && prefix[1] === 0xb5 && prefix[2] === 0x2f && prefix[3] === 0xfd ? "zstd"
       : size === 6 && [253, 55, 122, 88, 90, 0].every((byte, index) => prefix[index] === byte) ? "xz" : undefined;
     yield* format ? compressed(replay, true, signal, limits, format) : replay;
   } finally {

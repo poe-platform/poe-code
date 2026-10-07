@@ -16,7 +16,7 @@ export async function presentationRows(args: Arguments, scope: InputScope, budge
   const table = args.command === "table";
   const source = args.command === "map" ? args.operand! : args.evaluateFile ? await scope.expression(args.selection) : args.selection;
   const projections = table ? [] : await expressions(source, first, args.noHeaders, budget);
-  if (args.command === "map" && projections.length !== 1) throw new XanError("map requires one expression");
+  if (args.command === "map" && args.rightSelection !== "__INLINE_MULTI__" && projections.length !== 1) throw new XanError("map requires one expression");
   budget.hold((first?.width ?? 0) * 32);
   const selected = table ? await resolveSelection(await parseSelection(args.selection, budget), first?.cells.map(cell => cell.decoded.view()) ?? [], args.noHeaders, budget) : [];
   const lines: { text: string; width: number }[][] = [], widths = selected.map(() => 0);
@@ -27,7 +27,10 @@ export async function presentationRows(args: Arguments, scope: InputScope, budge
   try {
     if (!table && !args.noHeaders) {
       yield* textRow(args.command === "map"
-        ? [...(first?.cells.map(cell => cell.decoded.view()) ?? []), args.rightSelection!]
+        ? [
+            ...(first?.cells.map(cell => cell.decoded.view()) ?? []),
+            ...(args.rightSelection === "__INLINE_MULTI__" ? projections.map(p => p.name) : [args.rightSelection!]),
+          ]
         : projections.map(projection => projection.name), writer, budget);
       first?.free(); row = await scanner.next();
     }

@@ -117,7 +117,7 @@ class Lexer {
 }
 
 export const builtinArities: Readonly<Record<string, readonly [number, number]>> = {
-  length: [0, 1], substr: [2, 3], index: [2, 2], split: [2, 3], match: [2, 2],
+  length: [0, 1], substr: [2, 3], index: [2, 2], split: [2, 4], match: [2, 3], strtonum: [1, 1],
   sub: [2, 3], gsub: [2, 3], sprintf: [1, Infinity], tolower: [1, 1], toupper: [1, 1],
   int: [1, 1], sqrt: [1, 1], exp: [1, 1], log: [1, 1], sin: [1, 1], cos: [1, 1], atan2: [2, 2], close: [1, 1],
   rand: [0, 0], srand: [0, 1], fflush: [0, 1],
@@ -198,7 +198,8 @@ export class AwkParser {
       const arity = Object.hasOwn(this.arities, call.expression.name) ? this.arities[call.expression.name] : definition ? [0, definition.parameters.length] : undefined;
       if (!arity) throw new ProgramError(`unsupported function '${call.expression.name}'`);
       if (call.expression.args.length < arity[0]! || call.expression.args.length > arity[1]!) throw new ProgramError(`invalid argument count for '${call.expression.name}'`);
-      if (call.expression.name === "split" && call.expression.args[1]?.kind !== "variable") throw new ProgramError("split requires an array variable as its second argument");
+      if (call.expression.name === "split" && (call.expression.args[1]?.kind !== "variable" || (call.expression.args[3] && call.expression.args[3].kind !== "variable"))) throw new ProgramError("split requires an array variable as its second argument");
+      if (call.expression.name === "match" && call.expression.args[2] && call.expression.args[2].kind !== "variable") throw new ProgramError("match requires an array variable as its third argument");
       if ((call.expression.name === "asort" || call.expression.name === "asorti") && call.expression.args.some(arg => arg.kind !== "variable")) throw new ProgramError("asort/asorti requires array variables");
       if ((call.expression.name === "sub" || call.expression.name === "gsub") && call.expression.args[2] && !isLvalue(call.expression.args[2])) throw new ProgramError("sub/gsub target must be assignable");
       if (call.expression.name === "sprintf" && call.expression.args[0]?.kind === "string") validateFormat(call.expression.args[0].value);
@@ -381,6 +382,8 @@ export class AwkParser {
         const expression: Extract<Expression, { kind: "call" }> = { kind: "call", name, args };
         this.calls.push({ expression, owner: this.currentFunction });
         if (name === "split" && args[1]?.kind === "variable") this.arrays.add(args[1].name);
+        if (name === "split" && args[3]?.kind === "variable") this.arrays.add(args[3].name);
+        if (name === "match" && args[2]?.kind === "variable") this.arrays.add(args[2].name);
         if (name === "asort" || name === "asorti") for (const arg of args) if (arg.kind === "variable") this.arrays.add(arg.name);
         return expression;
       }

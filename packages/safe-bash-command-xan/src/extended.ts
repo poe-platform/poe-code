@@ -35,7 +35,7 @@ async function aggregates(text: string, header: RecordRow | undefined, args: Arg
     whitespace(); const begin = at;
     while (at < text.length && text[at] !== '(') at++;
     const name = text.slice(begin, at).trim().toLowerCase();
-    if (!['count', 'sum', 'mean', 'avg', 'min', 'max', 'first', 'last'].includes(name) || at === text.length) throw new XanError('expected an aggregate call');
+    if (!['count', 'sum', 'mean', 'avg', 'min', 'max', 'median', 'first', 'last'].includes(name) || at === text.length) throw new XanError('expected an aggregate call');
     const start = ++at;
     let quote = '';
     while (at < text.length) {
@@ -110,11 +110,11 @@ export async function* extendedRows(args: Arguments, scope: InputScope, budget: 
   if (args.command === 'agg' || args.command === 'groupby') {
     const selected = args.command === 'groupby' ? await select(args.rightSelection ?? '', header, args, budget) : [];
     const specs = await aggregates(args.operand!, header, args, budget);
-    interface State { count: number; sum: number; min: number; max: number; first?: Uint8Array; last?: Uint8Array }
+    interface State { count: number; sum: number; min: number; max: number; values: number[]; first?: Uint8Array; last?: Uint8Array }
     const groups = new Map<string, { keys: Uint8Array[]; states: State[] }>();
     const make = (row?: RecordRow): { keys: Uint8Array[]; states: State[] } => {
       budget.hold(specs.length * 128 + selected.length * 32 + 64);
-      return { keys: selected.map(index => { const bytes = row!.cells[index]!.decoded.view(); budget.hold(bytes.length); return bytes.slice(); }), states: specs.map(() => ({ count: 0, sum: 0, min: Infinity, max: -Infinity })) };
+      return { keys: selected.map(index => { const bytes = row!.cells[index]!.decoded.view(); budget.hold(bytes.length); return bytes.slice(); }), states: specs.map(() => ({ count: 0, sum: 0, min: Infinity, max: -Infinity, values: [] })) };
     };
     if (args.command === 'agg') groups.set('', make());
     yield* textRow([...selected.map(index => args.noHeaders ? String(index) : header!.cells[index]!.decoded.view()), ...specs.map(spec => spec.label)], writer, budget);
@@ -141,6 +141,7 @@ export async function* extendedRows(args: Arguments, scope: InputScope, budget: 
             try { value = decimalNumber(cellText(bytes, budget), budget); } finally { budget.release(bytes.length * 4); }
             if (value === undefined) throw new XanError(`${spec.name} requires numeric values`);
             state.sum += value; state.min = Math.min(state.min, value); state.max = Math.max(state.max, value);
+            if (spec.name === 'median') { budget.hold(8); state.values.push(value); }
           }
         }
       } finally { row.free(); }
@@ -152,6 +153,11 @@ export async function* extendedRows(args: Arguments, scope: InputScope, budget: 
       if (spec.name === 'count') return String(state.count);
       if (spec.name === 'sum') return String(state.sum);
       if (!state.count) return '';
+      if (spec.name === 'median') {
+        const sorted = [...state.values].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        return String(sorted.length % 2 === 1 ? sorted[mid]! : (sorted[mid - 1]! + sorted[mid]!) / 2);
+      }
       return String(spec.name === 'min' ? state.min : spec.name === 'max' ? state.max : state.sum / state.count);
     })], writer, budget);
     return;

@@ -28,6 +28,15 @@ export async function formatValue(name: string, input: Json, budget: Budget): Pr
       }
       break;
     }
+    case "urid": {
+      if (typeof input !== "string") throw new JqError("urid requires a string");
+      try {
+        result = decodeURIComponent(input);
+      } catch {
+        throw new JqError("invalid uri string");
+      }
+      break;
+    }
     case "html": {
       const escapes: Readonly<Record<string, string>> = { "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&apos;", '"': "&quot;" };
       result = "";

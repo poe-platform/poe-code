@@ -7,7 +7,7 @@ export interface Operand { readonly name: string; readonly cwd: string; readonly
 export interface TarOptions {
   mode: "c" | "t" | "x" | "r" | "u" | "d" | "delete" | "A";
   archive: string;
-  compression?: "gzip" | "bzip2" | "xz";
+  compression?: "gzip" | "bzip2" | "xz" | "zstd";
   verbose: boolean;
   toStdout: boolean;
   utc: boolean;
@@ -114,8 +114,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     if (flag === "c" || flag === "t" || flag === "x" || flag === "r" || flag === "u" || flag === "d" || flag === "delete" || flag === "A") {
       if (mode) fail("exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)");
       mode = flag;
-    } else if (flag === "z" || flag === "j" || flag === "J") {
-      const selected = flag === "z" ? "gzip" : flag === "j" ? "bzip2" : "xz";
+    } else if (flag === "z" || flag === "j" || flag === "J" || flag === "zstd") {
+      const selected = flag === "z" ? "gzip" : flag === "j" ? "bzip2" : flag === "J" ? "xz" : "zstd";
       if (compression && compression !== selected) fail("conflicting compression options");
       compression = selected;
     } else if (flag === "a") autoCompress = true;
@@ -274,7 +274,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   if (mode === "c" && autoCompress) {
     compression = archive.endsWith(".gz") || archive.endsWith(".tgz") ? "gzip"
       : archive.endsWith(".bz2") || archive.endsWith(".tbz2") || archive.endsWith(".tbz") ? "bzip2"
-      : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz" : undefined;
+      : archive.endsWith(".xz") || archive.endsWith(".txz") ? "xz"
+      : archive.endsWith(".zst") || archive.endsWith(".tzst") ? "zstd" : undefined;
   }
   return { mode, archive, ...(compression ? { compression } : {}), verbose, toStdout, utc, recordSize, ignoreZeros, totals, quotingStyle, showTransformedNames, transforms, strip, format, cwd, operands, excludes, sort, dereference, excludeCaches, recursion, wildcards, ...(occurrence !== undefined ? { occurrence } : {}), metadata, overwrite };
 }

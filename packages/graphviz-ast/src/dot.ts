@@ -301,7 +301,9 @@ export function serializeDot(graph: DotGraph): string {
             attributes(statement.attributes) +
             ";\n"
           );
-        return statement.target + attributes(statement.attributes) + ";\n";
+        return Object.keys(statement.attributes).length
+          ? statement.target + attributes(statement.attributes) + ";\n"
+          : "";
       })
       .join("");
   return (

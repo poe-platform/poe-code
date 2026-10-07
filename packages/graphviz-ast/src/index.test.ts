@@ -12,6 +12,14 @@ describe("DOT syntax and semantics", () => {
     }`);
     expect(graph.strict).toBe(true);
     expect(parseDot(serializeDot(graph))).toEqual(graph);
+    expect(
+      parseDot(
+        serializeDot({
+          ...graph,
+          statements: [{ kind: "attributes", target: "graph", attributes: {} }, ...graph.statements]
+        })
+      )
+    ).toEqual(graph);
     const layout = layoutGraph(graph);
     expect(layout.nodes.map((n) => n.id).sort()).toEqual(["a", "b", "c d"]);
     expect(layout.edges).toHaveLength(2);

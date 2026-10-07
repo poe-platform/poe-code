@@ -198,3 +198,28 @@ test('tool loader snapshots the host-selected plugin distributions',async()=>{
 test('an explicit distribution name cannot select additional comma-delimited plugins',()=>{
   assert.throws(()=>createPythonLlmToolLoader({plugins:['allowed,unselected'],createExecutor(){throw new Error('must not acquire runtime');}}),/explicit distribution names/);
 });
+
+for (const exitCode of [0,7]) test(`explicit tool initialization exit ${exitCode} preserves status and retires runtime`,async()=>{
+  const {LlmPluginExit}=await import('safe-bash-command-llm');
+  let retired=0;
+  const load=createPythonLlmToolLoader({createExecutor:()=>({terminate(){retired++;},async run(start){
+    start.onReady();
+    await start.host!.request({version:1,operation:'call',capability:'llm_tools',value:{op:'exit'}});
+    return exitCode;
+  }})});
+  const ctx=context();
+  await assert.rejects(load({context:ctx,definitions:['raise SystemExit(7)'],maxInputBytes:4096,maxOutputBytes:4096}),error=>error instanceof LlmPluginExit&&error.exitCode===exitCode);
+  assert.equal(retired,1);assert.deepEqual(await ctx.fs.readdir('/'),[]);
+});
+
+for(const args of [['tools','--functions','raise SystemExit(7)'],['plugins'],['--functions','raise SystemExit(7)','question']])for(const exitCode of [0,7])test(`tool initialization exit ${exitCode} survives CLI ${args[0]}`,async()=>{
+  const {createLlmCommand}=await import('safe-bash-command-llm');
+  let retired=0,stdout='',stderr='';
+  const loadTools=createPythonLlmToolLoader({createExecutor:()=>({terminate(){retired++;},async run(start){
+    start.onReady();await start.host!.request({version:1,operation:'call',capability:'llm_tools',value:{op:'exit'}});return exitCode;
+  }})});
+  const command=createLlmCommand({loadTools,defaultModel:'fixture',providers:[{name:'fixture',models:[{id:'fixture'}],complete(){throw new Error('exit called model');}}]});
+  const ctx=context();
+  const result=await command.execute({...ctx,args,stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode,exitCode);assert.equal(stdout,'');assert.equal(stderr,'');assert.equal(retired,1);assert.deepEqual(await ctx.fs.readdir('/'),[]);
+});

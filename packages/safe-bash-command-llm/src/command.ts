@@ -324,7 +324,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: 0 };
     }
     if (argumentsValue.args[0] === 'install' || argumentsValue.args[0] === 'uninstall') {
-      const args = Array.from({length:argumentsValue.args.length},(_,index)=>argumentText(index));
+      const args = argumentsValue.args.map((_,index)=>argumentText(index));
       if (!managePackages) {await writeDiagnostic(context.stderr,'Error: Python package management is not configured\n',signal);return {exitCode:1};}
       return await managePackages({args,context:{...context,signal,stdout:{write:chunk=>write(chunk,true)},registerCleanup:operation.registerCleanup}});
     }
@@ -394,15 +394,13 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: await embeddingModelsCommand({...context,signal},service,tokens,emitText,text => writeDiagnostic(context.stderr,text,signal),step,limits?.maxConfigurationBytes) };
     }
     if (argumentsValue.args[0] === "templates") {
-      let exitCode = 0;
-      try { exitCode = await createLlmTemplateStore(loaderContext(), invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
+      try { return {exitCode: await createLlmTemplateStore(loaderContext(), invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal))}; }
       catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
-      return { exitCode };
     }
     const configurationInvocation = argumentsValue.args[0] === "keys" || argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "");
     if (configurationInvocation) {
       try {
-        const tokens = Array.from({ length: argumentsValue.args.length }, (_, index) => argumentText(index));
+        const tokens = argumentsValue.args.map((_,index)=>argumentText(index));
         return {exitCode: await configurationCommand({...context, signal}, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), admitInput, limits?.maxConfigurationBytes, step)};
       } catch (error) {
         throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
@@ -499,7 +497,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
           }
         }
       }
-      catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`); }
+      catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : String(error)}`); }
 
       return selectedTools;
     };

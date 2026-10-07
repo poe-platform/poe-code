@@ -1,4 +1,4 @@
-import {createLlmSpool, createLlmToolRegistry, type LlmToolLoader, type LlmRegisteredTool, type LlmToolOutput, type LlmSourceAttachment, type LlmToolContext, type LlmToolboxDescription, type LlmPluginInfo} from 'safe-bash-command-llm';
+import {LlmPluginExit, createLlmSpool, createLlmToolRegistry, type LlmToolLoader, type LlmRegisteredTool, type LlmToolOutput, type LlmSourceAttachment, type LlmToolContext, type LlmToolboxDescription, type LlmPluginInfo} from 'safe-bash-command-llm';
 import {toByteSource} from 'safe-bash-contracts';
 import {createPythonExecutorCommands, type PythonCommandsOptions} from './executor.js';
 import type {PythonHostCapability, PythonHostValue} from './host-capabilities.js';
@@ -51,7 +51,7 @@ export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): 
     const jobs = new Map<number, {result: ReturnType<typeof deferred<LlmToolOutput>>; output: Spool; attachments: LlmSourceAttachment[]; files: Map<number, Spool>; bytes: number; limit: number}>();
     const queue: PythonHostValue[] = [];
     let waiter: ReturnType<typeof deferred<PythonHostValue>> | undefined;
-    let serial = 0, controls = 0, loaded = false, initializationFailed = false, closed = false, closing: Promise<void> | undefined;
+    let serial = 0, controls = 0, loaded = false, exited = false, initializationFailed = false, closed = false, closing: Promise<void> | undefined;
     const encoder = new TextEncoder();
     const fail = (error: unknown) => {
       ready.reject(error);
@@ -104,6 +104,7 @@ export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): 
         if (controls > maxInputBytes) {const error = new RangeError('Python tool definition byte limit exceeded'); fail(error); throw error;}
         return null;
       }
+      if (message.op === 'exit') {exited = true; return null;}
       if (message.op === 'failed') {initializationFailed = true; fail(new Error(String(message.message))); return null;}
       if (message.op === 'register' || message.op === 'toolbox' || message.op === 'plugins') {
         controls += encoder.encode(JSON.stringify(message)).length;
@@ -196,7 +197,7 @@ export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): 
     const invocation = {...isolatedContext, signal: runtimeController.signal, command: 'python', args: ['-c', pythonLlmFunctionsProgram], stdin: toByteSource('')};
     capabilitiesByArguments.set(invocation.args, capability);
     const running = Promise.resolve().then(() => command.execute(invocation)).then(
-      result => {if (!closed) fail(new Error(`Python tool interpreter exited with status ${result.exitCode}`));},
+      result => {if (!closed) fail(exited ? new LlmPluginExit(result.exitCode) : new Error(`Python tool interpreter exited with status ${result.exitCode}`));},
       error => {if (!closed) fail(error);}
     );
     const close = (): Promise<void> => closing ??= (async () => {

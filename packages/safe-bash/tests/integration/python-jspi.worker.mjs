@@ -583,7 +583,9 @@ print(json.dumps(result))
     if(exitsOnly){
       const fragment=await shell.exec('llm -f native:exit question');
       const template=await shell.exec('llm -t native:exit question');
-      return {fragment,template,diagnostics};
+      const tools=[];
+      for(const value of ['None','0','7',"'tool exit'"])tools.push(await shell.exec('llm tools --functions '+quote('raise SystemExit('+value+')')));
+      return {fragment,template,tools,diagnostics};
     }
     if(artifactOnly){
       await backend.unlink('/work/worker_fixture-1.0-py3-none-any.whl');

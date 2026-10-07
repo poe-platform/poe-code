@@ -987,6 +987,10 @@ test('real workerd preserves explicit native plugin exit statuses', {timeout:600
     assert.equal(exited.stdout,'register '+kind+'\n');
     assert.equal(exited.stderr,'');
   }
+  assert.deepEqual(result.tools.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),[
+    {exitCode:0,stdout:'',stderr:''},{exitCode:0,stdout:'',stderr:''},
+    {exitCode:7,stdout:'',stderr:''},{exitCode:1,stdout:'',stderr:'tool exit\n'},
+  ]);
   assert.deepEqual(result.diagnostics,[]);
   assert.deepEqual(result.failures,[]);
   assert.deepEqual(runtimeErrors,[]);

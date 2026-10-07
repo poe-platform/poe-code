@@ -1,3 +1,4 @@
+import {LlmPluginExit} from './loader-provider.js';
 import {unicodeOrder} from "./python-unicode.js";
 import {commandArguments} from './command-arguments.js';
 import { referenceJson } from "./reference-json.js";
@@ -34,6 +35,7 @@ export async function toolsCommand(
       ? [...loaded.tools, ...selectLlmTools(registry, load ? names.filter(name => registry.has(name)) : names)].map(tool => [tool.name, tool] as const)
       : [...registry, ...loaded.tools.map(tool => [tool.registryKey ?? tool.name, tool] as const)]);
   } catch (failure) {
+    if(failure instanceof LlmPluginExit)throw failure;
     await diagnostic("Error: " + (failure instanceof Error ? failure.message : String(failure)) + "\n");
     return 1;
   }

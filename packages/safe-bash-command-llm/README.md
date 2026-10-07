@@ -227,7 +227,7 @@ the requested prefix without a separate discovery pass. Metadata shares the comm
 input budget and plugin diagnostics share its output budget. Explicit `fragmentLoaders`
 and `templateLoaders` entries take precedence. CLI loader failures retain their complete
 message, including long Unicode diagnostics, through bounded stderr writes. Native loader
-`SystemExit` preserves its process status and diagnostics; SDK callers receive
+and tool-initialization `SystemExit` preserve their process status and diagnostics; SDK callers receive
 `LlmPluginExit` with `exitCode`. SDK hosts can supply `LlmLoaderProvider`
 to the template store or pass it as the fifth argument to `loadLlmPluginFragments`.
 

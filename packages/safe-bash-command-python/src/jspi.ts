@@ -55,6 +55,14 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
   const originals: Record<string, (...args: any[]) => number> = {};
 
   const execute = async (start: PythonExecutorStart): Promise<number> => {
+    // Package tasks can await a transfer while another task performs native
+    // metadata I/O. Share one lane for both before reaching the host transport.
+    let pendingDispatch = Promise.resolve();
+    const dispatch: PythonExecutorStart['dispatch'] = request => {
+      const operation = pendingDispatch.then(() => start.dispatch(request));
+      pendingDispatch = operation.then(() => {}, () => {});
+      return operation;
+    };
     const signal = AbortSignal.any([start.signal, controller.signal]);
     const configuration = parsePythonInvocation(start.invocation.args, start.invocation.env);
     let guestMask = 0o22;
@@ -120,7 +128,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       filesystem.currentPath = start.invocation.cwd;
       native = createPythonNativeSyscalls({getUmask: () => guestMask, runtime:runtime._module, cwd:start.invocation.cwd,
         runtimeMount:start.runtimeMount, maxTransferBytes:start.maxTransferBytes, signal,
-        dispatch:start.dispatch, original:(name, args) => originals[name]!(...args)});
+        dispatch, original:(name, args) => originals[name]!(...args)});
       const errno = JSON.parse(runtime.runPython("__import__('json').dumps({name:value for name,value in vars(__import__('errno')).items() if name.startswith('E') and isinstance(value,int)})"));
       const encode = async (operation: () => Promise<unknown>): Promise<string> => {
         try { return JSON.stringify(await operation()); }
@@ -140,7 +148,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
               return { errorCode: pythonHostFailureCode(error), error: signal.aborted ? 'Python host operation cancelled' : 'Python host operation failed' };
             }
           }
-          if(payload[0]==='cursor'&&['directoryOpen','directoryNext','close'].includes(payload[1]))return {value:await start.dispatch({op:payload[1],args:[payload[2]]})};
+          if(payload[0]==='cursor'&&['directoryOpen','directoryNext','close'].includes(payload[1]))return {value:await dispatch({op:payload[1],args:[payload[2]]})};
           signal.throwIfAborted();
           const [operation, path, follow] = payload;
           if (operation === 'stat') return native!.metadata(path, follow);
@@ -148,12 +156,12 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
           const target = absolute(path);
           if (operation === 'directory') {
             const entries = bootstrapPath(target) ? filesystem.readdir(target).filter((name: string) => name !== '.' && name !== '..')
-              : (await start.dispatch({op:'readdir',args:[target]}) as {name:string}[]).map(entry => entry.name);
+              : (await dispatch({op:'readdir',args:[target]}) as {name:string}[]).map(entry => entry.name);
             return {entries};
           }
           if (operation === 'tree') {
-            if (bootstrapPath(target) || !await start.dispatch({op:'rmtreeSupported',args:[target]})) return {supported:false};
-            try { await start.dispatch({op:'rmtree',args:[target]}); return {supported:true}; }
+            if (bootstrapPath(target) || !await dispatch({op:'rmtreeSupported',args:[target]})) return {supported:false};
+            try { await dispatch({op:'rmtree',args:[target]}); return {supported:true}; }
             catch (error) { return {supported:true, errno:errno[(error as {code?:string}).code ?? ''] ?? errno.EIO}; }
           }
           throw Object.assign(new Error('Invalid native Python operation'), {code:'EINVAL'});
@@ -237,9 +245,9 @@ _safe_stat_type = _safe_native_stat_type
 
       if (start.packages) {
         const installationRoot = start.packages.requirements.length || start.packages.uninstall || start.packages.bootstrap
-          ? await start.dispatch({op:'package-root',args:[start.packages.session]}) as string : undefined;
+          ? await dispatch({op:'package-root',args:[start.packages.session]}) as string : undefined;
         await installPythonPackages(runtime, start.packages,
-          (op, ...args) => start.dispatch({op, args}), start.maxTransferBytes, installationRoot);
+          (op, ...args) => dispatch({op, args}), start.maxTransferBytes, installationRoot);
       }
       const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
       if ('loadPackage' in runtime) runtime.loadPackage = unavailablePackage;
@@ -248,7 +256,7 @@ _safe_stat_type = _safe_native_stat_type
       if (start.installOnly) {
         const message = new TextEncoder().encode(start.packages?.uninstall ? '' : 'Successfully installed requested Python packages\n');
         for (let offset = 0; offset < message.length; offset += start.maxTransferBytes) {
-          await start.dispatch({op:'stdout',args:[Array.from(message.subarray(offset,offset+start.maxTransferBytes))]});
+          await dispatch({op:'stdout',args:[Array.from(message.subarray(offset,offset+start.maxTransferBytes))]});
         }
       } else {
       exitCode = Number(await runtime.runPythonAsync(`

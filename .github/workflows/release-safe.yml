@@ -241,9 +241,15 @@ jobs:
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --skipLibCheck --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module ESNext --moduleResolution Bundler --target ES2024 --types node,@cloudflare/workers-types safe-packages-cloudflare-types.mts
           cd "$GITHUB_WORKSPACE"
           node scripts/verify-safe-cloudflare.mjs "$CLOUDFLARE_CONSUMER"
+      - name: Set up the native Python conformance oracle
+        if: steps.queue-check.outputs.publish == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9.25'
       - name: Verify packed Python host capabilities in workerd
         if: steps.queue-check.outputs.publish == 'true'
-        timeout-minutes: 10
+        # Includes the complete serial source-build matrix; individual tests keep their deadlines.
+        timeout-minutes: 45
         env:
           PYTHON_TARBALLS: ${{ steps.packed-consumers.outputs.tarballs }}
           TMPDIR: ${{ github.workspace }}/out/python-host-qualification/runtime
@@ -253,6 +259,7 @@ jobs:
           SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT: ${{ github.workspace }}/out/python-host-qualification/llm-dependencies
           SAFE_BASH_LLM_PACKAGE_DIR: ${{ github.workspace }}/out/python-host-qualification/wheels
           SAFE_BASH_LLM_REFERENCE_PYTHON: ${{ github.workspace }}/out/python-host-qualification/reference/bin/python
+          SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT: ${{ github.workspace }}/out/python-host-qualification/wheels
           SAFE_BASH_PYTHON_MICROPIP_WHEEL: ${{ github.workspace }}/out/python-host-qualification/wheels/micropip-0.11.1-py3-none-any.whl
         shell: bash
         run: |
@@ -266,9 +273,23 @@ jobs:
           npm install --prefix "$SAFE_BASH_PYTHON_CONSUMER_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "$PYTHON_TARBALLS"/poe-platform-safe-fs-*.tgz "$PYTHON_TARBALLS"/poe-platform-safe-js-*.tgz "$PYTHON_TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
           node scripts/prepare-python-llm-dependencies.mjs "$SAFE_BASH_PYTHON_CONSUMER_ROOT" "$SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT"
           python3 -m venv "$(dirname "$(dirname "$SAFE_BASH_LLM_REFERENCE_PYTHON")")"
-          "$SAFE_BASH_LLM_REFERENCE_PYTHON" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5" "httpx==0.28.1"
+          "$SAFE_BASH_LLM_REFERENCE_PYTHON" -m pip install --disable-pip-version-check "pip==21.2.4" "setuptools==58.0.4" "llm==0.27.1" "pydantic==2.12.5" "httpx==0.28.1"
           (cd "$SAFE_BASH_PYTHON_CONSUMER_ROOT" && node --input-type=module -e "import {downloadPythonLlmPackages} from '@poe-platform/safe-bash/commands/python/node'; await downloadPythonLlmPackages(process.env.SAFE_BASH_LLM_PACKAGE_DIR);")
           curl --fail --silent --show-error --location https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl --output "$SAFE_BASH_PYTHON_MICROPIP_WHEEL"
+          node --input-type=module <<'NODE'
+          import { createHash } from 'node:crypto';
+          import { readFile, writeFile } from 'node:fs/promises';
+          import { resolve } from 'node:path';
+          const lock = JSON.parse(await readFile(resolve(process.env.SAFE_BASH_PYTHON_RUNTIME_ROOT, 'pyodide-lock.json'), 'utf8'));
+          for (const name of ['setuptools', 'pyparsing']) {
+            const entry = lock.packages[name];
+            const response = await fetch(new URL(entry.file_name, 'https://cdn.jsdelivr.net/pyodide/v314.0.6/full/'), {signal: AbortSignal.timeout(60000)});
+            if (!response.ok) throw new Error('Build wheel download failed: ' + entry.file_name);
+            const bytes = new Uint8Array(await response.arrayBuffer());
+            if (createHash('sha256').update(bytes).digest('hex') !== entry.sha256) throw new Error('Build wheel integrity mismatch: ' + entry.file_name);
+            await writeFile(resolve(process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT, entry.file_name), bytes);
+          }
+          NODE
           node --test packages/safe-bash/tests/integration/python-jspi.test.mjs
       - name: Publish SafeFS with provenance
         if: steps.queue-check.outputs.publish == 'true'

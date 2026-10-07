@@ -899,11 +899,14 @@ test('real workerd uninstalls packages after their wheel artifacts are gone', {t
 test('real workerd processes installed package paths like native Python before user imports',{timeout:90000},async()=>{
   const reference=spawnSync(process.env.SAFE_BASH_LLM_REFERENCE_PYTHON,['-B','-c',String.raw`
 import io,json,site,sys,__main__
+from types import SimpleNamespace
 from unittest.mock import patch
 content=b"# comment\n/work/pth-source\n/work/pth-source\n/work/missing\nimport sys, __main__; sys._fixture_pth_runs = getattr(sys, '_fixture_pth_runs', 0) + 1; __main__._pth_marker = 'ready'; sys._fixture_pth_argv = list(sys.argv)\n"
 sys.argv=['-c']
 exists=site.os.path.exists
-with patch('site.os.listdir',return_value=['fixture.pth']),patch('site.io.open_code',side_effect=lambda _:io.BytesIO(content)),patch('site.os.path.exists',side_effect=lambda path:path=='/work/pth-source' or exists(path)):
+open_code=site.io.open_code
+lstat=site.os.lstat
+with patch('site.os.listdir',return_value=['fixture.pth']),patch('site.os.lstat',side_effect=lambda path:SimpleNamespace(st_flags=0,st_file_attributes=0) if path=='/fixture-site/fixture.pth' else lstat(path)),patch('site.io.open_code',side_effect=lambda path:io.BytesIO(content) if path=='/fixture-site/fixture.pth' else open_code(path)),patch('site.os.path.exists',side_effect=lambda path:path=='/work/pth-source' or exists(path)):
  site.addsitedir('/fixture-site')
 print(json.dumps([sys.path.count('/work/pth-source'),sys._fixture_pth_runs,__main__._pth_marker,sys._fixture_pth_argv]))
 `],{encoding:'utf8',timeout:5000});

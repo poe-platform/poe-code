@@ -1,3 +1,4 @@
+import {PythonInstallationRoot} from './installation-root.js';
 import {PythonWheelIndex} from './wheel-index.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
 import {stagePythonPackage} from "./package-download.js";
@@ -114,6 +115,7 @@ interface Session extends PythonPackageContext {
  opened?: PackageArtifact | undefined;
  readonly retained:Map<string,PackageArtifact>;
  wheelIndex?:PythonWheelIndex|undefined;
+ installationRoot?:PythonInstallationRoot|undefined;
  retiring?: Promise<void>;
  retaining?: Promise<void> | undefined;
  opening: boolean;
@@ -164,6 +166,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
   if(all&&session.wheelIndex){artifacts.push(session.wheelIndex);session.wheelIndex=undefined;}
   if(all)session.retained.clear();
+  if(session.closed&&session.installationRoot){artifacts.push(session.installationRoot);session.installationRoot=undefined;}
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
   if(!artifacts.length)return session.retiring??Promise.resolve();
   return track(session.retiring=Promise.allSettled([session.retiring,...artifacts.map(artifact=>Promise.resolve().then(()=>artifact.close?.()))]).then(results=>{
@@ -274,6 +277,10 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    await commit;
    options.onProgress?.({phase:'installed'});
    return null;
+  }
+  if(op==='package-root'){
+   session.installationRoot??=new PythonInstallationRoot({...session,cwd:session.cacheDirectory?dirname(session.cacheDirectory):session.cwd});
+   return session.installationRoot.path();
   }
   if(op==='package-index'){
    const operation=args[1];

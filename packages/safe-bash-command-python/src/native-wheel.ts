@@ -7,7 +7,8 @@ export function loadPythonNativeWheel():Promise<string>{
 
 /** Pinned Pyodide extraction helpers, with a seekable host source in place of
  * the whole-wheel JsBuffer/NamedTemporaryFile handoff. Native entry records use
- * caller scratch; discovery name lists and extracted files remain interpreter-owned.
+ * caller scratch and extraction uses caller storage; some metadata and dynamic-library
+ * discovery still materializes interpreter-owned lists.
  */
 export const pythonNativeWheel = `
 def _safe_extract_native_wheel(read, serialized):

@@ -160,16 +160,6 @@ export async function runPythonWorker(options: {
     }), mask => { const previous = guestMask; guestMask = mask & 0o777; return previous; });
     // Namespace relocation is qualified against this ABI only.
     if (runtime.version !== '314.0.6') throw new PythonFailure('runtime-abi', { cause: new Error('Python worker requires Pyodide 314.0.6') });
-    if (start.packages) await installPythonPackages(runtime, start.packages, startupRequest, start.maxTransferBytes);
-    const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
-    const publicRuntime = runtime as unknown as Record<string, any>;
-    if ('loadPackage' in publicRuntime) publicRuntime.loadPackage = unavailablePackage;
-    if (publicRuntime._api?.packageManager) publicRuntime._api.packageManager.downloadPackage = unavailablePackage;
-    if (start.installOnly) {
-      if (!start.packages?.uninstall) startupWrite('stdout', 'Successfully installed requested Python packages');
-      postMessage({type:'exit', exitCode:0});
-      return;
-    }
     category = 'runtime-abi';
     const errno: Record<string, number> = JSON.parse(runtime.runPython("__import__('json').dumps({k:v for k,v in vars(__import__('errno')).items() if k.startswith('E') and isinstance(v,int)})"));
     const request = createPythonWorkerRequest(start.shared, postMessage, code => new runtime.FS.ErrnoError(errno[code] ?? errno.EIO));
@@ -177,7 +167,7 @@ export async function runPythonWorker(options: {
     if (!libraries) throw new Error('Python runtime native loader ABI unavailable');
     if (typeof runtime._module._Py_FinalizeEx !== 'function') throw new Error('Python runtime finalization ABI unavailable');
     // Preload relocation helpers before application root replaces bootstrap paths.
-    runtime.runPython('import sys, zipimport, importlib.machinery, json, os, runpy, traceback');
+    runtime.runPython('import sys, zipimport, importlib.machinery, json, os, runpy, traceback, site, sysconfig, pyodide._package_loader');
     runtime.setStdin({read(buffer) {
       const bytes = request('stdin', Math.min(buffer.length, start.maxTransferBytes));
       if (!Array.isArray(bytes) || bytes.length > buffer.length) throw new runtime.FS.ErrnoError(errno.EIO);
@@ -259,6 +249,21 @@ export async function runPythonWorker(options: {
     });
     runtime.runPython(pythonTreeCleanup);
     runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
+    if (start.packages) {
+      const installationRoot = start.packages.requirements.length || start.packages.uninstall || start.packages.bootstrap
+        ? request('package-root', start.packages.session) as string : undefined;
+      await installPythonPackages(runtime, start.packages, request, start.maxTransferBytes, installationRoot);
+    }
+    const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
+    const publicRuntime = runtime as unknown as Record<string, any>;
+    if ('loadPackage' in publicRuntime) publicRuntime.loadPackage = unavailablePackage;
+    if (publicRuntime._api?.packageManager) publicRuntime._api.packageManager.downloadPackage = unavailablePackage;
+    if (start.installOnly) {
+      if (!start.packages?.uninstall) startupWrite('stdout', 'Successfully installed requested Python packages');
+      const finalized = runtime._module._Py_FinalizeEx();
+      postMessage({type:'exit', exitCode:finalized < 0 ? 120 : 0});
+      return;
+    }
     postMessage({type:'ready'});
     category = 'runtime';
     const exitCode = runtime.runPython(pythonExecution);

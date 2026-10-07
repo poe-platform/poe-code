@@ -153,6 +153,7 @@ export async function installStaticPackages(runtime) {
         '@poe-platform/safe-bash/search': resolve(root, 'packages/safe-bash/src/search.ts'),
         '@poe-platform/safe-bash/commands/llm/collections': resolve(root, 'packages/safe-bash/src/commands/llm/collections.ts'),
         '@poe-platform/safe-bash/commands/llm': resolve(root, 'packages/safe-bash/src/commands/llm/index.ts'),
+        '@poe-platform/safe-bash/commands/python/source-archive': resolve(root, 'packages/safe-bash/src/commands/python/source-archive.ts'),
         '@poe-platform/safe-bash/commands/python': resolve(root, 'packages/safe-bash/src/commands/python/index.ts'),
         '@poe-platform/safe-bash': resolve(root, 'packages/safe-bash/src/shell/shell.ts'),
         'safe-bash-contracts': resolve(root, 'packages/safe-bash-contracts/src'),
@@ -214,6 +215,7 @@ before(async context => {
   await nativeFixture.miniflare.ready;
 });
 after(async () => {
+  if (!nativeFixture) return;
   await nativeFixture.miniflare.dispose();
   assert.deepEqual(nativeFixture.runtimeErrors, [], 'Native qualification must drain without unhandled/runtime errors');
 });
@@ -579,6 +581,18 @@ for(const defaultCache of [false,true])test('real workerd loads native code from
  assert.ok(result.wheelLiveMaximum>0&&result.wheelLiveMaximum<10,'native entry retention: '+result.wheelLiveMaximum);
  assert.ok(result.wheelNameQueries>0,'native filename discovery observed');
  assert.equal(result.wheelNameMaximum,0,'native filename discovery must stay lazy');
+ assert.equal(result.wheelExtractedMaximum,0,'extracted wheel payloads must use caller storage');
+ assert.deepEqual(runtimeErrors,[]);
+});
+
+test('real workerd settles invalid native wheel loading without fatal interpreter errors', {timeout:60000},async()=>{
+ const {miniflare,runtimeErrors}=nativeFixture;
+ const response=await miniflare.dispatchFetch('http://fixture/native-wheel?invalid-native',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const result=await response.json();
+ assert.equal(response.status,200,JSON.stringify(result));
+ assert.notEqual(result.result.exitCode,0,JSON.stringify(result));
+ assert.ok(result.diagnostics.some(message=>message.includes("broken.cpython-314-wasm32-emscripten.so") && message.includes("RangeError: byte length of Uint32Array should be a multiple of 4")),JSON.stringify(result));
+ assert.deepEqual(result.failures,[]);
  assert.deepEqual(runtimeErrors,[]);
 });
 

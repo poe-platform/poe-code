@@ -1,3 +1,4 @@
+import {installPythonJspiDynlib} from './jspi-dynlib.js';
 import { createPythonNativeSyscalls } from '@poe-code/safe-fs/core';
 import type { PythonAsyncExecutor, PythonExecutorStart } from './index.js';
 import { installPythonPackages } from './provisioning-runtime.js';
@@ -106,19 +107,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       // Callers should not need to import Pyodide or write run_sync themselves.
       runtime._api.config.enableRunUntilComplete = true;
       signal.throwIfAborted();
-      if (start.packages) await installPythonPackages(runtime, start.packages,
-        (op, ...args) => start.dispatch({op, args}), start.maxTransferBytes);
-      const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
-      if ('loadPackage' in runtime) runtime.loadPackage = unavailablePackage;
-      if (runtime._api.packageManager) runtime._api.packageManager.downloadPackage = unavailablePackage;
-      if (start.installOnly) {
-        start.onReady();
-        const message = new TextEncoder().encode(start.packages?.uninstall ? '' : 'Successfully installed requested Python packages\n');
-        for (let offset = 0; offset < message.length; offset += start.maxTransferBytes) {
-          await start.dispatch({op:'stdout', args:[Array.from(message.subarray(offset, offset + start.maxTransferBytes))]});
-        }
-      } else {
-      runtime.runPython('import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache, importlib.machinery, shutil, stat, pyodide.ffi');
+      runtime.runPython('import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache, importlib.machinery, shutil, stat, pyodide.ffi, site, sysconfig, pyodide._package_loader');
       runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
       const filesystem = runtime.FS;
       const bootstrap = filesystem.root;
@@ -240,7 +229,24 @@ _safe_stat_type = _safe_native_stat_type
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);
       active.value = 1;
+      if (typeof module._emscripten_dlopen_promise === 'function') installPythonJspiDynlib(module, active);
+
+      if (start.packages) {
+        const installationRoot = start.packages.requirements.length || start.packages.uninstall || start.packages.bootstrap
+          ? await start.dispatch({op:'package-root',args:[start.packages.session]}) as string : undefined;
+        await installPythonPackages(runtime, start.packages,
+          (op, ...args) => start.dispatch({op, args}), start.maxTransferBytes, installationRoot);
+      }
+      const unavailablePackage = () => { throw new Error('Python package transport is only available during installation'); };
+      if ('loadPackage' in runtime) runtime.loadPackage = unavailablePackage;
+      if (runtime._api.packageManager) runtime._api.packageManager.downloadPackage = unavailablePackage;
       start.onReady();
+      if (start.installOnly) {
+        const message = new TextEncoder().encode(start.packages?.uninstall ? '' : 'Successfully installed requested Python packages\n');
+        for (let offset = 0; offset < message.length; offset += start.maxTransferBytes) {
+          await start.dispatch({op:'stdout',args:[Array.from(message.subarray(offset,offset+start.maxTransferBytes))]});
+        }
+      } else {
       exitCode = Number(await runtime.runPythonAsync(`
 try:
  exec(_safe_execution_code)

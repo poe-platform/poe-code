@@ -18,7 +18,7 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
-async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false) {
+async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false,invalidNative=false) {
   let stagedBytes=0,maxWrite=0;
   const storage=new Proxy(backend,{get(target,key){
     if(key==='createStagedFile')return async(...args)=>{
@@ -33,7 +33,7 @@ async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=f
   artifacts.set(base+'micropip-0.11.1-py3-none-any.whl',micropip);
   const requests=[],diagnostics=[];
   const requirements=['pydantic-core==2.41.5'];
-  if(defaultCache){
+  if(defaultCache||invalidNative){
     const bootstrap=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor}));
     try{
       const generated=await bootstrap.exec(`python - <<'PY'
@@ -45,6 +45,8 @@ with zipfile.ZipFile(output, "w") as archive:
  archive.writestr("directory_fixture-1.0.dist-info/WHEEL", "Wheel-Version: 1.0\\nRoot-Is-Purelib: true\\nTag: py3-none-any\\n")
  archive.writestr("directory_fixture-1.0.dist-info/RECORD", "")
  for index in range(4096):archive.writestr("directory_fixture/data/%08d.dat" % index, b"")
+ archive.writestr("directory_fixture/data/payload.bin", b"x" * (2 * 1024 * 1024 + 7))
+ ${invalidNative?'archive.writestr("directory_fixture/broken.cpython-314-wasm32-emscripten.so", b"invalid native library")':''}
 with open("directory_fixture-1.0-py3-none-any.whl", "wb") as target:target.write(output.getvalue())
 PY`);
       if(generated.exitCode)throw new Error(JSON.stringify(generated));
@@ -58,7 +60,7 @@ PY`);
     }});
   const shell=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
   try {
-    const result=await shell.exec(`python -c '${defaultCache?'from directory_fixture import value; assert value == 42; ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
+    const result=await shell.exec(`python -c '${defaultCache?'from directory_fixture import value; import importlib.resources; assert value == 42; resource = importlib.resources.files("directory_fixture").joinpath("data/payload.bin"); assert resource.stat().st_size == 2097159; source = resource.open("rb"); assert sum(len(chunk) if chunk == b"x" * len(chunk) else -1 for chunk in iter(lambda: source.read(65536), b"")) == 2097159; source.close(); ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
     return {result,requests,diagnostics,stagedBytes,maxWrite};
   }finally{await shell.dispose();await environment.dispose();}
 }
@@ -1845,7 +1847,7 @@ export default {
     let retainedProxy;
     let activeRequests = 0;
     let maximumRequests = 0;
-    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0, wheelNameMaximum = 0, wheelNameQueries = 0;
+    let wheelReadMaximum = 0, wheelIndexEntries = 0, wheelLiveMaximum = 0, wheelNameMaximum = 0, wheelNameQueries = 0, wheelExtractedMaximum = 0;
     let ticks = 0;
     const timer = setInterval(() => { ticks++; }, 1);
     const createExecutor = () => createPythonJspiExecutor({ trampoline, nativeCall, statResult, async loadRuntime(configuration) {
@@ -1867,6 +1869,18 @@ export default {
       if (mode === '/host') await installStaticPackages(runtime);
       else if (mode !== '/packages' && mode !== '/native-wheel') installPythonLlmPackages(runtime, llmPackageAssets);
       if(mode === '/native-wheel'){
+        const runPythonAsync = runtime.runPythonAsync.bind(runtime);
+        runtime.runPythonAsync = async (...args) => {
+          const result = await runPythonAsync(...args);
+          for (const prefix of ['', '/.pyodide-runtime']) {
+            const path = prefix + '/lib/python3.14/site-packages/directory_fixture/data/payload.bin';
+            try {
+              const node = runtime.FS.lookupPath(path).node;
+              wheelExtractedMaximum = Math.max(wheelExtractedMaximum, node.contents?.byteLength ?? 0);
+            } catch (error) { if (error.errno !== 44) throw error; }
+          }
+          return result;
+        };
         runtime.globals.set('_observe_wheel_names',count=>{wheelNameQueries++;wheelNameMaximum=Math.max(wheelNameMaximum,count);});
         runtime.globals.set('_observe_wheel_live',count=>{wheelLiveMaximum=Math.max(wheelLiveMaximum,count);});
         runtime.globals.set('_observe_wheel_entry',name=>{if(name==='pydantic_core/core_schema.py')wheelIndexEntries++;});
@@ -1936,7 +1950,7 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

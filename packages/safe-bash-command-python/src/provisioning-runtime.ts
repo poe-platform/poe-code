@@ -13,6 +13,7 @@ interface InstallerRuntime extends PythonWorkerRuntime {
  readonly _api: {
   readonly lockfile_packages: Record<string,NativePackageData>;
   loadDynlib(path:string):Promise<unknown>;
+  importlib?:{invalidate_caches():unknown};
   readonly packageManager: {
    readonly defaultChannel:string;
    downloadPackage(metadata:NativePackage):Promise<PackageSource>;
@@ -29,6 +30,7 @@ export async function installPythonPackages(
  start: PythonPackageStart,
  request:(operation:string,...args:any[])=>any,
  maxTransferBytes:number,
+ installationRoot?:string,
 ):Promise<void> {
  if(!start.requirements.length&&!start.uninstall&&!start.bootstrap)return;
  const runtime=supplied as InstallerRuntime;
@@ -120,12 +122,33 @@ export async function installPythonPackages(
  };
  const loadPackages=async(names:string[])=>{
   const errors:string[]=[];
-  await runtime.loadPackage(names,{messageCallback(){},errorCallback(message){errors.push(message);}});
+  const importlib=runtime._api.importlib;
+  let invalidate=false;
+  if(installationRoot&&importlib)runtime._api.importlib={invalidate_caches(){invalidate=true;}};
+  try{await runtime.loadPackage(names,{messageCallback(){},errorCallback(message){errors.push(message);}});}
+  finally{if(installationRoot&&importlib)runtime._api.importlib=importlib;}
+  if(invalidate)await runtime.runPythonAsync('import importlib; importlib.invalidate_caches()');
   if(errors.length)throw new Error(errors.join('\n'));
  };
  const installedGlobals:string[]=[];
  const bind=(name:string,value:unknown)=>{runtime.globals.set(name,value);installedGlobals.push(name);};
  try {
+  if(installationRoot){
+   bind('_safe_installation_root',installationRoot);
+   await runtime.runPythonAsync(`
+import sys, site, sysconfig
+from pathlib import Path
+from pyodide import _package_loader
+sys.prefix = sys.exec_prefix = _safe_installation_root
+site.PREFIXES = [sys.prefix, sys.exec_prefix]
+sysconfig._CONFIG_VARS = None
+_package_loader.SITE_PACKAGES = Path(site.getsitepackages()[0])
+_package_loader.DSO_DIR = _package_loader.SITE_PACKAGES.parents[1]
+_package_loader.TARGETS.update(site=_package_loader.SITE_PACKAGES, dynlib=_package_loader.DSO_DIR)
+_package_loader.SITE_PACKAGES.mkdir(parents=True, exist_ok=True)
+sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
+`);
+  }
   await loadPackages(['micropip',...start.bootstrapPackages??[]]);
   bind('_safe_package_native',loadPackages);
   bind('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
@@ -177,7 +200,24 @@ export async function installPythonPackages(
   // publish the resulting inventory only after successful resolution/removal.
   // Native metadata discovery holds bootstrap ZIPs; invalidate and collect them
   // before relocation and canonical filesystem syscall admission.
-  await runtime.runPythonAsync(await loadPythonPackageProgram());
+  // Format guest failures while a suspendable Python frame still owns traceback I/O.
+  const program=await loadPythonPackageProgram();
+  const installerFailure=await runtime.runPythonAsync(`
+import sys as _safe_install_sys
+from micropip.logging import setup_logging as _safe_install_logging
+_safe_install_handlers = [handler for handler in _safe_install_logging().logger.handlers if getattr(handler, 'stream', None) is _safe_install_sys.stdout]
+_safe_installer_failure = None
+try:
+ for handler in _safe_install_handlers: handler.setStream(_safe_install_sys.stderr)
+${program.split('\n').map(line=>' '+line).join('\n')}
+except BaseException:
+ import traceback
+ _safe_installer_failure = traceback.format_exc()
+finally:
+ for handler in _safe_install_handlers: handler.setStream(_safe_install_sys.stdout)
+_safe_installer_failure
+`);
+  if(typeof installerFailure==='string'&&installerFailure)throw new Error(installerFailure);
   await installing;
   accepting=false;
   await pending;

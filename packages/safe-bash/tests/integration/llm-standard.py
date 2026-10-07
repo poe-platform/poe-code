@@ -19,7 +19,9 @@ assert isinstance(response, llm.Response)
 assert "not yet done" in repr(response)
 done = []
 response.on_done(lambda value: done.append(value.text()))
+# Native llm resets its start timestamp when replaying completed responses.
 assert list(response) == ["he", "llo"]
+assert response.duration_ms() >= 0
 assert response.text() == "hello"
 assert list(response) == ["he", "llo"]
 assert done == ["hello"]
@@ -27,7 +29,6 @@ assert response.usage().input == 3
 assert response.usage().output == 2
 assert response.json() == {"id": "fixture-response"}
 assert response.datetime_utc()
-assert response.duration_ms() >= 0
 assert model.prompt("single", stream=False).text() == "single"
 assert len(model.prompt("exact-output").text().encode()) == 262144
 for prompt in ("over-output", "empty-output"):

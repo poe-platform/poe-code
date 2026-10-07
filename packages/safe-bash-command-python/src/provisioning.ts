@@ -247,6 +247,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const session=sessions.get(String(args[0]));
   if(!session)throw failure('Python package session is closed');
   checkSession(session);
+  const {fs,signal,cwd,cacheDirectory:configuredCache}=session;
+  const settings={signal};
   if(op==='package-commit') {
    await release(session,true);checkSession(session);
    const pinned=args[1];
@@ -260,7 +262,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    const commit = committing.then(async()=>{
     checkSession(session);
     if(options.manifestStore) {
-     const committed=await options.manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes,{signal:session.signal});
+     const committed=await options.manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes,settings);
      checkSession(session);
      if(typeof committed!=='boolean')throw failure('Invalid Python package manifest publication result');
      if(!committed)throw new PythonPackageConflictError();
@@ -279,14 +281,14 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    return null;
   }
   if(op==='package-root'){
-   session.installationRoot??=new PythonInstallationRoot({...session,cwd:session.cacheDirectory?dirname(session.cacheDirectory):session.cwd});
+   session.installationRoot??=new PythonInstallationRoot({...session,cwd:configuredCache?dirname(configuredCache):cwd});
    return session.installationRoot.path();
   }
   if(op==='package-index'){
    const operation=args[1];
    if(operation==='start'){
     if(session.wheelIndex)throw failure('Python wheel index already open');
-    session.wheelIndex=new PythonWheelIndex({...session,cwd:session.cacheDirectory?dirname(session.cacheDirectory):session.cwd});
+    session.wheelIndex=new PythonWheelIndex({...session,cwd:configuredCache?dirname(configuredCache):cwd});
     return null;
    }
    if(operation==='close'){
@@ -308,12 +310,18 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     const source=artifact;
     const retaining=(async()=>{
     const path=decodeURIComponent(new URL(source.url!).pathname);
-    const directory=resolve(session.cacheDirectory??resolve(session.cwd,'.python-packages'),'installed');
-    const capabilities=await session.fs.capabilitiesFor?.(directory,{signal:session.signal})??session.fs.capabilities;
-    if(!session.fs.confineExtraction||!session.fs.prepareDirectory||!capabilities.retainedStagingWrite||!capabilities.retainedStagingCleanup||!capabilities.retainedRead||!capabilities.atomicFileStaging)return;
+    const directory=resolve(configuredCache??resolve(cwd,'.python-packages'),'installed');
+    if(!fs.confineExtraction||!fs.prepareDirectory)return;
+    let probe=directory,capabilities;
+    for(;;){
+     try{capabilities=await fs.capabilitiesFor?.(probe,settings)??fs.capabilities;break;}
+     catch(error){checkSession(session);if(!missing(error)||dirname(probe)===probe)throw error;probe=dirname(probe);}
+    }
+    const required=['retainedStagingWrite','retainedStagingCleanup','retainedRead','atomicFileStaging'] as const;
+    if(!required.every(key=>capabilities[key]))return;
+    await fs.mkdir(directory,{recursive:true,signal});
     const target=resolve(directory,source.key,basename(path));
-    if(path!==target){
-     await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
+    if(path!==target||probe!==directory){
      checkSession(session);
      session.opened=undefined;
      const published=await publishPythonBuildWheel({filename:basename(path),artifact:source},directory,maxBytes,session);
@@ -383,11 +391,20 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     const path = new URL(url);
     if(path.host && path.host!=='localhost')throw failure('Local wheels must use the canonical filesystem');
     try {
-     const artifact=await openPythonPackageFile(session,decodeURIComponent(path.pathname),maxBytes);
+     const source=decodeURIComponent(path.pathname);
+     const artifact=await openPythonPackageFile(session,source,maxBytes);
      if(artifact){
       return await adopt(artifact,()=>verifyIntegrity(artifact.key));
      }
-     bytes=Uint8Array.from(await session.fs.readFile(decodeURIComponent(path.pathname),{signal:session.signal,...Number.isFinite(maxBytes)?{maxBytes}:{} })); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
+     const capabilities=await fs.capabilitiesFor?.(source,settings)??fs.capabilities;
+     if(capabilities.streamingRead&&fs.readStream){
+      const directory=configuredCache??cwd;
+      if(configuredCache)await fs.mkdir(directory,{recursive:true,...settings});
+      const body=(async function*(){yield* fs.readStream!(source,settings);})();
+      const staged=await stagePythonPackage(session,directory,body,maxBytes,()=>{},verifyIntegrity);
+      if(staged)return await adopt(staged,()=>{});
+     }
+     bytes=Uint8Array.from(await fs.readFile(source,{signal,...Number.isFinite(maxBytes)?{maxBytes}:{} })); } catch(error) { checkSession(session);throw failure(`Cannot read canonical Python wheel ${path.pathname}: ${error instanceof Error ? error.message : String(error)}`); }
    }else{
     if(session.offline)throw failure(`Offline package cache miss: ${url}`);
     if(!options.transport||!options.authorize)throw failure('Python package download requires configured transport and authorization');
@@ -396,12 +413,12 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
      if(current.protocol!=='https:'&&current.protocol!=='http:')throw failure(`Unsupported package transport protocol: ${current.protocol}`);
      if(current.username||current.password)throw failure('Package URLs with credentials are unsupported');
      let denyPrivate=false;
-     const allowed=await options.authorize({url:current.href,method:'GET',attempt:0,signal:session.signal,...redirectFrom===undefined?{}:{redirectFrom},requirePrivateNetworkDeny(){denyPrivate=true;}});
+     const allowed=await options.authorize({url:current.href,method:'GET',attempt:0,signal,...redirectFrom===undefined?{}:{redirectFrom},requirePrivateNetworkDeny(){denyPrivate=true;}});
      checkSession(session);
      if(!allowed)throw failure(`Python package download authorization denied: ${current.href}`);
      if(denyPrivate&&!options.transport.supportsPrivateNetworkDeny)throw failure('Package transport cannot enforce private network denial');
      checkSession(session);
-     const response=await options.transport({url:current.href,method:'GET',headers:[['accept','application/vnd.pypi.simple.v1+json, application/json;q=0.9, */*;q=0.1']],signal:session.signal,...denyPrivate?{denyPrivateNetworks:true}:{}});
+     const response=await options.transport({url:current.href,method:'GET',headers:[['accept','application/vnd.pypi.simple.v1+json, application/json;q=0.9, */*;q=0.1']],signal,...denyPrivate?{denyPrivateNetworks:true}:{}});
      try{
       checkSession(session);
       if([301,302,303,307,308].includes(response.status)){
@@ -416,8 +433,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
       if(total!==undefined&&Number.isFinite(total)&&total>maxBytes)throw failure('Package download exceeds maxDownloadBytes');
       const progress=(count:number)=>options.onProgress?.({phase:'download',url,bytes:count,...typeof total==='number'&&Number.isSafeInteger(total)?{totalBytes:total}:{}});
       if(cacheDirectory||noCache){
-       const directory=cacheDirectory??session.cwd;
-       if(cacheDirectory)await session.fs.mkdir(directory,{recursive:true,signal:session.signal});
+       const directory=cacheDirectory??cwd;
+       if(cacheDirectory)await fs.mkdir(directory,{recursive:true,signal});
        let metadataBytes:Uint8Array|undefined;
        const artifact=await stagePythonPackage(session,directory,response.body,maxBytes,
         progress,key=>{

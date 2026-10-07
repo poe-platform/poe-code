@@ -18,14 +18,17 @@ import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
 
 const unhandledErrors = observePythonJspiUnhandledErrors(globalThis);
 
-async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false,invalidNative=false) {
-  let stagedBytes=0,maxWrite=0;
+async function qualifyNativeWheel(backend,createExecutor,micropip,defaultCache=false,invalidNative=false,streamOnly=false) {
+  let stagedBytes=0,maxWrite=0,canonicalBytes=0;
+  const canonicalSource='/work/directory_fixture-1.0-py3-none-any.whl';
   const storage=new Proxy(backend,{get(target,key){
+    if(streamOnly&&key==='capabilitiesFor')return async(path,options)=>({...(await target.capabilitiesFor?.(path,options)??target.capabilities),...path===canonicalSource?{retainedRead:false}:{}});
+    if(streamOnly&&key==='readStream')return async function*(path,options){for await(const bytes of target.readStream(path,options)){if(path===canonicalSource)canonicalBytes+=bytes.length;yield bytes;}};
     if(key==='createStagedFile')return async(...args)=>{
       const stage=await target.createStagedFile(...args);
       return {...stage,writer:{...stage.writer,async write(bytes,options){maxWrite=Math.max(maxWrite,bytes.length);if(bytes.length>65536)throw new Error("Unbounded package staging write");await stage.writer.write(bytes,options);stagedBytes+=bytes.length;}}};
     };
-    if(key==='readFile'||key==='writeFile')return (...args)=>{if(args[0].includes('-sha256-'))throw new Error("Whole package buffer access");return target[key](...args);};
+    if(key==='readFile'||key==='writeFile')return (...args)=>{if(args[0].includes('-sha256-')||streamOnly&&args[0]===canonicalSource)throw new Error("Whole package buffer access");return target[key](...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
   }});
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
@@ -61,7 +64,7 @@ PY`);
   const shell=new Shell({fs:storage,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause??event))}));
   try {
     const result=await shell.exec(`python -c '${defaultCache?'from directory_fixture import value; import importlib.resources; assert value == 42; resource = importlib.resources.files("directory_fixture").joinpath("data/payload.bin"); assert resource.stat().st_size == 2097159; source = resource.open("rb"); assert sum(len(chunk) if chunk == b"x" * len(chunk) else -1 for chunk in iter(lambda: source.read(65536), b"")) == 2097159; source.close(); ':''}from pydantic_core import SchemaValidator; print(SchemaValidator({"type":"int"}).validate_python("42"))'`);
-    return {result,requests,diagnostics,stagedBytes,maxWrite};
+    return {result,requests,diagnostics,stagedBytes,maxWrite,canonicalBytes};
   }finally{await shell.dispose();await environment.dispose();}
 }
 
@@ -2009,7 +2012,7 @@ _observed_zipfile.ZipInfo.__init__ = _observe_zip_info`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,wheelDynlibCandidates,failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache'),new URL(request.url).searchParams.has('invalid-native'),new URL(request.url).searchParams.has('stream-only')),wheelReadMaximum,wheelIndexEntries,wheelLiveMaximum,wheelNameMaximum,wheelNameQueries,wheelExtractedMaximum,wheelDynlibCandidates,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

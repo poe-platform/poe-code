@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {MemoryFileSystem,MountFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonPackageEnvironment} from './provisioning.js';
 
 test('installed local wheels retain independent caller-backed bytes without the artifact cache',async()=>{
@@ -61,14 +61,14 @@ test('finishing an installation drains an admitted snapshot read before retiring
  assert.equal(premature,false);assert.equal(closed,true);
 });
 
-test('legacy read-only staging adapters preserve their existing local wheel path',async()=>{
+for(const mounted of [false,true])test('legacy read-only staging adapters preserve their existing local wheel path; mounted='+mounted,async()=>{
  const backing=new MemoryFileSystem();await backing.mkdir('/work');
  await backing.writeFile('/work/fixture-1.0-py3-none-any.whl',Uint8Array.of(7));
  const fs=new Proxy(backing,{get(target,key){
   if(key==='capabilitiesFor')return async()=>({...target.capabilities,atomicFileStaging:false});
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
- const context={fs,cwd:'/work',signal:new AbortController().signal};
+ const context={fs:mounted?new MountFileSystem({root:fs}):fs,cwd:'/work',signal:new AbortController().signal};
  const environment=createPythonPackageEnvironment({noCache:true}),start=await environment.prepare(context);
  try{
   const url='file:///work/fixture-1.0-py3-none-any.whl';

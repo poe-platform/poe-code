@@ -564,9 +564,9 @@ test('real workerd applies prerelease selection and cache bypass through CLI and
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const defaultCache of [false,true])test('real workerd loads native code from a retained installed wheel; defaultCache='+defaultCache, {timeout:60000},async()=>{
+for(const [defaultCache,streamOnly] of [[false,false],[true,false],[true,true]])test('real workerd loads native code from a retained installed wheel; defaultCache='+defaultCache+(streamOnly?'; streamOnly=true':''), {timeout:60000},async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- const response=await miniflare.dispatchFetch('http://fixture/native-wheel'+(defaultCache?'?default-cache':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const response=await miniflare.dispatchFetch('http://fixture/native-wheel'+(defaultCache?'?default-cache':'')+(streamOnly?'&stream-only':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
  const result=await response.json();
  assert.equal(response.status,200,JSON.stringify(result));
  assert.equal(result.result.exitCode,0,JSON.stringify(result));
@@ -576,6 +576,7 @@ for(const defaultCache of [false,true])test('real workerd loads native code from
  assert.deepEqual(result.failures,[]);
  assert.ok(result.requests.some(url=>url.includes('pydantic_core-2.41.5')));
  assert.ok(result.stagedBytes>0);assert.ok(result.maxWrite>0&&result.maxWrite<=65536);
+ if(streamOnly)assert.ok(result.canonicalBytes>2097159,'canonical source must stream into caller storage');
  assert.ok(result.wheelReadMaximum>0&&result.wheelReadMaximum<=65558);
  assert.equal(result.wheelIndexEntries,1,'native extraction and discovery must share one wheel index');
  assert.ok(result.wheelLiveMaximum>0&&result.wheelLiveMaximum<10,'native entry retention: '+result.wheelLiveMaximum);

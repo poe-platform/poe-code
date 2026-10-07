@@ -195,3 +195,48 @@ test('retained wheel reads reject changed content and close every source after o
  await assert.rejects(f.environment.dispose(),error=>error===failure);
  assert.equal(f.count().closes,f.count().opens);
 });
+
+for(const configured of [false,true])for(const outcome of ['success','integrity','limit','body','abort'] as const)test(`stream-only canonical wheels use caller staging and retire it on ${outcome}; configured=${configured}`,async()=>{
+ const backing=new MemoryFileSystem(),controller=new AbortController();
+ const source='/remote/wheel.whl',reason=new Error('source aborted');
+ await backing.mkdir('/remote');
+ if(configured)await backing.mkdir('/scratch');
+ let written=0,pulled=0,retired=0;
+ const fs=new Proxy(backing,{get(target,key){
+  if(key==='capabilitiesFor')return async(path:string)=>({...target.capabilities,retainedRead:path!==source&&(!configured||path!=='/')});
+  if(key==='readFile')return async(path:string,...args:Parameters<typeof target.readFile> extends [string,...infer Rest]?Rest:never)=>{
+   assert.notEqual(path,source,'canonical wheel must not be buffered');return target.readFile(path,...args);
+  };
+  if(key==='readStream')return async function*(path:string){
+   assert.equal(path,source);
+   try{
+    for(let index=0;index<3;index++){
+     assert.equal(written,pulled,'source must wait for staging backpressure');
+     if(index===1&&outcome==='body')throw new Error('source failed');
+     if(index===1&&outcome==='abort')controller.abort(reason);
+     const chunk=new Uint8Array(65536).fill(index+1);pulled+=chunk.length;yield chunk;
+    }
+   }finally{retired++;}
+  };
+  if(key==='createStagedFile')return async(...args:Parameters<typeof target.createStagedFile>)=>{
+   const stage=await target.createStagedFile(...args);assert.ok(stage.writer);
+   return {...stage,writer:{...stage.writer,async write(bytes:Uint8Array,options:Parameters<NonNullable<typeof stage.writer>['write']>[1]){
+    assert.ok(bytes.length<=65536);await stage.writer!.write(bytes,options);written+=bytes.length;
+   }}};
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const environment=createPythonPackageEnvironment({noCache:true,...configured?{cacheDirectory:'/scratch'}:{},...outcome==='limit'?{maxDownloadBytes:70000}:{}});
+ const context={fs,cwd:'/',signal:controller.signal},start=await environment.prepare(context);
+ try{
+  const opening=environment.dispatch('package-open',[start.session,'file://'+source,outcome==='integrity'?'0'.repeat(64):undefined],context);
+  if(outcome==='success'){
+   const opened=await opening as {key:string;size:number};assert.equal(opened.size,3*65536);
+   assert.deepEqual(await environment.dispatch('package-read',[start.session,opened.key,65534,4],context),[1,1,2,2]);
+  }else if(outcome==='abort')await assert.rejects(opening,error=>error===reason);
+  else await assert.rejects(opening,outcome==='integrity'?/integrity/:outcome==='limit'?/maxDownloadBytes/:/source failed/);
+ }finally{await environment.finish(start);await environment.dispose();}
+ assert.equal(retired,1);
+ assert.deepEqual((await backing.readdir('/')).map(entry=>entry.name),configured?['remote','scratch']:['remote']);
+ if(configured){const directories=await backing.readdir('/scratch');assert.equal(directories.length,1);assert.deepEqual(await backing.readdir('/scratch/'+directories[0]!.name),[]);}
+});

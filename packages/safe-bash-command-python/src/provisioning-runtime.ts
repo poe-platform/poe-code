@@ -1,3 +1,4 @@
+import { PythonFailure } from './diagnostics.js';
 import {loadPythonPackageProgram} from './package-program.js';
 import { loadPythonNativeWheel } from './native-wheel.js';
 import {pythonPackageUrlHash} from './package-url-hash.js';
@@ -34,7 +35,7 @@ export async function installPythonPackages(
 ):Promise<void> {
  if(!start.requirements.length&&!start.uninstall&&!start.bootstrap)return;
  const runtime=supplied as InstallerRuntime;
- if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime._api.packageManager.installPackage!=='function'||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new Error('Python package installer ABI requires Pyodide 314.0.6');
+ if(runtime.version!=='314.0.6'||!runtime._api?.packageManager||!runtime._api.lockfile_packages||typeof runtime._api.packageManager.installPackage!=='function'||typeof runtime.loadPackage!=='function'||typeof runtime.runPythonAsync!=='function')throw new PythonFailure('runtime-abi', {cause:new Error('Python package installer ABI requires Pyodide 314.0.6')});
  let transportFailure:{error:unknown}|undefined;
  let accepting=true;
  let pending=Promise.resolve();

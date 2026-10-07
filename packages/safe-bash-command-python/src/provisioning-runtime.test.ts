@@ -57,7 +57,7 @@ test('legacy build tooling is bootstrapped without becoming application inventor
  assert.deepEqual(commits,[['1',{version:3,installed:[],records:[]}]]);
 });
 test('installer refuses unsupported runtime ABI before any download',async()=>{
- await assert.rejects(installPythonPackages({version:'314.0.6'} as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw Error('unexpected request');},65536),/installer ABI/);
+ await assert.rejects(installPythonPackages({version:'314.0.6'} as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw Error('unexpected request');},65536),{category:'runtime-abi',cause:new Error('Python package installer ABI requires Pyodide 314.0.6')});
 });
 test('installer closes package transport callbacks before user Python starts',async()=>{
  const deleted:string[]=[];const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(_metadata:unknown,bytes:Uint8Array){return bytes;},async downloadPackage(){return new Uint8Array();}}},globals:{set(){},delete(name:string){deleted.push(name);}},async loadPackage(){},async runPythonAsync(){},runPython(_source?:string):string{return '[]';}};

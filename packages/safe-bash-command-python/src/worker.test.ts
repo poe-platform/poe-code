@@ -353,3 +353,57 @@ test('worker exit notification failure is classified as transport rather than st
     { type: 'error', category: 'transport-unavailable', message: String(failure) },
   ]);
 });
+
+for (const transport of [false, true]) {
+  test(`package root failure after ABI setup preserves ${transport ? 'transport' : 'startup'} classification`, async () => {
+    const instantiate = wasm.instantiate;
+    wasm.instantiate = async () => ({});
+    const shared = new SharedArrayBuffer(1024);
+    const control = new Int32Array(shared, 0, 2);
+    const payload = new Uint8Array(shared, 8);
+    const messages: unknown[] = [];
+    let packageRootRequested = false;
+    const failure = 'package installation storage denied';
+    // Only ABI setup runs: the backend rejects the first installation request.
+    const FS = Object.fromEntries([
+      'lookupNode', 'open', 'stat', 'lstat', 'fstat', 'unlink', 'rmdir', 'chmod',
+      'truncate', 'utime', 'mkdir', 'rename', 'symlink', 'readdir', 'readlink', 'mknod', 'write',
+    ].map(name => [name, () => { throw new Error(`Unexpected bootstrap FS call: ${name}`); }]));
+    Object.assign(FS, { root: {}, mount() {}, chdir() {}, ErrnoError: Error });
+    try {
+      await runPythonWorker({
+        start: {
+          shared, invocation: { args: ['-c', 'pass'], cwd: '/', env: {} },
+          runtimeMount: '/.pyodide-runtime', maxTransferBytes: 64,
+          packages: { session: 'test', requirements: ['example'], offline: true },
+        },
+        async loadRuntime() {
+          await wasm.instantiate(new Uint8Array(), { env: { _emscripten_system: () => 0, __syscall_socket: () => 0 } });
+          return {
+            version: '314.0.6', FS,
+            _module: { LDSO: { loadedLibsByName: {} }, _Py_FinalizeEx() {}, SYSCALLS: { writeStat() {} } },
+            globals: { set() {}, delete() {} },
+            runPython() { return JSON.stringify({ EIO: 5 }); },
+            setStdin() {}, setStdout() {}, setStderr() {},
+          };
+        },
+        postMessage(message) {
+          const request = message as { op?: string };
+          if (!request.op) { messages.push(message); return; }
+          assert.ok(request.op === 'realpath' || request.op === 'package-root');
+          const rejected = request.op === 'package-root';
+          if (rejected) {
+            packageRootRequested = true;
+            if (transport) throw new Error(failure);
+          }
+          const bytes = new TextEncoder().encode(JSON.stringify(rejected ? { message: failure } : '/'));
+          payload.set(bytes);
+          Atomics.store(control, 1, bytes.length);
+          Atomics.store(control, 0, rejected ? 2 : 1);
+        },
+      });
+      assert.equal(packageRootRequested, true);
+      assert.deepEqual(messages, [{ type: 'error', category: transport ? 'transport-unavailable' : 'startup', message: `Error: ${failure}` }]);
+    } finally { wasm.instantiate = instantiate; }
+  });
+}

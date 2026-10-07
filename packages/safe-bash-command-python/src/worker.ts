@@ -249,6 +249,7 @@ export async function runPythonWorker(options: {
     });
     runtime.runPython(pythonTreeCleanup);
     runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
+    category = 'startup';
     if (start.packages) {
       const installationRoot = start.packages.requirements.length || start.packages.uninstall || start.packages.bootstrap
         ? request('package-root', start.packages.session) as string : undefined;

@@ -1826,6 +1826,7 @@ export default {
     let retainedProxy;
     let activeRequests = 0;
     let maximumRequests = 0;
+    let wheelReadMaximum = 0;
     let ticks = 0;
     const timer = setInterval(() => { ticks++; }, 1);
     const createExecutor = () => createPythonJspiExecutor({ trampoline, nativeCall, statResult, async loadRuntime(configuration) {
@@ -1846,6 +1847,14 @@ export default {
       // Keep the legacy adapter contract separate from the genuine calling profile.
       if (mode === '/host') await installStaticPackages(runtime);
       else if (mode !== '/packages' && mode !== '/native-wheel') installPythonLlmPackages(runtime, llmPackageAssets);
+      if(mode === '/native-wheel'){
+        runtime.globals.set('_observe_wheel_buffer',size=>{wheelReadMaximum=Math.max(wheelReadMaximum,size);if(size>65558)throw new Error('Unbounded interpreter wheel buffer: '+size);});
+        runtime.runPython(`class _ObservedWheelBuffer(bytearray):
+ def extend(self, value):
+  super().extend(value)
+  _observe_wheel_buffer(len(self))
+bytearray = _ObservedWheelBuffer`);
+      }
       version = runtime.version;
       memory = runtime._module.HEAPU8.byteLength;
       if (mode === '/proxy') retainedProxy = runtime.globals;
@@ -1881,7 +1890,7 @@ export default {
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/native-wheel') {
-      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),failures});}
+      try {return Response.json({...await qualifyNativeWheel(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),new URL(request.url).searchParams.has('default-cache')),wheelReadMaximum,failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

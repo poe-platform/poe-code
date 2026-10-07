@@ -37,6 +37,9 @@ def _safe_extract_native_wheel(read, serialized):
   def read(self, size=-1):
    remaining = max(0, self.size - self.position)
    size = remaining if size is None or size < 0 else min(size, remaining)
+   # CPython probes at most 64 KiB + its 22-byte EOCD header. Other
+   # consumers must accept short RawIO reads instead of accumulating a wheel.
+   size = min(size, 65558)
    output = bytearray()
    while len(output) < size:
     result = read(self.position, min(size-len(output), 65536))
@@ -49,6 +52,48 @@ def _safe_extract_native_wheel(read, serialized):
     self.position += len(chunk)
    return bytes(output)
 
+ # Retain the pinned interpreter parser and replace only its eager directory
+ # handoff. The window enforces the same declared end as BytesIO(data), including
+ # malformed/truncated fields. Entry objects still belong to native ZipFile.
+ from contextlib import contextmanager as _native_contextmanager
+ @_native_contextmanager
+ def _native_directory_parser():
+  import ast, inspect, textwrap
+  original = _NativeZip._RealGetContents
+  tree = ast.parse(textwrap.dedent(inspect.getsource(original)))
+  read = ast.dump(ast.parse('data = fp.read(size_cd)').body[0])
+  buffer = ast.dump(ast.parse('fp = io.BytesIO(data)').body[0])
+  class Rewrite(ast.NodeTransformer):
+   reads = buffers = 0
+   def visit_Assign(self, node):
+    shape = ast.dump(node)
+    if shape == read:
+     self.reads += 1
+     return None
+    if shape == buffer:
+     self.buffers += 1
+     return ast.copy_location(ast.parse('fp = _safe_directory_window(fp, size_cd)').body[0], node)
+    return node
+  rewrite = Rewrite()
+  tree = rewrite.visit(tree)
+  if rewrite.reads != 1 or rewrite.buffers != 1:
+   raise RuntimeError('Unsupported native ZIP directory parser')
+  class Window:
+   def __init__(self, source, size):
+    self.source, self.remaining = source, size
+   def read(self, size=-1):
+    size = self.remaining if size is None or size < 0 else min(size, self.remaining)
+    data = self.source.read(size)
+    self.remaining -= len(data)
+    return data
+  namespace = dict(original.__globals__, _safe_directory_window=Window)
+  exec(compile(ast.fix_missing_locations(tree), '<safe ZIP directory>', 'exec'), namespace)
+  _NativeZip._RealGetContents = namespace['_RealGetContents']
+  try:
+   yield
+  finally:
+   _NativeZip._RealGetContents = original
+
  _native_config = _native_json.loads(serialized)
  with _NativeWheel(_native_config['size']) as _native_archive:
   if 'integrity' in _native_config:
@@ -60,20 +105,21 @@ def _safe_extract_native_wheel(read, serialized):
    if checksum.hexdigest() != expected:
     raise ValueError('Python package integrity mismatch: ' + algorithm)
    return '""'
-  if 'metadata_name' in _native_config:
-   from micropip.metadata import wheel_dist_info_dir as _native_metadata_dir
-   from zipfile import Path as _NativeZipPath
+  with _native_directory_parser():
+   if 'metadata_name' in _native_config:
+    from micropip.metadata import wheel_dist_info_dir as _native_metadata_dir
+    from zipfile import Path as _NativeZipPath
+    with _NativeZip(_native_archive) as _native_zip:
+     path = _NativePath(_native_metadata_dir(_native_zip, _native_config['metadata_name'])) / 'METADATA'
+     return _native_json.dumps(_NativeZipPath(_native_zip, str(path)).read_text(encoding='utf-8'))
+   _native_target = _NativePath(_native_config['extract_dir'] if 'extract_dir' in _native_config else _native_loader.get_install_dir(_native_config['target']))
+   _native_target.mkdir(parents=True, exist_ok=True)
+   _native_shutil._unpack_zipfile(_native_archive, _native_target)
    with _NativeZip(_native_archive) as _native_zip:
-    path = _NativePath(_native_metadata_dir(_native_zip, _native_config['metadata_name'])) / 'METADATA'
-    return _native_json.dumps(_NativeZipPath(_native_zip, str(path)).read_text(encoding='utf-8'))
-  _native_target = _NativePath(_native_config['extract_dir'] if 'extract_dir' in _native_config else _native_loader.get_install_dir(_native_config['target']))
-  _native_target.mkdir(parents=True, exist_ok=True)
-  _native_shutil._unpack_zipfile(_native_archive, _native_target)
-  with _NativeZip(_native_archive) as _native_zip:
-   if _NativePath(_native_config['filename']).suffix == '.whl':
-    _native_loader.set_wheel_metadata(_native_config['filename'], _native_zip, _native_target, _native_config['metadata'])
-    _native_loader.install_datafiles(_native_config['filename'], _native_zip, _native_target)
-  _native_dynlibs = _native_loader.get_dynlibs(_native_archive, _NativePath(_native_config['filename']).suffix, _native_target)
- return _native_json.dumps(_native_dynlibs)
+    if _NativePath(_native_config['filename']).suffix == '.whl':
+     _native_loader.set_wheel_metadata(_native_config['filename'], _native_zip, _native_target, _native_config['metadata'])
+     _native_loader.install_datafiles(_native_config['filename'], _native_zip, _native_target)
+   _native_dynlibs = _native_loader.get_dynlibs(_native_archive, _NativePath(_native_config['filename']).suffix, _native_target)
+  return _native_json.dumps(_native_dynlibs)
 _safe_extract_native_wheel(_safe_native_wheel_read, _safe_native_wheel_config)
 `;

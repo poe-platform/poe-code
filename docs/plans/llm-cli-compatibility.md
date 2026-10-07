@@ -191,6 +191,8 @@ observable. ZIP directory/package metadata and extracted package files still use
 interpreter memory. Explicit buffered cache adapters still materialize artifacts, so this is
 not full caller-backed storage qualification.
 
+The native directory parser now retains CPython parsing and validation while replacing its whole-directory BytesIO copy with a bounded source window. Raw interpreter reads are capped at the fixed 65,558-byte ZIP end-record probe; native payload extraction accepts short reads. Pinned-runtime comparisons cover large directories, payloads, layout variants, data-file installation and failure cleanup. Native ZipInfo lists/dictionaries and extracted files remain in interpreter memory; this removes redundant allocation, not the remaining storage requirement.
+
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use
 caller-owned backing storage for each. A lazy descriptor followed by `BytesIO`,

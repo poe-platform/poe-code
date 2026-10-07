@@ -574,6 +574,7 @@ for(const defaultCache of [false,true])test('real workerd loads native code from
  assert.deepEqual(result.failures,[]);
  assert.ok(result.requests.some(url=>url.includes('pydantic_core-2.41.5')));
  assert.ok(result.stagedBytes>0);assert.ok(result.maxWrite>0&&result.maxWrite<=65536);
+ assert.ok(result.wheelReadMaximum>0&&result.wheelReadMaximum<=65558);
  assert.deepEqual(runtimeErrors,[]);
 });
 

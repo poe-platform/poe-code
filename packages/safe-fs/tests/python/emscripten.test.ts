@@ -92,3 +92,16 @@ test.each([0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1])('runtime ma
  const { createPythonRuntimeStatMapper } = await import('../../src/python/emscripten.js');
  assert.throws(() => createPythonRuntimeStatMapper(limit), RangeError);
 });
+
+
+test('native stat uses an unknown sentinel for absent optional storage geometry', () => {
+ const bytes = new Uint8Array(128);
+ const stat = {dev:1,ino:2,mode:33188,nlink:1,uid:0,gid:0,rdev:0,size:4,atimeMs:0,mtimeMs:0,ctimeMs:0};
+ writePythonStat(bytes, 0, stat);
+ const view = new DataView(bytes.buffer);
+ assert.equal(view.getInt32(32,true),-1);
+ assert.equal(view.getInt32(36,true),-1);
+ for (const key of ['blocks','blksize']) for (const value of [-1,NaN,1.5,2**31]) {
+  assert.throws(()=>writePythonStat(bytes,0,{...stat,[key]:value}),/EOVERFLOW/);
+ }
+});

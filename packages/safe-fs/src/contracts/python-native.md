@@ -33,8 +33,11 @@ cancellation makes libc/CPython retry an operation that can never succeed.
 
 `metadata(pathOrFd, follow)` projects canonical metadata for Python consumers
 that can represent absent optional fields. Native fixed-layout stat instead
-returns EOVERFLOW when required fields cannot be faithfully encoded. No inode,
-allocation count or ownership fields are fabricated to make imports succeed.
+uses the signed sentinel `-1` for unknown optional block counts and I/O block
+sizes. It preserves reported zero and rejects invalid present values. Python
+metadata projection still leaves these observations absent. Native stat returns
+EOVERFLOW when required identity, ownership, size or time fields cannot be
+faithfully encoded; it does not invent those fields.
 
 Only one native request or metadata projection may be admitted at a time.
 `close()` closes admission, waits for admitted work, and serially closes owned

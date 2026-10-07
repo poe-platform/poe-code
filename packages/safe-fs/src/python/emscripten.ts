@@ -250,7 +250,9 @@ export function writePythonStat(heap: Uint8Array, pointer: number, stat: Record<
     nlink: integer('nlink', 0xffffffff), uid: integer('uid', 0xffffffff),
     gid: integer('gid', 0xffffffff), rdev: integer('rdev', 0xffffffff),
     size: integer('size', Number.MAX_SAFE_INTEGER), ino: integer('ino', Number.MAX_SAFE_INTEGER),
-    blksize: integer('blksize', 0x7fffffff), blocks: integer('blocks', 0x7fffffff),
+    // Signed native fields use -1 for unknown; zero would claim an observation.
+    blksize: stat.blksize === undefined ? -1 : integer('blksize', 0x7fffffff),
+    blocks: stat.blocks === undefined ? -1 : integer('blocks', 0x7fffffff),
   };
   const times = ['atime', 'mtime', 'ctime'].map(key => {
     const time = stat[key + 'Ms'] ?? stat[key]?.getTime();

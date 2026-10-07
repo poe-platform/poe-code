@@ -306,10 +306,10 @@ test('native utimensat updates caller timestamps and preserves omitted fields', 
   calls.length=0;
   view.setInt32(520,1073741822,true);
   assert.equal(await native.invoke('__syscall_utimensat',[-100,128,512,0]),0);
-  assert.deepEqual(calls,[]);
+  assert.equal(calls.length,0);
   const before=Date.now();
   assert.equal(await native.invoke('__syscall_utimensat',[-100,128,0,0]),0);
-  const update=calls[0] as {op:string;args:[string,number,number]};
+  const update=calls.at(0) as {op:string;args:[string,number,number]};
   assert.equal(update.op,'utimes');assert.equal(update.args[1],update.args[2]);
   assert.ok(update.args[1]>=before&&update.args[1]<=Date.now());
   view.setInt32(520,1000000000,true);
@@ -317,4 +317,20 @@ test('native utimensat updates caller timestamps and preserves omitted fields', 
   assert.equal(await native.invoke('__syscall_utimensat',[-100,128,65530,0]),-28);
   assert.equal(await native.invoke('__syscall_utimensat',[-100,native.text('/.runtime/file'),0,0]),-69);
   assert.equal(await native.invoke('__syscall_utimensat',[-100,native.text('module.py'),0,256]),-138);
+});
+
+
+test('native stat accepts caller storage without optional allocation observations', async () => {
+  const backend = new MemoryFileSystem();
+  await backend.mkdir('/work');
+  await backend.writeFile('/work/library.so', Uint8Array.of(0, 97, 115, 109));
+  const filesystem = new PythonFileSystem(backend, {cwd:'/work',maxTransferBytes:2});
+  const native = fixture(request => filesystem.dispatch(request));
+  try {
+    assert.equal(await native.invoke('__syscall_stat64', [native.text('library.so'), 1024]), 0);
+    const view = new DataView(native.memory.buffer);
+    assert.equal(view.getBigInt64(1024 + 24, true), 4n);
+    assert.equal(view.getInt32(1024 + 36, true), -1);
+    assert.equal((await native.metadata('library.so', true)).blocks, undefined);
+  } finally { await native.close(); await filesystem.close(); }
 });

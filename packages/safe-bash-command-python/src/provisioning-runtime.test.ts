@@ -98,7 +98,7 @@ test('reported bootstrap errors and callback setup failures close installer tran
    async runPythonAsync(){throw new Error('must not execute Python');},runPython(_source?:string):string{return '[]';}};
   await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['example==1'],offline:false},()=>{throw new Error('host package bridge remains reachable');},64),stage==='errorCallback'?/reported bootstrap error/:/callback setup failed/);
   await assert.rejects(runtime._api.packageManager.downloadPackage({normalizedName:'example',channel:'https://packages.example/example.whl'}),/only available during installation/);
-  assert.deepEqual(deleted,stage==='globals.set'?['_safe_package_native','_safe_package_bytes']:[]);
+  assert.deepEqual(deleted,stage==='globals.set'?['_safe_package_native','_safe_package_preloaded','_safe_package_bytes']:[]);
   assert.equal(globals.size,0);
  }
 });
@@ -340,4 +340,22 @@ for(const algorithm of ['sha1','sha224','sha384','sha256','sha512','md5'])test('
  },65536),/integrity mismatch/);
  assert.deepEqual(operations,['package-open','package-read','package-close']);
  assert.equal(globals.size,0);
+});
+
+test('preloaded snapshot transport drains before publication and rejects late callbacks',async()=>{
+ const {runtime,globals}=nativeFixture(async()=>{});
+ let complete!:()=>void,started!:()=>void;
+ const gate=new Promise<void>(resolve=>{complete=resolve;}),entered=new Promise<void>(resolve=>{started=resolve;});
+ let committed=false,snapshot!:((operation:string,name?:string)=>Promise<unknown>);
+ runtime.runPythonAsync=async()=>{snapshot=globals.get('_safe_package_preloaded') as typeof snapshot;void snapshot('add','protected');return undefined;};
+ const installing=installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:true},async(operation,...args)=>{
+  if(operation==='package-index'){assert.deepEqual(args,['1','names-add','protected']);started();await gate;}
+  if(operation==='package-commit')committed=true;
+ },65536);
+ await entered;
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.equal(committed,false,'publication must wait for admitted snapshot writes');
+ complete();await installing;
+ assert.equal(committed,true);assert.equal(globals.size,0);
+ await assert.rejects(snapshot('has','protected'),/only available during installation/);
 });

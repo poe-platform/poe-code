@@ -2,13 +2,26 @@
 import json as _safe_json
 _safe_restoring = False
 import importlib.metadata as _safe_metadata
-_safe_preloaded = [d.metadata['Name'] for d in _safe_metadata.distributions() if d.metadata['Name']]
+from micropip._vendored.packaging.src.packaging.utils import canonicalize_name as _safe_name
+class _SafePreloaded:
+ @classmethod
+ async def snapshot(cls):
+  await _safe_package_preloaded('start')
+  for distribution in _safe_metadata.distributions():
+   name = distribution.metadata['Name']
+   if name:
+    await _safe_package_preloaded('add', _safe_name(name))
+  await _safe_package_preloaded('seal')
+  return cls()
+ def __contains__(self, name):
+  from pyodide.ffi import run_sync
+  return run_sync(_safe_package_preloaded('has', name))
+_safe_preloaded = await _SafePreloaded.snapshot()
 from micropip._compat import compatibility_layer as _safe_compat
 from micropip.package_manager import PackageManager as _SafePackageManager
 from micropip.wheelinfo import WheelInfo as _SafeWheelInfo
 from micropip._utils import check_compatible as _safe_check_compatible
 from micropip._vendored.packaging.src.packaging.requirements import Requirement as _SafeRequirement, InvalidRequirement as _SafeInvalidRequirement
-from micropip._vendored.packaging.src.packaging.utils import canonicalize_name as _safe_name
 
 class _SafePackageCompatibility(_safe_compat):
  @staticmethod
@@ -58,7 +71,6 @@ async def _safe_wheel_install(self, target, compat_layer):
  setattr(compat_layer.loadedPackages, self._project_name, source)
 _SafeWheelInfo.download = _safe_wheel_download
 _SafeWheelInfo.install = _safe_wheel_install
-_safe_preloaded = {_safe_name(name) for name in _safe_preloaded}
 _safe_manager = _SafePackageManager(_SafePackageCompatibility)
 _safe_indexes = _safe_json.loads(_safe_package_indexes_json)
 if _safe_indexes is not None:

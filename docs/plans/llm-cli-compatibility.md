@@ -202,7 +202,10 @@ Pyodide helpers retain their validation and differing ambiguous-directory behavi
 multiple matching directories still use native sets and remain outside this bound.
 Dynamic-library results are consumed one at a time, and extracted files use caller
 storage. Global metadata, malformed-wheel directory sets and native executable
-loading still need full memory qualification.
+loading still need full memory qualification. Preloaded package protection now
+snapshots normalized names one distribution at a time into the same bounded
+caller-backed index machinery. The snapshot is immutable during restore/install/
+uninstall, independent of wheel indexes, and retires on publication or failure.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

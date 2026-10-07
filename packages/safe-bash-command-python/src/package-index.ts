@@ -15,8 +15,8 @@ async function exact(source:ArchiveReadSource,offset:number,length:number):Promi
  return bytes;
 }
 
-/** Native ZipInfo records, names and header order use existing caller-owned sorted runs. */
-export class PythonWheelIndex {
+/** Native ZIP records and immutable package-name snapshots share caller-owned sorted runs. */
+export class PythonPackageIndex {
  private readonly scratch:ReturnType<typeof createArchiveScratchFactory>;
  private readonly spool:()=>Promise<ArchiveMetadataSpool>;
  private data:ArchiveMetadataSpool|undefined;
@@ -35,7 +35,7 @@ export class PythonWheelIndex {
  private failed:{error:unknown}|undefined;
  private tail:Promise<unknown>=Promise.resolve();
  private closing:Promise<void>|undefined;
- constructor(private readonly context:PythonPackageContext){
+ constructor(private readonly context:PythonPackageContext,private readonly mode:'wheel'|'names'='wheel'){
   const discard={async write(){}};
   this.scratch=createArchiveScratchFactory({context:{...context,command:'python',args:[],env:{},stdin:toByteSource(''),stdout:discard,stderr:discard},limits:DEFAULT_ARCHIVE_LIMITS,operation:action=>Promise.resolve().then(action)},context.cwd);
   // Immutable sorted runs share four small read pages. Binary searches otherwise
@@ -73,6 +73,14 @@ export class PythonWheelIndex {
   const work=this.tail.then(async()=>{
    this.context.signal.throwIfAborted();
    if(this.failed)throw this.failed.error;
+   if(this.mode==='names'){
+    const name=args[0];
+    if(operation==='has'&&this.sealed&&typeof name==='string')return this.names.has(name);
+    if(this.sealed)throw new Error('Python package names are sealed');
+    if(operation==='add'&&typeof name==='string'){await this.names.set(name,0);return null;}
+    if(operation==='seal'){this.sealed=true;return null;}
+    throw new Error('Invalid Python package name operation');
+   }
    if(operation==='append'){
     if(this.sealed)throw new Error('Python wheel index is sealed');
     const [name,offset,payload]=args;

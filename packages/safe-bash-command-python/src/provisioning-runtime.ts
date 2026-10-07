@@ -157,6 +157,7 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
   }
   await loadPackages(['micropip',...start.bootstrapPackages??[]]);
   bind('_safe_package_native',loadPackages);
+  bind('_safe_package_preloaded',(operation:string,name?:string)=>transfer(async()=>request('package-index',start.session,'names-'+operation,...name===undefined?[]:[name])));
   bind('_safe_package_bytes',async(url:string,hash?:string)=>(await fetch(url,hash)).bytes);
   bind('_safe_package_metadata',async(url:string)=>{
    const result=await fetch(url,undefined,'metadata');return JSON.stringify({text:new TextDecoder().decode(result.bytes),headers:Object.fromEntries(result.headers.map(([name,value])=>[name.toLowerCase(),value]))});

@@ -1,7 +1,7 @@
 import {header} from 'safe-bash-network-engine/shared';
 import {bytesToHex} from 'safe-bash-io-engine/byte-encoding';
 import {PythonInstallationRoot} from './installation-root.js';
-import {PythonWheelIndex} from './wheel-index.js';
+import {PythonPackageIndex} from './package-index.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
 import {stagePythonPackage} from "./package-download.js";
 import {openPythonPackageFile} from './package-file.js';
@@ -195,7 +195,8 @@ interface Session extends PythonPackageContext {
  readonly requirements: readonly string[];
  opened?: PackageArtifact | undefined;
  readonly retained:Map<string,PackageArtifact>;
- wheelIndex?:PythonWheelIndex|undefined;
+ wheelIndex?:PythonPackageIndex|undefined;
+ packageNames?:PythonPackageIndex|undefined;
  installationRoot?:PythonInstallationRoot|undefined;
  retiring?: Promise<void>;
  retaining?: Promise<void> | undefined;
@@ -245,6 +246,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  function release(session:Session,all=false):Promise<void> {
   const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
   if(all&&session.wheelIndex){artifacts.push(session.wheelIndex);session.wheelIndex=undefined;}
+  if(all&&session.packageNames){artifacts.push(session.packageNames);session.packageNames=undefined;}
   if(all)session.retained.clear();
   if(session.closed&&session.installationRoot){artifacts.push(session.installationRoot);session.installationRoot=undefined;}
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
@@ -386,8 +388,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    options.onProgress?.({phase:'installed'});
    return null;
   }
-  const root=op==='package-root';
-  if(root||op==='package-index'&&args[1]==='start'){
+  const root=op==='package-root',names=op==='package-index'&&typeof args[1]==='string'&&args[1].startsWith('names-');
+  if(root||op==='package-index'&&(args[1]==='start'||args[1]==='names-start')){
    if(root&&session.installationRoot)return session.installationRoot.path();
    let directory=configuredCache?dirname(configuredCache):cwd;
    if(configuredCache){
@@ -397,18 +399,20 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    check();
    const storage={fs,signal,cwd:directory};
    if(root)return (session.installationRoot??=new PythonInstallationRoot(storage)).path();
-   if(session.wheelIndex)throw failure('Python wheel index already open');
-   session.wheelIndex=new PythonWheelIndex(storage);
+   const field=names?'packageNames':'wheelIndex';
+   if(session[field])throw failure('Python package index already open');
+   session[field]=new PythonPackageIndex(storage,names?'names':'wheel');
    return null;
   }
   if(op==='package-index'){
-   const operation=args[1];
+   const operation=names?(args[1] as string).slice(6):args[1],field=names?'packageNames':'wheelIndex';
    if(operation==='close'){
-    const index=session.wheelIndex;session.wheelIndex=undefined;
+    const index=session[field];session[field]=undefined;
     await index?.close();return null;
    }
-   if(!session.wheelIndex)throw failure('Python wheel index is closed');
-   return session.wheelIndex.execute(operation,args.slice(2));
+   const index=session[field];
+   if(!index)throw failure('Python package index is closed');
+   return index.execute(operation,args.slice(2));
   }
   if(op==='package-read'||op==='package-read-retained') {
    const artifact=op==='package-read'?session.opened:session.retained.get(String(args[1])),offset=args[2],length=args[3];

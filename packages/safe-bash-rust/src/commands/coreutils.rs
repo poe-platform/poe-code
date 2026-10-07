@@ -44,7 +44,7 @@ pub fn try_run_coreutil(
         "cal" => Some(cmd_cal(args, env)),
         "getconf" => Some(cmd_getconf(args, cwd, fs)),
         "locale" => Some(cmd_locale(args, env)),
-        "less" | "more" => Some(cmd_less_more(args, stdin, cwd, fs)),
+        "less" | "more" => Some(cmd_less_more(cmd, args, stdin, cwd, fs)),
         "pathchk" => Some(cmd_pathchk(args, cwd, fs)),
         "expr" => Some(cmd_expr(args)),
         "bc" => Some(cmd_bc(args, stdin, cwd, fs)),
@@ -4675,50 +4675,207 @@ fn cmd_id(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) 
     ))
 }
 
-fn cmd_less_more(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_less_more(
+    cmd: &str,
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut number_lines = false;
     let mut squeeze_blank = false;
+    let mut ignore_case = false;
     let mut start_line: usize = 1;
     let mut start_pat: Option<String> = None;
     let mut files: Vec<String> = Vec::new();
+    let mut end_of_options = false;
 
-    for a in args {
-        if let Some(pat) = a.strip_prefix("+/") {
-            start_pat = Some(pat.to_string());
-        } else if let Some(n_str) = a.strip_prefix('+') {
-            if let Ok(n) = n_str.parse::<usize>() {
-                start_line = n.max(1);
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if !end_of_options && a == "--" {
+            end_of_options = true;
+            i += 1;
+            continue;
+        }
+        if !end_of_options && (a == "--help" || a == "-?") {
+            return ok_out(&format!("Usage: {cmd} [-Ns] [+LINE] [+/PATTERN] [FILE...]\n"));
+        }
+        if !end_of_options && (a == "--version" || a == "-V") {
+            return ok_out(&format!("{cmd} (virtual-bash)\n"));
+        }
+        if !end_of_options && let Some(rest) = a.strip_prefix('+') {
+            if let Some(pat) = rest.strip_prefix('/') {
+                start_pat = Some(pat.to_string());
+            } else if !rest.is_empty() && rest.bytes().all(|b| b.is_ascii_digit()) {
+                if let Ok(n) = rest.parse::<usize>() {
+                    start_line = n.max(1);
+                }
             }
-        } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
-            for ch in a[1..].chars() {
+            i += 1;
+            continue;
+        }
+        if !end_of_options && a.starts_with("--") {
+            if a == "--LINE-NUMBERS" || a == "--line-numbers" {
+                number_lines = true;
+            } else if a == "--squeeze-blank-lines" {
+                squeeze_blank = true;
+            } else if a == "--ignore-case" || a == "--IGNORE-CASE" {
+                ignore_case = true;
+            } else if a == "--pattern" {
+                i += 1;
+                start_pat = Some(args.get(i).cloned().unwrap_or_default());
+            } else if let Some(pat) = a.strip_prefix("--pattern=") {
+                start_pat = Some(pat.to_string());
+            }
+            i += 1;
+            continue;
+        } else if !end_of_options && a.starts_with('-') && a.len() > 1 {
+            let sub = &a[1..];
+            for (byte_idx, ch) in sub.char_indices() {
+                let rest = &sub[byte_idx + ch.len_utf8()..];
                 match ch {
                     'N' => number_lines = true,
+                    'n' => number_lines = false,
                     's' => squeeze_blank = true,
+                    'i' | 'I' => ignore_case = true,
+                    'p' => {
+                        if !rest.is_empty() {
+                            start_pat = Some(rest.to_string());
+                        } else {
+                            i += 1;
+                            start_pat = Some(args.get(i).cloned().unwrap_or_default());
+                        }
+                        break;
+                    }
+                    'P' | 'x' | 'z' => {
+                        let val = if !rest.is_empty() {
+                            Some(rest.to_string())
+                        } else {
+                            i += 1;
+                            args.get(i).cloned()
+                        };
+                        let valid = match val.as_deref() {
+                            None => false,
+                            Some(_) if ch == 'P' => true,
+                            Some(v) if ch == 'x' => {
+                                !v.is_empty()
+                                    && v.split(',').all(|part| {
+                                        !part.is_empty()
+                                            && part.bytes().all(|b| b.is_ascii_digit())
+                                    })
+                            }
+                            Some(v) => {
+                                let digits = v
+                                    .strip_prefix('+')
+                                    .or_else(|| v.strip_prefix('-'))
+                                    .unwrap_or(v);
+                                !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())
+                            }
+                        };
+                        if !valid {
+                            return err_out(
+                                &format!("{cmd}: numeric value required after -{ch}\n"),
+                                1,
+                            );
+                        }
+                        break;
+                    }
                     _ => {}
                 }
             }
-        } else if !a.starts_with('-') || a == "-" {
+            i += 1;
+            continue;
+        } else {
             files.push(a.clone());
+            i += 1;
         }
     }
 
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "less") {
-        Ok(t) => t,
-        Err(e) => return e,
-    };
-    let all_lines: Vec<&str> = text.lines().collect();
-    let start_idx = if let Some(ref pat) = start_pat {
-        all_lines
-            .iter()
-            .position(|l| l.contains(pat.as_str()))
-            .unwrap_or(all_lines.len())
-    } else {
-        start_line.saturating_sub(1)
-    };
+    if files.is_empty() {
+        files.push("-".to_string());
+    }
 
+    let pass_through =
+        !number_lines && !squeeze_blank && start_line == 1 && start_pat.is_none();
+    let mut texts: Vec<String> = Vec::new();
     let mut out = String::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
+    let mut stdin_used = false;
+
+    for file in &files {
+        if file == "-" {
+            let chunk = if stdin_used {
+                ""
+            } else {
+                stdin_used = true;
+                stdin
+            };
+            if pass_through {
+                out.push_str(chunk);
+            } else {
+                texts.push(chunk.to_string());
+            }
+        } else {
+            let path = resolve_posix_path(cwd, file);
+            match fs.read_file(&path) {
+                Ok(bytes) => {
+                    if pass_through {
+                        out.push_str(&crate::vfs::bytes_to_stream_string(&bytes));
+                    } else {
+                        texts.push(String::from_utf8_lossy(&bytes).into_owned());
+                    }
+                }
+                Err(e) => {
+                    err_buf.push_str(&format!("{cmd}: {file}: {e}\n"));
+                    exit_code = 1;
+                }
+            }
+        }
+    }
+
+    if pass_through {
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err_buf,
+            exit_code,
+        };
+    }
+
+    let combined = texts.join("");
+    if combined.is_empty() {
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err_buf,
+            exit_code,
+        };
+    }
+
+    let has_trailing_newline = combined.ends_with('\n');
+    let mut raw_lines: Vec<&str> = combined.split('\n').collect();
+    if has_trailing_newline {
+        raw_lines.pop();
+    }
+
+    let mut start_idx = start_line.saturating_sub(1);
+    if let Some(ref pat) = start_pat
+        && !pat.is_empty()
+    {
+        let rx = crate::commands::search::ZeroRegex::new(
+            vec![pat.to_string()],
+            ignore_case,
+            false,
+            false,
+            false,
+        );
+        if let Some(found) = raw_lines.iter().position(|l| rx.is_match(l)) {
+            start_idx = found;
+        }
+    }
+
     let mut prev_blank = false;
-    for (idx, &line) in all_lines.iter().enumerate() {
+    for (idx, &line) in raw_lines.iter().enumerate() {
         if idx < start_idx {
             continue;
         }
@@ -4727,14 +4884,21 @@ fn cmd_less_more(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             continue;
         }
         prev_blank = is_blank;
+        let is_last = idx + 1 == raw_lines.len();
         if number_lines {
-            out.push_str(&format!("{:6}  {line}\n", idx + 1));
+            out.push_str(&format!("{:6}  {line}", idx + 1));
         } else {
             out.push_str(line);
+        }
+        if !is_last || has_trailing_newline {
             out.push('\n');
         }
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {

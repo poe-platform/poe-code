@@ -61,7 +61,7 @@ async function readSourceText(source: ByteSource, signal: AbortSignal, admit: (b
     merged.set(c, offset);
     offset += c.byteLength;
   }
-  return new TextDecoder("utf-8", { fatal: false }).decode(merged);
+  return new TextDecoder("utf-8", { fatal: false, ignoreBOM: true }).decode(merged);
 }
 
 export function createPagerCommand(name: "less" | "more", options: LessCommandsOptions = {}): CommandDefinition {
@@ -172,7 +172,7 @@ export function createPagerCommand(name: "less" | "more", options: LessCommandsO
               context.signal.throwIfAborted();
               admit(raw.byteLength);
               if (passThrough) await writeBytes(context.stdout, raw, context.signal);
-              else texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
+              else texts.push(new TextDecoder("utf-8", { fatal: false, ignoreBOM: true }).decode(raw));
             } catch (err) {
               context.signal.throwIfAborted();
               if (!(err instanceof FsError)) throw err;

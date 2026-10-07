@@ -6,7 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const encoder = new TextEncoder();
 const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
 function fsErr(code, msg) { const e = new Error(msg); e.code = code; e[FS_ERROR_BRAND] = true; return e; }
-const decoder = new TextDecoder("utf-8", { fatal: false });
+const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 
 let compiledWasmModule = null;
 

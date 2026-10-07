@@ -299,6 +299,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-ssh-keygen-svgo-rsvg-diffpdf-openssl-gpg-vector-crypto-matrix.test.ts",
   "obscure-sox-soxi-qrencode-wav-dsp-qr-barcode-matrix.test.ts",
   "obscure-dot-neato-graphviz-svgo-rsvg-diffpdf-ast-matrix.test.ts",
+  "obscure-less-more-pager-pdfunite-pdfseparate-pdffonts-pdfdetach-pdftocairo-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {
@@ -446,6 +447,7 @@ export class SafeBashE2EHarness {
           .use(sb.hostnameCommands({ replace: true }))
           .use(sb.idCommands({ replace: true }))
           .use(sb.lessCommands({ replace: true }))
+          .use(sb.moreCommands({ replace: true }))
           .use(sb.localeCommands({ replace: true }))
           .use(sb.nprocCommands({ replace: true }))
           .use(sb.pathchkCommands({ replace: true }))

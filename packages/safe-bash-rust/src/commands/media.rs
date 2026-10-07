@@ -523,23 +523,61 @@ fn split_html_pages(html: &str) -> Vec<String> {
     let mut pages = Vec::new();
     let mut cur = String::new();
     let mut rest = html;
-    while let Some(pos) = rest.find("page-break-before") {
-        let before = &rest[..pos];
-        let div_start = before.rfind("<div").unwrap_or(pos);
-        cur.push_str(&rest[..div_start]);
-        if !strip_html_tags(&cur).is_empty() {
-            pages.push(cur.clone());
-            cur.clear();
-        }
-        let after_pb = &rest[pos..];
-        if let Some(gt) = after_pb.find('>') {
-            rest = &after_pb[gt + 1..];
-        } else {
-            break;
+    loop {
+        let next_before = rest.find("page-break-before");
+        let next_after = rest.find("page-break-after");
+        match (next_before, next_after) {
+            (Some(pb), Some(pa)) if pb <= pa => {
+                let before = &rest[..pb];
+                let div_start = before.rfind("<div").unwrap_or(pb);
+                cur.push_str(&rest[..div_start]);
+                if !strip_html_tags(&cur).trim().is_empty() {
+                    pages.push(cur.clone());
+                    cur.clear();
+                }
+                let after_pb = &rest[pb..];
+                if let Some(gt) = after_pb.find('>') {
+                    rest = &after_pb[gt + 1..];
+                } else {
+                    break;
+                }
+            }
+            (_, Some(pa)) => {
+                let after_pa = &rest[pa..];
+                let split_offset = if let Some(close_div) = after_pa.find("</div>") {
+                    pa + close_div + 6
+                } else if let Some(gt) = after_pa.find('>') {
+                    pa + gt + 1
+                } else {
+                    break;
+                };
+                cur.push_str(&rest[..split_offset]);
+                if !strip_html_tags(&cur).trim().is_empty() {
+                    pages.push(cur.clone());
+                    cur.clear();
+                }
+                rest = &rest[split_offset..];
+            }
+            (Some(pb), None) => {
+                let before = &rest[..pb];
+                let div_start = before.rfind("<div").unwrap_or(pb);
+                cur.push_str(&rest[..div_start]);
+                if !strip_html_tags(&cur).trim().is_empty() {
+                    pages.push(cur.clone());
+                    cur.clear();
+                }
+                let after_pb = &rest[pb..];
+                if let Some(gt) = after_pb.find('>') {
+                    rest = &after_pb[gt + 1..];
+                } else {
+                    break;
+                }
+            }
+            (None, None) => break,
         }
     }
     cur.push_str(rest);
-    if !strip_html_tags(&cur).is_empty() || pages.is_empty() {
+    if !strip_html_tags(&cur).trim().is_empty() || pages.is_empty() {
         pages.push(cur);
     }
     pages
@@ -5352,7 +5390,7 @@ fn cmd_media_doc(
             ok_out("")
         }
         "exiftool" => {
-            let json_mode = args.iter().any(|a| a == "-j");
+            let json_mode = args.iter().any(|a| a == "-j" || a == "-json" || a == "--json");
             let s3_mode = args.iter().any(|a| a == "-s3");
             let tab_mode = args.iter().any(|a| a == "-T");
             let csv_mode = args.iter().any(|a| a == "-csv");
@@ -5382,7 +5420,7 @@ fn cmd_media_doc(
                         updates.push((clean_k.to_string(), v.to_string()));
                     } else if !matches!(
                         rest,
-                        "j" | "s3" | "T" | "csv" | "X" | "overwrite_original" | "q" | "n"
+                        "j" | "json" | "-json" | "s3" | "T" | "csv" | "X" | "overwrite_original" | "q" | "n"
                     ) {
                         requested_tags.push(rest.to_string());
                     }

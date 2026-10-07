@@ -59,6 +59,35 @@ def _safe_extract_native_wheel(read, serialized):
     self.position += length
    return bytes(output)
 
+ # Preserve native validation and ambiguous-directory ordering. Ordinary wheels
+ # need at most one candidate; malformed multi-directory wheels retain the native
+ # set path, whose interpreter allocation remains an explicit compatibility gap.
+ def _native_metadata_helper(original, suffix=None):
+  import ast, inspect, textwrap, __future__
+  def directories(source, suffix):
+   candidate = None
+   for path in source.namelist():
+    root = path.split('/', 1)[0]
+    if root.endswith(suffix):
+     if candidate is not None and root != candidate:
+      return {path.split('/', 1)[0] for path in source.namelist()}
+     candidate = root
+   return () if candidate is None else (candidate,)
+  tree = ast.parse(textwrap.dedent(inspect.getsource(original)))
+  expected = ast.dump(ast.parse('{p.split("/", 1)[0] for p in source.namelist()}').body[0].value)
+  class Rewrite(ast.NodeTransformer):
+   count = 0
+   def visit_SetComp(self, node):
+    if ast.dump(node) != expected:return self.generic_visit(node)
+    self.count += 1
+    return ast.copy_location(ast.Call(func=ast.Name(id='_safe_metadata_directories', ctx=ast.Load()), args=[ast.Name(id='source', ctx=ast.Load()), ast.Constant(value=suffix) if suffix is not None else ast.Name(id='suffix', ctx=ast.Load())], keywords=[]), node)
+  rewrite = Rewrite()
+  tree = rewrite.visit(tree)
+  if rewrite.count != 1:raise RuntimeError('Unsupported native wheel metadata discovery')
+  namespace = dict(original.__globals__, _safe_metadata_directories=directories)
+  exec(compile(ast.fix_missing_locations(tree), '<safe wheel metadata>', 'exec', flags=__future__.annotations.compiler_flag), namespace)
+  return namespace[original.__name__]
+
  # Retain the pinned interpreter parser and replace only its eager directory
  # handoff. The window enforces the same declared end as BytesIO(data), including
  # malformed/truncated fields. Entry objects still belong to native ZipFile.
@@ -190,7 +219,10 @@ def _safe_extract_native_wheel(read, serialized):
     if self.archive.NameToInfo.get(name) is not None:return True
     if not name.endswith('/'):return False
     return any(name == parent + '/' for entry in self.archive.filelist for parent in _parents(entry.filename))
+  metadata_helper = getattr(_native_loader, 'find_wheel_metadata_dir', None)
+  adapted_metadata = _native_metadata_helper(metadata_helper) if metadata_helper is not None else None
   try:
+   if metadata_helper is not None:_native_loader.find_wheel_metadata_dir = adapted_metadata
    _NativeZip._RealGetContents = contents
    _NativeZip.namelist = names
    for cls, original_set in original_sets:
@@ -199,6 +231,7 @@ def _safe_extract_native_wheel(read, serialized):
     cls._name_set = name_set
    yield
   finally:
+   if metadata_helper is not None:_native_loader.find_wheel_metadata_dir = metadata_helper
    _NativeZip._RealGetContents = original
    _NativeZip.namelist = original_names
    for cls, original_set in original_sets:cls._name_set = original_set
@@ -217,6 +250,7 @@ def _safe_extract_native_wheel(read, serialized):
   with _native_directory_parser(_native_archive):
    if 'metadata_name' in _native_config:
     from micropip.metadata import wheel_dist_info_dir as _native_metadata_dir
+    _native_metadata_dir = _native_metadata_helper(_native_metadata_dir, '.dist-info')
     from zipfile import Path as _NativeZipPath
     with _NativeZip(_native_archive) as _native_zip:
      path = _NativePath(_native_metadata_dir(_native_zip, _native_config['metadata_name'])) / 'METADATA'

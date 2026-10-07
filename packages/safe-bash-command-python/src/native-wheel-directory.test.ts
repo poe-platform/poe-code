@@ -1,15 +1,24 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {pythonNativeWheel} from './native-wheel.js';
 
 test('native wheel directory parsing does not materialize the complete central directory',()=>{
+ const reference=readFileSync(new URL('./fixtures/pinned-wheel-metadata.py',import.meta.url),'utf8');
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
-import io,json,sys,types,zipfile
-program=json.load(sys.stdin)
+import io,json,linecache,sys,types,zipfile
+program,reference=json.load(sys.stdin)
 sys.modules['pyodide']=types.SimpleNamespace(_package_loader=types.SimpleNamespace())
 sys.modules['pyodide.ffi']=types.SimpleNamespace(run_sync=lambda value:value)
-sys.modules['micropip.metadata']=types.SimpleNamespace(wheel_dist_info_dir=lambda archive,name:'fixture-1.0.dist-info')
+reference='from __future__ import annotations\n'+reference
+filename='<pinned wheel metadata>'
+linecache.cache[filename]=(len(reference),None,reference.splitlines(True),filename)
+metadata=types.ModuleType('micropip.metadata')
+metadata.canonicalize_name=lambda name:name.lower().replace('_','-')
+metadata.UnsupportedWheel=ValueError
+exec(compile(reference,filename,'exec'),metadata.__dict__)
+sys.modules['micropip.metadata']=metadata
 class ObservedBuffer(bytearray):
  maximum=0
  def extend(self,value):
@@ -38,6 +47,6 @@ for count in [512,4096]:
  except zipfile.BadZipFile:pass
  else:raise AssertionError('failed source accepted')
  assert zipfile.ZipFile._RealGetContents is original,'failed source leaked parser patch'
-`],{input:JSON.stringify(pythonNativeWheel),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify([pythonNativeWheel,reference]),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

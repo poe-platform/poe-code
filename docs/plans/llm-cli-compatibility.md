@@ -196,8 +196,13 @@ The native directory parser retains CPython parsing and validation while replaci
 The pinned installer's complete filename iteration is now lazy. ZIP Path metadata
 membership uses the retained entry index and native implied-parent iteration instead
 of constructing a full name set. Ordinary archives keep native behavior, and all
-temporary methods restore after success or failure. Top-level metadata-directory
-sets, filtered dynamic-library results and extracted files still need qualification.
+temporary methods restore after success or failure. Ordinary wheel metadata-directory
+discovery now retains at most one matching top-level name. The pinned micropip and
+Pyodide helpers retain their validation and differing ambiguous-directory behavior;
+multiple matching directories still use native sets and remain outside this bound.
+Dynamic-library results are consumed one at a time, and extracted files use caller
+storage. Global metadata, malformed-wheel directory sets and native executable
+loading still need full memory qualification.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

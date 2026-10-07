@@ -4,7 +4,7 @@ import test from 'node:test';
 import {loadPythonPackageProgram} from './package-program.js';
 test('the cached package program preserves its maintained Python source exactly',async()=>{
  const first=loadPythonPackageProgram();assert.equal(loadPythonPackageProgram(),first);
- assert.equal(await first,await readFile(new URL('./source-origin-program.py',import.meta.url),'utf8')+await readFile(new URL('./package-program.py',import.meta.url),'utf8'));
+ assert.equal(await first,await readFile(new URL('./source-origin-program.py',import.meta.url),'utf8')+await readFile(new URL('./metadata-discovery.py',import.meta.url),'utf8')+await readFile(new URL('./package-program.py',import.meta.url),'utf8'));
 });
 
 import {loadPythonNativeWheel,pythonNativeWheel} from './native-wheel.js';

@@ -44,7 +44,7 @@ const buildProgram=await rawProgram('build-backend.ts','pythonBuildBackendProgra
 });
 for(const [name,source,variable] of [
  ['runtime-programs',JSON.stringify(runtimePrograms),'pythonRuntimeProgramsGzip'],
- ['package-program',origin+await readFile(new URL('../src/package-program.py',import.meta.url),'utf8'),'pythonPackageProgramGzip'],
+ ['package-program',origin+await readFile(new URL('../src/metadata-discovery.py',import.meta.url),'utf8')+await readFile(new URL('../src/package-program.py',import.meta.url),'utf8'),'pythonPackageProgramGzip'],
  ['native-wheel',declaration.initializer.text,'pythonNativeWheelGzip'],
  ['build-backend',buildProgram,'pythonBuildBackendProgramGzip'],
 ]){

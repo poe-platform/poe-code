@@ -111,7 +111,7 @@ PY`);
   }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackagePaths(backend,createExecutor,micropip) {
+async function qualifyPackagePaths(backend,createExecutor,micropip,metadataDiscovery=false) {
   const quote=value=>"'"+value.split("'").join("'\\''")+"'";
   await backend.mkdir('/work/pth-source');
   await backend.writeFile('/work/pth-source/linked_fixture.py',new TextEncoder().encode('value = 13\n'));
@@ -129,6 +129,48 @@ with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
   const url='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
   const environment=createPythonPackageEnvironment({requirements:['file:///work/pth_fixture-1.0-py3-none-any.whl'],cacheDirectory:'/work/packages',authorize:request=>request.url===url,transport:async()=>({status:200,headers:[],body:(async function*(){yield micropip;})(),async dispose(){}})});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
+  if(metadataDiscovery){
+    try{
+      await backend.mkdir('/work/metadata');
+      for(let index=0;index<1024;index++)await backend.writeFile('/work/metadata/package_'+String(index).padStart(5,'0')+'-1.dist-info',new Uint8Array());
+      return {metadata:await shell.exec('python -c '+quote(`
+import gc, importlib.metadata as metadata, os
+class Path(str):
+ live=maximum=0
+ def __new__(cls,value):
+  obj=super().__new__(cls,value);cls.live+=1;cls.maximum=max(cls.maximum,cls.live);return obj
+ def __del__(self):Path.live-=1
+class Root:
+ root='/work/metadata'
+ def children(self):raise AssertionError('eager metadata listing')
+ def joinpath(self,child):return Path(self.root+'/'+child)
+lookup=metadata.Lookup(Root())
+assert Path.maximum<=4,Path.maximum
+assert sum(1 for _ in lookup.search(metadata.Prepared(None)))==1024
+assert [str(p) for p in lookup.search(metadata.Prepared('package-00007'))]==['/work/metadata/package_00007-1.dist-info']
+scratch=lookup._safe_store.root
+iterator=lookup.search(metadata.Prepared(None));next(iterator);del lookup;gc.collect()
+assert os.path.isdir(scratch)
+assert sum(1 for _ in iterator)==1023
+del iterator;gc.collect()
+assert not os.path.exists(scratch)
+fast=metadata.FastPath('/work/metadata')
+before=fast.lookup(fast.mtime)
+assert fast.lookup(fast.mtime) is before
+open('/work/metadata/later-1.dist-info','w').close()
+os.utime('/work/metadata',(1234567890,1234567890))
+after=fast.lookup(fast.mtime)
+assert after is not before
+assert not list(before.search(metadata.Prepared('later')))
+assert [str(p) for p in after.search(metadata.Prepared('later'))]==['/work/metadata/later-1.dist-info']
+roots=[before._safe_store.root,after._safe_store.root]
+del before,after
+fast.lookup.cache_clear();gc.collect()
+assert not any(os.path.exists(path) for path in roots)
+print('metadata-ok')
+`))};
+    }finally{await shell.dispose();await environment.dispose();}
+  }
   const command='python -c '+quote('import json, sys, __main__, linked_fixture; print(json.dumps([linked_fixture.value, sys.path.count("/work/pth-source"), getattr(sys, "_fixture_pth_runs", 0), getattr(__main__, "_pth_marker", None), getattr(sys, "_fixture_pth_argv", None)]))');
   try{
     const first=await shell.exec(command);
@@ -2138,8 +2180,8 @@ PY`);
       }catch(error){return Response.json({error:String(error),stack:error.stack,opened,closed,consumed,failures},{status:500});}
       finally{shell.dispose();clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/package-paths') {
-      try {return Response.json({...await qualifyPackagePaths(backend,createExecutor,new Uint8Array(await request.arrayBuffer())),failures});}
+    if (mode === '/package-paths' || mode === '/metadata-discovery') {
+      try {return Response.json({...await qualifyPackagePaths(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/metadata-discovery'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

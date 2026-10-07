@@ -213,9 +213,15 @@ uninstall are preserved. Host manifest snapshots and individual records remain
 buffered, and snapshot-path/dependency names still retain native global state.
 Python scandir now forwards lazy caller-directory enumeration through both interpreter
 transports, sharing file-handle admission and cleanup. Listdir, fixed bootstrap
-directories and non-lazy backend fallbacks remain buffered. Importlib.metadata
-FastPath/Lookup still materializes and caches grouped metadata paths; lazy scandir
-is a prerequisite, not qualification of that native cache.
+directories and non-lazy backend fallbacks remain buffered. Package environments
+adapt the pinned Importlib.metadata Lookup constructor to caller-backed group rows
+and ordered manifests. Native normalization and group ordering remain unchanged;
+FastPath retains its mtime/cache policy. Searches own their snapshot through iterator
+retirement, and scratch cleanup replays streamed creation records without mutating an
+active directory cursor. Fixed bootstrap and ZIP
+metadata lookup still use the native implementation. Plain runtimes without a package
+environment do not install this adapter. This does not bound host manifests, individual
+records, dependency graphs, native executable allocation, or the remaining ZIP fallback.
 
 The next implementation must cover three separate retention points: authenticated
 wheel bytes, ZIP directory/global metadata, and extracted package storage. Use

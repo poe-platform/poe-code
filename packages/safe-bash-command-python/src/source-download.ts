@@ -5,6 +5,7 @@ import type {PythonPackageOptions} from './provisioning.js';
 import {sha224,sha256,sha384,sha512} from '@noble/hashes/sha2.js';
 import {sha1,md5} from '@noble/hashes/legacy.js';
 import {pythonPackageUrlHash} from './package-url-hash.js';
+import {openPythonPackageFile} from './package-file.js';
 import type {HttpTransport} from 'safe-bash-network-engine/types';
 
 async function* verifiedBytes(source:AsyncIterable<Uint8Array>,expected:ReturnType<typeof pythonPackageUrlHash>,maxBytes:number,signal:AbortSignal):AsyncGenerator<Uint8Array>{
@@ -64,4 +65,23 @@ export async function downloadPythonSourceArchive(url:URL,path:string,options:Py
    return {url:receipt.url,headers:receipt.headers};
   }finally{await environment.finish(start);}
  }finally{await environment.dispose();}
+}
+
+/** Authenticate local archives while copying into the owned extraction staging tree. */
+export async function snapshotPythonSourceArchive(source:string,path:string,url:string,maxBytes:number,context:CommandContext):Promise<void>{
+ const {fs,signal}=context;
+ if(!fs.writeStream)throw new Error('Local Python sources require streaming writes');
+ const file=await openPythonPackageFile(context,source,maxBytes);
+ if(!file)throw new Error('Local Python sources require retained reads');
+ const bytes=verifiedBytes((async function*(){
+  for(let offset=0;offset<file.size;){
+   const chunk=await file.read(offset,Math.min(65536,file.size-offset));
+   offset+=chunk.length;yield chunk;
+  }
+ })(),pythonPackageUrlHash(url),maxBytes,signal);
+ let complete=false;
+ try{
+  await fs.writeStream(path,(async function*(){yield* bytes;complete=true;})(),{flag:'wx',mode:0o600,signal});
+  if(!complete)throw new Error('Local Python source write ended early');
+ }finally{try{await bytes.return(undefined);}finally{await file.close();}}
 }

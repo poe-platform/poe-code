@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonSourcePackageEnvironment} from './source-environment.js';
 import {createPythonPackageEnvironment} from './provisioning.js';
@@ -253,5 +254,89 @@ test('source provenance markers do not reinterpret ordinary caller wheel fragmen
    const opened=await environment.dispatch('package-open',[start.session,url],context) as {key:string};
    assert.equal((await environment.dispatch('package-retain',[start.session,opened.key],context) as {metadata?:unknown}).metadata,undefined);
   }finally{await environment.finish(start);}
+ }finally{await environment.dispose();}
+});
+
+for(const algorithm of ['sha1','sha224','sha256','sha384','sha512','md5'])for(const valid of [false,true])test(`local source URL ${algorithm} integrity precedes extraction and uses owned bytes; valid=${valid}`,async()=>{
+ const fs=new MemoryFileSystem(),signal=new AbortController().signal;
+ await fs.mkdir('/work');await fs.mkdir('/storage');
+ const payload=new TextEncoder().encode('original');
+ const entry=await makeZipEntry('project/input.txt',payload,{modified:new Date(0),mode:0o644,directory:false,symlink:false},DEFAULT_ARCHIVE_LIMITS,signal);
+ const archive=await writeZipArchive({entries:[entry],comment:new Uint8Array()},DEFAULT_ARCHIVE_LIMITS,signal);
+ await fs.writeFile('/work/source.zip',archive);
+ const hash=valid?createHash(algorithm).update(archive).digest('hex'):'0';
+ let extracted=false;
+ const done=new Error('verified extraction completed');
+ const environment=createPythonSourcePackageEnvironment({}, {directory:'/storage',async extractArchive(source,directory,maxBytes,context,metadata){
+  extracted=true;
+  assert.notEqual(source,'/work/source.zip');
+  await fs.writeFile('/work/source.zip',Uint8Array.of(0));
+  await extractPythonSourceZip(source,directory,maxBytes,context,metadata);
+  assert.deepEqual(await fs.readFile(directory+'/input.txt'),payload);
+  throw done;
+ },python:{createExecutor:()=>{throw new Error('unexpected build');}}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/work',signal,requirements:['file:///work/source.zip#'+algorithm+'='+hash],env:{},stdout:{async write(){}},stderr:{async write(){}}}),error=>valid?error===done:error instanceof Error&&error.message.includes('integrity mismatch'));
+  assert.equal(extracted,valid);assert.deepEqual(await fs.readdir('/storage'),[]);
+ }finally{await environment.dispose();}
+});
+
+
+test('pinned pip checks every local source URL hash before unpacking',{skip:!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false},async()=>{
+ const signal=new AbortController().signal;
+ const entry=await makeZipEntry('project/setup.py',new TextEncoder().encode('from setuptools import setup\nsetup(name="fixture",version="1")\n'),{modified:new Date(0),mode:0o644,directory:false,symlink:false},DEFAULT_ARCHIVE_LIMITS,signal);
+ const archive=await writeZipArchive({entries:[entry],comment:new Uint8Array()},DEFAULT_ARCHIVE_LIMITS,signal);
+ const reference=spawnSync(process.env.LLM_TEST_PYTHON!,['-B','-c',String.raw`
+import base64,hashlib,io,json,sys,pip,mimetypes
+from unittest.mock import patch
+from pip._internal.req.constructors import install_req_from_line
+from pip._internal.operations.prepare import get_file_url
+from pip._internal.exceptions import HashMismatch
+assert pip.__version__ == "21.2.4"
+mimetypes.init(files=[])
+archive=base64.b64decode(sys.stdin.read()); results=[]
+for algorithm in ['sha1','sha224','sha256','sha384','sha512','md5']:
+ for valid in [False,True]:
+  digest=hashlib.new(algorithm,archive).hexdigest() if valid else '0'
+  requirement=install_req_from_line('file:///work/source.zip#'+algorithm+'='+digest)
+  with patch('builtins.open',return_value=io.BytesIO(archive)):
+   try:
+    get_file_url(requirement.link,hashes=requirement.hashes(False)); accepted=True
+   except HashMismatch: accepted=False
+  results.append([algorithm,valid,accepted])
+print(json.dumps(results))
+`],{input:Buffer.from(archive).toString('base64'),encoding:'utf8',timeout:5000});
+ assert.ifError(reference.error);assert.equal(reference.status,0,reference.stderr);
+ assert.deepEqual(JSON.parse(reference.stdout),['sha1','sha224','sha256','sha384','sha512','md5'].flatMap(algorithm=>[false,true].map(valid=>[algorithm,valid,valid])));
+});
+
+for(const mode of ['limit','cancel','change','short-write'])test('local source snapshot retires handles and staging on '+mode,async()=>{
+ const backing=new MemoryFileSystem(),controller=new AbortController();
+ await backing.mkdir('/storage');await backing.writeFile('/source.zip',new Uint8Array(196615).fill(37));
+ let opened=0,closed=0,extracted=false;
+ const cancelled=new Error('cancel local snapshot');
+ const fs=new Proxy(backing,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{
+   const file=await target.openReadFile(...args);opened++;let reads=0;
+   return {stat:file.stat.bind(file),async read(offset:number,length:number,options?:Parameters<typeof file.read>[2]){
+    assert.ok(length<=65536);reads++;
+    const bytes=await file.read(offset,Math.min(length,16384),options);
+    if(reads===14){if(mode==='cancel')controller.abort(cancelled);if(mode==='change')await backing.writeFile('/source.zip',Uint8Array.of(1));}
+    return bytes;
+   },async close(){closed++;await file.close();}};
+  };
+  if(key==='confineExtraction')return async(...args:Parameters<typeof target.confineExtraction>)=>{
+   const confined=await target.confineExtraction(...args);
+   return new Proxy(confined,{get(output,property){
+    if(property==='writeStream'&&mode==='short-write')return async()=>{};
+    const value=Reflect.get(output,property);return typeof value==='function'?value.bind(output):value;
+   }});
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const environment=createPythonSourcePackageEnvironment({maxDownloadBytes:mode==='limit'?100:1000000},{directory:'/storage',async extractArchive(){extracted=true;},python:{createExecutor:()=>{throw new Error('unexpected build');}}});
+ try{
+  await assert.rejects(environment.prepare({fs,cwd:'/',signal:controller.signal,requirements:['file:///source.zip#md5=0'],env:{},stdout:{async write(){}},stderr:{async write(){}}}),error=>mode==='cancel'?error===cancelled:error instanceof Error&&error.message.includes(mode==='limit'?'maxDownloadBytes':mode==='change'?'changed':'write ended early'));
+  assert.equal(extracted,false);assert.equal(opened,1);assert.equal(closed,1);assert.deepEqual(await backing.readdir('/storage'),[]);
  }finally{await environment.dispose();}
 });

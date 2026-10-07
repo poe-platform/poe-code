@@ -576,7 +576,7 @@ test('real workerd loads native code from a retained installed wheel', {timeout:
  assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const format of ['directory','zip','tar','named','remote','remote-pep517','remote-pep517-md5','remote-pep517-sha512','remote-metadata','remote-metadata-zip','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds ${format.startsWith('remote-pep517')?'PEP 517 source':'legacy setup'} projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
+for(const format of ['directory','zip','tar','named','remote','remote-pep517','remote-pep517-md5','remote-pep517-sha512','local-pep517-md5','local-pep517-sha512','remote-metadata','remote-metadata-zip','remote-redirect','remote-extensionless','remote-extensionless-zip','subdirectory','setup-requires','editable','llm-editable','editable-extras','editable-file'])test(`real workerd builds ${(format.startsWith('remote-pep517')||format.startsWith('local-pep517'))?'PEP 517 source':'legacy setup'} projects with genuine isolated tooling; archive=${format}`, {timeout:90000}, async()=>{
   const extras=format==='editable-extras'||format==='editable-file',editable=format==='editable'||format==='llm-editable'||extras;
   const directory=process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT;
   assert.ok(directory,'Set SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT to authenticated runtime build wheels');
@@ -604,12 +604,12 @@ for(const format of ['directory','zip','tar','named','remote','remote-pep517','r
   assert.notEqual(result.failed.exitCode,0);
   assert.deepEqual(result.records,[...extras?['build-helper']:[],'legacy-fixture']);
   assert.ok(result.buildEntries.every(name=>!name.startsWith('.python-')));
-  assert.equal(result.requests.some(url=>url.endsWith(lock.setuptools.file_name)),!format.startsWith('remote-pep517'));
-  if(format.startsWith('remote-pep517')){
+  assert.equal(result.requests.some(url=>url.endsWith(lock.setuptools.file_name)),!(format.startsWith('remote-pep517')||format.startsWith('local-pep517')));
+  if((format.startsWith('remote-pep517')||format.startsWith('local-pep517'))){
     assert.notEqual(result.rejected.exitCode,0,JSON.stringify(result.rejected));
     assert.deepEqual(result.rejectedBuildEntries,[]);
     assert.equal(result.provenance.exitCode,0,JSON.stringify(result));
-    assert.deepEqual(JSON.parse(result.provenance.stdout),{url:'https://build.test/legacy-source.tar.gz',archive_info:{hash:result.hashName+'='+result.sourceDigest},subdirectory:'nested'});
+    assert.deepEqual(JSON.parse(result.provenance.stdout),{url:format.startsWith('local-pep517')?'file:///work/legacy-source.tar.gz':'https://build.test/legacy-source.tar.gz',archive_info:{hash:result.hashName+'='+result.sourceDigest},subdirectory:'nested'});
   }
   if(format==='remote-redirect'){
     assert.equal(result.sourceReplay.url,'https://build.test/legacy-source.tar.gz');

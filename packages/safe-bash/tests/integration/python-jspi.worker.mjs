@@ -71,8 +71,8 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
   }});
-  const pep517=format.startsWith('remote-pep517'),hashName=format==='remote-pep517-md5'?'md5':format==='remote-pep517-sha512'?'sha512':'sha256';
-  const remote=pep517||format.startsWith('remote-metadata')||format==='remote'||format==='remote-redirect'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip'||format==='remote-metadata-zip';
+  const localHash=format.startsWith('local-pep517'),pep517=localHash||format.startsWith('remote-pep517'),hashName=format.endsWith('-md5')?'md5':format.endsWith('-sha512')?'sha512':'sha256';
+  const remote=!localHash&&pep517||format.startsWith('remote-metadata')||format==='remote'||format==='remote-redirect'||format==='subdirectory'||format.startsWith('remote-extensionless'),zipArchive=format==='zip'||format==='remote-extensionless-zip'||format==='remote-metadata-zip';
   let invalidMetadata=format.startsWith('remote-metadata');
   const sourceURL='https://build.test/'+(format.startsWith('remote-extensionless')?'download':'legacy-source.tar.gz');
   const sourceRequestURL=format==='remote-redirect'?'https://build.test/redirect':sourceURL;
@@ -130,7 +130,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
 `));
       if(generated.exitCode)throw new Error(JSON.stringify(generated));
     }
-    const archived=zipArchive||format==='tar'||remote;
+    const archived=zipArchive||format==='tar'||remote||localHash;
     const archive=async()=>{
       const result=await shell.exec(zipArchive?`python -c 'from zipfile import ZipFile; z=ZipFile("legacy-source.zip","w"); z.write("legacy-source/setup.py","project/setup.py"); z.write("legacy-source/legacy_fixture.py","project/legacy_fixture.py"); z.close()'`:`python -c 'import tarfile; z=tarfile.open("legacy-source.tar.gz","w:gz"); z.add("legacy-source",arcname="project"); z.close()'`);
       if(result.exitCode)throw new Error(JSON.stringify(result));
@@ -148,7 +148,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       if(hashed.exitCode)throw Error(JSON.stringify(hashed));
       sourceDigest=hashed.stdout.trim();
     }
-    const install=format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceRequestURL}${pep517?'#'+hashName+'='+sourceDigest+'&subdirectory=nested':format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
+    const install=localHash?`python -m pip install 'file:///work/legacy-source.tar.gz#${hashName}=${sourceDigest}&subdirectory=nested'`:format==='editable-file'?'python -m pip install -r /work/config/requirements.txt':llmEditable?"llm install -e './legacy-source"+(extras?'[FEATURE]':'')+"'":remote?`python -m pip install '${format==='remote-extensionless'?'':'legacy-fixture @ '}${sourceRequestURL}${pep517?'#'+hashName+'='+sourceDigest+'&subdirectory=nested':format==='subdirectory'?'#subdirectory=nested':''}'`:format==='named'?`python -m pip install 'legacy-fixture @ file:///work/legacy-source ; python_version >= "3"'`:'python -m pip install '+(editable?'-e ':'')+'./legacy-source'+(archived?suffix:'');
     if(format==='named'){
       const skipped=await shell.exec(`python -m pip install 'absent @ file:///work/nonexistent ; python_version < "1"'`);
       if(skipped.exitCode)throw new Error(JSON.stringify(skipped));

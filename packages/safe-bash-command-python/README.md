@@ -256,7 +256,9 @@ transport and caller-backed cache. URL hashes (SHA-1, SHA-224, SHA-256, SHA-384,
 SHA-512 and MD5) follow pinned pip selection rules and are verified before cache
 publication and extraction. Cached archives are checked again before extraction;
 offline replay and cache bypass use the normal installation controls.
-Remote archives require retained caller storage and streaming writes. ZIP and tar
+Local source file URLs enforce the same hashes using an owned archive snapshot;
+changing the original file cannot change the verified extraction input.
+Hashed local archives and remote archives require retained caller storage and streaming writes. ZIP and tar
 contents are also detected when the download URL has no archive extension.
 Response filenames follow pinned pip header, MIME and redirect rules; filenames
 and content types guide extraction without becoming filesystem staging paths.

@@ -6,7 +6,8 @@ import {createPythonPackageEnvironment,type PythonPackageOptions,type PythonPack
 import {createPythonBuildEnvironment} from './build-environment.js';
 import {createPythonBuildBackend,type PythonSourceRequirement} from './build-backend.js';
 import {createPythonBuildDependencies} from './build-dependencies.js';
-import {downloadPythonSourceArchive} from './source-download.js';
+import {pythonPackageUrlHash} from './package-url-hash.js';
+import {downloadPythonSourceArchive,snapshotPythonSourceArchive} from './source-download.js';
 import {createPythonSourceSnapshot} from './source-snapshot.js';
 import type {extractPythonSourceZip,PythonSourceArchiveMetadata} from './source-zip.js';
 import {publishPythonBuildWheel} from './build-wheel.js';
@@ -124,6 +125,11 @@ export function createPythonSourcePackageEnvironment(options:PythonPackageOption
      const filename=await hook({hook:'read_download_filename',source:remote.href,responseUrl:response.url,headers:response.headers},hookContext);
      const headers=new Map(response.headers.map(([key,value])=>[key.toLowerCase(),value]));
      metadata={filename,...headers.has('content-type')?{contentType:headers.get('content-type')!}:{}};
+    }
+    if(!remote&&originalLink&&pythonPackageUrlHash(originalLink)){
+     const snapshot=resolvePath(path,'archive'+suffix);
+     await snapshotPythonSourceArchive(source,snapshot,originalLink,options.maxDownloadBytes??Infinity,{...command,fs:staging});
+     source=snapshot;
     }
     await build.extractArchive(source,prepared,options.maxDownloadBytes??Infinity,{...command,fs:staging},metadata);
    }

@@ -11,7 +11,7 @@ import { createToolApproval } from "./prompt-tool-approval.js";
 import { stripPythonWhitespace } from "./python-whitespace.js";
 import { selectLlmTools } from "./tool-registry.js";
 import { tokenInteger } from "./token-integer.js";
-import {discoverLlmLoaders} from "./loader-provider.js";
+import {discoverLlmLoaders,LlmPluginExit} from "./loader-provider.js";
 import { fragmentLoaderCommand } from "./fragment-loader-command.js";
 import { toolsCommand } from './tools-command.js';
 import { getLlmFragmentPrefix, loadLlmPluginFragments } from "./fragment-loaders.js";
@@ -396,7 +396,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (argumentsValue.args[0] === "templates") {
       let exitCode = 0;
       try { exitCode = await createLlmTemplateStore(loaderContext(), invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
-      catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
+      catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
       return { exitCode };
     }
     const configurationInvocation = argumentsValue.args[0] === "keys" || argumentsValue.args[0] === "aliases" || argumentsValue.args[0] === "models" && ["default", "options"].includes(argumentsValue.args[1] ?? "");
@@ -430,7 +430,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;
     try { stored = args.template === undefined ? undefined : await templateStore.load(args.template); }
-    catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
+    catch (error) { if(error instanceof LlmPluginExit)throw error; throw new Error(`Error: ${error instanceof Error ? error.message : "Invalid template"}`); }
     if (stored) {
       if (!isChat && stored.schema_object) schema = stored.schema_object;
       try { if (!isChat) validateLlmTemplateParameters(stored, args.params); }
@@ -563,7 +563,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
                 pluginAttachments.push({mimeType:loaded.mimeType,bytes,...identity});
               }
             }
-          } catch(error) {signal.throwIfAborted();throw new Error(`Error: ${error instanceof Error?error.message:String(error)}`);}
+          } catch(error) {signal.throwIfAborted();if(error instanceof LlmPluginExit)throw error;throw new Error(`Error: ${error instanceof Error?error.message:String(error)}`);}
           continue;
         }
         const path = pathOf(context, reference);
@@ -900,7 +900,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     controller.abort(error);
     if (outputFailed) throw error;
     await operation.close();
-    await writeDiagnostic(context.stderr, `${error instanceof Error || error instanceof TypeError ? error.message : "llm provider failed"}\n`, context.signal);
+    if(error instanceof LlmPluginExit)return {exitCode:error.exitCode};
+    await writeDiagnostic(context.stderr, `${error instanceof Error ? error.message : "llm provider failed"}\n`, context.signal);
     return { exitCode: error instanceof LlmModelsUsageError || error instanceof LlmPromptUsageError ? 2 : 1 };
   } finally {
     try { await Promise.all([...functionSessions].map(session => session.close())); }

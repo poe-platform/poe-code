@@ -20,6 +20,13 @@ export interface LlmLoaderProvider {
 /** Lookup failures precede loader execution and retain their native diagnostic. */
 export class LlmLoaderLookupError extends Error {}
 
+/** An explicitly requested plugin process exit, after its diagnostics are emitted. */
+export class LlmPluginExit extends Error {
+ constructor(readonly exitCode:number) {
+  super();
+ }
+}
+
 export async function discoverLlmLoaders(loaders:ReadonlyMap<string,{readonly description?:string}>|undefined,context:LlmLoaderDiscoveryContext,provider?:LlmLoaderProvider):Promise<ReadonlyMap<string,{readonly description?:string}>> {
  if(!provider)return loaders??new Map();
  const result=await waitForSource(()=>provider.discover(context),context.signal);

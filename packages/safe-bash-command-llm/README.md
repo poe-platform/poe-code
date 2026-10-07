@@ -226,7 +226,9 @@ Listing discovers the selected family after argument validation; execution resol
 the requested prefix without a separate discovery pass. Metadata shares the command
 input budget and plugin diagnostics share its output budget. Explicit `fragmentLoaders`
 and `templateLoaders` entries take precedence. CLI loader failures retain their complete
-message, including long Unicode diagnostics, through bounded stderr writes. SDK hosts can supply `LlmLoaderProvider`
+message, including long Unicode diagnostics, through bounded stderr writes. Native loader
+`SystemExit` preserves its process status and diagnostics; SDK callers receive
+`LlmPluginExit` with `exitCode`. SDK hosts can supply `LlmLoaderProvider`
 to the template store or pass it as the fifth argument to `loadLlmPluginFragments`.
 
 Use `llm plugins` to list the configured interpreter's installed plugin names,

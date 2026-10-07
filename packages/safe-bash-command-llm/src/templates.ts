@@ -1,6 +1,6 @@
 import {unicodeOrder} from "./python-unicode.js";
 import {getLlmFragmentPrefix} from './fragment-loaders.js';
-import {discoverLlmLoaders,LlmLoaderLookupError,type LlmLoaderProvider} from './loader-provider.js';
+import {discoverLlmLoaders,LlmLoaderLookupError,LlmPluginExit,type LlmLoaderProvider} from './loader-provider.js';
 import {formatLoaderDescription} from './loader-description.js';
 import {commandArguments} from './command-arguments.js';
 import { jsonValue } from "./json-value.js";
@@ -193,7 +193,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
             return value;
           } catch (error) {
             context.signal.throwIfAborted();
-            if(error instanceof LlmLoaderLookupError)throw error;
+            if(error instanceof LlmLoaderLookupError||error instanceof LlmPluginExit)throw error;
             throw new Error(`Could not load template ${name}: ${error instanceof Error ? error.message : String(error)}`);
           }
         }

@@ -3,7 +3,7 @@ import {yieldTurn} from 'safe-bash-contracts/yield';
 import {waitForSource} from './request-source.js';
 import type {LlmInputSource} from './types.js';
 import type {LlmFragmentInputSource} from './fragments.js';
-import {LlmLoaderLookupError,type LlmLoaderProvider} from './loader-provider.js';
+import {LlmLoaderLookupError,LlmPluginExit,type LlmLoaderProvider} from './loader-provider.js';
 
 export type LlmLoadedFragment =
  | {readonly type:'text';readonly source:LlmFragmentInputSource}
@@ -61,7 +61,7 @@ export async function* loadLlmPluginFragments(reference:string,loaders:ReadonlyM
     yield {...value,source};
    }finally{await dispose();}
   }
- }catch(error){signal.throwIfAborted();if(error instanceof LlmLoaderLookupError)throw error;throw new Error(`Could not load fragment ${reference}: ${error instanceof Error?error.message:String(error)}`);}
+ }catch(error){signal.throwIfAborted();if(error instanceof LlmLoaderLookupError||error instanceof LlmPluginExit)throw error;throw new Error(`Could not load fragment ${reference}: ${error instanceof Error?error.message:String(error)}`);}
  finally{
   if(iterator&&!ended){
    const retired=Promise.resolve().then(()=>iterator!.return?.());

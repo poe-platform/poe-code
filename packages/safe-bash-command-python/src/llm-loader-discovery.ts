@@ -62,6 +62,9 @@ def main():
  send('done')
 try:
  main()
+except SystemExit:
+ send('exit')
+ raise
 except Exception as error:
  send('error', message=str(error))
 `)();

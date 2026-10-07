@@ -973,3 +973,21 @@ test('real workerd retains direct wheel provenance for roots and dependencies ac
  assert.equal(result.wheelReads.opened,result.wheelReads.closed);assert.ok(result.wheelReads.largest<=65536);
  assert.deepEqual(result.failures,[]);assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
+
+
+test('real workerd preserves explicit native plugin exit statuses', {timeout:60000}, async()=>{
+  const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
+  assert.ok(path, 'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip wheel');
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/llm-plugin-exits',{method:'POST',body:readFileSync(path)});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  for(const [kind,exited,code]of [['fragments',result.fragment,0],['templates',result.template,7]]){
+    assert.equal(exited.exitCode,code,JSON.stringify(exited));
+    assert.equal(exited.stdout,'register '+kind+'\n');
+    assert.equal(exited.stderr,'');
+  }
+  assert.deepEqual(result.diagnostics,[]);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(runtimeErrors,[]);
+});

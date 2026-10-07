@@ -1,5 +1,5 @@
 import {pythonLlmPluginSetup} from './llm-plugin-setup.js';
-import {createLlmSpool,createLlmUrlSource,LlmLoaderLookupError,type LlmFragmentLoader,type LlmInputSource,type LlmLoadedFragment} from 'safe-bash-command-llm';
+import {createLlmSpool,createLlmUrlSource,LlmLoaderLookupError,LlmPluginExit,type LlmFragmentLoader,type LlmInputSource,type LlmLoadedFragment} from 'safe-bash-command-llm';
 import {toByteSource,type CommandContext} from 'safe-bash-contracts';
 import {createPythonExecutorCommands} from './executor.js';
 import type {PythonLlmToolLoaderOptions} from './llm-functions-loader.js';
@@ -28,7 +28,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
   const controller=new AbortController(),signal=AbortSignal.any([context.signal,controller.signal]);
   signal.throwIfAborted();
   let ready=deferred<LlmLoadedFragment|undefined>(),resume:ReturnType<typeof deferred<boolean>>|undefined;
-  let current:LlmLoadedFragment|undefined,spool:Awaited<ReturnType<typeof createLlmSpool>>|undefined,closed=false,bytes=0;
+  let current:LlmLoadedFragment|undefined,spool:Awaited<ReturnType<typeof createLlmSpool>>|undefined,closed=false,exited=false,bytes=0;
   const sources=new Set<LlmInputSource>();
   const admit=(size:number)=>{if(size>maxBytes-bytes)throw new RangeError('Python fragment byte limit exceeded');bytes+=size;};
   const fail=(error:unknown)=>{ready.reject(error);resume?.resolve(false);controller.abort(error);};
@@ -40,6 +40,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
    if(!input||typeof input!=='object'||Array.isArray(input))throw new TypeError('Invalid Python fragment message');
    const message=input as Record<string,PythonHostValue>;
    if(message.op==='request')return {prefix,value,plugins};
+   if(message.op==='exit'){exited=true;return null;}
    if(message.op==='missing'||message.op==='lookup')throw new LlmLoaderLookupError(String(message.message));
    if(message.op==='error')throw new Error(String(message.message));
    if(message.op==='begin'){
@@ -84,7 +85,8 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
   capabilities.set(invocation.args,{async call(input){try{return await dispatch(input);}catch(error){fail(error);throw error;}}});
   const running=Promise.resolve().then(()=>command.execute(invocation)).then(result=>{
    if(closed)return;
-   if(result.exitCode)fail(new Error(`Python fragment interpreter exited with status ${result.exitCode}`));else ready.resolve(undefined);
+   if(exited)fail(new LlmPluginExit(result.exitCode));
+   else if(result.exitCode)fail(new Error(`Python fragment interpreter exited with status ${result.exitCode}`));else ready.resolve(undefined);
   },error=>{if(!closed)fail(error);});
   let closing:Promise<void>|undefined;
   const close=()=>closing??=(async()=>{
@@ -159,6 +161,9 @@ def main():
   if not send('end'): return
 try:
  main()
+except SystemExit:
+ send('exit')
+ raise
 except Exception as error:
  send('error', message=str(error))
 `)();

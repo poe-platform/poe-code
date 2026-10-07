@@ -1,5 +1,5 @@
 export { serializeLlmTokenUsage } from "./usage.js";
-export {LlmLoaderLookupError,type LlmLoaderProvider,type LlmDiscoveredLoaders,type LlmLoaderDiscoveryContext} from './loader-provider.js';
+export {LlmLoaderLookupError,LlmPluginExit,type LlmLoaderProvider,type LlmDiscoveredLoaders,type LlmLoaderDiscoveryContext} from './loader-provider.js';
 export { createLlmToolRegistry, selectLlmTools, type LlmRegisteredTool, type LlmToolLoader, type LlmToolboxDescription, type LlmPluginQuery, type LlmPluginInfo } from './tool-registry.js';
 export {executeLlmToolCalls, LlmCancelToolCall, type LlmToolContext, type LlmToolOutput, type LlmExecutableTool, type LlmToolExecutionResult, type LlmToolExecutionOptions} from './tool-execution.js';
 export type { LlmTool, LlmToolCall, LlmMessage } from "./types.js";

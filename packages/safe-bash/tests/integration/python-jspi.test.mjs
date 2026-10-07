@@ -1009,6 +1009,10 @@ test('real workerd preserves tool execution and preparation process exits',{time
     {exitCode:1,stdout:'tool stdout\n',stderr:'tool exit\n',requests:1},
     {exitCode:9,stdout:'tool stdout\n',stderr:'Error: formatted preparation failure\n',requests:1},
     {exitCode:9,stdout:'tool stdout\n',stderr:'Error: formatted preparation failure\n',requests:1},
+    {exitCode:1,stdout:'tool stdout\n',stderr:'\nAborted!\n',requests:1},
+    {exitCode:1,stdout:'tool stdout\n',stderr:'\nAborted!\n',requests:1},
+    {exitCode:1,stdout:'tool stdout\n',stderr:'\nAborted!\n',requests:1},
+    {exitCode:1,stdout:'tool stdout\n',stderr:'\nAborted!\n',requests:1},
   ]);
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
@@ -1024,4 +1028,19 @@ test('real workerd preserves native Click plugin diagnostics and custom exit sta
   assert.deepEqual(result.results.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),
     ['register templates\n','register fragments\n','register templates\n','register fragments\n',''].map(stdout=>({exitCode:9,stdout,stderr:'Error: formatted plugin failure\n'})));
   assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
+});
+
+
+test('real workerd preserves native plugin keyboard interrupts',{timeout:60000},async()=>{
+  const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
+  assert.ok(path);
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/llm-interrupts',{method:'POST',body:readFileSync(path)});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.deepEqual(result.results.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),[
+    ...['register templates\n','register fragments\n','','register templates\n','register fragments\n','register templates\n','register fragments\n'].map(stdout=>({exitCode:1,stdout,stderr:'\nAborted!\n'})),
+  ]);
+  assert.deepEqual(result.diagnostics,[]);
+  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });

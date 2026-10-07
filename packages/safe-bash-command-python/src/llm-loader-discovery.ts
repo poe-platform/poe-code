@@ -43,7 +43,7 @@ export function createPythonLlmLoaderDiscovery(options:PythonLlmToolLoaderOption
 }
 
 export const pythonLlmLoaderDiscoveryProgram=/* @__PURE__ */ (()=>String.raw`
-from click import ClickException
+from click import ClickException, echo
 import json, llm, safe_host
 
 ${pythonLlmPluginSetup}
@@ -63,6 +63,10 @@ def main():
  send('done')
 try:
  main()
+except KeyboardInterrupt:
+ echo("\nAborted!", err=True)
+ send("exit")
+ raise SystemExit(1)
 except SystemExit:
  send('exit')
  raise

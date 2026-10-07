@@ -5,7 +5,7 @@
  * outstanding calls, preventing unobserved task failures. */
 export const pythonLlmFunctionsProgram = /* @__PURE__ */ (() => String.raw`
 import asyncio, codecs, inspect, json
-from click import ClickException
+from click import ClickException, echo
 import safe_host
 from _poe_llm_capability import bridge
 from llm.cli import _tools_from_code, _gather_tools
@@ -161,7 +161,7 @@ async def main():
       for attachment in attachments:
         write_attachment(identifier, attachment)
       send("done", id=identifier)
-    except SystemExit as error:
+    except (SystemExit, KeyboardInterrupt) as error:
       if exit_error is None:
         exit_error = error
         owner.cancel()
@@ -205,6 +205,10 @@ async def main():
 
 try:
   asyncio.run(main())
+except KeyboardInterrupt:
+  echo("\nAborted!", err=True)
+  send("exit")
+  raise SystemExit(1)
 except SystemExit:
   send("exit")
   raise

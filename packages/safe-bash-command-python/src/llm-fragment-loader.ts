@@ -113,7 +113,7 @@ export function createPythonLlmFragmentLoader(options:PythonLlmToolLoaderOptions
 }
 
 export const pythonLlmFragmentProgram=/* @__PURE__ */ (()=>String.raw`
-from click import ClickException
+from click import ClickException, echo
 import hashlib, llm, safe_host
 from llm_safe_host import _attachment_type
 
@@ -165,6 +165,10 @@ def main():
   if not send('end'): return
 try:
  main()
+except KeyboardInterrupt:
+ echo("\nAborted!", err=True)
+ send("exit")
+ raise SystemExit(1)
 except SystemExit:
  send('exit')
  raise

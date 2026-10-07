@@ -2,7 +2,7 @@ import { Shell, MemoryFileSystem, llmCommands, createLlmCommands, createOpenAiPr
 import { llmCommands as subpathPlugin, createLlmCommands as subpathCommands, createLlmService, type LlmService, type LlmStreamEvent, type LlmEmbeddingResponse, type LlmServiceRequest } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider as openAi, createElevenLabsProvider as elevenLabs, type OpenAiProviderOptions, type ElevenLabsProviderOptions, type LlmProviderLimits } from "@poe-platform/safe-bash/commands/llm/providers";
 import { createLlmUrlSource, getLlmAttachmentUrlId, type LlmInputSource, type LlmSourceAttachment } from "@poe-platform/safe-bash/commands/llm";
-import { withLlmCollections, type LlmCollectionCatalog, type LlmCollection } from "@poe-platform/safe-bash/commands/llm/collections";
+import { withSqlEmbeddingEntries, withLlmCollections, type LlmCollectionCatalog, type LlmCollection } from "@poe-platform/safe-bash/commands/llm/collections";
 
 const catalogReceipt = withLlmCollections({ fs: new MemoryFileSystem(), path: "/embeddings.db",
   signal: new AbortController().signal, maxFileBytes: 1048576, maxIndexBytes: 1048576,
@@ -49,3 +49,7 @@ import type { S3FileSystem } from "@poe-platform/safe-fs/fs/s3";
 declare const remoteFiles: S3FileSystem;
 const remoteDirectory: AsyncIterable<{readonly name:string;readonly type:string}> = remoteFiles.iterateDirectory("/", {signal:new AbortController().signal});
 void remoteDirectory;
+
+void withSqlEmbeddingEntries({fs:new MemoryFileSystem(),path:'/embeddings.db',directory:'/',signal:new AbortController().signal,
+ sql:'SELECT id,content FROM source.posts',attachments:[{alias:'source',path:'/posts.db'}],maxFileBytes:1048576,maxIndexBytes:1048576,maxOpenFiles:16,
+ prefix:'post:',prepend:'Document: ',admit(bytes:number){void bytes;}},async entries=>{for await(const entry of entries){const id:string=entry.id;void id;await entry.input.dispose();}});

@@ -50,6 +50,8 @@ const receipt = await transactSqlite({
 
 `withSqliteReadSession({ fs, path, directory, signal, maxFileBytes, maxIndexBytes, maxOpenFiles, attachments? }, callback)` queries private snapshots without publishing canonical changes. Attachments are `{ alias, path }` pairs and use the same retained source acquisition and bounded copying as transactions. WAL and rollback recovery happen in caller-owned scratch storage; canonical database and sidecar identities remain unchanged. Once acquired, snapshots remain stable if the caller later changes the original files. The session enables SQLite query-only mode, and all native resources expire when the callback returns. This scalar session API does not provide arbitrary large query-result streaming.
 
+`withSqliteQueryRecords({ ...snapshotOptions, sql }, async (rows, columns) => ...)` stages SELECT/WITH/VALUES results in a separate private caller-backed database and exposes ordered `SqliteRecordValue` field streams. Column names retain original duplicates; UTF-16 result text converts to UTF-8 in bounded windows. Sources and native connections close before consumption, and result streams expire with the callback. Computed queries yield cooperatively to cancellation. The extra private result attachment is visible to database-list introspection; native expression evaluation can still allocate complete SQLite values. This API bounds JavaScript field transfers and result storage, not arbitrary native expression working memory.
+
 The supplied filesystem must support retained reads, synchronous binding guards,
 conditional file ownership and atomic source-set publication. All private files
 and staging use that filesystem. The native page cache is bounded; file copying,

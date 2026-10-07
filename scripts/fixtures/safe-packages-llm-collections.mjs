@@ -1,3 +1,4 @@
+import {verifyLlmSqlImports} from './safe-packages-llm-sql.mjs';
 import { S3FileSystem, MockS3Client } from "@poe-platform/safe-fs/fs/s3";
 import { MemoryFileSystem, createMountFileSystem, createOverlayFileSystem } from "@poe-platform/safe-fs/core";
 import { withLlmCollections, createLlmCollectionCommands, withCsvEmbeddingEntries, withJsonEmbeddingEntries, withJsonLinesEmbeddingEntries, withFileEmbeddingEntries, withEmbeddingFileGlob } from "@poe-platform/safe-bash/commands/llm/collections";
@@ -7,6 +8,7 @@ import { Shell } from "@poe-platform/safe-bash/shell";
 import { sqlite3Commands } from "@poe-platform/safe-bash/commands/sqlite3";
 
 export async function verifyLlmCollections() {
+  await verifyLlmSqlImports();
   const invalidFs=new MemoryFileSystem();let invalidCalls=0,invalidRejected=false;
   const invalidService=createLlmService({providers:[{name:'test',models:[{id:'embed',capabilities:['embed']}],async *complete(){},async embedSources(request){invalidCalls++;return {model:'embed',vectors:request.inputs.map(()=>[1])};}}]});
   try{

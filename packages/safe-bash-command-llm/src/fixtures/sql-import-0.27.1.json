@@ -1,0 +1,199 @@
+[
+  {
+    "sql": "SELECT 7 AS id,'first' AS content",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before first"
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:7",
+        "content": "before first"
+      }
+    ]
+  },
+  {
+    "sql": "SELECT NULL AS id,'old' AS content,NULL AS empty,'new' AS content",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before new "
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:None",
+        "content": "before new "
+      }
+    ]
+  },
+  {
+    "sql": "SELECT 1.5 AS id,0 AS empty,'text' AS text",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before  text"
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:1.5",
+        "content": "before  text"
+      }
+    ]
+  },
+  {
+    "sql": "SELECT x'27225c0a' AS id,'bytes id' AS content",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before bytes id"
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:b'\\'\"\\\\\\n'",
+        "content": "before bytes id"
+      }
+    ]
+  },
+  {
+    "sql": "SELECT 'id' AS id,x'' AS content",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before "
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:id",
+        "content": "before "
+      }
+    ]
+  },
+  {
+    "sql": "SELECT 'id' AS id,1 AS content",
+    "code": 1,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "exception": {
+      "type": "TypeError",
+      "message": "sequence item 0: expected str instance, int found"
+    },
+    "rows": []
+  },
+  {
+    "sql": "SELECT 'id' AS id,1.5 AS content",
+    "code": 1,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "exception": {
+      "type": "TypeError",
+      "message": "sequence item 0: expected str instance, float found"
+    },
+    "rows": []
+  },
+  {
+    "sql": "SELECT 'id' AS id,x'61' AS content",
+    "code": 1,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [],
+    "exception": {
+      "type": "TypeError",
+      "message": "sequence item 0: expected str instance, bytes found"
+    },
+    "rows": []
+  },
+  {
+    "sql": "SELECT 'id' AS id",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before "
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:id",
+        "content": "before "
+      }
+    ]
+  },
+  {
+    "sql": "SELECT 1 AS id,'first' AS content UNION ALL SELECT 2,'second'",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before first",
+        "before second"
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:1",
+        "content": "before first"
+      },
+      {
+        "id": "p:2",
+        "content": "before second"
+      }
+    ]
+  },
+  {
+    "sql": "SELECT 1 AS id,'first' AS content UNION ALL SELECT 2,'second' UNION ALL SELECT 3,'third'",
+    "code": 0,
+    "out": "Embedding\n",
+    "err": "",
+    "calls": [
+      [
+        "before first",
+        "before second"
+      ],
+      [
+        "before third"
+      ]
+    ],
+    "exception": null,
+    "rows": [
+      {
+        "id": "p:1",
+        "content": "before first"
+      },
+      {
+        "id": "p:2",
+        "content": "before second"
+      },
+      {
+        "id": "p:3",
+        "content": "before third"
+      }
+    ]
+  }
+]

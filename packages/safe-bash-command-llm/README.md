@@ -71,13 +71,19 @@ SDK callers can use `withCsvEmbeddingEntries(options, bytes, async entries =>
 `prepend`. Entries are callback-scoped and must be consumed serially. Payloads
 use retained filesystem spools; header and ID controls retain SQLite's scalar
 byte limits. Without `--format`, the CLI detects CSV dialects from a bounded
-4096-byte sample using the pinned Python rules. A leading array or object selects JSON. SQL and directory imports remain
-incomplete, as do exact invalid-JSON diagnostics. Raw surrogate code points retain
+4096-byte sample using the pinned Python rules. A leading array or object selects JSON. Exact invalid-JSON diagnostics remain incomplete. Raw surrogate code points retain
 Python string and object-key identity, including nested ID representations and
 encoding failures before embedding content or after embedding invalid IDs.
 Explicit JSON imports accept UTF-8, UTF-16LE/BE and UTF-32LE/BE with or without a BOM.
 For text files, use `--files DIRECTORY GLOB --encoding utf32`. Generic UTF-32
 requires an initial BOM; `utf-32-le` and `utf-32-be` preserve a BOM as text.
+Query embedding inputs with `llm embed-multi documents --sql 'SELECT id, title, body FROM source.posts' --attach source /posts.db -m MODEL`.
+SQL uses the embeddings database as `main`; repeated `--attach ALIAS FILE` options add source databases.
+SDK callers use `withSqlEmbeddingEntries({ fs, path, directory, signal, sql, attachments, maxFileBytes, maxIndexBytes, maxOpenFiles, prefix?, prepend?, admit? }, callback)` from the collections entry point.
+Query results live in private caller storage; text and blob fields replay in bounded chunks, and cancellation retires native work and temporary files before returning.
+Original column names preserve duplicate-key ordering, and UTF-16 database text is converted incrementally to UTF-8.
+The result database counts against the existing file budget. SQLite expression evaluation still uses native memory; this does not establish bounded native allocation for arbitrary expressions.
+Full SQL introspection/diagnostic parity and missing attachment-file creation remain unqualified.
 This optional catalog does not store conversation or response history.
 
 To enable collection commands, import `createLlmCollectionCommands` from the same

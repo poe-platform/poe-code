@@ -10,3 +10,5 @@ export type {SqliteEditSnapshot} from './sqlite-edit-snapshot.js';
 export type {SqliteFinalizer} from './sqlite-finalization.js';
 
 export {withSqliteReadSession} from './sqlite-read-session.js';
+
+export {withSqliteQueryRecords} from './sqlite-query-records.js';

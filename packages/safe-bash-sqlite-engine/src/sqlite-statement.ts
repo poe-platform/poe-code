@@ -3,10 +3,10 @@ import {yieldTurn} from 'safe-bash-contracts/yield';
 import type {SqliteBlobModule} from './sqlite-blob.js';
 export type SqliteBinding=null|bigint|number|string|Uint8Array;
 export type SqliteColumn='blob'|'text'|'integer'|'real'|'null';
-export interface SqliteStatement {rows(bindings:readonly SqliteBinding[],columns:readonly SqliteColumn[]):AsyncIterable<SqliteBinding[]>}
+export interface SqliteStatement {columns():readonly string[];rows(bindings:readonly SqliteBinding[],columns:readonly SqliteColumn[]):AsyncIterable<SqliteBinding[]>}
 // Private bounded control/scalar queries only. Large record fields use retained
 // physical spans or incremental blobs; do not select arbitrary large values here.
-export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{database:number;sql:string;signal:AbortSignal;check():void},operation:(statement:SqliteStatement)=>Promise<T>):Promise<T>{
+export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{database:number;sql:string;single?:boolean;signal:AbortSignal;check():void},operation:(statement:SqliteStatement)=>Promise<T>):Promise<T>{
  const {database,sql,signal,check}=options;
  signal.throwIfAborted();check();
  const encoder=new TextEncoder(),decoder=new TextDecoder();
@@ -28,8 +28,20 @@ export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{da
  const bindInt=module.cwrap('sqlite3_bind_int64','number',['number','number','number','number']) as (stmt:number,col:number,lo:number,hi:number)=>number;
  const bindBlob=module.cwrap('sqlite3_bind_blob','number',['number','number','number','number','number']) as (stmt:number,col:number,pointer:number,size:number,destructor:number)=>number;
  const bindText=module.cwrap('sqlite3_bind_text','number',['number','number','number','number','number']) as typeof bindBlob;
- const result=(code:number):void=>{check();if(code!==0)throw new FsError('EIO',{message:`Native SQLite statement failed (${code})`});};
- let out=0,statement=0,accepting=true,current:AsyncGenerator<SqliteBinding[]>|undefined,value!:T;
+ const result=(code:number):void=>{
+  check();if(code===0)return;
+  let message=`Native SQLite statement failed (${code})`;
+  if(options.single){
+   const errorMessage=module.cwrap('sqlite3_errmsg','number',['number']) as (database:number)=>number;
+   const pointer=errorMessage(database);let end=pointer;
+   if(pointer>0&&pointer<module.HEAPU8.length){
+    while(end<module.HEAPU8.length&&end-pointer<65536&&module.HEAPU8[end])end++;
+    if(end<module.HEAPU8.length&&module.HEAPU8[end]===0)message=decoder.decode(module.HEAPU8.subarray(pointer,end));
+   }
+  }
+  throw new FsError('EIO',{message});
+ };
+ let out=0,sqlPointer=0,statement=0,accepting=true,current:AsyncGenerator<SqliteBinding[]>|undefined,value!:T;
  const errors:unknown[]=[];
  const resetCursor=async(failed:boolean,failure:unknown):Promise<void>=>{
   try{const code=await reset(statement);if(!failed)result(code);}
@@ -102,16 +114,42 @@ export async function withSqliteStatement<T>(module:SqliteBlobModule,options:{da
   const iterator=iterate();return iterator;
  };
  try{
-  out=module._malloc(4);if(!out)throw new RangeError('SQLite memory allocation failed');
+  out=module._malloc(options.single?8:4);if(!out)throw new RangeError('SQLite memory allocation failed');
   new DataView(module.HEAPU8.buffer).setInt32(out,0,true);
-  const code=await prepare(database,sql,-1,out,0);statement=new DataView(module.HEAPU8.buffer).getInt32(out,true);
+  let code:number;
+  if(options.single){
+   const bytes=encoder.encode(sql);sqlPointer=module._malloc(bytes.length+1);if(!sqlPointer)throw new RangeError('SQLite memory allocation failed');
+   module.HEAPU8.set(bytes,sqlPointer);module.HEAPU8[sqlPointer+bytes.length]=0;
+   new DataView(module.HEAPU8.buffer).setInt32(out+4,0,true);
+   const ownedPrepare=module.cwrap('sqlite3_prepare_v2','number',['number','number','number','number','number'],{async:true}) as (db:number,sql:number,length:number,out:number,tail:number)=>Promise<number>;
+   code=await ownedPrepare(database,sqlPointer,bytes.length+1,out,out+4);
+   statement=new DataView(module.HEAPU8.buffer).getInt32(out,true);result(code);
+   const tail=new DataView(module.HEAPU8.buffer).getInt32(out+4,true);
+   if(tail<sqlPointer||tail>sqlPointer+bytes.length)throw new RangeError('Invalid SQLite statement tail');
+   for(let position=tail;position<sqlPointer+bytes.length;position++)if(![9,10,11,12,13,32].includes(module.HEAPU8[position]!))throw new TypeError('Expected a single SQLite statement');
+  }else{code=await prepare(database,sql,-1,out,0);statement=new DataView(module.HEAPU8.buffer).getInt32(out,true);}
   result(code);signal.throwIfAborted();if(!statement)throw new FsError('EIO',{message:'SQLite returned an empty statement'});
-  value=await operation({rows});
+  value=await operation({rows,columns(){
+   if(!accepting)throw new FsError('EBADF',{message:'SQLite statement is closed'});
+   signal.throwIfAborted();check();
+   const names:string[]=[],size=count(statement);
+   const name=module.cwrap('sqlite3_column_name','number',['number','number']) as (statement:number,column:number)=>number;
+   let budget=65536;
+   for(let index=0;index<size;index++){
+    const pointer=name(statement,index);let end=pointer;
+    if(pointer<=0||pointer>=module.HEAPU8.length)throw new RangeError('Invalid SQLite column name');
+    while(end<module.HEAPU8.length&&module.HEAPU8[end]){if(--budget<0)throw new RangeError('SQLite column names exceed byte budget');end++;}
+    if(end===module.HEAPU8.length)throw new RangeError('Invalid SQLite column name');
+    names.push(decoder.decode(module.HEAPU8.subarray(pointer,end)));
+   }
+   return names;
+  }});
  }catch(error){errors.push(error);}
  accepting=false;
  if(current)try{await current.return(undefined);}catch(error){if(!errors.includes(error))errors.push(error);}
  if(!statement&&out)statement=new DataView(module.HEAPU8.buffer).getInt32(out,true);
  if(statement)try{const code=await finalize(statement);if(code!==0&&!errors.length)result(code);}catch(error){if(!errors.includes(error))errors.push(error);}
+ if(sqlPointer)try{module._free(sqlPointer);}catch(error){errors.push(error);}
  if(out)try{module._free(out);}catch(error){errors.push(error);}
  if(!errors.length)try{check();signal.throwIfAborted();}catch(error){errors.push(error);}
  if(errors.length===1)throw errors[0];if(errors.length)throw new AggregateError(errors,'SQLite statement and cleanup failed');return value;

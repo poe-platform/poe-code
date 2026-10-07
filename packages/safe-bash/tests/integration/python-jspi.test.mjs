@@ -686,119 +686,117 @@ test('real workerd isolates build dependencies and preserves target packages aft
   assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });
 
-test('real workerd installs and reuses explicitly authorized Python wheels', {timeout:240000}, async()=>{
+for(const mode of ['packages','llm-packages'])test('real workerd installs and reuses explicitly authorized Python wheels; '+mode, {timeout:240000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path, 'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip 0.11.1 wheel');
   const bytes=readFileSync(path);
   assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
   const {miniflare,runtimeErrors}=nativeFixture;
-  for(const mode of ['packages','llm-packages']) {
-    const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:bytes});
-    const result=await response.json();
-    assert.equal(response.status,200,JSON.stringify(result));
-    assert.equal(result.installed.exitCode,0,JSON.stringify(result));
-    assert.equal(result.installed.stdout,'Successfully installed requested Python packages\n');
-    assert.ok(result.wheelReads.opened>0);
-    assert.equal(result.wheelReads.closed,result.wheelReads.opened);
-    assert.ok(result.wheelReads.reads>result.wheelReads.opened);
-    assert.ok(result.wheelReads.largest<=65536);
-    assert.equal(result.installed.stderr,'');
-    assert.equal(result.imported.exitCode,0,JSON.stringify(result));
-    assert.equal(result.imported.stdout,'worker package verified\n');
-    assert.equal(result.imported.stderr,'');
-    assert.notEqual(result.conflict.exitCode,0);
-    assert.equal(result.recovered.exitCode,0,JSON.stringify(result));
-    assert.equal(result.recovered.stdout,'worker package verified\n');
-    assert.equal(result.recovered.stderr,'');
-    assert.equal(result.retained.exitCode,0,JSON.stringify(result));
-    assert.equal(result.retained.stdout,'exact package state restored\n');
-    assert.equal(result.retained.stderr,'');
-    assert.notEqual(result.rejectedSnapshot.exitCode,0);
-    assert.equal(result.rejectedSnapshot.stdout,'');
-    assert.equal(result.repaired.exitCode,0,JSON.stringify(result));
-    assert.equal(result.repairVerified.exitCode,0,JSON.stringify(result));
-    assert.equal(result.repairVerified.stdout,'worker package verified\n');
-    for(const key of ['declined','afterDecline','removed','afterRemoval','missing','restored','afterRestore','rootRemoved','afterRootRemoval'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
-    assert.ok(result.declined.stdout.includes('Proceed (Y/n)? '));
-    assert.ok(!result.declined.stdout.includes('Successfully uninstalled'));
-    assert.equal(result.afterDecline.stdout,'worker package verified\n');
-    assert.ok(result.removed.stdout.includes('Successfully uninstalled worker-dependency-1.0'));
-    assert.equal(result.afterRemoval.stdout,'dependency removed\n');
-    assert.equal(result.missing.stderr,'WARNING: Skipping worker-dependency as it is not installed.\n');
-    // Normalize only the runtime installation prefix; retain complete native output.
-    for (const [key,row] of [['declined',0],['removed',1]]) {
-      const expected=uninstallReference.rows[row];
-      const output=result[key].stdout.replaceAll('worker-dependency','worker-fixture').replaceAll('worker_dependency','worker_fixture');
-      const firstPath=output.split('\n').find(line=>line.startsWith('    /'));
-      assert.ok(firstPath,output);
-      const site=firstPath.trim().slice(0,firstPath.trim().indexOf('/worker_fixture'));
-      assert.equal(output.replaceAll(site,'<site>'),expected.stdout);
-      assert.equal(result[key].stderr,expected.stderr);
+  const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:bytes});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.equal(result.installed.exitCode,0,JSON.stringify(result));
+  assert.equal(result.installed.stdout,'Successfully installed requested Python packages\n');
+  assert.ok(result.wheelReads.opened>0);
+  assert.equal(result.wheelReads.closed,result.wheelReads.opened);
+  assert.ok(result.wheelReads.reads>result.wheelReads.opened);
+  assert.ok(result.wheelReads.largest<=65536);
+  assert.equal(result.installed.stderr,'');
+  assert.equal(result.imported.exitCode,0,JSON.stringify(result));
+  assert.equal(result.imported.stdout,'worker package verified\n');
+  assert.equal(result.imported.stderr,'');
+  assert.notEqual(result.conflict.exitCode,0);
+  assert.equal(result.recovered.exitCode,0,JSON.stringify(result));
+  assert.equal(result.recovered.stdout,'worker package verified\n');
+  assert.equal(result.recovered.stderr,'');
+  assert.equal(result.retained.exitCode,0,JSON.stringify(result));
+  assert.equal(result.retained.stdout,'exact package state restored\n');
+  assert.equal(result.retained.stderr,'');
+  assert.notEqual(result.rejectedSnapshot.exitCode,0);
+  assert.equal(result.rejectedSnapshot.stdout,'');
+  assert.equal(result.repaired.exitCode,0,JSON.stringify(result));
+  assert.equal(result.repairVerified.exitCode,0,JSON.stringify(result));
+  assert.equal(result.repairVerified.stdout,'worker package verified\n');
+  for(const key of ['declined','afterDecline','removed','afterRemoval','missing','restored','afterRestore','rootRemoved','afterRootRemoval'])assert.equal(result[key].exitCode,0,JSON.stringify(result));
+  assert.ok(result.declined.stdout.includes('Proceed (Y/n)? '));
+  assert.ok(!result.declined.stdout.includes('Successfully uninstalled'));
+  assert.equal(result.afterDecline.stdout,'worker package verified\n');
+  assert.ok(result.removed.stdout.includes('Successfully uninstalled worker-dependency-1.0'));
+  assert.equal(result.afterRemoval.stdout,'dependency removed\n');
+  assert.equal(result.missing.stderr,'WARNING: Skipping worker-dependency as it is not installed.\n');
+  // Normalize only the runtime installation prefix; retain complete native output.
+  for (const [key,row] of [['declined',0],['removed',1]]) {
+    const expected=uninstallReference.rows[row];
+    const output=result[key].stdout.replaceAll('worker-dependency','worker-fixture').replaceAll('worker_dependency','worker_fixture');
+    const firstPath=output.split('\n').find(line=>line.startsWith('    /'));
+    assert.ok(firstPath,output);
+    const site=firstPath.trim().slice(0,firstPath.trim().indexOf('/worker_fixture'));
+    assert.equal(output.replaceAll(site,'<site>'),expected.stdout);
+    assert.equal(result[key].stderr,expected.stderr);
+  }
+  assert.equal(result.missing.stderr.replaceAll('worker-dependency','worker-fixture'),uninstallReference.rows[2].stderr);
+  assert.equal(result.rootRemoved.stdout,uninstallReference.rows[3].stdout);
+  assert.equal(result.rootRemoved.stderr,uninstallReference.rows[3].stderr);
+  assert.notEqual(result.protectedDependency.exitCode,0);
+  assert.notEqual(result.eof.exitCode,0);
+  assert.ok(!result.eof.stdout.includes('Successfully uninstalled'));
+  assert.notEqual(result.protectedPackage.exitCode,0);
+  assert.equal(result.afterRestore.stdout,'worker package verified\n');
+  assert.equal(result.afterRootRemoval.stdout,'root removed; dependency retained\n');
+  assert.equal(result.requests.length,1);
+  assert.deepEqual(result.failures,[]);
+  if(mode==='llm-packages') {
+    assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
+    assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
+    assert.equal(result.plugins.stderr,'');
+    for(const [kind,listing] of [['fragments',result.fragmentListing],['templates',result.templateListing]]){
+      assert.equal(listing.exitCode,0,JSON.stringify(listing));
+      assert.equal(listing.stdout,'register '+kind+'\nnative:\n  Undocumented\n');
+      assert.equal(listing.stderr,'');
     }
-    assert.equal(result.missing.stderr.replaceAll('worker-dependency','worker-fixture'),uninstallReference.rows[2].stderr);
-    assert.equal(result.rootRemoved.stdout,uninstallReference.rows[3].stdout);
-    assert.equal(result.rootRemoved.stderr,uninstallReference.rows[3].stderr);
-    assert.notEqual(result.protectedDependency.exitCode,0);
-    assert.notEqual(result.eof.exitCode,0);
-    assert.ok(!result.eof.stdout.includes('Successfully uninstalled'));
-    assert.notEqual(result.protectedPackage.exitCode,0);
-    assert.equal(result.afterRestore.stdout,'worker package verified\n');
-    assert.equal(result.afterRootRemoval.stdout,'root removed; dependency retained\n');
-    assert.equal(result.requests.length,1);
-    assert.deepEqual(result.failures,[]);
-    if(mode==='llm-packages') {
-      assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
-      assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
-      assert.equal(result.plugins.stderr,'');
-      for(const [kind,listing] of [['fragments',result.fragmentListing],['templates',result.templateListing]]){
-        assert.equal(listing.exitCode,0,JSON.stringify(listing));
-        assert.equal(listing.stdout,'register '+kind+'\nnative:\n  Undocumented\n');
-        assert.equal(listing.stderr,'');
-      }
-      assert.equal(result.listed.exitCode,0,JSON.stringify(result));
-      assert.match(result.listed.stdout,/installed_tool/);
-      assert.equal(result.called.exitCode,0,JSON.stringify(result));
-      assert.equal(result.called.stdout,'78\n');
-      assert.equal(result.called.stderr,'');
-      assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
-      assert.match(result.fragment.stdout,/native fragment:hello/);
-      assert.match(result.fragment.stdout,/prompt/);
-      assert.ok(result.fragment.stdout.startsWith('register fragments\nplugin output\n'));
-      assert.equal(result.fragment.stdout.split('register fragments').length,2);
-      assert.ok(!result.fragment.stdout.includes('register templates'));
-      assert.equal(result.fragment.stderr,'plugin diagnostic\n');
-      assert.equal(result.template.exitCode,0,JSON.stringify(result.template));
-      assert.equal(result.template.stdout,'register templates\ntemplate output\nnative template:hello Ada question\n');
-      assert.equal(result.template.stderr,'template diagnostic\n');
-      for(const [kind,missing]of [['fragment',result.missingFragment],['template',result.missingTemplate]]){
-        assert.equal(missing.exitCode,1,JSON.stringify(missing));
-        assert.equal(missing.stdout,'register '+kind+'s\n');
-        assert.equal(missing.stderr,'Error: Unknown '+kind+' prefix: missing\n');
-      }
-      for(const [kind,failed]of [['fragments',result.failedFragment],['templates',result.failedTemplate]]){
-        assert.equal(failed.exitCode,1,JSON.stringify(failed));
-        assert.equal(failed.stdout,'register '+kind+'\n');
-        assert.equal(failed.stderr,'Error: '+kind+' registration failed\n');
-      }
-      for(const failed of [result.importFragment,result.importTemplate]){
-        assert.equal(failed.exitCode,1,JSON.stringify(failed));
-        assert.equal(failed.stdout,'');
-        assert.equal(failed.stderr,'Error: plugin import failed\n');
-      }
-      assert.equal(result.blocked.exitCode,1);
-      assert.match(result.blocked.stderr,/platform-configured providers/);
+    assert.equal(result.listed.exitCode,0,JSON.stringify(result));
+    assert.match(result.listed.stdout,/installed_tool/);
+    assert.equal(result.called.exitCode,0,JSON.stringify(result));
+    assert.equal(result.called.stdout,'78\n');
+    assert.equal(result.called.stderr,'');
+    assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
+    assert.match(result.fragment.stdout,/native fragment:hello/);
+    assert.match(result.fragment.stdout,/prompt/);
+    assert.ok(result.fragment.stdout.startsWith('register fragments\nplugin output\n'));
+    assert.equal(result.fragment.stdout.split('register fragments').length,2);
+    assert.ok(!result.fragment.stdout.includes('register templates'));
+    assert.equal(result.fragment.stderr,'plugin diagnostic\n');
+    assert.equal(result.template.exitCode,0,JSON.stringify(result.template));
+    assert.equal(result.template.stdout,'register templates\ntemplate output\nnative template:hello Ada question\n');
+    assert.equal(result.template.stderr,'template diagnostic\n');
+    for(const [kind,missing]of [['fragment',result.missingFragment],['template',result.missingTemplate]]){
+      assert.equal(missing.exitCode,1,JSON.stringify(missing));
+      assert.equal(missing.stdout,'register '+kind+'s\n');
+      assert.equal(missing.stderr,'Error: Unknown '+kind+' prefix: missing\n');
     }
-    assert.equal(result.native.length,mode==='llm-packages'?6:0);
-    if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
-      const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
-      assert.ok(output.startsWith(resolve(root,'out')+'/'));
-      await writeFile(output,result.removed.stdout+'\n'+result.installed.stdout+'\n'+result.plugins.stdout+'\n'+result.called.stdout);
+    for(const [kind,failed]of [['fragments',result.failedFragment],['templates',result.failedTemplate]]){
+      assert.equal(failed.exitCode,1,JSON.stringify(failed));
+      assert.equal(failed.stdout,'register '+kind+'\n');
+      assert.equal(failed.stderr,'Error: '+kind+' registration failed\n');
     }
-    for(const actual of result.native) {
-      const expected=packageCommandReference.find(row=>JSON.stringify(row.args)===JSON.stringify(actual.args));
-      assert.ok(expected);
-      assert.deepEqual(actual,{args:expected.args,exitCode:expected.exitCode,output:expected.output});
+    for(const failed of [result.importFragment,result.importTemplate]){
+      assert.equal(failed.exitCode,1,JSON.stringify(failed));
+      assert.equal(failed.stdout,'');
+      assert.equal(failed.stderr,'Error: plugin import failed\n');
     }
+    assert.equal(result.blocked.exitCode,1);
+    assert.match(result.blocked.stderr,/platform-configured providers/);
+  }
+  assert.equal(result.native.length,mode==='llm-packages'?6:0);
+  if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
+    const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
+    assert.ok(output.startsWith(resolve(root,'out')+'/'));
+    await writeFile(output,result.removed.stdout+'\n'+result.installed.stdout+'\n'+result.plugins.stdout+'\n'+result.called.stdout);
+  }
+  for(const actual of result.native) {
+    const expected=packageCommandReference.find(row=>JSON.stringify(row.args)===JSON.stringify(actual.args));
+    assert.ok(expected);
+    assert.deepEqual(actual,{args:expected.args,exitCode:expected.exitCode,output:expected.output});
   }
   assert.deepEqual(runtimeErrors,[]);
   const errors=await miniflare.dispatchFetch('http://fixture/unhandled-errors');

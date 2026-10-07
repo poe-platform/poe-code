@@ -123,15 +123,19 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False):
  _safe_managed = set(_safe_requested_names)
  _safe_previous_pending = set()
  while True:
-  _safe_distributions = [d for d in _safe_metadata.distributions() if d.metadata['Name']]
-  _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_distributions}
   while True:
    _safe_changed = False
    _safe_dependencies = []
-   for _safe_dist in _safe_distributions:
-    if _safe_name(_safe_dist.metadata['Name']) not in _safe_managed:
+   _safe_versions = {}
+   for _safe_dist in _safe_metadata.distributions():
+    _safe_dist_name = _safe_dist.metadata['Name']
+    if not _safe_dist_name:
      continue
-    _safe_contexts = {''} | _safe_extras.get(_safe_name(_safe_dist.metadata['Name']), set())
+    _safe_dist_name = _safe_name(_safe_dist_name)
+    if _safe_dist_name not in _safe_managed:
+     continue
+    _safe_versions[_safe_dist_name] = _safe_dist.version
+    _safe_contexts = {''} | _safe_extras.get(_safe_dist_name, set())
     for _safe_dep in _safe_dist.requires or []:
      _safe_requirement = _SafeRequirement(_safe_dep)
      if _safe_requirement.marker and not any(_safe_requirement.marker.evaluate({'extra': extra}) for extra in _safe_contexts):

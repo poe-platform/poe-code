@@ -225,9 +225,13 @@ metadata lookup still use the native implementation. Plain runtimes without a pa
 environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving
 extras propagation, constraints and native last-distribution version precedence.
-It no longer retains every dependency edge as a parsed requirement. This does not
-bound host manifests, individual records, dependency-name/version maps, pending
-requirements, native executable allocation, or the remaining ZIP fallback.
+It no longer retains every dependency edge as a parsed requirement. Managed and
+restored package-name membership now uses installation-root key files and a streamed
+ordinal journal. Discard/re-add does not duplicate enumeration, and publication
+retires both stores; failed installation remains covered by installation-root
+retirement. This does not bound host manifests, individual records, requested-name/
+extras/version maps, pending requirements, native executable allocation, or the
+remaining ZIP fallback.
 JSPI package transfers and native metadata filesystem operations share one dispatch
 lane before reaching the host's single-request transport. This preserves dependency
 installation after a prior `--no-deps` install; cancellation and descriptor retirement

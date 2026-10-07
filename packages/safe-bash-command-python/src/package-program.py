@@ -126,6 +126,72 @@ def _safe_validate(roots):
    pin = _SafeRequirement(wheel.name + '==' + str(wheel.version))
    if _safe_name(wheel.name) != _safe_name(root.name) or not pin.specifier.contains(version, prereleases=True):
     raise ValueError('Python package wheel version conflict: ' + str(root))
+from collections.abc import MutableSet as _SafeMutableSet
+class _SafeNames(_SafeMutableSet):
+ def __init__(self, names=()):
+  import os, tempfile
+  self.root = tempfile.mkdtemp(dir=_safe_installation_root, prefix='.names-')
+  self.journal = os.path.join(self.root, 'journal')
+  self.count = self.serial = 0
+  with open(self.journal, 'w', encoding='utf-8'):pass
+  self.update(names)
+ def path(self, name):
+  import os
+  key = name.encode('utf-8', 'surrogatepass').hex()
+  return os.path.join(self.root, 'keys', *(key[i:i+100] for i in range(0, len(key), 100)), 'entry')
+ def entry(self, name):
+  try:
+   with open(self.path(name), encoding='utf-8') as source:ordinal = source.read(len(str(self.serial)) + 1)
+  except FileNotFoundError:return None
+  if not ordinal.isascii() or not ordinal.isdecimal() or not 0 < int(ordinal) <= self.serial or str(int(ordinal)) != ordinal:
+   raise ValueError('Invalid package name entry')
+  return ordinal
+ def __contains__(self, name):return self.entry(name) is not None
+ def __len__(self):return self.count
+ def __iter__(self):
+  import json
+  with open(self.journal, encoding='utf-8') as source:
+   for line in source:
+    ordinal, name = json.loads(line)
+    if self.entry(name) == ordinal:yield name
+ def add(self, name):
+  import json, os
+  if name in self:return
+  self.serial += 1
+  ordinal = str(self.serial)
+  # Journal first so installation-root retirement can recover partial writes.
+  with open(self.journal, 'a', encoding='utf-8') as output:output.write(json.dumps([ordinal, name]) + '\n')
+  path = self.path(name)
+  os.makedirs(os.path.dirname(path), exist_ok=True)
+  with open(path, 'w', encoding='utf-8') as output:output.write(ordinal)
+  self.count += 1
+ def update(self, names):
+  for name in names:self.add(name)
+ def discard(self, name):
+  import os
+  try:os.unlink(self.path(name))
+  except FileNotFoundError:return
+  self.count -= 1
+ def close(self):
+  import errno, json, os
+  # Replay owned paths; do not mutate a directory under an active scandir.
+  with open(self.journal, encoding='utf-8') as source:
+   for line in source:
+    _, name = json.loads(line)
+    path = self.path(name)
+    try:os.unlink(path)
+    except FileNotFoundError:pass
+    parent = os.path.dirname(path)
+    while parent != self.root:
+     try:os.rmdir(parent)
+     except FileNotFoundError:pass
+     except OSError as error:
+      if error.errno in (errno.ENOTEMPTY, errno.EEXIST):break
+      raise
+     parent = os.path.dirname(parent)
+  os.unlink(self.journal)
+  os.rmdir(self.root)
+
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = {}
  for source in constraints:
@@ -182,7 +248,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
    _safe_pm.Transaction = _SafeTransaction
  _safe_validate([root for root in _safe_roots if _safe_name(root.name) in _safe_preloaded])
  await _safe_install([str(root) for root in _safe_roots])
- _safe_managed = set(_safe_requested_names)
+ _safe_managed = _SafeNames(_safe_requested_names)
  if no_deps:
   _safe_validate(_safe_roots)
   return _safe_managed
@@ -329,7 +395,7 @@ else:
  if not _safe_metadata_only:
   await _safe_manager.install(_safe_restore, deps=False)
  _safe_validate(_safe_restored_roots)
- _safe_restored_names = {_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''})}
+ _safe_restored_names = _SafeNames(_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''}))
 if _safe_metadata_only and (len(_safe_record_by_name) != len(_safe_restored_names) or any(name not in _safe_record_by_name for name in _safe_restored_names)):
  raise ValueError('Python package metadata snapshot does not match installed requirements')
 _safe_restoring = False
@@ -410,6 +476,8 @@ for _safe_dist in _safe_metadata.distributions():
    _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
    await _safe_package_record('append', _safe_json.dumps([_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist), _safe_dist.read_text('direct_url.json')]))
 _safe_installed_json = _safe_json.dumps(_safe_sources + [name + '==' + version for name, version in sorted(_safe_versions.items()) if name in _safe_managed])
+_safe_managed.close()
+_safe_restored_names.close()
 _safe_metadata.MetadataPathFinder.invalidate_caches()
 import gc as _safe_gc
 _safe_gc.collect()

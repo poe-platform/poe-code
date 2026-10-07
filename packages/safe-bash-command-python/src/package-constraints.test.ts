@@ -26,6 +26,7 @@ def wheel(url):
  name,version,_,_=parse_wheel_filename(urlsplit(url).path.rsplit('/',1)[-1])
  return types.SimpleNamespace(name=name,version=version)
 namespace={'_SafeWheelInfo':types.SimpleNamespace(from_url=wheel),'_SafeRequirement':Requirement,'_safe_name':canonicalize_name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=lambda:iter(())),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False}
+namespace['_SafeNames']=set
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<resolver>','exec'),namespace)
 async def verify():
  managed=await namespace['_safe_resolve']([Requirement('root[feature]>=1')],constraints=['root<3','root!=2','unused==9','root<1; python_version < "1"'])

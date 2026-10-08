@@ -702,43 +702,177 @@ fn cmd_hash(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    let cmd_name = if algo == "blake2b" {
+        "b2sum".to_string()
+    } else {
+        format!("{algo}sum")
+    };
     let mut check_mode = false;
     let mut quiet = false;
     let mut status_only = false;
+    let mut warn_mode = false;
     let mut strict = false;
     let mut ignore_missing = false;
     let mut binary_mode = false;
+    let mut explicit_mode = false;
+    let mut explicit_text = false;
+    let mut check_only = false;
     let mut tag_mode = false;
     let mut zero_delim = false;
-    let mut bits = 512usize;
+    let mut requested_len: Option<String> = None;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-c" || a == "--check" {
-            check_mode = true;
-        } else if a == "--quiet" {
-            quiet = true;
-        } else if a == "--status" {
-            status_only = true;
-        } else if a == "--strict" {
-            strict = true;
-        } else if a == "--ignore-missing" {
-            ignore_missing = true;
-        } else if a == "-b" || a == "--binary" {
-            binary_mode = true;
-        } else if a == "--tag" {
-            tag_mode = true;
-        } else if a == "-z" || a == "--zero" {
-            zero_delim = true;
-        } else if (a == "-l" || a == "--length") && i + 1 < args.len() {
+        if !ended && a == "--" {
+            ended = true;
             i += 1;
-            bits = args[i].parse().unwrap_or(512);
-        } else if !a.starts_with('-') || a == "-" {
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--help" {
+            return ok_out(&format!("Usage: {cmd_name} [OPTION]... [FILE]...\n"));
+        }
+        if a == "--version" {
+            return ok_out(&format!("{cmd_name} (GNU coreutils) 9.5\n"));
+        }
+        if a.starts_with("--") {
+            if let Some(v) = a.strip_prefix("--length=") {
+                requested_len = Some(v.to_string());
+            } else {
+                match a.as_str() {
+                    "--binary" => {
+                        binary_mode = true;
+                        explicit_mode = true;
+                        explicit_text = false;
+                    }
+                    "--text" => {
+                        binary_mode = false;
+                        explicit_mode = true;
+                        explicit_text = true;
+                    }
+                    "--check" => check_mode = true,
+                    "--zero" => zero_delim = true,
+                    "--tag" => {
+                        tag_mode = true;
+                        if !explicit_text {
+                            binary_mode = true;
+                        }
+                    }
+                    "--warn" => {
+                        warn_mode = true;
+                        check_only = true;
+                    }
+                    "--quiet" => {
+                        quiet = true;
+                        check_only = true;
+                    }
+                    "--status" => {
+                        status_only = true;
+                        check_only = true;
+                    }
+                    "--strict" => {
+                        strict = true;
+                        check_only = true;
+                    }
+                    "--ignore-missing" => {
+                        ignore_missing = true;
+                        check_only = true;
+                    }
+                    "--length" if algo == "blake2b" => {
+                        if i + 1 >= args.len() {
+                            return err_out(&format!("{cmd_name}: option '--length' requires an argument\n"), 2);
+                        }
+                        i += 1;
+                        requested_len = Some(args[i].clone());
+                    }
+                    _ => return err_out(&format!("{cmd_name}: unrecognized option '{a}'\n"), 2),
+                }
+            }
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut c_idx = 0usize;
+        while c_idx < chars.len() {
+            let ch = chars[c_idx];
+            match ch {
+                'b' => {
+                    binary_mode = true;
+                    explicit_mode = true;
+                    explicit_text = false;
+                }
+                't' => {
+                    binary_mode = false;
+                    explicit_mode = true;
+                    explicit_text = true;
+                }
+                'c' => check_mode = true,
+                'z' => zero_delim = true,
+                'w' => {
+                    warn_mode = true;
+                    check_only = true;
+                }
+                'l' if algo == "blake2b" => {
+                    let rest: String = chars[c_idx + 1..].iter().collect();
+                    let val = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(&format!("{cmd_name}: option requires an argument -- 'l'\n"), 2);
+                    };
+                    requested_len = Some(val);
+                    break;
+                }
+                _ => return err_out(&format!("{cmd_name}: invalid option -- '{ch}'\n"), 2),
+            }
+            c_idx += 1;
         }
         i += 1;
     }
+
+    let mut bits = 512usize;
+    if let Some(ref rl) = requested_len {
+        if rl.is_empty() || !rl.chars().all(|c| c.is_ascii_digit()) {
+            return err_out(&format!("{cmd_name}: invalid length '{rl}'\n"), 2);
+        }
+        let Ok(parsed_l) = rl.parse::<usize>() else {
+            return err_out(&format!("{cmd_name}: invalid length '{rl}'\n"), 2);
+        };
+        if parsed_l > 0 && (algo != "blake2b" || parsed_l > 512 || parsed_l % 8 != 0) {
+            return err_out(&format!("{cmd_name}: invalid length '{rl}' for {algo}\n"), 2);
+        }
+        if parsed_l > 0 {
+            bits = parsed_l;
+        }
+    }
+
+    if !check_mode && check_only {
+        return err_out(&format!("{cmd_name}: verification options require --check\n"), 1);
+    }
+    if tag_mode && check_mode {
+        return err_out(
+            &format!("{cmd_name}: the --tag option is meaningless when verifying checksums\n"),
+            2,
+        );
+    }
+    if tag_mode && !binary_mode {
+        return err_out(&format!("{cmd_name}: --tag does not support --text mode\n"), 2);
+    }
+    if check_mode && (zero_delim || explicit_mode) {
+        return err_out(
+            &format!("{cmd_name}: --zero, --binary and --text are not supported with --check\n"),
+            2,
+        );
+    }
+
     let escape_fname = |f: &str| -> (bool, String) {
         if f.contains('\\') || f.contains('\n') || f.contains('\r') {
             let esc = f
@@ -750,7 +884,7 @@ fn cmd_hash(
             (false, f.to_string())
         }
     };
-    let unescape_fname = |f: &str| -> String {
+    let unescape_fname = |f: &str| -> Option<String> {
         let mut out = String::new();
         let mut chs = f.chars();
         while let Some(c) = chs.next() {
@@ -759,115 +893,233 @@ fn cmd_hash(
                     Some('n') => out.push('\n'),
                     Some('r') => out.push('\r'),
                     Some('\\') => out.push('\\'),
-                    Some(other) => {
-                        out.push('\\');
-                        out.push(other);
-                    }
-                    None => out.push('\\'),
+                    _ => return None,
                 }
             } else {
                 out.push(c);
             }
         }
-        out
+        Some(out)
+    };
+
+    let algo_default_bits = match algo {
+        "sha224" => 224usize,
+        "sha256" => 256,
+        "sha384" => 384,
+        "sha512" => 512,
+        "sha1" => 160,
+        "md5" => 128,
+        _ => bits,
     };
 
     if check_mode {
-        let mut check_input = String::new();
-        if files.is_empty() || files[0] == "-" {
-            check_input.push_str(stdin);
+        let manifests = if files.is_empty() {
+            vec!["-".to_string()]
         } else {
-            for f in &files {
-                let full = resolve_posix_path(cwd, f);
-                match fs.read_file(&full) {
-                    Ok(b) => check_input.push_str(&String::from_utf8_lossy(&b)),
-                    Err(_) => return err_out(&format!("{algo}sum: {f}: No such file\n"), 1),
-                }
-            }
-        }
+            files
+        };
         let mut out = String::new();
         let mut err = String::new();
-        let mut malformed = 0usize;
-        let mut exit_code = 0;
-        for raw_line in check_input.lines() {
-            let mut line = raw_line.trim();
-            if line.is_empty() {
-                continue;
-            }
-            let is_escaped = line.starts_with('\\');
-            if is_escaped {
-                line = &line[1..];
-            }
-            let (expected, raw_fname) = if let Some(open) = line.find('(')
-                && let Some(close) = line.rfind(") = ")
-                && open < close
-            {
-                (
-                    line[close + 4..].trim(),
-                    line[open + 1..close].trim(),
-                )
-            } else {
-                let mut parts = line.splitn(2, char::is_whitespace);
-                let exp = parts.next().unwrap_or("").trim();
-                let fnm = parts
-                    .next()
-                    .unwrap_or("")
-                    .trim()
-                    .trim_start_matches('*');
-                (exp, fnm)
-            };
-            let fname = if is_escaped {
-                unescape_fname(raw_fname)
-            } else {
-                raw_fname.to_string()
-            };
-            if expected.is_empty()
-                || fname.is_empty()
-                || !expected.chars().all(|c| c.is_ascii_hexdigit())
-            {
-                malformed += 1;
-                continue;
-            }
-            let (needs_esc, disp_fname) = escape_fname(&fname);
-            let disp_prefix = if needs_esc { "\\" } else { "" };
-            let full = resolve_posix_path(cwd, &fname);
-            match fs.read_file(&full) {
-                Ok(bytes) => {
-                    let actual = compute_digest_hex_bits(algo, &bytes, bits);
-                    if actual.eq_ignore_ascii_case(expected) {
-                        if !quiet && !status_only {
-                            out.push_str(&format!("{disp_prefix}{disp_fname}: OK\n"));
-                        }
-                    } else {
-                        if !status_only {
-                            out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED\n"));
-                        }
-                        exit_code = 1;
-                    }
+        let mut overall_ok = true;
+        let mut stdin_used = false;
+        for manifest in &manifests {
+            let content = if manifest == "-" {
+                if stdin_used {
+                    String::new()
+                } else {
+                    stdin_used = true;
+                    stdin.to_string()
                 }
-                Err(_) => {
-                    if ignore_missing {
+            } else {
+                let full = resolve_posix_path(cwd, manifest);
+                match fs.read_file(&full) {
+                    Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                    Err(_) => {
+                        err.push_str(&format!("{cmd_name}: {manifest}: No such file or directory\n"));
+                        overall_ok = false;
                         continue;
                     }
-                    if !status_only {
-                        out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
+                }
+            };
+            let mut malformed = 0usize;
+            let mut failures = 0usize;
+            let mut mismatched = 0usize;
+            let mut valid = false;
+            let mut matched = false;
+            for (line_idx, raw_line) in content.lines().enumerate() {
+                let line_num = line_idx + 1;
+                let mut line = raw_line.trim_end_matches('\r');
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                while line.starts_with(' ') || line.starts_with('\t') {
+                    line = &line[1..];
+                }
+                let is_escaped = line.starts_with('\\');
+                if is_escaped {
+                    line = &line[1..];
+                }
+                let parsed_entry: Option<(usize, String, String)> =
+                    if let Some(open) = line.find('(')
+                        && let Some(close) = line.rfind(')')
+                        && open < close
+                    {
+                        let raw_lbl = line[..open].trim_end_matches(' ');
+                        let mut suffix = &line[close + 1..];
+                        while suffix.starts_with(' ') || suffix.starts_with('\t') {
+                            suffix = &suffix[1..];
+                        }
+                        if !suffix.starts_with('=') {
+                            None
+                        } else {
+                            let mut exp = &suffix[1..];
+                            while exp.starts_with(' ') || exp.starts_with('\t') {
+                                exp = &exp[1..];
+                            }
+                            let raw_fnm = &line[open + 1..close];
+                            let lb_opt = if algo == "blake2b" {
+                                if raw_lbl == "BLAKE2b" {
+                                    Some(512usize)
+                                } else if let Some(b_str) = raw_lbl.strip_prefix("BLAKE2b-") {
+                                    b_str.parse::<usize>().ok().filter(|&b| (8..=512).contains(&b) && b % 8 == 0)
+                                } else {
+                                    None
+                                }
+                            } else if raw_lbl.eq_ignore_ascii_case(algo) {
+                                Some(algo_default_bits)
+                            } else {
+                                None
+                            };
+                            lb_opt.map(|lb| (lb, raw_fnm.to_string(), exp.to_string()))
+                        }
+                    } else if let Some(sep_idx) = line.find([' ', '\t']) {
+                        let after = &line[sep_idx..];
+                        if after.len() < 2 || !matches!(after.as_bytes()[1], b' ' | b'*') {
+                            None
+                        } else {
+                            let exp = &line[..sep_idx];
+                            let raw_fnm = &after[2..];
+                            let lb = if algo == "blake2b" {
+                                exp.len() * 4
+                            } else {
+                                algo_default_bits
+                            };
+                            Some((lb, raw_fnm.to_string(), exp.to_string()))
+                        }
+                    } else {
+                        None
+                    };
+
+                let validated: Option<(usize, String, String)> =
+                    parsed_entry.and_then(|(lb, raw_fnm, exp)| {
+                        if exp.is_empty()
+                            || exp.len() > 128
+                            || exp.len() % 2 != 0
+                            || !exp.chars().all(|c| c.is_ascii_hexdigit())
+                            || exp.len() * 4 != lb
+                            || (algo == "blake2b" && !(8..=512).contains(&lb))
+                        {
+                            return None;
+                        }
+                        let fname = if is_escaped {
+                            unescape_fname(&raw_fnm)?
+                        } else {
+                            raw_fnm
+                        };
+                        if fname.is_empty() || (manifest == "-" && fname == "-") {
+                            return None;
+                        }
+                        Some((lb, fname, exp.to_ascii_lowercase()))
+                    });
+
+                let Some((line_bits, fname, expected_hex)) = validated else {
+                    malformed += 1;
+                    if warn_mode {
+                        let (_, disp_m) = escape_fname(manifest);
+                        err.push_str(&format!(
+                            "{cmd_name}: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
+                        ));
                     }
-                    exit_code = 1;
+                    continue;
+                };
+
+                valid = true;
+                let (needs_esc, disp_fname) = escape_fname(&fname);
+                let disp_prefix = if needs_esc { "\\" } else { "" };
+                let read_res = if fname == "-" {
+                    if stdin_used {
+                        Ok(Vec::new())
+                    } else {
+                        stdin_used = true;
+                        Ok(crate::vfs::stream_string_to_bytes(stdin))
+                    }
+                } else {
+                    let full = resolve_posix_path(cwd, &fname);
+                    fs.read_file(&full)
+                };
+                match read_res {
+                    Ok(bytes) => {
+                        let actual = compute_digest_hex_bits(algo, &bytes, line_bits);
+                        if actual.eq_ignore_ascii_case(&expected_hex) {
+                            matched = true;
+                            if !quiet && !status_only {
+                                out.push_str(&format!("{disp_prefix}{disp_fname}: OK\n"));
+                            }
+                        } else {
+                            mismatched += 1;
+                            if !status_only {
+                                out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED\n"));
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        if ignore_missing && fname != "-" {
+                            continue;
+                        }
+                        failures += 1;
+                        err.push_str(&format!("{cmd_name}: {fname}: No such file or directory\n"));
+                        if !status_only {
+                            out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
+                        }
+                    }
                 }
             }
-        }
-        if malformed > 0 && !status_only {
-            err.push_str(&format!(
-                "WARNING: {malformed} line is improperly formatted\n"
-            ));
-        }
-        if strict && malformed > 0 {
-            exit_code = 1;
+            let (_, disp_m) = escape_fname(manifest);
+            if !valid {
+                err.push_str(&format!(
+                    "{cmd_name}: {disp_m}: no properly formatted checksum lines found\n"
+                ));
+                overall_ok = false;
+            } else {
+                if !status_only {
+                    if malformed > 0 {
+                        err.push_str(&format!(
+                            "{cmd_name}: WARNING: {malformed} improperly formatted checksum line(s)\n"
+                        ));
+                    }
+                    if failures > 0 {
+                        err.push_str(&format!(
+                            "{cmd_name}: WARNING: {failures} listed file(s) could not be read\n"
+                        ));
+                    }
+                    if mismatched > 0 {
+                        err.push_str(&format!(
+                            "{cmd_name}: WARNING: {mismatched} computed checksum(s) did NOT match\n"
+                        ));
+                    }
+                    if ignore_missing && !matched {
+                        err.push_str(&format!("{cmd_name}: {disp_m}: no file was verified\n"));
+                    }
+                }
+                if !(matched && failures == 0 && mismatched == 0 && (!strict || malformed == 0)) {
+                    overall_ok = false;
+                }
+            }
         }
         return BuiltinOutcome {
             stdout: out,
             stderr: err,
-            exit_code,
+            exit_code: if overall_ok { 0 } else { 1 },
         };
     }
 
@@ -904,9 +1156,16 @@ fn cmd_hash(
     let mut out = String::new();
     let mut err = String::new();
     let mut code = 0;
+    let mut stdin_used = false;
     for f in &files {
         if f == "-" {
-            let hex = compute_digest_hex_bits(algo, &crate::vfs::stream_string_to_bytes(stdin), bits);
+            let in_bytes = if stdin_used {
+                Vec::new()
+            } else {
+                stdin_used = true;
+                crate::vfs::stream_string_to_bytes(stdin)
+            };
+            let hex = compute_digest_hex_bits(algo, &in_bytes, bits);
             out.push_str(&format_entry(&hex, "-"));
         } else {
             let full = resolve_posix_path(cwd, f);
@@ -916,7 +1175,7 @@ fn cmd_hash(
                     out.push_str(&format_entry(&hex, f));
                 }
                 Err(_) => {
-                    err.push_str(&format!("{algo}sum: {f}: No such file or directory\n"));
+                    err.push_str(&format!("{cmd_name}: {f}: No such file or directory\n"));
                     code = 1;
                 }
             }
@@ -959,8 +1218,10 @@ fn posix_crc32(data: &[u8]) -> u32 {
 
 fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut algo = "crc".to_string();
-    let mut bits: Option<usize> = None;
-    let mut tag = true;
+    let mut requested_len: Option<String> = None;
+    let mut last_tag: Option<bool> = None;
+    let mut has_tag_flag = false;
+    let mut has_untagged_flag = false;
     let mut base64_mode = false;
     let mut raw_mode = false;
     let mut zero_delim = false;
@@ -987,6 +1248,8 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             continue;
         }
         match a {
+            "--help" => return ok_out("Usage: cksum [OPTION]... [FILE]...\n"),
+            "--version" => return ok_out("cksum (GNU coreutils) 9.5\n"),
             "-a" | "--algorithm" if i + 1 < args.len() => {
                 i += 1;
                 algo = args[i].to_ascii_lowercase();
@@ -999,16 +1262,22 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             }
             "-l" | "--length" if i + 1 < args.len() => {
                 i += 1;
-                bits = args[i].parse().ok();
+                requested_len = Some(args[i].clone());
             }
             _ if a.starts_with("--length=") => {
-                bits = a["--length=".len()..].parse().ok();
+                requested_len = Some(a["--length=".len()..].to_string());
             }
             _ if a.starts_with("-l") && a.len() > 2 => {
-                bits = a[2..].parse().ok();
+                requested_len = Some(a[2..].to_string());
             }
-            "--tag" => tag = true,
-            "--untagged" => tag = false,
+            "--tag" => {
+                last_tag = Some(true);
+                has_tag_flag = true;
+            }
+            "--untagged" => {
+                last_tag = Some(false);
+                has_untagged_flag = true;
+            }
             "--base64" => base64_mode = true,
             "--raw" => raw_mode = true,
             "-z" | "--zero" => zero_delim = true,
@@ -1019,6 +1288,9 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             "-w" | "--warn" => warn_mode = true,
             "--strict" => strict = true,
             "--ignore-missing" => ignore_missing = true,
+            _ if a.starts_with("--") => {
+                return err_out(&format!("cksum: unrecognized option '{a}'\n"), 2);
+            }
             _ => {
                 for ch in a[1..].chars() {
                     match ch {
@@ -1026,23 +1298,90 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         'c' => check_mode = true,
                         'z' => zero_delim = true,
                         'w' => warn_mode = true,
-                        _ => {}
+                        _ => return err_out(&format!("cksum: invalid option -- '{ch}'\n"), 2),
                     }
                 }
             }
         }
         i += 1;
     }
-    let resolved_bits = bits.unwrap_or(match algo.as_str() {
-        "sha224" => 224,
-        "sha256" | "sm3" => 256,
-        "sha384" => 384,
-        "md5" => 128,
-        "sha1" => 160,
-        _ => 512,
-    });
+
+    if !matches!(
+        algo.as_str(),
+        "crc" | "bsd" | "sysv" | "crc32b" | "sm3" | "blake2b" | "sha2" | "sha3" | "sha512" | "sha384" | "sha256" | "sha224" | "sha1" | "md5"
+    ) {
+        return err_out(&format!("cksum: unsupported checksum algorithm '{algo}'\n"), 2);
+    }
+
+    let mut length = 0usize;
+    if let Some(ref rl) = requested_len {
+        if rl.is_empty() || !rl.chars().all(|c| c.is_ascii_digit()) {
+            return err_out(&format!("cksum: invalid length '{rl}'\n"), 2);
+        }
+        let Ok(parsed_l) = rl.parse::<usize>() else {
+            return err_out(&format!("cksum: invalid length '{rl}'\n"), 2);
+        };
+        length = parsed_l;
+    }
+
+    let family = algo == "sha2" || algo == "sha3";
+    if family
+        && !(check_mode && requested_len.is_none() && algo == "sha3")
+        && !matches!(length, 224 | 256 | 384 | 512)
+    {
+        return err_out(
+            &format!("cksum: {algo} requires --length 224, 256, 384 or 512\n"),
+            2,
+        );
+    }
+    if length != 0 {
+        let valid_len = if family {
+            matches!(length, 224 | 256 | 384 | 512)
+        } else if algo == "blake2b" {
+            length <= 512 && length % 8 == 0
+        } else {
+            false
+        };
+        if !valid_len {
+            let rl = requested_len.as_deref().unwrap_or("");
+            return err_out(&format!("cksum: invalid length '{rl}' for {algo}\n"), 2);
+        }
+    }
+
+    let resolved_bits = if length != 0 {
+        length
+    } else {
+        match algo.as_str() {
+            "sha224" => 224,
+            "sha256" | "sm3" => 256,
+            "sha384" => 384,
+            "md5" => 128,
+            "sha1" => 160,
+            _ => 512,
+        }
+    };
     if algo == "sha2" {
         algo = format!("sha{resolved_bits}");
+    }
+    let tag = last_tag.unwrap_or(true);
+    let is_numeric = matches!(algo.as_str(), "crc" | "bsd" | "sysv" | "crc32b");
+    if raw_mode && (is_numeric || has_tag_flag || has_untagged_flag || base64_mode || zero_delim) {
+        return err_out(
+            "cksum: --raw requires a hash algorithm and cannot be combined with --tag, --untagged, --base64 or --zero\n",
+            2,
+        );
+    }
+    if check_mode && is_numeric && algo != "crc" {
+        return err_out(&format!("cksum: verification is not supported for '{algo}'\n"), 2);
+    }
+    if !check_mode && (quiet || status_only || warn_mode || strict || ignore_missing) {
+        return err_out("cksum: verification options require --check\n", 2);
+    }
+    if check_mode && (binary_mode || zero_delim || has_tag_flag || raw_mode || base64_mode) {
+        return err_out("cksum: output options are not supported with --check\n", 2);
+    }
+    if raw_mode && files.len() > 1 {
+        return err_out("cksum: the --raw option is not supported with multiple files\n", 2);
     }
 
     let escape_fname = |f: &str| -> (bool, String) {
@@ -1401,20 +1740,33 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         return ok_out(&format_for_bytes(&bytes, None));
     }
     let mut out = String::new();
+    let mut err = String::new();
+    let mut code = 0;
+    let mut stdin_used = false;
     for f in &files {
         if f == "-" {
-            let bytes = crate::vfs::stream_string_to_bytes(stdin);
+            let bytes = if stdin_used {
+                Vec::new()
+            } else {
+                stdin_used = true;
+                crate::vfs::stream_string_to_bytes(stdin)
+            };
             out.push_str(&format_for_bytes(&bytes, Some("-")));
         } else {
             let full = resolve_posix_path(cwd, f);
             if let Ok(b) = fs.read_file(&full) {
                 out.push_str(&format_for_bytes(&b, Some(f)));
             } else {
-                return err_out(&format!("cksum: {f}: No such file or directory\n"), 1);
+                err.push_str(&format!("cksum: {f}: No such file or directory\n"));
+                code = 1;
             }
         }
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err,
+        exit_code: code,
+    }
 }
 
 const B64_CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -1598,17 +1950,17 @@ fn run_base_cmd(
                     i += 1;
                     match args[i].parse::<usize>() {
                         Ok(w) => wrap_cols = w,
-                        Err(_) => return err_out(&format!("{name}: invalid wrap size: '{}'\n", args[i]), 1),
+                        Err(_) => return err_out(&format!("{name}: invalid number '{}'\n", args[i]), 2),
                     }
                 }
                 _ if a.starts_with("--wrap=") => {
                     let v = &a["--wrap=".len()..];
                     match v.parse::<usize>() {
                         Ok(w) => wrap_cols = w,
-                        Err(_) => return err_out(&format!("{name}: invalid wrap size: '{v}'\n"), 1),
+                        Err(_) => return err_out(&format!("{name}: invalid number '{v}'\n"), 2),
                     }
                 }
-                _ => return err_out(&format!("{name}: unrecognized option '{a}'\n"), 1),
+                _ => return err_out(&format!("{name}: unrecognized option '{a}'\n"), 2),
             }
             i += 1;
             continue;
@@ -1627,30 +1979,33 @@ fn run_base_cmd(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out(&format!("{name}: option requires an argument -- 'w'\n"), 1);
+                        return err_out(&format!("{name}: option requires an argument -- 'w'\n"), 2);
                     };
                     match val_str.parse::<usize>() {
                         Ok(w) => wrap_cols = w,
-                        Err(_) => return err_out(&format!("{name}: invalid wrap size: '{val_str}'\n"), 1),
+                        Err(_) => return err_out(&format!("{name}: invalid number '{val_str}'\n"), 2),
                     }
                     break;
                 }
-                other => return err_out(&format!("{name}: invalid option -- '{other}'\n"), 1),
+                other => return err_out(&format!("{name}: invalid option -- '{other}'\n"), 2),
             }
             c_idx += 1;
         }
         i += 1;
     }
     if files.len() > 1 {
-        return err_out(&format!("{name}: extra operand '{}'\n", files[1]), 1);
+        return err_out(&format!("{name}: extra operand '{}'\n", files[1]), 2);
     }
     let data = if files.is_empty() || files[0] == "-" {
         crate::vfs::stream_string_to_bytes(stdin)
     } else {
         let full = resolve_posix_path(cwd, &files[0]);
+        if fs.is_dir(&full) {
+            return err_out(&format!("{name}: {}: Is a directory\n", files[0]), 1);
+        }
         match fs.read_file(&full) {
             Ok(b) => b,
-            Err(_) => return err_out(&format!("{name}: {}: No such file\n", files[0]), 1),
+            Err(_) => return err_out(&format!("{name}: {}: No such file or directory\n", files[0]), 1),
         }
     };
 
@@ -1739,6 +2094,7 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut max_len: Option<usize> = None;
     let mut seek_spec: Option<String> = None;
     let mut displacement: usize = 0;
+    let mut explicit_offset = false;
     let mut custom_name: Option<String> = None;
     let mut operands: Vec<String> = Vec::new();
 
@@ -1823,7 +2179,10 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         },
                         's' => seek_spec = Some(val),
                         'o' => match parse_xxd_num(&val) {
-                            Ok(v) => displacement = v,
+                            Ok(v) => {
+                                displacement = v;
+                                explicit_offset = true;
+                            }
                             Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
                         },
                         'n' => custom_name = Some(val),
@@ -1849,6 +2208,12 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if reverse && (bits_mode || c_include || little_endian) {
         return err_out("xxd: cannot revert this type of hexdump\n", 2);
+    }
+    if reverse && (max_len.is_some() || explicit_offset || decimal_addr) {
+        return err_out(
+            "xxd: reverse does not support seek, length, displacement, or decimal addresses\n",
+            2,
+        );
     }
 
     let default_cols = if plain {
@@ -2781,6 +3146,12 @@ fn cmd_hexdump(
             match flag {
                 'v' => no_squeeze = true,
                 'C' | 'b' | 'c' | 'd' | 'o' | 'x' => {
+                    if default_canonical && flag == 'C' {
+                        return err_out(
+                            "usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n",
+                            1,
+                        );
+                    }
                     has_std = true;
                     ordered.push(HexdumpFormatItem::Standard(flag.to_string()));
                 }
@@ -2835,6 +3206,8 @@ fn cmd_hexdump(
         return ok_out("");
     }
 
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
     let raw = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
         crate::vfs::stream_string_to_bytes(stdin)
     } else {
@@ -2844,9 +3217,16 @@ fn cmd_hexdump(
                 combined.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
             } else {
                 let p = resolve_posix_path(cwd, f);
+                if fs.is_dir(&p) {
+                    err_buf.push_str(&format!("{name}: {f}: Is a directory\n"));
+                    continue;
+                }
                 match fs.read_file(&p) {
                     Ok(b) => combined.extend_from_slice(&b),
-                    Err(e) => return err_out(&format!("{name}: {f}: {e}\n"), 1),
+                    Err(_) => {
+                        err_buf.push_str(&format!("{name}: {f}: No such file or directory\n"));
+                        exit_code = 1;
+                    }
                 }
             }
         }
@@ -2859,7 +3239,11 @@ fn cmd_hexdump(
         slice = &slice[..n.min(slice.len())];
     }
     if slice.is_empty() {
-        return ok_out("");
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: err_buf,
+            exit_code,
+        };
     }
 
     let mut out = String::new();
@@ -2916,7 +3300,126 @@ fn cmd_hexdump(
             }
         }
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
+}
+
+fn extract_strings_elf_regions<'a>(data: &'a [u8], target: Option<&str>) -> Vec<(usize, &'a [u8])> {
+    let fallback = || vec![(0usize, data)];
+    let size = data.len();
+    if size < 52
+        || data[0] != 127
+        || data[1] != 69
+        || data[2] != 76
+        || data[3] != 70
+        || data[6] != 1
+    {
+        return fallback();
+    }
+    let wide = data[4] == 2;
+    if (!wide && data[4] != 1)
+        || (data[5] != 1 && data[5] != 2)
+        || size < if wide { 64 } else { 52 }
+    {
+        return fallback();
+    }
+    let little = data[5] == 1;
+    let u16_at = |off: usize| -> u16 {
+        let bytes = [data[off], data[off + 1]];
+        if little {
+            u16::from_le_bytes(bytes)
+        } else {
+            u16::from_be_bytes(bytes)
+        }
+    };
+    let u32_at = |off: usize| -> u32 {
+        let bytes = [data[off], data[off + 1], data[off + 2], data[off + 3]];
+        if little {
+            u32::from_le_bytes(bytes)
+        } else {
+            u32::from_be_bytes(bytes)
+        }
+    };
+    let word_at = |off: usize| -> Option<usize> {
+        if wide {
+            let bytes = [
+                data[off],
+                data[off + 1],
+                data[off + 2],
+                data[off + 3],
+                data[off + 4],
+                data[off + 5],
+                data[off + 6],
+                data[off + 7],
+            ];
+            let val = if little {
+                u64::from_le_bytes(bytes)
+            } else {
+                u64::from_be_bytes(bytes)
+            };
+            usize::try_from(val).ok()
+        } else {
+            Some(u32_at(off) as usize)
+        }
+    };
+    let machine = u16_at(18);
+    if let Some(tgt) = target {
+        let matches = little
+            && if tgt == "elf64-x86-64" {
+                wide && machine == 62
+            } else {
+                !wide && machine == 3
+            };
+        if !matches {
+            return fallback();
+        }
+    }
+    let Some(table) = word_at(if wide { 40 } else { 32 }) else {
+        return fallback();
+    };
+    let stride = u16_at(if wide { 58 } else { 46 }) as usize;
+    let mut count = u16_at(if wide { 60 } else { 48 }) as usize;
+    let valid = |off: usize, len: usize| off <= size && len <= size - off;
+    if table == 0 || stride < if wide { 64 } else { 40 } || !valid(table, stride) {
+        return fallback();
+    }
+    if count == 0 {
+        let Some(c) = word_at(table + if wide { 32 } else { 20 }) else {
+            return fallback();
+        };
+        count = c;
+    }
+    let Some(total_table) = count.checked_mul(stride) else {
+        return fallback();
+    };
+    if !valid(table, total_table) {
+        return fallback();
+    }
+    let mut regions = Vec::new();
+    for idx in 0..count {
+        let header = table + idx * stride;
+        let sh_type = u32_at(header + 4);
+        let Some(sh_flags) = word_at(header + 8) else {
+            return fallback();
+        };
+        if sh_type == 0 || sh_type == 8 || (sh_flags & 2) == 0 {
+            continue;
+        }
+        let Some(off) = word_at(header + if wide { 24 } else { 16 }) else {
+            return fallback();
+        };
+        let Some(len) = word_at(header + if wide { 32 } else { 20 }) else {
+            return fallback();
+        };
+        if !valid(off, len) {
+            return fallback();
+        }
+        regions.push((off, &data[off..off + len]));
+    }
+    regions
 }
 
 #[derive(Clone)]
@@ -6108,12 +6611,14 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
 }
 fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut min_len = 4usize;
-    let mut radix: Option<char> = None;
+    let mut radix_str: Option<String> = None;
     let mut print_file = false;
     let mut include_ws = false;
-    let mut encoding = 's';
+    let mut encoding_str = "s".to_string();
     let mut unicode_mode = "default".to_string();
     let mut separator = "\n".to_string();
+    let mut data_mode = false;
+    let mut target_opt: Option<String> = None;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -6121,24 +6626,40 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         if a == "--" {
             files.extend(args[i + 1..].iter().cloned());
             break;
+        } else if a == "-" {
+            data_mode = false;
+            files.push("-".to_string());
+            i += 1;
+        } else if a == "--data" {
+            data_mode = true;
+            i += 1;
+        } else if a == "--all" {
+            data_mode = false;
+            i += 1;
         } else if (a == "-n" || a == "--bytes") && i + 1 < args.len() {
-            min_len = args[i + 1].parse().unwrap_or(4).max(1);
+            match args[i + 1].parse::<usize>() {
+                Ok(v) if v >= 1 => min_len = v,
+                _ => return err_out(&format!("strings: invalid number '{}'\n", args[i + 1]), 1),
+            }
             i += 2;
         } else if let Some(rest) = a.strip_prefix("-n").or_else(|| a.strip_prefix("--bytes="))
             && !rest.is_empty()
         {
-            min_len = rest.parse().unwrap_or(4).max(1);
+            match rest.parse::<usize>() {
+                Ok(v) if v >= 1 => min_len = v,
+                _ => return err_out(&format!("strings: invalid number '{rest}'\n"), 1),
+            }
             i += 1;
         } else if (a == "-t" || a == "--radix") && i + 1 < args.len() {
-            radix = args[i + 1].chars().next();
+            radix_str = Some(args[i + 1].clone());
             i += 2;
         } else if let Some(rest) = a.strip_prefix("-t").or_else(|| a.strip_prefix("--radix="))
             && !rest.is_empty()
         {
-            radix = rest.chars().next();
+            radix_str = Some(rest.to_string());
             i += 1;
         } else if a == "-o" {
-            radix = Some('o');
+            radix_str = Some("o".to_string());
             i += 1;
         } else if a == "-f" || a == "--print-file-name" {
             print_file = true;
@@ -6157,12 +6678,12 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             separator = rest.to_string();
             i += 1;
         } else if (a == "-e" || a == "--encoding") && i + 1 < args.len() {
-            encoding = args[i + 1].chars().next().unwrap_or('s');
+            encoding_str = args[i + 1].clone();
             i += 2;
         } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--encoding="))
             && !rest.is_empty()
         {
-            encoding = rest.chars().next().unwrap_or('s');
+            encoding_str = rest.to_string();
             i += 1;
         } else if (a == "-U" || a == "--unicode") && i + 1 < args.len() {
             unicode_mode = args[i + 1].clone();
@@ -6172,22 +6693,101 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         {
             unicode_mode = rest.to_string();
             i += 1;
+        } else if (a == "-T" || a == "--target") && i + 1 < args.len() {
+            target_opt = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-T").or_else(|| a.strip_prefix("--target="))
+            && !rest.is_empty()
+        {
+            target_opt = Some(rest.to_string());
+            i += 1;
         } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
             let num_str = &a[1..];
             let parsed = if num_str.starts_with('0') && num_str.chars().all(|c| ('0'..='7').contains(&c)) {
-                usize::from_str_radix(num_str, 8).unwrap_or(4)
+                usize::from_str_radix(num_str, 8).ok()
+            } else if !num_str.starts_with('0') {
+                num_str.parse::<usize>().ok()
             } else {
-                num_str.parse().unwrap_or(4)
+                None
             };
-            min_len = parsed.max(1);
+            match parsed {
+                Some(v) if v >= 1 && v < 4_294_967_295 => min_len = v,
+                _ => return err_out(&format!("strings: invalid number '{num_str}'\n"), 1),
+            }
             i += 1;
-        } else if !a.starts_with('-') || a == "-" {
-            files.push(a.clone());
+        } else if a.starts_with("--") {
+            return err_out(&format!("strings: unrecognized option '{a}'\n"), 1);
+        } else if a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut c_idx = 0usize;
+            while c_idx < chars.len() {
+                let ch = chars[c_idx];
+                match ch {
+                    'a' => data_mode = false,
+                    'd' => data_mode = true,
+                    'f' => print_file = true,
+                    'o' => radix_str = Some("o".to_string()),
+                    'w' => include_ws = true,
+                    'n' | 's' | 't' | 'e' | 'U' | 'T' => {
+                        let rest: String = chars[c_idx + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out(
+                                &format!("strings: option requires an argument -- '{ch}'\n"),
+                                1,
+                            );
+                        };
+                        match ch {
+                            'n' => match val.parse::<usize>() {
+                                Ok(v) if v >= 1 => min_len = v,
+                                _ => return err_out(&format!("strings: invalid number '{val}'\n"), 1),
+                            },
+                            's' => separator = val,
+                            't' => radix_str = Some(val),
+                            'e' => encoding_str = val,
+                            'U' => unicode_mode = val,
+                            'T' => target_opt = Some(val),
+                            _ => {}
+                        }
+                        break;
+                    }
+                    _ => return err_out(&format!("strings: invalid option -- '{ch}'\n"), 1),
+                }
+                c_idx += 1;
+            }
             i += 1;
         } else {
+            files.push(a.clone());
             i += 1;
         }
     }
+
+    let radix: Option<char> = match radix_str.as_deref() {
+        None => None,
+        Some("d") => Some('d'),
+        Some("o") => Some('o'),
+        Some("x") => Some('x'),
+        Some(other) => return err_out(&format!("strings: invalid radix '{other}'\n"), 1),
+    };
+    if let Some(ref tgt) = target_opt
+        && tgt != "elf64-x86-64"
+        && tgt != "elf32-i386"
+    {
+        return err_out(&format!("strings: unsupported target '{tgt}'\n"), 1);
+    }
+    let mut encoding: char = match encoding_str.as_str() {
+        "s" => 's',
+        "S" => 'S',
+        "l" => 'l',
+        "b" => 'b',
+        "L" => 'L',
+        "B" => 'B',
+        other => return err_out(&format!("strings: invalid encoding '{other}'\n"), 1),
+    };
 
     let unicode = match unicode_mode.as_str() {
         "d" | "default" => "default",
@@ -6202,10 +6802,14 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         encoding = 'S';
     }
 
+    let non_dash: Vec<String> = files.iter().filter(|s| s.as_str() != "-").cloned().collect();
+    if !files.is_empty() && non_dash.is_empty() {
+        return err_out("strings: missing file operand after '-' (use no operands for stdin)\n", 1);
+    }
     let targets: Vec<String> = if files.is_empty() {
         vec!["-".to_string()]
     } else {
-        files
+        non_dash
     };
     let width: usize = match encoding {
         'b' | 'l' => 2,
@@ -6214,23 +6818,41 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     };
     let sep_bytes = crate::vfs::stream_string_to_bytes(&separator);
     let mut out_bytes: Vec<u8> = Vec::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
 
     for f in &targets {
         let data = if f == "-" {
             crate::vfs::stream_string_to_bytes(stdin)
         } else {
             let full = resolve_posix_path(cwd, f);
+            if fs.is_dir(&full) {
+                err_buf.push_str(&format!("strings: {f}: Is a directory\n"));
+                exit_code = 1;
+                continue;
+            }
             match fs.read_file(&full) {
                 Ok(b) => b,
-                Err(_) => return err_out(&format!("strings: {f}: No such file\n"), 1),
+                Err(_) => {
+                    err_buf.push_str(&format!("strings: {f}: No such file or directory\n"));
+                    exit_code = 1;
+                    continue;
+                }
             }
         };
 
-        let mut cur_bytes: Vec<u8> = Vec::new();
-        let mut char_count = 0usize;
-        let mut start_off = 0usize;
+        let regions: Vec<(usize, &[u8])> = if data_mode && f != "-" {
+            extract_strings_elf_regions(&data, target_opt.as_deref())
+        } else {
+            vec![(0usize, &data[..])]
+        };
 
-        let flush = |out: &mut Vec<u8>,
+        for (region_off, region_data) in regions {
+            let mut cur_bytes: Vec<u8> = Vec::new();
+            let mut char_count = 0usize;
+            let mut start_off = 0usize;
+
+            let flush = |out: &mut Vec<u8>,
                      cur: &mut Vec<u8>,
                      chars: &mut usize,
                      off: usize| {
@@ -6252,10 +6874,10 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             *chars = 0;
         };
 
-        if width == 1 {
-            let mut utf8: Vec<u8> = Vec::new();
-            let mut utf8_width = 0usize;
-            for (idx, &b) in data.iter().enumerate() {
+            if width == 1 {
+                let mut utf8: Vec<u8> = Vec::new();
+                let mut utf8_width = 0usize;
+                for (idx, &b) in region_data.iter().enumerate() {
                 let cur_b = b;
                 let mut reprocess = true;
                 while reprocess {
@@ -6289,7 +6911,7 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                             flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
                         } else if unicode == "locale" {
                             if char_count == 0 {
-                                start_off = idx + 1 - utf8.len();
+                                start_off = region_off + idx + 1 - utf8.len();
                             }
                             cur_bytes.extend_from_slice(&utf8);
                             char_count += 1;
@@ -6315,7 +6937,7 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                                 }
                             };
                             if char_count == 0 {
-                                start_off = idx + 1 - utf8.len();
+                                start_off = region_off + idx + 1 - utf8.len();
                             }
                             cur_bytes.extend_from_slice(text.as_bytes());
                             char_count += 1;
@@ -6333,7 +6955,7 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         || (include_ws && (10..=13).contains(&cur_b));
                     if ok {
                         if char_count == 0 {
-                            start_off = idx;
+                            start_off = region_off + idx;
                         }
                         cur_bytes.push(cur_b);
                         char_count += 1;
@@ -6342,13 +6964,13 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     }
                 }
             }
-        } else {
-            let little = encoding == 'l' || encoding == 'L';
-            let mut idx = 0usize;
-            while idx + width <= data.len() {
+            } else {
+                let little = encoding == 'l' || encoding == 'L';
+                let mut idx = 0usize;
+                while idx + width <= region_data.len() {
                 let mut code = 0u32;
                 for k in 0..width {
-                    let byte = data[idx + if little { width - 1 - k } else { k }] as u32;
+                    let byte = region_data[idx + if little { width - 1 - k } else { k }] as u32;
                     code = (code << 8) | byte;
                 }
                 let ok = code == 9
@@ -6356,7 +6978,7 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     || (include_ws && (10..=13).contains(&code));
                 if ok {
                     if char_count == 0 {
-                        start_off = idx;
+                        start_off = region_off + idx;
                     }
                     cur_bytes.push(code as u8);
                     char_count += 1;
@@ -6365,11 +6987,16 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 }
                 idx += width;
             }
+            }
+            flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
         }
-        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
     }
 
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn openssl_hash(name: &str, data: &[u8]) -> Vec<u8> {

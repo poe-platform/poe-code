@@ -11,7 +11,7 @@ from pip._vendor.packaging.requirements import Requirement as NativeRequirement
 from pip._vendor.packaging.utils import canonicalize_name,parse_wheel_filename
 from urllib.parse import urlsplit
 source=json.load(sys.stdin)
-selected=[node for node in ast.parse(source).body if isinstance(node,ast.AsyncFunctionDef) and node.name=='_safe_resolve']
+selected=[node for node in ast.parse(source).body if isinstance(node,(ast.AsyncFunctionDef,ast.ClassDef)) and node.name in ('_safe_resolve','_SafeRequirements')]
 calls=[]
 class Requirement(NativeRequirement):
  live=0
@@ -49,6 +49,10 @@ async def verify():
  assert calls[0].extras=={'feature'}
  assert calls[0].specifier.contains('1') and not calls[0].specifier.contains('2') and not calls[0].specifier.contains('3'),calls[0]
  assert pm.Transaction is Transaction
+ calls.clear()
+ await namespace['_safe_resolve']([Requirement('root[first]>=1'),Requirement('root[second]<3')])
+ assert len(calls)==2 and all(req.extras=={'first','second'} for req in calls),calls
+ assert calls[0].specifier.contains('3') and not calls[1].specifier.contains('3')
  calls.clear()
  await namespace['_safe_resolve']([Requirement('root>=1; python_version >= \"3\"')],constraints=['root<3'])
  assert len(calls)==1 and calls[0].specifier.contains('1')

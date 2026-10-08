@@ -15,7 +15,10 @@ class Name(str):
   obj=super().__new__(cls,value);cls.live+=1;return obj
  def __del__(self):Name.live-=1
 class Requirement:
- def __init__(self,name):self.name=name;self.marker=None;self.extras=set();self.url=None
+ live=0
+ def __init__(self,name):
+  self.name=name;self.marker=None;self.extras=set();self.url=None;Requirement.live+=1
+ def __del__(self):Requirement.live-=1
  def __str__(self):return self.name
 files={};directories={'/owned'};children={};serial=0;denied=False
 class File(io.StringIO):
@@ -49,18 +52,22 @@ pm=types.ModuleType('micropip.package_manager');pm.Transaction=type('Transaction
 micropip=types.ModuleType('micropip');micropip.package_manager=pm
 sys.modules['micropip']=micropip;sys.modules['micropip.package_manager']=pm
 async def install(*args,**kwargs):
- gc.collect();assert Name.live<=8,('requested/extras names retained during install',Name.live)
+ gc.collect();assert Requirement.live<=8,('parsed roots retained during install',Requirement.live)
+ assert Name.live<=8,('requested/extras names retained during install',Name.live)
 def distributions():
  for i in range(1024):
   yield types.SimpleNamespace(metadata={'Name':'package-'+str(i)},version='1',requires=[])
   assert Name.live<=8,('version names retained during scan',Name.live)
 namespace={'_SafeRequirement':Requirement,'_safe_name':Name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=distributions),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False,'_SafeMutableSet':MutableSet,'_safe_installation_root':'/owned'}
 tree=ast.parse(json.load(sys.stdin))
-selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.AsyncFunctionDef)) and n.name in ('_SafeNames','_SafeValues','_safe_resolve')]
+selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.AsyncFunctionDef)) and n.name in ('_SafeNames','_SafeValues','_SafeRequirements','_safe_parse_sources','_safe_resolve')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<package names>','exec'),namespace)
 with contextlib.ExitStack() as stack:
  for target,replacement in [('builtins.open',lambda path,mode='r',**kwargs:File(path,mode)),('tempfile.mkdtemp',temporary),('os.makedirs',mkdir),('os.unlink',unlink),('os.rmdir',rmdir)]:stack.enter_context(patch(target,replacement))
- managed=asyncio.run(namespace['_safe_resolve']([Requirement('package-'+str(i)) for i in range(1024)]))
+ roots=asyncio.run(namespace['_safe_parse_sources'](('package-'+str(i) for i in range(1024))))
+ gc.collect();assert Requirement.live<=4,('parsed source roots retained',Requirement.live)
+ managed=asyncio.run(namespace['_safe_resolve'](roots))
+ roots.close()
  gc.collect()
  assert len(managed)==1024
  assert Name.live<=4,('resolved names retained in guest',Name.live)

@@ -97,7 +97,7 @@ if _safe_indexes and len(_safe_indexes) > 1:
   return _safe_index.ProjectInfo(name, dict(sorted(releases.items())))
  _safe_index.query_package = _safe_query_all
 async def _safe_parse_sources(sources, download=True):
- roots = []
+ roots = _SafeRequirements()
  for source in sources:
   try:
    root = _SafeRequirement(source)
@@ -106,7 +106,7 @@ async def _safe_parse_sources(sources, download=True):
   except _SafeInvalidRequirement:
    wheel = _SafeWheelInfo.from_url(source)
    root = _SafeRequirement(wheel.name + ' @ ' + source)
-  roots.append(root)
+  roots.put(str(len(roots)), str(root))
   if (not root.marker or root.marker.evaluate({'extra': ''})) and root.url:
    direct = _SafeWheelInfo.from_url(root.url)
    _safe_check_compatible(direct.filename)
@@ -205,6 +205,13 @@ class _SafeValues(_SafeNames):
   if name not in self:return default
   with open(self.path(name, 'value'), encoding='utf-8') as source:return json.load(source)
 
+class _SafeRequirements(_SafeValues):
+ def __init__(self, requirements=()):
+  super().__init__()
+  for requirement in requirements:self.put(str(len(self)), str(requirement))
+ def __iter__(self):
+  for key in super().__iter__():yield _SafeRequirement(self.get(key))
+
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = _SafeValues()
  for source in constraints:
@@ -230,14 +237,15 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
     raise ValueError('Python package constraint conflict: ' + str(requirement))
    requirement.specifier = _SafeRequirement(requirement.name).specifier
   return requirement
- _safe_roots = [constrain(root) for root in _safe_roots if not root.marker or root.marker.evaluate({'extra': ''})]
+ _safe_roots = _SafeRequirements(constrain(root) for root in _safe_roots if not root.marker or root.marker.evaluate({'extra': ''}))
  _safe_extras = _SafeValues()
  for _safe_root in _safe_roots:
   if not _safe_root.marker or _safe_root.marker.evaluate({'extra': ''}):
    name = _safe_name(_safe_root.name)
    _safe_extras.put(name, sorted(set(_safe_extras.get(name, ())) | _safe_root.extras))
- for _safe_root in _safe_roots:
+ for index, _safe_root in enumerate(_safe_roots):
   _safe_root.extras.update(_safe_extras.get(_safe_name(_safe_root.name), set()))
+  _safe_roots.put(str(index), str(_safe_root))
  _safe_requested_names = _SafeNames(_safe_extras)
  import micropip.package_manager as _safe_pm
  _SafeTransaction = _safe_pm.Transaction
@@ -264,11 +272,12 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
    await _safe_manager.install(requirements, deps=not no_deps, pre=_safe_package_pre, reinstall=True, **({'constraints': list(constraints)} if constraints else {}))
   finally:
    _safe_pm.Transaction = _SafeTransaction
- _safe_validate([root for root in _safe_roots if _safe_name(root.name) in _safe_preloaded])
+ _safe_validate(root for root in _safe_roots if _safe_name(root.name) in _safe_preloaded)
  await _safe_install([str(root) for root in _safe_roots])
  _safe_managed = _SafeNames(_safe_requested_names)
  if no_deps:
   _safe_validate(_safe_roots)
+  _safe_roots.close()
   _safe_constraints.close()
   _safe_extras.close()
   _safe_requested_names.close()
@@ -326,6 +335,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
   await _safe_install(sorted(_safe_pending))
  _safe_validate(_safe_roots)
  _safe_versions.close()
+ _safe_roots.close()
  _safe_constraints.close()
  _safe_extras.close()
  _safe_requested_names.close()
@@ -426,16 +436,19 @@ else:
  _safe_restored_names = _SafeNames(_safe_name(root.name) for root in _safe_restored_roots if not root.marker or root.marker.evaluate({'extra': ''}))
 if _safe_metadata_only and (len(_safe_record_by_name) != len(_safe_restored_names) or any(name not in _safe_record_by_name for name in _safe_restored_names)):
  raise ValueError('Python package metadata snapshot does not match installed requirements')
+_safe_restored_roots.close()
 _safe_restoring = False
 _safe_roots = await _safe_parse_sources(_safe_json.loads(_safe_package_requirements_json), not _safe_metadata_only)
 if _safe_metadata_only:
- for _safe_root in _safe_roots:
+ for _safe_root_index, _safe_root in enumerate(_safe_roots):
   if _safe_root.url and _safe_snapshot_path(_safe_name(_safe_root.name)) is not None:
    _safe_wheel = _SafeWheelInfo.from_url(_safe_root.url)
    if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_metadata.version(_safe_root.name):
     _safe_root.url = None
     _safe_root.specifier = _SafeRequirement(_safe_root.name + '==' + str(_safe_wheel.version)).specifier
+    _safe_roots.put(str(_safe_root_index), str(_safe_root))
 _safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall, _safe_json.loads(_safe_package_constraints_json), _safe_package_noDeps)
+_safe_roots.close()
 _safe_removed = []
 if _safe_uninstall:
  _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))

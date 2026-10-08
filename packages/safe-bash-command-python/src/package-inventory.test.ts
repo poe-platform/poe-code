@@ -55,7 +55,7 @@ async def emit(channel, value): output.append((channel, value))
 async def line(): return 'n'
 records = {name:[name, 'metadata', '', [], [], None] for name in ('active','remove')}
 namespace = {
- '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':[], '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
+ '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
  '_safe_uninstall':None if mode == 'install' else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
@@ -63,7 +63,7 @@ namespace = {
  '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records else None, '_safe_record_by_name':records,
 }
 asyncio.run(eval(code, namespace))
-assert closed == [namespace['_safe_managed'],namespace['_safe_restored_names']]
+assert closed == [namespace['_safe_roots'],namespace['_safe_managed'],namespace['_safe_restored_names']]
 expected = ['file:///active.whl', 'active==1']
 # Origins keep the normalized package name in the saved direct requirement.
 expected[0] = 'active @ ' + expected[0]

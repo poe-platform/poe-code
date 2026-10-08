@@ -10,8 +10,8 @@ from pip._vendor.packaging.requirements import Requirement
 from pip._vendor.packaging.utils import canonicalize_name
 source, stalls, no_deps = json.load(sys.stdin)
 tree = ast.parse(source)
-selected = [node for node in tree.body if isinstance(node, ast.AsyncFunctionDef) and node.name == '_safe_resolve']
-assert len(selected) == 1
+selected = [node for node in tree.body if isinstance(node, (ast.AsyncFunctionDef, ast.ClassDef)) and node.name in ('_safe_resolve', '_SafeRequirements')]
+assert len(selected) == 2
 live = peak = 0
 versions = {'root':'1', 'child':'1'}
 calls = []

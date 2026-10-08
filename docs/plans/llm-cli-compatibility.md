@@ -237,7 +237,11 @@ remain materialized. Constraint sources are indexed in caller storage after eage
 validation, with matching constraints parsed on demand; original constraints still
 reach native installation unchanged. Resolution retires the constraint index on
 normal and no-deps returns. Per-package constraint lists remain materialized.
-This does not bound host manifests, root records, native constraint inputs,
+Parsed source roots and filtered resolver roots now use ordered caller-backed
+records; duplicate-root extras are explicitly persisted before native installation.
+Restoration, normal resolution and no-deps resolution retire their root records.
+Native installation still materializes its input list.
+This does not bound host manifests, native requirement/constraint inputs,
 pending requirements and convergence signatures, final inventory collections,
 native executable allocation, or the remaining ZIP fallback.
 JSPI package transfers and native metadata filesystem operations share one dispatch

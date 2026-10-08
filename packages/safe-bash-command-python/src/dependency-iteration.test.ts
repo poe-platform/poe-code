@@ -31,7 +31,7 @@ async def install(requirements,**options):
   distributions.append(dist('leaf','2'))
 namespace={'_SafeRequirement':Requirement,'_safe_name':canonicalize_name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=lambda:iter(distributions)),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False}
 tree=ast.parse(json.load(sys.stdin))
-selected=[n for n in tree.body if isinstance(n,ast.AsyncFunctionDef) and n.name=='_safe_resolve']
+selected=[n for n in tree.body if isinstance(n,(ast.AsyncFunctionDef,ast.ClassDef)) and n.name in ('_safe_resolve','_SafeRequirements')]
 class Names(set):
  def close(self):pass
 class Values(dict):

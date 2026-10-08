@@ -28,7 +28,7 @@ pub fn try_run_structured_command(
         "in2csv" => Some(cmd_in2csv(args, stdin, cwd, fs)),
         "csvformat" => Some(cmd_csvformat(args, stdin, cwd, fs)),
         "csvlook" => Some(cmd_csvlook(args, stdin, cwd, fs)),
-        "csvsql" | "sql2csv" => Some(cmd_csvsql(args, stdin, cwd, fs)),
+        "csvsql" | "sql2csv" => Some(cmd_csvsql(cmd, args, stdin, cwd, fs)),
         "csvclean" => Some(cmd_csvclean(args, stdin, cwd, fs)),
         "htmlq" => Some(cmd_htmlq(args, stdin, cwd, fs)),
         "mdq" => Some(cmd_mdq(args, stdin, cwd, fs)),
@@ -929,8 +929,8 @@ fn eval_jq(
                 .unwrap_or(JVal::Null);
             let ord = compare_jval(&lv, &rv);
             let res = match cmp_op {
-                "==" => lv == rv,
-                "!=" => lv != rv,
+                "==" => jval_eq(&lv, &rv),
+                "!=" => !jval_eq(&lv, &rv),
                 "<=" => ord != std::cmp::Ordering::Greater,
                 ">=" => ord != std::cmp::Ordering::Less,
                 "<" => ord == std::cmp::Ordering::Less,
@@ -1676,6 +1676,27 @@ fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
             lv.type_name(),
             rv.type_name()
         )),
+    }
+}
+
+fn jval_eq(a: &JVal, b: &JVal) -> bool {
+    match (a, b) {
+        (JVal::Null, JVal::Null) => true,
+        (JVal::Bool(x), JVal::Bool(y)) => x == y,
+        (JVal::Number(x), JVal::Number(y)) => clean_jval_num(*x) == clean_jval_num(*y),
+        (JVal::Str(x), JVal::Str(y)) => x == y,
+        (JVal::Array(x), JVal::Array(y)) => {
+            x.len() == y.len() && x.iter().zip(y.iter()).all(|(xi, yi)| jval_eq(xi, yi))
+        }
+        (JVal::Object(x), JVal::Object(y)) => {
+            x.len() == y.len()
+                && x.iter().all(|(k, vx)| {
+                    y.iter()
+                        .find(|(ky, _)| ky == k)
+                        .is_some_and(|(_, vy)| jval_eq(vx, vy))
+                })
+        }
+        _ => false,
     }
 }
 
@@ -5816,17 +5837,38 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
 }
 
 fn parse_csv_rows(text: &str, delim: char) -> Vec<Vec<String>> {
+    parse_csv_rows_opts(text, delim, '"', false, 0)
+}
+
+fn parse_csv_rows_opts(
+    text: &str,
+    delim: char,
+    quotechar: char,
+    skip_initial_space: bool,
+    skip_lines: usize,
+) -> Vec<Vec<String>> {
+    let stripped = text.strip_prefix('\u{feff}').unwrap_or(text);
+    let mut skipped_text = stripped;
+    for _ in 0..skip_lines {
+        if let Some(pos) = skipped_text.find('\n') {
+            skipped_text = &skipped_text[pos + 1..];
+        } else {
+            return Vec::new();
+        }
+    }
+
     let mut rows = Vec::new();
     let mut cur_row = Vec::new();
     let mut cur_cell = String::new();
     let mut in_quotes = false;
-    let mut chars = text.chars().peekable();
+    let mut at_field_start = true;
+    let mut chars = skipped_text.chars().peekable();
 
     while let Some(c) = chars.next() {
         if in_quotes {
-            if c == '"' {
-                if chars.peek() == Some(&'"') {
-                    cur_cell.push('"');
+            if c == quotechar {
+                if chars.peek() == Some(&quotechar) {
+                    cur_cell.push(quotechar);
                     chars.next();
                 } else {
                     in_quotes = false;
@@ -5834,10 +5876,14 @@ fn parse_csv_rows(text: &str, delim: char) -> Vec<Vec<String>> {
             } else {
                 cur_cell.push(c);
             }
-        } else if c == '"' {
+        } else if at_field_start && skip_initial_space && c == ' ' && delim != ' ' {
+            continue;
+        } else if at_field_start && c == quotechar {
             in_quotes = true;
+            at_field_start = false;
         } else if c == delim {
             cur_row.push(std::mem::take(&mut cur_cell));
+            at_field_start = true;
         } else if c == '\r' {
             continue;
         } else if c == '\n' {
@@ -5847,8 +5893,10 @@ fn parse_csv_rows(text: &str, delim: char) -> Vec<Vec<String>> {
             } else {
                 cur_row.clear();
             }
+            at_field_start = true;
         } else {
             cur_cell.push(c);
+            at_field_start = false;
         }
     }
     if !cur_cell.is_empty() || !cur_row.is_empty() {
@@ -5862,7 +5910,7 @@ fn format_csv_row(row: &[String], delim: char) -> String {
     let cells: Vec<String> = row
         .iter()
         .map(|c| {
-            if c.contains(delim) || c.contains('"') || c.contains('\n') {
+            if c.contains(delim) || c.contains('"') || c.contains('\n') || c.contains('\r') {
                 format!("\"{}\"", c.replace('"', "\"\""))
             } else {
                 c.clone()
@@ -5872,36 +5920,199 @@ fn format_csv_row(row: &[String], delim: char) -> String {
     format!("{}\n", cells.join(&delim.to_string()))
 }
 
-fn resolve_csv_col_indices(spec: &str, headers: &[String]) -> Vec<usize> {
-    let mut out = Vec::new();
-    for part in spec.split(',') {
-        let p = part.trim();
-        if let Some((a, b)) = p.split_once('-') {
-            let start = a.parse::<usize>().unwrap_or(1).saturating_sub(1);
-            let end = b.parse::<usize>().unwrap_or(headers.len()).min(headers.len());
-            for idx in start..end {
-                out.push(idx);
+fn default_csvkit_col_name(index: usize) -> String {
+    let mut n = index;
+    let mut chars = Vec::new();
+    loop {
+        chars.push((b'a' + (n % 26) as u8) as char);
+        if n < 26 {
+            break;
+        }
+        n = n / 26 - 1;
+    }
+    chars.reverse();
+    chars.into_iter().collect()
+}
+
+fn default_csvkit_headers(count: usize) -> Vec<String> {
+    (0..count).map(default_csvkit_col_name).collect()
+}
+
+fn normalize_csvkit_headers(raw_headers: &[String]) -> Vec<String> {
+    let mut out: Vec<String> = Vec::with_capacity(raw_headers.len());
+    for (idx, h) in raw_headers.iter().enumerate() {
+        let base = if h.is_empty() {
+            default_csvkit_col_name(idx)
+        } else {
+            h.clone()
+        };
+        if !out.contains(&base) {
+            out.push(base);
+        } else {
+            let mut suffix = 2usize;
+            loop {
+                let cand = format!("{base}_{suffix}");
+                if !out.contains(&cand) {
+                    out.push(cand);
+                    break;
+                }
+                suffix += 1;
             }
-        } else if let Ok(n) = p.parse::<usize>() {
-            if n >= 1 && n <= headers.len() {
-                out.push(n - 1);
-            }
-        } else if let Some(pos) = headers.iter().position(|h| h == p) {
-            out.push(pos);
         }
     }
     out
 }
 
-fn read_csv_input(files: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
+#[allow(dead_code)]
+fn resolve_csv_col_indices(spec: &str, headers: &[String]) -> Vec<usize> {
+    resolve_csv_col_indices_opts(spec, headers, false)
+}
+
+fn resolve_csv_col_indices_opts(spec: &str, headers: &[String], zero_based: bool) -> Vec<usize> {
+    let base = if zero_based { 0isize } else { 1isize };
+    let resolve_single = |token: &str| -> Option<usize> {
+        if let Ok(n) = token.parse::<isize>() {
+            let idx = n - base;
+            if idx >= 0 && (idx as usize) < headers.len() {
+                return Some(idx as usize);
+            }
+        }
+        headers.iter().position(|h| h == token)
+    };
+    let mut out = Vec::new();
+    for part in spec.split(',') {
+        let p = part.trim();
+        if p.is_empty() {
+            continue;
+        }
+        if let Some(pos) = headers.iter().position(|h| h == p) {
+            out.push(pos);
+            continue;
+        }
+        if let Some((a, b)) = p.split_once('-') {
+            if headers.is_empty() {
+                continue;
+            }
+            let start = if a.trim().is_empty() {
+                0usize
+            } else if let Some(idx) = resolve_single(a.trim()) {
+                idx
+            } else {
+                continue;
+            };
+            let end = if b.trim().is_empty() {
+                headers.len().saturating_sub(1)
+            } else if let Some(idx) = resolve_single(b.trim()) {
+                idx
+            } else {
+                headers.len().saturating_sub(1)
+            };
+            if start <= end {
+                for idx in start..=end.min(headers.len().saturating_sub(1)) {
+                    out.push(idx);
+                }
+            } else {
+                let mut idx = start.min(headers.len().saturating_sub(1));
+                loop {
+                    out.push(idx);
+                    if idx <= end {
+                        break;
+                    }
+                    idx -= 1;
+                }
+            }
+        } else if let Some(idx) = resolve_single(p) {
+            out.push(idx);
+        }
+    }
+    out
+}
+
+fn resolve_csvkit_columns(
+    cols_spec: Option<&str>,
+    not_cols_spec: Option<&str>,
+    headers: &[String],
+    zero_based: bool,
+) -> Vec<usize> {
+    let mut selected: Vec<usize> = if let Some(spec) = cols_spec {
+        resolve_csv_col_indices_opts(spec, headers, zero_based)
+    } else {
+        (0..headers.len()).collect()
+    };
+    if let Some(not_spec) = not_cols_spec {
+        let excluded = resolve_csv_col_indices_opts(not_spec, headers, zero_based);
+        selected.retain(|idx| !excluded.contains(idx));
+    }
+    selected
+}
+
+fn decompress_gzip_if_needed(bytes: &[u8]) -> Vec<u8> {
+    if bytes.len() >= 18 && bytes[0] == 0x1f && bytes[1] == 0x8b {
+        let flg = bytes[3];
+        let mut pos = 10usize;
+        if (flg & 0x04) != 0 && pos + 2 <= bytes.len() {
+            let xlen = u16::from_le_bytes([bytes[pos], bytes[pos + 1]]) as usize;
+            pos += 2 + xlen;
+        }
+        if (flg & 0x08) != 0 {
+            while pos < bytes.len() && bytes[pos] != 0 {
+                pos += 1;
+            }
+            pos += 1;
+        }
+        if (flg & 0x10) != 0 {
+            while pos < bytes.len() && bytes[pos] != 0 {
+                pos += 1;
+            }
+            pos += 1;
+        }
+        if (flg & 0x02) != 0 {
+            pos += 2;
+        }
+        let mut out = Vec::new();
+        let mut ok = true;
+        while pos + 5 <= bytes.len().saturating_sub(8) {
+            let hdr = bytes[pos];
+            let btype = (hdr >> 1) & 0x03;
+            if btype != 0 {
+                ok = false;
+                break;
+            }
+            let bfinal = (hdr & 0x01) != 0;
+            let len = u16::from_le_bytes([bytes[pos + 1], bytes[pos + 2]]) as usize;
+            pos += 5;
+            if pos + len + 8 > bytes.len() {
+                ok = false;
+                break;
+            }
+            out.extend_from_slice(&bytes[pos..pos + len]);
+            pos += len;
+            if bfinal {
+                break;
+            }
+        }
+        if ok {
+            return out;
+        }
+    }
+    bytes.to_vec()
+}
+
+fn read_csv_bytes_input(files: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<Vec<u8>, String> {
     if files.is_empty() || files[0] == "-" {
-        return Ok(stdin.to_string());
+        return Ok(decompress_gzip_if_needed(stdin.as_bytes()));
     }
     let full = resolve_posix_path(cwd, &files[0]);
     let bytes = fs
         .read_file(&full)
         .map_err(|_| format!("{}: No such file or directory\n", files[0]))?;
-    Ok(String::from_utf8_lossy(&bytes).into_owned())
+    Ok(decompress_gzip_if_needed(&bytes))
+}
+
+fn read_csv_input(files: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
+    let bytes = read_csv_bytes_input(files, stdin, cwd, fs)?;
+    let s = String::from_utf8_lossy(&bytes).into_owned();
+    Ok(s.strip_prefix('\u{feff}').unwrap_or(&s).to_string())
 }
 
 fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -5910,6 +6121,12 @@ fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut list_names = false;
     let mut delete_empty = false;
     let mut line_numbers = false;
+    let mut no_header_row = false;
+    let mut zero_based = false;
+    let mut add_bom = false;
+    let mut skip_initial_space = false;
+    let mut skip_lines = 0usize;
+    let mut quotechar = '"';
     let mut delim = ',';
     let mut files = Vec::new();
 
@@ -5919,10 +6136,22 @@ fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "-n" | "--names" => list_names = true,
             "-x" | "--delete-empty-rows" => delete_empty = true,
             "-l" | "--linenumbers" => line_numbers = true,
+            "-H" | "--no-header-row" => no_header_row = true,
+            "--zero" => zero_based = true,
+            "--add-bom" => add_bom = true,
+            "-S" | "--skipinitialspace" => skip_initial_space = true,
             "-t" | "--tabs" => delim = '\t',
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
                 delim = args[i].chars().next().unwrap_or(',');
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
             }
             "-c" | "--columns" if i + 1 < args.len() => {
                 i += 1;
@@ -5932,57 +6161,93 @@ fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 i += 1;
                 not_cols_spec = Some(args[i].clone());
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "-u" | "--quoting" | "-p" | "--escapechar" | "-z" | "--maxfieldsize" | "-e" | "--encoding"
+                if i + 1 < args.len() =>
+            {
+                i += 1;
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
+    }
+
+    if list_names && no_header_row {
+        return err_out(
+            "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n",
+            1,
+        );
     }
 
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvcut: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
-        return ok_out("");
-    }
-    let headers = &rows[0];
-    if list_names {
+        if list_names {
+            return ok_out("");
+        }
         let mut out = String::new();
-        for (idx, h) in headers.iter().enumerate() {
-            out.push_str(&format!("{:3}: {h}\n", idx + 1));
+        if add_bom {
+            out.push('\u{feff}');
+        }
+        if line_numbers {
+            out.push_str("line_number\n");
+        } else {
+            out.push('\n');
         }
         return ok_out(&out);
     }
 
-    let selected: Vec<usize> = if let Some(spec) = cols_spec {
-        resolve_csv_col_indices(&spec, headers)
-    } else if let Some(not_spec) = not_cols_spec {
-        let excluded = resolve_csv_col_indices(&not_spec, headers);
-        (0..headers.len())
-            .filter(|idx| !excluded.contains(idx))
-            .collect()
+    let headers: Vec<String> = if no_header_row {
+        default_csvkit_headers(rows[0].len())
     } else {
-        (0..headers.len()).collect()
+        rows[0].clone()
     };
 
+    if list_names {
+        let base = if zero_based { 0usize } else { 1usize };
+        let mut out = String::new();
+        for (idx, h) in headers.iter().enumerate() {
+            out.push_str(&format!("{:3}: {h}\n", idx + base));
+        }
+        return ok_out(&out);
+    }
+
+    let selected = resolve_csvkit_columns(
+        cols_spec.as_deref(),
+        not_cols_spec.as_deref(),
+        &headers,
+        zero_based,
+    );
+
     let mut out = String::new();
+    if add_bom {
+        out.push('\u{feff}');
+    }
+    let mut header_row: Vec<String> = selected
+        .iter()
+        .map(|&idx| headers.get(idx).cloned().unwrap_or_default())
+        .collect();
+    if line_numbers {
+        header_row.insert(0, "line_number".to_string());
+    }
+    out.push_str(&format_csv_row(&header_row, ','));
+
+    let data_start = if no_header_row { 0 } else { 1 };
     let mut emitted_row_num = 0usize;
-    for (r_idx, row) in rows.iter().enumerate() {
+    for row in &rows[data_start..] {
         let mut projected: Vec<String> = selected
             .iter()
             .map(|&idx| row.get(idx).cloned().unwrap_or_default())
             .collect();
-        if delete_empty && r_idx > 0 && projected.iter().all(|c| c.is_empty()) {
+        if delete_empty && projected.iter().all(|c| c.is_empty()) {
             continue;
         }
         if line_numbers {
-            if r_idx == 0 {
-                projected.insert(0, "line_number".to_string());
-            } else {
-                emitted_row_num += 1;
-                projected.insert(0, emitted_row_num.to_string());
-            }
+            emitted_row_num += 1;
+            projected.insert(0, emitted_row_num.to_string());
         }
         out.push_str(&format_csv_row(&projected, ','));
     }
@@ -5990,25 +6255,50 @@ fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
 }
 
 fn cmd_csvgrep(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut cols_spec = String::new();
+    let mut cols_spec: Option<String> = None;
     let mut match_str: Option<String> = None;
     let mut regex_str: Option<String> = None;
+    let mut match_file: Option<String> = None;
     let mut invert = false;
+    let mut any_match = false;
+    let mut list_names = false;
+    let mut line_numbers = false;
+    let mut no_header_row = false;
+    let mut zero_based = false;
+    let mut add_bom = false;
+    let mut skip_initial_space = false;
+    let mut skip_lines = 0usize;
+    let mut quotechar = '"';
     let mut delim = ',';
     let mut files = Vec::new();
 
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
+            "-n" | "--names" => list_names = true,
             "-i" | "--invert-match" => invert = true,
+            "-a" | "--any-match" => any_match = true,
+            "-l" | "--linenumbers" => line_numbers = true,
+            "-H" | "--no-header-row" => no_header_row = true,
+            "--zero" => zero_based = true,
+            "--add-bom" => add_bom = true,
+            "-S" | "--skipinitialspace" => skip_initial_space = true,
             "-t" | "--tabs" => delim = '\t',
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
                 delim = args[i].chars().next().unwrap_or(',');
             }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
             "-c" | "--columns" if i + 1 < args.len() => {
                 i += 1;
-                cols_spec = args[i].clone();
+                cols_spec = Some(args[i].clone());
             }
             "-m" | "--match" if i + 1 < args.len() => {
                 i += 1;
@@ -6018,252 +6308,676 @@ fn cmd_csvgrep(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 i += 1;
                 regex_str = Some(args[i].clone());
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "-f" | "--file" if i + 1 < args.len() => {
+                i += 1;
+                match_file = Some(args[i].clone());
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
+    }
+
+    if list_names && no_header_row {
+        return err_out(
+            "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n",
+            1,
+        );
     }
 
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvgrep: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
         return ok_out("");
     }
-    let headers = &rows[0];
-    let col_indices = if cols_spec.is_empty() {
-        (0..headers.len()).collect()
+    if list_names {
+        let base = if zero_based { 0usize } else { 1usize };
+        let mut out = String::new();
+        for (idx, h) in rows[0].iter().enumerate() {
+            out.push_str(&format!("{:3}: {h}\n", idx + base));
+        }
+        return ok_out(&out);
+    }
+
+    let match_set: Option<Vec<String>> = if let Some(ref mf) = match_file {
+        let full = resolve_posix_path(cwd, mf);
+        match fs.read_file(&full) {
+            Ok(bytes) => {
+                let s = String::from_utf8_lossy(&bytes);
+                Some(s.lines().map(|l| l.trim_end().to_string()).collect())
+            }
+            Err(e) => return err_out(&format!("csvgrep: {mf}: {e}\n"), 1),
+        }
     } else {
-        resolve_csv_col_indices(&cols_spec, headers)
+        None
+    };
+
+    let data_headers: Vec<String> = if no_header_row {
+        default_csvkit_headers(rows[0].len())
+    } else {
+        rows[0].clone()
+    };
+    let (col_indices, use_any): (Vec<usize>, bool) = if let Some(ref spec) = cols_spec {
+        (resolve_csv_col_indices_opts(spec, &data_headers, zero_based), any_match)
+    } else {
+        ((0..data_headers.len()).collect(), true)
+    };
+
+    let out_headers: Vec<String> = if line_numbers {
+        if no_header_row {
+            default_csvkit_headers(rows[0].len() + 1)
+        } else {
+            let mut h = vec!["line_numbers".to_string()];
+            h.extend(rows[0].iter().cloned());
+            h
+        }
+    } else {
+        data_headers.clone()
     };
 
     let rx = regex_str.map(|p| ZeroRegex::new(vec![p], false, false, false, false));
-    let mut out = format_csv_row(headers, ',');
+    let mut out = String::new();
+    if add_bom {
+        out.push('\u{feff}');
+    }
+    out.push_str(&format_csv_row(&out_headers, ','));
 
-    for row in &rows[1..] {
-        let mut matched = false;
-        for &c_idx in &col_indices {
-            let cell = row.get(c_idx).map(|s| s.as_str()).unwrap_or("");
-            if let Some(ref m) = match_str {
-                if cell.contains(m.as_str()) {
-                    matched = true;
-                    break;
-                }
+    let data_start = if no_header_row { 0 } else { 1 };
+    for (data_idx, row) in rows[data_start..].iter().enumerate() {
+        let cell_matches = |cell: &str| -> bool {
+            if let Some(ref mset) = match_set {
+                mset.iter().any(|p| p == cell)
+            } else if let Some(ref m) = match_str {
+                cell.contains(m.as_str())
             } else if let Some(ref r) = rx {
-                if r.is_match(cell) {
-                    matched = true;
-                    break;
-                }
+                r.is_match(cell)
+            } else {
+                false
             }
-        }
+        };
+        let matched = if use_any {
+            col_indices
+                .iter()
+                .any(|&c_idx| cell_matches(row.get(c_idx).map(|s| s.as_str()).unwrap_or("")))
+        } else {
+            !col_indices.is_empty()
+                && col_indices
+                    .iter()
+                    .all(|&c_idx| cell_matches(row.get(c_idx).map(|s| s.as_str()).unwrap_or("")))
+        };
         if matched ^ invert {
-            out.push_str(&format_csv_row(row, ','));
+            if line_numbers {
+                let mut out_row = vec![(data_idx + 1).to_string()];
+                out_row.extend(row.iter().cloned());
+                out.push_str(&format_csv_row(&out_row, ','));
+            } else {
+                out.push_str(&format_csv_row(row, ','));
+            }
         }
     }
     ok_out(&out)
 }
 
+fn format_csvkit_num(n: f64) -> String {
+    let rounded = (n * 1_000_000.0).round() / 1_000_000.0;
+    let norm = if rounded == 0.0 { 0.0 } else { rounded };
+    if norm.fract() == 0.0 && norm.abs() < 1e15 {
+        format!("{}", norm as i64)
+    } else {
+        format!("{norm}")
+    }
+}
+
+fn is_csvkit_num_str(s: &str, allow_leading_zero: bool) -> bool {
+    let t = s.trim();
+    if t.is_empty() {
+        return false;
+    }
+    let unsigned = t.strip_prefix('+').or_else(|| t.strip_prefix('-')).unwrap_or(t);
+    if !allow_leading_zero
+        && unsigned.len() > 1
+        && unsigned.starts_with('0')
+        && unsigned.as_bytes()[1].is_ascii_digit()
+    {
+        return false;
+    }
+    t.parse::<f64>().map(|v| v.is_finite()).unwrap_or(false)
+}
+
+fn format_jval_with_indent(val: &JVal, indent_opt: Option<usize>, depth: usize) -> String {
+    let Some(spaces) = indent_opt.filter(|&s| s > 0) else {
+        return val.to_json_string(true, false, 0);
+    };
+    match val {
+        JVal::Array(items) => {
+            if items.is_empty() {
+                return "[]".to_string();
+            }
+            let pad = " ".repeat((depth + 1) * spaces);
+            let close_pad = " ".repeat(depth * spaces);
+            let parts: Vec<String> = items
+                .iter()
+                .map(|v| format!("{pad}{}", format_jval_with_indent(v, indent_opt, depth + 1)))
+                .collect();
+            format!("[\n{}\n{close_pad}]", parts.join(",\n"))
+        }
+        JVal::Object(entries) => {
+            if entries.is_empty() {
+                return "{}".to_string();
+            }
+            let pad = " ".repeat((depth + 1) * spaces);
+            let close_pad = " ".repeat(depth * spaces);
+            let parts: Vec<String> = entries
+                .iter()
+                .map(|(k, v)| {
+                    format!(
+                        "{pad}{}: {}",
+                        escape_json_str(k),
+                        format_jval_with_indent(v, indent_opt, depth + 1)
+                    )
+                })
+                .collect();
+            format!("{{\n{}\n{close_pad}}}", parts.join(",\n"))
+        }
+        _ => val.to_json_string(true, false, 0),
+    }
+}
+
 fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut count_only = false;
-    let mut want_sum = false;
-    let mut want_mean = false;
-    let mut want_min = false;
-    let mut want_max = false;
-    let mut want_median = false;
+    let mut list_names = false;
+    let mut no_header_row = false;
+    let mut zero_based = false;
+    let mut no_inference = false;
     let mut csv_out = false;
-    let mut cols_spec: Option<String> = None;
+    let mut json_out = false;
+    let mut indent: Option<usize> = None;
+    let mut freq_count = 5usize;
+    let mut skip_lines = 0usize;
+    let mut skip_initial_space = false;
+    let mut quotechar = '"';
     let mut delim = ',';
+    let mut cols_spec: Option<String> = None;
+    let mut single_op: Option<&str> = None;
     let mut files = Vec::new();
+
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "--count" => count_only = true,
-            "--sum" => want_sum = true,
-            "--mean" => want_mean = true,
-            "--min" => want_min = true,
-            "--max" => want_max = true,
-            "--median" => want_median = true,
+            "-n" | "--names" => list_names = true,
+            "-H" | "--no-header-row" => no_header_row = true,
+            "--zero" => zero_based = true,
+            "-I" | "--no-inference" => no_inference = true,
             "--csv" => csv_out = true,
+            "--json" => json_out = true,
+            "-S" | "--skipinitialspace" => skip_initial_space = true,
             "-t" | "--tabs" => delim = '\t',
+            "--type" => single_op = Some("type"),
+            "--nulls" => single_op = Some("nulls"),
+            "--non-nulls" => single_op = Some("nonnulls"),
+            "--unique" => single_op = Some("unique"),
+            "--min" => single_op = Some("min"),
+            "--max" => single_op = Some("max"),
+            "--sum" => single_op = Some("sum"),
+            "--mean" => single_op = Some("mean"),
+            "--median" => single_op = Some("median"),
+            "--stdev" => single_op = Some("stdev"),
+            "--len" => single_op = Some("len"),
+            "--max-precision" => single_op = Some("maxprecision"),
+            "--freq" => single_op = Some("freq"),
+            "-i" | "--indent" if i + 1 < args.len() => {
+                i += 1;
+                indent = args[i].parse::<usize>().ok();
+            }
+            "--freq-count" if i + 1 < args.len() => {
+                i += 1;
+                freq_count = args[i].parse::<usize>().unwrap_or(5).max(1);
+            }
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse::<usize>().unwrap_or(0);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
-                delim = args[i].chars().next().unwrap_or(',');
+                delim = if args[i] == "\\t" || args[i] == "tab" {
+                    '\t'
+                } else {
+                    args[i].chars().next().unwrap_or(',')
+                };
             }
             "-c" | "--columns" if i + 1 < args.len() => {
                 i += 1;
                 cols_spec = Some(args[i].clone());
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "-e" | "--encoding" | "-y" | "--snifflimit" | "--decimal-format" if i + 1 < args.len() => {
+                i += 1;
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
+
+    if list_names && no_header_row {
+        return err_out(
+            "RequiredHeaderError: You cannot use --no-header-row with the -n or --names options.\n",
+            1,
+        );
+    }
+
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvstat: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
-        return ok_out("0\n");
+        return if count_only { ok_out("0\n") } else { ok_out("") };
     }
-    let data_count = rows.len().saturating_sub(1);
-    if count_only {
-        return ok_out(&format!("{data_count}\n"));
-    }
-    let headers = &rows[0];
-    let data = &rows[1..];
-    let col_indices = if let Some(ref spec) = cols_spec {
-        resolve_csv_col_indices(spec, headers)
+    let (headers, data): (Vec<String>, &[Vec<String>]) = if no_header_row {
+        (default_csvkit_headers(rows[0].len()), &rows[..])
     } else {
-        (0..headers.len()).collect()
+        (normalize_csvkit_headers(&rows[0]), &rows[1..])
     };
 
-    let fmt_num = |n: f64| -> String {
-        if (n - n.round()).abs() < 1e-9 {
-            format!("{}", n.round() as i64)
-        } else {
-            format!("{n}")
-        }
-    };
-
-    if csv_out {
-        let mut out = "column_id,column_name,type,nulls,min,max,sum,mean,median\n".to_string();
-        for &c_idx in &col_indices {
-            let col_name = headers.get(c_idx).map(|s| s.as_str()).unwrap_or("");
-            let mut nums: Vec<f64> = data
-                .iter()
-                .filter_map(|r| r.get(c_idx)?.trim().parse::<f64>().ok())
-                .collect();
-            let has_nulls = data
-                .iter()
-                .any(|r| r.get(c_idx).map(|s| s.trim().is_empty()).unwrap_or(true));
-            if nums.is_empty() {
-                out.push_str(&format!(
-                    "{},{},Text,{},,,,,\n",
-                    c_idx + 1,
-                    col_name,
-                    has_nulls
-                ));
-            } else {
-                nums.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-                let min_v = nums[0];
-                let max_v = nums[nums.len() - 1];
-                let sum_v: f64 = nums.iter().sum();
-                let mean_v = sum_v / (nums.len() as f64);
-                let median_v = if nums.len() % 2 == 1 {
-                    nums[nums.len() / 2]
-                } else {
-                    (nums[nums.len() / 2 - 1] + nums[nums.len() / 2]) / 2.0
-                };
-                out.push_str(&format!(
-                    "{},{},Number,{},{},{},{},{},{}\n",
-                    c_idx + 1,
-                    col_name,
-                    has_nulls,
-                    fmt_num(min_v),
-                    fmt_num(max_v),
-                    fmt_num(sum_v),
-                    fmt_num(mean_v),
-                    fmt_num(median_v)
-                ));
-            }
+    if list_names {
+        let base = if zero_based { 0usize } else { 1usize };
+        let mut out = String::new();
+        for (idx, h) in headers.iter().enumerate() {
+            out.push_str(&format!("{:3}: {h}\n", idx + base));
         }
         return ok_out(&out);
     }
 
-    if want_sum || want_mean || want_min || want_max || want_median {
-        let mut lines = Vec::new();
-        for &c_idx in &col_indices {
-            let h = headers.get(c_idx).map(|s| s.as_str()).unwrap_or("");
-            let mut nums: Vec<f64> = data
+    if count_only {
+        return ok_out(&format!("{}\n", data.len()));
+    }
+
+    let indices = resolve_csvkit_columns(cols_spec.as_deref(), None, &headers, zero_based);
+
+    struct ColStat {
+        col_id: usize,
+        col_name: String,
+        col_type: String,
+        nulls: bool,
+        nonnulls: usize,
+        unique: usize,
+        min: Option<String>,
+        max: Option<String>,
+        sum: Option<String>,
+        mean: Option<String>,
+        median: Option<String>,
+        stdev: Option<String>,
+        len: Option<usize>,
+        maxprecision: Option<usize>,
+        freq_pairs: Vec<(String, usize)>,
+        freq_json_str: String,
+        freq_csv_str: String,
+    }
+
+    let mut stats = Vec::new();
+    for &c_idx in &indices {
+        let col_name = headers.get(c_idx).cloned().unwrap_or_default();
+        let raw_cells: Vec<&str> = data
+            .iter()
+            .map(|r| r.get(c_idx).map(|s| s.as_str()).unwrap_or(""))
+            .collect();
+        let non_empty: Vec<&str> = raw_cells
+            .iter()
+            .copied()
+            .filter(|v| !v.trim().is_empty())
+            .collect();
+        let nulls = non_empty.len() < raw_cells.len();
+        let nonnulls = non_empty.len();
+
+        let mut freq_order: Vec<String> = Vec::new();
+        let mut freq_counts: BTreeMap<String, usize> = BTreeMap::new();
+        for &v in &non_empty {
+            if !freq_counts.contains_key(v) {
+                freq_order.push(v.to_string());
+            }
+            *freq_counts.entry(v.to_string()).or_insert(0) += 1;
+        }
+        let unique = freq_order.len();
+        let mut freq_pairs: Vec<(String, usize)> = freq_order
+            .into_iter()
+            .map(|k| {
+                let c = *freq_counts.get(&k).unwrap_or(&0);
+                (k, c)
+            })
+            .collect();
+        freq_pairs.sort_by(|a, b| b.1.cmp(&a.1));
+        let top_freq: Vec<(String, usize)> = freq_pairs.into_iter().take(freq_count).collect();
+        let freq_json_str = format!(
+            "{{ {} }}",
+            top_freq
                 .iter()
-                .filter_map(|r| r.get(c_idx)?.trim().parse::<f64>().ok())
-                .collect();
-            if nums.is_empty() {
-                if col_indices.len() == 1 {
-                    lines.push("None".to_string());
+                .map(|(k, c)| format!("{}: {c}", escape_json_str(k)))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        let freq_csv_str = top_freq
+            .iter()
+            .map(|(k, _)| k.clone())
+            .collect::<Vec<_>>()
+            .join(", ");
+
+        let mut col_type = "Text".to_string();
+        let mut min = None;
+        let mut max = None;
+        let mut sum = None;
+        let mut mean = None;
+        let mut median = None;
+        let mut stdev = None;
+        let mut len = None;
+        let mut maxprecision = None;
+
+        if !no_inference && !non_empty.is_empty() {
+            if non_empty
+                .iter()
+                .all(|v| v.trim().eq_ignore_ascii_case("true") || v.trim().eq_ignore_ascii_case("false"))
+            {
+                col_type = "Boolean".to_string();
+            } else if non_empty.iter().all(|v| is_csvkit_num_str(v, false)) {
+                col_type = "Number".to_string();
+                let mut nums: Vec<f64> = non_empty
+                    .iter()
+                    .filter_map(|v| v.trim().parse::<f64>().ok())
+                    .collect();
+                nums.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+                let n = nums.len();
+                let raw_sum: f64 = nums.iter().sum();
+                let raw_mean = raw_sum / (n as f64);
+                let raw_med = if n % 2 == 1 {
+                    nums[n / 2]
                 } else {
-                    lines.push(format!("  {}. {}: None", c_idx + 1, h));
+                    (nums[n / 2 - 1] + nums[n / 2]) / 2.0
+                };
+                min = Some(format_csvkit_num(nums[0]));
+                max = Some(format_csvkit_num(nums[n - 1]));
+                sum = Some(format_csvkit_num(raw_sum));
+                mean = Some(format_csvkit_num(raw_mean));
+                median = Some(format_csvkit_num(raw_med));
+                if n > 1 {
+                    let variance: f64 = nums
+                        .iter()
+                        .map(|x| (x - raw_mean).powi(2))
+                        .sum::<f64>()
+                        / ((n - 1) as f64);
+                    stdev = Some(format_csvkit_num(variance.sqrt()));
                 }
-                continue;
-            }
-            nums.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-            let val = if want_sum {
-                nums.iter().sum::<f64>()
-            } else if want_mean {
-                nums.iter().sum::<f64>() / (nums.len() as f64)
-            } else if want_min {
-                nums[0]
-            } else if want_max {
-                *nums.last().unwrap()
-            } else if nums.len() % 2 == 1 {
-                nums[nums.len() / 2]
+                let mp = non_empty
+                    .iter()
+                    .map(|v| {
+                        let t = v.trim();
+                        if let Some(dot) = t.find('.') {
+                            t[dot + 1..].trim_end_matches('0').len()
+                        } else {
+                            0
+                        }
+                    })
+                    .max()
+                    .unwrap_or(0);
+                maxprecision = Some(mp);
+            } else if non_empty.iter().all(|v| {
+                let t = v.trim();
+                t.len() == 10
+                    && t.as_bytes()[4] == b'-'
+                    && t.as_bytes()[7] == b'-'
+                    && t.bytes().enumerate().all(|(idx, b)| idx == 4 || idx == 7 || b.is_ascii_digit())
+            }) {
+                col_type = "Date".to_string();
+                let mut sorted: Vec<&str> = non_empty.iter().map(|v| v.trim()).collect();
+                sorted.sort_unstable();
+                min = sorted.first().map(|s| s.to_string());
+                max = sorted.last().map(|s| s.to_string());
             } else {
-                (nums[nums.len() / 2 - 1] + nums[nums.len() / 2]) / 2.0
+                len = non_empty.iter().map(|v| v.chars().count()).max();
+            }
+        } else if !non_empty.is_empty() {
+            len = non_empty.iter().map(|v| v.chars().count()).max();
+        }
+
+        stats.push(ColStat {
+            col_id: c_idx + 1,
+            col_name,
+            col_type,
+            nulls,
+            nonnulls,
+            unique,
+            min,
+            max,
+            sum,
+            mean,
+            median,
+            stdev,
+            len,
+            maxprecision,
+            freq_pairs: top_freq,
+            freq_json_str,
+            freq_csv_str,
+        });
+    }
+
+    if let Some(op) = single_op {
+        let get_val = |s: &ColStat| -> String {
+            match op {
+                "type" => s.col_type.clone(),
+                "nulls" => if s.nulls { "True" } else { "False" }.to_string(),
+                "nonnulls" => s.nonnulls.to_string(),
+                "unique" => s.unique.to_string(),
+                "min" => s.min.clone().unwrap_or_else(|| "None".to_string()),
+                "max" => s.max.clone().unwrap_or_else(|| "None".to_string()),
+                "sum" => s.sum.clone().unwrap_or_else(|| "None".to_string()),
+                "mean" => s.mean.clone().unwrap_or_else(|| "None".to_string()),
+                "median" => s.median.clone().unwrap_or_else(|| "None".to_string()),
+                "stdev" => s.stdev.clone().unwrap_or_else(|| "None".to_string()),
+                "len" => s.len.map(|n| n.to_string()).unwrap_or_else(|| "None".to_string()),
+                "maxprecision" => s.maxprecision.map(|n| n.to_string()).unwrap_or_else(|| "None".to_string()),
+                "freq" => s.freq_json_str.clone(),
+                _ => String::new(),
+            }
+        };
+        if stats.len() == 1 {
+            return ok_out(&format!("{}\n", get_val(&stats[0])));
+        }
+        let mut out = String::new();
+        for s in &stats {
+            out.push_str(&format!("{:3}. {}: {}\n", s.col_id, s.col_name, get_val(s)));
+        }
+        return ok_out(&out);
+    }
+
+    if csv_out {
+        let hdr = vec![
+            "column_id".to_string(),
+            "column_name".to_string(),
+            "type".to_string(),
+            "nulls".to_string(),
+            "nonnulls".to_string(),
+            "unique".to_string(),
+            "min".to_string(),
+            "max".to_string(),
+            "sum".to_string(),
+            "mean".to_string(),
+            "median".to_string(),
+            "stdev".to_string(),
+            "len".to_string(),
+            "maxprecision".to_string(),
+            "freq".to_string(),
+        ];
+        let mut out = format_csv_row(&hdr, ',');
+        for s in &stats {
+            let row = vec![
+                s.col_id.to_string(),
+                s.col_name.clone(),
+                s.col_type.clone(),
+                if s.nulls { "True" } else { "False" }.to_string(),
+                s.nonnulls.to_string(),
+                s.unique.to_string(),
+                s.min.clone().unwrap_or_default(),
+                s.max.clone().unwrap_or_default(),
+                s.sum.clone().unwrap_or_default(),
+                s.mean.clone().unwrap_or_default(),
+                s.median.clone().unwrap_or_default(),
+                s.stdev.clone().unwrap_or_default(),
+                s.len.map(|n| n.to_string()).unwrap_or_default(),
+                s.maxprecision.map(|n| n.to_string()).unwrap_or_default(),
+                s.freq_csv_str.clone(),
+            ];
+            out.push_str(&format_csv_row(&row, ','));
+        }
+        return ok_out(&out);
+    }
+
+    if json_out {
+        let mut items = Vec::new();
+        for s in &stats {
+            let mut entries = vec![
+                ("column_id".to_string(), JVal::Number(s.col_id as f64)),
+                ("column_name".to_string(), JVal::Str(s.col_name.clone())),
+                ("type".to_string(), JVal::Str(s.col_type.clone())),
+                ("nulls".to_string(), JVal::Bool(s.nulls)),
+                ("nonnulls".to_string(), JVal::Number(s.nonnulls as f64)),
+                ("unique".to_string(), JVal::Number(s.unique as f64)),
+            ];
+            let push_num_or_str = |entries: &mut Vec<(String, JVal)>, k: &str, opt: &Option<String>, is_num: bool| {
+                if let Some(v) = opt {
+                    if is_num && let Ok(n) = v.parse::<f64>() {
+                        entries.push((k.to_string(), JVal::Number(n)));
+                    } else {
+                        entries.push((k.to_string(), JVal::Str(v.clone())));
+                    }
+                }
             };
-            if col_indices.len() == 1 {
-                lines.push(fmt_num(val));
-            } else {
-                lines.push(format!("  {}. {}: {}", c_idx + 1, h, fmt_num(val)));
+            let is_num = s.col_type == "Number";
+            push_num_or_str(&mut entries, "min", &s.min, is_num);
+            push_num_or_str(&mut entries, "max", &s.max, is_num);
+            push_num_or_str(&mut entries, "sum", &s.sum, true);
+            push_num_or_str(&mut entries, "mean", &s.mean, true);
+            push_num_or_str(&mut entries, "median", &s.median, true);
+            push_num_or_str(&mut entries, "stdev", &s.stdev, true);
+            if let Some(l) = s.len {
+                entries.push(("len".to_string(), JVal::Number(l as f64)));
             }
+            if let Some(mp) = s.maxprecision {
+                entries.push(("maxprecision".to_string(), JVal::Number(mp as f64)));
+            }
+            let freq_arr: Vec<JVal> = s
+                .freq_pairs
+                .iter()
+                .map(|(k, c)| {
+                    let val_jv = if is_num && let Ok(n) = k.parse::<f64>() {
+                        JVal::Number(n)
+                    } else {
+                        JVal::Str(k.clone())
+                    };
+                    JVal::Object(vec![
+                        ("value".to_string(), val_jv),
+                        ("count".to_string(), JVal::Number(*c as f64)),
+                    ])
+                })
+                .collect();
+            entries.push(("freq".to_string(), JVal::Array(freq_arr)));
+            items.push(JVal::Object(entries));
         }
-        return ok_out(&format!("{}\n", lines.join("\n")));
+        return ok_out(&format!(
+            "{}\n",
+            format_jval_with_indent(&JVal::Array(items), indent, 0)
+        ));
     }
 
-    ok_out(&format!("Row count: {data_count}\n"))
-}
-
-fn infer_csv_cell(s: &str, no_inference: bool) -> JVal {
-    if no_inference {
-        return JVal::Str(s.to_string());
-    }
-    if s.is_empty() {
-        return JVal::Null;
-    }
-    if s.eq_ignore_ascii_case("true") {
-        return JVal::Bool(true);
-    }
-    if s.eq_ignore_ascii_case("false") {
-        return JVal::Bool(false);
-    }
-    if (!s.starts_with('0') || s == "0" || s.starts_with("0."))
-        && let Ok(mut n) = s.parse::<f64>()
-    {
-        if n.fract() == 0.0 {
-            if n == 0.0 {
-                n = f64::from_bits(1);
-            } else {
-                n = f64::from_bits(n.to_bits() | 1);
+    let mut out = String::new();
+    for s in &stats {
+        out.push_str(&format!(
+            "{:3}. \"{}\"\n\n\tType of data:          {}\n\tContains null values:  {}\n\tNon-null values:       {}\n\tUnique values:         {}\n",
+            s.col_id,
+            s.col_name,
+            s.col_type,
+            if s.nulls { "True (excluded from calculations)" } else { "False" },
+            s.nonnulls,
+            s.unique
+        ));
+        if let Some(ref v) = s.min {
+            out.push_str(&format!("\tSmallest value:        {v}\n"));
+        }
+        if let Some(ref v) = s.max {
+            out.push_str(&format!("\tLargest value:         {v}\n"));
+        }
+        if let Some(ref v) = s.sum {
+            out.push_str(&format!("\tSum:                   {v}\n"));
+        }
+        if let Some(ref v) = s.mean {
+            out.push_str(&format!("\tMean:                  {v}\n"));
+        }
+        if let Some(ref v) = s.median {
+            out.push_str(&format!("\tMedian:                {v}\n"));
+        }
+        if let Some(ref v) = s.stdev {
+            out.push_str(&format!("\tStDev:                 {v}\n"));
+        }
+        if let Some(l) = s.len {
+            out.push_str(&format!("\tLongest value:         {l} characters\n"));
+        }
+        if !s.freq_pairs.is_empty() {
+            for (idx, (val, cnt)) in s.freq_pairs.iter().enumerate() {
+                if idx == 0 {
+                    out.push_str(&format!("\tMost common values:    {val} ({cnt}x)\n"));
+                } else {
+                    out.push_str(&format!("\t                       {val} ({cnt}x)\n"));
+                }
             }
         }
-        return JVal::Number(n);
+        out.push('\n');
     }
-    JVal::Str(s.to_string())
+    out.push_str(&format!("Row count: {}\n", data.len()));
+    ok_out(&out)
 }
 
 fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut indent: Option<usize> = None;
     let mut key_col: Option<String> = None;
     let mut lat_col: Option<String> = None;
     let mut lon_col: Option<String> = None;
+    let mut crs_spec: Option<String> = None;
+    let mut type_col: Option<String> = None;
+    let mut geom_col: Option<String> = None;
     let mut no_bbox = false;
-    let mut crs_val: Option<String> = None;
+    let mut stream = false;
     let mut no_inference = false;
-    let mut stream_mode = false;
+    let mut no_leading_zeroes = false;
+    let mut blanks = false;
+    let mut null_values: Vec<String> = Vec::new();
+    let mut no_header_row = false;
+    let mut zero_based = false;
+    let mut skip_lines = 0usize;
+    let mut skip_initial_space = false;
+    let mut quotechar = '"';
     let mut delim = ',';
     let mut files = Vec::new();
 
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
-            "-I" | "--no-inference" => no_inference = true,
-            "--stream" => stream_mode = true,
+            "--stream" => stream = true,
             "--no-bbox" => no_bbox = true,
+            "-I" | "--no-inference" => no_inference = true,
+            "--no-leading-zeroes" => no_leading_zeroes = true,
+            "--blanks" => blanks = true,
+            "-H" | "--no-header-row" => no_header_row = true,
+            "--zero" => zero_based = true,
+            "-S" | "--skipinitialspace" => skip_initial_space = true,
             "-t" | "--tabs" => delim = '\t',
-            "-d" | "--delimiter" if i + 1 < args.len() => {
+            "-i" | "--indent" if i + 1 < args.len() => {
                 i += 1;
-                delim = args[i].chars().next().unwrap_or(',');
+                indent = args[i].parse::<usize>().ok();
             }
             "-k" | "--key" if i + 1 < args.len() => {
                 i += 1;
@@ -6279,84 +6993,178 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             "--crs" if i + 1 < args.len() => {
                 i += 1;
-                crs_val = Some(args[i].clone());
+                crs_spec = Some(args[i].clone());
             }
-            "-i" | "--indent" if i + 1 < args.len() => {
+            "--type" if i + 1 < args.len() => {
+                i += 1;
+                type_col = Some(args[i].clone());
+            }
+            "--geometry" if i + 1 < args.len() => {
+                i += 1;
+                geom_col = Some(args[i].clone());
+            }
+            "--null-value" if i + 1 < args.len() => {
+                i += 1;
+                null_values.push(args[i].clone());
+            }
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse::<usize>().unwrap_or(0);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-d" | "--delimiter" if i + 1 < args.len() => {
+                i += 1;
+                delim = if args[i] == "\\t" || args[i] == "tab" {
+                    '\t'
+                } else {
+                    args[i].chars().next().unwrap_or(',')
+                };
+            }
+            "-e" | "--encoding" | "-y" | "--snifflimit" if i + 1 < args.len() => {
                 i += 1;
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
 
+    let _ = no_leading_zeroes;
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvjson: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
-        return ok_out("[]\n");
+        return ok_out(if stream { "" } else if key_col.is_some() { "{}\n" } else { "[]\n" });
     }
-    let headers = &rows[0];
-    let data = &rows[1..];
+    let (headers, data): (Vec<String>, &[Vec<String>]) = if no_header_row {
+        (default_csvkit_headers(rows[0].len()), &rows[..])
+    } else {
+        (normalize_csvkit_headers(&rows[0]), &rows[1..])
+    };
 
-    if let (Some(lat_spec), Some(lon_spec)) = (lat_col, lon_col) {
-        let lat_idx = resolve_csv_col_indices(&lat_spec, headers).into_iter().next().unwrap_or(0);
-        let lon_idx = resolve_csv_col_indices(&lon_spec, headers).into_iter().next().unwrap_or(0);
-        let k_idx = key_col.as_ref().and_then(|k| resolve_csv_col_indices(k, headers).into_iter().next());
+    let cell_to_jval = |raw: &str| -> JVal {
+        let t = raw.trim();
+        if null_values.iter().any(|nv| nv.eq_ignore_ascii_case(t)) {
+            return JVal::Null;
+        }
+        if raw.is_empty() {
+            return if blanks { JVal::Str(String::new()) } else { JVal::Null };
+        }
+        if no_inference {
+            return JVal::Str(raw.to_string());
+        }
+        if t.eq_ignore_ascii_case("true") {
+            return JVal::Bool(true);
+        }
+        if t.eq_ignore_ascii_case("false") {
+            return JVal::Bool(false);
+        }
+        if !blanks
+            && (t.eq_ignore_ascii_case("null")
+                || t.eq_ignore_ascii_case("none")
+                || t.eq_ignore_ascii_case("na")
+                || t.eq_ignore_ascii_case("n/a"))
+        {
+            return JVal::Null;
+        }
+        if is_csvkit_num_str(t, false)
+            && let Ok(mut n) = t.parse::<f64>()
+        {
+            if n.fract() == 0.0 {
+                if n == 0.0 {
+                    n = f64::from_bits(1);
+                } else {
+                    n = f64::from_bits(n.to_bits() | 1);
+                }
+            }
+            return JVal::Number(n);
+        }
+        JVal::Str(raw.to_string())
+    };
+
+    let resolve_one = |spec: &str| -> Option<usize> {
+        resolve_csv_col_indices_opts(spec, &headers, zero_based).into_iter().next()
+    };
+
+    if let (Some(lat_s), Some(lon_s)) = (&lat_col, &lon_col) {
+        let Some(lat_idx) = resolve_one(lat_s) else {
+            return err_out("csvjson: invalid --lat column\n", 1);
+        };
+        let Some(lon_idx) = resolve_one(lon_s) else {
+            return err_out("csvjson: invalid --lon column\n", 1);
+        };
+        let key_idx = key_col.as_deref().and_then(resolve_one);
+        let type_idx = type_col.as_deref().and_then(resolve_one);
+        let geom_idx = geom_col.as_deref().and_then(resolve_one);
+
         let mut features = Vec::new();
         let mut min_lon = f64::INFINITY;
         let mut min_lat = f64::INFINITY;
         let mut max_lon = f64::NEG_INFINITY;
         let mut max_lat = f64::NEG_INFINITY;
 
-        for r in data {
+        for row in data {
+            let lat_v = row.get(lat_idx).and_then(|s| s.trim().parse::<f64>().ok());
+            let lon_v = row.get(lon_idx).and_then(|s| s.trim().parse::<f64>().ok());
+            let (Some(lat), Some(lon)) = (lat_v, lon_v) else {
+                continue;
+            };
+            min_lon = min_lon.min(lon);
+            max_lon = max_lon.max(lon);
+            min_lat = min_lat.min(lat);
+            max_lat = max_lat.max(lat);
+
             let mut props = Vec::new();
             for (idx, h) in headers.iter().enumerate() {
-                if idx == lat_idx || idx == lon_idx || Some(idx) == k_idx {
+                if Some(idx) == geom_idx {
                     continue;
                 }
-                let cell = r.get(idx).map(|s| s.as_str()).unwrap_or("");
-                if !cell.is_empty() {
-                    props.push((h.clone(), infer_csv_cell(cell, no_inference)));
-                }
+                let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
+                props.push((h.clone(), cell_to_jval(cell)));
             }
-            let lat_v = r.get(lat_idx).and_then(|s| s.trim().parse::<f64>().ok()).unwrap_or(0.0);
-            let lon_v = r.get(lon_idx).and_then(|s| s.trim().parse::<f64>().ok()).unwrap_or(0.0);
-            if lon_v < min_lon { min_lon = lon_v; }
-            if lon_v > max_lon { max_lon = lon_v; }
-            if lat_v < min_lat { min_lat = lat_v; }
-            if lat_v > max_lat { max_lat = lat_v; }
-
-            let geom = JVal::Object(vec![
-                ("type".to_string(), JVal::Str("Point".to_string())),
-                ("coordinates".to_string(), JVal::Array(vec![JVal::Number(lon_v), JVal::Number(lat_v)])),
-            ]);
-            let mut feat_entries = vec![
-                ("type".to_string(), JVal::Str("Feature".to_string())),
-                ("properties".to_string(), JVal::Object(props)),
-            ];
-            if let Some(ki) = k_idx {
-                let kv = r.get(ki).map(|s| s.as_str()).unwrap_or("");
-                feat_entries.push(("id".to_string(), infer_csv_cell(kv, no_inference)));
+            let _ = type_idx;
+            let geom = if let Some(gi) = geom_idx
+                && let Some(raw_g) = row.get(gi)
+                && let Ok(mut parsed) = parse_json_stream(raw_g)
+                && let Some(jv) = parsed.pop()
+            {
+                jv
+            } else {
+                JVal::Object(vec![
+                    ("type".to_string(), JVal::Str("Point".to_string())),
+                    (
+                        "coordinates".to_string(),
+                        JVal::Array(vec![JVal::Number(lon), JVal::Number(lat)]),
+                    ),
+                ])
+            };
+            let mut feat_entries = vec![("type".to_string(), JVal::Str("Feature".to_string()))];
+            if let Some(ki) = key_idx {
+                let kv = row.get(ki).map(|s| s.as_str()).unwrap_or("");
+                feat_entries.push(("id".to_string(), cell_to_jval(kv)));
             }
+            feat_entries.push(("properties".to_string(), JVal::Object(props)));
             feat_entries.push(("geometry".to_string(), geom));
             features.push(JVal::Object(feat_entries));
         }
 
-        if stream_mode {
+        if stream {
             let mut out = String::new();
-            for f in features {
+            for f in &features {
                 out.push_str(&f.to_json_string(true, false, 0));
                 out.push('\n');
             }
             return ok_out(&out);
         }
 
-        let mut coll = vec![("type".to_string(), JVal::Str("FeatureCollection".to_string()))];
+        let mut fc = vec![("type".to_string(), JVal::Str("FeatureCollection".to_string()))];
         if !no_bbox && !features.is_empty() {
-            coll.push((
+            fc.push((
                 "bbox".to_string(),
                 JVal::Array(vec![
                     JVal::Number(min_lon),
@@ -6366,84 +7174,807 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 ]),
             ));
         }
-        coll.push(("features".to_string(), JVal::Array(features)));
-        if let Some(crs) = crs_val {
-            coll.push((
+        if let Some(crs) = crs_spec {
+            fc.push((
                 "crs".to_string(),
                 JVal::Object(vec![
                     ("type".to_string(), JVal::Str("name".to_string())),
-                    ("properties".to_string(), JVal::Object(vec![("name".to_string(), JVal::Str(crs))])),
+                    (
+                        "properties".to_string(),
+                        JVal::Object(vec![("name".to_string(), JVal::Str(crs))]),
+                    ),
                 ]),
             ));
         }
-        return ok_out(&format!("{}\n", JVal::Object(coll).to_json_string(true, false, 0)));
+        fc.push(("features".to_string(), JVal::Array(features)));
+        return ok_out(&format!(
+            "{}\n",
+            format_jval_with_indent(&JVal::Object(fc), indent, 0)
+        ));
     }
 
-    if stream_mode {
-        let mut out = String::new();
-        for r in data {
-            let mut entries = Vec::new();
+    if let Some(ref ks) = key_col {
+        let Some(k_idx) = resolve_one(ks) else {
+            return err_out("csvjson: invalid --key column\n", 1);
+        };
+        let mut obj_entries = Vec::new();
+        for row in data {
+            let k_str = row.get(k_idx).cloned().unwrap_or_default();
+            let mut rec = Vec::new();
             for (idx, h) in headers.iter().enumerate() {
-                let cell = r.get(idx).map(|s| s.as_str()).unwrap_or("");
-                entries.push((h.clone(), infer_csv_cell(cell, no_inference)));
+                let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
+                rec.push((h.clone(), cell_to_jval(cell)));
             }
-            out.push_str(&JVal::Object(entries).to_json_string(true, false, 0));
+            obj_entries.push((k_str, JVal::Object(rec)));
+        }
+        return ok_out(&format!(
+            "{}\n",
+            format_jval_with_indent(&JVal::Object(obj_entries), indent, 0)
+        ));
+    }
+
+    let records: Vec<JVal> = data
+        .iter()
+        .map(|row| {
+            let entries: Vec<(String, JVal)> = headers
+                .iter()
+                .enumerate()
+                .map(|(idx, h)| {
+                    let cell = row.get(idx).map(|s| s.as_str()).unwrap_or("");
+                    (h.clone(), cell_to_jval(cell))
+                })
+                .collect();
+            JVal::Object(entries)
+        })
+        .collect();
+
+    if stream {
+        let mut out = String::new();
+        for r in &records {
+            out.push_str(&r.to_json_string(true, false, 0));
             out.push('\n');
         }
         return ok_out(&out);
     }
 
-    if let Some(kname) = key_col {
-        let k_idx = resolve_csv_col_indices(&kname, headers)
-            .into_iter()
-            .next()
-            .unwrap_or(0);
-        let mut map_entries = Vec::new();
-        for r in data {
-            let key_val = r.get(k_idx).cloned().unwrap_or_default();
-            let mut entries = Vec::new();
-            for (idx, h) in headers.iter().enumerate() {
-                let cell = r.get(idx).map(|s| s.as_str()).unwrap_or("");
-                entries.push((h.clone(), infer_csv_cell(cell, no_inference)));
-            }
-            map_entries.push((key_val, JVal::Object(entries)));
-        }
-        return ok_out(&format!(
-            "{}\n",
-            JVal::Object(map_entries).to_json_string(true, false, 0)
-        ));
-    }
+    ok_out(&format!(
+        "{}\n",
+        format_jval_with_indent(&JVal::Array(records), indent, 0)
+    ))
+}
 
-    let mut arr = Vec::new();
-    for r in data {
-        let mut entries = Vec::new();
-        for (idx, h) in headers.iter().enumerate() {
-            let cell = r.get(idx).map(|s| s.as_str()).unwrap_or("");
-            entries.push((h.clone(), infer_csv_cell(cell, no_inference)));
-        }
-        arr.push(JVal::Object(entries));
+fn parse_delim_arg(s: &str) -> char {
+    match s {
+        "\\t" | "tab" | "TAB" => '\t',
+        _ => s.chars().next().unwrap_or(','),
     }
-    ok_out(&format!("{}\n", JVal::Array(arr).to_json_string(true, false, 0)))
+}
+
+fn is_iso_date_str(s: &str) -> bool {
+    let b = s.trim().as_bytes();
+    b.len() == 10
+        && b[4] == b'-'
+        && b[7] == b'-'
+        && b[0..4].iter().all(|c| c.is_ascii_digit())
+        && b[5..7].iter().all(|c| c.is_ascii_digit())
+        && b[8..10].iter().all(|c| c.is_ascii_digit())
+}
+
+fn is_iso_datetime_str(s: &str) -> bool {
+    let t = s.trim();
+    t.len() >= 16
+        && is_iso_date_str(&t[..10])
+        && matches!(t.as_bytes()[10], b'T' | b' ')
+        && t.as_bytes()[13] == b':'
+}
+
+fn format_jval_python_json(v: &JVal) -> String {
+    match v {
+        JVal::Null => "null".to_string(),
+        JVal::Bool(b) => if *b { "true" } else { "false" }.to_string(),
+        JVal::Number(n) => format_csvkit_num(*n),
+        JVal::Str(s) => JVal::Str(s.clone()).to_json_string(true, false, 0),
+        JVal::Array(arr) => {
+            let parts: Vec<String> = arr.iter().map(format_jval_python_json).collect();
+            format!("[{}]", parts.join(", "))
+        }
+        JVal::Object(entries) => {
+            let parts: Vec<String> = entries
+                .iter()
+                .map(|(k, val)| {
+                    format!(
+                        "{}: {}",
+                        JVal::Str(k.clone()).to_json_string(true, false, 0),
+                        format_jval_python_json(val)
+                    )
+                })
+                .collect();
+            format!("{{{}}}", parts.join(", "))
+        }
+    }
+}
+
+fn unescape_xml_basic(s: &str) -> String {
+    s.replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace("&apos;", "'")
+        .replace("&amp;", "&")
+}
+
+fn extract_xml_attr(tag: &str, attr_name: &str) -> Option<String> {
+    let pat_dq = format!("{attr_name}=\"");
+    if let Some(pos) = tag.find(&pat_dq) {
+        let rest = &tag[pos + pat_dq.len()..];
+        if let Some(end) = rest.find('"') {
+            return Some(unescape_xml_basic(&rest[..end]));
+        }
+    }
+    let pat_sq = format!("{attr_name}='");
+    if let Some(pos) = tag.find(&pat_sq) {
+        let rest = &tag[pos + pat_sq.len()..];
+        if let Some(end) = rest.find('\'') {
+            return Some(unescape_xml_basic(&rest[..end]));
+        }
+    }
+    None
+}
+
+fn read_zip_entries_for_xlsx(bytes: &[u8]) -> BTreeMap<String, Vec<u8>> {
+
+    let mut entries = BTreeMap::new();
+    let mut pos = 0usize;
+    while pos + 30 <= bytes.len() {
+        if &bytes[pos..pos + 4] != b"PK\x03\x04" {
+            pos += 1;
+            continue;
+        }
+        let compression = u16::from_le_bytes([bytes[pos + 8], bytes[pos + 9]]);
+        let comp_size = u32::from_le_bytes([
+            bytes[pos + 18],
+            bytes[pos + 19],
+            bytes[pos + 20],
+            bytes[pos + 21],
+        ]) as usize;
+        let name_len = u16::from_le_bytes([bytes[pos + 26], bytes[pos + 27]]) as usize;
+        let extra_len = u16::from_le_bytes([bytes[pos + 28], bytes[pos + 29]]) as usize;
+        let name_start = pos + 30;
+        if name_start + name_len > bytes.len() {
+            break;
+        }
+        let name = String::from_utf8_lossy(&bytes[name_start..name_start + name_len]).into_owned();
+        let data_start = name_start + name_len + extra_len;
+        let data_end = (data_start + comp_size).min(bytes.len());
+        let raw_slice = &bytes[data_start..data_end];
+        let content = if compression == 0 {
+            raw_slice.to_vec()
+        } else if compression == 8 {
+            let mut out = Vec::new();
+            let mut dpos = 0usize;
+            while dpos + 5 <= raw_slice.len() {
+                let hdr = raw_slice[dpos];
+                let btype = (hdr >> 1) & 0x03;
+                if btype != 0 {
+                    break;
+                }
+                let bfinal = (hdr & 0x01) != 0;
+                let len = u16::from_le_bytes([raw_slice[dpos + 1], raw_slice[dpos + 2]]) as usize;
+                dpos += 5;
+                if dpos + len > raw_slice.len() {
+                    break;
+                }
+                out.extend_from_slice(&raw_slice[dpos..dpos + len]);
+                dpos += len;
+                if bfinal {
+                    break;
+                }
+            }
+            out
+        } else {
+            Vec::new()
+        };
+        entries.insert(name, content);
+        pos = data_end.max(pos + 1);
+    }
+    if entries.is_empty() && bytes.len() >= 512 && &bytes[257..262] == b"ustar" {
+        let mut tpos = 0usize;
+        while tpos + 512 <= bytes.len() {
+            let block = &bytes[tpos..tpos + 512];
+            if block.iter().all(|&b| b == 0) {
+                tpos += 512;
+                continue;
+            }
+            if &block[257..262] != b"ustar" {
+                break;
+            }
+            let name_end = block[0..100].iter().position(|&b| b == 0).unwrap_or(100);
+            let short_name = String::from_utf8_lossy(&block[0..name_end]).to_string();
+            let prefix_end = block[345..500].iter().position(|&b| b == 0).unwrap_or(155);
+            let prefix = String::from_utf8_lossy(&block[345..345 + prefix_end]).to_string();
+            let raw_name = if prefix.is_empty() {
+                short_name
+            } else {
+                format!("{prefix}/{short_name}")
+            };
+            let clean_name = raw_name
+                .trim_start_matches("./")
+                .trim_start_matches('/')
+                .to_string();
+            let size_str = String::from_utf8_lossy(&block[124..136])
+                .trim_matches(|c: char| c == '\0' || c.is_whitespace())
+                .to_string();
+            let size = usize::from_str_radix(&size_str, 8).unwrap_or(0);
+            let typeflag = block[156];
+            tpos += 512;
+            let content_end = (tpos + size).min(bytes.len());
+            if typeflag == b'0' || typeflag == 0 {
+                entries.insert(clean_name, bytes[tpos..content_end].to_vec());
+            }
+            tpos += size.div_ceil(512) * 512;
+        }
+    }
+    entries
+}
+
+fn xlsx_col_ref_to_idx(cell_ref: &str) -> Option<usize> {
+    let letters: String = cell_ref
+        .chars()
+        .take_while(|c| c.is_ascii_alphabetic())
+        .collect();
+    if letters.is_empty() {
+        return None;
+    }
+    let mut idx = 0usize;
+    for ch in letters.chars() {
+        idx = idx * 26 + ((ch.to_ascii_uppercase() as u8 - b'A') as usize + 1);
+    }
+    Some(idx - 1)
+}
+
+fn extract_all_t_text(xml_fragment: &str) -> String {
+    let mut out = String::new();
+    let mut rest = xml_fragment;
+    while let Some(pos) = rest.find("<t") {
+        let after = &rest[pos + 2..];
+        let Some(first_ch) = after.chars().next() else {
+            break;
+        };
+        if first_ch != '>' && !first_ch.is_ascii_whitespace() {
+            rest = after;
+            continue;
+        }
+        let Some(gt) = after.find('>') else {
+            break;
+        };
+        if after[..gt].ends_with('/') {
+            rest = &after[gt + 1..];
+            continue;
+        }
+        let content_start = &after[gt + 1..];
+        if let Some(end_t) = content_start.find("</t>") {
+            out.push_str(&unescape_xml_basic(&content_start[..end_t]));
+            rest = &content_start[end_t + 4..];
+        } else {
+            break;
+        }
+    }
+    out
 }
 
 fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut format_opt: Option<String> = None;
+    let mut schema_path: Option<String> = None;
     let mut key_prop: Option<String> = None;
+    let mut sheet_name: Option<String> = None;
+    let mut names_only = false;
+    let mut no_inference = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
+    let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
+    let mut line_numbers = false;
+    let mut add_bom = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "-f" | "--format" if i + 1 < args.len() => {
                 i += 1;
+                format_opt = Some(args[i].to_ascii_lowercase());
+            }
+            "-s" | "--schema" if i + 1 < args.len() => {
+                i += 1;
+                schema_path = Some(args[i].clone());
             }
             "-k" | "--key" if i + 1 < args.len() => {
                 i += 1;
                 key_prop = Some(args[i].clone());
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "--sheet" if i + 1 < args.len() => {
+                i += 1;
+                sheet_name = Some(args[i].clone());
+            }
+            "-n" | "--names" => names_only = true,
+            "-I" | "--no-inference" => no_inference = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "-d" | "--delimiter" if i + 1 < args.len() => {
+                i += 1;
+                delim = parse_delim_arg(&args[i]);
+            }
+            "-t" | "--tabs" => delim = '\t',
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-l" | "--linenumbers" => line_numbers = true,
+            "--add-bom" => add_bom = true,
+            "-e" | "--encoding" | "-L" | "--locale" | "--date-format" | "--datetime-format"
+            | "--null-value" | "-y" | "--snifflimit" | "--write-sheets" | "-- encoding-xls"
+                if i + 1 < args.len() =>
+            {
+                i += 1;
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
+
+    let fmt = if let Some(f) = format_opt {
+        f
+    } else if schema_path.is_some() {
+        "fixed".to_string()
+    } else if let Some(first) = files.first() {
+        let lower = first.to_ascii_lowercase();
+        let stem = lower.strip_suffix(".gz").unwrap_or(&lower);
+        if stem.ends_with(".geojson") {
+            "geojson".to_string()
+        } else if stem.ends_with(".ndjson") || stem.ends_with(".jsonl") {
+            "ndjson".to_string()
+        } else if stem.ends_with(".xlsx") {
+            "xlsx".to_string()
+        } else if stem.ends_with(".csv") || stem.ends_with(".tsv") {
+            "csv".to_string()
+        } else {
+            "json".to_string()
+        }
+    } else {
+        "json".to_string()
+    };
+
+    let finish_rows = |headers: Vec<String>, data_rows: Vec<Vec<String>>| -> BuiltinOutcome {
+        let mut out = String::new();
+        if add_bom {
+            out.push('\u{feff}');
+        }
+        if !headers.is_empty() {
+            let mut h = headers;
+            if line_numbers {
+                h.insert(0, "line_number".to_string());
+            }
+            out.push_str(&format_csv_row(&h, ','));
+        }
+        for (idx, mut r) in data_rows.into_iter().enumerate() {
+            if line_numbers {
+                r.insert(0, (idx + 1).to_string());
+            }
+            out.push_str(&format_csv_row(&r, ','));
+        }
+        ok_out(&out)
+    };
+
+    if fmt == "xlsx" {
+        let raw_bytes = match read_csv_bytes_input(&files, stdin, cwd, fs) {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+        };
+        let entries = read_zip_entries_for_xlsx(&raw_bytes);
+        let wb_xml = entries
+            .get("xl/workbook.xml")
+            .map(|b| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_default();
+        let mut sheets: Vec<(String, String)> = Vec::new();
+        let mut scan = wb_xml.as_str();
+        while let Some(pos) = scan.find("<sheet ") {
+            let after = &scan[pos..];
+            let Some(end) = after.find('>') else {
+                break;
+            };
+            let tag = &after[..=end];
+            if let Some(sname) = extract_xml_attr(tag, "name") {
+                let rid = extract_xml_attr(tag, "r:id")
+                    .or_else(|| extract_xml_attr(tag, "id"))
+                    .unwrap_or_default();
+                sheets.push((sname, rid));
+            }
+            scan = &after[end + 1..];
+        }
+        if names_only {
+            let mut out = String::new();
+            for (sname, _) in sheets {
+                out.push_str(&sname);
+                out.push('\n');
+            }
+            return ok_out(&out);
+        }
+        let rels_xml = entries
+            .get("xl/_rels/workbook.xml.rels")
+            .map(|b| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_default();
+        let mut rels_map: BTreeMap<String, String> = BTreeMap::new();
+        let mut rscan = rels_xml.as_str();
+        while let Some(pos) = rscan.find("<Relationship ") {
+            let after = &rscan[pos..];
+            let Some(end) = after.find('>') else {
+                break;
+            };
+            let tag = &after[..=end];
+            if let (Some(id), Some(target)) = (
+                extract_xml_attr(tag, "Id"),
+                extract_xml_attr(tag, "Target"),
+            ) {
+                rels_map.insert(id, target);
+            }
+            rscan = &after[end + 1..];
+        }
+
+        let sst_xml = entries
+            .get("xl/sharedStrings.xml")
+            .map(|b| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_default();
+        let mut shared_strings: Vec<String> = Vec::new();
+        let mut sscan = sst_xml.as_str();
+        while let Some(pos) = sscan.find("<si") {
+            let after = &sscan[pos..];
+            if let Some(end_si) = after.find("</si>") {
+                let si_block = &after[..end_si];
+                shared_strings.push(extract_all_t_text(si_block));
+                sscan = &after[end_si + 5..];
+            } else {
+                break;
+            }
+        }
+
+        let chosen_rid = if let Some(ref target_name) = sheet_name {
+            sheets
+                .iter()
+                .find(|(n, _)| n == target_name)
+                .map(|(_, rid)| rid.clone())
+                .or_else(|| {
+                    target_name
+                        .parse::<usize>()
+                        .ok()
+                        .and_then(|idx| sheets.get(idx).map(|(_, rid)| rid.clone()))
+                })
+                .unwrap_or_default()
+        } else {
+            sheets.first().map(|(_, rid)| rid.clone()).unwrap_or_default()
+        };
+        let ws_target = rels_map
+            .get(&chosen_rid)
+            .cloned()
+            .unwrap_or_else(|| "worksheets/sheet1.xml".to_string());
+        let ws_path = if let Some(stripped) = ws_target.strip_prefix('/') {
+            stripped.to_string()
+        } else if ws_target.starts_with("xl/") {
+            ws_target
+        } else {
+            format!("xl/{ws_target}")
+        };
+        let ws_xml = entries
+            .get(&ws_path)
+            .map(|b| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_default();
+
+        let mut parsed_rows: Vec<Vec<String>> = Vec::new();
+        let mut max_cols = 0usize;
+        let mut wscan = ws_xml.as_str();
+        while let Some(rpos) = wscan.find("<row") {
+            let rafter = &wscan[rpos..];
+            let Some(rend) = rafter.find("</row>") else {
+                break;
+            };
+            let row_block = &rafter[..rend];
+            let mut row_cells: BTreeMap<usize, String> = BTreeMap::new();
+            let mut next_col = 0usize;
+            let mut cscan = row_block;
+            while let Some(cpos) = cscan.find("<c") {
+                let cafter = &cscan[cpos..];
+                let Some(first_ch) = cafter[2..].chars().next() else {
+                    break;
+                };
+                if first_ch != '>' && first_ch != '/' && !first_ch.is_ascii_whitespace() {
+                    cscan = &cafter[2..];
+                    continue;
+                }
+                let Some(tag_end) = cafter.find('>') else {
+                    break;
+                };
+                let c_open_tag = &cafter[..=tag_end];
+                let col_idx = extract_xml_attr(c_open_tag, "r")
+                    .and_then(|r| xlsx_col_ref_to_idx(&r))
+                    .unwrap_or(next_col);
+                next_col = col_idx + 1;
+                let cell_type = extract_xml_attr(c_open_tag, "t").unwrap_or_default();
+                let mut cell_val = String::new();
+                if c_open_tag.ends_with("/>") {
+                    cscan = &cafter[tag_end + 1..];
+                } else if let Some(cend) = cafter.find("</c>") {
+                    let c_inner = &cafter[tag_end + 1..cend];
+                    if cell_type == "inlineStr" {
+                        cell_val = extract_all_t_text(c_inner);
+                    } else if let Some(vpos) = c_inner.find("<v>") {
+                        let vafter = &c_inner[vpos + 3..];
+                        if let Some(vend) = vafter.find("</v>") {
+                            let raw_v = unescape_xml_basic(&vafter[..vend]);
+                            if cell_type == "s" {
+                                if let Ok(sidx) = raw_v.trim().parse::<usize>() {
+                                    cell_val =
+                                        shared_strings.get(sidx).cloned().unwrap_or_default();
+                                }
+                            } else if cell_type == "b" {
+                                cell_val = if raw_v.trim() == "1" {
+                                    "True".to_string()
+                                } else {
+                                    "False".to_string()
+                                };
+                            } else {
+                                cell_val = raw_v;
+                            }
+                        }
+                    }
+                    cscan = &cafter[cend + 4..];
+                } else {
+                    break;
+                }
+                row_cells.insert(col_idx, cell_val);
+                max_cols = max_cols.max(col_idx + 1);
+            }
+            let mut row_vec = vec![String::new(); max_cols];
+            for (ci, cv) in row_cells {
+                if ci >= row_vec.len() {
+                    row_vec.resize(ci + 1, String::new());
+                }
+                row_vec[ci] = cv;
+            }
+            parsed_rows.push(row_vec);
+            wscan = &rafter[rend + 6..];
+        }
+        for r in &mut parsed_rows {
+            if r.len() < max_cols {
+                r.resize(max_cols, String::new());
+            }
+        }
+        if skip_lines > 0 && skip_lines <= parsed_rows.len() {
+            parsed_rows.drain(0..skip_lines);
+        }
+        if parsed_rows.is_empty() {
+            return ok_out("");
+        }
+        let (headers, data_rows) = if no_header {
+            (default_csvkit_headers(max_cols), parsed_rows)
+        } else {
+            (
+                normalize_csvkit_headers(&parsed_rows[0]),
+                parsed_rows[1..].to_vec(),
+            )
+        };
+        return finish_rows(headers, data_rows);
+    }
+
+    if fmt == "fixed" {
+        let Some(ref spath) = schema_path else {
+            return err_out("in2csv: ValueError: schema must be specified for fixed format.\n", 1);
+        };
+        let full_schema = resolve_posix_path(cwd, spath);
+        let schema_bytes = match fs.read_file(&full_schema) {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("in2csv: {spath}: {e}\n"), 1),
+        };
+        let schema_rows = parse_csv_rows(&String::from_utf8_lossy(&schema_bytes), ',');
+        if schema_rows.len() < 2 {
+            return ok_out("");
+        }
+        let shdr = &schema_rows[0];
+        let col_i = shdr
+            .iter()
+            .position(|h| h.eq_ignore_ascii_case("column"))
+            .unwrap_or(0);
+        let start_i = shdr
+            .iter()
+            .position(|h| h.eq_ignore_ascii_case("start"))
+            .unwrap_or(1);
+        let len_i = shdr
+            .iter()
+            .position(|h| h.eq_ignore_ascii_case("length"))
+            .unwrap_or(2);
+        let mut specs: Vec<(String, usize, usize)> = Vec::new();
+        for sr in &schema_rows[1..] {
+            let cname = sr.get(col_i).cloned().unwrap_or_default();
+            let st = sr
+                .get(start_i)
+                .and_then(|s| s.trim().parse::<usize>().ok())
+                .unwrap_or(0);
+            let ln = sr
+                .get(len_i)
+                .and_then(|s| s.trim().parse::<usize>().ok())
+                .unwrap_or(0);
+            specs.push((cname, st, ln));
+        }
+        let one_based = specs.iter().all(|(_, st, _)| *st >= 1)
+            && specs.iter().any(|(_, st, _)| *st == 1);
+        let offset = if one_based { 1usize } else { 0usize };
+        let text = match read_csv_input(&files, stdin, cwd, fs) {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+        };
+        let mut lines_iter = text.lines();
+        for _ in 0..skip_lines {
+            let _ = lines_iter.next();
+        }
+        let headers: Vec<String> = specs.iter().map(|(c, _, _)| c.clone()).collect();
+        let mut data_rows: Vec<Vec<String>> = Vec::new();
+        for line in lines_iter {
+            if line.is_empty() {
+                continue;
+            }
+            let chars: Vec<char> = line.chars().collect();
+            let mut row = Vec::with_capacity(specs.len());
+            for (_, st, ln) in &specs {
+                let s0 = st.saturating_sub(offset);
+                let e0 = (s0 + *ln).min(chars.len());
+                let slice: String = if s0 < chars.len() {
+                    chars[s0..e0].iter().collect()
+                } else {
+                    String::new()
+                };
+                row.push(slice.trim().to_string());
+            }
+            data_rows.push(row);
+        }
+        return finish_rows(headers, data_rows);
+    }
+
+    if fmt == "geojson" {
+        let text = match read_csv_input(&files, stdin, cwd, fs) {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+        };
+        let vals = match parse_json_stream(&text) {
+            Ok(v) => v,
+            Err(e) => return err_out(&format!("in2csv: {e}\n"), 1),
+        };
+        let features: Vec<JVal> = if let Some(root) = vals.into_iter().next() {
+            match root {
+                JVal::Object(entries) => {
+                    if let Some((_, JVal::Array(feats))) =
+                        entries.iter().find(|(k, _)| k == "features")
+                    {
+                        feats.clone()
+                    } else {
+                        vec![JVal::Object(entries)]
+                    }
+                }
+                JVal::Array(arr) => arr,
+                _ => Vec::new(),
+            }
+        } else {
+            Vec::new()
+        };
+        let mut prop_keys: Vec<String> = Vec::new();
+        for feat in &features {
+            if let JVal::Object(fentries) = feat
+                && let Some((_, JVal::Object(props))) =
+                    fentries.iter().find(|(k, _)| k == "properties")
+            {
+                for (pk, _) in props {
+                    if !prop_keys.contains(pk) {
+                        prop_keys.push(pk.clone());
+                    }
+                }
+            }
+        }
+        let mut headers = vec!["id".to_string()];
+        headers.extend(prop_keys.iter().cloned());
+        headers.extend([
+            "geojson".to_string(),
+            "type".to_string(),
+            "longitude".to_string(),
+            "latitude".to_string(),
+        ]);
+        let mut data_rows = Vec::new();
+        for feat in &features {
+            if let JVal::Object(fentries) = feat {
+                let fid = fentries
+                    .iter()
+                    .find(|(k, _)| k == "id")
+                    .map(|(_, v)| match v {
+                        JVal::Null => String::new(),
+                        JVal::Number(n) => format_csvkit_num(*n),
+                        _ => v.to_raw_string(true, false),
+                    })
+                    .unwrap_or_default();
+                let mut row = vec![fid];
+                let props_opt = fentries.iter().find_map(|(k, v)| {
+                    if k == "properties"
+                        && let JVal::Object(p) = v
+                    {
+                        Some(p)
+                    } else {
+                        None
+                    }
+                });
+                for pk in &prop_keys {
+                    let pval = props_opt
+                        .and_then(|p| p.iter().find(|(k, _)| k == pk))
+                        .map(|(_, v)| match v {
+                            JVal::Null => String::new(),
+                            JVal::Number(n) => format_csvkit_num(*n),
+                            _ => v.to_raw_string(true, false),
+                        })
+                        .unwrap_or_default();
+                    row.push(pval);
+                }
+                let geom_opt = fentries.iter().find(|(k, _)| k == "geometry").map(|(_, v)| v);
+                if let Some(geom @ JVal::Object(gentries)) = geom_opt {
+                    let geojson_str = format_jval_python_json(geom);
+                    let gtype = gentries
+                        .iter()
+                        .find(|(k, _)| k == "type")
+                        .map(|(_, v)| v.to_raw_string(true, false))
+                        .unwrap_or_default();
+                    let (mut lon_s, mut lat_s) = (String::new(), String::new());
+                    if gtype == "Point"
+                        && let Some((_, JVal::Array(coords))) =
+                            gentries.iter().find(|(k, _)| k == "coordinates")
+                        && coords.len() >= 2
+                    {
+                        lon_s = match &coords[0] {
+                            JVal::Number(n) => format_csvkit_num(*n),
+                            v => v.to_raw_string(true, false),
+                        };
+                        lat_s = match &coords[1] {
+                            JVal::Number(n) => format_csvkit_num(*n),
+                            v => v.to_raw_string(true, false),
+                        };
+                    }
+                    row.push(geojson_str);
+                    row.push(gtype);
+                    row.push(lon_s);
+                    row.push(lat_s);
+                } else {
+                    row.extend([String::new(), String::new(), String::new(), String::new()]);
+                }
+                data_rows.push(row);
+            }
+        }
+        return finish_rows(headers, data_rows);
+    }
+
+    if fmt == "csv" {
+        let text = match read_csv_input(&files, stdin, cwd, fs) {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+        };
+        let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
+        if rows.is_empty() {
+            return ok_out("");
+        }
+        let (headers, data_rows) = if no_header {
+            (default_csvkit_headers(rows[0].len()), rows)
+        } else {
+            (normalize_csvkit_headers(&rows[0]), rows[1..].to_vec())
+        };
+        let _ = no_inference;
+        return finish_rows(headers, data_rows);
+    }
+
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("in2csv: {e}"), 1),
@@ -6452,12 +7983,13 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         Ok(v) => v,
         Err(e) => return err_out(&format!("in2csv: {e}\n"), 1),
     };
-    let items: Vec<JVal> = if vals.len() == 1 {
+    let items: Vec<JVal> = if fmt != "ndjson" && vals.len() == 1 {
         match vals.into_iter().next().unwrap() {
             JVal::Array(arr) => arr,
             JVal::Object(entries) => {
                 if let Some(ref k) = key_prop
-                    && let Some((_, JVal::Array(arr))) = entries.into_iter().find(|(ek, _)| ek == k)
+                    && let Some((_, JVal::Array(arr))) =
+                        entries.into_iter().find(|(ek, _)| ek == k)
                 {
                     arr
                 } else {
@@ -6483,7 +8015,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     if headers.is_empty() {
         return ok_out("");
     }
-    let mut out = format_csv_row(&headers, ',');
+    let mut data_rows = Vec::new();
     for item in &items {
         if let JVal::Object(entries) = item {
             let row: Vec<String> = headers
@@ -6494,24 +8026,33 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         .find(|(k, _)| k == h)
                         .map(|(_, v)| match v {
                             JVal::Null => String::new(),
-                            JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
+                            JVal::Number(n) => format_csvkit_num(*n),
                             _ => v.to_raw_string(true, false),
                         })
                         .unwrap_or_default()
                 })
                 .collect();
-            out.push_str(&format_csv_row(&row, ','));
+            data_rows.push(row);
         }
     }
-    ok_out(&out)
+    finish_rows(headers, data_rows)
 }
 
 fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut in_delim = ',';
+    let mut in_quote = '"';
+    let mut skip_initial_space = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
     let mut out_delim = ',';
-    let mut out_quoting = 0usize;
-    let mut out_quotechar = '"';
-    let mut line_term = "\n".to_string();
+    let mut out_quote = '"';
+    let mut out_quoting = 0u8;
+    let mut out_doublequote = true;
+    let mut out_escape: Option<char> = None;
+    let mut out_terminator = "\n".to_string();
+    let mut skip_header = false;
+    let mut line_numbers = false;
+    let mut add_bom = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -6519,29 +8060,54 @@ fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             "-t" | "--tabs" => in_delim = '\t',
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
-                in_delim = args[i].chars().next().unwrap_or(',');
+                in_delim = parse_delim_arg(&args[i]);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                in_quote = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
             }
             "-T" | "--out-tabs" => out_delim = '\t',
             "-D" | "--out-delimiter" if i + 1 < args.len() => {
                 i += 1;
-                out_delim = args[i].chars().next().unwrap_or(',');
+                out_delim = parse_delim_arg(&args[i]);
+            }
+            "-A" | "--out-asv" => {
+                out_delim = '\x1f';
+                out_terminator = "\x1e".to_string();
+            }
+            "-Q" | "--out-quotechar" if i + 1 < args.len() => {
+                i += 1;
+                out_quote = args[i].chars().next().unwrap_or('"');
             }
             "-U" | "--out-quoting" if i + 1 < args.len() => {
                 i += 1;
                 out_quoting = args[i].parse().unwrap_or(0);
             }
-            "-Q" | "--out-quotechar" if i + 1 < args.len() => {
+            "-B" | "--out-no-doublequote" => out_doublequote = false,
+            "-P" | "--out-escapechar" if i + 1 < args.len() => {
                 i += 1;
-                out_quotechar = args[i].chars().next().unwrap_or('"');
+                out_escape = args[i].chars().next();
             }
-            "-u" | "--quoting" | "-q" | "--quotechar" if i + 1 < args.len() => {
+            "-M" | "--out-lineterminator" if i + 1 < args.len() => {
+                i += 1;
+                out_terminator = args[i]
+                    .replace("\\r\\n", "\r\n")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "\r");
+            }
+            "-E" | "--skip-header" => skip_header = true,
+            "-l" | "--linenumbers" => line_numbers = true,
+            "--add-bom" => add_bom = true,
+            "-e" | "--encoding" | "-y" | "--snifflimit" if i + 1 < args.len() => {
                 i += 1;
             }
-            "-M" | "--lineterminator" if i + 1 < args.len() => {
-                i += 1;
-                line_term = args[i].replace("\\r\\n", "\r\n").replace("\\n", "\n");
-            }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
@@ -6550,49 +8116,102 @@ fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvformat: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, in_delim);
-    let mut out = String::new();
-    for r in rows {
-        let formatted = if out_quoting == 1 {
-            let q = out_quotechar;
-            let cells: Vec<String> = r
-                .iter()
-                .map(|c| format!("{q}{}{q}", c.replace(q, &format!("{q}{q}"))))
-                .collect();
-            cells.join(&out_delim.to_string())
-        } else if out_quoting == 2 {
-            let q = out_quotechar;
-            let cells: Vec<String> = r
-                .iter()
-                .map(|c| {
-                    if c.trim().parse::<f64>().is_ok() {
-                        c.clone()
-                    } else {
-                        format!("{q}{}{q}", c.replace(q, &format!("{q}{q}")))
-                    }
-                })
-                .collect();
-            cells.join(&out_delim.to_string())
-        } else {
-            format_csv_row(&r, out_delim).trim_end_matches('\n').to_string()
+    let rows = parse_csv_rows_opts(&text, in_delim, in_quote, skip_initial_space, skip_lines);
+    if rows.is_empty() {
+        return ok_out("");
+    }
+    let format_cell = |c: &str| -> String {
+        if out_quoting == 3 {
+            let mut s = c.to_string();
+            if let Some(esc) = out_escape {
+                let esc_s = esc.to_string();
+                s = s.replace(esc, &format!("{esc_s}{esc_s}"));
+                s = s.replace(out_delim, &format!("{esc_s}{out_delim}"));
+            }
+            return s;
+        }
+        let must_quote = match out_quoting {
+            1 => true,
+            2 => c.is_empty() || !is_csvkit_num_str(c, false),
+            _ => {
+                c.contains(out_delim)
+                    || c.contains(out_quote)
+                    || c.contains('\n')
+                    || c.contains('\r')
+            }
         };
-        out.push_str(&formatted);
-        out.push_str(&line_term);
+        if must_quote {
+            let inner = if out_doublequote {
+                c.replace(out_quote, &format!("{out_quote}{out_quote}"))
+            } else if let Some(esc) = out_escape {
+                c.replace(esc, &format!("{esc}{esc}"))
+                    .replace(out_quote, &format!("{esc}{out_quote}"))
+            } else {
+                c.to_string()
+            };
+            format!("{out_quote}{inner}{out_quote}")
+        } else {
+            c.to_string()
+        }
+    };
+
+    let mut out = String::new();
+    if add_bom {
+        out.push('\u{feff}');
+    }
+    let start_idx = if skip_header && !no_header { 1usize } else { 0usize };
+    let delim_s = out_delim.to_string();
+    for (idx, r) in rows[start_idx..].iter().enumerate() {
+        let mut cells: Vec<String> = Vec::with_capacity(r.len() + 1);
+        if line_numbers {
+            if idx == 0 && start_idx == 0 && !no_header {
+                cells.push(format_cell("line_number"));
+            } else {
+                let rn = if start_idx == 0 && !no_header {
+                    idx
+                } else {
+                    idx + 1
+                };
+                cells.push(format_cell(&rn.to_string()));
+            }
+        }
+        for c in r {
+            cells.push(format_cell(c));
+        }
+        out.push_str(&cells.join(&delim_s));
+        out.push_str(&out_terminator);
     }
     ok_out(&out)
 }
 
 fn cmd_csvlook(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
     let mut no_inference = false;
+    let mut line_numbers = false;
     let mut max_rows: Option<usize> = None;
     let mut max_cols: Option<usize> = None;
+    let mut max_col_width: Option<usize> = None;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "-t" | "--tabs" => delim = '\t',
             "-I" | "--no-inference" => no_inference = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-l" | "--linenumbers" => line_numbers = true,
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
             "--max-rows" if i + 1 < args.len() => {
                 i += 1;
                 max_rows = args[i].parse().ok();
@@ -6601,11 +8220,21 @@ fn cmd_csvlook(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 i += 1;
                 max_cols = args[i].parse().ok();
             }
+            "--max-column-width" if i + 1 < args.len() => {
+                i += 1;
+                max_col_width = args[i].parse().ok();
+            }
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
-                delim = args[i].chars().next().unwrap_or(',');
+                delim = parse_delim_arg(&args[i]);
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "-e" | "--encoding" | "-L" | "--locale" | "--date-format" | "--datetime-format"
+            | "--null-value" | "-y" | "--snifflimit" | "--max-precision"
+                if i + 1 < args.len() =>
+            {
+                i += 1;
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
@@ -6614,27 +8243,41 @@ fn cmd_csvlook(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvlook: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
         return ok_out("");
     }
-    let total_cols = rows[0].len();
-    let ncols = max_cols.map(|m| m.min(total_cols)).unwrap_or(total_cols);
-    let data_slice = if let Some(mr) = max_rows {
-        &rows[1..rows.len().min(1 + mr)]
+    let (mut headers, raw_data) = if no_header {
+        (default_csvkit_headers(rows[0].len()), rows)
     } else {
-        &rows[1..]
+        (normalize_csvkit_headers(&rows[0]), rows[1..].to_vec())
     };
+    let mut all_data: Vec<Vec<String>> = raw_data;
+    if line_numbers {
+        headers.insert(0, "line_numbers".to_string());
+        for (idx, r) in all_data.iter_mut().enumerate() {
+            r.insert(0, (idx + 1).to_string());
+        }
+    }
+    let total_cols = headers.len();
+    let ncols = max_cols.map(|m| m.min(total_cols)).unwrap_or(total_cols);
+    let has_ellipsis_col = ncols < total_cols;
+    let data_slice: &[Vec<String>] = if let Some(mr) = max_rows {
+        &all_data[..all_data.len().min(mr)]
+    } else {
+        &all_data[..]
+    };
+
     let mut is_numeric = vec![false; ncols];
-    if !no_inference && !data_slice.is_empty() {
+    if !no_inference && !all_data.is_empty() {
         for idx in 0..ncols {
             let mut has_val = false;
             let mut all_num = true;
-            for r in data_slice {
+            for r in &all_data {
                 let c = r.get(idx).map(|s| s.trim()).unwrap_or("");
                 if !c.is_empty() {
                     has_val = true;
-                    if c.parse::<f64>().is_err() {
+                    if !is_csvkit_num_str(c, false) {
                         all_num = false;
                         break;
                     }
@@ -6643,31 +8286,58 @@ fn cmd_csvlook(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             is_numeric[idx] = has_val && all_num;
         }
     }
-    let mut widths = vec![1usize; ncols];
-    for cell_idx in 0..ncols {
-        widths[cell_idx] = widths[cell_idx].max(rows[0].get(cell_idx).map(|s| s.len()).unwrap_or(0));
-    }
-    for r in data_slice {
-        for idx in 0..ncols {
-            let cell = r.get(idx).map(|s| s.as_str()).unwrap_or("");
-            widths[idx] = widths[idx].max(cell.len());
+
+    let trunc_cell = |s: &str| -> String {
+        if let Some(mw) = max_col_width {
+            let chars: Vec<char> = s.chars().collect();
+            if chars.len() > mw {
+                if mw > 3 {
+                    let prefix: String = chars[..mw - 3].iter().collect();
+                    return format!("{prefix}...");
+                } else {
+                    return ".".repeat(mw);
+                }
+            }
         }
+        s.to_string()
+    };
+
+    let mut disp_headers: Vec<String> = headers[..ncols].iter().map(|h| trunc_cell(h)).collect();
+    if has_ellipsis_col {
+        disp_headers.push("...".to_string());
     }
+    let disp_ncols = disp_headers.len();
+    let mut widths: Vec<usize> = disp_headers.iter().map(|h| h.chars().count().max(1)).collect();
+
+    let mut disp_rows: Vec<Vec<String>> = Vec::with_capacity(data_slice.len());
+    for r in data_slice {
+        let mut dr: Vec<String> = (0..ncols)
+            .map(|idx| trunc_cell(r.get(idx).map(|s| s.as_str()).unwrap_or("")))
+            .collect();
+        if has_ellipsis_col {
+            dr.push("...".to_string());
+        }
+        for (idx, cell) in dr.iter().enumerate() {
+            widths[idx] = widths[idx].max(cell.chars().count());
+        }
+        disp_rows.push(dr);
+    }
+
     let mut out = String::new();
-    let hdr_parts: Vec<String> = (0..ncols)
+    let hdr_parts: Vec<String> = (0..disp_ncols)
         .map(|idx| {
-            let c = rows[0].get(idx).map(|s| s.as_str()).unwrap_or("");
+            let c = &disp_headers[idx];
             format!("{c:<width$}", width = widths[idx])
         })
         .collect();
     out.push_str(&format!("| {} |\n", hdr_parts.join(" | ")));
     let sep_parts: Vec<String> = widths.iter().map(|&w| "-".repeat(w)).collect();
     out.push_str(&format!("| {} |\n", sep_parts.join(" | ")));
-    for r in data_slice {
-        let parts: Vec<String> = (0..ncols)
+    for dr in &disp_rows {
+        let parts: Vec<String> = (0..disp_ncols)
             .map(|idx| {
-                let c = r.get(idx).map(|s| s.as_str()).unwrap_or("");
-                if is_numeric[idx] {
+                let c = &dr[idx];
+                if idx < ncols && is_numeric[idx] {
                     format!("{c:>width$}", width = widths[idx])
                 } else {
                     format!("{c:<width$}", width = widths[idx])
@@ -6679,11 +8349,46 @@ fn cmd_csvlook(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     ok_out(&out)
 }
 
-fn cmd_csvsql(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn sqlite_db_path_from_url(db_url: &str, cwd: &str) -> String {
+    if let Some(rest) = db_url.strip_prefix("sqlite:///") {
+        if rest.starts_with('/') {
+            resolve_posix_path(cwd, rest)
+        } else {
+            resolve_posix_path(cwd, rest)
+        }
+    } else if let Some(rest) = db_url.strip_prefix("sqlite://") {
+        resolve_posix_path(cwd, rest)
+    } else {
+        resolve_posix_path(cwd, db_url)
+    }
+}
+
+fn cmd_csvsql(
+    cmd: &str,
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut query: Option<String> = None;
+    let mut db_url: Option<String> = None;
+    let mut do_insert = false;
+    let mut no_create = false;
+    let mut create_if_not_exists = false;
+    let mut overwrite = false;
+    let mut before_insert: Option<String> = None;
+    let mut after_insert: Option<String> = None;
     let mut table_names: Option<String> = None;
+    let mut db_schema: Option<String> = None;
     let mut unique_cols: Option<String> = None;
+    let mut no_constraints = false;
+    let mut no_inference = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
+    let mut line_numbers = false;
     let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -6691,7 +8396,28 @@ fn cmd_csvsql(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "-t" | "--tabs" => delim = '\t',
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
-                delim = args[i].chars().next().unwrap_or(',');
+                delim = parse_delim_arg(&args[i]);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "-I" | "--no-inference" => no_inference = true,
+            "-l" | "--linenumbers" => line_numbers = true,
+            "--no-constraints" => no_constraints = true,
+            "--insert" => do_insert = true,
+            "--no-create" => no_create = true,
+            "--create-if-not-exists" => create_if_not_exists = true,
+            "--overwrite" => overwrite = true,
+            "--db" if i + 1 < args.len() => {
+                i += 1;
+                db_url = Some(args[i].clone());
             }
             "--query" if i + 1 < args.len() => {
                 i += 1;
@@ -6701,150 +8427,412 @@ fn cmd_csvsql(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 i += 1;
                 table_names = Some(args[i].clone());
             }
+            "--db-schema" if i + 1 < args.len() => {
+                i += 1;
+                db_schema = Some(args[i].clone());
+            }
             "--unique-constraint" if i + 1 < args.len() => {
                 i += 1;
                 unique_cols = Some(args[i].clone());
             }
-            "--db" if i + 1 < args.len() => {
+            "--before-insert" if i + 1 < args.len() => {
+                i += 1;
+                before_insert = Some(args[i].clone());
+            }
+            "--after-insert" if i + 1 < args.len() => {
+                i += 1;
+                after_insert = Some(args[i].clone());
+            }
+            "-i" | "--dialect" | "-e" | "--encoding" | "-L" | "--locale" | "--date-format"
+            | "--datetime-format" | "--null-value" | "-y" | "--snifflimit" | "--chunk-size"
+            | "--prefix"
+                if i + 1 < args.len() =>
+            {
                 i += 1;
             }
-            "-i" | "--dialect" if i + 1 < args.len() => {
-                i += 1;
-            }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
+
+    let resolve_sql_arg = |q: &str| -> String {
+        if !q.contains(' ') && !q.contains('\n') {
+            let full = resolve_posix_path(cwd, q);
+            if let Ok(bytes) = fs.read_file(&full) {
+                return String::from_utf8_lossy(&bytes).into_owned();
+            }
+        }
+        q.to_string()
+    };
+
+    if cmd == "sql2csv" {
+        let sql_text = if let Some(ref q) = query {
+            resolve_sql_arg(q)
+        } else if let Some(first) = files.first() {
+            if first == "-" {
+                stdin.to_string()
+            } else {
+                let full = resolve_posix_path(cwd, first);
+                fs.read_file(&full)
+                    .map(|b| String::from_utf8_lossy(&b).into_owned())
+                    .unwrap_or_else(|_| first.clone())
+            }
+        } else {
+            stdin.to_string()
+        };
+        let db_path = db_url
+            .as_deref()
+            .map(|u| sqlite_db_path_from_url(u, cwd))
+            .unwrap_or_else(|| ":memory:".to_string());
+        let mut sq_args = vec![
+            "-csv".to_string(),
+            if no_header {
+                "-noheader".to_string()
+            } else {
+                "-header".to_string()
+            },
+            db_path,
+            sql_text,
+        ];
+        let res = cmd_sqlite3(&sq_args, "", cwd, fs);
+        if res.exit_code != 0 || !line_numbers {
+            let _ = &mut sq_args;
+            return res;
+        }
+        let rows = parse_csv_rows(&res.stdout, ',');
+        if rows.is_empty() {
+            return ok_out("");
+        }
+        let mut out = String::new();
+        for (idx, r) in rows.iter().enumerate() {
+            let mut nr = Vec::with_capacity(r.len() + 1);
+            if idx == 0 && !no_header {
+                nr.push("line_number".to_string());
+            } else {
+                let rn = if no_header { idx + 1 } else { idx };
+                nr.push(rn.to_string());
+            }
+            nr.extend(r.iter().cloned());
+            out.push_str(&format_csv_row(&nr, ','));
+        }
+        return ok_out(&out);
+    }
+
     let custom_names: Vec<String> = table_names
         .map(|s| s.split(',').map(|p| p.trim().to_string()).collect())
         .unwrap_or_default();
 
-    if let Some(sql) = query {
-        let mut tables: BTreeMap<String, SqlTable> = BTreeMap::new();
-        if files.is_empty() {
-            let rows = parse_csv_rows(stdin, delim);
+    let load_input_tables = || -> Result<Vec<(String, Vec<String>, Vec<Vec<String>>)>, String> {
+        let mut out = Vec::new();
+        if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+            let rows = parse_csv_rows_opts(stdin, delim, quotechar, skip_initial_space, skip_lines);
             if !rows.is_empty() {
                 let tname = custom_names
                     .first()
                     .cloned()
                     .unwrap_or_else(|| "stdin".to_string());
+                let (hdr, data) = if no_header {
+                    (default_csvkit_headers(rows[0].len()), rows)
+                } else {
+                    (normalize_csvkit_headers(&rows[0]), rows[1..].to_vec())
+                };
+                out.push((tname, hdr, data));
+            }
+        } else {
+            for (idx, f) in files.iter().enumerate() {
+                let text = read_csv_input(std::slice::from_ref(f), stdin, cwd, fs)?;
+                let rows =
+                    parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
+                if !rows.is_empty() {
+                    let default_name = f
+                        .rsplit('/')
+                        .next()
+                        .unwrap_or(f)
+                        .split('.')
+                        .next()
+                        .unwrap_or("table")
+                        .to_string();
+                    let tname = custom_names.get(idx).cloned().unwrap_or(default_name);
+                    let (hdr, data) = if no_header {
+                        (default_csvkit_headers(rows[0].len()), rows)
+                    } else {
+                        (normalize_csvkit_headers(&rows[0]), rows[1..].to_vec())
+                    };
+                    out.push((tname, hdr, data));
+                }
+            }
+        }
+        Ok(out)
+    };
+
+    if do_insert || db_url.is_some() && query.is_none() {
+        let Some(ref u) = db_url else {
+            return err_out("csvsql: --insert requires --db\n", 1);
+        };
+        let db_path = sqlite_db_path_from_url(u, cwd);
+        let input_tables = match load_input_tables() {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("csvsql: {e}"), 1),
+        };
+        let mut tables: BTreeMap<String, SqlTable> = BTreeMap::new();
+        let mut views: BTreeMap<String, String> = BTreeMap::new();
+        let mut indexes: Vec<String> = Vec::new();
+        let mut triggers: Vec<SqlTrigger> = Vec::new();
+        let mut user_version: i64 = 0;
+        let mut application_id: i64 = 0;
+        if let Ok(existing) = fs.read_file(&db_path) {
+            deserialize_sql_db(
+                &existing,
+                &mut tables,
+                &mut views,
+                &mut indexes,
+                &mut triggers,
+                &mut user_version,
+                &mut application_id,
+            );
+        }
+        for (tname, hdr, data) in input_tables {
+            if let Some(ref pre_sql) = before_insert {
+                let bytes = serialize_sql_db(
+                    &tables,
+                    &views,
+                    &indexes,
+                    &triggers,
+                    user_version,
+                    application_id,
+                );
+                let _ = fs.write_file(&db_path, &bytes);
+                let _ = cmd_sqlite3(&[db_path.clone(), pre_sql.clone()], "", cwd, fs);
+                if let Ok(updated) = fs.read_file(&db_path) {
+                    deserialize_sql_db(
+                        &updated,
+                        &mut tables,
+                        &mut views,
+                        &mut indexes,
+                        &mut triggers,
+                        &mut user_version,
+                        &mut application_id,
+                    );
+                }
+            }
+            if overwrite {
+                tables.remove(&tname);
+            }
+            if tables.contains_key(&tname) {
+                if !no_create && !create_if_not_exists && !overwrite {
+                    return err_out(&format!("csvsql: Table '{tname}' already exists.\n"), 1);
+                }
+                if let Some(existing_tbl) = tables.get_mut(&tname) {
+                    existing_tbl.rows.extend(data);
+                }
+            } else {
+                if no_create {
+                    return err_out(&format!("csvsql: Table '{tname}' does not exist.\n"), 1);
+                }
                 tables.insert(
                     tname,
                     SqlTable {
-                        columns: rows[0].clone(),
-                        rows: rows[1..].to_vec(),
+                        columns: hdr,
+                        rows: data,
                         imported_csv: false,
                         ..SqlTable::default()
                     },
                 );
             }
-        } else {
-            for (idx, f) in files.iter().enumerate() {
-                let full = resolve_posix_path(cwd, f);
-                if let Ok(bytes) = fs.read_file(&full) {
-                    let rows = parse_csv_rows(&String::from_utf8_lossy(&bytes), delim);
-                    if !rows.is_empty() {
-                        let default_name = f
-                            .rsplit('/')
-                            .next()
-                            .unwrap_or(f)
-                            .split('.')
-                            .next()
-                            .unwrap_or("table")
-                            .to_string();
-                        let tname = custom_names.get(idx).cloned().unwrap_or(default_name);
-                        tables.insert(
-                            tname,
-                            SqlTable {
-                                columns: rows[0].clone(),
-                                rows: rows[1..].to_vec(),
-                                imported_csv: false,
-                                ..SqlTable::default()
-                            },
-                        );
-                    }
+            let bytes = serialize_sql_db(
+                &tables,
+                &views,
+                &indexes,
+                &triggers,
+                user_version,
+                application_id,
+            );
+            let _ = fs.write_file(&db_path, &bytes);
+            if let Some(ref post_sql) = after_insert {
+                let _ = cmd_sqlite3(&[db_path.clone(), post_sql.clone()], "", cwd, fs);
+                if let Ok(updated) = fs.read_file(&db_path) {
+                    deserialize_sql_db(
+                        &updated,
+                        &mut tables,
+                        &mut views,
+                        &mut indexes,
+                        &mut triggers,
+                        &mut user_version,
+                        &mut application_id,
+                    );
                 }
             }
+        }
+        return ok_out("");
+    }
+
+    if let Some(raw_q) = query {
+        let sql = resolve_sql_arg(&raw_q);
+        let input_tables = match load_input_tables() {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("csvsql: {e}"), 1),
+        };
+        let mut tables: BTreeMap<String, SqlTable> = BTreeMap::new();
+        for (tname, hdr, data) in input_tables {
+            tables.insert(
+                tname,
+                SqlTable {
+                    columns: hdr,
+                    rows: data,
+                    imported_csv: false,
+                    ..SqlTable::default()
+                },
+            );
         }
         let mut out = String::new();
         for raw_stmt in sql.split(';') {
             let stmt = raw_stmt.trim();
-            if stmt.to_ascii_uppercase().starts_with("SELECT") {
-                out.push_str(&exec_sql_select(stmt, &tables, &BTreeMap::new(), true, false, false, false, None, true, ","));
+            if stmt.to_ascii_uppercase().starts_with("SELECT")
+                || stmt.to_ascii_uppercase().starts_with("WITH")
+            {
+                out.push_str(&exec_sql_select(
+                    stmt,
+                    &tables,
+                    &BTreeMap::new(),
+                    true,
+                    false,
+                    false,
+                    false,
+                    None,
+                    true,
+                    ",",
+                ));
             }
+        }
+        if line_numbers && !out.is_empty() {
+            let rows = parse_csv_rows(&out, ',');
+            let mut lout = String::new();
+            for (idx, r) in rows.iter().enumerate() {
+                let mut nr = Vec::with_capacity(r.len() + 1);
+                if idx == 0 {
+                    nr.push("line_number".to_string());
+                } else {
+                    nr.push(idx.to_string());
+                }
+                nr.extend(r.iter().cloned());
+                lout.push_str(&format_csv_row(&nr, ','));
+            }
+            return ok_out(&lout);
         }
         return ok_out(&out);
     }
 
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let input_tables = match load_input_tables() {
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvsql: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
-    if rows.is_empty() {
+    if input_tables.is_empty() {
         return ok_out("");
     }
-    let tname = custom_names.first().cloned().unwrap_or_else(|| {
-        files
-            .first()
-            .and_then(|f| f.rsplit('/').next())
-            .and_then(|f| f.split('.').next())
-            .unwrap_or("stdin")
-            .to_string()
-    });
-    let headers = &rows[0];
-    let data = &rows[1..];
-    let mut col_defs = Vec::new();
-    for (idx, h) in headers.iter().enumerate() {
-        let non_empty: Vec<&str> = data
-            .iter()
-            .filter_map(|r| r.get(idx).map(|s| s.trim()))
-            .filter(|s| !s.is_empty())
-            .collect();
-        let sql_type = if !non_empty.is_empty()
-            && non_empty
+    let mut ddl_out = String::new();
+    for (tname, headers, data) in input_tables {
+        let qualified_name = if let Some(ref schema) = db_schema {
+            format!("{schema}.{tname}")
+        } else {
+            tname
+        };
+        let mut col_defs = Vec::new();
+        for (idx, h) in headers.iter().enumerate() {
+            let non_empty: Vec<&str> = data
                 .iter()
-                .all(|s| s.eq_ignore_ascii_case("true") || s.eq_ignore_ascii_case("false"))
+                .filter_map(|r| r.get(idx).map(|s| s.trim()))
+                .filter(|s| !s.is_empty())
+                .collect();
+            let sql_type = if no_inference {
+                "VARCHAR"
+            } else if !non_empty.is_empty()
+                && non_empty.iter().all(|s| {
+                    s.eq_ignore_ascii_case("true")
+                        || s.eq_ignore_ascii_case("false")
+                        || *s == "0"
+                        || *s == "1"
+                })
+                && non_empty
+                    .iter()
+                    .any(|s| s.eq_ignore_ascii_case("true") || s.eq_ignore_ascii_case("false"))
+            {
+                "BOOLEAN"
+            } else if !non_empty.is_empty() && non_empty.iter().all(|s| is_csvkit_num_str(s, false)) {
+                "DECIMAL"
+            } else if !non_empty.is_empty() && non_empty.iter().all(|s| is_iso_date_str(s)) {
+                "DATE"
+            } else if !non_empty.is_empty() && non_empty.iter().all(|s| is_iso_datetime_str(s)) {
+                "TIMESTAMP"
+            } else {
+                "VARCHAR"
+            };
+            let not_null = if !no_constraints && !data.is_empty() && non_empty.len() == data.len() {
+                " NOT NULL"
+            } else {
+                ""
+            };
+            col_defs.push(format!("\t{h} {sql_type}{not_null}"));
+        }
+        if !no_constraints
+            && let Some(ref ucols) = unique_cols
         {
-            "BOOLEAN"
-        } else if !non_empty.is_empty() && non_empty.iter().all(|s| s.parse::<f64>().is_ok()) {
-            "DECIMAL"
-        } else {
-            "VARCHAR"
-        };
-        let not_null = if !data.is_empty() && non_empty.len() == data.len() {
-            " NOT NULL"
-        } else {
-            ""
-        };
-        col_defs.push(format!("\t{h} {sql_type}{not_null}"));
+            let formatted_ucols: Vec<String> =
+                ucols.split(',').map(|c| c.trim().to_string()).collect();
+            col_defs.push(format!("\tUNIQUE ({})", formatted_ucols.join(", ")));
+        }
+        ddl_out.push_str(&format!(
+            "CREATE TABLE {qualified_name} (\n{}\n);\n",
+            col_defs.join(",\n")
+        ));
     }
-    if let Some(ucols) = unique_cols {
-        col_defs.push(format!("\tUNIQUE ({ucols})"));
-    }
-    ok_out(&format!(
-        "CREATE TABLE {tname} (\n{}\n);\n",
-        col_defs.join(",\n")
-    ))
+    ok_out(&ddl_out)
 }
 
 fn cmd_csvclean(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
+    let mut zero_based = false;
+    let mut line_numbers = false;
     let mut check_length = false;
+    let mut check_empty = false;
     let mut omit_err = false;
     let mut fill_short = false;
     let mut fill_val = String::new();
     let mut join_short = false;
-    let mut join_sep = " ".to_string();
+    let mut join_sep = "\n".to_string();
     let mut norm_header = false;
+    let mut label_opt: Option<String> = None;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "-t" | "--tabs" => delim = '\t',
+            "-d" | "--delimiter" if i + 1 < args.len() => {
+                i += 1;
+                delim = parse_delim_arg(&args[i]);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "--zero" => zero_based = true,
+            "-l" | "--linenumbers" => line_numbers = true,
             "--length-mismatch" => check_length = true,
-            "-a" | "--enable-all-checks" => check_length = true,
+            "--empty-columns" => check_empty = true,
+            "-a" | "--enable-all-checks" => {
+                check_length = true;
+                check_empty = true;
+            }
             "--omit-error-rows" => omit_err = true,
             "--fill-short-rows" => fill_short = true,
             "--fillvalue" if i + 1 < args.len() => {
@@ -6857,26 +8845,30 @@ fn cmd_csvclean(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
                 join_sep = args[i].clone();
             }
             "--header-normalize-space" => norm_header = true,
-            "-d" | "--delimiter" if i + 1 < args.len() => {
+            "--label" if i + 1 < args.len() => {
                 i += 1;
-                delim = args[i].chars().next().unwrap_or(',');
+                label_opt = Some(args[i].clone());
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "-e" | "--encoding" | "-y" | "--snifflimit" if i + 1 < args.len() => {
+                i += 1;
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
-    if !check_length && !fill_short && !join_short && !norm_header && !omit_err {
+    if !check_length && !check_empty && !fill_short && !join_short && !norm_header && !omit_err {
         check_length = true;
     }
     let text = match read_csv_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvclean: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
         return ok_out("");
     }
+    let _ = no_header;
     let header_row: Vec<String> = if norm_header {
         rows[0]
             .iter()
@@ -6886,36 +8878,161 @@ fn cmd_csvclean(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         rows[0].clone()
     };
     let expected_cols = header_row.len();
-    let mut stdout = format_csv_row(&header_row, ',');
-    let mut stderr = String::new();
-    let mut has_err = false;
+    let mut empties = vec![0usize; expected_cols];
+    let mut data_count = 0usize;
+    let mut stdout_rows: Vec<Vec<String>> = vec![header_row.clone()];
+    let mut errors: Vec<(usize, String, Vec<String>)> = Vec::new();
+    let mut joinable: Vec<(usize, String, Vec<String>)> = Vec::new();
+
     for (idx, orig_r) in rows[1..].iter().enumerate() {
+        data_count += 1;
+        let line_num = idx + 1;
         let mut r = orig_r.clone();
+        let err_msg = format!(
+            "Expected {} columns, found {} columns",
+            expected_cols,
+            r.len()
+        );
+        let err_entry = (line_num, err_msg, r.clone());
+
         if fill_short && r.len() < expected_cols {
             while r.len() < expected_cols {
                 r.push(fill_val.clone());
             }
+        } else if join_short {
+            if r.len() >= expected_cols {
+                joinable.clear();
+            } else {
+                joinable.push(err_entry.clone());
+                if joinable.len() > 1 {
+                    while !joinable.is_empty() {
+                        let mut merged = joinable[0].2.clone();
+                        for next in &joinable[1..] {
+                            if let Some(last_cell) = merged.last_mut() {
+                                last_cell.push_str(&join_sep);
+                                last_cell.push_str(next.2.first().map(|s| s.as_str()).unwrap_or(""));
+                            }
+                            if next.2.len() > 1 {
+                                merged.extend(next.2[1..].iter().cloned());
+                            }
+                        }
+                        if merged.len() < expected_cols {
+                            break;
+                        }
+                        if merged.len() == expected_cols {
+                            r = merged;
+                            if check_length {
+                                for fixed in &joinable {
+                                    if let Some(pos) = errors.iter().position(|e| e.0 == fixed.0) {
+                                        errors.remove(pos);
+                                    }
+                                }
+                            }
+                            joinable.clear();
+                            break;
+                        }
+                        joinable.remove(0);
+                    }
+                }
+            }
         }
-        let is_mismatch = r.len() != expected_cols;
-        if check_length && is_mismatch {
-            has_err = true;
-            stderr.push_str(&format!(
-                "Line {}: Expected {} columns, found {} columns: {}",
-                idx + 1,
-                expected_cols,
-                r.len(),
-                format_csv_row(&r, ',')
-            ));
+
+        if check_length && r.len() != expected_cols {
+            errors.push(err_entry);
         }
-        if !omit_err || !is_mismatch {
-            let _ = &join_sep;
-            stdout.push_str(&format_csv_row(&r, ','));
+        if check_empty {
+            for col_i in 0..expected_cols {
+                if r.get(col_i).map(|s| s.is_empty()).unwrap_or(true) {
+                    empties[col_i] += 1;
+                }
+            }
+        }
+        if !omit_err || r.len() == expected_cols {
+            stdout_rows.push(r);
         }
     }
+
+    if check_empty && data_count > 0 {
+        let empty_cols: Vec<usize> = empties
+            .iter()
+            .enumerate()
+            .filter_map(|(i, &cnt)| if cnt == data_count { Some(i) } else { None })
+            .collect();
+        if !empty_cols.is_empty() {
+            let names_part: Vec<String> = empty_cols
+                .iter()
+                .map(|&i| format!("'{}'", header_row[i]))
+                .collect();
+            let indices_part: Vec<String> = empty_cols
+                .iter()
+                .map(|&i| (i + if zero_based { 0 } else { 1 }).to_string())
+                .collect();
+            let msg = format!(
+                "Empty columns named {}! Try: csvcut -C {}",
+                names_part.join(", "),
+                indices_part.join(",")
+            );
+            errors.push((1, msg, vec![String::new(); expected_cols]));
+        }
+    }
+
+    let mut stdout = String::new();
+    for (idx, r) in stdout_rows.into_iter().enumerate() {
+        let mut out_r = r;
+        if line_numbers {
+            if idx == 0 {
+                out_r.insert(0, "line_number".to_string());
+            } else {
+                out_r.insert(0, idx.to_string());
+            }
+        }
+        stdout.push_str(&format_csv_row(&out_r, ','));
+    }
+
+    if errors.is_empty() {
+        return ok_out(&stdout);
+    }
+
+    let resolved_label = label_opt.map(|l| {
+        if l == "-" {
+            files
+                .first()
+                .filter(|f| *f != "-")
+                .cloned()
+                .unwrap_or_else(|| "stdin".to_string())
+        } else {
+            l
+        }
+    });
+    let mut err_hdr = Vec::new();
+    if resolved_label.is_some() {
+        err_hdr.push("label".to_string());
+    }
+    err_hdr.push("line_number".to_string());
+    err_hdr.push("msg".to_string());
+    err_hdr.extend(header_row.iter().cloned());
+    if line_numbers {
+        err_hdr.insert(0, "line_number".to_string());
+    }
+    let mut stderr = format_csv_row(&err_hdr, ',');
+    for (idx, (err_line, msg, r)) in errors.into_iter().enumerate() {
+        let mut erow = Vec::new();
+        if let Some(ref lbl) = resolved_label {
+            erow.push(lbl.clone());
+        }
+        erow.push(err_line.to_string());
+        erow.push(msg);
+        erow.extend(r);
+        if line_numbers {
+            erow.insert(0, (idx + 1).to_string());
+        }
+        stderr.push_str(&format_csv_row(&erow, ','));
+    }
+
     BuiltinOutcome {
         stdout,
         stderr,
-        exit_code: if has_err { 1 } else { 0 },
+        exit_code: 1,
     }
 }
 
@@ -10251,6 +12368,13 @@ fn split_sql_stmts(sql: &str) -> Vec<String> {
 fn cmd_csvstack(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut groups: Option<Vec<String>> = None;
     let mut group_name = "group".to_string();
+    let mut use_filenames = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
+    let mut line_numbers = false;
+    let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
@@ -10263,51 +12387,91 @@ fn cmd_csvstack(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
                 i += 1;
                 group_name = args[i].clone();
             }
+            "--filenames" => use_filenames = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "-l" | "--linenumbers" => line_numbers = true,
+            "-t" | "--tabs" => delim = '\t',
+            "-d" | "--delimiter" if i + 1 < args.len() => {
+                i += 1;
+                delim = parse_delim_arg(&args[i]);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-e" | "--encoding" | "-y" | "--snifflimit" if i + 1 < args.len() => {
+                i += 1;
+            }
             a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
     }
+    if use_filenames && groups.is_none() {
+        groups = Some(
+            files
+                .iter()
+                .map(|p| crate::vfs::basename_posix_path(p).to_string())
+                .collect(),
+        );
+    }
     let mut parsed_files: Vec<(usize, Vec<String>, Vec<Vec<String>>)> = Vec::new();
     let mut union_headers: Vec<String> = Vec::new();
     for (f_idx, f) in files.iter().enumerate() {
-        let text = if f == "-" {
-            stdin.to_string()
-        } else {
-            let full = resolve_posix_path(cwd, f);
-            fs.read_file(&full)
-                .map(|b| String::from_utf8_lossy(&b).into_owned())
-                .unwrap_or_default()
+        let text = match read_csv_input(std::slice::from_ref(f), stdin, cwd, fs) {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("csvstack: {e}"), 1),
         };
-        let rows = parse_csv_rows(&text, ',');
+        let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
         if rows.is_empty() {
             continue;
         }
-        let hdr = rows[0].clone();
+        let (hdr, data) = if no_header {
+            (default_csvkit_headers(rows[0].len()), rows)
+        } else {
+            (rows[0].clone(), rows[1..].to_vec())
+        };
         for h in &hdr {
             if !union_headers.contains(h) {
                 union_headers.push(h.clone());
             }
         }
-        parsed_files.push((f_idx, hdr, rows[1..].to_vec()));
+        parsed_files.push((f_idx, hdr, data));
     }
     if parsed_files.is_empty() {
         return ok_out("");
     }
     let mut out_hdr = Vec::new();
+    if line_numbers {
+        out_hdr.push("line_number".to_string());
+    }
     if groups.is_some() {
         out_hdr.push(group_name);
     }
     out_hdr.extend(union_headers.iter().cloned());
     let mut out = format_csv_row(&out_hdr, ',');
+    let mut row_num = 0usize;
     for (f_idx, hdr, data_rows) in parsed_files {
         for row in data_rows {
+            row_num += 1;
             let mut out_row = Vec::new();
+            if line_numbers {
+                out_row.push(row_num.to_string());
+            }
             if let Some(ref grps) = groups {
                 let g = grps
                     .get(f_idx)
                     .cloned()
-                    .or_else(|| files.get(f_idx).map(|p| crate::vfs::basename_posix_path(p).to_string()))
+                    .or_else(|| {
+                        files
+                            .get(f_idx)
+                            .map(|p| crate::vfs::basename_posix_path(p).to_string())
+                    })
                     .unwrap_or_default();
                 out_row.push(g);
             }
@@ -10327,21 +12491,53 @@ fn cmd_csvstack(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
 }
 
 fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut col_spec = String::new();
+    let mut col_spec: Option<String> = None;
     let mut left_join = false;
     let mut right_join = false;
     let mut outer_join = false;
+    let mut no_inference = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
+    let mut zero_based = false;
+    let mut line_numbers = false;
+    let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "-c" | "--columns" if i + 1 < args.len() => {
                 i += 1;
-                col_spec = args[i].clone();
+                col_spec = Some(args[i].clone());
             }
             "--left" => left_join = true,
             "--right" => right_join = true,
             "--outer" => outer_join = true,
+            "-I" | "--no-inference" => no_inference = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "--zero" => zero_based = true,
+            "-l" | "--linenumbers" => line_numbers = true,
+            "-t" | "--tabs" => delim = '\t',
+            "-d" | "--delimiter" if i + 1 < args.len() => {
+                i += 1;
+                delim = parse_delim_arg(&args[i]);
+            }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-e" | "--encoding" | "-L" | "--locale" | "--date-format" | "--datetime-format"
+            | "--null-value" | "-y" | "--snifflimit"
+                if i + 1 < args.len() =>
+            {
+                i += 1;
+            }
             a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
@@ -10350,89 +12546,137 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     if files.len() < 2 {
         return ok_out("");
     }
-    let read_csv = |f: &str| -> (Vec<String>, Vec<Vec<String>>) {
-        let text = if f == "-" {
-            stdin.to_string()
-        } else {
-            let full = resolve_posix_path(cwd, f);
-            fs.read_file(&full)
-                .map(|b| String::from_utf8_lossy(&b).into_owned())
-                .unwrap_or_default()
+    let mut tables: Vec<(Vec<String>, Vec<Vec<String>>)> = Vec::new();
+    for f in &files {
+        let text = match read_csv_input(std::slice::from_ref(f), stdin, cwd, fs) {
+            Ok(t) => t,
+            Err(e) => return err_out(&format!("csvjoin: {e}"), 1),
         };
-        let parsed = parse_csv_rows(&text, ',');
+        let parsed = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
         if parsed.is_empty() {
-            (Vec::new(), Vec::new())
+            tables.push((Vec::new(), Vec::new()));
+        } else if no_header {
+            tables.push((default_csvkit_headers(parsed[0].len()), parsed));
         } else {
-            (parsed[0].clone(), parsed[1..].to_vec())
-        }
-    };
-    let (l_hdr, l_rows) = read_csv(&files[0]);
-    let (r_hdr, r_rows) = read_csv(&files[1]);
-    let (l_col, r_col) = col_spec
-        .split_once(',')
-        .unwrap_or((col_spec.as_str(), col_spec.as_str()));
-    let find_idx = |hdr: &[String], spec: &str| -> usize {
-        if let Ok(n) = spec.parse::<usize>()
-            && n >= 1
-        {
-            return n - 1;
-        }
-        hdr.iter().position(|h| h == spec).unwrap_or(0)
-    };
-    let l_idx = find_idx(&l_hdr, l_col);
-    let r_idx = find_idx(&r_hdr, r_col);
-    let mut out_hdr = l_hdr.clone();
-    for (idx, h) in r_hdr.iter().enumerate() {
-        if outer_join || right_join || idx != r_idx {
-            if out_hdr.contains(h) {
-                out_hdr.push(format!("{h}2"));
-            } else {
-                out_hdr.push(h.clone());
-            }
+            tables.push((
+                normalize_csvkit_headers(&parsed[0]),
+                parsed[1..].to_vec(),
+            ));
         }
     }
-    let mut out = format_csv_row(&out_hdr, ',');
-    let extra_cols = if outer_join || right_join {
-        r_hdr.len()
+
+    let mut names: Vec<String> = col_spec
+        .as_ref()
+        .map(|s| s.split(',').map(|p| p.trim().to_string()).collect())
+        .unwrap_or_default();
+    if names.len() == 1 {
+        names = vec![names[0].clone(); tables.len()];
+    }
+    let mut keys: Vec<Option<usize>> = if names.is_empty() {
+        vec![None; tables.len()]
     } else {
-        r_hdr.len().saturating_sub(1)
+        names
+            .iter()
+            .enumerate()
+            .map(|(t_idx, name)| {
+                let hdr = &tables[t_idx].0;
+                resolve_csv_col_indices_opts(name, hdr, zero_based)
+                    .into_iter()
+                    .next()
+            })
+            .collect()
     };
-    let mut matched_right = vec![false; r_rows.len()];
-    for lr in &l_rows {
-        let l_key = lr.get(l_idx).map(|s| s.as_str()).unwrap_or("");
-        let mut matched = false;
-        for (rr_i, rr) in r_rows.iter().enumerate() {
-            let r_key = rr.get(r_idx).map(|s| s.as_str()).unwrap_or("");
-            if l_key == r_key {
-                matched = true;
-                matched_right[rr_i] = true;
-                let mut combined = lr.clone();
-                for (idx, val) in rr.iter().enumerate() {
-                    if outer_join || right_join || idx != r_idx {
-                        combined.push(val.clone());
-                    }
-                }
-                out.push_str(&format_csv_row(&combined, ','));
-            }
-        }
-        if !matched && (left_join || outer_join) {
-            let mut combined = lr.clone();
-            for _ in 0..extra_cols {
-                combined.push(String::new());
-            }
-            out.push_str(&format_csv_row(&combined, ','));
-        }
+
+    if right_join {
+        tables.reverse();
+        keys.reverse();
     }
-    if outer_join || right_join {
-        for (rr_i, rr) in r_rows.iter().enumerate() {
-            if !matched_right[rr_i] {
-                let mut combined = vec![String::new(); l_hdr.len()];
-                for val in rr {
-                    combined.push(val.clone());
+
+    let norm_join_key = |raw: &str| -> String {
+        if !no_inference && is_csvkit_num_str(raw, false)
+            && let Ok(n) = raw.trim().parse::<f64>()
+        {
+            return format_csvkit_num(n);
+        }
+        raw.to_string()
+    };
+
+    let (mut cur_hdr, mut cur_rows) = tables[0].clone();
+    let left_key = keys[0];
+    let full = names.is_empty() || (outer_join && !left_join && !right_join);
+    let inner = !names.is_empty() && !outer_join && !left_join && !right_join;
+
+    for t_idx in 1..tables.len() {
+        let (ref r_hdr, ref r_rows) = tables[t_idx];
+        let r_key = keys[t_idx];
+        let included: Vec<usize> = (0..r_hdr.len())
+            .filter(|&idx| full || Some(idx) != r_key)
+            .collect();
+        let mut combined_hdr = cur_hdr.clone();
+        for &idx in &included {
+            let rh = &r_hdr[idx];
+            let cand = if cur_hdr.contains(rh) {
+                format!("{rh}2")
+            } else {
+                rh.clone()
+            };
+            combined_hdr.push(cand);
+        }
+        combined_hdr = normalize_csvkit_headers(&combined_hdr);
+
+        let mut matched_right = vec![false; r_rows.len()];
+        let mut next_rows: Vec<Vec<String>> = Vec::new();
+        for (l_row_i, lr) in cur_rows.iter().enumerate() {
+            let lk = match left_key {
+                Some(k_idx) => norm_join_key(lr.get(k_idx).map(|s| s.as_str()).unwrap_or("")),
+                None => l_row_i.to_string(),
+            };
+            let mut matched = false;
+            for (r_row_i, rr) in r_rows.iter().enumerate() {
+                let rk = match r_key {
+                    Some(k_idx) => norm_join_key(rr.get(k_idx).map(|s| s.as_str()).unwrap_or("")),
+                    None => r_row_i.to_string(),
+                };
+                if lk == rk {
+                    matched = true;
+                    matched_right[r_row_i] = true;
+                    let mut row = lr.clone();
+                    for &inc_idx in &included {
+                        row.push(rr.get(inc_idx).cloned().unwrap_or_default());
+                    }
+                    next_rows.push(row);
                 }
-                out.push_str(&format_csv_row(&combined, ','));
+            }
+            if !matched && !inner {
+                let mut row = lr.clone();
+                row.extend(vec![String::new(); included.len()]);
+                next_rows.push(row);
             }
         }
+        if full {
+            for (r_row_i, rr) in r_rows.iter().enumerate() {
+                if !matched_right[r_row_i] {
+                    let mut row = vec![String::new(); cur_hdr.len()];
+                    for &inc_idx in &included {
+                        row.push(rr.get(inc_idx).cloned().unwrap_or_default());
+                    }
+                    next_rows.push(row);
+                }
+            }
+        }
+        cur_hdr = combined_hdr;
+        cur_rows = next_rows;
+    }
+
+    if line_numbers {
+        cur_hdr.insert(0, "line_number".to_string());
+    }
+    let mut out = format_csv_row(&cur_hdr, ',');
+    for (idx, mut r) in cur_rows.into_iter().enumerate() {
+        if line_numbers {
+            r.insert(0, (idx + 1).to_string());
+        }
+        out.push_str(&format_csv_row(&r, ','));
     }
     ok_out(&out)
 }
@@ -16464,24 +18708,52 @@ fn eval_sql_where(
 fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut cols_spec: Option<String> = None;
     let mut reverse = false;
+    let mut ignore_case = false;
     let mut no_inference = false;
+    let mut names_only = false;
+    let mut zero_based = false;
+    let mut no_header = false;
+    let mut skip_lines = 0usize;
+    let mut line_numbers = false;
     let mut delim = ',';
+    let mut quotechar = '"';
+    let mut skip_initial_space = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
             "-r" | "--reverse" => reverse = true,
+            "-i" | "--ignore-case" => ignore_case = true,
             "-I" | "--no-inference" => no_inference = true,
+            "-n" | "--names" => names_only = true,
+            "--zero" => zero_based = true,
+            "-H" | "--no-header-row" => no_header = true,
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "-l" | "--linenumbers" => line_numbers = true,
             "-t" | "--tabs" => delim = '\t',
             "-d" | "--delimiter" if i + 1 < args.len() => {
                 i += 1;
-                delim = args[i].chars().next().unwrap_or(',');
+                delim = parse_delim_arg(&args[i]);
             }
+            "-q" | "--quotechar" if i + 1 < args.len() => {
+                i += 1;
+                quotechar = args[i].chars().next().unwrap_or('"');
+            }
+            "-p" | "--skipinitialspace" => skip_initial_space = true,
             "-c" | "--columns" if i + 1 < args.len() => {
                 i += 1;
                 cols_spec = Some(args[i].clone());
             }
-            a if !a.starts_with('-') => files.push(a.to_string()),
+            "-e" | "--encoding" | "-L" | "--locale" | "--date-format" | "--datetime-format"
+            | "--null-value" | "-y" | "--snifflimit"
+                if i + 1 < args.len() =>
+            {
+                i += 1;
+            }
+            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
         i += 1;
@@ -16490,28 +18762,58 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         Ok(t) => t,
         Err(e) => return err_out(&format!("csvsort: {e}"), 1),
     };
-    let rows = parse_csv_rows(&text, delim);
+    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
         return ok_out("");
     }
-    let headers = &rows[0];
+    if names_only {
+        let base = if zero_based { 0usize } else { 1usize };
+        let mut out = String::new();
+        for (idx, h) in rows[0].iter().enumerate() {
+            out.push_str(&format!("{:>3}: {h}\n", idx + base));
+        }
+        return ok_out(&out);
+    }
+    let (headers, mut data) = if no_header {
+        (default_csvkit_headers(rows[0].len()), rows)
+    } else {
+        (normalize_csvkit_headers(&rows[0]), rows[1..].to_vec())
+    };
     let sort_indices: Vec<usize> = if let Some(ref spec) = cols_spec {
-        let v = resolve_csv_col_indices(spec, headers);
-        if v.is_empty() { (0..headers.len()).collect() } else { v }
+        let v = resolve_csv_col_indices_opts(spec, &headers, zero_based);
+        if v.is_empty() {
+            (0..headers.len()).collect()
+        } else {
+            v
+        }
     } else {
         (0..headers.len()).collect()
     };
-    let mut data = rows[1..].to_vec();
     data.sort_by(|a, b| {
         for &c_idx in &sort_indices {
             let va = a.get(c_idx).map(|s| s.as_str()).unwrap_or("");
             let vb = b.get(c_idx).map(|s| s.as_str()).unwrap_or("");
+            let a_empty = va.trim().is_empty();
+            let b_empty = vb.trim().is_empty();
+            if a_empty && b_empty {
+                continue;
+            }
+            if a_empty {
+                return std::cmp::Ordering::Greater;
+            }
+            if b_empty {
+                return std::cmp::Ordering::Less;
+            }
             let ord = if !no_inference {
                 if let (Ok(na), Ok(nb)) = (va.trim().parse::<f64>(), vb.trim().parse::<f64>()) {
                     na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
+                } else if ignore_case {
+                    va.to_uppercase().cmp(&vb.to_uppercase())
                 } else {
                     va.cmp(vb)
                 }
+            } else if ignore_case {
+                va.to_uppercase().cmp(&vb.to_uppercase())
             } else {
                 va.cmp(vb)
             };
@@ -16521,8 +18823,15 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         std::cmp::Ordering::Equal
     });
-    let mut out = format_csv_row(headers, ',');
-    for r in data {
+    let mut out_hdr = headers;
+    if line_numbers {
+        out_hdr.insert(0, "line_number".to_string());
+    }
+    let mut out = format_csv_row(&out_hdr, ',');
+    for (idx, mut r) in data.into_iter().enumerate() {
+        if line_numbers {
+            r.insert(0, (idx + 1).to_string());
+        }
         out.push_str(&format_csv_row(&r, ','));
     }
     ok_out(&out)

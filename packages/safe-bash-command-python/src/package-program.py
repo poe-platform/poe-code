@@ -194,6 +194,42 @@ class _SafeNames(_SafeMutableSet):
   os.unlink(self.journal)
   os.rmdir(self.root)
 
+ def ordered(self):
+  import heapq, json, os, tempfile
+  root = tempfile.mkdtemp(dir=self.root, prefix='.sort-')
+  serial = 0
+  def save(values):
+   nonlocal serial
+   path = os.path.join(root, str(serial))
+   serial += 1
+   with open(path, 'w', encoding='utf-8') as output:
+    for value in values:output.write(json.dumps(value) + '\n')
+  try:
+   chunk = []
+   for name in self:
+    chunk.append(name)
+    if len(chunk) == 64:
+     save(sorted(chunk))
+     chunk.clear()
+   if chunk:save(sorted(chunk))
+   chunk.clear()
+   current = 0
+   while serial - current > 1:
+    left_path, right_path = (os.path.join(root, str(index)) for index in (current, current + 1))
+    with open(left_path, encoding='utf-8') as left, open(right_path, encoding='utf-8') as right:
+     save(heapq.merge((json.loads(line) for line in left), (json.loads(line) for line in right)))
+    os.unlink(left_path)
+    os.unlink(right_path)
+    current += 2
+   if serial:
+    with open(os.path.join(root, str(current)), encoding='utf-8') as source:
+     for line in source:yield json.loads(line)
+  finally:
+   for index in range(serial):
+    try:os.unlink(os.path.join(root, str(index)))
+    except FileNotFoundError:pass
+   os.rmdir(root)
+
 class _SafeValues(_SafeNames):
  files = ('entry', 'value')
  def put(self, name, value):
@@ -539,25 +575,40 @@ if _safe_uninstall:
   _safe_removed.append(_safe_target + '-' + _safe_version)
 _safe_uninstalled_json = _safe_json.dumps(_safe_removed)
 _safe_managed.update(_safe_restored_names)
-_safe_sources = []
-_safe_versions = {}
+_safe_sources = _SafeValues()
+_safe_versions = _SafeValues()
 for _safe_dist in _safe_metadata.distributions():
  _safe_dist_name = _safe_dist.metadata['Name']
  if not _safe_dist_name:
   continue
  _safe_dist_name = _safe_name(_safe_dist_name)
  if _safe_dist_name in _safe_managed:
-  _safe_versions[_safe_dist_name] = _safe_dist.version
+  _safe_versions.put(_safe_dist_name, _safe_dist.version)
   _safe_origin = _safe_dist.read_text('PYODIDE_URL')
   if _safe_origin:
-   _safe_sources.append(_safe_dist_name + ' @ ' + _safe_origin.strip())
+   _safe_sources.put(str(len(_safe_sources)), _safe_dist_name + ' @ ' + _safe_origin.strip())
   if _safe_snapshot_path(_safe_dist_name) == str(_safe_dist._path):
    await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
   else:
    _safe_headers = _safe_dist.metadata
    _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
    await _safe_package_record('append', _safe_json.dumps([_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist), _safe_dist.read_text('direct_url.json')]))
-_safe_installed_json = _safe_json.dumps(_safe_sources + [name + '==' + version for name, version in sorted(_safe_versions.items()) if name in _safe_managed])
+def _safe_inventory():
+ for key in _safe_sources:yield _safe_sources.get(key)
+ for name in _safe_versions.ordered():
+  if name in _safe_managed:yield name + '==' + _safe_versions.get(name)
+import io as _safe_io
+with _safe_io.StringIO() as _safe_output:
+ _safe_output.write('[')
+ _safe_separator = ''
+ for _safe_source in _safe_inventory():
+  _safe_output.write(_safe_separator)
+  _safe_json.dump(_safe_source, _safe_output)
+  _safe_separator = ', '
+ _safe_output.write(']')
+ _safe_installed_json = _safe_output.getvalue()
+_safe_sources.close()
+_safe_versions.close()
 _safe_managed.close()
 _safe_restored_names.close()
 _safe_metadata.MetadataPathFinder.invalidate_caches()

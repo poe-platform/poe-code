@@ -245,17 +245,22 @@ Pending dependency membership and past convergence snapshots now use caller
 storage. Sorted current install requests remain materialized, while prior passes
 retain only scalar lookup state in guest memory. Digest buckets compare exact
 records even on collisions, bound record reads, and retire after resolution.
+Publication source records and last-version lookups now use caller storage.
+Version-name ordering merges bounded 64-name runs with two input cursors; sources
+retain discovery order. Publication writes JSON incrementally without a second
+whole-inventory list, but the returned JSON string remains materialized.
 This does not bound host manifests, native requirement/constraint inputs,
-final inventory collections,
+final serialized publication results,
 native executable allocation, or the remaining ZIP fallback.
 JSPI package transfers and native metadata filesystem operations share one dispatch
 lane before reaching the host's single-request transport. This preserves dependency
 installation after a prior `--no-deps` install; cancellation and descriptor retirement
 still use the existing executor lifecycle.
 
-The next implementation must cover three separate retention points: authenticated
-wheel bytes, ZIP directory/global metadata, and extracted package storage. Use
-caller-owned backing storage for each. A lazy descriptor followed by `BytesIO`,
+The original wheel audit identified three separate retention points: authenticated
+wheel bytes, ZIP directory/global metadata, and extracted package storage. The
+changes above address specific paths; the remaining checklist still requires
+complete qualification. A lazy descriptor followed by `BytesIO`,
 Python's in-memory ZIP entry dictionary, or extraction into bootstrap MEMFS is
 not completion. Pinned Python 3.9.6 captures now prove acceptance of leading,
 middle and trailing gaps, discarded local members and empty archives with unused data.
@@ -318,3 +323,28 @@ capabilities. The realm shares Error identity with its injected Web APIs.
 No command output/help or registration defaults changed; no visual CLI changes
 required screenshot validation. All four migrated suites were compared against
 their original sources and differ only in import paths.
+
+## Remaining acceptance checklist
+
+This checklist defines the remaining exit criteria. Earlier command-table rows
+marked incomplete remain unproven until their complete reference surface is
+qualified; passing a subset does not close a row. History persistence and
+consumer-repository modifications remain outside the requested scope.
+
+| Gap | Verification route | Exit criterion |
+| --- | --- | --- |
+| Native install inputs and resolver internals | Python `package-names`, `package-constraints`, `dependency-iteration` tests; installed `python-jspi.test.mjs` | Growing root/constraint/package sets retain bounded working state through native installation, preserving joint constraint, extras, replacement and failure semantics. Caller-backed wrapper tables alone are insufficient. |
+| Host manifests and publication transport | Python `package-records`, `package-inventory`, `provisioning-files` tests; installed Worker restore/uninstall cases | Saved manifests, individual large metadata/path records and final serialized results stream or use caller backing end to end, preserving ordering, last-version precedence, atomic publication and recovery. |
+| Bootstrap, plain-runtime and ZIP metadata | Python `directory-stream`, `native-metadata-discovery`, `native-wheel-directory` tests plus actual Worker cases | Every active lookup path has bounded enumeration/index state, including runtimes without package environments and bootstrap/ZIP fallbacks; ordinary Python lookup and cleanup behavior remains unchanged. |
+| Wheel edge cases and native loading | Python `native-wheel-reference`, `native-wheel-metadata`, `native-wheel-dynlib` tests; installed native-extension Worker cases | Ambiguous/malformed metadata, accepted archive layouts, data relocation and native loading match the pinned installer, with explicit memory evidence for extraction and executable loading and preserved failure timing. |
+| Remaining package controls | Python `source-environment`, `source-remote`, `requirement-lines-reference`, `requirement-includes-reference`, `provisioning-controls` tests; CLI/SDK Worker cases | VCS/editable VCS, custom develop hooks, find-links, hash checking and remaining reference package/file controls work through authorized capabilities and match pinned pip behavior; unsupported help output is insufficient. |
+| SQLite fidelity and memory | SQLite engine `sqlite-native`, `safe-fs-native` tests; collection differential and installed Worker tests | Native memory, schema/introspection, paths, errors, SQL imports and arbitrary query-result streaming match pinned SQLite/LLM behavior with bounded caller-backed operation and rollback/cancellation coverage. |
+| Complete stateless CLI/Python behavior | LLM reference/configuration/chat/help tests; Python `llm-cli-error-reference`; installed CLI/SDK/Python differential cases | Every non-history command/option in the inventory has matching output, status, help/error ordering and Python/service behavior, including chat, tools, plugins, templates and provider option declarations. Replace stale partial rows with specific final-artifact evidence. |
+| Large controls and generic failures | LLM `control-json`, `input-budgets`, `input-sources` tests; Python error/interrupt/abort reference tests | Large accepted configuration/schema/template controls retain bounded working state without new lower limits; generic tracebacks, partial output, cancellation and noncooperative-runtime retirement match the pinned reference contract. |
+| External caller storage | Python `provisioning-s3` and SQLite `safe-fs-native` tests, extended to installed actual Worker with an external backend | Representative large install/restore/uninstall, file and collection flows run on the injected external backend, with memory measurements, retained identity, denial/cancellation and cleanup evidence; in-memory adapters alone do not qualify this gate. |
+| Final artifact and hosted acceptance | Independent scoped tarball install, maintained actual-workerd/Miniflare checks, unchanged 17 profiles, then authorized hosted Poe and Joiner runs | One final artifact passes all relevant local/runtime gates and both hosted environments with recorded workflow/ref, artifact identity and isolated inputs. No earlier partial artifact or synthetic provider run substitutes for this gate. |
+
+The task owner must identify the authorized hosted workflow and ref and supply the
+isolated Poe and Joiner inputs. These have not been supplied; no workflow/ref is
+inferred from unrelated repository workflows. Implementation and local
+qualification continue independently of that hold.

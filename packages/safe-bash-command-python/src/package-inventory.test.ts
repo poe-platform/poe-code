@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {loadPythonPackageProgram} from './package-program.js';
 
-for(const mode of ['install','remove','missing','decline'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
+for(const mode of ['install','remove','missing','decline','large'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast, asyncio, json, sys, types
 source, mode = json.load(sys.stdin)
@@ -17,6 +17,11 @@ published = []
 async def record(operation, payload):
  assert operation == "append"
  published.append(json.loads(payload))
+class Version(str):
+ live=0
+ def __new__(cls,value):
+  obj=super().__new__(cls,value);cls.live+=1;return obj
+ def __del__(self):Version.live-=1
 class Distribution:
  def __init__(self, name):
   global live, peak
@@ -32,14 +37,19 @@ class Distribution:
  def metadata(self): return {'Name': self.name}
  @property
  def version(self):
+  if self.name.startswith('package-'):return Version('1')
   assert self.name in ('active', 'remove'), 'unmanaged version read: ' + self.name
   return {'active':'1', 'remove':'2'}[self.name]
- def read_text(self, name): return 'file:///active.whl' if name == 'PYODIDE_URL' and self.name == 'active' else None
+ def read_text(self, name): return 'file:///'+self.name+'.whl' if name == 'PYODIDE_URL' and (self.name == 'active' or self.name.startswith('package-')) else None
 class Missing(Exception): pass
 def distributions():
  for index in range(512): yield Distribution('host-' + str(index))
  yield Distribution('active')
  if not removed: yield Distribution('remove')
+ if mode=='large':
+  for index in range(1024):
+   yield Distribution('package-'+str(index))
+   assert Version.live<=8,('inventory versions retained',Version.live)
 def distribution(name):
  if name != 'remove' or removed: raise Missing(name)
  return Distribution(name)
@@ -50,26 +60,35 @@ def uninstall(names):
 closed=[]
 class Names(set):
  def close(self):closed.append(self)
-async def resolve(*args): return Names(['active'])
+class Values(dict):
+ def put(self,key,value):self[key]=json.loads(json.dumps(value))
+ def ordered(self):return iter(sorted(self))
+ def close(self):closed.append(self)
+async def resolve(*args): return Names(['active']+['package-'+str(i) for i in range(1024)] if mode=='large' else ['active'])
 async def emit(channel, value): output.append((channel, value))
 async def line(): return 'n'
-records = {name:[name, 'metadata', '', [], [], None] for name in ('active','remove')}
+class Records(dict):
+ def __missing__(self,name):return [name,'metadata','',[],[],None]
+records = Records({name:[name, 'metadata', '', [], [], None] for name in ('active','remove')})
 namespace = {
- '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
+ '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
- '_safe_uninstall':None if mode == 'install' else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
+ '_safe_uninstall':None if mode in ('install','large') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
  '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':Names(['remove']), '_safe_package_emit':emit, '_safe_package_line':line,
- '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records else None, '_safe_record_by_name':records,
+ '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
 }
 asyncio.run(eval(code, namespace))
-assert closed == [namespace['_safe_roots'],namespace['_safe_managed'],namespace['_safe_restored_names']]
+assert closed == [namespace['_safe_roots'],namespace['_safe_sources'],namespace['_safe_versions'],namespace['_safe_managed'],namespace['_safe_restored_names']]
 expected = ['file:///active.whl', 'active==1']
 # Origins keep the normalized package name in the saved direct requirement.
 expected[0] = 'active @ ' + expected[0]
+if mode=='large':
+ expected[1:1]=['package-'+str(i)+' @ file:///package-'+str(i)+'.whl' for i in range(1024)]
+ expected.extend(name+'==1' for name in sorted('package-'+str(i) for i in range(1024)))
 if mode != 'remove': expected.append('remove==2')
 assert json.loads(namespace['_safe_installed_json']) == expected
-assert published == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove']
+assert published == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove'] + ([records['package-'+str(i)] for i in range(1024)] if mode=='large' else [])
 assert json.loads(namespace['_safe_uninstalled_json']) == (['remove-2'] if mode == 'remove' else [])
 if mode == 'missing': assert output == [('stderr', 'WARNING: Skipping missing as it is not installed.\n')]
 if mode == 'decline': assert output[-1] == ('stdout', 'Proceed (Y/n)? ')

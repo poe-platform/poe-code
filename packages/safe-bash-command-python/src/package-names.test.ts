@@ -46,7 +46,7 @@ def mkdir(path,exist_ok=False):
   directories.add(path);parent=os.path.dirname(path);children.setdefault(parent,set()).add(path);path=parent
 def temporary(*,dir,prefix):
  global serial
- assert dir=='/owned';serial+=1;path=dir+'/'+prefix+str(serial);mkdir(path);return path
+ assert dir=='/owned' or dir.startswith('/owned/');serial+=1;path=dir+'/'+prefix+str(serial);mkdir(path);return path
 def unlink(path):
  if path not in files:raise FileNotFoundError(path)
  del files[path];children[os.path.dirname(path)].remove(path)
@@ -86,6 +86,16 @@ with contextlib.ExitStack() as stack:
  assert len(managed)==1024
  assert Name.live<=4,('resolved names retained in guest',Name.live)
  assert set(managed)=={'package-'+str(i) for i in range(1024)}
+ native_sorted=sorted
+ def bounded_sorted(values):
+  assert len(values)<=64,('whole inventory sort',len(values))
+  return native_sorted(values)
+ before_files=set(files);before_directories=set(directories)
+ with patch('builtins.sorted',bounded_sorted):
+  assert list(managed.ordered())==native_sorted(managed)
+ assert set(files)==before_files and directories==before_directories
+ ordered=managed.ordered();assert next(ordered)=='package-0';ordered.close()
+ assert set(files)==before_files and directories==before_directories
  managed.add('package-4');assert len(managed)==1024
  managed.discard('package-4');managed.discard('absent');assert len(managed)==1023 and 'package-4' not in managed
  managed.add('package-4');assert len(managed)==1024 and list(managed).count('package-4')==1
@@ -103,6 +113,10 @@ with contextlib.ExitStack() as stack:
  else:raise AssertionError('oversized ordinal admitted')
  files[path]=original
  managed.close();assert not files and directories=={'/owned'},(len(files),directories)
+ for size in (0,1,65,129):
+  names=namespace['_SafeNames'](str(i) for i in range(size))
+  with patch('builtins.sorted',bounded_sorted):assert list(names.ordered())==native_sorted(names)
+  names.close()
  values=namespace['_SafeValues']()
  values.put('extras',['feature','other']);values.put('version','1');values.put('version','2');values.put('null',None)
  assert len(values)==3 and values.get('version')=='2' and values.get('extras')==['feature','other']

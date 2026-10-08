@@ -95,7 +95,8 @@ impl MemoryVfs {
     pub fn readlink_bytes(&self, path: &str) -> Result<Vec<u8>, FsError> {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|_| FsError::new(FsErrorCode::Io, "lock poisoned"))?;
-        match guard.nodes.get(&norm) {
+        let resolved = Self::resolve_symlinks_locked(&guard, &norm, false)?;
+        match guard.nodes.get(&resolved) {
             Some(MemoryNode::Symlink { target, .. }) if !target.starts_with("__hardlink__:") => {
                 Ok(target.as_bytes().to_vec())
             }
@@ -303,29 +304,53 @@ impl SafeBashFs for MemoryVfs {
             ));
         }
         for k in keys {
-            if let Some(MemoryNode::File { data, mode, mtime_ms }) = guard.nodes.remove(&k) {
-                let hl_marker = format!("__hardlink__:{k}");
-                let survivor = guard
-                    .nodes
-                    .iter()
-                    .find_map(|(nk, nv)| match nv {
-                        MemoryNode::Symlink { target, .. } if target == &hl_marker => {
-                            Some(nk.clone())
+            match guard.nodes.remove(&k) {
+                Some(MemoryNode::File { data, mode, mtime_ms }) => {
+                    let hl_marker = format!("__hardlink__:{k}");
+                    let survivor = guard
+                        .nodes
+                        .iter()
+                        .find_map(|(nk, nv)| match nv {
+                            MemoryNode::Symlink { target, .. } if target == &hl_marker => {
+                                Some(nk.clone())
+                            }
+                            _ => None,
+                        });
+                    if let Some(surv_key) = survivor {
+                        let new_marker = format!("__hardlink__:{surv_key}");
+                        for (nk, nv) in guard.nodes.iter_mut() {
+                            if nk != &surv_key
+                                && let MemoryNode::Symlink { target, .. } = nv
+                                && target == &hl_marker
+                            {
+                                *target = new_marker.clone();
+                            }
                         }
-                        _ => None,
-                    });
-                if let Some(surv_key) = survivor {
-                    guard.nodes.insert(
-                        surv_key,
-                        MemoryNode::File {
-                            data,
-                            mode,
-                            mtime_ms,
-                        },
-                    );
-                } else {
-                    guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+                        guard.nodes.insert(
+                            surv_key,
+                            MemoryNode::File {
+                                data,
+                                mode,
+                                mtime_ms,
+                            },
+                        );
+                    } else {
+                        guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+                    }
                 }
+                Some(MemoryNode::Symlink { target: removed_target, .. })
+                    if removed_target.starts_with("__hardlink__:") =>
+                {
+                    let hl_marker = format!("__hardlink__:{k}");
+                    for nv in guard.nodes.values_mut() {
+                        if let MemoryNode::Symlink { target, .. } = nv
+                            && target == &hl_marker
+                        {
+                            *target = removed_target.clone();
+                        }
+                    }
+                }
+                _ => {}
             }
         }
         drop(guard);

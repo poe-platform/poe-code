@@ -35,7 +35,7 @@ pub fn try_run_fs_command(
         "df" => Some(cmd_df(args, cwd, fs)),
         "mktemp" => Some(cmd_mktemp(args, cwd, env, fs)),
         "tree" => Some(cmd_tree(args, cwd, env, fs)),
-        "file" => Some(cmd_file(args, cwd, fs)),
+        "file" => Some(cmd_file(args, stdin, cwd, fs)),
         _ => None,
     }
 }
@@ -1412,6 +1412,24 @@ fn parse_touch_timestamp_ms(s: &str) -> u64 {
     1_700_000_000_000
 }
 
+fn resolve_hardlink_root_path(
+    path: &str,
+    entries: &[crate::vfs::VfsFileEntry],
+) -> String {
+    let mut cur = normalize_posix_path(path);
+    for _ in 0..16 {
+        if let Some(entry) = entries.iter().find(|e| e.path == cur)
+            && let Some(ref target) = entry.symlink_target
+            && let Some(rest) = target.strip_prefix("__hardlink__:")
+        {
+            cur = normalize_posix_path(rest);
+        } else {
+            break;
+        }
+    }
+    cur
+}
+
 fn cmd_ln(
     args: &[String],
     cwd: &str,
@@ -1608,7 +1626,9 @@ fn cmd_ln(
             }
         } else {
             let target_full = resolve_posix_path(cwd, src_op);
-            format!("__hardlink__:{target_full}")
+            let entries = fs.export_entries().unwrap_or_default();
+            let canon = resolve_hardlink_root_path(&target_full, &entries);
+            format!("__hardlink__:{canon}")
         };
         if let Err(e) = fs.symlink(&stored_target, &link_path) {
             stderr.push_str(&format!("ln: {e}\n"));
@@ -1824,6 +1844,18 @@ fn canonicalize_posix_path(
         }
         cur = next;
     }
+    if raw != "/" && raw.ends_with('/') && mode != 'm' {
+        if mode == 'e' {
+            if !fs.exists(&cur) {
+                return Err("No such file or directory".to_string());
+            }
+            if !fs.is_dir(&cur) {
+                return Err("Not a directory".to_string());
+            }
+        } else if fs.exists(&cur) && !fs.is_dir(&cur) {
+            return Err("Not a directory".to_string());
+        }
+    }
     Ok(cur)
 }
 
@@ -1845,11 +1877,85 @@ fn relative_posix_path(base: &str, target: &str) -> String {
     }
 }
 
+fn canonicalize_realpath_operand(
+    raw: &str,
+    mode: char,
+    no_symlinks: bool,
+    logical: bool,
+    fs: &dyn SafeBashFs,
+) -> Result<String, String> {
+    if no_symlinks || logical {
+        let lexical = normalize_posix_path(raw);
+        if mode != 'm' {
+            let comps: Vec<&str> = raw.split('/').collect();
+            let mut prefix = String::from("/");
+            for (idx, comp) in comps.iter().enumerate().skip(1) {
+                if comp.is_empty() && idx + 1 < comps.len() {
+                    continue;
+                }
+                if comp.is_empty() || *comp == "." || *comp == ".." {
+                    if !comp.is_empty() || mode == 'e' {
+                        if !fs.exists(&prefix) {
+                            return Err("No such file or directory".to_string());
+                        }
+                        if !fs.is_dir(&prefix) {
+                            return Err("Not a directory".to_string());
+                        }
+                    } else if fs.exists(&prefix) && !fs.is_dir(&prefix) {
+                        return Err("Not a directory".to_string());
+                    }
+                    if comp.is_empty() || *comp == "." {
+                        continue;
+                    }
+                    prefix = crate::vfs::dirname_posix_path(&prefix);
+                    continue;
+                }
+                prefix = if prefix == "/" {
+                    format!("/{comp}")
+                } else {
+                    format!("{prefix}/{comp}")
+                };
+                if mode == 'e' || idx + 1 < comps.len() {
+                    if mode == 'e' && !fs.exists(&prefix) {
+                        return Err("No such file or directory".to_string());
+                    }
+                    if idx + 1 < comps.len() && fs.exists(&prefix) && !fs.is_dir(&prefix) {
+                        return Err("Not a directory".to_string());
+                    }
+                }
+            }
+            if mode == 'e' && !fs.exists(&lexical) {
+                return Err("No such file or directory".to_string());
+            }
+        }
+        if no_symlinks {
+            if mode != 'm' && mode != 'e' {
+                let parent = crate::vfs::dirname_posix_path(&lexical);
+                if !fs.exists(&parent) {
+                    return Err("No such file or directory".to_string());
+                }
+                if !fs.is_dir(&parent) {
+                    return Err("Not a directory".to_string());
+                }
+            }
+            return Ok(lexical);
+        }
+        let next_raw = if raw != "/" && raw.ends_with('/') && lexical != "/" {
+            format!("{lexical}/")
+        } else {
+            lexical
+        };
+        return canonicalize_posix_path(&next_raw, mode, false, fs);
+    }
+    canonicalize_posix_path(raw, mode, false, fs)
+}
+
 fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut rel_to: Option<String> = None;
     let mut rel_base: Option<String> = None;
     let mut mode = 'E';
     let mut no_symlinks = false;
+    let mut logical = false;
     let mut quiet = false;
     let mut zero = false;
     let mut ended = false;
@@ -1891,8 +1997,10 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             i += 1;
         } else if a == "--physical" {
             no_symlinks = false;
+            logical = false;
             i += 1;
         } else if a == "--logical" {
+            logical = true;
             i += 1;
         } else if a == "--quiet" {
             quiet = true;
@@ -1907,8 +2015,11 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     'e' => mode = 'e',
                     'm' => mode = 'm',
                     's' => no_symlinks = true,
-                    'P' => no_symlinks = false,
-                    'L' => {}
+                    'P' => {
+                        no_symlinks = false;
+                        logical = false;
+                    }
+                    'L' => logical = true,
                     'q' => quiet = true,
                     'z' => zero = true,
                     _ => return err_out(&format!("realpath: invalid option -- '{ch}'\n"), 1),
@@ -1935,7 +2046,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     let base_operand = rel_base.as_deref();
     let to_operand = rel_to.as_deref().or(base_operand);
     let base_resolved = match base_operand {
-        Some(b) => match canonicalize_posix_path(&raw_for(b), mode, no_symlinks, fs) {
+        Some(b) => match canonicalize_realpath_operand(&raw_for(b), mode, no_symlinks, logical, fs) {
             Ok(r) => Some(r),
             Err(msg) => {
                 return BuiltinOutcome {
@@ -1952,7 +2063,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         None => None,
     };
     let to_resolved = match to_operand {
-        Some(t) => match canonicalize_posix_path(&raw_for(t), mode, no_symlinks, fs) {
+        Some(t) => match canonicalize_realpath_operand(&raw_for(t), mode, no_symlinks, logical, fs) {
             Ok(r) => Some(r),
             Err(msg) => {
                 return BuiltinOutcome {
@@ -1977,7 +2088,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     let mut exit_code = 0;
     for a in targets {
         let raw = raw_for(&a);
-        let resolved = match canonicalize_posix_path(&raw, mode, no_symlinks, fs) {
+        let resolved = match canonicalize_realpath_operand(&raw, mode, no_symlinks, logical, fs) {
             Ok(r) => r,
             Err(msg) => {
                 if !quiet {
@@ -2435,6 +2546,29 @@ fn format_epoch_stat(ms: u64, precision: usize) -> String {
 fn quote_stat_name(text: &str, style: Option<&str>) -> String {
     if style == Some("literal") {
         text.to_string()
+    } else if style != Some("shell-always")
+        && text.bytes().any(|b| b < 0x20 || b == 0x7f)
+    {
+        let mut out = String::from("$'");
+        for ch in text.chars() {
+            let code = ch as u32;
+            if ch == '\\' || ch == '\'' {
+                out.push('\\');
+                out.push(ch);
+            } else if ch == '\n' {
+                out.push_str("\\n");
+            } else if ch == '\r' {
+                out.push_str("\\r");
+            } else if ch == '\t' {
+                out.push_str("\\t");
+            } else if code < 0x20 || code == 0x7f {
+                out.push_str(&format!("\\{:03o}", code));
+            } else {
+                out.push(ch);
+            }
+        }
+        out.push('\'');
+        out
     } else {
         format!("'{}'", text.replace('\'', "'\\''"))
     }
@@ -2530,6 +2664,7 @@ fn cmd_stat(
     let mut fmt_spec: Option<String> = None;
     let mut is_printf = false;
     let mut is_bsd = false;
+    let mut filesystem = false;
     let mut deref = false;
     let mut ended = false;
     let mut targets = Vec::new();
@@ -2569,6 +2704,9 @@ fn cmd_stat(
         } else if a == "-L" || a == "--dereference" {
             deref = true;
             i += 1;
+        } else if a == "--file-system" {
+            filesystem = true;
+            i += 1;
         } else if !a.starts_with("--") {
             let chars: Vec<char> = a[1..].chars().collect();
             let mut j = 0usize;
@@ -2598,7 +2736,10 @@ fn cmd_stat(
                             i += 1;
                             fmt_spec = Some(args[i].clone());
                             is_bsd = true;
+                            filesystem = false;
                             is_printf = false;
+                        } else {
+                            filesystem = true;
                         }
                     }
                     _ => {}
@@ -2621,7 +2762,7 @@ fn cmd_stat(
 
     for t in targets {
         let p = resolve_posix_path(cwd, &t);
-        let st_res = if deref { fs.stat(&p) } else { fs.lstat(&p) };
+        let st_res = if deref || filesystem { fs.stat(&p) } else { fs.lstat(&p) };
         match st_res {
             Ok(st) => {
                 let perm = st.mode & 0o7777;
@@ -2652,9 +2793,11 @@ fn cmd_stat(
                     .ok()
                     .and_then(|m| m.get(&p).copied())
                     .unwrap_or(st.mtime_ms);
-                let spec = fmt_spec.as_deref().unwrap_or(
-                    "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w",
-                );
+                let spec = fmt_spec.as_deref().unwrap_or(if filesystem {
+                    "  File: %n\n  Type: %T"
+                } else {
+                    "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w"
+                });
 
                 let bytes = spec.as_bytes();
                 let mut idx = 0usize;
@@ -2845,16 +2988,32 @@ fn cmd_stat(
                             numeric = true;
                             "1".to_string()
                         }
+                        "T" if filesystem => "memory".to_string(),
                         "h" => {
                             numeric = true;
-                            let hl_tag = format!("__hardlink__:{p}");
-                            let extra = fs
-                                .export_entries()
-                                .unwrap_or_default()
-                                .iter()
-                                .filter(|e| e.symlink_target.as_deref() == Some(hl_tag.as_str()))
-                                .count();
-                            (1 + extra).to_string()
+                            if st.kind == VfsEntryKind::Directory {
+                                let subdirs = fs
+                                    .list_dir(&p)
+                                    .unwrap_or_default()
+                                    .into_iter()
+                                    .filter(|name| {
+                                        let child = child_disp_path(&p, name);
+                                        fs.lstat(&child)
+                                            .map(|s| s.kind == VfsEntryKind::Directory)
+                                            .unwrap_or(false)
+                                    })
+                                    .count();
+                                (2 + subdirs).to_string()
+                            } else {
+                                let entries = fs.export_entries().unwrap_or_default();
+                                let canon = resolve_hardlink_root_path(&p, &entries);
+                                let hl_tag = format!("__hardlink__:{canon}");
+                                let extra = entries
+                                    .iter()
+                                    .filter(|e| e.symlink_target.as_deref() == Some(hl_tag.as_str()))
+                                    .count();
+                                (1 + extra).to_string()
+                            }
                         }
                         "m" => "/".to_string(),
                         other => format!("%{other}"),
@@ -3039,7 +3198,7 @@ fn du_matches_excludes(path_or_disp: &str, excludes: &[String]) -> bool {
 fn cmd_du(
     args: &[String],
     cwd: &str,
-    _env: &std::collections::BTreeMap<String, String>,
+    env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut apparent = false;
@@ -3048,6 +3207,8 @@ fn cmd_du(
     let mut show_total = false;
     let mut inodes = false;
     let mut separate = false;
+    let mut count_links = false;
+    let mut deref_mode = 'P';
     let mut null_output = false;
     let mut max_depth: Option<usize> = None;
     let mut block_unit: Option<(u64, String)> = None;
@@ -3123,6 +3284,18 @@ fn cmd_du(
         } else if a == "--apparent-size" {
             apparent = true;
             i += 1;
+        } else if a == "--count-links" {
+            count_links = true;
+            i += 1;
+        } else if a == "--dereference" {
+            deref_mode = 'L';
+            i += 1;
+        } else if a == "--dereference-args" {
+            deref_mode = 'H';
+            i += 1;
+        } else if a == "--no-dereference" {
+            deref_mode = 'P';
+            i += 1;
         } else if a == "--human-readable" {
             human_base = Some(1024);
             i += 1;
@@ -3146,6 +3319,10 @@ fn cmd_du(
                     'a' => all = true,
                     's' => summary_only = true,
                     'c' => show_total = true,
+                    'l' => count_links = true,
+                    'L' => deref_mode = 'L',
+                    'H' | 'D' => deref_mode = 'H',
+                    'P' => deref_mode = 'P',
                     'b' => {
                         apparent = true;
                         block_unit = Some((1, String::new()));
@@ -3227,6 +3404,36 @@ fn cmd_du(
     if summary_only && max_depth.is_some() && max_depth != Some(0) {
         return err_out("du: warning: summarizing conflicts with --max-depth\n", 1);
     }
+    if block_unit.is_none() && human_base.is_none() {
+        let default_unit = if env.contains_key("POSIXLY_CORRECT") {
+            (512u64, String::new())
+        } else {
+            (1024u64, String::new())
+        };
+        let mut selected_env: Option<&str> = None;
+        for key in ["DU_BLOCK_SIZE", "BLOCK_SIZE", "BLOCKSIZE"] {
+            if let Some(v) = env.get(key) {
+                selected_env = Some(v.as_str());
+                break;
+            }
+        }
+        if let Some(v) = selected_env {
+            if v == "human-readable" {
+                human_base = Some(1024);
+            } else if v == "si" {
+                human_base = Some(1000);
+            } else if let Some((u, sfx)) = parse_du_size(v, false)
+                && u >= 1
+            {
+                block_unit = Some((u as u64, sfx));
+            } else {
+                block_unit = Some(default_unit);
+            }
+        } else {
+            block_unit = Some(default_unit);
+        }
+    }
+
     for xf in &exclude_files {
         let p = resolve_posix_path(cwd, xf);
         if let Ok(bytes) = fs.read_file(&p) {
@@ -3260,6 +3467,9 @@ fn cmd_du(
         out.push_str(&format!("{val}\t{disp}{term}"));
     };
 
+    let all_entries = fs.export_entries().unwrap_or_default();
+    let mut seen_inodes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+
     #[allow(clippy::too_many_arguments)]
     fn walk_du_node(
         disp: &str,
@@ -3269,7 +3479,11 @@ fn cmd_du(
         all: bool,
         inodes: bool,
         separate: bool,
+        count_links: bool,
+        deref_mode: char,
         excludes: &[String],
+        all_entries: &[crate::vfs::VfsFileEntry],
+        seen_inodes: &mut std::collections::BTreeSet<String>,
         fs: &dyn SafeBashFs,
         emit_line: &dyn Fn(usize, &str, &mut String),
         out: &mut String,
@@ -3277,7 +3491,39 @@ fn cmd_du(
         if du_matches_excludes(disp, excludes) || du_matches_excludes(full, excludes) {
             return (0, false);
         }
+        let sym_target = fs
+            .readlink(full)
+            .ok()
+            .filter(|t| !t.starts_with("__hardlink__:"));
+        let is_symlink = sym_target.is_some();
+        let follow = is_symlink && (deref_mode == 'L' || (deref_mode == 'H' && depth == 0));
+
+        if is_symlink && !follow {
+            let amt = if inodes {
+                1usize
+            } else {
+                sym_target.map(|t| t.len()).unwrap_or(0)
+            };
+            if depth == 0 || (eff_depth.map(|md| depth <= md).unwrap_or(true) && all) {
+                emit_line(amt, disp, out);
+            }
+            return (amt, false);
+        }
+
         let is_dir = fs.is_dir(full);
+        if !count_links && !is_dir {
+            let phys = if follow {
+                canonicalize_posix_path(full, 'e', false, fs)
+                    .unwrap_or_else(|_| normalize_posix_path(full))
+            } else {
+                normalize_posix_path(full)
+            };
+            let canon_id = resolve_hardlink_root_path(&phys, all_entries);
+            if !seen_inodes.insert(canon_id) {
+                return (0, false);
+            }
+        }
+
         let base_amt = if inodes {
             1usize
         } else if is_dir {
@@ -3306,7 +3552,11 @@ fn cmd_du(
                     all,
                     inodes,
                     separate,
+                    count_links,
+                    deref_mode,
                     excludes,
+                    all_entries,
+                    seen_inodes,
                     fs,
                     emit_line,
                     out,
@@ -3336,7 +3586,11 @@ fn cmd_du(
             all,
             inodes,
             separate,
+            count_links,
+            deref_mode,
             &excludes,
+            &all_entries,
+            &mut seen_inodes,
             fs,
             &emit_line,
             &mut out,
@@ -3748,7 +4002,8 @@ fn cmd_mktemp(
             };
         }
         let umask = env
-            .get("__SAFE_BASH_UMASK")
+            .get("__umask")
+            .or_else(|| env.get("__SAFE_BASH_UMASK"))
             .and_then(|s| u32::from_str_radix(s, 8).ok())
             .unwrap_or(0o022);
         if is_dir {
@@ -3760,79 +4015,6 @@ fn cmd_mktemp(
         }
     }
     ok_out(&format!("{display_out}\n"))
-}
-
-#[allow(clippy::too_many_arguments)]
-fn build_tree_json(
-    dir_path: &str,
-    name: &str,
-    depth: usize,
-    max_depth: Option<usize>,
-    show_all: bool,
-    dirs_only: bool,
-    ignore_pat: Option<&str>,
-    match_pat: Option<&str>,
-    fs: &dyn SafeBashFs,
-    dir_count: &mut usize,
-    file_count: &mut usize,
-) -> String {
-    if let Some(md) = max_depth
-        && depth >= md
-    {
-        return format!("{{\"type\":\"directory\",\"name\":\"{name}\",\"contents\":[]}}");
-    }
-    let mut names = fs.list_dir(dir_path).unwrap_or_default();
-    names.sort();
-    let mut items = Vec::new();
-    for n in names {
-        if !show_all && n.starts_with('.') {
-            continue;
-        }
-        if let Some(ig) = ignore_pat
-            && crate::shell::expand::glob_match(ig, &n)
-        {
-            continue;
-        }
-        let child = resolve_posix_path(dir_path, &n);
-        let link_target = fs
-            .readlink(&child)
-            .ok()
-            .filter(|t| !t.starts_with("__hardlink__:"));
-        if fs.is_dir(&child) && link_target.is_none() {
-            *dir_count += 1;
-            items.push(build_tree_json(
-                &child,
-                &n,
-                depth + 1,
-                max_depth,
-                show_all,
-                dirs_only,
-                ignore_pat,
-                match_pat,
-                fs,
-                dir_count,
-                file_count,
-            ));
-        } else if !dirs_only {
-            if let Some(mp) = match_pat
-                && !crate::shell::expand::glob_match(mp, &n)
-            {
-                continue;
-            }
-            *file_count += 1;
-            if let Some(lt) = link_target {
-                items.push(format!(
-                    "{{\"type\":\"link\",\"name\":\"{n}\",\"target\":\"{lt}\"}}"
-                ));
-            } else {
-                items.push(format!("{{\"type\":\"file\",\"name\":\"{n}\"}}"));
-            }
-        }
-    }
-    format!(
-        "{{\"type\":\"directory\",\"name\":\"{name}\",\"contents\":[{}]}}",
-        items.join(",")
-    )
 }
 
 fn detect_tree_utf8(
@@ -3862,6 +4044,421 @@ fn detect_tree_utf8(
     false
 }
 
+fn tree_version_cmp(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum State {
+        Normal,
+        Integer,
+        Fraction,
+        Zeros,
+    }
+    let is_digit = |b: Option<u8>| b.map(|x| x.is_ascii_digit()).unwrap_or(false);
+    let mut state = State::Normal;
+    let mut idx = 0usize;
+    while idx < left.len() && idx < right.len() && left[idx] == right[idx] {
+        let b = left[idx];
+        idx += 1;
+        if !b.is_ascii_digit() {
+            state = State::Normal;
+        } else if state == State::Normal {
+            state = if b == b'0' { State::Zeros } else { State::Integer };
+        } else if state == State::Zeros && b != b'0' {
+            state = State::Fraction;
+        }
+    }
+    let a = left.get(idx).copied().unwrap_or(0);
+    let b = right.get(idx).copied().unwrap_or(0);
+    if a == b {
+        return std::cmp::Ordering::Equal;
+    }
+    if state == State::Zeros {
+        if !is_digit(Some(a)) && is_digit(Some(b)) {
+            return std::cmp::Ordering::Greater;
+        }
+        if is_digit(Some(a)) && !is_digit(Some(b)) {
+            return std::cmp::Ordering::Less;
+        }
+    }
+    if state == State::Integer {
+        if is_digit(Some(a)) && !is_digit(Some(b)) {
+            return std::cmp::Ordering::Greater;
+        }
+        if !is_digit(Some(a)) && is_digit(Some(b)) {
+            return std::cmp::Ordering::Less;
+        }
+    }
+    if is_digit(Some(a))
+        && is_digit(Some(b))
+        && (state == State::Integer || (state == State::Normal && a != b'0' && b != b'0'))
+    {
+        let mut end_a = idx + 1;
+        let mut end_b = idx + 1;
+        while is_digit(left.get(end_a).copied()) {
+            end_a += 1;
+        }
+        while is_digit(right.get(end_b).copied()) {
+            end_b += 1;
+        }
+        if end_a != end_b {
+            return end_a.cmp(&end_b);
+        }
+    }
+    a.cmp(&b)
+}
+
+fn tree_matches_pattern(pat: &str, name: &str) -> bool {
+    pat.split('|').any(|alt| crate::shell::expand::glob_match(alt, name))
+}
+
+fn tree_json_escape(s: &str) -> String {
+    let mut out = String::with_capacity(s.len() + 2);
+    out.push('"');
+    for ch in s.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            '\x08' => out.push_str("\\b"),
+            '\x0c' => out.push_str("\\f"),
+            '\n' => out.push_str("\\n"),
+            '\r' => out.push_str("\\r"),
+            '\t' => out.push_str("\\t"),
+            c if (c as u32) < 0x20 || (0x7f..=0x9f).contains(&(c as u32)) => {
+                out.push_str(&format!("\\u{:04x}", c as u32));
+            }
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+    out
+}
+
+#[derive(Clone)]
+struct TreeEntry {
+    path: String,
+    display: String,
+    name: String,
+    is_symlink: bool,
+    is_dir: bool,
+    target: Option<String>,
+    cycle: bool,
+    limited: Option<String>,
+}
+
+fn inspect_tree_entry(path: String, display: String, name: String, fs: &dyn SafeBashFs) -> TreeEntry {
+    let target = fs
+        .readlink(&path)
+        .ok()
+        .filter(|t| !t.starts_with("__hardlink__:"));
+    let is_symlink = target.is_some();
+    let is_dir = fs.is_dir(&path);
+    TreeEntry {
+        path,
+        display,
+        name,
+        is_symlink,
+        is_dir,
+        target,
+        cycle: false,
+        limited: None,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn collect_tree_children(
+    entry: &mut TreeEntry,
+    ancestors: &[String],
+    observed_dirs: &mut Vec<String>,
+    depth: usize,
+    max_depth: Option<usize>,
+    show_all: bool,
+    dirs_only: bool,
+    follow_links: bool,
+    dirs_first: bool,
+    sort_mode: &str,
+    reverse: bool,
+    filelimit: Option<usize>,
+    include_pats: &[String],
+    exclude_pats: &[String],
+    fs: &dyn SafeBashFs,
+) -> Vec<TreeEntry> {
+    if !entry.is_dir || (entry.is_symlink && !follow_links) {
+        return Vec::new();
+    }
+    let canon = canonicalize_posix_path(&entry.path, 'e', false, fs)
+        .unwrap_or_else(|_| normalize_posix_path(&entry.path));
+    let check_set: &[String] = if entry.is_symlink {
+        observed_dirs.as_slice()
+    } else {
+        ancestors
+    };
+    if check_set.iter().any(|a| a == &canon) {
+        entry.cycle = true;
+        return Vec::new();
+    }
+    if follow_links {
+        observed_dirs.push(canon);
+    }
+    if let Some(md) = max_depth
+        && depth >= md
+    {
+        return Vec::new();
+    }
+    let Ok(listing) = fs.list_dir(&entry.path) else {
+        return Vec::new();
+    };
+    let mut candidates: Vec<String> = listing
+        .into_iter()
+        .filter(|name| {
+            if name == "." || name == ".." {
+                return false;
+            }
+            if !show_all && name.starts_with('.') {
+                return false;
+            }
+            if exclude_pats.iter().any(|p| tree_matches_pattern(p, name)) {
+                return false;
+            }
+            true
+        })
+        .collect();
+    if sort_mode != "none" {
+        candidates.sort_by(|a, b| {
+            let ord = if sort_mode == "version" {
+                tree_version_cmp(a.as_bytes(), b.as_bytes())
+            } else {
+                a.as_bytes().cmp(b.as_bytes())
+            };
+            if reverse { ord.reverse() } else { ord }
+        });
+    }
+    let mut children = Vec::new();
+    for item_name in candidates {
+        let child_path = resolve_posix_path(&entry.path, &item_name);
+        let child_disp = format!("{}/{item_name}", entry.display.trim_end_matches('/'));
+        let child = inspect_tree_entry(child_path, child_disp, item_name.clone(), fs);
+        if dirs_only && !child.is_dir {
+            continue;
+        }
+        let include_dir = (child.is_dir && !child.is_symlink) || (follow_links && child.is_dir);
+        if !include_dir
+            && !include_pats.is_empty()
+            && !include_pats.iter().any(|p| tree_matches_pattern(p, &item_name))
+        {
+            continue;
+        }
+        children.push(child);
+    }
+    if let Some(limit) = filelimit
+        && limit > 0
+        && children.len() > limit
+    {
+        entry.limited = Some(format!(
+            "{} entries exceeds filelimit, not opening dir",
+            children.len()
+        ));
+        return Vec::new();
+    }
+    if dirs_first {
+        children.sort_by(|a, b| b.is_dir.cmp(&a.is_dir));
+    }
+    children
+}
+
+#[allow(clippy::too_many_arguments)]
+fn visit_tree_entry(
+    mut entry: TreeEntry,
+    ancestors: &[String],
+    observed_dirs: &mut Vec<String>,
+    prefix: &str,
+    last: bool,
+    depth: usize,
+    max_depth: Option<usize>,
+    show_all: bool,
+    dirs_only: bool,
+    follow_links: bool,
+    full_path: bool,
+    indent: bool,
+    json_mode: bool,
+    dirs_first: bool,
+    sort_mode: &str,
+    reverse: bool,
+    filelimit: Option<usize>,
+    utf8: bool,
+    include_pats: &[String],
+    exclude_pats: &[String],
+    fs: &dyn SafeBashFs,
+    dir_count: &mut usize,
+    file_count: &mut usize,
+    out: &mut String,
+) {
+    let children = collect_tree_children(
+        &mut entry,
+        ancestors,
+        observed_dirs,
+        depth,
+        max_depth,
+        show_all,
+        dirs_only,
+        follow_links,
+        dirs_first,
+        sort_mode,
+        reverse,
+        filelimit,
+        include_pats,
+        exclude_pats,
+        fs,
+    );
+    if entry.is_dir {
+        if depth > 0 || !children.is_empty() || entry.limited.is_some() {
+            *dir_count += 1;
+        }
+    } else {
+        *file_count += 1;
+    }
+
+    let shown_name = if depth == 0 || full_path {
+        &entry.display
+    } else {
+        &entry.name
+    };
+    let canon = canonicalize_posix_path(&entry.path, 'e', false, fs)
+        .unwrap_or_else(|_| normalize_posix_path(&entry.path));
+    let mut next_ancestors = ancestors.to_vec();
+    next_ancestors.push(canon);
+
+    if json_mode {
+        let nl = if indent { "\n" } else { "" };
+        let pad = |d: usize| if indent { "  ".repeat(d) } else { String::new() };
+        let type_str = if entry.is_symlink {
+            "link"
+        } else if entry.is_dir {
+            "directory"
+        } else {
+            "file"
+        };
+        out.push_str(&pad(depth + 1));
+        out.push_str(&format!(
+            "{{\"type\":\"{type_str}\",\"name\":{}",
+            tree_json_escape(shown_name)
+        ));
+        if let Some(ref lt) = entry.target {
+            out.push_str(&format!(",\"target\":{}", tree_json_escape(lt)));
+        }
+        if entry.cycle {
+            out.push_str(",\"contents\":[{\"error\":\"recursive, not followed\"}]");
+        } else if let Some(ref lim) = entry.limited {
+            out.push_str(&format!(
+                ",\"contents\":[{{\"error\":{}}}]",
+                tree_json_escape(lim)
+            ));
+        } else if !children.is_empty() {
+            out.push_str(&format!(",\"contents\":[{nl}"));
+            let len = children.len();
+            for (idx, ch) in children.into_iter().enumerate() {
+                if idx > 0 {
+                    out.push_str(&format!(",{nl}"));
+                }
+                visit_tree_entry(
+                    ch,
+                    &next_ancestors,
+                    observed_dirs,
+                    "",
+                    idx + 1 == len,
+                    depth + 1,
+                    max_depth,
+                    show_all,
+                    dirs_only,
+                    follow_links,
+                    full_path,
+                    indent,
+                    true,
+                    dirs_first,
+                    sort_mode,
+                    reverse,
+                    filelimit,
+                    utf8,
+                    include_pats,
+                    exclude_pats,
+                    fs,
+                    dir_count,
+                    file_count,
+                    out,
+                );
+            }
+            out.push_str(&format!("{nl}{}]", pad(depth + 1)));
+        }
+        out.push('}');
+    } else {
+        let branch = if indent && depth > 0 {
+            let connector = if last {
+                if utf8 { "└── " } else { "`-- " }
+            } else if utf8 {
+                "├── "
+            } else {
+                "|-- "
+            };
+            format!("{prefix}{connector}")
+        } else {
+            String::new()
+        };
+        let target_str = match entry.target {
+            Some(ref lt) => format!(" -> {lt}"),
+            None => String::new(),
+        };
+        let annot = if entry.cycle {
+            Some("recursive, not followed")
+        } else {
+            entry.limited.as_deref()
+        };
+        let annot_str = match annot {
+            Some(a) => format!("  [{a}]"),
+            None => String::new(),
+        };
+        out.push_str(&format!("{branch}{shown_name}{target_str}{annot_str}\n"));
+        let child_prefix = if depth == 0 {
+            String::new()
+        } else {
+            let seg = if last {
+                "    "
+            } else if utf8 {
+                "│   "
+            } else {
+                "|   "
+            };
+            format!("{prefix}{seg}")
+        };
+        let len = children.len();
+        for (idx, ch) in children.into_iter().enumerate() {
+            visit_tree_entry(
+                ch,
+                &next_ancestors,
+                observed_dirs,
+                &child_prefix,
+                idx + 1 == len,
+                depth + 1,
+                max_depth,
+                show_all,
+                dirs_only,
+                follow_links,
+                full_path,
+                indent,
+                false,
+                dirs_first,
+                sort_mode,
+                reverse,
+                filelimit,
+                utf8,
+                include_pats,
+                exclude_pats,
+                fs,
+                dir_count,
+                file_count,
+                out,
+            );
+        }
+    }
+}
+
 fn cmd_tree(
     args: &[String],
     cwd: &str,
@@ -3871,278 +4468,604 @@ fn cmd_tree(
     let mut json_mode = false;
     let mut show_all = false;
     let mut dirs_only = false;
-    let mut no_indent = false;
+    let mut follow_links = false;
     let mut full_path = false;
+    let mut indent = true;
+    let mut report = true;
+    let mut reverse = false;
+    let mut dirs_first = false;
+    let mut sort_mode = "name".to_string();
+    let mut filelimit: Option<usize> = None;
     let mut max_depth: Option<usize> = None;
-    let mut ignore_pat: Option<String> = None;
-    let mut match_pat: Option<String> = None;
+    let mut include_pats: Vec<String> = Vec::new();
+    let mut exclude_pats: Vec<String> = Vec::new();
     let mut explicit_charset: Option<String> = None;
-    let mut target = ".".to_string();
+    let mut operands: Vec<String> = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-J" {
-            json_mode = true;
+        if ended || !a.starts_with('-') || a == "-" {
+            operands.push(a.clone());
             i += 1;
-        } else if a == "-a" {
-            show_all = true;
+            continue;
+        }
+        if a == "--" {
+            ended = true;
             i += 1;
-        } else if a == "-d" {
-            dirs_only = true;
+            continue;
+        }
+        if a == "--noreport" {
+            report = false;
             i += 1;
-        } else if a == "-i" {
-            no_indent = true;
+        } else if a == "--dirsfirst" {
+            dirs_first = true;
             i += 1;
-        } else if a == "-f" {
-            full_path = true;
+        } else if let Some(s) = a.strip_prefix("--sort=") {
+            sort_mode = s.to_string();
             i += 1;
-        } else if a == "--noreport" {
+        } else if a == "--sort" && i + 1 < args.len() {
+            sort_mode = args[i + 1].clone();
+            i += 2;
+        } else if let Some(fl) = a.strip_prefix("--filelimit=") {
+            filelimit = fl.parse().ok();
             i += 1;
+        } else if a == "--filelimit" && i + 1 < args.len() {
+            filelimit = args[i + 1].parse().ok();
+            i += 2;
         } else if let Some(cs) = a.strip_prefix("--charset=") {
             explicit_charset = Some(cs.to_string());
             i += 1;
         } else if a == "--charset" && i + 1 < args.len() {
             explicit_charset = Some(args[i + 1].clone());
             i += 2;
-        } else if a == "-L" && i + 1 < args.len() {
-            max_depth = args[i + 1].parse().ok();
-            i += 2;
-        } else if a == "-I" && i + 1 < args.len() {
-            ignore_pat = Some(args[i + 1].clone());
-            i += 2;
-        } else if a == "-P" && i + 1 < args.len() {
-            match_pat = Some(args[i + 1].clone());
-            i += 2;
-        } else if !a.starts_with('-') {
-            target = a.clone();
+        } else if !a.starts_with("--") {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut j = 0usize;
+            while j < chars.len() {
+                match chars[j] {
+                    'a' => show_all = true,
+                    'd' => dirs_only = true,
+                    'l' => follow_links = true,
+                    'f' => full_path = true,
+                    'i' => indent = false,
+                    'J' => json_mode = true,
+                    'r' => reverse = true,
+                    'v' => sort_mode = "version".to_string(),
+                    'U' => sort_mode = "none".to_string(),
+                    'n' => {}
+                    'L' | 'P' | 'I' => {
+                        let flag = chars[j];
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            String::new()
+                        };
+                        match flag {
+                            'L' => max_depth = val.parse().ok(),
+                            'P' => include_pats.push(val),
+                            'I' => exclude_pats.push(val),
+                            _ => {}
+                        }
+                        break;
+                    }
+                    _ => {}
+                }
+                j += 1;
+            }
             i += 1;
         } else {
             i += 1;
         }
     }
-    let root = resolve_posix_path(cwd, &target);
+    if operands.is_empty() {
+        operands.push(".".to_string());
+    }
+    let utf8 = detect_tree_utf8(explicit_charset.as_deref(), env);
+    let nl = if indent { "\n" } else { "" };
+    let pad1 = if indent { "  " } else { "" };
+    let mut out = String::new();
     if json_mode {
-        let mut dir_count = 1usize;
-        let mut file_count = 0usize;
-        let tree_obj = build_tree_json(
-            &root,
-            &target,
+        out.push_str(&format!("[{nl}"));
+    }
+    let mut dir_count = 0usize;
+    let mut file_count = 0usize;
+    for (idx, op) in operands.iter().enumerate() {
+        if json_mode && idx > 0 {
+            out.push_str(&format!(",{nl}"));
+        }
+        let root_path = resolve_posix_path(cwd, op);
+        let entry = inspect_tree_entry(root_path, op.clone(), op.clone(), fs);
+        let mut observed_dirs = Vec::new();
+        visit_tree_entry(
+            entry,
+            &[],
+            &mut observed_dirs,
+            "",
+            true,
             0,
             max_depth,
             show_all,
             dirs_only,
-            ignore_pat.as_deref(),
-            match_pat.as_deref(),
+            follow_links,
+            full_path,
+            indent,
+            json_mode,
+            dirs_first,
+            &sort_mode,
+            reverse,
+            filelimit,
+            utf8,
+            &include_pats,
+            &exclude_pats,
             fs,
             &mut dir_count,
             &mut file_count,
+            &mut out,
         );
-        return ok_out(&format!(
-            "[{tree_obj},{{\"type\":\"report\",\"directories\":{dir_count},\"files\":{file_count}}}]\n"
-        ));
     }
-    let utf8 = detect_tree_utf8(explicit_charset.as_deref(), env);
-    let mut out = format!("{target}\n");
-    #[allow(clippy::too_many_arguments)]
-    fn render_tree_text(
-        dir_path: &str,
-        prefix: &str,
-        depth: usize,
-        max_depth: Option<usize>,
-        show_all: bool,
-        dirs_only: bool,
-        no_indent: bool,
-        full_path: bool,
-        utf8: bool,
-        ignore_pat: Option<&str>,
-        match_pat: Option<&str>,
-        fs: &dyn SafeBashFs,
-        out: &mut String,
-    ) {
-        if let Some(md) = max_depth
-            && depth >= md
-        {
-            return;
-        }
-        let Ok(mut names) = fs.list_dir(dir_path) else {
-            return;
-        };
-        names.sort();
-        let filtered: Vec<String> = names
-            .into_iter()
-            .filter(|n| {
-                if !show_all && n.starts_with('.') {
-                    return false;
-                }
-                if let Some(ig) = ignore_pat
-                    && crate::shell::expand::glob_match(ig, n)
-                {
-                    return false;
-                }
-                let child = resolve_posix_path(dir_path, n);
-                let is_link = fs
-                    .readlink(&child)
-                    .ok()
-                    .filter(|t| !t.starts_with("__hardlink__:"))
-                    .is_some();
-                let is_d = fs.is_dir(&child) && !is_link;
-                if dirs_only && !is_d {
-                    return false;
-                }
-                if !is_d
-                    && let Some(mp) = match_pat
-                    && !crate::shell::expand::glob_match(mp, n)
-                {
-                    return false;
-                }
-                true
-            })
-            .collect();
-        for (idx, n) in filtered.iter().enumerate() {
-            let last = idx + 1 == filtered.len();
-            let child = resolve_posix_path(dir_path, n);
-            let base_disp = if full_path { child.as_str() } else { n.as_str() };
-            let link_target = fs
-                .readlink(&child)
-                .ok()
-                .filter(|t| !t.starts_with("__hardlink__:"));
-            let disp = if let Some(ref lt) = link_target {
-                format!("{base_disp} -> {lt}")
+    if report {
+        if json_mode {
+            if dirs_only {
+                out.push_str(&format!(
+                    ",{nl}{pad1}{{\"type\":\"report\",\"directories\":{dir_count}}}"
+                ));
             } else {
-                base_disp.to_string()
-            };
-            if no_indent {
-                out.push_str(&format!("{disp}\n"));
-            } else {
-                let branch = if last {
-                    if utf8 { "└── " } else { "\x60-- " }
-                } else if utf8 {
-                    "├── "
-                } else {
-                    "|-- "
-                };
-                out.push_str(&format!("{prefix}{branch}{disp}\n"));
+                out.push_str(&format!(
+                    ",{nl}{pad1}{{\"type\":\"report\",\"directories\":{dir_count},\"files\":{file_count}}}"
+                ));
             }
-            if fs.is_dir(&child) && link_target.is_none() {
-                let next_prefix = format!(
-                    "{prefix}{}",
-                    if last {
-                        "    "
-                    } else if utf8 {
-                        "│   "
-                    } else {
-                        "|   "
-                    }
-                );
-                render_tree_text(
-                    &child,
-                    &next_prefix,
-                    depth + 1,
-                    max_depth,
-                    show_all,
-                    dirs_only,
-                    no_indent,
-                    full_path,
-                    utf8,
-                    ignore_pat,
-                    match_pat,
-                    fs,
-                    out,
-                );
+        } else {
+            let dir_word = if dir_count == 1 { "directory" } else { "directories" };
+            if dirs_only {
+                out.push_str(&format!("\n{dir_count} {dir_word}\n"));
+            } else {
+                let file_word = if file_count == 1 { "file" } else { "files" };
+                out.push_str(&format!(
+                    "\n{dir_count} {dir_word}, {file_count} {file_word}\n"
+                ));
             }
         }
     }
-    render_tree_text(
-        &root,
-        "",
-        0,
-        max_depth,
-        show_all,
-        dirs_only,
-        no_indent,
-        full_path,
-        utf8,
-        ignore_pat.as_deref(),
-        match_pat.as_deref(),
-        fs,
-        &mut out,
-    );
+    if json_mode {
+        out.push_str(&format!("{nl}]\n"));
+    }
     ok_out(&out)
 }
-fn cmd_file(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let brief = args.iter().any(|a| a == "-b" || a == "--brief");
-    let mime = args.iter().any(|a| a == "--mime-type" || a == "-i");
-    let deref = args.iter().any(|a| a == "-L" || a == "--dereference");
-    let mut out = String::new();
-    for a in args {
-        if a.starts_with('-') {
+
+fn is_csv_text(text: &str) -> bool {
+    let mut records = 0usize;
+    let mut columns = 0usize;
+    let mut fields = 1usize;
+    let mut record_start = 0usize;
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum CsvState {
+        Start,
+        Unquoted,
+        Quoted,
+        Closed,
+    }
+    let mut state = CsvState::Start;
+    let bytes = text.as_bytes();
+    let mut idx = 0usize;
+    while idx < bytes.len() {
+        let ch = bytes[idx];
+        if state == CsvState::Quoted {
+            if ch == b'"' {
+                if bytes.get(idx + 1) == Some(&b'"') {
+                    idx += 2;
+                    continue;
+                }
+                state = CsvState::Closed;
+            }
+            idx += 1;
             continue;
         }
-        let mut p = resolve_posix_path(cwd, a);
-        let is_symlink = fs.readlink(&p).is_ok();
-        if is_symlink && deref {
-            if let Ok(target) = fs.readlink(&p) {
-                p = resolve_posix_path(&crate::vfs::dirname_posix_path(&p), &target);
+        if ch == b',' {
+            fields += 1;
+            state = CsvState::Start;
+        } else if ch == b'\n' {
+            if fields < 2 || (records > 0 && fields != columns) {
+                return false;
             }
-        }
-        let desc = if is_symlink && !deref {
-            if mime { "inode/symlink" } else { "symbolic link" }
-        } else if fs.is_dir(&p) {
-            if mime { "inode/directory" } else { "directory" }
-        } else if let Ok(data) = fs.read_file(&p) {
-            if data.starts_with(b"\x89PNG\r\n\x1a\n") {
-                if mime { "image/png" } else { "PNG image data" }
-            } else if data.starts_with(b"\xff\xd8\xff") {
-                if mime { "image/jpeg" } else { "JPEG image data" }
-            } else if data.starts_with(b"GIF87a") || data.starts_with(b"GIF89a") {
-                if mime { "image/gif" } else { "GIF image data" }
-            } else if data.len() >= 12 && data.starts_with(b"RIFF") && &data[8..12] == b"WEBP" {
-                if mime { "image/webp" } else { "RIFF (little-endian) data, Web/P image" }
-            } else if data.starts_with(b"II*\x00") || data.starts_with(b"MM\x00*") {
-                if mime { "image/tiff" } else { "TIFF image data" }
-            } else if data.starts_with(b"%PDF-") {
-                if mime { "application/pdf" } else { "PDF document" }
-            } else if data.starts_with(b"\x00asm") {
-                if mime { "application/wasm" } else { "WebAssembly binary module" }
-            } else if data.starts_with(b"SQLite format 3\0")
-                || p.ends_with(".db")
-                || p.ends_with(".sqlite")
-                || p.ends_with(".sqlite3")
-            {
-                if mime { "application/vnd.sqlite3" } else { "SQLite 3.x database" }
-            } else if data.starts_with(b"BZh") || p.ends_with(".bz2") {
-                if mime { "application/x-bzip2" } else { "bzip2 compressed data" }
-            } else if data.starts_with(b"\xfd7zXZ\x00") || p.ends_with(".xz") {
-                if mime { "application/x-xz" } else { "XZ compressed data" }
-            } else if data.starts_with(b"\x28\xb5\x2f\xfd") || p.ends_with(".zst") {
-                if mime { "application/zstd" } else { "Zstandard compressed data" }
-            } else if data.starts_with(b"\x1f\x8b") || p.ends_with(".gz") {
-                if mime { "application/gzip" } else { "gzip compressed data" }
-            } else if data.starts_with(b"PK\x03\x04") || p.ends_with(".zip") {
-                if mime { "application/zip" } else { "Zip archive data" }
-            } else if data.starts_with(b"#!") {
-                if mime { "text/x-shellscript" } else { "shell script, ASCII text" }
-            } else if data.starts_with(b"<?xml") || data.starts_with(b"<svg") {
-                if mime { "text/xml" } else { "XML 1.0 document, ASCII text" }
-            } else if data.starts_with(b"{") || data.starts_with(b"[") {
-                if mime { "application/json" } else { "JSON text data" }
-            } else if p.ends_with(".csv") {
-                if mime { "text/csv" } else { "CSV text, ASCII text" }
-            } else if data.is_empty() {
-                if mime { "inode/x-empty" } else { "empty" }
-            } else if mime {
-                "text/plain"
-            } else {
-                "ASCII text"
-            }
+            records += 1;
+            columns = fields;
+            fields = 1;
+            state = CsvState::Start;
+            record_start = idx + 1;
+        } else if ch == b'\r' && bytes.get(idx + 1) == Some(&b'\n') {
+            // handled on \n
+        } else if ch == b'"' && state == CsvState::Start {
+            state = CsvState::Quoted;
         } else {
-            "cannot open"
+            if ch == b'"' || ch == b'\r' || state == CsvState::Closed {
+                return false;
+            }
+            state = CsvState::Unquoted;
+        }
+        idx += 1;
+    }
+    if record_start < bytes.len() {
+        if state == CsvState::Quoted || fields < 2 || (records > 0 && fields != columns) {
+            return false;
+        }
+        records += 1;
+    }
+    records >= 2
+}
+
+fn detect_text_format(text: &str) -> Option<(&'static str, &'static str)> {
+    if let Some(line_end) = text.find('\n')
+        && text.starts_with("#!")
+    {
+        let header = text[2..line_end].trim().replace('\t', " ");
+        let words: Vec<&str> = header.split(' ').filter(|w| !w.is_empty()).collect();
+        let first = words.first().copied().unwrap_or("");
+        let name = first.rsplit('/').next().unwrap_or(first);
+        let interp = if name == "env" {
+            words.get(1).copied().unwrap_or("")
+        } else {
+            name
         };
-        if brief {
-            out.push_str(&format!("{desc}\n"));
-        } else {
-            out.push_str(&format!("{a}: {desc}\n"));
+        if matches!(interp, "sh" | "bash" | "ash" | "ksh" | "zsh" | "csh" | "tcsh") {
+            return Some(("shell script", "text/x-shellscript"));
         }
+        if interp == "python"
+            || (interp.starts_with("python")
+                && interp.len() > 6
+                && interp.as_bytes()[6].is_ascii_digit()
+                && interp[6..].chars().all(|c| c.is_ascii_digit() || c == '.'))
+        {
+            return Some(("Python script", "text/x-script.python"));
+        }
+    }
+    let lower = text.to_ascii_lowercase();
+    if lower.starts_with("<?xml")
+        && lower
+            .as_bytes()
+            .get(5)
+            .map(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n'))
+            .unwrap_or(false)
+    {
+        return Some(("XML document", "text/xml"));
+    }
+    for marker in ["<!doctype html", "<html", "<head", "<title"] {
+        let mut search_from = 0usize;
+        while let Some(rel) = lower[search_from..].find(marker) {
+            let off = search_from + rel;
+            let after = lower.as_bytes().get(off + marker.len()).copied().unwrap_or(0);
+            if matches!(after, b' ' | b'\t' | b'\r' | b'\n' | b'\x0c' | b'>') {
+                return Some(("HTML document", "text/html"));
+            }
+            search_from = off + marker.len();
+        }
+    }
+    if is_csv_text(text) {
+        return Some(("CSV text", "text/csv"));
+    }
+    None
+}
+
+fn classify_file_bytes(bytes: &[u8]) -> (String, &'static str, &'static str) {
+    if bytes.is_empty() {
+        return ("empty".to_string(), "inode/x-empty", "binary");
+    }
+    if bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
+        return ("PNG image data".to_string(), "image/png", "binary");
+    }
+    if bytes.starts_with(b"GIF87a") || bytes.starts_with(b"GIF89a") {
+        return ("GIF image data".to_string(), "image/gif", "binary");
+    }
+    if bytes.starts_with(b"\xff\xd8\xff") {
+        return ("JPEG image data".to_string(), "image/jpeg", "binary");
+    }
+    if bytes.len() >= 12 && bytes.starts_with(b"RIFF") && &bytes[8..12] == b"WEBP" {
+        return ("WebP image data".to_string(), "image/webp", "binary");
+    }
+    if bytes.starts_with(b"II*\x00") || bytes.starts_with(b"MM\x00*") {
+        return ("TIFF image data".to_string(), "image/tiff", "binary");
+    }
+    if bytes.starts_with(b"%PDF-") {
+        return ("PDF document".to_string(), "application/pdf", "binary");
+    }
+    if bytes.starts_with(b"\x1f\x8b") {
+        return ("gzip compressed data".to_string(), "application/gzip", "binary");
+    }
+    if bytes.starts_with(b"BZh") {
+        return ("bzip2 compressed data".to_string(), "application/x-bzip2", "binary");
+    }
+    if bytes.starts_with(b"\xfd7zXZ\x00") {
+        return ("XZ compressed data".to_string(), "application/x-xz", "binary");
+    }
+    if bytes.starts_with(b"\x28\xb5\x2f\xfd") {
+        return ("Zstandard compressed data".to_string(), "application/zstd", "binary");
+    }
+    if bytes.starts_with(b"PK\x03\x04") || bytes.starts_with(b"PK\x05\x06") {
+        return ("Zip archive data".to_string(), "application/zip", "binary");
+    }
+    if bytes.starts_with(b"7z\xbc\xaf\x27\x1c") {
+        return ("7-zip archive data".to_string(), "application/x-7z-compressed", "binary");
+    }
+    if bytes.len() >= 262 && &bytes[257..262] == b"ustar" {
+        return ("POSIX tar archive".to_string(), "application/x-tar", "binary");
+    }
+    if bytes.starts_with(b"\x00asm") {
+        return ("WebAssembly (wasm) binary module".to_string(), "application/wasm", "binary");
+    }
+    if bytes.starts_with(b"SQLite format 3\x00") {
+        return ("SQLite 3.x database".to_string(), "application/vnd.sqlite3", "binary");
+    }
+    if bytes.starts_with(&[0xff, 0xfe, 0x00, 0x00]) || bytes.starts_with(&[0x00, 0x00, 0xfe, 0xff]) {
+        return ("data".to_string(), "application/octet-stream", "binary");
+    }
+
+    let mut encoding = "utf-8";
+    let mut bom = 0usize;
+    if bytes.starts_with(&[0xef, 0xbb, 0xbf]) {
+        bom = 3;
+    } else if bytes.starts_with(&[0xff, 0xfe]) {
+        encoding = "utf-16le";
+        bom = 2;
+    } else if bytes.starts_with(&[0xfe, 0xff]) {
+        encoding = "utf-16be";
+        bom = 2;
+    }
+
+    let text: String = if encoding == "utf-16le" || encoding == "utf-16be" {
+        let payload = &bytes[bom..];
+        if payload.len() % 2 != 0 {
+            return ("data".to_string(), "application/octet-stream", "binary");
+        }
+        let units: Vec<u16> = payload
+            .chunks_exact(2)
+            .map(|c| {
+                if encoding == "utf-16le" {
+                    u16::from_le_bytes([c[0], c[1]])
+                } else {
+                    u16::from_be_bytes([c[0], c[1]])
+                }
+            })
+            .collect();
+        match String::from_utf16(&units) {
+            Ok(s) => s,
+            Err(_) => return ("data".to_string(), "application/octet-stream", "binary"),
+        }
+    } else {
+        match std::str::from_utf8(&bytes[bom..]) {
+            Ok(s) => s.to_string(),
+            Err(_) => {
+                if bom > 0 {
+                    return ("data".to_string(), "application/octet-stream", "binary");
+                }
+                encoding = "iso-8859-1";
+                bytes.iter().map(|&b| b as char).collect()
+            }
+        }
+    };
+
+    if text.is_empty() && bytes.len() > bom {
+        return ("data".to_string(), "application/octet-stream", "binary");
+    }
+    for ch in text.chars() {
+        let code = ch as u32;
+        if (code < 32 && !matches!(code, 8 | 9 | 10 | 12 | 13 | 27))
+            || (127..=159).contains(&code)
+        {
+            return ("data".to_string(), "application/octet-stream", "binary");
+        }
+    }
+    if bom == 0 && encoding == "utf-8" && bytes.iter().all(|&b| b < 128) {
+        encoding = "us-ascii";
+    }
+    let trimmed = text.trim_start_matches([' ', '\t', '\r', '\n']);
+    if (trimmed.starts_with('{') || trimmed.starts_with('['))
+        && mcp_protocol_rust::json::parse(text.as_bytes(), mcp_protocol_rust::json::Limits::default()).is_ok()
+    {
+        return ("JSON text data".to_string(), "application/json", encoding);
+    }
+    let base_desc = match encoding {
+        "us-ascii" => "ASCII text",
+        "iso-8859-1" => "ISO-8859 text",
+        "utf-8" => "Unicode text, UTF-8",
+        "utf-16le" => "Unicode text, UTF-16, little-endian",
+        "utf-16be" => "Unicode text, UTF-16, big-endian",
+        _ => "ASCII text",
+    };
+    if let Some((fmt_desc, fmt_mime)) = detect_text_format(&text) {
+        (format!("{fmt_desc}, {base_desc}"), fmt_mime, encoding)
+    } else {
+        (base_desc.to_string(), "text/plain", encoding)
+    }
+}
+
+#[derive(Clone)]
+struct FileFormatOpts {
+    brief: bool,
+    follow: bool,
+    mime_type: bool,
+    mime_encoding: bool,
+    separator: String,
+    print0: usize,
+}
+
+fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut fmt = FileFormatOpts {
+        brief: false,
+        follow: false,
+        mime_type: false,
+        mime_encoding: false,
+        separator: ":".to_string(),
+        print0: 0,
+    };
+    let mut listed: Vec<(String, FileFormatOpts)> = Vec::new();
+    let mut names: Vec<String> = Vec::new();
+    let mut stdin_used = false;
+    let mut options = true;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if options && a == "--" {
+            options = false;
+            i += 1;
+            continue;
+        }
+        if !options || !a.starts_with('-') || a == "-" {
+            names.push(a.clone());
+            i += 1;
+            continue;
+        }
+        let long = a.starts_with("--");
+        let eq = if long { a.find('=') } else { None };
+        let flags: Vec<String> = if long {
+            vec![match eq {
+                Some(idx) => a[..idx].to_string(),
+                None => a.clone(),
+            }]
+        } else {
+            a[1..].chars().map(|c| format!("-{c}")).collect()
+        };
+        for (pos, flag) in flags.iter().enumerate() {
+            if flag == "-F" || flag == "--separator" || flag == "-f" || flag == "--files-from" {
+                let attached = if long {
+                    eq.map(|idx| a[idx + 1..].to_string())
+                } else if pos + 1 < flags.len() {
+                    Some(a[pos + 2..].to_string())
+                } else {
+                    None
+                };
+                let val = match attached {
+                    Some(v) => v,
+                    None if i + 1 < args.len() => {
+                        i += 1;
+                        args[i].clone()
+                    }
+                    None => return err_out(&format!("file: option '{flag}' requires an argument\n"), 1),
+                };
+                if flag == "-F" || flag == "--separator" {
+                    fmt.separator = val;
+                } else {
+                    let list_text = if val == "-" {
+                        if stdin_used {
+                            String::new()
+                        } else {
+                            stdin_used = true;
+                            stdin.to_string()
+                        }
+                    } else {
+                        let p = resolve_posix_path(cwd, &val);
+                        match fs.read_file(&p) {
+                            Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                            Err(e) => return err_out(&format!("file: {val}: {e}\n"), 1),
+                        }
+                    };
+                    let snap = fmt.clone();
+                    for line in list_text.lines() {
+                        listed.push((line.to_string(), snap.clone()));
+                    }
+                }
+                break;
+            }
+            match flag.as_str() {
+                "-b" | "--brief" => fmt.brief = true,
+                "-L" | "--dereference" => fmt.follow = true,
+                "-h" | "--no-dereference" => fmt.follow = false,
+                "-i" | "--mime" => {
+                    fmt.mime_type = true;
+                    fmt.mime_encoding = true;
+                }
+                "--mime-type" => fmt.mime_type = true,
+                "--mime-encoding" => fmt.mime_encoding = true,
+                "-0" | "--print0" => fmt.print0 = (fmt.print0 + 1).min(2),
+                _ => {}
+            }
+        }
+        i += 1;
+    }
+
+    let mut all_items: Vec<(String, FileFormatOpts)> = listed;
+    for n in names {
+        all_items.push((n, fmt.clone()));
+    }
+    if all_items.is_empty() {
+        return err_out("file: missing file operand\n", 1);
+    }
+
+    let mut out = String::new();
+    for (name, fopts) in all_items {
+        let describe = !fopts.mime_type && !fopts.mime_encoding;
+        let content: String = if name == "-" {
+            let (desc, mime, enc) = if stdin_used {
+                classify_file_bytes(&[])
+            } else {
+                stdin_used = true;
+                let raw = crate::vfs::stream_string_to_bytes(stdin);
+                classify_file_bytes(&raw)
+            };
+            if fopts.mime_type && fopts.mime_encoding {
+                format!("{mime}; charset={enc}")
+            } else if fopts.mime_type {
+                mime.to_string()
+            } else if fopts.mime_encoding {
+                enc.to_string()
+            } else {
+                desc
+            }
+        } else {
+            let p = resolve_posix_path(cwd, &name);
+            let st_res = if fopts.follow { fs.stat(&p) } else { fs.lstat(&p) };
+            match st_res {
+                Err(_) => format!("cannot open `{name}' (No such file or directory)"),
+                Ok(st) => {
+                    let (desc, mime, enc) = match st.kind {
+                        VfsEntryKind::Directory => (
+                            "directory".to_string(),
+                            "inode/directory",
+                            "binary",
+                        ),
+                        VfsEntryKind::Symlink => {
+                            let target = fs.readlink(&p).unwrap_or_default();
+                            let d = if describe && !target.is_empty() {
+                                format!("symbolic link to {target}")
+                            } else {
+                                "symbolic link".to_string()
+                            };
+                            (d, "inode/symlink", "binary")
+                        }
+                        VfsEntryKind::File => {
+                            let bytes = fs.read_file(&p).unwrap_or_default();
+                            classify_file_bytes(&bytes)
+                        }
+                    };
+                    if fopts.mime_type && fopts.mime_encoding {
+                        format!("{mime}; charset={enc}")
+                    } else if fopts.mime_type {
+                        mime.to_string()
+                    } else if fopts.mime_encoding {
+                        enc.to_string()
+                    } else {
+                        desc
+                    }
+                }
+            }
+        };
+        let label = if fopts.brief || name.is_empty() {
+            String::new()
+        } else {
+            let disp = if name == "-" { "/dev/stdin" } else { name.as_str() };
+            let nul_after = if fopts.print0 > 0 { "\0" } else { "" };
+            let sep_part = if fopts.print0 >= 2 {
+                String::new()
+            } else {
+                format!("{} ", fopts.separator)
+            };
+            format!("{disp}{nul_after}{sep_part}")
+        };
+        let term = if fopts.print0 >= 2 { "\0" } else { "\n" };
+        out.push_str(&format!("{label}{content}{term}"));
     }
     ok_out(&out)
 }

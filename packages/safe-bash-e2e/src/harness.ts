@@ -321,6 +321,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-xxd-od-hexdump-base64-base32-strings-cksum-matrix.test.ts",
   "obscure-tar-zip-unzip-gzip-bzip2-xz-zstd-matrix.test.ts",
   "obscure-grep-rg-find-fd-xargs-which-search-matrix.test.ts",
+  "obscure-tree-file-du-stat-ls-realpath-fs-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

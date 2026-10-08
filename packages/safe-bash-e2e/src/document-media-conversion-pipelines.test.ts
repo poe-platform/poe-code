@@ -261,7 +261,7 @@ test("pdftohtml converts PDF pages into HTML layout markup queryable by htmlq", 
     async (h) => {
       const script = [
         "wkhtmltopdf -q /workspace/doc.html /workspace/doc.pdf",
-        "pdftohtml -stdout /workspace/doc.pdf | grep -o 'Invoice 9001'",
+        "pdftohtml -stdout /workspace/doc.pdf | htmlq -t '#page1' | grep -o 'Invoice 9001'",
       ].join("\n");
 
       await h.expectOk(script, "Invoice 9001\n");

@@ -15148,14 +15148,16 @@ fn col_fit_widths(
             if !flags[idx].contains("noextreme") || widths[idx] == 0 {
                 continue;
             }
-            let maximum = stats[&idx].maximum;
+            let maximum = stats[&idx].maximum as isize;
+            let cur_w = widths[idx] as isize;
+            let rem_w = (opts.width - total) as isize;
             let add = if maximum > 0 {
-                (opts.width - total).min(maximum.saturating_sub(widths[idx]))
+                rem_w.min(maximum - cur_w)
             } else {
-                opts.width - total
+                rem_w
             };
-            widths[idx] += add;
-            total += add;
+            widths[idx] = (cur_w + add).max(0) as usize;
+            total = (total as isize + add).max(0) as usize;
             if total == opts.width {
                 break;
             }
@@ -20645,6 +20647,20 @@ mod tests {
         let tsort = try_run_coreutil("tsort", &[], "a b\nb c\n", "/", &env, &vfs).unwrap();
         assert_eq!(tsort.exit_code, 0);
         assert_eq!(tsort.stdout, "a\nb\nc\n");
+
+        let col = try_run_coreutil(
+            "column",
+            &args(&["-t", "-s", ",", "-o", " | ", "-N", "HOST,REGION,LATENCY,STATE", "-R", "LATENCY", "-H", "STATE"]),
+            "node-a,us-east,12,online\nnode-b,eu-west,140,online\nnode-c,ap-south,8,maintenance\n",
+            "/",
+            &env,
+            &vfs,
+        ).unwrap();
+        assert_eq!(col.exit_code, 0);
+        assert_eq!(
+            col.stdout,
+            "HOST   | REGION   | LATENCY\nnode-a | us-east  |  12\nnode-b | eu-west  | 140\nnode-c | ap-south |   8\n"
+        );
     }
 
 }

@@ -6052,7 +6052,7 @@ fn classify_file_bytes(bytes: &[u8]) -> (String, &'static str, &'static str) {
         return ("POSIX tar archive".to_string(), "application/x-tar", "binary");
     }
     if bytes.starts_with(b"\x00asm") {
-        return ("WebAssembly (wasm) binary module".to_string(), "application/wasm", "binary");
+        return ("WebAssembly binary module".to_string(), "application/wasm", "binary");
     }
     if bytes.starts_with(b"SQLite format 3\x00") {
         return ("SQLite 3.x database".to_string(), "application/vnd.sqlite3", "binary");
@@ -6435,6 +6435,11 @@ mod tests {
         let rmdir = try_run_fs_command("rmdir", &args(&["/work/empty"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(rmdir.exit_code, 0);
         assert!(!vfs.exists("/work/empty"));
+
+        vfs.write_file("/work/mod.wasm", b"\x00asm\x01\x00\x00\x00").unwrap();
+        let f_wasm = try_run_fs_command("file", &args(&["-b", "/work/mod.wasm"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(f_wasm.exit_code, 0);
+        assert_eq!(f_wasm.stdout, "WebAssembly binary module\n");
     }
 
 }

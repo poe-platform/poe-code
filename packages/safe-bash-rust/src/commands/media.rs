@@ -9173,12 +9173,16 @@ fn cmd_media_doc(
                         fmt = "TIFF";
                     }
                     "-gray" => {
-                        ext = "pgm";
-                        fmt = "PGM";
+                        if ext == "ppm" {
+                            ext = "pgm";
+                            fmt = "PGM";
+                        }
                     }
                     "-mono" => {
-                        ext = "pbm";
-                        fmt = "PBM";
+                        if ext == "ppm" {
+                            ext = "pbm";
+                            fmt = "PBM";
+                        }
                     }
                     "-svg" => {
                         ext = "svg";
@@ -12279,5 +12283,15 @@ mod media_unit_tests {
         );
         assert_eq!(txt.exit_code, 0);
         assert!(txt.stdout.contains("Hello PDF World"));
+
+        let ppm_png = cmd_media_doc(
+            "pdftoppm",
+            &media_args(&["-png", "-singlefile", "-gray", "-r", "72", "-f", "1", "-l", "1", "/docs/out.pdf", "/docs/single_gray"]),
+            "",
+            "/docs",
+            &vfs,
+        );
+        assert_eq!(ppm_png.exit_code, 0);
+        assert!(vfs.exists("/docs/single_gray.png"));
     }
 }

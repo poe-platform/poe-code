@@ -339,6 +339,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-graphviz-svgo-rsvg-pdf-qrencode-sox-media-crypto-deep-parity-matrix.test.ts",
   "obscure-openssl-gpg-ssh-x509-crypt-dgst-archive-parity-matrix.test.ts",
   "obscure-sqlite3-null-typeof-quote-json-cte-triggers-xan-parity-matrix.test.ts",
+  "obscure-column-file-pdftoppm-pdftohtml-coreutils-media-parity-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

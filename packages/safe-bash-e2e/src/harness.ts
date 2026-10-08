@@ -316,6 +316,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-cat-head-tail-wc-cut-tr-uniq-sort-join-matrix.test.ts",
   "obscure-split-csplit-fmt-pr-tsort-column-fold-expand-matrix.test.ts",
   "obscure-getopt-shuf-dd-truncate-install-dos2unix-iconv-matrix.test.ts",
+  "obscure-date-cal-numfmt-factor-expr-seq-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

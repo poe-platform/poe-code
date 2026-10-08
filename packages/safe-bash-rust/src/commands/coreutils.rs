@@ -40,8 +40,8 @@ pub fn try_run_coreutil(
         "dirname" => Some(cmd_dirname(args)),
         "env" | "printenv" => Some(cmd_printenv(args, env)),
         "envsubst" => Some(cmd_envsubst(args, stdin, env)),
-        "date" => Some(cmd_date(args)),
-        "cal" => Some(cmd_cal(args, env)),
+        "date" => Some(cmd_date(args, stdin, cwd, env, fs)),
+        "cal" | "ncal" => Some(cmd_cal(args, env)),
         "getconf" => Some(cmd_getconf(args, cwd, fs)),
         "locale" => Some(cmd_locale(args, env)),
         "less" | "more" => Some(cmd_less_more(cmd, args, stdin, cwd, fs)),
@@ -5470,14 +5470,29 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
     if args.is_empty() {
         return err_out("expr: missing operand\n", 2);
     }
+    if args.len() == 1 && args[0] == "--help" {
+        return ok_out("Usage: expr EXPRESSION\n");
+    }
+    if args.len() == 1 && args[0] == "--version" {
+        return ok_out("expr (virtual-bash)\n");
+    }
     let mut pos = 0usize;
-    match eval_expr_or(args, &mut pos) {
+    if args.first().map(|s| s.as_str()) == Some("--") {
+        pos = 1;
+    }
+    if pos >= args.len() {
+        return err_out("expr: missing operand\n", 2);
+    }
+    match eval_expr_or(args, &mut pos, true) {
         Ok(res) => {
-            let is_zero = res == "0" || res.is_empty();
+            if pos != args.len() {
+                return err_out("expr: syntax error\n", 2);
+            }
+            let truthy = is_expr_truthy(&res);
             BuiltinOutcome {
                 stdout: format!("{res}\n"),
                 stderr: String::new(),
-                exit_code: if is_zero { 1 } else { 0 },
+                exit_code: if truthy { 0 } else { 1 },
             }
         }
         Err((msg, code)) => err_out(&msg, code),
@@ -5485,102 +5500,137 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
 }
 
 fn is_expr_truthy(v: &str) -> bool {
-    !v.is_empty() && v != "0"
+    if v.is_empty() {
+        return false;
+    }
+    let rest = v.strip_prefix('-').unwrap_or(v);
+    if !rest.is_empty() && rest.bytes().all(|b| b == b'0') {
+        return false;
+    }
+    true
 }
 
-fn eval_expr_or(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_and(args, pos)?;
+fn parse_expr_int(v: &str) -> Option<i128> {
+    let rest = v.strip_prefix('-').unwrap_or(v);
+    if rest.is_empty() || !rest.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    v.parse::<i128>().ok()
+}
+
+fn eval_expr_or(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_and(args, pos, active)?;
     while *pos < args.len() && args[*pos] == "|" {
         *pos += 1;
-        let right = eval_expr_and(args, pos)?;
-        if !is_expr_truthy(&left) {
-            left = if is_expr_truthy(&right) { right } else { "0".to_string() };
+        let left_truth = active && is_expr_truthy(&left);
+        let right = eval_expr_and(args, pos, active && !left_truth)?;
+        if active && !left_truth {
+            left = if is_expr_truthy(&right) {
+                right
+            } else {
+                "0".to_string()
+            };
         }
     }
     Ok(left)
 }
 
-fn eval_expr_and(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_cmp(args, pos)?;
+fn eval_expr_and(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_cmp(args, pos, active)?;
     while *pos < args.len() && args[*pos] == "&" {
         *pos += 1;
-        let right = eval_expr_cmp(args, pos)?;
-        if !(is_expr_truthy(&left) && is_expr_truthy(&right)) {
+        let left_truth = active && is_expr_truthy(&left);
+        let right = eval_expr_cmp(args, pos, active && left_truth)?;
+        if active && !(left_truth && is_expr_truthy(&right)) {
             left = "0".to_string();
         }
     }
     Ok(left)
 }
 
-fn eval_expr_cmp(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_add(args, pos)?;
+fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_add(args, pos, active)?;
     while *pos < args.len() && matches!(args[*pos].as_str(), "=" | "==" | "!=" | "<" | "<=" | ">" | ">=") {
         let op = args[*pos].clone();
         *pos += 1;
-        let right = eval_expr_add(args, pos)?;
-        let res = if let (Ok(a), Ok(b)) = (left.parse::<i64>(), right.parse::<i64>()) {
-            match op.as_str() {
-                "=" | "==" => a == b,
-                "!=" => a != b,
-                "<" => a < b,
-                "<=" => a <= b,
-                ">" => a > b,
-                ">=" => a >= b,
-                _ => false,
-            }
-        } else {
-            match op.as_str() {
-                "=" | "==" => left == right,
-                "!=" => left != right,
-                "<" => left < right,
-                "<=" => left <= right,
-                ">" => left > right,
-                ">=" => left >= right,
-                _ => false,
-            }
-        };
-        left = if res { "1".to_string() } else { "0".to_string() };
+        let right = eval_expr_add(args, pos, active)?;
+        if active {
+            let res = if let (Some(a), Some(b)) = (parse_expr_int(&left), parse_expr_int(&right)) {
+                match op.as_str() {
+                    "=" | "==" => a == b,
+                    "!=" => a != b,
+                    "<" => a < b,
+                    "<=" => a <= b,
+                    ">" => a > b,
+                    ">=" => a >= b,
+                    _ => false,
+                }
+            } else {
+                match op.as_str() {
+                    "=" | "==" => left == right,
+                    "!=" => left != right,
+                    "<" => left < right,
+                    "<=" => left <= right,
+                    ">" => left > right,
+                    ">=" => left >= right,
+                    _ => false,
+                }
+            };
+            left = if res { "1".to_string() } else { "0".to_string() };
+        }
     }
     Ok(left)
 }
 
-fn eval_expr_add(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_mul(args, pos)?;
+fn eval_expr_add(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_mul(args, pos, active)?;
     while *pos < args.len() && matches!(args[*pos].as_str(), "+" | "-") {
         let op = args[*pos].clone();
         *pos += 1;
-        let right = eval_expr_mul(args, pos)?;
-        let a = left.parse::<i64>().unwrap_or(0);
-        let b = right.parse::<i64>().unwrap_or(0);
-        left = if op == "+" { (a + b).to_string() } else { (a - b).to_string() };
+        let right = eval_expr_mul(args, pos, active)?;
+        if active {
+            let Some(a) = parse_expr_int(&left) else {
+                return Err(("expr: non-integer argument\n".to_string(), 2));
+            };
+            let Some(b) = parse_expr_int(&right) else {
+                return Err(("expr: non-integer argument\n".to_string(), 2));
+            };
+            left = if op == "+" { (a + b).to_string() } else { (a - b).to_string() };
+        }
     }
     Ok(left)
 }
 
-fn eval_expr_mul(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_match(args, pos)?;
+fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_match(args, pos, active)?;
     while *pos < args.len() && matches!(args[*pos].as_str(), "*" | "/" | "%") {
         let op = args[*pos].clone();
         *pos += 1;
-        let right = eval_expr_match(args, pos)?;
-        let a = left.parse::<i64>().unwrap_or(0);
-        let b = right.parse::<i64>().unwrap_or(0);
-        left = match op.as_str() {
-            "*" => (a * b).to_string(),
-            "/" => {
-                if b == 0 {
-                    return Err(("expr: division by zero\n".to_string(), 2));
+        let right = eval_expr_match(args, pos, active)?;
+        if active {
+            let Some(a) = parse_expr_int(&left) else {
+                return Err(("expr: non-integer argument\n".to_string(), 2));
+            };
+            let Some(b) = parse_expr_int(&right) else {
+                return Err(("expr: non-integer argument\n".to_string(), 2));
+            };
+            left = match op.as_str() {
+                "*" => (a * b).to_string(),
+                "/" => {
+                    if b == 0 {
+                        return Err(("expr: division by zero\n".to_string(), 2));
+                    }
+                    (a / b).to_string()
                 }
-                (a / b).to_string()
-            }
-            "%" => {
-                if b == 0 {
-                    return Err(("expr: division by zero\n".to_string(), 2));
+                "%" => {
+                    if b == 0 {
+                        return Err(("expr: division by zero\n".to_string(), 2));
+                    }
+                    (a % b).to_string()
                 }
-                (a % b).to_string()
-            }
-            _ => "0".to_string(),
-        };
+                _ => "0".to_string(),
+            };
+        }
     }
     Ok(left)
 }
@@ -5601,59 +5651,82 @@ fn eval_expr_colon(lhs: &str, pat: &str) -> String {
     }
 }
 
-fn eval_expr_match(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
-    let mut left = eval_expr_primary(args, pos)?;
+fn eval_expr_match(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
+    let mut left = eval_expr_primary(args, pos, active)?;
     while *pos < args.len() && args[*pos] == ":" {
         *pos += 1;
-        let right = eval_expr_primary(args, pos)?;
-        left = eval_expr_colon(&left, &right);
+        let right = eval_expr_primary(args, pos, active)?;
+        if active {
+            left = eval_expr_colon(&left, &right);
+        }
     }
     Ok(left)
 }
 
-fn eval_expr_primary(args: &[String], pos: &mut usize) -> Result<String, (String, i32)> {
+fn eval_expr_primary(args: &[String], pos: &mut usize, active: bool) -> Result<String, (String, i32)> {
     if *pos >= args.len() {
         return Err(("expr: syntax error\n".to_string(), 2));
     }
     let tok = &args[*pos];
+    if tok == ")" {
+        return Err(("expr: syntax error: unexpected ')'\n".to_string(), 2));
+    }
     if tok == "(" {
         *pos += 1;
-        let val = eval_expr_or(args, pos)?;
-        if *pos < args.len() && args[*pos] == ")" {
-            *pos += 1;
+        let val = eval_expr_or(args, pos, active)?;
+        if *pos >= args.len() || args[*pos] != ")" {
+            return Err(("expr: syntax error\n".to_string(), 2));
         }
+        *pos += 1;
         return Ok(val);
     }
-    if tok == "length" && *pos + 1 < args.len() {
+    if tok == "+" {
         *pos += 1;
-        let s = eval_expr_primary(args, pos)?;
-        return Ok(s.chars().count().to_string());
+        if *pos >= args.len() {
+            return Err(("expr: syntax error: missing argument after '+'\n".to_string(), 2));
+        }
+        let lit = args[*pos].clone();
+        *pos += 1;
+        return Ok(lit);
     }
-    if tok == "match" && *pos + 2 < args.len() {
+    if tok == "length" {
         *pos += 1;
-        let s = eval_expr_primary(args, pos)?;
-        let pat = eval_expr_primary(args, pos)?;
-        return Ok(eval_expr_colon(&s, &pat));
+        let s = eval_expr_primary(args, pos, active)?;
+        return Ok(if active { s.chars().count().to_string() } else { String::new() });
     }
-    if tok == "substr" && *pos + 3 < args.len() {
+    if tok == "match" {
         *pos += 1;
-        let s_str = eval_expr_primary(args, pos)?;
-        let p_str = eval_expr_primary(args, pos)?;
-        let l_str = eval_expr_primary(args, pos)?;
+        let s = eval_expr_primary(args, pos, active)?;
+        let pat = eval_expr_primary(args, pos, active)?;
+        return Ok(if active { eval_expr_colon(&s, &pat) } else { String::new() });
+    }
+    if tok == "substr" {
+        *pos += 1;
+        let s_str = eval_expr_primary(args, pos, active)?;
+        let p_str = eval_expr_primary(args, pos, active)?;
+        let l_str = eval_expr_primary(args, pos, active)?;
+        if !active {
+            return Ok(String::new());
+        }
         let chars: Vec<char> = s_str.chars().collect();
-        let p = p_str.parse::<usize>().unwrap_or(0);
-        let l = l_str.parse::<usize>().unwrap_or(0);
-        let sub: String = if p == 0 || l == 0 || p > chars.len() {
+        let p = parse_expr_int(&p_str).unwrap_or(0);
+        let l = parse_expr_int(&l_str).unwrap_or(0);
+        let sub: String = if p <= 0 || l <= 0 || (p as usize) > chars.len() {
             String::new()
         } else {
-            chars[p - 1..(p - 1 + l).min(chars.len())].iter().collect()
+            let p_idx = (p as usize) - 1;
+            let end_idx = p_idx.saturating_add(l as usize).min(chars.len());
+            chars[p_idx..end_idx].iter().collect()
         };
         return Ok(sub);
     }
-    if tok == "index" && *pos + 2 < args.len() {
+    if tok == "index" {
         *pos += 1;
-        let s = eval_expr_primary(args, pos)?;
-        let chars_set = eval_expr_primary(args, pos)?;
+        let s = eval_expr_primary(args, pos, active)?;
+        let chars_set = eval_expr_primary(args, pos, active)?;
+        if !active {
+            return Ok(String::new());
+        }
         let mut found = 0usize;
         for (i, ch) in s.chars().enumerate() {
             if chars_set.contains(ch) {
@@ -6909,75 +6982,324 @@ fn rfind_top_level_add_sub(s: &str) -> Option<(usize, char)> {
 }
 
 fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
-    let mut to_mode = String::new();
-    let mut from_mode = String::new();
+    let mut to_mode = "none".to_string();
+    let mut from_mode = "none".to_string();
+    let mut from_unit: f64 = 1.0;
+    let mut to_unit: f64 = 1.0;
     let mut suffix = String::new();
+    let mut unit_sep: Option<String> = None;
     let mut round_mode = "from-zero".to_string();
+    let mut invalid_mode = "abort".to_string();
     let mut format_spec: Option<String> = None;
     let mut delimiter: Option<String> = None;
     let mut padding: Option<isize> = None;
     let mut header_lines = 0usize;
-    let mut fields: Vec<usize> = Vec::new();
+    let mut field_ranges: Vec<(usize, usize)> = Vec::new();
+    let mut zero_terminated = false;
+    let mut stopped = false;
     let mut operands = Vec::new();
 
-    let parse_fields = |spec: &str, out_f: &mut Vec<usize>| {
-        for part in spec.split(',') {
-            if let Some((a, b)) = part.split_once('-') {
-                let st = a.parse::<usize>().unwrap_or(1).max(1);
-                let en = b.parse::<usize>().unwrap_or(st).max(st);
-                for idx in st..=en {
-                    out_f.push(idx);
-                }
-            } else if let Ok(idx) = part.parse::<usize>()
-                && idx >= 1
-            {
-                out_f.push(idx);
+    let parse_unit_arg = |spec: &str| -> Result<f64, String> {
+        let s = spec.trim();
+        if s.is_empty() {
+            return Err(format!("numfmt: invalid unit size: '{spec}'\n"));
+        }
+        let prefixes = "KMGTPEZYRQ";
+        let mut num_end = 0usize;
+        for (idx, ch) in s.char_indices() {
+            if ch.is_ascii_digit() {
+                num_end = idx + ch.len_utf8();
+            } else {
+                break;
             }
         }
+        let (base_val, tail) = if num_end == 0 {
+            (1.0f64, s)
+        } else {
+            let Ok(v) = s[..num_end].parse::<f64>() else {
+                return Err(format!("numfmt: invalid unit size: '{spec}'\n"));
+            };
+            if v <= 0.0 {
+                return Err(format!("numfmt: invalid unit size: '{spec}'\n"));
+            }
+            (v, &s[num_end..])
+        };
+        if tail.is_empty() {
+            return Ok(base_val);
+        }
+        let mut chars = tail.chars();
+        let first = chars.next().unwrap();
+        let Some(p_idx) = prefixes.find(first) else {
+            return Err(format!("numfmt: invalid unit size: '{spec}'\n"));
+        };
+        let rest = chars.as_str();
+        let step = if rest.is_empty() {
+            1000.0f64
+        } else if rest == "i" {
+            1024.0f64
+        } else {
+            return Err(format!("numfmt: invalid unit size: '{spec}'\n"));
+        };
+        Ok(base_val * step.powi((p_idx + 1) as i32))
+    };
+
+    let parse_fields = |spec: &str, out_f: &mut Vec<(usize, usize)>| -> Result<(), String> {
+        for part in spec.split(|c: char| c == ',' || c == ' ' || c == '\t') {
+            if part.is_empty() {
+                continue;
+            }
+            if part == "-" {
+                out_f.push((1, usize::MAX));
+            } else if let Some((a, b)) = part.split_once('-') {
+                let st = if a.is_empty() {
+                    1
+                } else {
+                    a.parse::<usize>()
+                        .ok()
+                        .filter(|&v| v >= 1)
+                        .ok_or_else(|| "numfmt: invalid field range\n".to_string())?
+                };
+                let en = if b.is_empty() {
+                    usize::MAX
+                } else {
+                    b.parse::<usize>()
+                        .ok()
+                        .filter(|&v| v >= st)
+                        .ok_or_else(|| "numfmt: invalid field range\n".to_string())?
+                };
+                out_f.push((st, en));
+            } else {
+                let idx = part
+                    .parse::<usize>()
+                    .ok()
+                    .filter(|&v| v >= 1)
+                    .ok_or_else(|| "numfmt: invalid field value\n".to_string())?;
+                out_f.push((idx, idx));
+            }
+        }
+        Ok(())
     };
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if let Some(v) = a.strip_prefix("--to=") {
+        if !stopped && a == "--" {
+            stopped = true;
+            i += 1;
+            continue;
+        }
+        if stopped || a == "-" || !a.starts_with('-') {
+            operands.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--help" {
+            return ok_out("Usage: numfmt [OPTION]... [NUMBER]...\n");
+        }
+        if a == "--version" {
+            return ok_out("numfmt (GNU coreutils) 9.4\n");
+        }
+        if a == "-z" || a == "--zero-terminated" {
+            zero_terminated = true;
+        } else if a == "--grouping" || a == "--debug" || a == "---debug" {
+            // accepted
+        } else if let Some(v) = a.strip_prefix("--to=") {
             to_mode = v.to_string();
+        } else if a == "--to" && i + 1 < args.len() {
+            i += 1;
+            to_mode = args[i].clone();
         } else if let Some(v) = a.strip_prefix("--from=") {
             from_mode = v.to_string();
+        } else if a == "--from" && i + 1 < args.len() {
+            i += 1;
+            from_mode = args[i].clone();
+        } else if let Some(v) = a.strip_prefix("--from-unit=") {
+            match parse_unit_arg(v) {
+                Ok(u) => from_unit = u,
+                Err(msg) => return err_out(&msg, 1),
+            }
+        } else if a == "--from-unit" && i + 1 < args.len() {
+            i += 1;
+            match parse_unit_arg(&args[i]) {
+                Ok(u) => from_unit = u,
+                Err(msg) => return err_out(&msg, 1),
+            }
+        } else if let Some(v) = a.strip_prefix("--to-unit=") {
+            match parse_unit_arg(v) {
+                Ok(u) => to_unit = u,
+                Err(msg) => return err_out(&msg, 1),
+            }
+        } else if a == "--to-unit" && i + 1 < args.len() {
+            i += 1;
+            match parse_unit_arg(&args[i]) {
+                Ok(u) => to_unit = u,
+                Err(msg) => return err_out(&msg, 1),
+            }
         } else if let Some(v) = a.strip_prefix("--suffix=") {
             suffix = v.to_string();
+        } else if a == "--suffix" && i + 1 < args.len() {
+            i += 1;
+            suffix = args[i].clone();
+        } else if let Some(v) = a.strip_prefix("--unit-separator=") {
+            unit_sep = Some(v.to_string());
+        } else if a == "--unit-separator" && i + 1 < args.len() {
+            i += 1;
+            unit_sep = Some(args[i].clone());
         } else if let Some(v) = a.strip_prefix("--round=") {
             round_mode = v.to_string();
+        } else if a == "--round" && i + 1 < args.len() {
+            i += 1;
+            round_mode = args[i].clone();
+        } else if let Some(v) = a.strip_prefix("--invalid=") {
+            invalid_mode = v.to_string();
+        } else if a == "--invalid" && i + 1 < args.len() {
+            i += 1;
+            invalid_mode = args[i].clone();
         } else if let Some(v) = a.strip_prefix("--format=") {
             format_spec = Some(v.to_string());
+        } else if a == "--format" && i + 1 < args.len() {
+            i += 1;
+            format_spec = Some(args[i].clone());
         } else if let Some(v) = a.strip_prefix("--padding=") {
-            padding = v.parse::<isize>().ok();
+            let Ok(p) = v.parse::<isize>() else {
+                return err_out(&format!("numfmt: invalid padding value '{v}'\n"), 1);
+            };
+            if p == 0 {
+                return err_out(&format!("numfmt: invalid padding value '{v}'\n"), 1);
+            }
+            padding = Some(p);
+        } else if a == "--padding" && i + 1 < args.len() {
+            i += 1;
+            let Ok(p) = args[i].parse::<isize>() else {
+                return err_out(&format!("numfmt: invalid padding value '{}'\n", args[i]), 1);
+            };
+            if p == 0 {
+                return err_out(&format!("numfmt: invalid padding value '{}'\n", args[i]), 1);
+            }
+            padding = Some(p);
         } else if a == "--header" {
             header_lines = 1;
         } else if let Some(v) = a.strip_prefix("--header=") {
-            header_lines = v.parse::<usize>().unwrap_or(1);
+            let Ok(h) = v.parse::<usize>() else {
+                return err_out(&format!("numfmt: invalid header value '{v}'\n"), 1);
+            };
+            if h == 0 {
+                return err_out(&format!("numfmt: invalid header value '{v}'\n"), 1);
+            }
+            header_lines = h;
         } else if let Some(v) = a.strip_prefix("--field=") {
-            parse_fields(v, &mut fields);
+            if let Err(msg) = parse_fields(v, &mut field_ranges) {
+                return err_out(&msg, 1);
+            }
+        } else if a == "--field" && i + 1 < args.len() {
+            i += 1;
+            if let Err(msg) = parse_fields(&args[i], &mut field_ranges) {
+                return err_out(&msg, 1);
+            }
         } else if let Some(v) = a.strip_prefix("--delimiter=") {
             delimiter = Some(v.to_string());
+        } else if a == "--delimiter" && i + 1 < args.len() {
+            i += 1;
+            delimiter = Some(args[i].clone());
         } else if a == "-d" && i + 1 < args.len() {
             i += 1;
             delimiter = Some(args[i].clone());
         } else if let Some(v) = a.strip_prefix("-d") {
             delimiter = Some(v.to_string());
-        } else if !a.starts_with('-') {
-            operands.push(a.clone());
+        } else {
+            return err_out(&format!("numfmt: unrecognized option '{a}'\n"), 1);
         }
         i += 1;
     }
-    if fields.is_empty() {
-        fields.push(1);
+    if field_ranges.is_empty() {
+        field_ranges.push((1, 1));
     }
 
-    let inputs: Vec<String> = if operands.is_empty() {
-        stdin.lines().map(|l| l.to_string()).filter(|l| !l.is_empty()).collect()
-    } else {
-        operands
-    };
+    let mut fmt_prefix = String::new();
+    let mut fmt_postfix = String::new();
+    let mut fmt_zero_pad: usize = 0;
+    let mut fmt_prec: Option<usize> = None;
+    if let Some(ref fspec) = format_spec {
+        let bytes = fspec.as_bytes();
+        let mut idx = 0usize;
+        while idx < bytes.len() {
+            if bytes[idx] == b'%' {
+                if idx + 1 < bytes.len() && bytes[idx + 1] == b'%' {
+                    fmt_prefix.push('%');
+                    idx += 2;
+                    continue;
+                }
+                break;
+            }
+            let ch = fspec[idx..].chars().next().unwrap();
+            fmt_prefix.push(ch);
+            idx += ch.len_utf8();
+        }
+        if idx >= bytes.len() {
+            return err_out(&format!("numfmt: format '{fspec}' has no % directive\n"), 1);
+        }
+        idx += 1;
+        let mut zero_flag = false;
+        while idx < bytes.len() {
+            if bytes[idx] == b' ' || bytes[idx] == b'\'' {
+                idx += 1;
+            } else if bytes[idx] == b'0' {
+                zero_flag = true;
+                idx += 1;
+            } else {
+                break;
+            }
+        }
+        let w_start = idx;
+        if idx < bytes.len() && (bytes[idx] == b'-' || bytes[idx] == b'+') {
+            idx += 1;
+        }
+        while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+            idx += 1;
+        }
+        if idx > w_start && let Ok(w) = fspec[w_start..idx].parse::<isize>() && w != 0 {
+            if w < 0 {
+                padding = Some(w);
+            } else if zero_flag {
+                fmt_zero_pad = w as usize;
+            } else {
+                padding = Some(w);
+            }
+        }
+        if idx < bytes.len() && bytes[idx] == b'.' {
+            idx += 1;
+            let p_start = idx;
+            while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+                idx += 1;
+            }
+            let p_val = if idx > p_start {
+                let Ok(p) = fspec[p_start..idx].parse::<usize>() else {
+                    return err_out(&format!("numfmt: invalid precision in format '{fspec}'\n"), 1);
+                };
+                p
+            } else {
+                0
+            };
+            fmt_prec = Some(p_val);
+        }
+        if idx >= bytes.len() || bytes[idx] != b'f' {
+            return err_out(&format!("numfmt: invalid format '{fspec}'\n"), 1);
+        }
+        idx += 1;
+        while idx < bytes.len() {
+            if bytes[idx] == b'%' {
+                if idx + 1 < bytes.len() && bytes[idx + 1] == b'%' {
+                    fmt_postfix.push('%');
+                    idx += 2;
+                    continue;
+                }
+                return err_out(&format!("numfmt: format '{fspec}' has too many % directives\n"), 1);
+            }
+            let ch = fspec[idx..].chars().next().unwrap();
+            fmt_postfix.push(ch);
+            idx += ch.len_utf8();
+        }
+    }
 
     let apply_round = |v: f64, decimals: i32| -> f64 {
         let factor = 10f64.powi(decimals);
@@ -6992,7 +7314,7 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
                     (scaled - 1e-9).ceil()
                 }
             }
-            "nearest" => scaled.round(),
+            "nearest" => (scaled + 1e-9 * scaled.signum()).round(),
             _ => {
                 if scaled >= 0.0 {
                     (scaled - 1e-9).ceil()
@@ -7001,58 +7323,80 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
                 }
             }
         };
-        r / factor
+        let res = r / factor;
+        if res == 0.0 { 0.0 } else { res }
     };
 
-    let units = ['K', 'M', 'G', 'T', 'P', 'E'];
-    let fmt_val = |raw: &str| -> String {
-        let mut val = parse_human_num(raw, &from_mode);
-        let rendered = if to_mode == "iec" || to_mode == "iec-i" || to_mode == "si" {
+    let units = ['K', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y', 'R', 'Q'];
+    let convert_field = |raw: &str| -> Result<String, String> {
+        let (mut val, in_prec) = parse_human_num(raw, &from_mode, &suffix, unit_sep.as_deref())?;
+        val = val * from_unit / to_unit;
+        let (mut num_s, unit_s) = if to_mode == "iec" || to_mode == "iec-i" || to_mode == "si" {
             let base = if to_mode == "si" { 1000.0 } else { 1024.0 };
             let i_suf = if to_mode == "iec-i" { "i" } else { "" };
-            if val.abs() < base {
-                format!("{}{suffix}", val as i64)
-            } else {
-                let mut u_idx = 0usize;
-                val /= base;
-                while val.abs() >= base && u_idx + 1 < units.len() {
-                    val /= base;
-                    u_idx += 1;
+            let mut scaled = val;
+            let mut power_idx = 0usize;
+            while scaled.abs() >= base && power_idx < units.len() {
+                scaled /= base;
+                power_idx += 1;
+            }
+            let adj = match fmt_prec {
+                None => {
+                    if scaled.abs() < 10.0 && power_idx > 0 {
+                        1
+                    } else {
+                        0
+                    }
                 }
-                let u = if to_mode == "si" && u_idx == 0 {
+                Some(p) => p.min(power_idx * 3),
+            };
+            scaled = apply_round(scaled, adj as i32);
+            if scaled.abs() >= base && power_idx < units.len() {
+                scaled /= base;
+                power_idx += 1;
+            }
+            let out_prec = match fmt_prec {
+                None => {
+                    if scaled != 0.0 && scaled.abs() < 10.0 && power_idx > 0 {
+                        1
+                    } else {
+                        0
+                    }
+                }
+                Some(p) => p,
+            };
+            let u_part = if power_idx > 0 {
+                let u_ch = if to_mode == "si" && power_idx == 1 {
                     'k'
                 } else {
-                    units[u_idx]
+                    units[power_idx - 1]
                 };
-                let (num_s, unit_s) = if val.abs() < 10.0 {
-                    let rv = apply_round(val, 1);
-                    (format!("{rv:.1}"), format!("{u}{i_suf}{suffix}"))
-                } else {
-                    let rv = apply_round(val, 0);
-                    (format!("{rv:.0}"), format!("{u}{i_suf}{suffix}"))
-                };
-                if let Some(ref fspec) = format_spec
-                    && let Some(inner) = fspec.strip_prefix('%').and_then(|s| s.strip_suffix('f'))
-                {
-                    let zero_pad = inner.starts_with('0');
-                    let width_s = inner.split('.').next().unwrap_or("");
-                    if let Ok(w) = width_s.trim_start_matches('0').parse::<usize>()
-                        && w > num_s.len()
-                    {
-                        let pad_ch = if zero_pad { '0' } else { ' ' };
-                        let pad_str: String = std::iter::repeat_n(pad_ch, w - num_s.len()).collect();
-                        format!("{pad_str}{num_s}{unit_s}")
-                    } else {
-                        format!("{num_s}{unit_s}")
-                    }
-                } else {
-                    format!("{num_s}{unit_s}")
-                }
-            }
+                format!("{}{u_ch}{i_suf}", unit_sep.as_deref().unwrap_or(""))
+            } else {
+                String::new()
+            };
+            (format!("{scaled:.out_prec$}"), format!("{u_part}{suffix}"))
         } else {
-            format!("{}{suffix}", val as i64)
+            let out_prec = fmt_prec.unwrap_or(in_prec);
+            let rv = apply_round(val, out_prec as i32);
+            (format!("{rv:.out_prec$}"), suffix.clone())
         };
-        if let Some(pad) = padding {
+
+        if fmt_zero_pad > 0 {
+            let is_neg = num_s.starts_with('-');
+            let digits = if is_neg { &num_s[1..] } else { &num_s[..] };
+            let target = fmt_zero_pad.saturating_sub(if is_neg { 1 } else { 0 });
+            if digits.len() < target {
+                let zeros = "0".repeat(target - digits.len());
+                num_s = if is_neg {
+                    format!("-{zeros}{digits}")
+                } else {
+                    format!("{zeros}{digits}")
+                };
+            }
+        }
+        let rendered = format!("{num_s}{unit_s}");
+        let padded = if let Some(pad) = padding {
             let w = pad.unsigned_abs();
             if w > rendered.len() {
                 if pad < 0 {
@@ -7065,67 +7409,261 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
             }
         } else {
             rendered
+        };
+        Ok(format!("{fmt_prefix}{padded}{fmt_postfix}"))
+    };
+
+    let field_selected = |f_idx: usize| -> bool {
+        field_ranges.iter().any(|&(lo, hi)| f_idx >= lo && f_idx <= hi)
+    };
+
+    let sep_char = if zero_terminated { '\0' } else { '\n' };
+    let from_stdin = operands.is_empty();
+    let records: Vec<(String, bool)> = if from_stdin {
+        let mut recs = Vec::new();
+        if !stdin.is_empty() {
+            let parts: Vec<&str> = stdin.split(sep_char).collect();
+            for (idx, p) in parts.iter().enumerate() {
+                if idx + 1 == parts.len() {
+                    if !p.is_empty() {
+                        recs.push(((*p).to_string(), false));
+                    }
+                } else {
+                    recs.push(((*p).to_string(), true));
+                }
+            }
         }
+        recs
+    } else {
+        operands.into_iter().map(|op| (op, true)).collect()
     };
 
     let mut out = String::new();
-    for (line_no, item) in inputs.into_iter().enumerate() {
-        if line_no < header_lines {
+    let mut err = String::new();
+    let mut had_invalid = false;
+
+    for (line_no, (item, has_term)) in records.into_iter().enumerate() {
+        if from_stdin && line_no < header_lines {
             out.push_str(&item);
-            out.push('\n');
+            if has_term {
+                out.push(sep_char);
+            }
             continue;
         }
+        let mut line_aborted = false;
         let formatted = if let Some(ref delim) = delimiter {
             let mut parts: Vec<String> = item.split(delim.as_str()).map(|s| s.to_string()).collect();
-            for &f_idx in &fields {
-                if f_idx >= 1 && f_idx <= parts.len() {
-                    parts[f_idx - 1] = fmt_val(&parts[f_idx - 1]);
+            for (idx0, part) in parts.iter_mut().enumerate() {
+                if field_selected(idx0 + 1) {
+                    match convert_field(part) {
+                        Ok(conv) => *part = conv,
+                        Err(msg) => {
+                            had_invalid = true;
+                            if invalid_mode != "ignore" {
+                                err.push_str(&msg);
+                            }
+                            if invalid_mode == "abort" {
+                                line_aborted = true;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             parts.join(delim)
-        } else if fields.len() > 1 || fields[0] > 1 {
-            let mut parts: Vec<String> = item.split_whitespace().map(|s| s.to_string()).collect();
-            for &f_idx in &fields {
-                if f_idx >= 1 && f_idx <= parts.len() {
-                    let orig_len = parts[f_idx - 1].len();
-                    let conv = fmt_val(&parts[f_idx - 1]);
-                    parts[f_idx - 1] = if padding.is_none() && orig_len > conv.len() {
-                        format!("{conv:>orig_len$}")
-                    } else {
-                        conv
-                    };
-                }
-            }
-            parts.join(" ")
         } else {
-            fmt_val(item.trim())
+            let mut tokens: Vec<(String, String)> = Vec::new();
+            let mut chars = item.char_indices().peekable();
+            while chars.peek().is_some() {
+                let ws_start = chars.peek().unwrap().0;
+                let mut ws_end = ws_start;
+                while let Some(&(idx, ch)) = chars.peek() {
+                    if ch == ' ' || ch == '\t' {
+                        ws_end = idx + ch.len_utf8();
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                let tok_start = ws_end;
+                let mut tok_end = tok_start;
+                while let Some(&(idx, ch)) = chars.peek() {
+                    if ch != ' ' && ch != '\t' {
+                        tok_end = idx + ch.len_utf8();
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                tokens.push((
+                    item[ws_start..ws_end].to_string(),
+                    item[tok_start..tok_end].to_string(),
+                ));
+            }
+            if tokens.is_empty() {
+                String::new()
+            } else {
+                let mut rebuilt = String::new();
+                for (idx0, (ws, tok)) in tokens.into_iter().enumerate() {
+                    let f_idx = idx0 + 1;
+                    if field_selected(f_idx) {
+                        let full_field = format!("{ws}{tok}");
+                        match convert_field(&tok) {
+                            Ok(conv) => {
+                                if padding.is_none() && (!ws.is_empty() || f_idx > 1) {
+                                    let target_w = full_field.len();
+                                    let sep_prefix = if f_idx > 1 { " " } else { "" };
+                                    let pad_w = target_w.saturating_sub(sep_prefix.len());
+                                    if pad_w > conv.len() {
+                                        rebuilt.push_str(&format!("{sep_prefix}{conv:>pad_w$}"));
+                                    } else {
+                                        rebuilt.push_str(&format!("{sep_prefix}{conv}"));
+                                    }
+                                } else {
+                                    if f_idx > 1 && !ws.is_empty() {
+                                        rebuilt.push(' ');
+                                    }
+                                    rebuilt.push_str(&conv);
+                                }
+                            }
+                            Err(msg) => {
+                                had_invalid = true;
+                                if invalid_mode != "ignore" {
+                                    err.push_str(&msg);
+                                }
+                                if invalid_mode == "abort" {
+                                    line_aborted = true;
+                                    break;
+                                }
+                                rebuilt.push_str(&full_field);
+                            }
+                        }
+                    } else {
+                        rebuilt.push_str(&ws);
+                        rebuilt.push_str(&tok);
+                    }
+                }
+                rebuilt
+            }
         };
+        if line_aborted {
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: err,
+                exit_code: 2,
+            };
+        }
         out.push_str(&formatted);
-        out.push('\n');
+        if has_term {
+            out.push(sep_char);
+        }
     }
-    ok_out(&out)
+    let exit_code = if had_invalid && (invalid_mode == "abort" || invalid_mode == "fail") {
+        2
+    } else {
+        0
+    };
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err,
+        exit_code,
+    }
 }
 
-fn parse_human_num(s: &str, from_mode: &str) -> f64 {
-    let trimmed = s.trim().trim_end_matches('B').trim_end_matches('i');
-    if let Some(last) = trimmed.chars().last()
-        && last.is_ascii_alphabetic()
-    {
-        let num_part = &trimmed[..trimmed.len() - last.len_utf8()];
-        let base_num = num_part.parse::<f64>().unwrap_or(0.0);
-        let step = if from_mode == "si" { 1000.0f64 } else { 1024.0f64 };
-        let exp = match last.to_ascii_uppercase() {
-            'K' => 1,
-            'M' => 2,
-            'G' => 3,
-            'T' => 4,
-            'P' => 5,
-            _ => 0,
-        };
-        base_num * step.powi(exp)
-    } else {
-        trimmed.parse::<f64>().unwrap_or(0.0)
+fn parse_human_num(
+    s: &str,
+    from_mode: &str,
+    suffix: &str,
+    unit_sep: Option<&str>,
+) -> Result<(f64, usize), String> {
+    let mut work = s.trim_start_matches([' ', '\t']);
+    if work.is_empty() {
+        return Err(format!("numfmt: invalid number: '{s}'\n"));
     }
+    if !suffix.is_empty()
+        && let Some(stripped) = work.strip_suffix(suffix)
+    {
+        work = stripped;
+    }
+    let bytes = work.as_bytes();
+    let mut idx = 0usize;
+    if idx < bytes.len() && (bytes[idx] == b'-' || bytes[idx] == b'+') {
+        idx += 1;
+    }
+    let int_start = idx;
+    while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+        idx += 1;
+    }
+    if idx == int_start {
+        return Err(format!("numfmt: invalid number: '{s}'\n"));
+    }
+    let mut prec = 0usize;
+    if idx < bytes.len() && bytes[idx] == b'.' {
+        idx += 1;
+        let frac_start = idx;
+        while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+            idx += 1;
+        }
+        if idx == frac_start {
+            return Err(format!("numfmt: invalid number: '{s}'\n"));
+        }
+        prec = idx - frac_start;
+    }
+    let Ok(base_num) = work[..idx].parse::<f64>() else {
+        return Err(format!("numfmt: invalid number: '{s}'\n"));
+    };
+    let mut rem = &work[idx..];
+    if let Some(sep) = unit_sep
+        && !sep.is_empty()
+        && let Some(after_sep) = rem.strip_prefix(sep)
+    {
+        rem = after_sep;
+    }
+    if rem.is_empty() {
+        return Ok((base_num, prec));
+    }
+    if from_mode == "none" || from_mode.is_empty() {
+        return Err(format!("numfmt: rejecting suffix in input: '{s}'\n"));
+    }
+    let prefixes = "KMGTPEZYRQ";
+    let mut chars = rem.chars();
+    let first = chars.next().unwrap();
+    let norm_first = if first == 'k' { 'K' } else { first };
+    let Some(p_idx) = prefixes.find(norm_first) else {
+        return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+    };
+    let after_unit = chars.as_str();
+    let step = match from_mode {
+        "si" => {
+            if !after_unit.is_empty() {
+                return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+            }
+            1000.0f64
+        }
+        "iec" => {
+            if !after_unit.is_empty() {
+                return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+            }
+            1024.0f64
+        }
+        "iec-i" => {
+            if after_unit != "i" {
+                return Err(format!("numfmt: missing 'i' suffix in input: '{s}'\n"));
+            }
+            1024.0f64
+        }
+        "auto" => {
+            if after_unit.is_empty() {
+                1000.0f64
+            } else if after_unit == "i" {
+                1024.0f64
+            } else {
+                return Err(format!("numfmt: invalid suffix in input: '{s}'\n"));
+            }
+        }
+        _ => return Err(format!("numfmt: invalid suffix in input: '{s}'\n")),
+    };
+    Ok((base_num * step.powi((p_idx + 1) as i32), 0))
 }
 
 fn days_from_civil(y: i64, m: i64, d: i64) -> i64 {
@@ -7151,66 +7689,567 @@ fn civil_from_days(z: i64) -> (i64, u32, u32) {
     (y, m as u32, d as u32)
 }
 
-fn parse_date_spec(spec: &str) -> i64 {
-    let s = spec.trim();
-    if let Some(ep) = s.strip_prefix('@') {
-        return ep.parse::<i64>().unwrap_or(0);
-    }
-    let clean = s.trim_end_matches('Z');
-    let (date_part, time_part) = clean
-        .split_once('T')
-        .or_else(|| clean.split_once(' '))
-        .unwrap_or((clean, "00:00:00"));
-    let dparts: Vec<i64> = date_part.split('-').map(|p| p.parse().unwrap_or(0)).collect();
-    let tparts: Vec<i64> = time_part.split(':').map(|p| p.parse().unwrap_or(0)).collect();
-    if dparts.len() == 3 {
-        let days = days_from_civil(dparts[0], dparts[1], dparts[2]);
-        let h = *tparts.first().unwrap_or(&0);
-        let m = *tparts.get(1).unwrap_or(&0);
-        let sec = *tparts.get(2).unwrap_or(&0);
-        return days * 86400 + h * 3600 + m * 60 + sec;
-    }
-    1700000000
+fn gregorian_is_leap(year: i64) -> bool {
+    year.rem_euclid(4) == 0 && (year.rem_euclid(100) != 0 || year.rem_euclid(400) == 0)
 }
 
-fn cmd_date(args: &[String]) -> BuiltinOutcome {
-    let mut epoch = 1700000000i64;
-    let mut fmt = "%a %b %e %H:%M:%S UTC %Y".to_string();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if a == "-u" || a == "--utc" || a == "--universal" {
-            i += 1;
-        } else if a == "-R" || a == "--rfc-email" || a == "--rfc-2822" {
-            fmt = "%a, %d %b %Y %H:%M:%S +0000".to_string();
-            i += 1;
-        } else if a == "-I" || a == "--iso-8601" || a == "--iso-8601=date" {
-            fmt = "%Y-%m-%d".to_string();
-            i += 1;
-        } else if a == "-Iseconds" || a == "--iso-8601=seconds" {
-            fmt = "%Y-%m-%dT%H:%M:%S+00:00".to_string();
-            i += 1;
-        } else if (a == "-d" || a == "--date") && i + 1 < args.len() {
-            epoch = parse_date_spec(&args[i + 1]);
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("--date=").or_else(|| a.strip_prefix("-d")) && !rest.is_empty() {
-            epoch = parse_date_spec(rest);
-            i += 1;
-        } else if let Some(f) = a.strip_prefix('+') {
-            fmt = f.to_string();
-            i += 1;
+fn gregorian_days_in_month(year: i64, month: u32) -> u32 {
+    match month {
+        1 | 3 | 5 | 7 | 8 | 10 | 12 => 31,
+        4 | 6 | 9 | 11 => 30,
+        2 => if gregorian_is_leap(year) { 29 } else { 28 },
+        _ => 30,
+    }
+}
+
+fn parse_tz_spec(tz_env: Option<&str>, force_utc: bool) -> (i64, String) {
+    if force_utc {
+        return (0, "UTC".to_string());
+    }
+    let Some(raw) = tz_env else {
+        return (0, "UTC".to_string());
+    };
+    let name = raw.strip_prefix(':').unwrap_or(raw).trim();
+    if name.is_empty()
+        || matches!(
+            name,
+            "UTC" | "UTC0" | "GMT" | "GMT0" | "Etc/UTC" | "Etc/GMT" | "Z"
+        )
+    {
+        let label = if name.starts_with("GMT") || name == "Etc/GMT" {
+            "GMT"
         } else {
-            i += 1;
+            "UTC"
+        };
+        return (0, label.to_string());
+    }
+    if let Some(rest) = name.strip_prefix("UTC").or_else(|| name.strip_prefix("GMT")) {
+        let label = if name.starts_with("GMT") { "GMT" } else { "UTC" };
+        if let Some(off) = parse_signed_offset(rest, true) {
+            return (-off, label.to_string());
         }
     }
-    let days = epoch.div_euclid(86400);
-    let rem = epoch.rem_euclid(86400);
+    if let Some(off) = parse_signed_offset(name, true) {
+        return (off, "UTC".to_string());
+    }
+    (0, "UTC".to_string())
+}
+
+fn parse_signed_offset(text: &str, allow_single_digit_hour: bool) -> Option<i64> {
+    let s = text.trim();
+    let (sign, rest) = if let Some(r) = s.strip_prefix('+') {
+        (1i64, r)
+    } else if let Some(r) = s.strip_prefix('-') {
+        (-1i64, r)
+    } else {
+        return None;
+    };
+    let (h, m, sec) = if let Some((h_str, tail)) = rest.split_once(':') {
+        if h_str.is_empty() || h_str.len() > 2 || !h_str.bytes().all(|b| b.is_ascii_digit()) {
+            return None;
+        }
+        let h = h_str.parse::<i64>().ok()?;
+        let (m_str, s_str) = tail.split_once(':').unwrap_or((tail, "00"));
+        if m_str.len() != 2
+            || s_str.len() != 2
+            || !m_str.bytes().all(|b| b.is_ascii_digit())
+            || !s_str.bytes().all(|b| b.is_ascii_digit())
+        {
+            return None;
+        }
+        (
+            h,
+            m_str.parse::<i64>().ok()?,
+            s_str.parse::<i64>().ok()?,
+        )
+    } else if rest.bytes().all(|b| b.is_ascii_digit()) {
+        match rest.len() {
+            1 if allow_single_digit_hour => (rest.parse::<i64>().ok()?, 0, 0),
+            2 => (rest.parse::<i64>().ok()?, 0, 0),
+            4 => (
+                rest[..2].parse::<i64>().ok()?,
+                rest[2..4].parse::<i64>().ok()?,
+                0,
+            ),
+            6 => (
+                rest[..2].parse::<i64>().ok()?,
+                rest[2..4].parse::<i64>().ok()?,
+                rest[4..6].parse::<i64>().ok()?,
+            ),
+            _ => return None,
+        }
+    } else {
+        return None;
+    };
+    if h > 23 || m > 59 || sec > 59 {
+        return None;
+    }
+    Some(sign * (h * 3600 + m * 60 + sec))
+}
+
+fn parse_epoch_ns(s: &str) -> Option<(i64, u32)> {
+    let rest = s.strip_prefix('@')?;
+    let (sign, num_s) = if let Some(r) = rest.strip_prefix('-') {
+        (-1i64, r)
+    } else if let Some(r) = rest.strip_prefix('+') {
+        (1i64, r)
+    } else {
+        (1i64, rest)
+    };
+    let (sec_part, frac_part) = num_s
+        .split_once('.')
+        .or_else(|| num_s.split_once(','))
+        .unwrap_or((num_s, ""));
+    if sec_part.is_empty() || !sec_part.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    if !frac_part.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    let sec_mag = sec_part.parse::<i64>().ok()?;
+    let mut frac_padded = String::with_capacity(9);
+    for ch in frac_part.chars().take(9) {
+        frac_padded.push(ch);
+    }
+    while frac_padded.len() < 9 {
+        frac_padded.push('0');
+    }
+    let ns_mag = frac_padded.parse::<u32>().ok()?;
+    if sign < 0 {
+        if ns_mag == 0 {
+            Some((-sec_mag, 0))
+        } else {
+            Some((-sec_mag - 1, 1_000_000_000 - ns_mag))
+        }
+    } else {
+        Some((sec_mag, ns_mag))
+    }
+}
+
+fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, u32, i64), String> {
+    let s = spec.trim();
+    if let Some((sec, ns)) = parse_epoch_ns(s) {
+        return Ok((sec, ns, default_tz_offset));
+    }
+    let rfc_body = if let Some((day_name, after_comma)) = s.split_once(',') {
+        let dn = day_name.trim();
+        if matches!(dn, "Sun" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat") {
+            Some(after_comma.trim())
+        } else {
+            None
+        }
+    } else {
+        Some(s)
+    };
+    if let Some(body) = rfc_body {
+        let toks: Vec<&str> = body.split_whitespace().collect();
+        if toks.len() == 5 {
+            let short_months = [
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+            ];
+            if let (Ok(d), Some(m_idx), Ok(y)) = (
+                toks[0].parse::<i64>(),
+                short_months.iter().position(|&m| m.eq_ignore_ascii_case(toks[1])),
+                toks[2].parse::<i64>(),
+            ) {
+                let tparts: Vec<&str> = toks[3].split(':').collect();
+                if tparts.len() == 3
+                    && let (Ok(h), Ok(min), Ok(sec)) = (
+                        tparts[0].parse::<i64>(),
+                        tparts[1].parse::<i64>(),
+                        tparts[2].parse::<i64>(),
+                    )
+                {
+                    let tz_off = if toks[4].eq_ignore_ascii_case("UTC")
+                        || toks[4].eq_ignore_ascii_case("GMT")
+                        || toks[4].eq_ignore_ascii_case("Z")
+                    {
+                        0
+                    } else if let Some(off) = parse_signed_offset(toks[4], false) {
+                        off
+                    } else {
+                        return Err(format!("date: invalid date '{spec}'\n"));
+                    };
+                    let days = days_from_civil(y, (m_idx + 1) as i64, d);
+                    return Ok((days * 86400 + h * 3600 + min * 60 + sec - tz_off, 0, tz_off));
+                }
+            }
+        }
+    }
+
+    let mut work = s;
+    let mut tz_off = default_tz_offset;
+    if let Some(stripped) = work
+        .strip_suffix("UTC")
+        .or_else(|| work.strip_suffix("GMT"))
+        .or_else(|| work.strip_suffix('Z'))
+        .or_else(|| work.strip_suffix('z'))
+    {
+        work = stripped.trim_end();
+        tz_off = 0;
+    } else if let Some(pos) = work.rfind(['+', '-'])
+        && pos >= 8
+    {
+        let tz_candidate = &work[pos..];
+        if let Some(off) = parse_signed_offset(tz_candidate, false) {
+            work = work[..pos].trim_end();
+            tz_off = off;
+        }
+    }
+
+    let (date_part, time_part) = work
+        .split_once('T')
+        .or_else(|| work.split_once('t'))
+        .or_else(|| work.split_once(' '))
+        .unwrap_or((work, "00:00:00"));
+    let (y, m, d) = if let Some((ys, rest_m)) = date_part.split_once('-')
+        && let Some((ms, ds)) = rest_m.split_once('-')
+    {
+        let Ok(y) = ys.parse::<i64>() else {
+            return Err(format!("date: invalid date '{spec}'\n"));
+        };
+        let Ok(m) = ms.parse::<u32>() else {
+            return Err(format!("date: invalid date '{spec}'\n"));
+        };
+        let Ok(d) = ds.parse::<u32>() else {
+            return Err(format!("date: invalid date '{spec}'\n"));
+        };
+        (y, m, d)
+    } else if date_part.len() == 8 && date_part.bytes().all(|b| b.is_ascii_digit()) {
+        let y = date_part[..4].parse::<i64>().unwrap_or(0);
+        let m = date_part[4..6].parse::<u32>().unwrap_or(0);
+        let d = date_part[6..8].parse::<u32>().unwrap_or(0);
+        (y, m, d)
+    } else {
+        return Err(format!("date: invalid date '{spec}'\n"));
+    };
+    if !(1..=12).contains(&m) || d < 1 || d > gregorian_days_in_month(y, m) {
+        return Err(format!("date: invalid date '{spec}'\n"));
+    }
+    let tparts: Vec<&str> = time_part.trim().split(':').collect();
+    if tparts.is_empty() || tparts.len() > 3 {
+        return Err(format!("date: invalid date '{spec}'\n"));
+    }
+    let Ok(h) = tparts[0].parse::<u32>() else {
+        return Err(format!("date: invalid date '{spec}'\n"));
+    };
+    let min = if tparts.len() >= 2 {
+        let Ok(v) = tparts[1].parse::<u32>() else {
+            return Err(format!("date: invalid date '{spec}'\n"));
+        };
+        v
+    } else {
+        0
+    };
+    let (sec, ns) = if tparts.len() == 3 {
+        let (s_str, f_str) = tparts[2]
+            .split_once('.')
+            .or_else(|| tparts[2].split_once(','))
+            .unwrap_or((tparts[2], ""));
+        let Ok(sv) = s_str.parse::<u32>() else {
+            return Err(format!("date: invalid date '{spec}'\n"));
+        };
+        if !f_str.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(format!("date: invalid date '{spec}'\n"));
+        }
+        let mut fp = String::with_capacity(9);
+        for ch in f_str.chars().take(9) {
+            fp.push(ch);
+        }
+        while fp.len() < 9 {
+            fp.push('0');
+        }
+        (sv, fp.parse::<u32>().unwrap_or(0))
+    } else {
+        (0, 0)
+    };
+    if h > 23 || min > 59 || sec > 59 {
+        return Err(format!("date: invalid date '{spec}'\n"));
+    }
+    let days = days_from_civil(y, m as i64, d as i64);
+    let wall_sec = days * 86400 + (h as i64) * 3600 + (min as i64) * 60 + (sec as i64);
+    Ok((wall_sec - tz_off, ns, tz_off))
+}
+
+fn normalize_year_month(year: i64, month_1based: i64) -> (i64, u32) {
+    let m0 = month_1based - 1;
+    let y = year + m0.div_euclid(12);
+    let m = (m0.rem_euclid(12) + 1) as u32;
+    (y, m)
+}
+
+fn parse_date_spec_full(
+    spec: &str,
+    default_tz_offset: i64,
+    now_sec: i64,
+) -> Result<(i64, u32), String> {
+    let s = spec.trim();
+    if s.is_empty() {
+        let local_days = (now_sec + default_tz_offset).div_euclid(86400);
+        return Ok((local_days * 86400 - default_tz_offset, 0));
+    }
+    if let Some((sec, ns)) = parse_epoch_ns(s) {
+        return Ok((sec, ns));
+    }
+    if s == "now" || s == "today" {
+        return Ok((now_sec, 0));
+    }
+    if s == "yesterday" {
+        return Ok((now_sec - 86400, 0));
+    }
+    if s == "tomorrow" {
+        return Ok((now_sec + 86400, 0));
+    }
+
+    let tokens: Vec<&str> = s.split_whitespace().collect();
+    if tokens.len() >= 2 {
+        let has_ago = tokens.last().copied() == Some("ago");
+        let unit_idx = if has_ago {
+            tokens.len().saturating_sub(2)
+        } else {
+            tokens.len() - 1
+        };
+        if unit_idx >= 1 {
+            let unit_tok = tokens[unit_idx].to_ascii_lowercase();
+            let is_unit = matches!(
+                unit_tok.as_str(),
+                "second"
+                    | "seconds"
+                    | "minute"
+                    | "minutes"
+                    | "hour"
+                    | "hours"
+                    | "day"
+                    | "days"
+                    | "week"
+                    | "weeks"
+                    | "month"
+                    | "months"
+                    | "year"
+                    | "years"
+            );
+            if is_unit {
+                let (amt_opt, base_end) = if let Ok(v) = tokens[unit_idx - 1].parse::<i64>() {
+                    (Some(v), unit_idx - 1)
+                } else if unit_idx >= 2
+                    && (tokens[unit_idx - 2] == "+" || tokens[unit_idx - 2] == "-")
+                    && let Ok(v) = tokens[unit_idx - 1].parse::<i64>()
+                {
+                    let sign = if tokens[unit_idx - 2] == "-" { -1 } else { 1 };
+                    (Some(sign * v), unit_idx - 2)
+                } else {
+                    (None, 0)
+                };
+                if let Some(raw_amt) = amt_opt {
+                    let amount = if has_ago { -raw_amt } else { raw_amt };
+                    let base_str = tokens[..base_end].join(" ");
+                    let (base_sec, base_ns, base_tz) =
+                        if base_str.is_empty() || base_str == "now" {
+                            (now_sec, 0, default_tz_offset)
+                        } else {
+                            parse_absolute_date_spec(&base_str, default_tz_offset)?
+                        };
+                    if unit_tok.starts_with("second") {
+                        return Ok((base_sec + amount, base_ns));
+                    } else if unit_tok.starts_with("minute") {
+                        return Ok((base_sec + amount * 60, base_ns));
+                    } else if unit_tok.starts_with("hour") {
+                        return Ok((base_sec + amount * 3600, base_ns));
+                    } else if unit_tok.starts_with("day") || unit_tok.starts_with("week") {
+                        let mult = if unit_tok.starts_with("week") { 7 } else { 1 };
+                        return Ok((base_sec + amount * mult * 86400, base_ns));
+                    } else {
+                        let local = base_sec + base_tz;
+                        let days = local.div_euclid(86400);
+                        let rem = local.rem_euclid(86400);
+                        let (y, m, d) = civil_from_days(days);
+                        let (ny, nm) = if unit_tok.starts_with("year") {
+                            (y + amount, m)
+                        } else {
+                            normalize_year_month(y, (m as i64) + amount)
+                        };
+                        let new_days = days_from_civil(ny, nm as i64, d as i64);
+                        return Ok((new_days * 86400 + rem - base_tz, base_ns));
+                    }
+                }
+            }
+        }
+    }
+
+    let (sec, ns, _) = parse_absolute_date_spec(s, default_tz_offset)?;
+    Ok((sec, ns))
+}
+
+#[derive(Clone, Debug)]
+struct BsdDateAdj {
+    unit: char,
+    amount: i64,
+    relative: bool,
+}
+
+fn parse_bsd_adjustment(val: &str) -> Result<BsdDateAdj, String> {
+    if val.len() < 2 {
+        return Err(format!("date: invalid date adjustment: {val}\n"));
+    }
+    let unit = val.chars().last().unwrap();
+    if !matches!(unit, 'y' | 'm' | 'w' | 'd' | 'H' | 'M' | 'S') {
+        return Err(format!("date: invalid date adjustment: {val}\n"));
+    }
+    let num_s = &val[..val.len() - unit.len_utf8()];
+    let relative = num_s.starts_with('+') || num_s.starts_with('-');
+    let digits = num_s.strip_prefix(['+', '-']).unwrap_or(num_s);
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(format!("date: invalid date adjustment: {val}\n"));
+    }
+    let Ok(mut amount) = num_s.parse::<i64>() else {
+        return Err(format!("date: invalid date adjustment: {val}\n"));
+    };
+    if !relative {
+        let ok = match unit {
+            'y' => (0..=9999).contains(&amount),
+            'm' => (1..=12).contains(&amount),
+            'w' => (0..=6).contains(&amount),
+            'd' => (1..=31).contains(&amount),
+            'H' => (0..=23).contains(&amount),
+            'M' | 'S' => (0..=59).contains(&amount),
+            _ => false,
+        };
+        if !ok {
+            return Err(format!("date: invalid date adjustment: {val}\n"));
+        }
+        if unit == 'y' && amount <= 1900 {
+            amount += if amount < 69 { 2000 } else { 1900 };
+        }
+    }
+    Ok(BsdDateAdj {
+        unit,
+        amount,
+        relative,
+    })
+}
+
+fn apply_bsd_adjustments(
+    mut sec: i64,
+    adjs: &[BsdDateAdj],
+    tz_offset: i64,
+) -> Result<i64, String> {
+    for adj in adjs {
+        if adj.relative && matches!(adj.unit, 'H' | 'M' | 'S') {
+            let scale = match adj.unit {
+                'H' => 3600,
+                'M' => 60,
+                _ => 1,
+            };
+            sec += adj.amount * scale;
+            continue;
+        }
+        let local = sec + tz_offset;
+        let days = local.div_euclid(86400);
+        let rem = local.rem_euclid(86400);
+        let mut h = (rem / 3600) as i64;
+        let mut min = ((rem % 3600) / 60) as i64;
+        let mut s = rem % 60;
+        let (mut y, mut m, mut d) = civil_from_days(days);
+        match adj.unit {
+            'y' | 'm' => {
+                if adj.unit == 'y' {
+                    y = if adj.relative { y + adj.amount } else { adj.amount };
+                } else {
+                    let target_m = if adj.relative {
+                        (m as i64) + adj.amount
+                    } else {
+                        adj.amount
+                    };
+                    let (ny, nm) = normalize_year_month(y, target_m);
+                    y = ny;
+                    m = nm;
+                }
+                let max_d = gregorian_days_in_month(y, m);
+                d = d.min(max_d);
+                let new_days = days_from_civil(y, m as i64, d as i64);
+                sec = new_days * 86400 + h * 3600 + min * 60 + s - tz_offset;
+            }
+            'w' => {
+                let dow0 = (days + 4).rem_euclid(7);
+                let delta = if adj.relative {
+                    adj.amount * 7
+                } else {
+                    adj.amount - dow0
+                };
+                sec = (days + delta) * 86400 + h * 3600 + min * 60 + s - tz_offset;
+            }
+            'd' => {
+                if adj.relative {
+                    sec = (days + adj.amount) * 86400 + h * 3600 + min * 60 + s - tz_offset;
+                } else {
+                    let max_d = gregorian_days_in_month(y, m);
+                    if adj.amount < 1 || (adj.amount as u32) > max_d {
+                        return Err("date: invalid calendar date adjustment\n".to_string());
+                    }
+                    d = adj.amount as u32;
+                    let new_days = days_from_civil(y, m as i64, d as i64);
+                    sec = new_days * 86400 + h * 3600 + min * 60 + s - tz_offset;
+                }
+            }
+            'H' => {
+                h = adj.amount;
+                sec = days * 86400 + h * 3600 + min * 60 + s - tz_offset;
+            }
+            'M' => {
+                min = adj.amount;
+                sec = days * 86400 + h * 3600 + min * 60 + s - tz_offset;
+            }
+            'S' => {
+                s = adj.amount;
+                sec = days * 86400 + h * 3600 + min * 60 + s - tz_offset;
+            }
+            _ => {}
+        }
+    }
+    Ok(sec)
+}
+
+fn format_date_offset(offset: i64, colons: usize) -> (String, usize) {
+    let sign = if offset < 0 { '-' } else { '+' };
+    let total = offset.unsigned_abs();
+    let hours = total / 3600;
+    let minutes = (total % 3600) / 60;
+    let seconds = total % 60;
+    if colons == 0 {
+        (format!("{sign}{:04}", hours * 100 + minutes), 5)
+    } else if colons == 2 || (colons == 3 && seconds != 0) {
+        (format!("{sign}{hours:02}:{minutes:02}:{seconds:02}"), 9)
+    } else if colons == 1 || minutes != 0 {
+        (format!("{sign}{hours:02}:{minutes:02}"), 6)
+    } else {
+        (format!("{sign}{hours:02}"), 3)
+    }
+}
+
+fn render_date_format(
+    fmt: &str,
+    epoch_sec: i64,
+    ns: u32,
+    tz_offset: i64,
+    tz_label: &str,
+) -> Result<String, String> {
+    let local = epoch_sec + tz_offset;
+    let days = local.div_euclid(86400);
+    let rem = local.rem_euclid(86400);
     let hour = (rem / 3600) as u32;
     let min = ((rem % 3600) / 60) as u32;
     let sec = (rem % 60) as u32;
     let (year, month, day) = civil_from_days(days);
     let dow0 = (days + 4).rem_euclid(7) as usize;
     let dow_iso = if dow0 == 0 { 7 } else { dow0 };
+    let jan1_days = days_from_civil(year, 1, 1);
+    let ordinal = (days - jan1_days + 1) as u32;
+
+    let thursday_days = days + (3 - ((dow0 as i64 + 6) % 7));
+    let (iso_year, _, _) = civil_from_days(thursday_days);
+    let iso_jan1 = days_from_civil(iso_year, 1, 1);
+    let iso_week = ((thursday_days - iso_jan1) / 7 + 1) as u32;
+
     let short_days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     let full_days = [
         "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday",
@@ -7222,52 +8261,530 @@ fn cmd_date(args: &[String]) -> BuiltinOutcome {
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December",
     ];
-    let mut doy = day;
-    for m in 1..month {
-        doy += cal_days_in_month(year.max(0) as u32, m);
-    }
     let m_idx = (month.saturating_sub(1) as usize).min(11);
-    let mut out = String::with_capacity(fmt.len() + 16);
-    let mut chars = fmt.chars();
-    while let Some(c) = chars.next() {
-        if c == '%' {
-            match chars.next() {
-                Some('%') => out.push('%'),
-                Some('Y') => out.push_str(&format!("{year:04}")),
-                Some('y') => out.push_str(&format!("{:02}", year.rem_euclid(100))),
-                Some('C') => out.push_str(&format!("{:02}", year.div_euclid(100))),
-                Some('m') => out.push_str(&format!("{month:02}")),
-                Some('d') => out.push_str(&format!("{day:02}")),
-                Some('e') => out.push_str(&format!("{day:2}")),
-                Some('H') => out.push_str(&format!("{hour:02}")),
-                Some('M') => out.push_str(&format!("{min:02}")),
-                Some('S') => out.push_str(&format!("{sec:02}")),
-                Some('F') => out.push_str(&format!("{year:04}-{month:02}-{day:02}")),
-                Some('T') => out.push_str(&format!("{hour:02}:{min:02}:{sec:02}")),
-                Some('R') => out.push_str(&format!("{hour:02}:{min:02}")),
-                Some('Z') => out.push_str("UTC"),
-                Some('z') => out.push_str("+0000"),
-                Some('s') => out.push_str(&epoch.to_string()),
-                Some('u') => out.push_str(&dow_iso.to_string()),
-                Some('w') => out.push_str(&dow0.to_string()),
-                Some('j') => out.push_str(&format!("{doy:03}")),
-                Some('a') => out.push_str(short_days[dow0]),
-                Some('A') => out.push_str(full_days[dow0]),
-                Some('b') | Some('h') => out.push_str(short_months[m_idx]),
-                Some('B') => out.push_str(full_months[m_idx]),
-                Some('n') => out.push('\n'),
-                Some('t') => out.push('\t'),
-                Some(other) => {
-                    out.push('%');
-                    out.push(other);
-                }
-                None => out.push('%'),
-            }
-        } else {
-            out.push(c);
+    let hour12 = if hour.is_multiple_of(12) { 12 } else { hour % 12 };
+    let meridian = if hour < 12 { "AM" } else { "PM" };
+    let nano_str = format!("{ns:09}");
+
+    let mut out = String::with_capacity(fmt.len() + 32);
+    let bytes = fmt.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] != b'%' {
+            let ch = fmt[i..].chars().next().unwrap();
+            out.push(ch);
+            i += ch.len_utf8();
+            continue;
         }
+        let token_start = i;
+        i += 1;
+        let mut pad_override: Option<&str> = None;
+        let mut upper = false;
+        let mut swap = false;
+        while i < bytes.len() {
+            match bytes[i] {
+                b'^' => upper = true,
+                b'#' => swap = true,
+                b'-' => pad_override = Some(""),
+                b'_' => pad_override = Some(" "),
+                b'0' => pad_override = Some("0"),
+                _ => break,
+            }
+            i += 1;
+        }
+        let w_start = i;
+        while i < bytes.len() && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        let width: Option<usize> = if i > w_start {
+            fmt[w_start..i].parse::<usize>().ok()
+        } else {
+            None
+        };
+        let mut colons = 0usize;
+        while i < bytes.len() && bytes[i] == b':' {
+            colons += 1;
+            i += 1;
+        }
+        if i < bytes.len() && (bytes[i] == b'E' || bytes[i] == b'O') {
+            i += 1;
+        }
+        if i >= bytes.len() {
+            return Err("date: unsupported date format directive\n".to_string());
+        }
+        let code = fmt[i..].chars().next().unwrap();
+        i += code.len_utf8();
+        if colons > 3 || (colons > 0 && code != 'z') {
+            return Err("date: unsupported date format directive\n".to_string());
+        }
+        if code == '%' {
+            out.push('%');
+            continue;
+        }
+        if code == 'N' {
+            if &fmt[token_start..i] == "%-N" {
+                out.push_str(&nano_str[..6]);
+                continue;
+            }
+            let prec = width.unwrap_or(9);
+            let sliced = &nano_str[..prec.min(9)];
+            let trimmed = sliced.trim_end_matches('0');
+            let digits = if trimmed.is_empty() { "0" } else { trimmed };
+            if pad_override == Some("") {
+                out.push_str(digits);
+            } else {
+                let pad_ch = pad_override.unwrap_or("0").chars().next().unwrap_or('0');
+                out.push_str(digits);
+                if prec > digits.len() {
+                    for _ in 0..(prec - digits.len()) {
+                        out.push(pad_ch);
+                    }
+                }
+            }
+            continue;
+        }
+        if code == 'F' {
+            let y_str = if pad_override == Some("") {
+                year.to_string()
+            } else {
+                let yw = if width.is_none() && pad_override.is_none() {
+                    4
+                } else {
+                    width.unwrap_or(0).saturating_sub(6)
+                };
+                let pch = pad_override.unwrap_or("0");
+                if pch == " " {
+                    format!("{year:>yw$}")
+                } else {
+                    format!("{year:0yw$}")
+                }
+            };
+            out.push_str(&format!("{y_str}-{month:02}-{day:02}"));
+            continue;
+        }
+
+        let mut def_width = 0usize;
+        let mut def_pad = "0";
+        let mut val: String = match code {
+            'a' => short_days[dow0].to_string(),
+            'A' => full_days[dow0].to_string(),
+            'b' | 'h' => short_months[m_idx].to_string(),
+            'B' => full_months[m_idx].to_string(),
+            'c' => format!(
+                "{} {} {:2} {hour:02}:{min:02}:{sec:02} {year:04}",
+                short_days[dow0], short_months[m_idx], day
+            ),
+            'C' => {
+                def_width = 2;
+                year.div_euclid(100).to_string()
+            }
+            'd' => {
+                def_width = 2;
+                day.to_string()
+            }
+            'e' => {
+                def_width = 2;
+                def_pad = " ";
+                day.to_string()
+            }
+            'D' | 'x' => {
+                let yy = year.rem_euclid(100);
+                format!("{month:02}/{day:02}/{yy:02}")
+            }
+            'g' => {
+                def_width = 2;
+                iso_year.rem_euclid(100).to_string()
+            }
+            'G' => {
+                def_width = 4;
+                iso_year.to_string()
+            }
+            'H' => {
+                def_width = 2;
+                hour.to_string()
+            }
+            'k' => {
+                def_width = 2;
+                def_pad = " ";
+                hour.to_string()
+            }
+            'I' => {
+                def_width = 2;
+                hour12.to_string()
+            }
+            'l' => {
+                def_width = 2;
+                def_pad = " ";
+                hour12.to_string()
+            }
+            'j' => {
+                def_width = 3;
+                ordinal.to_string()
+            }
+            'm' => {
+                def_width = 2;
+                month.to_string()
+            }
+            'M' => {
+                def_width = 2;
+                min.to_string()
+            }
+            'n' => "\n".to_string(),
+            'p' => meridian.to_string(),
+            'P' => meridian.to_ascii_lowercase(),
+            'q' => {
+                def_width = 1;
+                ((month - 1) / 3 + 1).to_string()
+            }
+            'r' => format!("{hour12:02}:{min:02}:{sec:02} {meridian}"),
+            'R' => format!("{hour:02}:{min:02}"),
+            's' => {
+                def_width = 1;
+                epoch_sec.to_string()
+            }
+            'S' => {
+                def_width = 2;
+                sec.to_string()
+            }
+            't' => "\t".to_string(),
+            'T' | 'X' => format!("{hour:02}:{min:02}:{sec:02}"),
+            'u' => {
+                def_width = 1;
+                dow_iso.to_string()
+            }
+            'U' => {
+                def_width = 2;
+                ((ordinal as usize + 6 - dow0) / 7).to_string()
+            }
+            'V' => {
+                def_width = 2;
+                iso_week.to_string()
+            }
+            'w' => {
+                def_width = 1;
+                dow0.to_string()
+            }
+            'W' => {
+                def_width = 2;
+                ((ordinal as usize + 6 - ((dow0 + 6) % 7)) / 7).to_string()
+            }
+            'y' => {
+                def_width = 2;
+                year.rem_euclid(100).to_string()
+            }
+            'Y' => {
+                def_width = 4;
+                year.to_string()
+            }
+            'z' => {
+                let (s, w) = format_date_offset(tz_offset, colons);
+                def_width = w;
+                s
+            }
+            'Z' => tz_label.to_string(),
+            _ => return Err(format!("date: unsupported date format directive: %{code}\n")),
+        };
+
+        if code == 'P' || (swap && (code == 'p' || code == 'Z')) {
+            val = val.to_ascii_lowercase();
+        } else if upper || (swap && matches!(code, 'a' | 'A' | 'b' | 'B' | 'h')) {
+            val = val.to_ascii_uppercase();
+        }
+        let fill = pad_override.unwrap_or(if def_width > 0 || code == 'z' {
+            def_pad
+        } else {
+            " "
+        });
+        let min_w = width.unwrap_or(def_width);
+        if !fill.is_empty() && min_w > val.len() {
+            let pad_ch = fill.chars().next().unwrap_or(' ');
+            let pad_count = min_w - val.len();
+            let pad_s: String = std::iter::repeat_n(pad_ch, pad_count).collect();
+            if (val.starts_with('+') || val.starts_with('-')) && pad_ch == '0' {
+                let sign_ch = val.chars().next().unwrap();
+                val = format!("{sign_ch}{pad_s}{}", &val[1..]);
+            } else {
+                val = format!("{pad_s}{val}");
+            }
+        }
+        out.push_str(&val);
     }
-    ok_out(&format!("{out}\n"))
+    out.push('\n');
+    Ok(out)
+}
+
+fn cmd_date(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut utc = false;
+    let mut ended = false;
+    let mut input_spec: Option<String> = None;
+    let mut ref_spec: Option<(String, bool)> = None;
+    let mut batch_file: Option<String> = None;
+    let mut adjustments: Vec<BsdDateAdj> = Vec::new();
+    let mut style_fmt: Option<String> = None;
+    let mut plus_fmt: Option<String> = None;
+
+    let iso_fmt = |prec: &str| -> Result<String, String> {
+        if !prec.is_empty() {
+            if "date".starts_with(prec) {
+                return Ok("%F".to_string());
+            }
+            if "hours".starts_with(prec) {
+                return Ok("%FT%H%:z".to_string());
+            }
+            if "minutes".starts_with(prec) {
+                return Ok("%FT%H:%M%:z".to_string());
+            }
+            if "seconds".starts_with(prec) {
+                return Ok("%FT%T%:z".to_string());
+            }
+            if "ns".starts_with(prec) {
+                return Ok("%FT%T,%N%:z".to_string());
+            }
+        }
+        Err(format!("date: unsupported ISO precision: {prec}\n"))
+    };
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if !ended && a.starts_with("--") {
+            let (name, attached) = match a.split_once('=') {
+                Some((n, v)) => (n, Some(v.to_string())),
+                None => (a.as_str(), None),
+            };
+            match name {
+                "--help" => return ok_out("Usage: date [OPTION]... [+FORMAT]\n"),
+                "--version" => return ok_out("date (GNU coreutils) 9.4\n"),
+                "--utc" | "--universal" => utc = true,
+                "--date" => {
+                    let val = if let Some(v) = attached {
+                        v
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("date: option requires an argument: --date\n", 1);
+                    };
+                    input_spec = Some(val);
+                }
+                "--reference" => {
+                    let val = if let Some(v) = attached {
+                        v
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("date: option requires an argument: --reference\n", 1);
+                    };
+                    ref_spec = Some((val, false));
+                }
+                "--file" => {
+                    let val = if let Some(v) = attached {
+                        v
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("date: option requires an argument: --file\n", 1);
+                    };
+                    batch_file = Some(val);
+                }
+                "--iso-8601" => {
+                    let p = attached.as_deref().unwrap_or("date");
+                    match iso_fmt(p) {
+                        Ok(f) => style_fmt = Some(f),
+                        Err(msg) => return err_out(&msg, 1),
+                    }
+                }
+                "--rfc-email" | "--rfc-2822" | "--rfc-822" => {
+                    style_fmt = Some("%a, %d %b %Y %T %z".to_string());
+                }
+                "--rfc-3339" => {
+                    let p = if let Some(v) = attached {
+                        v
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("date: option requires an argument: --rfc-3339\n", 1);
+                    };
+                    if p.is_empty()
+                        || !["date", "seconds", "ns"].iter().any(|item| item.starts_with(p.as_str()))
+                    {
+                        return err_out(&format!("date: unsupported RFC3339 precision: {p}\n"), 1);
+                    }
+                    let f = if "date".starts_with(p.as_str()) {
+                        "%F"
+                    } else if "ns".starts_with(p.as_str()) {
+                        "%F %T.%N%:z"
+                    } else {
+                        "%F %T%:z"
+                    };
+                    style_fmt = Some(f.to_string());
+                }
+                _ => return err_out(&format!("date: unsupported option: {name}\n"), 1),
+            }
+            i += 1;
+            continue;
+        }
+        if !ended && a.starts_with('-') && a != "-" {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut pos = 0usize;
+            while pos < chars.len() {
+                let flag = chars[pos];
+                match flag {
+                    'u' => {
+                        utc = true;
+                        pos += 1;
+                    }
+                    'j' => {
+                        pos += 1;
+                    }
+                    'R' => {
+                        style_fmt = Some("%a, %d %b %Y %T %z".to_string());
+                        pos += 1;
+                    }
+                    'I' => {
+                        let rest: String = chars[pos + 1..].iter().collect();
+                        let p = if rest.is_empty() { "date" } else { rest.as_str() };
+                        match iso_fmt(p) {
+                            Ok(f) => style_fmt = Some(f),
+                            Err(msg) => return err_out(&msg, 1),
+                        }
+                        break;
+                    }
+                    'd' | 'r' | 'f' | 'v' => {
+                        let rest: String = chars[pos + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out(
+                                &format!("date: option requires an argument: -{flag}\n"),
+                                1,
+                            );
+                        };
+                        match flag {
+                            'd' => input_spec = Some(val),
+                            'r' => ref_spec = Some((val, true)),
+                            'f' => batch_file = Some(val),
+                            'v' => match parse_bsd_adjustment(&val) {
+                                Ok(adj) => adjustments.push(adj),
+                                Err(msg) => return err_out(&msg, 1),
+                            },
+                            _ => {}
+                        }
+                        break;
+                    }
+                    _ => return err_out(&format!("date: unsupported option: -{flag}\n"), 1),
+                }
+            }
+            i += 1;
+            continue;
+        }
+        if let Some(f) = a.strip_prefix('+') {
+            if plus_fmt.is_some() || style_fmt.is_some() {
+                return err_out("date: multiple output formats specified\n", 1);
+            }
+            plus_fmt = Some(f.to_string());
+            i += 1;
+            continue;
+        }
+        return err_out(&format!("date: unexpected operand: {a}\n"), 1);
+    }
+
+    let fmt = plus_fmt
+        .or(style_fmt)
+        .unwrap_or_else(|| "%a %b %e %H:%M:%S %Z %Y".to_string());
+    let (tz_offset, tz_label) = parse_tz_spec(env.get("TZ").map(|s| s.as_str()), utc);
+    let now_sec = env
+        .get("SOURCE_DATE_EPOCH")
+        .and_then(|s| s.trim().parse::<i64>().ok())
+        .unwrap_or(1700000000);
+
+    if let Some(ref fpath) = batch_file {
+        let content = if fpath == "-" {
+            stdin.to_string()
+        } else {
+            let resolved = resolve_posix_path(cwd, fpath);
+            let Ok(bytes) = fs.read_file(&resolved) else {
+                return err_out(&format!("date: {fpath}: No such file or directory\n"), 1);
+            };
+            String::from_utf8_lossy(&bytes).into_owned()
+        };
+        let mut out = String::new();
+        let mut raw_lines: Vec<&str> = content.split('\n').collect();
+        if content.ends_with('\n') {
+            raw_lines.pop();
+        }
+        for line in raw_lines {
+            let clean = line.strip_suffix('\r').unwrap_or(line);
+            let (mut sec, ns) = match parse_date_spec_full(clean, tz_offset, now_sec) {
+                Ok(v) => v,
+                Err(msg) => return err_out(&msg, 1),
+            };
+            if !adjustments.is_empty() {
+                sec = match apply_bsd_adjustments(sec, &adjustments, tz_offset) {
+                    Ok(v) => v,
+                    Err(msg) => return err_out(&msg, 1),
+                };
+            }
+            match render_date_format(&fmt, sec, ns, tz_offset, &tz_label) {
+                Ok(rendered) => out.push_str(&rendered),
+                Err(msg) => return err_out(&msg, 1),
+            }
+        }
+        return ok_out(&out);
+    }
+
+    let (mut epoch_sec, ns) = if let Some(ref spec) = input_spec {
+        match parse_date_spec_full(spec, tz_offset, now_sec) {
+            Ok(v) => v,
+            Err(msg) => return err_out(&msg, 1),
+        }
+    } else if let Some((ref rval, allow_epoch)) = ref_spec {
+        if allow_epoch
+            && let Some((sec, ns)) = parse_epoch_ns(&format!("@{rval}"))
+        {
+            (sec, ns)
+        } else {
+            let resolved = resolve_posix_path(cwd, rval);
+            let Ok(st) = fs.stat(&resolved) else {
+                return err_out(&format!("date: {rval}: No such file or directory\n"), 1);
+            };
+            let mtime_ms = st.mtime_ms as i64;
+            let sec = mtime_ms.div_euclid(1000);
+            let ns = (mtime_ms.rem_euclid(1000) as u32) * 1_000_000;
+            (sec, ns)
+        }
+    } else {
+        (now_sec, 0)
+    };
+
+    if !adjustments.is_empty() {
+        epoch_sec = match apply_bsd_adjustments(epoch_sec, &adjustments, tz_offset) {
+            Ok(v) => v,
+            Err(msg) => return err_out(&msg, 1),
+        };
+    }
+
+    match render_date_format(&fmt, epoch_sec, ns, tz_offset, &tz_label) {
+        Ok(rendered) => ok_out(&rendered),
+        Err(msg) => err_out(&msg, 1),
+    }
 }
 
 fn parse_cal_month_name(s: &str) -> Option<u32> {
@@ -7302,109 +8819,349 @@ fn cal_days_in_month(year: u32, month: u32) -> u32 {
     }
 }
 
-fn render_single_cal_month(year: u32, month: u32, monday_first: bool, julian: bool) -> Vec<String> {
+fn cal_day_of_week(year: u32, month: u32, day: u32) -> usize {
+    let t = [0i64, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+    let mut y = year as i64;
+    if month < 3 {
+        y -= 1;
+    }
+    let m_idx = (month.clamp(1, 12) - 1) as usize;
+    let d = day as i64;
+    if year > 1752 || (year == 1752 && (month > 9 || (month == 9 && day >= 14))) {
+        (y + y.div_euclid(4) - y.div_euclid(100) + y.div_euclid(400) + t[m_idx] + d)
+            .rem_euclid(7) as usize
+    } else {
+        (y + y.div_euclid(4) + t[m_idx] + d + 5).rem_euclid(7) as usize
+    }
+}
+
+fn cal_day_of_year(year: u32, month: u32, day: u32) -> u32 {
+    let mut total = 0u32;
+    for m in 1..month {
+        if year == 1752 && m == 9 {
+            total += 19;
+        } else {
+            total += cal_days_in_month(year, m);
+        }
+    }
+    if year == 1752 && month == 9 && day >= 14 {
+        total + (day - 11)
+    } else {
+        total + day
+    }
+}
+
+struct CalMonthGrid {
+    header: String,
+    day_header: String,
+    weeks: Vec<String>,
+}
+
+fn render_cal_month_grid(
+    year: u32,
+    month: u32,
+    monday_first: bool,
+    julian: bool,
+    include_year: bool,
+) -> CalMonthGrid {
     let month_names = [
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December",
     ];
     let mname = month_names[(month.clamp(1, 12) - 1) as usize];
-    let width = if julian { 27usize } else { 20usize };
-    let title = format!("{mname} {year}");
-    let pad = width.saturating_sub(title.len()) / 2;
-    let mut lines = Vec::new();
-    lines.push(format!("{}{title}", " ".repeat(pad)));
-    if julian {
-        if monday_first {
-            lines.push(" Mo  Tu  We  Th  Fr  Sa  Su".to_string());
-        } else {
-            lines.push(" Su  Mo  Tu  We  Th  Fr  Sa".to_string());
-        }
-    } else if monday_first {
-        lines.push("Mo Tu We Th Fr Sa Su".to_string());
-    } else {
-        lines.push("Su Mo Tu We Th Fr Sa".to_string());
-    }
-
-    if year == 1752 && month == 9 && !julian && !monday_first {
-        lines.push("       1  2 14 15 16".to_string());
-        lines.push("17 18 19 20 21 22 23".to_string());
-        lines.push("24 25 26 27 28 29 30".to_string());
-        return lines;
-    }
-
-    let first_days = days_from_civil(year as i64, month as i64, 1);
-    let dow_sun0 = (first_days + 4).rem_euclid(7) as usize;
-    let start_col = if monday_first {
-        (dow_sun0 + 6) % 7
-    } else {
-        dow_sun0
-    };
-    let days_before: u32 = (1..month).map(|m| cal_days_in_month(year, m)).sum();
-    let dim = cal_days_in_month(year, month);
     let cell_w = if julian { 3usize } else { 2usize };
-    let mut cells: Vec<String> = Vec::new();
+    let grid_w = cell_w * 7 + 6;
+    let title = if include_year {
+        format!("{mname} {year}")
+    } else {
+        mname.to_string()
+    };
+    let left_pad = grid_w.saturating_sub(title.len()) / 2;
+    let header = format!("{}{title}", " ".repeat(left_pad));
+    let sun_days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+    let ordered: Vec<&str> = if monday_first {
+        vec!["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    } else {
+        sun_days.to_vec()
+    };
+    let day_header = ordered
+        .iter()
+        .map(|d| format!("{d:>cell_w$}"))
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let mut days: Vec<u32> = Vec::new();
+    if year == 1752 && month == 9 {
+        days.push(1);
+        days.push(2);
+        for d in 14..=30 {
+            days.push(d);
+        }
+    } else {
+        let dim = cal_days_in_month(year, month);
+        for d in 1..=dim {
+            days.push(d);
+        }
+    }
+
+    let first_dow = cal_day_of_week(year, month, days[0]);
+    let start_col = if monday_first { (first_dow + 6) % 7 } else { first_dow };
+    let mut weeks: Vec<String> = Vec::new();
+    let mut row: Vec<String> = Vec::new();
     for _ in 0..start_col {
-        cells.push(" ".repeat(cell_w));
+        row.push(" ".repeat(cell_w));
     }
-    for d in 1..=dim {
-        let val = if julian { days_before + d } else { d };
-        cells.push(format!("{val:cell_w$}"));
+    for d in days {
+        let val = if julian {
+            cal_day_of_year(year, month, d)
+        } else {
+            d
+        };
+        row.push(format!("{val:>cell_w$}"));
+        if row.len() == 7 {
+            let line = row.join(" ");
+            weeks.push(format!("{line:<grid_w$}"));
+            row.clear();
+        }
     }
-    for row in cells.chunks(7) {
-        lines.push(row.join(" "));
+    if !row.is_empty() {
+        while row.len() < 7 {
+            row.push(" ".repeat(cell_w));
+        }
+        let line = row.join(" ");
+        weeks.push(format!("{line:<grid_w$}"));
     }
-    lines
+    while weeks.len() < 6 {
+        weeks.push(" ".repeat(grid_w));
+    }
+    CalMonthGrid {
+        header,
+        day_header,
+        weeks,
+    }
 }
 
 fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
     let mut monday_first = false;
     let mut julian = false;
-    let mut three_months = false;
-    let mut num_months: usize = 1;
-    let mut opt_month: Option<u32> = None;
-    let mut pos: Vec<u32> = Vec::new();
+    let mut whole_year = false;
+    let mut span_months: usize = 1;
+    let mut span_around = false;
+    let mut after_months: usize = 0;
+    let mut before_months: usize = 0;
+    let mut explicit_month: Option<u32> = None;
+    let mut explicit_year: Option<u32> = None;
+    let mut operands: Vec<String> = Vec::new();
+
+    let parse_date_ym = |spec: &str| -> Option<(u32, u32)> {
+        let parts: Vec<&str> = spec.split('-').collect();
+        if parts.len() < 2 || parts.len() > 3 {
+            return None;
+        }
+        let y = parts[0].parse::<u32>().ok()?;
+        let m = parts[1].parse::<u32>().ok()?;
+        if !(1..=9999).contains(&y) || !(1..=12).contains(&m) {
+            return None;
+        }
+        Some((y, m))
+    };
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-M" {
+        if a == "--" {
+            operands.extend_from_slice(&args[i + 1..]);
+            break;
+        }
+        if a == "--help" {
+            return ok_out("Usage: cal [options] [[[day] month] year]\n");
+        }
+        if a == "--version" {
+            return ok_out("cal (Sandbox VFS-ish/GNU util-linux) 2.40\n");
+        }
+        if a == "-1" || a == "--one" {
+            span_months = 1;
+            span_around = false;
+            i += 1;
+        } else if a == "-3" || a == "--three" {
+            span_months = 3;
+            span_around = true;
+            i += 1;
+        } else if a == "-s" || a == "--sunday" {
+            monday_first = false;
+            i += 1;
+        } else if a == "-M" || a == "--monday" {
             monday_first = true;
             i += 1;
-        } else if a == "-j" {
+        } else if a == "-j" || a == "--julian" {
             julian = true;
             i += 1;
-        } else if a == "-3" {
-            three_months = true;
+        } else if a == "-y" || a == "--year" {
+            whole_year = true;
             i += 1;
-        } else if a == "-1" || a == "-S" || a == "--span" {
+        } else if a == "-S" || a == "--span" {
+            span_around = true;
             i += 1;
-        } else if a == "-n" && i + 1 < args.len() {
-            num_months = args[i + 1].parse().unwrap_or(1);
-            i += 2;
-        } else if a == "-m" && i + 1 < args.len() {
-            opt_month = parse_cal_month_name(&args[i + 1]);
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-m") && !rest.is_empty() {
-            opt_month = parse_cal_month_name(rest);
+        } else if a == "-h" || a == "--no-highlight" || a == "-b" || a == "-C" {
+            i += 1;
+        } else if a == "-m" || a == "--month" || a.starts_with("--month=") {
+            let val = if let Some(v) = a.strip_prefix("--month=") {
+                v.to_string()
+            } else if i + 1 < args.len() {
+                i += 1;
+                args[i].clone()
+            } else {
+                return err_out("cal: option requires an argument -- 'm'\n", 1);
+            };
+            let Some(m) = parse_cal_month_name(&val) else {
+                return err_out(
+                    &format!("cal: '{val}' is neither a month number (1..12) nor a name\n"),
+                    1,
+                );
+            };
+            explicit_month = Some(m);
+            i += 1;
+        } else if a == "-n" || a == "--months" || a.starts_with("--months=") {
+            let val = if let Some(v) = a.strip_prefix("--months=") {
+                v.to_string()
+            } else if i + 1 < args.len() {
+                i += 1;
+                args[i].clone()
+            } else {
+                return err_out("cal: invalid month count ''\n", 1);
+            };
+            let Ok(n) = val.parse::<usize>() else {
+                return err_out(&format!("cal: invalid month count '{val}'\n"), 1);
+            };
+            if n < 1 {
+                return err_out(&format!("cal: invalid month count '{val}'\n"), 1);
+            }
+            span_months = n;
+            i += 1;
+        } else if a == "-d" || a == "--date" || a.starts_with("--date=") {
+            let val = if let Some(v) = a.strip_prefix("--date=") {
+                v.to_string()
+            } else if i + 1 < args.len() {
+                i += 1;
+                args[i].clone()
+            } else {
+                return err_out("cal: invalid date ''\n", 1);
+            };
+            let Some((y, m)) = parse_date_ym(&val) else {
+                return err_out(&format!("cal: invalid date '{val}'\n"), 1);
+            };
+            explicit_year = Some(y);
+            explicit_month = Some(m);
+            i += 1;
+        } else if (a == "-A" || a == "-B") && i + 1 < args.len() {
+            let flag = a.clone();
+            i += 1;
+            let Ok(cnt) = args[i].parse::<usize>() else {
+                return err_out(&format!("cal: invalid month count '{}'\n", args[i]), 1);
+            };
+            if flag == "-A" {
+                after_months = cnt;
+            } else {
+                before_months = cnt;
+            }
             i += 1;
         } else if let Some(flags) = a.strip_prefix('-') {
-            for ch in flags.chars() {
+            let chars: Vec<char> = flags.chars().collect();
+            let mut j = 0usize;
+            while j < chars.len() {
+                let ch = chars[j];
                 match ch {
+                    '1' => {
+                        span_months = 1;
+                        span_around = false;
+                    }
+                    '3' => {
+                        span_months = 3;
+                        span_around = true;
+                    }
+                    's' => monday_first = false,
                     'M' => monday_first = true,
                     'j' => julian = true,
-                    '3' => three_months = true,
-                    _ => {}
+                    'y' => whole_year = true,
+                    'S' => span_around = true,
+                    'h' | 'b' | 'C' => {}
+                    'm' | 'n' | 'd' | 'A' | 'B' => {
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out(
+                                &format!("cal: option requires an argument -- '{ch}'\n"),
+                                1,
+                            );
+                        };
+                        match ch {
+                            'm' => {
+                                let Some(m) = parse_cal_month_name(&val) else {
+                                    return err_out(
+                                        &format!(
+                                            "cal: '{val}' is neither a month number (1..12) nor a name\n"
+                                        ),
+                                        1,
+                                    );
+                                };
+                                explicit_month = Some(m);
+                            }
+                            'n' => {
+                                let Ok(n) = val.parse::<usize>() else {
+                                    return err_out(
+                                        &format!("cal: invalid month count '{val}'\n"),
+                                        1,
+                                    );
+                                };
+                                span_months = n;
+                            }
+                            'd' => {
+                                let Some((y, m)) = parse_date_ym(&val) else {
+                                    return err_out(&format!("cal: invalid date '{val}'\n"), 1);
+                                };
+                                explicit_year = Some(y);
+                                explicit_month = Some(m);
+                            }
+                            'A' => {
+                                let Ok(cnt) = val.parse::<usize>() else {
+                                    return err_out(
+                                        &format!("cal: invalid month count '{val}'\n"),
+                                        1,
+                                    );
+                                };
+                                after_months = cnt;
+                            }
+                            'B' => {
+                                let Ok(cnt) = val.parse::<usize>() else {
+                                    return err_out(
+                                        &format!("cal: invalid month count '{val}'\n"),
+                                        1,
+                                    );
+                                };
+                                before_months = cnt;
+                            }
+                            _ => {}
+                        }
+                        break;
+                    }
+                    _ => return err_out(&format!("cal: invalid option -- '{ch}'\n"), 1),
                 }
+                j += 1;
             }
             i += 1;
         } else {
-            if let Ok(n) = a.parse::<u32>() {
-                pos.push(n);
-            }
+            operands.push(a.clone());
             i += 1;
         }
     }
 
+    if after_months > 0 || before_months > 0 {
+        span_months = before_months + 1 + after_months;
+    }
     let (default_year, default_month) = if let Some(sde) = env.get("SOURCE_DATE_EPOCH")
         && let Ok(sec) = sde.trim().parse::<i64>()
     {
@@ -7414,43 +9171,199 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
         (2024u32, 2u32)
     };
 
-    let (month, year) = match (opt_month, pos.len()) {
-        (Some(m), 1) => (m, pos[0]),
-        (Some(m), _) => (m, default_year),
-        (None, 2) => (pos[0].clamp(1, 12), pos[1]),
-        (None, 1) => (1, pos[0]),
-        _ => (default_month, default_year),
-    };
+    let mut year = explicit_year.unwrap_or(default_year);
+    let mut month = explicit_month.unwrap_or(default_month);
 
-    if three_months || num_months == 3 {
-        let (py, pm) = if month == 1 {
-            (year.saturating_sub(1), 12)
-        } else {
-            (year, month - 1)
-        };
-        let (ny, nm) = if month == 12 {
-            (year + 1, 1)
-        } else {
-            (year, month + 1)
-        };
-        let b1 = render_single_cal_month(py, pm, monday_first, julian);
-        let b2 = render_single_cal_month(year, month, monday_first, julian);
-        let b3 = render_single_cal_month(ny, nm, monday_first, julian);
-        let max_r = b1.len().max(b2.len()).max(b3.len());
-        let col_w = if julian { 27usize } else { 20usize };
-        let mut out = String::new();
-        for r in 0..max_r {
-            let s1 = b1.get(r).map(|s| s.as_str()).unwrap_or("");
-            let s2 = b2.get(r).map(|s| s.as_str()).unwrap_or("");
-            let s3 = b3.get(r).map(|s| s.as_str()).unwrap_or("");
-            let line = format!("{s1:<col_w$}  {s2:<col_w$}  {s3}");
-            out.push_str(line.trim_end());
-            out.push('\n');
+    match operands.len() {
+        0 => {}
+        1 => {
+            let Ok(y) = operands[0].parse::<u32>() else {
+                return err_out(&format!("cal: not a valid year {}\n", operands[0]), 1);
+            };
+            if !(1..=9999).contains(&y) {
+                return err_out(&format!("cal: not a valid year {}\n", operands[0]), 1);
+            }
+            year = y;
+            if explicit_month.is_none() {
+                whole_year = true;
+            }
         }
+        2 => {
+            let Some(m) = parse_cal_month_name(&operands[0]) else {
+                return err_out(
+                    &format!(
+                        "cal: '{}' is neither a month number (1..12) nor a name\n",
+                        operands[0]
+                    ),
+                    1,
+                );
+            };
+            let Ok(y) = operands[1].parse::<u32>() else {
+                return err_out(&format!("cal: not a valid year {}\n", operands[1]), 1);
+            };
+            if !(1..=9999).contains(&y) {
+                return err_out(&format!("cal: not a valid year {}\n", operands[1]), 1);
+            }
+            month = m;
+            year = y;
+        }
+        3 => {
+            let Some(m) = parse_cal_month_name(&operands[1]) else {
+                return err_out(
+                    &format!(
+                        "cal: '{}' is neither a month number (1..12) nor a name\n",
+                        operands[1]
+                    ),
+                    1,
+                );
+            };
+            let Ok(y) = operands[2].parse::<u32>() else {
+                return err_out(&format!("cal: not a valid year {}\n", operands[2]), 1);
+            };
+            if !(1..=9999).contains(&y) {
+                return err_out(&format!("cal: not a valid year {}\n", operands[2]), 1);
+            }
+            let Ok(d) = operands[0].parse::<u32>() else {
+                return err_out(&format!("cal: illegal day value: {}\n", operands[0]), 1);
+            };
+            if d < 1
+                || d > cal_days_in_month(y, m)
+                || (y == 1752 && m == 9 && (3..=13).contains(&d))
+            {
+                return err_out(&format!("cal: illegal day value: {}\n", operands[0]), 1);
+            }
+            month = m;
+            year = y;
+        }
+        _ => return err_out("cal: too many arguments\n", 1),
+    }
+
+    let grid_w = if julian { 27usize } else { 20usize };
+    let per_row = if julian { 2usize } else { 3usize };
+
+    if whole_year {
+        let mut lines: Vec<String> = vec![format!("{}{year}", " ".repeat(28))];
+        let mut start_m = 1u32;
+        while start_m <= 12 {
+            let mut row_grids = Vec::new();
+            for k in 0..(per_row as u32) {
+                if start_m + k <= 12 {
+                    row_grids.push(render_cal_month_grid(
+                        year,
+                        start_m + k,
+                        monday_first,
+                        julian,
+                        false,
+                    ));
+                }
+            }
+            lines.push(format!(
+                "{}  ",
+                row_grids
+                    .iter()
+                    .map(|g| format!("{:<grid_w$}", g.header))
+                    .collect::<Vec<_>>()
+                    .join("  ")
+            ));
+            lines.push(format!(
+                "{}  ",
+                row_grids
+                    .iter()
+                    .map(|g| format!("{:<grid_w$}", g.day_header))
+                    .collect::<Vec<_>>()
+                    .join("  ")
+            ));
+            for w in 0..6 {
+                lines.push(format!(
+                    "{}  ",
+                    row_grids
+                        .iter()
+                        .map(|g| g.weeks[w].as_str())
+                        .collect::<Vec<_>>()
+                        .join("  ")
+                ));
+            }
+            if start_m + (per_row as u32) <= 12 {
+                lines.push(String::new());
+            }
+            start_m += per_row as u32;
+        }
+        let mut out = lines.join("\n");
+        out.push('\n');
         return ok_out(&out);
     }
 
-    let lines = render_single_cal_month(year, month, monday_first, julian);
+    let offset = if before_months > 0 {
+        before_months as i64
+    } else if span_around {
+        ((span_months - 1) / 2) as i64
+    } else {
+        0
+    };
+    let first_total = (year as i64) * 12 + (month as i64 - 1) - offset;
+    let start_year = first_total.div_euclid(12) as u32;
+    let start_month = (first_total.rem_euclid(12) + 1) as u32;
+
+    if span_months == 1 {
+        let g = render_cal_month_grid(start_year, start_month, monday_first, julian, true);
+        let mut lines = Vec::new();
+        lines.push(format!("{:<grid_w$}  ", g.header));
+        lines.push(format!("{:<grid_w$}  ", g.day_header));
+        for w in g.weeks {
+            lines.push(format!("{w:<grid_w$}  "));
+        }
+        let mut out = lines.join("\n");
+        out.push('\n');
+        return ok_out(&out);
+    }
+
+    let mut grids = Vec::new();
+    let mut cy = start_year;
+    let mut cm = start_month;
+    for _ in 0..span_months {
+        grids.push(render_cal_month_grid(cy, cm, monday_first, julian, true));
+        cm += 1;
+        if cm > 12 {
+            cm = 1;
+            cy += 1;
+        }
+    }
+    let mut lines: Vec<String> = Vec::new();
+    let mut r = 0usize;
+    while r < grids.len() {
+        let end_r = (r + per_row).min(grids.len());
+        let slice = &grids[r..end_r];
+        lines.push(format!(
+            "{}  ",
+            slice
+                .iter()
+                .map(|g| format!("{:<grid_w$}", g.header))
+                .collect::<Vec<_>>()
+                .join("  ")
+        ));
+        lines.push(format!(
+            "{}  ",
+            slice
+                .iter()
+                .map(|g| format!("{:<grid_w$}", g.day_header))
+                .collect::<Vec<_>>()
+                .join("  ")
+        ));
+        for w in 0..6 {
+            lines.push(format!(
+                "{}  ",
+                slice
+                    .iter()
+                    .map(|g| g.weeks[w].as_str())
+                    .collect::<Vec<_>>()
+                    .join("  ")
+            ));
+        }
+        if r + per_row < grids.len() {
+            lines.push(String::new());
+        }
+        r += per_row;
+    }
     let mut out = lines.join("\n");
     out.push('\n');
     ok_out(&out)
@@ -8841,37 +10754,234 @@ fn cmd_less_more(
     }
 }
 
-fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
-    let nums: Vec<String> = if args.is_empty() {
-        stdin.split_whitespace().map(|s| s.to_string()).collect()
-    } else {
-        args.to_vec()
-    };
-    let mut out = String::new();
-    for ns in nums {
-        let Ok(mut n) = ns.parse::<u64>() else {
-            continue;
-        };
-        let orig = n;
-        let mut factors = Vec::new();
-        let mut d = 2u64;
-        while d * d <= n {
-            while n.is_multiple_of(d) {
-                factors.push(d.to_string());
-                n /= d;
-            }
-            d += 1;
+fn factor_mod_pow(mut base: u128, mut exp: u128, m: u128) -> u128 {
+    let mut res = 1u128;
+    base %= m;
+    while exp > 0 {
+        if (exp & 1) == 1 {
+            res = res.wrapping_mul(base) % m;
         }
-        if n > 1 {
-            factors.push(n.to_string());
+        base = base.wrapping_mul(base) % m;
+        exp >>= 1;
+    }
+    res
+}
+
+fn factor_is_prime64(n: u64) -> bool {
+    if n < 2 {
+        return false;
+    }
+    for p in [2u64, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37] {
+        if n == p {
+            return true;
         }
-        if factors.is_empty() {
-            out.push_str(&format!("{orig}:\n"));
-        } else {
-            out.push_str(&format!("{orig}: {}\n", factors.join(" ")));
+        if n.is_multiple_of(p) {
+            return false;
         }
     }
-    ok_out(&out)
+    let mut d = n - 1;
+    let r = d.trailing_zeros();
+    d >>= r;
+    let n128 = n as u128;
+    for a in [2u64, 325, 9375, 28178, 450775, 9780504, 1795265022] {
+        if a % n == 0 {
+            continue;
+        }
+        let mut x = factor_mod_pow(a as u128, d as u128, n128);
+        if x == 1 || x == n128 - 1 {
+            continue;
+        }
+        let mut composite = true;
+        for _ in 1..r {
+            x = x.wrapping_mul(x) % n128;
+            if x == n128 - 1 {
+                composite = false;
+                break;
+            }
+        }
+        if composite {
+            return false;
+        }
+    }
+    true
+}
+
+fn factor_gcd(mut a: u64, mut b: u64) -> u64 {
+    while b != 0 {
+        let r = a % b;
+        a = b;
+        b = r;
+    }
+    a
+}
+
+fn factor_pollard_rho(n: u64) -> u64 {
+    if n.is_multiple_of(2) {
+        return 2;
+    }
+    let n128 = n as u128;
+    for c in 1u128.. {
+        let f = |x: u64| -> u64 { (((x as u128) * (x as u128) + c) % n128) as u64 };
+        let mut x = 2u64;
+        let mut y = 2u64;
+        let mut d = 1u64;
+        while d == 1 {
+            x = f(x);
+            y = f(f(y));
+            let diff = x.abs_diff(y);
+            d = factor_gcd(diff, n);
+        }
+        if d != n {
+            return d;
+        }
+    }
+    n
+}
+
+fn collect_factors_u64(n: u64, out: &mut Vec<u128>) {
+    if n <= 1 {
+        return;
+    }
+    if factor_is_prime64(n) {
+        out.push(n as u128);
+        return;
+    }
+    let d = factor_pollard_rho(n);
+    collect_factors_u64(d, out);
+    collect_factors_u64(n / d, out);
+}
+
+fn factor_u128(mut n: u128) -> Vec<u128> {
+    let mut factors = Vec::new();
+    if n <= 1 {
+        return factors;
+    }
+    while n.is_multiple_of(2) {
+        factors.push(2);
+        n /= 2;
+    }
+    let mut d = 3u128;
+    while d <= 65535 && d * d <= n {
+        while n.is_multiple_of(d) {
+            factors.push(d);
+            n /= d;
+        }
+        d += 2;
+    }
+    if n > 1 {
+        if n <= u64::MAX as u128 {
+            let mut tail = Vec::new();
+            collect_factors_u64(n as u64, &mut tail);
+            tail.sort_unstable();
+            factors.extend(tail);
+        } else {
+            while d * d <= n {
+                while n.is_multiple_of(d) {
+                    factors.push(d);
+                    n /= d;
+                }
+                d += 2;
+            }
+            if n > 1 {
+                factors.push(n);
+            }
+        }
+    }
+    factors
+}
+
+fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
+    let mut exponents = false;
+    let mut options_ended = false;
+    let mut operands: Vec<String> = Vec::new();
+    for arg in args {
+        if !options_ended && arg == "--" {
+            options_ended = true;
+            continue;
+        }
+        if !options_ended && arg.starts_with("--") {
+            if arg == "--help" {
+                return ok_out("Usage: factor [OPTION]... [NUMBER]...\n");
+            }
+            if arg == "--version" {
+                return ok_out("factor (virtual-bash)\n");
+            }
+            if "--exponents".starts_with(arg.as_str()) && arg.len() >= 3 {
+                exponents = true;
+                continue;
+            }
+            if arg == "---debug" {
+                continue;
+            }
+            return err_out(
+                &format!("factor: unrecognized option '{arg}'\nTry 'factor --help' for more information.\n"),
+                1,
+            );
+        }
+        if !options_ended && arg.starts_with('-') && arg.len() > 1 {
+            if arg[1..].chars().all(|c| c == 'h') {
+                exponents = true;
+                continue;
+            }
+            if arg[1..].chars().next().is_some_and(|c| !c.is_ascii_digit()) {
+                let ch = arg[1..].chars().next().unwrap_or('?');
+                return err_out(
+                    &format!("factor: invalid option -- '{ch}'\nTry 'factor --help' for more information.\n"),
+                    1,
+                );
+            }
+        }
+        operands.push(arg.clone());
+    }
+
+    let nums: Vec<String> = if operands.is_empty() {
+        stdin.split_whitespace().map(|s| s.to_string()).collect()
+    } else {
+        operands
+    };
+
+    let mut out = String::new();
+    let mut err = String::new();
+    let mut exit_code = 0;
+    for raw in nums {
+        let trimmed = raw.trim_start();
+        let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
+        if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+            exit_code = 1;
+            err.push_str(&format!("factor: '{raw}' is not a valid positive integer\n"));
+            continue;
+        }
+        let Ok(n) = digits.parse::<u128>() else {
+            exit_code = 1;
+            err.push_str(&format!("factor: '{raw}' is not a valid positive integer\n"));
+            continue;
+        };
+        let factors = factor_u128(n);
+        out.push_str(&format!("{n}:"));
+        let mut i = 0usize;
+        while i < factors.len() {
+            let f = factors[i];
+            let mut exp = 1usize;
+            if exponents {
+                while i + 1 < factors.len() && factors[i + 1] == f {
+                    exp += 1;
+                    i += 1;
+                }
+            }
+            if exp > 1 {
+                out.push_str(&format!(" {f}^{exp}"));
+            } else {
+                out.push_str(&format!(" {f}"));
+            }
+            i += 1;
+        }
+        out.push('\n');
+    }
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err,
+        exit_code,
+    }
 }
 
 fn fold_char_width(cp: u32) -> usize {
@@ -17250,4 +19360,3 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     }
     ok_out("")
 }
-

@@ -484,3 +484,16 @@ those discovery buffers remain open work rather than being hidden by this change
 Verification on the fresh artifact: 745 Python tests, 142 installed public tests,
 eight actual Worker cases and all 17 unchanged bundle budgets pass, along with
 lint, types and the selected workspace build.
+
+Removal discovery now stages each directory's filenames and child names on caller
+storage and uses a backed traversal stack. It retains one native scan cursor;
+interrupted scans discard staged entries as native `os.walk` does, while caller
+storage failures propagate. Differential cases cover DFS ordering, directory
+symlinks, scan-open/read and metadata failures, large directories, early close and
+storage denial. Micropip's initial distribution-file set and metadata file list
+remain materialized, so the complete discovery gate remains open.
+Directory symlink status is checked immediately before descending, including a
+regression where a sibling becomes a symlink while another subtree is visited.
+The corrected artifact passes 753 Python tests, 142 installed public tests, both
+affected actual Worker cases (uninstall and directory manifests), all 17 unchanged
+bundle budgets, lint, types and the selected workspace build.

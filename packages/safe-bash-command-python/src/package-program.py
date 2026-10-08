@@ -419,6 +419,45 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  _safe_extras.close()
  _safe_requested_names.close()
  return _safe_managed
+def _safe_walk_files(root):
+ from contextlib import ExitStack
+ import os
+ with ExitStack() as lifetime:
+  pending = _SafeValues()
+  lifetime.callback(pending.close)
+  pending.put('0', root)
+  count = 1
+  initial = True
+  while count:
+   count -= 1
+   directory = pending.get(str(count))
+   if initial:initial = False
+   elif os.path.islink(directory):continue
+   with ExitStack() as scan_storage:
+    directories = _SafeValues()
+    scan_storage.callback(directories.close)
+    files = _SafeNames()
+    scan_storage.callback(files.close)
+    try:scan = os.scandir(directory)
+    except OSError:continue
+    failed = False
+    with scan:
+     while True:
+      try:entry = next(scan)
+      except StopIteration:break
+      except OSError:
+       failed = True
+       break
+      try:is_directory = entry.is_dir()
+      except OSError:is_directory = False
+      if is_directory:directories.put(str(len(directories)), entry.name)
+      else:files.add(entry.name)
+    if failed:continue
+    for name in files:yield os.path.join(directory, name)
+    for ordinal in range(len(directories)-1, -1, -1):
+     path = os.path.join(directory, directories.get(str(ordinal)))
+     pending.put(str(count), path)
+     count += 1
 def _safe_removal_listing(_safe_dist):
  from micropip._utils import get_files_in_distribution as _safe_distribution_files
  from contextlib import ExitStack, closing
@@ -441,10 +480,9 @@ def _safe_removal_listing(_safe_dist):
   folders = compact(names(os.path.dirname(path) for path in files if path.endswith('__init__.py') or '.dist-info' in path))
   skipped = names()
   for folder in folders:
-   for directory, _, filenames in os.walk(folder):
-    for filename in filenames:
-     path = os.path.join(directory, filename)
-     if not filename.endswith('.pyc') and os.path.isfile(path) and path not in files:skipped.add(path)
+   with closing(_safe_walk_files(folder)) as discovered:
+    for path in discovered:
+     if not path.endswith('.pyc') and os.path.isfile(path) and path not in files:skipped.add(path)
   listing = names(files)
   for folder in folders:listing.add(os.path.join(folder, '*'))
   for paths in (listing, skipped):

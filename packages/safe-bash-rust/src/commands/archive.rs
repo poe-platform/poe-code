@@ -3988,15 +3988,15 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     }
 }
 
-struct TarEntry {
-    name: String,
-    typeflag: u8,
-    mode: u32,
-    mtime: u64,
-    uid: u32,
-    gid: u32,
-    linkname: String,
-    content: Vec<u8>,
+pub struct TarEntry {
+    pub name: String,
+    pub typeflag: u8,
+    pub mode: u32,
+    pub mtime: u64,
+    pub uid: u32,
+    pub gid: u32,
+    pub linkname: String,
+    pub content: Vec<u8>,
 }
 
 fn serialize_ustar_archive(entries: &[TarEntry]) -> Vec<u8> {
@@ -4159,6 +4159,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut recursion = true;
     let mut sort_by_name = false;
     let mut use_compress = false;
+    let mut compress_format: Option<&str> = None;
     let mut verbose = false;
     let mut totals = false;
     let mut utc = false;
@@ -4490,8 +4491,29 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--wildcards" => wildcards = true,
                     "--no-wildcards" => wildcards = false,
                     "--verbose" => verbose = true,
-                    "--gzip" | "--gunzip" | "--bzip2" | "--xz" | "--zstd" | "--auto-compress" => {
+                    "--gzip" | "--gunzip" | "--ungzip" => {
                         use_compress = true;
+                        compress_format = Some("gzip");
+                    }
+                    "--bzip2" | "--bunzip2" => {
+                        use_compress = true;
+                        compress_format = Some("bzip2");
+                    }
+                    "--xz" => {
+                        use_compress = true;
+                        compress_format = Some("xz");
+                    }
+                    "--lzma" => {
+                        use_compress = true;
+                        compress_format = Some("lzma");
+                    }
+                    "--zstd" => {
+                        use_compress = true;
+                        compress_format = Some("zstd");
+                    }
+                    "--auto-compress" => {
+                        use_compress = true;
+                        compress_format = Some("auto");
                     }
                     _ => {}
                 }
@@ -4552,8 +4574,24 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             verbose = true;
                             matched_flag = true;
                         }
-                        'z' | 'j' | 'J' | 'a' => {
+                        'z' => {
                             use_compress = true;
+                            compress_format = Some("gzip");
+                            matched_flag = true;
+                        }
+                        'j' => {
+                            use_compress = true;
+                            compress_format = Some("bzip2");
+                            matched_flag = true;
+                        }
+                        'J' => {
+                            use_compress = true;
+                            compress_format = Some("xz");
+                            matched_flag = true;
+                        }
+                        'a' => {
+                            use_compress = true;
+                            compress_format = Some("auto");
                             matched_flag = true;
                         }
                         'p' | 'm' | 'B' | 'i' | 'n' => {
@@ -4697,7 +4735,34 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             create_stderr.push_str(&format!("Total bytes written: {}\n", raw_tar.len()));
         }
         let out_bytes = if use_compress {
-            gzip_compress_stored(&raw_tar)
+            let fmt = match compress_format {
+                Some("auto") => {
+                    let af = archive_file.as_deref().unwrap_or("");
+                    if af.ends_with(".tar.gz") || af.ends_with(".tgz") || af.ends_with(".taz") {
+                        "gzip"
+                    } else if af.ends_with(".tar.bz2") || af.ends_with(".tbz") || af.ends_with(".tbz2") || af.ends_with(".tz2") {
+                        "bzip2"
+                    } else if af.ends_with(".tar.xz") || af.ends_with(".txz") {
+                        "xz"
+                    } else if af.ends_with(".tar.lzma") || af.ends_with(".tlz") {
+                        "lzma"
+                    } else if af.ends_with(".tar.zst") || af.ends_with(".tzst") {
+                        "zstd"
+                    } else {
+                        "none"
+                    }
+                }
+                Some(f) => f,
+                None => "gzip",
+            };
+            match fmt {
+                "gzip" => crate::commands::codecs::gzip_compress(&raw_tar),
+                "bzip2" => crate::commands::codecs::bzip2_compress(&raw_tar, 9),
+                "xz" => crate::commands::codecs::xz_compress(&raw_tar, 4),
+                "lzma" => crate::commands::codecs::lzma_compress(&raw_tar),
+                "zstd" => crate::commands::codecs::zstd_compress(&raw_tar, true),
+                _ => raw_tar,
+            }
         } else {
             raw_tar
         };
@@ -5403,7 +5468,7 @@ fn build_ustar_header(
     hdr
 }
 
-fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
+pub(crate) fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
     if data.len() >= 4 && &data[0..4] == b"PK\x03\x04" {
         let mut zout = Vec::new();
         let mut zpos = 0usize;
@@ -5437,7 +5502,39 @@ fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
     }
     let decompressed;
     let data = if data.len() >= 18 && data[0] == 0x1f && data[1] == 0x8b {
-        match gzip_decompress_stored(data) {
+        match crate::commands::codecs::gzip_decompress(data) {
+            Ok(dec) => {
+                decompressed = dec;
+                &decompressed[..]
+            }
+            Err(_) => return Vec::new(),
+        }
+    } else if data.len() >= 4 && &data[0..3] == b"BZh" && (b'1'..=b'9').contains(&data[3]) {
+        match crate::commands::codecs::bzip2_decompress(data) {
+            Ok(dec) => {
+                decompressed = dec;
+                &decompressed[..]
+            }
+            Err(_) => return Vec::new(),
+        }
+    } else if data.len() >= 6 && &data[0..6] == &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
+        match crate::commands::codecs::xz_decompress(data) {
+            Ok(dec) => {
+                decompressed = dec;
+                &decompressed[..]
+            }
+            Err(_) => return Vec::new(),
+        }
+    } else if data.len() >= 4 && &data[0..4] == &[0x28, 0xb5, 0x2f, 0xfd] {
+        match crate::commands::codecs::zstd_decompress(data, false) {
+            Ok(dec) => {
+                decompressed = dec;
+                &decompressed[..]
+            }
+            Err(_) => return Vec::new(),
+        }
+    } else if data.len() >= 13 && data[0] == 0x5d && data[1] == 0x00 && (data.len() < 262 || &data[257..262] != b"ustar") {
+        match crate::commands::codecs::lzma_decompress(data) {
             Ok(dec) => {
                 decompressed = dec;
                 &decompressed[..]
@@ -5558,81 +5655,55 @@ fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
     out
 }
 
-fn gzip_compress_stored(data: &[u8]) -> Vec<u8> {
-    let mut out = vec![0x1f, 0x8b, 0x08, 0x00, 0, 0, 0, 0, 0x00, 0x03];
-    if data.is_empty() {
-        out.extend_from_slice(&[0x01, 0x00, 0x00, 0xff, 0xff]);
-    } else {
-        let chunks: Vec<&[u8]> = data.chunks(65535).collect();
-        for (i, chunk) in chunks.iter().enumerate() {
-            let is_last = i + 1 == chunks.len();
-            out.push(if is_last { 0x01 } else { 0x00 });
-            let len = chunk.len() as u16;
-            let nlen = !len;
-            out.extend_from_slice(&len.to_le_bytes());
-            out.extend_from_slice(&nlen.to_le_bytes());
-            out.extend_from_slice(chunk);
-        }
-    }
-    let crc = crc32_ieee(data);
-    out.extend_from_slice(&crc.to_le_bytes());
-    out.extend_from_slice(&(data.len() as u32).to_le_bytes());
-    out
-}
-
-fn gzip_decompress_stored(data: &[u8]) -> Result<Vec<u8>, String> {
-    if data.len() < 18 || data[0] != 0x1f || data[1] != 0x8b {
-        return Err("not in gzip format".into());
-    }
-    let mut pos = 10usize;
-    let mut out = Vec::new();
-    while pos + 5 <= data.len().saturating_sub(8) {
-        let hdr = data[pos];
-        let btype = (hdr >> 1) & 0x03;
-        if btype != 0 {
-            return Err("unsupported deflate block type".into());
-        }
-        let bfinal = (hdr & 0x01) != 0;
-        let len = u16::from_le_bytes([data[pos + 1], data[pos + 2]]) as usize;
-        let nlen = u16::from_le_bytes([data[pos + 3], data[pos + 4]]);
-        if (len as u16) != !nlen {
-            return Err("corrupt deflate block length".into());
-        }
-        pos += 5;
-        if pos + len + 8 > data.len() {
-            return Err("truncated gzip stream".into());
-        }
-        out.extend_from_slice(&data[pos..pos + len]);
-        pos += len;
-        if bfinal {
-            pos += 8;
-            if pos < data.len() {
-                if pos + 10 <= data.len() && data[pos] == 0x1f && data[pos] == 0x1f && data[pos + 1] == 0x8b {
-                    pos += 10;
-                    continue;
-                } else {
-                    return Err("corrupt trailing data".into());
-                }
-            }
-            break;
-        }
-    }
-    Ok(out)
-}
-
 fn crc32_ieee(data: &[u8]) -> u32 {
-    let mut crc = 0xffff_ffffu32;
-    for &b in data {
-        crc ^= b as u32;
-        for _ in 0..8 {
-            if (crc & 1) != 0 {
-                crc = (crc >> 1) ^ 0xedb8_8320;
+    crate::commands::codecs::crc32_ieee(data)
+}
+
+fn compress_for_invoked(
+    invoked: &str,
+    data: &[u8],
+    level: u8,
+    xz_format: &str,
+    xz_check: u8,
+    zstd_check: bool,
+) -> Vec<u8> {
+    match invoked {
+        "bzip2" | "bunzip2" | "bzcat" => crate::commands::codecs::bzip2_compress(data, level),
+        "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => {
+            if xz_format == "lzma" || (xz_format == "auto" && matches!(invoked, "lzma" | "unlzma" | "lzcat")) {
+                crate::commands::codecs::lzma_compress(data)
             } else {
-                crc >>= 1;
+                crate::commands::codecs::xz_compress(data, xz_check)
             }
         }
+        "zstd" | "unzstd" | "zstdcat" => crate::commands::codecs::zstd_compress(data, zstd_check),
+        _ => crate::commands::codecs::gzip_compress(data),
     }
-    !crc
+}
+
+fn decompress_for_invoked(
+    invoked: &str,
+    data: &[u8],
+    xz_format: &str,
+) -> Result<Vec<u8>, String> {
+    match invoked {
+        "bzip2" | "bunzip2" | "bzcat" => crate::commands::codecs::bzip2_decompress(data),
+        "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => {
+            if xz_format == "lzma" {
+                crate::commands::codecs::lzma_decompress(data)
+            } else if xz_format == "xz" {
+                if data.len() < 6 || &data[0..6] != &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00] {
+                    Err("File format not recognized".into())
+                } else {
+                    crate::commands::codecs::xz_decompress(data)
+                }
+            } else {
+                crate::commands::codecs::xz_decompress(data)
+            }
+        }
+        "zstd" | "unzstd" | "zstdcat" => crate::commands::codecs::zstd_decompress(data, true),
+        _ => crate::commands::codecs::gzip_decompress(data),
+    }
 }
 
 fn cmd_gzip(
@@ -5644,6 +5715,7 @@ fn cmd_gzip(
 ) -> BuiltinOutcome {
     let is_zstd = matches!(invoked, "zstd" | "unzstd" | "zstdcat");
     let is_gzip = matches!(invoked, "gzip" | "gunzip" | "zcat");
+    let is_lzma_cmd = matches!(invoked, "lzma" | "unlzma" | "lzcat");
     let mut decompress = matches!(
         invoked,
         "gunzip" | "zcat" | "zstdcat" | "xzcat" | "lzcat" | "bunzip2" | "bzcat" | "unxz" | "unlzma" | "unzstd"
@@ -5657,8 +5729,27 @@ fn cmd_gzip(
     let mut robot_mode = false;
     let mut test_mode = false;
     let mut recursive = false;
+    let mut level: u8 = match invoked {
+        "bzip2" | "bunzip2" | "bzcat" => 9,
+        "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => 1,
+        "zstd" | "unzstd" | "zstdcat" => 3,
+        _ => 6,
+    };
+    let mut xz_format = if is_lzma_cmd { "lzma".to_string() } else { "auto".to_string() };
+    let mut xz_check: u8 = 4; // CRC64 default
+    let mut zstd_check = true;
     let mut custom_suffix: Option<String> = None;
     let mut files = Vec::new();
+
+    let parse_xz_check_name = |val: &str| -> Option<u8> {
+        match val {
+            "none" => Some(0),
+            "crc32" => Some(1),
+            "crc64" => Some(4),
+            "sha256" => Some(10),
+            _ => None,
+        }
+    };
 
     let mut i = 0usize;
     let mut end_of_opts = false;
@@ -5688,6 +5779,29 @@ fn cmd_gzip(
                 "--robot" => robot_mode = true,
                 "-t" | "--test" => test_mode = true,
                 "-r" | "--recursive" => recursive = true,
+                "--fast" => level = 1,
+                "--best" => level = 9,
+                "--no-check" => zstd_check = false,
+                "--check" => zstd_check = true,
+                "-C" if is_zstd => zstd_check = true,
+                "-C" if i + 1 < args.len() => {
+                    i += 1;
+                    if let Some(cid) = parse_xz_check_name(&args[i]) {
+                        xz_check = cid;
+                    }
+                }
+                s if s.starts_with("--check=") => {
+                    if let Some(cid) = parse_xz_check_name(&s["--check=".len()..]) {
+                        xz_check = cid;
+                    }
+                }
+                "-F" | "--format" if i + 1 < args.len() => {
+                    i += 1;
+                    xz_format = args[i].clone();
+                }
+                s if s.starts_with("--format=") => {
+                    xz_format = s["--format=".len()..].to_string();
+                }
                 "-S" | "--suffix" if i + 1 < args.len() => {
                     i += 1;
                     custom_suffix = Some(args[i].clone());
@@ -5715,6 +5829,36 @@ fn cmd_gzip(
                             'l' => list_mode = true,
                             't' => test_mode = true,
                             'r' => recursive = true,
+                            '1'..='9' => level = (chars[ci] as u8) - b'0',
+                            'C' => {
+                                if is_zstd {
+                                    zstd_check = true;
+                                } else {
+                                    let rest: String = chars[ci + 1..].iter().collect();
+                                    let val = if !rest.is_empty() {
+                                        rest
+                                    } else if i + 1 < args.len() {
+                                        i += 1;
+                                        args[i].clone()
+                                    } else {
+                                        String::new()
+                                    };
+                                    if let Some(cid) = parse_xz_check_name(&val) {
+                                        xz_check = cid;
+                                    }
+                                    break;
+                                }
+                            }
+                            'F' => {
+                                let rest: String = chars[ci + 1..].iter().collect();
+                                if !rest.is_empty() {
+                                    xz_format = rest;
+                                } else if i + 1 < args.len() {
+                                    i += 1;
+                                    xz_format = args[i].clone();
+                                }
+                                break;
+                            }
                             'S' => {
                                 let rest: String = chars[ci + 1..].iter().collect();
                                 if !rest.is_empty() {
@@ -5738,35 +5882,83 @@ fn cmd_gzip(
         }
         i += 1;
     }
+
     if list_mode {
-        if robot_mode {
-            let mut out = String::new();
-            let mut total_comp = 0usize;
-            let mut total_uncomp = 0usize;
-            let mut count = 0usize;
-            for f in &files {
-                let full = resolve_posix_path(cwd, f);
-                if let Ok(data) = fs.read_file(&full) {
-                    let uncomp = gzip_decompress_stored(&data).map(|b| b.len()).unwrap_or(0);
-                    let comp = data.len();
-                    total_comp += comp;
-                    total_uncomp += uncomp;
-                    count += 1;
-                    out.push_str(&format!("name\t{f}\n"));
-                    out.push_str(&format!("file\t1\t1\t{comp}\t{uncomp}\t0.500\tCRC64\t0\n"));
+        let mut out = String::new();
+        let mut totals = crate::commands::codecs::XzInspectInfo::default();
+        let mut count = 0usize;
+        if !robot_mode {
+            out.push_str("Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
+        }
+        for f in &files {
+            let full = resolve_posix_path(cwd, f);
+            let Ok(data) = fs.read_file(&full) else {
+                return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
+            };
+            let info = match crate::commands::codecs::inspect_xz_bytes(&data) {
+                Ok(inf) => inf,
+                Err(_) => {
+                    let uncomp = decompress_for_invoked(invoked, &data, &xz_format)
+                        .map(|b| b.len())
+                        .unwrap_or(0);
+                    crate::commands::codecs::XzInspectInfo {
+                        streams: 1,
+                        blocks: 1,
+                        compressed: data.len(),
+                        uncompressed: uncomp,
+                        padding: 0,
+                        checks: vec![4],
+                    }
+                }
+            };
+            if robot_mode {
+                out.push_str(&format!(
+                    "name\t{f}\nfile\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                    info.streams,
+                    info.blocks,
+                    info.compressed,
+                    info.uncompressed,
+                    info.ratio_str(),
+                    info.checks_str(),
+                    info.padding
+                ));
+            } else {
+                out.push_str(&info.human_line(f));
+            }
+            totals.streams += info.streams;
+            totals.blocks += info.blocks;
+            totals.compressed += info.compressed;
+            totals.uncompressed += info.uncompressed;
+            totals.padding += info.padding;
+            for c in info.checks {
+                if !totals.checks.contains(&c) {
+                    totals.checks.push(c);
                 }
             }
-            out.push_str(&format!(
-                "totals\t{count}\t{count}\t{total_comp}\t{total_uncomp}\t0.500\tCRC64\t0\t{count}\n"
-            ));
-            return ok_out(&out);
+            count += 1;
         }
-        return ok_out("Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
+        if robot_mode && count > 0 {
+            out.push_str(&format!(
+                "totals\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{count}\n",
+                totals.streams,
+                totals.blocks,
+                totals.compressed,
+                totals.uncompressed,
+                totals.ratio_str(),
+                totals.checks_str(),
+                totals.padding
+            ));
+        } else if !robot_mode && count > 1 {
+            out.push_str("-------------------------------------------------------------------------------\n");
+            out.push_str(&totals.human_line(&format!("{count} files")));
+        }
+        return ok_out(&out);
     }
+
     if test_mode {
         if files.is_empty() || (files.len() == 1 && files[0] == "-") {
             let data = crate::vfs::stream_string_to_bytes(stdin);
-            return match gzip_decompress_stored(&data) {
+            return match decompress_for_invoked(invoked, &data, &xz_format) {
                 Ok(_) => ok_out(""),
                 Err(e) => err_out(&format!("{invoked}: {e}\n"), 1),
             };
@@ -5774,7 +5966,7 @@ fn cmd_gzip(
         for f in &files {
             if f == "-" {
                 let data = crate::vfs::stream_string_to_bytes(stdin);
-                if let Err(e) = gzip_decompress_stored(&data) {
+                if let Err(e) = decompress_for_invoked(invoked, &data, &xz_format) {
                     return err_out(&format!("{invoked}: {e}\n"), 1);
                 }
                 continue;
@@ -5783,7 +5975,7 @@ fn cmd_gzip(
             let Ok(data) = fs.read_file(&full) else {
                 return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
             };
-            if let Err(e) = gzip_decompress_stored(&data) {
+            if let Err(e) = decompress_for_invoked(invoked, &data, &xz_format) {
                 return err_out(&format!("{invoked}: {f}: {e}\n"), 1);
             }
         }
@@ -5797,8 +5989,20 @@ fn cmd_gzip(
     let mut stdout_buf = String::new();
     let default_ext = match invoked {
         "bzip2" | "bunzip2" | "bzcat" => ".bz2",
-        "xz" | "unxz" | "xzcat" => ".xz",
-        "lzma" | "unlzma" | "lzcat" => ".lzma",
+        "xz" | "unxz" | "xzcat" => {
+            if xz_format == "lzma" {
+                ".lzma"
+            } else {
+                ".xz"
+            }
+        }
+        "lzma" | "unlzma" | "lzcat" => {
+            if xz_format == "xz" {
+                ".xz"
+            } else {
+                ".lzma"
+            }
+        }
         "zstd" | "unzstd" | "zstdcat" => ".zst",
         _ => ".gz",
     };
@@ -5823,15 +6027,15 @@ fn cmd_gzip(
         if f == "-" {
             let data = crate::vfs::stream_string_to_bytes(stdin);
             if decompress {
-                match gzip_decompress_stored(&data) {
+                match decompress_for_invoked(invoked, &data, &xz_format) {
                     Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
-                    Err(_) if passthrough => {
+                    Err(_) if passthrough || (force && to_stdout) => {
                         stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&data));
                     }
                     Err(e) => return err_out(&format!("{invoked}: {e}\n"), 1),
                 }
             } else {
-                let comp = gzip_compress_stored(&data);
+                let comp = compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check);
                 stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&comp));
             }
             continue;
@@ -5850,9 +6054,9 @@ fn cmd_gzip(
             return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
         };
         if decompress {
-            let dec = match gzip_decompress_stored(&data) {
+            let dec = match decompress_for_invoked(invoked, &data, &xz_format) {
                 Ok(d) => d,
-                Err(_) if passthrough && to_stdout => data.clone(),
+                Err(_) if (passthrough || force) && to_stdout => data.clone(),
                 Err(_) => return err_out(&format!("{invoked}: {f}: not in {invoked} format\n"), 1),
             };
             if to_stdout {
@@ -5865,6 +6069,11 @@ fn cmd_gzip(
                     format!("{}.tar", &full[..full.len() - 4])
                 } else if let Some(stripped) = full.strip_suffix(ext) {
                     stripped.to_string()
+                } else if custom_suffix.is_none()
+                    && matches!(invoked, "xz" | "unxz" | "xzcat")
+                    && full.ends_with(".lzma")
+                {
+                    full[..full.len() - 5].to_string()
                 } else {
                     return err_out(&format!("{invoked}: {f}: unknown suffix -- ignored\n"), 1);
                 };
@@ -5877,7 +6086,7 @@ fn cmd_gzip(
                 }
             }
         } else {
-            let comp = gzip_compress_stored(&data);
+            let comp = compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check);
             if to_stdout {
                 stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&comp));
             } else {
@@ -6069,7 +6278,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if show_files {
         let bytes = fs.read_file(&arch_full).unwrap_or_default();
-        let entries = parse_ustar_archive(&bytes);
+        let entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         let mut out = format!("Archive contains:\n");
         for e in &entries {
             if e.name != "__ZIP_COMMENT__" {
@@ -6083,7 +6292,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let Ok(bytes) = fs.read_file(&arch_full) else {
             return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
         };
-        let mut entries = parse_ustar_archive(&bytes);
+        let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         entries.retain(|e| {
             if e.name == "__ZIP_COMMENT__" {
                 return true;
@@ -6093,25 +6302,25 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        let _ = fs.write_file(&dest_full, &serialize_ustar_archive(&entries));
+        let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
         return ok_out("");
     }
     if delete_mode {
         let Ok(bytes) = fs.read_file(&arch_full) else {
             return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
         };
-        let mut entries = parse_ustar_archive(&bytes);
+        let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         entries.retain(|e| {
             e.name == "__ZIP_COMMENT__" || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        let _ = fs.write_file(&dest_full, &serialize_ustar_archive(&entries));
+        let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
         return ok_out("");
     }
     if freshen_mode {
         let Ok(bytes) = fs.read_file(&arch_full) else {
             return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
         };
-        let mut entries = parse_ustar_archive(&bytes);
+        let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         for e in &mut entries {
             if e.typeflag == b'0' && e.name != "__ZIP_COMMENT__" {
                 if !operands.is_empty() && !operands.iter().any(|t| zip_matches_pattern(t, &e.name)) {
@@ -6123,11 +6332,11 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             }
         }
-        let _ = fs.write_file(&dest_full, &serialize_ustar_archive(&entries));
+        let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
         return ok_out("");
     }
     let mut entries = if !filesync_mode && fs.exists(&arch_full) {
-        parse_ustar_archive(&fs.read_file(&arch_full).unwrap_or_default())
+        crate::commands::codecs::parse_zip_archive(&fs.read_file(&arch_full).unwrap_or_default()).unwrap_or_default()
     } else {
         Vec::new()
     };
@@ -6231,7 +6440,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             content: comment_bytes,
         });
     }
-    let out_bytes = serialize_ustar_archive(&entries);
+    let out_bytes = crate::commands::codecs::serialize_zip_archive(&entries);
     if let Some(sz) = split_size
         && out_bytes.len() > sz
     {
@@ -6397,7 +6606,7 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             9,
         );
     };
-    let raw_entries = parse_ustar_archive(&bytes);
+    let raw_entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
     if !bytes.is_empty() && !bytes.iter().all(|&b| b == 0) && raw_entries.is_empty() {
         return err_out(&format!("unzip: {arch}: End-of-central-directory signature not found\n"), 9);
     }

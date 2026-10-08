@@ -1,3 +1,4 @@
+pub mod codecs;
 pub mod archive;
 pub mod coreutils;
 pub mod fs;

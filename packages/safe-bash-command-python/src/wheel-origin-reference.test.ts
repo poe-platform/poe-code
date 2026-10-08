@@ -1,15 +1,16 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {loadPythonPackageProgram} from './package-program.js';
+import {pythonPackageProgramGzip} from './package-program.generated.js';
 const python=process.env.LLM_TEST_PYTHON??'python3';
 const available=spawnSync(python,['-B','-c','import pip; assert pip.__version__ == "21.2.4"'],{timeout:5000}).status===0;
-test('direct wheel provenance matches pinned pip and never labels index or generated legacy wheels as direct',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false},async()=>{
+test('direct wheel provenance matches pinned pip and never labels index or generated legacy wheels as direct',{skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false},()=>{
  const result=spawnSync(python,['-B','-c',String.raw`
+import base64,gzip
 import ast,asyncio,json,sys,types
 from pip._internal.models.link import Link
 from pip._internal.utils.direct_url_helpers import direct_url_from_link
-program=ast.parse(json.load(sys.stdin)); captured=[]
+program=ast.parse(gzip.decompress(base64.b64decode(json.load(sys.stdin))).decode()); captured=[]
 class Wheel:
  @classmethod
  def from_url(cls,url):
@@ -39,6 +40,6 @@ async def check():
    assert captured[-1]['metadata'].get('direct_url.json')==metadata.get('direct_url.json'),(kind,captured[-1])
    namespace['_safe_restoring']=False
 asyncio.run(check())
-`],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify(pythonPackageProgramGzip),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

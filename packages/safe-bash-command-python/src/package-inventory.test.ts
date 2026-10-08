@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {loadPythonPackageProgram} from './package-program.js';
+import {pythonPackageProgramGzip} from './package-program.generated.js';
 
-for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure','file','file-failure','new-file','new-file-large','new-file-write-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
+for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure','file','file-failure','new-file','new-file-large','new-file-write-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import base64,gzip
 import ast, asyncio, json, sys, types
 from unittest.mock import patch
 source, mode = json.load(sys.stdin)
+source=gzip.decompress(base64.b64decode(source)).decode()
 tree = ast.parse(source)
 start = next(index for index, node in enumerate(tree.body) if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == '_safe_managed' for target in node.targets))
 code = compile(ast.Module(body=tree.body[start:], type_ignores=[]), '<package-inventory>', 'exec', flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
@@ -109,7 +111,7 @@ def removal_paths():
 def listing(dist):
  yield removal_paths()
  yield iter(())
-namespace = {'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:distribution.metadata,
+namespace = {'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:__import__('contextlib').nullcontext(distribution.metadata),
  '_safe_header_values':lambda headers,name:iter(headers.get_all(name, ())),
  '_safe_removal_listing':listing,
  '_safe_package_publication': '/publication.json' if mode.startswith('file') or mode.startswith('new-file') else None,
@@ -166,6 +168,6 @@ if mode.startswith('decline'):
  assert output[-1] == ('stdout', 'Proceed (Y/n)? ')
  assert [text for _,text in output][1:-1] == (['  Would remove:\n','    /remove/one\n','    /remove/two\n','  Would not remove (might be manually added):\n','    /keep/manual\n'] if mode=='decline-paths' else [])
 assert peak <= 3
-`],{input:JSON.stringify([await loadPythonPackageProgram(),mode]),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify([pythonPackageProgramGzip,mode]),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

@@ -633,3 +633,21 @@ not close the full native metadata memory requirement.
 The fresh artifact passes 831 Python tests, 142 installed public tests, all three
 affected actual Worker cases under unchanged timeouts, all 17 unchanged bundle
 profiles, lint, types and the scoped workspace build.
+
+
+Final standard metadata headers now stay on caller storage throughout each
+internal consumer's explicit metadata scope. The native adapter's repair logic
+retains its folding and description behavior while collecting repaired pairs in
+the buffered caller file. Scoped construction substitutes its collection and
+adapter binding without changing native globals or traceback offsets. Older
+Python without the adapter retains its parsed backed headers for the same scope.
+Normal consumption, early consumer failure and repair-storage failure close owned
+files; requirement iteration releases metadata before yielding collected values.
+Multipart object-valued descriptions retain native compatibility. Message bodies,
+individual scalar values and nested-message compatibility remain buffered. Native
+fixtures now decode the existing compressed installer artifact inside Python,
+retaining identical source while avoiding large stdin transfers and keeping their
+original timeouts.
+The fresh artifact passes 837 Python tests, 142 installed public tests, all three
+affected actual Worker cases under unchanged timeouts, all 17 unchanged bundle
+profiles, lint, types and the scoped workspace build.

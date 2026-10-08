@@ -1,14 +1,15 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {loadPythonPackageProgram} from './package-program.js';
+import {pythonPackageProgramGzip} from './package-program.generated.js';
 
-test('saved-record restoration validates snapshots while retaining only the current native record',async()=>{
+test('saved-record restoration validates snapshots while retaining only the current native record',()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import base64,gzip
 import ast,asyncio,json,sys,types,gc
 from pip._vendor.packaging.requirements import Requirement
 from pip._vendor.packaging.utils import canonicalize_name
-source=json.load(sys.stdin);tree=ast.parse(source)
+source=gzip.decompress(base64.b64decode(json.load(sys.stdin))).decode();tree=ast.parse(source)
 start=next(i for i,node in enumerate(tree.body) if isinstance(node,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='_safe_uninstall' for target in node.targets))
 end=next(i for i,node in enumerate(tree.body[start:],start) if isinstance(node,ast.If) and isinstance(node.test,ast.Name) and node.test.id=='_safe_metadata_only')
 code=compile(ast.Module(body=tree.body[start:end],type_ignores=[]),'<saved records>','exec',flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
@@ -111,6 +112,6 @@ for rows in [None,[],[large],[paths],[row('x'*20000)],[row('package-'+str(i),i%2
   for row in rows or []:
    for field in (3,4):assert list(records.paths(row[0],field))==row[field]
  namespace.clear();gc.collect()
-`],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify(pythonPackageProgramGzip),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

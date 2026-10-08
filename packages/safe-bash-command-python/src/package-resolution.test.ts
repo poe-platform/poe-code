@@ -1,14 +1,16 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {loadPythonPackageProgram} from './package-program.js';
+import {pythonPackageProgramGzip} from './package-program.generated.js';
 
-for(const noDeps of [false,true])for(const stalls of [false,true])test('dependency closure streams distribution scans and preserves extras and convergence; stalls='+stalls+'; noDeps='+noDeps,async()=>{
+for(const noDeps of [false,true])for(const stalls of [false,true])test('dependency closure streams distribution scans and preserves extras and convergence; stalls='+stalls+'; noDeps='+noDeps,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import base64,gzip
 import ast, asyncio, json, sys, types
 from pip._vendor.packaging.requirements import Requirement
 from pip._vendor.packaging.utils import canonicalize_name
 source, stalls, no_deps = json.load(sys.stdin)
+source=gzip.decompress(base64.b64decode(source)).decode()
 tree = ast.parse(source)
 selected = [node for node in tree.body if isinstance(node, (ast.AsyncFunctionDef, ast.ClassDef)) and node.name in ('_safe_resolve', '_SafeRequirements')]
 assert len(selected) == 2
@@ -50,7 +52,7 @@ original = pm.Transaction
 micropip.package_manager = pm
 sys.modules['micropip'] = micropip
 sys.modules['micropip.package_manager'] = pm
-namespace = {'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement, '_safe_name':canonicalize_name, '_safe_preloaded':set(), '_safe_metadata':types.SimpleNamespace(distributions=distributions), '_safe_manager':types.SimpleNamespace(install=install), '_safe_validate':validate, '_safe_package_pre':False}
+namespace = {'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:__import__('contextlib').nullcontext(distribution.metadata),'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement, '_safe_name':canonicalize_name, '_safe_preloaded':set(), '_safe_metadata':types.SimpleNamespace(distributions=distributions), '_safe_manager':types.SimpleNamespace(install=install), '_safe_validate':validate, '_safe_package_pre':False}
 class Names(set):
  def close(self):pass
 class Values(dict):
@@ -73,6 +75,6 @@ except ValueError as error:
 assert calls == ([(['root'], {'deps':False, 'pre':False, 'reinstall':True})] if no_deps else [(['root'], {'deps':True, 'pre':False, 'reinstall':True}), (['child[feature]>=2','leaf'], {'deps':True, 'pre':False, 'reinstall':True})]), calls
 assert pm.Transaction is original
 assert peak == 0 if no_deps else peak <= 3
-`],{input:JSON.stringify([await loadPythonPackageProgram(),stalls,noDeps]),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify([pythonPackageProgramGzip,stalls,noDeps]),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

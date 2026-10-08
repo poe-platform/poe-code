@@ -39,7 +39,7 @@ records=Records()
 def distribution(path):
  name=path.value.rsplit('/',1)[-1].removesuffix('-snapshot.dist-info').replace('_','-')
  return types.SimpleNamespace(metadata={'Name':name},version='1')
-namespace={'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_metadata_only':True,'_safe_record_by_name':records,'_safe_preloaded':{'package-0'},'_safe_name':lambda name:name,'_SafeRequirement':lambda requirement:None,'_safe_metadata':types.SimpleNamespace(Distribution=types.SimpleNamespace(at=distribution),MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None))}
+namespace={'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:__import__('contextlib').nullcontext(distribution.metadata),'_safe_metadata_only':True,'_safe_record_by_name':records,'_safe_preloaded':{'package-0'},'_safe_name':lambda name:name,'_SafeRequirement':lambda requirement:None,'_safe_metadata':types.SimpleNamespace(Distribution=types.SimpleNamespace(at=distribution),MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None))}
 with patch('pathlib.Path',Path),patch('sysconfig.get_path',return_value='/alias/site'):
  exec(code,namespace)
  assert Text.peak<=4,('snapshot path strings retained',Text.peak)

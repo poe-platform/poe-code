@@ -242,36 +242,87 @@ def _safe_parse_metadata(text, lifetime):
   if not chunk:break
   parser.feed(chunk)
  return parser.close()
+@_safe_cache
+def _safe_metadata_adapter_code():
+ import ast, inspect, textwrap
+ from types import CodeType
+ adapter = _safe_metadata._adapters.Message
+ class Adapt(ast.NodeTransformer):
+  headers = 0
+  def visit_ImportFrom(self, node):
+   if node.level == 1 and node.module is None and len(node.names) == 1 and node.names[0].name == '_adapters':
+    return ast.copy_location(ast.Assign(targets=[ast.Name(id='_adapters', ctx=ast.Store())], value=ast.Name(id='_safe_metadata_adapters', ctx=ast.Load())), node)
+   return node
+  def visit_Assign(self, node):
+   if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id == 'headers' and isinstance(node.value, ast.ListComp):
+    self.headers += 1
+    values = ast.GeneratorExp(elt=node.value.elt, generators=node.value.generators)
+    node.value = ast.copy_location(ast.Call(func=ast.Name(id='_safe_metadata_headers', ctx=ast.Load()), args=[values], keywords=[]), node.value)
+   return self.generic_visit(node)
+ result = []
+ for native in (_safe_metadata.Distribution.metadata.fget, adapter._repair_headers):
+  adapt = Adapt()
+  tree = adapt.visit(ast.parse(textwrap.dedent(inspect.getsource(native))))
+  if native is adapter._repair_headers and adapt.headers != 1:raise RuntimeError('Unsupported native metadata header repair')
+  tree = ast.increment_lineno(ast.fix_missing_locations(tree), native.__code__.co_firstlineno - 1)
+  code = compile(tree, native.__code__.co_filename, 'exec')
+  result.append(next(value for value in code.co_consts if isinstance(value, CodeType) and value.co_name == native.__name__))
+ return tuple(result)
+from contextlib import contextmanager as _safe_metadata_scope
+@_safe_metadata_scope
 def _safe_distribution_metadata(distribution):
  from contextlib import ExitStack
- from types import FunctionType, SimpleNamespace
+ from types import FunctionType, MethodType, SimpleNamespace
  import email
  if type(distribution) is not _safe_metadata.PathDistribution or 'read_text' in vars(distribution):
-  return distribution.metadata
+  yield distribution.metadata
+  return
  with ExitStack() as lifetime:
   view = _safe_metadata.PathDistribution(distribution._path)
   view.read_text = lambda filename: _safe_read_metadata_text(distribution, filename, lifetime)
   def parse(text):
    return _safe_parse_metadata(text, lifetime) if isinstance(text, _SafeMetadataText) else email.message_from_string(text)
   native = _safe_metadata.Distribution.metadata.fget
-  metadata = FunctionType(native.__code__, dict(native.__globals__, email=SimpleNamespace(message_from_string=parse)), native.__name__, native.__defaults__, native.__closure__)
-  result = metadata(view)
-  # Older Python returns the parser message without a repairing metadata adapter.
-  if isinstance(result._headers, _SafeMetadataHeaders):result._headers = list(result._headers)
-  return result
+  code = native.__code__
+  namespace = dict(native.__globals__, email=SimpleNamespace(message_from_string=parse))
+  try:from importlib.metadata import _adapters
+  except ImportError:adapter = None
+  else:adapter = _adapters.Message
+  if adapter is not None:
+   code, repair_code = _safe_metadata_adapter_code()
+   def collect_headers(values):
+    headers = _SafeMetadataHeaders(lifetime)
+    for pair in values:headers.append(pair)
+    return headers
+   repair_native = adapter._repair_headers
+   repair = FunctionType(repair_code, dict(repair_native.__globals__, _safe_metadata_headers=collect_headers), repair_native.__name__, repair_native.__defaults__, repair_native.__closure__)
+   def create_adapter(original):
+    value = adapter.__new__(adapter, original)
+    # Multipart descriptions retain their native object-valued compatibility path.
+    if isinstance(value._payload, list):
+     adapter.__init__(value, original)
+     return value
+    value._repair_headers = MethodType(repair, value)
+    try:adapter.__init__(value, original)
+    finally:del value._repair_headers
+    return value
+   namespace['_adapters'] = namespace['_safe_metadata_adapters'] = SimpleNamespace(Message=create_adapter)
+  metadata = FunctionType(code, namespace, native.__name__, native.__defaults__, native.__closure__)
+  yield metadata(view)
 
 def _safe_distribution_version(distribution):
  from types import SimpleNamespace
  if type(distribution) is not _safe_metadata.PathDistribution:
   return distribution.version
- return _safe_metadata.Distribution.version.fget(SimpleNamespace(metadata=_safe_distribution_metadata(distribution)))
+ with _safe_distribution_metadata(distribution) as headers:
+  return _safe_metadata.Distribution.version.fget(SimpleNamespace(metadata=headers))
 
 class _SafePreloaded:
  @classmethod
  async def snapshot(cls):
   await _safe_package_preloaded('start')
   for distribution in _safe_metadata.distributions():
-   name = _safe_distribution_metadata(distribution)['Name']
+   with _safe_distribution_metadata(distribution) as headers:name = headers['Name']
    if name:
     await _safe_package_preloaded('add', _safe_name(name))
   await _safe_package_preloaded('seal')
@@ -457,27 +508,27 @@ def _safe_distribution_requires(distribution):
  if type(distribution) is not _safe_metadata.PathDistribution or any(name in vars(distribution) for name in ('read_text', '_read_dist_info_reqs', '_read_egg_info_reqs', '_deps_from_requires_text', '_convert_egg_info_reqs_to_simple_reqs')):
   yield from distribution.requires or ()
   return
- headers = _safe_distribution_metadata(distribution)
- # Non-string headers retain the native object-valued compatibility path.
- if any(type(value) is not str or _has_surrogates(value) for key, value in _safe_header_items(headers)):
-  yield from distribution.requires or ()
-  return
  with ExitStack() as lifetime:
-  class Values(_SafeValues):
-   def __iter__(self):
-    for key in super().__iter__():yield self.get(key)
-  def collect(values):
-   if isinstance(values, Values):return values
-   result = Values()
-   lifetime.callback(result.close)
-   for value in values:result.put(str(len(result)), value)
-   return result
-  view = _safe_metadata.PathDistribution(distribution._path)
-  view._read_dist_info_reqs = lambda: collect(_safe_header_values(headers, 'Requires-Dist'))
-  native = _safe_metadata.Distribution.requires.fget
-  requires = FunctionType(native.__code__, dict(native.__globals__, list=collect), native.__name__, native.__defaults__, native.__closure__)
-  values = requires(view)
-  del headers, view
+  with _safe_distribution_metadata(distribution) as headers:
+   # Non-string headers retain the native object-valued compatibility path.
+   if any(type(value) is not str or _has_surrogates(value) for key, value in _safe_header_items(headers)):
+    yield from distribution.requires or ()
+    return
+   class Values(_SafeValues):
+    def __iter__(self):
+     for key in super().__iter__():yield self.get(key)
+   def collect(values):
+    if isinstance(values, Values):return values
+    result = Values()
+    lifetime.callback(result.close)
+    for value in values:result.put(str(len(result)), value)
+    return result
+   view = _safe_metadata.PathDistribution(distribution._path)
+   view._read_dist_info_reqs = lambda: collect(_safe_header_values(headers, 'Requires-Dist'))
+   native = _safe_metadata.Distribution.requires.fget
+   requires = FunctionType(native.__code__, dict(native.__globals__, list=collect), native.__name__, native.__defaults__, native.__closure__)
+   values = requires(view)
+   del headers, view
   yield from values or ()
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = _SafeValues()
@@ -553,7 +604,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  _safe_versions = None
  def dependencies(versions=None):
   for distribution in _safe_metadata.distributions():
-   name = _safe_distribution_metadata(distribution)['Name']
+   with _safe_distribution_metadata(distribution) as headers:name = headers['Name']
    if not name or _safe_name(name) not in _safe_managed:
     del distribution
     continue
@@ -843,8 +894,9 @@ if _safe_metadata_only:
   _safe_origin = _safe_record_by_name.origin(_safe_record_name)
   if _safe_origin is not None: (_safe_path / 'direct_url.json').write_text(_safe_origin)
   _safe_dist = _safe_metadata.Distribution.at(_safe_path)
-  if _safe_name(_safe_distribution_metadata(_safe_dist)['Name']) != _safe_record_name:
-   raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
+  with _safe_distribution_metadata(_safe_dist) as _safe_headers:
+   if _safe_name(_safe_headers['Name']) != _safe_record_name:
+    raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
   _SafeRequirement(_safe_record_name + '==' + _safe_distribution_version(_safe_dist))
  _safe_metadata.MetadataPathFinder.invalidate_caches()
 _safe_restoring = True
@@ -884,8 +936,9 @@ if _safe_uninstall:
  _safe_versions = _SafeValues()
  try:
   for _safe_dist in _safe_metadata.distributions():
-   if _safe_distribution_metadata(_safe_dist)['Name'] and _safe_name(_safe_distribution_metadata(_safe_dist)['Name']) in _safe_targets:
-    _safe_versions.put(_safe_name(_safe_distribution_metadata(_safe_dist)['Name']), _safe_distribution_version(_safe_dist))
+   with _safe_distribution_metadata(_safe_dist) as _safe_headers:
+    if _safe_headers['Name'] and _safe_name(_safe_headers['Name']) in _safe_targets:
+     _safe_versions.put(_safe_name(_safe_headers['Name']), _safe_distribution_version(_safe_dist))
   for _safe_target in _safe_targets:
    if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
     raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
@@ -949,7 +1002,7 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
     _safe_output.write(_safe_json.dumps(part[offset:offset+4096])[1:-1])
   _safe_output.write('"')
  for _safe_dist in _safe_metadata.distributions():
-  _safe_dist_name = _safe_distribution_metadata(_safe_dist)['Name']
+  with _safe_distribution_metadata(_safe_dist) as _safe_headers:_safe_dist_name = _safe_headers['Name']
   if not _safe_dist_name:
    continue
   _safe_dist_name = _safe_name(_safe_dist_name)
@@ -965,42 +1018,42 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
      _safe_rows += 1
     else:await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
    else:
-    _safe_headers = _safe_distribution_metadata(_safe_dist)
-    def _safe_metadata_parts():
-     for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra']:
-      for value in _safe_header_values(_safe_headers, key):
-       yield key
-       yield ': '
-       yield value
-       yield '\n'
-    _safe_lists = _safe_removal_listing(_safe_dist)
-    try:
-     if _safe_output:
-      if _safe_rows:_safe_output.write(',')
-      _safe_output.write('[')
-      for _safe_parts in ((_safe_dist_name,), _safe_metadata_parts(), ((_safe_origin or '').strip(),)):
-       _safe_write_json_string(_safe_parts)
-       _safe_output.write(',')
-      for _safe_paths in _safe_lists:
+    with _safe_distribution_metadata(_safe_dist) as _safe_headers:
+     def _safe_metadata_parts():
+      for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra']:
+       for value in _safe_header_values(_safe_headers, key):
+        yield key
+        yield ': '
+        yield value
+        yield '\n'
+     _safe_lists = _safe_removal_listing(_safe_dist)
+     try:
+      if _safe_output:
+       if _safe_rows:_safe_output.write(',')
        _safe_output.write('[')
-       _safe_first = True
-       for _safe_path in _safe_paths:
-        if not _safe_first:_safe_output.write(',')
-        _safe_write_json_string((_safe_path,))
-        _safe_first = False
-       _safe_output.write('],')
-      _safe_direct_url = _safe_dist.read_text('direct_url.json')
-      if _safe_direct_url is None:_safe_output.write('null')
-      else:_safe_write_json_string((_safe_direct_url,))
-      _safe_output.write(']')
-      _safe_rows += 1
-     else:
-      _safe_row = [_safe_dist_name, ''.join(_safe_metadata_parts()), (_safe_origin or '').strip()]
-      _safe_row.extend(list(paths) for paths in _safe_lists)
-      _safe_row.append(_safe_dist.read_text('direct_url.json'))
-      await _safe_package_record('append', _safe_json.dumps(_safe_row))
-      del _safe_row
-    finally:_safe_lists.close()
+       for _safe_parts in ((_safe_dist_name,), _safe_metadata_parts(), ((_safe_origin or '').strip(),)):
+        _safe_write_json_string(_safe_parts)
+        _safe_output.write(',')
+       for _safe_paths in _safe_lists:
+        _safe_output.write('[')
+        _safe_first = True
+        for _safe_path in _safe_paths:
+         if not _safe_first:_safe_output.write(',')
+         _safe_write_json_string((_safe_path,))
+         _safe_first = False
+        _safe_output.write('],')
+       _safe_direct_url = _safe_dist.read_text('direct_url.json')
+       if _safe_direct_url is None:_safe_output.write('null')
+       else:_safe_write_json_string((_safe_direct_url,))
+       _safe_output.write(']')
+       _safe_rows += 1
+      else:
+       _safe_row = [_safe_dist_name, ''.join(_safe_metadata_parts()), (_safe_origin or '').strip()]
+       _safe_row.extend(list(paths) for paths in _safe_lists)
+       _safe_row.append(_safe_dist.read_text('direct_url.json'))
+       await _safe_package_record('append', _safe_json.dumps(_safe_row))
+       del _safe_row
+     finally:_safe_lists.close()
  def _safe_inventory():
   for key in _safe_sources:yield _safe_sources.get(key)
   for name in _safe_versions.ordered():

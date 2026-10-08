@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
-import {loadPythonPackageProgram} from './package-program.js';
+import {pythonPackageProgramGzip} from './package-program.generated.js';
 
-test('native record decoding counts UTF-16 windows and preserves escaped strings and legacy rows',async()=>{
+test('native record decoding counts UTF-16 windows and preserves escaped strings and legacy rows',()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import base64,gzip
 import ast, json, sys, types
 from collections.abc import Mapping
-source=json.load(sys.stdin)
+source=gzip.decompress(base64.b64decode(json.load(sys.stdin))).decode()
 node=next(node for node in ast.parse(source).body if isinstance(node,ast.ClassDef) and node.name=='_SafeRecords')
 ffi=types.ModuleType('pyodide.ffi');ffi.run_sync=lambda value:value
 sys.modules['pyodide']=types.ModuleType('pyodide');sys.modules['pyodide.ffi']=ffi
@@ -30,6 +31,6 @@ for record in [None,['fixture','x'*8190+'😀'+'x'*20000+'\ud800','origin',['a',
  assert offsets[-1]==len(encoded)//2
  assert all(0<b-a<=8192 for a,b in zip(offsets,offsets[1:]))
 print('ok')
-`],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify(pythonPackageProgramGzip),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stderr);assert.equal(result.stdout.trim(),'ok');
 });

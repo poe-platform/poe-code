@@ -18,7 +18,7 @@ class Values:
  def __iter__(self):return iter(self.values)
  def __len__(self):return len(self.values)
  def close(self):self.closed=True
-namespace={'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_metadata':metadata,'_SafeValues':Values}
+namespace={'_safe_distribution_metadata':lambda distribution:__import__('contextlib').nullcontext(distribution.metadata),'_safe_metadata':metadata,'_SafeValues':Values}
 tree=ast.parse(source)
 selected=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name in ('_safe_header_items','_safe_header_values','_safe_distribution_requires')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<requirements>','exec'),namespace)

@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonPackageEnvironment} from './provisioning.js';
-import {loadPythonPackageProgram} from './package-program.js';
+import {pythonPackageProgramGzip} from './package-program.generated.js';
 
 for(const retirement of ['commit','finish','abort','dispose'])test('preloaded package snapshot spills independently of wheel indexes and retires on '+retirement,async()=>{
  const fs=new MemoryFileSystem(),controller=new AbortController();
@@ -34,10 +34,11 @@ test('preloaded package snapshot rejects mutation after sealing',async()=>{
  }finally{await environment.finish(start);await environment.dispose();}
 });
 
-test('preloaded distribution discovery snapshots normalized names with bounded guest retention',async()=>{
+test('preloaded distribution discovery snapshots normalized names with bounded guest retention',()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import base64,gzip
 import ast,asyncio,json,sys,types
-source=json.load(sys.stdin)
+source=gzip.decompress(base64.b64decode(json.load(sys.stdin))).decode()
 tree=ast.parse(source)
 # Execute the maintained startup through the preloaded snapshot, without the resolver.
 end=next(index for index,node in enumerate(tree.body) if isinstance(node,ast.Assign) and any(isinstance(target,ast.Name) and target.id=='_safe_manager' for target in node.targets))
@@ -93,19 +94,21 @@ assert len(seen)==1024 and sealed
 preloaded=namespace['_safe_preloaded']
 assert 'host-0' in preloaded and 'host-1023' in preloaded
 assert 'new-package' not in preloaded
-`],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify(pythonPackageProgramGzip),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });
 
-for(const mode of ['large','missing-name','decode-error','storage-error'])test('preloaded native metadata uses bounded reads before sealing: '+mode,async()=>{
+for(const mode of ['large','missing-name','decode-error','storage-error'])test('preloaded native metadata uses bounded reads before sealing: '+mode,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import base64,gzip
 import ast,asyncio,io,json,pathlib,sys,importlib.metadata as metadata
 from unittest.mock import patch
 import tempfile
 source,mode=json.load(sys.stdin)
+source=gzip.decompress(base64.b64decode(source)).decode()
 tree=ast.parse(source)
 end=next(i for i,node in enumerate(tree.body) if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='_safe_preloaded' for t in node.targets))
-names=('_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_SafeMetadataHeaders','_safe_metadata_header_code','_safe_parse_metadata','_safe_distribution_metadata','_SafePreloaded')
+names=('_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_SafeMetadataHeaders','_safe_metadata_header_code','_safe_parse_metadata','_safe_metadata_adapter_code','_safe_distribution_metadata','_SafePreloaded')
 body=[node for node in tree.body[:end+1] if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in names or node is tree.body[end]]
 stores=[];opened=[];events=[]
 class Values:
@@ -131,7 +134,7 @@ async def snapshot(operation,name=None):
  assert all(value.closed for value in stores)
  events.append((operation,name))
 from functools import cache
-namespace={'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values,'_safe_name':lambda name:name.lower().replace('_','-'),'_safe_package_preloaded':snapshot}
+namespace={'_safe_metadata_scope':__import__('contextlib').contextmanager,'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values,'_safe_name':lambda name:name.lower().replace('_','-'),'_safe_package_preloaded':snapshot}
 code=compile(ast.Module(body=body,type_ignores=[]),'<bootstrap>','exec',flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
 def header_file(**kwargs):
  assert kwargs['dir']=='/caller'
@@ -146,6 +149,6 @@ with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Pat
   assert events==[('start',None)]+([('add','host-package')] if mode=='large' else [])+[('seal',None)],events
 assert opened and stores
 assert all(value.closed for value in opened+stores)
-`],{input:JSON.stringify([await loadPythonPackageProgram(),mode]),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify([pythonPackageProgramGzip,mode]),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

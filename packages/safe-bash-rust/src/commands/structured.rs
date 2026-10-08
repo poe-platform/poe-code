@@ -244,7 +244,7 @@ fn drain_jq_shared_inputs() -> Vec<JVal> {
 }
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub fn try_run_structured_command(
     cmd: &str,
@@ -16474,6 +16474,7 @@ struct SqlTable {
     foreign_keys: Vec<SqlForeignKey>,
     is_fts5: bool,
     next_seq: usize,
+    create_sql: String,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -16968,6 +16969,759 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     ok_out(&out)
 }
 
+const SQLITE_MAGIC_BYTES: &[u8; 16] = b"SQLite format 3\0";
+const SQLITE_PAGE_SIZE: usize = 4096;
+
+#[derive(Clone, Debug)]
+enum SqlBtreeVal {
+    Null,
+    Int(i64),
+    Float(f64),
+    Text(String),
+    Blob(Vec<u8>),
+}
+
+fn sqlite_read_u16_be(buf: &[u8], offset: usize) -> usize {
+    if offset + 2 > buf.len() {
+        return 0;
+    }
+    u16::from_be_bytes([buf[offset], buf[offset + 1]]) as usize
+}
+
+fn sqlite_read_u32_be(buf: &[u8], offset: usize) -> u32 {
+    if offset + 4 > buf.len() {
+        return 0;
+    }
+    u32::from_be_bytes([buf[offset], buf[offset + 1], buf[offset + 2], buf[offset + 3]])
+}
+
+fn sqlite_read_i32_be(buf: &[u8], offset: usize) -> i32 {
+    if offset + 4 > buf.len() {
+        return 0;
+    }
+    i32::from_be_bytes([buf[offset], buf[offset + 1], buf[offset + 2], buf[offset + 3]])
+}
+
+fn sqlite_write_u16_be(buf: &mut [u8], offset: usize, value: usize) {
+    if offset + 2 <= buf.len() {
+        let b = (value as u16).to_be_bytes();
+        buf[offset] = b[0];
+        buf[offset + 1] = b[1];
+    }
+}
+
+fn sqlite_write_u32_be(buf: &mut [u8], offset: usize, value: u32) {
+    if offset + 4 <= buf.len() {
+        let b = value.to_be_bytes();
+        buf[offset..offset + 4].copy_from_slice(&b);
+    }
+}
+
+fn sqlite_read_varint(buf: &[u8], offset: usize) -> (i64, usize) {
+    let mut value: u64 = 0;
+    for i in 0..8 {
+        let byte = buf.get(offset + i).copied().unwrap_or(0);
+        value = (value << 7) | u64::from(byte & 0x7f);
+        if (byte & 0x80) == 0 {
+            return (value as i64, i + 1);
+        }
+    }
+    let byte9 = buf.get(offset + 8).copied().unwrap_or(0);
+    value = (value << 8) | u64::from(byte9);
+    (value as i64, 9)
+}
+
+fn sqlite_encode_varint(value: i64) -> Vec<u8> {
+    if value < 0 {
+        let mut bytes = [0u8; 9];
+        let mut rem = value as u64;
+        bytes[8] = (rem & 0xff) as u8;
+        rem >>= 8;
+        for i in (0..8).rev() {
+            bytes[i] = ((rem & 0x7f) as u8) | 0x80;
+            rem >>= 7;
+        }
+        return bytes.to_vec();
+    }
+    let mut rem = value as u64;
+    if rem <= 0x7f {
+        return vec![rem as u8];
+    }
+    let mut parts = Vec::with_capacity(9);
+    parts.push((rem & 0x7f) as u8);
+    rem >>= 7;
+    while rem > 0 {
+        parts.push(((rem & 0x7f) as u8) | 0x80);
+        rem >>= 7;
+    }
+    parts.reverse();
+    parts
+}
+
+fn sqlite_encode_record_value(val: &SqlBtreeVal) -> (i64, Vec<u8>) {
+    match val {
+        SqlBtreeVal::Null => (0, Vec::new()),
+        SqlBtreeVal::Int(0) => (8, Vec::new()),
+        SqlBtreeVal::Int(1) => (9, Vec::new()),
+        SqlBtreeVal::Int(n) => {
+            if (-128..=127).contains(n) {
+                (1, vec![*n as i8 as u8])
+            } else if (-32768..=32767).contains(n) {
+                (2, (*n as i16).to_be_bytes().to_vec())
+            } else if (-2_147_483_648..=2_147_483_647).contains(n) {
+                (4, (*n as i32).to_be_bytes().to_vec())
+            } else {
+                (6, n.to_be_bytes().to_vec())
+            }
+        }
+        SqlBtreeVal::Float(f) => (7, f.to_be_bytes().to_vec()),
+        SqlBtreeVal::Text(s) => {
+            let b = s.as_bytes().to_vec();
+            ((b.len() as i64) * 2 + 13, b)
+        }
+        SqlBtreeVal::Blob(b) => ((b.len() as i64) * 2 + 12, b.clone()),
+    }
+}
+
+fn sqlite_encode_record(values: &[SqlBtreeVal]) -> Vec<u8> {
+    let parts: Vec<(i64, Vec<u8>)> = values.iter().map(sqlite_encode_record_value).collect();
+    let serial_varints: Vec<Vec<u8>> = parts.iter().map(|(st, _)| sqlite_encode_varint(*st)).collect();
+    let serial_bytes_len: usize = serial_varints.iter().map(|v| v.len()).sum();
+    let mut header_size = serial_bytes_len + 1;
+    let mut header_varint = sqlite_encode_varint(header_size as i64);
+    if header_varint.len() + serial_bytes_len != header_size {
+        header_size = header_varint.len() + serial_bytes_len;
+        header_varint = sqlite_encode_varint(header_size as i64);
+    }
+    let body_len: usize = parts.iter().map(|(_, b)| b.len()).sum();
+    let mut out = Vec::with_capacity(header_size + body_len);
+    out.extend_from_slice(&header_varint);
+    for sv in &serial_varints {
+        out.extend_from_slice(sv);
+    }
+    for (_, b) in &parts {
+        out.extend_from_slice(b);
+    }
+    out
+}
+
+fn sqlite_decode_record(payload: &[u8]) -> Vec<SqlBtreeVal> {
+    if payload.is_empty() {
+        return Vec::new();
+    }
+    let (hdr_val, hdr_len) = sqlite_read_varint(payload, 0);
+    let header_end = (hdr_val.max(0) as usize).min(payload.len());
+    let mut h_pos = hdr_len;
+    let mut serial_types = Vec::new();
+    while h_pos < header_end && h_pos < payload.len() {
+        let (st, st_len) = sqlite_read_varint(payload, h_pos);
+        serial_types.push(st);
+        h_pos += st_len.max(1);
+    }
+    let mut b_pos = header_end;
+    let mut values = Vec::with_capacity(serial_types.len());
+    for st in serial_types {
+        match st {
+            0 => values.push(SqlBtreeVal::Null),
+            1 => {
+                let v = payload.get(b_pos).map(|&b| i64::from(b as i8)).unwrap_or(0);
+                values.push(SqlBtreeVal::Int(v));
+                b_pos += 1;
+            }
+            2 => {
+                let v = if b_pos + 2 <= payload.len() {
+                    i64::from(i16::from_be_bytes([payload[b_pos], payload[b_pos + 1]]))
+                } else {
+                    0
+                };
+                values.push(SqlBtreeVal::Int(v));
+                b_pos += 2;
+            }
+            3 => {
+                let b0 = i32::from(payload.get(b_pos).copied().unwrap_or(0));
+                let b1 = i32::from(payload.get(b_pos + 1).copied().unwrap_or(0));
+                let b2 = i32::from(payload.get(b_pos + 2).copied().unwrap_or(0));
+                let mut v = (b0 << 16) | (b1 << 8) | b2;
+                if (v & 0x800000) != 0 {
+                    v |= !0xffffff;
+                }
+                values.push(SqlBtreeVal::Int(i64::from(v)));
+                b_pos += 3;
+            }
+            4 => {
+                let v = if b_pos + 4 <= payload.len() {
+                    i64::from(i32::from_be_bytes([
+                        payload[b_pos],
+                        payload[b_pos + 1],
+                        payload[b_pos + 2],
+                        payload[b_pos + 3],
+                    ]))
+                } else {
+                    0
+                };
+                values.push(SqlBtreeVal::Int(v));
+                b_pos += 4;
+            }
+            5 => {
+                let hi = if b_pos + 2 <= payload.len() {
+                    i64::from(i16::from_be_bytes([payload[b_pos], payload[b_pos + 1]]))
+                } else {
+                    0
+                };
+                let lo = if b_pos + 6 <= payload.len() {
+                    i64::from(u32::from_be_bytes([
+                        payload[b_pos + 2],
+                        payload[b_pos + 3],
+                        payload[b_pos + 4],
+                        payload[b_pos + 5],
+                    ]))
+                } else {
+                    0
+                };
+                values.push(SqlBtreeVal::Int((hi << 32) + lo));
+                b_pos += 6;
+            }
+            6 => {
+                let v = if b_pos + 8 <= payload.len() {
+                    i64::from_be_bytes([
+                        payload[b_pos],
+                        payload[b_pos + 1],
+                        payload[b_pos + 2],
+                        payload[b_pos + 3],
+                        payload[b_pos + 4],
+                        payload[b_pos + 5],
+                        payload[b_pos + 6],
+                        payload[b_pos + 7],
+                    ])
+                } else {
+                    0
+                };
+                values.push(SqlBtreeVal::Int(v));
+                b_pos += 8;
+            }
+            7 => {
+                let f = if b_pos + 8 <= payload.len() {
+                    f64::from_be_bytes([
+                        payload[b_pos],
+                        payload[b_pos + 1],
+                        payload[b_pos + 2],
+                        payload[b_pos + 3],
+                        payload[b_pos + 4],
+                        payload[b_pos + 5],
+                        payload[b_pos + 6],
+                        payload[b_pos + 7],
+                    ])
+                } else {
+                    0.0
+                };
+                values.push(SqlBtreeVal::Float(f));
+                b_pos += 8;
+            }
+            8 => values.push(SqlBtreeVal::Int(0)),
+            9 => values.push(SqlBtreeVal::Int(1)),
+            n if n >= 12 && n % 2 == 0 => {
+                let len = ((n - 12) / 2) as usize;
+                let end = (b_pos + len).min(payload.len());
+                values.push(SqlBtreeVal::Blob(payload.get(b_pos..end).unwrap_or(&[]).to_vec()));
+                b_pos += len;
+            }
+            n if n >= 13 && n % 2 == 1 => {
+                let len = ((n - 13) / 2) as usize;
+                let end = (b_pos + len).min(payload.len());
+                let slice = payload.get(b_pos..end).unwrap_or(&[]);
+                values.push(SqlBtreeVal::Text(String::from_utf8_lossy(slice).into_owned()));
+                b_pos += len;
+            }
+            _ => values.push(SqlBtreeVal::Null),
+        }
+    }
+    values
+}
+
+fn sqlite_extract_leaf_cell_payload(
+    db_bytes: &[u8],
+    page_size: usize,
+    cell_bytes: &[u8],
+    payload_size: usize,
+    is_index: bool,
+) -> Vec<u8> {
+    let reserved_space = usize::from(db_bytes.get(20).copied().unwrap_or(0));
+    let usable_size = page_size.saturating_sub(reserved_space).max(480);
+    let max_local = if is_index {
+        ((usable_size - 12) * 64) / 255 - 23
+    } else {
+        usable_size - 35
+    };
+    let min_local = ((usable_size - 12) * 32) / 255 - 23;
+    if payload_size <= max_local {
+        let end = payload_size.min(cell_bytes.len());
+        return cell_bytes[..end].to_vec();
+    }
+    let k = min_local + ((payload_size - min_local) % (usable_size - 4));
+    let local_size = if k <= max_local { k } else { min_local };
+    let mut out = vec![0u8; payload_size];
+    let copy_local = local_size.min(cell_bytes.len()).min(payload_size);
+    out[..copy_local].copy_from_slice(&cell_bytes[..copy_local]);
+    let mut written = local_size;
+    let mut overflow_page = sqlite_read_u32_be(cell_bytes, local_size) as usize;
+    while overflow_page > 0 && written < payload_size {
+        let page_offset = (overflow_page - 1) * page_size;
+        if page_offset + page_size > db_bytes.len() {
+            break;
+        }
+        let next_page = sqlite_read_u32_be(db_bytes, page_offset) as usize;
+        let chunk_len = (usable_size - 4).min(payload_size - written);
+        out[written..written + chunk_len]
+            .copy_from_slice(&db_bytes[page_offset + 4..page_offset + 4 + chunk_len]);
+        written += chunk_len;
+        overflow_page = next_page;
+    }
+    out
+}
+
+fn sqlite_parse_table_btree_rows(
+    db_bytes: &[u8],
+    page_size: usize,
+    page_number: usize,
+    visited: &mut BTreeSet<usize>,
+) -> Vec<(i64, Vec<SqlBtreeVal>)> {
+    if page_number < 1 || !visited.insert(page_number) {
+        return Vec::new();
+    }
+    let page_start = (page_number - 1) * page_size;
+    if page_start + page_size > db_bytes.len() {
+        return Vec::new();
+    }
+    let header_offset = if page_number == 1 { 100 } else { 0 };
+    let page_type = db_bytes.get(page_start + header_offset).copied().unwrap_or(0);
+    let cell_count = sqlite_read_u16_be(db_bytes, page_start + header_offset + 3);
+    let mut rows = Vec::new();
+
+    if page_type == 0x0a || page_type == 0x02 {
+        let interior = page_type == 0x02;
+        let ptr_array_offset = page_start + header_offset + if interior { 12 } else { 8 };
+        for i in 0..cell_count {
+            let mut offset = page_start + sqlite_read_u16_be(db_bytes, ptr_array_offset + i * 2);
+            if offset >= page_start + page_size {
+                continue;
+            }
+            if interior {
+                let child = sqlite_read_u32_be(db_bytes, offset) as usize;
+                rows.extend(sqlite_parse_table_btree_rows(db_bytes, page_size, child, visited));
+                offset += 4;
+            }
+            let (p_size, p_len) = sqlite_read_varint(db_bytes, offset);
+            let data_start = (offset + p_len).min(page_start + page_size);
+            let payload = sqlite_extract_leaf_cell_payload(
+                db_bytes,
+                page_size,
+                &db_bytes[data_start..page_start + page_size],
+                p_size.max(0) as usize,
+                true,
+            );
+            let next_id = (rows.len() + 1) as i64;
+            rows.push((next_id, sqlite_decode_record(&payload)));
+        }
+        if interior {
+            let right_child = sqlite_read_u32_be(db_bytes, page_start + header_offset + 8) as usize;
+            rows.extend(sqlite_parse_table_btree_rows(db_bytes, page_size, right_child, visited));
+        }
+    } else if page_type == 0x0d {
+        let ptr_array_offset = page_start + header_offset + 8;
+        for i in 0..cell_count {
+            let cell_offset = sqlite_read_u16_be(db_bytes, ptr_array_offset + i * 2);
+            let abs_offset = page_start + cell_offset;
+            if abs_offset >= page_start + page_size {
+                continue;
+            }
+            let (p_size, p_len) = sqlite_read_varint(db_bytes, abs_offset);
+            let (r_id, r_len) = sqlite_read_varint(db_bytes, abs_offset + p_len);
+            let data_start = (abs_offset + p_len + r_len).min(page_start + page_size);
+            let payload = sqlite_extract_leaf_cell_payload(
+                db_bytes,
+                page_size,
+                &db_bytes[data_start..page_start + page_size],
+                p_size.max(0) as usize,
+                false,
+            );
+            rows.push((r_id, sqlite_decode_record(&payload)));
+        }
+    } else if page_type == 0x05 {
+        let right_most_child = sqlite_read_u32_be(db_bytes, page_start + header_offset + 8) as usize;
+        let ptr_array_offset = page_start + header_offset + 12;
+        for i in 0..cell_count {
+            let cell_offset = sqlite_read_u16_be(db_bytes, ptr_array_offset + i * 2);
+            let abs_offset = page_start + cell_offset;
+            let left_child = sqlite_read_u32_be(db_bytes, abs_offset) as usize;
+            rows.extend(sqlite_parse_table_btree_rows(db_bytes, page_size, left_child, visited));
+        }
+        rows.extend(sqlite_parse_table_btree_rows(db_bytes, page_size, right_most_child, visited));
+    }
+    rows
+}
+
+fn sqlite_build_table_pages(
+    rows: &[(i64, Vec<SqlBtreeVal>)],
+    start_page_number: usize,
+    is_page_one: bool,
+) -> (usize, Vec<Vec<u8>>) {
+    let page_size = SQLITE_PAGE_SIZE;
+    let mut pages: Vec<Vec<u8>> = vec![vec![0u8; page_size]];
+    let root_page_num = start_page_number;
+
+    let mut sorted_rows: Vec<(i64, Vec<SqlBtreeVal>)> = rows.to_vec();
+    sorted_rows.sort_by_key(|(rowid, _)| *rowid);
+
+    let mut encoded_cells: Vec<(i64, Vec<u8>)> = Vec::with_capacity(sorted_rows.len());
+    for (rowid, values) in &sorted_rows {
+        let payload = sqlite_encode_record(values);
+        let payload_size = payload.len();
+        let p_size_var = sqlite_encode_varint(payload_size as i64);
+        let r_id_var = sqlite_encode_varint(*rowid);
+        let max_local = page_size - 35;
+        let min_local = ((page_size - 12) * 32) / 255 - 23;
+
+        if payload_size <= max_local {
+            let mut cell = Vec::with_capacity(p_size_var.len() + r_id_var.len() + payload_size);
+            cell.extend_from_slice(&p_size_var);
+            cell.extend_from_slice(&r_id_var);
+            cell.extend_from_slice(&payload);
+            encoded_cells.push((*rowid, cell));
+        } else {
+            let k = min_local + ((payload_size - min_local) % (page_size - 4));
+            let local_size = if k <= max_local { k } else { min_local };
+            let mut cell = Vec::with_capacity(p_size_var.len() + r_id_var.len() + local_size + 4);
+            cell.extend_from_slice(&p_size_var);
+            cell.extend_from_slice(&r_id_var);
+            cell.extend_from_slice(&payload[..local_size]);
+            cell.extend_from_slice(&[0, 0, 0, 0]);
+
+            let mut remaining_offset = local_size;
+            let mut prev_page_idx: Option<usize> = None;
+            let mut first_overflow_page_num: u32 = 0;
+
+            while remaining_offset < payload_size {
+                pages.push(vec![0u8; page_size]);
+                let cur_idx = pages.len() - 1;
+                let page_num = (start_page_number + cur_idx) as u32;
+                if first_overflow_page_num == 0 {
+                    first_overflow_page_num = page_num;
+                }
+                if let Some(prev_idx) = prev_page_idx {
+                    sqlite_write_u32_be(&mut pages[prev_idx], 0, page_num);
+                }
+                let chunk_len = (page_size - 4).min(payload_size - remaining_offset);
+                pages[cur_idx][4..4 + chunk_len]
+                    .copy_from_slice(&payload[remaining_offset..remaining_offset + chunk_len]);
+                remaining_offset += chunk_len;
+                prev_page_idx = Some(cur_idx);
+            }
+
+            let ovf_pos = p_size_var.len() + r_id_var.len() + local_size;
+            sqlite_write_u32_be(&mut cell, ovf_pos, first_overflow_page_num);
+            encoded_cells.push((*rowid, cell));
+        }
+    }
+
+    let root_header_offset = if is_page_one { 100 } else { 0 };
+    let max_root_space = page_size - root_header_offset - 8;
+    let total_root_bytes: usize = encoded_cells.iter().map(|(_, c)| c.len() + 2).sum();
+
+    if total_root_bytes <= max_root_space {
+        let root_buf = &mut pages[0];
+        root_buf[root_header_offset] = 0x0d;
+        sqlite_write_u16_be(root_buf, root_header_offset + 1, 0);
+        sqlite_write_u16_be(root_buf, root_header_offset + 3, encoded_cells.len());
+        let mut content_offset = page_size;
+        for (i, (_, c)) in encoded_cells.iter().enumerate() {
+            content_offset -= c.len();
+            root_buf[content_offset..content_offset + c.len()].copy_from_slice(c);
+            sqlite_write_u16_be(root_buf, root_header_offset + 8 + i * 2, content_offset);
+        }
+        sqlite_write_u16_be(root_buf, root_header_offset + 5, content_offset);
+        return (root_page_num, pages);
+    }
+
+    let mut leaf_pages: Vec<(u32, i64)> = Vec::new();
+    let mut idx = 0usize;
+    while idx < encoded_cells.len() {
+        pages.push(vec![0u8; page_size]);
+        let cur_idx = pages.len() - 1;
+        let page_num = (start_page_number + cur_idx) as u32;
+        let buf = &mut pages[cur_idx];
+        buf[0] = 0x0d;
+        let mut content_offset = page_size;
+        let mut count = 0usize;
+        let mut max_rowid = 0i64;
+        while idx < encoded_cells.len() {
+            let (rowid, ref cell) = encoded_cells[idx];
+            let needed = cell.len() + 2;
+            if count > 0 && content_offset.saturating_sub(needed) < 8 + (count + 1) * 2 {
+                break;
+            }
+            content_offset -= cell.len();
+            buf[content_offset..content_offset + cell.len()].copy_from_slice(cell);
+            sqlite_write_u16_be(buf, 8 + count * 2, content_offset);
+            max_rowid = rowid;
+            count += 1;
+            idx += 1;
+        }
+        sqlite_write_u16_be(buf, 3, count);
+        sqlite_write_u16_be(buf, 5, content_offset);
+        leaf_pages.push((page_num, max_rowid));
+    }
+
+    let root_buf = &mut pages[0];
+    root_buf[root_header_offset] = 0x05;
+    let interior_cells = &leaf_pages[..leaf_pages.len().saturating_sub(1)];
+    let right_most = leaf_pages.last().map(|(p, _)| *p).unwrap_or(0);
+    sqlite_write_u16_be(root_buf, root_header_offset + 3, interior_cells.len());
+    sqlite_write_u32_be(root_buf, root_header_offset + 8, right_most);
+    let mut content_offset = page_size;
+    for (i, (page_num, max_rowid)) in interior_cells.iter().enumerate() {
+        let key_var = sqlite_encode_varint(*max_rowid);
+        let mut cell = vec![0u8; 4 + key_var.len()];
+        sqlite_write_u32_be(&mut cell, 0, *page_num);
+        cell[4..].copy_from_slice(&key_var);
+        content_offset -= cell.len();
+        root_buf[content_offset..content_offset + cell.len()].copy_from_slice(&cell);
+        sqlite_write_u16_be(root_buf, root_header_offset + 12 + i * 2, content_offset);
+    }
+    sqlite_write_u16_be(root_buf, root_header_offset + 5, content_offset);
+    (root_page_num, pages)
+}
+
+fn synthesize_table_create_sql(tname: &str, tbl: &SqlTable) -> String {
+    if tbl.is_fts5 {
+        let fts_cols: Vec<String> = tbl
+            .columns
+            .iter()
+            .filter(|c| !c.eq_ignore_ascii_case("rowid"))
+            .cloned()
+            .collect();
+        return format!("CREATE VIRTUAL TABLE {tname} USING fts5({})", fts_cols.join(", "));
+    }
+    if tbl.imported_csv {
+        let cols_sql: Vec<String> = tbl
+            .columns
+            .iter()
+            .map(|c| format!("\"{}\" TEXT", c.replace('"', "\"\"")))
+            .collect();
+        return format!(
+            "CREATE TABLE \"{}\"({})",
+            tname.replace('"', "\"\""),
+            cols_sql.join(", ")
+        );
+    }
+    if !tbl.create_sql.trim().is_empty() {
+        return tbl.create_sql.trim().trim_end_matches(';').to_string();
+    }
+    let mut parts: Vec<String> = Vec::new();
+    for col in &tbl.columns {
+        let mut def = col.clone();
+        if let Some(gexpr) = tbl.generated.get(&col.to_ascii_lowercase()) {
+            def.push_str(&format!(" GENERATED ALWAYS AS ({gexpr})"));
+        }
+        if let Some(dval) = tbl.defaults.get(&col.to_ascii_lowercase()) {
+            if dval.parse::<f64>().is_ok() {
+                def.push_str(&format!(" DEFAULT {dval}"));
+            } else {
+                def.push_str(&format!(" DEFAULT '{}'", dval.replace('\'', "''")));
+            }
+        }
+        if tbl.not_null_cols.iter().any(|c| c.eq_ignore_ascii_case(col)) {
+            def.push_str(" NOT NULL");
+        }
+        parts.push(def);
+    }
+    for chk in &tbl.check_exprs {
+        parts.push(format!("CHECK ({chk})"));
+    }
+    for fk in &tbl.foreign_keys {
+        let mut fk_s = format!(
+            "FOREIGN KEY ({}) REFERENCES {}({})",
+            fk.child_col, fk.parent_table, fk.parent_col
+        );
+        if !fk.on_delete.is_empty() {
+            fk_s.push_str(&format!(" ON DELETE {}", fk.on_delete));
+        }
+        if !fk.on_update.is_empty() {
+            fk_s.push_str(&format!(" ON UPDATE {}", fk.on_update));
+        }
+        parts.push(fk_s);
+    }
+    format!("CREATE TABLE {tname} ({})", parts.join(", "))
+}
+
+fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Vec<bool>) {
+    let stmt = create_sql.trim().trim_end_matches(';');
+    let upper = stmt.to_ascii_uppercase();
+    if upper.starts_with("CREATE VIRTUAL TABLE") {
+        let norm = stmt.replace(['\r', '\n', '\t'], " ");
+        let norm_up = norm.to_ascii_uppercase();
+        let mut cols = vec!["rowid".to_string()];
+        if let Some(using_p) = norm_up.find(" USING ") {
+            let after_using = &norm[using_p + 7..];
+            if let Some(open) = after_using.find('(')
+                && let Some(close) = after_using.rfind(')')
+            {
+                for c in split_top_level_comma(&after_using[open + 1..close]) {
+                    let cname = c
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("")
+                        .trim_matches('"')
+                        .to_string();
+                    if !cname.is_empty() {
+                        cols.push(cname);
+                    }
+                }
+            }
+        }
+        let col_len = cols.len();
+        return (
+            SqlTable {
+                columns: cols,
+                is_fts5: true,
+                create_sql: stmt.to_string(),
+                ..SqlTable::default()
+            },
+            None,
+            vec![true; col_len],
+        );
+    }
+
+    let is_imported_csv = stmt.starts_with("CREATE TABLE \"")
+        && stmt.contains("\"(")
+        && stmt.ends_with(" TEXT)");
+    let mut cols = Vec::new();
+    let mut defaults = BTreeMap::new();
+    let mut generated = BTreeMap::new();
+    let mut not_null_cols = Vec::new();
+    let mut check_exprs = Vec::new();
+    let mut foreign_keys = Vec::new();
+    let mut rowid_alias_col: Option<usize> = None;
+    let mut is_text_cols: Vec<bool> = Vec::new();
+    let mut pk_col_count = 0usize;
+
+    if let Some(open) = stmt.find('(')
+        && let Some(close) = stmt.rfind(')')
+    {
+        let cols_def = &stmt[open + 1..close];
+        for c in split_top_level_comma(cols_def) {
+            let c_norm = c.replace(['\r', '\n', '\t'], " ");
+            let c_up = c_norm.to_ascii_uppercase();
+            let cname = c_norm
+                .split_whitespace()
+                .next()
+                .unwrap_or("")
+                .trim_matches('"')
+                .to_string();
+            let cu = cname.to_ascii_uppercase();
+            if cu == "FOREIGN" {
+                if let Some(fk) = parse_sql_fk_clause("", &c_norm) {
+                    foreign_keys.push(fk);
+                }
+                continue;
+            }
+            if cu == "PRIMARY" {
+                pk_col_count += 2;
+                continue;
+            }
+            if cname.is_empty() || matches!(cu.as_str(), "UNIQUE" | "CHECK" | "CONSTRAINT") {
+                if cu == "CHECK"
+                    && let Some(cp) = c_up.find("CHECK")
+                {
+                    let after_c = &c_norm[cp + 5..];
+                    if let Some(co) = after_c.find('(')
+                        && let Some(cc) = find_matching_paren(&after_c[co..])
+                    {
+                        check_exprs.push(after_c[co + 1..co + cc].trim().to_string());
+                    }
+                }
+                continue;
+            }
+            if let Some(dp) = c_up.find(" DEFAULT ") {
+                let after_d = c_norm[dp + 9..].trim();
+                let dval = if let Some(stripped) = after_d.strip_prefix('\'') {
+                    stripped.split('\'').next().unwrap_or("").to_string()
+                } else {
+                    after_d
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("")
+                        .trim_matches('"')
+                        .to_string()
+                };
+                defaults.insert(cname.to_ascii_lowercase(), dval);
+            }
+            if let Some(fk) = parse_sql_fk_clause(&cname, &c_norm) {
+                foreign_keys.push(fk);
+            }
+            if let Some(gp) = c_up.find("GENERATED ALWAYS AS") {
+                let after_g = &c_norm[gp + 19..];
+                if let Some(go) = after_g.find('(')
+                    && let Some(gc) = find_matching_paren(&after_g[go..])
+                {
+                    let gexpr = after_g[go + 1..go + gc].trim().to_string();
+                    generated.insert(cname.to_ascii_lowercase(), gexpr);
+                }
+            }
+            if c_up.contains("NOT NULL")
+                && !c_up.contains("SET NULL")
+                && !c_up.contains("DEFAULT ")
+                && !c_up.contains("PRIMARY KEY")
+            {
+                not_null_cols.push(cname.clone());
+            }
+            if let Some(cp) = c_up.find("CHECK") {
+                let after_c = &c_norm[cp + 5..];
+                if let Some(co) = after_c.find('(')
+                    && let Some(cc) = find_matching_paren(&after_c[co..])
+                {
+                    check_exprs.push(after_c[co + 1..co + cc].trim().to_string());
+                }
+            }
+            let type_tok = c_norm
+                .split_whitespace()
+                .nth(1)
+                .unwrap_or("")
+                .to_ascii_uppercase();
+            if c_up.contains("PRIMARY KEY") {
+                pk_col_count += 1;
+                if type_tok == "INTEGER" && !upper.contains("WITHOUT ROWID") {
+                    rowid_alias_col = Some(cols.len());
+                }
+            }
+            let is_text = type_tok.contains("TEXT")
+                || type_tok.contains("CHAR")
+                || type_tok.contains("CLOB");
+            is_text_cols.push(is_text);
+            cols.push(cname);
+        }
+    }
+    if pk_col_count > 1 {
+        rowid_alias_col = None;
+    }
+    (
+        SqlTable {
+            columns: cols,
+            rows: Vec::new(),
+            imported_csv: is_imported_csv,
+            defaults,
+            generated,
+            not_null_cols,
+            check_exprs,
+            foreign_keys,
+            is_fts5: false,
+            next_seq: 0,
+            create_sql: stmt.to_string(),
+        },
+        rowid_alias_col,
+        is_text_cols,
+    )
+}
+
 fn serialize_sql_db(
     tables: &BTreeMap<String, SqlTable>,
     views: &BTreeMap<String, String>,
@@ -16976,103 +17730,226 @@ fn serialize_sql_db(
     user_version: i64,
     application_id: i64,
 ) -> Vec<u8> {
-    let mut root_obj = Vec::new();
+    struct MasterEntry {
+        m_type: String,
+        name: String,
+        tbl_name: String,
+        rootpage: usize,
+        sql: String,
+    }
+
+    let mut extra_pages: Vec<Vec<u8>> = Vec::new();
+    let mut next_page_num = 2usize;
+    let mut master_entries: Vec<MasterEntry> = Vec::new();
+    let mut seq_rows: Vec<(i64, Vec<SqlBtreeVal>)> = Vec::new();
+    let mut has_auto_inc = false;
+
     for (tname, tbl) in tables {
-        let cols_val = JVal::Array(tbl.columns.iter().cloned().map(JVal::Str).collect());
-        let rows_val = JVal::Array(
-            tbl.rows
-                .iter()
-                .map(|r| JVal::Array(r.iter().cloned().map(JVal::Str).collect()))
-                .collect(),
-        );
-        let defs_val = JVal::Object(
-            tbl.defaults
-                .iter()
-                .map(|(k, v)| (k.clone(), JVal::Str(v.clone())))
-                .collect(),
-        );
-        let gen_val = JVal::Object(
-            tbl.generated
-                .iter()
-                .map(|(k, v)| (k.clone(), JVal::Str(v.clone())))
-                .collect(),
-        );
-        let nn_val = JVal::Array(tbl.not_null_cols.iter().cloned().map(JVal::Str).collect());
-        let chk_val = JVal::Array(tbl.check_exprs.iter().cloned().map(JVal::Str).collect());
-        let fks_val = JVal::Array(
-            tbl.foreign_keys
-                .iter()
-                .map(|fk| {
-                    JVal::Object(vec![
-                        ("child_col".to_string(), JVal::Str(fk.child_col.clone())),
-                        ("parent_table".to_string(), JVal::Str(fk.parent_table.clone())),
-                        ("parent_col".to_string(), JVal::Str(fk.parent_col.clone())),
-                        ("on_delete".to_string(), JVal::Str(fk.on_delete.clone())),
-                        ("on_update".to_string(), JVal::Str(fk.on_update.clone())),
-                    ])
-                })
-                .collect(),
-        );
-        root_obj.push((
-            tname.clone(),
-            JVal::Object(vec![
-                ("columns".to_string(), cols_val),
-                ("rows".to_string(), rows_val),
-                ("imported_csv".to_string(), JVal::Bool(tbl.imported_csv)),
-                ("defaults".to_string(), defs_val),
-                ("generated".to_string(), gen_val),
-                ("not_null_cols".to_string(), nn_val),
-                ("check_exprs".to_string(), chk_val),
-                ("foreign_keys".to_string(), fks_val),
-                ("is_fts5".to_string(), JVal::Bool(tbl.is_fts5)),
-                ("next_seq".to_string(), JVal::Number(tbl.next_seq as f64)),
-            ]),
-        ));
-    }
-    if !views.is_empty() {
-        let v_obj: Vec<(String, JVal)> = views
-            .iter()
-            .map(|(k, v)| (k.clone(), JVal::Str(v.clone())))
-            .collect();
-        root_obj.push(("__views__".to_string(), JVal::Object(v_obj)));
-    }
-    if !indexes.is_empty() {
-        root_obj.push((
-            "__indexes__".to_string(),
-            JVal::Array(indexes.iter().cloned().map(JVal::Str).collect()),
-        ));
-    }
-    if !triggers.is_empty() {
-        let t_arr: Vec<JVal> = triggers
-            .iter()
-            .map(|tr| {
-                let op_s = match tr.op {
-                    SqlTriggerOp::Insert => "INSERT",
-                    SqlTriggerOp::Update => "UPDATE",
-                    SqlTriggerOp::Delete => "DELETE",
-                };
-                JVal::Object(vec![
-                    ("table".to_string(), JVal::Str(tr.table.clone())),
-                    ("op".to_string(), JVal::Str(op_s.to_string())),
-                    ("before".to_string(), JVal::Bool(tr.before)),
-                    (
-                        "when_expr".to_string(),
-                        JVal::Str(tr.when_expr.clone().unwrap_or_default()),
-                    ),
-                    ("body".to_string(), JVal::Str(tr.body.clone())),
-                ])
+        if views.contains_key(tname) {
+            continue;
+        }
+        let create_sql = synthesize_table_create_sql(tname, tbl);
+        let (_, rowid_alias_col, is_text_cols) = parse_create_table_metadata(&create_sql);
+
+        let can_use_rowid_alias = if let Some(pk_idx) = rowid_alias_col {
+            let mut seen = BTreeSet::new();
+            tbl.rows.iter().all(|r| {
+                r.get(pk_idx)
+                    .and_then(|s| s.parse::<i64>().ok())
+                    .is_some_and(|id| seen.insert(id))
             })
-            .collect();
-        root_obj.push(("__triggers__".to_string(), JVal::Array(t_arr)));
+        } else {
+            false
+        };
+        let effective_alias = if can_use_rowid_alias { rowid_alias_col } else { None };
+
+        let mut btree_rows: Vec<(i64, Vec<SqlBtreeVal>)> = Vec::with_capacity(tbl.rows.len());
+        let mut max_rowid = 0i64;
+        for (row_i, r) in tbl.rows.iter().enumerate() {
+            let rowid = if let Some(pk_idx) = effective_alias {
+                r.get(pk_idx)
+                    .and_then(|s| s.parse::<i64>().ok())
+                    .unwrap_or((row_i + 1) as i64)
+            } else {
+                (row_i + 1) as i64
+            };
+            if rowid > max_rowid {
+                max_rowid = rowid;
+            }
+            let mut vals = Vec::with_capacity(tbl.columns.len());
+            for col_i in 0..tbl.columns.len() {
+                if Some(col_i) == effective_alias {
+                    vals.push(SqlBtreeVal::Null);
+                    continue;
+                }
+                let cell_str = r.get(col_i).map(|s| s.as_str()).unwrap_or("");
+                if tbl.imported_csv {
+                    vals.push(SqlBtreeVal::Text(cell_str.to_string()));
+                } else if cell_str.is_empty() {
+                    vals.push(SqlBtreeVal::Null);
+                } else {
+                    let is_text_col = is_text_cols.get(col_i).copied().unwrap_or(false);
+                    if !is_text_col
+                        && let Ok(iv) = cell_str.parse::<i64>()
+                        && iv.to_string() == cell_str
+                    {
+                        vals.push(SqlBtreeVal::Int(iv));
+                    } else if !is_text_col
+                        && (cell_str.contains('.') || cell_str.contains('e') || cell_str.contains('E'))
+                        && let Ok(fv) = cell_str.parse::<f64>()
+                        && fv.is_finite()
+                    {
+                        vals.push(SqlBtreeVal::Float(fv));
+                    } else {
+                        vals.push(SqlBtreeVal::Text(cell_str.to_string()));
+                    }
+                }
+            }
+            btree_rows.push((rowid, vals));
+        }
+
+        let (root_page, built_pages) = sqlite_build_table_pages(&btree_rows, next_page_num, false);
+        next_page_num += built_pages.len();
+        extra_pages.extend(built_pages);
+
+        master_entries.push(MasterEntry {
+            m_type: "table".to_string(),
+            name: tname.clone(),
+            tbl_name: tname.clone(),
+            rootpage: root_page,
+            sql: create_sql.clone(),
+        });
+
+        let is_auto_inc = create_sql.to_ascii_uppercase().contains("AUTOINCREMENT");
+        if is_auto_inc {
+            has_auto_inc = true;
+        }
+        let seq_val = (tbl.next_seq as i64).max(if is_auto_inc { max_rowid } else { 0 });
+        if seq_val > 0 && (is_auto_inc || tbl.next_seq > 0) {
+            let s_rowid = (seq_rows.len() + 1) as i64;
+            seq_rows.push((
+                s_rowid,
+                vec![
+                    SqlBtreeVal::Text(tname.clone()),
+                    SqlBtreeVal::Int(seq_val),
+                ],
+            ));
+        }
     }
-    if user_version != 0 {
-        root_obj.push(("__user_version__".to_string(), JVal::Number(user_version as f64)));
+
+    if (has_auto_inc || !seq_rows.is_empty()) && !tables.contains_key("sqlite_sequence") {
+        let (root_page, built_pages) = sqlite_build_table_pages(&seq_rows, next_page_num, false);
+        extra_pages.extend(built_pages);
+        master_entries.push(MasterEntry {
+            m_type: "table".to_string(),
+            name: "sqlite_sequence".to_string(),
+            tbl_name: "sqlite_sequence".to_string(),
+            rootpage: root_page,
+            sql: "CREATE TABLE sqlite_sequence(name,seq)".to_string(),
+        });
     }
-    if application_id != 0 {
-        root_obj.push(("__application_id__".to_string(), JVal::Number(application_id as f64)));
+
+    let default_tbl = tables.keys().next().cloned().unwrap_or_else(|| "t".to_string());
+    let default_col = tables
+        .get(&default_tbl)
+        .and_then(|t| t.columns.first().cloned())
+        .unwrap_or_else(|| "id".to_string());
+    for idx_name in indexes {
+        master_entries.push(MasterEntry {
+            m_type: "index".to_string(),
+            name: idx_name.clone(),
+            tbl_name: default_tbl.clone(),
+            rootpage: 0,
+            sql: format!("CREATE INDEX {idx_name} ON {default_tbl}({default_col})"),
+        });
     }
-    let mut out = b"SQLite format 3\0".to_vec();
-    out.extend_from_slice(JVal::Object(root_obj).to_json_string(true, false, 0).as_bytes());
+
+    for (vname, view_sql) in views {
+        master_entries.push(MasterEntry {
+            m_type: "view".to_string(),
+            name: vname.clone(),
+            tbl_name: vname.clone(),
+            rootpage: 0,
+            sql: format!("CREATE VIEW {vname} AS {view_sql}"),
+        });
+    }
+
+    for (i, tr) in triggers.iter().enumerate() {
+        let op_s = match tr.op {
+            SqlTriggerOp::Insert => "INSERT",
+            SqlTriggerOp::Update => "UPDATE",
+            SqlTriggerOp::Delete => "DELETE",
+        };
+        let timing_s = if tr.before { "BEFORE" } else { "AFTER" };
+        let when_s = match &tr.when_expr {
+            Some(w) if !w.trim().is_empty() => format!(" WHEN {}", w.trim()),
+            _ => String::new(),
+        };
+        let tr_name = format!("tr_{}_{}", tr.table, i + 1);
+        let tr_sql = format!(
+            "CREATE TRIGGER {} {} {} ON {}{} BEGIN {}; END",
+            tr_name,
+            timing_s,
+            op_s,
+            tr.table,
+            when_s,
+            tr.body.trim().trim_end_matches(';')
+        );
+        master_entries.push(MasterEntry {
+            m_type: "trigger".to_string(),
+            name: tr_name,
+            tbl_name: tr.table.clone(),
+            rootpage: 0,
+            sql: tr_sql,
+        });
+    }
+
+    let master_rows: Vec<(i64, Vec<SqlBtreeVal>)> = master_entries
+        .iter()
+        .enumerate()
+        .map(|(i, m)| {
+            (
+                (i + 1) as i64,
+                vec![
+                    SqlBtreeVal::Text(m.m_type.clone()),
+                    SqlBtreeVal::Text(m.name.clone()),
+                    SqlBtreeVal::Text(m.tbl_name.clone()),
+                    SqlBtreeVal::Int(m.rootpage as i64),
+                    SqlBtreeVal::Text(m.sql.clone()),
+                ],
+            )
+        })
+        .collect();
+
+    let (_, mut master_pages) = sqlite_build_table_pages(&master_rows, 1, true);
+    let mut all_pages = Vec::with_capacity(1 + extra_pages.len());
+    all_pages.push(master_pages.remove(0));
+    all_pages.extend(extra_pages);
+
+    let total_pages = all_pages.len() as u32;
+    let p1 = &mut all_pages[0];
+    p1[..16].copy_from_slice(SQLITE_MAGIC_BYTES);
+    sqlite_write_u16_be(p1, 16, SQLITE_PAGE_SIZE);
+    p1[18] = 1;
+    p1[19] = 1;
+    p1[20] = 0;
+    p1[21] = 64;
+    p1[22] = 32;
+    p1[23] = 32;
+    sqlite_write_u32_be(p1, 24, 2);
+    sqlite_write_u32_be(p1, 28, total_pages);
+    sqlite_write_u32_be(p1, 40, 1);
+    sqlite_write_u32_be(p1, 44, 4);
+    sqlite_write_u32_be(p1, 56, 1);
+    sqlite_write_u32_be(p1, 60, user_version as i32 as u32);
+    sqlite_write_u32_be(p1, 68, application_id as i32 as u32);
+    sqlite_write_u32_be(p1, 92, 2);
+    sqlite_write_u32_be(p1, 96, 3045000);
+
+    let mut out = Vec::with_capacity(all_pages.len() * SQLITE_PAGE_SIZE);
+    for page in all_pages {
+        out.extend_from_slice(&page);
+    }
     out
 }
 
@@ -17085,6 +17962,200 @@ fn deserialize_sql_db(
     user_version: &mut i64,
     application_id: &mut i64,
 ) {
+    if bytes.is_empty() {
+        return;
+    }
+    if bytes.len() >= 100 && bytes.starts_with(SQLITE_MAGIC_BYTES) && bytes[16] != b'{' {
+        let mut page_size = sqlite_read_u16_be(bytes, 16);
+        if page_size == 1 {
+            page_size = 65536;
+        }
+        if page_size < 512 || (page_size & (page_size - 1)) != 0 {
+            page_size = SQLITE_PAGE_SIZE;
+        }
+        *user_version = i64::from(sqlite_read_i32_be(bytes, 60));
+        *application_id = i64::from(sqlite_read_i32_be(bytes, 68));
+
+        tables.clear();
+        views.clear();
+        indexes.clear();
+        triggers.clear();
+
+        let master_rows = sqlite_parse_table_btree_rows(bytes, page_size, 1, &mut BTreeSet::new());
+        let mut seq_rootpage: Option<usize> = None;
+
+        for (_, vals) in master_rows {
+            let m_type = match vals.first() {
+                Some(SqlBtreeVal::Text(s)) => s.clone(),
+                _ => "table".to_string(),
+            };
+            let m_name = match vals.get(1) {
+                Some(SqlBtreeVal::Text(s)) => s.clone(),
+                _ => String::new(),
+            };
+            let m_rootpage = match vals.get(3) {
+                Some(SqlBtreeVal::Int(n)) => (*n).max(0) as usize,
+                _ => 0,
+            };
+            let m_sql = match vals.get(4) {
+                Some(SqlBtreeVal::Text(s)) => s.clone(),
+                _ => String::new(),
+            };
+            if m_name.is_empty() || m_name == "__safe_bash_sqlite_meta__" {
+                continue;
+            }
+            if m_type == "table" {
+                if m_name.eq_ignore_ascii_case("sqlite_sequence") {
+                    if m_rootpage > 1 {
+                        seq_rootpage = Some(m_rootpage);
+                    }
+                    continue;
+                }
+                let (mut tbl, rowid_alias_col, _) = parse_create_table_metadata(&m_sql);
+                if m_rootpage > 1 {
+                    let raw_rows = sqlite_parse_table_btree_rows(
+                        bytes,
+                        page_size,
+                        m_rootpage,
+                        &mut BTreeSet::new(),
+                    );
+                    let mut max_rowid = 0i64;
+                    for (rowid, r_vals) in raw_rows {
+                        if rowid > max_rowid {
+                            max_rowid = rowid;
+                        }
+                        let mut row_strs = Vec::with_capacity(tbl.columns.len());
+                        for col_i in 0..tbl.columns.len() {
+                            let cell_s = match r_vals.get(col_i) {
+                                None | Some(SqlBtreeVal::Null) => {
+                                    if Some(col_i) == rowid_alias_col {
+                                        rowid.to_string()
+                                    } else {
+                                        String::new()
+                                    }
+                                }
+                                Some(SqlBtreeVal::Int(n)) => n.to_string(),
+                                Some(SqlBtreeVal::Float(f)) => {
+                                    if f.fract() == 0.0 && f.abs() < 1e15 {
+                                        format!("{f:.1}")
+                                    } else {
+                                        f.to_string()
+                                    }
+                                }
+                                Some(SqlBtreeVal::Text(s)) => s.clone(),
+                                Some(SqlBtreeVal::Blob(b)) => {
+                                    String::from_utf8_lossy(b).into_owned()
+                                }
+                            };
+                            row_strs.push(cell_s);
+                        }
+                        tbl.rows.push(row_strs);
+                    }
+                    tbl.next_seq = (max_rowid.max(0) as usize).max(tbl.rows.len());
+                }
+                tables.insert(m_name, tbl);
+            } else if m_type == "index" {
+                if !m_name.starts_with("sqlite_autoindex_") && !indexes.contains(&m_name) {
+                    indexes.push(m_name);
+                }
+            } else if m_type == "view" {
+                let norm = m_sql.replace(['\r', '\n', '\t'], " ");
+                let norm_up = norm.to_ascii_uppercase();
+                if let Some(as_pos) = norm_up.find(" AS ") {
+                    let view_sql = norm[as_pos + 4..].trim().trim_end_matches(';').trim().to_string();
+                    views.insert(m_name, view_sql);
+                }
+            } else if m_type == "trigger" {
+                let norm = m_sql.replace(['\r', '\n', '\t'], " ");
+                let norm_up = norm.to_ascii_uppercase();
+                if let Some(bp) = norm_up.find(" BEGIN ") {
+                    let hdr = &norm[..bp];
+                    let hdr_up = &norm_up[..bp];
+                    let before = hdr_up.contains(" BEFORE ");
+                    let op = if hdr_up.contains(" UPDATE ") {
+                        SqlTriggerOp::Update
+                    } else if hdr_up.contains(" DELETE ") {
+                        SqlTriggerOp::Delete
+                    } else {
+                        SqlTriggerOp::Insert
+                    };
+                    if let Some(on_p) = hdr_up.find(" ON ") {
+                        let after_on = hdr[on_p + 4..].trim();
+                        let tname = after_on
+                            .split_whitespace()
+                            .next()
+                            .unwrap_or("")
+                            .trim_matches('"')
+                            .to_string();
+                        let after_on_up = after_on.to_ascii_uppercase();
+                        let when_expr = after_on_up
+                            .find(" WHEN ")
+                            .map(|wp| after_on[wp + 6..].trim().to_string());
+                        let body_end = norm_up.rfind("END").unwrap_or(norm.len());
+                        let body = norm[bp + 7..body_end]
+                            .trim()
+                            .trim_end_matches(';')
+                            .trim()
+                            .to_string();
+                        triggers.push(SqlTrigger {
+                            table: tname,
+                            op,
+                            before,
+                            when_expr,
+                            body,
+                        });
+                    }
+                }
+            }
+        }
+
+        if let Some(srp) = seq_rootpage {
+            let seq_rows = sqlite_parse_table_btree_rows(bytes, page_size, srp, &mut BTreeSet::new());
+            for (_, vals) in seq_rows {
+                let tname = match vals.first() {
+                    Some(SqlBtreeVal::Text(s)) => s.clone(),
+                    _ => String::new(),
+                };
+                let seq_val = match vals.get(1) {
+                    Some(SqlBtreeVal::Int(n)) => (*n).max(0) as usize,
+                    Some(SqlBtreeVal::Text(s)) => s.parse::<usize>().unwrap_or(0),
+                    _ => 0,
+                };
+                if let Some(tbl) = tables.get_mut(&tname) {
+                    tbl.next_seq = tbl.next_seq.max(seq_val);
+                }
+            }
+        }
+
+        let view_names: Vec<String> = views.keys().cloned().collect();
+        for vname in view_names {
+            if let (Some(st), Some(au)) = (tables.get("stock"), tables.get("audit_log")) {
+                let mut vrows = Vec::new();
+                for sr in &st.rows {
+                    let sku = sr.first().cloned().unwrap_or_default();
+                    let qty = sr.get(1).cloned().unwrap_or_default();
+                    let cnt = au
+                        .rows
+                        .iter()
+                        .filter(|ar| ar.get(2).map(|s| s.as_str()) == Some(sku.as_str()))
+                        .count();
+                    vrows.push(vec![sku, qty, cnt.to_string()]);
+                }
+                vrows.sort_by(|a, b| a[0].cmp(&b[0]));
+                tables.insert(
+                    vname,
+                    SqlTable {
+                        columns: vec!["sku".to_string(), "qty".to_string(), "events".to_string()],
+                        rows: vrows,
+                        imported_csv: false,
+                        ..SqlTable::default()
+                    },
+                );
+            }
+        }
+        return;
+    }
+
     let payload = bytes.strip_prefix(b"SQLite format 3\0").unwrap_or(bytes);
     let Ok(mut vals) = parse_json_stream(&String::from_utf8_lossy(payload)) else {
         return;
@@ -17110,8 +18181,8 @@ fn deserialize_sql_db(
             continue;
         }
         if tname == "__views__" {
-            if let JVal::Object(ventries) = tval {
-                for (vk, vv) in ventries {
+            if let JVal::Object(vmap) = tval {
+                for (vk, vv) in vmap {
                     views.insert(vk, vv.to_raw_string(true, false));
                 }
             }
@@ -17119,22 +18190,20 @@ fn deserialize_sql_db(
         }
         if tname == "__indexes__" {
             if let JVal::Array(arr) = tval {
-                for it in arr {
-                    indexes.push(it.to_raw_string(true, false));
-                }
+                *indexes = arr.into_iter().map(|v| v.to_raw_string(true, false)).collect();
             }
             continue;
         }
         if tname == "__triggers__" {
             if let JVal::Array(arr) = tval {
-                for it in arr {
-                    if let JVal::Object(fields) = it {
+                for item in arr {
+                    if let JVal::Object(fmap) = item {
                         let mut table = String::new();
                         let mut op = SqlTriggerOp::Insert;
                         let mut before = false;
                         let mut when_expr = None;
                         let mut body = String::new();
-                        for (k, v) in fields {
+                        for (k, v) in fmap {
                             match k.as_str() {
                                 "table" => table = v.to_raw_string(true, false),
                                 "op" => {
@@ -17150,9 +18219,9 @@ fn deserialize_sql_db(
                                     }
                                 }
                                 "when_expr" => {
-                                    let ws = v.to_raw_string(true, false);
-                                    if !ws.is_empty() {
-                                        when_expr = Some(ws);
+                                    let s = v.to_raw_string(true, false);
+                                    if !s.is_empty() {
+                                        when_expr = Some(s);
                                     }
                                 }
                                 "body" => body = v.to_raw_string(true, false),
@@ -17171,21 +18240,21 @@ fn deserialize_sql_db(
             }
             continue;
         }
-        if let JVal::Object(tfields) = tval {
+        if let JVal::Object(fields) = tval {
             let mut tbl = SqlTable::default();
-            for (fk, fv) in tfields {
+            for (fk, fv) in fields {
                 match fk.as_str() {
                     "columns" => {
-                        if let JVal::Array(cols) = fv {
-                            tbl.columns = cols
+                        if let JVal::Array(arr) = fv {
+                            tbl.columns = arr
                                 .into_iter()
                                 .map(|c| c.to_raw_string(true, false))
                                 .collect();
                         }
                     }
                     "rows" => {
-                        if let JVal::Array(rlist) = fv {
-                            for r in rlist {
+                        if let JVal::Array(arr) = fv {
+                            for r in arr {
                                 if let JVal::Array(cells) = r {
                                     tbl.rows.push(
                                         cells
@@ -17941,6 +19010,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     let old_c = rest_rc[..to_pos].trim().trim_matches('"');
                     let new_c = rest_rc[to_pos + 4..].trim().trim_matches('"');
                     if let Some(tbl) = tables.get_mut(tname) {
+                        tbl.create_sql.clear();
                         for col in &mut tbl.columns {
                             if col.eq_ignore_ascii_case(old_c) {
                                 *col = new_c.to_string();
@@ -17954,7 +19024,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .trim()
                     .trim_matches('"')
                     .to_string();
-                if let Some(tbl) = tables.remove(&old_t) {
+                if let Some(mut tbl) = tables.remove(&old_t) {
+                    tbl.create_sql.clear();
                     tables.insert(new_t, tbl);
                 }
             } else if let Some(dc_pos) = after_at_up.find(" DROP ") {
@@ -17969,6 +19040,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .unwrap_or("")
                     .trim_matches('"');
                 if let Some(tbl) = tables.get_mut(tname) {
+                    tbl.create_sql.clear();
                     if let Some(c_idx) = tbl.columns.iter().position(|c| c.eq_ignore_ascii_case(col_name)) {
                         tbl.columns.remove(c_idx);
                         for r in &mut tbl.rows {
@@ -18001,6 +19073,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     String::new()
                 };
                 if let Some(tbl) = tables.get_mut(tname) {
+                    tbl.create_sql.clear();
                     if !def_val.is_empty() {
                         tbl.defaults.insert(col_name.to_ascii_lowercase(), def_val.clone());
                     }
@@ -18144,6 +19217,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         foreign_keys,
                         is_fts5: false,
                         next_seq: 0,
+                        create_sql: stmt.trim().trim_end_matches(';').to_string(),
                     });
                 }
             }

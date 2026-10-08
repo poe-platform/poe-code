@@ -2174,6 +2174,7 @@ impl<'a> BackwardBitReader<'a> {
         Ok(val)
     }
 
+    #[allow(dead_code)]
     fn is_empty(&self) -> bool {
         self.bit_pos <= 0
     }

@@ -125,6 +125,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
         if (name === "pass-through" || name === "no-pass-through") { result.passthrough = name === "pass-through"; continue; }
         if (name === "compress-literals" || name === "no-compress-literals") { result.zstd.literals = name === "compress-literals" ? 1 : 2; continue; }
         if (name === "row-match-finder" || name === "no-row-match-finder") { result.zstd.row = name === "row-match-finder" ? 1 : 2; continue; }
+        if (name === "rm") { result.keep = false; continue; }
         if (name === "exclude-compressed") { result.excludeCompressed = true; continue; }
         if (["adapt", "rsyncable", "progress"].includes(name)) throw new UsageError(`--${name} is unsupported by the bounded streaming Zstandard frontend`);
       }

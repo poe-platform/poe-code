@@ -3522,6 +3522,120 @@ fn serialize_ustar_archive(entries: &[TarEntry]) -> Vec<u8> {
     out_bytes
 }
 
+#[derive(Clone, Debug)]
+struct TarOperand {
+    name: String,
+    cwd: String,
+    exclude_count: usize,
+    recursion: bool,
+}
+
+fn tar_unquote_filename(name: &str) -> String {
+    let bytes = name.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if b == b'\\' && i + 1 < bytes.len() {
+            let next = bytes[i + 1];
+            let esc = match next {
+                b'a' => Some(7u8),
+                b'b' => Some(8u8),
+                b'f' => Some(12u8),
+                b'n' => Some(10u8),
+                b'r' => Some(13u8),
+                b't' => Some(9u8),
+                b'v' => Some(11u8),
+                b'\\' => Some(92u8),
+                _ => None,
+            };
+            if let Some(code) = esc {
+                out.push(code);
+                i += 2;
+                continue;
+            }
+            if i + 3 < bytes.len()
+                && (b'0'..=b'7').contains(&bytes[i + 1])
+                && (b'0'..=b'7').contains(&bytes[i + 2])
+                && (b'0'..=b'7').contains(&bytes[i + 3])
+            {
+                let val = ((bytes[i + 1] - b'0') as u16 * 64
+                    + (bytes[i + 2] - b'0') as u16 * 8
+                    + (bytes[i + 3] - b'0') as u16) as u8;
+                out.push(val);
+                i += 4;
+                continue;
+            }
+        }
+        out.push(b);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+fn tar_quote_name(name: &str, style: &str) -> String {
+    if style == "literal" {
+        return name.to_string();
+    }
+    let mut out = String::new();
+    if style == "c" {
+        out.push('"');
+    }
+    for ch in name.chars() {
+        match ch {
+            '\x07' => out.push_str("\\a"),
+            '\x08' => out.push_str("\\b"),
+            '\t' => out.push_str("\\t"),
+            '\n' => out.push_str("\\n"),
+            '\x0b' => out.push_str("\\v"),
+            '\x0c' => out.push_str("\\f"),
+            '\r' => out.push_str("\\r"),
+            '"' if style == "c" => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            c if (c as u32) < 32
+                || ((c as u32) >= 127 && (c as u32) <= 159)
+                || c == '\u{2028}'
+                || c == '\u{2029}' =>
+            {
+                let mut buf = [0u8; 4];
+                for &b in c.encode_utf8(&mut buf).as_bytes() {
+                    out.push_str(&format!("\\{b:03o}"));
+                }
+            }
+            c => out.push(c),
+        }
+    }
+    if style == "c" {
+        out.push('"');
+    }
+    out
+}
+
+fn tar_strip_components(name: &str, strip: usize, is_dir: bool) -> Option<String> {
+    if strip == 0 {
+        return Some(name.to_string());
+    }
+    let components: Vec<&str> = name
+        .trim_start_matches('/')
+        .split('/')
+        .filter(|c| !c.is_empty())
+        .collect();
+    if components.len() <= strip {
+        return None;
+    }
+    let stripped: Vec<&str> = components[strip..]
+        .iter()
+        .copied()
+        .filter(|&c| c != ".")
+        .collect();
+    let joined = stripped.join("/");
+    if is_dir && !joined.is_empty() {
+        Some(format!("{joined}/"))
+    } else {
+        Some(joined)
+    }
+}
+
 fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut create = false;
     let mut extract = false;
@@ -3533,17 +3647,24 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut catenate_mode = false;
     let mut to_stdout = false;
     let mut null_delim = false;
+    let mut verbatim_files_from = false;
     let mut skip_old_files = false;
     let mut keep_old_files = false;
     let mut exclude_caches = false;
     let mut show_transformed = false;
     let mut dereference = false;
+    let mut recursion = true;
     let mut sort_by_name = false;
     let mut use_compress = false;
     let mut verbose = false;
+    let mut totals = false;
+    let mut utc = false;
+    let mut full_time = false;
+    let mut wildcards = false;
+    let mut quoting_style = "escape".to_string();
+    let mut occurrence: Option<usize> = None;
     let mut archive_file: Option<String> = None;
-    let mut change_dir: Option<String> = None;
-    let mut files_from: Option<String> = None;
+    let mut current_dir = cwd.to_string();
     let mut strip_components = 0usize;
     let mut override_mode: Option<u32> = None;
     let mut override_mtime: Option<u64> = None;
@@ -3551,290 +3672,494 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut override_gid: Option<u32> = None;
     let mut excludes: Vec<String> = Vec::new();
     let mut transforms: Vec<String> = Vec::new();
-    let mut targets: Vec<String> = Vec::new();
+    let mut operands: Vec<TarOperand> = Vec::new();
+    let mut pending_files_from: Vec<(String, bool, bool)> = Vec::new();
 
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if a == "-C" && i + 1 < args.len() {
-            i += 1;
-            change_dir = Some(args[i].clone());
-            i += 1;
-            continue;
-        }
-        if a == "-f" && i + 1 < args.len() {
-            i += 1;
-            archive_file = Some(args[i].clone());
-            i += 1;
-            continue;
-        }
-        if (a == "-X" || a == "--exclude-from") && i + 1 < args.len() {
-            i += 1;
-            let ex_path = resolve_posix_path(cwd, &args[i]);
-            if let Ok(bytes) = fs.read_file(&ex_path) {
-                for line in String::from_utf8_lossy(&bytes).lines() {
-                    let trimmed = line.trim();
-                    if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                        excludes.push(trimmed.to_string());
-                    }
-                }
-            }
-            i += 1;
-            continue;
-        }
-        if let Some(xf) = a.strip_prefix("--exclude-from=") {
-            let ex_path = resolve_posix_path(cwd, xf);
-            if let Ok(bytes) = fs.read_file(&ex_path) {
-                for line in String::from_utf8_lossy(&bytes).lines() {
-                    let trimmed = line.trim();
-                    if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                        excludes.push(trimmed.to_string());
-                    }
-                }
-            }
-            i += 1;
-            continue;
-        }
-        if (a == "--transform" || a == "--xform") && i + 1 < args.len() {
-            i += 1;
-            transforms.push(args[i].clone());
-            i += 1;
-            continue;
-        }
-        if let Some(tr) = a.strip_prefix("--transform=").or_else(|| a.strip_prefix("--xform=")) {
-            transforms.push(tr.to_string());
-            i += 1;
-            continue;
-        }
-        if a == "--sort" && i + 1 < args.len() {
-            i += 1;
-            if args[i] == "name" {
-                sort_by_name = true;
-            }
-            i += 1;
-            continue;
-        }
-        if let Some(s) = a.strip_prefix("--sort=") {
-            if s == "name" {
-                sort_by_name = true;
-            }
-            i += 1;
-            continue;
-        }
-        if let Some(m) = a.strip_prefix("--mode=") {
-            override_mode = u32::from_str_radix(m.trim_start_matches('0'), 8)
-                .ok()
-                .or_else(|| u32::from_str_radix(m, 8).ok());
-            i += 1;
-            continue;
-        }
-        if let Some(mt) = a.strip_prefix("--mtime=") {
-            let clean = mt.trim_matches(|c| c == '\'' || c == '"');
-            if let Some(sec) = clean.strip_prefix('@') {
-                override_mtime = sec.parse::<u64>().ok();
-            }
-            i += 1;
-            continue;
-        }
-        if let Some(ow) = a.strip_prefix("--owner=") {
-            override_uid = ow.trim_start_matches(':').parse::<u32>().ok().or(Some(0));
-            i += 1;
-            continue;
-        }
-        if let Some(gr) = a.strip_prefix("--group=") {
-            override_gid = gr.trim_start_matches(':').parse::<u32>().ok().or(Some(0));
-            i += 1;
-            continue;
-        }
-        if a.starts_with("--format=") {
-            i += 1;
-            continue;
-        }
-        if (a == "-T" || a == "--files-from") && i + 1 < args.len() {
-            i += 1;
-            files_from = Some(args[i].clone());
-            i += 1;
-            continue;
-        }
-        if let Some(ff) = a.strip_prefix("--files-from=") {
-            files_from = Some(ff.to_string());
-            i += 1;
-            continue;
-        }
-        if a == "--exclude" && i + 1 < args.len() {
-            i += 1;
-            excludes.push(args[i].clone());
-            i += 1;
-            continue;
-        }
-        if let Some(ex) = a.strip_prefix("--exclude=") {
-            excludes.push(ex.to_string());
-            i += 1;
-            continue;
-        }
-        if a == "--strip-components" && i + 1 < args.len() {
-            i += 1;
-            strip_components = args[i].parse().unwrap_or(0);
-            i += 1;
-            continue;
-        }
-        if let Some(sc) = a.strip_prefix("--strip-components=") {
-            strip_components = sc.parse().unwrap_or(0);
-            i += 1;
-            continue;
-        }
-        if a.starts_with("--") {
-            match a.as_str() {
-                "--delete" => delete_mode = true,
-                "--append" => append_mode = true,
-                "--update" => update_mode = true,
-                "--diff" | "--compare" => diff_mode = true,
-                "--catenate" | "--concatenate" => catenate_mode = true,
-                "--to-stdout" => to_stdout = true,
-                "--null" => null_delim = true,
-                "--skip-old-files" => skip_old_files = true,
-                "--keep-old-files" => keep_old_files = true,
-                "--exclude-caches" => exclude_caches = true,
-                "--show-transformed-names" | "--show-stored-names" => show_transformed = true,
-                "--dereference" => dereference = true,
-                "--gzip" | "--gunzip" | "--bzip2" | "--xz" | "--zstd" | "--auto-compress" => {
-                    use_compress = true;
-                }
-                "--wildcards" | "--numeric-owner" | "--utc" | "--preserve-permissions" => {}
-                _ => {}
-            }
-            i += 1;
-            continue;
-        }
-        if i == 0 || a.starts_with('-') {
-            let flags = a.trim_start_matches('-');
-            let chars: Vec<char> = flags.chars().collect();
-            let mut ci = 0usize;
-            let mut matched_flag = false;
-            while ci < chars.len() {
-                match chars[ci] {
-                    'c' => {
-                        create = true;
-                        matched_flag = true;
-                    }
-                    'x' => {
-                        extract = true;
-                        matched_flag = true;
-                    }
-                    't' => {
-                        list = true;
-                        matched_flag = true;
-                    }
-                    'r' => {
-                        append_mode = true;
-                        matched_flag = true;
-                    }
-                    'u' => {
-                        update_mode = true;
-                        matched_flag = true;
-                    }
-                    'd' => {
-                        diff_mode = true;
-                        matched_flag = true;
-                    }
-                    'A' => {
-                        catenate_mode = true;
-                        matched_flag = true;
-                    }
-                    'O' => {
-                        to_stdout = true;
-                        matched_flag = true;
-                    }
-                    'k' => {
-                        keep_old_files = true;
-                        matched_flag = true;
-                    }
-                    'h' => {
-                        dereference = true;
-                        matched_flag = true;
-                    }
-                    'v' => {
-                        verbose = true;
-                        matched_flag = true;
-                    }
-                    'z' | 'j' | 'J' | 'a' => {
-                        use_compress = true;
-                        matched_flag = true;
-                    }
-                    'p' => {
-                        matched_flag = true;
-                    }
-                    'f' => {
-                        matched_flag = true;
-                        let rest: String = chars[ci + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            archive_file = Some(rest);
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            archive_file = Some(args[i].clone());
-                        }
-                        break;
-                    }
-                    _ => {}
-                }
-                ci += 1;
-            }
-            if matched_flag {
-                i += 1;
-                continue;
-            }
-        }
-        targets.push(a.clone());
-        i += 1;
-    }
-
-    if let Some(ff) = files_from {
-        let raw = if ff == "-" {
+    let read_exclude_file = |xf: &str, excludes: &mut Vec<String>| {
+        let raw = if xf == "-" {
             stdin.to_string()
         } else {
-            let full = resolve_posix_path(cwd, &ff);
-            fs.read_file(&full)
+            let ex_path = resolve_posix_path(cwd, xf);
+            fs.read_file(&ex_path)
                 .map(|b| String::from_utf8_lossy(&b).into_owned())
                 .unwrap_or_default()
         };
-        if null_delim {
-            for item in raw.split('\0') {
-                let t = item.trim_matches(|c: char| c == '\n' || c == '\r');
-                if !t.is_empty() {
-                    targets.push(t.to_string());
+        for line in raw.lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() {
+                excludes.push(trimmed.to_string());
+            }
+        }
+    };
+
+    let process_files_from =
+        |ff: &str,
+         list_null: bool,
+         list_verbatim: bool,
+         cur_dir: &mut String,
+         excludes_len: usize,
+         rec: bool,
+         ops: &mut Vec<TarOperand>| {
+            let raw = if ff == "-" {
+                stdin.to_string()
+            } else {
+                let full = resolve_posix_path(cwd, ff);
+                fs.read_file(&full)
+                    .map(|b| String::from_utf8_lossy(&b).into_owned())
+                    .unwrap_or_default()
+            };
+            if list_null {
+                for item in raw.split('\0') {
+                    let t = item.trim_matches(|c: char| c == '\n' || c == '\r');
+                    if !t.is_empty() {
+                        ops.push(TarOperand {
+                            name: t.to_string(),
+                            cwd: cur_dir.clone(),
+                            exclude_count: excludes_len,
+                            recursion: rec,
+                        });
+                    }
+                }
+            } else {
+                let lines: Vec<&str> = raw.split('\n').collect();
+                let mut li = 0usize;
+                while li < lines.len() {
+                    let line = lines[li].trim_end_matches('\r');
+                    if line.is_empty() {
+                        li += 1;
+                        continue;
+                    }
+                    if !list_verbatim && line.starts_with('-') {
+                        if line == "-C" {
+                            if li + 1 < lines.len() {
+                                li += 1;
+                                *cur_dir = resolve_posix_path(cur_dir, lines[li].trim_end_matches('\r'));
+                            }
+                        } else if let Some(rest) = line.strip_prefix("-C") {
+                            *cur_dir = resolve_posix_path(cur_dir, rest);
+                        } else if let Some(rest) = line.strip_prefix("--directory=") {
+                            *cur_dir = resolve_posix_path(cur_dir, rest);
+                        }
+                    } else {
+                        let name = if !list_verbatim {
+                            tar_unquote_filename(line)
+                        } else {
+                            line.to_string()
+                        };
+                        ops.push(TarOperand {
+                            name,
+                            cwd: cur_dir.clone(),
+                            exclude_count: excludes_len,
+                            recursion: rec,
+                        });
+                    }
+                    li += 1;
                 }
             }
-        } else {
-            for line in raw.lines() {
-                let t = line.trim();
-                if !t.is_empty() {
-                    targets.push(t.to_string());
+        };
+
+    let mut i = 0usize;
+    let mut end_of_opts = false;
+    while i < args.len() {
+        let a = &args[i];
+        if !end_of_opts && a == "--" {
+            end_of_opts = true;
+            i += 1;
+            continue;
+        }
+        if !end_of_opts {
+            if (a == "-C" || a == "--directory") && i + 1 < args.len() {
+                i += 1;
+                current_dir = resolve_posix_path(&current_dir, &args[i]);
+                i += 1;
+                continue;
+            }
+            if let Some(d) = a.strip_prefix("--directory=") {
+                current_dir = resolve_posix_path(&current_dir, d);
+                i += 1;
+                continue;
+            }
+            if (a == "-f" || a == "--file") && i + 1 < args.len() {
+                i += 1;
+                archive_file = Some(args[i].clone());
+                i += 1;
+                continue;
+            }
+            if let Some(f) = a.strip_prefix("--file=") {
+                archive_file = Some(f.to_string());
+                i += 1;
+                continue;
+            }
+            if (a == "-X" || a == "--exclude-from") && i + 1 < args.len() {
+                i += 1;
+                read_exclude_file(&args[i], &mut excludes);
+                i += 1;
+                continue;
+            }
+            if let Some(xf) = a.strip_prefix("--exclude-from=") {
+                read_exclude_file(xf, &mut excludes);
+                i += 1;
+                continue;
+            }
+            if (a == "--transform" || a == "--xform") && i + 1 < args.len() {
+                i += 1;
+                transforms.push(args[i].clone());
+                i += 1;
+                continue;
+            }
+            if let Some(tr) = a.strip_prefix("--transform=").or_else(|| a.strip_prefix("--xform=")) {
+                transforms.push(tr.to_string());
+                i += 1;
+                continue;
+            }
+            if a == "--sort" && i + 1 < args.len() {
+                i += 1;
+                if args[i] == "name" {
+                    sort_by_name = true;
+                }
+                i += 1;
+                continue;
+            }
+            if let Some(s) = a.strip_prefix("--sort=") {
+                if s == "name" {
+                    sort_by_name = true;
+                }
+                i += 1;
+                continue;
+            }
+            if a == "--quoting-style" && i + 1 < args.len() {
+                i += 1;
+                quoting_style = args[i].clone();
+                i += 1;
+                continue;
+            }
+            if let Some(qs) = a.strip_prefix("--quoting-style=") {
+                quoting_style = qs.to_string();
+                i += 1;
+                continue;
+            }
+            if a == "--mode" && i + 1 < args.len() {
+                i += 1;
+                let m = &args[i];
+                override_mode = u32::from_str_radix(m.trim_start_matches('0'), 8)
+                    .ok()
+                    .or_else(|| u32::from_str_radix(m, 8).ok());
+                i += 1;
+                continue;
+            }
+            if let Some(m) = a.strip_prefix("--mode=") {
+                override_mode = u32::from_str_radix(m.trim_start_matches('0'), 8)
+                    .ok()
+                    .or_else(|| u32::from_str_radix(m, 8).ok());
+                i += 1;
+                continue;
+            }
+            if a == "--mtime" && i + 1 < args.len() {
+                i += 1;
+                let clean = args[i].trim_matches(|c| c == '\'' || c == '"');
+                if let Some(sec) = clean.strip_prefix('@') {
+                    override_mtime = sec.parse::<u64>().ok();
+                }
+                i += 1;
+                continue;
+            }
+            if let Some(mt) = a.strip_prefix("--mtime=") {
+                let clean = mt.trim_matches(|c| c == '\'' || c == '"');
+                if let Some(sec) = clean.strip_prefix('@') {
+                    override_mtime = sec.parse::<u64>().ok();
+                }
+                i += 1;
+                continue;
+            }
+            if a == "--owner" && i + 1 < args.len() {
+                i += 1;
+                override_uid = args[i].trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                i += 1;
+                continue;
+            }
+            if let Some(ow) = a.strip_prefix("--owner=") {
+                override_uid = ow.trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                i += 1;
+                continue;
+            }
+            if a == "--group" && i + 1 < args.len() {
+                i += 1;
+                override_gid = args[i].trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                i += 1;
+                continue;
+            }
+            if let Some(gr) = a.strip_prefix("--group=") {
+                override_gid = gr.trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                i += 1;
+                continue;
+            }
+            if a == "--format" && i + 1 < args.len() {
+                i += 2;
+                continue;
+            }
+            if a.starts_with("--format=") || a.starts_with("--record-size=") || a.starts_with("--atime-preserve") {
+                i += 1;
+                continue;
+            }
+            if (a == "-b" || a == "--blocking-factor" || a == "--record-size") && i + 1 < args.len() {
+                i += 2;
+                continue;
+            }
+            if (a == "-T" || a == "--files-from") && i + 1 < args.len() {
+                i += 1;
+                let ff = args[i].clone();
+                pending_files_from.push((ff, null_delim, verbatim_files_from));
+                i += 1;
+                continue;
+            }
+            if let Some(ff) = a.strip_prefix("--files-from=") {
+                pending_files_from.push((ff.to_string(), null_delim, verbatim_files_from));
+                i += 1;
+                continue;
+            }
+            if a == "--exclude" && i + 1 < args.len() {
+                i += 1;
+                excludes.push(args[i].clone());
+                i += 1;
+                continue;
+            }
+            if let Some(ex) = a.strip_prefix("--exclude=") {
+                excludes.push(ex.to_string());
+                i += 1;
+                continue;
+            }
+            if a == "--strip-components" && i + 1 < args.len() {
+                i += 1;
+                strip_components = args[i].parse().unwrap_or(0);
+                i += 1;
+                continue;
+            }
+            if let Some(sc) = a.strip_prefix("--strip-components=") {
+                strip_components = sc.parse().unwrap_or(0);
+                i += 1;
+                continue;
+            }
+            if a == "--occurrence" {
+                occurrence = Some(1);
+                i += 1;
+                continue;
+            }
+            if let Some(occ) = a.strip_prefix("--occurrence=") {
+                occurrence = occ.parse::<usize>().ok().or(Some(1));
+                i += 1;
+                continue;
+            }
+            if a.starts_with("--") {
+                match a.as_str() {
+                    "--create" => create = true,
+                    "--extract" | "--get" => extract = true,
+                    "--list" => list = true,
+                    "--delete" => delete_mode = true,
+                    "--append" => append_mode = true,
+                    "--update" => update_mode = true,
+                    "--diff" | "--compare" => diff_mode = true,
+                    "--catenate" | "--concatenate" => catenate_mode = true,
+                    "--to-stdout" => to_stdout = true,
+                    "--null" => {
+                        null_delim = true;
+                        verbatim_files_from = true;
+                    }
+                    "--no-null" => null_delim = false,
+                    "--verbatim-files-from" => verbatim_files_from = true,
+                    "--no-verbatim-files-from" => verbatim_files_from = false,
+                    "--no-recursion" => recursion = false,
+                    "--recursion" => recursion = true,
+                    "--skip-old-files" => skip_old_files = true,
+                    "--keep-old-files" => keep_old_files = true,
+                    "--overwrite" => {
+                        skip_old_files = false;
+                        keep_old_files = false;
+                    }
+                    "--exclude-caches" => exclude_caches = true,
+                    "--show-transformed-names" | "--show-stored-names" => show_transformed = true,
+                    "--dereference" => dereference = true,
+                    "--totals" => totals = true,
+                    "--utc" => {
+                        utc = true;
+                        verbose = true;
+                    }
+                    "--full-time" => full_time = true,
+                    "--wildcards" => wildcards = true,
+                    "--no-wildcards" => wildcards = false,
+                    "--verbose" => verbose = true,
+                    "--gzip" | "--gunzip" | "--bzip2" | "--xz" | "--zstd" | "--auto-compress" => {
+                        use_compress = true;
+                    }
+                    _ => {}
+                }
+                i += 1;
+                continue;
+            }
+            if (a.starts_with('-') && a != "-")
+                || (i == 0 && !a.is_empty() && a.chars().all(|ch| "ctxrudAzjJavfCTXmpkhbBinO".contains(ch)))
+            {
+                let old_style = !a.starts_with('-');
+                let flags = a.trim_start_matches('-');
+                let chars: Vec<char> = flags.chars().collect();
+                let mut ci = 0usize;
+                let mut matched_flag = false;
+                while ci < chars.len() {
+                    match chars[ci] {
+                        'c' => {
+                            create = true;
+                            matched_flag = true;
+                        }
+                        'x' => {
+                            extract = true;
+                            matched_flag = true;
+                        }
+                        't' => {
+                            list = true;
+                            matched_flag = true;
+                        }
+                        'r' => {
+                            append_mode = true;
+                            matched_flag = true;
+                        }
+                        'u' => {
+                            update_mode = true;
+                            matched_flag = true;
+                        }
+                        'd' => {
+                            diff_mode = true;
+                            matched_flag = true;
+                        }
+                        'A' => {
+                            catenate_mode = true;
+                            matched_flag = true;
+                        }
+                        'O' => {
+                            to_stdout = true;
+                            matched_flag = true;
+                        }
+                        'k' => {
+                            keep_old_files = true;
+                            matched_flag = true;
+                        }
+                        'h' => {
+                            dereference = true;
+                            matched_flag = true;
+                        }
+                        'v' => {
+                            verbose = true;
+                            matched_flag = true;
+                        }
+                        'z' | 'j' | 'J' | 'a' => {
+                            use_compress = true;
+                            matched_flag = true;
+                        }
+                        'p' | 'm' | 'B' | 'i' | 'n' => {
+                            matched_flag = true;
+                        }
+                        'f' => {
+                            matched_flag = true;
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            if !old_style && !rest.is_empty() {
+                                archive_file = Some(rest);
+                                break;
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                archive_file = Some(args[i].clone());
+                            }
+                        }
+                        'C' => {
+                            matched_flag = true;
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            if !old_style && !rest.is_empty() {
+                                current_dir = resolve_posix_path(&current_dir, &rest);
+                                break;
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                current_dir = resolve_posix_path(&current_dir, &args[i]);
+                            }
+                        }
+                        'T' => {
+                            matched_flag = true;
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            if !old_style && !rest.is_empty() {
+                                pending_files_from.push((rest, null_delim, verbatim_files_from));
+                                break;
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                pending_files_from.push((args[i].clone(), null_delim, verbatim_files_from));
+                            }
+                        }
+                        'X' => {
+                            matched_flag = true;
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            if !old_style && !rest.is_empty() {
+                                read_exclude_file(&rest, &mut excludes);
+                                break;
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                read_exclude_file(&args[i], &mut excludes);
+                            }
+                        }
+                        'b' => {
+                            matched_flag = true;
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            if !old_style && !rest.is_empty() {
+                                break;
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                            }
+                        }
+                        _ => {}
+                    }
+                    ci += 1;
+                }
+                if matched_flag {
+                    i += 1;
+                    continue;
                 }
             }
         }
+        operands.push(TarOperand {
+            name: a.clone(),
+            cwd: current_dir.clone(),
+            exclude_count: excludes.len(),
+            recursion,
+        });
+        i += 1;
     }
 
-    let base_dir = change_dir
-        .as_deref()
-        .map(|d| resolve_posix_path(cwd, d))
-        .unwrap_or_else(|| cwd.to_string());
+    for (ff, list_null, list_verbatim) in pending_files_from {
+        let final_null = list_null || null_delim;
+        let final_verbatim = list_verbatim || verbatim_files_from || final_null;
+        process_files_from(
+            &ff,
+            final_null,
+            final_verbatim,
+            &mut current_dir,
+            excludes.len(),
+            recursion,
+            &mut operands,
+        );
+    }
 
     if create {
         let mut entries: Vec<TarEntry> = Vec::new();
         let mut create_stderr = String::new();
-        for t in &targets {
-            if t.contains("..") {
+        for op in &operands {
+            if op.name.contains("..") {
                 create_stderr.push_str(&format!(
-                    "tar: {t}: Member name contains '..' (removing member-name prefix through '..')\n"
+                    "tar: {}: Member name contains '..' (removing member-name prefix through '..')\n",
+                    op.name
                 ));
             }
             collect_tar_entries(
-                t,
-                &base_dir,
-                &excludes,
+                &op.name,
+                &op.cwd,
+                &excludes[..op.exclude_count.min(excludes.len())],
                 exclude_caches,
                 dereference,
                 sort_by_name,
+                op.recursion,
                 fs,
                 &mut entries,
             );
@@ -3861,10 +4186,13 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let mut verbose_out = String::new();
         for entry in &entries {
             if verbose {
-                verbose_out.push_str(&format!("{}\n", entry.name));
+                verbose_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
             }
         }
         let raw_tar = serialize_ustar_archive(&entries);
+        if totals {
+            create_stderr.push_str(&format!("Total bytes written: {}\n", raw_tar.len()));
+        }
         let out_bytes = if use_compress {
             gzip_compress_stored(&raw_tar)
         } else {
@@ -3891,6 +4219,55 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         };
     }
 
+    let match_tar_operands = |entry_name: &str,
+                              operands: &[TarOperand],
+                              wildcards: bool,
+                              occurrence: Option<usize>,
+                              occ_counts: &mut [usize],
+                              matched_ops: &mut [bool],
+                              default_root: &str|
+     -> (bool, String) {
+        if operands.is_empty() {
+            return (true, default_root.to_string());
+        }
+        let name = entry_name.trim_start_matches('/');
+        let norm_name = name.trim_start_matches("./");
+        let plain_name = name.trim_end_matches('/');
+        let plain_norm = norm_name.trim_end_matches('/');
+        let mut selected = false;
+        let mut chosen_root = default_root.to_string();
+        for (idx, op) in operands.iter().enumerate() {
+            let wanted = op.name.trim_start_matches('/').trim_end_matches('/');
+            let norm_wanted = wanted.trim_start_matches("./");
+            let is_match = if wildcards {
+                crate::shell::expand::glob_match(wanted, plain_name)
+                    || crate::shell::expand::glob_match(norm_wanted, plain_norm)
+                    || tar_matches_exclude(plain_name, std::slice::from_ref(&op.name))
+            } else {
+                plain_name == wanted
+                    || name.starts_with(&format!("{wanted}/"))
+                    || (!norm_wanted.is_empty()
+                        && (plain_norm == norm_wanted || norm_name.starts_with(&format!("{norm_wanted}/"))))
+                    || crate::shell::expand::glob_match(wanted, plain_name)
+                    || crate::shell::expand::glob_match(norm_wanted, plain_norm)
+            };
+            if is_match {
+                occ_counts[idx] += 1;
+                if let Some(occ) = occurrence
+                    && occ_counts[idx] != occ
+                {
+                    continue;
+                }
+                if !selected {
+                    chosen_root = op.cwd.clone();
+                }
+                selected = true;
+                matched_ops[idx] = true;
+            }
+        }
+        (selected, chosen_root)
+    };
+
     if append_mode || update_mode || delete_mode || catenate_mode {
         let Some(ref af) = archive_file else {
             return err_out("tar: archive file required\n", 2);
@@ -3898,16 +4275,19 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let full = resolve_posix_path(cwd, af);
         let existing_bytes = fs.read_file(&full).unwrap_or_default();
         let mut entries = parse_ustar_archive(&existing_bytes);
+        let mut stderr = String::new();
+        let mut exit_code = 0;
         if append_mode || update_mode {
             let mut new_entries = Vec::new();
-            for t in &targets {
+            for op in &operands {
                 collect_tar_entries(
-                    t,
-                    &base_dir,
-                    &excludes,
+                    &op.name,
+                    &op.cwd,
+                    &excludes[..op.exclude_count.min(excludes.len())],
                     exclude_caches,
                     dereference,
                     sort_by_name,
+                    op.recursion,
                     fs,
                     &mut new_entries,
                 );
@@ -3921,7 +4301,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         .iter()
                         .rev()
                         .find(|e| e.name == ne.name)
-                        .is_some_and(|e| e.content == ne.content);
+                        .is_some_and(|e| ne.mtime < e.mtime || (ne.mtime == e.mtime && e.content == ne.content));
                     if !unchanged {
                         entries.push(ne);
                     }
@@ -3930,18 +4310,49 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             }
         } else if delete_mode {
-            entries.retain(|e| !targets.iter().any(|t| t == &e.name));
+            let mut occ_counts = vec![0usize; operands.len()];
+            let mut matched_ops = vec![false; operands.len()];
+            let mut retained = Vec::with_capacity(entries.len());
+            for e in entries {
+                let (sel, _) = match_tar_operands(
+                    &e.name,
+                    &operands,
+                    wildcards,
+                    occurrence,
+                    &mut occ_counts,
+                    &mut matched_ops,
+                    &current_dir,
+                );
+                let excluded = !excludes.is_empty() && tar_matches_exclude(&e.name, &excludes);
+                if !(sel && !excluded) {
+                    retained.push(e);
+                }
+            }
+            entries = retained;
+            for (idx, &m) in matched_ops.iter().enumerate() {
+                if !m {
+                    stderr.push_str(&format!("tar: member not found: {}\n", operands[idx].name));
+                    exit_code = 2;
+                }
+            }
         } else if catenate_mode {
-            for t in &targets {
-                let t_full = resolve_posix_path(cwd, t);
+            for op in &operands {
+                let t_full = resolve_posix_path(&op.cwd, &op.name);
                 if let Ok(tb) = fs.read_file(&t_full) {
                     entries.extend(parse_ustar_archive(&tb));
                 }
             }
         }
         let out_bytes = serialize_ustar_archive(&entries);
+        if totals {
+            stderr.push_str(&format!("Total bytes written: {}\n", out_bytes.len()));
+        }
         let _ = fs.write_file(&full, &out_bytes);
-        return ok_out("");
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code,
+        };
     }
 
     let archive_bytes = if let Some(ref af) = archive_file {
@@ -3968,17 +4379,77 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if diff_mode {
         let mut diff_out = String::new();
         let mut diff_code = 0;
+        let mut occ_counts = vec![0usize; operands.len()];
+        let mut matched_ops = vec![false; operands.len()];
         for entry in parsed {
-            if entry.typeflag == b'0' {
-                let dest = resolve_posix_path(&base_dir, &entry.name);
-                match fs.read_file(&dest) {
-                    Ok(disk_bytes) if disk_bytes == entry.content => {}
-                    Ok(_) => {
-                        diff_out.push_str(&format!("{}: Mod time differs\n{}: Size differs\n{}: Contents differ\n", entry.name, entry.name, entry.name));
+            let (sel, entry_root) = match_tar_operands(
+                &entry.name,
+                &operands,
+                wildcards,
+                occurrence,
+                &mut occ_counts,
+                &mut matched_ops,
+                &current_dir,
+            );
+            if !sel || (!excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes)) {
+                continue;
+            }
+            let dest = resolve_posix_path(&entry_root, &entry.name);
+            if entry.typeflag == b'2' {
+                match fs.readlink(&dest) {
+                    Ok(actual_target) => {
+                        if actual_target != entry.linkname {
+                            diff_out.push_str(&format!("{}: Symlink differs\n", entry.name));
+                            diff_code = 1;
+                        }
+                    }
+                    Err(_) => {
+                        if fs.exists(&dest) {
+                            diff_out.push_str(&format!("{}: File type differs\n", entry.name));
+                        } else {
+                            diff_out.push_str(&format!("{}: File is missing\n", entry.name));
+                        }
                         diff_code = 1;
                     }
-                    _ => {
-                        diff_out.push_str(&format!("{}: Warning: Cannot stat: No such file or directory\n{}: File is missing\n", entry.name, entry.name));
+                }
+            } else if entry.typeflag == b'5' {
+                if !fs.exists(&dest) {
+                    diff_out.push_str(&format!("{}: File is missing\n", entry.name));
+                    diff_code = 1;
+                } else if !fs.is_dir(&dest) {
+                    diff_out.push_str(&format!("{}: File type differs\n", entry.name));
+                    diff_code = 1;
+                }
+            } else if entry.typeflag == b'0' {
+                if fs.readlink(&dest).is_ok() || fs.is_dir(&dest) {
+                    diff_out.push_str(&format!("{}: File type differs\n", entry.name));
+                    diff_code = 1;
+                    continue;
+                }
+                match fs.read_file(&dest) {
+                    Ok(disk_bytes) => {
+                        if let Ok(st) = fs.stat(&dest) {
+                            if (st.mode & 0o7777) != (entry.mode & 0o7777) {
+                                diff_out.push_str(&format!("{}: Mode differs\n", entry.name));
+                                diff_code = 1;
+                            }
+                            if (st.mtime_ms / 1000) != entry.mtime {
+                                diff_out.push_str(&format!("{}: Mod time differs\n", entry.name));
+                                diff_code = 1;
+                            }
+                        }
+                        if disk_bytes.len() != entry.content.len() {
+                            diff_out.push_str(&format!("{}: Size differs\n", entry.name));
+                            diff_code = 1;
+                        } else if disk_bytes != entry.content {
+                            diff_out.push_str(&format!("{}: Contents differ\n", entry.name));
+                            diff_code = 1;
+                        } else if verbose {
+                            diff_out.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
+                        }
+                    }
+                    Err(_) => {
+                        diff_out.push_str(&format!("{}: File is missing\n", entry.name));
                         diff_code = 1;
                     }
                 }
@@ -3992,93 +4463,131 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
     if list {
         let mut out = String::new();
+        let mut stderr = String::new();
+        let mut exit_code = 0;
+        let mut occ_counts = vec![0usize; operands.len()];
+        let mut matched_ops = vec![false; operands.len()];
         for entry in parsed {
-            let disp = if show_transformed && !transforms.is_empty() {
-                apply_tar_transforms(&entry.name, &transforms)
-            } else {
-                entry.name
+            let (sel, _) = match_tar_operands(
+                &entry.name,
+                &operands,
+                wildcards,
+                occurrence,
+                &mut occ_counts,
+                &mut matched_ops,
+                &current_dir,
+            );
+            if !sel || (!excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes)) {
+                continue;
+            }
+            let is_dir_entry = entry.typeflag == b'5' || entry.name.ends_with('/');
+            let Some(base_name) = tar_strip_components(&entry.name, strip_components, is_dir_entry) else {
+                continue;
             };
+            let disp = if show_transformed && !transforms.is_empty() {
+                apply_tar_transforms(&base_name, &transforms)
+            } else {
+                base_name
+            };
+            let link_disp = if show_transformed && !transforms.is_empty() && !entry.linkname.is_empty() {
+                apply_tar_transforms(&entry.linkname, &transforms)
+            } else {
+                entry.linkname.clone()
+            };
+            let quoted_disp = tar_quote_name(&disp, &quoting_style);
             if verbose {
                 let perm = format_tar_mode(entry.typeflag, entry.mode);
-                let dt = format_utc_mtime(entry.mtime);
-                let sz = entry.content.len();
-                out.push_str(&format!(
-                    "{perm} {}/{} {sz} {dt} {disp}\n",
-                    entry.uid, entry.gid
-                ));
+                let dt = format_tar_mtime(entry.mtime, full_time, utc);
+                let owner = format!("{}/{}", entry.uid, entry.gid);
+                let sz = if utc {
+                    format!("{:>width$}", entry.content.len(), width = 18usize.saturating_sub(owner.len()).max(1))
+                } else {
+                    entry.content.len().to_string()
+                };
+                let suffix = if entry.typeflag == b'2' {
+                    format!(" -> {}", tar_quote_name(&link_disp, &quoting_style))
+                } else if entry.typeflag == b'1' {
+                    format!(" link to {}", tar_quote_name(&link_disp, &quoting_style))
+                } else {
+                    String::new()
+                };
+                out.push_str(&format!("{perm} {owner} {sz} {dt} {quoted_disp}{suffix}\n"));
             } else {
-                out.push_str(&format!("{disp}\n"));
+                out.push_str(&format!("{quoted_disp}\n"));
             }
         }
-        return ok_out(&out);
+        for (idx, &m) in matched_ops.iter().enumerate() {
+            if !m {
+                stderr.push_str(&format!("tar: member not found: {}\n", operands[idx].name));
+                exit_code = 2;
+            }
+        }
+        if totals {
+            stderr.push_str(&format!("Total bytes read: {}\n", archive_bytes.len()));
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code,
+        };
     }
 
     if extract {
         let mut out = String::new();
         let mut stderr = String::new();
         let mut exit_code = 0;
+        let mut occ_counts = vec![0usize; operands.len()];
+        let mut matched_ops = vec![false; operands.len()];
         for entry in parsed {
-            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
+            let (sel, entry_root) = match_tar_operands(
+                &entry.name,
+                &operands,
+                wildcards,
+                occurrence,
+                &mut occ_counts,
+                &mut matched_ops,
+                &current_dir,
+            );
+            if !sel || (!excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes)) {
                 continue;
             }
-            if !targets.is_empty()
-                && !targets.iter().any(|t| {
-                    let tn = t.trim_start_matches("./");
-                    let en = entry.name.trim_start_matches("./");
-                    t == &entry.name
-                        || tn == en
-                        || en.starts_with(&format!("{}/", tn.trim_end_matches('/')))
-                        || crate::shell::expand::glob_match(t, &entry.name)
-                        || crate::shell::expand::glob_match(tn, en)
-                })
-            {
+            let effective_name = if !transforms.is_empty() {
+                apply_tar_transforms(&entry.name, &transforms)
+            } else {
+                entry.name.clone()
+            };
+            let is_dir_entry = entry.typeflag == b'5' || effective_name.ends_with('/');
+            let Some(rel_name) = tar_strip_components(&effective_name, strip_components, is_dir_entry) else {
                 continue;
-            }
+            };
             if to_stdout {
+                if verbose {
+                    stderr.push_str(&format!("{}\n", tar_quote_name(&entry.name, &quoting_style)));
+                }
                 if entry.typeflag == b'0' {
                     out.push_str(&crate::vfs::bytes_to_stream_string(&entry.content));
                 }
                 continue;
             }
-            let rel_name = if strip_components > 0 {
-                let is_dir_entry = entry.typeflag == b'5' || entry.name.ends_with('/');
-                let parts: Vec<&str> = entry
-                    .name
-                    .trim_start_matches("./")
-                    .trim_end_matches('/')
-                    .split('/')
-                    .filter(|s| !s.is_empty())
-                    .collect();
-                if parts.len() <= strip_components {
-                    continue;
-                }
-                let joined = parts[strip_components..].join("/");
-                if is_dir_entry {
-                    format!("{joined}/")
-                } else {
-                    joined
-                }
+            let shown_name = if show_transformed {
+                &rel_name
             } else {
-                entry.name.clone()
-            };
-            let rel_name = if !transforms.is_empty() {
-                apply_tar_transforms(&rel_name, &transforms)
-            } else {
-                rel_name
+                &entry.name
             };
             if verbose {
-                out.push_str(&format!("{rel_name}\n"));
+                out.push_str(&format!("{}\n", tar_quote_name(shown_name, &quoting_style)));
             }
             if rel_name.split('/').any(|seg| seg == "..") {
                 stderr.push_str(&format!("tar: {rel_name}: Member name contains '..'\n"));
                 exit_code = 2;
                 continue;
             }
-            let dest = resolve_posix_path(&base_dir, &rel_name);
+            let dest = resolve_posix_path(&entry_root, &rel_name);
             if entry.typeflag == b'5' || rel_name.ends_with('/') {
                 let _ = fs.mkdir_all(&dest);
                 let _ = fs.chmod(&dest, entry.mode);
             } else if entry.typeflag == b'2' {
+                let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
                 let _ = fs.symlink(&entry.linkname, &dest);
             } else {
                 if fs.exists(&dest) && !fs.is_dir(&dest) {
@@ -4091,9 +4600,19 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         continue;
                     }
                 }
+                let _ = fs.mkdir_all(&crate::vfs::dirname_posix_path(&dest));
                 let _ = fs.write_file(&dest, &entry.content);
                 let _ = fs.chmod(&dest, entry.mode);
             }
+        }
+        for (idx, &m) in matched_ops.iter().enumerate() {
+            if !m {
+                stderr.push_str(&format!("tar: member not found: {}\n", operands[idx].name));
+                exit_code = 2;
+            }
+        }
+        if totals {
+            stderr.push_str(&format!("Total bytes read: {}\n", archive_bytes.len()));
         }
         return BuiltinOutcome {
             stdout: out,
@@ -4106,9 +4625,14 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 }
 
 fn tar_matches_exclude(path: &str, excludes: &[String]) -> bool {
-    let base = path.trim_end_matches('/').rsplit('/').next().unwrap_or(path);
+    let clean = path.trim_start_matches("./").trim_end_matches('/');
+    let base = clean.rsplit('/').next().unwrap_or(clean);
     for pat in excludes {
-        if crate::shell::expand::glob_match(pat, base) || crate::shell::expand::glob_match(pat, path) {
+        let clean_pat = pat.trim_start_matches("./").trim_end_matches('/');
+        if crate::shell::expand::glob_match(clean_pat, base)
+            || crate::shell::expand::glob_match(clean_pat, clean)
+            || crate::shell::expand::glob_match(pat, path)
+        {
             return true;
         }
     }
@@ -4146,6 +4670,7 @@ fn collect_tar_entries(
     exclude_caches: bool,
     dereference: bool,
     sort_by_name: bool,
+    recursion: bool,
     fs: &dyn SafeBashFs,
     out: &mut Vec<TarEntry>,
 ) {
@@ -4167,11 +4692,12 @@ fn collect_tar_entries(
     }
     if let Ok(target) = fs.readlink(&full) {
         if !dereference {
+            let mtime = fs.stat(&full).map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
             out.push(TarEntry {
                 name: stored_rel.to_string(),
                 typeflag: b'2',
                 mode: 0o777,
-                mtime: 1700000000,
+                mtime,
                 uid: 0,
                 gid: 0,
                 linkname: target,
@@ -4182,12 +4708,14 @@ fn collect_tar_entries(
         let parent = crate::vfs::dirname_posix_path(&full);
         let resolved_target = resolve_posix_path(&parent, &target);
         if let Ok(bytes) = fs.read_file(&resolved_target) {
-            let mode = fs.stat(&resolved_target).map(|s| s.mode & 0o777).unwrap_or(0o644);
+            let st = fs.stat(&resolved_target).ok();
+            let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o644);
+            let mtime = st.as_ref().map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
             out.push(TarEntry {
                 name: stored_rel.to_string(),
                 typeflag: b'0',
                 mode,
-                mtime: 1700000000,
+                mtime,
                 uid: 0,
                 gid: 0,
                 linkname: String::new(),
@@ -4197,18 +4725,23 @@ fn collect_tar_entries(
         return;
     }
     if fs.is_dir(&full) {
-        let mode = fs.stat(&full).map(|s| s.mode & 0o777).unwrap_or(0o755);
+        let st = fs.stat(&full).ok();
+        let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o755);
+        let mtime = st.as_ref().map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
         if (!clean_rel.is_empty() && clean_rel != ".") || (stored_rel == "." && sort_by_name) {
             out.push(TarEntry {
                 name: format!("{}/", stored_rel.trim_end_matches('/')),
                 typeflag: b'5',
                 mode,
-                mtime: 1700000000,
+                mtime,
                 uid: 0,
                 gid: 0,
                 linkname: String::new(),
                 content: Vec::new(),
             });
+        }
+        if !recursion {
+            return;
         }
         let has_cache_tag = exclude_caches && fs.exists(&format!("{}/CACHEDIR.TAG", full.trim_end_matches('/')));
         if let Ok(mut children) = fs.read_dir(&full) {
@@ -4233,18 +4766,21 @@ fn collect_tar_entries(
                     exclude_caches,
                     dereference,
                     sort_by_name,
+                    recursion,
                     fs,
                     out,
                 );
             }
         }
     } else if let Ok(bytes) = fs.read_file(&full) {
-        let mode = fs.stat(&full).map(|s| s.mode & 0o777).unwrap_or(0o644);
+        let st = fs.stat(&full).ok();
+        let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o644);
+        let mtime = st.as_ref().map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
         out.push(TarEntry {
             name: stored_rel.to_string(),
             typeflag: b'0',
             mode,
-            mtime: 1700000000,
+            mtime,
             uid: 0,
             gid: 0,
             linkname: String::new(),
@@ -4257,24 +4793,36 @@ fn format_tar_mode(typeflag: u8, mode: u32) -> String {
     let lead = match typeflag {
         b'5' => 'd',
         b'2' => 'l',
+        b'1' => 'h',
         _ => '-',
     };
-    let mut s = String::with_capacity(10);
-    s.push(lead);
-    for shift in [6, 3, 0] {
+    let mut chars = ['-'; 10];
+    chars[0] = lead;
+    for (idx, shift) in [6u32, 3, 0].iter().enumerate() {
         let bits = (mode >> shift) & 7;
-        s.push(if (bits & 4) != 0 { 'r' } else { '-' });
-        s.push(if (bits & 2) != 0 { 'w' } else { '-' });
-        s.push(if (bits & 1) != 0 { 'x' } else { '-' });
+        let base = 1 + idx * 3;
+        chars[base] = if (bits & 4) != 0 { 'r' } else { '-' };
+        chars[base + 1] = if (bits & 2) != 0 { 'w' } else { '-' };
+        chars[base + 2] = if (bits & 1) != 0 { 'x' } else { '-' };
     }
-    s
+    if (mode & 0o4000) != 0 {
+        chars[3] = if (mode & 0o100) != 0 { 's' } else { 'S' };
+    }
+    if (mode & 0o2000) != 0 {
+        chars[6] = if (mode & 0o010) != 0 { 's' } else { 'S' };
+    }
+    if (mode & 0o1000) != 0 {
+        chars[9] = if (mode & 0o001) != 0 { 't' } else { 'T' };
+    }
+    chars.iter().collect()
 }
 
-fn format_utc_mtime(epoch_secs: u64) -> String {
+fn format_tar_mtime(epoch_secs: u64, full_time: bool, utc: bool) -> String {
     let days = (epoch_secs / 86400) as i64;
     let rem = epoch_secs % 86400;
     let hour = rem / 3600;
     let min = (rem % 3600) / 60;
+    let sec = rem % 60;
     let z = days + 719468;
     let era = if z >= 0 { z } else { z - 146096 } / 146097;
     let doe = (z - era * 146097) as u64;
@@ -4285,7 +4833,19 @@ fn format_utc_mtime(epoch_secs: u64) -> String {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     let year = if m <= 2 { y + 1 } else { y };
-    format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}")
+    if full_time {
+        if utc {
+            format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}:{sec:02}")
+        } else {
+            format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}:{sec:02}.000")
+        }
+    } else {
+        format!("{year:04}-{m:02}-{d:02} {hour:02}:{min:02}")
+    }
+}
+
+fn format_utc_mtime(epoch_secs: u64) -> String {
+    format_tar_mtime(epoch_secs, false, true)
 }
 
 fn build_ustar_header(
@@ -4315,7 +4875,7 @@ fn build_ustar_header(
     } else {
         hdr[0..100].copy_from_slice(&name_bytes[..100]);
     }
-    let mode_str = format!("{:07o}\0", mode & 0o777);
+    let mode_str = format!("{:07o}\0", mode & 0o7777);
     hdr[100..108].copy_from_slice(mode_str.as_bytes());
     let uid_str = format!("{uid:07o}\0");
     let gid_str = format!("{gid:07o}\0");
@@ -4386,6 +4946,11 @@ fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
     };
     let mut out = Vec::new();
     let mut pos = 0usize;
+    let mut pax_path: Option<String> = None;
+    let mut pax_linkpath: Option<String> = None;
+    let mut pax_uid: Option<u32> = None;
+    let mut pax_gid: Option<u32> = None;
+    let mut pax_mtime: Option<u64> = None;
     while pos + 512 <= data.len() {
         let block = &data[pos..pos + 512];
         if block.iter().all(|&b| b == 0) {
@@ -4399,7 +4964,7 @@ fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
         let short_name = String::from_utf8_lossy(&block[0..name_end]).to_string();
         let prefix_end = block[345..500].iter().position(|&b| b == 0).unwrap_or(155);
         let prefix = String::from_utf8_lossy(&block[345..345 + prefix_end]).to_string();
-        let name = if prefix.is_empty() {
+        let mut name = if prefix.is_empty() {
             short_name
         } else {
             format!("{prefix}/{short_name}")
@@ -4411,11 +4976,11 @@ fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
         let uid_str = String::from_utf8_lossy(&block[108..116])
             .trim_matches(|c: char| c == '\0' || c.is_whitespace())
             .to_string();
-        let uid = u32::from_str_radix(&uid_str, 8).unwrap_or(0);
+        let mut uid = u32::from_str_radix(&uid_str, 8).unwrap_or(0);
         let gid_str = String::from_utf8_lossy(&block[116..124])
             .trim_matches(|c: char| c == '\0' || c.is_whitespace())
             .to_string();
-        let gid = u32::from_str_radix(&gid_str, 8).unwrap_or(0);
+        let mut gid = u32::from_str_radix(&gid_str, 8).unwrap_or(0);
         let size_str = String::from_utf8_lossy(&block[124..136])
             .trim_matches(|c: char| c == '\0' || c.is_whitespace())
             .to_string();
@@ -4423,15 +4988,59 @@ fn parse_ustar_archive(data: &[u8]) -> Vec<TarEntry> {
         let mtime_str = String::from_utf8_lossy(&block[136..148])
             .trim_matches(|c: char| c == '\0' || c.is_whitespace())
             .to_string();
-        let mtime = u64::from_str_radix(&mtime_str, 8).unwrap_or(1700000000);
-        let typeflag = block[156];
+        let mut mtime = u64::from_str_radix(&mtime_str, 8).unwrap_or(1700000000);
+        let typeflag = if block[156] == 0 { b'0' } else { block[156] };
         let link_end = block[157..257].iter().position(|&b| b == 0).unwrap_or(100);
-        let linkname = String::from_utf8_lossy(&block[157..157 + link_end]).to_string();
+        let mut linkname = String::from_utf8_lossy(&block[157..157 + link_end]).to_string();
         pos += 512;
         let content_end = (pos + size).min(data.len());
         let content = data[pos..content_end].to_vec();
         let blocks = (size + 511) / 512;
         pos += blocks * 512;
+        if typeflag == b'x' || typeflag == b'g' {
+            let text = String::from_utf8_lossy(&content);
+            for line in text.lines() {
+                if let Some((_len, kv)) = line.split_once(' ')
+                    && let Some((k, v)) = kv.split_once('=')
+                {
+                    match k {
+                        "path" => pax_path = Some(v.to_string()),
+                        "linkpath" => pax_linkpath = Some(v.to_string()),
+                        "uid" => pax_uid = v.parse::<u32>().ok(),
+                        "gid" => pax_gid = v.parse::<u32>().ok(),
+                        "mtime" => {
+                            let sec_part = v.split('.').next().unwrap_or(v);
+                            pax_mtime = sec_part.parse::<u64>().ok();
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            continue;
+        }
+        if typeflag == b'L' {
+            pax_path = Some(String::from_utf8_lossy(&content).trim_end_matches('\0').to_string());
+            continue;
+        }
+        if typeflag == b'K' {
+            pax_linkpath = Some(String::from_utf8_lossy(&content).trim_end_matches('\0').to_string());
+            continue;
+        }
+        if let Some(p) = pax_path.take() {
+            name = p;
+        }
+        if let Some(lp) = pax_linkpath.take() {
+            linkname = lp;
+        }
+        if let Some(u) = pax_uid.take() {
+            uid = u;
+        }
+        if let Some(g) = pax_gid.take() {
+            gid = g;
+        }
+        if let Some(mt) = pax_mtime.take() {
+            mtime = mt;
+        }
         out.push(TarEntry {
             name,
             typeflag,
@@ -4495,7 +5104,7 @@ fn gzip_decompress_stored(data: &[u8]) -> Result<Vec<u8>, String> {
         if bfinal {
             pos += 8;
             if pos < data.len() {
-                if pos + 10 <= data.len() && data[pos] == 0x1f && data[pos + 1] == 0x8b {
+                if pos + 10 <= data.len() && data[pos] == 0x1f && data[pos] == 0x1f && data[pos + 1] == 0x8b {
                     pos += 10;
                     continue;
                 } else {
@@ -4530,12 +5139,17 @@ fn cmd_gzip(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    let is_zstd = matches!(invoked, "zstd" | "unzstd" | "zstdcat");
+    let is_gzip = matches!(invoked, "gzip" | "gunzip" | "zcat");
     let mut decompress = matches!(
         invoked,
         "gunzip" | "zcat" | "zstdcat" | "xzcat" | "lzcat" | "bunzip2" | "bzcat" | "unxz" | "unlzma" | "unzstd"
     );
     let mut to_stdout = matches!(invoked, "zcat" | "zstdcat" | "xzcat" | "lzcat" | "bzcat");
-    let mut keep = false;
+    let mut keep = is_zstd;
+    let mut force = false;
+    let mut passthrough = invoked == "zstdcat";
+    let mut exclude_compressed = false;
     let mut list_mode = false;
     let mut robot_mode = false;
     let mut test_mode = false;
@@ -4544,41 +5158,80 @@ fn cmd_gzip(
     let mut files = Vec::new();
 
     let mut i = 0usize;
+    let mut end_of_opts = false;
     while i < args.len() {
         let a = &args[i];
-        match a.as_str() {
-            "-d" | "--decompress" | "--uncompress" => decompress = true,
-            "-c" | "--stdout" | "--to-stdout" => to_stdout = true,
-            "-k" | "--keep" => keep = true,
-            "-l" | "--list" => list_mode = true,
-            "--robot" => robot_mode = true,
-            "-t" | "--test" => test_mode = true,
-            "-r" | "--recursive" => recursive = true,
-            "-S" | "--suffix" if i + 1 < args.len() => {
-                i += 1;
-                custom_suffix = Some(args[i].clone());
-            }
-            s if s.starts_with("--suffix=") => {
-                custom_suffix = Some(s["--suffix=".len()..].to_string());
-            }
-            s if s.starts_with("-S") && s.len() > 2 => {
-                custom_suffix = Some(s[2..].to_string());
-            }
-            s if s.starts_with('-') && !s.starts_with("--") && s.len() > 1 => {
-                for ch in s[1..].chars() {
-                    match ch {
-                        'd' => decompress = true,
-                        'c' => to_stdout = true,
-                        'k' => keep = true,
-                        'l' => list_mode = true,
-                        't' => test_mode = true,
-                        'r' => recursive = true,
-                        _ => {}
+        if !end_of_opts && a == "--" {
+            end_of_opts = true;
+            i += 1;
+            continue;
+        }
+        if !end_of_opts {
+            match a.as_str() {
+                "-d" | "--decompress" | "--uncompress" => decompress = true,
+                "-z" | "--compress" => {
+                    decompress = false;
+                    test_mode = false;
+                    list_mode = false;
+                }
+                "-c" | "--stdout" | "--to-stdout" => to_stdout = true,
+                "-k" | "--keep" => keep = true,
+                "--rm" => keep = false,
+                "-f" | "--force" => force = true,
+                "--pass-through" => passthrough = true,
+                "--no-pass-through" => passthrough = false,
+                "--exclude-compressed" => exclude_compressed = true,
+                "-l" | "--list" => list_mode = true,
+                "--robot" => robot_mode = true,
+                "-t" | "--test" => test_mode = true,
+                "-r" | "--recursive" => recursive = true,
+                "-S" | "--suffix" if i + 1 < args.len() => {
+                    i += 1;
+                    custom_suffix = Some(args[i].clone());
+                }
+                s if s.starts_with("--suffix=") => {
+                    custom_suffix = Some(s["--suffix=".len()..].to_string());
+                }
+                s if s.starts_with("-S") && s.len() > 2 => {
+                    custom_suffix = Some(s[2..].to_string());
+                }
+                s if s.starts_with('-') && !s.starts_with("--") && s.len() > 1 => {
+                    let chars: Vec<char> = s[1..].chars().collect();
+                    let mut ci = 0usize;
+                    while ci < chars.len() {
+                        match chars[ci] {
+                            'd' => decompress = true,
+                            'z' => {
+                                decompress = false;
+                                test_mode = false;
+                                list_mode = false;
+                            }
+                            'c' => to_stdout = true,
+                            'k' => keep = true,
+                            'f' => force = true,
+                            'l' => list_mode = true,
+                            't' => test_mode = true,
+                            'r' => recursive = true,
+                            'S' => {
+                                let rest: String = chars[ci + 1..].iter().collect();
+                                if !rest.is_empty() {
+                                    custom_suffix = Some(rest);
+                                } else if i + 1 < args.len() {
+                                    i += 1;
+                                    custom_suffix = Some(args[i].clone());
+                                }
+                                break;
+                            }
+                            _ => {}
+                        }
+                        ci += 1;
                     }
                 }
+                a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
+                _ => {}
             }
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
+        } else {
+            files.push(a.to_string());
         }
         i += 1;
     }
@@ -4608,7 +5261,7 @@ fn cmd_gzip(
         return ok_out("Strms  Blocks   Compressed Uncompressed  Ratio  Check   Filename\n");
     }
     if test_mode {
-        if files.is_empty() || files[0] == "-" {
+        if files.is_empty() || (files.len() == 1 && files[0] == "-") {
             let data = crate::vfs::stream_string_to_bytes(stdin);
             return match gzip_decompress_stored(&data) {
                 Ok(_) => ok_out(""),
@@ -4616,6 +5269,13 @@ fn cmd_gzip(
             };
         }
         for f in &files {
+            if f == "-" {
+                let data = crate::vfs::stream_string_to_bytes(stdin);
+                if let Err(e) = gzip_decompress_stored(&data) {
+                    return err_out(&format!("{invoked}: {e}\n"), 1);
+                }
+                continue;
+            }
             let full = resolve_posix_path(cwd, f);
             let Ok(data) = fs.read_file(&full) else {
                 return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
@@ -4627,17 +5287,8 @@ fn cmd_gzip(
         return ok_out("");
     }
 
-    if files.is_empty() || files[0] == "-" {
-        let data = crate::vfs::stream_string_to_bytes(stdin);
-        if decompress {
-            match gzip_decompress_stored(&data) {
-                Ok(out) => return ok_out(&crate::vfs::bytes_to_stream_string(&out)),
-                Err(e) => return err_out(&format!("gzip: {e}\n"), 1),
-            }
-        } else {
-            let comp = gzip_compress_stored(&data);
-            return ok_out(&crate::vfs::bytes_to_stream_string(&comp));
-        }
+    if files.is_empty() {
+        files.push("-".to_string());
     }
 
     let mut stdout_buf = String::new();
@@ -4652,24 +5303,71 @@ fn cmd_gzip(
     if recursive {
         let mut expanded = Vec::new();
         for f in &files {
-            let full = resolve_posix_path(cwd, f);
-            collect_gzip_files(&full, fs, decompress, ext, &mut expanded);
+            if f == "-" {
+                expanded.push("-".to_string());
+            } else {
+                let full = resolve_posix_path(cwd, f);
+                collect_gzip_files(&full, fs, decompress, ext, &mut expanded);
+            }
         }
         files = expanded;
     }
+    let compressed_exts = [
+        ".zst", ".tzst", ".gz", ".tgz", ".xz", ".txz", ".lzma", ".tlz", ".bz2", ".tbz2",
+        ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab",
+    ];
     for f in &files {
-        let full = resolve_posix_path(cwd, f);
+        if f == "-" {
+            let data = crate::vfs::stream_string_to_bytes(stdin);
+            if decompress {
+                match gzip_decompress_stored(&data) {
+                    Ok(out) => stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&out)),
+                    Err(_) if passthrough => {
+                        stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&data));
+                    }
+                    Err(e) => return err_out(&format!("{invoked}: {e}\n"), 1),
+                }
+            } else {
+                let comp = gzip_compress_stored(&data);
+                stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&comp));
+            }
+            continue;
+        }
+        if exclude_compressed && !decompress && compressed_exts.iter().any(|suf| f.ends_with(suf)) {
+            continue;
+        }
+        let mut full = resolve_posix_path(cwd, f);
+        if !fs.exists(&full) && decompress && is_gzip {
+            let cand = format!("{full}{ext}");
+            if fs.exists(&cand) {
+                full = cand;
+            }
+        }
         let Ok(data) = fs.read_file(&full) else {
-            return err_out(&format!("gzip: {f}: No such file or directory\n"), 1);
+            return err_out(&format!("{invoked}: {f}: No such file or directory\n"), 1);
         };
         if decompress {
-            let Ok(dec) = gzip_decompress_stored(&data) else {
-                return err_out(&format!("gzip: {f}: not in gzip format\n"), 1);
+            let dec = match gzip_decompress_stored(&data) {
+                Ok(d) => d,
+                Err(_) if passthrough && to_stdout => data.clone(),
+                Err(_) => return err_out(&format!("{invoked}: {f}: not in {invoked} format\n"), 1),
             };
             if to_stdout {
                 stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&dec));
             } else {
-                let out_path = full.strip_suffix(ext).unwrap_or(&full).to_string();
+                let out_path = if is_gzip
+                    && custom_suffix.is_none()
+                    && (full.ends_with(".tgz") || full.ends_with(".taz"))
+                {
+                    format!("{}.tar", &full[..full.len() - 4])
+                } else if let Some(stripped) = full.strip_suffix(ext) {
+                    stripped.to_string()
+                } else {
+                    return err_out(&format!("{invoked}: {f}: unknown suffix -- ignored\n"), 1);
+                };
+                if !force && fs.exists(&out_path) {
+                    return err_out(&format!("{invoked}: {out_path}: already exists\n"), 1);
+                }
                 let _ = fs.write_file(&out_path, &dec);
                 if !keep && out_path != full {
                     let _ = fs.remove(&full, false);
@@ -4680,7 +5378,16 @@ fn cmd_gzip(
             if to_stdout {
                 stdout_buf.push_str(&crate::vfs::bytes_to_stream_string(&comp));
             } else {
+                if !force && full.ends_with(ext) {
+                    return err_out(
+                        &format!("{invoked}: {f} already has {ext} suffix -- unchanged\n"),
+                        1,
+                    );
+                }
                 let out_path = format!("{full}{ext}");
+                if !force && fs.exists(&out_path) {
+                    return err_out(&format!("{invoked}: {out_path}: already exists\n"), 1);
+                }
                 let _ = fs.write_file(&out_path, &comp);
                 if !keep {
                     let _ = fs.remove(&full, false);
@@ -4714,17 +5421,46 @@ fn collect_gzip_files(
     }
 }
 
+fn ensure_zip_suffix(path: &str) -> String {
+    if path == "-" {
+        return path.to_string();
+    }
+    let base = path.rsplit('/').next().unwrap_or(path);
+    if !base.contains('.') {
+        format!("{path}.zip")
+    } else {
+        path.to_string()
+    }
+}
+
+fn zip_matches_pattern(pat: &str, name: &str) -> bool {
+    let base = crate::vfs::basename_posix_path(name);
+    let clean_name = name.trim_end_matches('/');
+    pat == name
+        || pat == clean_name
+        || crate::shell::expand::glob_match(pat, name)
+        || crate::shell::expand::glob_match(pat, clean_name)
+        || crate::shell::expand::glob_match(pat, &base)
+}
+
 fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut delete_mode = false;
+    let mut copy_mode = false;
     let mut freshen_mode = false;
+    let mut update_mode = false;
+    let mut filesync_mode = false;
     let mut move_mode = false;
     let mut junk_paths = false;
+    let mut omit_dirs = false;
+    let mut recursive_patterns = false;
     let mut store_symlinks = false;
     let mut lf_to_crlf = false;
     let mut crlf_to_lf = false;
     let mut show_files = false;
     let mut read_comment = false;
+    let mut stdin_names = false;
     let mut split_size: Option<usize> = None;
+    let mut output_archive: Option<String> = None;
     let mut excludes = Vec::new();
     let mut includes = Vec::new();
     let mut in_exclude = false;
@@ -4739,6 +5475,17 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if a == "-i" {
             in_include = true;
             in_exclude = false;
+        } else if (a == "-O" || a == "--out") && i + 1 < args.len() {
+            in_exclude = false;
+            in_include = false;
+            i += 1;
+            output_archive = Some(args[i].clone());
+        } else if let Some(out) = a.strip_prefix("--out=").or_else(|| a.strip_prefix("-O")) {
+            if !out.is_empty() {
+                in_exclude = false;
+                in_include = false;
+                output_archive = Some(out.to_string());
+            }
         } else if (a == "-Z" || a == "-s") && i + 1 < args.len() {
             if a == "-s" {
                 let sz_str = args[i + 1].trim_end_matches(['k', 'K']);
@@ -4755,10 +5502,15 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             in_exclude = false;
             in_include = false;
         } else if a == "-FS" || a == "--filesync" {
+            filesync_mode = true;
             in_exclude = false;
             in_include = false;
         } else if a == "-d" || a == "--delete" {
             delete_mode = true;
+            in_exclude = false;
+            in_include = false;
+        } else if a == "-U" || a == "--copy" {
+            copy_mode = true;
             in_exclude = false;
             in_include = false;
         } else if a.starts_with('-') && !a.starts_with("--") {
@@ -4767,17 +5519,24 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             for ch in a[1..].chars() {
                 match ch {
                     'd' => delete_mode = true,
+                    'U' => copy_mode = true,
                     'f' => freshen_mode = true,
+                    'u' => update_mode = true,
                     'm' => move_mode = true,
                     'j' => junk_paths = true,
+                    'D' => omit_dirs = true,
+                    'R' => recursive_patterns = true,
                     'y' => store_symlinks = true,
                     'l' => lf_to_crlf = true,
                     'z' => read_comment = true,
+                    '@' => stdin_names = true,
                     _ => {}
                 }
             }
         } else if !a.starts_with('-') {
-            if in_exclude {
+            if positional.is_empty() {
+                positional.push(a.clone());
+            } else if in_exclude {
                 excludes.push(a.clone());
             } else if in_include {
                 includes.push(a.clone());
@@ -4790,51 +5549,92 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if positional.is_empty() {
         return err_out("zip: missing arguments\n", 1);
     }
-    let arch_full = resolve_posix_path(cwd, &positional[0]);
+    let arch_name = ensure_zip_suffix(&positional[0]);
+    let arch_full = resolve_posix_path(cwd, &arch_name);
+    let dest_full = output_archive
+        .as_deref()
+        .map(|o| resolve_posix_path(cwd, &ensure_zip_suffix(o)))
+        .unwrap_or_else(|| arch_full.clone());
+    let mut operands: Vec<String> = positional[1..].to_vec();
+    if stdin_names && !read_comment {
+        for line in stdin.lines() {
+            let trimmed = line.trim_end_matches('\r');
+            if !trimmed.is_empty() {
+                operands.push(trimmed.to_string());
+            }
+        }
+    }
     if show_files {
         let bytes = fs.read_file(&arch_full).unwrap_or_default();
-        let mut out = String::new();
-        for e in parse_ustar_archive(&bytes) {
+        let entries = parse_ustar_archive(&bytes);
+        let mut out = format!("Archive contains:\n");
+        for e in &entries {
             if e.name != "__ZIP_COMMENT__" {
                 out.push_str(&format!("  {}\n", e.name));
             }
         }
+        out.push_str(&format!("Total {} entries\n", entries.len()));
         return ok_out(&out);
     }
-    if freshen_mode {
-        let bytes = fs.read_file(&arch_full).unwrap_or_default();
+    if copy_mode {
+        let Ok(bytes) = fs.read_file(&arch_full) else {
+            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
+        };
         let mut entries = parse_ustar_archive(&bytes);
-        for entry in &mut entries {
-            if entry.typeflag == b'0' && entry.name != "__ZIP_COMMENT__" {
-                let disk_path = resolve_posix_path(cwd, &entry.name);
+        entries.retain(|e| {
+            if e.name == "__ZIP_COMMENT__" {
+                return true;
+            }
+            let op_ok = operands.is_empty() || operands.iter().any(|p| zip_matches_pattern(p, &e.name));
+            let inc_ok = includes.is_empty() || includes.iter().any(|p| zip_matches_pattern(p, &e.name));
+            let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
+            op_ok && inc_ok && exc_ok
+        });
+        let _ = fs.write_file(&dest_full, &serialize_ustar_archive(&entries));
+        return ok_out("");
+    }
+    if delete_mode {
+        let Ok(bytes) = fs.read_file(&arch_full) else {
+            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
+        };
+        let mut entries = parse_ustar_archive(&bytes);
+        entries.retain(|e| {
+            e.name == "__ZIP_COMMENT__" || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
+        });
+        let _ = fs.write_file(&dest_full, &serialize_ustar_archive(&entries));
+        return ok_out("");
+    }
+    if freshen_mode {
+        let Ok(bytes) = fs.read_file(&arch_full) else {
+            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
+        };
+        let mut entries = parse_ustar_archive(&bytes);
+        for e in &mut entries {
+            if e.typeflag == b'0' && e.name != "__ZIP_COMMENT__" {
+                if !operands.is_empty() && !operands.iter().any(|t| zip_matches_pattern(t, &e.name)) {
+                    continue;
+                }
+                let disk_path = resolve_posix_path(cwd, &e.name);
                 if let Ok(new_bytes) = fs.read_file(&disk_path) {
-                    entry.content = new_bytes;
+                    e.content = new_bytes;
                 }
             }
         }
-        let _ = fs.write_file(&arch_full, &serialize_ustar_archive(&entries));
+        let _ = fs.write_file(&dest_full, &serialize_ustar_archive(&entries));
         return ok_out("");
     }
-    if positional.len() < 2 {
-        return err_out("zip: missing arguments\n", 1);
-    }
-    if delete_mode {
-        let bytes = fs.read_file(&arch_full).unwrap_or_default();
-        let mut entries = parse_ustar_archive(&bytes);
-        entries.retain(|e| {
-            !positional[1..]
-                .iter()
-                .any(|pat| pat == &e.name || crate::shell::expand::glob_match(pat, &e.name))
-        });
-        let _ = fs.write_file(&arch_full, &serialize_ustar_archive(&entries));
-        return ok_out("");
-    }
-    let mut entries = if fs.exists(&arch_full) {
+    let mut entries = if !filesync_mode && fs.exists(&arch_full) {
         parse_ustar_archive(&fs.read_file(&arch_full).unwrap_or_default())
     } else {
         Vec::new()
     };
-    for t in &positional[1..] {
+    let effective_targets: Vec<String> = if recursive_patterns {
+        vec![".".to_string()]
+    } else {
+        operands.clone()
+    };
+    let _ = update_mode;
+    for t in &effective_targets {
         let mut raw_entries = Vec::new();
         collect_tar_entries(
             t,
@@ -4843,11 +5643,26 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             false,
             !store_symlinks,
             false,
+            true,
             fs,
             &mut raw_entries,
         );
         for mut e in raw_entries {
-            e.name = e.name.trim_start_matches('/').to_string();
+            e.name = e.name.trim_start_matches('/').trim_start_matches("./").to_string();
+            if e.name.is_empty() || e.name == "." || e.name == "./" {
+                continue;
+            }
+            if omit_dirs && (e.typeflag == b'5' || e.name.ends_with('/')) {
+                continue;
+            }
+            if recursive_patterns {
+                if e.typeflag == b'5' || e.name.ends_with('/') {
+                    continue;
+                }
+                if !operands.is_empty() && !operands.iter().any(|p| zip_matches_pattern(p, &e.name)) {
+                    continue;
+                }
+            }
             let base = crate::vfs::basename_posix_path(&e.name);
             if !includes.is_empty() {
                 if e.typeflag == b'5' {
@@ -4894,7 +5709,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 entries.push(e);
             }
         }
-        if move_mode {
+        if move_mode && !recursive_patterns {
             let t_full = resolve_posix_path(cwd, t);
             let _ = fs.remove(&t_full, true);
         }
@@ -4917,18 +5732,23 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     if let Some(sz) = split_size
         && out_bytes.len() > sz
     {
-        let z01 = format!("{}.z01", arch_full.trim_end_matches(".zip"));
+        let z01 = format!("{}.z01", dest_full.trim_end_matches(".zip"));
         let _ = fs.write_file(&z01, &out_bytes[..sz]);
     }
-    let _ = fs.write_file(&arch_full, &out_bytes);
+    let _ = fs.write_file(&dest_full, &out_bytes);
     ok_out("")
 }
 
 fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut list_only = false;
+    let mut names_only = false;
+    let mut list_table = false;
+    let mut verbose_list = false;
+    let mut zipinfo_mode = false;
     let mut test_only = false;
     let mut junk_paths = false;
     let mut pipe_to_stdout = false;
+    let mut pipe_headers = false;
+    let mut quiet = false;
     let mut never_overwrite = false;
     let mut case_insensitive = false;
     let mut show_comment = false;
@@ -4940,8 +5760,26 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
-            "-l" | "-Z1" => {
-                list_only = true;
+            "-Z" => {
+                zipinfo_mode = true;
+                in_exclude = false;
+            }
+            "-1" if zipinfo_mode => {
+                names_only = true;
+                in_exclude = false;
+            }
+            "-Z1" => {
+                zipinfo_mode = true;
+                names_only = true;
+                in_exclude = false;
+            }
+            "-l" => {
+                list_table = true;
+                in_exclude = false;
+            }
+            "-v" => {
+                list_table = true;
+                verbose_list = true;
                 in_exclude = false;
             }
             "-t" => {
@@ -4954,6 +5792,14 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             }
             "-p" => {
                 pipe_to_stdout = true;
+                in_exclude = false;
+            }
+            "-c" => {
+                pipe_headers = true;
+                in_exclude = false;
+            }
+            "-q" | "-qq" => {
+                quiet = true;
                 in_exclude = false;
             }
             "-n" => {
@@ -4980,14 +5826,33 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 i += 1;
                 dest_dir = Some(args[i].clone());
             }
-            a if a.starts_with('-') && !a.starts_with("--") && a.len() > 2 => {
+            s if s.starts_with("-d") && s.len() > 2 => {
                 in_exclude = false;
-                for ch in a[1..].chars() {
+                dest_dir = Some(s[2..].to_string());
+            }
+            "-P" if i + 1 < args.len() => {
+                in_exclude = false;
+                i += 1;
+            }
+            s if s.starts_with("-P") && s.len() > 2 => {
+                in_exclude = false;
+            }
+            s if s.starts_with('-') && s.len() > 1 => {
+                in_exclude = false;
+                for ch in s[1..].chars() {
                     match ch {
-                        'l' | '1' => list_only = true,
+                        'Z' => zipinfo_mode = true,
+                        '1' => names_only = true,
+                        'l' => list_table = true,
+                        'v' => {
+                            list_table = true;
+                            verbose_list = true;
+                        }
                         't' => test_only = true,
                         'j' => junk_paths = true,
                         'p' => pipe_to_stdout = true,
+                        'c' => pipe_headers = true,
+                        'q' => quiet = true,
                         'n' => never_overwrite = true,
                         'o' => never_overwrite = false,
                         'C' => case_insensitive = true,
@@ -5008,12 +5873,26 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         }
         i += 1;
     }
-    let Some(arch) = archive else {
+    let Some(raw_arch) = archive else {
         return err_out("unzip: missing archive\n", 1);
     };
-    let full = resolve_posix_path(cwd, &arch);
+    let mut arch = raw_arch.clone();
+    let mut full = resolve_posix_path(cwd, &arch);
+    if !fs.exists(&full) {
+        for cand in [format!("{raw_arch}.zip"), format!("{raw_arch}.ZIP")] {
+            let cand_full = resolve_posix_path(cwd, &cand);
+            if fs.exists(&cand_full) {
+                arch = cand;
+                full = cand_full;
+                break;
+            }
+        }
+    }
     let Ok(bytes) = fs.read_file(&full) else {
-        return err_out(&format!("unzip: cannot find or open {arch}\n"), 9);
+        return err_out(
+            &format!("unzip:  cannot find or open {raw_arch}, {raw_arch}.zip or {raw_arch}.ZIP.\n"),
+            9,
+        );
     };
     let raw_entries = parse_ustar_archive(&bytes);
     if !bytes.is_empty() && !bytes.iter().all(|&b| b == 0) && raw_entries.is_empty() {
@@ -5035,44 +5914,143 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     if test_only {
         return ok_out(&format!("No errors detected in compressed data of {arch}.\n"));
     }
-    let matches_member = |entry_name: &str| -> bool {
+    let mut matched_patterns = vec![false; members.len()];
+    let mut check_member = |entry_name: &str| -> bool {
         if members.is_empty() {
             return true;
         }
-        members.iter().any(|m| {
-            if case_insensitive {
+        let mut any = false;
+        for (idx, m) in members.iter().enumerate() {
+            let ok = if case_insensitive {
                 let ml = m.to_ascii_lowercase();
                 let nl = entry_name.to_ascii_lowercase();
                 ml == nl || crate::shell::expand::glob_match(&ml, &nl)
             } else {
                 m == entry_name || crate::shell::expand::glob_match(m, entry_name)
-            }
-        })
-    };
-    if !members.is_empty() && !entries.iter().any(|e| matches_member(&e.name)) {
-        return err_out("caution: filename not matched\n", 11);
-    }
-    if pipe_to_stdout {
-        let mut out = String::new();
-        for entry in entries {
-            if entry.typeflag == b'0' && matches_member(&entry.name) {
-                out.push_str(&crate::vfs::bytes_to_stream_string(&entry.content));
+            };
+            if ok {
+                matched_patterns[idx] = true;
+                any = true;
             }
         }
-        return ok_out(&out);
-    }
-    if list_only {
+        any
+    };
+
+    if pipe_to_stdout || pipe_headers {
         let mut out = String::new();
-        for entry in entries {
+        if pipe_headers && !pipe_to_stdout && !quiet {
+            out.push_str(&format!("Archive:  {arch}\n"));
+        }
+        for entry in &entries {
             if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
                 continue;
             }
-            if !matches_member(&entry.name) {
+            if check_member(&entry.name) && entry.typeflag == b'0' {
+                if pipe_headers && !pipe_to_stdout && !quiet {
+                    let pad = " ".repeat(22usize.saturating_sub(entry.name.len()));
+                    out.push_str(&format!(" extracting: {}{pad}  \n", entry.name));
+                }
+                out.push_str(&crate::vfs::bytes_to_stream_string(&entry.content));
+                if pipe_headers && !pipe_to_stdout && !quiet {
+                    out.push('\n');
+                }
+            }
+        }
+        let mut stderr = String::new();
+        let mut exit_code = 0;
+        for (idx, &m) in matched_patterns.iter().enumerate() {
+            if !m {
+                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
+                exit_code = 11;
+            }
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code,
+        };
+    }
+    if names_only {
+        let mut out = String::new();
+        for entry in &entries {
+            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
+                continue;
+            }
+            if !check_member(&entry.name) {
                 continue;
             }
             out.push_str(&format!("{}\n", entry.name));
         }
-        return ok_out(&out);
+        let mut stderr = String::new();
+        let mut exit_code = 0;
+        for (idx, &m) in matched_patterns.iter().enumerate() {
+            if !m {
+                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
+                exit_code = 11;
+            }
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code,
+        };
+    }
+    if list_table {
+        let mut out = String::new();
+        if !quiet {
+            out.push_str(&format!("Archive:  {arch}\n"));
+        }
+        if verbose_list {
+            out.push_str(" Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n");
+        } else {
+            out.push_str("  Length      Date    Time    Name\n---------  ---------- -----   ----\n");
+        }
+        let mut total_len = 0usize;
+        let mut selected_count = 0usize;
+        for entry in &entries {
+            if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
+                continue;
+            }
+            if !check_member(&entry.name) {
+                continue;
+            }
+            let sz = entry.content.len();
+            total_len += sz;
+            selected_count += 1;
+            let dt = format_utc_mtime(entry.mtime);
+            if verbose_list {
+                let crc = crc32_ieee(&entry.content);
+                out.push_str(&format!(
+                    "{sz:>8}  Stored {sz:>8}   0% {dt} {crc:08x}  {}\n",
+                    entry.name
+                ));
+            } else {
+                out.push_str(&format!("{sz:>9}  {dt}   {}\n", entry.name));
+            }
+        }
+        let files_label = if selected_count == 1 { "file" } else { "files" };
+        if verbose_list {
+            out.push_str(&format!(
+                "--------          -------  ---                            -------\n{total_len:>8}         {total_len:>8}   0%                            {selected_count} {files_label}\n"
+            ));
+        } else {
+            out.push_str(&format!(
+                "---------                     -------\n{total_len:>9}                     {selected_count} {files_label}\n"
+            ));
+        }
+        let mut stderr = String::new();
+        let mut exit_code = 0;
+        for (idx, &m) in matched_patterns.iter().enumerate() {
+            if !m {
+                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
+                exit_code = 11;
+            }
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code,
+        };
     }
     {
         let out_dir = dest_dir
@@ -5080,11 +6058,11 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             .map(|d| resolve_posix_path(cwd, d))
             .unwrap_or_else(|| cwd.to_string());
         let _ = fs.mkdir_all(&out_dir);
-        for entry in entries {
+        for entry in &entries {
             if !excludes.is_empty() && tar_matches_exclude(&entry.name, &excludes) {
                 continue;
             }
-            if !matches_member(&entry.name) {
+            if !check_member(&entry.name) {
                 continue;
             }
             if junk_paths {
@@ -5113,10 +6091,21 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 }
             }
         }
-        ok_out("")
+        let mut stderr = String::new();
+        let mut exit_code = 0;
+        for (idx, &m) in matched_patterns.iter().enumerate() {
+            if !m {
+                stderr.push_str(&format!("caution: filename not matched:  {}\n", members[idx]));
+                exit_code = 11;
+            }
+        }
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code,
+        }
     }
 }
-
 fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut min_len = 4usize;
     let mut radix: Option<char> = None;

@@ -235,8 +235,10 @@ and restoring the parser after failed opens. Native entry records and the
 last-name index now use caller storage. Offset validation preserves reversed
 stable native ordering through 64-pair sort runs and two-cursor merges, including
 duplicate offsets, and retires sorting scratch after success or failure.
-Fixed bootstrap lookup remains memory-backed, and explicit caller use
-of ZIP enumeration APIs is not yet bounded.
+`Path.iterdir()` on these archives streams explicit members and then distinct
+implied directories through caller backing, preserving native filtering, duplicate
+members and eager file errors. Early exit and backing denial retire enumeration
+scratch. Fixed bootstrap lookup and other ZIP APIs retain their native behavior.
 Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving
 extras propagation, constraints and native last-distribution version precedence.

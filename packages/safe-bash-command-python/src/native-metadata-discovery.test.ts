@@ -28,7 +28,7 @@ class Root:
  def children(self):return iter(self.names)
  def joinpath(self,child):return Path(self.root+'/'+child)
 # Virtual backing storage: tests never create host files.
-files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False;member_write_failure=False;sort_write_failure=False
+files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False;member_write_failure=False;sort_write_failure=False;enumeration_write_failure=False
 class File(io.StringIO):
  def __init__(self,path,mode):
   self.path=path;self.mode=mode
@@ -36,6 +36,7 @@ class File(io.StringIO):
   if child_write_failure and mode=='w' and '/2/' in path:raise PermissionError('child backing denied')
   if member_write_failure and mode=='w' and '/3/' in path:raise PermissionError('member backing denied')
   if sort_write_failure and mode=='w' and '/.zip-sort-' in path:raise PermissionError('sort backing denied')
+  if enumeration_write_failure and mode=='w' and '/0/' in path:raise PermissionError('enumeration backing denied')
   if mode=='r' and path not in files:raise FileNotFoundError(path)
   super().__init__(files.get(path,'') if mode in ('r','a') else '')
   if mode=='a':self.seek(0,2)
@@ -222,6 +223,29 @@ with contextlib.ExitStack() as stack:
   assert zipfile.ZipFile._RealGetContents is original_parser,'ZIP parser patch leaked'
   Entries=type(lookup._safe_store.archive.filelist);Store=type(lookup._safe_store)
   assert lookup._safe_store.archive.read(zip_names[7]+'/METADATA')==b'Name: zip_package_0007-1.dist-info\n'
+  with zipfile.ZipFile(io.BytesIO(source_bytes)) as reference:
+   reference_path=NativeZipPath(reference)
+   expected_children={at:[child.at for child in NativeZipPath(reference_path.root,at).iterdir()] for at in ['', 'implicit/', 'plain/', 'explicit/', '/absolute/', 'double/']}
+  backed_archive=lookup._safe_store.archive
+  with patch.object(backed_archive,'namelist',side_effect=AssertionError('eager ZIP Path enumeration')):
+   for at,expected in expected_children.items():
+    assert [child.at for child in NativeZipPath(backed_archive,at).iterdir()]==expected
+   before=set(files)
+   cursor=NativeZipPath(backed_archive).iterdir()
+   for child in cursor:
+    if set(files)!=before:break
+   else:raise AssertionError('implied ZIP directory enumeration never used backing')
+   del cursor,child;gc.collect();assert set(files)==before
+   enumeration_write_failure=True
+   try:list(NativeZipPath(backed_archive).iterdir())
+   except PermissionError as error:assert str(error)=='enumeration backing denied'
+   else:raise AssertionError('enumeration backing failure swallowed')
+   enumeration_write_failure=False
+   gc.collect();assert set(files)==before
+   try:NativeZipPath(backed_archive,'plain').iterdir()
+   except ValueError as error:assert str(error)=="Can't listdir a file"
+   else:raise AssertionError('file enumeration did not fail eagerly')
+  del backed_archive
   del lookup,fast;gc.collect();assert not files
   for source_bytes in [b'',payload.getvalue()[:-22],payload.getvalue().replace(b'PK\x01\x02',b'XX\x01\x02',1)]:
    expected=[p.at for p in original(metadata.FastPath('/packages.zip')).search(Prepared(None))]
@@ -255,6 +279,7 @@ with contextlib.ExitStack() as stack:
   fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
   assert [fields(entry) for entry in lookup._safe_store.archive.filelist]==expected_entries
   assert lookup._safe_store.archive.read('duplicate-1.dist-info/METADATA')==expected_content==b'last'
+  assert [child.at for child in NativeZipPath(lookup._safe_store.archive,'duplicate-1.dist-info/').iterdir()]==['duplicate-1.dist-info/METADATA']*2
   del lookup,fast;gc.collect();assert not files
  # Python 3.9 has no end-offset slot. Exercise the actual bounded sorter with
  # that newer native slot supplied, comparing reversed stable native ordering.

@@ -279,6 +279,44 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  zip_namespace = dict(zip_method.__globals__, _safe_unique_children=unique_children, _safe_zip_names=zip_names, _safe_open_zip=open_zip)
  exec(compile(ast.fix_missing_locations(zip_tree), '<safe ZIP metadata children>', 'exec'), zip_namespace)
  zip_children = zip_namespace['zip_children']
+ def path_names(archive):
+  # CompleteDirs emits every explicit entry first, then distinct implied
+  # directories in parent-discovery order. Keep that order without its lists.
+  for entry in archive.filelist:
+   yield entry.filename
+  import sys
+  parents = sys.modules[zipfile.CompleteDirs.__module__]._parents
+  scratch = Store()
+  try:
+   seen = Groups(scratch)
+   for entry in archive.filelist:
+    for parent in parents(entry.filename):
+     name = parent + '/'
+     if name not in archive.filelist.names and name not in seen:
+      seen[name]
+      yield name
+  finally:
+   scratch.cleanup()
+ native_iterdir = zipfile.Path.iterdir
+ path_tree = ast.parse(textwrap.dedent(inspect.getsource(native_iterdir)))
+ class PathRewrite(ast.NodeTransformer):
+  count = 0
+  def visit_Call(self, node):
+   if ast.dump(node) == ast.dump(ast.parse('self.root.namelist()').body[0].value):
+    self.count += 1
+    return ast.copy_location(ast.parse('_safe_path_names(self.root)').body[0].value, node)
+   return self.generic_visit(node)
+ path_rewrite = PathRewrite()
+ path_tree = path_rewrite.visit(path_tree)
+ if path_rewrite.count != 1:
+  raise RuntimeError('Unsupported native ZIP path enumeration')
+ path_namespace = dict(native_iterdir.__globals__, _safe_path_names=path_names)
+ exec(compile(ast.fix_missing_locations(path_tree), '<safe ZIP path enumeration>', 'exec'), path_namespace)
+ def iterdir(path):
+  if isinstance(path.root.filelist, Entries):
+   return path_namespace['iterdir'](path)
+  return native_iterdir(path)
+ zipfile.Path.iterdir = iterdir
  class ScanFailure(Exception):
   pass
  def children(path):

@@ -209,6 +209,11 @@ try:
  selected=list(lookup.search(metadata.Prepared('zip-package-007')))
  assert len(selected)==1 and isinstance(selected[0],ZipPath)
  assert selected[0].joinpath('METADATA').read_text()=='Name: zip-package-007'
+ directory=zipfile.Path(selected[0].root)
+ assert [(child.name,child.is_dir()) for child in directory.iterdir()]==[('zip_package_%03d-1.dist-info'%index,True) for index in range(128)]
+ assert [child.name for child in selected[0].iterdir()]==['METADATA']
+ assert ZipPath.maximum<=6,ZipPath.maximum
+ del directory
  scratch=lookup._safe_store.root
  iterator=lookup.search(metadata.Prepared(None));next(iterator)
  cached=weakref.ref(fast)

@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { MemoryFileSystem } from '@poe-code/safe-fs';
 import { createPythonPackageEnvironment } from './provisioning.js';
 import { createPythonPackageManifestStore } from './manifest.js';
+import {pythonPackageRuntimeKey} from './cache.js';
 
 const context = () => ({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal});
 
@@ -12,10 +13,10 @@ for(const mutation of ['bom','invalid-utf8'] as const)test(`cache manifest publi
  let stored:Uint8Array=original;
  let publications=0,installed=0;
  const env=createPythonPackageEnvironment({cacheDirectory:'/cache',onProgress(event){if(event.phase==='installed')installed++;}});
- const base=context();
+ const base=context(),directory='/cache/'+pythonPackageRuntimeKey,path=directory+'/'+pythonPackageRuntimeKey+'-environment';
+ await base.fs.mkdir(directory,{recursive:true});await base.fs.writeFile(path,original);
  const fs=new Proxy(base.fs,{get(target,key){
-  if(key==='readFile')return async()=>stored;
-  if(key==='writeFile')return async(_path:string,bytes:Uint8Array)=>{publications++;stored=bytes;};
+  if(key==='publishStagedFile')return async(...args:Parameters<typeof target.publishStagedFile>)=>{await target.publishStagedFile(...args);publications++;};
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
  const ctx={...base,fs},start=await env.prepare(ctx);
@@ -27,11 +28,12 @@ for(const mutation of ['bom','invalid-utf8'] as const)test(`cache manifest publi
   }
   assert.notDeepEqual(stored,original);
   assert.equal(new TextDecoder().decode(stored),new TextDecoder().decode(original));
-  const changed=stored;
+  const changed=stored;await base.fs.writeFile(path,changed);
   await assert.rejects(env.dispatch('package-commit',[start.session,{version:1,installed:[]}],ctx),{code:'EPACKAGECONFLICT',retryable:true});
-  assert.equal(stored,changed);assert.equal(publications,0);assert.equal(installed,0);
-  stored=original.slice();
-  await env.dispatch('package-commit',[start.session,{version:1,installed:[]}],ctx);
+  assert.deepEqual(await base.fs.readFile(path),changed);assert.equal(publications,0);assert.equal(installed,0);
+  await base.fs.writeFile(path,original);
+  const fresh=await env.prepare(ctx);
+  try{await env.dispatch('package-commit',[fresh.session,{version:1,installed:[]}],ctx);}finally{await env.finish(fresh);}
   assert.equal(publications,1);assert.equal(installed,1);
  }finally{await env.finish(start);await env.dispose();}
 });

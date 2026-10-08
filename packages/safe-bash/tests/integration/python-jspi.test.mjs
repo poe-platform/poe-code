@@ -1103,9 +1103,9 @@ test('real workerd applies package constraints without installing unused roots',
  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const streamed of [false,true])test('real workerd suppresses runtime dependencies through CLI and SDK; streamed manifest='+streamed, {timeout:180000}, async()=>{
+for(const streamed of [false,true,'directory'])test('real workerd suppresses runtime dependencies through CLI and SDK; streamed manifest='+streamed, {timeout:180000}, async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- const response=await miniflare.dispatchFetch('http://fixture/package-no-deps'+(streamed?'?streamed-manifest':''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+ const response=await miniflare.dispatchFetch('http://fixture/package-no-deps'+(streamed?'?streamed-manifest'+(streamed==='directory'?'=directory':''):''),{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
  const result=await response.json();
  assert.equal(response.status,200,JSON.stringify(result));
  const reference=JSON.parse(readFileSync(new URL('../../../safe-bash-command-python/src/fixtures/package-no-deps-pip-21.2.4.json',import.meta.url),'utf8'));

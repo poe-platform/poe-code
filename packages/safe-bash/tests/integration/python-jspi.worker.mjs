@@ -435,6 +435,7 @@ for version in ('1.0', '2.0rc1'):
 }
 
 async function qualifyReplacements(backend,createExecutor,micropip,qualification='',streamed=false) {
+ const directoryMode=streamed==='directory';
  const quote=value=>"'"+value.split("'").join("'\\''")+"'";
  const bootstrap=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor}));
  try {
@@ -468,7 +469,8 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  const indexRequests=[];
  const manifestTransfer={chunks:0,maximum:0,commits:0,reads:0};
  const manifestFs=new Proxy(backend,{get(target,key){
-  if(key==='writeFile'||key==='readFile'||key==='appendFile')return ()=>{throw new Error('Whole manifest filesystem IO');};
+  if(key==='writeFile'||key==='readFile'||key==='appendFile')return (path,...args)=>{if(!directoryMode||path.endsWith('-environment'))throw new Error('Whole manifest filesystem IO');return target[key](path,...args);};
+  if(directoryMode&&key==='openReadFile')return async(path,...args)=>{if(path.endsWith('-environment'))manifestTransfer.reads++;return target.openReadFile(path,...args);};
   if(key==='createStagedFile')return async(...args)=>{
    const stage=await target.createStagedFile(...args),writer=stage.writer;
    return {...stage,writer:{finish:writer.finish.bind(writer),async write(bytes,...options){manifestTransfer.chunks++;manifestTransfer.maximum=Math.max(manifestTransfer.maximum,bytes.length);return writer.write(bytes,...options);}}};
@@ -476,9 +478,9 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
   if(key==='publishStagedFile')return async(...args)=>{await target.publishStagedFile(...args);manifestTransfer.commits++;};
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
- const fileStore=streamed?createPythonPackageFileManifestStore({fs:manifestFs,directory:'/work/manifests'}):undefined;
+ const fileStore=streamed&&!directoryMode?createPythonPackageFileManifestStore({fs:manifestFs,directory:'/work/manifests'}):undefined;
  const manifestStore=fileStore?{...fileStore,get(){throw new Error('Buffered manifest restore');},getSnapshot(){throw new Error('Materialized manifest restore');},openSnapshot(...args){manifestTransfer.reads++;return fileStore.openSnapshot(...args);}}:createPythonPackageManifestStore();
- const configuration={scope:'replacement',manifestStore,authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
+ const configuration={...directoryMode?{cacheDirectory:'/work/packages'}:{scope:'replacement',manifestStore},authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
   const files=indexes.get(url),bytes=files?new TextEncoder().encode(JSON.stringify({name:url.split('/').at(-2),files:published?files:files.slice(0,1)})):artifacts.get(url);
   if(files)indexRequests.push(url);
   return {status:200,headers:[['content-type',files?'application/vnd.pypi.simple.v1+json':'application/octet-stream']],body:(async function*(){yield bytes;})(),async dispose(){}};
@@ -486,7 +488,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  const environment=createPythonPackageEnvironment(configuration);
  const diagnostics=[];
  const options={createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))};
- const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
+ const shell=new Shell({fs:directoryMode?manifestFs:backend,cwd:'/work'}).use(pythonCommands(options)).use(llmCommands({managePackages:createPythonLlmPackageManager(options)}));
  const rows=[];
  try {
   if(qualification==='/package-indexes'||qualification==='/requirement-indexes'){
@@ -499,7 +501,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
    const inspect='import importlib.metadata as m,json;print(json.dumps({d.metadata["Name"].replace("_","-"):d.version for d in m.distributions() if d.metadata["Name"].startswith("replace")}))';
    for(const command of ['-i https://primary.example/simple replace-root','-i https://primary.example/simple/ --extra-index-url https://extra.example/simple/ replace-root','--no-index -i https://primary.example/simple replace-root','--no-index ./replace_root-1.0-py3-none-any.whl']){
     const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-'+rows.length});
-    const child=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
+    const child=new Shell({fs:directoryMode?manifestFs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
     const fileLines=['--index-url https://primary.example/simple\nreplace-root','--index-url https://primary.example/simple/\n--extra-index-url https://extra.example/simple/\nreplace-root --index-url https://ignored.example/simple','--no-index\nreplace-root','--no-index\n./replace_root-1.0-py3-none-any.whl'];
     if(fromFile)await backend.writeFile('/work/indexes.txt',new TextEncoder().encode(fileLines[rows.length]));
     try{rows.push({result:await child.exec('python -m pip install --no-deps '+(fromFile?'-r indexes.txt':command)),versions:await child.exec('python -c '+quote(inspect)),queries:indexRequests.splice(0)});}
@@ -507,7 +509,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
    }
    if(fromFile)await backend.writeFile('/work/indexes-sdk.txt',new TextEncoder().encode('--index-url https://primary.example/simple/\n--extra-index-url https://extra.example/simple/\nreplace-root'));
    const isolated=createPythonPackageEnvironment({...configuration,scope:'indexes-sdk',noDeps:true,...fromFile?{requirementFiles:['indexes-sdk.txt']}:{requirements:['replace-root'],indexUrl:'https://primary.example/simple/',extraIndexUrls:['https://extra.example/simple/']}});
-   const child=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
+   const child=new Shell({fs:directoryMode?manifestFs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
    try{return {rows,sdk:await child.exec('python -c '+quote(inspect))};}
    finally{await child.dispose();await isolated.dispose();}
   }
@@ -518,11 +520,11 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
     const result=await shell.exec(command),versions=await shell.exec('python -c '+quote(inspect));
     rows.push({result,versions});
    }
-   const isolated=createPythonPackageEnvironment({...configuration,scope:'no-deps-sdk',requirements:['replace-root'],noDeps:true});
-   const sdkShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
+   const isolated=createPythonPackageEnvironment({...configuration,...directoryMode?{cacheDirectory:'/work/sdk-packages'}:{scope:'no-deps-sdk'},requirements:['replace-root'],noDeps:true});
+   const sdkShell=new Shell({fs:directoryMode?manifestFs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
    try{
     const sdk=await sdkShell.exec('python -c '+quote(inspect));
-    if(streamed)manifestTransfer.staging=(await backend.readdir('/work/manifests')).filter(entry=>entry.name.startsWith('.python-manifest-')).length;
+    if(streamed)manifestTransfer.staging=(await backend.readdir(directoryMode?'/work/packages/'+(await backend.readdir('/work/packages'))[0].name:'/work/manifests')).filter(entry=>entry.name.startsWith('.python-manifest-')).length;
     return {rows,sdk,diagnostics,manifestTransfer};
    }
    finally{await sdkShell.dispose();await isolated.dispose();}
@@ -538,7 +540,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
     rows.push({command,result,versions,diagnostics:diagnostics.splice(0)});
    }
    const constrained=createPythonPackageEnvironment({...configuration,requirements:['replace-root; python_version >= "3"','replace-orphan; python_version < "1"'],constraints:['replace-root==2','replace-dep<2','replace-orphan==1','replace-orphan @ https://packages.example/replace_orphan-1.0-py3-none-any.whl','replace-orphan @ https://packages.example/replace_orphan-2.0-py3-none-any.whl'],forceReinstall:true});
-   const sdkShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:constrained}));
+   const sdkShell=new Shell({fs:directoryMode?manifestFs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:constrained}));
    try{return {rows,sdk:await sdkShell.exec('python -c '+quote(inspect))};}
    finally{await sdkShell.dispose();await constrained.dispose();}
   }
@@ -557,7 +559,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
   const sdk=[];
   for(const controls of [{upgrade:true},{forceReinstall:true}]){
    const environment=createPythonPackageEnvironment({...configuration,requirements:['replace-root'],...controls});
-   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
+   const shell=new Shell({fs:directoryMode?manifestFs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
    try {
     const result=await shell.exec('python -c '+quote('import importlib.metadata as m, json; print(json.dumps([m.version(n) for n in ("replace-root", "replace-dep", "replace-orphan")]))'));
     sdk.push({exitCode:result.exitCode,stdout:result.stdout,stderr:result.stderr});
@@ -2288,7 +2290,7 @@ PY`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/package-replacements'||mode==='/package-constraints'||mode==='/package-no-deps'||mode==='/package-indexes'||mode==='/requirement-indexes') {
-      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode,new URL(request.url).searchParams.has('streamed-manifest')),failures});}
+      try {return Response.json({...await qualifyReplacements(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode,(new URL(request.url).searchParams.get('streamed-manifest')||new URL(request.url).searchParams.has('streamed-manifest'))),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

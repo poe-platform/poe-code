@@ -412,6 +412,15 @@ closes it before returning. Direct inline preparation and custom stores without
 native per-record strings and final publication collections remain buffered.
 The host snapshot change passes 722 Python and 1,624 LLM tests, 130 installed
 public tests, seven actual Worker package cases and all 17 unchanged bundle
-budgets. Worker restoration rejects the materialized snapshot API. The configured
-cache-directory compatibility path still buffers manifests; this partial delivery
-does not close the full gate.
+budgets. Worker restoration rejects the materialized snapshot API. Configured cache directories are covered by the follow-up below; the remaining
+record and publication buffers keep the full gate open.
+
+Configured cache-directory manifests now use the same atomic file store, preserving
+the legacy environment filename and persistent lifetime. Each prepared session
+retains its own store, so differing caller filesystems and relative directories
+stay isolated. Buffered read/byte-hash/write publication is removed; stale file
+versions require fresh preparation. Verification: 724 Python tests, 132 installed
+public tests, eight actual Worker cases and all 17 unchanged bundle budgets pass.
+The configured-directory Worker case rejects whole-file manifest IO and checks
+retained reads through CLI and SDK package operations. Installed name arrays,
+native single-record text and final publication collections remain.

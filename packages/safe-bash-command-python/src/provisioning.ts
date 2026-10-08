@@ -1,3 +1,4 @@
+import {createPythonPackageFileManifestStore} from './manifest-file.js';
 import {serializeLlmJsonValue} from 'safe-bash-command-llm';
 import {createPythonRecordReader} from './record-reader.js';
 import {createDefaultPythonManifestStore} from './manifest-default.js';
@@ -211,8 +212,7 @@ interface Session extends PythonPackageContext {
  retaining?: Promise<void> | undefined;
  opening: boolean;
  closed: boolean;
- readonly manifest: string;
- readonly manifestCache: PythonPackageCache;
+ readonly manifestStore: PythonPackageManifestStore;
  readonly manifestRevision: string | undefined;
  readonly controller: AbortController;
  readonly aborted: () => void;
@@ -222,7 +222,7 @@ function artifactKey(digest:string):string {return runtimeKey+'-sha256-'+digest;
 
 /** Trusted host cache; content is rehashed on every read. No runtime or network work at construction. */
 export function createPythonPackageEnvironment(options: PythonPackageOptions = {}): PythonPackageEnvironment {
- let {manifestStore}=options;
+ const {manifestStore}=options;
  let ownedManifest:ReturnType<typeof createDefaultPythonManifestStore>|undefined;
  if (options.cache && options.cacheDirectory) throw new TypeError('Choose package cache or cacheDirectory, not both');
  if (manifestStore && (typeof options.scope !== 'string' || !options.scope.trim())) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
@@ -288,25 +288,21 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    async get(key: string) { try { return await context.fs.readFile(resolve(artifactDirectory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },
   });
-  const manifestCache = directory ? cache : defaultCache;
-  if(!manifestStore&&!directory)manifestStore=ownedManifest=createDefaultPythonManifestStore({...context,signal:controller.signal},options.maxCacheBytes);
-  const open=input.recordTransport==='host'?manifestStore?.openSnapshot:undefined;
+  const store=manifestStore??(directory?createPythonPackageFileManifestStore({fs:context.fs,directory,filename:manifestKey}):ownedManifest??=createDefaultPythonManifestStore({...context,signal:controller.signal},options.maxCacheBytes));
+  const open=input.recordTransport==='host'?store.openSnapshot:undefined;
   let backed:PythonPackageRecordSnapshot|undefined,adopted=false;
   try{
-  const structured=open?undefined:manifestStore?.getSnapshot;
+  const structured=open?undefined:store.getSnapshot;
   let snapshot: {revision:string;bytes?:Uint8Array;value?:unknown} | undefined;
-  if(manifestStore) {
-   try { if(open)backed=await open.call(manifestStore,manifestKey,{signal,maxBytes:maxManifestBytes});else snapshot=await (structured?structured.call(manifestStore,manifestKey,{signal,maxBytes:maxManifestBytes}):manifestStore.get(manifestKey,context)); }
-   catch(error) { signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
-  }
+  try { if(open)backed=await open.call(store,manifestKey,{signal,maxBytes:maxManifestBytes});else snapshot=await (structured?structured.call(store,manifestKey,{signal,maxBytes:maxManifestBytes}):store.get(manifestKey,context)); }
+  catch(error) { signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
   signal.throwIfAborted();
   if(snapshot!==undefined && (typeof snapshot!=='object' || !snapshot || typeof snapshot.revision!=='string' || !snapshot.revision || snapshot.revision.length>1024 || !structured&&!(snapshot.bytes instanceof Uint8Array))) throw failure('Invalid Python package manifest snapshot');
   if(backed&&(!backed.revision||typeof backed.revision!=='string'||backed.revision.length>1024||![0,1,2,3].includes(backed.version)||!readPackageManifest(backed.installed)||!Number.isSafeInteger(backed.recordCount)||backed.recordCount< -1||typeof backed.readRecord!=='function'||typeof backed.close!=='function'))throw failure('Invalid Python package manifest snapshot');
   const manifestRevision = backed?.revision??snapshot?.revision;
-  const stored = manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
+  const stored = snapshot?.bytes;
   signal.throwIfAborted();
   checkManifest(stored);
-  const manifest = stored === undefined ? '' : digest(stored);
   let previous: unknown;
   try { previous = open ? backed?.installed??[] : structured ? (snapshot?snapshot.value:[]) : stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
   const saved = readPackageManifest(previous);
@@ -361,7 +357,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const offline=context.offline??options.offline??false;
   const records=(previous as {records?:readonly PythonPackageRecord[]}).records;
   const hostRecords=input.recordTransport==='host';
-  sessions.set(session,{...context,snapshot:backed,records:hostRecords?records:undefined,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
+  sessions.set(session,{...context,snapshot:backed,records:hostRecords?records:undefined,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestStore:store,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,aborted});
   signal.addEventListener('abort',aborted,{once:true});
   adopted=true;
   return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,...hostRecords?{recordCount:backed?.recordCount??records?.length??-1}:{records},...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
@@ -393,23 +389,16 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    // Legacy executors publish supplemental pins. Modern executors publish the
    // complete installed state, so removed roots cannot reappear on startup.
    const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {...(pinned as PythonInstalledSnapshot),installed:[...new Set(saved)]};
-   const streamed=manifestStore?.compareAndSetSnapshot;
+   const {manifestStore}=session;
+   const streamed=manifestStore.compareAndSetSnapshot;
    const manifestBytes=streamed?undefined:encoder.encode(JSON.stringify(state));
    checkManifest(manifestBytes);
    const commit = committing.then(async()=>{
     check();
-    if(manifestStore) {
-     const committed=await (streamed?streamed.call(manifestStore,manifestKey,session.manifestRevision,state,{signal,maxBytes:maxManifestBytes}):manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes!,settings));
-     check();
-     if(typeof committed!=='boolean')throw failure('Invalid Python package manifest publication result');
-     if(!committed)throw new PythonPackageConflictError();
-    } else {
-     const current = await session.manifestCache.get(manifestKey);
-     check();
-     checkManifest(current);
-     if ((current===undefined?'':digest(current))!==session.manifest) throw new PythonPackageConflictError();
-     await session.manifestCache.set(manifestKey,manifestBytes!);
-    }
+    const committed=await (streamed?streamed.call(manifestStore,manifestKey,session.manifestRevision,state,{signal,maxBytes:maxManifestBytes}):manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes!,settings));
+    check();
+    if(typeof committed!=='boolean')throw failure('Invalid Python package manifest publication result');
+    if(!committed)throw new PythonPackageConflictError();
     check();
    });
    committing=commit.catch(()=>{});

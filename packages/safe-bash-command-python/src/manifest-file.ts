@@ -12,14 +12,15 @@ import {openPythonPackageFile} from './package-file.js';
 import {createPythonPackageStreamingManifestStore} from './manifest.js';
 
 /** Persistent caller-owned manifests with native conditional publication.
+ * filename selects a single existing manifest file; omit it for scope-keyed files.
  * Publication and structured decoding stream; compatibility get returns owned bytes. */
-export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes=Infinity}:{readonly fs:FileSystem;readonly directory:string;readonly maxCacheBytes?:number}){
+export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes=Infinity,filename}:{readonly fs:FileSystem;readonly directory:string;readonly maxCacheBytes?:number;readonly filename?:string}){
  if(maxCacheBytes!==Infinity&&(!Number.isSafeInteger(maxCacheBytes)||maxCacheBytes<1))throw new RangeError('Python manifest maxCacheBytes must be positive');
  const root=resolvePath('/',directory);
  const observations=new Map<string,{revision:string;stat:FileStat}>();
  const path=(scope:string)=>{
   if(typeof scope!=='string'||!scope)throw new TypeError('Invalid Python manifest scope');
-  return resolvePath(root,bytesToHex(sha256(new TextEncoder().encode(scope)))+'.json');
+  return resolvePath(root,filename??(bytesToHex(sha256(new TextEncoder().encode(scope)))+'.json'));
  };
  async function read<T>(scope:string,{signal,maxBytes=Infinity}:{signal:AbortSignal;maxBytes?:number},consume:(file:NonNullable<Awaited<ReturnType<typeof openPythonPackageFile>>>)=>Promise<T>){
   signal.throwIfAborted();

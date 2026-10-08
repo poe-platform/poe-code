@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {loadPythonPackageProgram} from './package-program.js';
 
-for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
+for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure','file','file-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast, asyncio, json, sys, types
 from unittest.mock import patch
@@ -74,24 +74,43 @@ class Values(dict):
 async def resolve(*args): return Names(['active']+['package-'+str(i) for i in range(1024)] if mode=='large' else ['active'])
 async def emit(channel, value): output.append((channel, value))
 async def line(): return 'n'
+class Writer:
+ def __init__(self):self.parts=[];self.closed=False
+ def write(self,value):
+  if mode=='file-failure' and self.parts:raise RuntimeError('write denied')
+  self.parts.append(value)
+ def __enter__(self):return self
+ def __exit__(self,*args):self.closed=True
+writer=Writer()
 class Records(dict):
+ def chunks(self,operation,name):
+  assert operation=='get'
+  yield from json.JSONEncoder().iterencode(dict.__getitem__(self,name))
+ def __getitem__(self,name):
+  if mode.startswith('file'):raise AssertionError('publication loaded a complete saved record')
+  return super().__getitem__(name)
  def get(self,*args):raise AssertionError('confirmation loaded a complete saved record')
  def paths(self,name,field):yield from self[name][field]
  def __missing__(self,name):return [name,'metadata','',[],[],None]
 records = Records({name:[name, 'metadata', '', [], [], None] for name in ('active','remove')})
 if mode=='decline-paths':records['remove'][3:5]=[['/remove/one','/remove/two'],['/keep/manual']]
 namespace = {
+ '_safe_package_publication': '/publication.json' if mode.startswith('file') else None,
  '_SafeNames':Names, '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
- '_safe_uninstall':None if mode in ('install','large','pin-failure') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':not mode.startswith('decline')},
+ '_safe_uninstall':None if mode in ('install','large','pin-failure','file','file-failure') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':not mode.startswith('decline')},
  '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':Names(['remove']), '_safe_package_emit':emit, '_safe_package_line':line,
  '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
 }
 try:
- with patch('io.StringIO',side_effect=AssertionError('buffered inventory transport')):
+ with patch('io.StringIO',side_effect=AssertionError('buffered inventory transport')), patch('builtins.open',return_value=writer):
   asyncio.run(eval(code, namespace))
 except RuntimeError as error:
+ if mode=='file-failure':
+  assert str(error)=='write denied' and writer.closed
+  assert not pins and not published
+  sys.exit(0)
  if mode!='pin-failure':raise
  assert str(error)=='pin denied'
  assert pins==['active @ file:///active.whl']
@@ -100,7 +119,7 @@ except RuntimeError as error:
 assert mode!='pin-failure','pin failure was swallowed'
 assert closed[0] is namespace['_safe_roots']
 assert closed[-4:] == [namespace['_safe_sources'],namespace['_safe_versions'],namespace['_safe_managed'],namespace['_safe_restored_names']]
-assert len(closed)==(7 if namespace['_safe_uninstall'] else 5)
+assert len(closed)==(7 if namespace['_safe_uninstall'] else 6 if mode=='file' else 5)
 expected = ['file:///active.whl', 'active==1']
 # Origins keep the normalized package name in the saved direct requirement.
 expected[0] = 'active @ ' + expected[0]
@@ -108,9 +127,15 @@ if mode=='large':
  expected[1:1]=['package-'+str(i)+' @ file:///package-'+str(i)+'.whl' for i in range(1024)]
  expected.extend(name+'==1' for name in sorted('package-'+str(i) for i in range(1024)))
 if mode != 'remove': expected.append('remove==2')
+if mode=='file':
+ assert writer.closed
+ assert not published and not pins
+ publication=json.loads(''.join(writer.parts))
+ assert publication['version']==3
+ pins=publication['installed'];published=publication['records']
 assert pins == expected
 assert '_safe_installed_json' not in namespace
-assert published == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove'] + ([records['package-'+str(i)] for i in range(1024)] if mode=='large' else [])
+assert published == [dict.__getitem__(records,name) for name in ('active','remove') if name != 'remove' or mode != 'remove'] + ([records['package-'+str(i)] for i in range(1024)] if mode=='large' else [])
 assert not any('Successfully' in text for _,text in output)
 if namespace['_safe_uninstall']:
  asyncio.run(namespace['_safe_publish_uninstalled']())

@@ -1,3 +1,4 @@
+import {withPythonManifestPublication} from './manifest-publication.js';
 import {createPythonPackageFileManifestStore} from './manifest-file.js';
 import {serializeLlmJsonValue} from 'safe-bash-command-llm';
 import {createPythonRecordReader} from './record-reader.js';
@@ -85,6 +86,8 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly records?: readonly PythonPackageRecord[] | undefined;
  /** Host-owned records are read through package-record-read; -1 means absent. */
  readonly recordCount?: number;
+ /** The default native executor may publish a caller-owned manifest file. */
+ readonly streamManifest?:boolean;
  /** Prior installation; only legacy manifests resolve dependencies during restore. */
  readonly restore?: readonly string[];
  /** New or host-configured requirements whose dependency closure is resolved. */
@@ -360,7 +363,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   sessions.set(session,{...context,snapshot:backed,records:hostRecords?records:undefined,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestStore:store,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,aborted});
   signal.addEventListener('abort',aborted,{once:true});
   adopted=true;
-  return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,...hostRecords?{recordCount:backed?.recordCount??records?.length??-1}:{records},...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  return {session,indexUrls,requirements:unique,restore,requested,...store.compareAndSetSource?{streamManifest:true}:{},...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,...hostRecords?{recordCount:backed?.recordCount??records?.length??-1}:{records},...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
   }finally{if(!adopted)await backed?.close();}
  }
 
@@ -381,21 +384,27 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    session.recordReader??=createPythonRecordReader((key:number)=>{const row=session.records![Math.floor(key/7)]!,field=key%7-1;return serializeLlmJsonValue(field<0?(row.length===5?[...row,null]:row):row[field]??null,signal);});
    const result=await session.recordReader.read((ordinal as number)*7+(field===undefined?0:(field as number)+1),offset as number);check();return result;
   }
-  if(op==='package-commit') {
+  if(op==='package-commit'||op==='package-commit-file') {
    await release(session,true);check();
-   const pinned=args[1];
-   const saved=readPackageManifest(pinned);
-   if(!saved)throw failure('Invalid installed package manifest');
-   // Legacy executors publish supplemental pins. Modern executors publish the
-   // complete installed state, so removed roots cannot reappear on startup.
-   const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {...(pinned as PythonInstalledSnapshot),installed:[...new Set(saved)]};
    const {manifestStore}=session;
-   const streamed=manifestStore.compareAndSetSnapshot;
-   const manifestBytes=streamed?undefined:encoder.encode(JSON.stringify(state));
-   checkManifest(manifestBytes);
+   let publish:()=>Promise<boolean>;
+   if(op==='package-commit-file'){
+    const streamed=manifestStore.compareAndSetSource;
+    if(!streamed||!session.installationRoot)throw failure('Python file publication is unavailable');
+    const cwd=await session.installationRoot.path();
+    publish=()=>withPythonManifestPublication({...session,cwd},maxManifestBytes,source=>streamed.call(manifestStore,manifestKey,session.manifestRevision,source,{signal,maxBytes:maxManifestBytes}));
+   }else{
+    const pinned=args[1],saved=readPackageManifest(pinned);
+    if(!saved)throw failure('Invalid installed package manifest');
+    // Legacy executors publish supplemental pins; modern snapshots replace them.
+    const state=Array.isArray(pinned)?[...new Set([...session.requirements,...saved])]:{...(pinned as PythonInstalledSnapshot),installed:[...new Set(saved)]};
+    const streamed=manifestStore.compareAndSetSnapshot,manifestBytes=streamed?undefined:encoder.encode(JSON.stringify(state));
+    checkManifest(manifestBytes);
+    publish=()=>streamed?streamed.call(manifestStore,manifestKey,session.manifestRevision,state,{signal,maxBytes:maxManifestBytes}):manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes!,settings);
+   }
    const commit = committing.then(async()=>{
     check();
-    const committed=await (streamed?streamed.call(manifestStore,manifestKey,session.manifestRevision,state,{signal,maxBytes:maxManifestBytes}):manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes!,settings));
+    const committed=await publish();
     check();
     if(typeof committed!=='boolean')throw failure('Invalid Python package manifest publication result');
     if(!committed)throw new PythonPackageConflictError();

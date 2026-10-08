@@ -383,3 +383,13 @@ for(const invalid of [false,true])test('inventory pins cross individually and co
  if(invalid)await assert.rejects(work,/Invalid Python package pin/);else await work;
  assert.equal(committed,!invalid);assert.equal(globals.size,0);
 });
+
+ test('caller-file publication sends no materialized inventory to the host',async()=>{
+ const globals=new Map<string,unknown>();
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(){},async downloadPackage(){}}},
+ globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
+ async runPythonAsync(){if(globals.has('_safe_package_record'))assert.equal(globals.get('_safe_package_publication'),'/install/publication.json');}};
+ const operations:unknown[]=[];
+ await installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],restore:[],offline:true,streamManifest:true},async(...args)=>{operations.push(args);},64,'/install');
+ assert.deepEqual(operations,[['package-commit-file','1']]);assert.equal(globals.size,0);
+ });

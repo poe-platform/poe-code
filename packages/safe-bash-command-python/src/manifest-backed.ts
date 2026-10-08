@@ -5,7 +5,7 @@ import type {PythonPackageRecordSnapshot} from './manifest.js';
 import {createPythonRecordReader} from './record-reader.js';
 
 /** Validate on caller storage before exposing any saved package state. */
-export async function readBackedPythonManifest(fs:FileSystem,directory:string,signal:AbortSignal,input:AsyncIterable<Uint8Array>):Promise<Omit<PythonPackageRecordSnapshot,'revision'>>{
+export async function readBackedPythonManifest(fs:FileSystem,directory:string,signal:AbortSignal,input:AsyncIterable<Uint8Array>,collectInstalled=true):Promise<Omit<PythonPackageRecordSnapshot,'revision'>>{
  const document=await openLlmJsonDocument({fs,directory,signal,maxFileBytes:Number.MAX_SAFE_INTEGER,maxOpenFiles:1,profile:'javascript',maxControlBytes:Number.MAX_SAFE_INTEGER},input);
  const storage=new PagedStorage({fs,cwd:directory,env:{},signal},4),index=new IntegerTable(storage,64);
  const invalid=():never=>{throw new Error('Invalid Python package environment manifest');};
@@ -28,7 +28,7 @@ export async function readBackedPythonManifest(fs:FileSystem,directory:string,si
   }
   if(installedNode.type!=='array')invalid();
   const installed:string[]=[];
-  for await(const {node} of children(installedNode))installed.push(await string(node));
+  for await(const {node} of children(installedNode)){if(node.type!=='string')invalid();if(collectInstalled)installed.push(await string(node));}
   if(records){
    if(records.type!=='array')invalid();recordCount=0;let previous=-1;
    for await(const entry of children(records)){

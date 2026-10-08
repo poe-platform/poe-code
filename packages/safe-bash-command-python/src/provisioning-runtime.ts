@@ -1,3 +1,4 @@
+import {pythonPublicationFile} from './manifest-publication.js';
 import { PythonFailure } from './diagnostics.js';
 import {loadPythonPackageProgram} from './package-program.js';
 import { loadPythonNativeWheel } from './native-wheel.js';
@@ -185,8 +186,11 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
   bind('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
   const inputRecords=start.recordCount===undefined?start.records?.map((row):PythonPackageRecord=>[row[0],row[1],row[2],[...row[3]],[...row[4]],row[5]??null]):undefined;
   const recordCount=start.recordCount??inputRecords?.length??-1;
+  const publication=start.streamManifest&&installationRoot&&start.restore!==undefined?installationRoot+'/'+pythonPublicationFile:null;
+  bind('_safe_package_publication',publication);
   const outputRecords:unknown[]=[],pinned:string[]=[];
   bind('_safe_package_record',(operation:string,key?:unknown,value?:unknown,field?:number)=>transfer(async()=>{
+   if(publication&&(operation==='pin'||operation==='append'))throw new Error('Expected caller-file Python publication');
    if(operation==='pin'){
     if(typeof key!=='string')throw new Error('Invalid Python package pin');
     const pin=JSON.parse(key);
@@ -263,7 +267,8 @@ _safe_installer_failure
   accepting=false;
   await pending;
   if(transportFailure)throw transportFailure.error;
-  await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:outputRecords});
+  if(publication)await request('package-commit-file',start.session);
+  else await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:outputRecords});
   if(start.uninstall)await runtime.runPythonAsync('await _safe_publish_uninstalled()');
  }catch(error){
   await installing;

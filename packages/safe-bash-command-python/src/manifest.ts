@@ -44,6 +44,8 @@ export interface PythonPackageManifestStore {
    * Enforce maxBytes on original input and retire all read handles before returning. */
   getSnapshot?(scope: string, options: {readonly signal: AbortSignal; readonly maxBytes: number}): Promise<{readonly revision: string; readonly value: unknown} | undefined>;
   compareAndSet(scope: string, revision: string | undefined, bytes: Uint8Array, options: { readonly signal: AbortSignal }): Promise<boolean>;
+  /** Atomic publication from an already validated byte source. */
+  compareAndSetSource?(scope: string, revision: string | undefined, source: AsyncIterable<Uint8Array>, options: {readonly signal: AbortSignal; readonly maxBytes: number}): Promise<boolean>;
   /** Optional structured publication, avoiding the environment's byte buffer.
    * The store must enforce maxBytes on the serialized representation. */
   compareAndSetSnapshot?(scope: string, revision: string | undefined, snapshot: PythonInstalledSnapshot | readonly string[], options: { readonly signal: AbortSignal; readonly maxBytes: number }): Promise<boolean>;
@@ -58,27 +60,29 @@ export interface PythonPackageStreamingManifestStore {
 
 /** Adapt an atomic streaming store without assembling encoded manifest bytes. */
 export function createPythonPackageStreamingManifestStore(store:PythonPackageStreamingManifestStore):PythonPackageManifestStore {
+ const publish:NonNullable<PythonPackageManifestStore['compareAndSetSource']>=async(scope,revision,input,options)=>{
+  let consumed=false;
+  const source=(async function*(){
+   let size=0;
+   for await(const bytes of input){
+    options.signal.throwIfAborted();size+=bytes.length;
+    if(size>options.maxBytes)throw Object.assign(new Error('Python package manifest exceeds maxManifestBytes'),{code:'EPACKAGE'});
+    yield bytes;
+   }
+   consumed=true;
+  })();
+  try{
+   const committed=await store.compareAndSet(scope,revision,source,options);
+   options.signal.throwIfAborted();
+   if(committed===true&&!consumed)throw new Error('Python manifest store returned before consuming its source');
+   return committed;
+  }finally{await source.return();}
+ };
  return {
   get:store.get.bind(store),
   compareAndSet(scope,revision,bytes,options){return store.compareAndSet(scope,revision,toByteSource(bytes),options);},
-  async compareAndSetSnapshot(scope,revision,snapshot,options){
-   let consumed=false;
-   const source=(async function*(){
-    let size=0;
-    for await(const bytes of serializeLlmJsonValue(snapshot,options.signal)){
-     size+=bytes.length;
-     if(size>options.maxBytes)throw Object.assign(new Error('Python package manifest exceeds maxManifestBytes'),{code:'EPACKAGE'});
-     yield bytes;
-    }
-    consumed=true;
-   })();
-   try{
-    const committed=await store.compareAndSet(scope,revision,source,options);
-    options.signal.throwIfAborted();
-    if(committed===true&&!consumed)throw new Error('Python manifest store returned before consuming its source');
-    return committed;
-   }finally{await source.return();}
-  },
+  compareAndSetSource:publish,
+  compareAndSetSnapshot(scope,revision,snapshot,options){return publish(scope,revision,serializeLlmJsonValue(snapshot,options.signal),options);},
  };
 }
 

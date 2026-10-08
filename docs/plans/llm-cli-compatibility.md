@@ -461,3 +461,15 @@ confirmation layout was visually inspected. Verification: 729 Python tests,
 budgets pass on the fresh artifact; lint, types and the selected build pass.
 New distribution removal-list construction, native final row publication and host
 publication collections still materialize data; the full manifest gate stays open.
+
+Native final publication now writes saved record windows and individual deduplicated
+pins into an invocation-owned caller file. The host validates it with the existing
+backed JSON parser, retains file identity and streams atomic publication without
+constructing output record/pin collections. Byte-only custom stores preserve their
+compatibility path. Source changes, symlinks, cancellation, byte limits, conflicts,
+incomplete consumption and native write failure have regressions. Verification:
+739 Python tests plus the final native write-failure case, 259 query tests, 1,624
+LLM tests, 142 installed public tests, eight actual Worker cases and all 17 unchanged
+bundle budgets pass. Parser private-state encapsulation keeps the publication path
+within those budgets. New distribution removal-list construction, scalar metadata,
+installed requirement arrays and the other acceptance gates remain incomplete.

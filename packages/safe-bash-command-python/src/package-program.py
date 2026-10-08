@@ -644,32 +644,55 @@ if _safe_uninstall:
 _safe_managed.update(_safe_restored_names)
 _safe_sources = _SafeValues()
 _safe_versions = _SafeValues()
-for _safe_dist in _safe_metadata.distributions():
- _safe_dist_name = _safe_dist.metadata['Name']
- if not _safe_dist_name:
-  continue
- _safe_dist_name = _safe_name(_safe_dist_name)
- if _safe_dist_name in _safe_managed:
-  _safe_versions.put(_safe_dist_name, _safe_dist.version)
-  _safe_origin = _safe_dist.read_text('PYODIDE_URL')
-  if _safe_origin:
-   _safe_sources.put(str(len(_safe_sources)), _safe_dist_name + ' @ ' + _safe_origin.strip())
-  if _safe_snapshot_path(_safe_dist_name) == str(_safe_dist._path):
-   await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
-  else:
-   _safe_headers = _safe_dist.metadata
-   _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
-   await _safe_package_record('append', _safe_json.dumps([_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist), _safe_dist.read_text('direct_url.json')]))
-def _safe_inventory():
- for key in _safe_sources:yield _safe_sources.get(key)
- for name in _safe_versions.ordered():
-  if name in _safe_managed:yield name + '==' + _safe_versions.get(name)
-try:
- for _safe_source in _safe_inventory():
-  await _safe_package_record('pin', _safe_json.dumps(_safe_source))
-finally:
- _safe_sources.close()
- _safe_versions.close()
+from contextlib import nullcontext as _safe_nullcontext
+with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_publication else _safe_nullcontext()) as _safe_output:
+ if _safe_output:_safe_output.write('{"version":3,"records":[')
+ _safe_rows = 0
+ for _safe_dist in _safe_metadata.distributions():
+  _safe_dist_name = _safe_dist.metadata['Name']
+  if not _safe_dist_name:
+   continue
+  _safe_dist_name = _safe_name(_safe_dist_name)
+  if _safe_dist_name in _safe_managed:
+   _safe_versions.put(_safe_dist_name, _safe_dist.version)
+   _safe_origin = _safe_dist.read_text('PYODIDE_URL')
+   if _safe_origin:
+    _safe_sources.put(str(len(_safe_sources)), _safe_dist_name + ' @ ' + _safe_origin.strip())
+   if _safe_snapshot_path(_safe_dist_name) == str(_safe_dist._path):
+    if _safe_output:
+     if _safe_rows:_safe_output.write(',')
+     for _safe_chunk in _safe_record_by_name.chunks('get', _safe_dist_name):_safe_output.write(_safe_chunk)
+     _safe_rows += 1
+    else:await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
+   else:
+    _safe_headers = _safe_dist.metadata
+    _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
+    _safe_row = [_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist), _safe_dist.read_text('direct_url.json')]
+    if _safe_output:
+     if _safe_rows:_safe_output.write(',')
+     _safe_json.dump(_safe_row, _safe_output)
+     _safe_rows += 1
+    else:await _safe_package_record('append', _safe_json.dumps(_safe_row))
+    del _safe_row
+ def _safe_inventory():
+  for key in _safe_sources:yield _safe_sources.get(key)
+  for name in _safe_versions.ordered():
+   if name in _safe_managed:yield name + '==' + _safe_versions.get(name)
+ if _safe_output:_safe_output.write('],"installed":[')
+ _safe_seen = _SafeNames() if _safe_output else None
+ try:
+  for _safe_source in _safe_inventory():
+   if _safe_output:
+    if _safe_source in _safe_seen:continue
+    if _safe_seen:_safe_output.write(',')
+    _safe_seen.add(_safe_source)
+    _safe_json.dump(_safe_source, _safe_output)
+   else:await _safe_package_record('pin', _safe_json.dumps(_safe_source))
+  if _safe_output:_safe_output.write(']}')
+ finally:
+  if _safe_seen is not None:_safe_seen.close()
+  _safe_sources.close()
+  _safe_versions.close()
 _safe_managed.close()
 _safe_restored_names.close()
 _safe_metadata.MetadataPathFinder.invalidate_caches()

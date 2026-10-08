@@ -13,6 +13,7 @@ export function createDefaultPythonManifestStore(context:PythonPackageContext,ma
   async openSnapshot(scope,options){return store?(await store).openSnapshot(scope,options):undefined;},
   async getSnapshot(scope,options){return store?(await store).getSnapshot(scope,options):undefined;},
   async compareAndSet(scope,revision,bytes,options){return (await writable()).compareAndSet(scope,revision,bytes,options);},
+  async compareAndSetSource(scope,revision,source,options){return (await writable()).compareAndSetSource!(scope,revision,source,options);},
   async compareAndSetSnapshot(scope,revision,snapshot,options){return (await writable()).compareAndSetSnapshot!(scope,revision,snapshot,options);},
   close(){return root.close();},
  };

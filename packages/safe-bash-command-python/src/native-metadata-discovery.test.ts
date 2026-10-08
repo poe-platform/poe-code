@@ -28,11 +28,12 @@ class Root:
  def children(self):return iter(self.names)
  def joinpath(self,child):return Path(self.root+'/'+child)
 # Virtual backing storage: tests never create host files.
-files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False
+files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False
 class File(io.StringIO):
  def __init__(self,path,mode):
   self.path=path;self.mode=mode
   if write_failure and mode=='a' and path.endswith('/rows'):raise PermissionError('backing write denied')
+  if child_write_failure and mode=='w' and '/2/' in path:raise PermissionError('child backing denied')
   if mode=='r' and path not in files:raise FileNotFoundError(path)
   super().__init__(files.get(path,'') if mode in ('r','a') else '')
   if mode=='a':self.seek(0,2)
@@ -141,6 +142,38 @@ with contextlib.ExitStack() as stack:
  else:raise AssertionError('ZIP scratch failure swallowed')
  gc.collect();assert not files
  write_failure=False;archive.close()
+ # Native ZIP discovery deduplicates top-level children before grouping. Its
+ # dictionary must not retain a second archive-sized collection of names.
+ archive=zipfile.Path(io.BytesIO(payload.getvalue())).root
+ class Child(str):
+  live=maximum=0
+  def __new__(cls,value):
+   obj=super().__new__(cls,value);cls.live+=1;cls.maximum=max(cls.maximum,cls.live);return obj
+  def __del__(self):Child.live-=1
+ class Filename(str):
+  def split(self,*args):
+   parts=super().split(*args);parts[0]=Child(parts[0]);return parts
+ NativeZipPath=zipfile.Path
+ class NativePath(NativeZipPath):
+  def __init__(self,root,at=''):
+   super().__init__(archive if root=='/packages.zip' else root,at)
+ def archive_names():
+  for name in zip_names:
+   yield Filename(name+'/METADATA')
+   yield Filename(name+'/entry_points.txt')
+ with patch.object(zipfile,'Path',NativePath),patch.object(archive,'namelist',side_effect=archive_names):
+  fast=metadata.FastPath('/packages.zip')
+  lookup=metadata.Lookup(fast)
+  assert Child.maximum<=4,('ZIP child names retained',Child.maximum)
+  assert [p.at.rstrip('/') for p in lookup.search(Prepared(None))]==zip_names
+  del lookup,fast;gc.collect();assert not files
+  child_write_failure=True
+  try:metadata.Lookup(metadata.FastPath('/packages.zip'))
+  except PermissionError as error:assert str(error)=='child backing denied'
+  else:raise AssertionError('child scratch failure swallowed')
+  gc.collect();assert not files
+  child_write_failure=False
+ archive.close()
  # Native children suppress failed directory enumeration and then try ZIP.
  scan_failure=True
  lookup=metadata.Lookup(Root(names))

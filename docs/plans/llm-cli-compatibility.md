@@ -224,7 +224,9 @@ active directory cursor. ZIP lookup groups now use the same caller-backed rows,
 preserving archive-relative paths against one borrowed native ZIP root, including
 fallback after directory enumeration fails. Suspended ZIP searches retain their
 snapshot and archive semantics; backing failures retire partial rows. Native ZIP
-directory enumeration/parsing and fixed bootstrap lookup remain memory-backed.
+top-level child deduplication now uses caller-backed membership, preserving first
+discovery order without retaining every distinct child string. ZIP directory
+parsing, filename caches and fixed bootstrap lookup remain memory-backed.
 Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving
 extras propagation, constraints and native last-distribution version precedence.

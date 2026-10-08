@@ -134,7 +134,7 @@ with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
       await backend.mkdir('/work/metadata');
       for(let index=0;index<1024;index++)await backend.writeFile('/work/metadata/package_'+String(index).padStart(5,'0')+'-1.dist-info',new Uint8Array());
       return {metadata:await shell.exec('python -c '+quote(`
-import gc, importlib.metadata as metadata, os
+import gc, importlib.metadata as metadata, os, sys
 class Path(str):
  live=maximum=0
  def __new__(cls,value):
@@ -172,6 +172,16 @@ with zipfile.ZipFile('/work/metadata.zip','w') as archive:
  for index in range(128):
   archive.writestr('zip_package_%03d-1.dist-info/METADATA'%index,'Name: zip-package-%03d'%index)
 NativeZipPath=zipfile.Path
+FastLookup=sys.modules[NativeZipPath.__module__].FastLookup
+NativeNames=FastLookup.namelist
+class Child(str):
+ live=maximum=0
+ def __new__(cls,value):
+  obj=super().__new__(cls,value);cls.live+=1;cls.maximum=max(cls.maximum,cls.live);return obj
+ def __del__(self):Child.live-=1
+class Filename(str):
+ def split(self,*args):
+  parts=super().split(*args);parts[0]=Child(parts[0]);return parts
 class ZipPath(NativeZipPath):
  live=maximum=0
  def __init__(self,*args,**kwargs):
@@ -179,9 +189,11 @@ class ZipPath(NativeZipPath):
  def __del__(self):ZipPath.live-=1
 try:
  zipfile.Path=ZipPath
+ FastLookup.namelist=lambda archive:(Filename(name) for name in NativeNames(archive))
  fast=metadata.FastPath('/work/metadata.zip')
  lookup=fast.lookup(fast.mtime)
  assert ZipPath.maximum<=4,ZipPath.maximum
+ assert Child.maximum<=4,Child.maximum
  selected=list(lookup.search(metadata.Prepared('zip-package-007')))
  assert len(selected)==1 and isinstance(selected[0],ZipPath)
  assert selected[0].joinpath('METADATA').read_text()=='Name: zip-package-007'
@@ -193,7 +205,9 @@ try:
  assert sum(1 for _ in iterator)==127
  del iterator;gc.collect()
  assert not os.path.exists(scratch)
-finally:zipfile.Path=NativeZipPath
+finally:
+ zipfile.Path=NativeZipPath
+ FastLookup.namelist=NativeNames
 print('metadata-ok')
 `))};
     }finally{await shell.dispose();await environment.dispose();}

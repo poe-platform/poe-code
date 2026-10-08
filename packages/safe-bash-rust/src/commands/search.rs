@@ -1935,6 +1935,11 @@ fn cmd_grep(
     let mut line_regexp = false;
     let mut fixed_strings = default_fixed;
     let mut extended_regexp = invoked_as == "egrep";
+    let mut matcher: Option<char> = match invoked_as {
+        "egrep" => Some('E'),
+        "fgrep" => Some('F'),
+        _ => None,
+    };
     let mut recursive = invoked_as == "rgrep";
     let mut dereference_recursive = false;
     let mut dir_action: Option<String> = None;
@@ -1965,6 +1970,7 @@ fn cmd_grep(
         if !end_of_opts && a.starts_with("--") {
             match a.as_str() {
                 "--ignore-case" => ignore_case = true,
+                "--no-ignore-case" => ignore_case = false,
                 "--invert-match" => invert = true,
                 "--count" | "--count-matches" => count_only = true,
                 "--line-number" => line_number = true,
@@ -1976,9 +1982,24 @@ fn cmd_grep(
                 "--only-matching" => only_matching = true,
                 "--word-regexp" => word_regexp = true,
                 "--line-regexp" => line_regexp = true,
-                "--fixed-strings" => fixed_strings = true,
-                "--extended-regexp" => extended_regexp = true,
-                "--basic-regexp" => extended_regexp = false,
+                "--fixed-strings" | "--extended-regexp" | "--perl-regexp" | "--basic-regexp" => {
+                    let new_m = match a.as_str() {
+                        "--fixed-strings" => 'F',
+                        "--extended-regexp" => 'E',
+                        "--perl-regexp" => 'P',
+                        _ => 'G',
+                    };
+                    if matcher.is_some_and(|m| m != new_m) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: conflicting matchers specified\n"),
+                            exit_code: 2,
+                        };
+                    }
+                    matcher = Some(new_m);
+                    fixed_strings = new_m == 'F';
+                    extended_regexp = matches!(new_m, 'E' | 'P');
+                }
                 "--recursive" => {
                     recursive = true;
                     dereference_recursive = false;
@@ -2102,9 +2123,19 @@ fn cmd_grep(
                     'o' => only_matching = true,
                     'w' => word_regexp = true,
                     'x' => line_regexp = true,
-                    'F' => fixed_strings = true,
-                    'E' | 'P' => extended_regexp = true,
-                    'G' => extended_regexp = false,
+                    'F' | 'E' | 'P' | 'G' => {
+                        let new_m = chars[ci];
+                        if matcher.is_some_and(|m| m != new_m) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: conflicting matchers specified\n"),
+                                exit_code: 2,
+                            };
+                        }
+                        matcher = Some(new_m);
+                        fixed_strings = new_m == 'F';
+                        extended_regexp = matches!(new_m, 'E' | 'P');
+                    }
                     'r' => {
                         recursive = true;
                         dereference_recursive = false;

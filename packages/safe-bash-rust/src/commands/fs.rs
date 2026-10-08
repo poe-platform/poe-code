@@ -32,7 +32,7 @@ pub fn try_run_fs_command(
         "chmod" => Some(cmd_chmod(args, cwd, env, fs)),
         "stat" => Some(cmd_stat(args, cwd, env, fs)),
         "du" => Some(cmd_du(args, cwd, env, fs)),
-        "df" => Some(cmd_df(args, cwd, fs)),
+        "df" => Some(cmd_df(args, cwd, env, fs)),
         "mktemp" => Some(cmd_mktemp(args, cwd, env, fs)),
         "tree" => Some(cmd_tree(args, cwd, env, fs)),
         "file" => Some(cmd_file(args, stdin, cwd, fs)),
@@ -3602,204 +3602,732 @@ fn cmd_du(
     }
     ok_out(&out)
 }
-fn cmd_df(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut show_type = false;
+fn parse_df_block_size(spec: &str) -> Option<(u64, String)> {
+    let cleaned = spec.trim().strip_prefix('\'').unwrap_or(spec.trim());
+    if cleaned.is_empty() {
+        return None;
+    }
+    let bytes = cleaned.as_bytes();
+    let mut idx = 0usize;
+    while idx < bytes.len() && bytes[idx].is_ascii_digit() {
+        idx += 1;
+    }
+    let digits = &cleaned[..idx];
+    let rest = &cleaned[idx..];
+    let mut unit_char: Option<char> = None;
+    let mut suffix = "";
+    if !rest.is_empty() {
+        let mut chars = rest.chars();
+        let first = chars.next().unwrap();
+        let up = first.to_ascii_uppercase();
+        if "KMGTPE".contains(up) {
+            unit_char = Some(up);
+            suffix = chars.as_str();
+        } else {
+            return None;
+        }
+    }
+    if digits.is_empty() && unit_char.is_none() {
+        return None;
+    }
+    let suffix_lower = suffix.to_ascii_lowercase();
+    if !matches!(suffix_lower.as_str(), "" | "b" | "ib") {
+        return None;
+    }
+    let count: u64 = if digits.is_empty() {
+        1
+    } else {
+        digits.parse().ok().filter(|&n| n >= 1)?
+    };
+    let base: u64 = if suffix_lower == "b" { 1000 } else { 1024 };
+    let exp: u32 = match unit_char {
+        None => 0,
+        Some('K') => 1,
+        Some('M') => 2,
+        Some('G') => 3,
+        Some('T') => 4,
+        Some('P') => 5,
+        Some('E') => 6,
+        _ => return None,
+    };
+    let factor = base.checked_pow(exp)?;
+    let size = count.checked_mul(factor)?;
+    if size == 0 {
+        return None;
+    }
+    let label = if let Some(u) = unit_char {
+        format!(
+            "{count}{u}{}-blocks",
+            if suffix_lower == "b" { "B" } else { "" }
+        )
+    } else {
+        format!("{size}-blocks")
+    };
+    Some((size, label))
+}
+
+fn format_df_human(bytes: u64, base: u64) -> String {
+    if bytes == 0 {
+        return "0".to_string();
+    }
+    let units = if base == 1024 {
+        ["B", "K", "M", "G", "T", "P"]
+    } else {
+        ["B", "k", "M", "G", "T", "P"]
+    };
+    let mut val = bytes as f64;
+    let base_f = base as f64;
+    let mut u = 0usize;
+    while val >= base_f && u + 1 < units.len() {
+        val /= base_f;
+        u += 1;
+    }
+    if u == 0 {
+        format!("{}", val.ceil() as u64)
+    } else if val < 10.0 {
+        format!("{val:.1}{}", units[u])
+    } else {
+        format!("{}{}", val.ceil() as u64, units[u])
+    }
+}
+
+fn compute_df_vfs_usage(
+    root_path: &str,
+    mount_targets: &[&str],
+    fs: &dyn SafeBashFs,
+) -> (u64, u64) {
+    let mut used_bytes: u64 = 4096;
+    let mut used_inodes: u64 = 1;
+    let mut queue = std::collections::VecDeque::new();
+    queue.push_back(root_path.to_string());
+    while let Some(cur) = queue.pop_front() {
+        let mut entries = fs.list_dir(&cur).unwrap_or_default();
+        entries.sort();
+        for name in entries {
+            let child = if cur == "/" {
+                format!("/{name}")
+            } else {
+                format!("{cur}/{name}")
+            };
+            if mount_targets.contains(&child.as_str()) {
+                continue;
+            }
+            used_inodes += 1;
+            if let Ok(st) = fs.lstat(&child) {
+                if st.kind == VfsEntryKind::Directory {
+                    used_bytes += 4096;
+                    queue.push_back(child);
+                } else {
+                    used_bytes += st.size as u64;
+                }
+            }
+        }
+    }
+    (used_bytes, used_inodes)
+}
+
+fn cmd_df(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    const VALID_FIELDS: &[&str] = &[
+        "source", "fstype", "itotal", "iused", "iavail", "ipcent", "size", "used", "avail",
+        "pcent", "file", "target",
+    ];
+    let posixly_correct = env.contains_key("POSIXLY_CORRECT");
+    let mut show_all = false;
+    let mut scale_mode = "blocks";
+    let mut block_size: u64 = if posixly_correct { 512 } else { 1024 };
+    let mut block_header = if posixly_correct {
+        "512-blocks".to_string()
+    } else {
+        "1K-blocks".to_string()
+    };
     let mut show_inodes = false;
+    let mut portability = false;
+    let mut print_type = false;
     let mut show_total = false;
-    let mut block_header = "1K-blocks".to_string();
+    let mut output_fields: Option<Vec<String>> = None;
     let mut include_types: Vec<String> = Vec::new();
     let mut exclude_types: Vec<String> = Vec::new();
-    let mut output_cols: Option<Vec<String>> = None;
-    let mut targets: Vec<String> = Vec::new();
+    let mut operands: Vec<String> = Vec::new();
+    let mut end_of_options = false;
+
+    if let Some(env_block) = env
+        .get("DF_BLOCK_SIZE")
+        .or_else(|| env.get("BLOCK_SIZE"))
+        .or_else(|| env.get("BLOCKSIZE"))
+        && !env_block.is_empty()
+    {
+        if env_block == "human-readable" {
+            scale_mode = "human-1024";
+        } else if env_block == "si" {
+            scale_mode = "human-1000";
+        } else if let Some((sz, lbl)) = parse_df_block_size(env_block) {
+            block_size = sz;
+            block_header = lbl;
+        }
+    }
 
     let mut i = 0usize;
     while i < args.len() {
-        let a = &args[i];
-        if let Some(cols) = a.strip_prefix("--output=") {
-            output_cols = Some(cols.split(',').map(|s| s.trim().to_string()).collect());
+        let arg = &args[i];
+        if !end_of_options && arg == "--" {
+            end_of_options = true;
             i += 1;
-        } else if a == "--total" {
-            show_total = true;
-            i += 1;
-        } else if (a == "-B" || a == "--block-size") && i + 1 < args.len() {
-            block_header = format!("{}-blocks", args[i + 1]);
-            i += 2;
-        } else if let Some(bs) = a.strip_prefix("--block-size=").or_else(|| a.strip_prefix("-B")) && !bs.is_empty() {
-            block_header = format!("{bs}-blocks");
-            i += 1;
-        } else if (a == "-t" || a == "--type") && i + 1 < args.len() {
-            include_types.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(t) = a.strip_prefix("--type=").or_else(|| a.strip_prefix("-t")) && !t.is_empty() {
-            include_types.push(t.to_string());
-            i += 1;
-        } else if (a == "-x" || a == "--exclude-type") && i + 1 < args.len() {
-            exclude_types.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(t) = a.strip_prefix("--exclude-type=").or_else(|| a.strip_prefix("-x")) && !t.is_empty() {
-            exclude_types.push(t.to_string());
-            i += 1;
-        } else if a.starts_with('-') && !a.starts_with("--") {
-            for ch in a[1..].chars() {
-                match ch {
-                    'T' => show_type = true,
-                    'i' => show_inodes = true,
-                    'h' | 'H' => block_header = "Size".to_string(),
-                    _ => {}
+            continue;
+        }
+        if !end_of_options && arg == "--help" {
+            return ok_out("Usage: df [OPTION]... [FILE]...\n");
+        }
+        if !end_of_options && arg == "--version" {
+            return ok_out("df (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+        }
+        if !end_of_options && arg.starts_with("--") && arg.len() > 2 {
+            if arg == "--all" {
+                show_all = true;
+            } else if arg == "--human-readable" {
+                scale_mode = "human-1024";
+            } else if arg == "--si" {
+                scale_mode = "human-1000";
+            } else if arg == "--inodes" {
+                show_inodes = true;
+            } else if arg == "--local" || arg == "--sync" || arg == "--no-sync" {
+            } else if arg == "--portability" {
+                portability = true;
+                if scale_mode == "blocks" && block_size == 1024 && !posixly_correct {
+                    block_header = "1024-blocks".to_string();
                 }
+            } else if arg == "--print-type" {
+                print_type = true;
+            } else if arg == "--total" {
+                show_total = true;
+            } else if arg == "--output" || arg.starts_with("--output=") {
+                if arg == "--output" {
+                    output_fields = Some(VALID_FIELDS.iter().map(|s| (*s).to_string()).collect());
+                } else {
+                    let list: Vec<String> = arg["--output=".len()..]
+                        .split(',')
+                        .filter(|s| !s.is_empty())
+                        .map(|s| s.to_string())
+                        .collect();
+                    if list.is_empty() {
+                        return err_out(
+                            "df: option '--output' requires a non-empty field list\n",
+                            1,
+                        );
+                    }
+                    for f in &list {
+                        if !VALID_FIELDS.contains(&f.as_str()) {
+                            return err_out(
+                                &format!("df: '{f}': Crit: invalid field name for --output\n"),
+                                1,
+                            );
+                        }
+                    }
+                    output_fields = Some(list);
+                }
+            } else if arg == "--block-size" || arg.starts_with("--block-size=") {
+                let val = if arg == "--block-size" {
+                    i += 1;
+                    args.get(i).map(|s| s.as_str())
+                } else {
+                    Some(&arg["--block-size=".len()..])
+                };
+                let Some((sz, lbl)) = val.and_then(parse_df_block_size) else {
+                    return err_out(
+                        &format!(
+                            "df: invalid --block-size argument '{}'\n",
+                            val.unwrap_or("")
+                        ),
+                        1,
+                    );
+                };
+                scale_mode = "blocks";
+                block_size = sz;
+                block_header = lbl;
+            } else if arg == "--type" || arg.starts_with("--type=") {
+                let val = if arg == "--type" {
+                    i += 1;
+                    args.get(i).map(|s| s.as_str())
+                } else {
+                    Some(&arg["--type=".len()..])
+                };
+                let Some(v) = val.filter(|s| !s.is_empty()) else {
+                    return err_out("df: option '--type' requires an argument\n", 1);
+                };
+                if !include_types.contains(&v.to_string()) {
+                    include_types.push(v.to_string());
+                }
+            } else if arg == "--exclude-type" || arg.starts_with("--exclude-type=") {
+                let val = if arg == "--exclude-type" {
+                    i += 1;
+                    args.get(i).map(|s| s.as_str())
+                } else {
+                    Some(&arg["--exclude-type=".len()..])
+                };
+                let Some(v) = val.filter(|s| !s.is_empty()) else {
+                    return err_out("df: option '--exclude-type' requires an argument\n", 1);
+                };
+                if !exclude_types.contains(&v.to_string()) {
+                    exclude_types.push(v.to_string());
+                }
+            } else {
+                return err_out(&format!("df: unrecognized option '{arg}'\n"), 1);
             }
             i += 1;
-        } else if !a.starts_with('-') {
-            targets.push(a.clone());
+            continue;
+        }
+        if !end_of_options && arg.starts_with('-') && arg.len() > 1 {
+            let chars: Vec<char> = arg[1..].chars().collect();
+            let mut j = 0usize;
+            while j < chars.len() {
+                match chars[j] {
+                    'a' => show_all = true,
+                    'h' => scale_mode = "human-1024",
+                    'H' => scale_mode = "human-1000",
+                    'i' => show_inodes = true,
+                    'k' => {
+                        scale_mode = "blocks";
+                        block_size = 1024;
+                        block_header = if portability {
+                            "1024-blocks".to_string()
+                        } else {
+                            "1K-blocks".to_string()
+                        };
+                    }
+                    'm' => {
+                        scale_mode = "blocks";
+                        block_size = 1024 * 1024;
+                        block_header = "1M-blocks".to_string();
+                    }
+                    'l' => {}
+                    'P' => {
+                        portability = true;
+                        if block_size == 1024 && !posixly_correct {
+                            block_header = "1024-blocks".to_string();
+                        }
+                    }
+                    'T' => print_type = true,
+                    'B' => {
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            Some(rest)
+                        } else {
+                            i += 1;
+                            args.get(i).cloned()
+                        };
+                        let Some((sz, lbl)) = val.as_deref().and_then(parse_df_block_size) else {
+                            return err_out(
+                                &format!(
+                                    "df: invalid -B argument '{}'\n",
+                                    val.as_deref().unwrap_or("")
+                                ),
+                                1,
+                            );
+                        };
+                        scale_mode = "blocks";
+                        block_size = sz;
+                        block_header = lbl;
+                        break;
+                    }
+                    't' => {
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            Some(rest)
+                        } else {
+                            i += 1;
+                            args.get(i).cloned()
+                        };
+                        let Some(v) = val.filter(|s| !s.is_empty()) else {
+                            return err_out("df: option requires an argument -- 't'\n", 1);
+                        };
+                        if !include_types.contains(&v) {
+                            include_types.push(v);
+                        }
+                        break;
+                    }
+                    'x' => {
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            Some(rest)
+                        } else {
+                            i += 1;
+                            args.get(i).cloned()
+                        };
+                        let Some(v) = val.filter(|s| !s.is_empty()) else {
+                            return err_out("df: option requires an argument -- 'x'\n", 1);
+                        };
+                        if !exclude_types.contains(&v) {
+                            exclude_types.push(v);
+                        }
+                        break;
+                    }
+                    ch => return err_out(&format!("df: invalid option -- '{ch}'\n"), 1),
+                }
+                j += 1;
+            }
             i += 1;
-        } else {
-            i += 1;
+            continue;
+        }
+        operands.push(arg.clone());
+        i += 1;
+    }
+
+    if output_fields.is_some() && (show_inodes || print_type || portability) {
+        return err_out(
+            "df: options -i, -T, and -P are mutually exclusive with --output\n",
+            1,
+        );
+    }
+    for t in &include_types {
+        if exclude_types.contains(t) {
+            return err_out(
+                &format!("df: file system type '{t}' both selected and excluded\n"),
+                1,
+            );
         }
     }
 
-    for t in &targets {
-        let p = resolve_posix_path(cwd, t);
-        if !fs.exists(&p) && fs.lstat(&p).is_err() {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("df: {t}: No such file or directory\n"),
-                exit_code: 1,
-            };
-        }
-    }
-
-    struct DfRow {
+    #[derive(Clone)]
+    struct DfMount {
         source: &'static str,
         fstype: &'static str,
-        blocks: &'static str,
-        used: &'static str,
-        avail: &'static str,
-        pcent: &'static str,
         target: &'static str,
+        total_bytes: u64,
+        used_bytes: u64,
+        total_inodes: u64,
+        used_inodes: u64,
+        pseudo: bool,
     }
-    let all_rows = if targets.is_empty() {
-        vec![
-            DfRow {
-                source: "sandbox-vfs",
-                fstype: "vfs",
-                blocks: "65536",
-                used: "8",
-                avail: "65528",
-                pcent: "1%",
-                target: "/",
-            },
-            DfRow {
-                source: "tmpfs",
-                fstype: "tmpfs",
-                blocks: "65536",
-                used: "0",
-                avail: "65536",
-                pcent: "0%",
-                target: "/tmp",
-            },
-        ]
-    } else {
-        vec![DfRow {
+
+    let mount_targets = ["/", "/tmp", "/proc"];
+    let (root_used_b, root_used_i) = compute_df_vfs_usage("/", &mount_targets, fs);
+    let (tmp_used_b, tmp_used_i) = compute_df_vfs_usage("/tmp", &mount_targets, fs);
+    let root_total_b: u64 = 1024 * 1024 * 1024;
+    let root_total_i: u64 = 1_048_576;
+    let tmp_total_b: u64 = 256 * 1024 * 1024;
+    let tmp_total_i: u64 = 262_144;
+
+    let mounts = [
+        DfMount {
             source: "sandbox-vfs",
             fstype: "vfs",
-            blocks: "65536",
-            used: "8",
-            avail: "65528",
-            pcent: "1%",
             target: "/",
-        }]
-    };
+            total_bytes: root_total_b,
+            used_bytes: root_used_b.min(root_total_b),
+            total_inodes: root_total_i,
+            used_inodes: root_used_i.min(root_total_i),
+            pseudo: false,
+        },
+        DfMount {
+            source: "tmpfs",
+            fstype: "tmpfs",
+            target: "/tmp",
+            total_bytes: tmp_total_b,
+            used_bytes: tmp_used_b.min(tmp_total_b),
+            total_inodes: tmp_total_i,
+            used_inodes: tmp_used_i.min(tmp_total_i),
+            pseudo: false,
+        },
+        DfMount {
+            source: "proc",
+            fstype: "proc",
+            target: "/proc",
+            total_bytes: 0,
+            used_bytes: 0,
+            total_inodes: 0,
+            used_inodes: 0,
+            pseudo: true,
+        },
+    ];
 
-    let rows: Vec<&DfRow> = all_rows
-        .iter()
-        .filter(|r| {
-            (include_types.is_empty() || include_types.iter().any(|t| t == r.fstype))
-                && !exclude_types.iter().any(|t| t == r.fstype)
+    let mut stderr = String::new();
+    let mut exit_code = 0;
+    let mut selected: Vec<(DfMount, String)> = Vec::new();
+
+    if !operands.is_empty() {
+        for op in &operands {
+            let resolved = resolve_posix_path(cwd, op);
+            let is_mount_target = mounts.iter().any(|m| m.target == resolved);
+            if !is_mount_target && fs.lstat(&resolved).is_err() && !fs.exists(&resolved) {
+                stderr.push_str(&format!("df: '{op}': No such file or directory\n"));
+                exit_code = 1;
+                continue;
+            }
+            let mut best = mounts[0].clone();
+            for m in &mounts {
+                if resolved == m.target
+                    || (m.target != "/" && resolved.starts_with(&format!("{}/", m.target)))
+                {
+                    if m.target.len() >= best.target.len() {
+                        best = m.clone();
+                    }
+                }
+            }
+            selected.push((best, op.clone()));
+        }
+    } else {
+        for m in &mounts {
+            if !show_all && m.pseudo {
+                continue;
+            }
+            selected.push((m.clone(), m.target.to_string()));
+        }
+    }
+
+    let filtered: Vec<(DfMount, String)> = selected
+        .into_iter()
+        .filter(|(m, _)| {
+            (include_types.is_empty() || include_types.iter().any(|t| t == m.fstype))
+                && !exclude_types.iter().any(|t| t == m.fstype)
         })
         .collect();
 
-    let mut out = String::new();
-    if let Some(cols) = output_cols {
-        let hdr: Vec<&str> = cols
+    if filtered.is_empty() {
+        if exit_code == 0 {
+            stderr.push_str("df: no file systems processed\n");
+            exit_code = 1;
+        }
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code,
+        };
+    }
+
+    let format_size = |bytes: u64| -> String {
+        if scale_mode == "human-1024" {
+            format_df_human(bytes, 1024)
+        } else if scale_mode == "human-1000" {
+            format_df_human(bytes, 1000)
+        } else {
+            bytes.div_ceil(block_size).to_string()
+        }
+    };
+
+    let format_pct = |used: u64, total: u64| -> String {
+        if total == 0 {
+            "-".to_string()
+        } else {
+            let pct = ((used as f64 / total as f64) * 100.0).ceil() as u64;
+            let clamped = pct.clamp(if used > 0 { 1 } else { 0 }, 100);
+            format!("{clamped}%")
+        }
+    };
+
+    let is_custom_output = output_fields.is_some();
+    let active_fields: Vec<String> = if let Some(cols) = output_fields {
+        cols
+    } else if show_inodes {
+        if print_type {
+            vec![
+                "source", "fstype", "itotal", "iused", "iavail", "ipcent", "target",
+            ]
+        } else {
+            vec!["source", "itotal", "iused", "iavail", "ipcent", "target"]
+        }
+        .into_iter()
+        .map(String::from)
+        .collect()
+    } else if print_type {
+        vec![
+            "source", "fstype", "size", "used", "avail", "pcent", "target",
+        ]
+        .into_iter()
+        .map(String::from)
+        .collect()
+    } else {
+        vec!["source", "size", "used", "avail", "pcent", "target"]
+            .into_iter()
+            .map(String::from)
+            .collect()
+    };
+
+    let header_row: Vec<String> = active_fields
+        .iter()
+        .map(|f| match f.as_str() {
+            "source" => "Filesystem".to_string(),
+            "fstype" => "Type".to_string(),
+            "itotal" => "Inodes".to_string(),
+            "iused" => "IUsed".to_string(),
+            "iavail" => "IFree".to_string(),
+            "ipcent" => "IUse%".to_string(),
+            "size" => {
+                if scale_mode == "human-1024" || scale_mode == "human-1000" {
+                    "Size".to_string()
+                } else {
+                    block_header.clone()
+                }
+            }
+            "used" => "Used".to_string(),
+            "avail" => {
+                if portability && !is_custom_output {
+                    "Available".to_string()
+                } else {
+                    "Avail".to_string()
+                }
+            }
+            "pcent" => {
+                if portability && !is_custom_output {
+                    "Capacity".to_string()
+                } else {
+                    "Use%".to_string()
+                }
+            }
+            "file" => "File".to_string(),
+            "target" => "Mounted on".to_string(),
+            other => other.to_string(),
+        })
+        .collect();
+
+    let mut data_rows: Vec<Vec<String>> = Vec::new();
+    let mut sum_total_b: u64 = 0;
+    let mut sum_used_b: u64 = 0;
+    let mut sum_avail_b: u64 = 0;
+    let mut sum_total_i: u64 = 0;
+    let mut sum_used_i: u64 = 0;
+    let mut sum_avail_i: u64 = 0;
+
+    for (m, file_op) in &filtered {
+        let used_b = m.used_bytes;
+        let avail_b = m.total_bytes.saturating_sub(used_b);
+        let used_i = m.used_inodes;
+        let avail_i = m.total_inodes.saturating_sub(used_i);
+        sum_total_b += m.total_bytes;
+        sum_used_b += used_b;
+        sum_avail_b += avail_b;
+        sum_total_i += m.total_inodes;
+        sum_used_i += used_i;
+        sum_avail_i += avail_i;
+
+        let row: Vec<String> = active_fields
             .iter()
-            .map(|c| match c.as_str() {
-                "source" => "Filesystem",
-                "fstype" => "Type",
-                "target" => "Mounted on",
-                "size" => block_header.as_str(),
-                "used" => "Used",
-                "avail" => "Avail",
-                "pcent" => "Use%",
-                other => other,
+            .map(|f| match f.as_str() {
+                "source" => m.source.to_string(),
+                "fstype" => m.fstype.to_string(),
+                "itotal" => {
+                    if scale_mode == "blocks" {
+                        m.total_inodes.to_string()
+                    } else {
+                        format_size(m.total_inodes)
+                    }
+                }
+                "iused" => {
+                    if scale_mode == "blocks" {
+                        used_i.to_string()
+                    } else {
+                        format_size(used_i)
+                    }
+                }
+                "iavail" => {
+                    if scale_mode == "blocks" {
+                        avail_i.to_string()
+                    } else {
+                        format_size(avail_i)
+                    }
+                }
+                "ipcent" => format_pct(used_i, m.total_inodes),
+                "size" => format_size(m.total_bytes),
+                "used" => format_size(used_b),
+                "avail" => format_size(avail_b),
+                "pcent" => format_pct(used_b, m.total_bytes),
+                "file" => file_op.clone(),
+                "target" => m.target.to_string(),
+                _ => String::new(),
             })
             .collect();
-        out.push_str(&format!("{}\n", hdr.join(" ")));
-        for r in &rows {
-            let vals: Vec<&str> = cols
-                .iter()
-                .map(|c| match c.as_str() {
-                    "source" => r.source,
-                    "fstype" => r.fstype,
-                    "target" => r.target,
-                    "size" => r.blocks,
-                    "used" => r.used,
-                    "avail" => r.avail,
-                    "pcent" => r.pcent,
-                    _ => "-",
-                })
-                .collect();
-            out.push_str(&format!("{}\n", vals.join(" ")));
-        }
-        if show_total {
-            let vals: Vec<&str> = cols
-                .iter()
-                .enumerate()
-                .map(|(idx, c)| {
-                    if idx == 0 || c == "source" {
-                        "total"
+        data_rows.push(row);
+    }
+
+    if show_total {
+        let row: Vec<String> = active_fields
+            .iter()
+            .map(|f| match f.as_str() {
+                "source" => "total".to_string(),
+                "fstype" => "-".to_string(),
+                "itotal" => {
+                    if scale_mode == "blocks" {
+                        sum_total_i.to_string()
                     } else {
-                        "-"
+                        format_size(sum_total_i)
                     }
-                })
-                .collect();
-            out.push_str(&format!("{}\n", vals.join(" ")));
-        }
-        return ok_out(&out);
+                }
+                "iused" => {
+                    if scale_mode == "blocks" {
+                        sum_used_i.to_string()
+                    } else {
+                        format_size(sum_used_i)
+                    }
+                }
+                "iavail" => {
+                    if scale_mode == "blocks" {
+                        sum_avail_i.to_string()
+                    } else {
+                        format_size(sum_avail_i)
+                    }
+                }
+                "ipcent" => format_pct(sum_used_i, sum_total_i),
+                "size" => format_size(sum_total_b),
+                "used" => format_size(sum_used_b),
+                "avail" => format_size(sum_avail_b),
+                "pcent" => format_pct(sum_used_b, sum_total_b),
+                _ => "-".to_string(),
+            })
+            .collect();
+        data_rows.push(row);
     }
 
-    if show_inodes {
-        out.push_str("Filesystem Inodes IUsed IFree IUse% Mounted on\n");
-        for r in &rows {
-            out.push_str(&format!(
-                "{} 100000 10 99990 1% {}\n",
-                r.source, r.target
-            ));
-        }
-        return ok_out(&out);
-    }
+    let widths: Vec<usize> = header_row
+        .iter()
+        .enumerate()
+        .map(|(col, h)| {
+            let mut max_w = h.len().max(if col == 0 { 14 } else { 5 });
+            for r in &data_rows {
+                max_w = max_w.max(r[col].len());
+            }
+            max_w
+        })
+        .collect();
 
-    if show_type {
-        out.push_str(&format!(
-            "Filesystem Type {block_header} Used Available Use% Mounted on\n"
-        ));
-        for r in &rows {
-            out.push_str(&format!(
-                "{} {} {} {} {} {} {}\n",
-                r.source, r.fstype, r.blocks, r.used, r.avail, r.pcent, r.target
-            ));
-        }
-    } else {
-        out.push_str(&format!(
-            "Filesystem {block_header} Used Available Use% Mounted on\n"
-        ));
-        for r in &rows {
-            out.push_str(&format!(
-                "{} {} {} {} {} {}\n",
-                r.source, r.blocks, r.used, r.avail, r.pcent, r.target
-            ));
-        }
+    let is_right_aligned = |f: &str| {
+        matches!(
+            f,
+            "itotal" | "iused" | "iavail" | "ipcent" | "size" | "used" | "avail" | "pcent"
+        )
+    };
+
+    let format_table_row = |cells: &[String]| -> String {
+        cells
+            .iter()
+            .enumerate()
+            .map(|(idx, cell)| {
+                if idx + 1 == cells.len() {
+                    cell.clone()
+                } else {
+                    let w = widths[idx];
+                    if is_right_aligned(&active_fields[idx]) {
+                        format!("{cell:>w$}")
+                    } else {
+                        format!("{cell:<w$}")
+                    }
+                }
+            })
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+
+    let mut out = format!("{}\n", format_table_row(&header_row));
+    for r in &data_rows {
+        out.push_str(&format!("{}\n", format_table_row(r)));
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr,
+        exit_code,
+    }
 }
 
 fn cmd_mktemp(

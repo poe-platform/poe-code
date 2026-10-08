@@ -41,7 +41,7 @@ pub fn try_run_coreutil(
         "env" | "printenv" => Some(cmd_printenv(args, env)),
         "envsubst" => Some(cmd_envsubst(args, stdin, env)),
         "date" => Some(cmd_date(args, stdin, cwd, env, fs)),
-        "cal" | "ncal" => Some(cmd_cal(args, env)),
+        "cal" | "ncal" => Some(cmd_cal(cmd, args, env)),
         "getconf" => Some(cmd_getconf(args, cwd, fs)),
         "locale" => Some(cmd_locale(args, env)),
         "less" | "more" => Some(cmd_less_more(cmd, args, stdin, cwd, fs)),
@@ -50,11 +50,8 @@ pub fn try_run_coreutil(
         "bc" => Some(cmd_bc(args, stdin, cwd, fs)),
         "numfmt" => Some(cmd_numfmt(args, stdin)),
         "uname" => Some(cmd_uname(args, env, fs)),
-        "whoami" => Some(ok_out(&format!(
-            "{}\n",
-            env.get("USER").map(|s| s.as_str()).unwrap_or("e2e")
-        ))),
-        "hostname" => Some(cmd_hostname(args, env, fs)),
+        "whoami" => Some(cmd_whoami(args, env, fs)),
+        "hostname" => Some(cmd_hostname(args, cwd, env, fs)),
         "nproc" => Some(cmd_nproc(args, env)),
         "id" => Some(cmd_id(args, env, fs)),
         "sleep" => Some(ok_out("")),
@@ -8941,12 +8938,133 @@ fn render_cal_month_grid(
     }
 }
 
-fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
-    let mut monday_first = false;
+fn cal_iso_week_number(year: u32, month: u32, day: u32) -> u32 {
+    let z = days_from_civil(year as i64, month as i64, day as i64);
+    let dow0 = (z + 4).rem_euclid(7);
+    let day_num = if dow0 == 0 { 7 } else { dow0 };
+    let thu_z = z + 4 - day_num;
+    let (thu_year, _, _) = civil_from_days(thu_z);
+    let year_start_z = days_from_civil(thu_year, 1, 1);
+    let diff_days = thu_z - year_start_z;
+    ((diff_days + 7) / 7) as u32
+}
+
+fn render_vertical_ncal_month(
+    year: u32,
+    month: u32,
+    monday_first: bool,
+    julian: bool,
+    include_year: bool,
+    show_weeks: bool,
+) -> Vec<String> {
+    let month_names = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December",
+    ];
+    let mname = month_names[(month.clamp(1, 12) - 1) as usize];
+    let cell_w = if julian { 3usize } else { 2usize };
+    let title = if include_year {
+        format!("{mname} {year}")
+    } else {
+        mname.to_string()
+    };
+    let left_pad = 19usize.saturating_sub(title.len()) / 2;
+    let centered = format!(" {}{title}", " ".repeat(left_pad));
+    let header = format!("{centered:<22}");
+    let sun_days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+    let ordered: Vec<&str> = if monday_first {
+        vec!["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
+    } else {
+        sun_days.to_vec()
+    };
+
+    let mut days: Vec<u32> = Vec::new();
+    if year == 1752 && month == 9 {
+        days.push(1);
+        days.push(2);
+        for d in 14..=30 {
+            days.push(d);
+        }
+    } else {
+        let dim = cal_days_in_month(year, month);
+        for d in 1..=dim {
+            days.push(d);
+        }
+    }
+
+    let first_dow = cal_day_of_week(year, month, days[0]);
+    let start_row = if monday_first { (first_dow + 6) % 7 } else { first_dow };
+
+    let mut cols: Vec<[Option<u32>; 7]> = Vec::new();
+    let mut cur_col = [None; 7];
+    let mut r = start_row as usize;
+    for d in days {
+        cur_col[r] = Some(d);
+        r += 1;
+        if r == 7 {
+            cols.push(cur_col);
+            cur_col = [None; 7];
+            r = 0;
+        }
+    }
+    if r > 0 {
+        cols.push(cur_col);
+    }
+    while cols.len() < 6 {
+        cols.push([None; 7]);
+    }
+
+    let mut lines: Vec<String> = vec![header];
+    for row_idx in 0..7 {
+        let mut line = ordered[row_idx].to_string();
+        for c in 0..6 {
+            if let Some(d) = cols[c][row_idx] {
+                let val = if julian {
+                    cal_day_of_year(year, month, d)
+                } else {
+                    d
+                };
+                line.push(' ');
+                line.push_str(&format!("{val:>cell_w$}"));
+            } else {
+                line.push_str(&" ".repeat(cell_w + 1));
+            }
+        }
+        lines.push(line);
+    }
+
+    if show_weeks {
+        let mut week_line = "  ".to_string();
+        for c in 0..6 {
+            let mut last_day: Option<u32> = None;
+            for x in cols[c] {
+                if x.is_some() {
+                    last_day = x;
+                }
+            }
+            if let Some(ref_day) = last_day {
+                let wn = cal_iso_week_number(year, month, ref_day);
+                week_line.push(' ');
+                week_line.push_str(&format!("{wn:>cell_w$}"));
+            } else {
+                week_line.push_str(&" ".repeat(cell_w + 1));
+            }
+        }
+        lines.push(week_line);
+    }
+
+    lines
+}
+
+fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
+    let is_ncal_default = cmd == "ncal";
+    let mut vertical_layout = is_ncal_default;
+    let mut monday_first = is_ncal_default;
     let mut julian = false;
     let mut whole_year = false;
     let mut span_months: usize = 1;
     let mut span_around = false;
+    let mut show_weeks = false;
     let mut after_months: usize = 0;
     let mut before_months: usize = 0;
     let mut explicit_month: Option<u32> = None;
@@ -8958,10 +9076,22 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
         if parts.len() < 2 || parts.len() > 3 {
             return None;
         }
+        if !parts[0].chars().all(|c| c.is_ascii_digit()) || !parts[1].chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
         let y = parts[0].parse::<u32>().ok()?;
         let m = parts[1].parse::<u32>().ok()?;
         if !(1..=9999).contains(&y) || !(1..=12).contains(&m) {
             return None;
+        }
+        if parts.len() == 3 {
+            if !parts[2].chars().all(|c| c.is_ascii_digit()) {
+                return None;
+            }
+            let d = parts[2].parse::<u32>().ok()?;
+            if d < 1 || d > cal_days_in_month(y, m) || (y == 1752 && m == 9 && (3..=13).contains(&d)) {
+                return None;
+            }
         }
         Some((y, m))
     };
@@ -8993,6 +9123,14 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
         } else if a == "-M" || a == "--monday" {
             monday_first = true;
             i += 1;
+        } else if a == "-b" || a == "-C" {
+            vertical_layout = false;
+            monday_first = false;
+            i += 1;
+        } else if a == "-N" {
+            vertical_layout = true;
+            monday_first = true;
+            i += 1;
         } else if a == "-j" || a == "--julian" {
             julian = true;
             i += 1;
@@ -9000,9 +9138,16 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
             whole_year = true;
             i += 1;
         } else if a == "-S" || a == "--span" {
-            span_around = true;
+            if is_ncal_default && vertical_layout {
+                monday_first = false;
+            } else {
+                span_around = true;
+            }
             i += 1;
-        } else if a == "-h" || a == "--no-highlight" || a == "-b" || a == "-C" {
+        } else if a == "-h" || a == "--no-highlight" || a == "-J" {
+            i += 1;
+        } else if a == "-w" || a == "--week" || a.starts_with("--week=") {
+            show_weeks = true;
             i += 1;
         } else if a == "-m" || a == "--month" || a.starts_with("--month=") {
             let val = if let Some(v) = a.strip_prefix("--month=") {
@@ -9013,6 +9158,9 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
             } else {
                 return err_out("cal: option requires an argument -- 'm'\n", 1);
             };
+            if val.is_empty() {
+                return err_out("cal: option requires an argument -- 'm'\n", 1);
+            }
             let Some(m) = parse_cal_month_name(&val) else {
                 return err_out(
                     &format!("cal: '{val}' is neither a month number (1..12) nor a name\n"),
@@ -9053,8 +9201,11 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
             explicit_year = Some(y);
             explicit_month = Some(m);
             i += 1;
-        } else if (a == "-A" || a == "-B") && i + 1 < args.len() {
+        } else if a == "-A" || a == "-B" {
             let flag = a.clone();
+            if i + 1 >= args.len() {
+                return err_out("cal: invalid month count ''\n", 1);
+            }
             i += 1;
             let Ok(cnt) = args[i].parse::<usize>() else {
                 return err_out(&format!("cal: invalid month count '{}'\n", args[i]), 1);
@@ -9065,7 +9216,7 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
                 before_months = cnt;
             }
             i += 1;
-        } else if let Some(flags) = a.strip_prefix('-') {
+        } else if let Some(flags) = a.strip_prefix('-') && !flags.is_empty() {
             let chars: Vec<char> = flags.chars().collect();
             let mut j = 0usize;
             while j < chars.len() {
@@ -9081,10 +9232,25 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
                     }
                     's' => monday_first = false,
                     'M' => monday_first = true,
+                    'b' | 'C' => {
+                        vertical_layout = false;
+                        monday_first = false;
+                    }
+                    'N' => {
+                        vertical_layout = true;
+                        monday_first = true;
+                    }
                     'j' => julian = true,
                     'y' => whole_year = true,
-                    'S' => span_around = true,
-                    'h' | 'b' | 'C' => {}
+                    'S' => {
+                        if is_ncal_default && vertical_layout {
+                            monday_first = false;
+                        } else {
+                            span_around = true;
+                        }
+                    }
+                    'h' | 'J' => {}
+                    'w' => show_weeks = true,
                     'm' | 'n' | 'd' | 'A' | 'B' => {
                         let rest: String = chars[j + 1..].iter().collect();
                         let val = if !rest.is_empty() {
@@ -9093,10 +9259,11 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
                             i += 1;
                             args[i].clone()
                         } else {
-                            return err_out(
-                                &format!("cal: option requires an argument -- '{ch}'\n"),
-                                1,
-                            );
+                            return match ch {
+                                'm' => err_out("cal: option requires an argument -- 'm'\n", 1),
+                                'd' => err_out("cal: invalid date ''\n", 1),
+                                _ => err_out("cal: invalid month count ''\n", 1),
+                            };
                         };
                         match ch {
                             'm' => {
@@ -9117,6 +9284,12 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
                                         1,
                                     );
                                 };
+                                if n < 1 {
+                                    return err_out(
+                                        &format!("cal: invalid month count '{val}'\n"),
+                                        1,
+                                    );
+                                }
                                 span_months = n;
                             }
                             'd' => {
@@ -9177,6 +9350,9 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
     match operands.len() {
         0 => {}
         1 => {
+            if !operands[0].chars().all(|c| c.is_ascii_digit()) {
+                return err_out(&format!("cal: not a valid year {}\n", operands[0]), 1);
+            }
             let Ok(y) = operands[0].parse::<u32>() else {
                 return err_out(&format!("cal: not a valid year {}\n", operands[0]), 1);
             };
@@ -9198,6 +9374,9 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
                     1,
                 );
             };
+            if !operands[1].chars().all(|c| c.is_ascii_digit()) {
+                return err_out(&format!("cal: not a valid year {}\n", operands[1]), 1);
+            }
             let Ok(y) = operands[1].parse::<u32>() else {
                 return err_out(&format!("cal: not a valid year {}\n", operands[1]), 1);
             };
@@ -9209,28 +9388,23 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
         }
         3 => {
             let Some(m) = parse_cal_month_name(&operands[1]) else {
-                return err_out(
-                    &format!(
-                        "cal: '{}' is neither a month number (1..12) nor a name\n",
-                        operands[1]
-                    ),
-                    1,
-                );
+                return err_out("cal: invalid date arguments\n", 1);
             };
-            let Ok(y) = operands[2].parse::<u32>() else {
-                return err_out(&format!("cal: not a valid year {}\n", operands[2]), 1);
-            };
-            if !(1..=9999).contains(&y) {
-                return err_out(&format!("cal: not a valid year {}\n", operands[2]), 1);
+            if !operands[2].chars().all(|c| c.is_ascii_digit()) || !operands[0].chars().all(|c| c.is_ascii_digit()) {
+                return err_out("cal: invalid date arguments\n", 1);
             }
-            let Ok(d) = operands[0].parse::<u32>() else {
-                return err_out(&format!("cal: illegal day value: {}\n", operands[0]), 1);
+            let Ok(y) = operands[2].parse::<u32>() else {
+                return err_out("cal: invalid date arguments\n", 1);
             };
-            if d < 1
+            let Ok(d) = operands[0].parse::<u32>() else {
+                return err_out("cal: invalid date arguments\n", 1);
+            };
+            if !(1..=9999).contains(&y)
+                || d < 1
                 || d > cal_days_in_month(y, m)
                 || (y == 1752 && m == 9 && (3..=13).contains(&d))
             {
-                return err_out(&format!("cal: illegal day value: {}\n", operands[0]), 1);
+                return err_out("cal: invalid date arguments\n", 1);
             }
             month = m;
             year = y;
@@ -9238,8 +9412,87 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
         _ => return err_out("cal: too many arguments\n", 1),
     }
 
+    let count = if whole_year { 12usize } else { span_months };
+    let first_total = if whole_year {
+        (year as i64) * 12
+    } else {
+        let offset = if before_months > 0 {
+            before_months as i64
+        } else if span_around {
+            ((count - 1) / 2) as i64
+        } else {
+            0
+        };
+        (year as i64) * 12 + (month as i64 - 1) - offset
+    };
+    if first_total < 12 || first_total + (count as i64) - 1 >= 10000 * 12 {
+        return err_out("cal: calendar span exceeds year range 1..9999\n", 1);
+    }
+
     let grid_w = if julian { 27usize } else { 20usize };
     let per_row = if julian { 2usize } else { 3usize };
+
+    if vertical_layout {
+        let mut grids: Vec<Vec<String>> = Vec::new();
+        for idx in 0..count {
+            let total = first_total + idx as i64;
+            let gy = total.div_euclid(12) as u32;
+            let gm = (total.rem_euclid(12) + 1) as u32;
+            grids.push(render_vertical_ncal_month(
+                gy,
+                gm,
+                monday_first,
+                julian,
+                !whole_year,
+                show_weeks,
+            ));
+        }
+        if count == 1 && !whole_year {
+            let mut out = grids[0].join("\n");
+            out.push('\n');
+            return ok_out(&out);
+        }
+        let vertical_per_row = if whole_year {
+            if julian { 3usize } else { 4usize }
+        } else {
+            per_row
+        };
+        let col_w = if julian { 26usize } else { 22usize };
+        let mut lines: Vec<String> = Vec::new();
+        if whole_year {
+            let y_str = year.to_string();
+            let total_w = col_w * vertical_per_row;
+            let left = total_w.saturating_sub(y_str.len()) / 2;
+            lines.push(format!("{}{y_str}", " ".repeat(left)));
+        }
+        let mut start = 0usize;
+        while start < grids.len() {
+            let end = (start + vertical_per_row).min(grids.len());
+            let group = &grids[start..end];
+            for line_idx in 0..group[0].len() {
+                let mut row_str = String::new();
+                for (g_idx, grid) in group.iter().enumerate() {
+                    let raw = &grid[line_idx];
+                    let text = if line_idx == 0 || g_idx == 0 {
+                        raw.clone()
+                    } else if raw.len() >= 2 {
+                        format!("  {}", &raw[2..])
+                    } else {
+                        raw.clone()
+                    };
+                    row_str.push_str(&format!("{text:<col_w$}"));
+                }
+                lines.push(row_str);
+            }
+            if start + vertical_per_row < grids.len() {
+                lines.push(String::new());
+            }
+            start += vertical_per_row;
+        }
+        let mut out = lines.join("\n");
+        out.push('\n');
+        return ok_out(&out);
+    }
 
     if whole_year {
         let mut lines: Vec<String> = vec![format!("{}{year}", " ".repeat(28))];
@@ -9293,14 +9546,6 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
         return ok_out(&out);
     }
 
-    let offset = if before_months > 0 {
-        before_months as i64
-    } else if span_around {
-        ((span_months - 1) / 2) as i64
-    } else {
-        0
-    };
-    let first_total = (year as i64) * 12 + (month as i64 - 1) - offset;
     let start_year = first_total.div_euclid(12) as u32;
     let start_month = (first_total.rem_euclid(12) + 1) as u32;
 
@@ -9938,28 +10183,232 @@ fn resolve_effective_hostname(env: &BTreeMap<String, String>, fs: &dyn SafeBashF
     "sandbox".to_string()
 }
 
-fn cmd_hostname(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let full = resolve_effective_hostname(env, fs);
-    for a in args {
-        match a.as_str() {
-            "-s" | "--short" => {
-                let short = full.split('.').next().unwrap_or(&full);
-                return ok_out(&format!("{short}\n"));
+fn cmd_whoami(
+    args: &[String],
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut end_of_options = false;
+    for arg in args {
+        if !end_of_options && arg == "--" {
+            end_of_options = true;
+            continue;
+        }
+        if !end_of_options && arg == "--help" {
+            return ok_out("Usage: whoami [OPTION]...\n");
+        }
+        if !end_of_options && arg == "--version" {
+            return ok_out("whoami (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+        }
+        if !end_of_options && arg.starts_with('-') {
+            if arg.starts_with("--") {
+                return err_out(&format!("whoami: unrecognized option '{arg}'\n"), 1);
+            } else {
+                let ch = arg.chars().nth(1).unwrap_or_default();
+                return err_out(&format!("whoami: invalid option -- '{ch}'\n"), 1);
             }
-            "-d" | "--domain" => {
-                let dom = full.split_once('.').map(|(_, d)| d).unwrap_or("");
-                return ok_out(&format!("{dom}\n"));
+        }
+        return err_out(&format!("whoami: extra operand '{arg}'\n"), 1);
+    }
+
+    let raw_euid = env.get("EUID").or_else(|| env.get("UID"));
+    let euid = raw_euid.and_then(|s| {
+        if !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()) {
+            s.parse::<u32>().ok()
+        } else {
+            None
+        }
+    });
+    let mut username: Option<String> = None;
+    if let Some(uid_num) = euid {
+        if let Ok(bytes) = fs.read_file("/etc/passwd") {
+            let text = String::from_utf8_lossy(&bytes);
+            for line in text.lines() {
+                let trimmed = line.trim();
+                if trimmed.is_empty() || trimmed.starts_with('#') {
+                    continue;
+                }
+                let parts: Vec<&str> = trimmed.split(':').collect();
+                if parts.len() >= 3 && parts[2].parse::<u32>().ok() == Some(uid_num) {
+                    username = Some(parts[0].to_string());
+                    break;
+                }
             }
-            "-i" | "--ip-address" | "-I" | "--all-ip-addresses" => {
-                return ok_out("127.0.0.1\n");
-            }
-            "-f" | "--fqdn" | "--long" => {
-                return ok_out(&format!("{full}\n"));
-            }
-            _ => {}
+        }
+        if username.is_none() {
+            username = match uid_num {
+                0 => Some("root".to_string()),
+                65534 => Some("nobody".to_string()),
+                1 => Some("daemon".to_string()),
+                _ => None,
+            };
         }
     }
-    ok_out(&format!("{full}\n"))
+    let resolved = username
+        .or_else(|| env.get("WHOAMI").cloned())
+        .or_else(|| env.get("USER").cloned())
+        .or_else(|| env.get("LOGNAME").cloned())
+        .unwrap_or_else(|| "sandbox".to_string());
+    ok_out(&format!("{resolved}\n"))
+}
+
+fn read_hostname_file_line(cwd: &str, file_path: &str, fs: &dyn SafeBashFs) -> Result<String, ()> {
+    let resolved = resolve_posix_path(cwd, file_path);
+    let bytes = fs.read_file(&resolved).map_err(|_| ())?;
+    let text = String::from_utf8_lossy(&bytes);
+    for line in text.lines() {
+        let stripped = line.split('#').next().unwrap_or("").trim();
+        if !stripped.is_empty() {
+            return Ok(stripped.to_string());
+        }
+    }
+    Ok(String::new())
+}
+
+fn cmd_hostname(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut mode = "default";
+    let mut file_source: Option<String> = None;
+    let mut operands: Vec<String> = Vec::new();
+    let mut end_of_options = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let arg = &args[i];
+        if !end_of_options && arg == "--" {
+            end_of_options = true;
+            i += 1;
+            continue;
+        }
+        if !end_of_options && (arg == "--help" || arg == "-h" || arg == "-?") {
+            return ok_out("Usage: hostname [OPTION...] [NAME]\n");
+        }
+        if !end_of_options && (arg == "--version" || arg == "-V") {
+            return ok_out("hostname (Sandbox VFS-ish/GNU inetutils) 2.5\n");
+        }
+        if !end_of_options && let Some(v) = arg.strip_prefix("--file=") {
+            file_source = Some(v.to_string());
+            i += 1;
+            continue;
+        }
+        if !end_of_options && (arg == "--file" || arg == "-F") {
+            if i + 1 >= args.len() {
+                return err_out(&format!("hostname: option '{arg}' requires an argument\n"), 1);
+            }
+            i += 1;
+            file_source = Some(args[i].clone());
+            i += 1;
+            continue;
+        }
+        if !end_of_options && arg.starts_with("--") && arg.len() > 2 {
+            match arg.as_str() {
+                "--short" => mode = "short",
+                "--fqdn" | "--long" => mode = "fqdn",
+                "--all-fqdns" => mode = "all-fqdns",
+                "--domain" => mode = "domain",
+                "--ip-address" => mode = "ip",
+                "--all-ip-addresses" => mode = "all-ips",
+                "--alias" => mode = "alias",
+                "--yp" | "--nis" => mode = "nis",
+                _ => return err_out(&format!("hostname: unrecognized option '{arg}'\n"), 1),
+            }
+            i += 1;
+            continue;
+        }
+        if !end_of_options && arg.starts_with('-') && arg.len() > 1 {
+            let chars: Vec<char> = arg[1..].chars().collect();
+            let mut j = 0usize;
+            while j < chars.len() {
+                let ch = chars[j];
+                match ch {
+                    's' => mode = "short",
+                    'f' => mode = "fqdn",
+                    'A' => mode = "all-fqdns",
+                    'd' => mode = "domain",
+                    'i' => mode = "ip",
+                    'I' => mode = "all-ips",
+                    'a' => mode = "alias",
+                    'y' => mode = "nis",
+                    'F' => {
+                        let rest: String = chars[j + 1..].iter().collect();
+                        if !rest.is_empty() {
+                            file_source = Some(rest);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            file_source = Some(args[i].clone());
+                        } else {
+                            return err_out("hostname: option requires an argument -- 'F'\n", 1);
+                        }
+                        break;
+                    }
+                    _ => return err_out(&format!("hostname: invalid option -- '{ch}'\n"), 1),
+                }
+                j += 1;
+            }
+            i += 1;
+            continue;
+        }
+        operands.push(arg.clone());
+        i += 1;
+    }
+
+    if operands.len() > 1 || (file_source.is_some() && !operands.is_empty()) {
+        return err_out("hostname: too many arguments\n", 1);
+    }
+
+    if file_source.is_some() || operands.len() == 1 {
+        let mut new_host = operands.first().cloned().unwrap_or_default();
+        if let Some(ref src_path) = file_source {
+            let Ok(h) = read_hostname_file_line(cwd, src_path, fs) else {
+                return err_out(&format!("hostname: cannot open file '{src_path}'\n"), 1);
+            };
+            new_host = h;
+        }
+        let is_root = env.get("EUID").map(|s| s.as_str()) == Some("0")
+            || env.get("UID").map(|s| s.as_str()) == Some("0")
+            || env.get("USER").map(|s| s.as_str()) == Some("root");
+        if !is_root {
+            return err_out("hostname: you must be root to change the host name\n", 1);
+        }
+        let _ = fs.mkdir_all("/etc");
+        let _ = fs.write_file("/etc/hostname", format!("{new_host}\n").as_bytes());
+        return ok_out("");
+    }
+
+    let vfs_host = read_hostname_file_line(cwd, "/etc/hostname", fs).unwrap_or_default();
+    let raw_host = if !vfs_host.is_empty() {
+        vfs_host
+    } else if let Some(h) = env.get("HOSTNAME").filter(|s| !s.is_empty()) {
+        h.clone()
+    } else {
+        "sandbox".to_string()
+    };
+
+    let (short_name, domain_name, fqdn) = if let Some((s, d)) = raw_host.split_once('.') {
+        (s.to_string(), d.to_string(), raw_host.clone())
+    } else {
+        (
+            raw_host.clone(),
+            "vfs.local".to_string(),
+            format!("{raw_host}.vfs.local"),
+        )
+    };
+    let ip = "127.0.0.1";
+
+    match mode {
+        "short" => ok_out(&format!("{short_name}\n")),
+        "fqdn" => ok_out(&format!("{fqdn}\n")),
+        "all-fqdns" => ok_out(&format!("{fqdn} \n")),
+        "domain" => ok_out(&format!("{domain_name}\n")),
+        "ip" => ok_out(&format!("{ip}\n")),
+        "all-ips" => ok_out(&format!("{ip} \n")),
+        "alias" => ok_out(&format!("{short_name}\n")),
+        "nis" => ok_out("(none)\n"),
+        _ => ok_out(&format!("{raw_host}\n")),
+    }
 }
 
 fn cmd_nproc(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {

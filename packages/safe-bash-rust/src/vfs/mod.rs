@@ -199,4 +199,12 @@ mod tests {
         assert_eq!(err.code, FsErrorCode::NotFound);
         assert_eq!(err.message, "No such file");
     }
+
+    #[test]
+    fn unit_mixed_ascii_and_high_byte_stream_string_preservation() {
+        let mixed = b"header\x00\x7f\x80\xfe\xfftrailer\n";
+        let s = bytes_to_stream_string(mixed);
+        let roundtrip = stream_string_to_bytes(&s);
+        assert_eq!(roundtrip, mixed);
+    }
 }

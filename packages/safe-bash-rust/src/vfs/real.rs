@@ -144,4 +144,20 @@ mod tests {
 
         let _ = std::fs::remove_dir_all(&tmp_root);
     }
+
+    #[test]
+    fn unit_real_vfs_chmod_stat_and_directory_traversal_normalization() {
+        let tmp_root = std::env::temp_dir().join(format!("safe_bash_real_vfs_stat_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp_root);
+        std::fs::create_dir_all(&tmp_root).unwrap();
+
+        let vfs = RealVfs::new(&tmp_root).unwrap();
+        vfs.write_file("/../../confined.txt", b"safe").unwrap();
+        assert!(vfs.exists("/confined.txt"));
+        let st = vfs.stat("/confined.txt").unwrap();
+        assert_eq!(st.size, 4);
+        assert_eq!(st.kind, crate::VfsEntryKind::File);
+
+        let _ = std::fs::remove_dir_all(&tmp_root);
+    }
 }

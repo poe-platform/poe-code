@@ -294,4 +294,14 @@ mod tests {
         assert!(budget_cancel.cancel_token.is_cancelled());
         assert!(budget_cancel.check_cancelled().unwrap_err().contains("cancelled"));
     }
+
+    #[test]
+    fn execution_budget_default_and_memory_reservation_accounting() {
+        let budget = ExecutionBudget::default();
+        assert_eq!(budget.limits, ShellLimits::default());
+        budget.alloc_guard.try_reserve(4096).unwrap();
+        assert_eq!(budget.alloc_guard.current_bytes(), 4096);
+        budget.alloc_guard.release(4096);
+        assert_eq!(budget.alloc_guard.current_bytes(), 0);
+    }
 }

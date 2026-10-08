@@ -153,4 +153,23 @@ mod tests {
         assert_eq!(mnt.read_file("/nested.txt").unwrap(), b"in-mount");
         assert_eq!(fs.read_file("/mnt/data/nested.txt").unwrap(), b"in-mount");
     }
+
+    #[test]
+    fn mount_vfs_nested_mounts_and_directory_listing() {
+        let root = Arc::new(MemoryVfs::new());
+        let m1 = Arc::new(MemoryVfs::new());
+        let m2 = Arc::new(MemoryVfs::new());
+        root.mkdir_all("/mnt/a/b").unwrap();
+        let fs = MountVfs::new(root.clone())
+            .with_mount("/mnt/a", m1.clone())
+            .with_mount("/mnt/a/b", m2.clone());
+
+        fs.write_file("/mnt/a/f1.txt", b"m1-val").unwrap();
+        fs.write_file("/mnt/a/b/f2.txt", b"m2-val").unwrap();
+        assert_eq!(m1.read_file("/f1.txt").unwrap(), b"m1-val");
+        assert_eq!(m2.read_file("/f2.txt").unwrap(), b"m2-val");
+        let exported = fs.export_entries().unwrap();
+        assert!(exported.iter().any(|e| e.path == "/mnt/a/f1.txt"));
+        assert!(exported.iter().any(|e| e.path == "/mnt/a/b/f2.txt"));
+    }
 }

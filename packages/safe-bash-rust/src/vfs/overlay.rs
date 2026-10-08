@@ -264,4 +264,22 @@ mod tests {
         assert!(!overlay.exists("/app/keep.txt"));
         assert!(lower.exists("/app/keep.txt"));
     }
+
+    #[test]
+    fn overlay_vfs_recreating_deleted_lower_file_clears_whiteout() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.mkdir_all("/cfg").unwrap();
+        lower.write_file("/cfg/item.conf", b"v1").unwrap();
+
+        let upper = Arc::new(MemoryVfs::new());
+        let overlay = OverlayVfs::new(lower.clone(), upper.clone());
+
+        overlay.remove_path("/cfg/item.conf").unwrap();
+        assert!(!overlay.exists("/cfg/item.conf"));
+
+        overlay.write_file("/cfg/item.conf", b"v2").unwrap();
+        assert!(overlay.exists("/cfg/item.conf"));
+        assert_eq!(overlay.read_file("/cfg/item.conf").unwrap(), b"v2");
+        assert_eq!(lower.read_file("/cfg/item.conf").unwrap(), b"v1");
+    }
 }

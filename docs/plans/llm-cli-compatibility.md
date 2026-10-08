@@ -241,8 +241,12 @@ Parsed source roots and filtered resolver roots now use ordered caller-backed
 records; duplicate-root extras are explicitly persisted before native installation.
 Restoration, normal resolution and no-deps resolution retire their root records.
 Native installation still materializes its input list.
+Pending dependency membership and past convergence snapshots now use caller
+storage. Sorted current install requests remain materialized, while prior passes
+retain only scalar lookup state in guest memory. Digest buckets compare exact
+records even on collisions, bound record reads, and retire after resolution.
 This does not bound host manifests, native requirement/constraint inputs,
-pending requirements and convergence signatures, final inventory collections,
+final inventory collections,
 native executable allocation, or the remaining ZIP fallback.
 JSPI package transfers and native metadata filesystem operations share one dispatch
 lane before reaching the host's single-request transport. This preserves dependency

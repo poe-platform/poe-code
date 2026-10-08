@@ -8,18 +8,24 @@ test('resolved package names use caller storage with set semantics and bounded g
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast,asyncio,contextlib,errno,gc,io,json,os,sys,types
 from collections.abc import MutableSet
+from pip._vendor.packaging.requirements import Requirement as NativeRequirement
 from unittest.mock import patch
 class Name(str):
  live=0
  def __new__(cls,value):
   obj=super().__new__(cls,value);cls.live+=1;return obj
  def __del__(self):Name.live-=1
-class Requirement:
+class Source(str):
+ live=0
+ def __new__(cls,value):
+  obj=super().__new__(cls,value);cls.live+=1;return obj
+ def __del__(self):Source.live-=1
+class Requirement(NativeRequirement):
  live=0
  def __init__(self,name):
-  self.name=name;self.marker=None;self.extras=set();self.url=None;Requirement.live+=1
+  super().__init__(name);Requirement.live+=1
  def __del__(self):Requirement.live-=1
- def __str__(self):return self.name
+ def __str__(self):return Source(super().__str__())
 files={};directories={'/owned'};children={};serial=0;denied=False
 class File(io.StringIO):
  def __init__(self,path,mode):
@@ -51,16 +57,24 @@ def rmdir(path):
 pm=types.ModuleType('micropip.package_manager');pm.Transaction=type('Transaction',(),{})
 micropip=types.ModuleType('micropip');micropip.package_manager=pm
 sys.modules['micropip']=micropip;sys.modules['micropip.package_manager']=pm
-async def install(*args,**kwargs):
+evolving=False;rounds=0
+async def install(requirements,**kwargs):
+ global rounds
+ if evolving:
+  gc.collect();assert Source.live<=len(requirements)+8,('past resolution strings retained',Source.live,len(requirements))
+  if requirements and requirements[0].startswith('leaf-'):rounds+=1
  gc.collect();assert Requirement.live<=8,('parsed roots retained during install',Requirement.live)
  assert Name.live<=8,('requested/extras names retained during install',Name.live)
 def distributions():
+ if evolving:
+  yield types.SimpleNamespace(metadata={'Name':'root'},version='1',requires=['leaf-'+str(rounds)+'-'+str(i)+'>=1' for i in range(64)] if rounds<3 else [])
+  return
  for i in range(1024):
   yield types.SimpleNamespace(metadata={'Name':'package-'+str(i)},version='1',requires=[])
   assert Name.live<=8,('version names retained during scan',Name.live)
 namespace={'_SafeRequirement':Requirement,'_safe_name':Name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=distributions),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False,'_SafeMutableSet':MutableSet,'_safe_installation_root':'/owned'}
 tree=ast.parse(json.load(sys.stdin))
-selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.AsyncFunctionDef)) and n.name in ('_SafeNames','_SafeValues','_SafeRequirements','_safe_parse_sources','_safe_resolve')]
+selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.AsyncFunctionDef)) and n.name in ('_SafeNames','_SafeValues','_SafeRequirements','_SafeResolutions','_safe_parse_sources','_safe_resolve')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<package names>','exec'),namespace)
 with contextlib.ExitStack() as stack:
  for target,replacement in [('builtins.open',lambda path,mode='r',**kwargs:File(path,mode)),('tempfile.mkdtemp',temporary),('os.makedirs',mkdir),('os.unlink',unlink),('os.rmdir',rmdir)]:stack.enter_context(patch(target,replacement))
@@ -100,6 +114,36 @@ with contextlib.ExitStack() as stack:
  values.close()
  without=asyncio.run(namespace['_safe_resolve']([Requirement('only')],no_deps=True))
  assert set(without)=={'only'};without.close()
+ assert not files and directories=={'/owned'},(len(files),directories)
+ evolving=True
+ resolved=asyncio.run(namespace['_safe_resolve']([Requirement('root')]))
+ assert rounds==3 and len(resolved)==193
+ resolved.close();gc.collect();assert Source.live==0
+ assert not files and directories=={'/owned'},(len(files),directories)
+ # Digest collisions must still compare exact records, including differing
+ # counts and escaped text. No past input strings may remain in guest state.
+ history=namespace['_SafeResolutions']()
+ class Digest:
+  def update(self,value):pass
+  def hexdigest(self):return 'collision'
+ with patch('hashlib.sha256',Digest):
+  assert not history.repeated([])
+  assert not history.repeated([Source('first>=1')])
+  assert not history.repeated([Source('first>=1'),Source('second>=2')])
+  assert not history.repeated([Source('quote"\\path\né')])
+  assert history.repeated([Source('first>=1')])
+  assert history.repeated([Source('first>=1'),Source('second>=2')])
+  assert history.repeated([Source('quote"\\path\né')])
+  assert history.repeated([])
+  gc.collect();assert Source.live==0,('history retained input strings',Source.live)
+  path=history.path('collision','value');original=files[path]
+  for corrupt in ['9'*1024, '1\n'+json.dumps('x'*1024)+'\n', '1\nnull\n', '1\n']:
+   files[path]=corrupt
+   try:history.repeated([Source('first>=1')])
+   except ValueError:pass
+   else:raise AssertionError('corrupt resolution history admitted')
+  files[path]=original
+ history.close()
  assert not files and directories=={'/owned'},(len(files),directories)
 `],{input:JSON.stringify(source),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);

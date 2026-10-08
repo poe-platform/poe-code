@@ -56,7 +56,13 @@ class Names(set):
 class Values(dict):
  put=dict.__setitem__
  def close(self):pass
-namespace.update(_SafeNames=Names,_SafeValues=Values)
+class Resolutions(set):
+ def repeated(self,requirements):
+  key=frozenset(requirements)
+  if key in self:return True
+  self.add(key);return False
+ def close(self):pass
+namespace.update(_SafeNames=Names,_SafeValues=Values,_SafeResolutions=Resolutions)
 exec(compile(ast.Module(body=selected,type_ignores=[]), '<package-resolution>', 'exec'), namespace)
 try:
  result = asyncio.run(namespace['_safe_resolve']([Requirement('root')], no_deps=no_deps))

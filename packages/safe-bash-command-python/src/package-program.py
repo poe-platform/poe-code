@@ -212,6 +212,44 @@ class _SafeRequirements(_SafeValues):
  def __iter__(self):
   for key in super().__iter__():yield _SafeRequirement(self.get(key))
 
+class _SafeResolutions(_SafeNames):
+ files = ('entry', 'value')
+ def __init__(self):
+  super().__init__()
+  self.maximum = self.width = 0
+ def repeated(self, requirements):
+  import hashlib, json
+  digest = hashlib.sha256()
+  self.maximum = max(self.maximum, len(requirements))
+  for requirement in requirements:
+   record = json.dumps(requirement) + '\n'
+   self.width = max(self.width, len(record))
+   digest.update(record.encode('ascii'))
+  key = digest.hexdigest()
+  if key in self:
+   with open(self.path(key, 'value'), encoding='utf-8') as source:
+    while True:
+     header = source.readline(len(str(self.maximum)) + 2)
+     if not header:break
+     count = header[:-1]
+     if not header.endswith('\n') or not count.isascii() or not count.isdecimal() or str(int(count)) != count or int(count) > self.maximum:
+      raise ValueError('Invalid package resolution record')
+     count = int(count)
+     matches = count == len(requirements)
+     for index in range(count):
+      record = source.readline(self.width + 1)
+      if not record.endswith('\n') or len(record) > self.width:
+       raise ValueError('Invalid package resolution record')
+      value = json.loads(record)
+      if not isinstance(value, str):raise ValueError('Invalid package resolution record')
+      if index >= len(requirements) or value != requirements[index]:matches = False
+     if matches:return True
+  else:self.add(key)
+  with open(self.path(key, 'value'), 'a', encoding='utf-8') as output:
+   output.write(str(len(requirements)) + '\n')
+   for requirement in requirements:output.write(json.dumps(requirement) + '\n')
+  return False
+
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = _SafeValues()
  for source in constraints:
@@ -282,7 +320,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
   _safe_extras.close()
   _safe_requested_names.close()
   return _safe_managed
- _safe_previous_pending = set()
+ _safe_previous_pending = _SafeResolutions()
  _safe_versions = None
  def dependencies(versions=None):
   for distribution in _safe_metadata.distributions():
@@ -319,7 +357,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
      _safe_changed = True
    if not _safe_changed:
     break
-  _safe_pending = set()
+  _safe_pending = _SafeNames()
   # Revisit the stable graph instead of retaining all dependency objects. Keep
   # the completed version snapshot so native duplicate-distribution ordering
   # remains last-wins even when a dependency precedes its final distribution.
@@ -327,14 +365,17 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
    _safe_version = _safe_versions.get(_safe_name(_safe_requirement.name))
    if _safe_version is None or not _safe_requirement.specifier.contains(_safe_version, prereleases=True):
     _safe_pending.add(str(_safe_requirement))
-  if not _safe_pending:
+  _safe_install_requirements = sorted(_safe_pending)
+  _safe_pending.close()
+  if not _safe_install_requirements:
    break
-  if frozenset(_safe_pending) in _safe_previous_pending:
-   raise ValueError('Python package dependencies remain missing: ' + ', '.join(sorted(_safe_pending)))
-  _safe_previous_pending.add(frozenset(_safe_pending))
-  await _safe_install(sorted(_safe_pending))
+  if _safe_previous_pending.repeated(_safe_install_requirements):
+   raise ValueError('Python package dependencies remain missing: ' + ', '.join(_safe_install_requirements))
+  await _safe_install(_safe_install_requirements)
+  del _safe_install_requirements
  _safe_validate(_safe_roots)
  _safe_versions.close()
+ _safe_previous_pending.close()
  _safe_roots.close()
  _safe_constraints.close()
  _safe_extras.close()

@@ -6,6 +6,36 @@ import { createPythonPackageManifestStore } from './manifest.js';
 
 const context = () => ({fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal});
 
+for(const mutation of ['bom','invalid-utf8'] as const)test(`cache manifest publication detects ${mutation} byte changes with identical decoded text`,async()=>{
+ const encoder=new TextEncoder();
+ const original=encoder.encode(JSON.stringify({version:3,installed:[],records:[['fixture','\ufffd','',[],[],null]]}));
+ let stored:Uint8Array=original;
+ let publications=0,installed=0;
+ const env=createPythonPackageEnvironment({cacheDirectory:'/cache',onProgress(event){if(event.phase==='installed')installed++;}});
+ const base=context();
+ const fs=new Proxy(base.fs,{get(target,key){
+  if(key==='readFile')return async()=>stored;
+  if(key==='writeFile')return async(_path:string,bytes:Uint8Array)=>{publications++;stored=bytes;};
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const ctx={...base,fs},start=await env.prepare(ctx);
+ try{
+  if(mutation==='bom')stored=Uint8Array.from([239,187,191,...original]);
+  else{
+   const offset=original.indexOf(239);
+   stored=Uint8Array.from([...original.subarray(0,offset),255,...original.subarray(offset+3)]);
+  }
+  assert.notDeepEqual(stored,original);
+  assert.equal(new TextDecoder().decode(stored),new TextDecoder().decode(original));
+  const changed=stored;
+  await assert.rejects(env.dispatch('package-commit',[start.session,{version:1,installed:[]}],ctx),{code:'EPACKAGECONFLICT',retryable:true});
+  assert.equal(stored,changed);assert.equal(publications,0);assert.equal(installed,0);
+  stored=original.slice();
+  await env.dispatch('package-commit',[start.session,{version:1,installed:[]}],ctx);
+  assert.equal(publications,1);assert.equal(installed,1);
+ }finally{await env.finish(start);await env.dispose();}
+});
+
 test('exact installed snapshots restore separately from newly requested dependencies', async () => {
  const env=createPythonPackageEnvironment({requirements:['configured==1']});
  const ctx=context();

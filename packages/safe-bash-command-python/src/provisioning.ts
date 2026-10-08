@@ -288,9 +288,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const stored = options.manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
   signal.throwIfAborted();
   checkManifest(stored);
-  const manifest = stored === undefined ? '' : decoder.decode(stored);
+  const manifest = stored === undefined ? '' : digest(stored);
   let previous: unknown;
-  try { previous = stored === undefined ? [] : JSON.parse(manifest); } catch { /* Malformed JSON follows the same manifest validation below. */ }
+  try { previous = stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
   const saved = readPackageManifest(previous);
   if (!saved) throw failure('Invalid Python package environment manifest');
   const legacy = Array.isArray(previous);
@@ -376,7 +376,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
      const current = await session.manifestCache.get(manifestKey);
      check();
      checkManifest(current);
-     if ((current===undefined?'':decoder.decode(current))!==session.manifest) throw new PythonPackageConflictError();
+     if ((current===undefined?'':digest(current))!==session.manifest) throw new PythonPackageConflictError();
      await session.manifestCache.set(manifestKey,manifestBytes);
     }
     check();

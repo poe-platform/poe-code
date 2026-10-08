@@ -270,6 +270,9 @@ retain discovery order. Publication sends ordered, individually JSON-encoded req
 awaited record callback; no whole-inventory JSON string crosses the interpreter
 boundary. Source and version stores retire even when a pin transfer fails.
 The host still collects manifest arrays and serializes their complete byte buffer.
+Cache publication now retains a SHA-256 fingerprint instead of the complete
+decoded manifest text per session. Conflict checks cover changed bytes even when
+UTF-8 decoding produces identical text; restoration and serialization still buffer.
 Uninstall targets, discovered versions and success records now use caller storage.
 Targets retain first-occurrence order; success messages stream from their records
 only after manifest publication, with cleanup on output failure or cancellation.

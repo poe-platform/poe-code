@@ -177,6 +177,12 @@ def _safe_distribution_metadata(distribution):
   metadata = FunctionType(native.__code__, dict(native.__globals__, email=SimpleNamespace(message_from_string=parse)), native.__name__, native.__defaults__, native.__closure__)
   return metadata(view)
 
+def _safe_distribution_version(distribution):
+ from types import SimpleNamespace
+ if type(distribution) is not _safe_metadata.PathDistribution:
+  return distribution.version
+ return _safe_metadata.Distribution.version.fget(SimpleNamespace(metadata=_safe_distribution_metadata(distribution)))
+
 class _SafePreloaded:
  @classmethod
  async def snapshot(cls):
@@ -292,7 +298,7 @@ def _safe_validate(roots):
  for root in roots:
   if root.marker and not root.marker.evaluate({'extra': ''}):
    continue
-  version = _safe_metadata.version(root.name)
+  version = _safe_distribution_version(_safe_metadata.distribution(root.name))
   if not root.specifier.contains(version, prereleases=True):
    raise ValueError('Python package version conflict: ' + str(root))
   if root.url:
@@ -464,7 +470,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
     continue
    name = _safe_name(name)
    if versions is not None:
-    versions.put(name, distribution.version)
+    versions.put(name, _safe_distribution_version(distribution))
    contexts = {''} | set(_safe_extras.get(name, ()))
    from contextlib import closing
    with closing(_safe_distribution_requires(distribution)) as declared:
@@ -750,7 +756,7 @@ if _safe_metadata_only:
   _safe_dist = _safe_metadata.Distribution.at(_safe_path)
   if _safe_name(_safe_distribution_metadata(_safe_dist)['Name']) != _safe_record_name:
    raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
-  _SafeRequirement(_safe_record_name + '==' + _safe_dist.version)
+  _SafeRequirement(_safe_record_name + '==' + _safe_distribution_version(_safe_dist))
  _safe_metadata.MetadataPathFinder.invalidate_caches()
 _safe_restoring = True
 _safe_restore = _safe_json.loads(_safe_package_restore_json)
@@ -771,7 +777,7 @@ if _safe_metadata_only:
  for _safe_root_index, _safe_root in enumerate(_safe_roots):
   if _safe_root.url and _safe_snapshot_path(_safe_name(_safe_root.name)) is not None:
    _safe_wheel = _SafeWheelInfo.from_url(_safe_root.url)
-   if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_metadata.version(_safe_root.name):
+   if _safe_name(_safe_wheel.name) == _safe_name(_safe_root.name) and str(_safe_wheel.version) == _safe_distribution_version(_safe_metadata.distribution(_safe_root.name)):
     _safe_root.url = None
     _safe_root.specifier = _SafeRequirement(_safe_root.name + '==' + str(_safe_wheel.version)).specifier
     _safe_roots.put(str(_safe_root_index), str(_safe_root))
@@ -790,7 +796,7 @@ if _safe_uninstall:
  try:
   for _safe_dist in _safe_metadata.distributions():
    if _safe_distribution_metadata(_safe_dist)['Name'] and _safe_name(_safe_distribution_metadata(_safe_dist)['Name']) in _safe_targets:
-    _safe_versions.put(_safe_name(_safe_distribution_metadata(_safe_dist)['Name']), _safe_dist.version)
+    _safe_versions.put(_safe_name(_safe_distribution_metadata(_safe_dist)['Name']), _safe_distribution_version(_safe_dist))
   for _safe_target in _safe_targets:
    if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
     raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
@@ -799,7 +805,7 @@ if _safe_uninstall:
     await _safe_package_emit('stderr', 'WARNING: Skipping ' + _safe_target + ' as it is not installed.\n')
     continue
    _safe_dist = _safe_metadata.distribution(_safe_target)
-   _safe_version = _safe_dist.version
+   _safe_version = _safe_distribution_version(_safe_dist)
    await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
    if not _safe_uninstall['yes']:
     _safe_lists = (_safe_record_by_name.paths(_safe_target, field) for field in (3,4)) if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
@@ -859,7 +865,7 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
    continue
   _safe_dist_name = _safe_name(_safe_dist_name)
   if _safe_dist_name in _safe_managed:
-   _safe_versions.put(_safe_dist_name, _safe_dist.version)
+   _safe_versions.put(_safe_dist_name, _safe_distribution_version(_safe_dist))
    _safe_origin = _safe_dist.read_text('PYODIDE_URL')
    if _safe_origin:
     _safe_sources.put(str(len(_safe_sources)), _safe_dist_name + ' @ ' + _safe_origin.strip())

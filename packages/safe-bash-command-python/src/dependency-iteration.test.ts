@@ -29,7 +29,7 @@ async def install(requirements,**options):
  calls.append((list(requirements),options['deps']))
  if repair and any(value.startswith('leaf') for value in requirements):
   distributions.append(dist('leaf','2'))
-namespace={'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement,'_safe_name':canonicalize_name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=lambda:iter(distributions)),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False}
+namespace={'_safe_distribution_version':lambda distribution:distribution.version,'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement,'_safe_name':canonicalize_name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=lambda:iter(distributions)),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False}
 tree=ast.parse(json.load(sys.stdin))
 selected=[n for n in tree.body if isinstance(n,(ast.AsyncFunctionDef,ast.ClassDef)) and n.name in ('_safe_resolve','_SafeRequirements')]
 class Names(set):

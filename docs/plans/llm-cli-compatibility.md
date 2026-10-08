@@ -587,3 +587,17 @@ accessors, email-parser collections and the other acceptance gates remain open.
 The fresh artifact passes 797 Python tests, 142 installed public tests, all three
 affected actual Worker cases, all 17 unchanged bundle profiles, lint, types and
 the scoped workspace build. This qualifies the startup change, not the full issue.
+
+
+Native distribution version reads in validation, dependency resolution, snapshot
+restoration, uninstall and publication now use the caller-backed metadata reader.
+The original native `Distribution.version` getter reads the staged metadata view;
+custom distribution types retain their own version properties, and instance
+metadata readers keep the existing compatibility path. Differential coverage
+checks duplicate, folded and missing version fields, warnings, decoding and
+backing failures, custom properties and reader overrides. Wheel version values
+retain their existing behavior. Native parser header/body collections, raw
+direct-URL and egg text, and the remaining acceptance gates are still incomplete.
+The fresh artifact passes 805 Python tests, 142 installed public tests, all three
+affected actual Worker cases, all 17 unchanged bundle profiles, lint, types and
+the scoped workspace build.

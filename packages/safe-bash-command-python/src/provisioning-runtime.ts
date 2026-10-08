@@ -184,8 +184,14 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
   }
   bind('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
   const inputRecords=start.records?.map((row):PythonPackageRecord=>[row[0],row[1],row[2],[...row[3]],[...row[4]],row[5]??null]);
-  const outputRecords:unknown[]=[];
+  const outputRecords:unknown[]=[],pinned:string[]=[];
   bind('_safe_package_record',(operation:string,key?:unknown,value?:unknown)=>transfer(async()=>{
+   if(operation==='pin'){
+    if(typeof key!=='string')throw new Error('Invalid Python package pin');
+    const pin=JSON.parse(key);
+    if(typeof pin!=='string')throw new Error('Invalid Python package pin');
+    pinned.push(pin);return null;
+   }
    if(operation==='start'){await request('package-index',start.session,'records-start');return inputRecords?.length??-1;}
    if(operation==='append'){
     if(typeof key!=='string')throw new Error('Invalid Python package record');
@@ -248,7 +254,6 @@ _safe_installer_failure
   accepting=false;
   await pending;
   if(transportFailure)throw transportFailure.error;
-  const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
   await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:outputRecords});
   if(start.uninstall)await runtime.runPythonAsync('await _safe_publish_uninstalled()');
  }catch(error){

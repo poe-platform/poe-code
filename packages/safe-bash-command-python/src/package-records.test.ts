@@ -41,7 +41,8 @@ test('installer transfers individual saved records without serializing the compl
    assert.deepEqual(JSON.parse(await record('get','fixture') as string),expected);
    assert.equal(await record('get','missing'),'null');
    await record('append',JSON.stringify(expected));
-  },runPython(source:string){assert.equal(source,'_safe_installed_json');return '["fixture==1"]';}};
+   await record('pin',JSON.stringify('fixture==1'));
+  },runPython(){throw new Error('whole inventory serialization');}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],restore:[],records:rows,offline:true},async(operation,...args)=>{
   if(operation==='package-index'){
    calls.push(args);

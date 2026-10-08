@@ -130,9 +130,10 @@ test('installer awaits asynchronous artifact reads, closure and manifest publica
   if(source===pythonNativeWheel)return execute(source);
   const metadata=await (globals.get('_safe_package_metadata') as (url:string)=>Promise<string>)('https://example.org/metadata');
   assert.deepEqual(JSON.parse(metadata),{text:'\u0001\u0002\u0003',headers:{'content-type':'application/json'}});
+  await (globals.get('_safe_package_record') as (operation:string,value:string)=>Promise<void>)('pin',JSON.stringify('fixture==1'));
  };
  runtime.loadPackage=async()=>{const metadata={normalizedName:'fixture',channel:'https://example.org/fixture.whl'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));assert.deepEqual(operations,['package-open','package-read','package-read','package-close']);};
- runtime.runPython=()=> '["fixture==1"]';
+ runtime.runPython=()=>{throw new Error('whole inventory read');};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],offline:false},async(op,...args)=>{
   await Promise.resolve();operations.push(op);
   if(op==='package-open'){assert.deepEqual(args,args[1]==='https://example.org/metadata'?['1',args[1],undefined,'metadata']:['1',args[1],undefined]);return {key:'artifact',size:3,headers:[['Content-Type','application/json']]};}
@@ -364,4 +365,21 @@ test('preloaded snapshot transport drains before publication and rejects late ca
  complete();await installing;
  assert.equal(committed,true);assert.equal(globals.size,0);
  await assert.rejects(snapshot('has','protected'),/only available during installation/);
+});
+
+for(const invalid of [false,true])test('inventory pins cross individually and commit only after validation; invalid='+invalid,async()=>{
+ const globals=new Map<string,unknown>(),pins=['fixture @ file:///a b.whl','fixture==1','quote"\\é==2','surrogate-\ud800'];let committed=false;
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(){},async downloadPackage(){}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
+  async runPythonAsync(){
+   const record=globals.get('_safe_package_record') as (operation:string,value:unknown)=>Promise<void>;
+   for(const pin of pins){await record('pin',JSON.stringify(pin));assert.equal(committed,false);}
+   if(invalid){try{await record('pin','null');}catch{/* Native installer may mask transport errors. */}}
+  },runPython(){throw new Error('buffered inventory read');}};
+ const work=installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],restore:[],offline:true},async(op,...args)=>{
+  assert.equal(op,'package-commit');committed=true;
+  assert.deepEqual(args,['1',{version:3,installed:pins,records:[]}]);
+ },64);
+ if(invalid)await assert.rejects(work,/Invalid Python package pin/);else await work;
+ assert.equal(committed,!invalid);assert.equal(globals.size,0);
 });

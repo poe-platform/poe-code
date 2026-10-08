@@ -3,9 +3,10 @@ import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {loadPythonPackageProgram} from './package-program.js';
 
-for(const mode of ['install','remove','missing','decline','large'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
+for(const mode of ['install','remove','missing','decline','large','pin-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast, asyncio, json, sys, types
+from unittest.mock import patch
 source, mode = json.load(sys.stdin)
 tree = ast.parse(source)
 start = next(index for index, node in enumerate(tree.body) if isinstance(node, ast.Assign) and any(isinstance(target, ast.Name) and target.id == '_safe_managed' for target in node.targets))
@@ -14,7 +15,13 @@ live = peak = 0
 removed = False
 output = []
 published = []
+pins = []
 async def record(operation, payload):
+ if operation == "pin":
+  assert isinstance(payload,str)
+  pins.append(json.loads(payload))
+  if mode=='pin-failure':raise RuntimeError('pin denied')
+  return
  assert operation == "append"
  published.append(json.loads(payload))
 class Version(str):
@@ -74,11 +81,20 @@ namespace = {
  '_SafeNames':Names, '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
- '_safe_uninstall':None if mode in ('install','large') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
+ '_safe_uninstall':None if mode in ('install','large','pin-failure') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
  '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':Names(['remove']), '_safe_package_emit':emit, '_safe_package_line':line,
  '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
 }
-asyncio.run(eval(code, namespace))
+try:
+ with patch('io.StringIO',side_effect=AssertionError('buffered inventory transport')):
+  asyncio.run(eval(code, namespace))
+except RuntimeError as error:
+ if mode!='pin-failure':raise
+ assert str(error)=='pin denied'
+ assert pins==['active @ file:///active.whl']
+ assert closed==[namespace['_safe_roots'],namespace['_safe_sources'],namespace['_safe_versions']]
+ sys.exit(0)
+assert mode!='pin-failure','pin failure was swallowed'
 assert closed[0] is namespace['_safe_roots']
 assert closed[-4:] == [namespace['_safe_sources'],namespace['_safe_versions'],namespace['_safe_managed'],namespace['_safe_restored_names']]
 assert len(closed)==(7 if namespace['_safe_uninstall'] else 5)
@@ -89,7 +105,8 @@ if mode=='large':
  expected[1:1]=['package-'+str(i)+' @ file:///package-'+str(i)+'.whl' for i in range(1024)]
  expected.extend(name+'==1' for name in sorted('package-'+str(i) for i in range(1024)))
 if mode != 'remove': expected.append('remove==2')
-assert json.loads(namespace['_safe_installed_json']) == expected
+assert pins == expected
+assert '_safe_installed_json' not in namespace
 assert published == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove'] + ([records['package-'+str(i)] for i in range(1024)] if mode=='large' else [])
 assert not any('Successfully' in text for _,text in output)
 if namespace['_safe_uninstall']:

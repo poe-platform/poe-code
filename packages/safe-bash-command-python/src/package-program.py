@@ -609,18 +609,12 @@ def _safe_inventory():
  for key in _safe_sources:yield _safe_sources.get(key)
  for name in _safe_versions.ordered():
   if name in _safe_managed:yield name + '==' + _safe_versions.get(name)
-import io as _safe_io
-with _safe_io.StringIO() as _safe_output:
- _safe_output.write('[')
- _safe_separator = ''
+try:
  for _safe_source in _safe_inventory():
-  _safe_output.write(_safe_separator)
-  _safe_json.dump(_safe_source, _safe_output)
-  _safe_separator = ', '
- _safe_output.write(']')
- _safe_installed_json = _safe_output.getvalue()
-_safe_sources.close()
-_safe_versions.close()
+  await _safe_package_record('pin', _safe_json.dumps(_safe_source))
+finally:
+ _safe_sources.close()
+ _safe_versions.close()
 _safe_managed.close()
 _safe_restored_names.close()
 _safe_metadata.MetadataPathFinder.invalidate_caches()

@@ -266,8 +266,10 @@ retain only scalar lookup state in guest memory. Digest buckets compare exact
 records even on collisions, bound record reads, and retire after resolution.
 Publication source records and last-version lookups now use caller storage.
 Version-name ordering merges bounded 64-name runs with two input cursors; sources
-retain discovery order. Publication writes JSON incrementally without a second
-whole-inventory list, but the returned JSON string remains materialized.
+retain discovery order. Publication sends ordered, individually JSON-encoded requirements through the
+awaited record callback; no whole-inventory JSON string crosses the interpreter
+boundary. Source and version stores retire even when a pin transfer fails.
+The host still collects manifest arrays and serializes their complete byte buffer.
 Uninstall targets, discovered versions and success records now use caller storage.
 Targets retain first-occurrence order; success messages stream from their records
 only after manifest publication, with cleanup on output failure or cancellation.

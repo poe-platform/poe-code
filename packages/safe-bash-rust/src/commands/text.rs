@@ -48,7 +48,7 @@ enum SedAddr {
     RelPlus(usize),
     RelStep(usize),
     Last,
-    Regex(String),
+    Regex(String, bool),
 }
 
 #[derive(Clone, Debug)]
@@ -108,6 +108,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut null_data = false;
     let mut in_place = false;
     let mut in_place_suffix = String::new();
+    let mut line_length = 70usize;
     let mut scripts: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
 
@@ -121,45 +122,137 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             continue;
         }
         if !end_opts && a.starts_with('-') && a.len() > 1 {
-            if a == "-n" || a == "--quiet" || a == "--silent" {
+            if a == "-h" || a == "--help" {
+                return ok_out("Usage: sed [OPTION]... {script-only-if-no-other-script} [input-file]...\n");
+            } else if a == "-n" || a == "--quiet" || a == "--silent" {
                 quiet = true;
+            } else if a == "-u" || a == "--unbuffered" {
             } else if a == "-E" || a == "-r" || a == "--regexp-extended" {
                 extended = true;
             } else if a == "-s" || a == "--separate" {
                 separate = true;
             } else if a == "-z" || a == "--null-data" {
                 null_data = true;
+            } else if a == "--in-place" {
+                in_place = true;
             } else if let Some(suf) = a.strip_prefix("-i") {
                 in_place = true;
                 in_place_suffix = suf.to_string();
+                if in_place_suffix.is_empty() && i + 1 < args.len() && args[i + 1].is_empty() {
+                    i += 1;
+                }
             } else if let Some(suf) = a.strip_prefix("--in-place=") {
                 in_place = true;
                 in_place_suffix = suf.to_string();
-            } else if a == "-e" {
+            } else if a == "-l" || a == "--line-length" {
+                if i + 1 >= args.len() {
+                    return err_out("sed: option requires an argument -- 'l'\n", 2);
+                }
+                i += 1;
+                match args[i].parse::<usize>() {
+                    Ok(v) => line_length = v,
+                    Err(_) => return err_out("sed: invalid line length\n", 2),
+                }
+            } else if let Some(rest) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--line-length=")) {
+                match rest.parse::<usize>() {
+                    Ok(v) => line_length = v,
+                    Err(_) => return err_out("sed: invalid line length\n", 2),
+                }
+            } else if a == "-e" || a == "--expression" {
                 if i + 1 < args.len() {
                     i += 1;
                     scripts.push(args[i].clone());
+                } else {
+                    return err_out("sed: -e requires an argument\n", 2);
                 }
-            } else if let Some(rest) = a.strip_prefix("-e") {
+            } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--expression=")) {
                 scripts.push(rest.to_string());
-            } else if a == "-f" {
+            } else if a == "-f" || a == "--file" {
                 if i + 1 < args.len() {
                     i += 1;
                     let p = resolve_posix_path(cwd, &args[i]);
                     if let Ok(b) = fs.read_file(&p) {
                         scripts.push(String::from_utf8_lossy(&b).into_owned());
+                    } else {
+                        return err_out(&format!("sed: couldn't open file {}: No such file or directory\n", args[i]), 2);
                     }
+                } else {
+                    return err_out("sed: -f requires an argument\n", 2);
                 }
+            } else if let Some(rest) = a.strip_prefix("-f").or_else(|| a.strip_prefix("--file=")) {
+                let p = resolve_posix_path(cwd, rest);
+                if let Ok(b) = fs.read_file(&p) {
+                    scripts.push(String::from_utf8_lossy(&b).into_owned());
+                } else {
+                    return err_out(&format!("sed: couldn't open file {rest}: No such file or directory\n"), 2);
+                }
+            } else if a.starts_with("--") {
+                return err_out(&format!("sed: unsupported option '{a}'\n"), 2);
             } else {
-                for ch in a[1..].chars() {
+                let chars: Vec<char> = a[1..].chars().collect();
+                let mut p = 0usize;
+                while p < chars.len() {
+                    let ch = chars[p];
                     match ch {
                         'n' => quiet = true,
-                        'i' => in_place = true,
+                        'u' => {}
+                        'i' => {
+                            in_place = true;
+                            in_place_suffix = chars[p + 1..].iter().collect();
+                            break;
+                        }
                         'E' | 'r' => extended = true,
                         's' => separate = true,
                         'z' => null_data = true,
-                        _ => {}
+                        'e' => {
+                            let rest: String = chars[p + 1..].iter().collect();
+                            if !rest.is_empty() {
+                                scripts.push(rest);
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                scripts.push(args[i].clone());
+                            } else {
+                                return err_out("sed: -e requires an argument\n", 2);
+                            }
+                            break;
+                        }
+                        'f' => {
+                            let rest: String = chars[p + 1..].iter().collect();
+                            let fname = if !rest.is_empty() {
+                                rest
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                args[i].clone()
+                            } else {
+                                return err_out("sed: -f requires an argument\n", 2);
+                            };
+                            let path = resolve_posix_path(cwd, &fname);
+                            if let Ok(b) = fs.read_file(&path) {
+                                scripts.push(String::from_utf8_lossy(&b).into_owned());
+                            } else {
+                                return err_out(&format!("sed: couldn't open file {fname}: No such file or directory\n"), 2);
+                            }
+                            break;
+                        }
+                        'l' => {
+                            let rest: String = chars[p + 1..].iter().collect();
+                            let val_str = if !rest.is_empty() {
+                                rest
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                args[i].clone()
+                            } else {
+                                return err_out("sed: -l requires an argument\n", 2);
+                            };
+                            match val_str.parse::<usize>() {
+                                Ok(v) => line_length = v,
+                                Err(_) => return err_out("sed: invalid line length\n", 2),
+                            }
+                            break;
+                        }
+                        _ => return err_out(&format!("sed: unsupported option '-{ch}'\n"), 2),
                     }
+                    p += 1;
                 }
             }
             i += 1;
@@ -173,13 +266,36 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         i += 1;
     }
 
-    let mut parsed_cmds = Vec::new();
-    for s in &scripts {
-        for part in split_sed_statements(s) {
-            if let Some(c) = parse_sed_cmd(&part, extended, cwd, fs) {
-                parsed_cmds.push(c);
-            }
+    if scripts.is_empty() {
+        return err_out("sed: missing program\n", 2);
+    }
+    if scripts.first().is_some_and(|s| s.starts_with("#n")) {
+        quiet = true;
+    }
+    if in_place {
+        if files.is_empty() || files.iter().any(|f| f == "-") {
+            return err_out("sed: in-place editing requires named files\n", 2);
         }
+        if in_place_suffix.contains('/') || in_place_suffix.contains('\0') {
+            return err_out("sed: backup suffix cannot contain '/' or NUL\n", 2);
+        }
+    }
+
+    let combined_script = scripts.join("\n");
+    let stmts = match split_sed_statements(&combined_script) {
+        Ok(v) => v,
+        Err(msg) => return err_out(&msg, 2),
+    };
+    let mut parsed_cmds = Vec::new();
+    for part in stmts {
+        match parse_sed_cmd(&part, extended, cwd, fs) {
+            Ok(Some(c)) => parsed_cmds.push(c),
+            Ok(None) => {}
+            Err(msg) => return err_out(&msg, 2),
+        }
+    }
+    if let Err(msg) = validate_sed_labels(&parsed_cmds) {
+        return err_out(&msg, 2);
     }
 
     let mut write_files: BTreeMap<String, String> = BTreeMap::new();
@@ -193,7 +309,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 let content = String::from_utf8_lossy(&bytes);
                 let mut cmds_copy = parsed_cmds.clone();
-                let (res, _) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, &mut write_files);
+                let (res, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
+                if let Some(em) = err_msg {
+                    return err_out(&em, code);
+                }
                 let _ = fs.write_file(&full, res.as_bytes());
             } else {
                 return err_out(&format!("sed: {f}: No such file or directory\n"), 1);
@@ -218,7 +337,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             };
             let mut cmds_copy = parsed_cmds.clone();
-            let (part_out, code) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, &mut write_files);
+            let (part_out, code, err_msg) = run_sed_on_text(&content, f, &mut cmds_copy, quiet, null_data, line_length, &mut write_files);
+            if let Some(em) = err_msg {
+                return err_out(&em, code);
+            }
             total_out.push_str(&part_out);
             if code != 0 {
                 for (wf, data) in write_files {
@@ -251,7 +373,10 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let cur_fname = files.first().map(|s| s.as_str()).unwrap_or("-");
-    let (out, exit_code) = run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, &mut write_files);
+    let (out, exit_code, err_msg) = run_sed_on_text(&combined_in, cur_fname, &mut parsed_cmds, quiet, null_data, line_length, &mut write_files);
+    if let Some(em) = err_msg {
+        return err_out(&em, exit_code);
+    }
     for (wf, data) in write_files {
         let _ = fs.write_file(&resolve_posix_path(cwd, &wf), data.as_bytes());
     }
@@ -262,18 +387,43 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 }
 
-fn split_sed_statements(script: &str) -> Vec<String> {
+fn split_sed_statements(script: &str) -> Result<Vec<String>, String> {
     let mut out = Vec::new();
     let mut cur = String::new();
     let chars: Vec<char> = script.chars().collect();
     let mut idx = 0usize;
     let mut in_slash: Option<char> = None;
     let mut slash_count = 0usize;
-    let mut in_addr_regex = false;
+    let mut in_addr_regex: Option<char> = None;
+    let mut in_text_cmd = false;
     let mut brace_depth = 0i32;
 
     while idx < chars.len() {
         let c = chars[idx];
+        if c == '#' && in_addr_regex.is_none() && in_slash.is_none() && !in_text_cmd && cur.trim().is_empty() {
+            while idx < chars.len() && chars[idx] != '\n' {
+                idx += 1;
+            }
+            continue;
+        }
+        if c == '\\'
+            && idx + 1 < chars.len()
+            && in_addr_regex.is_none()
+            && in_slash.is_none()
+            && !in_text_cmd
+            && chars[idx + 1] != '\n'
+            && {
+                let ct = cur.trim();
+                ct.is_empty() || ct.ends_with(',') || ct.ends_with('{')
+            }
+        {
+            let delim = chars[idx + 1];
+            in_addr_regex = Some(delim);
+            cur.push('\\');
+            cur.push(delim);
+            idx += 2;
+            continue;
+        }
         if c == '\\' && idx + 1 < chars.len() {
             cur.push(c);
             cur.push(chars[idx + 1]);
@@ -282,7 +432,8 @@ fn split_sed_statements(script: &str) -> Vec<String> {
         }
         if c == '\n' {
             in_slash = None;
-            in_addr_regex = false;
+            in_addr_regex = None;
+            in_text_cmd = false;
             if brace_depth == 0 {
                 let t = cur.trim().to_string();
                 if !t.is_empty() {
@@ -295,10 +446,15 @@ fn split_sed_statements(script: &str) -> Vec<String> {
             idx += 1;
             continue;
         }
-        if in_addr_regex {
+        if in_text_cmd {
             cur.push(c);
-            if c == '/' {
-                in_addr_regex = false;
+            idx += 1;
+            continue;
+        }
+        if let Some(delim) = in_addr_regex {
+            cur.push(c);
+            if c == delim {
+                in_addr_regex = None;
             }
             idx += 1;
             continue;
@@ -318,15 +474,30 @@ fn split_sed_statements(script: &str) -> Vec<String> {
             let ct = cur.trim();
             ct.is_empty() || ct.ends_with(',') || ct.ends_with('{')
         } {
-            in_addr_regex = true;
+            in_addr_regex = Some('/');
             cur.push(c);
             idx += 1;
             continue;
+        }
+        if matches!(c, 'a' | 'i' | 'c')
+            && (idx + 1 >= chars.len() || chars[idx + 1] == '\\' || chars[idx + 1].is_whitespace())
+        {
+            let (_, _, _, rem, _) = parse_sed_addresses(&cur, false);
+            if rem.trim().is_empty() {
+                in_text_cmd = true;
+                cur.push(c);
+                idx += 1;
+                continue;
+            }
         }
         if (c == 's' || c == 'y')
             && idx + 1 < chars.len()
             && !chars[idx + 1].is_ascii_alphanumeric()
             && !chars[idx + 1].is_whitespace()
+            && {
+                let (_, _, _, rem, err) = parse_sed_addresses(&cur, false);
+                err.is_none() && rem.trim().is_empty()
+            }
         {
             let delim = chars[idx + 1];
             in_slash = Some(delim);
@@ -339,7 +510,24 @@ fn split_sed_statements(script: &str) -> Vec<String> {
         if c == '{' {
             brace_depth += 1;
         } else if c == '}' {
-            brace_depth = (brace_depth - 1).max(0);
+            if brace_depth == 0 {
+                return Err("sed: unmatched '}'\n".to_string());
+            }
+            brace_depth -= 1;
+            if brace_depth == 0 {
+                let (_, _, _, after_addr, _) = parse_sed_addresses(&cur, false);
+                if !after_addr.trim_start().starts_with('{') {
+                    return Err("sed: unmatched '}'\n".to_string());
+                }
+                cur.push('}');
+                let t = cur.trim().to_string();
+                if !t.is_empty() {
+                    out.push(t);
+                }
+                cur.clear();
+                idx += 1;
+                continue;
+            }
         }
         if c == ';' && brace_depth == 0 {
             let t = cur.trim().to_string();
@@ -353,11 +541,101 @@ fn split_sed_statements(script: &str) -> Vec<String> {
         cur.push(c);
         idx += 1;
     }
+    if brace_depth != 0 {
+        return Err("sed: unclosed sed group\n".to_string());
+    }
     let t = cur.trim().to_string();
     if !t.is_empty() {
         out.push(t);
     }
-    out
+    Ok(out)
+}
+
+fn count_sed_regex_groups(pat: &str, extended: bool) -> usize {
+    let chs: Vec<char> = pat.chars().collect();
+    let mut k = 0usize;
+    let mut in_bracket = false;
+    let mut groups = 0usize;
+    while k < chs.len() {
+        if chs[k] == '\\' && k + 1 < chs.len() {
+            if !in_bracket && !extended && chs[k + 1] == '(' {
+                groups += 1;
+            }
+            k += 2;
+        } else if chs[k] == '[' && !in_bracket {
+            in_bracket = true;
+            k += 1;
+            if k < chs.len() && (chs[k] == '^' || chs[k] == '!') {
+                k += 1;
+            }
+            if k < chs.len() && chs[k] == ']' {
+                k += 1;
+            }
+        } else if chs[k] == ']' && in_bracket {
+            in_bracket = false;
+            k += 1;
+        } else {
+            if !in_bracket && extended && chs[k] == '(' {
+                groups += 1;
+            }
+            k += 1;
+        }
+    }
+    groups
+}
+
+fn max_sed_repl_backref(repl: &str) -> usize {
+    let chs: Vec<char> = repl.chars().collect();
+    let mut k = 0usize;
+    let mut max_ref = 0usize;
+    while k < chs.len() {
+        if chs[k] == '\\' && k + 1 < chs.len() {
+            let nc = chs[k + 1];
+            if nc.is_ascii_digit() && nc != '0' {
+                max_ref = max_ref.max((nc as u8 - b'0') as usize);
+            }
+            k += 2;
+        } else {
+            k += 1;
+        }
+    }
+    max_ref
+}
+
+fn collect_sed_labels(cmds: &[SedCmd], labels: &mut std::collections::BTreeSet<String>) -> Result<(), String> {
+    for c in cmds {
+        match &c.op {
+            SedOp::Label(l) => {
+                if l.is_empty() || !labels.insert(l.clone()) {
+                    return Err("sed: empty or duplicate branch label\n".to_string());
+                }
+            }
+            SedOp::Group(inner) => collect_sed_labels(inner, labels)?,
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn check_sed_branches(cmds: &[SedCmd], labels: &std::collections::BTreeSet<String>) -> Result<(), String> {
+    for c in cmds {
+        match &c.op {
+            SedOp::Branch(Some(l)) | SedOp::BranchIfSubst(Some(l)) | SedOp::BranchIfNotSubst(Some(l)) => {
+                if !labels.contains(l) {
+                    return Err(format!("sed: undefined branch label '{l}'\n"));
+                }
+            }
+            SedOp::Group(inner) => check_sed_branches(inner, labels)?,
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn validate_sed_labels(cmds: &[SedCmd]) -> Result<(), String> {
+    let mut labels = std::collections::BTreeSet::new();
+    collect_sed_labels(cmds, &mut labels)?;
+    check_sed_branches(cmds, &labels)
 }
 
 fn convert_bre_parens(pat: &str) -> String {
@@ -451,34 +729,62 @@ fn convert_ere_escaped_parens(pat: &str) -> String {
     out
 }
 
-fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> Option<SedCmd> {
+fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> Result<Option<SedCmd>, String> {
     let s = stmt.trim();
     if s.is_empty() || s.starts_with('#') {
-        return None;
+        return Ok(None);
     }
     if let Some(lbl) = s.strip_prefix(':') {
-        return Some(SedCmd {
+        let label_name = lbl.trim().to_string();
+        if label_name.is_empty() {
+            return Err("sed: empty branch label\n".to_string());
+        }
+        return Ok(Some(SedCmd {
             addr1: None,
             addr2: None,
             negated: false,
-            op: SedOp::Label(lbl.trim().to_string()),
+            op: SedOp::Label(label_name),
             in_range: false,
             range_start_line: 0,
-        });
+        }));
     }
-    let (addr1, addr2, negated, rest) = parse_sed_addresses(s);
+    let (addr1, addr2, negated, rest, addr_err) = parse_sed_addresses(s, extended);
+    if let Some(ae) = addr_err {
+        return Err(ae);
+    }
     let rest = rest.trim();
     if rest.is_empty() {
-        return None;
+        if addr1.is_some() || negated {
+            return Err("sed: missing sed command\n".to_string());
+        }
+        return Ok(None);
     }
-    let first = rest.chars().next()?;
+    let first = rest.chars().next().unwrap();
     let op = match first {
-        'd' => SedOp::Delete,
+        'd' => {
+            if !rest[1..].trim().is_empty() && !rest[1..].trim().starts_with('#') {
+                return Err("sed: unexpected text after 'd' command\n".to_string());
+            }
+            SedOp::Delete
+        }
         'D' => SedOp::DeleteFirstLine,
         'p' => SedOp::Print,
         'P' => SedOp::PrintFirstLine,
-        'q' => SedOp::Quit(rest[1..].trim().parse::<i32>().ok()),
-        'Q' => SedOp::QuitSilent(rest[1..].trim().parse::<i32>().ok()),
+        'q' | 'Q' => {
+            if addr2.is_some() {
+                return Err("sed: quit accepts at most one address\n".to_string());
+            }
+            let code_str = rest[1..].trim();
+            let code = if code_str.is_empty() {
+                None
+            } else {
+                match code_str.parse::<i32>() {
+                    Ok(v) if (0..=255).contains(&v) => Some(v),
+                    _ => return Err("sed: invalid quit status\n".to_string()),
+                }
+            };
+            if first == 'q' { SedOp::Quit(code) } else { SedOp::QuitSilent(code) }
+        }
         'z' => SedOp::Zap,
         'F' => SedOp::Filename,
         'l' => SedOp::List,
@@ -490,7 +796,16 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
         'x' => SedOp::Exchange,
         'n' => SedOp::Next,
         'N' => SedOp::NextAppend,
-        ':' => SedOp::Label(rest[1..].trim().to_string()),
+        ':' => {
+            if addr1.is_some() || negated {
+                return Err("sed: labels cannot have addresses\n".to_string());
+            }
+            let lbl = rest[1..].trim().to_string();
+            if lbl.is_empty() {
+                return Err("sed: empty branch label\n".to_string());
+            }
+            SedOp::Label(lbl)
+        }
         'b' => {
             let target = rest[1..].trim();
             SedOp::Branch(if target.is_empty() {
@@ -517,10 +832,19 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         'w' => {
             let wf = rest[1..].trim().to_string();
+            if wf.is_empty() {
+                return Err("sed: w command requires a filename\n".to_string());
+            }
             SedOp::WriteFile(wf)
         }
         'r' => {
+            if addr2.is_some() {
+                return Err("sed: read accepts at most one address\n".to_string());
+            }
             let rf = rest[1..].trim();
+            if rf.is_empty() {
+                return Err("sed: r command requires a filename\n".to_string());
+            }
             let full = resolve_posix_path(cwd, rf);
             if let Ok(bytes) = fs.read_file(&full) {
                 let content = String::from_utf8_lossy(&bytes);
@@ -531,17 +855,22 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
         }
         '{' => {
-            let inner = rest
+            let Some(inner) = rest
                 .strip_prefix('{')
-                .and_then(|r| r.strip_suffix('}'))
-                .unwrap_or(&rest[1..]);
+                .and_then(|r| r.trim_end().strip_suffix('}'))
+            else {
+                return Err("sed: unclosed sed group\n".to_string());
+            };
             let mut sub_cmds = Vec::new();
-            for part in split_sed_statements(inner) {
-                if let Some(c) = parse_sed_cmd(&part, extended, cwd, fs) {
+            for part in split_sed_statements(inner)? {
+                if let Some(c) = parse_sed_cmd(&part, extended, cwd, fs)? {
                     sub_cmds.push(c);
                 }
             }
             SedOp::Group(sub_cmds)
+        }
+        '}' => {
+            return Err("sed: unmatched '}'\n".to_string());
         }
         'a' => {
             let text = rest[1..].trim_start_matches('\\').trim_start();
@@ -558,27 +887,41 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
         'y' => {
             let chars: Vec<char> = rest.chars().collect();
             if chars.len() < 4 {
-                return None;
+                return Err("sed: invalid y command\n".to_string());
             }
             let delim = chars[1];
-            let parts = split_sed_delim(&rest[2..], delim)?;
-            if parts.len() < 2 {
-                return None;
+            let delim_len = delim.len_utf8();
+            let Some(parts) = split_sed_delim(&rest[1 + delim_len..], delim) else {
+                return Err("sed: unterminated y command\n".to_string());
+            };
+            if parts.len() < 3 || !parts[2].trim().is_empty() {
+                return Err("sed: invalid y command\n".to_string());
             }
-            SedOp::Transliterate(
-                unescape_sed_text(&parts[0]).chars().collect(),
-                unescape_sed_text(&parts[1]).chars().collect(),
-            )
+            let src_chars: Vec<char> = unescape_sed_text(&parts[0]).chars().collect();
+            let dst_chars: Vec<char> = unescape_sed_text(&parts[1]).chars().collect();
+            if src_chars.len() != dst_chars.len() {
+                return Err("sed: translation sets have different lengths\n".to_string());
+            }
+            SedOp::Transliterate(src_chars, dst_chars)
         }
         's' => {
             let chars: Vec<char> = rest.chars().collect();
             if chars.len() < 4 {
-                return None;
+                return Err("sed: invalid s command\n".to_string());
             }
             let delim = chars[1];
-            let parts = split_sed_delim(&rest[2..], delim)?;
-            if parts.len() < 2 {
-                return None;
+            if delim == '\\' || delim == '\n' {
+                return Err("sed: invalid substitution delimiter\n".to_string());
+            }
+            let delim_len = delim.len_utf8();
+            let Some(parts) = split_sed_delim(&rest[1 + delim_len..], delim) else {
+                return Err("sed: unterminated substitution\n".to_string());
+            };
+            if parts.len() < 3 {
+                return Err("sed: unterminated substitution\n".to_string());
+            }
+            if !parts[0].is_empty() && max_sed_repl_backref(&parts[1]) > count_sed_regex_groups(&parts[0], extended) {
+                return Err("sed: replacement references an undefined capture group\n".to_string());
             }
             let pat = if extended {
                 convert_ere_escaped_parens(&parts[0])
@@ -592,21 +935,45 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
             let mut print_flag = false;
             let mut nth = None;
             let mut write_file = None;
-            for (f_idx, ch) in flags.char_indices() {
+            let flag_chars: Vec<(usize, char)> = flags.char_indices().collect();
+            let mut fi = 0usize;
+            while fi < flag_chars.len() {
+                let (f_idx, ch) = flag_chars[fi];
                 match ch {
+                    ' ' | '\t' => break,
+                    '#' => break,
                     'g' => global = true,
                     'i' | 'I' => ignore_case = true,
                     'p' => print_flag = true,
-                    '1'..='9' => nth = Some((ch as u8 - b'0') as usize),
+                    '1'..='9' => {
+                        if nth.is_some() {
+                            return Err("sed: multiple number options to 's' command\n".to_string());
+                        }
+                        let mut num_str = String::from(ch);
+                        while fi + 1 < flag_chars.len() && flag_chars[fi + 1].1.is_ascii_digit() {
+                            fi += 1;
+                            num_str.push(flag_chars[fi].1);
+                        }
+                        match num_str.parse::<usize>() {
+                            Ok(v) if v > 0 => nth = Some(v),
+                            _ => return Err("sed: invalid substitution occurrence\n".to_string()),
+                        }
+                    }
                     'w' => {
                         let wf = flags[f_idx + 1..].trim();
                         if !wf.is_empty() {
                             write_file = Some(wf.to_string());
+                        } else {
+                            return Err("sed: w flag requires a filename\n".to_string());
                         }
                         break;
                     }
-                    _ => {}
+                    other => return Err(format!("sed: unsupported substitution flag '{other}'\n")),
                 }
+                fi += 1;
+            }
+            if pat.is_empty() && ignore_case {
+                return Err("sed: flags on an empty regex are not supported\n".to_string());
             }
             SedOp::Substitute {
                 pat,
@@ -618,17 +985,17 @@ fn parse_sed_cmd(stmt: &str, extended: bool, cwd: &str, fs: &dyn SafeBashFs) -> 
                 write_file,
             }
         }
-        _ => return None,
+        other => return Err(format!("sed: unsupported sed command '{other}'\n")),
     };
 
-    Some(SedCmd {
+    Ok(Some(SedCmd {
         addr1,
         addr2,
         negated,
         op,
         in_range: false,
         range_start_line: 0,
-    })
+    }))
 }
 
 fn unescape_sed_text(s: &str) -> String {
@@ -746,14 +1113,29 @@ fn split_sed_delim(s: &str, delim: char) -> Option<Vec<String>> {
     Some(parts)
 }
 
-fn parse_sed_addresses(s: &str) -> (Option<SedAddr>, Option<SedAddr>, bool, &str) {
-    let (a1, rest1) = parse_one_sed_addr(s.trim_start());
+fn parse_sed_addresses(s: &str, extended: bool) -> (Option<SedAddr>, Option<SedAddr>, bool, &str, Option<String>) {
+    let (a1, rest1, err1) = parse_one_sed_addr(s.trim_start(), extended);
+    if let Some(e) = err1 {
+        return (None, None, false, s, Some(e));
+    }
     let mut rest = rest1.trim_start();
     let mut a2 = None;
     if a1.is_some() && rest.starts_with(',') {
-        let (parsed_a2, rest2) = parse_one_sed_addr(rest[1..].trim_start());
+        let (parsed_a2, rest2, err2) = parse_one_sed_addr(rest[1..].trim_start(), extended);
+        if let Some(e) = err2 {
+            return (None, None, false, s, Some(e));
+        }
+        if parsed_a2.is_none() {
+            return (None, None, false, s, Some("sed: invalid address range\n".to_string()));
+        }
         a2 = parsed_a2;
         rest = rest2.trim_start();
+    }
+    if matches!(a1, Some(SedAddr::Line(0))) && !matches!(a2, Some(SedAddr::Regex(_, _))) {
+        return (None, None, false, s, Some("sed: zero address requires a 0,/regex/ range\n".to_string()));
+    }
+    if matches!(a2, Some(SedAddr::Line(0))) {
+        return (None, None, false, s, Some("sed: zero address requires a 0,/regex/ range\n".to_string()));
     }
     let negated = if rest.starts_with('!') {
         rest = rest[1..].trim_start();
@@ -761,43 +1143,78 @@ fn parse_sed_addresses(s: &str) -> (Option<SedAddr>, Option<SedAddr>, bool, &str
     } else {
         false
     };
-    (a1, a2, negated, rest)
+    (a1, a2, negated, rest, None)
 }
 
-fn parse_one_sed_addr(s: &str) -> (Option<SedAddr>, &str) {
+fn parse_one_sed_addr(s: &str, extended: bool) -> (Option<SedAddr>, &str, Option<String>) {
     if let Some(rest) = s.strip_prefix('$') {
-        return (Some(SedAddr::Last), rest);
+        return (Some(SedAddr::Last), rest, None);
     }
     if let Some(rest) = s.strip_prefix('+') {
         let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
         if let Ok(n) = digits.parse::<usize>() {
-            return (Some(SedAddr::RelPlus(n)), &rest[digits.len()..]);
+            return (Some(SedAddr::RelPlus(n)), &rest[digits.len()..], None);
         }
     }
     if let Some(rest) = s.strip_prefix('~') {
         let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
         if let Ok(n) = digits.parse::<usize>() {
-            return (Some(SedAddr::RelStep(n.max(1))), &rest[digits.len()..]);
+            return (Some(SedAddr::RelStep(n)), &rest[digits.len()..], None);
         }
     }
-    if let Some(rest) = s.strip_prefix('/') {
+    let delim_and_rest = if let Some(rest) = s.strip_prefix('/') {
+        Some(('/', rest))
+    } else if let Some(after_bs) = s.strip_prefix('\\') {
+        let mut chs = after_bs.chars();
+        if let Some(d) = chs.next()
+            && d != '\n'
+        {
+            Some((d, &after_bs[d.len_utf8()..]))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    if let Some((delim, rest)) = delim_and_rest {
         let mut pat = String::new();
         let mut idx = 0usize;
         let chars: Vec<char> = rest.chars().collect();
         while idx < chars.len() {
             if chars[idx] == '\\' && idx + 1 < chars.len() {
-                pat.push(chars[idx]);
-                pat.push(chars[idx + 1]);
+                if chars[idx + 1] == delim {
+                    pat.push(delim);
+                } else {
+                    pat.push(chars[idx]);
+                    pat.push(chars[idx + 1]);
+                }
                 idx += 2;
                 continue;
             }
-            if chars[idx] == '/' {
+            if chars[idx] == delim {
                 let byte_offset: usize = chars[..=idx].iter().map(|c| c.len_utf8()).sum();
-                return (Some(SedAddr::Regex(pat)), &rest[byte_offset..]);
+                let after_delim = &rest[byte_offset..];
+                let (ic, final_rest) = if let Some(r) = after_delim.strip_prefix('I') {
+                    (true, r)
+                } else {
+                    (false, after_delim)
+                };
+                if pat.is_empty() && ic {
+                    return (None, s, Some("sed: flags on an empty regex are not supported\n".to_string()));
+                }
+                let conv = if pat.is_empty() {
+                    String::new()
+                } else if extended {
+                    convert_ere_escaped_parens(&pat)
+                } else {
+                    convert_bre_parens(&pat)
+                };
+                return (Some(SedAddr::Regex(conv, ic)), final_rest, None);
             }
             pat.push(chars[idx]);
             idx += 1;
         }
+        return (None, s, Some("sed: unterminated address regex\n".to_string()));
     }
     let digits: String = s.chars().take_while(|c| c.is_ascii_digit()).collect();
     if !digits.is_empty()
@@ -807,34 +1224,53 @@ fn parse_one_sed_addr(s: &str) -> (Option<SedAddr>, &str) {
         if let Some(after_tilde) = after_n.strip_prefix('~') {
             let step_digits: String = after_tilde.chars().take_while(|c| c.is_ascii_digit()).collect();
             if let Ok(step) = step_digits.parse::<usize>() {
-                return (Some(SedAddr::Step(n, step.max(1))), &after_tilde[step_digits.len()..]);
+                return (Some(SedAddr::Step(n, step)), &after_tilde[step_digits.len()..], None);
             }
         }
-        return (Some(SedAddr::Line(n)), after_n);
+        return (Some(SedAddr::Line(n)), after_n, None);
     }
-    (None, s)
+    (None, s, None)
 }
 
-fn addr_matches(addr: &SedAddr, line_num: usize, is_last: bool, line: &str) -> bool {
+fn addr_matches(
+    addr: &SedAddr,
+    line_num: usize,
+    is_last: bool,
+    line: &str,
+    last_regex: &mut Option<(String, bool)>,
+) -> Result<bool, String> {
     match addr {
-        SedAddr::Line(n) => line_num == *n,
+        SedAddr::Line(n) => Ok(line_num == *n),
         SedAddr::Step(first, step) => {
-            if *first == 0 {
+            let matched = if *step == 0 {
+                line_num == *first
+            } else if *first == 0 {
                 line_num.is_multiple_of(*step)
             } else {
                 line_num >= *first && (line_num - *first).is_multiple_of(*step)
-            }
+            };
+            Ok(matched)
         }
-        SedAddr::RelPlus(_) | SedAddr::RelStep(_) => false,
-        SedAddr::Last => is_last,
-        SedAddr::Regex(pat) => {
+        SedAddr::RelPlus(_) | SedAddr::RelStep(_) => Ok(false),
+        SedAddr::Last => Ok(is_last),
+        SedAddr::Regex(pat, ic) => {
+            let (eff_pat, eff_ic) = if pat.is_empty() {
+                match last_regex.clone() {
+                    Some(prev) => prev,
+                    None => return Err("sed: no previous regular expression\n".to_string()),
+                }
+            } else {
+                let pair = (pat.clone(), *ic);
+                *last_regex = Some(pair.clone());
+                pair
+            };
             if (pat == "^\\(.*\\)\\n\\1$" || pat == "^(.*)\\n\\1$")
                 && let Some((a, b)) = line.split_once('\n')
             {
-                return a == b;
+                return Ok(a == b);
             }
-            let unescaped = pat.replace("\\n", "\n");
-            ZeroRegex::new(vec![unescaped], false, false, false, false).is_match(line)
+            let unescaped = eff_pat.replace("\\n", "\n");
+            Ok(ZeroRegex::new(vec![unescaped], eff_ic, false, false, false).is_match(line))
         }
     }
 }
@@ -845,6 +1281,7 @@ enum SedFlow {
     RestartCycle,
     Quit(Option<i32>, bool),
     Branch(Option<String>),
+    Error(String),
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -861,6 +1298,8 @@ fn exec_sed_cmds(
     write_files: &mut BTreeMap<String, String>,
     _quiet: bool,
     rec_term: char,
+    line_length: usize,
+    last_regex: &mut Option<(String, bool)>,
 ) -> SedFlow {
     let total = raw_lines.len();
     let mut pc = 0usize;
@@ -876,18 +1315,33 @@ fn exec_sed_cmds(
         }
         let matched = match (&cmd.addr1, &cmd.addr2) {
             (None, _) => true,
-            (Some(a1), None) => addr_matches(a1, line_num, is_last, pattern_space),
+            (Some(a1), None) => match addr_matches(a1, line_num, is_last, pattern_space, last_regex) {
+                Ok(b) => b,
+                Err(e) => return SedFlow::Error(e),
+            },
             (Some(a1), Some(a2)) => {
                 if !cmd.in_range {
                     let start_matched = match a1 {
                         SedAddr::Line(0) => line_num == 1 && cmd.range_start_line == 0,
-                        other => addr_matches(other, line_num, is_last, pattern_space),
+                        other => match addr_matches(other, line_num, is_last, pattern_space, last_regex) {
+                            Ok(b) => b,
+                            Err(e) => return SedFlow::Error(e),
+                        },
                     };
                     if start_matched {
                         let end_same = match a2 {
                             SedAddr::Line(n) => *n <= line_num,
-                            SedAddr::RelPlus(0) => true,
-                            other => matches!(a1, SedAddr::Line(0)) && addr_matches(other, line_num, is_last, pattern_space),
+                            SedAddr::RelPlus(0) | SedAddr::RelStep(0) => true,
+                            other => {
+                                if matches!(a1, SedAddr::Line(0)) {
+                                    match addr_matches(other, line_num, is_last, pattern_space, last_regex) {
+                                        Ok(b) => b,
+                                        Err(e) => return SedFlow::Error(e),
+                                    }
+                                } else {
+                                    false
+                                }
+                            }
                         };
                         if !end_same {
                             cmd.in_range = true;
@@ -900,8 +1354,11 @@ fn exec_sed_cmds(
                 } else {
                     let end_hit = match a2 {
                         SedAddr::RelPlus(n) => line_num >= cmd.range_start_line + *n,
-                        SedAddr::RelStep(step) => line_num > cmd.range_start_line && line_num.is_multiple_of(*step),
-                        other => addr_matches(other, line_num, is_last, pattern_space),
+                        SedAddr::RelStep(step) => *step == 0 || (line_num > cmd.range_start_line && line_num.is_multiple_of(*step)),
+                        other => match addr_matches(other, line_num, is_last, pattern_space, last_regex) {
+                            Ok(b) => b,
+                            Err(e) => return SedFlow::Error(e),
+                        },
                     };
                     if end_hit {
                         cmd.in_range = false;
@@ -922,7 +1379,7 @@ fn exec_sed_cmds(
             SedOp::Label(_) => {}
             SedOp::Delete => return SedFlow::Delete,
             SedOp::DeleteFirstLine => {
-                if let Some(nl_pos) = pattern_space.find('\n') {
+                if let Some(nl_pos) = pattern_space.find(rec_term) {
                     *pattern_space = pattern_space[nl_pos + 1..].to_string();
                     return SedFlow::RestartCycle;
                 }
@@ -933,7 +1390,7 @@ fn exec_sed_cmds(
                 out.push(rec_term);
             }
             SedOp::PrintFirstLine => {
-                let first_line = pattern_space.split('\n').next().unwrap_or(pattern_space);
+                let first_line = pattern_space.split(rec_term).next().unwrap_or(pattern_space);
                 out.push_str(first_line);
                 out.push(rec_term);
             }
@@ -944,36 +1401,66 @@ fn exec_sed_cmds(
             }
             SedOp::Filename => {
                 out.push_str(filename);
-                out.push('\n');
+                out.push(rec_term);
             }
             SedOp::List => {
-                for ch in pattern_space.chars() {
-                    match ch {
-                        '\\' => out.push_str("\\\\"),
-                        '\t' => out.push_str("\\t"),
-                        '\r' => out.push_str("\\r"),
-                        '\x07' => out.push_str("\\a"),
-                        '\x08' => out.push_str("\\b"),
-                        c => out.push(c),
+                let chars: Vec<char> = pattern_space.chars().collect();
+                let mut line = String::new();
+                for offset in 0..=chars.len() {
+                    let ch_opt = chars.get(offset).copied();
+                    let line_end = ch_opt == Some('\n') && rec_term == '\n';
+                    let token = match ch_opt {
+                        None => "$".to_string(),
+                        Some(_) if line_end => "$".to_string(),
+                        Some('\x07') => "\\a".to_string(),
+                        Some('\x08') => "\\b".to_string(),
+                        Some('\x0c') => "\\f".to_string(),
+                        Some('\n') => "\\n".to_string(),
+                        Some('\r') => "\\r".to_string(),
+                        Some('\t') => "\\t".to_string(),
+                        Some('\x0b') => "\\v".to_string(),
+                        Some('\\') => "\\\\".to_string(),
+                        Some(c) if (c as u32) < 32 || (c as u32) >= 127 => {
+                            format!("\\{:03o}", (c as u32) & 0xff)
+                        }
+                        Some(c) => c.to_string(),
+                    };
+                    if line_length > 0
+                        && ch_opt.is_some()
+                        && !line_end
+                        && line.len() + token.len() >= line_length
+                    {
+                        out.push_str(&line);
+                        out.push('\\');
+                        out.push(rec_term);
+                        line.clear();
+                    }
+                    line.push_str(&token);
+                    if line_end {
+                        out.push_str(&line);
+                        out.push(rec_term);
+                        line.clear();
                     }
                 }
-                out.push_str("$\n");
+                out.push_str(&line);
+                out.push(rec_term);
             }
             SedOp::LineNumber => {
-                out.push_str(&format!("{line_num}\n"));
+                out.push_str(&line_num.to_string());
+                out.push(rec_term);
             }
             SedOp::HoldCopy => {
                 *hold_space = pattern_space.clone();
             }
             SedOp::HoldAppend => {
-                hold_space.push('\n');
+                hold_space.push(rec_term);
                 hold_space.push_str(pattern_space);
             }
             SedOp::GetCopy => {
                 *pattern_space = hold_space.clone();
             }
             SedOp::GetAppend => {
-                pattern_space.push('\n');
+                pattern_space.push(rec_term);
                 pattern_space.push_str(hold_space);
             }
             SedOp::Exchange => {
@@ -997,13 +1484,17 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::NextAppend => {
+                for ap in appends.drain(..) {
+                    out.push_str(&ap);
+                    out.push(rec_term);
+                }
                 if *line_idx + 1 < total {
                     *line_idx += 1;
-                    pattern_space.push('\n');
+                    pattern_space.push(rec_term);
                     pattern_space.push_str(raw_lines[*line_idx]);
                     *subst_made = false;
                 } else {
-                    return SedFlow::Quit(None, false);
+                    return SedFlow::Quit(None, true);
                 }
             }
             SedOp::Branch(lbl) => {
@@ -1016,7 +1507,9 @@ fn exec_sed_cmds(
                 }
             }
             SedOp::BranchIfNotSubst(lbl) => {
-                if !*subst_made {
+                let did_not_subst = !*subst_made;
+                *subst_made = false;
+                if did_not_subst {
                     branch_target = Some(lbl.clone());
                 }
             }
@@ -1039,6 +1532,8 @@ fn exec_sed_cmds(
                     write_files,
                     _quiet,
                     rec_term,
+                    line_length,
+                    last_regex,
                 ) {
                     SedFlow::Continue => {}
                     SedFlow::Branch(lbl) => {
@@ -1055,7 +1550,7 @@ fn exec_sed_cmds(
                 appends.push(text.clone());
             }
             SedOp::Change(text) => {
-                if !still_in_range || is_last {
+                if cmd.addr2.is_none() || !still_in_range || cmd.negated || is_last {
                     out.push_str(text);
                     out.push(rec_term);
                 }
@@ -1081,11 +1576,21 @@ fn exec_sed_cmds(
                 nth,
                 write_file,
             } => {
+                let (eff_pat, eff_ic) = if pat.is_empty() {
+                    match last_regex.clone() {
+                        Some(prev) => prev,
+                        None => return SedFlow::Error("sed: no previous regular expression\n".to_string()),
+                    }
+                } else {
+                    let pair = (pat.clone(), *ignore_case);
+                    *last_regex = Some(pair.clone());
+                    pair
+                };
                 let (new_text, did_replace) = replace_regex_in_text(
                     pattern_space,
-                    pat,
+                    &eff_pat,
                     repl,
-                    *ignore_case,
+                    eff_ic,
                     *global,
                     *nth,
                 );
@@ -1135,10 +1640,11 @@ fn run_sed_on_text(
     cmds: &mut [SedCmd],
     quiet: bool,
     null_data: bool,
+    line_length: usize,
     write_files: &mut BTreeMap<String, String>,
-) -> (String, i32) {
+) -> (String, i32, Option<String>) {
     if input.is_empty() {
-        return (String::new(), 0);
+        return (String::new(), 0, None);
     }
     let rec_term = if null_data { '\0' } else { '\n' };
     let had_trailing_delim = input.ends_with(rec_term);
@@ -1156,6 +1662,7 @@ fn run_sed_on_text(
     let mut hold_space = String::new();
     let mut line_idx = 0usize;
     let mut exit_code = 0i32;
+    let mut last_regex: Option<(String, bool)> = None;
 
     while line_idx < total {
         let mut pattern_space = raw_lines[line_idx].to_string();
@@ -1179,6 +1686,8 @@ fn run_sed_on_text(
                 write_files,
                 quiet,
                 rec_term,
+                line_length,
+                &mut last_regex,
             ) {
                 SedFlow::Delete => {
                     deleted = true;
@@ -1199,6 +1708,9 @@ fn run_sed_on_text(
                         deleted = true;
                     }
                     break;
+                }
+                SedFlow::Error(msg) => {
+                    return (String::new(), 2, Some(msg));
                 }
                 SedFlow::Continue | SedFlow::Branch(_) => break,
             }
@@ -1221,7 +1733,7 @@ fn run_sed_on_text(
         line_idx += 1;
     }
 
-    (out, exit_code)
+    (out, exit_code, None)
 }
 
 #[derive(Clone, Debug)]
@@ -1244,6 +1756,7 @@ type AwkFuncMap = BTreeMap<String, (Vec<String>, String)>;
 
 struct AwkState<'a> {
     vars: BTreeMap<String, String>,
+    numeric_vars: std::collections::BTreeSet<String>,
     arrays: BTreeMap<String, BTreeMap<String, String>>,
     funcs: AwkFuncMap,
     fields: Vec<String>,
@@ -1254,11 +1767,18 @@ struct AwkState<'a> {
     rs: String,
     ofs: String,
     ors: String,
+    ofmt: String,
+    convfmt: String,
     output: String,
     next_requested: bool,
     nextfile_requested: bool,
+    break_requested: bool,
+    continue_requested: bool,
     return_val: Option<String>,
-    exit_code: Option<i32>,
+    exit_requested: bool,
+    exit_status: i32,
+    runtime_err: Option<String>,
+    rng_state: u32,
     cwd: String,
     vfs: &'a dyn SafeBashFs,
     getline_files: BTreeMap<String, (Vec<String>, usize)>,
@@ -1278,9 +1798,12 @@ impl<'a> AwkState<'a> {
         let ofs = vars.get("OFS").cloned().unwrap_or_else(|| " ".to_string());
         let ors = vars.get("ORS").cloned().unwrap_or_else(|| "\n".to_string());
         let rs = vars.get("RS").cloned().unwrap_or_else(|| "\n".to_string());
+        let ofmt = vars.get("OFMT").cloned().unwrap_or_else(|| "%.6g".to_string());
+        let convfmt = vars.get("CONVFMT").cloned().unwrap_or_else(|| "%.6g".to_string());
         vars.entry("SUBSEP".to_string()).or_insert_with(|| "\x1c".to_string());
         Self {
             vars,
+            numeric_vars: std::collections::BTreeSet::new(),
             arrays: BTreeMap::new(),
             funcs,
             fields: Vec::new(),
@@ -1291,11 +1814,18 @@ impl<'a> AwkState<'a> {
             rs,
             ofs,
             ors,
+            ofmt,
+            convfmt,
             output: String::new(),
             next_requested: false,
             nextfile_requested: false,
+            break_requested: false,
+            continue_requested: false,
             return_val: None,
-            exit_code: None,
+            exit_requested: false,
+            exit_status: 0,
+            runtime_err: None,
+            rng_state: 1,
             cwd: cwd.to_string(),
             vfs,
             getline_files: BTreeMap::new(),
@@ -1415,16 +1945,21 @@ impl<'a> AwkState<'a> {
             "RS" => self.rs.clone(),
             "OFS" => self.ofs.clone(),
             "ORS" => self.ors.clone(),
+            "OFMT" => self.ofmt.clone(),
+            "CONVFMT" => self.convfmt.clone(),
             _ => self.vars.get(name).cloned().unwrap_or_default(),
         }
     }
 
     fn set_var(&mut self, name: &str, val: String) {
+        self.numeric_vars.remove(name);
         match name {
             "FS" => self.fs = val,
             "RS" => self.rs = val,
             "OFS" => self.ofs = val,
             "ORS" => self.ors = val,
+            "OFMT" => self.ofmt = val,
+            "CONVFMT" => self.convfmt = val,
             "NF" => {
                 let new_nf = val.trim().parse::<usize>().unwrap_or(0);
                 self.fields.resize(new_nf, String::new());
@@ -1457,119 +1992,211 @@ impl<'a> AwkState<'a> {
     }
 }
 
+fn is_valid_awk_ident(name: &str) -> bool {
+    !name.is_empty()
+        && name.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+        && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
 fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut field_sep = " ".to_string();
     let mut vars = BTreeMap::new();
-    let mut program: Option<String> = None;
-    let mut files = Vec::new();
+    let mut program_parts: Vec<String> = Vec::new();
+    let mut saw_explicit_prog = false;
+    let mut positionals: Vec<String> = Vec::new();
+    let mut end_of_opts = false;
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-F" {
-            if i + 1 < args.len() {
-                i += 1;
-                field_sep = unescape_sed_text(&args[i]);
+        if !end_of_opts && a == "--" {
+            end_of_opts = true;
+            i += 1;
+            continue;
+        }
+        if !end_of_opts && a == "-F" {
+            if i + 1 >= args.len() {
+                return err_out("awk: option requires an argument -- 'F'\n", 2);
             }
-        } else if let Some(rest) = a.strip_prefix("-F") {
+            i += 1;
+            field_sep = unescape_sed_text(&args[i]);
+        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-F").or_else(|| a.strip_prefix("--field-separator=")) {
             field_sep = unescape_sed_text(rest);
-        } else if a == "-v" {
-            if i + 1 < args.len() {
-                i += 1;
-                if let Some((k, v)) = args[i].split_once('=') {
-                    vars.insert(k.to_string(), unescape_sed_text(v));
-                }
+        } else if !end_of_opts && a == "--field-separator" {
+            if i + 1 >= args.len() {
+                return err_out("awk: option requires an argument -- 'field-separator'\n", 2);
             }
-        } else if let Some(rest) = a.strip_prefix("-v") {
-            if let Some((k, v)) = rest.split_once('=') {
+            i += 1;
+            field_sep = unescape_sed_text(&args[i]);
+        } else if !end_of_opts && (a == "-v" || a == "--assign") {
+            if i + 1 >= args.len() {
+                return err_out("awk: option requires an argument -- 'v'\n", 2);
+            }
+            i += 1;
+            if let Some((k, v)) = args[i].split_once('=') {
+                if !is_valid_awk_ident(k) {
+                    return err_out(&format!("awk: `{k}' is not a legal variable name\n"), 2);
+                }
                 vars.insert(k.to_string(), unescape_sed_text(v));
+            } else {
+                return err_out(&format!("awk: `{}' is not a legal variable name\n", args[i]), 2);
             }
-        } else if a == "-l" || a == "--load" {
-            if i + 1 < args.len() {
-                i += 1;
-            }
-        } else if a.starts_with("-l") || a.starts_with("--load=") {
-            // loaded extension
-        } else if a == "-f" {
-            if i + 1 < args.len() {
-                i += 1;
-                let p = resolve_posix_path(cwd, &args[i]);
-                if let Ok(b) = fs.read_file(&p) {
-                    program = Some(String::from_utf8_lossy(&b).into_owned());
+        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-v").or_else(|| a.strip_prefix("--assign=")) {
+            if let Some((k, v)) = rest.split_once('=') {
+                if !is_valid_awk_ident(k) {
+                    return err_out(&format!("awk: `{k}' is not a legal variable name\n"), 2);
                 }
+                vars.insert(k.to_string(), unescape_sed_text(v));
+            } else {
+                return err_out(&format!("awk: `{rest}' is not a legal variable name\n"), 2);
             }
-        } else if program.is_none() {
-            program = Some(a.clone());
+        } else if !end_of_opts && (a == "-e" || a == "--source") {
+            if i + 1 >= args.len() {
+                return err_out("awk: option requires an argument -- 'e'\n", 2);
+            }
+            i += 1;
+            saw_explicit_prog = true;
+            program_parts.push(args[i].clone());
+        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--source=")) {
+            saw_explicit_prog = true;
+            program_parts.push(rest.to_string());
+        } else if !end_of_opts && (a == "-f" || a == "--file" || a == "-i" || a == "--include") {
+            let is_prog_file = a == "-f" || a == "--file";
+            if i + 1 >= args.len() {
+                return err_out("awk: option requires an argument -- 'f'\n", 2);
+            }
+            i += 1;
+            let p = resolve_posix_path(cwd, &args[i]);
+            match fs.read_file(&p) {
+                Ok(b) => {
+                    if is_prog_file {
+                        saw_explicit_prog = true;
+                    }
+                    program_parts.push(String::from_utf8_lossy(&b).into_owned());
+                }
+                Err(_) => return err_out(&format!("awk: can't open file {}\n", args[i]), 2),
+            }
+        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-f").or_else(|| a.strip_prefix("--file=")) {
+            let p = resolve_posix_path(cwd, rest);
+            match fs.read_file(&p) {
+                Ok(b) => {
+                    saw_explicit_prog = true;
+                    program_parts.push(String::from_utf8_lossy(&b).into_owned());
+                }
+                Err(_) => return err_out(&format!("awk: can't open file {rest}\n"), 2),
+            }
+        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-i").or_else(|| a.strip_prefix("--include=")) {
+            let p = resolve_posix_path(cwd, rest);
+            match fs.read_file(&p) {
+                Ok(b) => {
+                    program_parts.push(String::from_utf8_lossy(&b).into_owned());
+                }
+                Err(_) => return err_out(&format!("awk: can't open file {rest}\n"), 2),
+            }
+        } else if !end_of_opts && (a == "-l" || a == "--load") {
+            if i + 1 < args.len() {
+                i += 1;
+            }
+        } else if !end_of_opts && (a.starts_with("-l") || a.starts_with("--load=")) {
+            // loaded extension
+        } else if !end_of_opts && (a == "-W" || a == "--posix" || a == "--traditional" || a == "--re-interval") {
+            if a == "-W" && i + 1 < args.len() {
+                i += 1;
+            }
+        } else if !end_of_opts && a.starts_with('-') && a != "-" {
+            return err_out(&format!("awk: invalid option -- '{a}'\n"), 2);
         } else {
-            files.push(a.clone());
+            positionals.push(a.clone());
         }
         i += 1;
     }
 
-    let prog_str = match program {
-        Some(p) => p,
-        None => return ok_out(""),
+    let files: Vec<String> = if saw_explicit_prog {
+        positionals
+    } else if let Some((first, rest)) = positionals.split_first() {
+        program_parts.push(first.clone());
+        rest.to_vec()
+    } else {
+        Vec::new()
     };
+
+    if program_parts.is_empty() {
+        return err_out("awk: missing program\n", 2);
+    }
+    let prog_str = program_parts.join("\n");
 
     let (mut rules, funcs) = parse_awk_rules(&prog_str);
     let mut state = AwkState::new(field_sep, vars, funcs, cwd, fs);
     state.arrays.insert("ENVIRON".to_string(), env.clone());
+    state.set_var("ARGC", (files.len() + 1).to_string());
+    let mut argv_map = BTreeMap::new();
+    argv_map.insert("0".to_string(), "awk".to_string());
+    for (idx, f) in files.iter().enumerate() {
+        argv_map.insert((idx + 1).to_string(), f.clone());
+    }
+    state.arrays.insert("ARGV".to_string(), argv_map);
 
     for r in &rules {
         if matches!(r.cond, AwkCond::Begin) {
             exec_awk_block(&r.body, &mut state);
-            if state.exit_code.is_some() {
-                return BuiltinOutcome {
-                    stdout: state.output,
-                    stderr: String::new(),
-                    exit_code: state.exit_code.unwrap_or(0),
-                };
+            if let Some(err) = &state.runtime_err {
+                return err_out(err, 2);
+            }
+            if state.exit_requested {
+                break;
             }
         }
     }
 
-    let has_line_rules = rules
-        .iter()
-        .any(|r| !matches!(r.cond, AwkCond::Begin | AwkCond::End));
+    let needs_input = !state.exit_requested
+        && rules.iter().any(|r| !matches!(r.cond, AwkCond::Begin));
 
-    if has_line_rules {
-        enum AwkInputItem {
-            VarAssign(String, String),
-            File(String, String),
-        }
-        let mut inputs = Vec::new();
-        if files.is_empty() {
-            inputs.push(AwkInputItem::File("".to_string(), stdin.to_string()));
-        } else {
-            for f in &files {
-                if f == "-" {
-                    inputs.push(AwkInputItem::File("-".to_string(), stdin.to_string()));
-                    continue;
-                }
-                if let Some((k, v)) = f.split_once('=') {
-                    if !f.contains('/') && !fs.exists(&resolve_posix_path(cwd, f)) {
-                        inputs.push(AwkInputItem::VarAssign(k.to_string(), unescape_sed_text(v)));
-                        continue;
-                    }
-                }
-                let full = resolve_posix_path(cwd, f);
-                match fs.read_file(&full) {
-                    Ok(b) => inputs.push(AwkInputItem::File(f.clone(), String::from_utf8_lossy(&b).into_owned())),
-                    Err(_) => {
-                        return err_out(&format!("awk: can't open file {f}\n"), 2);
-                    }
-                }
-            }
-        }
+    if needs_input {
+        let mut arg_idx = 1usize;
+        let initial_argc = parse_awk_f64(&state.get_var("ARGC")).max(0.0) as usize;
+        let use_stdin_only = files.is_empty() && initial_argc <= 1;
+        let mut stdin_done = false;
 
-        'input_loop: for item in inputs {
-            let (fname, content) = match item {
-                AwkInputItem::VarAssign(k, v) => {
-                    state.set_var(&k, v);
+        'input_loop: loop {
+            let (fname, content) = if use_stdin_only {
+                if stdin_done {
+                    break;
+                }
+                stdin_done = true;
+                ("".to_string(), stdin.to_string())
+            } else {
+                let cur_argc = parse_awk_f64(&state.get_var("ARGC")).max(0.0) as usize;
+                if arg_idx >= cur_argc {
+                    break;
+                }
+                let f = state
+                    .arrays
+                    .get("ARGV")
+                    .and_then(|m| m.get(&arg_idx.to_string()))
+                    .cloned()
+                    .unwrap_or_default();
+                arg_idx += 1;
+                if f.is_empty() {
                     continue 'input_loop;
                 }
-                AwkInputItem::File(fname, content) => (fname, content),
+                if f == "-" {
+                    ("-".to_string(), stdin.to_string())
+                } else if let Some((k, v)) = f.split_once('=')
+                    && is_valid_awk_ident(k)
+                    && !f.contains('/')
+                    && !fs.exists(&resolve_posix_path(cwd, &f))
+                {
+                    state.set_var(k, unescape_sed_text(v));
+                    continue 'input_loop;
+                } else {
+                    let full = resolve_posix_path(cwd, &f);
+                    match fs.read_file(&full) {
+                        Ok(b) => (f, String::from_utf8_lossy(&b).into_owned()),
+                        Err(_) => return err_out(&format!("awk: can't open file {f}\n"), 2),
+                    }
+                }
             };
+
             state.set_var("FILENAME", fname);
             state.fnr = 0;
             state.nextfile_requested = false;
@@ -1638,12 +2265,18 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                             }
                         }
                     }
-                    if state.exit_code.is_some() {
+                    if let Some(err) = &state.runtime_err {
+                        return err_out(err, 2);
+                    }
+                    if state.exit_requested {
                         break 'input_loop;
                     }
                     if state.nextfile_requested || state.next_requested {
                         break;
                     }
+                }
+                if let Some(err) = &state.runtime_err {
+                    return err_out(err, 2);
                 }
                 if state.nextfile_requested {
                     state.nextfile_requested = false;
@@ -1655,16 +2288,23 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
 
     state.next_requested = false;
     state.nextfile_requested = false;
+    state.exit_requested = false;
     for r in &rules {
         if matches!(r.cond, AwkCond::End) {
             exec_awk_block(&r.body, &mut state);
+            if let Some(err) = &state.runtime_err {
+                return err_out(err, 2);
+            }
+            if state.exit_requested {
+                break;
+            }
         }
     }
 
     BuiltinOutcome {
         stdout: state.output,
         stderr: String::new(),
-        exit_code: state.exit_code.unwrap_or(0),
+        exit_code: ((state.exit_status % 256) + 256) % 256,
     }
 }
 
@@ -1807,9 +2447,9 @@ fn eval_awk_cond(expr: &str, state: &mut AwkState) -> bool {
     if e.is_empty() {
         return true;
     }
-    if e.starts_with('/') && e.ends_with('/') && e.len() >= 2 {
-        let pat = &e[1..e.len() - 1];
-        return ZeroRegex::new(vec![pat.to_string()], false, false, false, false)
+    if is_single_awk_regex_literal(e) {
+        let pat = e[1..e.len() - 1].replace("\\/", "/");
+        return ZeroRegex::new(vec![pat], false, false, false, false)
             .is_match(&state.line);
     }
     let val = eval_awk_expr(e, state);
@@ -1895,7 +2535,14 @@ fn split_awk_statements(block: &str) -> Vec<String> {
                     cur.push(c);
                     if brace == 0 && paren == 0 {
                         let rest: String = chars[idx + 1..].iter().collect();
-                        if rest.trim_start().starts_with("else") && cur.trim_start().starts_with("if") {
+                        let cur_ts = cur.trim_start();
+                        if rest.trim_start().starts_with("else") && cur_ts.starts_with("if") {
+                            idx += 1;
+                            continue;
+                        }
+                        if rest.trim_start().starts_with("while")
+                            && (cur_ts.starts_with("do ") || cur_ts.starts_with("do\t") || cur_ts.starts_with("do\n") || cur_ts.starts_with("do{"))
+                        {
                             idx += 1;
                             continue;
                         }
@@ -1980,8 +2627,11 @@ fn is_awk_outer_braces(s: &str) -> bool {
     let chars: Vec<char> = s.chars().collect();
     let mut depth = 0i32;
     let mut quote = false;
-    for (idx, &c) in chars.iter().enumerate() {
-        if c == '\\' {
+    let mut idx = 0usize;
+    while idx < chars.len() {
+        let c = chars[idx];
+        if c == '\\' && idx + 1 < chars.len() {
+            idx += 2;
             continue;
         }
         if c == '"' {
@@ -1996,6 +2646,7 @@ fn is_awk_outer_braces(s: &str) -> bool {
                 }
             }
         }
+        idx += 1;
     }
     depth == 0
 }
@@ -2045,7 +2696,13 @@ fn is_awk_outer_parens(s: &str) -> bool {
     let chars: Vec<char> = s.chars().collect();
     let mut depth = 0i32;
     let mut quote = false;
-    for (idx, &c) in chars.iter().enumerate() {
+    let mut idx = 0usize;
+    while idx < chars.len() {
+        let c = chars[idx];
+        if c == '\\' && idx + 1 < chars.len() {
+            idx += 2;
+            continue;
+        }
         if c == '"' {
             quote = !quote;
         } else if !quote {
@@ -2058,15 +2715,46 @@ fn is_awk_outer_parens(s: &str) -> bool {
                 }
             }
         }
+        idx += 1;
     }
     depth == 0
+}
+
+fn is_awk_numeric_expr(expr: &str, val: &str, state: &AwkState) -> bool {
+    let e = expr.trim();
+    if val.trim().parse::<f64>().is_err() {
+        return false;
+    }
+    if is_single_awk_string_literal(e) || split_awk_concat(e).is_some() {
+        return false;
+    }
+    if let Some(open) = e.find('(') && e.ends_with(')') {
+        let fn_name = e[..open].trim();
+        if matches!(fn_name, "sprintf" | "substr" | "tolower" | "toupper" | "gensub" | "chr") {
+            return false;
+        }
+    }
+    if is_valid_awk_ident(e) {
+        return state.numeric_vars.contains(e);
+    }
+    if e.starts_with('$') || e.contains('[') {
+        return false;
+    }
+    true
 }
 
 fn exec_awk_block(block: &str, state: &mut AwkState) {
     let stmts = split_awk_statements(block);
     let mut idx = 0usize;
     while idx < stmts.len() {
-        if state.next_requested || state.nextfile_requested || state.return_val.is_some() || state.exit_code.is_some() {
+        if state.next_requested
+            || state.nextfile_requested
+            || state.break_requested
+            || state.continue_requested
+            || state.return_val.is_some()
+            || state.exit_requested
+            || state.runtime_err.is_some()
+        {
             return;
         }
         let stmt = stmts[idx].trim();
@@ -2081,6 +2769,14 @@ fn exec_awk_block(block: &str, state: &mut AwkState) {
         if stmt == "nextfile" {
             state.nextfile_requested = true;
             state.next_requested = true;
+            return;
+        }
+        if stmt == "break" {
+            state.break_requested = true;
+            return;
+        }
+        if stmt == "continue" {
+            state.continue_requested = true;
             return;
         }
         if let Some(del_rest) = stmt.strip_prefix("delete ") {
@@ -2109,14 +2805,13 @@ fn exec_awk_block(block: &str, state: &mut AwkState) {
             state.return_val = Some(val);
             return;
         }
-        if stmt == "exit" || stmt.starts_with("exit ") {
+        if stmt == "exit" || stmt.starts_with("exit ") || stmt.starts_with("exit(") {
             let code_str = stmt.strip_prefix("exit").unwrap_or("").trim();
-            let code = if code_str.is_empty() {
-                0
-            } else {
-                eval_awk_expr(code_str, state).parse::<i32>().unwrap_or(0)
-            };
-            state.exit_code = Some(code);
+            if !code_str.is_empty() {
+                let evaluated = eval_awk_expr(code_str, state);
+                state.exit_status = parse_awk_f64(&evaluated) as i32;
+            }
+            state.exit_requested = true;
             return;
         }
         if stmt.starts_with("if") && (stmt[2..].starts_with(' ') || stmt[2..].starts_with('(')) {
@@ -2136,6 +2831,16 @@ fn exec_awk_block(block: &str, state: &mut AwkState) {
             idx += 1;
             continue;
         }
+        if stmt.starts_with("do")
+            && (stmt[2..].starts_with(' ')
+                || stmt[2..].starts_with('\t')
+                || stmt[2..].starts_with('\n')
+                || stmt[2..].starts_with('{'))
+        {
+            exec_awk_do_while(stmt, state);
+            idx += 1;
+            continue;
+        }
         if stmt == "print" || stmt.starts_with("print ") || stmt.starts_with("print(") {
             let rest = stmt.strip_prefix("print").unwrap_or("").trim();
             let (expr_part, redir) = split_awk_redirection(rest);
@@ -2146,7 +2851,19 @@ fn exec_awk_block(block: &str, state: &mut AwkState) {
                 line_out.push_str(&state.ors);
             } else {
                 let args = split_awk_top_args(expr_trim);
-                let vals: Vec<String> = args.iter().map(|a| eval_awk_expr(a, state)).collect();
+                let mut vals = Vec::with_capacity(args.len());
+                for a in &args {
+                    let v = eval_awk_expr(a, state);
+                    if is_awk_numeric_expr(a, &v, state)
+                        && let Ok(num) = v.trim().parse::<f64>()
+                        && num.fract() != 0.0
+                        && state.ofmt != "%.6g"
+                    {
+                        vals.push(format_awk_printf(&state.ofmt, &[v]));
+                    } else {
+                        vals.push(v);
+                    }
+                }
                 line_out.push_str(&vals.join(&state.ofs));
                 line_out.push_str(&state.ors);
             }
@@ -2198,8 +2915,10 @@ fn extract_paren_and_body(stmt: &str, keyword: &str) -> Option<(String, String, 
     let mut depth = 0i32;
     let mut q = false;
     let mut close_idx = None;
-    for i in 0..chars.len() {
-        if chars[i] == '\\' {
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] == '\\' && i + 1 < chars.len() {
+            i += 2;
             continue;
         }
         if chars[i] == '"' {
@@ -2215,6 +2934,7 @@ fn extract_paren_and_body(stmt: &str, keyword: &str) -> Option<(String, String, 
                 }
             }
         }
+        i += 1;
     }
     let c_idx = close_idx?;
     let cond: String = chars[1..c_idx].iter().collect();
@@ -2226,20 +2946,26 @@ fn extract_paren_and_body(stmt: &str, keyword: &str) -> Option<(String, String, 
         let mut b_depth = 0i32;
         let mut bq = false;
         let mut b_close = None;
-        for i in 0..b_chars.len() {
-            if b_chars[i] == '"' {
+        let mut bi = 0usize;
+        while bi < b_chars.len() {
+            if b_chars[bi] == '\\' && bi + 1 < b_chars.len() {
+                bi += 2;
+                continue;
+            }
+            if b_chars[bi] == '"' {
                 bq = !bq;
             } else if !bq {
-                if b_chars[i] == '{' {
+                if b_chars[bi] == '{' {
                     b_depth += 1;
-                } else if b_chars[i] == '}' {
+                } else if b_chars[bi] == '}' {
                     b_depth -= 1;
                     if b_depth == 0 {
-                        b_close = Some(i);
+                        b_close = Some(bi);
                         break;
                     }
                 }
             }
+            bi += 1;
         }
         if let Some(bc) = b_close {
             let body: String = b_chars[1..bc].iter().collect();
@@ -2286,10 +3012,90 @@ fn exec_awk_while(stmt: &str, state: &mut AwkState) {
         let mut guard = 0usize;
         while eval_awk_cond(&cond, state) && guard < 50_000 {
             exec_awk_block(&body, state);
-            if state.next_requested || state.exit_code.is_some() {
+            if state.break_requested {
+                state.break_requested = false;
+                break;
+            }
+            if state.continue_requested {
+                state.continue_requested = false;
+            }
+            if state.next_requested
+                || state.nextfile_requested
+                || state.return_val.is_some()
+                || state.exit_requested
+                || state.runtime_err.is_some()
+            {
                 break;
             }
             guard += 1;
+        }
+    }
+}
+
+fn exec_awk_do_while(stmt: &str, state: &mut AwkState) {
+    let rest = stmt.strip_prefix("do").unwrap_or("").trim();
+    let (body, after_body) = if rest.starts_with('{') {
+        let b_chars: Vec<char> = rest.chars().collect();
+        let mut b_depth = 0i32;
+        let mut bq = false;
+        let mut b_close = None;
+        let mut bi = 0usize;
+        while bi < b_chars.len() {
+            if b_chars[bi] == '\\' && bi + 1 < b_chars.len() {
+                bi += 2;
+                continue;
+            }
+            if b_chars[bi] == '"' {
+                bq = !bq;
+            } else if !bq {
+                if b_chars[bi] == '{' {
+                    b_depth += 1;
+                } else if b_chars[bi] == '}' {
+                    b_depth -= 1;
+                    if b_depth == 0 {
+                        b_close = Some(bi);
+                        break;
+                    }
+                }
+            }
+            bi += 1;
+        }
+        let Some(bc) = b_close else { return };
+        let b: String = b_chars[1..bc].iter().collect();
+        let rem: String = b_chars[bc + 1..].iter().collect();
+        (b, rem)
+    } else {
+        return;
+    };
+    let rem_trim = after_body.trim();
+    let Some(while_rest) = rem_trim.strip_prefix("while") else { return };
+    let cond_raw = while_rest.trim().trim_end_matches(';').trim();
+    let cond = if cond_raw.starts_with('(') && cond_raw.ends_with(')') && is_awk_outer_parens(cond_raw) {
+        &cond_raw[1..cond_raw.len() - 1]
+    } else {
+        cond_raw
+    };
+    let mut guard = 0usize;
+    loop {
+        exec_awk_block(&body, state);
+        if state.break_requested {
+            state.break_requested = false;
+            break;
+        }
+        if state.continue_requested {
+            state.continue_requested = false;
+        }
+        if state.next_requested
+            || state.nextfile_requested
+            || state.return_val.is_some()
+            || state.exit_requested
+            || state.runtime_err.is_some()
+        {
+            break;
+        }
+        guard += 1;
+        if guard >= 50_000 || !eval_awk_cond(cond, state) {
+            break;
         }
     }
 }
@@ -2307,7 +3113,19 @@ fn exec_awk_for(stmt: &str, state: &mut AwkState) {
             for k in keys {
                 state.set_var(&var_name, k);
                 exec_awk_block(&body, state);
-                if state.next_requested || state.exit_code.is_some() {
+                if state.break_requested {
+                    state.break_requested = false;
+                    break;
+                }
+                if state.continue_requested {
+                    state.continue_requested = false;
+                }
+                if state.next_requested
+                    || state.nextfile_requested
+                    || state.return_val.is_some()
+                    || state.exit_requested
+                    || state.runtime_err.is_some()
+                {
                     break;
                 }
             }
@@ -2318,7 +3136,19 @@ fn exec_awk_for(stmt: &str, state: &mut AwkState) {
                 let mut guard = 0usize;
                 while eval_awk_cond(parts[1], state) && guard < 50_000 {
                     exec_awk_block(&body, state);
-                    if state.next_requested || state.exit_code.is_some() {
+                    if state.break_requested {
+                        state.break_requested = false;
+                        break;
+                    }
+                    if state.continue_requested {
+                        state.continue_requested = false;
+                    }
+                    if state.next_requested
+                        || state.nextfile_requested
+                        || state.return_val.is_some()
+                        || state.exit_requested
+                        || state.runtime_err.is_some()
+                    {
                         break;
                     }
                     let _ = eval_awk_expr(parts[2], state);
@@ -2400,6 +3230,22 @@ fn is_single_awk_string_literal(s: &str) -> bool {
     true
 }
 
+fn is_single_awk_regex_literal(s: &str) -> bool {
+    if !s.starts_with('/') || !s.ends_with('/') || s.len() < 2 {
+        return false;
+    }
+    let inner = &s[1..s.len() - 1];
+    let mut chars = inner.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            let _ = chars.next();
+        } else if c == '/' {
+            return false;
+        }
+    }
+    true
+}
+
 fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     let s = expr.trim();
     if s.is_empty() {
@@ -2408,29 +3254,48 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     if is_single_awk_string_literal(s) {
         return unescape_sed_text(&s[1..s.len() - 1]);
     }
+    if is_single_awk_regex_literal(s) {
+        let pat = s[1..s.len() - 1].replace("\\/", "/");
+        let matched = ZeroRegex::new(vec![pat], false, false, false, false).is_match(&state.line);
+        return if matched { "1".to_string() } else { "0".to_string() };
+    }
 
-    for op in ["+=", "-=", "*=", "/=", "^=", "="] {
+    for op in ["+=", "-=", "*=", "/=", "%=", "^=", "="] {
         if let Some((lhs, rhs)) = split_awk_binary_once(s, op) {
             if op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=')) {
                 continue;
             }
             let rval = eval_awk_expr(&rhs, state);
+            let is_num_rhs = if op == "=" {
+                is_awk_numeric_expr(&rhs, &rval, state)
+            } else {
+                true
+            };
             let final_val = if op == "=" {
                 rval
             } else {
                 let lnum = parse_awk_f64(&eval_awk_expr(&lhs, state));
                 let rnum = parse_awk_f64(&rval);
+                if (op == "/=" || op == "%=") && rnum == 0.0 {
+                    state.runtime_err = Some("awk: division by zero\n".to_string());
+                    return "0".to_string();
+                }
                 let res = match op {
                     "+=" => lnum + rnum,
                     "-=" => lnum - rnum,
                     "*=" => lnum * rnum,
-                    "/=" => if rnum != 0.0 { lnum / rnum } else { 0.0 },
+                    "/=" => lnum / rnum,
+                    "%=" => lnum % rnum,
                     "^=" => lnum.powf(rnum),
                     _ => rnum,
                 };
                 format_awk_num(res)
             };
             assign_awk_lvalue(&lhs, final_val.clone(), state);
+            let lv_trim = lhs.trim();
+            if is_num_rhs && is_valid_awk_ident(lv_trim) {
+                state.numeric_vars.insert(lv_trim.to_string());
+            }
             return final_val;
         }
     }
@@ -2439,6 +3304,9 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
         let v = var.trim();
         let old_val = parse_awk_f64(&eval_awk_expr(v, state));
         assign_awk_lvalue(v, format_awk_num(old_val + 1.0), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
         return format_awk_num(old_val);
     }
     if let Some(var) = s.strip_prefix("++") {
@@ -2446,12 +3314,18 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
         let new_val = parse_awk_f64(&eval_awk_expr(v, state)) + 1.0;
         let formatted = format_awk_num(new_val);
         assign_awk_lvalue(v, formatted.clone(), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
         return formatted;
     }
     if let Some(var) = s.strip_suffix("--") {
         let v = var.trim();
         let old_val = parse_awk_f64(&eval_awk_expr(v, state));
         assign_awk_lvalue(v, format_awk_num(old_val - 1.0), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
         return format_awk_num(old_val);
     }
     if let Some(var) = s.strip_prefix("--")
@@ -2461,6 +3335,9 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
         let new_val = parse_awk_f64(&eval_awk_expr(v, state)) - 1.0;
         let formatted = format_awk_num(new_val);
         assign_awk_lvalue(v, formatted.clone(), state);
+        if is_valid_awk_ident(v) {
+            state.numeric_vars.insert(v.to_string());
+        }
         return formatted;
     }
 
@@ -2555,7 +3432,16 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
     if let Some(parts) = split_awk_concat(s) {
         let mut joined = String::new();
         for p in parts {
-            joined.push_str(&eval_awk_expr(&p, state));
+            let v = eval_awk_expr(&p, state);
+            if is_awk_numeric_expr(&p, &v, state)
+                && let Ok(num) = v.trim().parse::<f64>()
+                && num.fract() != 0.0
+                && state.convfmt != "%.6g"
+            {
+                joined.push_str(&format_awk_printf(&state.convfmt, &[v]));
+            } else {
+                joined.push_str(&v);
+            }
         }
         return joined;
     }
@@ -2575,10 +3461,14 @@ fn eval_awk_expr(expr: &str, state: &mut AwkState) -> String {
         if let Some((lhs, rhs)) = split_awk_binary_right(s, op) {
             let ln = parse_awk_f64(&eval_awk_expr(&lhs, state));
             let rn = parse_awk_f64(&eval_awk_expr(&rhs, state));
+            if (op == "/" || op == "%") && rn == 0.0 {
+                state.runtime_err = Some("awk: division by zero\n".to_string());
+                return "0".to_string();
+            }
             let res = match op {
                 "*" => ln * rn,
-                "/" => if rn != 0.0 { ln / rn } else { 0.0 },
-                "%" => if rn != 0.0 { ln % rn } else { 0.0 },
+                "/" => ln / rn,
+                "%" => ln % rn,
                 _ => 0.0,
             };
             return format_awk_num(res);
@@ -3047,6 +3937,22 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<String> {
                 .unwrap_or(0.0);
             Some(format_awk_num(n.ln()))
         }
+        "srand" => {
+            let old_seed = state.rng_state;
+            let new_seed = if let Some(first) = args.first() {
+                parse_awk_f64(&eval_awk_expr(first, state)) as i64 as u32
+            } else {
+                1
+            };
+            state.rng_state = if new_seed == 0 { 1 } else { new_seed };
+            Some(old_seed.to_string())
+        }
+        "rand" => {
+            state.rng_state = state.rng_state.wrapping_mul(1664525).wrapping_add(1013904223);
+            let val = (state.rng_state as f64) / 4294967296.0;
+            Some(format_awk_num(val))
+        }
+        "fflush" => Some("0".to_string()),
         "close" => {
             if let Some(arg) = args.first() {
                 let path = eval_awk_expr(arg, state);
@@ -3328,7 +4234,7 @@ fn split_awk_concat(s: &str) -> Option<Vec<String>> {
     }
     let is_arith_op_end = |tok: &str| -> bool {
         let t = tok.trim();
-        !t.ends_with("++") && !t.ends_with("--") && t.ends_with(['+', '-', '*', '/', '%', '^'])
+        !t.ends_with("++") && !t.ends_with("--") && (t.ends_with(['+', '-', '*', '/', '%', '^']) || t == "!")
     };
     let is_arith_op_start = |tok: &str| -> bool {
         let t = tok.trim();
@@ -3359,6 +4265,32 @@ fn format_awk_num(n: f64) -> String {
     }
 }
 
+fn format_c_scientific(n: f64, prec: usize, upper: bool, alt_form: bool) -> String {
+    let is_neg = n.is_sign_negative() && n != 0.0;
+    let abs_n = n.abs();
+    let (mant, exp) = if abs_n == 0.0 {
+        (0.0, 0i32)
+    } else {
+        let mut e = abs_n.log10().floor() as i32;
+        let mut m = abs_n / 10f64.powi(e);
+        let factor = 10f64.powi(prec as i32);
+        if (m * factor).round() / factor >= 10.0 {
+            e += 1;
+            m /= 10.0;
+        }
+        (m, e)
+    };
+    let mut m_str = format!("{mant:.prec$}");
+    if alt_form && prec == 0 && !m_str.contains('.') {
+        m_str.push('.');
+    }
+    let e_ch = if upper { 'E' } else { 'e' };
+    let exp_sign = if exp >= 0 { '+' } else { '-' };
+    let exp_abs = exp.unsigned_abs();
+    let sign_prefix = if is_neg { "-" } else { "" };
+    format!("{sign_prefix}{m_str}{e_ch}{exp_sign}{exp_abs:02}")
+}
+
 fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
     let mut out = String::new();
     let chars: Vec<char> = fmt_str.chars().collect();
@@ -3373,9 +4305,59 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
                 continue;
             }
             i += 1;
-            let mut spec = String::new();
-            while i < chars.len() && !matches!(chars[i], 's' | 'd' | 'i' | 'u' | 'f' | 'e' | 'E' | 'g' | 'G' | 'x' | 'X' | 'o' | 'c') {
-                spec.push(chars[i]);
+            let mut left_align = false;
+            let mut force_sign = false;
+            let mut space_sign = false;
+            let mut alt_form = false;
+            let mut zero_pad = false;
+            while i < chars.len() {
+                match chars[i] {
+                    '-' => left_align = true,
+                    '+' => force_sign = true,
+                    ' ' => space_sign = true,
+                    '#' => alt_form = true,
+                    '0' => zero_pad = true,
+                    _ => break,
+                }
+                i += 1;
+            }
+            let width: usize = if i < chars.len() && chars[i] == '*' {
+                i += 1;
+                let w_val = vals.get(arg_idx).map(|s| parse_awk_f64(s) as i64).unwrap_or(0);
+                arg_idx += 1;
+                if w_val < 0 {
+                    left_align = true;
+                    (-w_val) as usize
+                } else {
+                    w_val as usize
+                }
+            } else {
+                let mut w_str = String::new();
+                while i < chars.len() && chars[i].is_ascii_digit() {
+                    w_str.push(chars[i]);
+                    i += 1;
+                }
+                w_str.parse::<usize>().unwrap_or(0)
+            };
+            let prec: Option<usize> = if i < chars.len() && chars[i] == '.' {
+                i += 1;
+                if i < chars.len() && chars[i] == '*' {
+                    i += 1;
+                    let p_val = vals.get(arg_idx).map(|s| parse_awk_f64(s) as i64).unwrap_or(0);
+                    arg_idx += 1;
+                    Some(p_val.max(0) as usize)
+                } else {
+                    let mut p_str = String::new();
+                    while i < chars.len() && chars[i].is_ascii_digit() {
+                        p_str.push(chars[i]);
+                        i += 1;
+                    }
+                    Some(p_str.parse::<usize>().unwrap_or(0))
+                }
+            } else {
+                None
+            };
+            while i < chars.len() && matches!(chars[i], 'l' | 'h' | 'L') {
                 i += 1;
             }
             let conv = if i < chars.len() {
@@ -3387,31 +4369,84 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
             };
             let val = vals.get(arg_idx).cloned().unwrap_or_default();
             arg_idx += 1;
-            let formatted = match conv {
-                'd' | 'i' | 'u' => {
-                    let n = val.parse::<f64>().unwrap_or(0.0) as i64;
-                    apply_width_spec(&n.to_string(), &spec, true)
+            let (raw_body, is_num, allow_sign) = match conv {
+                'd' | 'i' => {
+                    let n = parse_awk_f64(&val) as i64;
+                    (n.to_string(), true, true)
                 }
-                'f' => {
-                    let n = val.parse::<f64>().unwrap_or(0.0);
-                    let prec = spec
-                        .split_once('.')
-                        .and_then(|(_, p)| p.parse::<usize>().ok())
-                        .unwrap_or(6);
-                    let s = format!("{n:.prec$}");
-                    apply_width_spec(&s, &spec, true)
+                'u' => {
+                    let n = (parse_awk_f64(&val) as i64) as u64;
+                    (n.to_string(), true, false)
                 }
-                'x' => {
-                    let n = val.parse::<f64>().unwrap_or(0.0) as i64;
-                    apply_width_spec(&format!("{n:x}"), &spec, true)
+                'f' | 'F' => {
+                    let n = parse_awk_f64(&val);
+                    let p = prec.unwrap_or(6);
+                    let mut s = format!("{n:.p$}");
+                    if alt_form && p == 0 && !s.contains('.') {
+                        s.push('.');
+                    }
+                    (s, true, true)
                 }
-                'X' => {
-                    let n = val.parse::<f64>().unwrap_or(0.0) as i64;
-                    apply_width_spec(&format!("{n:X}"), &spec, true)
+                'e' | 'E' => {
+                    let n = parse_awk_f64(&val);
+                    let p = prec.unwrap_or(6);
+                    (format_c_scientific(n, p, conv == 'E', alt_form), true, true)
+                }
+                'g' | 'G' => {
+                    let n = parse_awk_f64(&val);
+                    let p = prec.unwrap_or(6).max(1);
+                    let abs_n = n.abs();
+                    let exp = if abs_n == 0.0 { 0 } else { abs_n.log10().floor() as i32 };
+                    let s = if exp < -4 || exp >= p as i32 {
+                        let sci = format_c_scientific(n, p - 1, conv == 'G', alt_form);
+                        if !alt_form {
+                            let e_ch = if conv == 'G' { 'E' } else { 'e' };
+                            if let Some((m, ex)) = sci.split_once(e_ch) {
+                                let m_clean = if m.contains('.') {
+                                    m.trim_end_matches('0').trim_end_matches('.')
+                                } else {
+                                    m
+                                };
+                                format!("{m_clean}{e_ch}{ex}")
+                            } else {
+                                sci
+                            }
+                        } else {
+                            sci
+                        }
+                    } else {
+                        let dec_places = (p as i32 - 1 - exp).max(0) as usize;
+                        let mut fx = format!("{n:.dec_places$}");
+                        if !alt_form {
+                            if fx.contains('.') {
+                                fx = fx.trim_end_matches('0').trim_end_matches('.').to_string();
+                            }
+                        } else if !fx.contains('.') {
+                            fx.push('.');
+                        }
+                        fx
+                    };
+                    (s, true, true)
+                }
+                'x' | 'X' => {
+                    let n = (parse_awk_f64(&val) as i64) as u64;
+                    let hex = if conv == 'X' { format!("{n:X}") } else { format!("{n:x}") };
+                    let s = if alt_form && n != 0 {
+                        if conv == 'X' { format!("0X{hex}") } else { format!("0x{hex}") }
+                    } else {
+                        hex
+                    };
+                    (s, true, false)
                 }
                 'o' => {
-                    let n = val.parse::<f64>().unwrap_or(0.0) as i64;
-                    apply_width_spec(&format!("{n:o}"), &spec, true)
+                    let n = (parse_awk_f64(&val) as i64) as u64;
+                    let oct = format!("{n:o}");
+                    let s = if alt_form && !oct.starts_with('0') {
+                        format!("0{oct}")
+                    } else {
+                        oct
+                    };
+                    (s, true, false)
                 }
                 'c' => {
                     let ch_str = if let Ok(n) = val.parse::<u32>() {
@@ -3419,76 +4454,60 @@ fn format_awk_printf(fmt_str: &str, vals: &[String]) -> String {
                     } else {
                         val.chars().next().map(|c| c.to_string()).unwrap_or_default()
                     };
-                    apply_width_spec(&ch_str, &spec, false)
+                    (ch_str, false, false)
                 }
                 _ => {
-                    let truncated = if let Some((_, p)) = spec.split_once('.') {
-                        if let Ok(prec) = p.parse::<usize>() {
-                            val.chars().take(prec).collect::<String>()
-                        } else {
-                            val.clone()
-                        }
+                    let truncated = if let Some(p) = prec {
+                        val.chars().take(p).collect::<String>()
                     } else {
-                        val.clone()
+                        val
                     };
-                    apply_width_spec(&truncated, &spec, false)
+                    (truncated, false, false)
                 }
             };
-            out.push_str(&formatted);
+            let signed_val = if allow_sign && !raw_body.starts_with('-') && !raw_body.starts_with('+') {
+                if force_sign {
+                    format!("+{raw_body}")
+                } else if space_sign {
+                    format!(" {raw_body}")
+                } else {
+                    raw_body
+                }
+            } else {
+                raw_body
+            };
+            let len = signed_val.chars().count();
+            if width <= len {
+                out.push_str(&signed_val);
+            } else {
+                let pad_len = width - len;
+                if left_align {
+                    out.push_str(&signed_val);
+                    out.push_str(&" ".repeat(pad_len));
+                } else if zero_pad && is_num {
+                    if let Some(rest) = signed_val.strip_prefix('-') {
+                        out.push('-');
+                        out.push_str(&"0".repeat(pad_len));
+                        out.push_str(rest);
+                    } else if let Some(rest) = signed_val.strip_prefix('+') {
+                        out.push('+');
+                        out.push_str(&"0".repeat(pad_len));
+                        out.push_str(rest);
+                    } else {
+                        out.push_str(&"0".repeat(pad_len));
+                        out.push_str(&signed_val);
+                    }
+                } else {
+                    out.push_str(&" ".repeat(pad_len));
+                    out.push_str(&signed_val);
+                }
+            }
         } else {
             out.push(chars[i]);
             i += 1;
         }
     }
     out
-}
-
-fn apply_width_spec(val: &str, spec: &str, is_num: bool) -> String {
-    let before_dot = spec.split('.').next().unwrap_or("");
-    let mut left_align = false;
-    let mut force_sign = false;
-    let mut zero_pad = false;
-    let mut width_digits = String::new();
-    for ch in before_dot.chars() {
-        if width_digits.is_empty() {
-            match ch {
-                '-' => left_align = true,
-                '+' => force_sign = true,
-                '0' => zero_pad = true,
-                '1'..='9' => width_digits.push(ch),
-                _ => {}
-            }
-        } else if ch.is_ascii_digit() {
-            width_digits.push(ch);
-        }
-    }
-    if left_align || !is_num {
-        zero_pad = false;
-    }
-    let signed_val = if is_num && force_sign && !val.starts_with('-') && !val.starts_with('+') {
-        format!("+{val}")
-    } else {
-        val.to_string()
-    };
-    let width = width_digits.parse::<usize>().unwrap_or(0);
-    let len = signed_val.chars().count();
-    if width <= len {
-        return signed_val;
-    }
-    let pad_len = width - len;
-    if left_align {
-        format!("{signed_val}{}", " ".repeat(pad_len))
-    } else if zero_pad {
-        if let Some(rest) = signed_val.strip_prefix('-') {
-            format!("-{}{rest}", "0".repeat(pad_len))
-        } else if let Some(rest) = signed_val.strip_prefix('+') {
-            format!("+{}{rest}", "0".repeat(pad_len))
-        } else {
-            format!("{}{signed_val}", "0".repeat(pad_len))
-        }
-    } else {
-        format!("{}{signed_val}", " ".repeat(pad_len))
-    }
 }
 
 fn collect_rel_files(root: &str, rel_prefix: &str, fs: &dyn SafeBashFs, out: &mut Vec<String>) {

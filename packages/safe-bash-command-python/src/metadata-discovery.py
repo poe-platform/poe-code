@@ -14,7 +14,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    with open(journal, encoding='utf-8') as source:
     for line in source:
      group, name = json.loads(line)
-     if group not in ('0', '1', '2', '3') or not isinstance(name, str):
+     if group not in ('0', '1', '2', '3', '4', '5') or not isinstance(name, str):
       raise ValueError('Invalid metadata cleanup record')
      directory = group_path(os.path.join(root, group), name)
      with suppress(FileNotFoundError):
@@ -30,8 +30,8 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
        raise
       directory = os.path.dirname(directory)
    os.unlink(journal)
-  # Infos, eggs and (only for ZIP discovery) child and archive membership.
-  for group in ('0', '1', '2', '3'):
+  # Infos, eggs, ZIP entry records/name index, child and archive membership.
+  for group in ('0', '1', '2', '3', '4', '5'):
    directory = os.path.join(root, group)
    with suppress(FileNotFoundError):
     os.unlink(os.path.join(directory, 'order'))
@@ -96,6 +96,88 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    self.frozen = True
  def groups(lookup):
   return Groups(lookup._safe_store)
+ class BackingFailure(Exception):
+  pass
+ class Entries:
+  def __init__(self, store):
+   self.store, self.count = store, 0
+   try:
+    self.records, self.names = Groups(store), Groups(store)
+   except Exception as error:raise BackingFailure() from error
+  def write(self, ordinal, entry):
+   try:
+    with open(self.records[str(ordinal)].path, 'w', encoding='utf-8') as output:
+     json.dump([(name, {'bytes':value.hex()} if isinstance(value, bytes) else value) for name in zipfile.ZipInfo.__slots__ if hasattr(entry, name) for value in [getattr(entry, name)]], output)
+   except Exception as error:raise BackingFailure() from error
+  def append(self, entry):
+   self.write(self.count, entry)
+   try:
+    with open(self.names[entry.filename].path, 'w', encoding='utf-8') as output:json.dump(self.count, output)
+   except Exception as error:raise BackingFailure() from error
+   self.count += 1
+  def __len__(self):return self.count
+  def __getitem__(self, ordinal):
+   if ordinal < 0:ordinal += self.count
+   if not 0 <= ordinal < self.count:raise IndexError(ordinal)
+   with open(self.records[str(ordinal)].path, encoding='utf-8') as source:record = json.load(source)
+   entry = zipfile.ZipInfo.__new__(zipfile.ZipInfo)
+   for name, value in record:
+    if isinstance(value, dict):value = bytes.fromhex(value['bytes'])
+    elif name == 'date_time':value = tuple(value)
+    setattr(entry, name, value)
+   return entry
+  def __iter__(self):
+   for ordinal in range(self.count):yield self[ordinal]
+  def seal(self, end_offset):
+   # Match reversed stable native sorting, including duplicate header offsets.
+   # Sort scalar offset/ordinal pairs in bounded runs, then merge two at a time.
+   import heapq
+   root = None
+   serial = 0
+   def save(values):
+    nonlocal serial
+    path = os.path.join(root, str(serial))
+    serial += 1
+    with open(path, 'w', encoding='utf-8') as output:
+     for value in values:output.write(json.dumps(value) + '\n')
+   try:
+    root = tempfile.mkdtemp(dir=self.store.root, prefix='.zip-sort-')
+    chunk = []
+    for ordinal, entry in enumerate(self):
+     chunk.append([entry.header_offset, ordinal])
+     if len(chunk) == 64:
+      save(sorted(chunk, reverse=True));chunk.clear()
+    if chunk:save(sorted(chunk, reverse=True))
+    chunk.clear()
+    current = 0
+    while serial - current > 1:
+     left_path, right_path = (os.path.join(root, str(index)) for index in (current, current + 1))
+     with open(left_path, encoding='utf-8') as left, open(right_path, encoding='utf-8') as right:
+      save(heapq.merge((json.loads(line) for line in left), (json.loads(line) for line in right), reverse=True))
+     os.unlink(left_path);os.unlink(right_path);current += 2
+    if serial:
+     with open(os.path.join(root, str(current)), encoding='utf-8') as source:
+      for line in source:
+       offset, ordinal = json.loads(line)
+       entry = self[ordinal];entry._end_offset = end_offset
+       self.write(ordinal, entry);end_offset = offset
+   except Exception as error:raise BackingFailure() from error
+   finally:
+    try:
+     if root is not None:
+      for index in range(serial):
+       with suppress(FileNotFoundError):os.unlink(os.path.join(root, str(index)))
+      os.rmdir(root)
+    except Exception as error:raise BackingFailure() from error
+ class Names:
+  def __init__(self, entries):self.entries = entries
+  def __getitem__(self, name):
+   if name not in self.entries.names:raise KeyError(name)
+   with open(self.entries.names[name].path, encoding='utf-8') as source:ordinal = json.load(source)
+   return self.entries[ordinal]
+  def get(self, name, default=None):
+   try:return self[name]
+   except KeyError:return default
  def unique_children(children, store):
   seen = Groups(store)
   for child in children:
@@ -122,10 +204,17 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  parser_tree = ast.parse(textwrap.dedent(inspect.getsource(native_parser)))
  directory_read = ast.dump(ast.parse('data = fp.read(size_cd)').body[0])
  directory_buffer = ast.dump(ast.parse('fp = io.BytesIO(data)').body[0])
+ name_assignment = ast.dump(ast.parse('self.NameToInfo[x.filename] = x').body[0])
+ offset_order = ast.dump(ast.parse('''for zinfo in reversed(sorted(self.filelist, key=lambda zinfo: zinfo.header_offset)):
+ zinfo._end_offset = end_offset
+ end_offset = zinfo.header_offset''').body[0])
  class DirectoryRewrite(ast.NodeTransformer):
-  reads = buffers = 0
+  reads = buffers = names = orders = 0
   def visit_Assign(self, node):
    shape = ast.dump(node)
+   if shape == name_assignment:
+    self.names += 1
+    return None
    if shape == directory_read:
     self.reads += 1
     return None
@@ -133,6 +222,11 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
     self.buffers += 1
     return ast.copy_location(ast.parse('fp = _safe_directory_window(fp, size_cd)').body[0], node)
    return node
+  def visit_For(self, node):
+   if ast.dump(node) == offset_order:
+    self.orders += 1
+    return ast.copy_location(ast.parse('self.filelist.seal(end_offset)').body[0], node)
+   return self.generic_visit(node)
  class Window:
   def __init__(self, source, size):
    self.source, self.remaining = source, size
@@ -143,21 +237,25 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    return value
  parser_rewrite = DirectoryRewrite()
  parser_tree = parser_rewrite.visit(parser_tree)
- if (parser_rewrite.reads, parser_rewrite.buffers) != (1, 1):
+ if (parser_rewrite.reads, parser_rewrite.buffers, parser_rewrite.names, parser_rewrite.orders) != (1, 1, 1, int('_end_offset' in zipfile.ZipInfo.__slots__)):
   raise RuntimeError('Unsupported native ZIP directory parser')
  parser_namespace = dict(native_parser.__globals__, _safe_directory_window=Window)
  exec(compile(ast.fix_missing_locations(parser_tree), '<safe metadata ZIP directory>', 'exec'), parser_namespace)
- def open_zip(root):
+ def open_zip(root, store):
   # Construction is synchronous on the native dispatch lane. Restore even when
   # the native parser rejects an archive; later user ZIP opens remain unchanged.
   previous = zipfile.ZipFile._RealGetContents
-  zipfile.ZipFile._RealGetContents = parser_namespace['_RealGetContents']
+  def parse(archive):
+   archive.filelist = Entries(store)
+   archive.NameToInfo = Names(archive.filelist)
+   parser_namespace['_RealGetContents'](archive)
+  zipfile.ZipFile._RealGetContents = parse
   try:
    return zipfile.Path(root)
   finally:
    zipfile.ZipFile._RealGetContents = previous
  # Keep the pinned ZIP path construction, joinpath binding and filename order.
- # Replace only its eager deduplication table, leaving native ZIP parsing alone.
+ # Keep native validation while adapting its eager storage and discovery tables.
  zip_method = metadata.FastPath.zip_children
  zip_tree = ast.parse(textwrap.dedent(inspect.getsource(zip_method)))
  class ZipRewrite(ast.NodeTransformer):
@@ -165,7 +263,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
   def visit_Call(self, node):
    if ast.dump(node) == ast.dump(ast.parse('zipfile.Path(self.root)').body[0].value):
     self.paths += 1
-    return ast.copy_location(ast.parse('_safe_open_zip(self.root)').body[0].value, node)
+    return ast.copy_location(ast.parse('_safe_open_zip(self.root, _safe_store)').body[0].value, node)
    if ast.dump(node) == ast.dump(ast.parse('zip_path.root.namelist()').body[0].value):
     self.names += 1
     return ast.copy_location(ast.parse('_safe_zip_names(zip_path.root, _safe_store)').body[0].value, node)
@@ -197,10 +295,12 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
   def __init__(self, path, store):
    self.path, self.root, self.store = path, path.root, store
   def children(self):
-   with suppress(Exception):
+   try:
     if getattr(self.path.zip_children, '__func__', None) is zip_method:
      return zip_children(self.path, self.store)
     return self.path.zip_children()
+   except BackingFailure as error:raise error.__cause__
+   except Exception:pass
    return ()
   def joinpath(self, child):
    return self.path.joinpath(child)

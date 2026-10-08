@@ -231,8 +231,11 @@ caches; caller-backed membership preserves explicit-file and directory resolutio
 Returned paths retain that membership after lookup eviction. Native ZIP directory
 parsing now reads through a bounded view of the declared directory instead of
 copying the complete directory into a byte buffer, preserving native rejection
-and restoring the parser after failed opens. Native entry tables and fixed
-bootstrap lookup remain memory-backed, and explicit caller use
+and restoring the parser after failed opens. Native entry records and the
+last-name index now use caller storage. Offset validation preserves reversed
+stable native ordering through 64-pair sort runs and two-cursor merges, including
+duplicate offsets, and retires sorting scratch after success or failure.
+Fixed bootstrap lookup remains memory-backed, and explicit caller use
 of ZIP enumeration APIs is not yet bounded.
 Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving

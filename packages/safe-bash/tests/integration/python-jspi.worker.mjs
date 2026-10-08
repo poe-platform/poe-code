@@ -175,12 +175,17 @@ with zipfile.ZipFile('/work/metadata.zip','w') as archive:
   archive.writestr(info,'Name: zip-package-%03d'%index)
 NativeZipPath=zipfile.Path
 NativeOpen=io.open
+class EntryComment(bytes):
+ live=maximum=0
+ def __new__(cls,value):
+  obj=super().__new__(cls,value);cls.live+=1;cls.maximum=max(cls.maximum,cls.live);return obj
+ def __del__(self):EntryComment.live-=1
 class ObservedFile:
  maximum=0
  def __init__(self,file):self.file=file
  def __getattr__(self,name):return getattr(self.file,name)
  def read(self,size=-1):
-  value=self.file.read(size);ObservedFile.maximum=max(ObservedFile.maximum,len(value));return value
+  value=self.file.read(size);ObservedFile.maximum=max(ObservedFile.maximum,len(value));return EntryComment(value) if size==1024 else value
 def observed_open(path,*args,**kwargs):
  file=NativeOpen(path,*args,**kwargs)
  return ObservedFile(file) if path=='/work/metadata.zip' else file
@@ -200,6 +205,7 @@ try:
  lookup=fast.lookup(fast.mtime)
  assert ZipPath.maximum<=4,ZipPath.maximum
  assert 0<ObservedFile.maximum<=65558,ObservedFile.maximum
+ assert EntryComment.maximum<=4,EntryComment.maximum
  selected=list(lookup.search(metadata.Prepared('zip-package-007')))
  assert len(selected)==1 and isinstance(selected[0],ZipPath)
  assert selected[0].joinpath('METADATA').read_text()=='Name: zip-package-007'

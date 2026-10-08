@@ -7,7 +7,7 @@ test('metadata discovery preserves pinned grouping without retaining all paths',
  const fixture=readFileSync(new URL('./fixtures/pinned-metadata-lookup.py',import.meta.url),'utf8');
  const program=readFileSync(new URL('./metadata-discovery.py',import.meta.url),'utf8');
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
-import builtins,contextlib,errno,gc,importlib.metadata as metadata,io,json,linecache,os,pathlib,sys,tempfile,types,weakref,zipfile
+import builtins,contextlib,errno,gc,importlib.metadata as metadata,io,json,linecache,os,pathlib,sys,tempfile,types,warnings,weakref,zipfile
 from unittest.mock import patch
 fixture,program=json.load(sys.stdin)
 fixture='from __future__ import annotations\n'+fixture
@@ -28,13 +28,14 @@ class Root:
  def children(self):return iter(self.names)
  def joinpath(self,child):return Path(self.root+'/'+child)
 # Virtual backing storage: tests never create host files.
-files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False;member_write_failure=False
+files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False;member_write_failure=False;sort_write_failure=False
 class File(io.StringIO):
  def __init__(self,path,mode):
   self.path=path;self.mode=mode
   if write_failure and mode=='a' and path.endswith('/rows'):raise PermissionError('backing write denied')
   if child_write_failure and mode=='w' and '/2/' in path:raise PermissionError('child backing denied')
   if member_write_failure and mode=='w' and '/3/' in path:raise PermissionError('member backing denied')
+  if sort_write_failure and mode=='w' and '/.zip-sort-' in path:raise PermissionError('sort backing denied')
   if mode=='r' and path not in files:raise FileNotFoundError(path)
   super().__init__(files.get(path,'') if mode in ('r','a') else '')
   if mode=='a':self.seek(0,2)
@@ -49,7 +50,7 @@ def mkdir(path,exist_ok=False,**kwargs):
   directories.add(path)
   parent=os.path.dirname(path);children_by_parent.setdefault(parent,set()).add(path);path=parent
 def temporary(*,dir,prefix):
- assert dir=='/owned'
+ assert dir in directories
  path=dir+'/'+prefix+str(len(allocations));allocations.append(path);mkdir(path);return path
 names=[];scan_failure=False
 @contextlib.contextmanager
@@ -110,7 +111,9 @@ with contextlib.ExitStack() as stack:
  payload=io.BytesIO()
  zip_names=['zip_package_%04d-1.dist-info'%i for i in range(1024)]
  with zipfile.ZipFile(payload,'w') as writer:
-  for name in zip_names:writer.writestr(name+'/METADATA','Name: '+name+'\n')
+  for name in zip_names:
+   info=zipfile.ZipInfo(name+'/METADATA');info.comment=b'x'*64
+   writer.writestr(info,'Name: '+name+'\n')
   for name in ['plain','plain/nested','implicit/nested/file','explicit/','/absolute/file','double//file']:
    writer.writestr(name,'data')
  archive=zipfile.Path(io.BytesIO(payload.getvalue())).root
@@ -195,12 +198,17 @@ with contextlib.ExitStack() as stack:
   member_write_failure=False
  archive.close();del archive;gc.collect();assert not files
  # Opening the real archive must not copy its complete central directory.
+ class Comment(bytes):
+  live=maximum=0
+  def __new__(cls,value):
+   obj=super().__new__(cls,value);cls.live+=1;cls.maximum=max(cls.maximum,cls.live);return obj
+  def __del__(self):Comment.live-=1
  class Source(io.BytesIO):
   maximum=0
   failure=False
   def read(self,size=-1):
    if Source.failure:raise OSError('ZIP source read denied')
-   value=super().read(size);Source.maximum=max(Source.maximum,len(value));return value
+   value=super().read(size);Source.maximum=max(Source.maximum,len(value));return Comment(value) if size==64 else value
  source_bytes=payload.getvalue()
  class ReadingPath(NativeZipPath):
   def __init__(self,root,at=''):
@@ -210,7 +218,10 @@ with contextlib.ExitStack() as stack:
   fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
   assert [p.at.rstrip('/') for p in lookup.search(Prepared(None))]==zip_names
   assert Source.maximum<=65558,('whole ZIP directory read',Source.maximum)
+  assert Comment.maximum<=4,('ZIP entry records retained',Comment.maximum)
   assert zipfile.ZipFile._RealGetContents is original_parser,'ZIP parser patch leaked'
+  Entries=type(lookup._safe_store.archive.filelist);Store=type(lookup._safe_store)
+  assert lookup._safe_store.archive.read(zip_names[7]+'/METADATA')==b'Name: zip_package_0007-1.dist-info\n'
   del lookup,fast;gc.collect();assert not files
   for source_bytes in [b'',payload.getvalue()[:-22],payload.getvalue().replace(b'PK\x01\x02',b'XX\x01\x02',1)]:
    expected=[p.at for p in original(metadata.FastPath('/packages.zip')).search(Prepared(None))]
@@ -224,6 +235,55 @@ with contextlib.ExitStack() as stack:
   assert zipfile.ZipFile._RealGetContents is original_parser,'failed ZIP read leaked parser patch'
   del lookup,fast;gc.collect();assert not files
   Source.failure=False
+  child_write_failure=True
+  try:metadata.Lookup(metadata.FastPath('/packages.zip'))
+  except PermissionError as error:assert str(error)=='child backing denied'
+  else:raise AssertionError('entry backing failure swallowed')
+  child_write_failure=False
+  gc.collect();assert not files
+  duplicates=io.BytesIO()
+  with warnings.catch_warnings():
+   warnings.simplefilter('ignore',UserWarning)
+   with zipfile.ZipFile(duplicates,'w') as writer:
+    writer.writestr('duplicate-1.dist-info/METADATA','first')
+    writer.writestr('duplicate-1.dist-info/METADATA','last')
+  source_bytes=duplicates.getvalue()
+  def fields(entry):return [(name,getattr(entry,name)) for name in zipfile.ZipInfo.__slots__ if hasattr(entry,name)]
+  with zipfile.ZipFile(io.BytesIO(source_bytes)) as reference:
+   expected_entries=[fields(entry) for entry in reference.filelist]
+   expected_content=reference.read('duplicate-1.dist-info/METADATA')
+  fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
+  assert [fields(entry) for entry in lookup._safe_store.archive.filelist]==expected_entries
+  assert lookup._safe_store.archive.read('duplicate-1.dist-info/METADATA')==expected_content==b'last'
+  del lookup,fast;gc.collect();assert not files
+ # Python 3.9 has no end-offset slot. Exercise the actual bounded sorter with
+ # that newer native slot supplied, comparing reversed stable native ordering.
+ NativeInfo=zipfile.ZipInfo
+ class EndInfo(NativeInfo):
+  __slots__=NativeInfo.__slots__+(() if '_end_offset' in NativeInfo.__slots__ else ('_end_offset',))
+ native_sorted=sorted
+ def bounded_sorted(values,*args,**kwargs):
+  values=list(values);assert len(values)<=64,('unbounded ZIP sort',len(values))
+  return native_sorted(values,*args,**kwargs)
+ with patch.object(zipfile,'ZipInfo',EndInfo),patch('builtins.sorted',side_effect=bounded_sorted):
+  for count in [0,1,64,65,129]:
+   store=Store();entries=Entries(store)
+   offsets=[(i*37)%53 for i in range(count)]
+   for i,offset in enumerate(offsets):
+    entry=EndInfo('member-'+str(i));entry.header_offset=offset;entries.append(entry)
+   expected=[None]*count;end=1000
+   for i in reversed(native_sorted(range(count),key=lambda i:offsets[i])):
+    expected[i]=end;end=offsets[i]
+   entries.seal(1000)
+   assert [entry._end_offset for entry in entries]==expected
+   assert [entry.filename for entry in entries]==['member-'+str(i) for i in range(count)]
+   sort_write_failure=True
+   if count:
+    try:entries.seal(1000)
+    except Exception as error:assert isinstance(error.__cause__,PermissionError)
+    else:raise AssertionError('sort backing failure swallowed')
+   sort_write_failure=False
+   store.cleanup();del entries,store;gc.collect();assert not files
  # Native children suppress failed directory enumeration and then try ZIP.
  scan_failure=True
  lookup=metadata.Lookup(Root(names))

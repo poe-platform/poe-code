@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 
-for(const adapted of [false,true])for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path','nested','delivery-status','header-storage-error','header-parse-error','header-init-error','parsed-header-storage-error','scope-lifetime','scope-error','repair-storage-error'])test('native distribution metadata stages text before parsing with bounded reads: '+mode+'; adapted='+adapted,()=>{
+for(const adapted of [false,true])for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path','nested','delivery-status','header-storage-error','header-parse-error','header-init-error','parsed-header-storage-error','scope-lifetime','scope-error','repair-storage-error','interleaved-read','interleaved-append','sequential-io'])test('native distribution metadata stages text before parsing with bounded reads: '+mode+'; adapted='+adapted,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast,io,json,pathlib,sys,email.parser,email.feedparser,importlib.metadata as metadata
 from unittest.mock import patch
@@ -71,6 +71,17 @@ if adapted:
  codes=namespace['_safe_metadata_adapter_code']()
  assert [code.co_firstlineno for code in codes]==[metadata.Distribution.metadata.fget.__code__.co_firstlineno,metadata._adapters.Message._repair_headers.__code__.co_firstlineno]
 def describe(value):
+ if mode in ('interleaved-read','interleaved-append'):
+  outer=iter(value._headers)
+  first=next(outer)
+  assert value['Version']=='1'
+  if mode=='interleaved-append':value._headers.append(('X-Late','late 😀'))
+  second=next(outer)
+  inner=iter(value._headers)
+  assert next(inner)==first
+  remaining=list(outer)
+  assert next(inner)==second
+  assert [first,second]+remaining==list(value._headers)
  payload=value.get_payload() if hasattr(value,'get_payload') else None
  return ([(key,[describe(part) for part in val] if isinstance(val,list) else val) for key,val in value.items()],[describe(part) for part in payload] if isinstance(payload,list) else payload,[(type(error).__name__,str(error)) for error in getattr(value,'defects',[])])
 native_parse=email.parser.Parser.parse
@@ -78,7 +89,12 @@ def parse(self,*args,**kwargs):
  assert all(file.closed for file in opened),'parser started before source closure'
  return native_parse(self,*args,**kwargs)
 header_files=[]
+seeks=0
 class HeaderFile(io.StringIO):
+ def seek(self,*args):
+  global seeks
+  seeks+=1
+  return super().seek(*args)
  def write(self,value):
   assert len(value)<=98307
   if mode=='header-storage-error':raise OSError('header storage denied')
@@ -124,6 +140,7 @@ with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Pat
   assert failure is None
   assert actual==expected
   assert mode not in ('storage-error','header-storage-error','header-parse-error','header-init-error','parsed-header-storage-error','scope-error','repair-storage-error'),'caller storage was bypassed'
+if mode=='sequential-io':assert seeks<200,('sequential metadata performs per-header seeks',seeks)
 assert all(file.closed for file in opened+header_files)
 assert all(store.closed for store in stores)
 if mode in ('large','fallback','malformed'):assert stores

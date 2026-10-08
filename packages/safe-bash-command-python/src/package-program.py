@@ -167,41 +167,51 @@ class _SafeMetadataLines:
   import tempfile
   self.lifetime = ExitStack()
   lifetime.callback(self.lifetime.close)
-  self.file = tempfile.TemporaryFile(mode='w+', encoding='utf-8', dir=_safe_installation_root)
+  self.file = tempfile.TemporaryFile(mode='w+', encoding='utf-8', newline='', dir=_safe_installation_root)
   self.lifetime.callback(self.file.close)
   self.count = 0
+  # JSON uses ASCII escapes and untranslated newlines, so logical positions
+  # are byte offsets. Keep sequential access buffered across iterator yields.
+  self.position = self.end = 0
  def append(self, line):
   import json
+  if self.position != self.end:self.file.seek(self.end)
+  self.position = self.end
   for offset in range(0, len(line), 8192):
-   self.file.write(json.dumps(line[offset:offset+8192]) + '\n')
+   encoded = json.dumps(line[offset:offset+8192]) + '\n'
+   self.file.write(encoded)
+   self.position += len(encoded)
   self.file.write('null\n')
+  self.position += 5
+  self.end = self.position
   self.count += 1
  def __len__(self):return self.count
  def __iter__(self):
   import json
-  self.file.seek(0)
-  for index in range(len(self)):
+  position = 0
+  index = 0
+  while index < len(self):
+   if self.position != position:self.file.seek(position)
+   self.position = position
    parts = []
    while True:
     encoded = self.file.readline(98307)
+    self.position += len(encoded)
     if not encoded.endswith('\n'):raise ValueError('Invalid metadata header storage')
     value = json.loads(encoded)
     if value is None:break
     if not isinstance(value, str) or len(value) > 8192:raise ValueError('Invalid metadata header storage')
     parts.append(value)
+   position = self.position
+   index += 1
    yield ''.join(parts)
 class _SafeMetadataHeaders:
  def __init__(self, lifetime):
   self.lines = _SafeMetadataLines(lifetime)
-  self.reading = False
  def append(self, pair):
-  if self.reading:
-   self.lines.file.seek(0, 2)
-   self.reading = False
   for value in pair:self.lines.append(value)
  def __len__(self):return len(self.lines) // 2
  def __iter__(self):
-  self.reading = True
   lines = iter(self.lines)
   for name in lines:yield name, next(lines)
 from functools import cache as _safe_cache

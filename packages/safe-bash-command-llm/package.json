@@ -101,14 +101,14 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node scripts/generate-word-ranges.mjs && node scripts/generate-printable-ranges.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node scripts/generate-unicode-ranges.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "node scripts/generate-word-ranges.mjs --check && node scripts/generate-printable-ranges.mjs --check && node scripts/generate-help.mjs --check && eslint src && npm run typecheck",
+    "lint": "node scripts/generate-unicode-ranges.mjs --check && node scripts/generate-help.mjs --check && eslint src && npm run typecheck",
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts",
     "generate:help": "node scripts/generate-help.mjs",
-    "generate:word-ranges": "node scripts/generate-word-ranges.mjs",
-    "generate:printable-ranges": "node scripts/generate-printable-ranges.mjs"
+    "generate:word-ranges": "node scripts/generate-unicode-ranges.mjs",
+    "generate:printable-ranges": "node scripts/generate-unicode-ranges.mjs"
   },
   "devDependencies": {
     "safe-bash-csv-engine": "*",

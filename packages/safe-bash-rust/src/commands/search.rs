@@ -694,7 +694,7 @@ fn preprocess_ere_pattern(pat: &str, dotall: bool) -> String {
     while k < chs.len() {
         if chs[k] == '\\' && k + 1 < chs.len() {
             let nc = chs[k + 1];
-            if !in_bracket && matches!(nc, '(' | ')' | '+' | '?' | '{' | '}') {
+            if !in_bracket && matches!(nc, '(' | ')' | '+' | '?' | '{' | '}' | '|') {
                 out.push('[');
                 out.push(nc);
                 out.push(']');

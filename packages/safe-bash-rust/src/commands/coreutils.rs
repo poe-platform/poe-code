@@ -4314,71 +4314,443 @@ fn cmd_cal(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
 
 fn cmd_getconf(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut all_mode = false;
+    let mut ended = false;
     let mut pos = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
-        if args[i] == "-a" {
+        let a = &args[i];
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+        } else if !ended && a == "--help" {
+            return ok_out(
+                "Usage: getconf [-v specification] variable_name [pathname]\n       getconf -a [pathname]\n",
+            );
+        } else if !ended && a == "--version" {
+            return ok_out("getconf (Sandbox VFS-ish/GNU libc) 2.39\n");
+        } else if !ended && a == "-a" {
             all_mode = true;
             i += 1;
-        } else if args[i] == "-v" && i + 1 < args.len() {
+        } else if !ended && a == "-v" {
+            if i + 1 >= args.len() {
+                return err_out("getconf: option requires an argument -- 'v'\n", 1);
+            }
             i += 2;
-        } else if !args[i].starts_with('-') {
-            pos.push(args[i].clone());
-            i += 1;
+        } else if !ended && a.starts_with('-') {
+            let ch = a.chars().nth(1).unwrap_or(' ');
+            return err_out(&format!("getconf: invalid option -- '{ch}'\n"), 1);
         } else {
+            pos.push(a.clone());
             i += 1;
         }
     }
+
+    let table: &[(&str, &str)] = &[
+        ("PATH", "/usr/local/bin:/usr/bin:/bin"),
+        ("CS_PATH", "/usr/local/bin:/usr/bin:/bin"),
+        ("ARG_MAX", "2097152"),
+        ("_POSIX_ARG_MAX", "4096"),
+        ("NAME_MAX", "255"),
+        ("_POSIX_NAME_MAX", "14"),
+        ("PATH_MAX", "4096"),
+        ("_POSIX_PATH_MAX", "256"),
+        ("PAGE_SIZE", "4096"),
+        ("PAGESIZE", "4096"),
+        ("NPROCESSORS_ONLN", "4"),
+        ("_NPROCESSORS_ONLN", "4"),
+        ("NPROCESSORS_CONF", "4"),
+        ("_NPROCESSORS_CONF", "4"),
+        ("CLK_TCK", "100"),
+        ("OPEN_MAX", "1024"),
+        ("_POSIX_OPEN_MAX", "20"),
+        ("CHILD_MAX", "256"),
+        ("_POSIX_CHILD_MAX", "25"),
+        ("LINE_MAX", "2048"),
+        ("_POSIX2_LINE_MAX", "2048"),
+        ("PIPE_BUF", "4096"),
+        ("_POSIX_PIPE_BUF", "512"),
+        ("LINK_MAX", "65000"),
+        ("_POSIX_LINK_MAX", "8"),
+        ("MAX_CANON", "255"),
+        ("_POSIX_MAX_CANON", "255"),
+        ("MAX_INPUT", "255"),
+        ("_POSIX_MAX_INPUT", "255"),
+        ("FILESIZEBITS", "64"),
+        ("SYMLINK_MAX", "4095"),
+        ("SYMLOOP_MAX", "40"),
+        ("_POSIX_SYMLOOP_MAX", "8"),
+        ("HOST_NAME_MAX", "64"),
+        ("_POSIX_HOST_NAME_MAX", "255"),
+        ("LOGIN_NAME_MAX", "256"),
+        ("_POSIX_LOGIN_NAME_MAX", "9"),
+        ("NGROUPS_MAX", "65536"),
+        ("_POSIX_NGROUPS_MAX", "8"),
+        ("TZNAME_MAX", "6"),
+        ("_POSIX_TZNAME_MAX", "6"),
+        ("CHAR_BIT", "8"),
+        ("WORD_BIT", "32"),
+        ("LONG_BIT", "64"),
+        ("INT_MAX", "2147483647"),
+        ("INT_MIN", "-2147483648"),
+        ("UINT_MAX", "4294967295"),
+        ("LONG_MAX", "9223372036854775807"),
+        ("ULONG_MAX", "18446744073709551615"),
+        ("LLONG_MAX", "9223372036854775807"),
+        ("ULLONG_MAX", "18446744073709551615"),
+        ("SSIZE_MAX", "9223372036854775807"),
+        ("POSIX_VERSION", "200809"),
+        ("_POSIX_VERSION", "200809"),
+        ("POSIX2_VERSION", "200809"),
+        ("_POSIX2_VERSION", "200809"),
+        ("XOPEN_VERSION", "700"),
+        ("_XOPEN_VERSION", "700"),
+        ("POSIX_V7_LP64_OFF64", "1"),
+        ("POSIX_V6_LP64_OFF64", "1"),
+        ("XBS5_LP64_OFF64", "1"),
+        ("_POSIX_CHOWN_RESTRICTED", "1"),
+        ("_POSIX_NO_TRUNC", "1"),
+        ("_POSIX_VDISABLE", "0"),
+        ("BC_BASE_MAX", "99"),
+        ("BC_DIM_MAX", "2048"),
+        ("BC_SCALE_MAX", "99"),
+        ("BC_STRING_MAX", "1000"),
+        ("COLL_WEIGHTS_MAX", "255"),
+        ("EXPR_NEST_MAX", "32"),
+        ("RE_DUP_MAX", "32767"),
+        ("GNU_LIBC_VERSION", "glibc 2.39"),
+        ("GNU_LIBPTHREAD_VERSION", "NPTL 2.39"),
+        ("LFS_CFLAGS", "-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"),
+        ("LFS_LDFLAGS", ""),
+        ("LFS_LIBS", ""),
+    ];
+
     if all_mode {
-        return ok_out("PAGE_SIZE 4096\nPAGESIZE 4096\nPATH_MAX 4096\nNAME_MAX 255\nPIPE_BUF 4096\nLONG_BIT 64\n");
+        if pos.len() > 1 {
+            return err_out("getconf: too many arguments\n", 1);
+        }
+        if let Some(path_arg) = pos.first() {
+            let p = resolve_posix_path(cwd, path_arg);
+            if !fs.exists(&p) {
+                return err_out(&format!("getconf: {path_arg}: No such file or directory\n"), 1);
+            }
+        }
+        let mut out = String::new();
+        for &(k, v) in table {
+            out.push_str(&format!("{k:<31}{v}\n"));
+        }
+        return ok_out(&out);
     }
-    if let Some(path_arg) = pos.get(1) {
+
+    if pos.is_empty() || pos.len() > 2 {
+        return err_out(
+            "Usage: getconf [-v specification] variable_name [pathname]\n       getconf -a [pathname]\n",
+            1,
+        );
+    }
+
+    let var_name = pos[0].as_str();
+    let normalized = var_name
+        .strip_prefix("_CS_")
+        .or_else(|| var_name.strip_prefix("_PC_"))
+        .or_else(|| var_name.strip_prefix("_SC_"))
+        .unwrap_or(var_name);
+    let is_path_var = matches!(
+        normalized,
+        "FILESIZEBITS"
+            | "LINK_MAX"
+            | "MAX_CANON"
+            | "MAX_INPUT"
+            | "NAME_MAX"
+            | "PATH_MAX"
+            | "PIPE_BUF"
+            | "POSIX_ALLOC_SIZE_MIN"
+            | "POSIX_REC_INCR_XFER_SIZE"
+            | "POSIX_REC_MAX_XFER_SIZE"
+            | "POSIX_REC_MIN_XFER_SIZE"
+            | "POSIX_REC_XFER_ALIGN"
+            | "SYMLINK_MAX"
+            | "_POSIX_CHOWN_RESTRICTED"
+            | "_POSIX_NO_TRUNC"
+            | "_POSIX_VDISABLE"
+    );
+
+    if pos.len() == 2 {
+        if !is_path_var {
+            return err_out(
+                &format!("getconf: {var_name} does not accept a pathname\n"),
+                1,
+            );
+        }
+        let path_arg = &pos[1];
         let p = resolve_posix_path(cwd, path_arg);
         if !fs.exists(&p) {
-            return err_out(&format!("getconf: {path_arg}: No such file or directory\n"), 1);
+            return err_out(
+                &format!("getconf: {path_arg}: No such file or directory\n"),
+                1,
+            );
         }
+    } else if is_path_var && !matches!(normalized, "NAME_MAX" | "PATH_MAX" | "PIPE_BUF") {
+        return err_out(&format!("getconf: {var_name} requires a pathname\n"), 1);
     }
-    let key = pos.first().map(|s| s.as_str()).unwrap_or("");
-    let val = match key {
-        "PAGE_SIZE" | "PAGESIZE" | "_SC_PAGESIZE" | "_SC_PAGE_SIZE" | "PATH_MAX" | "_PC_PATH_MAX" | "PIPE_BUF" | "_PC_PIPE_BUF" => "4096",
-        "NAME_MAX" | "_PC_NAME_MAX" => "255",
-        "LONG_BIT" | "WORD_BIT" => "64",
-        "_CS_PATH" | "PATH" => "/usr/local/bin:/usr/bin:/bin",
-        _ => "4096",
+
+    let val = table
+        .iter()
+        .find(|&&(k, _)| k == var_name)
+        .or_else(|| table.iter().find(|&&(k, _)| k == normalized))
+        .map(|&(_, v)| v);
+
+    let Some(v) = val else {
+        return err_out(&format!("getconf: Unrecognized variable '{var_name}'\n"), 1);
     };
-    ok_out(&format!("{val}\n"))
+    ok_out(&format!("{v}\n"))
 }
 
 fn cmd_locale(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
-    if args.iter().any(|a| a == "-a") {
-        return ok_out("C\nC.UTF-8\nPOSIX\nen_US.UTF-8\n");
-    }
-    if args.iter().any(|a| a == "-m") {
-        return ok_out("ANSI_X3.4-1968\nASCII\nISO-8859-1\nUTF-8\n");
-    }
-    let lc_all = env.get("LC_ALL").filter(|s| !s.is_empty()).cloned();
-    let lang = env.get("LANG").filter(|s| !s.is_empty()).cloned().unwrap_or_else(|| "C".to_string());
-    if args.iter().any(|a| a == "charmap" || a == "-k" || a == "-c") {
-        let eff = lc_all.as_deref().unwrap_or(&lang);
-        let cmap = if eff.to_uppercase().contains("UTF") { "UTF-8" } else { "ANSI_X3.4-1968" };
-        if args.iter().any(|a| a == "decimal_point") {
-            return ok_out(&format!("LC_CTYPE\ncharmap=\"{cmap}\"\nLC_NUMERIC\ndecimal_point=\".\"\n"));
+    const SUPPORTED_LOCALES: &[&str] = &[
+        "C",
+        "C.utf8",
+        "C.UTF-8",
+        "POSIX",
+        "en_US.utf8",
+        "en_US.UTF-8",
+        "UTF-8",
+    ];
+    const SUPPORTED_CHARMAPS: &[&str] = &["ANSI_X3.4-1968", "ASCII", "ISO-8859-1", "UTF-8"];
+    const LC_CATEGORIES: &[&str] = &[
+        "LC_CTYPE",
+        "LC_NUMERIC",
+        "LC_TIME",
+        "LC_COLLATE",
+        "LC_MONETARY",
+        "LC_MESSAGES",
+        "LC_PAPER",
+        "LC_NAME",
+        "LC_ADDRESS",
+        "LC_TELEPHONE",
+        "LC_MEASUREMENT",
+        "LC_IDENTIFICATION",
+    ];
+    let default_locale = "C.UTF-8";
+
+    let mut all_locales = false;
+    let mut all_charmaps = false;
+    let mut show_cat = false;
+    let mut show_kw = false;
+    let mut verbose = false;
+    let mut ended = false;
+    let mut operands: Vec<String> = Vec::new();
+
+    for a in args {
+        if ended {
+            operands.push(a.clone());
+            continue;
         }
-        return ok_out(&format!("{cmap}\n"));
+        if a == "--" {
+            ended = true;
+            continue;
+        }
+        if a == "--help" || a == "-?" {
+            return ok_out("Usage: locale [OPTION...] [NAME...]\n");
+        }
+        if a == "--version" || a == "-V" {
+            return ok_out("locale (Sandbox VFS-ish/GNU libc) 2.39\n");
+        }
+        if a.starts_with("--") && a.len() > 2 {
+            match a.as_str() {
+                "--all-locales" => all_locales = true,
+                "--charmaps" => all_charmaps = true,
+                "--category-name" => show_cat = true,
+                "--keyword-name" => show_kw = true,
+                "--verbose" => verbose = true,
+                _ => return err_out(&format!("locale: unrecognized option '{a}'\n"), 1),
+            }
+            continue;
+        }
+        if a.starts_with('-') && a.len() > 1 {
+            for ch in a[1..].chars() {
+                match ch {
+                    'a' => all_locales = true,
+                    'm' => all_charmaps = true,
+                    'c' => show_cat = true,
+                    'k' => show_kw = true,
+                    'v' => verbose = true,
+                    _ => return err_out(&format!("locale: invalid option -- '{ch}'\n"), 1),
+                }
+            }
+            continue;
+        }
+        operands.push(a.clone());
     }
-    let eff_all = lc_all.as_deref().unwrap_or("");
-    let mut out = format!("LANG={lang}\n");
-    for k in ["LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES"] {
-        if let Some(ref all_val) = lc_all {
-            out.push_str(&format!("{k}=\"{all_val}\"\n"));
-        } else if let Some(explicit) = env.get(k).filter(|s| !s.is_empty()) {
-            out.push_str(&format!("{k}={explicit}\n"));
+
+    let is_utf8 = |loc: &str| {
+        let up = loc.to_ascii_uppercase();
+        up.contains("UTF-8") || up.contains("UTF8")
+    };
+
+    if all_locales {
+        if verbose {
+            let blocks: Vec<String> = SUPPORTED_LOCALES
+                .iter()
+                .map(|&loc| {
+                    let cs = if is_utf8(loc) {
+                        "UTF-8"
+                    } else {
+                        "ANSI_X3.4-1968"
+                    };
+                    format!(
+                        "locale: {loc:<15} archive: /usr/lib/locale/locale-archive\n-------------------------------------------------------------------------------\n    title | {loc} locale for Sandbox VFS-ish/GNU\n  codeset | {cs}\n"
+                    )
+                })
+                .collect();
+            return ok_out(&blocks.join("\n"));
+        }
+        return ok_out(&format!("{}\n", SUPPORTED_LOCALES.join("\n")));
+    }
+    if all_charmaps {
+        return ok_out(&format!("{}\n", SUPPORTED_CHARMAPS.join("\n")));
+    }
+
+    let effective_for_cat = |cat: &str| -> (String, bool) {
+        if let Some(lc_all) = env.get("LC_ALL").filter(|s| !s.is_empty()) {
+            return (lc_all.clone(), true);
+        }
+        if let Some(explicit) = env.get(cat).filter(|s| !s.is_empty()) {
+            return (explicit.clone(), false);
+        }
+        if let Some(lang) = env.get("LANG").filter(|s| !s.is_empty()) {
+            return (lang.clone(), true);
+        }
+        (default_locale.to_string(), true)
+    };
+
+    if operands.is_empty() {
+        let lang = env
+            .get("LANG")
+            .map(|s| s.as_str())
+            .unwrap_or(default_locale);
+        let mut out = format!("LANG={lang}\n");
+        for &cat in LC_CATEGORIES {
+            let (val, implied) = effective_for_cat(cat);
+            if implied {
+                out.push_str(&format!("{cat}=\"{val}\"\n"));
+            } else {
+                out.push_str(&format!("{cat}={val}\n"));
+            }
+        }
+        let lc_all_val = env.get("LC_ALL").map(|s| s.as_str()).unwrap_or("");
+        out.push_str(&format!("LC_ALL={lc_all_val}\n"));
+        return ok_out(&out);
+    }
+
+    let (ctype_loc, _) = effective_for_cat("LC_CTYPE");
+    let utf8 = is_utf8(&ctype_loc);
+    let cmap = if utf8 { "UTF-8" } else { "ANSI_X3.4-1968" };
+    let mb_max = if utf8 { "6" } else { "1" };
+    let kw_db: &[(&str, &str, &str, bool)] = &[
+        ("charmap", "LC_CTYPE", cmap, true),
+        ("codeset", "LC_CTYPE", cmap, true),
+        ("mb_cur_max", "LC_CTYPE", mb_max, false),
+        ("decimal_point", "LC_NUMERIC", ".", true),
+        ("thousands_sep", "LC_NUMERIC", "", true),
+        ("grouping", "LC_NUMERIC", "-1", false),
+        ("yesexpr", "LC_MESSAGES", "^[yY]", true),
+        ("noexpr", "LC_MESSAGES", "^[nN]", true),
+        ("yesstr", "LC_MESSAGES", "yes", true),
+        ("nostr", "LC_MESSAGES", "no", true),
+        ("abday", "LC_TIME", "Sun;Mon;Tue;Wed;Thu;Fri;Sat", true),
+        (
+            "day",
+            "LC_TIME",
+            "Sunday;Monday;Tuesday;Wednesday;Thursday;Friday;Saturday",
+            true,
+        ),
+        (
+            "abmon",
+            "LC_TIME",
+            "Jan;Feb;Mar;Apr;May;Jun;Jul;Aug;Sep;Oct;Nov;Dec",
+            true,
+        ),
+        (
+            "mon",
+            "LC_TIME",
+            "January;February;March;April;May;June;July;August;September;October;November;December",
+            true,
+        ),
+        ("d_t_fmt", "LC_TIME", "%a %b %e %H:%M:%S %Y", true),
+        ("d_fmt", "LC_TIME", "%m/%d/%y", true),
+        ("t_fmt", "LC_TIME", "%H:%M:%S", true),
+        ("am_pm", "LC_TIME", "AM;PM", true),
+        ("t_fmt_ampm", "LC_TIME", "%I:%M:%S %p", true),
+        ("int_curr_symbol", "LC_MONETARY", "", true),
+        ("currency_symbol", "LC_MONETARY", "", true),
+    ];
+
+    let mut out_lines = Vec::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
+
+    for name in operands {
+        if LC_CATEGORIES.contains(&name.as_str()) {
+            if show_cat {
+                out_lines.push(name.clone());
+            }
+            let cat_kws: Vec<_> = kw_db
+                .iter()
+                .filter(|&&(_, cat, _, _)| cat == name)
+                .collect();
+            if cat_kws.is_empty() {
+                let (eff, _) = effective_for_cat(&name);
+                if show_kw {
+                    out_lines.push(format!("name=\"{eff}\""));
+                } else {
+                    out_lines.push(eff);
+                }
+            } else {
+                for &&(kw, _, val, quoted) in &cat_kws {
+                    if show_kw {
+                        if quoted {
+                            out_lines.push(format!("{kw}=\"{val}\""));
+                        } else {
+                            out_lines.push(format!("{kw}={val}"));
+                        }
+                    } else {
+                        out_lines.push(val.to_string());
+                    }
+                }
+            }
+            continue;
+        }
+        let Some(&(kw, cat, val, quoted)) = kw_db.iter().find(|&&(k, _, _, _)| k == name) else {
+            err_buf.push_str(&format!(
+                "locale: Cannot set LC_ALL to default locale: Unknown keyword '{name}'\n"
+            ));
+            exit_code = 1;
+            continue;
+        };
+        if show_cat {
+            out_lines.push(cat.to_string());
+        }
+        if show_kw {
+            if quoted {
+                out_lines.push(format!("{kw}=\"{val}\""));
+            } else {
+                out_lines.push(format!("{kw}={val}"));
+            }
         } else {
-            out.push_str(&format!("{k}=\"{lang}\"\n"));
+            out_lines.push(val.to_string());
         }
     }
-    out.push_str(&format!("LC_ALL={eff_all}\n"));
-    ok_out(&out)
+
+    let stdout = if out_lines.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", out_lines.join("\n"))
+    };
+    BuiltinOutcome {
+        stdout,
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn cmd_pathchk(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -4391,6 +4763,10 @@ fn cmd_pathchk(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             paths.push(a.as_str());
         } else if a == "--" {
             ended = true;
+        } else if a == "--help" {
+            return ok_out("Usage: pathchk [OPTION]... NAME...\n");
+        } else if a == "--version" {
+            return ok_out("pathchk (Sandbox VFS-ish/GNU coreutils) 9.7\n");
         } else if a == "-p" {
             posix_portable = true;
         } else if a == "-P" {
@@ -4398,6 +4774,16 @@ fn cmd_pathchk(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
         } else if a == "-pP" || a == "-Pp" || a == "--portability" {
             posix_portable = true;
             extra_portability = true;
+        } else if a.starts_with("--") && a.len() > 2 {
+            return err_out(&format!("pathchk: unrecognized option '{a}'\n"), 1);
+        } else if a.starts_with('-') && a.len() > 1 {
+            for ch in a[1..].chars() {
+                match ch {
+                    'p' => posix_portable = true,
+                    'P' => extra_portability = true,
+                    _ => return err_out(&format!("pathchk: invalid option -- '{ch}'\n"), 1),
+                }
+            }
         } else {
             paths.push(a.as_str());
         }
@@ -4405,53 +4791,72 @@ fn cmd_pathchk(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
     if paths.is_empty() {
         return err_out("pathchk: missing operand\n", 1);
     }
+    let path_max = if posix_portable { 256usize } else { 4096usize };
+    let name_max = if posix_portable { 14usize } else { 255usize };
     let mut err_buf = String::new();
     let mut code = 0;
     for p in paths {
         if p.is_empty() {
-            err_buf.push_str("pathchk: empty file name\n");
+            if extra_portability {
+                err_buf.push_str("pathchk: empty file name\n");
+            } else {
+                err_buf.push_str("pathchk: '': No such file or directory\n");
+            }
             code = 1;
             continue;
         }
-        if posix_portable && p.len() > 256 {
-            err_buf.push_str("pathchk: limit 256 exceeded\n");
+        if p.len() >= path_max {
+            err_buf.push_str(&format!(
+                "pathchk: limit {path_max} exceeded by length {} of file name '{p}'\n",
+                p.len()
+            ));
             code = 1;
+            continue;
         }
-        let resolved = resolve_posix_path(cwd, p);
-        let segs: Vec<&str> = resolved.split('/').filter(|s| !s.is_empty()).collect();
-        let mut accum = String::new();
-        for seg in segs.iter().take(segs.len().saturating_sub(1)) {
-            accum.push('/');
-            accum.push_str(seg);
-            if fs.exists(&accum) && !fs.is_dir(&accum) {
-                err_buf.push_str(&format!("pathchk: '{p}': Not a directory\n"));
-                code = 1;
-                break;
-            }
-        }
+        let mut comp_failed = false;
         for comp in p.split('/').filter(|c| !c.is_empty()) {
             if extra_portability && comp.starts_with('-') {
                 err_buf.push_str(&format!(
                     "pathchk: leading '-' in a component of file name '{p}'\n"
                 ));
-                code = 1;
+                comp_failed = true;
+                break;
             }
-            if posix_portable {
-                if comp.len() > 14 {
-                    err_buf.push_str(&format!(
-                        "pathchk: limit 14 exceeded by length {} of file name component '{comp}'\n",
-                        comp.len()
-                    ));
-                    code = 1;
-                }
-                if let Some(bad_ch) = comp
+            if posix_portable
+                && let Some(bad_ch) = comp
                     .chars()
                     .find(|c| !c.is_ascii_alphanumeric() && !matches!(c, '.' | '_' | '-'))
-                {
-                    err_buf.push_str(&format!(
-                        "pathchk: nonportable character '{bad_ch}' in file name component '{comp}'\n"
-                    ));
+            {
+                err_buf.push_str(&format!(
+                    "pathchk: nonportable character '{bad_ch}' in file name '{p}'\n"
+                ));
+                comp_failed = true;
+                break;
+            }
+            if comp.len() > name_max {
+                err_buf.push_str(&format!(
+                    "pathchk: limit {name_max} exceeded by length {} of file name component '{comp}'\n",
+                    comp.len()
+                ));
+                comp_failed = true;
+                break;
+            }
+        }
+        if comp_failed {
+            code = 1;
+            continue;
+        }
+        if !posix_portable {
+            let resolved = resolve_posix_path(cwd, p);
+            let segs: Vec<&str> = resolved.split('/').filter(|s| !s.is_empty()).collect();
+            let mut accum = String::new();
+            for seg in segs.iter().take(segs.len().saturating_sub(1)) {
+                accum.push('/');
+                accum.push_str(seg);
+                if fs.exists(&accum) && !fs.is_dir(&accum) {
+                    err_buf.push_str(&format!("pathchk: '{p}': Not a directory\n"));
                     code = 1;
+                    break;
                 }
             }
         }
@@ -4503,40 +4908,66 @@ fn cmd_hostname(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBa
 fn cmd_nproc(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
     let mut all_mode = false;
     let mut ignore_n = 0usize;
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "--all" {
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+        } else if !ended && a == "--help" {
+            return ok_out("Usage: nproc [OPTION]...\n");
+        } else if !ended && a == "--version" {
+            return ok_out("nproc (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+        } else if !ended && a == "--all" {
             all_mode = true;
             i += 1;
-        } else if let Some(ig) = a.strip_prefix("--ignore=") {
-            ignore_n = ig.parse().unwrap_or(0);
+        } else if !ended && (a == "--ignore" || a.starts_with("--ignore=")) {
+            let val_str = if a == "--ignore" {
+                if i + 1 >= args.len() {
+                    return err_out("nproc: option '--ignore' requires an argument\n", 1);
+                }
+                i += 1;
+                args[i].as_str()
+            } else {
+                &a["--ignore=".len()..]
+            };
+            let trimmed = val_str.trim();
+            let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
+            if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+                return err_out(&format!("nproc: invalid number: '{val_str}'\n"), 1);
+            }
+            let Ok(parsed) = digits.parse::<usize>() else {
+                return err_out(&format!("nproc: invalid number: '{val_str}'\n"), 1);
+            };
+            ignore_n = parsed;
             i += 1;
-        } else if a == "--ignore" && i + 1 < args.len() {
-            ignore_n = args[i + 1].parse().unwrap_or(0);
-            i += 2;
+        } else if !ended && a.starts_with('-') {
+            return err_out(&format!("nproc: unrecognized option '{a}'\n"), 1);
         } else {
-            i += 1;
+            return err_out(&format!("nproc: extra operand '{a}'\n"), 1);
         }
     }
+    let parse_omp_pos = |raw: &str| -> Option<usize> {
+        let first = raw.split(',').next()?.trim();
+        let digits = first.strip_prefix('+').unwrap_or(first);
+        if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
+        digits.parse::<usize>().ok().filter(|&n| n >= 1)
+    };
     let base = env
         .get("NPROC")
-        .and_then(|s| s.trim().parse::<usize>().ok())
+        .and_then(|s| parse_omp_pos(s))
         .unwrap_or(4);
     let mut cpus = if all_mode {
         base
     } else {
         let mut c = env
             .get("OMP_NUM_THREADS")
-            .and_then(|s| s.split(',').next())
-            .and_then(|s| s.trim().parse::<usize>().ok())
-            .filter(|&n| n > 0)
+            .and_then(|s| parse_omp_pos(s))
             .unwrap_or(base);
-        if let Some(lim) = env
-            .get("OMP_THREAD_LIMIT")
-            .and_then(|s| s.trim().parse::<usize>().ok())
-            .filter(|&n| n > 0)
-        {
+        if let Some(lim) = env.get("OMP_THREAD_LIMIT").and_then(|s| parse_omp_pos(s)) {
             c = c.min(lim);
         }
         c
@@ -4555,10 +4986,34 @@ fn cmd_uname(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashF
     let mut show_i = false;
     let mut show_o = false;
     let mut show_all = false;
+    let mut ended = false;
     for a in args {
-        if a == "--all" {
-            show_all = true;
-        } else if a.starts_with('-') && !a.starts_with("--") {
+        if !ended && a == "--" {
+            ended = true;
+            continue;
+        }
+        if !ended && a == "--help" {
+            return ok_out("Usage: uname [OPTION]...\n");
+        }
+        if !ended && a == "--version" {
+            return ok_out("uname (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+        }
+        if !ended && a.starts_with("--") && a.len() > 2 {
+            match a.as_str() {
+                "--all" => show_all = true,
+                "--kernel-name" | "--sysname" => show_s = true,
+                "--nodename" => show_n = true,
+                "--kernel-release" | "--release" => show_r = true,
+                "--kernel-version" => show_v = true,
+                "--machine" => show_m = true,
+                "--processor" => show_p = true,
+                "--hardware-platform" => show_i = true,
+                "--operating-system" => show_o = true,
+                _ => return err_out(&format!("uname: unrecognized option '{a}'\n"), 1),
+            }
+            continue;
+        }
+        if !ended && a.starts_with('-') && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
                     'a' => show_all = true,
@@ -4570,101 +5025,142 @@ fn cmd_uname(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashF
                     'p' => show_p = true,
                     'i' => show_i = true,
                     'o' => show_o = true,
-                    _ => {}
+                    _ => return err_out(&format!("uname: invalid option -- '{ch}'\n"), 1),
                 }
             }
+            continue;
         }
+        return err_out(&format!("uname: extra operand '{a}'\n"), 1);
     }
     let sysname = env.get("UNAME_S").map(|s| s.as_str()).unwrap_or("Linux");
-    let nodename = resolve_effective_hostname(env, fs);
-    let release = env.get("UNAME_R").map(|s| s.as_str()).unwrap_or("6.1.0");
+    let nodename = env
+        .get("UNAME_N")
+        .filter(|s| !s.is_empty())
+        .cloned()
+        .unwrap_or_else(|| resolve_effective_hostname(env, fs));
+    let release = env
+        .get("UNAME_R")
+        .map(|s| s.as_str())
+        .unwrap_or("6.6.0-sandbox-vfs");
     let version = env
         .get("UNAME_V")
         .map(|s| s.as_str())
-        .unwrap_or("#1 SMP PREEMPT_DYNAMIC");
+        .unwrap_or("#1 SMP Sandbox VFS-ish/GNU");
     let machine = env.get("UNAME_M").map(|s| s.as_str()).unwrap_or("x86_64");
-    let os = "GNU/Linux";
+    let processor = env.get("UNAME_P").map(|s| s.as_str()).unwrap_or("unknown");
+    let hw_platform = env.get("UNAME_I").map(|s| s.as_str()).unwrap_or("unknown");
+    let os = env
+        .get("UNAME_O")
+        .map(|s| s.as_str())
+        .unwrap_or("GNU/Linux");
 
-    if show_all {
-        return ok_out(&format!(
-            "{sysname} {nodename} {release} {version} {machine} {os}\n"
-        ));
-    }
-    if !(show_s || show_n || show_r || show_v || show_m || show_p || show_i || show_o) {
+    if !(show_all || show_s || show_n || show_r || show_v || show_m || show_p || show_i || show_o) {
         show_s = true;
     }
     let mut parts = Vec::new();
-    if show_s {
+    if show_all || show_s {
         parts.push(sysname);
     }
-    if show_n {
+    if show_all || show_n {
         parts.push(&nodename);
     }
-    if show_r {
+    if show_all || show_r {
         parts.push(release);
     }
-    if show_v {
+    if show_all || show_v {
         parts.push(version);
     }
-    if show_m {
+    if show_all || show_m {
         parts.push(machine);
     }
-    if show_p {
-        parts.push(machine);
+    if show_p || (show_all && processor != "unknown") {
+        parts.push(processor);
     }
-    if show_i {
-        parts.push(machine);
+    if show_i || (show_all && hw_platform != "unknown") {
+        parts.push(hw_platform);
     }
-    if show_o {
+    if show_all || show_o {
         parts.push(os);
     }
     ok_out(&format!("{}\n", parts.join(" ")))
 }
 
 fn cmd_id(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    #[derive(Clone)]
+    struct IdAccount {
+        uid: u32,
+        euid: u32,
+        gid: u32,
+        egid: u32,
+        user: String,
+        euser: String,
+        group: String,
+        egroup: String,
+        groups: Vec<(u32, String)>,
+        context: String,
+    }
+
     let mut opt_u = false;
     let mut opt_g = false;
     let mut opt_groups = false;
+    let mut opt_context = false;
     let mut opt_n = false;
     let mut opt_r = false;
     let mut opt_z = false;
-    let mut target_user: Option<String> = None;
+    let mut ended = false;
+    let mut operands: Vec<String> = Vec::new();
 
     for a in args {
-        if a == "--zero" {
-            opt_z = true;
-        } else if a == "--name" {
-            opt_n = true;
-        } else if a == "--real" {
-            opt_r = true;
-        } else if a == "--user" {
-            opt_u = true;
-        } else if a == "--group" {
-            opt_g = true;
-        } else if a == "--groups" {
-            opt_groups = true;
-        } else if a.starts_with('-') && a.len() > 1 {
+        if ended {
+            operands.push(a.clone());
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            continue;
+        }
+        if a == "--help" {
+            return ok_out("Usage: id [OPTION]... [USER]...\n");
+        }
+        if a == "--version" {
+            return ok_out("id (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+        }
+        if a.starts_with("--") && a.len() > 2 {
+            match a.as_str() {
+                "--user" => opt_u = true,
+                "--group" => opt_g = true,
+                "--groups" => opt_groups = true,
+                "--context" => opt_context = true,
+                "--name" => opt_n = true,
+                "--real" => opt_r = true,
+                "--zero" => opt_z = true,
+                _ => return err_out(&format!("id: unrecognized option '{a}'\n"), 1),
+            }
+            continue;
+        }
+        if a.starts_with('-') && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
                     'u' => opt_u = true,
                     'g' => opt_g = true,
                     'G' => opt_groups = true,
+                    'Z' => opt_context = true,
                     'n' => opt_n = true,
                     'r' => opt_r = true,
                     'z' => opt_z = true,
-                    _ => {}
+                    _ => return err_out(&format!("id: invalid option -- '{ch}'\n"), 1),
                 }
             }
-        } else {
-            target_user = Some(a.clone());
+            continue;
         }
+        operands.push(a.clone());
     }
 
-    let choice_count = (opt_u as u8) + (opt_g as u8) + (opt_groups as u8);
+    let choice_count = (opt_u as u8) + (opt_g as u8) + (opt_groups as u8) + (opt_context as u8);
     if choice_count > 1 {
         return err_out("id: cannot print \"only\" of more than one choice\n", 1);
     }
-    if choice_count == 0 && (opt_n || opt_r) {
+    if (choice_count == 0 || opt_context) && (opt_n || opt_r) {
         return err_out(
             "id: cannot print only names or real IDs in default format\n",
             1,
@@ -4673,79 +5169,306 @@ fn cmd_id(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) 
     if choice_count == 0 && opt_z {
         return err_out("id: option --zero not permitted in default format\n", 1);
     }
-
-    let uname = target_user
-        .clone()
-        .or_else(|| env.get("USER").cloned())
-        .unwrap_or_else(|| "e2e".to_string());
-    let mut uid = "1000".to_string();
-    let mut gid = "1000".to_string();
-    let mut primary_gname = if target_user.is_none() {
-        "sandbox".to_string()
-    } else {
-        uname.clone()
-    };
-    let mut groups: Vec<(String, String)> = Vec::new();
-
-    if let Ok(pw_bytes) = fs.read_file("/etc/passwd") {
-        for line in String::from_utf8_lossy(&pw_bytes).lines() {
-            let cols: Vec<&str> = line.split(':').collect();
-            if cols.len() >= 4 && cols[0] == uname {
-                uid = cols[2].to_string();
-                gid = cols[3].to_string();
-                break;
-            }
-        }
+    if opt_context && !operands.is_empty() {
+        return err_out("id: cannot print security context when user specified\n", 1);
     }
+
+    let parse_u32 = |s: &str| -> Option<u32> {
+        if !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()) {
+            s.parse::<u32>().ok()
+        } else {
+            None
+        }
+    };
+
+    let sec_context = env
+        .get("SELINUX_CONTEXT")
+        .filter(|s| !s.is_empty())
+        .cloned()
+        .unwrap_or_else(|| "sandbox_u:sandbox_r:sandbox_t:s0".to_string());
+
+    let mut vfs_accounts: Vec<IdAccount> = Vec::new();
+    let mut group_by_gid: Vec<(u32, String, Vec<String>)> = Vec::new();
     if let Ok(gr_bytes) = fs.read_file("/etc/group") {
         for line in String::from_utf8_lossy(&gr_bytes).lines() {
-            let cols: Vec<&str> = line.split(':').collect();
-            if cols.len() >= 3 && cols[2] == gid {
-                primary_gname = cols[0].to_string();
+            let trimmed = line.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                continue;
             }
+            let cols: Vec<&str> = trimmed.split(':').collect();
+            if cols.len() < 3 {
+                continue;
+            }
+            let Some(gid) = parse_u32(cols[2]) else {
+                continue;
+            };
+            let members: Vec<String> = cols
+                .get(3)
+                .copied()
+                .unwrap_or("")
+                .split(',')
+                .map(|m| m.trim().to_string())
+                .filter(|m| !m.is_empty())
+                .collect();
+            group_by_gid.push((gid, cols[0].to_string(), members));
         }
-        groups.push((gid.clone(), primary_gname.clone()));
-        for line in String::from_utf8_lossy(&gr_bytes).lines() {
-            let cols: Vec<&str> = line.split(':').collect();
-            if cols.len() >= 4 {
-                let gname = cols[0];
-                let g_id = cols[2];
-                let members: Vec<&str> = cols[3].split(',').filter(|s| !s.is_empty()).collect();
-                if members.contains(&uname.as_str()) && g_id != gid {
-                    groups.push((g_id.to_string(), gname.to_string()));
+    }
+    if let Ok(pw_bytes) = fs.read_file("/etc/passwd") {
+        for line in String::from_utf8_lossy(&pw_bytes).lines() {
+            let trimmed = line.trim();
+            if trimmed.is_empty() || trimmed.starts_with('#') {
+                continue;
+            }
+            let cols: Vec<&str> = trimmed.split(':').collect();
+            if cols.len() < 4 {
+                continue;
+            }
+            let user = cols[0].to_string();
+            let (Some(uid), Some(gid)) = (parse_u32(cols[2]), parse_u32(cols[3])) else {
+                continue;
+            };
+            let primary_group = group_by_gid
+                .iter()
+                .find(|(g, _, _)| *g == gid)
+                .map(|(_, name, _)| name.clone())
+                .unwrap_or_else(|| user.clone());
+            let mut groups = vec![(gid, primary_group.clone())];
+            for (other_gid, gname, members) in &group_by_gid {
+                if *other_gid != gid && members.iter().any(|m| m == &user) {
+                    groups.push((*other_gid, gname.clone()));
                 }
             }
+            vfs_accounts.push(IdAccount {
+                uid,
+                euid: uid,
+                gid,
+                egid: gid,
+                user: user.clone(),
+                euser: user,
+                group: primary_group.clone(),
+                egroup: primary_group,
+                groups,
+                context: sec_context.clone(),
+            });
+        }
+    }
+
+    let uid = env.get("UID").and_then(|s| parse_u32(s)).unwrap_or(1000);
+    let euid = env.get("EUID").and_then(|s| parse_u32(s)).unwrap_or(uid);
+    let gid = env
+        .get("GID")
+        .and_then(|s| parse_u32(s))
+        .unwrap_or(if uid == 0 { 0 } else { 1000 });
+    let egid = env
+        .get("EGID")
+        .and_then(|s| parse_u32(s))
+        .unwrap_or(if euid == 0 { 0 } else { gid });
+
+    let default_user = if uid == 0 {
+        "root".to_string()
+    } else {
+        env.get("USER")
+            .or_else(|| env.get("LOGNAME"))
+            .filter(|s| !s.is_empty())
+            .cloned()
+            .unwrap_or_else(|| "sandbox".to_string())
+    };
+    let default_euser = if euid == 0 {
+        "root".to_string()
+    } else if euid == uid {
+        default_user.clone()
+    } else {
+        "sandbox".to_string()
+    };
+    let default_group = if gid == 0 {
+        "root".to_string()
+    } else {
+        env.get("GROUP")
+            .filter(|s| !s.is_empty())
+            .cloned()
+            .unwrap_or_else(|| {
+                if default_user == "root" {
+                    "root".to_string()
+                } else {
+                    "sandbox".to_string()
+                }
+            })
+    };
+    let default_egroup = if egid == 0 {
+        "root".to_string()
+    } else if egid == gid {
+        default_group.clone()
+    } else {
+        "sandbox".to_string()
+    };
+    let mut cur_groups = vec![(egid, default_egroup.clone())];
+    if egid != gid {
+        cur_groups.push((gid, default_group.clone()));
+    }
+    let current = IdAccount {
+        uid,
+        euid,
+        gid,
+        egid,
+        user: default_user,
+        euser: default_euser,
+        group: default_group,
+        egroup: default_egroup,
+        groups: cur_groups,
+        context: sec_context.clone(),
+    };
+
+    let mut all_accounts = vfs_accounts.clone();
+    all_accounts.push(current.clone());
+    all_accounts.push(IdAccount {
+        uid: 1000,
+        euid: 1000,
+        gid: 1000,
+        egid: 1000,
+        user: "sandbox".to_string(),
+        euser: "sandbox".to_string(),
+        group: "sandbox".to_string(),
+        egroup: "sandbox".to_string(),
+        groups: vec![(1000, "sandbox".to_string())],
+        context: sec_context.clone(),
+    });
+    all_accounts.push(IdAccount {
+        uid: 0,
+        euid: 0,
+        gid: 0,
+        egid: 0,
+        user: "root".to_string(),
+        euser: "root".to_string(),
+        group: "root".to_string(),
+        egroup: "root".to_string(),
+        groups: vec![(0, "root".to_string())],
+        context: "system_u:system_r:kernel_t:s0".to_string(),
+    });
+    all_accounts.push(IdAccount {
+        uid: 65534,
+        euid: 65534,
+        gid: 65534,
+        egid: 65534,
+        user: "nobody".to_string(),
+        euser: "nobody".to_string(),
+        group: "nogroup".to_string(),
+        egroup: "nogroup".to_string(),
+        groups: vec![(65534, "nogroup".to_string())],
+        context: sec_context.clone(),
+    });
+    all_accounts.push(IdAccount {
+        uid: 1,
+        euid: 1,
+        gid: 1,
+        egid: 1,
+        user: "daemon".to_string(),
+        euser: "daemon".to_string(),
+        group: "daemon".to_string(),
+        egroup: "daemon".to_string(),
+        groups: vec![(1, "daemon".to_string())],
+        context: sec_context,
+    });
+
+    let mut targets: Vec<IdAccount> = Vec::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
+
+    if operands.is_empty() {
+        if let Some(vfs_cur) = vfs_accounts
+            .iter()
+            .find(|a| a.uid == current.uid || a.user == current.user)
+        {
+            targets.push(vfs_cur.clone());
+        } else {
+            targets.push(current);
         }
     } else {
-        groups.push((gid.clone(), primary_gname.clone()));
+        for spec in &operands {
+            let num = parse_u32(spec);
+            if let Some(found) = all_accounts
+                .iter()
+                .find(|a| &a.user == spec || (num.is_some() && Some(a.uid) == num))
+            {
+                targets.push(found.clone());
+            } else {
+                err_buf.push_str(&format!("id: '{spec}': no such user\n"));
+                exit_code = 1;
+            }
+        }
     }
 
     let term = if opt_z { "\0" } else { "\n" };
-    if opt_u {
-        let v = if opt_n { &uname } else { &uid };
-        return ok_out(&format!("{v}{term}"));
-    }
-    if opt_g {
-        let v = if opt_n { &primary_gname } else { &gid };
-        return ok_out(&format!("{v}{term}"));
-    }
-    if opt_groups {
-        let sep = if opt_z { "\0" } else { " " };
-        let items: Vec<&str> = groups
-            .iter()
-            .map(|(id, name)| if opt_n { name.as_str() } else { id.as_str() })
-            .collect();
-        return ok_out(&format!("{}{term}", items.join(sep)));
+    let group_sep = if opt_z { "\0" } else { " " };
+    let mut out = String::new();
+
+    for acct in targets {
+        if opt_context {
+            out.push_str(&format!("{}{term}", acct.context));
+        } else if opt_u {
+            let val = if opt_r {
+                if opt_n {
+                    acct.user
+                } else {
+                    acct.uid.to_string()
+                }
+            } else if opt_n {
+                acct.euser
+            } else {
+                acct.euid.to_string()
+            };
+            out.push_str(&format!("{val}{term}"));
+        } else if opt_g {
+            let val = if opt_r {
+                if opt_n {
+                    acct.group
+                } else {
+                    acct.gid.to_string()
+                }
+            } else if opt_n {
+                acct.egroup
+            } else {
+                acct.egid.to_string()
+            };
+            out.push_str(&format!("{val}{term}"));
+        } else if opt_groups {
+            let items: Vec<String> = acct
+                .groups
+                .iter()
+                .map(|(g, name)| {
+                    if opt_n {
+                        name.clone()
+                    } else {
+                        g.to_string()
+                    }
+                })
+                .collect();
+            out.push_str(&format!("{}{term}", items.join(group_sep)));
+        } else {
+            let mut parts = vec![
+                format!("uid={}({})", acct.uid, acct.user),
+                format!("gid={}({})", acct.gid, acct.group),
+            ];
+            if acct.euid != acct.uid {
+                parts.push(format!("euid={}({})", acct.euid, acct.euser));
+            }
+            if acct.egid != acct.gid {
+                parts.push(format!("egid={}({})", acct.egid, acct.egroup));
+            }
+            let gr_fmt: Vec<String> = acct
+                .groups
+                .iter()
+                .map(|(g, name)| format!("{g}({name})"))
+                .collect();
+            parts.push(format!("groups={}", gr_fmt.join(",")));
+            out.push_str(&format!("{}\n", parts.join(" ")));
+        }
     }
 
-    let gr_fmt: Vec<String> = groups
-        .iter()
-        .map(|(id, name)| format!("{id}({name})"))
-        .collect();
-    ok_out(&format!(
-        "uid={uid}({uname}) gid={gid}({primary_gname}) groups={}\n",
-        gr_fmt.join(",")
-    ))
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn cmd_less_more(
@@ -6348,74 +7071,317 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
 fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut create_dirs = false;
     let mut dir_mode = false;
-    let mut backup = false;
-    let mut backup_numbered = false;
+    let mut backup_mode: Option<&str> = None;
+    let mut suffix = "~".to_string();
     let mut compare_mode = false;
-    let mut mode: Option<u32> = None;
+    let mut preserve_ts = false;
+    let mut strip_mode = false;
+    let mut no_target_dir = false;
+    let mut target_dir: Option<String> = None;
+    let mut mode_spec: Option<String> = None;
+    let mut ended = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
-            "-D" => create_dirs = true,
-            "-C" | "--compare" => compare_mode = true,
-            "-d" | "--directory" => dir_mode = true,
-            "-b" | "--backup" => backup = true,
-            "--backup=numbered" | "--backup=t" => backup_numbered = true,
-            "-m" if i + 1 < args.len() => {
-                i += 1;
-                mode = u32::from_str_radix(&args[i], 8).ok();
+        let a = &args[i];
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        match a.as_str() {
+            "--help" => return ok_out("Usage: install [OPTION]... SOURCE... DEST\n"),
+            "--version" => return ok_out("install (Sandbox VFS-ish/GNU coreutils) 9.7\n"),
+            "--compare" => compare_mode = true,
+            "--directory" => dir_mode = true,
+            "--preserve-timestamps" => preserve_ts = true,
+            "--strip" => strip_mode = true,
+            "--no-target-directory" => no_target_dir = true,
+            "--verbose" => {}
+            "--backup" => backup_mode = Some("existing"),
+            s if s.starts_with("--backup=") => {
+                let ctl = &s["--backup=".len()..];
+                backup_mode = match ctl {
+                    "none" | "off" => None,
+                    "numbered" | "t" => Some("numbered"),
+                    "existing" | "nil" => Some("existing"),
+                    "simple" | "never" => Some("simple"),
+                    _ => return err_out(&format!("install: invalid backup type '{ctl}'\n"), 1),
+                };
             }
-            a if a.starts_with("--backup=") => backup = true,
-            a if !a.starts_with('-') => files.push(a.to_string()),
-            _ => {}
+            "--mode" => {
+                if i + 1 >= args.len() {
+                    return err_out("install: option '--mode' requires an argument\n", 1);
+                }
+                i += 1;
+                mode_spec = Some(args[i].clone());
+            }
+            s if s.starts_with("--mode=") => {
+                mode_spec = Some(s["--mode=".len()..].to_string());
+            }
+            "--target-directory" => {
+                if i + 1 >= args.len() {
+                    return err_out(
+                        "install: option '--target-directory' requires an argument\n",
+                        1,
+                    );
+                }
+                i += 1;
+                target_dir = Some(args[i].clone());
+            }
+            s if s.starts_with("--target-directory=") => {
+                target_dir = Some(s["--target-directory=".len()..].to_string());
+            }
+            "--suffix" => {
+                if i + 1 >= args.len() {
+                    return err_out("install: option '--suffix' requires an argument\n", 1);
+                }
+                i += 1;
+                suffix = args[i].clone();
+                if backup_mode.is_none() {
+                    backup_mode = Some("existing");
+                }
+            }
+            s if s.starts_with("--suffix=") => {
+                suffix = s["--suffix=".len()..].to_string();
+                if backup_mode.is_none() {
+                    backup_mode = Some("existing");
+                }
+            }
+            s if !s.starts_with("--") => {
+                let chars: Vec<char> = s[1..].chars().collect();
+                let mut j = 0usize;
+                while j < chars.len() {
+                    match chars[j] {
+                        'D' => create_dirs = true,
+                        'C' => compare_mode = true,
+                        'd' => dir_mode = true,
+                        'b' => {
+                            if backup_mode.is_none() {
+                                backup_mode = Some("existing");
+                            }
+                        }
+                        'p' => preserve_ts = true,
+                        's' => strip_mode = true,
+                        'T' => no_target_dir = true,
+                        'c' | 'v' => {}
+                        'm' => {
+                            let rest: String = chars[j + 1..].iter().collect();
+                            if !rest.is_empty() {
+                                mode_spec = Some(rest);
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                mode_spec = Some(args[i].clone());
+                            } else {
+                                return err_out("install: option requires an argument -- 'm'\n", 1);
+                            }
+                            break;
+                        }
+                        't' => {
+                            let rest: String = chars[j + 1..].iter().collect();
+                            if !rest.is_empty() {
+                                target_dir = Some(rest);
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                target_dir = Some(args[i].clone());
+                            } else {
+                                return err_out("install: option requires an argument -- 't'\n", 1);
+                            }
+                            break;
+                        }
+                        'S' => {
+                            let rest: String = chars[j + 1..].iter().collect();
+                            if !rest.is_empty() {
+                                suffix = rest;
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                suffix = args[i].clone();
+                            } else {
+                                return err_out("install: option requires an argument -- 'S'\n", 1);
+                            }
+                            if backup_mode.is_none() {
+                                backup_mode = Some("existing");
+                            }
+                            break;
+                        }
+                        ch => {
+                            return err_out(&format!("install: invalid option -- '{ch}'\n"), 1);
+                        }
+                    }
+                    j += 1;
+                }
+            }
+            _ => return err_out(&format!("install: unrecognized option '{a}'\n"), 1),
         }
         i += 1;
     }
+
+    if compare_mode && preserve_ts {
+        return err_out(
+            "install: options --compare (-C) and --preserve-timestamps are mutually exclusive\n",
+            1,
+        );
+    }
+    if compare_mode && strip_mode {
+        return err_out(
+            "install: options --compare (-C) and --strip are mutually exclusive\n",
+            1,
+        );
+    }
+    if no_target_dir && target_dir.is_some() {
+        return err_out(
+            "install: cannot combine --target-directory (-t) and --no-target-directory (-T)\n",
+            1,
+        );
+    }
+
     if dir_mode {
+        if files.is_empty() {
+            return err_out("install: missing file operand\n", 1);
+        }
+        let target_mode = mode_spec
+            .as_deref()
+            .map(|spec| crate::commands::fs::eval_chmod_mode(spec, 0, true))
+            .unwrap_or(0o755);
         for f in &files {
             let d = resolve_posix_path(cwd, f);
             let _ = fs.mkdir_all(&d);
-            if let Some(m) = mode {
-                let _ = fs.chmod(&d, 0o040000 | m);
-            }
+            let _ = fs.chmod(&d, 0o040000 | target_mode);
         }
         return ok_out("");
     }
-    if files.len() >= 2 {
-        let src = resolve_posix_path(cwd, &files[0]);
-        let dst = resolve_posix_path(cwd, &files[1]);
+
+    let target_mode = mode_spec
+        .as_deref()
+        .map(|spec| crate::commands::fs::eval_chmod_mode(spec, 0, false))
+        .unwrap_or(0o755);
+
+    let (sources, target_dir_opt, single_dest_opt): (Vec<String>, Option<String>, Option<String>) =
+        if let Some(td) = target_dir {
+            if files.is_empty() {
+                return err_out("install: missing file operand\n", 1);
+            }
+            (files, Some(td), None)
+        } else {
+            if files.len() < 2 {
+                return err_out("install: missing destination file operand\n", 1);
+            }
+            let last = files.last().unwrap().clone();
+            let last_resolved = resolve_posix_path(cwd, &last);
+            if !no_target_dir && fs.is_dir(&last_resolved) {
+                (files[..files.len() - 1].to_vec(), Some(last), None)
+            } else if files.len() > 2 {
+                return err_out(&format!("install: target '{last}' is not a directory\n"), 1);
+            } else {
+                (vec![files[0].clone()], None, Some(last))
+            }
+        };
+
+    if let Some(ref td) = target_dir_opt {
+        let td_resolved = resolve_posix_path(cwd, td);
         if create_dirs {
-            let parent = dirname_posix_path(&dst);
-            let _ = fs.mkdir_all(&parent);
+            let _ = fs.mkdir_all(&td_resolved);
         }
-        let target_mode = mode.unwrap_or(0o755);
+        if !fs.is_dir(&td_resolved) {
+            return err_out(
+                &format!("install: failed to access '{td}': No such file or directory\n"),
+                1,
+            );
+        }
+    }
+
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
+
+    for src_arg in &sources {
+        let src = resolve_posix_path(cwd, src_arg);
+        if !fs.exists(&src) {
+            err_buf.push_str(&format!(
+                "install: cannot stat '{src_arg}': No such file or directory\n"
+            ));
+            exit_code = 1;
+            continue;
+        }
+        if fs.is_dir(&src) {
+            err_buf.push_str(&format!("install: omitting directory '{src_arg}'\n"));
+            exit_code = 1;
+            continue;
+        }
+        let dst = if let Some(ref td) = target_dir_opt {
+            let base = crate::vfs::basename_posix_path(&src);
+            resolve_posix_path(cwd, &format!("{}/{base}", td.trim_end_matches('/')))
+        } else {
+            let d = resolve_posix_path(cwd, single_dest_opt.as_ref().unwrap());
+            if create_dirs {
+                let parent = dirname_posix_path(&d);
+                let _ = fs.mkdir_all(&parent);
+            }
+            d
+        };
+        if fs.is_dir(&dst) {
+            err_buf.push_str(&format!(
+                "install: cannot overwrite directory '{dst}' with non-directory '{src_arg}'\n"
+            ));
+            exit_code = 1;
+            continue;
+        }
+        let Ok(src_bytes) = fs.read_file(&src) else {
+            err_buf.push_str(&format!("install: cannot open '{src_arg}' for reading\n"));
+            exit_code = 1;
+            continue;
+        };
         if compare_mode
-            && let (Ok(src_bytes), Ok(dst_bytes), Ok(dst_st)) =
-                (fs.read_file(&src), fs.read_file(&dst), fs.stat(&dst))
+            && let (Ok(dst_bytes), Ok(dst_st)) = (fs.read_file(&dst), fs.stat(&dst))
             && src_bytes == dst_bytes
             && (dst_st.mode & 0o7777) == (target_mode & 0o7777)
         {
-            return ok_out("");
+            continue;
         }
-        if let Ok(old_bytes) = fs.read_file(&dst) {
-            if backup_numbered {
-                for k in 1..1000usize {
-                    let bak = format!("{dst}.~{k}~");
-                    if !fs.exists(&bak) {
-                        let _ = fs.write_file(&bak, &old_bytes);
-                        break;
-                    }
+        if let Some(bmode) = backup_mode
+            && let Ok(old_bytes) = fs.read_file(&dst)
+        {
+            let mut highest_numbered = 0usize;
+            for k in 1..1000usize {
+                if fs.exists(&format!("{dst}.~{k}~")) {
+                    highest_numbered = k;
                 }
-            } else if backup {
-                let _ = fs.write_file(&format!("{dst}~"), &old_bytes);
+            }
+            let use_numbered = bmode == "numbered" || (bmode == "existing" && highest_numbered > 0);
+            if use_numbered {
+                let next_k = highest_numbered + 1;
+                let _ = fs.write_file(&format!("{dst}.~{next_k}~"), &old_bytes);
+            } else {
+                let _ = fs.write_file(&format!("{dst}{suffix}"), &old_bytes);
             }
         }
-        if let Ok(bytes) = fs.read_file(&src) {
-            let _ = fs.write_file(&dst, &bytes);
+        let parent = dirname_posix_path(&dst);
+        if !fs.is_dir(&parent) {
+            err_buf.push_str(&format!(
+                "install: cannot create regular file '{dst}': No such file or directory\n"
+            ));
+            exit_code = 1;
+            continue;
+        }
+        if fs.write_file(&dst, &src_bytes).is_ok() {
             let _ = fs.chmod(&dst, 0o100000 | target_mode);
+            if preserve_ts && let Ok(st) = fs.stat(&src) {
+                let _ = fs.set_mtime(&dst, st.mtime_ms);
+            }
+        } else {
+            err_buf.push_str(&format!("install: cannot create regular file '{dst}'\n"));
+            exit_code = 1;
         }
     }
-    ok_out("")
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

@@ -33,7 +33,7 @@ pub fn try_run_fs_command(
         "stat" => Some(cmd_stat(args, cwd, fs)),
         "du" => Some(cmd_du(args, cwd, fs)),
         "df" => Some(cmd_df(args, cwd, fs)),
-        "mktemp" => Some(cmd_mktemp(args, cwd, fs)),
+        "mktemp" => Some(cmd_mktemp(args, cwd, env, fs)),
         "tree" => Some(cmd_tree(args, cwd, fs)),
         "file" => Some(cmd_file(args, cwd, fs)),
         _ => None,
@@ -45,6 +45,14 @@ fn ok_out(s: &str) -> BuiltinOutcome {
         stdout: s.to_string(),
         stderr: String::new(),
         exit_code: 0,
+    }
+}
+
+fn err_out(stderr: &str, exit_code: i32) -> BuiltinOutcome {
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr: stderr.to_string(),
+        exit_code,
     }
 }
 
@@ -960,44 +968,140 @@ fn cmd_ln(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
 }
 
 fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut canonical = false;
+    let mut mode = 'L';
+    let mut no_newline = false;
+    let mut zero = false;
+    let mut verbose = false;
+    let mut ended = false;
     let mut targets = Vec::new();
     for a in args {
-        if matches!(a.as_str(), "-f" | "-e" | "-m") {
-            canonical = true;
-        } else if !a.starts_with('-') {
+        if ended {
             targets.push(a.clone());
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            continue;
+        }
+        match a.as_str() {
+            "--canonicalize" => mode = 'f',
+            "--canonicalize-existing" => mode = 'e',
+            "--canonicalize-missing" => mode = 'm',
+            "--no-newline" => no_newline = true,
+            "--zero" => zero = true,
+            "--verbose" => verbose = true,
+            "--quiet" | "--silent" => verbose = false,
+            s if s.starts_with('-') && !s.starts_with("--") && s.len() > 1 => {
+                for ch in s[1..].chars() {
+                    match ch {
+                        'f' => mode = 'f',
+                        'e' => mode = 'e',
+                        'm' => mode = 'm',
+                        'n' => no_newline = true,
+                        'z' => zero = true,
+                        'v' => verbose = true,
+                        'q' | 's' => verbose = false,
+                        _ => {
+                            return err_out(&format!("readlink: invalid option -- '{ch}'\n"), 1);
+                        }
+                    }
+                }
+            }
+            s if s.starts_with("--") => {
+                return err_out(&format!("readlink: unrecognized option '{s}'\n"), 1);
+            }
+            _ => targets.push(a.clone()),
         }
     }
-    let Some(first) = targets.first() else {
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 1,
-        };
-    };
-    if canonical {
-        let raw = if first.starts_with('/') {
-            first.clone()
-        } else {
-            format!("{}/{first}", cwd.trim_end_matches('/'))
-        };
-        let resolved = resolve_canonical_target(&raw, fs);
-        return ok_out(&format!("{resolved}\n"));
+    if targets.is_empty() {
+        return err_out("readlink: missing operand\n", 1);
     }
-    let p = resolve_posix_path(cwd, first);
-    match fs.readlink(&p) {
-        Ok(t) => ok_out(&format!("{t}\n")),
-        Err(_) => BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 1,
-        },
+    let mut out = String::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
+    let term = if no_newline && targets.len() == 1 {
+        ""
+    } else if zero {
+        "\0"
+    } else {
+        "\n"
+    };
+    for target in &targets {
+        if mode == 'L' {
+            let p = resolve_posix_path(cwd, target);
+            match fs.readlink(&p) {
+                Ok(t) if !t.starts_with("__hardlink__:") => {
+                    out.push_str(&t);
+                    out.push_str(term);
+                }
+                _ => {
+                    if verbose {
+                        err_buf.push_str(&format!("readlink: {target}: Invalid argument\n"));
+                    }
+                    exit_code = 1;
+                }
+            }
+        } else {
+            let raw = if target.starts_with('/') {
+                target.clone()
+            } else {
+                format!("{}/{target}", cwd.trim_end_matches('/'))
+            };
+            match canonicalize_posix_path(&raw, mode, false, fs) {
+                Ok(resolved) => {
+                    out.push_str(&resolved);
+                    out.push_str(term);
+                }
+                Err(msg) => {
+                    if verbose {
+                        err_buf.push_str(&format!("readlink: {target}: {msg}\n"));
+                    }
+                    exit_code = 1;
+                }
+            }
+        }
+    }
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
     }
 }
 
-fn resolve_canonical_target(p: &str, fs: &dyn SafeBashFs) -> String {
-    let mut queue: VecDeque<String> = p
+fn canonicalize_posix_path(
+    raw: &str,
+    mode: char,
+    no_symlinks: bool,
+    fs: &dyn SafeBashFs,
+) -> Result<String, String> {
+    if no_symlinks {
+        let lexical = normalize_posix_path(raw);
+        if mode == 'e' {
+            if !fs.exists(&lexical) {
+                return Err("No such file or directory".to_string());
+            }
+            let segs: Vec<&str> = lexical.split('/').filter(|s| !s.is_empty()).collect();
+            let mut prefix = String::new();
+            for seg in segs.iter().take(segs.len().saturating_sub(1)) {
+                prefix.push('/');
+                prefix.push_str(seg);
+                if !fs.is_dir(&prefix) {
+                    return Err("Not a directory".to_string());
+                }
+            }
+        } else if mode != 'm' {
+            let parent = crate::vfs::dirname_posix_path(&lexical);
+            if !fs.exists(&parent) {
+                return Err("No such file or directory".to_string());
+            }
+            if !fs.is_dir(&parent) {
+                return Err("Not a directory".to_string());
+            }
+        }
+        return Ok(lexical);
+    }
+
+    let mut queue: VecDeque<String> = raw
         .split('/')
         .filter(|s| !s.is_empty())
         .map(|s| s.to_string())
@@ -1006,11 +1110,25 @@ fn resolve_canonical_target(p: &str, fs: &dyn SafeBashFs) -> String {
     let mut hops = 0usize;
     while let Some(part) = queue.pop_front() {
         if part == "." {
+            if mode != 'm' && (!fs.exists(&cur) || !fs.is_dir(&cur)) {
+                return Err("No such file or directory".to_string());
+            }
             continue;
         }
         if part == ".." {
+            if mode != 'm' && (!fs.exists(&cur) || !fs.is_dir(&cur)) {
+                return Err("No such file or directory".to_string());
+            }
             cur = crate::vfs::dirname_posix_path(&cur);
             continue;
+        }
+        if mode != 'm' {
+            if !fs.exists(&cur) {
+                return Err("No such file or directory".to_string());
+            }
+            if !fs.is_dir(&cur) {
+                return Err("Not a directory".to_string());
+            }
         }
         let next = if cur == "/" {
             format!("/{part}")
@@ -1021,8 +1139,8 @@ fn resolve_canonical_target(p: &str, fs: &dyn SafeBashFs) -> String {
             && !link_t.starts_with("__hardlink__:")
         {
             hops += 1;
-            if hops > 32 {
-                return next;
+            if hops > 40 {
+                return Err("Too many levels of symbolic links".to_string());
             }
             if link_t.starts_with('/') {
                 cur = "/".to_string();
@@ -1030,11 +1148,23 @@ fn resolve_canonical_target(p: &str, fs: &dyn SafeBashFs) -> String {
             for seg in link_t.split('/').filter(|s| !s.is_empty()).rev() {
                 queue.push_front(seg.to_string());
             }
-        } else {
-            cur = next;
+            continue;
         }
+        if !queue.is_empty() {
+            if mode != 'm' {
+                if !fs.exists(&next) {
+                    return Err("No such file or directory".to_string());
+                }
+                if !fs.is_dir(&next) {
+                    return Err("Not a directory".to_string());
+                }
+            }
+        } else if mode == 'e' && !fs.exists(&next) {
+            return Err("No such file or directory".to_string());
+        }
+        cur = next;
     }
-    cur
+    Ok(cur)
 }
 
 fn relative_posix_path(base: &str, target: &str) -> String {
@@ -1058,12 +1188,24 @@ fn relative_posix_path(base: &str, target: &str) -> String {
 fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut rel_to: Option<String> = None;
     let mut rel_base: Option<String> = None;
+    let mut mode = 'E';
     let mut no_symlinks = false;
+    let mut quiet = false;
+    let mut zero = false;
+    let mut ended = false;
     let mut targets = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if let Some(r) = a.strip_prefix("--relative-to=") {
+        if ended {
+            targets.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            i += 1;
+        } else if let Some(r) = a.strip_prefix("--relative-to=") {
             rel_to = Some(r.to_string());
             i += 1;
         } else if a == "--relative-to" && i + 1 < args.len() {
@@ -1075,48 +1217,139 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         } else if a == "--relative-base" && i + 1 < args.len() {
             rel_base = Some(args[i + 1].clone());
             i += 2;
-        } else if a == "-s" || a == "--strip" || a == "--no-symlinks" {
+        } else if a == "--canonicalize" {
+            mode = 'E';
+            i += 1;
+        } else if a == "--canonicalize-existing" {
+            mode = 'e';
+            i += 1;
+        } else if a == "--canonicalize-missing" {
+            mode = 'm';
+            i += 1;
+        } else if a == "--strip" || a == "--no-symlinks" {
             no_symlinks = true;
             i += 1;
-        } else if !a.starts_with('-') {
+        } else if a == "--physical" {
+            no_symlinks = false;
+            i += 1;
+        } else if a == "--logical" {
+            i += 1;
+        } else if a == "--quiet" {
+            quiet = true;
+            i += 1;
+        } else if a == "--zero" {
+            zero = true;
+            i += 1;
+        } else if a.starts_with('-') && !a.starts_with("--") && a.len() > 1 {
+            for ch in a[1..].chars() {
+                match ch {
+                    'E' => mode = 'E',
+                    'e' => mode = 'e',
+                    'm' => mode = 'm',
+                    's' => no_symlinks = true,
+                    'P' => no_symlinks = false,
+                    'L' => {}
+                    'q' => quiet = true,
+                    'z' => zero = true,
+                    _ => return err_out(&format!("realpath: invalid option -- '{ch}'\n"), 1),
+                }
+            }
+            i += 1;
+        } else if a.starts_with("--") {
+            return err_out(&format!("realpath: unrecognized option '{a}'\n"), 1);
+        } else {
             targets.push(a.clone());
             i += 1;
-        } else {
-            i += 1;
         }
     }
-    let resolve_fn = |p: &str| {
-        if no_symlinks {
-            normalize_posix_path(p)
+    if targets.is_empty() {
+        return err_out("realpath: missing operand\n", 1);
+    }
+    let raw_for = |op: &str| {
+        if op.starts_with('/') {
+            op.to_string()
         } else {
-            resolve_canonical_target(p, fs)
+            format!("{}/{op}", cwd.trim_end_matches('/'))
         }
     };
-    let to_resolved = rel_to.map(|b| resolve_fn(&resolve_posix_path(cwd, &b)));
-    let base_resolved = rel_base.map(|b| resolve_fn(&resolve_posix_path(cwd, &b)));
+    let base_operand = rel_base.as_deref();
+    let to_operand = rel_to.as_deref().or(base_operand);
+    let base_resolved = match base_operand {
+        Some(b) => match canonicalize_posix_path(&raw_for(b), mode, no_symlinks, fs) {
+            Ok(r) => Some(r),
+            Err(msg) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: if quiet {
+                        String::new()
+                    } else {
+                        format!("realpath: {b}: {msg}\n")
+                    },
+                    exit_code: 1,
+                };
+            }
+        },
+        None => None,
+    };
+    let to_resolved = match to_operand {
+        Some(t) => match canonicalize_posix_path(&raw_for(t), mode, no_symlinks, fs) {
+            Ok(r) => Some(r),
+            Err(msg) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: if quiet {
+                        String::new()
+                    } else {
+                        format!("realpath: {t}: {msg}\n")
+                    },
+                    exit_code: 1,
+                };
+            }
+        },
+        None => None,
+    };
+    let within_base = |base: &str, p: &str| -> bool {
+        p == base || base == "/" || p.starts_with(&format!("{}/", base.trim_end_matches('/')))
+    };
+    let term = if zero { "\0" } else { "\n" };
     let mut out = String::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
     for a in targets {
-        let p = resolve_posix_path(cwd, &a);
-        let resolved = resolve_fn(&p);
-        if let Some(ref base) = to_resolved {
-            out.push_str(&format!("{}\n", relative_posix_path(base, &resolved)));
-        } else if let Some(ref rbase) = base_resolved {
-            let under_base = resolved == *rbase
-                || *rbase == "/"
-                || resolved.starts_with(&format!("{}/", rbase.trim_end_matches('/')));
-            if under_base {
-                out.push_str(&format!("{}\n", relative_posix_path(rbase, &resolved)));
+        let raw = raw_for(&a);
+        let resolved = match canonicalize_posix_path(&raw, mode, no_symlinks, fs) {
+            Ok(r) => r,
+            Err(msg) => {
+                if !quiet {
+                    err_buf.push_str(&format!("realpath: {a}: {msg}\n"));
+                }
+                exit_code = 1;
+                continue;
+            }
+        };
+        let display = if let Some(ref to_path) = to_resolved {
+            let use_rel = match base_resolved {
+                Some(ref rbase) => within_base(rbase, to_path) && within_base(rbase, &resolved),
+                None => true,
+            };
+            if use_rel {
+                relative_posix_path(to_path, &resolved)
             } else {
-                out.push_str(&format!("{resolved}\n"));
+                resolved
             }
         } else {
-            out.push_str(&format!("{resolved}\n"));
-        }
+            resolved
+        };
+        out.push_str(&format!("{display}{term}"));
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
-fn eval_chmod_mode(spec: &str, current: u32, is_dir: bool) -> u32 {
+pub(crate) fn eval_chmod_mode(spec: &str, current: u32, is_dir: bool) -> u32 {
     if let Ok(oct) = u32::from_str_radix(spec, 8) {
         return oct;
     }
@@ -1720,58 +1953,218 @@ fn cmd_df(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     ok_out(&out)
 }
 
-fn cmd_mktemp(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_mktemp(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut is_dir = false;
-    let mut parent_dir = "/tmp".to_string();
-    let mut template: Option<String> = None;
+    let mut dry_run = false;
+    let mut quiet = false;
+    let mut use_tmpdir = false;
+    let mut deprecated_tmpdir = false;
+    let mut tmpdir: Option<String> = None;
+    let mut suffix: Option<String> = None;
+    let mut ended = false;
+    let mut operands: Vec<String> = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-d" {
+        if ended || a == "-" || !a.starts_with('-') {
+            operands.push(a.clone());
+            i += 1;
+        } else if a == "--" {
+            ended = true;
+            i += 1;
+        } else if a == "--directory" {
             is_dir = true;
             i += 1;
-        } else if a == "-p" && i + 1 < args.len() {
-            parent_dir = args[i + 1].clone();
-            i += 2;
-        } else if let Some(p) = a.strip_prefix("--tmpdir=") {
-            parent_dir = p.to_string();
+        } else if a == "--dry-run" {
+            dry_run = true;
             i += 1;
-        } else if !a.starts_with('-') {
-            template = Some(a.clone());
+        } else if a == "--quiet" {
+            quiet = true;
+            i += 1;
+        } else if a == "--tmpdir" {
+            use_tmpdir = true;
+            tmpdir = Some(String::new());
+            i += 1;
+        } else if let Some(p) = a.strip_prefix("--tmpdir=") {
+            use_tmpdir = true;
+            tmpdir = Some(p.to_string());
+            i += 1;
+        } else if let Some(sf) = a.strip_prefix("--suffix=") {
+            suffix = Some(sf.to_string());
+            i += 1;
+        } else if a == "--suffix" {
+            if i + 1 >= args.len() {
+                return err_out("mktemp: option '--suffix' requires an argument\n", 1);
+            }
+            suffix = Some(args[i + 1].clone());
+            i += 2;
+        } else if !a.starts_with("--") {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut j = 0usize;
+            while j < chars.len() {
+                match chars[j] {
+                    'd' => is_dir = true,
+                    'u' => dry_run = true,
+                    'q' => quiet = true,
+                    't' => {
+                        use_tmpdir = true;
+                        deprecated_tmpdir = true;
+                    }
+                    'p' => {
+                        let rest: String = chars[j + 1..].iter().collect();
+                        if !rest.is_empty() {
+                            tmpdir = Some(rest);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            tmpdir = Some(args[i].clone());
+                        } else {
+                            return err_out("mktemp: option requires an argument -- 'p'\n", 1);
+                        }
+                        use_tmpdir = true;
+                        break;
+                    }
+                    ch => {
+                        return err_out(&format!("mktemp: invalid option -- '{ch}'\n"), 1);
+                    }
+                }
+                j += 1;
+            }
             i += 1;
         } else {
-            i += 1;
+            return err_out(&format!("mktemp: unrecognized option '{a}'\n"), 1);
         }
     }
-    let tpl = template.unwrap_or_else(|| "tmp.XXXXXX".to_string());
-    let base_dir = resolve_posix_path(cwd, &parent_dir);
-    let _ = fs.mkdir_all(&base_dir);
-    let mut path = String::new();
+    if operands.len() > 1 {
+        return err_out("mktemp: too many templates\n", 1);
+    }
+    if operands.is_empty() {
+        use_tmpdir = true;
+    }
+    let mut tpl = operands
+        .first()
+        .cloned()
+        .unwrap_or_else(|| "tmp.XXXXXXXXXX".to_string());
+    if deprecated_tmpdir && !tpl.contains("XXX") {
+        tpl.push_str(".XXXXXXXXXX");
+    }
+    if deprecated_tmpdir && tpl.contains('/') {
+        return err_out(
+            "mktemp: invalid template, contains directory separator\n",
+            1,
+        );
+    }
+    if let Some(ref sf) = suffix
+        && (sf.contains('/') || !tpl.ends_with('X'))
+    {
+        return err_out(
+            "mktemp: with --suffix, template must end in X and suffix must not contain '/'\n",
+            1,
+        );
+    }
+    let last_comp = tpl.rsplit('/').next().unwrap_or(&tpl);
+    let end = last_comp.rfind('X').map(|idx| idx + 1).unwrap_or(0);
+    let mut start = end;
+    let comp_bytes = last_comp.as_bytes();
+    while start > 0 && comp_bytes[start - 1] == b'X' {
+        start -= 1;
+    }
+    let x_count = end - start;
+    if x_count < 3 {
+        return err_out(&format!("mktemp: too few X's in template '{tpl}'\n"), 1);
+    }
+    if use_tmpdir && tpl.starts_with('/') {
+        return err_out(
+            &format!("mktemp: invalid template, '{tpl}', must not be absolute\n"),
+            1,
+        );
+    }
+    let prefix_len = tpl.len() - last_comp.len() + start;
+    let tpl_prefix = &tpl[..prefix_len];
+    let tpl_tail = suffix.as_deref().unwrap_or(&last_comp[end..]);
+    let parent_dir = if deprecated_tmpdir {
+        env.get("TMPDIR")
+            .filter(|s| !s.is_empty())
+            .cloned()
+            .or_else(|| tmpdir.clone().filter(|s| !s.is_empty()))
+            .unwrap_or_else(|| "/tmp".to_string())
+    } else {
+        tmpdir
+            .clone()
+            .filter(|s| !s.is_empty())
+            .or_else(|| env.get("TMPDIR").filter(|s| !s.is_empty()).cloned())
+            .unwrap_or_else(|| "/tmp".to_string())
+    };
+    if use_tmpdir
+        && parent_dir == "/tmp"
+        && tmpdir.as_deref().unwrap_or("").is_empty()
+        && env.get("TMPDIR").filter(|s| !s.is_empty()).is_none()
+    {
+        let _ = fs.mkdir_all("/tmp");
+    }
+
+    let alphabet = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    let mut display_out = String::new();
+    let mut resolved_path = String::new();
     for seq in 1..10000usize {
-        let suffix = format!("{seq:06}");
-        let name = if tpl.contains("XXXXXX") {
-            tpl.replacen("XXXXXX", &suffix, 1)
-        } else if tpl.contains("XXX") {
-            tpl.replacen("XXX", &suffix[3..], 1)
+        let mut rand_part = Vec::with_capacity(x_count);
+        let mut n = seq.wrapping_mul(2654435761);
+        for pos in 0..x_count {
+            let idx = (n.wrapping_add(pos * 17) ^ (seq * 31)) % alphabet.len();
+            rand_part.push(alphabet[idx]);
+            n = n.wrapping_mul(1103515245).wrapping_add(12345);
+        }
+        let rand_str = String::from_utf8_lossy(&rand_part);
+        let generated = format!("{tpl_prefix}{rand_str}{tpl_tail}");
+        let display = if use_tmpdir {
+            if parent_dir == "/" {
+                format!("/{generated}")
+            } else {
+                format!("{}/{generated}", parent_dir.trim_end_matches('/'))
+            }
         } else {
-            format!("{tpl}.{suffix}")
+            generated
         };
-        let cand = if name.starts_with('/') {
-            normalize_posix_path(&name)
-        } else {
-            normalize_posix_path(&format!("{base_dir}/{name}"))
-        };
+        let cand = resolve_posix_path(cwd, &display);
         if !fs.exists(&cand) {
-            path = cand;
+            display_out = display;
+            resolved_path = cand;
             break;
         }
     }
-    if is_dir {
-        let _ = fs.mkdir_all(&path);
-    } else {
-        let _ = fs.write_file(&path, &[]);
+    if !dry_run {
+        let parent = crate::vfs::dirname_posix_path(&resolved_path);
+        if !fs.exists(&parent) || !fs.is_dir(&parent) {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: if quiet {
+                    String::new()
+                } else {
+                    format!(
+                        "mktemp: failed to create {}: No such file or directory\n",
+                        if is_dir { "directory" } else { "file" }
+                    )
+                },
+                exit_code: 1,
+            };
+        }
+        let umask = env
+            .get("__SAFE_BASH_UMASK")
+            .and_then(|s| u32::from_str_radix(s, 8).ok())
+            .unwrap_or(0o022);
+        if is_dir {
+            let _ = fs.mkdir_all(&resolved_path);
+            let _ = fs.chmod(&resolved_path, 0o040000 | (0o700 & !umask));
+        } else {
+            let _ = fs.write_file(&resolved_path, &[]);
+            let _ = fs.chmod(&resolved_path, 0o100000 | (0o600 & !umask));
+        }
     }
-    ok_out(&format!("{path}\n"))
+    ok_out(&format!("{display_out}\n"))
 }
 
 fn build_tree_json(

@@ -424,3 +424,12 @@ public tests, eight actual Worker cases and all 17 unchanged bundle budgets pass
 The configured-directory Worker case rejects whole-file manifest IO and checks
 retained reads through CLI and SDK package operations. Installed name arrays,
 native single-record text and final publication collections remain.
+
+The runtime-to-native record bridge now forwards bounded UTF-16 windows rather
+than assembling a complete JavaScript JSON string. Native decoding requests
+windows to EOF and counts UTF-16 offsets; the bridge preserves surrogate pairs.
+A one-unit host lookbehind preserves these boundaries without replaying the
+record source. Verification: 726 Python tests, 132 installed public tests, eight
+actual Worker cases and all 17 unchanged bundle budgets pass. Native JSON decoding
+still materializes each record and final publication retains a collection, so the
+full gate remains open.

@@ -36,7 +36,7 @@ for rows in [None,[],[row('package-'+str(i),i%2==0) for i in range(130)],[row('d
  def request(operation,key=None,value=None):
   global sealed
   if operation=='start':return Result(-1 if rows is None else len(rows))
-  if operation=='read':return Result(json.dumps(rows[key]))
+  if operation=='read':return Result(json.dumps(rows[key])[value:value+8192])
   if operation=='has':return Result(key in index)
   if operation=='add':
    assert not sealed
@@ -44,7 +44,7 @@ for rows in [None,[],[row('package-'+str(i),i%2==0) for i in range(130)],[row('d
   if operation=='seal':sealed=True;return Result(None)
   if operation=='get':
    assert sealed
-   return Result(json.dumps(rows[index[key]] if key in index else None))
+   return Result(json.dumps(rows[index[key]] if key in index else None)[value:value+8192])
   raise AssertionError(operation)
  namespace={'_safe_json':types.SimpleNamespace(loads=decode),'_safe_package_records_json':json.dumps(rows),'_safe_package_uninstall_json':'{}','_safe_package_record':request,'_SafeRequirement':Requirement,'_safe_name':canonicalize_name}
  invalid=rows and (rows[0][0] in ['duplicate','NonCanonical','package>=1'])

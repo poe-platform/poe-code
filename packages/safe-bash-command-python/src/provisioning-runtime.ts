@@ -200,16 +200,16 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
     return null;
    }
    if(operation==='read'||operation==='get'){
+    const offset=value??0;
+    if(!Number.isSafeInteger(offset)||(offset as number)<0)throw new Error('Invalid Python package record offset');
     const ordinal=operation==='get'?await request('package-index',start.session,'records-get',key):key;
-    if(ordinal===null)return 'null';
+    if(ordinal===null)return (offset as number)===0?'null':'';
     if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=recordCount)throw new Error('Invalid Python package record ordinal');
-    if(start.recordCount===undefined)return JSON.stringify(inputRecords![ordinal as number]);
-    const chunks:string[]=[];
-    for(let offset=0;;offset+=8192){
-     const chunk=await request('package-record-read',start.session,ordinal,offset);
-     if(typeof chunk!=='string'||chunk.length>8192)throw new Error('Invalid Python package record chunk');
-     chunks.push(chunk);if(chunk.length<8192)return chunks.join('');
-    }
+    const chunk=start.recordCount===undefined?JSON.stringify(inputRecords![ordinal as number]).slice(offset as number,(offset as number)+8192):await request('package-record-read',start.session,ordinal,offset);
+    if(typeof chunk!=='string'||chunk.length>8192)throw new Error('Invalid Python package record chunk');
+    // The native string bridge must never receive half a UTF-16 pair.
+    const last=chunk.charCodeAt(chunk.length-1);
+    return last>=0xd800&&last<=0xdbff?chunk.slice(0,-1):chunk;
    }
    return request('package-index',start.session,'records-'+operation,...key===undefined?[]:[key],...value===undefined?[]:[value]);
   }));

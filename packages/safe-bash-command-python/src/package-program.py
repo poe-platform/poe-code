@@ -442,14 +442,21 @@ from collections.abc import Mapping as _SafeMapping
 class _SafeRecords(_SafeMapping):
  def __init__(self, count):self.count = count
  @staticmethod
- def decode(payload):
-  record = _safe_json.loads(payload)
+ def decode(operation, key):
+  from pyodide.ffi import run_sync
+  chunks, offset = [], 0
+  while True:
+   chunk = run_sync(_safe_package_record(operation, key, offset))
+   if not chunk:break
+   chunks.append(chunk)
+   offset += len(chunk.encode('utf-16-le')) // 2
+  record = _safe_json.loads(''.join(chunks))
   return record if record is None or len(record) == 6 else record + [None]
  @classmethod
  async def prepare(cls):
   count = await _safe_package_record('start')
   for ordinal in range(max(count, 0)):
-   record = cls.decode(await _safe_package_record('read', ordinal))
+   record = cls.decode('read', ordinal)
    name = record[0]
    if _SafeRequirement(name).name != name or _safe_name(name) != name or await _safe_package_record('has', name):
     raise ValueError('Invalid Python package metadata snapshot')
@@ -461,14 +468,12 @@ class _SafeRecords(_SafeMapping):
   from pyodide.ffi import run_sync
   return run_sync(_safe_package_record('has', name))
  def __getitem__(self, name):
-  from pyodide.ffi import run_sync
-  record = self.decode(run_sync(_safe_package_record('get', name)))
+  record = self.decode('get', name)
   if record is None:raise KeyError(name)
   return record
  def items(self):
-  from pyodide.ffi import run_sync
   for ordinal in range(self.count):
-   record = self.decode(run_sync(_safe_package_record('read', ordinal)))
+   record = self.decode('read', ordinal)
    yield record[0], record
  def __iter__(self):
   for name, record in self.items():yield name

@@ -35,17 +35,18 @@ import {installPythonPackages} from './provisioning-runtime.js';
 });
 
  test('native installer reads host records in bounded messages without inline metadata',async()=>{
- const globals=new Map<string,unknown>(),rows=[['fixture','x'.repeat(30000)+'😀','',[],[],null]],wire=JSON.stringify(rows[0]);
+ const globals=new Map<string,unknown>(),rows=[['fixture','x'.repeat(8179)+'😀'+'x'.repeat(22000)+'😀','',[],[],null]],wire=JSON.stringify(rows[0]);
  const offsets:number[]=[];let committed:unknown;
  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(){},async downloadPackage(){}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
   async runPythonAsync(){
    const record=globals.get('_safe_package_record') as (operation:string,key?:unknown,value?:unknown)=>Promise<unknown>;
    assert.equal(await record('start'),1);
-   assert.deepEqual(JSON.parse(await record('read',0) as string),rows[0]);
+   const read=async(operation:string,key:unknown)=>{let wire='';for(let offset=0;;){const chunk=await record(operation,key,offset);assert.equal(typeof chunk,'string');assert.ok((chunk as string).length<=8192);assert.ok(!(chunk as string).length||((chunk as string).charCodeAt((chunk as string).length-1)<0xd800||(chunk as string).charCodeAt((chunk as string).length-1)>0xdbff));if(!chunk)return JSON.parse(wire);wire+=chunk;offset+=(chunk as string).length;}};
+   assert.deepEqual(await read('read',0),rows[0]);
    await record('add','fixture',0);await record('seal');
-   assert.deepEqual(JSON.parse(await record('get','fixture') as string),rows[0]);
-   assert.equal(await record('get','missing'),'null');
+   assert.deepEqual(await read('get','fixture'),rows[0]);
+   assert.equal(await record('get','missing',0),'null');
    await record('append',wire);await record('pin',JSON.stringify('fixture==1'));
   },runPython(){throw new Error('whole inventory serialization');}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],restore:[],recordCount:1,offline:true},async(operation,...args)=>{
@@ -54,7 +55,7 @@ import {installPythonPackages} from './provisioning-runtime.js';
   if(operation==='package-commit')committed=args[1];
  },65536);
  assert.deepEqual(committed,{version:3,installed:['fixture==1'],records:rows});
- assert.deepEqual(offsets,[0,8192,16384,24576,0,8192,16384,24576]);assert.equal(globals.size,0);
+ assert.deepEqual(offsets,[0,8191,16383,24575,wire.length,0,8191,16383,24575,wire.length]);assert.equal(globals.size,0);
 });
 
 for(const mode of [undefined,'host','inline'] as const)test('executor selects host records and preserves explicit inline compatibility: '+mode,async()=>{

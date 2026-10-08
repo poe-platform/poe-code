@@ -574,3 +574,16 @@ custom compatibility still buffer; this remains partial progress on the gates.
 The corrected artifact passes 793 Python tests, 142 installed public tests, all
 three affected actual Worker cases, all 17 unchanged bundle budgets, lint, types
 and the scoped build.
+
+
+Initial preloaded distribution scanning now uses the same caller-backed metadata
+reader as resolution and publication. Its helper definitions precede the snapshot,
+while the snapshot retains its original position before installer imports and
+patches. The Worker paths create and mount the installation root before this
+scan. Large metadata reads are bounded to 8,192 characters; decode and backing
+failures close owned readers and stores without sealing a partial snapshot.
+Custom distribution metadata retains its original behavior. Native version
+accessors, email-parser collections and the other acceptance gates remain open.
+The fresh artifact passes 797 Python tests, 142 installed public tests, all three
+affected actual Worker cases, all 17 unchanged bundle profiles, lint, types and
+the scoped workspace build. This qualifies the startup change, not the full issue.

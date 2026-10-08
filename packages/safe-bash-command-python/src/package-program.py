@@ -3,129 +3,6 @@ import json as _safe_json
 _safe_restoring = False
 import importlib.metadata as _safe_metadata
 from micropip._vendored.packaging.src.packaging.utils import canonicalize_name as _safe_name
-class _SafePreloaded:
- @classmethod
- async def snapshot(cls):
-  await _safe_package_preloaded('start')
-  for distribution in _safe_metadata.distributions():
-   name = distribution.metadata['Name']
-   if name:
-    await _safe_package_preloaded('add', _safe_name(name))
-  await _safe_package_preloaded('seal')
-  return cls()
- def __contains__(self, name):
-  from pyodide.ffi import run_sync
-  return run_sync(_safe_package_preloaded('has', name))
-_safe_preloaded = await _SafePreloaded.snapshot()
-from micropip._compat import compatibility_layer as _safe_compat
-from micropip.package_manager import PackageManager as _SafePackageManager
-from micropip.wheelinfo import WheelInfo as _SafeWheelInfo
-from micropip._utils import check_compatible as _safe_check_compatible
-from micropip._vendored.packaging.src.packaging.requirements import Requirement as _SafeRequirement, InvalidRequirement as _SafeInvalidRequirement
-
-class _SafePackageCompatibility(_safe_compat):
- @staticmethod
- async def loadPackage(names):
-  return await _safe_package_native(names)
- @staticmethod
- async def fetch_bytes(url, kwargs):
-  return (await _safe_package_bytes(url)).to_bytes()
- @staticmethod
- async def fetch_string_and_headers(url, kwargs):
-  value = _safe_json.loads(await _safe_package_metadata(url))
-  return value['text'], value['headers']
-
-async def _safe_wheel_fetch(self, url, kwargs, compat):
- expected = self.sha256 if url == self.url else None
- if url == self.metadata_url and isinstance(self.core_metadata, dict):
-  expected = self.core_metadata.get('sha256')
- return (await _safe_package_bytes(url, expected)).to_bytes()
-_SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
-def _safe_wheel_from_url(cls, url, original=_SafeWheelInfo.from_url):
- wheel = original(url)
- wheel._safe_direct_url = url
- return wheel
-_SafeWheelInfo.from_url = classmethod(_safe_wheel_from_url)
-from micropip.metadata import Metadata as _SafeWheelMetadata
-async def _safe_wheel_download(self, fetch_kwargs, compat_layer):
- if self._data is not None:
-  return
- self._data = _safe_json.loads(await _safe_package_wheel_download(self.url, self.sha256))
- if self._metadata is None:
-  metadata = await _safe_package_wheel_metadata(_safe_json.dumps({'source': self._data, 'name': self.name}))
-  self._metadata = _SafeWheelMetadata(metadata.encode('utf-8'))
-async def _safe_wheel_install(self, target, compat_layer):
- if not self._data:
-  raise RuntimeError('Micropip internal error: attempted to install wheel before downloading it?')
- source = 'pypi' if self.sha256 is not None else self.url
- metadata = {'PYODIDE_SOURCE': source, 'PYODIDE_URL': self._data.get('url', self.url), 'PYODIDE_SHA256': self._data['key'], 'INSTALLER': 'micropip'}
- if _safe_restoring:
-  origin = _safe_record_by_name.origin(_safe_name(self.name))
-  if origin is not None: metadata['direct_url.json'] = origin
- elif hasattr(self, '_safe_direct_url') and 'metadata' not in self._data:
-  metadata['direct_url.json'] = read_source_origin({'source': self._safe_direct_url, 'directory': False})
- metadata.update(self._data.get('metadata', {}))
- if self._requires:
-  metadata['PYODIDE_REQUIRES'] = _safe_json.dumps(sorted(x.name for x in self._requires))
- await _safe_package_wheel_install(_safe_json.dumps({'source': self._data, 'filename': self.filename, 'extract_dir': str(target), 'metadata': metadata}))
- setattr(compat_layer.loadedPackages, self._project_name, source)
-_SafeWheelInfo.download = _safe_wheel_download
-_SafeWheelInfo.install = _safe_wheel_install
-_safe_manager = _SafePackageManager(_SafePackageCompatibility)
-_safe_indexes = _safe_json.loads(_safe_package_indexes_json)
-if _safe_indexes is not None:
- _safe_manager.index_urls = [url.rstrip('/') for url in _safe_indexes]
-if _safe_indexes and len(_safe_indexes) > 1:
- from micropip import package_index as _safe_index
- from itertools import chain as _safe_chain
- _safe_query = _safe_index.query_package
- async def _safe_query_all(name, index_urls, **kwargs):
-  releases = {}
-  found = False
-  last_error = None
-  for url in index_urls:
-   try:
-    project = await _safe_query(name, [url], **kwargs)
-   except ValueError as error:
-    last_error = error
-    continue
-   found = True
-   for version, wheels in project.releases.items():
-    releases[version] = _safe_chain(releases.get(version, ()), wheels)
-  if not found:
-   raise last_error or ValueError('No package indexes configured')
-  return _safe_index.ProjectInfo(name, dict(sorted(releases.items())))
- _safe_index.query_package = _safe_query_all
-async def _safe_parse_sources(sources, download=True):
- roots = _SafeRequirements()
- for source in sources:
-  try:
-   root = _SafeRequirement(source)
-   if root.name.endswith('.whl'):
-    raise _SafeInvalidRequirement(source)
-  except _SafeInvalidRequirement:
-   wheel = _SafeWheelInfo.from_url(source)
-   root = _SafeRequirement(wheel.name + ' @ ' + source)
-  roots.put(str(len(roots)), str(root))
-  if (not root.marker or root.marker.evaluate({'extra': ''})) and root.url:
-   direct = _SafeWheelInfo.from_url(root.url)
-   _safe_check_compatible(direct.filename)
-   if download:
-    await direct.download({}, _SafePackageCompatibility)
- return roots
-
-def _safe_validate(roots):
- for root in roots:
-  if root.marker and not root.marker.evaluate({'extra': ''}):
-   continue
-  version = _safe_metadata.version(root.name)
-  if not root.specifier.contains(version, prereleases=True):
-   raise ValueError('Python package version conflict: ' + str(root))
-  if root.url:
-   wheel = _SafeWheelInfo.from_url(root.url)
-   pin = _SafeRequirement(wheel.name + '==' + str(wheel.version))
-   if _safe_name(wheel.name) != _safe_name(root.name) or not pin.specifier.contains(version, prereleases=True):
-    raise ValueError('Python package wheel version conflict: ' + str(root))
 from collections.abc import MutableSet as _SafeMutableSet
 class _SafeNames(_SafeMutableSet):
  files = ('entry',)
@@ -243,51 +120,6 @@ class _SafeValues(_SafeNames):
   if name not in self:return default
   with open(self.path(name, 'value'), encoding='utf-8') as source:return json.load(source)
 
-class _SafeRequirements(_SafeValues):
- def __init__(self, requirements=()):
-  super().__init__()
-  for requirement in requirements:self.put(str(len(self)), str(requirement))
- def __iter__(self):
-  for key in super().__iter__():yield _SafeRequirement(self.get(key))
-
-class _SafeResolutions(_SafeNames):
- files = ('entry', 'value')
- def __init__(self):
-  super().__init__()
-  self.maximum = self.width = 0
- def repeated(self, requirements):
-  import hashlib, json
-  digest = hashlib.sha256()
-  self.maximum = max(self.maximum, len(requirements))
-  for requirement in requirements:
-   record = json.dumps(requirement) + '\n'
-   self.width = max(self.width, len(record))
-   digest.update(record.encode('ascii'))
-  key = digest.hexdigest()
-  if key in self:
-   with open(self.path(key, 'value'), encoding='utf-8') as source:
-    while True:
-     header = source.readline(len(str(self.maximum)) + 2)
-     if not header:break
-     count = header[:-1]
-     if not header.endswith('\n') or not count.isascii() or not count.isdecimal() or str(int(count)) != count or int(count) > self.maximum:
-      raise ValueError('Invalid package resolution record')
-     count = int(count)
-     matches = count == len(requirements)
-     for index in range(count):
-      record = source.readline(self.width + 1)
-      if not record.endswith('\n') or len(record) > self.width:
-       raise ValueError('Invalid package resolution record')
-      value = json.loads(record)
-      if not isinstance(value, str):raise ValueError('Invalid package resolution record')
-      if index >= len(requirements) or value != requirements[index]:matches = False
-     if matches:return True
-  else:self.add(key)
-  with open(self.path(key, 'value'), 'a', encoding='utf-8') as output:
-   output.write(str(len(requirements)) + '\n')
-   for requirement in requirements:output.write(json.dumps(requirement) + '\n')
-  return False
-
 class _SafeMetadataText:
  def __init__(self, lifetime):
   self.blocks = _SafeValues()
@@ -344,6 +176,175 @@ def _safe_distribution_metadata(distribution):
   native = _safe_metadata.Distribution.metadata.fget
   metadata = FunctionType(native.__code__, dict(native.__globals__, email=SimpleNamespace(message_from_string=parse)), native.__name__, native.__defaults__, native.__closure__)
   return metadata(view)
+
+class _SafePreloaded:
+ @classmethod
+ async def snapshot(cls):
+  await _safe_package_preloaded('start')
+  for distribution in _safe_metadata.distributions():
+   name = _safe_distribution_metadata(distribution)['Name']
+   if name:
+    await _safe_package_preloaded('add', _safe_name(name))
+  await _safe_package_preloaded('seal')
+  return cls()
+ def __contains__(self, name):
+  from pyodide.ffi import run_sync
+  return run_sync(_safe_package_preloaded('has', name))
+_safe_preloaded = await _SafePreloaded.snapshot()
+from micropip._compat import compatibility_layer as _safe_compat
+from micropip.package_manager import PackageManager as _SafePackageManager
+from micropip.wheelinfo import WheelInfo as _SafeWheelInfo
+from micropip._utils import check_compatible as _safe_check_compatible
+from micropip._vendored.packaging.src.packaging.requirements import Requirement as _SafeRequirement, InvalidRequirement as _SafeInvalidRequirement
+
+class _SafePackageCompatibility(_safe_compat):
+ @staticmethod
+ async def loadPackage(names):
+  return await _safe_package_native(names)
+ @staticmethod
+ async def fetch_bytes(url, kwargs):
+  return (await _safe_package_bytes(url)).to_bytes()
+ @staticmethod
+ async def fetch_string_and_headers(url, kwargs):
+  value = _safe_json.loads(await _safe_package_metadata(url))
+  return value['text'], value['headers']
+
+async def _safe_wheel_fetch(self, url, kwargs, compat):
+ expected = self.sha256 if url == self.url else None
+ if url == self.metadata_url and isinstance(self.core_metadata, dict):
+  expected = self.core_metadata.get('sha256')
+ return (await _safe_package_bytes(url, expected)).to_bytes()
+_SafeWheelInfo._fetch_bytes = _safe_wheel_fetch
+def _safe_wheel_from_url(cls, url, original=_SafeWheelInfo.from_url):
+ wheel = original(url)
+ wheel._safe_direct_url = url
+ return wheel
+_SafeWheelInfo.from_url = classmethod(_safe_wheel_from_url)
+from micropip.metadata import Metadata as _SafeWheelMetadata
+async def _safe_wheel_download(self, fetch_kwargs, compat_layer):
+ if self._data is not None:
+  return
+ self._data = _safe_json.loads(await _safe_package_wheel_download(self.url, self.sha256))
+ if self._metadata is None:
+  metadata = await _safe_package_wheel_metadata(_safe_json.dumps({'source': self._data, 'name': self.name}))
+  self._metadata = _SafeWheelMetadata(metadata.encode('utf-8'))
+async def _safe_wheel_install(self, target, compat_layer):
+ if not self._data:
+  raise RuntimeError('Micropip internal error: attempted to install wheel before downloading it?')
+ source = 'pypi' if self.sha256 is not None else self.url
+ metadata = {'PYODIDE_SOURCE': source, 'PYODIDE_URL': self._data.get('url', self.url), 'PYODIDE_SHA256': self._data['key'], 'INSTALLER': 'micropip'}
+ if _safe_restoring:
+  origin = _safe_record_by_name.origin(_safe_name(self.name))
+  if origin is not None: metadata['direct_url.json'] = origin
+ elif hasattr(self, '_safe_direct_url') and 'metadata' not in self._data:
+  metadata['direct_url.json'] = read_source_origin({'source': self._safe_direct_url, 'directory': False})
+ metadata.update(self._data.get('metadata', {}))
+ if self._requires:
+  metadata['PYODIDE_REQUIRES'] = _safe_json.dumps(sorted(x.name for x in self._requires))
+ await _safe_package_wheel_install(_safe_json.dumps({'source': self._data, 'filename': self.filename, 'extract_dir': str(target), 'metadata': metadata}))
+ setattr(compat_layer.loadedPackages, self._project_name, source)
+_SafeWheelInfo.download = _safe_wheel_download
+_SafeWheelInfo.install = _safe_wheel_install
+_safe_manager = _SafePackageManager(_SafePackageCompatibility)
+_safe_indexes = _safe_json.loads(_safe_package_indexes_json)
+if _safe_indexes is not None:
+ _safe_manager.index_urls = [url.rstrip('/') for url in _safe_indexes]
+if _safe_indexes and len(_safe_indexes) > 1:
+ from micropip import package_index as _safe_index
+ from itertools import chain as _safe_chain
+ _safe_query = _safe_index.query_package
+ async def _safe_query_all(name, index_urls, **kwargs):
+  releases = {}
+  found = False
+  last_error = None
+  for url in index_urls:
+   try:
+    project = await _safe_query(name, [url], **kwargs)
+   except ValueError as error:
+    last_error = error
+    continue
+   found = True
+   for version, wheels in project.releases.items():
+    releases[version] = _safe_chain(releases.get(version, ()), wheels)
+  if not found:
+   raise last_error or ValueError('No package indexes configured')
+  return _safe_index.ProjectInfo(name, dict(sorted(releases.items())))
+ _safe_index.query_package = _safe_query_all
+async def _safe_parse_sources(sources, download=True):
+ roots = _SafeRequirements()
+ for source in sources:
+  try:
+   root = _SafeRequirement(source)
+   if root.name.endswith('.whl'):
+    raise _SafeInvalidRequirement(source)
+  except _SafeInvalidRequirement:
+   wheel = _SafeWheelInfo.from_url(source)
+   root = _SafeRequirement(wheel.name + ' @ ' + source)
+  roots.put(str(len(roots)), str(root))
+  if (not root.marker or root.marker.evaluate({'extra': ''})) and root.url:
+   direct = _SafeWheelInfo.from_url(root.url)
+   _safe_check_compatible(direct.filename)
+   if download:
+    await direct.download({}, _SafePackageCompatibility)
+ return roots
+
+def _safe_validate(roots):
+ for root in roots:
+  if root.marker and not root.marker.evaluate({'extra': ''}):
+   continue
+  version = _safe_metadata.version(root.name)
+  if not root.specifier.contains(version, prereleases=True):
+   raise ValueError('Python package version conflict: ' + str(root))
+  if root.url:
+   wheel = _SafeWheelInfo.from_url(root.url)
+   pin = _SafeRequirement(wheel.name + '==' + str(wheel.version))
+   if _safe_name(wheel.name) != _safe_name(root.name) or not pin.specifier.contains(version, prereleases=True):
+    raise ValueError('Python package wheel version conflict: ' + str(root))
+class _SafeRequirements(_SafeValues):
+ def __init__(self, requirements=()):
+  super().__init__()
+  for requirement in requirements:self.put(str(len(self)), str(requirement))
+ def __iter__(self):
+  for key in super().__iter__():yield _SafeRequirement(self.get(key))
+
+class _SafeResolutions(_SafeNames):
+ files = ('entry', 'value')
+ def __init__(self):
+  super().__init__()
+  self.maximum = self.width = 0
+ def repeated(self, requirements):
+  import hashlib, json
+  digest = hashlib.sha256()
+  self.maximum = max(self.maximum, len(requirements))
+  for requirement in requirements:
+   record = json.dumps(requirement) + '\n'
+   self.width = max(self.width, len(record))
+   digest.update(record.encode('ascii'))
+  key = digest.hexdigest()
+  if key in self:
+   with open(self.path(key, 'value'), encoding='utf-8') as source:
+    while True:
+     header = source.readline(len(str(self.maximum)) + 2)
+     if not header:break
+     count = header[:-1]
+     if not header.endswith('\n') or not count.isascii() or not count.isdecimal() or str(int(count)) != count or int(count) > self.maximum:
+      raise ValueError('Invalid package resolution record')
+     count = int(count)
+     matches = count == len(requirements)
+     for index in range(count):
+      record = source.readline(self.width + 1)
+      if not record.endswith('\n') or len(record) > self.width:
+       raise ValueError('Invalid package resolution record')
+      value = json.loads(record)
+      if not isinstance(value, str):raise ValueError('Invalid package resolution record')
+      if index >= len(requirements) or value != requirements[index]:matches = False
+     if matches:return True
+  else:self.add(key)
+  with open(self.path(key, 'value'), 'a', encoding='utf-8') as output:
+   output.write(str(len(requirements)) + '\n')
+   for requirement in requirements:output.write(json.dumps(requirement) + '\n')
+  return False
+
 def _safe_header_values(headers, name):
  from email.message import Message
  from email.policy import compat32

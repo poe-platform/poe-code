@@ -96,3 +96,51 @@ assert 'new-package' not in preloaded
 `],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });
+
+for(const mode of ['large','missing-name','decode-error','storage-error'])test('preloaded native metadata uses bounded reads before sealing: '+mode,async()=>{
+ const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import ast,asyncio,io,json,pathlib,sys,importlib.metadata as metadata
+from unittest.mock import patch
+source,mode=json.load(sys.stdin)
+tree=ast.parse(source)
+end=next(i for i,node in enumerate(tree.body) if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='_safe_preloaded' for t in node.targets))
+names=('_SafeMetadataText','_safe_read_metadata_text','_safe_distribution_metadata','_SafePreloaded')
+body=[node for node in tree.body[:end+1] if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in names or node is tree.body[end]]
+stores=[];opened=[];events=[]
+class Values:
+ def __init__(self):self.values={};self.closed=False;stores.append(self)
+ def put(self,key,value):
+  assert len(value)<=8192
+  if mode=='storage-error':raise OSError('storage denied')
+  self.values[key]=value
+ def get(self,key,default=None):return self.values.get(key,default)
+ def __len__(self):return len(self.values)
+ def close(self):self.closed=True
+class File(io.StringIO):
+ def read(self,size=-1):
+  assert 0<size<=8192,('unbounded bootstrap metadata read',size)
+  if mode=='decode-error' and self.tell()>=8192:raise UnicodeDecodeError('utf-8',b'\xff',0,1,'invalid start byte')
+  return super().read(size)
+def open_file(path,*args,**kwargs):
+ if path.name!='METADATA':raise FileNotFoundError(str(path))
+ value=File(('' if mode=='missing-name' else 'Name: Host_Package\n')+'Version: 1\n\n'+'description 😀\n'*10000)
+ opened.append(value);return value
+async def snapshot(operation,name=None):
+ assert all(value.closed for value in opened)
+ assert all(value.closed for value in stores)
+ events.append((operation,name))
+namespace={'_safe_metadata':metadata,'_SafeValues':Values,'_safe_name':lambda name:name.lower().replace('_','-'),'_safe_package_preloaded':snapshot}
+code=compile(ast.Module(body=body,type_ignores=[]),'<bootstrap>','exec',flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+with patch.object(pathlib.Path,'open',open_file),patch.object(metadata,'distributions',lambda:iter([metadata.PathDistribution(pathlib.Path('/host.dist-info'))])):
+ try:asyncio.run(eval(code,namespace))
+ except (UnicodeDecodeError,OSError) as error:
+  assert mode in ('decode-error','storage-error'),error
+  assert events==[('start',None)],events
+ else:
+  assert mode in ('large','missing-name')
+  assert events==[('start',None)]+([('add','host-package')] if mode=='large' else [])+[('seal',None)],events
+assert opened and stores
+assert all(value.closed for value in opened+stores)
+`],{input:JSON.stringify([await loadPythonPackageProgram(),mode]),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});

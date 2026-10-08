@@ -19,8 +19,9 @@ import {installPythonPackages} from './provisioning-runtime.js';
   assert.equal(await call('records-get','package-0'),0);assert.equal(await call('records-get','package-129'),129);
   assert.equal(await call('records-get','missing'),null);assert.equal(await call('names-has','package-0'),false);
   await environment.dispatch('package-commit',[start.session,[]],context);
-  assert.deepEqual(await fs.readdir('/'),[]);
+  assert.deepEqual((await fs.readdir('/')).map(item=>item.name),['.python-install-1'],'only the environment manifest survives publication');
  }finally{await environment.finish(start);await environment.dispose();}
+ assert.deepEqual(await fs.readdir('/'),[]);
 });
 
 test('installer transfers individual saved records without serializing the complete input or guest output',async()=>{

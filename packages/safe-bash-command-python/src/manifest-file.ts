@@ -12,7 +12,8 @@ import {createPythonPackageStreamingManifestStore} from './manifest.js';
 
 /** Persistent caller-owned manifests with native conditional publication.
  * Publication and structured decoding stream; compatibility get returns owned bytes. */
-export function createPythonPackageFileManifestStore({fs,directory}:{readonly fs:FileSystem;readonly directory:string}){
+export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes=Infinity}:{readonly fs:FileSystem;readonly directory:string;readonly maxCacheBytes?:number}){
+ if(maxCacheBytes!==Infinity&&(!Number.isSafeInteger(maxCacheBytes)||maxCacheBytes<1))throw new RangeError('Python manifest maxCacheBytes must be positive');
  const root=resolvePath('/',directory);
  const observations=new Map<string,{revision:string;stat:FileStat}>();
  const path=(scope:string)=>{
@@ -68,6 +69,7 @@ export function createPythonPackageFileManifestStore({fs,directory}:{readonly fs
     for await(const bytes of source)await output.write(bytes);
     await output.flush();
     const stat=await writer.finish(settings);
+    if(stat.size>maxCacheBytes)throw new RangeError('Python package manifest exceeds maxCacheBytes');
     try{await fs.publishStagedFile({...owned,file:{...owned.file,stat}},filename,{parent:resolution.parent,destination:observed?.stat??null,ancestors:resolution.ancestors,commitGuard:resolution.validate,signal});}
     catch(error){signal.throwIfAborted();if(error instanceof FsError&&['EAGAIN','EEXIST'].includes(error.code))return false;throw error;}
     if(observations.get(scope)===observed)observations.delete(scope);

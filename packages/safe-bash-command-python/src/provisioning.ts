@@ -1,3 +1,4 @@
+import {createDefaultPythonManifestStore} from './manifest-default.js';
 import {header} from 'safe-bash-network-engine/shared';
 import {bytesToHex} from 'safe-bash-io-engine/byte-encoding';
 import {PythonInstallationRoot} from './installation-root.js';
@@ -212,7 +213,8 @@ function artifactKey(digest:string):string {return runtimeKey+'-sha256-'+digest;
 
 /** Trusted host cache; content is rehashed on every read. No runtime or network work at construction. */
 export function createPythonPackageEnvironment(options: PythonPackageOptions = {}): PythonPackageEnvironment {
- const {manifestStore}=options;
+ let {manifestStore}=options;
+ let ownedManifest:ReturnType<typeof createDefaultPythonManifestStore>|undefined;
  if (options.cache && options.cacheDirectory) throw new TypeError('Choose package cache or cacheDirectory, not both');
  if (manifestStore && (typeof options.scope !== 'string' || !options.scope.trim())) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
  if (options.scope !== undefined && !manifestStore) throw new TypeError('Python scope requires a manifestStore');
@@ -278,6 +280,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },
   });
   const manifestCache = directory ? cache : defaultCache;
+  if(!manifestStore&&!directory)manifestStore=ownedManifest=createDefaultPythonManifestStore({...context,signal:controller.signal},options.maxCacheBytes);
   const structured=manifestStore?.getSnapshot;
   let snapshot: {revision:string;bytes?:Uint8Array;value?:unknown} | undefined;
   if(manifestStore) {
@@ -617,7 +620,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    if(!disposing){
     disposed=true;
     controller.abort(failure('Python package environment is disposed'));
-    disposing=Promise.allSettled([...pending]).then(()=>{sessions.clear();defaultCache.dispose();if(cleanupFailure)throw cleanupFailure.error;});
+    disposing=Promise.allSettled([...pending]).then(async()=>{sessions.clear();defaultCache.dispose();try{await ownedManifest?.close();}catch(error){cleanupFailure??={error};}if(cleanupFailure)throw cleanupFailure.error;});
    }
    return disposing;
   },

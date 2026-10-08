@@ -389,5 +389,8 @@ The caller-file manifest store now supports structured reads with incremental
 JavaScript-compatible JSON decoding through the existing query parser. Restore
 avoids the complete encoded byte buffer and JSON text while enforcing the raw
 byte budget and closing retained reads on failure or cancellation. Parsed package
-arrays, individual strings, the default manifest path and final native transport
-remain buffered; this is not the host-manifest exit criterion by itself.
+arrays, individual strings and final native transport remain buffered; this is not the host-manifest exit criterion by itself.
+Default manifests now use an environment-private caller-backed directory, allocated
+on first publication and retired conditionally during disposal. Invocation finish
+keeps the manifest available for restoration. Explicit stores and cache directories
+retain their configured lifetime.

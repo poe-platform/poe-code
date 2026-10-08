@@ -168,7 +168,7 @@ fn sha256_with_iv(data: &[u8], mut h: [u32; 8]) -> [u8; 32] {
     out
 }
 
-fn sha1_bytes(data: &[u8]) -> [u8; 20] {
+pub fn sha1_bytes(data: &[u8]) -> [u8; 20] {
     let mut h0: u32 = 0x67452301;
     let mut h1: u32 = 0xefcdab89;
     let mut h2: u32 = 0x98badcfe;
@@ -1772,7 +1772,7 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
 const B64_CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const B32_CHARS: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
-fn base64_encode(data: &[u8]) -> String {
+pub fn base64_encode(data: &[u8]) -> String {
     let mut out = String::with_capacity(((data.len() + 2) / 3) * 4);
     for chunk in data.chunks(3) {
         let b0 = chunk[0] as u32;
@@ -1887,7 +1887,7 @@ fn base64_decode_strict(input: &str) -> Result<Vec<u8>, ()> {
     decode_base_stream(input.as_bytes(), B64_CHARS, 6, 4, &[2, 3, 4], false)
 }
 
-fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
+pub fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
     let mut buf = 0u32;
     let mut bits = 0u8;

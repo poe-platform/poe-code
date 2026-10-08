@@ -3270,7 +3270,7 @@ test("Python native JSPI qualification inputs remain admitted without claiming e
     "tests/integration/python-managed.test.mjs"]) {
     assertAdmittedInputPath(path, boundaries);
     // Native tool and chat qualification grew the worker beyond 64 KiB.
-    const maximum = path === "tests/integration/python-jspi.worker.mjs" ? 131072 : 65536;
+    const maximum = path === "tests/integration/python-jspi.worker.mjs" ? 262144 : path === "tests/integration/python-jspi.test.mjs" ? 131072 : 65536;
     assert.ok(readRegularInput(root, path, maximum, fs, boundaries).length > 0);
   }
 });

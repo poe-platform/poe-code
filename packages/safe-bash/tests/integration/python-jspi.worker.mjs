@@ -1,5 +1,5 @@
 import {MockS3Client,S3FileSystem} from '@poe-platform/safe-fs/fs/s3';
-import {createPythonPackageStreamingManifestStore} from '@poe-platform/safe-bash/commands/python';
+import {createPythonPackageFileManifestStore} from '@poe-platform/safe-bash/commands/python';
 import {extractPythonSourceArchive} from "@poe-platform/safe-bash/commands/python/source-archive";
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
@@ -466,19 +466,17 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  artifacts.set('https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl',micropip);
  let published=false;
  const indexRequests=[];
- const bufferedStore=createPythonPackageManifestStore();
  const manifestTransfer={chunks:0,maximum:0,commits:0};
- // This fixture qualifies the Worker adapter, not bounded backend retention.
- const manifestStore=streamed?createPythonPackageStreamingManifestStore({
-  get:bufferedStore.get.bind(bufferedStore),
-  async compareAndSet(scope,revision,source,options){
-   const chunks=[];
-   for await(const bytes of source){manifestTransfer.chunks++;manifestTransfer.maximum=Math.max(manifestTransfer.maximum,bytes.length);chunks.push(bytes);}
-   const committed=await bufferedStore.compareAndSet(scope,revision,new Uint8Array(await new Blob(chunks).arrayBuffer()),options);
-   if(committed)manifestTransfer.commits++;
-   return committed;
-  },
- }):bufferedStore;
+ const manifestFs=new Proxy(backend,{get(target,key){
+  if(key==='writeFile'||key==='readFile'||key==='appendFile')return ()=>{throw new Error('Whole manifest filesystem IO');};
+  if(key==='createStagedFile')return async(...args)=>{
+   const stage=await target.createStagedFile(...args),writer=stage.writer;
+   return {...stage,writer:{finish:writer.finish.bind(writer),async write(bytes,...options){manifestTransfer.chunks++;manifestTransfer.maximum=Math.max(manifestTransfer.maximum,bytes.length);return writer.write(bytes,...options);}}};
+  };
+  if(key==='publishStagedFile')return async(...args)=>{await target.publishStagedFile(...args);manifestTransfer.commits++;};
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const manifestStore=streamed?createPythonPackageFileManifestStore({fs:manifestFs,directory:'/work/manifests'}):createPythonPackageManifestStore();
  const configuration={scope:'replacement',manifestStore,authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
   const files=indexes.get(url),bytes=files?new TextEncoder().encode(JSON.stringify({name:url.split('/').at(-2),files:published?files:files.slice(0,1)})):artifacts.get(url);
   if(files)indexRequests.push(url);
@@ -521,7 +519,11 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
    }
    const isolated=createPythonPackageEnvironment({...configuration,scope:'no-deps-sdk',requirements:['replace-root'],noDeps:true});
    const sdkShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:isolated}));
-   try{return {rows,sdk:await sdkShell.exec('python -c '+quote(inspect)),diagnostics,manifestTransfer};}
+   try{
+    const sdk=await sdkShell.exec('python -c '+quote(inspect));
+    if(streamed)manifestTransfer.staging=(await backend.readdir('/work/manifests')).filter(entry=>entry.name.startsWith('.python-manifest-')).length;
+    return {rows,sdk,diagnostics,manifestTransfer};
+   }
    finally{await sdkShell.dispose();await isolated.dispose();}
   }
   if(qualification==='/package-constraints'){

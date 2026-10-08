@@ -275,6 +275,9 @@ chunks, including large escaped metadata strings, without a complete encoded
 manifest buffer. The adapter checks byte limits and complete consumption; backend
 atomicity remains the storage owner's responsibility. Default and legacy stores
 still serialize complete byte buffers, and manifest restoration remains buffered.
+The optional `createPythonPackageFileManifestStore` backend publishes through
+caller-owned retained staging and native conditional commits with bounded writes;
+its compatibility reads still allocate complete manifest bytes.
 Cache publication now retains a SHA-256 fingerprint instead of the complete
 decoded manifest text per session. Conflict checks cover changed bytes even when
 UTF-8 decoding produces identical text; restoration and serialization still buffer.

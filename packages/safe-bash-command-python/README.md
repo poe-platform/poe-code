@@ -155,6 +155,11 @@ revision and publishing; source failures must preserve the previous snapshot.
 The adapter enforces `maxManifestBytes` while serializing and closes failed sources.
 Existing byte-based stores remain supported. Manifest reads, installed requirement
 arrays and individual metadata records still have separate buffering costs.
+`createPythonPackageFileManifestStore({ fs, directory })` supplies a persistent
+caller-filesystem backend for this adapter. It requires retained reads, retained
+staging writers and cleanup, and guarded atomic staging publication. Writes use
+at most 64 KiB chunks; failed serialization or a stale revision leaves the prior
+manifest intact. The directory remains caller-owned after environment disposal.
 
 Hosts provisioning build tools can use `createPythonBuildEnvironment(options)`
 with `pythonCommands({ createExecutor, environment })`. Each build environment

@@ -447,6 +447,7 @@ export { createPythonSourceSnapshot, type PythonSourceSnapshot } from './source-
 export { createPythonBuildBackend, type PythonBuildHookRequest, type PythonSourceRequirementRequest, type PythonEditableRequirementRequest, type PythonSourceRequirement, type PythonLegacyBuildRequest, type PythonLegacyRequirementsRequest, type PythonBuildHookContext, type PythonBuildSystemRequest, type PythonBuildSystemDetails, type PythonBuildRequirementsRequest, type PythonBuildRequirementsStatus } from './build-backend.js';
 export type { PythonPackageInstallOptions, PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
 export { PythonPackageConflictError, createPythonPackageManifestStore, createPythonPackageStreamingManifestStore } from './manifest.js';
+export { createPythonPackageFileManifestStore } from './manifest-file.js';
 export type { PythonPackageManifest, PythonPackageManifestStore, PythonPackageStreamingManifestStore } from './manifest.js';
 export { createPythonPackageCache } from './cache.js';
 export { createPythonExecutorPool } from './executor-pool.js';

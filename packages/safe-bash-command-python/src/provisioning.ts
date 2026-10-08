@@ -225,8 +225,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const value = options[name];
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`${name} must be a positive integer`);
  }
- const checkManifest=(size=0)=>{
-  if(size>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
+ const checkManifest=(bytes:Uint8Array|undefined)=>{
+  if(bytes&&bytes.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
  };
  const checkMetadata=(bytes:Uint8Array)=>{
   if(bytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
@@ -288,7 +288,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const manifestRevision = snapshot?.revision;
   const stored = manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
   signal.throwIfAborted();
-  checkManifest(stored?.length);
+  checkManifest(stored);
   const manifest = stored === undefined ? '' : digest(stored);
   let previous: unknown;
   try { previous = stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
@@ -366,7 +366,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {...(pinned as PythonInstalledSnapshot),installed:[...new Set(saved)]};
    const streamed=manifestStore?.compareAndSetSnapshot;
    const manifestBytes=streamed?undefined:encoder.encode(JSON.stringify(state));
-   checkManifest(manifestBytes?.length);
+   checkManifest(manifestBytes);
    const commit = committing.then(async()=>{
     check();
     if(manifestStore) {
@@ -377,7 +377,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
     } else {
      const current = await session.manifestCache.get(manifestKey);
      check();
-     checkManifest(current?.length);
+     checkManifest(current);
      if ((current===undefined?'':digest(current))!==session.manifest) throw new PythonPackageConflictError();
      await session.manifestCache.set(manifestKey,manifestBytes!);
     }

@@ -3531,6 +3531,9 @@ struct DiffOpts {
     ignore_tab_expansion: bool,
     ignore_trailing_space: bool,
     ignore_blank_lines: bool,
+    strip_trailing_cr: bool,
+    text: bool,
+    ignore_file_name_case: bool,
     expand_tabs: bool,
     initial_tab: bool,
     left_column: bool,
@@ -3544,6 +3547,7 @@ struct DiffOpts {
     ignore_regexes: Vec<String>,
     excludes: Vec<String>,
     starting_file: Option<String>,
+    option_args: Vec<String>,
 }
 
 fn diff_glob_matches(pat: &str, name: &str) -> bool {
@@ -3620,6 +3624,51 @@ fn sbs_padding(mut column: usize, target: usize, expand: bool) -> String {
     result
 }
 
+fn quote_diff_arg(argument: &str) -> String {
+    let mut needs_quotes = argument.is_empty() || argument.starts_with('~');
+    let mut double_quotes = argument.contains('\'');
+    for ch in argument.chars() {
+        if " \t\n\r!\"$&'()*;<=>?[\\^`|".contains(ch) {
+            needs_quotes = true;
+        }
+        if !" %'+,-./0123456789:@ABCDEFGHIJKLMNOPQRSTUVWXYZ]_abcdefghijklmnopqrstuvwxyz".contains(ch) {
+            double_quotes = false;
+        }
+    }
+    if !needs_quotes {
+        return argument.to_string();
+    }
+    if double_quotes {
+        return format!("\"{argument}\"");
+    }
+    format!("'{}'", argument.replace('\'', "'\\''"))
+}
+
+fn split_diff_lines(text: &str) -> Vec<(&str, bool)> {
+    if text.is_empty() {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    let mut start = 0usize;
+    for (idx, b) in text.bytes().enumerate() {
+        if b == b'\n' {
+            out.push((&text[start..idx], true));
+            start = idx + 1;
+        }
+    }
+    if start < text.len() {
+        out.push((&text[start..], false));
+    }
+    out
+}
+
+struct DiffChange {
+    kind: char,
+    old_idx: Option<usize>,
+    new_idx: Option<usize>,
+    ignored: bool,
+}
+
 #[allow(clippy::too_many_arguments)]
 fn diff_two_texts(
     label_a: &str,
@@ -3638,7 +3687,27 @@ fn diff_two_texts(
     let ignore_case = opts.ignore_case;
     let ignore_blank_lines = opts.ignore_blank_lines;
 
-    let norm_line = |l: &str| -> String {
+    let owned_a;
+    let owned_b;
+    let eff_a = if opts.strip_trailing_cr && text_a.contains("\r\n") {
+        owned_a = text_a.replace("\r\n", "\n");
+        owned_a.as_str()
+    } else {
+        text_a
+    };
+    let eff_b = if opts.strip_trailing_cr && text_b.contains("\r\n") {
+        owned_b = text_b.replace("\r\n", "\n");
+        owned_b.as_str()
+    } else {
+        text_b
+    };
+
+    let ws_ignores_eof_nl = opts.ignore_all_space
+        || opts.ignore_space_change
+        || opts.ignore_trailing_space
+        || opts.ignore_tab_expansion;
+
+    let norm_line = |l: &str, has_nl: bool| -> String {
         let mut s = if opts.ignore_tab_expansion {
             expand_tabs_line(l)
         } else {
@@ -3667,37 +3736,117 @@ fn diff_two_texts(
         if ignore_case {
             s = s.to_ascii_lowercase();
         }
+        if !ws_ignores_eof_nl && (has_nl || (format == DiffFormat::Ed && !brief)) {
+            s.push('\n');
+        }
         s
     };
 
-    let a_no_nl = !text_a.is_empty() && !text_a.ends_with('\n');
-    let b_no_nl = !text_b.is_empty() && !text_b.ends_with('\n');
-
-    let lines_a: Vec<&str> = text_a
-        .lines()
-        .filter(|l| !ignore_blank_lines || !l.trim().is_empty())
+    let raw_a = split_diff_lines(eff_a);
+    let raw_b = split_diff_lines(eff_b);
+    let lines_a: Vec<&str> = raw_a.iter().map(|(l, _)| *l).collect();
+    let lines_b: Vec<&str> = raw_b.iter().map(|(l, _)| *l).collect();
+    let nl_a: Vec<bool> = raw_a
+        .iter()
+        .map(|(_, nl)| *nl || (format == DiffFormat::Ed && !brief))
         .collect();
-    let lines_b: Vec<&str> = text_b
-        .lines()
-        .filter(|l| !ignore_blank_lines || !l.trim().is_empty())
+    let nl_b: Vec<bool> = raw_b
+        .iter()
+        .map(|(_, nl)| *nl || (format == DiffFormat::Ed && !brief))
         .collect();
 
-    let norm_a: Vec<String> = lines_a.iter().map(|l| norm_line(l)).collect();
-    let norm_b: Vec<String> = lines_b.iter().map(|l| norm_line(l)).collect();
+    let norm_a: Vec<String> = raw_a.iter().map(|(l, nl)| norm_line(l, *nl)).collect();
+    let norm_b: Vec<String> = raw_b.iter().map(|(l, nl)| norm_line(l, *nl)).collect();
+
+    let same_keys = norm_a == norm_b;
+    if same_keys && format != DiffFormat::Ifdef && format != DiffFormat::SideBySide {
+        if report_identical {
+            return (format!("Files {label_a} and {label_b} are identical\n"), false);
+        }
+        return (String::new(), false);
+    }
 
     let edits = compute_lcs_edits(&norm_a, &norm_b);
-    let mut differed = !(norm_a == norm_b && a_no_nl == b_no_nl);
-    if differed && !opts.ignore_regexes.is_empty() {
-        let rx = ZeroRegex::new(opts.ignore_regexes.clone(), ignore_case, false, false, false);
-        let all_ignored = edits.iter().all(|e| match e {
-            DiffEdit::Keep(_) => true,
-            DiffEdit::Delete(ia) => rx.is_match(lines_a[*ia]),
-            DiffEdit::Insert(ib) => rx.is_match(lines_b[*ib]),
-        });
-        if all_ignored {
-            differed = false;
+    let mut changes: Vec<DiffChange> = Vec::with_capacity(edits.len());
+    let mut cur_b_for_keep = 0usize;
+    for e in &edits {
+        match *e {
+            DiffEdit::Keep(ia) => {
+                changes.push(DiffChange {
+                    kind: ' ',
+                    old_idx: Some(ia),
+                    new_idx: Some(cur_b_for_keep),
+                    ignored: false,
+                });
+                cur_b_for_keep += 1;
+            }
+            DiffEdit::Delete(ia) => {
+                changes.push(DiffChange {
+                    kind: '-',
+                    old_idx: Some(ia),
+                    new_idx: None,
+                    ignored: false,
+                });
+            }
+            DiffEdit::Insert(ib) => {
+                changes.push(DiffChange {
+                    kind: '+',
+                    old_idx: None,
+                    new_idx: Some(ib),
+                    ignored: false,
+                });
+                cur_b_for_keep = ib + 1;
+            }
         }
     }
+
+    if !same_keys && (ignore_blank_lines || !opts.ignore_regexes.is_empty()) {
+        let rx = if opts.ignore_regexes.is_empty() {
+            None
+        } else {
+            Some(ZeroRegex::new(
+                opts.ignore_regexes.clone(),
+                ignore_case,
+                false,
+                false,
+                false,
+            ))
+        };
+        let mut scan = 0usize;
+        while scan < changes.len() {
+            if changes[scan].kind == ' ' {
+                scan += 1;
+                continue;
+            }
+            let start = scan;
+            let mut block_ignored = true;
+            while scan < changes.len() && changes[scan].kind != ' ' {
+                let body = match changes[scan].kind {
+                    '-' => lines_a[changes[scan].old_idx.unwrap()],
+                    '+' => lines_b[changes[scan].new_idx.unwrap()],
+                    _ => "",
+                };
+                let blank_ok = ignore_blank_lines
+                    && (body.is_empty()
+                        || ((opts.ignore_all_space || opts.ignore_space_change)
+                            && body
+                                .chars()
+                                .all(|c| matches!(c, ' ' | '\t' | '\x0b' | '\x0c' | '\r'))));
+                let rx_ok = rx.as_ref().is_some_and(|r| r.is_match(body));
+                if !blank_ok && !rx_ok {
+                    block_ignored = false;
+                }
+                scan += 1;
+            }
+            if block_ignored {
+                for item in &mut changes[start..scan] {
+                    item.ignored = true;
+                }
+            }
+        }
+    }
+
+    let differed = changes.iter().any(|c| c.kind != ' ' && !c.ignored);
 
     if !differed && format != DiffFormat::Ifdef && format != DiffFormat::SideBySide {
         if report_identical {
@@ -3716,7 +3865,7 @@ fn diff_two_texts(
         return (String::new(), false);
     }
 
-    let fmt_line_body = |prefix: &str, line: &str| -> String {
+    let fmt_line_with_nl = |prefix: &str, line: &str, has_nl: bool| -> String {
         let pfx = if opts.initial_tab {
             let base = if prefix.len() == 2 {
                 &prefix[..1]
@@ -3732,10 +3881,14 @@ fn diff_two_texts(
         } else {
             line.to_string()
         };
-        format!("{pfx}{body}\n")
+        if has_nl {
+            format!("{pfx}{body}\n")
+        } else {
+            format!("{pfx}{body}\n\\ No newline at end of file\n")
+        }
     };
 
-    let find_func_heading = |old_start: usize| -> String {
+    let find_func_heading = |old_pos: usize| -> String {
         let mut patterns = opts.show_func_regexes.clone();
         if opts.show_c_func && patterns.is_empty() {
             patterns.push("^[A-Za-z_$]".to_string());
@@ -3744,7 +3897,7 @@ fn diff_two_texts(
             return String::new();
         }
         let rx = ZeroRegex::new(patterns, false, false, false, false);
-        let limit = old_start.saturating_sub(1).max(usize::from(opts.show_c_func)).min(lines_a.len());
+        let limit = old_pos.min(lines_a.len());
         lines_a[..limit]
             .iter()
             .rev()
@@ -3763,205 +3916,186 @@ fn diff_two_texts(
         } else {
             out.push_str(&format!("*** {label_a}\n--- {label_b}\n"));
         }
-        let ctx = opts.ctx_lines.unwrap_or(3);
-        let last_a = lines_a.len().saturating_sub(1);
-        let last_b = lines_b.len().saturating_sub(1);
+        let ctx = opts.ctx_lines.unwrap_or(3).min(changes.len());
+        let unified_range = |start_pos: usize, count: usize| -> String {
+            if count == 0 {
+                format!("{start_pos},0")
+            } else if count == 1 {
+                format!("{}", start_pos + 1)
+            } else {
+                format!("{},{count}", start_pos + 1)
+            }
+        };
+        let context_range = |start_pos: usize, count: usize| -> String {
+            if count == 0 {
+                format!("{start_pos}")
+            } else if count == 1 {
+                format!("{}", start_pos + 1)
+            } else {
+                format!("{},{}", start_pos + 1, start_pos + count)
+            }
+        };
 
-        let mut tagged: Vec<(DiffEdit, usize, usize)> = Vec::with_capacity(edits.len());
-        let mut ca = 0usize;
-        let mut cb = 0usize;
-        for e in edits {
-            match e {
-                DiffEdit::Keep(ia) => {
-                    tagged.push((DiffEdit::Keep(ia), ia, cb));
-                    ca = ia + 1;
-                    cb += 1;
+        let mut scan = 0usize;
+        let mut old_position = 0usize;
+        let mut new_position = 0usize;
+        while scan < changes.len() {
+            let mut changed = scan;
+            while changed < changes.len() && changes[changed].kind == ' ' {
+                changed += 1;
+            }
+            if changed == changes.len() {
+                break;
+            }
+            let start = changed.saturating_sub(ctx);
+            let mut last_change = changed;
+            let mut end = changed + 1;
+            while end < changes.len() && end - last_change - 1 <= 2 * ctx {
+                if changes[end].kind != ' ' {
+                    if changes[end].ignored && end - last_change - 1 >= ctx {
+                        break;
+                    }
+                    last_change = end;
                 }
-                DiffEdit::Delete(ia) => {
-                    tagged.push((DiffEdit::Delete(ia), ia, cb));
-                    ca = ia + 1;
+                end += 1;
+            }
+            end = (last_change + ctx + 1).min(changes.len());
+            while scan > start {
+                scan -= 1;
+                if changes[scan].kind != '+' {
+                    old_position -= 1;
                 }
-                DiffEdit::Insert(ib) => {
-                    tagged.push((DiffEdit::Insert(ib), ca, ib));
-                    cb = ib + 1;
+                if changes[scan].kind != '-' {
+                    new_position -= 1;
                 }
             }
-        }
-
-        let mut change_runs: Vec<(usize, usize)> = Vec::new();
-        let mut idx = 0usize;
-        while idx < tagged.len() {
-            if matches!(tagged[idx].0, DiffEdit::Keep(_)) {
-                idx += 1;
+            while scan < start {
+                if changes[scan].kind != '+' {
+                    old_position += 1;
+                }
+                if changes[scan].kind != '-' {
+                    new_position += 1;
+                }
+                scan += 1;
+            }
+            let mut old_count = 0usize;
+            let mut new_count = 0usize;
+            let mut any_del = false;
+            let mut any_ins = false;
+            for item in &changes[start..end] {
+                if item.kind != '+' {
+                    old_count += 1;
+                }
+                if item.kind != '-' {
+                    new_count += 1;
+                }
+                if item.kind == '-' {
+                    any_del = true;
+                }
+                if item.kind == '+' {
+                    any_ins = true;
+                }
+            }
+            if !changes[start..end].iter().any(|c| c.kind != ' ' && !c.ignored) {
+                old_position += old_count;
+                new_position += new_count;
+                scan = end;
                 continue;
             }
-            let s = idx;
-            while idx < tagged.len() && !matches!(tagged[idx].0, DiffEdit::Keep(_)) {
-                idx += 1;
-            }
-            change_runs.push((s, idx - 1));
-        }
-
-        let mut hunk_ranges: Vec<(usize, usize)> = Vec::new();
-        if change_runs.is_empty() && !tagged.is_empty() {
-            hunk_ranges.push((0, tagged.len() - 1));
-        } else {
-            for (cs, ce) in change_runs {
-                let hs = cs.saturating_sub(ctx);
-                let he = (ce + ctx).min(tagged.len().saturating_sub(1));
-                if let Some(last) = hunk_ranges.last_mut()
-                    && hs <= last.1 + 1
-                {
-                    last.1 = he;
-                } else {
-                    hunk_ranges.push((hs, he));
-                }
-            }
-        }
-
-        let unified_range = |start: usize, count: usize| -> String {
-            if count == 0 {
-                format!("{start},0")
-            } else if count == 1 {
-                format!("{start}")
-            } else {
-                format!("{start},{count}")
-            }
-        };
-        let context_range = |start: usize, count: usize| -> String {
-            if count <= 1 {
-                format!("{start}")
-            } else {
-                format!("{start},{}", start + count - 1)
-            }
-        };
-
-        for (hs, he) in hunk_ranges {
-            let slice = &tagged[hs..=he];
-            let old_count = slice
-                .iter()
-                .filter(|(e, _, _)| matches!(e, DiffEdit::Keep(_) | DiffEdit::Delete(_)))
-                .count();
-            let new_count = slice
-                .iter()
-                .filter(|(e, _, _)| matches!(e, DiffEdit::Keep(_) | DiffEdit::Insert(_)))
-                .count();
-            let old_start = slice
-                .iter()
-                .find_map(|(e, ia, _)| match e {
-                    DiffEdit::Keep(_) | DiffEdit::Delete(_) => Some(*ia + 1),
-                    _ => None,
-                })
-                .unwrap_or(if old_count == 0 { 0 } else { 1 });
-            let new_start = slice
-                .iter()
-                .find_map(|(e, _, ib)| match e {
-                    DiffEdit::Keep(_) | DiffEdit::Insert(_) => Some(*ib + 1),
-                    _ => None,
-                })
-                .unwrap_or(if new_count == 0 { 0 } else { 1 });
-            let func_heading = find_func_heading(old_start);
-
+            let func_heading = find_func_heading(old_position);
             if format == DiffFormat::Unified {
                 out.push_str(&format!(
                     "@@ -{} +{} @@{func_heading}\n",
-                    unified_range(old_start, old_count),
-                    unified_range(new_start, new_count)
+                    unified_range(old_position, old_count),
+                    unified_range(new_position, new_count)
                 ));
-                for (edit, ia, ib) in slice {
-                    match *edit {
-                        DiffEdit::Keep(ia_idx) => {
-                            out.push_str(&fmt_line_body(" ", lines_a[ia_idx]));
-                            if ia_idx == last_a && *ib == last_b && (a_no_nl || b_no_nl) {
-                                out.push_str("\\ No newline at end of file\n");
-                            }
+                for item in &changes[start..end] {
+                    match item.kind {
+                        ' ' => {
+                            let ia = item.old_idx.unwrap();
+                            out.push_str(&fmt_line_with_nl(" ", lines_a[ia], nl_a[ia]));
                         }
-                        DiffEdit::Delete(ia_idx) => {
-                            out.push_str(&fmt_line_body("-", lines_a[ia_idx]));
-                            if ia_idx == last_a && a_no_nl {
-                                out.push_str("\\ No newline at end of file\n");
-                            }
+                        '-' => {
+                            let ia = item.old_idx.unwrap();
+                            out.push_str(&fmt_line_with_nl("-", lines_a[ia], nl_a[ia]));
                         }
-                        DiffEdit::Insert(ib_idx) => {
-                            let _ = ia;
-                            out.push_str(&fmt_line_body("+", lines_b[ib_idx]));
-                            if ib_idx == last_b && b_no_nl {
-                                out.push_str("\\ No newline at end of file\n");
-                            }
+                        '+' => {
+                            let ib = item.new_idx.unwrap();
+                            out.push_str(&fmt_line_with_nl("+", lines_b[ib], nl_b[ib]));
                         }
+                        _ => {}
                     }
                 }
             } else {
-                let any_del = slice.iter().any(|(e, _, _)| matches!(e, DiffEdit::Delete(_)));
-                let any_ins = slice.iter().any(|(e, _, _)| matches!(e, DiffEdit::Insert(_)));
                 out.push_str(&format!(
                     "***************{func_heading}\n*** {} ****\n",
-                    context_range(old_start, old_count)
+                    context_range(old_position, old_count)
                 ));
                 if any_del {
-                    let mut si = 0usize;
-                    while si < slice.len() {
-                        match slice[si].0 {
-                            DiffEdit::Keep(ia_idx) => {
-                                out.push_str(&fmt_line_body("  ", lines_a[ia_idx]));
-                                si += 1;
+                    let mut si = start;
+                    while si < end {
+                        if changes[si].kind == ' ' {
+                            let ia = changes[si].old_idx.unwrap();
+                            out.push_str(&fmt_line_with_nl("  ", lines_a[ia], nl_a[ia]));
+                            si += 1;
+                            continue;
+                        }
+                        let mut grp_del = false;
+                        let mut grp_ins = false;
+                        let mut ge = si;
+                        while ge < end && changes[ge].kind != ' ' {
+                            if changes[ge].kind == '-' {
+                                grp_del = true;
+                            } else {
+                                grp_ins = true;
                             }
-                            DiffEdit::Delete(_) | DiffEdit::Insert(_) => {
-                                let mut grp_del = false;
-                                let mut grp_ins = false;
-                                let mut ge = si;
-                                while ge < slice.len() && !matches!(slice[ge].0, DiffEdit::Keep(_)) {
-                                    if matches!(slice[ge].0, DiffEdit::Delete(_)) {
-                                        grp_del = true;
-                                    } else {
-                                        grp_ins = true;
-                                    }
-                                    ge += 1;
-                                }
-                                let pfx = if grp_del && grp_ins { "! " } else { "- " };
-                                while si < ge {
-                                    if let DiffEdit::Delete(ia_idx) = slice[si].0 {
-                                        out.push_str(&fmt_line_body(pfx, lines_a[ia_idx]));
-                                    }
-                                    si += 1;
-                                }
+                            ge += 1;
+                        }
+                        let pfx = if grp_del && grp_ins { "! " } else { "- " };
+                        while si < ge {
+                            if changes[si].kind == '-' {
+                                let ia = changes[si].old_idx.unwrap();
+                                out.push_str(&fmt_line_with_nl(pfx, lines_a[ia], nl_a[ia]));
                             }
+                            si += 1;
                         }
                     }
                 }
-                out.push_str(&format!("--- {} ----\n", context_range(new_start, new_count)));
+                out.push_str(&format!("--- {} ----\n", context_range(new_position, new_count)));
                 if any_ins {
-                    let mut si = 0usize;
-                    while si < slice.len() {
-                        match slice[si].0 {
-                            DiffEdit::Keep(ia_idx) => {
-                                out.push_str(&fmt_line_body("  ", lines_a[ia_idx]));
-                                si += 1;
+                    let mut si = start;
+                    while si < end {
+                        if changes[si].kind == ' ' {
+                            let ib = changes[si].new_idx.unwrap();
+                            out.push_str(&fmt_line_with_nl("  ", lines_b[ib], nl_b[ib]));
+                            si += 1;
+                            continue;
+                        }
+                        let mut grp_del = false;
+                        let mut grp_ins = false;
+                        let mut ge = si;
+                        while ge < end && changes[ge].kind != ' ' {
+                            if changes[ge].kind == '-' {
+                                grp_del = true;
+                            } else {
+                                grp_ins = true;
                             }
-                            DiffEdit::Delete(_) | DiffEdit::Insert(_) => {
-                                let mut grp_del = false;
-                                let mut grp_ins = false;
-                                let mut ge = si;
-                                while ge < slice.len() && !matches!(slice[ge].0, DiffEdit::Keep(_)) {
-                                    if matches!(slice[ge].0, DiffEdit::Delete(_)) {
-                                        grp_del = true;
-                                    } else {
-                                        grp_ins = true;
-                                    }
-                                    ge += 1;
-                                }
-                                let pfx = if grp_del && grp_ins { "! " } else { "+ " };
-                                while si < ge {
-                                    if let DiffEdit::Insert(ib_idx) = slice[si].0 {
-                                        out.push_str(&fmt_line_body(pfx, lines_b[ib_idx]));
-                                    }
-                                    si += 1;
-                                }
+                            ge += 1;
+                        }
+                        let pfx = if grp_del && grp_ins { "! " } else { "+ " };
+                        while si < ge {
+                            if changes[si].kind == '+' {
+                                let ib = changes[si].new_idx.unwrap();
+                                out.push_str(&fmt_line_with_nl(pfx, lines_b[ib], nl_b[ib]));
                             }
+                            si += 1;
                         }
                     }
                 }
             }
+            scan = end;
+            old_position += old_count;
+            new_position += new_count;
         }
     } else if format == DiffFormat::SideBySide {
         let width = if opts.width > 0 { opts.width } else { 130 };
@@ -4047,6 +4181,7 @@ fn diff_two_texts(
                     ei += 1;
                 }
                 DiffEdit::Delete(_) | DiffEdit::Insert(_) => {
+                    let run_start = ei;
                     let mut dels = Vec::new();
                     let mut inss = Vec::new();
                     while ei < edits.len() {
@@ -4056,6 +4191,12 @@ fn diff_two_texts(
                             DiffEdit::Insert(ib) => inss.push(lines_b[ib]),
                         }
                         ei += 1;
+                    }
+                    if changes[run_start].ignored {
+                        for d in dels {
+                            out.push_str(&format!("{d}\n"));
+                        }
+                        continue;
                     }
                     if !dels.is_empty() && !inss.is_empty() {
                         out.push_str(&format!("#ifndef {m}\n"));
@@ -4084,111 +4225,154 @@ fn diff_two_texts(
             }
         }
     } else {
-        let fmt_range = |s: usize, e: usize| -> String {
-            if s == e {
-                format!("{s}")
+        let normal_range = |start_pos: usize, count: usize| -> String {
+            if count == 0 {
+                format!("{start_pos}")
+            } else if count == 1 {
+                format!("{}", start_pos + 1)
             } else {
-                format!("{s},{e}")
+                format!("{},{}", start_pos + 1, start_pos + count)
             }
         };
-        let mut idx = 0usize;
-        let mut cur_a = 0usize;
-        let mut cur_b = 0usize;
-        let mut hunks: Vec<(usize, usize, Vec<usize>, Vec<usize>)> = Vec::new();
-        while idx < edits.len() {
-            if let DiffEdit::Keep(ia) = edits[idx] {
-                cur_a = ia + 1;
-                cur_b += 1;
-                idx += 1;
-                continue;
-            }
-            let hunk_a = cur_a;
-            let hunk_b = cur_b;
-            let mut dels = Vec::new();
-            let mut inss = Vec::new();
-            while idx < edits.len() {
-                match edits[idx] {
-                    DiffEdit::Keep(_) => break,
-                    DiffEdit::Delete(ia) => {
-                        dels.push(ia);
-                        cur_a = ia + 1;
-                    }
-                    DiffEdit::Insert(ib) => {
-                        inss.push(ib);
-                        cur_b = ib + 1;
-                    }
+        if format == DiffFormat::Ed || format == DiffFormat::Rcs {
+            let mut groups: Vec<(usize, Vec<usize>, Vec<usize>)> = Vec::new();
+            let mut scan = 0usize;
+            let mut pos = 0usize;
+            while scan < changes.len() {
+                if changes[scan].kind == ' ' {
+                    pos += 1;
+                    scan += 1;
+                    continue;
                 }
-                idx += 1;
-            }
-            hunks.push((hunk_a, hunk_b, dels, inss));
-        }
-        match format {
-            DiffFormat::Ed => {
-                for (ha, _hb, dels, inss) in hunks.into_iter().rev() {
-                    if !dels.is_empty() && !inss.is_empty() {
-                        let a_range = fmt_range(dels[0] + 1, *dels.last().unwrap() + 1);
-                        out.push_str(&format!("{a_range}c\n"));
-                        for ib in inss {
-                            out.push_str(&format!("{}\n", lines_b[ib]));
-                        }
-                        out.push_str(".\n");
-                    } else if !dels.is_empty() {
-                        let a_range = fmt_range(dels[0] + 1, *dels.last().unwrap() + 1);
-                        out.push_str(&format!("{a_range}d\n"));
-                    } else if !inss.is_empty() {
-                        out.push_str(&format!("{ha}a\n"));
-                        for ib in inss {
-                            out.push_str(&format!("{}\n", lines_b[ib]));
-                        }
-                        out.push_str(".\n");
+                let start = scan;
+                let grp_pos = pos;
+                let mut dels = Vec::new();
+                let mut inss = Vec::new();
+                while scan < changes.len() && changes[scan].kind != ' ' {
+                    if changes[scan].kind == '-' {
+                        dels.push(changes[scan].old_idx.unwrap());
+                        pos += 1;
+                    } else {
+                        inss.push(changes[scan].new_idx.unwrap());
                     }
+                    scan += 1;
+                }
+                if !changes[start].ignored {
+                    groups.push((grp_pos, dels, inss));
                 }
             }
-            DiffFormat::Rcs => {
-                for (ha, _hb, dels, inss) in hunks {
+            if format == DiffFormat::Ed {
+                groups.reverse();
+                for (grp_pos, dels, inss) in groups {
+                    let start_1 = grp_pos + 1;
+                    let end_1 = grp_pos + dels.len();
+                    let range = if dels.len() > 1 {
+                        format!("{start_1},{end_1}")
+                    } else {
+                        format!("{start_1}")
+                    };
+                    let addr = if dels.is_empty() {
+                        format!("{grp_pos}")
+                    } else {
+                        range
+                    };
+                    let cmd_ch = if dels.is_empty() {
+                        'a'
+                    } else if inss.is_empty() {
+                        'd'
+                    } else {
+                        'c'
+                    };
+                    out.push_str(&format!("{addr}{cmd_ch}\n"));
+                    if !inss.is_empty() {
+                        for (idx_ins, &ib) in inss.iter().enumerate() {
+                            let l = lines_b[ib];
+                            if l == "." {
+                                out.push_str("..\n.\ns/.//\n");
+                                if idx_ins + 1 < inss.len() {
+                                    out.push_str("a\n");
+                                }
+                            } else {
+                                out.push_str(&format!("{l}\n"));
+                            }
+                        }
+                        if lines_b[*inss.last().unwrap()] != "." {
+                            out.push_str(".\n");
+                        }
+                    }
+                }
+            } else {
+                for (grp_pos, dels, inss) in groups {
                     if !dels.is_empty() {
-                        out.push_str(&format!("d{} {}\n", dels[0] + 1, dels.len()));
+                        out.push_str(&format!("d{} {}\n", grp_pos + 1, dels.len()));
                     }
                     if !inss.is_empty() {
-                        let after_a = if !dels.is_empty() {
-                            *dels.last().unwrap() + 1
-                        } else {
-                            ha
-                        };
-                        out.push_str(&format!("a{} {}\n", after_a, inss.len()));
+                        out.push_str(&format!("a{} {}\n", grp_pos + dels.len(), inss.len()));
                         for ib in inss {
-                            out.push_str(&format!("{}\n", lines_b[ib]));
+                            out.push_str(lines_b[ib]);
+                            if nl_b[ib] {
+                                out.push('\n');
+                            }
                         }
                     }
                 }
             }
-            _ => {
-                for (ha, hb, dels, inss) in hunks {
-                    if !dels.is_empty() && !inss.is_empty() {
-                        let a_range = fmt_range(dels[0] + 1, *dels.last().unwrap() + 1);
-                        let b_range = fmt_range(inss[0] + 1, *inss.last().unwrap() + 1);
-                        out.push_str(&format!("{a_range}c{b_range}\n"));
-                        for ia in dels {
-                            out.push_str(&fmt_line_body("< ", lines_a[ia]));
-                        }
-                        out.push_str("---\n");
-                        for ib in inss {
-                            out.push_str(&fmt_line_body("> ", lines_b[ib]));
-                        }
-                    } else if !dels.is_empty() {
-                        let a_range = fmt_range(dels[0] + 1, *dels.last().unwrap() + 1);
-                        out.push_str(&format!("{a_range}d{hb}\n"));
-                        for ia in dels {
-                            out.push_str(&fmt_line_body("< ", lines_a[ia]));
-                        }
-                    } else if !inss.is_empty() {
-                        let b_range = fmt_range(inss[0] + 1, *inss.last().unwrap() + 1);
-                        out.push_str(&format!("{ha}a{b_range}\n"));
-                        for ib in inss {
-                            out.push_str(&fmt_line_body("> ", lines_b[ib]));
-                        }
+        } else {
+            let mut scan = 0usize;
+            let mut old_pos = 0usize;
+            let mut new_pos = 0usize;
+            while scan < changes.len() {
+                if changes[scan].kind == ' ' {
+                    old_pos += 1;
+                    new_pos += 1;
+                    scan += 1;
+                    continue;
+                }
+                let start = scan;
+                let mut old_count = 0usize;
+                let mut new_count = 0usize;
+                while scan < changes.len() && changes[scan].kind != ' ' {
+                    if changes[scan].kind == '-' {
+                        old_count += 1;
+                    } else {
+                        new_count += 1;
+                    }
+                    scan += 1;
+                }
+                if changes[start].ignored {
+                    old_pos += old_count;
+                    new_pos += new_count;
+                    continue;
+                }
+                let op = if old_count == 0 {
+                    'a'
+                } else if new_count == 0 {
+                    'd'
+                } else {
+                    'c'
+                };
+                out.push_str(&format!(
+                    "{}{op}{}\n",
+                    normal_range(old_pos, old_count),
+                    normal_range(new_pos, new_count)
+                ));
+                for item in &changes[start..scan] {
+                    if item.kind == '-' {
+                        let ia = item.old_idx.unwrap();
+                        out.push_str(&fmt_line_with_nl("< ", lines_a[ia], nl_a[ia]));
                     }
                 }
+                if old_count > 0 && new_count > 0 {
+                    out.push_str("---\n");
+                }
+                for item in &changes[start..scan] {
+                    if item.kind == '+' {
+                        let ib = item.new_idx.unwrap();
+                        out.push_str(&fmt_line_with_nl("> ", lines_b[ib], nl_b[ib]));
+                    }
+                }
+                old_pos += old_count;
+                new_pos += new_count;
             }
         }
     }
@@ -4196,6 +4380,78 @@ fn diff_two_texts(
         out.push_str(&format!("Files {label_a} and {label_b} are identical\n"));
     }
     (out, differed)
+}
+
+fn diff_two_byte_inputs(
+    path_a: &str,
+    path_b: &str,
+    label_a: &str,
+    label_b: &str,
+    bytes_a: &[u8],
+    bytes_b: &[u8],
+    nested: bool,
+    opts: &DiffOpts,
+    stderr: &mut String,
+) -> (String, bool, bool) {
+    let format = opts.format.unwrap_or(if !opts.show_func_regexes.is_empty() || opts.show_c_func {
+        DiffFormat::Context
+    } else {
+        DiffFormat::Normal
+    });
+    let has_nul = bytes_a.contains(&0) || bytes_b.contains(&0);
+    let mut trouble = false;
+    let mut incomplete_ed = false;
+    if format == DiffFormat::Ed && !opts.brief && (opts.text || !has_nul) {
+        for (p, b) in [(path_a, bytes_a), (path_b, bytes_b)] {
+            if !b.is_empty() && !b.ends_with(b"\n") {
+                stderr.push_str(&format!("diff: {p}: No newline at end of file\n\n"));
+                trouble = true;
+                incomplete_ed = true;
+            }
+        }
+    }
+    if !opts.text
+        && bytes_a == bytes_b
+        && (format != DiffFormat::SideBySide && format != DiffFormat::Ifdef || bytes_a.contains(&0))
+    {
+        let mut out = String::new();
+        if opts.report_identical && !incomplete_ed {
+            out.push_str(&format!("Files {label_a} and {label_b} are identical\n"));
+        }
+        return (out, false, trouble);
+    }
+    if !opts.text && has_nul {
+        let msg = format!(
+            "{} {label_a} and {label_b} differ\n",
+            if opts.brief { "Files" } else { "Binary files" }
+        );
+        return (msg, true, trouble);
+    }
+    let (text_a, text_b) = match (std::str::from_utf8(bytes_a), std::str::from_utf8(bytes_b)) {
+        (Ok(sa), Ok(sb)) => (sa.to_string(), sb.to_string()),
+        _ => (
+            crate::vfs::bytes_to_stream_string(bytes_a),
+            crate::vfs::bytes_to_stream_string(bytes_b),
+        ),
+    };
+    let (mut d_out, differed) = diff_two_texts(label_a, label_b, &text_a, &text_b, opts);
+    if incomplete_ed && !differed && opts.report_identical {
+        d_out.clear();
+    }
+    if nested && !opts.brief && (differed || format == DiffFormat::SideBySide) {
+        let mut hdr = String::from("diff");
+        for oa in &opts.option_args {
+            hdr.push(' ');
+            hdr.push_str(&quote_diff_arg(oa));
+        }
+        hdr.push(' ');
+        hdr.push_str(&quote_diff_arg(label_a));
+        hdr.push(' ');
+        hdr.push_str(&quote_diff_arg(label_b));
+        hdr.push('\n');
+        d_out.insert_str(0, &hdr);
+    }
+    (d_out, differed, trouble)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -4207,30 +4463,67 @@ fn diff_dirs_recursive(
     opts: &DiffOpts,
     fs: &dyn SafeBashFs,
     out: &mut String,
+    stderr: &mut String,
     any_diff: &mut bool,
+    any_trouble: &mut bool,
 ) {
     let new_file = opts.new_file;
     let unidir_new_file = opts.unidir_new_file;
-    let mut set = std::collections::BTreeSet::new();
+    let mut map: BTreeMap<String, (Option<String>, Option<String>)> = BTreeMap::new();
     for n in fs.list_dir(full_a).unwrap_or_default() {
-        set.insert(n);
+        let key = if opts.ignore_file_name_case {
+            n.to_ascii_lowercase()
+        } else {
+            n.clone()
+        };
+        let entry = map.entry(key).or_insert((None, None));
+        if entry.0.is_none() {
+            entry.0 = Some(n);
+        }
     }
     for n in fs.list_dir(full_b).unwrap_or_default() {
-        set.insert(n);
+        let key = if opts.ignore_file_name_case {
+            n.to_ascii_lowercase()
+        } else {
+            n.clone()
+        };
+        let entry = map.entry(key).or_insert((None, None));
+        if entry.1.is_none() {
+            entry.1 = Some(n);
+        }
     }
-    for name in set {
-        if let Some(ref sf) = opts.starting_file
-            && name.as_str() < sf.as_str()
+    for (_key, (left_opt, right_opt)) in map {
+        let name_a = left_opt.as_deref().or(right_opt.as_deref()).unwrap_or("");
+        let name_b = right_opt.as_deref().or(left_opt.as_deref()).unwrap_or("");
+        if let Some(ref sf) = opts.starting_file {
+            let cmp_ok = if opts.ignore_file_name_case {
+                name_a.to_ascii_lowercase() >= sf.to_ascii_lowercase()
+            } else {
+                name_a >= sf.as_str()
+            };
+            if !cmp_ok {
+                continue;
+            }
+        }
+        if opts
+            .excludes
+            .iter()
+            .any(|p| diff_glob_matches(p, name_a) || diff_glob_matches(p, name_b))
         {
             continue;
         }
-        if opts.excludes.iter().any(|p| diff_glob_matches(p, &name)) {
-            continue;
-        }
-        let ca = if full_a == "/" { format!("/{name}") } else { format!("{full_a}/{name}") };
-        let cb = if full_b == "/" { format!("/{name}") } else { format!("{full_b}/{name}") };
-        let da = format!("{}/{name}", disp_a.trim_end_matches('/'));
-        let db = format!("{}/{name}", disp_b.trim_end_matches('/'));
+        let ca = if full_a == "/" {
+            format!("/{name_a}")
+        } else {
+            format!("{full_a}/{name_a}")
+        };
+        let cb = if full_b == "/" {
+            format!("/{name_b}")
+        } else {
+            format!("{full_b}/{name_b}")
+        };
+        let da = format!("{}/{name_a}", disp_a.trim_end_matches('/'));
+        let db = format!("{}/{name_b}", disp_b.trim_end_matches('/'));
         let sym_a = fs.readlink(&ca).ok();
         let sym_b = fs.readlink(&cb).ok();
         if opts.no_deref && (sym_a.is_some() || sym_b.is_some()) {
@@ -4240,8 +4533,8 @@ fn diff_dirs_recursive(
             }
             continue;
         }
-        let ex_a = fs.exists(&ca) || sym_a.is_some();
-        let ex_b = fs.exists(&cb) || sym_b.is_some();
+        let ex_a = left_opt.is_some() && (fs.exists(&ca) || sym_a.is_some());
+        let ex_b = right_opt.is_some() && (fs.exists(&cb) || sym_b.is_some());
         if ex_a && !ex_b {
             *any_diff = true;
             if new_file {
@@ -4267,7 +4560,7 @@ fn diff_dirs_recursive(
                     }
                 }
             } else {
-                out.push_str(&format!("Only in {}: {name}\n", disp_a.trim_end_matches('/')));
+                out.push_str(&format!("Only in {}: {name_a}\n", disp_a.trim_end_matches('/')));
             }
         } else if !ex_a && ex_b {
             *any_diff = true;
@@ -4294,8 +4587,24 @@ fn diff_dirs_recursive(
                     }
                 }
             } else {
-                out.push_str(&format!("Only in {}: {name}\n", disp_b.trim_end_matches('/')));
+                out.push_str(&format!("Only in {}: {name_b}\n", disp_b.trim_end_matches('/')));
             }
+        } else if fs.is_dir(&ca) != fs.is_dir(&cb) {
+            *any_diff = true;
+            let type_desc = |p: &str| -> &'static str {
+                if fs.is_dir(p) {
+                    "directory"
+                } else if fs.read_file(p).map(|b| b.is_empty()).unwrap_or(false) {
+                    "regular empty file"
+                } else {
+                    "regular file"
+                }
+            };
+            out.push_str(&format!(
+                "File {da} is a {} while file {db} is a {}\n",
+                type_desc(&ca),
+                type_desc(&cb)
+            ));
         } else if fs.is_dir(&ca) && fs.is_dir(&cb) {
             if opts.recursive {
                 let mut child_opts = opts.clone();
@@ -4308,23 +4617,25 @@ fn diff_dirs_recursive(
                     &child_opts,
                     fs,
                     out,
+                    stderr,
                     any_diff,
+                    any_trouble,
                 );
             } else {
                 out.push_str(&format!("Common subdirectories: {da} and {db}\n"));
             }
         } else {
-            let ta = fs.read_file(&ca).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
-            let tb = fs.read_file(&cb).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
-            let (d_out, differed) = diff_two_texts(
-                &da,
-                &db,
-                &ta,
-                &tb,
-                opts,
-            );
+            let ba = fs.read_file(&ca).unwrap_or_default();
+            let bb = fs.read_file(&cb).unwrap_or_default();
+            let la = opts.labels.first().map(|s| s.as_str()).unwrap_or(&da);
+            let lb = opts.labels.get(1).map(|s| s.as_str()).unwrap_or(&db);
+            let (d_out, differed, tr) =
+                diff_two_byte_inputs(&da, &db, la, lb, &ba, &bb, true, opts, stderr);
             if differed {
                 *any_diff = true;
+            }
+            if tr {
+                *any_trouble = true;
             }
             out.push_str(&d_out);
         }
@@ -4332,25 +4643,111 @@ fn diff_dirs_recursive(
 }
 
 fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut opts = DiffOpts::default();
+    let mut opts = DiffOpts {
+        width: 130,
+        ..Default::default()
+    };
     let mut from_file: Option<String> = None;
     let mut to_file: Option<String> = None;
     let mut files = Vec::new();
     let mut exclude_files = Vec::new();
+    let mut selected_format: Option<DiffFormat> = None;
+    let mut explicit_ctx_width: Option<usize> = None;
+    let mut legacy_context: Option<usize> = None;
+    let mut operands_only = false;
+
+    let select_format =
+        |fmt: DiffFormat, sel: &mut Option<DiffFormat>, o: &mut DiffOpts| -> Result<(), String> {
+            if let Some(prev) = *sel
+                && prev != fmt
+            {
+                return Err("diff: conflicting output format options\n".to_string());
+            }
+            *sel = Some(fmt);
+            o.format = Some(fmt);
+            Ok(())
+        };
+
+    let parse_ctx_len = |val: &str| -> Result<usize, String> {
+        let trimmed = val.trim();
+        if trimmed.is_empty() {
+            return Ok(3);
+        }
+        match trimmed.parse::<isize>() {
+            Ok(n) if n >= 0 => Ok(n as usize),
+            _ => Err(format!("diff: invalid context length '{val}'\n")),
+        }
+    };
+
+    let parse_width = |val: &str| -> Result<usize, String> {
+        let trimmed = val.trim();
+        match trimmed.parse::<usize>() {
+            Ok(n) if n > 0 => Ok(n),
+            _ => Err(format!("diff: invalid width '{val}'\n")),
+        }
+    };
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
+        if !operands_only && a == "--" {
+            operands_only = true;
+            i += 1;
+            continue;
+        }
+        if operands_only || a == "-" || !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        let opt_start = i;
         match a.as_str() {
-            "-u" | "--unified" => opts.format = Some(DiffFormat::Unified),
-            "-c" | "--context" => opts.format = Some(DiffFormat::Context),
-            "-e" | "--ed" => opts.format = Some(DiffFormat::Ed),
-            "-n" | "--rcs" => opts.format = Some(DiffFormat::Rcs),
-            "-y" | "--side-by-side" => opts.format = Some(DiffFormat::SideBySide),
+            "--normal" => {
+                if let Err(e) = select_format(DiffFormat::Normal, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+            }
+            "-u" | "--unified" => {
+                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+                opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
+            }
+            "-c" | "--context" => {
+                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+                opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
+            }
+            "-e" | "--ed" => {
+                if let Err(e) = select_format(DiffFormat::Ed, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+            }
+            "-n" | "--rcs" => {
+                if let Err(e) = select_format(DiffFormat::Rcs, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+            }
+            "-y" | "--side-by-side" => {
+                if let Err(e) = select_format(DiffFormat::SideBySide, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+            }
             "--left-column" => opts.left_column = true,
             "--suppress-common-lines" => opts.suppress_common = true,
             "--no-dereference" => opts.no_deref = true,
-            "--strip-trailing-cr" | "-a" | "--text" => {}
+            "--strip-trailing-cr" => opts.strip_trailing_cr = true,
+            "-a" | "--text" => opts.text = true,
+            "--ignore-file-name-case" => opts.ignore_file_name_case = true,
+            "--no-ignore-file-name-case" => opts.ignore_file_name_case = false,
+            "-d" | "--minimal" | "-l" | "--paginate" | "--color" | "--color=always" | "--color=auto" | "--color=never" => {}
+            other if other.starts_with("--color=") => {
+                return err_out(&format!("diff: invalid color mode in {other}\n"), 2);
+            }
+            "--help" | "-v" | "--version" => {
+                return ok_out("diff (GNU diffutils) 3.10\n");
+            }
             "-p" | "--show-c-function" => {
                 opts.show_c_func = true;
                 opts.show_func_regexes.push("^[A-Za-z_$]".to_string());
@@ -4368,48 +4765,121 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             "-T" | "--initial-tab" => opts.initial_tab = true,
             "-B" | "--ignore-blank-lines" => opts.ignore_blank_lines = true,
             "-r" | "--recursive" => opts.recursive = true,
-            "-U" if i + 1 < args.len() => {
-                opts.format = Some(DiffFormat::Unified);
+            "-U" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'U'\n", 2);
+                }
+                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
                 i += 1;
-                opts.ctx_lines = args[i].parse().ok();
+                let w = match parse_ctx_len(&args[i]) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&e, 2),
+                };
+                if let Some(prev) = explicit_ctx_width
+                    && prev != w
+                {
+                    return err_out("diff: conflicting output style options\n", 2);
+                }
+                explicit_ctx_width = Some(w);
+                opts.ctx_lines = Some(w);
             }
-            "-C" if i + 1 < args.len() => {
-                opts.format = Some(DiffFormat::Context);
+            "-C" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'C'\n", 2);
+                }
+                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
                 i += 1;
-                opts.ctx_lines = args[i].parse().ok();
+                let w = match parse_ctx_len(&args[i]) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&e, 2),
+                };
+                if let Some(prev) = explicit_ctx_width
+                    && prev != w
+                {
+                    return err_out("diff: conflicting output style options\n", 2);
+                }
+                explicit_ctx_width = Some(w);
+                opts.ctx_lines = Some(w);
             }
-            "-W" | "--width" if i + 1 < args.len() => {
+            "-W" | "--width" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'W'\n", 2);
+                }
                 i += 1;
-                opts.width = args[i].parse().unwrap_or(130);
+                opts.width = match parse_width(&args[i]) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&e, 2),
+                };
             }
-            "-F" | "--show-function-line" if i + 1 < args.len() => {
+            "-F" | "--show-function-line" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'F'\n", 2);
+                }
                 i += 1;
                 opts.show_func_regexes.push(args[i].clone());
             }
-            "-S" | "--starting-file" if i + 1 < args.len() => {
+            "-S" | "--starting-file" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'S'\n", 2);
+                }
                 i += 1;
                 opts.starting_file = Some(args[i].clone());
             }
-            "-X" | "--exclude-from" if i + 1 < args.len() => {
+            "-X" | "--exclude-from" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'X'\n", 2);
+                }
                 i += 1;
                 exclude_files.push(args[i].clone());
             }
-            "-D" if i + 1 < args.len() => {
-                opts.format = Some(DiffFormat::Ifdef);
+            "-D" | "--ifdef" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'D'\n", 2);
+                }
+                if let Err(e) = select_format(DiffFormat::Ifdef, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
                 i += 1;
                 opts.ifdef_macro = args[i].clone();
             }
-            "-L" | "--label" if i + 1 < args.len() => {
+            "-L" | "--label" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'L'\n", 2);
+                }
                 i += 1;
                 opts.labels.push(args[i].clone());
             }
-            "-I" | "--ignore-matching-lines" if i + 1 < args.len() => {
+            "-I" | "--ignore-matching-lines" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'I'\n", 2);
+                }
                 i += 1;
                 opts.ignore_regexes.push(args[i].clone());
             }
-            "-x" | "--exclude" if i + 1 < args.len() => {
+            "-x" | "--exclude" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option requires an argument -- 'x'\n", 2);
+                }
                 i += 1;
                 opts.excludes.push(args[i].clone());
+            }
+            "--from-file" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option '--from-file' requires an argument\n", 2);
+                }
+                i += 1;
+                from_file = Some(args[i].clone());
+            }
+            "--to-file" => {
+                if i + 1 >= args.len() {
+                    return err_out("diff: option '--to-file' requires an argument\n", 2);
+                }
+                i += 1;
+                to_file = Some(args[i].clone());
             }
             _ if a.starts_with("--label=") => {
                 opts.labels.push(a["--label=".len()..].to_string());
@@ -4423,10 +4893,15 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     .push(a["--show-function-line=".len()..].to_string());
             }
             _ if a.starts_with("--width=") => {
-                opts.width = a["--width=".len()..].parse().unwrap_or(130);
+                opts.width = match parse_width(&a["--width=".len()..]) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&e, 2),
+                };
             }
             _ if a.starts_with("--ifdef=") => {
-                opts.format = Some(DiffFormat::Ifdef);
+                if let Err(e) = select_format(DiffFormat::Ifdef, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
                 opts.ifdef_macro = a["--ifdef=".len()..].to_string();
             }
             _ if a.starts_with("--exclude=") => {
@@ -4444,30 +4919,85 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             _ if a.starts_with("--to-file=") => {
                 to_file = Some(a["--to-file=".len()..].to_string());
             }
-            _ if a.starts_with("-U") || a.starts_with("--unified=") => {
-                opts.format = Some(DiffFormat::Unified);
-                let num = a
-                    .strip_prefix("--unified=")
-                    .or_else(|| a.strip_prefix("-U"))
-                    .unwrap_or("");
-                opts.ctx_lines = num.parse().ok();
+            _ if a.starts_with("--unified=") => {
+                if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+                let w = match parse_ctx_len(&a["--unified=".len()..]) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&e, 2),
+                };
+                if let Some(prev) = explicit_ctx_width
+                    && prev != w
+                {
+                    return err_out("diff: conflicting output style options\n", 2);
+                }
+                explicit_ctx_width = Some(w);
+                opts.ctx_lines = Some(w);
             }
-            _ if a.starts_with("-C") || a.starts_with("--context=") => {
-                opts.format = Some(DiffFormat::Context);
-                let num = a
-                    .strip_prefix("--context=")
-                    .or_else(|| a.strip_prefix("-C"))
-                    .unwrap_or("");
-                opts.ctx_lines = num.parse().ok();
+            _ if a.starts_with("--context=") => {
+                if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                    return err_out(&e, 2);
+                }
+                let w = match parse_ctx_len(&a["--context=".len()..]) {
+                    Ok(v) => v,
+                    Err(e) => return err_out(&e, 2),
+                };
+                if let Some(prev) = explicit_ctx_width
+                    && prev != w
+                {
+                    return err_out("diff: conflicting output style options\n", 2);
+                }
+                explicit_ctx_width = Some(w);
+                opts.ctx_lines = Some(w);
+            }
+            _ if a.starts_with("--") => {
+                return err_out(&format!("diff: unrecognized option '{a}'\n"), 2);
             }
             _ if a.starts_with('-') && a != "-" => {
-                for ch in a[1..].chars() {
+                let mut prev_digit = false;
+                for (byte_off, ch) in a[1..].char_indices() {
+                    if ch.is_ascii_digit() {
+                        let d = (ch as u8 - b'0') as usize;
+                        legacy_context = Some(if prev_digit {
+                            legacy_context.unwrap_or(0).saturating_mul(10).saturating_add(d)
+                        } else {
+                            d
+                        });
+                        prev_digit = true;
+                        continue;
+                    }
+                    prev_digit = false;
                     match ch {
-                        'u' => opts.format = Some(DiffFormat::Unified),
-                        'c' => opts.format = Some(DiffFormat::Context),
-                        'e' => opts.format = Some(DiffFormat::Ed),
-                        'n' => opts.format = Some(DiffFormat::Rcs),
-                        'y' => opts.format = Some(DiffFormat::SideBySide),
+                        'u' => {
+                            if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                                return err_out(&e, 2);
+                            }
+                            opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
+                        }
+                        'c' => {
+                            if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                                return err_out(&e, 2);
+                            }
+                            opts.ctx_lines = Some(explicit_ctx_width.unwrap_or(3));
+                        }
+                        'e' => {
+                            if let Err(e) = select_format(DiffFormat::Ed, &mut selected_format, &mut opts) {
+                                return err_out(&e, 2);
+                            }
+                        }
+                        'n' => {
+                            if let Err(e) = select_format(DiffFormat::Rcs, &mut selected_format, &mut opts) {
+                                return err_out(&e, 2);
+                            }
+                        }
+                        'y' => {
+                            if let Err(e) = select_format(DiffFormat::SideBySide, &mut selected_format, &mut opts) {
+                                return err_out(&e, 2);
+                            }
+                        }
+                        'a' => opts.text = true,
+                        'd' | 'l' => {}
                         'N' => opts.new_file = true,
                         'P' => opts.unidir_new_file = true,
                         'r' => opts.recursive = true,
@@ -4485,13 +5015,93 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                             opts.show_c_func = true;
                             opts.show_func_regexes.push("^[A-Za-z_$]".to_string());
                         }
-                        _ => {}
+                        'U' | 'C' | 'L' | 'W' | 'D' | 'I' | 'F' | 'x' | 'X' | 'S' => {
+                            let rest = &a[1 + byte_off + ch.len_utf8()..];
+                            let param = if !rest.is_empty() {
+                                rest.to_string()
+                            } else if i + 1 < args.len() {
+                                i += 1;
+                                args[i].clone()
+                            } else {
+                                return err_out(&format!("diff: option requires an argument -- '{ch}'\n"), 2);
+                            };
+                            match ch {
+                                'U' => {
+                                    if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
+                                        return err_out(&e, 2);
+                                    }
+                                    let w = match parse_ctx_len(&param) {
+                                        Ok(v) => v,
+                                        Err(e) => return err_out(&e, 2),
+                                    };
+                                    if let Some(prev) = explicit_ctx_width
+                                        && prev != w
+                                    {
+                                        return err_out("diff: conflicting output style options\n", 2);
+                                    }
+                                    explicit_ctx_width = Some(w);
+                                    opts.ctx_lines = Some(w);
+                                }
+                                'C' => {
+                                    if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
+                                        return err_out(&e, 2);
+                                    }
+                                    let w = match parse_ctx_len(&param) {
+                                        Ok(v) => v,
+                                        Err(e) => return err_out(&e, 2),
+                                    };
+                                    if let Some(prev) = explicit_ctx_width
+                                        && prev != w
+                                    {
+                                        return err_out("diff: conflicting output style options\n", 2);
+                                    }
+                                    explicit_ctx_width = Some(w);
+                                    opts.ctx_lines = Some(w);
+                                }
+                                'L' => opts.labels.push(param),
+                                'W' => {
+                                    opts.width = match parse_width(&param) {
+                                        Ok(v) => v,
+                                        Err(e) => return err_out(&e, 2),
+                                    };
+                                }
+                                'D' => {
+                                    if let Err(e) = select_format(DiffFormat::Ifdef, &mut selected_format, &mut opts) {
+                                        return err_out(&e, 2);
+                                    }
+                                    opts.ifdef_macro = param;
+                                }
+                                'I' => opts.ignore_regexes.push(param),
+                                'F' => opts.show_func_regexes.push(param),
+                                'x' => opts.excludes.push(param),
+                                'X' => exclude_files.push(param),
+                                'S' => opts.starting_file = Some(param),
+                                _ => {}
+                            }
+                            break;
+                        }
+                        other => {
+                            return err_out(&format!("diff: invalid option -- '{other}'\n"), 2);
+                        }
                     }
                 }
             }
             _ => files.push(a.clone()),
         }
+        opts.option_args.extend_from_slice(&args[opt_start..=i]);
         i += 1;
+    }
+
+    if let Some(lc) = legacy_context
+        && matches!(opts.format, Some(DiffFormat::Unified | DiffFormat::Context))
+    {
+        opts.ctx_lines = Some(explicit_ctx_width.map_or(lc, |ew| ew.max(lc)));
+    }
+    if opts.labels.len() > 2 {
+        return err_out("diff: at most two labels are supported\n", 2);
+    }
+    if from_file.is_some() && to_file.is_some() {
+        return err_out("diff: --from-file and --to-file may not both be specified\n", 2);
     }
 
     for exf in exclude_files {
@@ -4506,42 +5116,73 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     }
 
-    if let Some(ff) = from_file {
+    if from_file.is_some() || to_file.is_some() {
+        if files.is_empty() {
+            return err_out("diff: missing operand\n", 2);
+        }
         let mut pairs = Vec::new();
-        for f in &files {
-            pairs.push((ff.clone(), f.clone()));
+        if let Some(ref ff) = from_file {
+            for f in &files {
+                pairs.push((ff.clone(), f.clone()));
+            }
+        } else if let Some(ref tf) = to_file {
+            for f in &files {
+                pairs.push((f.clone(), tf.clone()));
+            }
         }
         let mut total_out = String::new();
+        let mut total_err = String::new();
         let mut any_diff = false;
+        let mut any_trouble = false;
         for (fa, fb) in pairs {
-            let ta = fs
-                .read_file(&resolve_posix_path(cwd, &fa))
-                .map(|b| String::from_utf8_lossy(&b).into_owned())
-                .unwrap_or_default();
-            let tb = fs
-                .read_file(&resolve_posix_path(cwd, &fb))
-                .map(|b| String::from_utf8_lossy(&b).into_owned())
-                .unwrap_or_default();
-            let (o, d) = diff_two_texts(&fa, &fb, &ta, &tb, &opts);
+            let ba = if fa == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                match fs.read_file(&resolve_posix_path(cwd, &fa)) {
+                    Ok(b) => b,
+                    Err(_) => {
+                        total_err.push_str(&format!("diff: {fa}: No such file or directory\n"));
+                        any_trouble = true;
+                        continue;
+                    }
+                }
+            };
+            let bb = if fb == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                match fs.read_file(&resolve_posix_path(cwd, &fb)) {
+                    Ok(b) => b,
+                    Err(_) => {
+                        total_err.push_str(&format!("diff: {fb}: No such file or directory\n"));
+                        any_trouble = true;
+                        continue;
+                    }
+                }
+            };
+            let la = opts.labels.first().unwrap_or(&fa);
+            let lb = opts.labels.get(1).unwrap_or(&fb);
+            let (o, d, tr) =
+                diff_two_byte_inputs(&fa, &fb, la, lb, &ba, &bb, false, &opts, &mut total_err);
             if d {
                 any_diff = true;
+            }
+            if tr {
+                any_trouble = true;
             }
             total_out.push_str(&o);
         }
         return BuiltinOutcome {
             stdout: total_out,
-            stderr: String::new(),
-            exit_code: if any_diff { 1 } else { 0 },
+            stderr: total_err,
+            exit_code: if any_trouble { 2 } else if any_diff { 1 } else { 0 },
         };
-    }
-    if let Some(tf) = to_file
-        && files.len() == 1
-    {
-        files.push(tf);
     }
 
     if files.len() < 2 {
         return err_out("diff: missing operand\n", 2);
+    }
+    if files.len() > 2 {
+        return err_out(&format!("diff: extra operand '{}'\n", files[2]), 2);
     }
 
     let mut full_a = resolve_posix_path(cwd, &files[0]);
@@ -4549,7 +5190,9 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     if files[0] != "-" && files[1] != "-" {
         if fs.is_dir(&full_a) && fs.is_dir(&full_b) {
             let mut out = String::new();
+            let mut stderr = String::new();
             let mut any_diff = false;
+            let mut any_trouble = false;
             diff_dirs_recursive(
                 &files[0],
                 &files[1],
@@ -4558,12 +5201,14 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 &opts,
                 fs,
                 &mut out,
+                &mut stderr,
                 &mut any_diff,
+                &mut any_trouble,
             );
             return BuiltinOutcome {
                 stdout: out,
-                stderr: String::new(),
-                exit_code: if any_diff { 1 } else { 0 },
+                stderr,
+                exit_code: if any_trouble { 2 } else if any_diff { 1 } else { 0 },
             };
         } else if !fs.is_dir(&full_a) && fs.is_dir(&full_b) {
             let base = files[0].rsplit('/').next().unwrap_or(&files[0]).to_string();
@@ -4577,38 +5222,41 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     }
     let _ = (full_a, full_b);
 
-    let read_side = |name: &str| -> Result<String, String> {
+    let read_side_bytes = |name: &str| -> Result<Vec<u8>, String> {
         if name == "-" {
-            return Ok(stdin.to_string());
+            return Ok(crate::vfs::stream_string_to_bytes(stdin));
         }
         let full = resolve_posix_path(cwd, name);
-        let bytes = fs
-            .read_file(&full)
-            .map_err(|_| format!("diff: {name}: No such file or directory\n"))?;
-        Ok(String::from_utf8_lossy(&bytes).into_owned())
+        fs.read_file(&full)
+            .map_err(|_| format!("diff: {name}: No such file or directory\n"))
     };
 
-    let text_a = match read_side(&files[0]) {
+    let bytes_a = match read_side_bytes(&files[0]) {
         Ok(t) => t,
         Err(e) => return err_out(&e, 2),
     };
-    let text_b = match read_side(&files[1]) {
+    let bytes_b = match read_side_bytes(&files[1]) {
         Ok(t) => t,
         Err(e) => return err_out(&e, 2),
     };
 
-    let (out, differed) = diff_two_texts(
+    let mut stderr = String::new();
+    let (out, differed, trouble) = diff_two_byte_inputs(
+        &files[0],
+        &files[1],
         opts.labels.first().unwrap_or(&files[0]),
         opts.labels.get(1).unwrap_or(&files[1]),
-        &text_a,
-        &text_b,
+        &bytes_a,
+        &bytes_b,
+        false,
         &opts,
+        &mut stderr,
     );
 
     BuiltinOutcome {
         stdout: out,
-        stderr: String::new(),
-        exit_code: if differed { 1 } else { 0 },
+        stderr,
+        exit_code: if trouble { 2 } else if differed { 1 } else { 0 },
     }
 }
 
@@ -4663,7 +5311,11 @@ struct PatchOpts {
     strip: Option<usize>,
     reverse: bool,
     dry_run: bool,
-    backup: bool,
+    always_backup: bool,
+    backup_if_mismatch: bool,
+    posix: bool,
+    reject_format: Option<String>,
+    was_context_diff: bool,
     backup_suffix: String,
     backup_prefix: Option<String>,
     backup_basename_prefix: Option<String>,
@@ -4735,6 +5387,21 @@ fn decode_patch_header_path(raw_line: &str) -> (String, bool) {
     (trimmed.split_whitespace().next().unwrap_or("").to_string(), is_epoch)
 }
 
+fn context_range_to_unified(r: &str) -> String {
+    let r = r.trim();
+    if let Some((s_str, e_str)) = r.split_once(',')
+        && let (Ok(s), Ok(e)) = (s_str.trim().parse::<usize>(), e_str.trim().parse::<usize>())
+    {
+        let count = if s == 0 { 0 } else { e.saturating_sub(s) + 1 };
+        format!("{s},{count}")
+    } else if let Ok(s) = r.parse::<usize>() {
+        let count = if s == 0 { 0 } else { 1 };
+        format!("{s},{count}")
+    } else {
+        r.to_string()
+    }
+}
+
 fn convert_context_diff_to_unified(text: &str) -> String {
     if !text.contains("***************") {
         return text.to_string();
@@ -4759,11 +5426,11 @@ fn convert_context_diff_to_unified(text: &str) -> String {
         if lines[i].starts_with("***************") {
             i += 1;
             if i < lines.len() && lines[i].starts_with("*** ") && lines[i].ends_with("****") {
-                let a_range = lines[i]
+                let a_range_raw = lines[i]
                     .trim_start_matches('*')
                     .trim_end_matches('*')
-                    .trim()
-                    .to_string();
+                    .trim();
+                let a_range = context_range_to_unified(a_range_raw);
                 i += 1;
                 let mut old_part = Vec::new();
                 while i < lines.len()
@@ -4776,11 +5443,11 @@ fn convert_context_diff_to_unified(text: &str) -> String {
                 let mut b_range = a_range.clone();
                 let mut new_part = Vec::new();
                 if i < lines.len() && lines[i].starts_with("--- ") && lines[i].ends_with("----") {
-                    b_range = lines[i]
+                    let b_range_raw = lines[i]
                         .trim_start_matches('-')
                         .trim_end_matches('-')
-                        .trim()
-                        .to_string();
+                        .trim();
+                    b_range = context_range_to_unified(b_range_raw);
                     i += 1;
                     while i < lines.len()
                         && !lines[i].starts_with("***************")
@@ -4789,6 +5456,19 @@ fn convert_context_diff_to_unified(text: &str) -> String {
                         new_part.push(lines[i]);
                         i += 1;
                     }
+                }
+                if old_part.is_empty() {
+                    old_part = new_part
+                        .iter()
+                        .copied()
+                        .filter(|l| l.starts_with("  "))
+                        .collect();
+                } else if new_part.is_empty() {
+                    new_part = old_part
+                        .iter()
+                        .copied()
+                        .filter(|l| l.starts_with("  "))
+                        .collect();
                 }
                 out.push_str(&format!("@@ -{a_range} +{b_range} @@\n"));
                 let mut oi = 0usize;
@@ -4832,10 +5512,14 @@ fn convert_context_diff_to_unified(text: &str) -> String {
 
 fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut opts = PatchOpts {
+        backup_if_mismatch: true,
+        fuzz: 2,
         backup_suffix: ".orig".to_string(),
         work_cwd: cwd.to_string(),
         ..Default::default()
     };
+    let mut backup_explicit = false;
+    let mut fuzz_explicit = false;
     let mut silent = false;
     let mut input_file: Option<String> = None;
     let mut output_file: Option<String> = None;
@@ -4843,8 +5527,23 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut target_file: Option<String> = None;
 
     let mut i = 0usize;
+    let mut literal = false;
     while i < args.len() {
         let a = &args[i];
+        if literal {
+            if target_file.is_none() {
+                target_file = Some(a.clone());
+            } else if input_file.is_none() {
+                input_file = Some(a.clone());
+            }
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            literal = true;
+            i += 1;
+            continue;
+        }
         if a == "-R" || a == "--reverse" {
             opts.reverse = true;
         } else if a == "-s" || a == "--silent" || a == "--quiet" {
@@ -4852,10 +5551,18 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else if a == "--dry-run" {
             opts.dry_run = true;
         } else if a == "-b" || a == "--backup" {
-            opts.backup = true;
+            opts.always_backup = true;
+        } else if a == "--backup-if-mismatch" {
+            opts.backup_if_mismatch = true;
+            backup_explicit = true;
+        } else if a == "--no-backup-if-mismatch" {
+            opts.backup_if_mismatch = false;
+            backup_explicit = true;
+        } else if a == "--posix" {
+            opts.posix = true;
         } else if a == "-E" || a == "--remove-empty-files" {
             opts.remove_empty = true;
-        } else if a == "-l" || a == "--ignore-whitespace" {
+        } else if a == "-l" || a == "--ignore-whitespace" || a == "--ignore-white-space" {
             opts.ignore_ws = true;
         } else if a == "-N" || a == "--forward" {
             opts.forward_only = true;
@@ -4871,11 +5578,13 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else if a == "-D" && i + 1 < args.len() {
             i += 1;
             opts.ifdef_guard = Some(args[i].clone());
+        } else if let Some(m) = a.strip_prefix("-D") {
+            opts.ifdef_guard = Some(m.to_string());
         } else if (a == "-d" || a == "--directory") && i + 1 < args.len() {
             i += 1;
             opts.work_cwd = resolve_posix_path(cwd, &args[i]);
-        } else if let Some(d) = a.strip_prefix("--directory=") {
-            opts.work_cwd = resolve_posix_path(cwd, d);
+        } else if let Some(dir) = a.strip_prefix("--directory=") {
+            opts.work_cwd = resolve_posix_path(cwd, dir);
         } else if (a == "-z" || a == "--suffix") && i + 1 < args.len() {
             i += 1;
             opts.backup_suffix = args[i].clone();
@@ -4899,9 +5608,18 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else if (a == "-F" || a == "--fuzz") && i + 1 < args.len() {
             i += 1;
             opts.fuzz = args[i].parse().unwrap_or(0);
+            fuzz_explicit = true;
         } else if let Some(f) = a.strip_prefix("--fuzz=") {
             opts.fuzz = f.parse().unwrap_or(0);
-        } else if a.starts_with("--reject-format") {
+            fuzz_explicit = true;
+        } else if let Some(f) = a.strip_prefix("-F") {
+            opts.fuzz = f.parse().unwrap_or(0);
+            fuzz_explicit = true;
+        } else if let Some(rf) = a.strip_prefix("--reject-format=") {
+            opts.reject_format = Some(rf.to_string());
+        } else if a == "--reject-format" && i + 1 < args.len() {
+            i += 1;
+            opts.reject_format = Some(args[i].clone());
         } else if let Some(p) = a.strip_prefix("-p") {
             if !p.is_empty() {
                 opts.strip = Some(p.parse().unwrap_or(0));
@@ -4914,6 +5632,8 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else if a == "-i" && i + 1 < args.len() {
             i += 1;
             input_file = Some(args[i].clone());
+        } else if let Some(inf) = a.strip_prefix("--input=") {
+            input_file = Some(inf.to_string());
         } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
             i += 1;
             output_file = Some(args[i].clone());
@@ -4932,6 +5652,13 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         i += 1;
     }
 
+    if opts.posix && !backup_explicit {
+        opts.backup_if_mismatch = false;
+    }
+    if opts.merge_mode && !fuzz_explicit {
+        opts.fuzz = 0;
+    }
+
     let patch_text = if let Some(inf) = input_file {
         let full = resolve_posix_path(cwd, &inf);
         match fs.read_file(&full) {
@@ -4941,6 +5668,7 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     } else {
         stdin.to_string()
     };
+    opts.was_context_diff = patch_text.contains("***************");
     let normalized_patch = convert_context_diff_to_unified(&patch_text);
 
     let mut stdout_patched = String::new();
@@ -5021,6 +5749,7 @@ fn flush_patched_file(
     no_trailing_newline: bool,
     delete_to_dev_null: bool,
     created_from_dev_null: bool,
+    should_backup: bool,
     opts: &PatchOpts,
     fs: &dyn SafeBashFs,
     staged_writes: &mut Option<StagedPatchWrites>,
@@ -5042,7 +5771,7 @@ fn flush_patched_file(
     }
     let cwd = &opts.work_cwd;
     let orig_full = resolve_posix_path(cwd, target);
-    if opts.backup && output_override.is_none() && let Ok(orig_bytes) = fs.read_file(&orig_full) {
+    if should_backup && output_override.is_none() && let Ok(orig_bytes) = fs.read_file(&orig_full) {
         let bak_path = compute_backup_path(&orig_full, opts, fs);
         if let Some(staged) = staged_writes {
             staged.push((bak_path, Some(orig_bytes)));
@@ -5056,7 +5785,7 @@ fn flush_patched_file(
     }
     let write_target = output_override.unwrap_or(target);
     let full = resolve_posix_path(cwd, write_target);
-    if (delete_to_dev_null || opts.remove_empty) && file_lines.is_empty() {
+    if opts.ifdef_guard.is_none() && (delete_to_dev_null || opts.remove_empty) && file_lines.is_empty() {
         if let Some(staged) = staged_writes {
             staged.push((full, None));
         } else {
@@ -5080,7 +5809,7 @@ fn flush_patched_file(
     Ok(())
 }
 
-fn parse_normal_diff_cmd(line: &str) -> Option<(char, usize)> {
+fn parse_normal_diff_cmd(line: &str) -> Option<(char, usize, usize)> {
     for op in ['a', 'c', 'd'] {
         if let Some((lhs, rhs)) = line.split_once(op)
             && !lhs.is_empty()
@@ -5092,7 +5821,11 @@ fn parse_normal_diff_cmd(line: &str) -> Option<(char, usize)> {
                 .split(',')
                 .next()
                 .and_then(|s| s.parse::<usize>().ok())?;
-            return Some((op, a_start));
+            let b_start = rhs
+                .split(',')
+                .next()
+                .and_then(|s| s.parse::<usize>().ok())?;
+            return Some((op, a_start, b_start));
         }
     }
     None
@@ -5109,6 +5842,63 @@ fn resolve_patch_target_path(chosen_raw: &str, strip: Option<usize>, cwd: &str, 
     chosen_raw.rsplit('/').next().unwrap_or(chosen_raw).to_string()
 }
 
+fn format_context_reject_hunk(raw_hunk_lines: &[String]) -> String {
+    let header = raw_hunk_lines.first().map(|s| s.as_str()).unwrap_or("");
+    let (old_s, old_c, new_s, new_c) = parse_hunk_starts_and_counts(header);
+    let ctx_range = |s: usize, c: usize| -> String {
+        if c == 0 {
+            "0".to_string()
+        } else if c == 1 {
+            format!("{s}")
+        } else {
+            format!("{s},{}", s + c - 1)
+        }
+    };
+    let mut entries: Vec<(char, &str)> = Vec::new();
+    for hl in raw_hunk_lines.iter().skip(1) {
+        if let Some(r) = hl.strip_prefix('-') {
+            entries.push(('-', r));
+        } else if let Some(a) = hl.strip_prefix('+') {
+            entries.push(('+', a));
+        } else if let Some(c) = hl.strip_prefix(' ') {
+            entries.push((' ', c));
+        }
+    }
+    let mut out = format!("***************\n*** {} ****\n", ctx_range(old_s, old_c));
+    for side in ['-', '+'] {
+        if side == '+' {
+            out.push_str(&format!("--- {} ----\n", ctx_range(new_s, new_c)));
+        }
+        let mut idx = 0usize;
+        while idx < entries.len() {
+            if entries[idx].0 == ' ' {
+                out.push_str(&format!("  {}\n", entries[idx].1));
+                idx += 1;
+                continue;
+            }
+            let mut end = idx;
+            let mut has_rem = false;
+            let mut has_add = false;
+            while end < entries.len() && entries[end].0 != ' ' {
+                if entries[end].0 == '-' {
+                    has_rem = true;
+                } else if entries[end].0 == '+' {
+                    has_add = true;
+                }
+                end += 1;
+            }
+            let mark = if has_rem && has_add { '!' } else { side };
+            for &(k, text) in &entries[idx..end] {
+                if k == side {
+                    out.push_str(&format!("{mark} {text}\n"));
+                }
+            }
+            idx = end;
+        }
+    }
+    out
+}
+
 #[allow(clippy::too_many_arguments)]
 fn apply_unified_diff(
     patch_text: &str,
@@ -5123,6 +5913,7 @@ fn apply_unified_diff(
     let reverse = opts.reverse;
     let dry_run = opts.dry_run;
     let cwd = &opts.work_cwd;
+    let action_verb = if dry_run { "checking" } else { "patching" };
     let mut staged_writes: Option<Vec<(String, Option<Vec<u8>>)>> = if opts.atomic {
         Some(Vec::new())
     } else {
@@ -5150,8 +5941,9 @@ fn apply_unified_diff(
             let mut p_idx = 0usize;
             let mut applied_any = false;
             let mut offset: isize = 0;
+            let mut normal_mismatch = false;
             while p_idx < p_lines.len() {
-                if let Some((op, a_start)) = parse_normal_diff_cmd(p_lines[p_idx]) {
+                if let Some((op, a_start, b_start)) = parse_normal_diff_cmd(p_lines[p_idx]) {
                     p_idx += 1;
                     let mut old_lines = Vec::new();
                     let mut new_lines = Vec::new();
@@ -5166,19 +5958,23 @@ fn apply_unified_diff(
                     if reverse {
                         std::mem::swap(&mut old_lines, &mut new_lines);
                     }
+                    let base_start = if reverse { b_start } else { a_start };
                     if !old_lines.is_empty() {
-                        let hint = ((a_start.saturating_sub(1) as isize) + offset).max(0) as usize;
+                        let hint = ((base_start.saturating_sub(1) as isize) + offset).max(0) as usize;
                         if let Some(pos) = find_subslice_pos(&file_lines, &old_lines, hint) {
+                            if pos != hint {
+                                normal_mismatch = true;
+                            }
                             let old_len = old_lines.len();
                             let new_len = new_lines.len();
                             file_lines.splice(pos..pos + old_len, new_lines);
                             offset += (new_len as isize) - (old_len as isize);
                         }
                     } else if !new_lines.is_empty() {
-                        let ins_pos = if op == 'a' && !reverse {
-                            ((a_start as isize) + offset).clamp(0, file_lines.len() as isize) as usize
+                        let ins_pos = if (op == 'a' && !reverse) || (op == 'd' && reverse) {
+                            ((base_start as isize) + offset).clamp(0, file_lines.len() as isize) as usize
                         } else {
-                            ((a_start.saturating_sub(1) as isize) + offset)
+                            ((base_start.saturating_sub(1) as isize) + offset)
                                 .clamp(0, file_lines.len() as isize) as usize
                         };
                         let new_len = new_lines.len();
@@ -5191,6 +5987,7 @@ fn apply_unified_diff(
                 }
             }
             if applied_any {
+                let should_backup = opts.always_backup || (opts.backup_if_mismatch && normal_mismatch);
                 flush_patched_file(
                     &target,
                     output_override,
@@ -5198,15 +5995,16 @@ fn apply_unified_diff(
                     false,
                     false,
                     false,
+                    should_backup,
                     opts,
                     fs,
                     &mut staged_writes,
                     stdout_patched,
                 )?;
                 let msg = if let Some(out_ov) = output_override {
-                    format!("patching file {out_ov} (read from {target})\n")
+                    format!("{action_verb} file {out_ov} (read from {target})\n")
                 } else {
-                    format!("patching file {target}\n")
+                    format!("{action_verb} file {target}\n")
                 };
                 return Ok((msg, false));
             }
@@ -5214,18 +6012,102 @@ fn apply_unified_diff(
     }
 
     let mut current_target: Option<String> = None;
+    let mut current_old_hdr = String::new();
+    let mut current_new_hdr = String::new();
     let mut pending_minus_raw = String::new();
     let mut pending_minus_epoch = false;
     let mut delete_to_dev_null = false;
     let mut created_from_dev_null = false;
     let mut no_trailing_newline = false;
     let mut file_lines: Vec<String> = Vec::new();
-    let mut offset: isize = 0;
-    let mut any_hunk_failed = false;
-    let mut failed_hunk_count = 0usize;
-    let mut total_hunk_count = 0usize;
-    let mut failed_rej_lines: Vec<String> = Vec::new();
+    let mut prev_delta: isize = 0;
+    let mut file_hunk_count = 0usize;
+    let mut file_failed_count = 0usize;
+    let mut file_mismatch = false;
+    let mut file_forward_skipped = false;
+    let mut file_rej_hunks: Vec<Vec<String>> = Vec::new();
+    let mut any_file_failed = false;
     let mut status_out = String::new();
+
+    let finalize_file = |target: &str,
+                         old_hdr: &str,
+                         new_hdr: &str,
+                         file_lines: &[String],
+                         no_trailing_newline: bool,
+                         delete_to_dev_null: bool,
+                         created_from_dev_null: bool,
+                         file_hunk_count: usize,
+                         file_failed_count: usize,
+                         file_mismatch: bool,
+                         file_forward_skipped: bool,
+                         file_rej_hunks: &[Vec<String>],
+                         staged_writes: &mut Option<StagedPatchWrites>,
+                         stdout_patched: &mut String,
+                         status_out: &mut String,
+                         any_file_failed: &mut bool|
+     -> Result<(), String> {
+        let should_backup = opts.always_backup || (opts.backup_if_mismatch && file_mismatch);
+        flush_patched_file(
+            target,
+            output_override,
+            file_lines,
+            no_trailing_newline,
+            delete_to_dev_null,
+            created_from_dev_null,
+            should_backup,
+            opts,
+            fs,
+            staged_writes,
+            stdout_patched,
+        )?;
+        if file_failed_count > 0 {
+            *any_file_failed = true;
+            if !opts.merge_mode && !file_forward_skipped {
+                let rej_target = match reject_file {
+                    Some("-") => None,
+                    Some(r) => Some(r.to_string()),
+                    None => Some(format!("{target}.rej")),
+                };
+                let hunk_word = if file_hunk_count <= 1 { "hunk" } else { "hunks" };
+                if !dry_run && let Some(ref rt) = rej_target {
+                    status_out.push_str(&format!(
+                        "{file_failed_count} out of {} {hunk_word} FAILED -- saving rejects to file {rt}\n",
+                        file_hunk_count.max(1),
+                    ));
+                    let rej_full = resolve_posix_path(cwd, rt);
+                    let use_ctx = opts.reject_format.as_deref() == Some("context")
+                        || (opts.reject_format.is_none() && opts.was_context_diff);
+                    let (r_old, r_new) = if reverse {
+                        (new_hdr, old_hdr)
+                    } else {
+                        (old_hdr, new_hdr)
+                    };
+                    let mut rej_body = if use_ctx {
+                        format!("*** {r_old}\n--- {r_new}\n")
+                    } else {
+                        format!("--- {r_old}\n+++ {r_new}\n")
+                    };
+                    for rh in file_rej_hunks {
+                        if use_ctx {
+                            rej_body.push_str(&format_context_reject_hunk(rh));
+                        } else {
+                            for l in rh {
+                                rej_body.push_str(l);
+                                rej_body.push('\n');
+                            }
+                        }
+                    }
+                    let _ = fs.write_file(&rej_full, rej_body.as_bytes());
+                } else {
+                    status_out.push_str(&format!(
+                        "{file_failed_count} out of {} {hunk_word} FAILED\n",
+                        file_hunk_count.max(1),
+                    ));
+                }
+            }
+        }
+        Ok(())
+    };
 
     let lines: Vec<&str> = patch_text.lines().collect();
     let mut idx = 0usize;
@@ -5234,17 +6116,23 @@ fn apply_unified_diff(
         let line = lines[idx];
         if let Some(minus_path) = line.strip_prefix("--- ") {
             if let Some(prev_target) = current_target.take() {
-                flush_patched_file(
+                finalize_file(
                     &prev_target,
-                    output_override,
+                    &current_old_hdr,
+                    &current_new_hdr,
                     &file_lines,
                     no_trailing_newline,
                     delete_to_dev_null,
                     created_from_dev_null,
-                    opts,
-                    fs,
+                    file_hunk_count,
+                    file_failed_count,
+                    file_mismatch,
+                    file_forward_skipped,
+                    &file_rej_hunks,
                     &mut staged_writes,
                     stdout_patched,
+                    &mut status_out,
+                    &mut any_file_failed,
                 )?;
             }
             let (dec_minus, is_ep) = decode_patch_header_path(minus_path);
@@ -5267,10 +6155,20 @@ fn apply_unified_diff(
             };
             let stripped = resolve_patch_target_path(chosen_raw, strip, cwd, fs);
             let target = explicit_target.unwrap_or(&stripped).to_string();
-            if let Some(out_ov) = output_override {
-                status_out.push_str(&format!("patching file {out_ov} (read from {target})\n"));
+            current_old_hdr = if pending_minus_raw == "/dev/null" {
+                "/dev/null".to_string()
             } else {
-                status_out.push_str(&format!("patching file {target}\n"));
+                resolve_patch_target_path(&pending_minus_raw, strip, cwd, fs)
+            };
+            current_new_hdr = if raw_plus == "/dev/null" {
+                "/dev/null".to_string()
+            } else {
+                stripped.clone()
+            };
+            if let Some(out_ov) = output_override {
+                status_out.push_str(&format!("{action_verb} file {out_ov} (read from {target})\n"));
+            } else {
+                status_out.push_str(&format!("{action_verb} file {target}\n"));
             }
             let full = resolve_posix_path(cwd, &target);
             if !created_from_dev_null && let Ok(bytes) = fs.read_file(&full) {
@@ -5282,13 +6180,18 @@ fn apply_unified_diff(
                 file_lines = Vec::new();
             }
             current_target = Some(target);
-            offset = 0;
+            prev_delta = 0;
+            file_hunk_count = 0;
+            file_failed_count = 0;
+            file_mismatch = false;
+            file_forward_skipped = false;
+            file_rej_hunks.clear();
             idx += 1;
             continue;
         }
 
         if line.starts_with("@@ ") {
-            total_hunk_count += 1;
+            file_hunk_count += 1;
             if current_target.is_some() && file_lines.is_empty() && !created_from_dev_null {
                 if let Some(t) = &current_target {
                     let full = resolve_posix_path(cwd, t);
@@ -5300,11 +6203,16 @@ fn apply_unified_diff(
                 }
             }
             let hunk_header = line.to_string();
-            let (old_start, new_start) = parse_hunk_starts(line);
-            let orig_start = if reverse { new_start } else { old_start };
+            let (old_start, old_count, new_start, new_count) = parse_hunk_starts_and_counts(line);
+            let (orig_start, orig_count) = if reverse {
+                (new_start, new_count)
+            } else {
+                (old_start, old_count)
+            };
             idx += 1;
             let mut hunk_old = Vec::new();
             let mut hunk_new = Vec::new();
+            let mut hunk_entries: Vec<(char, String)> = Vec::new();
             let mut raw_hunk_lines = vec![hunk_header];
             let mut last_sign = ' ';
             let mut old_no_nl = false;
@@ -5335,17 +6243,21 @@ fn apply_unified_diff(
                 }
                 if let Some(rem) = hl.strip_prefix('-') {
                     hunk_old.push(rem.to_string());
+                    hunk_entries.push((if reverse { '+' } else { '-' }, rem.to_string()));
                     last_sign = '-';
                 } else if let Some(add) = hl.strip_prefix('+') {
                     hunk_new.push(add.to_string());
+                    hunk_entries.push((if reverse { '-' } else { '+' }, add.to_string()));
                     last_sign = '+';
                 } else if let Some(ctx) = hl.strip_prefix(' ') {
                     hunk_old.push(ctx.to_string());
                     hunk_new.push(ctx.to_string());
+                    hunk_entries.push((' ', ctx.to_string()));
                     last_sign = ' ';
                 } else if hl.is_empty() {
                     hunk_old.push(String::new());
                     hunk_new.push(String::new());
+                    hunk_entries.push((' ', String::new()));
                     last_sign = ' ';
                 }
                 idx += 1;
@@ -5357,17 +6269,30 @@ fn apply_unified_diff(
             if reverse {
                 std::mem::swap(&mut hunk_old, &mut hunk_new);
             }
-            let expected_pos = ((orig_start.saturating_sub(1) as isize) + offset).max(0) as usize;
-            let mut pos_opt = find_subslice_pos(&file_lines, &hunk_old, expected_pos)
-                .or_else(|| {
-                    if opts.ignore_ws || opts.fuzz > 0 {
-                        find_subslice_pos_fuzzy(&file_lines, &hunk_old, expected_pos, opts.ignore_ws, opts.fuzz)
-                    } else {
-                        None
-                    }
-                });
+            let leading_ctx = hunk_entries.iter().take_while(|(k, _)| *k == ' ').count();
+            let trailing_ctx = hunk_entries
+                .iter()
+                .rev()
+                .take(hunk_entries.len().saturating_sub(leading_ctx))
+                .take_while(|(k, _)| *k == ' ')
+                .count();
+            let unshifted_start = if orig_count == 0 && hunk_old.is_empty() {
+                orig_start
+            } else {
+                orig_start.saturating_sub(1)
+            };
+            let expected_pos = ((unshifted_start as isize) + prev_delta).max(0) as usize;
+            let mut match_opt = find_subslice_pos_with_fuzz(
+                &file_lines,
+                &hunk_old,
+                expected_pos,
+                leading_ctx,
+                trailing_ctx,
+                opts.ignore_ws,
+                opts.fuzz,
+            );
 
-            if pos_opt.is_none()
+            if match_opt.is_none()
                 && !reverse
                 && !opts.force
                 && !hunk_new.is_empty()
@@ -5375,21 +6300,34 @@ fn apply_unified_diff(
             {
                 if opts.forward_only {
                     status_out.push_str("Reversed (or previously applied) patch detected!  Skipping patch.\n");
-                    any_hunk_failed = true;
-                    failed_hunk_count += 1;
+                    status_out.push_str(&format!(
+                        "{file_hunk_count} out of {file_hunk_count} {} ignored\n",
+                        if file_hunk_count <= 1 { "hunk" } else { "hunks" }
+                    ));
+                    file_failed_count += 1;
+                    file_forward_skipped = true;
                     continue;
                 } else {
                     status_out.push_str("Reversed (or previously applied) patch detected!  Assuming -R.\n");
                     std::mem::swap(&mut hunk_old, &mut hunk_new);
-                    pos_opt = Some(rev_pos);
+                    for (k, _) in &mut hunk_entries {
+                        if *k == '-' {
+                            *k = '+';
+                        } else if *k == '+' {
+                            *k = '-';
+                        }
+                    }
+                    file_mismatch = true;
+                    match_opt = Some((rev_pos, 0, 0, 0));
                 }
             }
 
-            let pos = match pos_opt {
-                Some(p) => p,
+            let (pos, used_fuzz, pf, sf) = match match_opt {
+                Some(m) => m,
                 None => {
-                    any_hunk_failed = true;
-                    failed_hunk_count += 1;
+                    file_failed_count += 1;
+                    file_mismatch = true;
+                    let fail_line = expected_pos + 1;
                     if opts.merge_mode {
                         let ins_at = expected_pos.min(file_lines.len());
                         let end_at = (ins_at + hunk_old.len()).min(file_lines.len());
@@ -5422,69 +6360,108 @@ fn apply_unified_diff(
                         }
                         file_lines.splice(ins_at..end_at, conflict_block);
                     } else {
-                        failed_rej_lines.extend(raw_hunk_lines);
+                        status_out.push_str(&format!("Hunk #{file_hunk_count} FAILED at {fail_line}.\n"));
+                        file_rej_hunks.push(raw_hunk_lines);
                     }
                     continue;
                 }
             };
-            let old_len = hunk_old.len();
+
+            let hunk_offset = ((pos as isize) - prev_delta) - (unshifted_start as isize);
+            if used_fuzz > 0 || hunk_offset != 0 {
+                file_mismatch = true;
+                let succeeded_line = pos + 1;
+                let fuzz_part = if used_fuzz > 0 {
+                    format!(" with fuzz {used_fuzz}")
+                } else {
+                    String::new()
+                };
+                let offset_part = if hunk_offset != 0 {
+                    let unit = if hunk_offset == 1 { "line" } else { "lines" };
+                    format!(" (offset {hunk_offset} {unit})")
+                } else {
+                    String::new()
+                };
+                status_out.push_str(&format!(
+                    "Hunk #{file_hunk_count} succeeded at {succeeded_line}{fuzz_part}{offset_part}.\n"
+                ));
+            }
+
+            let splice_start = pos + pf;
+            let splice_end = pos + hunk_old.len().saturating_sub(sf);
+            let old_slice_len = splice_end.saturating_sub(splice_start);
             let replacement: Vec<String> = if let Some(ref macro_name) = opts.ifdef_guard {
-                let mut blk = vec![format!("#ifndef {macro_name}")];
-                blk.extend(hunk_old.iter().cloned());
-                blk.push("#else".to_string());
-                blk.extend(hunk_new.iter().cloned());
-                blk.push("#endif".to_string());
+                let entry_end = hunk_entries.len().saturating_sub(sf);
+                let active_entries = &hunk_entries[pf.min(entry_end)..entry_end];
+                let mut blk = Vec::new();
+                let mut ei = 0usize;
+                while ei < active_entries.len() {
+                    if active_entries[ei].0 == ' ' {
+                        blk.push(active_entries[ei].1.clone());
+                        ei += 1;
+                        continue;
+                    }
+                    let mut run_end = ei;
+                    let mut rem_lines = Vec::new();
+                    let mut add_lines = Vec::new();
+                    while run_end < active_entries.len() && active_entries[run_end].0 != ' ' {
+                        if active_entries[run_end].0 == '-' {
+                            rem_lines.push(active_entries[run_end].1.clone());
+                        } else if active_entries[run_end].0 == '+' {
+                            add_lines.push(active_entries[run_end].1.clone());
+                        }
+                        run_end += 1;
+                    }
+                    if !rem_lines.is_empty() && !add_lines.is_empty() {
+                        blk.push(format!("#ifndef {macro_name}"));
+                        blk.extend(rem_lines);
+                        blk.push("#else".to_string());
+                        blk.extend(add_lines);
+                        blk.push("#endif".to_string());
+                    } else if !rem_lines.is_empty() {
+                        blk.push(format!("#ifndef {macro_name}"));
+                        blk.extend(rem_lines);
+                        blk.push("#endif".to_string());
+                    } else if !add_lines.is_empty() {
+                        blk.push(format!("#ifdef {macro_name}"));
+                        blk.extend(add_lines);
+                        blk.push("#endif".to_string());
+                    }
+                    ei = run_end;
+                }
                 blk
             } else {
-                hunk_new
+                let new_end = hunk_new.len().saturating_sub(sf);
+                hunk_new[pf.min(new_end)..new_end].to_vec()
             };
-            let new_len = replacement.len();
-            file_lines.splice(pos..pos + old_len, replacement);
-            offset += (new_len as isize) - (old_len as isize);
+            let new_slice_len = replacement.len();
+            file_lines.splice(splice_start..splice_end, replacement);
+            prev_delta = (pos as isize) - (unshifted_start as isize) + (new_slice_len as isize) - (old_slice_len as isize);
             continue;
         }
         idx += 1;
     }
 
     if let Some(target) = current_target {
-        flush_patched_file(
+        finalize_file(
             &target,
-            output_override,
+            &current_old_hdr,
+            &current_new_hdr,
             &file_lines,
             no_trailing_newline,
             delete_to_dev_null,
             created_from_dev_null,
-            opts,
-            fs,
+            file_hunk_count,
+            file_failed_count,
+            file_mismatch,
+            file_forward_skipped,
+            &file_rej_hunks,
             &mut staged_writes,
             stdout_patched,
+            &mut status_out,
+            &mut any_file_failed,
         )?;
-        if any_hunk_failed {
-            if !opts.merge_mode && !opts.forward_only {
-                let rej_target = match reject_file {
-                    Some("-") => None,
-                    Some(r) => Some(r.to_string()),
-                    None => Some(format!("{target}.rej")),
-                };
-                if let Some(ref rt) = rej_target {
-                    status_out.push_str(&format!(
-                        "{failed_hunk_count} out of {} {} FAILED -- saving rejects to file {rt}\n",
-                        total_hunk_count.max(1),
-                        if total_hunk_count <= 1 { "hunk" } else { "hunks" }
-                    ));
-                    if !dry_run {
-                        let rej_full = resolve_posix_path(cwd, rt);
-                        let rej_body = format!("{}\n", failed_rej_lines.join("\n"));
-                        let _ = fs.write_file(&rej_full, rej_body.as_bytes());
-                    }
-                } else {
-                    status_out.push_str(&format!(
-                        "{failed_hunk_count} out of {} {} FAILED\n",
-                        total_hunk_count.max(1),
-                        if total_hunk_count <= 1 { "hunk" } else { "hunks" }
-                    ));
-                }
-            }
+        if any_file_failed {
             return Ok((status_out, true));
         }
         if let Some(staged) = staged_writes {
@@ -5502,7 +6479,7 @@ fn apply_unified_diff(
         }
         Ok((status_out, false))
     } else {
-        Ok((String::new(), false))
+        Ok((status_out, any_file_failed))
     }
 }
 
@@ -5518,23 +6495,39 @@ fn strip_path_components(path: &str, strip: usize) -> String {
     }
 }
 
-fn parse_hunk_starts(header: &str) -> (usize, usize) {
+fn parse_hunk_starts_and_counts(header: &str) -> (usize, usize, usize, usize) {
     let mut old_s = 1usize;
+    let mut old_c = 1usize;
     let mut new_s = 1usize;
+    let mut new_c = 1usize;
     for part in header.split_whitespace() {
         if let Some(rest) = part.strip_prefix('-') {
-            let n: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
-            if let Ok(v) = n.parse() {
+            if let Some((s_str, c_str)) = rest.split_once(',') {
+                if let Ok(v) = s_str.parse() {
+                    old_s = v;
+                }
+                if let Ok(v) = c_str.parse() {
+                    old_c = v;
+                }
+            } else if let Ok(v) = rest.parse() {
                 old_s = v;
+                old_c = 1;
             }
         } else if let Some(rest) = part.strip_prefix('+') {
-            let n: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
-            if let Ok(v) = n.parse() {
+            if let Some((s_str, c_str)) = rest.split_once(',') {
+                if let Ok(v) = s_str.parse() {
+                    new_s = v;
+                }
+                if let Ok(v) = c_str.parse() {
+                    new_c = v;
+                }
+            } else if let Ok(v) = rest.parse() {
                 new_s = v;
+                new_c = 1;
             }
         }
     }
-    (old_s, new_s)
+    (old_s, old_c, new_s, new_c)
 }
 
 fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize) -> Option<usize> {
@@ -5559,13 +6552,15 @@ fn find_subslice_pos(hay: &[String], needle: &[String], hint: usize) -> Option<u
     None
 }
 
-fn find_subslice_pos_fuzzy(
+fn find_subslice_pos_with_fuzz(
     hay: &[String],
     needle: &[String],
     hint: usize,
+    leading_ctx: usize,
+    trailing_ctx: usize,
     ignore_ws: bool,
     fuzz: usize,
-) -> Option<usize> {
+) -> Option<(usize, usize, usize, usize)> {
     let norm = |s: &str| -> String {
         if ignore_ws {
             s.split_whitespace().collect::<Vec<_>>().join(" ")
@@ -5576,13 +6571,19 @@ fn find_subslice_pos_fuzzy(
     let n_norm: Vec<String> = needle.iter().map(|s| norm(s)).collect();
     let h_norm: Vec<String> = hay.iter().map(|s| norm(s)).collect();
     if let Some(pos) = find_subslice_pos(&h_norm, &n_norm, hint) {
-        return Some(pos);
+        return Some((pos, 0, 0, 0));
     }
-    for f in 1..=fuzz {
-        if f * 2 < n_norm.len() {
-            let trimmed = &n_norm[f..n_norm.len() - f];
-            if let Some(inner_pos) = find_subslice_pos(&h_norm, trimmed, hint) {
-                return Some(inner_pos.saturating_sub(f));
+    let max_context = leading_ctx.max(trailing_ctx);
+    for tol in 1..=fuzz.min(max_context) {
+        let pf = (tol + leading_ctx).saturating_sub(max_context).min(leading_ctx);
+        let sf = (tol + trailing_ctx).saturating_sub(max_context).min(trailing_ctx);
+        if pf + sf < n_norm.len() {
+            let trimmed = &n_norm[pf..n_norm.len() - sf];
+            if let Some(inner_pos) = find_subslice_pos(&h_norm, trimmed, hint + pf)
+                && inner_pos >= pf
+                && inner_pos + trimmed.len() + sf <= h_norm.len()
+            {
+                return Some((inner_pos - pf, tol, pf, sf));
             }
         }
     }
@@ -5676,13 +6677,25 @@ fn find_apply_patch_slice(
 }
 
 fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let patch_input = if !args.is_empty() {
-        args.join("\n")
+    if args.len() > 1 {
+        return err_out("apply_patch: expected stdin or one literal patch argument\n", 2);
+    }
+    let patch_input = if args.len() == 1 {
+        args[0].clone()
     } else {
         stdin.to_string()
     };
-    if !patch_input.contains("*** Begin Patch") {
-        return cmd_patch(args, stdin, cwd, fs);
+    if patch_input.contains('\0') {
+        return err_out("apply_patch: NUL bytes are unsupported\n", 2);
+    }
+    let trimmed_patch = patch_input.trim();
+    let lines: Vec<&str> = if trimmed_patch.is_empty() {
+        Vec::new()
+    } else {
+        trimmed_patch.lines().collect()
+    };
+    if lines.is_empty() || lines[0] != "*** Begin Patch" || *lines.last().unwrap() != "*** End Patch" {
+        return err_out("apply_patch: expected Begin Patch and End Patch envelope\n", 2);
     }
     let reject_unsafe_target = |target: &str, full: &str| -> Option<BuiltinOutcome> {
         if target.split('/').any(|seg| seg == "..") {
@@ -5721,21 +6734,27 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         None
     };
 
-    let lines: Vec<&str> = patch_input.lines().collect();
-    let mut idx = 0usize;
+    let mut idx = 1usize;
+    let body_end = lines.len() - 1;
     let mut staged_ops: Vec<StagedPatchOp> = Vec::new();
     let mut summary_lines: Vec<String> = Vec::new();
     let mut seen_paths: Vec<String> = Vec::new();
 
-    while idx < lines.len() {
+    while idx < body_end {
         let line = lines[idx];
         if let Some(path) = line.strip_prefix("*** Add File: ") {
             let target = path.trim();
             idx += 1;
             let mut content_lines = Vec::new();
-            while idx < lines.len() && !lines[idx].starts_with("*** ") {
+            while idx < body_end
+                && !lines[idx].starts_with("*** Add File: ")
+                && !lines[idx].starts_with("*** Delete File: ")
+                && !lines[idx].starts_with("*** Update File: ")
+            {
                 if let Some(added) = lines[idx].strip_prefix('+') {
                     content_lines.push(added);
+                } else {
+                    return err_out(&format!("apply_patch: invalid Add body at patch line {}\n", idx + 1), 2);
                 }
                 idx += 1;
             }
@@ -5757,6 +6776,14 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         }
         if let Some(path) = line.strip_prefix("*** Delete File: ") {
             let target = path.trim();
+            idx += 1;
+            if idx < body_end
+                && !lines[idx].starts_with("*** Add File: ")
+                && !lines[idx].starts_with("*** Delete File: ")
+                && !lines[idx].starts_with("*** Update File: ")
+            {
+                return err_out("apply_patch: Delete cannot have a body\n", 2);
+            }
             let full = resolve_posix_path(cwd, target);
             if let Some(err) = reject_unsafe_target(target, &full) {
                 return err;
@@ -5769,7 +6796,6 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             }
             staged_ops.push(StagedPatchOp::Delete(full));
             summary_lines.push(format!("D {target}"));
-            idx += 1;
             continue;
         }
         if let Some(path) = line.strip_prefix("*** Update File: ") {
@@ -5792,23 +6818,30 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             let mut file_lines: Vec<String> = orig.lines().map(|s| s.to_string()).collect();
             idx += 1;
             let mut move_to: Option<String> = None;
-            if idx < lines.len() && let Some(mv) = lines[idx].strip_prefix("*** Move to: ") {
+            if idx < body_end && let Some(mv) = lines[idx].strip_prefix("*** Move to: ") {
                 move_to = Some(mv.trim().to_string());
                 idx += 1;
             }
             let mut cursor = 0usize;
             let mut any_hunk = false;
-            while idx < lines.len()
-                && (!lines[idx].starts_with("*** ") || lines[idx] == "*** End of File")
+            while idx < body_end
+                && !lines[idx].starts_with("*** Add File: ")
+                && !lines[idx].starts_with("*** Delete File: ")
+                && !lines[idx].starts_with("*** Update File: ")
             {
                 if lines[idx] == "*** End of File" {
                     idx += 1;
                     continue;
                 }
-                if lines[idx].starts_with("@@") {
+                if lines[idx].starts_with("@@")
+                    || lines[idx].starts_with(' ')
+                    || lines[idx].starts_with('+')
+                    || lines[idx].starts_with('-')
+                    || lines[idx].is_empty()
+                {
                     any_hunk = true;
                     let mut anchors = Vec::new();
-                    while idx < lines.len() && lines[idx].starts_with("@@") {
+                    while idx < body_end && lines[idx].starts_with("@@") {
                         let anchor = lines[idx].strip_prefix("@@").unwrap_or("").trim();
                         if !anchor.is_empty() {
                             anchors.push(anchor.to_string());
@@ -5816,9 +6849,12 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                         idx += 1;
                     }
                     let mut hunk_items: Vec<(char, String)> = Vec::new();
-                    while idx < lines.len()
+                    while idx < body_end
                         && !lines[idx].starts_with("@@")
-                        && !lines[idx].starts_with("*** ")
+                        && !lines[idx].starts_with("*** Add File: ")
+                        && !lines[idx].starts_with("*** Delete File: ")
+                        && !lines[idx].starts_with("*** Update File: ")
+                        && lines[idx] != "*** End of File"
                     {
                         let hl = lines[idx];
                         if let Some(r) = hl.strip_prefix('-') {
@@ -5829,11 +6865,16 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                             hunk_items.push((' ', c.to_string()));
                         } else if hl.is_empty() {
                             hunk_items.push((' ', String::new()));
+                        } else {
+                            return err_out(&format!("apply_patch: invalid hunk line {}\n", idx + 1), 2);
                         }
                         idx += 1;
                     }
+                    if hunk_items.is_empty() {
+                        return err_out("apply_patch: Update requires a nonempty hunk\n", 2);
+                    }
                     let mut hunk_eof = false;
-                    if idx < lines.len() && lines[idx] == "*** End of File" {
+                    if idx < body_end && lines[idx] == "*** End of File" {
                         hunk_eof = true;
                         idx += 1;
                     }
@@ -5887,8 +6928,11 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                         return err_out("apply_patch: context mismatch\n", 1);
                     }
                 } else {
-                    idx += 1;
+                    return err_out(&format!("apply_patch: invalid hunk line {}\n", idx + 1), 2);
                 }
+            }
+            if !any_hunk && move_to.is_none() {
+                return err_out("apply_patch: Update requires a nonempty hunk\n", 2);
             }
             let updated_bytes = if !any_hunk {
                 orig_bytes
@@ -5921,7 +6965,10 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             }
             continue;
         }
-        idx += 1;
+        return err_out(&format!("apply_patch: invalid file header at patch line {}\n", idx + 1), 2);
+    }
+    if staged_ops.is_empty() {
+        return err_out("apply_patch: patch contains no file operations\n", 2);
     }
 
     for op in staged_ops {
@@ -6028,6 +7075,7 @@ fn cmd_cmp(
     let mut files = Vec::new();
     let mut ended = false;
     let mut i = 0usize;
+    let posixly_correct = env.contains_key("POSIXLY_CORRECT");
 
     let apply_skip = |v: &str, sk: &mut (usize, usize)| -> Result<(), String> {
         if let Some((s1, s2)) = v.split_once(':') {
@@ -6043,10 +7091,25 @@ fn cmd_cmp(
         Ok(())
     };
 
+    let long_opts: &[(&str, char)] = &[
+        ("print-bytes", 'b'),
+        ("print-chars", 'c'),
+        ("ignore-initial", 'i'),
+        ("verbose", 'l'),
+        ("bytes", 'n'),
+        ("silent", 's'),
+        ("quiet", 's'),
+        ("version", 'v'),
+        ("help", 'h'),
+    ];
+
     while i < args.len() {
         let a = &args[i];
         if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
+            if posixly_correct {
+                ended = true;
+            }
             i += 1;
             continue;
         }
@@ -6055,44 +7118,108 @@ fn cmd_cmp(
             i += 1;
             continue;
         }
-        if a == "-s" || a == "--quiet" || a == "--silent" {
-            if verbose_list {
-                return err_out("cmp: options -l and -s are incompatible\n", 2);
+        if a.starts_with("--") {
+            let (name, eq_val) = match a[2..].split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (&a[2..], None),
+            };
+            let exact = long_opts.iter().find(|&&(k, _)| k == name).copied();
+            let selected = if let Some(ex) = exact {
+                ex
+            } else {
+                let matches: Vec<(&str, char)> = long_opts
+                    .iter()
+                    .copied()
+                    .filter(|&(k, _)| k.starts_with(name))
+                    .collect();
+                if matches.is_empty() {
+                    return err_out(&format!("cmp: unrecognized option '{a}'\n"), 2);
+                }
+                let first_key = matches[0].1;
+                if matches.iter().any(|&(_, ch)| ch != first_key) {
+                    let poss: Vec<String> = matches.iter().map(|&(k, _)| format!("'--{k}'")).collect();
+                    return err_out(
+                        &format!("cmp: option '{a}' is ambiguous; possibilities: {}\n", poss.join(" ")),
+                        2,
+                    );
+                }
+                matches[0]
+            };
+            let (sel_name, key) = selected;
+            match key {
+                's' => {
+                    if eq_val.is_some() {
+                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                    }
+                    if verbose_list {
+                        return err_out("cmp: options -l and -s are incompatible\n", 2);
+                    }
+                    silent = true;
+                    i += 1;
+                }
+                'l' => {
+                    if eq_val.is_some() {
+                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                    }
+                    if silent {
+                        return err_out("cmp: options -l and -s are incompatible\n", 2);
+                    }
+                    verbose_list = true;
+                    i += 1;
+                }
+                'b' | 'c' => {
+                    if eq_val.is_some() {
+                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                    }
+                    print_bytes = true;
+                    i += 1;
+                }
+                'v' => {
+                    if eq_val.is_some() {
+                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                    }
+                    return ok_out("cmp (GNU diffutils) 3.10\n");
+                }
+                'h' => {
+                    if eq_val.is_some() {
+                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                    }
+                    return ok_out("Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\n");
+                }
+                'i' => {
+                    let val = if let Some(v) = eq_val {
+                        i += 1;
+                        v.to_string()
+                    } else if i + 1 < args.len() {
+                        let v = args[i + 1].clone();
+                        i += 2;
+                        v
+                    } else {
+                        return err_out(&format!("cmp: option '--{sel_name}' requires an argument\n"), 2);
+                    };
+                    if let Err(e) = apply_skip(&val, &mut skips) {
+                        return err_out(&format!("cmp: {e}\n"), 2);
+                    }
+                }
+                'n' => {
+                    let val = if let Some(v) = eq_val {
+                        i += 1;
+                        v.to_string()
+                    } else if i + 1 < args.len() {
+                        let v = args[i + 1].clone();
+                        i += 2;
+                        v
+                    } else {
+                        return err_out(&format!("cmp: option '--{sel_name}' requires an argument\n"), 2);
+                    };
+                    match parse_cmp_byte_count(&val) {
+                        Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
+                        Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+                    }
+                }
+                _ => unreachable!(),
             }
-            silent = true;
-            i += 1;
-        } else if a == "-l" || a == "--verbose" {
-            if silent {
-                return err_out("cmp: options -l and -s are incompatible\n", 2);
-            }
-            verbose_list = true;
-            i += 1;
-        } else if a == "-b" || a == "-c" || a == "--print-bytes" || a == "--print-chars" {
-            print_bytes = true;
-            i += 1;
-        } else if (a == "-i" || a == "--ignore-initial") && i + 1 < args.len() {
-            if let Err(e) = apply_skip(&args[i + 1], &mut skips) {
-                return err_out(&format!("cmp: {e}\n"), 2);
-            }
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("--ignore-initial=").or_else(|| a.strip_prefix("-i")) && !rest.is_empty() {
-            if let Err(e) = apply_skip(rest, &mut skips) {
-                return err_out(&format!("cmp: {e}\n"), 2);
-            }
-            i += 1;
-        } else if (a == "-n" || a == "--bytes") && i + 1 < args.len() {
-            match parse_cmp_byte_count(&args[i + 1]) {
-                Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
-                Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
-            }
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("--bytes=").or_else(|| a.strip_prefix("-n")) && !rest.is_empty() {
-            match parse_cmp_byte_count(rest) {
-                Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
-                Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
-            }
-            i += 1;
-        } else if !a.starts_with("--") {
+        } else {
             let chars: Vec<char> = a[1..].chars().collect();
             let mut ci = 0usize;
             while ci < chars.len() {
@@ -6110,6 +7237,7 @@ fn cmd_cmp(
                         verbose_list = true;
                     }
                     'b' | 'c' => print_bytes = true,
+                    'v' => return ok_out("cmp (GNU diffutils) 3.10\n"),
                     'i' => {
                         let rest: String = chars[ci + 1..].iter().collect();
                         let val = if !rest.is_empty() {
@@ -6146,8 +7274,6 @@ fn cmd_cmp(
                 ci += 1;
             }
             i += 1;
-        } else {
-            return err_out(&format!("cmp: unrecognized option '{a}'\n"), 2);
         }
     }
 
@@ -6171,22 +7297,28 @@ fn cmd_cmp(
             Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
         }
     }
+    if name1 == "-" && name2 == "-" {
+        return ok_out("");
+    }
 
-    let read_b = |f: &str| -> Result<Vec<u8>, String> {
+    let read_b = |f: &str| -> Result<Vec<u8>, (String, bool)> {
         if f == "-" {
             return Ok(crate::vfs::stream_string_to_bytes(stdin));
         }
         let full = resolve_posix_path(cwd, f);
+        if fs.is_dir(&full) {
+            return Err((format!("cmp: {f}: Is a directory\n"), false));
+        }
         fs.read_file(&full)
-            .map_err(|_| format!("cmp: {f}: No such file or directory\n"))
+            .map_err(|_| (format!("cmp: {f}: No such file or directory\n"), true))
     };
     let raw1 = match read_b(&name1) {
         Ok(b) => b,
-        Err(e) => return err_out(if silent { "" } else { &e }, 2),
+        Err((e, suppress_silent)) => return err_out(if silent && suppress_silent { "" } else { &e }, 2),
     };
     let raw2 = match read_b(&name2) {
         Ok(b) => b,
-        Err(e) => return err_out(if silent { "" } else { &e }, 2),
+        Err((e, suppress_silent)) => return err_out(if silent && suppress_silent { "" } else { &e }, 2),
     };
     let mut b1 = raw1[skips.0.min(raw1.len())..].to_vec();
     let mut b2 = raw2[skips.1.min(raw2.len())..].to_vec();
@@ -6471,36 +7603,96 @@ fn diff3_align_regions(
     result
 }
 
+#[derive(Clone, PartialEq, Eq)]
+struct Diff3Line {
+    text: String,
+    terminated: bool,
+}
+
+impl Diff3Line {
+    fn cmp_key(&self, strip_cr: bool) -> String {
+        let body = if strip_cr && self.terminated {
+            self.text.strip_suffix('\r').unwrap_or(&self.text)
+        } else {
+            &self.text
+        };
+        if self.terminated {
+            format!("{body}\n")
+        } else {
+            body.to_string()
+        }
+    }
+}
+
 fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut merge = false;
     let mut selector: Option<char> = None;
     let mut write_quit = false;
     let mut initial_tab = false;
+    let mut strip_trailing_cr = false;
     let mut labels: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
+    let set_selector = |sel: &mut Option<char>, ch: char| -> Result<(), String> {
+        if let Some(prev) = *sel
+            && prev != ch
+        {
+            return Err("diff3: incompatible script selectors\n".to_string());
+        }
+        *sel = Some(ch);
+        Ok(())
+    };
     while i < args.len() {
         let a = &args[i];
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--help" {
+            return ok_out("Usage: diff3 [OPTION]... OURS BASE THEIRS\n");
+        }
+        if a == "-v" || a == "--version" {
+            return ok_out("diff3 (safe-bash; GNU diffutils 3.12 qualified profile)\n");
+        }
         if a == "-m" || a == "--merge" {
             merge = true;
             i += 1;
         } else if a == "-A" || a == "--show-all" {
-            selector = Some('A');
+            if let Err(e) = set_selector(&mut selector, 'A') {
+                return err_out(&e, 2);
+            }
             i += 1;
         } else if a == "-e" || a == "--ed" {
-            selector = Some('e');
+            if let Err(e) = set_selector(&mut selector, 'e') {
+                return err_out(&e, 2);
+            }
             i += 1;
         } else if a == "-E" || a == "--show-overlap" {
-            selector = Some('E');
+            if let Err(e) = set_selector(&mut selector, 'E') {
+                return err_out(&e, 2);
+            }
             i += 1;
         } else if a == "-x" || a == "--overlap-only" {
-            selector = Some('x');
+            if let Err(e) = set_selector(&mut selector, 'x') {
+                return err_out(&e, 2);
+            }
             i += 1;
         } else if a == "-X" {
-            selector = Some('X');
+            if let Err(e) = set_selector(&mut selector, 'X') {
+                return err_out(&e, 2);
+            }
             i += 1;
         } else if a == "-3" || a == "--easy-only" {
-            selector = Some('3');
+            if let Err(e) = set_selector(&mut selector, '3') {
+                return err_out(&e, 2);
+            }
             i += 1;
         } else if a == "-i" {
             write_quit = true;
@@ -6508,36 +7700,83 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else if a == "-T" || a == "--initial-tab" {
             initial_tab = true;
             i += 1;
+        } else if a == "--strip-trailing-cr" {
+            strip_trailing_cr = true;
+            i += 1;
+        } else if a == "-a" || a == "--text" {
+            i += 1;
         } else if (a == "-L" || a == "--label") && i + 1 < args.len() {
             labels.push(args[i + 1].clone());
             i += 2;
         } else if let Some(lbl) = a.strip_prefix("--label=") {
             labels.push(lbl.to_string());
             i += 1;
-        } else if let Some(lbl) = a.strip_prefix("-L") && !lbl.is_empty() {
-            labels.push(lbl.to_string());
-            i += 1;
-        } else if a == "-" || !a.starts_with('-') {
-            files.push(a.clone());
-            i += 1;
+        } else if a.starts_with("--") {
+            return err_out(&format!("diff3: unrecognized option '{a}'\n"), 2);
         } else {
+            for (byte_off, ch) in a[1..].char_indices() {
+                match ch {
+                    'm' => merge = true,
+                    'A' | 'e' | 'E' | 'x' | 'X' | '3' => {
+                        if let Err(e) = set_selector(&mut selector, ch) {
+                            return err_out(&e, 2);
+                        }
+                    }
+                    'i' => write_quit = true,
+                    'T' => initial_tab = true,
+                    'a' => {}
+                    'v' => return ok_out("diff3 (safe-bash; GNU diffutils 3.12 qualified profile)\n"),
+                    'L' => {
+                        let rest = &a[1 + byte_off + ch.len_utf8()..];
+                        let val = if !rest.is_empty() {
+                            rest.to_string()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out("diff3: option requires an argument -- 'L'\n", 2);
+                        };
+                        labels.push(val);
+                        break;
+                    }
+                    other => return err_out(&format!("diff3: invalid option -- '{other}'\n"), 2),
+                }
+            }
             i += 1;
         }
     }
-    if files.len() < 3 {
-        return err_out("diff3: missing operand\n", 2);
+    let eff_sel = selector.or(if merge { Some('A') } else { None });
+    if merge && write_quit {
+        return err_out("diff3: incompatible options: -m and -i\n", 2);
     }
-    let read_lines = |p: &str| -> Result<Vec<String>, String> {
-        if p == "-" {
-            return Ok(stdin.lines().map(|l| l.to_string()).collect());
-        }
-        let full = resolve_posix_path(cwd, p);
-        let bytes = fs
-            .read_file(&full)
-            .map_err(|_| format!("diff3: {p}: No such file or directory\n"))?;
-        Ok(String::from_utf8_lossy(&bytes)
-            .lines()
-            .map(|l| l.to_string())
+    if labels.len() > 3 {
+        return err_out("diff3: too many file labels\n", 2);
+    }
+    if !labels.is_empty() && !matches!(eff_sel, Some('A' | 'E' | 'X')) {
+        return err_out("diff3: labels require a flagging mode\n", 2);
+    }
+    if files.len() != 3 {
+        return err_out("diff3: expected three operands\n", 2);
+    }
+    if files.iter().filter(|f| f.as_str() == "-").count() > 1 {
+        return err_out("diff3: '-' specified for more than one input file\n", 2);
+    }
+    let read_lines = |p: &str| -> Result<Vec<Diff3Line>, String> {
+        let text = if p == "-" {
+            stdin.to_string()
+        } else {
+            let full = resolve_posix_path(cwd, p);
+            let bytes = fs
+                .read_file(&full)
+                .map_err(|_| format!("diff3: {p}: No such file or directory\n"))?;
+            String::from_utf8_lossy(&bytes).into_owned()
+        };
+        Ok(split_diff_lines(&text)
+            .into_iter()
+            .map(|(l, term)| Diff3Line {
+                text: l.to_string(),
+                terminated: term,
+            })
             .collect())
     };
     let f0 = match read_lines(&files[0]) {
@@ -6572,9 +7811,27 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let base_lines = &all_files[common];
     let left_lines = &all_files[0];
     let right_lines = &all_files[other];
-    let left_edits = diff3_pair_edits(base_lines, left_lines);
-    let right_edits = diff3_pair_edits(base_lines, right_lines);
-    let mut regions = diff3_align_regions(left_lines, right_lines, &left_edits, &right_edits);
+    let base_keys: Vec<String> = base_lines.iter().map(|l| l.cmp_key(strip_trailing_cr)).collect();
+    let left_keys: Vec<String> = left_lines.iter().map(|l| l.cmp_key(strip_trailing_cr)).collect();
+    let right_keys: Vec<String> = right_lines.iter().map(|l| l.cmp_key(strip_trailing_cr)).collect();
+    let left_edits = diff3_pair_edits(&base_keys, &left_keys);
+    let right_edits = diff3_pair_edits(&base_keys, &right_keys);
+    let mut stderr = String::new();
+    if !report && !merge {
+        for (edits, variant_lines) in [(&left_edits, left_lines), (&right_edits, right_lines)] {
+            for edit in edits {
+                if edit.base.end > edit.base.start && !base_lines[edit.base.end - 1].terminated {
+                    stderr.push_str("diff3: No newline at end of file\n");
+                }
+                if edit.variant.end > edit.variant.start
+                    && !variant_lines[edit.variant.end - 1].terminated
+                {
+                    stderr.push_str("diff3: No newline at end of file\n");
+                }
+            }
+        }
+    }
+    let mut regions = diff3_align_regions(&left_keys, &right_keys, &left_edits, &right_edits);
     if !merge && !report {
         regions.reverse();
     }
@@ -6591,15 +7848,32 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let indent = if initial_tab { "\t" } else { "  " };
     let emit_range = |out: &mut String, file_idx: usize, r: Diff3Range, mode: &str| -> bool {
         let mut dots = false;
-        for line in &all_files[file_idx][r.start..r.end] {
+        for token in &all_files[file_idx][r.start..r.end] {
             if mode == "report" {
                 out.push_str(indent);
-            } else if mode == "ed" && line.starts_with('.') {
+            } else if mode == "ed" && token.text.starts_with('.') {
                 dots = true;
                 out.push('.');
             }
-            out.push_str(line);
-            out.push('\n');
+            if mode == "source" {
+                out.push_str(&token.text);
+                if token.terminated {
+                    out.push('\n');
+                }
+            } else {
+                let body = if strip_trailing_cr && token.terminated {
+                    token.text.strip_suffix('\r').unwrap_or(&token.text)
+                } else {
+                    &token.text
+                };
+                out.push_str(body);
+                if token.terminated || mode == "ed" || mode == "report" {
+                    out.push('\n');
+                }
+                if !token.terminated && mode == "report" {
+                    out.push_str("\\ No newline at end of file\n");
+                }
+            }
         }
         dots
     };
@@ -6757,7 +8031,7 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
 
     BuiltinOutcome {
         stdout: out,
-        stderr: String::new(),
+        stderr,
         exit_code: if merge && conflict { 1 } else { 0 },
     }
 }

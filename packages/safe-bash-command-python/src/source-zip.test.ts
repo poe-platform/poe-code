@@ -32,12 +32,12 @@ for(const name of ['/download','/misleading.tar.gz'])for(const trailing of [0,65
 import base64,io,json,sys
 from unittest.mock import patch
 from pip._internal.utils.unpacking import unpack_file
-archive=base64.b64decode(sys.stdin.read());selected=[]
+archive=base64.b64decode(sys.stdin.read())+bytes(int(sys.argv[2]));selected=[]
 with patch('builtins.open',side_effect=lambda *args,**kwargs:io.BytesIO(archive)),patch('pip._internal.utils.unpacking.unzip_file',side_effect=lambda *args,**kwargs:selected.append('zip')),patch('pip._internal.utils.unpacking.untar_file',side_effect=lambda *args,**kwargs:selected.append('tar')):
  try: unpack_file(sys.argv[1],'/target')
  except Exception: selected.append('error')
 print(json.dumps(selected))
-`,name],{input:Buffer.from(archive).toString('base64'),encoding:'utf8',timeout:5000});
+`,name,String(trailing)],{input:Buffer.from(bytes).toString('base64'),encoding:'utf8',timeout:5000});
  assert.ifError(native.error);assert.equal(native.status,0,native.stderr);
  const zip=JSON.parse(native.stdout)[0]==='zip';assert.equal(zip,trailing<=65536);
  await fs.writeFile(name,archive);

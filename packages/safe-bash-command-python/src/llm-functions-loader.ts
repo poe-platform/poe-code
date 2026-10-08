@@ -2,7 +2,7 @@ import {LlmPluginExit, createLlmSpool, createLlmToolRegistry, type LlmToolLoader
 import {toByteSource} from 'safe-bash-contracts';
 import {createPythonExecutorCommands, type PythonCommandsOptions} from './executor.js';
 import type {PythonHostCapability, PythonHostValue} from './host-capabilities.js';
-import {pythonLlmFunctionsProgram} from './llm-functions-program.js';
+import {loadPythonLlmFunctionsProgram} from './llm-functions-program.js';
 
 type Spool = Awaited<ReturnType<typeof createLlmSpool>>;
 function deferred<T>() {
@@ -39,6 +39,8 @@ export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): 
     if (!Array.isArray(toolNames) || toolNames.some(value => typeof value !== 'string') || typeof discovery !== 'boolean') throw new TypeError('Invalid Python tool selection');
     if (pluginQuery && (typeof pluginQuery.all !== 'boolean' || !Array.isArray(pluginQuery.hooks) || pluginQuery.hooks.some(value => typeof value !== 'string'))) throw new TypeError('Invalid Python plugin query');
     for (const limit of [maxInputBytes, maxOutputBytes]) if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid Python tool byte limit');
+    context.signal.throwIfAborted();
+    const program=await loadPythonLlmFunctionsProgram();
     context.signal.throwIfAborted();
     const controller = new AbortController();
     const runtimeController = new AbortController();
@@ -194,7 +196,7 @@ export function createPythonLlmToolLoader(options: PythonLlmToolLoaderOptions): 
       catch (error) {fail(error); throw error;}
     }};
     const {registerCleanup: ignoredParentCleanup, ...isolatedContext} = context;
-    const invocation = {...isolatedContext, signal: runtimeController.signal, command: 'python', args: ['-c', pythonLlmFunctionsProgram], stdin: toByteSource('')};
+    const invocation = {...isolatedContext, signal: runtimeController.signal, command: 'python', args: ['-c', program], stdin: toByteSource('')};
     capabilitiesByArguments.set(invocation.args, capability);
     const running = Promise.resolve().then(() => command.execute(invocation)).then(
       result => {if (!closed) fail(exited ? new LlmPluginExit(result.exitCode) : new Error(`Python tool interpreter exited with status ${result.exitCode}`));},

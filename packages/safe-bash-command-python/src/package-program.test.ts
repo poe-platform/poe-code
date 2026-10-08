@@ -18,3 +18,9 @@ test('the cached build backend program preserves its maintained source exactly',
  const first=loadPythonBuildBackendProgram();assert.equal(loadPythonBuildBackendProgram(),first);
  assert.equal(await first,pythonBuildBackendProgram);
 });
+
+import {loadPythonLlmFunctionsProgram,pythonLlmFunctionsProgram} from './llm-functions-program.js';
+test('the cached tool program preserves its maintained source and exit handling exactly',async()=>{
+ const first=loadPythonLlmFunctionsProgram();assert.equal(loadPythonLlmFunctionsProgram(),first);
+ assert.equal(await first,pythonLlmFunctionsProgram);
+});

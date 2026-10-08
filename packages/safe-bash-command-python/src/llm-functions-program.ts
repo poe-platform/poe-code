@@ -1,3 +1,4 @@
+import {pythonLlmFunctionsProgramGzip} from './llm-functions-program.generated.js';
 import {pythonLlmExitHandlers} from './llm-exit-handlers.js';
 /** Runs inside the configured pinned interpreter. Transport and storage remain
  * invocation-owned host capabilities; no module or conversation is persisted.
@@ -210,3 +211,9 @@ except ClickException as error:
  send("exit")
  raise SystemExit(error.exit_code)
 `)();
+
+let decoded:Promise<string>|undefined;
+/** Decode trusted static tool source once, preserving native traceback lines. */
+export function loadPythonLlmFunctionsProgram():Promise<string>{
+ return decoded??=new Response(new Blob([Uint8Array.from(atob(pythonLlmFunctionsProgramGzip),character=>character.charCodeAt(0))]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+}

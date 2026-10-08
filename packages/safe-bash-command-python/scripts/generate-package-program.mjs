@@ -43,7 +43,9 @@ const buildProgram=await rawProgram('build-backend.ts','pythonBuildBackendProgra
  pythonSourceOriginProgram:origin,
  pythonDownloadFilenameProgram:await rawProgram('source-filename-program.ts','pythonDownloadFilenameProgram'),
 });
+const toolsProgram=await rawProgram('llm-functions-program.ts','pythonLlmFunctionsProgram',{pythonLlmExitHandlers:await rawProgram('llm-exit-handlers.ts','pythonLlmExitHandlers')});
 for(const [name,source,variable] of [
+ ['llm-functions-program',toolsProgram,'pythonLlmFunctionsProgramGzip'],
  ['runtime-programs',JSON.stringify(runtimePrograms),'pythonRuntimeProgramsGzip'],
  ['package-program',origin+await readFile(new URL('../src/metadata-discovery.py',import.meta.url),'utf8')+await readFile(new URL('../src/package-program.py',import.meta.url),'utf8'),'pythonPackageProgramGzip'],
  ['native-wheel',declaration.initializer.text,'pythonNativeWheelGzip'],

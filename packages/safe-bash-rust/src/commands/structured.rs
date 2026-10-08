@@ -18969,7 +18969,73 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     cli_csv_mode,
                     dot_mode_csv,
                 );
+            } else if pup.starts_with("TABLE_INFO(") {
+                if let Some(open) = pbody.find('(')
+                    && let Some(close) = pbody.rfind(')')
+                {
+                    let tname = pbody[open + 1..close]
+                        .trim()
+                        .trim_matches('\'')
+                        .trim_matches('"');
+                    if let Some((_, tbl)) = tables.iter().find(|(k, _)| k.eq_ignore_ascii_case(tname)) {
+                        let mut col_defs_map: BTreeMap<String, (String, i32, String, i32)> = BTreeMap::new();
+                        if let Some(c_open) = tbl.create_sql.find('(')
+                            && let Some(c_close) = tbl.create_sql.rfind(')')
+                        {
+                            let defs = &tbl.create_sql[c_open + 1..c_close];
+                            for d in split_top_level_comma(defs) {
+                                let d_norm = d.replace(['\r', '\n', '\t'], " ");
+                                let tokens: Vec<&str> = d_norm.split_whitespace().collect();
+                                if tokens.is_empty() {
+                                    continue;
+                                }
+                                let cname = tokens[0].trim_matches('"').to_ascii_lowercase();
+                                let d_up = d_norm.to_ascii_uppercase();
+                                let mut ctype = String::new();
+                                if let Some(&t1) = tokens.get(1) {
+                                    let t1_up = t1.to_ascii_uppercase();
+                                    if !matches!(
+                                        t1_up.as_str(),
+                                        "PRIMARY" | "NOT" | "UNIQUE" | "CHECK" | "DEFAULT" | "REFERENCES" | "GENERATED"
+                                    ) {
+                                        ctype = t1.to_string();
+                                    }
+                                }
+                                let notnull = i32::from(d_up.contains("NOT NULL") && !d_up.contains("SET NULL"));
+                                let pk = i32::from(d_up.contains("PRIMARY KEY"));
+                                let dflt = tbl.defaults.get(&cname).cloned().unwrap_or_default();
+                                col_defs_map.insert(cname, (ctype, notnull, dflt, pk));
+                            }
+                        }
+                        let mut chunk = String::new();
+                        for (cid, col) in tbl.columns.iter().enumerate() {
+                            let key = col.to_ascii_lowercase();
+                            let (ctype, notnull, dflt, pk) = col_defs_map
+                                .get(&key)
+                                .cloned()
+                                .unwrap_or_else(|| ("TEXT".to_string(), 0, String::new(), 0));
+                            chunk.push_str(&format!("{cid}|{col}|{ctype}|{notnull}|{dflt}|{pk}\n"));
+                        }
+                        emit_chunk(
+                            chunk,
+                            &mut once_path,
+                            &output_path,
+                            &mut out,
+                            cli_csv_mode,
+                            dot_mode_csv,
+                        );
+                    }
+                }
             }
+            continue;
+        }
+        if upper.starts_with("DROP INDEX ") {
+            let idx_name = stmt
+                .split_whitespace()
+                .last()
+                .unwrap_or("")
+                .trim_matches('"');
+            indexes.retain(|i| !i.eq_ignore_ascii_case(idx_name));
             continue;
         }
         if upper.starts_with("CREATE INDEX ") || upper.starts_with("CREATE UNIQUE INDEX ") {
@@ -20745,6 +20811,40 @@ fn resolve_sql_from_table(
 
     let base_tbl = if let Some(t) = tables.get(raw_tname) {
         t.clone()
+    } else if raw_tname.eq_ignore_ascii_case("sqlite_master")
+        || raw_tname.eq_ignore_ascii_case("sqlite_schema")
+    {
+        let mut rows = Vec::new();
+        for (tname, tbl) in tables {
+            rows.push(vec![
+                "table".to_string(),
+                tname.clone(),
+                tname.clone(),
+                "2".to_string(),
+                tbl.create_sql.clone(),
+            ]);
+        }
+        for (vname, vsql) in views {
+            rows.push(vec![
+                "view".to_string(),
+                vname.clone(),
+                vname.clone(),
+                "0".to_string(),
+                format!("CREATE VIEW {vname} AS {vsql}"),
+            ]);
+        }
+        SqlTable {
+            columns: vec![
+                "type".to_string(),
+                "name".to_string(),
+                "tbl_name".to_string(),
+                "rootpage".to_string(),
+                "sql".to_string(),
+            ],
+            rows,
+            imported_csv: false,
+            ..SqlTable::default()
+        }
     } else {
         let vsql = views.get(raw_tname)?;
         let sub_out = exec_sql_select_ext(
@@ -22463,7 +22563,12 @@ fn exec_sql_aggregate_select(
         out_rows = ord.into_iter().filter_map(|i| old.get(i).cloned()).collect();
     }
     if let Some(oc) = order_clause {
-        let mut ord_specs: Vec<(usize, bool, bool)> = Vec::new();
+        enum AggOrdTarget {
+            Proj(usize),
+            Col(usize),
+            Expr(String),
+        }
+        let mut ord_specs: Vec<(AggOrdTarget, bool)> = Vec::new();
         for item in split_top_level_comma(oc) {
             let mut oc_norm = item.trim();
             let oc_up = oc_norm.to_ascii_uppercase();
@@ -22488,30 +22593,37 @@ fn exec_sql_aggregate_select(
                     || e.eq_ignore_ascii_case(col_name)
                     || (!col_name.contains('.') && alias.eq_ignore_ascii_case(c_short))
             }) {
-                ord_specs.push((c_idx, desc, true));
+                ord_specs.push((AggOrdTarget::Proj(c_idx), desc));
             } else if let Some(r_idx) = find_sql_col(cols, col_name) {
-                ord_specs.push((r_idx, desc, false));
+                ord_specs.push((AggOrdTarget::Col(r_idx), desc));
+            } else {
+                ord_specs.push((AggOrdTarget::Expr(oc_norm.to_string()), desc));
             }
         }
         if !ord_specs.is_empty() {
             out_rows.sort_by(|(ra, pa), (rb, pb)| {
-                for &(idx, desc, is_proj) in &ord_specs {
-                    let (va, vb) = if is_proj {
-                        (
-                            pa.get(idx).map(|s| s.as_str()).unwrap_or(""),
-                            pb.get(idx).map(|s| s.as_str()).unwrap_or(""),
-                        )
-                    } else {
-                        (
-                            ra.get(idx).map(|s| s.as_str()).unwrap_or(""),
-                            rb.get(idx).map(|s| s.as_str()).unwrap_or(""),
-                        )
+                for (target, desc) in &ord_specs {
+                    let (va_owned, vb_owned) = match target {
+                        AggOrdTarget::Proj(idx) => (
+                            pa.get(*idx).cloned().unwrap_or_default(),
+                            pb.get(*idx).cloned().unwrap_or_default(),
+                        ),
+                        AggOrdTarget::Col(idx) => (
+                            ra.get(*idx).cloned().unwrap_or_default(),
+                            rb.get(*idx).cloned().unwrap_or_default(),
+                        ),
+                        AggOrdTarget::Expr(expr_s) => (
+                            eval_sql_group_expr(expr_s, cols, &[ra], tables),
+                            eval_sql_group_expr(expr_s, cols, &[rb], tables),
+                        ),
                     };
+                    let va = va_owned.as_str();
+                    let vb = vb_owned.as_str();
                     let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
                         (Ok(na), Ok(nb)) => na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal),
                         _ => va.cmp(vb),
                     };
-                    let ord = if desc { ord.reverse() } else { ord };
+                    let ord = if *desc { ord.reverse() } else { ord };
                     if ord != std::cmp::Ordering::Equal {
                         return ord;
                     }

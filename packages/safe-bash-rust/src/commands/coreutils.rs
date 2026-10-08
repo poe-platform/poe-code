@@ -59,7 +59,7 @@ pub fn try_run_coreutil(
         "expand" => Some(cmd_expand(args, stdin, cwd, fs)),
         "unexpand" => Some(cmd_unexpand(args, stdin, cwd, fs)),
         "tsort" => Some(cmd_tsort(args, stdin, cwd, env, fs)),
-        "truncate" => Some(cmd_truncate(args, cwd, fs)),
+        "truncate" => Some(cmd_truncate(args, cwd, env, fs)),
         "fold" => Some(cmd_fold(args, stdin, cwd, env, fs)),
         "fmt" => Some(cmd_fmt(args, stdin, cwd, fs)),
         "csplit" => Some(cmd_csplit(args, stdin, cwd, fs)),
@@ -68,7 +68,7 @@ pub fn try_run_coreutil(
         "shuf" => Some(cmd_shuf(args, stdin, cwd, env, fs)),
         "split" => Some(cmd_split(args, stdin, cwd, env, fs)),
         "dd" => Some(cmd_dd(args, stdin, cwd, fs)),
-        "install" => Some(cmd_install(args, cwd, fs)),
+        "install" => Some(cmd_install(args, cwd, env, fs)),
         _ => None,
     }
 }
@@ -14265,10 +14265,10 @@ impl ParsedTabs {
         let mut rel_repeat = 0usize;
         for spec in specs {
             let mut marker: Option<char> = None;
-            let entries: Vec<&str> = spec.split([',', ' ', '\t']).filter(|s| !s.is_empty()).collect();
-            if entries.is_empty() {
-                return Err(format!("{cmd_name}: tab size cannot be 0\n"));
-            }
+            let entries: Vec<&str> = spec
+                .split([',', ' ', '\t'])
+                .filter(|s| !s.is_empty())
+                .collect();
             for entry in entries {
                 let mut prefix_len = 0usize;
                 for ch in entry.chars() {
@@ -14280,26 +14280,29 @@ impl ParsedTabs {
                     }
                 }
                 let num_str = &entry[prefix_len..];
-                if num_str.is_empty() || !num_str.bytes().all(|b| b.is_ascii_digit()) {
-                    return Err(format!("{cmd_name}: tab size contains invalid character(s): '{entry}'\n"));
+                if num_str.is_empty() {
+                    continue;
+                }
+                if !num_str.bytes().all(|b| b.is_ascii_digit()) {
+                    return Err(format!("{cmd_name}: invalid number '{num_str}'\n"));
                 }
                 let n = match num_str.parse::<usize>() {
                     Ok(v) => v,
-                    Err(_) => return Err(format!("{cmd_name}: tab stop is too large '{entry}'\n")),
+                    Err(_) => return Err(format!("{cmd_name}: invalid number '{num_str}'\n")),
                 };
                 if marker.is_none() && n == 0 {
-                    return Err(format!("{cmd_name}: tab size cannot be 0\n"));
+                    return Err(format!("{cmd_name}: invalid number '{num_str}'\n"));
                 }
                 match marker {
                     Some('+') => {
-                        if rel_repeat != 0 || abs_repeat != 0 {
-                            return Err(format!("{cmd_name}: '+' specifier only allowed with the last value\n"));
+                        if rel_repeat != 0 {
+                            return Err(format!("{cmd_name}: repeating tab stop must be last\n"));
                         }
                         rel_repeat = n;
                     }
                     Some('/') => {
-                        if abs_repeat != 0 || rel_repeat != 0 {
-                            return Err(format!("{cmd_name}: '/' specifier only allowed with the last value\n"));
+                        if abs_repeat != 0 {
+                            return Err(format!("{cmd_name}: repeating tab stop must be last\n"));
                         }
                         abs_repeat = n;
                     }
@@ -14308,7 +14311,7 @@ impl ParsedTabs {
                             return Err(format!("{cmd_name}: repeating tab stop must be last\n"));
                         }
                         if n <= stops.last().copied().unwrap_or(0) {
-                            return Err(format!("{cmd_name}: tab sizes must be ascending\n"));
+                            return Err(format!("{cmd_name}: tab stops must be ascending\n"));
                         }
                         stops.push(n);
                     }
@@ -14316,7 +14319,9 @@ impl ParsedTabs {
             }
         }
         if abs_repeat != 0 && rel_repeat != 0 {
-            return Err(format!("{cmd_name}: '/' specifier is mutually exclusive with '+'\n"));
+            return Err(format!(
+                "{cmd_name}: '/' specifier is mutually exclusive with '+'\n"
+            ));
         }
         let mut repeat = if abs_repeat > 0 { abs_repeat } else { rel_repeat };
         let relative = rel_repeat > 0;
@@ -14352,70 +14357,169 @@ impl ParsedTabs {
     }
 }
 
+fn read_expand_inputs(
+    files: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    cmd_name: &str,
+) -> (Vec<Vec<u8>>, String, i32) {
+    if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+        return (vec![crate::vfs::stream_string_to_bytes(stdin)], String::new(), 0);
+    }
+    let mut chunks = Vec::new();
+    let mut err_buf = String::new();
+    let mut code = 0;
+    for f in files {
+        if f == "-" {
+            chunks.push(crate::vfs::stream_string_to_bytes(stdin));
+            continue;
+        }
+        let path = resolve_posix_path(cwd, f);
+        if fs.is_dir(&path) {
+            err_buf.push_str(&format!("{cmd_name}: {f}: Is a directory\n"));
+            code = 1;
+            continue;
+        }
+        match fs.read_file(&path) {
+            Ok(bytes) => chunks.push(bytes),
+            Err(e) => {
+                err_buf.push_str(&format!("{cmd_name}: {f}: {e}\n"));
+                code = 1;
+            }
+        }
+    }
+    (chunks, err_buf, code)
+}
+
 fn cmd_expand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut initial_only = false;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "--" {
-            files.extend(args[i + 1..].iter().cloned());
-            break;
-        } else if a == "-i" || a == "--initial" {
-            initial_only = true;
-            i += 1;
-        } else if (a == "-t" || a == "--tabs") && i + 1 < args.len() {
-            tab_specs.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-t").or_else(|| a.strip_prefix("--tabs="))
-            && !rest.is_empty()
-        {
-            tab_specs.push(rest.to_string());
-            i += 1;
-        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit() || c == ',') {
-            tab_specs.push(a[1..].to_string());
-            i += 1;
-        } else if !a.starts_with('-') || a == "-" {
+        if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
             i += 1;
-        } else {
-            return err_out(&format!("expand: invalid option -- '{a}'\n"), 1);
+            continue;
         }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if let Some(rest) = a.strip_prefix("--") {
+            let (name, eq_val) = match rest.split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (rest, None),
+            };
+            if "--help".starts_with(a.as_str()) && eq_val.is_none() {
+                return ok_out("Usage: expand [OPTION]... [FILE]...\n");
+            }
+            if "--version".starts_with(a.as_str()) && eq_val.is_none() {
+                return ok_out("expand (GNU coreutils) 9.5\n");
+            }
+            if "initial".starts_with(name) && !name.is_empty() {
+                if eq_val.is_some() {
+                    return err_out("expand: option '--initial' doesn't allow an argument\n", 1);
+                }
+                initial_only = true;
+                i += 1;
+                continue;
+            }
+            if "tabs".starts_with(name) && !name.is_empty() {
+                if let Some(v) = eq_val {
+                    tab_specs.push(v.to_string());
+                    i += 1;
+                } else if i + 1 < args.len() {
+                    tab_specs.push(args[i + 1].clone());
+                    i += 2;
+                } else {
+                    return err_out("expand: option '--tabs' requires an argument\n", 1);
+                }
+                continue;
+            }
+            return err_out(&format!("expand: unrecognized option '{a}'\n"), 1);
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut j = 0usize;
+        let mut num_buf = String::new();
+        while j < chars.len() {
+            let ch = chars[j];
+            if ch.is_ascii_digit() || ch == ',' || ch == '/' || ch == '+' {
+                num_buf.push(ch);
+                j += 1;
+                continue;
+            }
+            if !num_buf.is_empty() {
+                tab_specs.push(std::mem::take(&mut num_buf));
+            }
+            match ch {
+                'i' => {
+                    initial_only = true;
+                    j += 1;
+                }
+                't' => {
+                    let rest: String = chars[j + 1..].iter().collect();
+                    if !rest.is_empty() {
+                        tab_specs.push(rest);
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        tab_specs.push(args[i].clone());
+                    } else {
+                        return err_out("expand: option requires an argument -- 't'\n", 1);
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("expand: invalid option -- '{ch}'\n"), 1),
+            }
+        }
+        if !num_buf.is_empty() {
+            tab_specs.push(num_buf);
+        }
+        i += 1;
     }
     let tabs = match ParsedTabs::parse(&tab_specs, "expand") {
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),
     };
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "expand") {
-        Ok(t) => t,
-        Err(e) => return e,
-    };
-    let raw_in = crate::vfs::stream_string_to_bytes(&text);
+    let (chunks, err_buf, exit_code) = read_expand_inputs(&files, stdin, cwd, fs, "expand");
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut column = 0usize;
     let mut initial = true;
-    for &b in &raw_in {
-        if b == b'\t' && (!initial_only || initial) {
-            let stop = tabs.next_stop(column, true).unwrap_or(column + 1);
-            while column < stop {
-                out_bytes.push(b' ');
-                column += 1;
-            }
-        } else {
-            out_bytes.push(b);
-            if b == b'\n' {
-                column = 0;
-                initial = true;
+    for raw_in in chunks {
+        for &b in &raw_in {
+            if b == b'\t' && (!initial_only || initial) {
+                let stop = tabs.next_stop(column, true).unwrap_or(column + 1);
+                while column < stop {
+                    out_bytes.push(b' ');
+                    column += 1;
+                }
             } else {
-                column = if b == 8 { column.saturating_sub(1) } else { column + 1 };
-                if b != b' ' && b != b'\t' {
-                    initial = false;
+                out_bytes.push(b);
+                if b == b'\n' {
+                    column = 0;
+                    initial = true;
+                } else {
+                    column = if b == 8 {
+                        column.saturating_sub(1)
+                    } else {
+                        column + 1
+                    };
+                    if b != b' ' && b != b'\t' {
+                        initial = false;
+                    }
                 }
             }
         }
     }
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -14424,49 +14528,111 @@ fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     let mut has_t = false;
     let mut first_only = false;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "--" {
-            files.extend(args[i + 1..].iter().cloned());
-            break;
-        } else if a == "-a" || a == "--all" {
-            all_flag = true;
-            i += 1;
-        } else if a == "--first-only" {
-            first_only = true;
-            i += 1;
-        } else if (a == "-t" || a == "--tabs") && i + 1 < args.len() {
-            tab_specs.push(args[i + 1].clone());
-            has_t = true;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-t").or_else(|| a.strip_prefix("--tabs="))
-            && !rest.is_empty()
-        {
-            tab_specs.push(rest.to_string());
-            has_t = true;
-            i += 1;
-        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit() || c == ',') {
-            tab_specs.push(a[1..].to_string());
-            has_t = true;
-            i += 1;
-        } else if !a.starts_with('-') || a == "-" {
+        if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
             i += 1;
-        } else {
-            return err_out(&format!("unexpand: invalid option -- '{a}'\n"), 1);
+            continue;
         }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if let Some(rest) = a.strip_prefix("--") {
+            let (name, eq_val) = match rest.split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (rest, None),
+            };
+            if "--help".starts_with(a.as_str()) && eq_val.is_none() {
+                return ok_out("Usage: unexpand [OPTION]... [FILE]...\n");
+            }
+            if "--version".starts_with(a.as_str()) && eq_val.is_none() {
+                return ok_out("unexpand (GNU coreutils) 9.5\n");
+            }
+            if "all".starts_with(name) && !name.is_empty() {
+                if eq_val.is_some() {
+                    return err_out("unexpand: option '--all' doesn't allow an argument\n", 1);
+                }
+                all_flag = true;
+                i += 1;
+                continue;
+            }
+            if "first-only".starts_with(name) && !name.is_empty() {
+                if eq_val.is_some() {
+                    return err_out(
+                        "unexpand: option '--first-only' doesn't allow an argument\n",
+                        1,
+                    );
+                }
+                first_only = true;
+                i += 1;
+                continue;
+            }
+            if "tabs".starts_with(name) && !name.is_empty() {
+                has_t = true;
+                if let Some(v) = eq_val {
+                    tab_specs.push(v.to_string());
+                    i += 1;
+                } else if i + 1 < args.len() {
+                    tab_specs.push(args[i + 1].clone());
+                    i += 2;
+                } else {
+                    return err_out("unexpand: option '--tabs' requires an argument\n", 1);
+                }
+                continue;
+            }
+            return err_out(&format!("unexpand: unrecognized option '{a}'\n"), 1);
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut j = 0usize;
+        let mut num_buf = String::new();
+        while j < chars.len() {
+            let ch = chars[j];
+            if ch.is_ascii_digit() || ch == ',' || ch == '/' || ch == '+' {
+                num_buf.push(ch);
+                has_t = true;
+                j += 1;
+                continue;
+            }
+            if !num_buf.is_empty() {
+                tab_specs.push(std::mem::take(&mut num_buf));
+            }
+            match ch {
+                'a' => {
+                    all_flag = true;
+                    j += 1;
+                }
+                't' => {
+                    has_t = true;
+                    let rest: String = chars[j + 1..].iter().collect();
+                    if !rest.is_empty() {
+                        tab_specs.push(rest);
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        tab_specs.push(args[i].clone());
+                    } else {
+                        return err_out("unexpand: option requires an argument -- 't'\n", 1);
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("unexpand: invalid option -- '{ch}'\n"), 1),
+            }
+        }
+        if !num_buf.is_empty() {
+            tab_specs.push(num_buf);
+        }
+        i += 1;
     }
     let tabs = match ParsedTabs::parse(&tab_specs, "unexpand") {
         Ok(t) => t,
         Err(msg) => return err_out(&msg, 1),
     };
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "unexpand") {
-        Ok(t) => t,
-        Err(e) => return e,
-    };
+    let (chunks, err_buf, exit_code) = read_expand_inputs(&files, stdin, cwd, fs, "unexpand");
     let all = !first_only && (all_flag || has_t);
-    let raw_in = crate::vfs::stream_string_to_bytes(&text);
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut column = 0usize;
     let mut initial = true;
@@ -14502,50 +14668,56 @@ fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         *pending_tab = false;
     };
 
-    for &b in &raw_in {
-        if active && (b == b' ' || b == b'\t') {
-            if let Some(stop) = tabs.next_stop(column, false) {
-                if pending_count == 0 {
-                    pending_start = column;
+    for raw_in in chunks {
+        for &b in &raw_in {
+            if active && (b == b' ' || b == b'\t') {
+                if let Some(stop) = tabs.next_stop(column, false) {
+                    if pending_count == 0 {
+                        pending_start = column;
+                    }
+                    pending_count += 1;
+                    if b == b'\t' {
+                        pending_tab = true;
+                        column = stop;
+                    } else {
+                        column += 1;
+                    }
+                    continue;
                 }
-                pending_count += 1;
-                if b == b'\t' {
-                    pending_tab = true;
-                    column = stop;
-                } else {
-                    column += 1;
-                }
-                continue;
-            }
-            flush_blanks(
-                &mut out_bytes,
-                pending_start,
-                column,
-                initial,
-                &mut pending_count,
-                &mut pending_tab,
-            );
-            active = false;
-        } else if pending_count > 0 {
-            flush_blanks(
-                &mut out_bytes,
-                pending_start,
-                column,
-                initial,
-                &mut pending_count,
-                &mut pending_tab,
-            );
-        }
-        out_bytes.push(b);
-        if b == b'\n' {
-            column = 0;
-            initial = true;
-            active = true;
-        } else if active {
-            column = if b == 8 { column.saturating_sub(1) } else { column + 1 };
-            initial = false;
-            if !all {
+                flush_blanks(
+                    &mut out_bytes,
+                    pending_start,
+                    column,
+                    initial,
+                    &mut pending_count,
+                    &mut pending_tab,
+                );
                 active = false;
+            } else if pending_count > 0 {
+                flush_blanks(
+                    &mut out_bytes,
+                    pending_start,
+                    column,
+                    initial,
+                    &mut pending_count,
+                    &mut pending_tab,
+                );
+            }
+            out_bytes.push(b);
+            if b == b'\n' {
+                column = 0;
+                initial = true;
+                active = true;
+            } else if active {
+                column = if b == 8 {
+                    column.saturating_sub(1)
+                } else {
+                    column + 1
+                };
+                initial = false;
+                if !all {
+                    active = false;
+                }
             }
         }
     }
@@ -14557,7 +14729,11 @@ fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         &mut pending_count,
         &mut pending_tab,
     );
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 #[derive(Clone)]
@@ -16870,9 +17046,10 @@ const DD_IBM_HEX: &str = concat!(
     "b8b9babbbcbdbebfcacbcccdcecfdadbdcdddedfeaebecedeeeffafbfcfdfeff"
 );
 
-fn parse_dd_number(text: &str) -> Result<usize, String> {
+fn parse_dd_number(text: &str, warnings: &mut Vec<String>) -> Result<usize, String> {
+    let factors: Vec<&str> = text.split('x').collect();
     let mut product = 1usize;
-    for factor in text.split('x') {
+    for &factor in &factors {
         let trimmed = factor.trim_start_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']);
         let rest = trimmed.strip_prefix('+').unwrap_or(trimmed);
         let num_len = rest.bytes().take_while(|b| b.is_ascii_digit()).count();
@@ -16905,9 +17082,13 @@ fn parse_dd_number(text: &str) -> Result<usize, String> {
                 'T' => 4u32,
                 'P' => 5u32,
                 'E' => 6u32,
+                'Z' => 7u32,
+                'Y' => 8u32,
+                'R' => 9u32,
+                'Q' => 10u32,
                 _ => return Err(format!("dd: invalid number: '{text}'\n")),
             };
-            if !matches!(tail, "" | "B" | "iB" | "D") || !"kKMGTPE".contains(first) {
+            if !matches!(tail, "" | "B" | "iB" | "D") || !"kKMGTPEZYRQ".contains(first) {
                 return Err(format!("dd: invalid number: '{text}'\n"));
             }
             let base = if tail == "B" || tail == "D" {
@@ -16919,6 +17100,16 @@ fn parse_dd_number(text: &str) -> Result<usize, String> {
         };
         val = val.saturating_mul(mult);
         product = product.saturating_mul(val);
+    }
+    if factors.len() > 1 {
+        for &factor in &factors[..factors.len() - 1] {
+            if factor == "0" && product == 0 {
+                warnings.push(
+                    "dd: warning: '0x' is a zero multiplier; use '00x' if that is intended\n"
+                        .to_string(),
+                );
+            }
+        }
     }
     Ok(product)
 }
@@ -16936,49 +17127,145 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut count_bytes = false;
     let mut skip_bytes = false;
     let mut seek_bytes = false;
+    let mut status_level = "default".to_string();
     let mut conv_set: BTreeSet<String> = BTreeSet::new();
     let mut iflags: BTreeSet<String> = BTreeSet::new();
     let mut oflags: BTreeSet<String> = BTreeSet::new();
+    let mut warnings: Vec<String> = Vec::new();
+
+    let allowed_convs = [
+        "ascii", "ebcdic", "ibm", "block", "unblock", "lcase", "ucase", "sparse", "swab", "sync",
+        "noerror", "notrunc", "excl", "nocreat", "fdatasync", "fsync",
+    ];
+    let allowed_flags = [
+        "append",
+        "binary",
+        "text",
+        "cio",
+        "direct",
+        "directory",
+        "dsync",
+        "noatime",
+        "nocache",
+        "noctty",
+        "nofollow",
+        "nolinks",
+        "nonblock",
+        "sync",
+        "fullblock",
+        "count_bytes",
+        "skip_bytes",
+        "seek_bytes",
+    ];
 
     for a in args {
         if a == "--" {
+            break;
+        }
+        if a.starts_with("--") && a.len() > 2 {
+            let opt = a.split('=').next().unwrap_or(a);
+            if "--help".starts_with(opt) {
+                if a.contains('=') {
+                    return err_out("dd: option '--help' doesn't allow an argument\n", 1);
+                }
+                return ok_out("Usage: dd [OPERAND]...\n");
+            }
+            if "--version".starts_with(opt) {
+                if a.contains('=') {
+                    return err_out("dd: option '--version' doesn't allow an argument\n", 1);
+                }
+                return ok_out("dd (coreutils) 9.5\n");
+            }
+            return err_out(&format!("dd: unrecognized option '{a}'\n"), 1);
+        }
+        if a.starts_with('-') && a != "-" {
+            let ch = a.chars().nth(1).unwrap_or('-');
+            return err_out(&format!("dd: invalid option -- '{ch}'\n"), 1);
+        }
+    }
+
+    let mut delim = false;
+    for a in args {
+        if a == "--" && !delim {
+            delim = true;
             continue;
         }
-        if a == "--help" {
-            return ok_out("Usage: dd [OPERAND]...\n");
-        }
-        if a == "--version" {
-            return ok_out("dd (coreutils) 9.5\n");
-        }
         let Some((name, value)) = a.split_once('=') else {
-            return err_out(&format!("dd: unrecognized operand '{a}'\n"), 1);
+            return err_out(&format!("{}{}", warnings.concat(), format!("dd: unrecognized operand '{a}'\n")), 1);
         };
         match name {
             "if" => in_file = Some(value.to_string()),
             "of" => out_file = Some(value.to_string()),
             "conv" => {
-                for sym in value.split(',').filter(|s| !s.is_empty()) {
+                for sym in value.split(',') {
+                    if !allowed_convs.contains(&sym) {
+                        return err_out(
+                            &format!(
+                                "{}{}",
+                                warnings.concat(),
+                                format!("dd: invalid conversion: '{sym}'\nTry 'dd --help' for more information.\n")
+                            ),
+                            1,
+                        );
+                    }
                     conv_set.insert(sym.to_string());
                 }
             }
             "iflag" => {
-                for sym in value.split(',').filter(|s| !s.is_empty()) {
+                for sym in value.split(',') {
+                    if !allowed_flags.contains(&sym) {
+                        return err_out(
+                            &format!(
+                                "{}{}",
+                                warnings.concat(),
+                                format!("dd: invalid input flag: '{sym}'\nTry 'dd --help' for more information.\n")
+                            ),
+                            1,
+                        );
+                    }
                     iflags.insert(sym.to_string());
                 }
             }
             "oflag" => {
-                for sym in value.split(',').filter(|s| !s.is_empty()) {
+                for sym in value.split(',') {
+                    if !allowed_flags.contains(&sym) || sym == "fullblock" {
+                        return err_out(
+                            &format!(
+                                "{}{}",
+                                warnings.concat(),
+                                format!("dd: invalid output flag: '{sym}'\nTry 'dd --help' for more information.\n")
+                            ),
+                            1,
+                        );
+                    }
                     oflags.insert(sym.to_string());
                 }
             }
-            "status" => {}
+            "status" => {
+                for sym in value.split(',') {
+                    if !matches!(sym, "none" | "noxfer" | "progress") {
+                        return err_out(
+                            &format!(
+                                "{}{}",
+                                warnings.concat(),
+                                format!("dd: invalid status level: '{sym}'\nTry 'dd --help' for more information.\n")
+                            ),
+                            1,
+                        );
+                    }
+                    status_level = sym.to_string();
+                }
+            }
             "bs" | "ibs" | "obs" | "cbs" | "count" | "skip" | "iseek" | "seek" | "oseek" => {
-                let n = match parse_dd_number(value) {
+                let n = match parse_dd_number(value, &mut warnings) {
                     Ok(v) => v,
-                    Err(e) => return err_out(&e, 1),
+                    Err(e) => return err_out(&format!("{}{e}", warnings.concat()), 1),
                 };
                 if matches!(name, "bs" | "ibs" | "obs" | "cbs") && n == 0 {
-                    return err_out(&format!("dd: invalid number: '{value}'\n"), 1);
+                    return err_out(
+                        &format!("{}{}", warnings.concat(), format!("dd: invalid number: '{value}'\n")),
+                        1,
+                    );
                 }
                 match name {
                     "bs" => bs_opt = Some(n),
@@ -17000,7 +17287,12 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     _ => {}
                 }
             }
-            _ => return err_out(&format!("dd: unrecognized operand '{a}'\n"), 1),
+            _ => {
+                return err_out(
+                    &format!("{}{}", warnings.concat(), format!("dd: unrecognized operand '{a}'\n")),
+                    1,
+                );
+            }
         }
     }
 
@@ -17019,52 +17311,84 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         conv_set.remove("unblock");
     }
 
-    let exclusive_groups: &[&[&str]] = &[
-        &["ascii", "ebcdic", "ibm"],
-        &["block", "unblock"],
-        &["lcase", "ucase"],
-        &["excl", "nocreat"],
+    let exclusive_groups: &[(&[&str], &str)] = &[
+        (
+            &["ascii", "ebcdic", "ibm"],
+            "dd: cannot combine any two of {ascii,ebcdic,ibm}\n",
+        ),
+        (&["block", "unblock"], "dd: cannot combine block and unblock\n"),
+        (&["lcase", "ucase"], "dd: cannot combine lcase and ucase\n"),
+        (&["excl", "nocreat"], "dd: cannot combine excl and nocreat\n"),
     ];
-    for group in exclusive_groups {
+    for &(group, msg) in exclusive_groups {
         let active = group.iter().filter(|&&k| conv_set.contains(k)).count();
         if active > 1 {
-            return err_out("dd: cannot combine mutually exclusive conversions\n", 1);
+            return err_out(&format!("{}{msg}", warnings.concat()), 1);
         }
+    }
+    if (iflags.contains("direct") && iflags.contains("nocache"))
+        || (oflags.contains("direct") && oflags.contains("nocache"))
+    {
+        return err_out(
+            &format!("{}dd: cannot combine direct and nocache\n", warnings.concat()),
+            1,
+        );
     }
 
     count_bytes |= iflags.contains("count_bytes");
     skip_bytes |= iflags.contains("skip_bytes");
     seek_bytes |= oflags.contains("seek_bytes");
 
-    let raw_data = if let Some(ref inf) = in_file {
+    let raw_in: Vec<u8> = if let Some(ref inf) = in_file {
         if inf == "/dev/null" {
             Vec::new()
         } else if inf == "/dev/zero" {
-            let max_z = count
-                .map(|c| if count_bytes { c } else { c.saturating_mul(ibs) })
-                .unwrap_or(4096);
-            vec![0u8; skip.saturating_mul(ibs) + max_z]
+            let skip_len = if skip_bytes { skip } else { skip.saturating_mul(ibs) };
+            let cnt_len = match count {
+                Some(c) => {
+                    if count_bytes {
+                        c
+                    } else {
+                        c.saturating_mul(ibs)
+                    }
+                }
+                None => 0,
+            };
+            vec![0u8; skip_len.saturating_add(cnt_len).min(16 * 1024 * 1024)]
         } else {
             let full = resolve_posix_path(cwd, inf);
             match fs.read_file(&full) {
                 Ok(b) => b,
-                Err(e) => return err_out(&format!("dd: failed to open '{inf}': {e}\n"), 1),
+                Err(e) => {
+                    return err_out(
+                        &format!("{}{}", warnings.concat(), format!("dd: failed to open '{inf}': {e}\n")),
+                        1,
+                    );
+                }
             }
         }
     } else {
-        stream_string_to_bytes(stdin)
+        crate::vfs::stream_string_to_bytes(stdin)
     };
 
     if let Some(ref outf) = out_file
         && outf != "/dev/null"
     {
         let full = resolve_posix_path(cwd, outf);
-        if conv_set.contains("excl") && fs.exists(&full) {
-            return err_out(&format!("dd: failed to open '{outf}': File exists\n"), 1);
-        }
-        if conv_set.contains("nocreat") && !fs.exists(&full) {
+        let exists = fs.exists(&full);
+        if conv_set.contains("excl") && exists {
             return err_out(
-                &format!("dd: failed to open '{outf}': No such file or directory\n"),
+                &format!("{}{}", warnings.concat(), format!("dd: failed to open '{outf}': File exists\n")),
+                1,
+            );
+        }
+        if conv_set.contains("nocreat") && !exists {
+            return err_out(
+                &format!(
+                    "{}{}",
+                    warnings.concat(),
+                    format!("dd: failed to open '{outf}': No such file or directory\n")
+                ),
                 1,
             );
         }
@@ -17075,31 +17399,30 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     } else {
         skip.saturating_mul(ibs)
     };
-    let after_skip = if skip_offset < raw_data.len() {
-        &raw_data[skip_offset..]
-    } else {
+    let after_skip = if skip_offset >= raw_in.len() {
         &[][..]
+    } else {
+        &raw_in[skip_offset..]
     };
 
     let mut blocks: Vec<Vec<u8>> = Vec::new();
-    let sync_pad = conv_set.contains("sync");
-    let sync_fill = if conv_set.contains("block") || conv_set.contains("unblock") {
-        b' '
-    } else {
-        0u8
-    };
-
-    if count == Some(0) {
-        // copy 0 blocks
-    } else {
+    let mut input_full = 0usize;
+    let mut input_partial = 0usize;
+    let copying = count != Some(0);
+    if copying {
         let max_records = count.map(|c| if count_bytes { c / ibs } else { c });
-        let final_bytes = if count_bytes {
-            count.map(|c| c % ibs).unwrap_or(0)
-        } else {
-            0
+        let final_bytes = match count {
+            Some(c) if count_bytes => c % ibs,
+            _ => 0usize,
         };
         let mut pos = 0usize;
         let mut records_read = 0usize;
+        let sync_pad = conv_set.contains("sync");
+        let sync_fill = if conv_set.contains("block") || conv_set.contains("unblock") {
+            b' '
+        } else {
+            0u8
+        };
         while pos < after_skip.len() {
             if let Some(mr) = max_records
                 && records_read >= mr + usize::from(final_bytes > 0)
@@ -17117,6 +17440,11 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             let mut blk = after_skip[pos..end].to_vec();
             pos = end;
             records_read += 1;
+            if blk.len() == ibs {
+                input_full += 1;
+            } else {
+                input_partial += 1;
+            }
             if sync_pad && blk.len() < ibs {
                 blk.resize(ibs, sync_fill);
             }
@@ -17169,6 +17497,7 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut column = 0usize;
     let mut spaces = 0usize;
     let mut saved: Option<u8> = None;
+    let mut truncated = 0usize;
 
     let mut record_byte = |b: u8, out: &mut Vec<u8>| {
         if do_block {
@@ -17181,6 +17510,8 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             } else {
                 if column < cbs {
                     out.push(b);
+                } else if column == cbs {
+                    truncated += 1;
                 }
                 column = (column + 1).min(cbs + 1);
             }
@@ -17233,9 +17564,36 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         out_bytes.push(newline_byte);
     }
 
+    let output_full = out_bytes.len() / obs;
+    let output_partial = usize::from(!out_bytes.len().is_multiple_of(obs));
+
+    let mut stderr = warnings.concat();
+    if status_level != "none" {
+        stderr.push_str(&format!(
+            "{input_full}+{input_partial} records in\n{output_full}+{output_partial} records out\n"
+        ));
+        if truncated > 0 {
+            stderr.push_str(&format!(
+                "{truncated} truncated record{}\n",
+                if truncated == 1 { "" } else { "s" }
+            ));
+        }
+        if status_level != "noxfer" {
+            let total_b = out_bytes.len();
+            stderr.push_str(&format!(
+                "{total_b} {} copied, 0 s, Infinity B/s\n",
+                if total_b == 1 { "byte" } else { "bytes" }
+            ));
+        }
+    }
+
     if let Some(outf) = out_file {
         if outf == "/dev/null" {
-            return ok_out("");
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr,
+                exit_code: 0,
+            };
         }
         let full = resolve_posix_path(cwd, &outf);
         let notrunc = conv_set.contains("notrunc");
@@ -17262,30 +17620,120 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         } else {
             let _ = fs.write_file(&full, &out_bytes);
         }
-        ok_out("")
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code: 0,
+        }
     } else {
-        ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+        BuiltinOutcome {
+            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+            stderr,
+            exit_code: 0,
+        }
     }
 }
 
-fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn ensure_install_dirs(
+    display: &str,
+    final_dir: bool,
+    target_mode: u32,
+    verbose: bool,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    out_buf: &mut String,
+) {
+    if display.is_empty() {
+        return;
+    }
+    let parts: Vec<&str> = display.split('/').filter(|s| !s.is_empty()).collect();
+    let mut current = if display.starts_with('/') {
+        "/".to_string()
+    } else {
+        String::new()
+    };
+    let comps: Vec<&str> = if parts.is_empty() { vec!["."] } else { parts };
+    for (idx, comp) in comps.iter().enumerate() {
+        current = if !current.is_empty() && current != "/" {
+            format!("{current}/{comp}")
+        } else {
+            format!("{current}{comp}")
+        };
+        let path = resolve_posix_path(cwd, &current);
+        let is_last = idx + 1 == comps.len();
+        let existed = fs.exists(&path);
+        if !existed {
+            let _ = fs.mkdir_all(&path);
+            let creation_mode = if final_dir && is_last {
+                target_mode
+            } else {
+                0o755
+            };
+            let _ = fs.chmod(&path, 0o040000 | creation_mode);
+            if verbose {
+                out_buf.push_str(&format!("install: creating directory '{current}'\n"));
+            }
+        } else if final_dir && is_last {
+            let _ = fs.chmod(&path, 0o040000 | target_mode);
+        }
+    }
+}
+
+fn cmd_install(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut create_dirs = false;
     let mut dir_mode = false;
-    let mut backup_mode: Option<&str> = None;
-    let mut suffix = "~".to_string();
+    let mut make_backups = false;
+    let mut backup_control: Option<String> = None;
+    let mut suffix = env
+        .get("SIMPLE_BACKUP_SUFFIX")
+        .filter(|s| !s.is_empty() && !s.contains('/'))
+        .cloned()
+        .unwrap_or_else(|| "~".to_string());
     let mut compare_mode = false;
     let mut preserve_ts = false;
     let mut strip_mode = false;
+    let mut verbose = false;
     let mut no_target_dir = false;
     let mut target_dir: Option<String> = None;
     let mut mode_spec: Option<String> = None;
     let mut ended = false;
     let mut files = Vec::new();
+    let posix = env.contains_key("POSIXLY_CORRECT");
+
+    let long_opts = [
+        ("backup", "b", false, true),
+        ("compare", "C", false, false),
+        ("context", "Z", false, true),
+        ("debug", "debug", false, false),
+        ("directory", "d", false, false),
+        ("group", "g", true, false),
+        ("mode", "m", true, false),
+        ("no-target-directory", "T", false, false),
+        ("owner", "o", true, false),
+        ("preserve-timestamps", "p", false, false),
+        ("preserve-context", "preserve-context", false, false),
+        ("strip", "s", false, false),
+        ("strip-program", "strip-program", true, false),
+        ("suffix", "S", true, false),
+        ("target-directory", "t", true, false),
+        ("verbose", "v", false, false),
+        ("help", "help", false, false),
+        ("version", "version", false, false),
+    ];
+
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
         if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
+            if posix {
+                ended = true;
+            }
             i += 1;
             continue;
         }
@@ -17294,133 +17742,177 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             i += 1;
             continue;
         }
-        match a.as_str() {
-            "--help" => return ok_out("Usage: install [OPTION]... SOURCE... DEST\n"),
-            "--version" => return ok_out("install (Sandbox VFS-ish/GNU coreutils) 9.7\n"),
-            "--compare" => compare_mode = true,
-            "--directory" => dir_mode = true,
-            "--preserve-timestamps" => preserve_ts = true,
-            "--strip" => strip_mode = true,
-            "--no-target-directory" => no_target_dir = true,
-            "--verbose" => {}
-            "--backup" => backup_mode = Some("existing"),
-            s if s.starts_with("--backup=") => {
-                let ctl = &s["--backup=".len()..];
-                backup_mode = match ctl {
-                    "none" | "off" => None,
-                    "numbered" | "t" => Some("numbered"),
-                    "existing" | "nil" => Some("existing"),
-                    "simple" | "never" => Some("simple"),
-                    _ => return err_out(&format!("install: invalid backup type '{ctl}'\n"), 1),
-                };
+        if let Some(rest) = a.strip_prefix("--") {
+            let (name, eq_val) = match rest.split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (rest, None),
+            };
+            let exact = long_opts.iter().find(|&&(ln, _, _, _)| ln == name);
+            let matches: Vec<_> = long_opts
+                .iter()
+                .filter(|&&(ln, _, _, _)| ln.starts_with(name))
+                .collect();
+            let selected = if let Some(ex) = exact {
+                ex
+            } else if matches.len() == 1 {
+                matches[0]
+            } else {
+                return err_out(&format!("install: unrecognized option '{a}'\n"), 1);
+            };
+            let (full_name, key, req_arg, opt_arg) = *selected;
+            if key == "help" {
+                return ok_out("Usage: install [OPTION]... SOURCE... DEST\n");
             }
-            "--mode" => {
-                if i + 1 >= args.len() {
-                    return err_out("install: option '--mode' requires an argument\n", 1);
-                }
-                i += 1;
-                mode_spec = Some(args[i].clone());
+            if key == "version" {
+                return ok_out("install (Sandbox VFS-ish/GNU coreutils) 9.7\n");
             }
-            s if s.starts_with("--mode=") => {
-                mode_spec = Some(s["--mode=".len()..].to_string());
+            if eq_val.is_some() && !req_arg && !opt_arg {
+                return err_out(
+                    &format!("install: option '--{full_name}' doesn't allow an argument\n"),
+                    1,
+                );
             }
-            "--target-directory" => {
-                if i + 1 >= args.len() {
+            let val = if req_arg {
+                if let Some(v) = eq_val {
+                    Some(v.to_string())
+                } else if i + 1 < args.len() {
+                    i += 1;
+                    Some(args[i].clone())
+                } else {
                     return err_out(
-                        "install: option '--target-directory' requires an argument\n",
+                        &format!("install: option '--{full_name}' requires an argument\n"),
                         1,
                     );
                 }
-                i += 1;
-                target_dir = Some(args[i].clone());
-            }
-            s if s.starts_with("--target-directory=") => {
-                target_dir = Some(s["--target-directory=".len()..].to_string());
-            }
-            "--suffix" => {
-                if i + 1 >= args.len() {
-                    return err_out("install: option '--suffix' requires an argument\n", 1);
+            } else {
+                eq_val.map(|v| v.to_string())
+            };
+            match key {
+                "b" => {
+                    make_backups = true;
+                    if let Some(v) = val {
+                        backup_control = Some(v);
+                    }
                 }
-                i += 1;
-                suffix = args[i].clone();
-                if backup_mode.is_none() {
-                    backup_mode = Some("existing");
+                "C" => compare_mode = true,
+                "d" => dir_mode = true,
+                "p" => preserve_ts = true,
+                "s" => strip_mode = true,
+                "v" | "debug" => verbose = true,
+                "T" => no_target_dir = true,
+                "t" => {
+                    if target_dir.is_some() {
+                        return err_out("install: multiple target directories specified\n", 1);
+                    }
+                    target_dir = val;
                 }
-            }
-            s if s.starts_with("--suffix=") => {
-                suffix = s["--suffix=".len()..].to_string();
-                if backup_mode.is_none() {
-                    backup_mode = Some("existing");
+                "m" => mode_spec = val,
+                "S" => {
+                    make_backups = true;
+                    if let Some(v) = val {
+                        suffix = if v.is_empty() || v.contains('/') {
+                            "~".to_string()
+                        } else {
+                            v
+                        };
+                    }
                 }
+                _ => {}
             }
-            s if !s.starts_with("--") => {
-                let chars: Vec<char> = s[1..].chars().collect();
-                let mut j = 0usize;
-                while j < chars.len() {
-                    match chars[j] {
-                        'D' => create_dirs = true,
-                        'C' => compare_mode = true,
-                        'd' => dir_mode = true,
-                        'b' => {
-                            if backup_mode.is_none() {
-                                backup_mode = Some("existing");
-                            }
-                        }
-                        'p' => preserve_ts = true,
-                        's' => strip_mode = true,
-                        'T' => no_target_dir = true,
-                        'c' | 'v' => {}
-                        'm' => {
-                            let rest: String = chars[j + 1..].iter().collect();
-                            if !rest.is_empty() {
-                                mode_spec = Some(rest);
-                            } else if i + 1 < args.len() {
-                                i += 1;
-                                mode_spec = Some(args[i].clone());
-                            } else {
-                                return err_out("install: option requires an argument -- 'm'\n", 1);
-                            }
-                            break;
-                        }
-                        't' => {
-                            let rest: String = chars[j + 1..].iter().collect();
-                            if !rest.is_empty() {
-                                target_dir = Some(rest);
-                            } else if i + 1 < args.len() {
-                                i += 1;
-                                target_dir = Some(args[i].clone());
-                            } else {
-                                return err_out("install: option requires an argument -- 't'\n", 1);
-                            }
-                            break;
-                        }
-                        'S' => {
-                            let rest: String = chars[j + 1..].iter().collect();
-                            if !rest.is_empty() {
-                                suffix = rest;
-                            } else if i + 1 < args.len() {
-                                i += 1;
-                                suffix = args[i].clone();
-                            } else {
-                                return err_out("install: option requires an argument -- 'S'\n", 1);
-                            }
-                            if backup_mode.is_none() {
-                                backup_mode = Some("existing");
-                            }
-                            break;
-                        }
-                        ch => {
-                            return err_out(&format!("install: invalid option -- '{ch}'\n"), 1);
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut j = 0usize;
+        while j < chars.len() {
+            match chars[j] {
+                'D' => create_dirs = true,
+                'C' => compare_mode = true,
+                'd' => dir_mode = true,
+                'b' => make_backups = true,
+                'p' => preserve_ts = true,
+                's' => strip_mode = true,
+                'T' => no_target_dir = true,
+                'v' => verbose = true,
+                'c' | 'Z' => {}
+                'm' => {
+                    let rest: String = chars[j + 1..].iter().collect();
+                    if !rest.is_empty() {
+                        mode_spec = Some(rest);
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        mode_spec = Some(args[i].clone());
+                    } else {
+                        return err_out("install: option requires an argument -- 'm'\n", 1);
+                    }
+                    break;
+                }
+                't' => {
+                    if target_dir.is_some() {
+                        return err_out("install: multiple target directories specified\n", 1);
+                    }
+                    let rest: String = chars[j + 1..].iter().collect();
+                    if !rest.is_empty() {
+                        target_dir = Some(rest);
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        target_dir = Some(args[i].clone());
+                    } else {
+                        return err_out("install: option requires an argument -- 't'\n", 1);
+                    }
+                    break;
+                }
+                'S' => {
+                    make_backups = true;
+                    let rest: String = chars[j + 1..].iter().collect();
+                    let v = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("install: option requires an argument -- 'S'\n", 1);
+                    };
+                    suffix = if v.is_empty() || v.contains('/') {
+                        "~".to_string()
+                    } else {
+                        v
+                    };
+                    break;
+                }
+                'g' | 'o' => {
+                    let rest: String = chars[j + 1..].iter().collect();
+                    if rest.is_empty() {
+                        if i + 1 < args.len() {
+                            i += 1;
+                        } else {
+                            return err_out(
+                                &format!("install: option requires an argument -- '{}'\n", chars[j]),
+                                1,
+                            );
                         }
                     }
-                    j += 1;
+                    break;
                 }
+                ch => return err_out(&format!("install: invalid option -- '{ch}'\n"), 1),
             }
-            _ => return err_out(&format!("install: unrecognized option '{a}'\n"), 1),
+            j += 1;
         }
         i += 1;
     }
 
+    if dir_mode && strip_mode {
+        return err_out(
+            "install: the strip option may not be used when installing a directory\n",
+            1,
+        );
+    }
+    if dir_mode && target_dir.is_some() {
+        return err_out(
+            "install: target directory not allowed when installing a directory\n",
+            1,
+        );
+    }
     if compare_mode && preserve_ts {
         return err_out(
             "install: options --compare (-C) and --preserve-timestamps are mutually exclusive\n",
@@ -17433,27 +17925,81 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             1,
         );
     }
+
+    let backup_mode: Option<&str> = if make_backups {
+        let requested = backup_control
+            .as_deref()
+            .or_else(|| {
+                env.get("VERSION_CONTROL")
+                    .map(|s| s.as_str())
+                    .filter(|s| !s.is_empty())
+            })
+            .unwrap_or("existing");
+        let aliases: &[(&str, Option<&str>)] = &[
+            ("none", None),
+            ("off", None),
+            ("simple", Some("simple")),
+            ("never", Some("simple")),
+            ("existing", Some("existing")),
+            ("nil", Some("existing")),
+            ("numbered", Some("numbered")),
+            ("t", Some("numbered")),
+        ];
+        if let Some(&(_, mapped)) = aliases.iter().find(|&&(k, _)| k == requested) {
+            mapped
+        } else {
+            let matching: Vec<Option<&str>> = aliases
+                .iter()
+                .filter(|&&(k, _)| k.starts_with(requested))
+                .map(|&(_, v)| v)
+                .collect();
+            let mut uniq = matching.clone();
+            uniq.dedup();
+            if uniq.len() == 1 {
+                uniq[0]
+            } else {
+                return err_out(
+                    &format!("install: invalid argument '{requested}' for 'backup type'\n"),
+                    1,
+                );
+            }
+        }
+    } else {
+        None
+    };
+
+    if files.is_empty() {
+        return err_out("install: missing file operand\n", 1);
+    }
+    if files.len() == 1 && !dir_mode && target_dir.is_none() {
+        return err_out(
+            &format!("install: missing destination file operand after '{}'\n", files[0]),
+            1,
+        );
+    }
     if no_target_dir && target_dir.is_some() {
         return err_out(
             "install: cannot combine --target-directory (-t) and --no-target-directory (-T)\n",
             1,
         );
     }
+    if no_target_dir && files.len() > 2 {
+        return err_out(&format!("install: extra operand '{}'\n", files[2]), 1);
+    }
+
+    let mut out_buf = String::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
 
     if dir_mode {
-        if files.is_empty() {
-            return err_out("install: missing file operand\n", 1);
-        }
         let target_mode = mode_spec
             .as_deref()
             .map(|spec| crate::commands::fs::eval_chmod_mode(spec, 0, true))
             .unwrap_or(0o755);
         for f in &files {
-            let d = resolve_posix_path(cwd, f);
-            let _ = fs.mkdir_all(&d);
-            let _ = fs.chmod(&d, 0o040000 | target_mode);
+            ensure_install_dirs(f, true, target_mode, verbose, cwd, fs, &mut out_buf);
         }
-        return ok_out("");
+        return ok_out(&out_buf);
     }
 
     let target_mode = mode_spec
@@ -17463,14 +18009,8 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
 
     let (sources, target_dir_opt, single_dest_opt): (Vec<String>, Option<String>, Option<String>) =
         if let Some(td) = target_dir {
-            if files.is_empty() {
-                return err_out("install: missing file operand\n", 1);
-            }
             (files, Some(td), None)
         } else {
-            if files.len() < 2 {
-                return err_out("install: missing destination file operand\n", 1);
-            }
             let last = files.last().unwrap().clone();
             let last_resolved = resolve_posix_path(cwd, &last);
             if !no_target_dir && fs.is_dir(&last_resolved) {
@@ -17485,7 +18025,7 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
     if let Some(ref td) = target_dir_opt {
         let td_resolved = resolve_posix_path(cwd, td);
         if create_dirs {
-            let _ = fs.mkdir_all(&td_resolved);
+            ensure_install_dirs(td, false, 0o755, verbose, cwd, fs, &mut out_buf);
         }
         if !fs.is_dir(&td_resolved) {
             return err_out(
@@ -17494,9 +18034,6 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             );
         }
     }
-
-    let mut err_buf = String::new();
-    let mut exit_code = 0;
 
     for src_arg in &sources {
         let src = resolve_posix_path(cwd, src_arg);
@@ -17512,20 +18049,27 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             exit_code = 1;
             continue;
         }
-        let dst = if let Some(ref td) = target_dir_opt {
+        let (dst_display, dst) = if let Some(ref td) = target_dir_opt {
             let base = crate::vfs::basename_posix_path(&src);
-            resolve_posix_path(cwd, &format!("{}/{base}", td.trim_end_matches('/')))
+            let disp = if td.ends_with('/') {
+                format!("{td}{base}")
+            } else {
+                format!("{td}/{base}")
+            };
+            let resolved = resolve_posix_path(cwd, &disp);
+            (disp, resolved)
         } else {
-            let d = resolve_posix_path(cwd, single_dest_opt.as_ref().unwrap());
-            if create_dirs {
-                let parent = dirname_posix_path(&d);
-                let _ = fs.mkdir_all(&parent);
+            let disp = single_dest_opt.as_ref().unwrap().clone();
+            if create_dirs && let Some(slash) = disp.rfind('/') {
+                let parent_disp = if slash == 0 { "/" } else { &disp[..slash] };
+                ensure_install_dirs(parent_disp, false, 0o755, verbose, cwd, fs, &mut out_buf);
             }
-            d
+            let resolved = resolve_posix_path(cwd, &disp);
+            (disp, resolved)
         };
         if fs.is_dir(&dst) {
             err_buf.push_str(&format!(
-                "install: cannot overwrite directory '{dst}' with non-directory '{src_arg}'\n"
+                "install: cannot overwrite directory '{dst_display}' with non-directory '{src_arg}'\n"
             ));
             exit_code = 1;
             continue;
@@ -17542,27 +18086,36 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
         {
             continue;
         }
-        if let Some(bmode) = backup_mode
-            && let Ok(old_bytes) = fs.read_file(&dst)
-        {
-            let mut highest_numbered = 0usize;
-            for k in 1..1000usize {
-                if fs.exists(&format!("{dst}.~{k}~")) {
-                    highest_numbered = k;
+        let dst_existed = fs.exists(&dst);
+        let mut backup_display: Option<String> = None;
+        if dst_existed {
+            if let Some(bmode) = backup_mode
+                && let Ok(old_bytes) = fs.read_file(&dst)
+            {
+                let mut highest_numbered = 0usize;
+                for k in 1..1000usize {
+                    if fs.exists(&format!("{dst}.~{k}~")) {
+                        highest_numbered = k;
+                    }
                 }
-            }
-            let use_numbered = bmode == "numbered" || (bmode == "existing" && highest_numbered > 0);
-            if use_numbered {
-                let next_k = highest_numbered + 1;
-                let _ = fs.write_file(&format!("{dst}.~{next_k}~"), &old_bytes);
-            } else {
-                let _ = fs.write_file(&format!("{dst}{suffix}"), &old_bytes);
+                let use_numbered =
+                    bmode == "numbered" || (bmode == "existing" && highest_numbered > 0);
+                let b_suf = if use_numbered {
+                    format!(".~{}~", highest_numbered + 1)
+                } else {
+                    suffix.clone()
+                };
+                let _ = fs.write_file(&format!("{dst}{b_suf}"), &old_bytes);
+                let _ = fs.chmod(&format!("{dst}{b_suf}"), 0o100000 | target_mode);
+                backup_display = Some(format!("{dst_display}{b_suf}"));
+            } else if verbose {
+                out_buf.push_str(&format!("removed '{dst_display}'\n"));
             }
         }
         let parent = dirname_posix_path(&dst);
         if !fs.is_dir(&parent) {
             err_buf.push_str(&format!(
-                "install: cannot create regular file '{dst}': No such file or directory\n"
+                "install: cannot create regular file '{dst_display}': No such file or directory\n"
             ));
             exit_code = 1;
             continue;
@@ -17572,13 +18125,24 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             if preserve_ts && let Ok(st) = fs.stat(&src) {
                 let _ = fs.set_mtime(&dst, st.mtime_ms);
             }
+            if verbose {
+                if let Some(bd) = backup_display {
+                    out_buf.push_str(&format!(
+                        "'{src_arg}' -> '{dst_display}' (backup: '{bd}')\n"
+                    ));
+                } else {
+                    out_buf.push_str(&format!("'{src_arg}' -> '{dst_display}'\n"));
+                }
+            }
         } else {
-            err_buf.push_str(&format!("install: cannot create regular file '{dst}'\n"));
+            err_buf.push_str(&format!(
+                "install: cannot create regular file '{dst_display}'\n"
+            ));
             exit_code = 1;
         }
     }
     BuiltinOutcome {
-        stdout: String::new(),
+        stdout: out_buf,
         stderr: err_buf,
         exit_code,
     }
@@ -19658,114 +20222,243 @@ fn cmd_tsort(
     }
 }
 
-fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut size_spec: Option<String> = None;
+fn parse_truncate_size(spec: &str, prev_op: char) -> Result<(usize, char), String> {
+    let trimmed = spec.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
+    let mut op = prev_op;
+    let mut rest = trimmed;
+    if let Some(r) = rest.strip_prefix(['<', '>', '/', '%']) {
+        op = rest.chars().next().unwrap();
+        rest = r.trim_start_matches([' ', '\t', '\n', '\r', '\x0b', '\x0c']);
+    }
+    let mut signed = false;
+    if rest.starts_with('+') || rest.starts_with('-') {
+        if op != '=' {
+            return Err("truncate: multiple relative modifiers specified\n".to_string());
+        }
+        op = rest.chars().next().unwrap();
+        signed = true;
+        rest = &rest[1..];
+    }
+    let num_len = rest.bytes().take_while(|b| b.is_ascii_digit()).count();
+    let unit = &rest[num_len..];
+    let base_num = if num_len == 0 {
+        if signed || unit.is_empty() {
+            return Err(format!("truncate: Invalid number: '{spec}'\n"));
+        }
+        1usize
+    } else {
+        rest[..num_len]
+            .parse::<usize>()
+            .map_err(|_| format!("truncate: Invalid number: '{spec}'\n"))?
+    };
+    let mult = if unit.is_empty() {
+        1usize
+    } else {
+        let first = unit.chars().next().unwrap_or('\0');
+        let tail = &unit[first.len_utf8()..];
+        let power = match first {
+            'k' | 'K' => 1u32,
+            'm' | 'M' => 2u32,
+            'g' | 'G' => 3u32,
+            't' | 'T' => 4u32,
+            'P' => 5u32,
+            'E' => 6u32,
+            'Z' => 7u32,
+            'Y' => 8u32,
+            'R' => 9u32,
+            'Q' => 10u32,
+            _ => return Err(format!("truncate: Invalid number: '{spec}'\n")),
+        };
+        if !matches!(tail, "" | "B" | "D" | "iB") {
+            return Err(format!("truncate: Invalid number: '{spec}'\n"));
+        }
+        let base = if tail == "B" || tail == "D" {
+            1000usize
+        } else {
+            1024usize
+        };
+        base.saturating_pow(power)
+    };
+    let delta = base_num.saturating_mul(mult);
+    if (op == '/' || op == '%') && delta == 0 {
+        return Err("truncate: division by zero\n".to_string());
+    }
+    Ok((delta, op))
+}
+
+fn cmd_truncate(
+    args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut has_size = false;
+    let mut op = '=';
+    let mut delta = 0usize;
     let mut ref_file: Option<String> = None;
     let mut no_create = false;
+    let mut io_blocks = false;
+    let mut ended = false;
     let mut files = Vec::new();
+    let posix = env.contains_key("POSIXLY_CORRECT");
+
+    let long_opts = [
+        ("no-create", "c"),
+        ("io-blocks", "o"),
+        ("reference", "r"),
+        ("size", "s"),
+        ("help", "help"),
+        ("version", "version"),
+    ];
+
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "--" {
-            files.extend(args[i + 1..].iter().cloned());
-            break;
-        } else if (a == "-s" || a == "--size") && i + 1 < args.len() {
-            size_spec = Some(args[i + 1].clone());
-            i += 2;
-        } else if let Some(s) = a.strip_prefix("--size=") {
-            size_spec = Some(s.to_string());
-            i += 1;
-        } else if let Some(s) = a.strip_prefix("-s") && !s.is_empty() {
-            size_spec = Some(s.to_string());
-            i += 1;
-        } else if (a == "-r" || a == "--reference") && i + 1 < args.len() {
-            ref_file = Some(args[i + 1].clone());
-            i += 2;
-        } else if let Some(r) = a.strip_prefix("--reference=") {
-            ref_file = Some(r.to_string());
-            i += 1;
-        } else if let Some(r) = a.strip_prefix("-r") && !r.is_empty() {
-            ref_file = Some(r.to_string());
-            i += 1;
-        } else if a == "-c" || a == "--no-create" {
-            no_create = true;
-            i += 1;
-        } else if a == "-o" || a == "--io-blocks" {
-            i += 1;
-        } else if !a.starts_with('-') {
+        if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
+            if posix {
+                ended = true;
+            }
             i += 1;
-        } else {
-            return err_out(&format!("truncate: invalid option '{a}'\n"), 1);
+            continue;
         }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if let Some(rest) = a.strip_prefix("--") {
+            let (name, eq_val) = match rest.split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (rest, None),
+            };
+            let exact = long_opts.iter().find(|&&(ln, _)| ln == name);
+            let matches: Vec<_> = long_opts
+                .iter()
+                .filter(|&&(ln, _)| ln.starts_with(name))
+                .collect();
+            let selected = if let Some(ex) = exact {
+                ex
+            } else if matches.len() == 1 {
+                matches[0]
+            } else {
+                return err_out(&format!("truncate: unrecognized option '{a}'\n"), 1);
+            };
+            let (full_name, key) = *selected;
+            if key == "help" {
+                if eq_val.is_some() {
+                    return err_out("truncate: option '--help' doesn't allow an argument\n", 1);
+                }
+                return ok_out("Usage: truncate OPTION... FILE...\n");
+            }
+            if key == "version" {
+                if eq_val.is_some() {
+                    return err_out("truncate: option '--version' doesn't allow an argument\n", 1);
+                }
+                return ok_out("truncate (GNU coreutils) 9.5\n");
+            }
+            if key == "c" || key == "o" {
+                if eq_val.is_some() {
+                    return err_out(
+                        &format!("truncate: option '--{full_name}' doesn't allow an argument\n"),
+                        1,
+                    );
+                }
+                if key == "c" {
+                    no_create = true;
+                } else {
+                    io_blocks = true;
+                }
+                i += 1;
+                continue;
+            }
+            let val = if let Some(v) = eq_val {
+                v.to_string()
+            } else if i + 1 < args.len() {
+                i += 1;
+                args[i].clone()
+            } else {
+                return err_out(
+                    &format!("truncate: option '--{full_name}' requires an argument\n"),
+                    1,
+                );
+            };
+            if key == "r" {
+                ref_file = Some(val);
+            } else {
+                match parse_truncate_size(&val, op) {
+                    Ok((d, new_op)) => {
+                        delta = d;
+                        op = new_op;
+                        has_size = true;
+                    }
+                    Err(msg) => return err_out(&msg, 1),
+                }
+            }
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut j = 0usize;
+        while j < chars.len() {
+            match chars[j] {
+                'c' => no_create = true,
+                'o' => io_blocks = true,
+                'r' | 's' => {
+                    let key = chars[j];
+                    let rest: String = chars[j + 1..].iter().collect();
+                    let val = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(
+                            &format!("truncate: option requires an argument -- '{key}'\n"),
+                            1,
+                        );
+                    };
+                    if key == 'r' {
+                        ref_file = Some(val);
+                    } else {
+                        match parse_truncate_size(&val, op) {
+                            Ok((d, new_op)) => {
+                                delta = d;
+                                op = new_op;
+                                has_size = true;
+                            }
+                            Err(msg) => return err_out(&msg, 1),
+                        }
+                    }
+                    break;
+                }
+                ch => return err_out(&format!("truncate: invalid option -- '{ch}'\n"), 1),
+            }
+            j += 1;
+        }
+        i += 1;
     }
-    if size_spec.is_none() && ref_file.is_none() {
+
+    if !has_size && ref_file.is_none() {
         return err_out(
             "truncate: you must specify either '--size' or '--reference'\n",
             1,
         );
     }
-    if files.is_empty() {
-        return err_out("truncate: missing file operand\n", 1);
-    }
-
-    let mut op = '=';
-    let mut delta = 0usize;
-    let has_size = size_spec.is_some();
-    if let Some(ref spec) = size_spec {
-        let trimmed = spec.trim_start();
-        let mut rest = trimmed;
-        if let Some(r) = rest.strip_prefix(['<', '>', '/', '%']) {
-            op = rest.chars().next().unwrap();
-            rest = r.trim_start();
-        }
-        let mut signed = false;
-        if rest.starts_with('+') || rest.starts_with('-') {
-            if op != '=' {
-                return err_out("truncate: multiple relative modifiers specified\n", 1);
-            }
-            op = rest.chars().next().unwrap();
-            signed = true;
-            rest = &rest[1..];
-        }
-        let num_len = rest.chars().take_while(|c| c.is_ascii_digit()).count();
-        let unit = rest[num_len..].trim();
-        let base_num = if num_len == 0 {
-            if signed || unit.is_empty() {
-                return err_out(&format!("truncate: Invalid number: '{spec}'\n"), 1);
-            }
-            1usize
-        } else {
-            let Ok(n) = rest[..num_len].parse::<usize>() else {
-                return err_out(&format!("truncate: Invalid number: '{spec}'\n"), 1);
-            };
-            n
-        };
-        let mult = match unit.to_ascii_uppercase().as_str() {
-            "" => 1usize,
-            "K" | "KIB" => 1024usize,
-            "KB" | "KD" => 1000usize,
-            "M" | "MIB" => 1024 * 1024,
-            "MB" | "MD" => 1_000_000usize,
-            "G" | "GIB" => 1024 * 1024 * 1024,
-            "GB" | "GD" => 1_000_000_000usize,
-            "T" | "TIB" => 1024usize.saturating_pow(4),
-            "TB" | "TD" => 1000usize.saturating_pow(4),
-            _ => {
-                return err_out(&format!("truncate: Invalid number: '{spec}'\n"), 1);
-            }
-        };
-        delta = base_num.saturating_mul(mult);
-        if (op == '/' || op == '%') && delta == 0 {
-            return err_out("truncate: division by zero\n", 1);
-        }
-    }
-
     if ref_file.is_some() && has_size && op == '=' {
         return err_out(
             "truncate: you must specify a relative '--size' with '--reference'\n",
             1,
         );
+    }
+    if io_blocks && !has_size {
+        return err_out(
+            "truncate: '--io-blocks' was specified but '--size' was not\n",
+            1,
+        );
+    }
+    if files.is_empty() {
+        return err_out("truncate: missing file operand\n", 1);
     }
 
     let ref_len = if let Some(rf) = &ref_file {
@@ -19784,8 +20477,17 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         None
     };
 
+    let mut stderr = String::new();
+    let mut exit_code = 0;
     for f in files {
         let full = resolve_posix_path(cwd, &f);
+        if fs.is_dir(&full) {
+            stderr.push_str(&format!(
+                "truncate: cannot open '{f}' for writing: Is a directory\n"
+            ));
+            exit_code = 1;
+            continue;
+        }
         if no_create && !fs.exists(&full) {
             continue;
         }
@@ -19805,7 +20507,15 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             }
         };
         bytes.resize(target_len, 0u8);
-        let _ = fs.write_file(&full, &bytes);
+        if let Err(e) = fs.write_file(&full, &bytes) {
+            stderr.push_str(&format!("truncate: cannot open '{f}' for writing: {e}\n"));
+            exit_code = 1;
+        }
     }
-    ok_out("")
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr,
+        exit_code,
+    }
 }
+

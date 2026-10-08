@@ -183,7 +183,8 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
    bind('_safe_package_'+key,!!start[key]);
   }
   bind('_safe_package_restore_json',JSON.stringify(start.restore ?? []));
-  const inputRecords=start.records?.map((row):PythonPackageRecord=>[row[0],row[1],row[2],[...row[3]],[...row[4]],row[5]??null]);
+  const inputRecords=start.recordCount===undefined?start.records?.map((row):PythonPackageRecord=>[row[0],row[1],row[2],[...row[3]],[...row[4]],row[5]??null]):undefined;
+  const recordCount=start.recordCount??inputRecords?.length??-1;
   const outputRecords:unknown[]=[],pinned:string[]=[];
   bind('_safe_package_record',(operation:string,key?:unknown,value?:unknown)=>transfer(async()=>{
    if(operation==='pin'){
@@ -192,7 +193,7 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
     if(typeof pin!=='string')throw new Error('Invalid Python package pin');
     pinned.push(pin);return null;
    }
-   if(operation==='start'){await request('package-index',start.session,'records-start');return inputRecords?.length??-1;}
+   if(operation==='start'){await request('package-index',start.session,'records-start');return recordCount;}
    if(operation==='append'){
     if(typeof key!=='string')throw new Error('Invalid Python package record');
     if(start.restore!==undefined)outputRecords.push(JSON.parse(key));
@@ -201,8 +202,14 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
    if(operation==='read'||operation==='get'){
     const ordinal=operation==='get'?await request('package-index',start.session,'records-get',key):key;
     if(ordinal===null)return 'null';
-    if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(inputRecords?.length??0))throw new Error('Invalid Python package record ordinal');
-    return JSON.stringify(inputRecords![ordinal as number]);
+    if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=recordCount)throw new Error('Invalid Python package record ordinal');
+    if(start.recordCount===undefined)return JSON.stringify(inputRecords![ordinal as number]);
+    const chunks:string[]=[];
+    for(let offset=0;;offset+=8192){
+     const chunk=await request('package-record-read',start.session,ordinal,offset);
+     if(typeof chunk!=='string'||chunk.length>8192)throw new Error('Invalid Python package record chunk');
+     chunks.push(chunk);if(chunk.length<8192)return chunks.join('');
+    }
    }
    return request('package-index',start.session,'records-'+operation,...key===undefined?[]:[key],...value===undefined?[]:[value]);
   }));

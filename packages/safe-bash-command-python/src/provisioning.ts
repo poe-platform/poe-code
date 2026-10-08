@@ -80,6 +80,8 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
  readonly legacy?: boolean;
  /** Installed metadata used only by uninstall; application startup still restores code. */
  readonly records?: readonly PythonPackageRecord[] | undefined;
+ /** Host-owned records are read through package-record-read; -1 means absent. */
+ readonly recordCount?: number;
  /** Prior installation; only legacy manifests resolve dependencies during restore. */
  readonly restore?: readonly string[];
  /** New or host-configured requirements whose dependency closure is resolved. */
@@ -89,6 +91,8 @@ export interface PythonPackageStart extends Omit<PythonPackageInstallOptions, 'n
 }
 export interface PythonPackageContext { readonly fs: FileSystem; readonly cwd: string; readonly signal: AbortSignal }
 export interface PythonPackagePrepareContext extends PythonPackageContext, PythonPackageInstallOptions, Partial<Pick<import('safe-bash-contracts').CommandContext,'env'|'stdout'|'stderr'|'registerCleanup'|'args'>> {
+ /** Keep metadata in the host session instead of copying it into startup. */
+ readonly recordTransport?: 'host'|'inline';
  readonly uninstall?: PythonPackageStart['uninstall'];
  readonly requirements?: readonly string[];
  readonly requirementFiles?: readonly string[];
@@ -188,6 +192,8 @@ function normalizeRequirement(value: string, cwd: string): string {
 }
 interface PackageArtifact {url?:string;readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
 interface Session extends PythonPackageContext {
+ records:readonly PythonPackageRecord[]|undefined;
+ recordJson?:{ordinal:number;text:string}|undefined;
  readonly cacheDirectory: string | undefined;
  readonly artifactDirectory: string | undefined;
  readonly noCache: boolean;
@@ -248,7 +254,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  function release(session:Session,all=false):Promise<void> {
   const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
   if(all){artifacts.push(...Object.values(session.indexes));session.indexes={};}
-  if(all)session.retained.clear();
+  if(all){session.retained.clear();session.records=undefined;session.recordJson=undefined;}
   if(session.closed&&session.installationRoot){artifacts.push(session.installationRoot);session.installationRoot=undefined;}
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
   if(!artifacts.length)return session.retiring??Promise.resolve();
@@ -346,9 +352,11 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const unique=[...new Set([...restore,...requested])];
   const aborted=()=>{const current=sessions.get(session);if(current){current.closed=true;void release(current,true);}};
   const offline=context.offline??options.offline??false;
-  sessions.set(session,{...context,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
+  const records=(previous as {records?:readonly PythonPackageRecord[]}).records;
+  const hostRecords=input.recordTransport==='host';
+  sessions.set(session,{...context,records:hostRecords?records:undefined,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   signal.addEventListener('abort',aborted,{once:true});
-  return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,records:(previous as {records?:readonly PythonPackageRecord[]}).records,...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,...hostRecords?{recordCount:records?.length??-1}:{records},...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
  }
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();
@@ -360,6 +368,15 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   check();
   const {fs,signal,cwd,cacheDirectory:configuredCache}=session;
   const settings={signal};
+  if(op==='package-record-read'){
+   const ordinal=args[1],offset=args[2];
+   if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(session.records?.length??0)||!Number.isSafeInteger(offset)||(offset as number)<0)throw failure('Invalid package record request');
+   if(session.recordJson?.ordinal!==ordinal){
+    const row=session.records![ordinal as number]!;
+    session.recordJson={ordinal:ordinal as number,text:JSON.stringify(row.length===5?[...row,null]:row)};
+   }
+   return session.recordJson!.text.slice(offset as number,(offset as number)+8192);
+  }
   if(op==='package-commit') {
    await release(session,true);check();
    const pinned=args[1];

@@ -48,6 +48,8 @@ export interface PythonCommandsOptions {
   readonly packageProfile?: 'documents';
   readonly provisioning?: PythonPackageOptions;
   readonly environment?: PythonPackageEnvironment;
+  /** Built-in runtimes read host metadata on demand; inline supports older custom executors. */
+  readonly packageRecordTransport?: 'host'|'inline';
   /** Host UI lifecycle; never written to guest stdout/stderr. */
   readonly onProgress?: (event: PythonInitializationProgress) => void;
   readonly onDiagnostic?: PythonDiagnosticObserver;
@@ -90,6 +92,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
     || options.createWorker !== undefined && typeof options.createWorker !== 'function'
     || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') throw new PythonFailure('executor-unavailable');
   if (options.createCapabilities && !options.createExecutor) throw new TypeError('Python host capabilities require an asynchronous executor');
+  if(options.packageRecordTransport!==undefined&&!['host','inline'].includes(options.packageRecordTransport))throw new TypeError('Invalid Python package record transport');
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const maxTransferBytes = options.maxTransferBytes ?? Infinity;
@@ -254,7 +257,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         hostBridge = createPythonHostBridge(options.createCapabilities({ ...context, stdin: capabilityInput, signal }), { ...options.capabilityLimits, signal });
       }
       options.onProgress?.({ phase: 'initializing', command: context.command });
-      const preparation = environment.prepare({ ...context, signal,
+      const preparation = environment.prepare({ ...context, signal, recordTransport:options.packageRecordTransport??'host',
         ...installation?.controls,
         ...(installation?.uninstall ? {uninstall:{packages:installation.packages,yes:!!installation.yes}} : {}),
         requirements: [...(options.packages ?? []), ...(options.packageProfile ? pythonDocumentPackages : []), ...(installation?.uninstall ? [] : installation?.packages ?? [])],

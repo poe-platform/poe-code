@@ -288,6 +288,45 @@ class _SafeResolutions(_SafeNames):
    for requirement in requirements:output.write(json.dumps(requirement) + '\n')
   return False
 
+def _safe_header_values(headers, name):
+ from email.message import Message
+ from email.policy import compat32
+ adapter = getattr(getattr(_safe_metadata, '_adapters', None), 'Message', Message)
+ if type(headers) not in (Message, adapter) or headers.policy is not compat32 or type(headers).get_all is not Message.get_all or type(headers).raw_items is not Message.raw_items or any(key in vars(headers) for key in ('get_all', 'raw_items')):
+  yield from headers.get_all(name, ())
+  return
+ name = name.lower()
+ for key, value in headers.raw_items():
+  if key.lower() == name:yield headers.policy.header_fetch_parse(key, value)
+def _safe_distribution_requires(distribution):
+ from contextlib import ExitStack
+ from types import FunctionType
+ from email.utils import _has_surrogates
+ if type(distribution) is not _safe_metadata.PathDistribution or any(name in vars(distribution) for name in ('read_text', '_read_dist_info_reqs', '_read_egg_info_reqs', '_deps_from_requires_text', '_convert_egg_info_reqs_to_simple_reqs')):
+  yield from distribution.requires or ()
+  return
+ headers = distribution.metadata
+ # Non-string headers retain the native object-valued compatibility path.
+ if any(type(value) is not str or _has_surrogates(value) for key, value in headers.raw_items()):
+  yield from distribution.requires or ()
+  return
+ with ExitStack() as lifetime:
+  class Values(_SafeValues):
+   def __iter__(self):
+    for key in super().__iter__():yield self.get(key)
+  def collect(values):
+   if isinstance(values, Values):return values
+   result = Values()
+   lifetime.callback(result.close)
+   for value in values:result.put(str(len(result)), value)
+   return result
+  view = _safe_metadata.PathDistribution(distribution._path)
+  view._read_dist_info_reqs = lambda: collect(_safe_header_values(headers, 'Requires-Dist'))
+  native = _safe_metadata.Distribution.requires.fget
+  requires = FunctionType(native.__code__, dict(native.__globals__, list=collect), native.__name__, native.__defaults__, native.__closure__)
+  values = requires(view)
+  del headers, view
+  yield from values or ()
 async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(), no_deps=False):
  _safe_constraints = _SafeValues()
  for source in constraints:
@@ -370,13 +409,15 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
    if versions is not None:
     versions.put(name, distribution.version)
    contexts = {''} | set(_safe_extras.get(name, ()))
-   for dependency in distribution.requires or []:
-    requirement = _SafeRequirement(dependency)
-    if requirement.marker and not any(requirement.marker.evaluate({'extra': extra}) for extra in contexts):
-     continue
-    requirement = constrain(requirement)
-    requirement.marker = None
-    yield requirement
+   from contextlib import closing
+   with closing(_safe_distribution_requires(distribution)) as declared:
+    for dependency in declared:
+     requirement = _SafeRequirement(dependency)
+     if requirement.marker and not any(requirement.marker.evaluate({'extra': extra}) for extra in contexts):
+      continue
+     requirement = constrain(requirement)
+     requirement.marker = None
+     yield requirement
    del distribution
  while True:
   while True:
@@ -807,7 +848,7 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
     _safe_headers = _safe_dist.metadata
     def _safe_metadata_parts():
      for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra']:
-      for value in _safe_headers.get_all(key, []):
+      for value in _safe_header_values(_safe_headers, key):
        yield key
        yield ': '
        yield value

@@ -533,3 +533,24 @@ write failure closes the output and removal iterator without publishing records.
 Verification on the fresh artifact: 768 Python tests, 142 installed public tests,
 three affected actual Worker cases, all 17 unchanged bundle budgets, lint, types
 and the scoped build pass.
+
+
+Standard distribution requirements now use caller-backed collections in the
+native `Distribution.requires` getter. Its original code selects dist-info or
+egg-info requirements and eagerly collects the chosen values before resolver
+consumption; only the final list operation is substituted in a copied globals
+mapping. The temporary view gets standard header values through native header
+policy without constructing a `get_all` list. Publication uses the same header
+iterator. Custom distribution types, instance overrides and object/surrogate
+headers retain native compatibility; custom message providers/policies retain
+`get_all`. Early closure and storage failures retire owned collections.
+Differential tests cover large lists, empty/folded/duplicate headers, egg extras,
+custom behavior, decoding failures and caller-storage denial. Underlying email
+parsing, raw metadata text, egg-section parsing and custom compatibility still
+buffer; the complete native metadata and manifest gates remain open.
+A weak-reference regression also verifies that the parsed metadata object is
+released before backed requirements are consumed. The corrected artifact passes
+780 Python tests, 142 installed public tests, all three affected actual Worker
+cases, all 17 unchanged bundle budgets, lint, types and the scoped build. Native
+oracle tests now run serially through both maintained Python workspace scripts,
+matching the repository default and retaining existing test timeouts.

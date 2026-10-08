@@ -72,7 +72,7 @@ def distributions():
  for i in range(1024):
   yield types.SimpleNamespace(metadata={'Name':'package-'+str(i)},version='1',requires=[])
   assert Name.live<=8,('version names retained during scan',Name.live)
-namespace={'_SafeRequirement':Requirement,'_safe_name':Name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=distributions),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False,'_SafeMutableSet':MutableSet,'_safe_installation_root':'/owned'}
+namespace={'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement,'_safe_name':Name,'_safe_preloaded':set(),'_safe_metadata':types.SimpleNamespace(distributions=distributions),'_safe_manager':types.SimpleNamespace(install=install),'_safe_validate':lambda roots:None,'_safe_package_pre':False,'_SafeMutableSet':MutableSet,'_safe_installation_root':'/owned'}
 tree=ast.parse(json.load(sys.stdin))
 selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.AsyncFunctionDef)) and n.name in ('_SafeNames','_SafeValues','_SafeRequirements','_SafeResolutions','_safe_parse_sources','_safe_resolve')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<package names>','exec'),namespace)

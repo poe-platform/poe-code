@@ -305,6 +305,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-mmdc-unrtf-soffice-libreoffice-ffmpeg-ffprobe-matrix.test.ts",
   "obscure-qpdf-pdftk-pdfinfo-pdffonts-pdfdetach-pdftoppm-pdfimages-wkhtmltopdf-matrix.test.ts",
   "obscure-csvkit-csvcut-csvgrep-csvstat-csvjson-in2csv-csvclean-csvsql-sql2csv-matrix.test.ts",
+  "obscure-pandoc-ssconvert-docx-odt-epub-xlsx-ods-html-latex-rst-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

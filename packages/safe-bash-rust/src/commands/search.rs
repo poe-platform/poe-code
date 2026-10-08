@@ -262,6 +262,8 @@ pub fn is_known_command(name: &str) -> bool {
             | "xmllint"
             | "htmlq"
             | "unrtf"
+            | "pandoc"
+            | "ssconvert"
             | "sqlite3"
             | "tar"
             | "gzip"

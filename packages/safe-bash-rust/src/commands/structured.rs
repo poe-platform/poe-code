@@ -33,6 +33,8 @@ pub fn try_run_structured_command(
         "htmlq" => Some(cmd_htmlq(args, stdin, cwd, fs)),
         "mdq" => Some(cmd_mdq(args, stdin, cwd, fs)),
         "unrtf" => Some(cmd_unrtf(args, stdin, cwd, fs)),
+        "pandoc" => Some(cmd_pandoc(args, stdin, cwd, fs)),
+        "ssconvert" => Some(cmd_ssconvert(args, stdin, cwd, fs)),
         "html-to-markdown" => Some(cmd_html_to_markdown(args, stdin, cwd, env, fs)),
         "mmdc" => Some(cmd_mmdc(args, stdin, cwd, fs)),
         "xan" => Some(cmd_xan(args, stdin, cwd, fs)),
@@ -21596,4 +21598,2410 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         stderr: String::new(),
         exit_code: if matched { 0 } else { 1 },
     }
+}
+
+fn crc32_ieee(data: &[u8]) -> u32 {
+    let mut crc = 0xFFFF_FFFFu32;
+    for &b in data {
+        crc ^= b as u32;
+        for _ in 0..8 {
+            if (crc & 1) != 0 {
+                crc = (crc >> 1) ^ 0xEDB8_8320;
+            } else {
+                crc >>= 1;
+            }
+        }
+    }
+    !crc
+}
+
+fn write_zip_stored(entries: &[(&str, &[u8])]) -> Vec<u8> {
+    let mut out: Vec<u8> = Vec::new();
+    let mut cd: Vec<u8> = Vec::new();
+    for &(name, data) in entries {
+        let name_bytes = name.as_bytes();
+        let crc = crc32_ieee(data);
+        let len = data.len() as u32;
+        let offset = out.len() as u32;
+
+        out.extend_from_slice(b"PK\x03\x04");
+        out.extend_from_slice(&20u16.to_le_bytes());
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(&crc.to_le_bytes());
+        out.extend_from_slice(&len.to_le_bytes());
+        out.extend_from_slice(&len.to_le_bytes());
+        out.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
+        out.extend_from_slice(&0u16.to_le_bytes());
+        out.extend_from_slice(name_bytes);
+        out.extend_from_slice(data);
+
+        cd.extend_from_slice(b"PK\x01\x02");
+        cd.extend_from_slice(&20u16.to_le_bytes());
+        cd.extend_from_slice(&20u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&crc.to_le_bytes());
+        cd.extend_from_slice(&len.to_le_bytes());
+        cd.extend_from_slice(&len.to_le_bytes());
+        cd.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u16.to_le_bytes());
+        cd.extend_from_slice(&0u32.to_le_bytes());
+        cd.extend_from_slice(&offset.to_le_bytes());
+        cd.extend_from_slice(name_bytes);
+    }
+
+    let cd_offset = out.len() as u32;
+    let cd_size = cd.len() as u32;
+    let count = entries.len() as u16;
+    out.extend_from_slice(&cd);
+
+    out.extend_from_slice(b"PK\x05\x06");
+    out.extend_from_slice(&0u16.to_le_bytes());
+    out.extend_from_slice(&0u16.to_le_bytes());
+    out.extend_from_slice(&count.to_le_bytes());
+    out.extend_from_slice(&count.to_le_bytes());
+    out.extend_from_slice(&cd_size.to_le_bytes());
+    out.extend_from_slice(&cd_offset.to_le_bytes());
+    out.extend_from_slice(&0u16.to_le_bytes());
+    out
+}
+
+#[derive(Clone, Debug)]
+struct WorkbookSheet {
+    name: String,
+    rows: Vec<Vec<String>>,
+}
+
+fn xlsx_idx_to_col_ref(mut idx: usize) -> String {
+    let mut chars = Vec::new();
+    loop {
+        chars.push((b'A' + (idx % 26) as u8) as char);
+        if idx < 26 {
+            break;
+        }
+        idx = idx / 26 - 1;
+    }
+    chars.into_iter().rev().collect()
+}
+
+fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String]) -> Vec<Vec<String>> {
+    let mut parsed_rows: Vec<Vec<String>> = Vec::new();
+    let mut max_cols = 0usize;
+    let mut wscan = ws_xml;
+    while let Some(rpos) = wscan.find("<row") {
+        let rafter = &wscan[rpos..];
+        let Some(rend) = rafter.find("</row>") else {
+            break;
+        };
+        let row_block = &rafter[..rend];
+        let mut row_cells: BTreeMap<usize, String> = BTreeMap::new();
+        let mut next_col = 0usize;
+        let mut cscan = row_block;
+        while let Some(cpos) = cscan.find("<c") {
+            let cafter = &cscan[cpos..];
+            let Some(first_ch) = cafter[2..].chars().next() else {
+                break;
+            };
+            if first_ch != '>' && first_ch != '/' && !first_ch.is_ascii_whitespace() {
+                cscan = &cafter[2..];
+                continue;
+            }
+            let Some(tag_end) = cafter.find('>') else {
+                break;
+            };
+            let c_open_tag = &cafter[..=tag_end];
+            let col_idx = extract_xml_attr(c_open_tag, "r")
+                .and_then(|r| xlsx_col_ref_to_idx(&r))
+                .unwrap_or(next_col);
+            next_col = col_idx + 1;
+            let cell_type = extract_xml_attr(c_open_tag, "t").unwrap_or_default();
+            let mut cell_val = String::new();
+            if c_open_tag.ends_with("/>") {
+                cscan = &cafter[tag_end + 1..];
+            } else if let Some(cend) = cafter.find("</c>") {
+                let c_inner = &cafter[tag_end + 1..cend];
+                if cell_type == "inlineStr" {
+                    cell_val = extract_all_t_text(c_inner);
+                } else if let Some(vpos) = c_inner.find("<v>") {
+                    let vafter = &c_inner[vpos + 3..];
+                    if let Some(vend) = vafter.find("</v>") {
+                        let raw_v = unescape_xml_basic(&vafter[..vend]);
+                        if cell_type == "s" {
+                            if let Ok(sidx) = raw_v.trim().parse::<usize>() {
+                                cell_val = shared_strings.get(sidx).cloned().unwrap_or_default();
+                            }
+                        } else if cell_type == "b" {
+                            cell_val = if raw_v.trim() == "1" {
+                                "True".to_string()
+                            } else {
+                                "False".to_string()
+                            };
+                        } else {
+                            cell_val = raw_v;
+                        }
+                    }
+                } else if let Some(fpos) = c_inner.find("<f>") {
+                    let fafter = &c_inner[fpos + 3..];
+                    if let Some(fend) = fafter.find("</f>") {
+                        cell_val = format!("={}", unescape_xml_basic(&fafter[..fend]));
+                    }
+                }
+                cscan = &cafter[cend + 4..];
+            } else {
+                break;
+            }
+            row_cells.insert(col_idx, cell_val);
+            if col_idx + 1 > max_cols {
+                max_cols = col_idx + 1;
+            }
+        }
+        let mut rvec = vec![String::new(); max_cols];
+        for (cidx, val) in row_cells {
+            if cidx < rvec.len() {
+                rvec[cidx] = val;
+            }
+        }
+        parsed_rows.push(rvec);
+        wscan = &rafter[rend + 6..];
+    }
+    for r in &mut parsed_rows {
+        while r.len() < max_cols {
+            r.push(String::new());
+        }
+    }
+    parsed_rows
+}
+
+fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> {
+    let entries = read_zip_entries_for_xlsx(bytes);
+    let wb_xml = entries
+        .get("xl/workbook.xml")
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .unwrap_or_default();
+    let mut sheet_meta: Vec<(String, String)> = Vec::new();
+    let mut scan = wb_xml.as_str();
+    while let Some(pos) = scan.find("<sheet ") {
+        let after = &scan[pos..];
+        let Some(end) = after.find('>') else {
+            break;
+        };
+        let tag = &after[..=end];
+        if let Some(sname) = extract_xml_attr(tag, "name") {
+            let rid = extract_xml_attr(tag, "r:id")
+                .or_else(|| extract_xml_attr(tag, "id"))
+                .unwrap_or_default();
+            sheet_meta.push((sname, rid));
+        }
+        scan = &after[end + 1..];
+    }
+    let rels_xml = entries
+        .get("xl/_rels/workbook.xml.rels")
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .unwrap_or_default();
+    let mut rels_map: BTreeMap<String, String> = BTreeMap::new();
+    let mut rscan = rels_xml.as_str();
+    while let Some(pos) = rscan.find("<Relationship ") {
+        let after = &rscan[pos..];
+        let Some(end) = after.find('>') else {
+            break;
+        };
+        let tag = &after[..=end];
+        if let (Some(id), Some(target)) = (
+            extract_xml_attr(tag, "Id"),
+            extract_xml_attr(tag, "Target"),
+        ) {
+            rels_map.insert(id, target);
+        }
+        rscan = &after[end + 1..];
+    }
+    let sst_xml = entries
+        .get("xl/sharedStrings.xml")
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .unwrap_or_default();
+    let mut shared_strings: Vec<String> = Vec::new();
+    let mut sscan = sst_xml.as_str();
+    while let Some(pos) = sscan.find("<si") {
+        let after = &sscan[pos..];
+        if let Some(end_si) = after.find("</si>") {
+            shared_strings.push(extract_all_t_text(&after[..end_si]));
+            sscan = &after[end_si + 5..];
+        } else {
+            break;
+        }
+    }
+    if sheet_meta.is_empty() {
+        sheet_meta.push((fallback_name.to_string(), "rId1".to_string()));
+    }
+    let mut out = Vec::new();
+    for (idx, (sname, rid)) in sheet_meta.into_iter().enumerate() {
+        let ws_target = rels_map
+            .get(&rid)
+            .cloned()
+            .unwrap_or_else(|| format!("worksheets/sheet{}.xml", idx + 1));
+        let ws_path = if let Some(stripped) = ws_target.strip_prefix('/') {
+            stripped.to_string()
+        } else if ws_target.starts_with("xl/") {
+            ws_target
+        } else {
+            format!("xl/{ws_target}")
+        };
+        let ws_xml = entries
+            .get(&ws_path)
+            .map(|b| String::from_utf8_lossy(b).into_owned())
+            .unwrap_or_default();
+        out.push(WorkbookSheet {
+            name: sname,
+            rows: parse_xlsx_worksheet_xml(&ws_xml, &shared_strings),
+        });
+    }
+    out
+}
+
+fn extract_ods_cell_text(cell_xml: &str) -> String {
+    let mut out = String::new();
+    let mut scan = cell_xml;
+    while let Some(pos) = scan.find("<text:p") {
+        let after = &scan[pos..];
+        let Some(gt) = after.find('>') else {
+            break;
+        };
+        if after[..=gt].ends_with("/>") {
+            scan = &after[gt + 1..];
+            continue;
+        }
+        let inner = &after[gt + 1..];
+        let Some(end_p) = inner.find("</text:p>") else {
+            break;
+        };
+        if !out.is_empty() {
+            out.push('\n');
+        }
+        out.push_str(&unescape_xml_basic(&inner[..end_p]));
+        scan = &inner[end_p + 9..];
+    }
+    out
+}
+
+fn read_ods_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> {
+    let entries = read_zip_entries_for_xlsx(bytes);
+    let content_xml = entries
+        .get("content.xml")
+        .map(|b| String::from_utf8_lossy(b).into_owned())
+        .unwrap_or_default();
+    let mut sheets = Vec::new();
+    let mut tscan = content_xml.as_str();
+    while let Some(tpos) = tscan.find("<table:table") {
+        let tafter = &tscan[tpos..];
+        let Some(first_ch) = tafter["<table:table".len()..].chars().next() else {
+            break;
+        };
+        if first_ch != '>' && !first_ch.is_ascii_whitespace() {
+            tscan = &tafter["<table:table".len()..];
+            continue;
+        }
+        let Some(tgt) = tafter.find('>') else {
+            break;
+        };
+        let t_open = &tafter[..=tgt];
+        let sname = extract_xml_attr(t_open, "table:name")
+            .or_else(|| extract_xml_attr(t_open, "name"))
+            .unwrap_or_else(|| fallback_name.to_string());
+        let Some(tend) = tafter.find("</table:table>") else {
+            break;
+        };
+        let t_body = &tafter[tgt + 1..tend];
+        let mut rows = Vec::new();
+        let mut rscan = t_body;
+        while let Some(rpos) = rscan.find("<table:table-row") {
+            let rafter = &rscan[rpos..];
+            let Some(rgt) = rafter.find('>') else {
+                break;
+            };
+            if rafter[..=rgt].ends_with("/>") {
+                rscan = &rafter[rgt + 1..];
+                continue;
+            }
+            let Some(rend) = rafter.find("</table:table-row>") else {
+                break;
+            };
+            let r_body = &rafter[rgt + 1..rend];
+            let mut row = Vec::new();
+            let mut cscan = r_body;
+            while let Some(cpos) = cscan.find("<table:table-cell") {
+                let cafter = &cscan[cpos..];
+                let Some(cgt) = cafter.find('>') else {
+                    break;
+                };
+                let c_open = &cafter[..=cgt];
+                let repeat = extract_xml_attr(c_open, "table:number-columns-repeated")
+                    .and_then(|v| v.parse::<usize>().ok())
+                    .unwrap_or(1)
+                    .min(64);
+                if c_open.ends_with("/>") {
+                    for _ in 0..repeat {
+                        row.push(String::new());
+                    }
+                    cscan = &cafter[cgt + 1..];
+                } else if let Some(cend) = cafter.find("</table:table-cell>") {
+                    let val = extract_ods_cell_text(&cafter[cgt + 1..cend]);
+                    for _ in 0..repeat {
+                        row.push(val.clone());
+                    }
+                    cscan = &cafter[cend + 19..];
+                } else {
+                    break;
+                }
+            }
+            while row.last().is_some_and(|s| s.is_empty()) {
+                row.pop();
+            }
+            rows.push(row);
+            rscan = &rafter[rend + 18..];
+        }
+        sheets.push(WorkbookSheet { name: sname, rows });
+        tscan = &tafter[tend + 14..];
+    }
+    sheets
+}
+
+fn xml_escape_text(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&apos;"),
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+fn write_xlsx_workbook(sheets: &[WorkbookSheet]) -> Vec<u8> {
+    let mut content_types = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/><Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>",
+    );
+    let mut wb_xml = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<workbook xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets>",
+    );
+    let mut wb_rels = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">",
+    );
+    let mut sheet_files: Vec<(String, Vec<u8>)> = Vec::new();
+
+    for (idx, sheet) in sheets.iter().enumerate() {
+        let num = idx + 1;
+        content_types.push_str(&format!(
+            "<Override PartName=\"/xl/worksheets/sheet{num}.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>"
+        ));
+        wb_xml.push_str(&format!(
+            "<sheet name=\"{}\" sheetId=\"{num}\" r:id=\"rId{num}\"/>",
+            xml_escape_text(&sheet.name)
+        ));
+        wb_rels.push_str(&format!(
+            "<Relationship Id=\"rId{num}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet{num}.xml\"/>"
+        ));
+
+        let mut ws = String::from(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>",
+        );
+        for (r_idx, row) in sheet.rows.iter().enumerate() {
+            let r_num = r_idx + 1;
+            ws.push_str(&format!("<row r=\"{r_num}\">"));
+            for (c_idx, cell) in row.iter().enumerate() {
+                let col_ref = format!("{}{}", xlsx_idx_to_col_ref(c_idx), r_num);
+                ws.push_str(&format!(
+                    "<c r=\"{col_ref}\" t=\"inlineStr\"><is><t>{}</t></is></c>",
+                    xml_escape_text(cell)
+                ));
+            }
+            ws.push_str("</row>");
+        }
+        ws.push_str("</sheetData></worksheet>");
+        sheet_files.push((format!("xl/worksheets/sheet{num}.xml"), ws.into_bytes()));
+    }
+
+    content_types.push_str("</Types>");
+    wb_xml.push_str("</sheets></workbook>");
+    wb_rels.push_str("</Relationships>");
+    let root_rels = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\"><Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument\" Target=\"xl/workbook.xml\"/></Relationships>";
+
+    let mut owned_entries: Vec<(String, Vec<u8>)> = vec![
+        ("[Content_Types].xml".to_string(), content_types.into_bytes()),
+        ("_rels/.rels".to_string(), root_rels.as_bytes().to_vec()),
+        ("xl/workbook.xml".to_string(), wb_xml.into_bytes()),
+        ("xl/_rels/workbook.xml.rels".to_string(), wb_rels.into_bytes()),
+    ];
+    owned_entries.extend(sheet_files);
+    let refs: Vec<(&str, &[u8])> = owned_entries
+        .iter()
+        .map(|(k, v)| (k.as_str(), v.as_slice()))
+        .collect();
+    write_zip_stored(&refs)
+}
+
+fn write_ods_workbook(sheets: &[WorkbookSheet]) -> Vec<u8> {
+    let mut content = String::from(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<office:document-content xmlns:office=\"urn:oasis:names:tc:opendocument:xmlns:office:1.0\" xmlns:table=\"urn:oasis:names:tc:opendocument:xmlns:table:1.0\" xmlns:text=\"urn:oasis:names:tc:opendocument:xmlns:text:1.0\"><office:body><office:spreadsheet>",
+    );
+    for sheet in sheets {
+        content.push_str(&format!(
+            "<table:table table:name=\"{}\">",
+            xml_escape_text(&sheet.name)
+        ));
+        for row in &sheet.rows {
+            content.push_str("<table:table-row>");
+            for cell in row {
+                content.push_str(&format!(
+                    "<table:table-cell><text:p>{}</text:p></table:table-cell>",
+                    xml_escape_text(cell)
+                ));
+            }
+            content.push_str("</table:table-row>");
+        }
+        content.push_str("</table:table>");
+    }
+    content.push_str("</office:spreadsheet></office:body></office:document-content>");
+    let manifest = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<manifest:manifest xmlns:manifest=\"urn:oasis:names:tc:opendocument:xmlns:manifest:1.0\"><manifest:file-entry manifest:full-path=\"/\" manifest:media-type=\"application/vnd.oasis.opendocument.spreadsheet\"/><manifest:file-entry manifest:full-path=\"content.xml\" manifest:media-type=\"text/xml\"/></manifest:manifest>";
+    let entries: Vec<(&str, &[u8])> = vec![
+        ("mimetype", b"application/vnd.oasis.opendocument.spreadsheet"),
+        ("META-INF/manifest.xml", manifest.as_bytes()),
+        ("content.xml", content.as_bytes()),
+    ];
+    write_zip_stored(&entries)
+}
+
+fn parse_cell_coord(cell_ref: &str) -> Option<(usize, usize)> {
+    let s = cell_ref.trim().replace('$', "");
+    let col_idx = xlsx_col_ref_to_idx(&s)?;
+    let digits_start = s.find(|c: char| c.is_ascii_digit())?;
+    let row_1based: usize = s[digits_start..].parse().ok()?;
+    if row_1based == 0 {
+        return None;
+    }
+    Some((row_1based - 1, col_idx))
+}
+
+fn format_ss_number(n: f64) -> String {
+    if n.is_finite() && n.fract() == 0.0 && n.abs() < 1e15 {
+        format!("{}", n as i64)
+    } else {
+        format!("{n}")
+    }
+}
+
+fn eval_ss_formula_expr(expr: &str, rows: &[Vec<String>]) -> Option<f64> {
+    let s = expr.trim();
+    if s.is_empty() {
+        return Some(0.0);
+    }
+    let upper = s.to_ascii_uppercase();
+    for func in ["SUM", "AVERAGE", "AVG", "MIN", "MAX", "COUNT"] {
+        if let Some(rest) = upper.strip_prefix(func) {
+            let rest_orig = s[func.len()..].trim();
+            if rest_orig.starts_with('(') && rest_orig.ends_with(')') && rest.trim().starts_with('(') {
+                let inner = &rest_orig[1..rest_orig.len() - 1];
+                let mut vals = Vec::new();
+                for part in inner.split(',') {
+                    let p = part.trim();
+                    if let Some((a, b)) = p.split_once(':') {
+                        if let (Some((r1, c1)), Some((r2, c2))) =
+                            (parse_cell_coord(a), parse_cell_coord(b))
+                        {
+                            for r in r1.min(r2)..=r1.max(r2) {
+                                for c in c1.min(c2)..=c1.max(c2) {
+                                    if let Some(v) = rows
+                                        .get(r)
+                                        .and_then(|row| row.get(c))
+                                        .and_then(|cell| cell.trim().parse::<f64>().ok())
+                                    {
+                                        vals.push(v);
+                                    }
+                                }
+                            }
+                        }
+                    } else if let Some(v) = eval_ss_formula_expr(p, rows) {
+                        vals.push(v);
+                    }
+                }
+                return Some(match func {
+                    "SUM" => vals.iter().sum(),
+                    "AVERAGE" | "AVG" => {
+                        if vals.is_empty() {
+                            0.0
+                        } else {
+                            vals.iter().sum::<f64>() / (vals.len() as f64)
+                        }
+                    }
+                    "MIN" => vals.into_iter().reduce(f64::min).unwrap_or(0.0),
+                    "MAX" => vals.into_iter().reduce(f64::max).unwrap_or(0.0),
+                    "COUNT" => vals.len() as f64,
+                    _ => 0.0,
+                });
+            }
+        }
+    }
+    let bytes = s.as_bytes();
+    let mut depth = 0i32;
+    for i in (0..bytes.len()).rev() {
+        match bytes[i] {
+            b')' => depth += 1,
+            b'(' => depth -= 1,
+            b'+' | b'-' if depth == 0 && i > 0 => {
+                let l = eval_ss_formula_expr(&s[..i], rows)?;
+                let r = eval_ss_formula_expr(&s[i + 1..], rows)?;
+                return Some(if bytes[i] == b'+' { l + r } else { l - r });
+            }
+            _ => {}
+        }
+    }
+    depth = 0;
+    for i in (0..bytes.len()).rev() {
+        match bytes[i] {
+            b')' => depth += 1,
+            b'(' => depth -= 1,
+            b'*' | b'/' if depth == 0 && i > 0 => {
+                let l = eval_ss_formula_expr(&s[..i], rows)?;
+                let r = eval_ss_formula_expr(&s[i + 1..], rows)?;
+                return Some(if bytes[i] == b'*' {
+                    l * r
+                } else if r == 0.0 {
+                    0.0
+                } else {
+                    l / r
+                });
+            }
+            _ => {}
+        }
+    }
+    if s.starts_with('(') && s.ends_with(')') {
+        return eval_ss_formula_expr(&s[1..s.len() - 1], rows);
+    }
+    if let Ok(n) = s.parse::<f64>() {
+        return Some(n);
+    }
+    if let Some((r, c)) = parse_cell_coord(s) {
+        let cell = rows.get(r).and_then(|row| row.get(c))?;
+        return cell.trim().parse::<f64>().ok();
+    }
+    None
+}
+
+fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
+    let mut formulas: Vec<(usize, usize, String)> = Vec::new();
+    for (r_idx, row) in sheet.rows.iter_mut().enumerate() {
+        for (c_idx, cell) in row.iter_mut().enumerate() {
+            let trimmed = cell.trim();
+            if let Some(f) = trimmed.strip_prefix('=') {
+                formulas.push((r_idx, c_idx, f.to_string()));
+            } else if !trimmed.is_empty()
+                && !trimmed.starts_with('0')
+                && let Ok(n) = trimmed.parse::<f64>()
+            {
+                *cell = format_ss_number(n);
+            }
+        }
+    }
+    for _ in 0..4 {
+        for (r_idx, c_idx, f) in &formulas {
+            if let Some(val) = eval_ss_formula_expr(f, &sheet.rows) {
+                if let Some(cell) = sheet.rows.get_mut(*r_idx).and_then(|r| r.get_mut(*c_idx)) {
+                    *cell = format_ss_number(val);
+                }
+            }
+        }
+    }
+}
+
+fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<Vec<WorkbookSheet>, String> {
+    let full = resolve_posix_path(cwd, path);
+    let bytes = fs
+        .read_file(&full)
+        .map_err(|_| format!("ssconvert: {path}: No such file or directory\n"))?;
+    let fname = path.rsplit('/').next().unwrap_or(path);
+    let lower = fname.to_ascii_lowercase();
+    if lower.ends_with(".xlsx") {
+        Ok(read_xlsx_all_sheets(&bytes, fname))
+    } else if lower.ends_with(".ods") {
+        Ok(read_ods_all_sheets(&bytes, fname))
+    } else if lower.ends_with(".tsv") {
+        let text = String::from_utf8_lossy(&bytes);
+        Ok(vec![WorkbookSheet {
+            name: fname.to_string(),
+            rows: parse_csv_rows(&text, '\t'),
+        }])
+    } else {
+        let text = String::from_utf8_lossy(&bytes);
+        Ok(vec![WorkbookSheet {
+            name: fname.to_string(),
+            rows: parse_csv_rows(&text, ','),
+        }])
+    }
+}
+
+fn write_workbook_to_file(
+    path: &str,
+    cwd: &str,
+    sheets: &[WorkbookSheet],
+    sep: char,
+    fs: &dyn SafeBashFs,
+) -> Result<(), String> {
+    let full = resolve_posix_path(cwd, path);
+    let lower = path.to_ascii_lowercase();
+    if lower.ends_with(".xlsx") {
+        let bytes = write_xlsx_workbook(sheets);
+        fs.write_file(&full, &bytes)
+            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
+    } else if lower.ends_with(".ods") {
+        let bytes = write_ods_workbook(sheets);
+        fs.write_file(&full, &bytes)
+            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
+    } else if lower.ends_with(".html") || lower.ends_with(".htm") {
+        let mut html = String::from(
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n\t\t\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n<head>\n\t<title>Tables</title>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n</head>\n<body>\n",
+        );
+        for sheet in sheets {
+            html.push_str("<p></p><table cellspacing=\"0\" cellpadding=\"3\">\n");
+            html.push_str(&format!("<caption>{}</caption>\n", xml_escape_text(&sheet.name)));
+            for row in &sheet.rows {
+                html.push_str("<tr>\n");
+                for cell in row {
+                    html.push_str(&format!("<td>{}</td>\n", xml_escape_text(cell)));
+                }
+                html.push_str("</tr>\n");
+            }
+            html.push_str("</table>\n");
+        }
+        html.push_str("</body>\n</html>\n");
+        fs.write_file(&full, html.as_bytes())
+            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
+    } else {
+        let actual_sep = if lower.ends_with(".tsv") && sep == ',' {
+            '\t'
+        } else {
+            sep
+        };
+        let mut out = String::new();
+        if let Some(first) = sheets.first() {
+            for row in &first.rows {
+                out.push_str(&format_csv_row(row, actual_sep));
+            }
+        }
+        fs.write_file(&full, out.as_bytes())
+            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
+    }
+}
+
+fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut recalc = false;
+    let mut split_sheets = false;
+    let mut merge_to: Option<String> = None;
+    let mut sep = ',';
+    let mut positional: Vec<String> = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "--version" {
+            return ok_out(concat!(
+                "ssconvert version '1.12.61'\n",
+                "datadir := '/opt/ssconvert-reference/share/gnumeric/1.12.61'\n",
+                "libdir := '/opt/ssconvert-reference/lib/gnumeric/1.12.61'\n"
+            ));
+        } else if a == "--help" || a == "-h" {
+            return ok_out("Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n");
+        } else if a == "--list-exporters" {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: concat!(
+                    "ID                                | Description\n",
+                    "Gnumeric_Excel:excel_biff7        | MS Excel? 5.0/95\n",
+                    "Gnumeric_Excel:excel_biff8        | MS Excel? 97/2000/XP\n",
+                    "Gnumeric_Excel:excel_dsf          | MS Excel? 97/2000/XP & 5.0/95\n",
+                    "Gnumeric_Excel:xlsx               | ECMA 376 1st edition (2006); [MS Excel? 2007]\n",
+                    "Gnumeric_Excel:xlsx2              | ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel? 2010]\n",
+                    "Gnumeric_GnomeGlossary:po         | Gnome Glossary PO file format\n",
+                    "Gnumeric_OpenCalc:odf             | ODF 1.2 extended conformance (*.ods)\n",
+                    "Gnumeric_OpenCalc:openoffice      | ODF 1.2 strict conformance (*.ods)\n",
+                    "Gnumeric_XmlIO:sax                | Gnumeric XML (*.gnumeric)\n",
+                    "Gnumeric_XmlIO:sax:0              | Gnumeric XML uncompressed (*.xml)\n",
+                    "Gnumeric_dif:dif                  | Data Interchange Format (*.dif)\n",
+                    "Gnumeric_glpk:glpk                | GLPK Linear Program Solver\n",
+                    "Gnumeric_html:html32              | HTML 3.2 (*.html)\n",
+                    "Gnumeric_html:html40              | HTML 4.0 (*.html)\n",
+                    "Gnumeric_html:html40frag          | HTML (*.html) fragment\n",
+                    "Gnumeric_html:latex               | LaTeX 2e (*.tex)\n",
+                    "Gnumeric_html:latex_table         | LaTeX 2e (*.tex) table fragment\n",
+                    "Gnumeric_html:latex_table_visible | LaTeX 2e (*.tex) table fragment of visible rows\n",
+                    "Gnumeric_html:roff                | TROFF (*.me)\n",
+                    "Gnumeric_html:xhtml               | XHTML (*.html)\n",
+                    "Gnumeric_html:xhtml_range         | XHTML range - for export to clipboard\n",
+                    "Gnumeric_lpsolve:lpsolve          | LPSolve Linear Program Solver\n",
+                    "Gnumeric_paradox:paradox          | Paradox database (*.db)\n",
+                    "Gnumeric_pdf:pdf_assistant        | PDF export\n",
+                    "Gnumeric_stf:stf_assistant        | Text (configurable)\n",
+                    "Gnumeric_stf:stf_csv              | Comma separated values (CSV)\n",
+                    "Gnumeric_sylk:sylk                | MultiPlan (SYLK)\n"
+                )
+                .to_string(),
+                exit_code: 0,
+            };
+        } else if a == "--list-importers" {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: concat!(
+                    "ID                           | Description\n",
+                    "Gnumeric_Excel:excel         | MS Excel? (*.xls)\n",
+                    "Gnumeric_Excel:excel_enc     | MS Excel? (*.xls) requiring encoding specification\n",
+                    "Gnumeric_Excel:excel_xml     | MS Excel? 2003 SpreadsheetML\n",
+                    "Gnumeric_Excel:xlsx          | ECMA 376 / Office Open XML [MS Excel? 2007/2010] (*.xlsx)\n",
+                    "Gnumeric_OpenCalc:openoffice | Open Document Format (*.sxc, *.ods)\n",
+                    "Gnumeric_QPro:qpro           | Quattro Pro (*.wb1, *.wb2, *.wb3)\n",
+                    "Gnumeric_XmlIO:sax           | Gnumeric XML (*.gnumeric)\n",
+                    "Gnumeric_applix:applix       | Applix (*.as)\n",
+                    "Gnumeric_dif:dif             | Data Interchange Format (*.dif)\n",
+                    "Gnumeric_html:html           | HTML (*.html, *.htm)\n",
+                    "Gnumeric_lotus:lotus         | Lotus 123 (*.wk1, *.wks, *.123)\n",
+                    "Gnumeric_mps:mps             | Linear and integer program (*.mps) file format\n",
+                    "Gnumeric_oleo:oleo           | GNU Oleo (*.oleo)\n",
+                    "Gnumeric_paradox:paradox     | Paradox database or primary index file (*.db, *.px)\n",
+                    "Gnumeric_plan_perfect:pln    | Plan Perfect Format (PLN) import\n",
+                    "Gnumeric_psiconv:psiconv     | Psion (*.psisheet)\n",
+                    "Gnumeric_sc:sc               | SC/xspread\n",
+                    "Gnumeric_stf:stf_csvtab      | Comma or tab separated values (CSV/TSV)\n",
+                    "Gnumeric_sylk:sylk           | MultiPlan (SYLK)\n",
+                    "Gnumeric_xbase:xbase         | Xbase (*.dbf) file format\n"
+                )
+                .to_string(),
+                exit_code: 0,
+            };
+        } else if a == "--recalc" {
+            recalc = true;
+            i += 1;
+        } else if a == "-S" || a == "--export-file-per-sheet" {
+            split_sheets = true;
+            i += 1;
+        } else if (a == "-M" || a == "--merge-to") && i + 1 < args.len() {
+            merge_to = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(v) = a.strip_prefix("--merge-to=") {
+            merge_to = Some(v.to_string());
+            i += 1;
+        } else if (a == "-O" || a == "--export-options") && i + 1 < args.len() {
+            let opts = &args[i + 1];
+            for part in opts.split_whitespace() {
+                if let Some(s) = part.strip_prefix("separator=") {
+                    if let Some(ch) = s.chars().next() {
+                        sep = ch;
+                    }
+                }
+            }
+            i += 2;
+        } else if let Some(opts) = a.strip_prefix("--export-options=").or_else(|| a.strip_prefix("-O")) {
+            for part in opts.split_whitespace() {
+                if let Some(s) = part.strip_prefix("separator=") {
+                    if let Some(ch) = s.chars().next() {
+                        sep = ch;
+                    }
+                }
+            }
+            i += 1;
+        } else if (a == "-T" || a == "--export-type" || a == "-I" || a == "--import-type" || a == "-E" || a == "--import-encoding") && i + 1 < args.len() {
+            i += 2;
+        } else if a.starts_with('-') && a.len() > 1 {
+            i += 1;
+        } else {
+            positional.push(a.clone());
+            i += 1;
+        }
+    }
+
+    if let Some(target_out) = merge_to {
+        let mut all_sheets = Vec::new();
+        for infile in &positional {
+            match load_workbook_from_file(infile, cwd, fs) {
+                Ok(mut s) => {
+                    if recalc {
+                        for sh in &mut s {
+                            recalc_workbook_sheet(sh);
+                        }
+                    }
+                    all_sheets.extend(s);
+                }
+                Err(e) => return err_out(&e, 1),
+            }
+        }
+        if let Err(e) = write_workbook_to_file(&target_out, cwd, &all_sheets, sep, fs) {
+            return err_out(&e, 1);
+        }
+        return ok_out("");
+    }
+
+    if positional.len() < 2 {
+        return err_out("Usage: ssconvert [OPTION?] INFILE [OUTFILE]\n", 1);
+    }
+    let infile = &positional[0];
+    let outfile = &positional[1];
+    let mut sheets = match load_workbook_from_file(infile, cwd, fs) {
+        Ok(s) => s,
+        Err(e) => return err_out(&e, 1),
+    };
+    if recalc {
+        for sh in &mut sheets {
+            recalc_workbook_sheet(sh);
+        }
+    }
+    if split_sheets {
+        for (idx, sh) in sheets.iter().enumerate() {
+            let resolved_out = if outfile.contains("%s") || outfile.contains("%n") {
+                outfile
+                    .replace("%s", &sh.name)
+                    .replace("%n", &idx.to_string())
+            } else {
+                format!("{outfile}.{idx}")
+            };
+            if let Err(e) = write_workbook_to_file(&resolved_out, cwd, std::slice::from_ref(sh), sep, fs) {
+                return err_out(&e, 1);
+            }
+        }
+        return ok_out("");
+    }
+    if let Err(e) = write_workbook_to_file(outfile, cwd, &sheets, sep, fs) {
+        return err_out(&e, 1);
+    }
+    ok_out("")
+}
+
+#[derive(Clone, Debug)]
+enum PandocInline {
+    Text(String),
+    Strong(Vec<PandocInline>),
+    Emph(Vec<PandocInline>),
+    Strikeout(Vec<PandocInline>),
+    Code(String),
+    Link(Vec<PandocInline>, String),
+}
+
+#[derive(Clone, Debug)]
+enum PandocBlock {
+    Header(usize, String, Vec<PandocInline>),
+    Para(Vec<PandocInline>),
+    BulletList(Vec<(Option<bool>, Vec<PandocInline>)>),
+    OrderedList(Vec<Vec<PandocInline>>),
+    BlockQuote(Vec<PandocBlock>),
+    CodeBlock(String, String),
+    Table(Vec<String>, Vec<Vec<String>>),
+    HorizontalRule,
+}
+
+fn pandoc_slug(text: &str) -> String {
+    let mut slug = String::new();
+    for ch in text.chars() {
+        if ch.is_ascii_alphanumeric() {
+            slug.push(ch.to_ascii_lowercase());
+        } else if ch == ' ' || ch == '-' || ch == '_' {
+            if ch == ' ' {
+                if !slug.ends_with('-') && !slug.is_empty() {
+                    slug.push('-');
+                }
+            } else {
+                slug.push(ch);
+            }
+        }
+    }
+    slug.trim_matches('-').to_string()
+}
+
+fn inlines_plain_text(inlines: &[PandocInline]) -> String {
+    let mut out = String::new();
+    for inl in inlines {
+        match inl {
+            PandocInline::Text(s) | PandocInline::Code(s) => out.push_str(s),
+            PandocInline::Strong(c)
+            | PandocInline::Emph(c)
+            | PandocInline::Strikeout(c)
+            | PandocInline::Link(c, _) => out.push_str(&inlines_plain_text(c)),
+        }
+    }
+    out
+}
+
+fn parse_pandoc_md_inlines(s: &str) -> Vec<PandocInline> {
+    let mut out: Vec<PandocInline> = Vec::new();
+    let mut cur = String::new();
+    let mut i = 0usize;
+    let bytes = s.as_bytes();
+    while i < bytes.len() {
+        if s[i..].starts_with("``") {
+            let rest = &s[i + 2..];
+            if let Some(end) = rest.find("``") {
+                if !cur.is_empty() {
+                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
+                }
+                out.push(PandocInline::Code(rest[..end].to_string()));
+                i += 2 + end + 2;
+                if s[i..].starts_with("\\ ") {
+                    cur.push(' ');
+                    i += 2;
+                }
+                continue;
+            }
+        }
+        if bytes[i] == 0x60 {
+            let rest = &s[i + 1..];
+            if let Some(end) = rest.find('`') {
+                if !cur.is_empty() {
+                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
+                }
+                out.push(PandocInline::Code(rest[..end].to_string()));
+                i += 1 + end + 1;
+                continue;
+            }
+        }
+        if s[i..].starts_with("**") {
+            let rest = &s[i + 2..];
+            if let Some(end) = rest.find("**") {
+                if !cur.is_empty() {
+                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
+                }
+                out.push(PandocInline::Strong(parse_pandoc_md_inlines(&rest[..end])));
+                i += 2 + end + 2;
+                continue;
+            }
+        }
+        if s[i..].starts_with("~~") {
+            let rest = &s[i + 2..];
+            if let Some(end) = rest.find("~~") {
+                if !cur.is_empty() {
+                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
+                }
+                out.push(PandocInline::Strikeout(parse_pandoc_md_inlines(&rest[..end])));
+                i += 2 + end + 2;
+                continue;
+            }
+        }
+        if bytes[i] == b'*' {
+            let rest = &s[i + 1..];
+            if let Some(end) = rest.find('*') {
+                if !cur.is_empty() {
+                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
+                }
+                out.push(PandocInline::Emph(parse_pandoc_md_inlines(&rest[..end])));
+                i += 1 + end + 1;
+                continue;
+            }
+        }
+        if bytes[i] == b'[' {
+            let rest = &s[i + 1..];
+            if let Some(close_br) = rest.find("](") {
+                let label = &rest[..close_br];
+                let after_br = &rest[close_br + 2..];
+                if let Some(close_paren) = after_br.find(')') {
+                    if !cur.is_empty() {
+                        out.push(PandocInline::Text(std::mem::take(&mut cur)));
+                    }
+                    let mut url = after_br[..close_paren].trim().to_string();
+                    if url.starts_with('<') && url.ends_with('>') && url.len() >= 2 {
+                        url = url[1..url.len() - 1].to_string();
+                    }
+                    out.push(PandocInline::Link(parse_pandoc_md_inlines(label), url));
+                    i += 1 + close_br + 2 + close_paren + 1;
+                    continue;
+                }
+            }
+        }
+        let ch = s[i..].chars().next().unwrap();
+        cur.push(ch);
+        i += ch.len_utf8();
+    }
+    if !cur.is_empty() {
+        out.push(PandocInline::Text(cur));
+    }
+    out
+}
+
+fn strip_html_comments(input: &str) -> String {
+    let mut out = String::new();
+    let mut scan = input;
+    while let Some(pos) = scan.find("<!--") {
+        out.push_str(&scan[..pos]);
+        let after = &scan[pos + 4..];
+        if let Some(end) = after.find("-->") {
+            scan = &after[end + 3..];
+        } else {
+            return out;
+        }
+    }
+    out.push_str(scan);
+    out
+}
+
+fn parse_pandoc_markdown(input: &str, strip_comments: bool) -> Vec<PandocBlock> {
+    let cleaned = if strip_comments {
+        strip_html_comments(input)
+    } else {
+        input.to_string()
+    };
+    let lines: Vec<&str> = cleaned.lines().collect();
+    let mut blocks = Vec::new();
+    let mut i = 0usize;
+    while i < lines.len() {
+        let line = lines[i];
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            i += 1;
+            continue;
+        }
+        if trimmed.starts_with("<!--") && trimmed.ends_with("-->") {
+            i += 1;
+            continue;
+        }
+        if let Some(fence_rest) = trimmed.strip_prefix("```") {
+            let lang = fence_rest.trim().to_string();
+            i += 1;
+            let mut code = String::new();
+            while i < lines.len() && !lines[i].trim().starts_with("```") {
+                code.push_str(lines[i]);
+                code.push('\n');
+                i += 1;
+            }
+            if i < lines.len() {
+                i += 1;
+            }
+            blocks.push(PandocBlock::CodeBlock(lang, code));
+            continue;
+        }
+        if trimmed == "---" || trimmed == "***" || trimmed == "___" {
+            blocks.push(PandocBlock::HorizontalRule);
+            i += 1;
+            continue;
+        }
+        if trimmed.starts_with('#') {
+            let level = trimmed.chars().take_while(|&c| c == '#').count();
+            if (1..=6).contains(&level) && trimmed[level..].starts_with(' ') {
+                let text = trimmed[level..].trim();
+                let inlines = parse_pandoc_md_inlines(text);
+                let id = pandoc_slug(&inlines_plain_text(&inlines));
+                blocks.push(PandocBlock::Header(level, id, inlines));
+                i += 1;
+                continue;
+            }
+        }
+        if i + 1 < lines.len() {
+            let next_trim = lines[i + 1].trim();
+            if next_trim.len() >= 3
+                && (next_trim.chars().all(|c| c == '=')
+                    || next_trim.chars().all(|c| c == '-')
+                    || next_trim.chars().all(|c| c == '~'))
+            {
+                let level = if next_trim.starts_with('=') {
+                    1
+                } else if next_trim.starts_with('-') {
+                    2
+                } else {
+                    3
+                };
+                let inlines = parse_pandoc_md_inlines(trimmed);
+                let id = pandoc_slug(&inlines_plain_text(&inlines));
+                blocks.push(PandocBlock::Header(level, id, inlines));
+                i += 2;
+                continue;
+            }
+        }
+        if trimmed.starts_with('|')
+            && trimmed.ends_with('|')
+            && i + 1 < lines.len()
+            && lines[i + 1].trim().starts_with('|')
+            && lines[i + 1].contains("---")
+        {
+            let parse_pipe_row = |l: &str| -> Vec<String> {
+                let inner = l.trim().trim_start_matches('|').trim_end_matches('|');
+                inner.split('|').map(|c| c.trim().to_string()).collect()
+            };
+            let headers = parse_pipe_row(trimmed);
+            i += 2;
+            let mut rows = Vec::new();
+            while i < lines.len() && lines[i].trim().starts_with('|') {
+                rows.push(parse_pipe_row(lines[i]));
+                i += 1;
+            }
+            blocks.push(PandocBlock::Table(headers, rows));
+            continue;
+        }
+        if trimmed.starts_with("> ") || trimmed == ">" {
+            let mut q_lines = Vec::new();
+            while i < lines.len() {
+                let lt = lines[i].trim();
+                if let Some(rest) = lt.strip_prefix("> ") {
+                    q_lines.push(rest);
+                    i += 1;
+                } else if lt == ">" {
+                    q_lines.push("");
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+            blocks.push(PandocBlock::BlockQuote(parse_pandoc_markdown(
+                &q_lines.join("\n"),
+                strip_comments,
+            )));
+            continue;
+        }
+        if trimmed.starts_with("- ") || trimmed.starts_with("* ") {
+            let mut items = Vec::new();
+            while i < lines.len() {
+                let lt = lines[i].trim();
+                if let Some(rest) = lt.strip_prefix("- ").or_else(|| lt.strip_prefix("* ")) {
+                    if let Some(task) = rest.strip_prefix("[x] ").or_else(|| rest.strip_prefix("[X] ")) {
+                        items.push((Some(true), parse_pandoc_md_inlines(task)));
+                    } else if let Some(task) = rest.strip_prefix("[ ] ") {
+                        items.push((Some(false), parse_pandoc_md_inlines(task)));
+                    } else {
+                        items.push((None, parse_pandoc_md_inlines(rest)));
+                    }
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+            blocks.push(PandocBlock::BulletList(items));
+            continue;
+        }
+        if trimmed
+            .split_once(". ")
+            .is_some_and(|(num, _)| !num.is_empty() && num.chars().all(|c| c.is_ascii_digit()))
+        {
+            let mut items = Vec::new();
+            while i < lines.len() {
+                let lt = lines[i].trim();
+                if let Some((num, rest)) = lt.split_once(". ")
+                    && !num.is_empty()
+                    && num.chars().all(|c| c.is_ascii_digit())
+                {
+                    items.push(parse_pandoc_md_inlines(rest.trim()));
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+            blocks.push(PandocBlock::OrderedList(items));
+            continue;
+        }
+        let mut p_lines = Vec::new();
+        while i < lines.len() {
+            let lt = lines[i].trim();
+            if lt.is_empty()
+                || lt.starts_with('#')
+                || lt.starts_with("```")
+                || lt.starts_with("- ")
+                || lt.starts_with("* ")
+                || lt.starts_with("> ")
+                || (lt.starts_with('|') && lt.ends_with('|'))
+                || lt == "---"
+            {
+                break;
+            }
+            p_lines.push(lt);
+            i += 1;
+        }
+        blocks.push(PandocBlock::Para(parse_pandoc_md_inlines(&p_lines.join(" "))));
+    }
+    blocks
+}
+
+fn parse_pandoc_html_inlines(html: &str) -> Vec<PandocInline> {
+    let mut md_equiv = String::new();
+    let mut scan = html;
+    while let Some(lt) = scan.find('<') {
+        md_equiv.push_str(&unescape_xml_basic(&scan[..lt]));
+        let after = &scan[lt..];
+        let Some(gt) = after.find('>') else {
+            break;
+        };
+        let tag = &after[1..gt];
+        let tag_lower = tag.to_ascii_lowercase();
+        if tag_lower == "strong" || tag_lower == "b" || tag_lower == "/strong" || tag_lower == "/b" {
+            md_equiv.push_str("**");
+        } else if tag_lower == "em" || tag_lower == "i" || tag_lower == "/em" || tag_lower == "/i" {
+            md_equiv.push('*');
+        } else if tag_lower == "del" || tag_lower == "s" || tag_lower == "/del" || tag_lower == "/s" {
+            md_equiv.push_str("~~");
+        } else if tag_lower == "code" || tag_lower == "/code" {
+            md_equiv.push('`');
+        } else if tag_lower.starts_with("a ") {
+            let href = extract_xml_attr(&after[..=gt], "href").unwrap_or_default();
+            let rest = &after[gt + 1..];
+            if let Some(end_a) = rest.find("</a>").or_else(|| rest.find("</A>")) {
+                let link_text = unescape_xml_basic(&rest[..end_a]);
+                md_equiv.push_str(&format!("[{link_text}]({href})"));
+                scan = &rest[end_a + 4..];
+                continue;
+            }
+        }
+        scan = &after[gt + 1..];
+    }
+    md_equiv.push_str(&unescape_xml_basic(scan));
+    parse_pandoc_md_inlines(&md_equiv)
+}
+
+fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
+    let mut blocks = Vec::new();
+    let mut scan = input;
+    while let Some(lt) = scan.find('<') {
+        let after = &scan[lt..];
+        let Some(gt) = after.find('>') else {
+            break;
+        };
+        let tag_full = &after[1..gt].trim();
+        let tag_name = tag_full
+            .split_whitespace()
+            .next()
+            .unwrap_or("")
+            .trim_end_matches('/')
+            .to_ascii_lowercase();
+        if tag_name.len() == 2 && tag_name.starts_with('h') && tag_name.as_bytes()[1].is_ascii_digit() {
+            let level = (tag_name.as_bytes()[1] - b'0') as usize;
+            let close_tag = format!("</{tag_name}>");
+            let rest = &after[gt + 1..];
+            if let Some(end_pos) = rest.to_ascii_lowercase().find(&close_tag) {
+                let inlines = parse_pandoc_html_inlines(&rest[..end_pos]);
+                let id = extract_xml_attr(&after[..=gt], "id")
+                    .unwrap_or_else(|| pandoc_slug(&inlines_plain_text(&inlines)));
+                blocks.push(PandocBlock::Header(level, id, inlines));
+                scan = &rest[end_pos + close_tag.len()..];
+                continue;
+            }
+        } else if tag_name == "p" {
+            let rest = &after[gt + 1..];
+            if let Some(end_pos) = rest.to_ascii_lowercase().find("</p>") {
+                let inlines = parse_pandoc_html_inlines(&rest[..end_pos]);
+                if !inlines.is_empty() {
+                    blocks.push(PandocBlock::Para(inlines));
+                }
+                scan = &rest[end_pos + 4..];
+                continue;
+            }
+        } else if tag_name == "ol" || tag_name == "ul" {
+            let close_tag = format!("</{tag_name}>");
+            let rest = &after[gt + 1..];
+            if let Some(end_pos) = rest.to_ascii_lowercase().find(&close_tag) {
+                let list_inner = &rest[..end_pos];
+                let mut items = Vec::new();
+                let mut lscan = list_inner;
+                while let Some(li_pos) = lscan.to_ascii_lowercase().find("<li") {
+                    let lafter = &lscan[li_pos..];
+                    let Some(lgt) = lafter.find('>') else {
+                        break;
+                    };
+                    let lrest = &lafter[lgt + 1..];
+                    if let Some(lend) = lrest.to_ascii_lowercase().find("</li>") {
+                        items.push(parse_pandoc_html_inlines(&lrest[..lend]));
+                        lscan = &lrest[lend + 5..];
+                    } else {
+                        break;
+                    }
+                }
+                if tag_name == "ol" {
+                    blocks.push(PandocBlock::OrderedList(items));
+                } else {
+                    blocks.push(PandocBlock::BulletList(
+                        items.into_iter().map(|it| (None, it)).collect(),
+                    ));
+                }
+                scan = &rest[end_pos + close_tag.len()..];
+                continue;
+            }
+        } else if tag_name == "hr" {
+            blocks.push(PandocBlock::HorizontalRule);
+            scan = &after[gt + 1..];
+            continue;
+        }
+        scan = &after[gt + 1..];
+    }
+    blocks
+}
+
+fn parse_pandoc_latex(input: &str) -> Vec<PandocBlock> {
+    let mut md_lines = Vec::new();
+    for line in input.lines() {
+        let mut s = line.trim().to_string();
+        if let Some(rest) = s.strip_prefix("\\section{")
+            && let Some(end) = rest.find('}')
+        {
+            md_lines.push(format!("# {}", &rest[..end]));
+            continue;
+        }
+        if let Some(rest) = s.strip_prefix("\\subsection{")
+            && let Some(end) = rest.find('}')
+        {
+            md_lines.push(format!("## {}", &rest[..end]));
+            continue;
+        }
+        while let Some(pos) = s.find("\\textbf{") {
+            let after = &s[pos + 8..];
+            if let Some(end) = after.find('}') {
+                s = format!("{}**{}**{}", &s[..pos], &after[..end], &after[end + 1..]);
+            } else {
+                break;
+            }
+        }
+        while let Some(pos) = s.find("\\emph{") {
+            let after = &s[pos + 6..];
+            if let Some(end) = after.find('}') {
+                s = format!("{}*{}*{}", &s[..pos], &after[..end], &after[end + 1..]);
+            } else {
+                break;
+            }
+        }
+        while let Some(pos) = s.find("\\texttt{") {
+            let after = &s[pos + 8..];
+            if let Some(end) = after.find('}') {
+                s = format!("{}`{}`{}", &s[..pos], &after[..end], &after[end + 1..]);
+            } else {
+                break;
+            }
+        }
+        md_lines.push(s);
+    }
+    parse_pandoc_markdown(&md_lines.join("\n"), false)
+}
+
+fn parse_pandoc_rtf(input: &str) -> Vec<PandocBlock> {
+    let mut s = input.to_string();
+    while let Some(pos) = s.find("{\\b ") {
+        let after = &s[pos + 4..];
+        if let Some(end) = after.find('}') {
+            s = format!("{}**{}**{}", &s[..pos], &after[..end], &after[end + 1..]);
+        } else {
+            break;
+        }
+    }
+    while let Some(pos) = s.find("{\\i ") {
+        let after = &s[pos + 4..];
+        if let Some(end) = after.find('}') {
+            s = format!("{}*{}*{}", &s[..pos], &after[..end], &after[end + 1..]);
+        } else {
+            break;
+        }
+    }
+    s = s.replace("\\par}", "\n\n").replace("\\par", "\n\n");
+    let mut cleaned = String::new();
+    let chars: Vec<char> = s.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] == '{' || chars[i] == '}' {
+            i += 1;
+        } else if chars[i] == '\\' {
+            i += 1;
+            while i < chars.len() && (chars[i].is_ascii_alphanumeric() || chars[i] == '-') {
+                i += 1;
+            }
+            if i < chars.len() && chars[i] == ' ' {
+                i += 1;
+            }
+        } else {
+            cleaned.push(chars[i]);
+            i += 1;
+        }
+    }
+    parse_pandoc_markdown(&cleaned, false)
+}
+
+fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
+    let mut arr = Vec::new();
+    for inl in inlines {
+        match inl {
+            PandocInline::Text(s) => {
+                let parts: Vec<&str> = s.split(' ').collect();
+                for (idx, p) in parts.iter().enumerate() {
+                    if idx > 0 {
+                        arr.push(JVal::Object(vec![(
+                            "t".to_string(),
+                            JVal::Str("Space".to_string()),
+                        )]));
+                    }
+                    if !p.is_empty() {
+                        arr.push(JVal::Object(vec![
+                            ("t".to_string(), JVal::Str("Str".to_string())),
+                            ("c".to_string(), JVal::Str((*p).to_string())),
+                        ]));
+                    }
+                }
+            }
+            PandocInline::Strong(c) => {
+                arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Strong".to_string())),
+                    ("c".to_string(), pandoc_inlines_to_json(c)),
+                ]));
+            }
+            PandocInline::Emph(c) => {
+                arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Emph".to_string())),
+                    ("c".to_string(), pandoc_inlines_to_json(c)),
+                ]));
+            }
+            PandocInline::Strikeout(c) => {
+                arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Strikeout".to_string())),
+                    ("c".to_string(), pandoc_inlines_to_json(c)),
+                ]));
+            }
+            PandocInline::Code(c) => {
+                arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Code".to_string())),
+                    (
+                        "c".to_string(),
+                        JVal::Array(vec![
+                            JVal::Array(vec![
+                                JVal::Str(String::new()),
+                                JVal::Array(vec![]),
+                                JVal::Array(vec![]),
+                            ]),
+                            JVal::Str(c.clone()),
+                        ]),
+                    ),
+                ]));
+            }
+            PandocInline::Link(c, url) => {
+                arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Link".to_string())),
+                    (
+                        "c".to_string(),
+                        JVal::Array(vec![
+                            JVal::Array(vec![
+                                JVal::Str(String::new()),
+                                JVal::Array(vec![]),
+                                JVal::Array(vec![]),
+                            ]),
+                            pandoc_inlines_to_json(c),
+                            JVal::Array(vec![JVal::Str(url.clone()), JVal::Str(String::new())]),
+                        ]),
+                    ),
+                ]));
+            }
+        }
+    }
+    JVal::Array(arr)
+}
+
+fn pandoc_doc_to_json(blocks: &[PandocBlock]) -> String {
+    let mut b_arr = Vec::new();
+    for b in blocks {
+        match b {
+            PandocBlock::Header(lvl, _id, inlines) => {
+                b_arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Header".to_string())),
+                    (
+                        "c".to_string(),
+                        JVal::Array(vec![
+                            JVal::Number(*lvl as f64),
+                            JVal::Array(vec![
+                                JVal::Str(String::new()),
+                                JVal::Array(vec![]),
+                                JVal::Array(vec![]),
+                            ]),
+                            pandoc_inlines_to_json(inlines),
+                        ]),
+                    ),
+                ]));
+            }
+            PandocBlock::Para(inlines) => {
+                b_arr.push(JVal::Object(vec![
+                    ("t".to_string(), JVal::Str("Para".to_string())),
+                    ("c".to_string(), pandoc_inlines_to_json(inlines)),
+                ]));
+            }
+            _ => {}
+        }
+    }
+    let blocks_json = JVal::Array(b_arr).to_json_string(true, false, 0);
+    format!("{{\"pandoc-api-version\":[1,23,1,2],\"meta\":{{}},\"blocks\":{blocks_json}}}\n")
+}
+
+fn jval_obj_get<'a>(pairs: &'a [(String, JVal)], key: &str) -> Option<&'a JVal> {
+    pairs.iter().find(|(k, _)| k == key).map(|(_, v)| v)
+}
+
+fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
+    let JVal::Array(items) = val else {
+        return Vec::new();
+    };
+    let mut out = Vec::new();
+    let mut cur_text = String::new();
+    for item in items {
+        if let JVal::Object(m) = item {
+            let t = match jval_obj_get(m, "t") {
+                Some(JVal::Str(s)) => s.as_str(),
+                _ => "",
+            };
+            match t {
+                "Str" => {
+                    if let Some(JVal::Str(s)) = jval_obj_get(m, "c") {
+                        cur_text.push_str(s);
+                    }
+                }
+                "Space" => cur_text.push(' '),
+                "Strong" => {
+                    if !cur_text.is_empty() {
+                        out.push(PandocInline::Text(std::mem::take(&mut cur_text)));
+                    }
+                    if let Some(c) = jval_obj_get(m, "c") {
+                        out.push(PandocInline::Strong(parse_pandoc_json_inlines(c)));
+                    }
+                }
+                "Emph" => {
+                    if !cur_text.is_empty() {
+                        out.push(PandocInline::Text(std::mem::take(&mut cur_text)));
+                    }
+                    if let Some(c) = jval_obj_get(m, "c") {
+                        out.push(PandocInline::Emph(parse_pandoc_json_inlines(c)));
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+    if !cur_text.is_empty() {
+        out.push(PandocInline::Text(cur_text));
+    }
+    out
+}
+
+fn parse_pandoc_json(input: &str) -> Vec<PandocBlock> {
+    let Some(JVal::Object(root)) = parse_json_stream(input).ok().and_then(|v| v.into_iter().next()) else {
+        return Vec::new();
+    };
+    let Some(JVal::Array(blocks)) = jval_obj_get(&root, "blocks") else {
+        return Vec::new();
+    };
+    let mut out = Vec::new();
+    for b in blocks {
+        if let JVal::Object(m) = b {
+            let t = match jval_obj_get(m, "t") {
+                Some(JVal::Str(s)) => s.as_str(),
+                _ => "",
+            };
+            if t == "Header" {
+                if let Some(JVal::Array(c)) = jval_obj_get(m, "c")
+                    && c.len() >= 3
+                {
+                    let lvl = match c.first() {
+                        Some(JVal::Number(n)) => *n as usize,
+                        _ => 1,
+                    };
+                    let inlines = parse_pandoc_json_inlines(&c[2]);
+                    let id = pandoc_slug(&inlines_plain_text(&inlines));
+                    out.push(PandocBlock::Header(lvl, id, inlines));
+                }
+            } else if t == "Para" || t == "Plain" {
+                if let Some(c) = jval_obj_get(m, "c") {
+                    out.push(PandocBlock::Para(parse_pandoc_json_inlines(c)));
+                }
+            }
+        }
+    }
+    out
+}
+
+fn html_escape_pandoc(s: &str, ascii: bool) -> String {
+    let mut out = String::new();
+    for ch in s.chars() {
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            _ if ascii && (ch as u32) > 127 => {
+                out.push_str(&format!("&#{};", ch as u32));
+            }
+            _ => out.push(ch),
+        }
+    }
+    out
+}
+
+fn render_pandoc_inlines_html(inlines: &[PandocInline], ascii: bool) -> String {
+    let mut out = String::new();
+    for inl in inlines {
+        match inl {
+            PandocInline::Text(s) => out.push_str(&html_escape_pandoc(s, ascii)),
+            PandocInline::Strong(c) => {
+                out.push_str("<strong>");
+                out.push_str(&render_pandoc_inlines_html(c, ascii));
+                out.push_str("</strong>");
+            }
+            PandocInline::Emph(c) => {
+                out.push_str("<em>");
+                out.push_str(&render_pandoc_inlines_html(c, ascii));
+                out.push_str("</em>");
+            }
+            PandocInline::Strikeout(c) => {
+                out.push_str("<del>");
+                out.push_str(&render_pandoc_inlines_html(c, ascii));
+                out.push_str("</del>");
+            }
+            PandocInline::Code(c) => {
+                out.push_str("<code>");
+                out.push_str(&html_escape_pandoc(c, ascii));
+                out.push_str("</code>");
+            }
+            PandocInline::Link(c, url) => {
+                out.push_str(&format!(
+                    "<a href=\"{}\">{}</a>",
+                    html_escape_pandoc(url, ascii),
+                    render_pandoc_inlines_html(c, ascii)
+                ));
+            }
+        }
+    }
+    out
+}
+
+fn render_pandoc_html(
+    blocks: &[PandocBlock],
+    standalone: bool,
+    toc: bool,
+    number_sections: bool,
+    ascii: bool,
+    title: &str,
+    header_inc: &str,
+    before_inc: &str,
+    after_inc: &str,
+) -> String {
+    let mut counts = [0usize; 6];
+    let mut numbered_headers: Vec<(usize, String, String, String)> = Vec::new();
+    for b in blocks {
+        if let PandocBlock::Header(lvl, id, inlines) = b {
+            let idx = lvl.saturating_sub(1).min(5);
+            counts[idx] += 1;
+            for c in &mut counts[idx + 1..] {
+                *c = 0;
+            }
+            let mut num_parts = Vec::new();
+            for c in &counts[..=idx] {
+                if *c > 0 || !num_parts.is_empty() {
+                    num_parts.push(c.max(&1).to_string());
+                }
+            }
+            let sec_num = num_parts.join(".");
+            numbered_headers.push((*lvl, id.clone(), sec_num, render_pandoc_inlines_html(inlines, ascii)));
+        }
+    }
+
+    let mut body = String::new();
+    let mut h_cursor = 0usize;
+    for b in blocks {
+        match b {
+            PandocBlock::Header(lvl, id, inlines) => {
+                let (_, _, sec_num, rendered_inl) = numbered_headers
+                    .get(h_cursor)
+                    .cloned()
+                    .unwrap_or_else(|| (*lvl, id.clone(), String::new(), render_pandoc_inlines_html(inlines, ascii)));
+                h_cursor += 1;
+                if number_sections {
+                    body.push_str(&format!(
+                        "<h{lvl} id=\"{id}\" data-number=\"{sec_num}\"><span class=\"header-section-number\">{sec_num}</span> {rendered_inl}</h{lvl}>\n"
+                    ));
+                } else {
+                    body.push_str(&format!("<h{lvl} id=\"{id}\">{rendered_inl}</h{lvl}>\n"));
+                }
+            }
+            PandocBlock::Para(inlines) => {
+                body.push_str(&format!(
+                    "<p>{}</p>\n",
+                    render_pandoc_inlines_html(inlines, ascii)
+                ));
+            }
+            PandocBlock::BulletList(items) => {
+                body.push_str("<ul>\n");
+                for (task, inlines) in items {
+                    let prefix = match task {
+                        Some(true) => "<input type=\"checkbox\" checked=\"\" />",
+                        Some(false) => "<input type=\"checkbox\" />",
+                        None => "",
+                    };
+                    body.push_str(&format!(
+                        "<li>{prefix}{}</li>\n",
+                        render_pandoc_inlines_html(inlines, ascii)
+                    ));
+                }
+                body.push_str("</ul>\n");
+            }
+            PandocBlock::OrderedList(items) => {
+                body.push_str("<ol>\n");
+                for inlines in items {
+                    body.push_str(&format!(
+                        "<li>{}</li>\n",
+                        render_pandoc_inlines_html(inlines, ascii)
+                    ));
+                }
+                body.push_str("</ol>\n");
+            }
+            PandocBlock::BlockQuote(inner) => {
+                let inner_html = render_pandoc_html(inner, false, false, false, ascii, "", "", "", "");
+                body.push_str(&format!("<blockquote>{inner_html}</blockquote>\n"));
+            }
+            PandocBlock::CodeBlock(lang, code) => {
+                if lang.is_empty() {
+                    body.push_str(&format!("<pre><code>{}</code></pre>\n", html_escape_pandoc(code, ascii)));
+                } else {
+                    body.push_str(&format!(
+                        "<pre><code class=\"{}\">{}</code></pre>\n",
+                        html_escape_pandoc(lang, ascii),
+                        html_escape_pandoc(code, ascii)
+                    ));
+                }
+            }
+            PandocBlock::Table(headers, rows) => {
+                body.push_str("<table>\n<colgroup>");
+                for _ in headers {
+                    body.push_str("<col>");
+                }
+                body.push_str("</colgroup>\n<thead>\n<tr>");
+                for h in headers {
+                    body.push_str(&format!("<th scope=\"col\">{}</th>", html_escape_pandoc(h, ascii)));
+                }
+                body.push_str("</tr>\n</thead>\n<tbody>\n");
+                for r in rows {
+                    body.push_str("<tr>");
+                    for c in r {
+                        body.push_str(&format!("<td>{}</td>", html_escape_pandoc(c, ascii)));
+                    }
+                    body.push_str("</tr>\n");
+                }
+                body.push_str("</tbody>\n</table>\n");
+            }
+            PandocBlock::HorizontalRule => {
+                body.push_str("<hr>\n");
+            }
+        }
+    }
+
+    if !standalone {
+        return body;
+    }
+
+    let mut toc_html = String::new();
+    if toc && !numbered_headers.is_empty() {
+        toc_html.push_str("<nav id=\"TOC\" role=\"doc-toc\">\n<ul>\n");
+        for (_lvl, id, sec_num, text) in &numbered_headers {
+            if number_sections {
+                toc_html.push_str(&format!(
+                    "<li><a href=\"#{id}\"><span class=\"toc-section-number\">{sec_num}</span> {text}</a></li>\n"
+                ));
+            } else {
+                toc_html.push_str(&format!("<li><a href=\"#{id}\">{text}</a></li>\n"));
+            }
+        }
+        toc_html.push_str("</ul>\n</nav>\n");
+    }
+
+    format!(
+        "<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<title>{}</title>\n{header_inc}</head>\n<body>\n{before_inc}{toc_html}{body}{after_inc}</body>\n</html>\n",
+        html_escape_pandoc(title, ascii)
+    )
+}
+
+fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool) -> String {
+    let mut out = String::new();
+    for inl in inlines {
+        match inl {
+            PandocInline::Text(s) => out.push_str(s),
+            PandocInline::Strong(c) => out.push_str(&format!("**{}**", render_pandoc_inlines_md(c, bracket_links))),
+            PandocInline::Emph(c) => out.push_str(&format!("*{}*", render_pandoc_inlines_md(c, bracket_links))),
+            PandocInline::Strikeout(c) => out.push_str(&format!("~~{}~~", render_pandoc_inlines_md(c, bracket_links))),
+            PandocInline::Code(c) => out.push_str(&format!("`{c}`")),
+            PandocInline::Link(c, url) => {
+                if bracket_links {
+                    out.push_str(&format!("[{}](<{url}>)", render_pandoc_inlines_md(c, bracket_links)));
+                } else {
+                    out.push_str(&format!("[{}]({url})", render_pandoc_inlines_md(c, bracket_links)));
+                }
+            }
+        }
+    }
+    out
+}
+
+fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool) -> String {
+    let mut parts = Vec::new();
+    for b in blocks {
+        match b {
+            PandocBlock::Header(lvl, _, inlines) => {
+                parts.push(format!("{} {}", "#".repeat(*lvl), render_pandoc_inlines_md(inlines, bracket_links)));
+            }
+            PandocBlock::Para(inlines) => {
+                parts.push(render_pandoc_inlines_md(inlines, bracket_links));
+            }
+            PandocBlock::BulletList(items) => {
+                let mut lines = Vec::new();
+                for (task, inlines) in items {
+                    let prefix = match task {
+                        Some(true) => "- [x] ",
+                        Some(false) => "- [ ] ",
+                        None => "- ",
+                    };
+                    lines.push(format!("{prefix}{}", render_pandoc_inlines_md(inlines, bracket_links)));
+                }
+                parts.push(lines.join("\n"));
+            }
+            PandocBlock::OrderedList(items) => {
+                let mut lines = Vec::new();
+                for (idx, inlines) in items.iter().enumerate() {
+                    lines.push(format!("{}. {}", idx + 1, render_pandoc_inlines_md(inlines, bracket_links)));
+                }
+                parts.push(lines.join("\n"));
+            }
+            PandocBlock::Table(headers, rows) => {
+                let mut t = Vec::new();
+                t.push(format!("| {} |", headers.join(" | ")));
+                t.push(format!("| {} |", vec!["---"; headers.len()].join(" | ")));
+                for r in rows {
+                    t.push(format!("| {} |", r.join(" | ")));
+                }
+                parts.push(t.join("\n"));
+            }
+            PandocBlock::HorizontalRule => {
+                parts.push("---".to_string());
+            }
+            PandocBlock::CodeBlock(lang, code) => {
+                parts.push(format!("```{lang}\n{code}```"));
+            }
+            PandocBlock::BlockQuote(inner) => {
+                let inner_md = render_pandoc_markdown(inner, bracket_links);
+                let q: Vec<String> = inner_md.lines().map(|l| format!("> {l}")).collect();
+                parts.push(q.join("\n"));
+            }
+        }
+    }
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", parts.join("\n\n"))
+    }
+}
+
+fn render_pandoc_plain(blocks: &[PandocBlock]) -> String {
+    let mut parts = Vec::new();
+    for b in blocks {
+        match b {
+            PandocBlock::Header(_, _, inlines) | PandocBlock::Para(inlines) => {
+                parts.push(inlines_plain_text(inlines));
+            }
+            PandocBlock::OrderedList(items) => {
+                let mut lines = Vec::new();
+                for (idx, inlines) in items.iter().enumerate() {
+                    lines.push(format!("{}.  {}", idx + 1, inlines_plain_text(inlines)));
+                }
+                parts.push(lines.join("\n"));
+            }
+            PandocBlock::BulletList(items) => {
+                let mut lines = Vec::new();
+                for (_, inlines) in items {
+                    lines.push(format!("- {}", inlines_plain_text(inlines)));
+                }
+                parts.push(lines.join("\n"));
+            }
+            PandocBlock::HorizontalRule => {
+                parts.push("-".repeat(72));
+            }
+            _ => {}
+        }
+    }
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", parts.join("\n\n"))
+    }
+}
+
+fn render_pandoc_rst(blocks: &[PandocBlock]) -> String {
+    let mut parts = Vec::new();
+    for b in blocks {
+        match b {
+            PandocBlock::Header(lvl, _, inlines) => {
+                let text = render_pandoc_inlines_md(inlines, false);
+                let ch = match lvl {
+                    1 => '=',
+                    2 => '-',
+                    _ => '~',
+                };
+                parts.push(format!("{text}\n{}", ch.to_string().repeat(text.chars().count().max(3))));
+            }
+            PandocBlock::Para(inlines) => {
+                let mut out = String::new();
+                for inl in inlines {
+                    match inl {
+                        PandocInline::Code(c) => out.push_str(&format!("``{c}``")),
+                        _ => out.push_str(&render_pandoc_inlines_md(std::slice::from_ref(inl), false)),
+                    }
+                }
+                parts.push(out);
+            }
+            _ => {}
+        }
+    }
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", parts.join("\n\n"))
+    }
+}
+
+fn render_pandoc_inlines_latex(inlines: &[PandocInline]) -> String {
+    let mut out = String::new();
+    for inl in inlines {
+        match inl {
+            PandocInline::Text(s) => out.push_str(s),
+            PandocInline::Strong(c) => out.push_str(&format!("\\textbf{{{}}}", render_pandoc_inlines_latex(c))),
+            PandocInline::Emph(c) => out.push_str(&format!("\\emph{{{}}}", render_pandoc_inlines_latex(c))),
+            PandocInline::Code(c) => out.push_str(&format!("\\texttt{{{c}}}")),
+            PandocInline::Strikeout(c) => out.push_str(&render_pandoc_inlines_latex(c)),
+            PandocInline::Link(c, url) => out.push_str(&format!("\\href{{{url}}}{{{}}}", render_pandoc_inlines_latex(c))),
+        }
+    }
+    out
+}
+
+fn render_pandoc_latex(blocks: &[PandocBlock]) -> String {
+    let mut parts = Vec::new();
+    for b in blocks {
+        match b {
+            PandocBlock::Header(lvl, _, inlines) => {
+                let cmd = match lvl {
+                    1 => "section",
+                    2 => "subsection",
+                    _ => "subsubsection",
+                };
+                parts.push(format!("\\{cmd}{{{}}}", render_pandoc_inlines_latex(inlines)));
+            }
+            PandocBlock::Para(inlines) => {
+                parts.push(render_pandoc_inlines_latex(inlines));
+            }
+            _ => {}
+        }
+    }
+    if parts.is_empty() {
+        String::new()
+    } else {
+        format!("{}\n", parts.join("\n\n"))
+    }
+}
+
+fn render_pandoc_inlines_rtf(inlines: &[PandocInline]) -> String {
+    let mut out = String::new();
+    for inl in inlines {
+        match inl {
+            PandocInline::Text(s) | PandocInline::Code(s) => out.push_str(s),
+            PandocInline::Strong(c) => out.push_str(&format!("{{\\b {}}}", render_pandoc_inlines_rtf(c))),
+            PandocInline::Emph(c) => out.push_str(&format!("{{\\i {}}}", render_pandoc_inlines_rtf(c))),
+            PandocInline::Strikeout(c) | PandocInline::Link(c, _) => out.push_str(&render_pandoc_inlines_rtf(c)),
+        }
+    }
+    out
+}
+
+fn render_pandoc_rtf(blocks: &[PandocBlock]) -> String {
+    let mut out = String::from("{\\rtf1\\ansi\\deff0\n");
+    for b in blocks {
+        match b {
+            PandocBlock::Header(_, _, inlines) => {
+                out.push_str(&format!("{{\\pard\\b {}\\par}}\n", render_pandoc_inlines_rtf(inlines)));
+            }
+            PandocBlock::Para(inlines) => {
+                out.push_str(&format!("{{\\pard {}\\par}}\n", render_pandoc_inlines_rtf(inlines)));
+            }
+            _ => {}
+        }
+    }
+    out.push_str("}\n");
+    out
+}
+
+fn hex_enc_bytes(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for b in bytes {
+        s.push_str(&format!("{b:02x}"));
+    }
+    s
+}
+
+fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    if let Some(first) = args.first() {
+        if first == "--version" || first == "-v" {
+            return ok_out("pandoc TypeScript converter 0.0.1 (original bounded implementation)\n");
+        }
+        if first == "--help" || first == "-h" {
+            return ok_out("Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n");
+        }
+        if first == "--list-input-formats" {
+            return ok_out(concat!(
+                "commonmark\ncommonmark_x\ncsv\ndocx\nepub\ngfm\nhtml\nhtml5\njson\nlatex\n",
+                "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
+                "md\nodt\npdf\npptx\nrst\nrtf\ntsv\nxlsx\n"
+            ));
+        }
+        if first == "--list-output-formats" {
+            return ok_out(concat!(
+                "commonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\n",
+                "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
+                "md\nodt\npdf\nplain\npptx\nrst\nrtf\n"
+            ));
+        }
+        if first == "--list-extensions" || first.starts_with("--list-extensions=") {
+            return ok_out("+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n");
+        }
+        if first == "--list-highlight-languages" {
+            return ok_out("abc\nada\nawk\nbash\nc\ncpp\ncss\ndiff\ngo\nhtml\njava\njavascript\njson\nkotlin\nlatex\nlua\nmakefile\nmarkdown\nperl\nphp\npython\nr\nruby\nrust\nscala\nsed\nsql\nswift\ntoml\ntypescript\nxml\nyaml\nzig\nzsh\n");
+        }
+        if first == "--list-highlight-styles" {
+            return ok_out("pygments\ntango\nespresso\nzenburn\nkate\nmonochrome\nbreezedark\nhaddock\n");
+        }
+    }
+
+    let mut from_fmt: Option<String> = None;
+    let mut to_fmt: Option<String> = None;
+    let mut out_path: Option<String> = None;
+    let mut standalone = false;
+    let mut toc = false;
+    let mut number_sections = false;
+    let mut ascii = false;
+    let mut strip_comments = false;
+    let mut shift_heading: i32 = 0;
+    let mut meta: BTreeMap<String, String> = BTreeMap::new();
+    let mut header_inc = String::new();
+    let mut before_inc = String::new();
+    let mut after_inc = String::new();
+    let mut files: Vec<String> = Vec::new();
+
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if (a == "-f" || a == "-r" || a == "--from" || a == "--read") && i + 1 < args.len() {
+            from_fmt = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(v) = a.strip_prefix("--from=").or_else(|| a.strip_prefix("--read=")) {
+            from_fmt = Some(v.to_string());
+            i += 1;
+        } else if (a == "-t" || a == "-w" || a == "--to" || a == "--write") && i + 1 < args.len() {
+            to_fmt = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(v) = a.strip_prefix("--to=").or_else(|| a.strip_prefix("--write=")) {
+            to_fmt = Some(v.to_string());
+            i += 1;
+        } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
+            out_path = Some(args[i + 1].clone());
+            i += 2;
+        } else if let Some(v) = a.strip_prefix("--output=") {
+            out_path = Some(v.to_string());
+            i += 1;
+        } else if a == "-s" || a == "--standalone" || a == "--standalone=true" {
+            standalone = true;
+            i += 1;
+        } else if a == "--toc" || a == "--table-of-contents" {
+            toc = true;
+            i += 1;
+        } else if a == "-N" || a == "--number-sections" {
+            number_sections = true;
+            i += 1;
+        } else if a == "--ascii" {
+            ascii = true;
+            i += 1;
+        } else if a == "--strip-comments" {
+            strip_comments = true;
+            i += 1;
+        } else if a == "--shift-heading-level-by" && i + 1 < args.len() {
+            shift_heading = args[i + 1].parse().unwrap_or(0);
+            i += 2;
+        } else if let Some(v) = a.strip_prefix("--shift-heading-level-by=") {
+            shift_heading = v.parse().unwrap_or(0);
+            i += 1;
+        } else if (a == "-M" || a == "--metadata") && i + 1 < args.len() {
+            let kv = &args[i + 1];
+            if let Some((k, v)) = kv.split_once('=').or_else(|| kv.split_once(':')) {
+                meta.insert(k.trim().to_string(), v.trim().to_string());
+            }
+            i += 2;
+        } else if let Some(kv) = a.strip_prefix("--metadata=").or_else(|| a.strip_prefix("-M")) {
+            if let Some((k, v)) = kv.split_once('=').or_else(|| kv.split_once(':')) {
+                meta.insert(k.trim().to_string(), v.trim().to_string());
+            }
+            i += 1;
+        } else if a == "--metadata-file" && i + 1 < args.len() {
+            let mfull = resolve_posix_path(cwd, &args[i + 1]);
+            if let Ok(bytes) = fs.read_file(&mfull)
+                && let Some(JVal::Object(obj)) = parse_json_stream(&String::from_utf8_lossy(&bytes)).ok().and_then(|v| v.into_iter().next())
+            {
+                for (k, v) in obj {
+                    if let JVal::Str(s) = v {
+                        meta.insert(k, s);
+                    }
+                }
+            }
+            i += 2;
+        } else if let Some(mf) = a.strip_prefix("--metadata-file=") {
+            let mfull = resolve_posix_path(cwd, mf);
+            if let Ok(bytes) = fs.read_file(&mfull)
+                && let Some(JVal::Object(obj)) = parse_json_stream(&String::from_utf8_lossy(&bytes)).ok().and_then(|v| v.into_iter().next())
+            {
+                for (k, v) in obj {
+                    if let JVal::Str(s) = v {
+                        meta.insert(k, s);
+                    }
+                }
+            }
+            i += 1;
+        } else if (a == "-H" || a == "--include-in-header") && i + 1 < args.len() {
+            let full = resolve_posix_path(cwd, &args[i + 1]);
+            if let Ok(b) = fs.read_file(&full) {
+                header_inc.push_str(&String::from_utf8_lossy(&b));
+            }
+            i += 2;
+        } else if (a == "-B" || a == "--include-before-body") && i + 1 < args.len() {
+            let full = resolve_posix_path(cwd, &args[i + 1]);
+            if let Ok(b) = fs.read_file(&full) {
+                before_inc.push_str(&String::from_utf8_lossy(&b));
+            }
+            i += 2;
+        } else if (a == "-A" || a == "--include-after-body") && i + 1 < args.len() {
+            let full = resolve_posix_path(cwd, &args[i + 1]);
+            if let Ok(b) = fs.read_file(&full) {
+                after_inc.push_str(&String::from_utf8_lossy(&b));
+            }
+            i += 2;
+        } else if a.starts_with("--epub-title=") {
+            meta.insert(
+                "title".to_string(),
+                a.trim_start_matches("--epub-title=").to_string(),
+            );
+            i += 1;
+        } else if a == "--epub-title" && i + 1 < args.len() {
+            meta.insert("title".to_string(), args[i + 1].clone());
+            i += 2;
+        } else if a.starts_with('-') && a != "-" {
+            i += 1;
+        } else {
+            files.push(a.clone());
+            i += 1;
+        }
+    }
+
+    let infer_fmt = |path: &str| -> Option<String> {
+        let lower = path.to_ascii_lowercase();
+        if lower.ends_with(".md") || lower.ends_with(".markdown") {
+            Some("markdown".to_string())
+        } else if lower.ends_with(".html") || lower.ends_with(".htm") {
+            Some("html".to_string())
+        } else if lower.ends_with(".rst") {
+            Some("rst".to_string())
+        } else if lower.ends_with(".tex") || lower.ends_with(".latex") {
+            Some("latex".to_string())
+        } else if lower.ends_with(".rtf") {
+            Some("rtf".to_string())
+        } else if lower.ends_with(".json") {
+            Some("json".to_string())
+        } else if lower.ends_with(".csv") {
+            Some("csv".to_string())
+        } else if lower.ends_with(".tsv") {
+            Some("tsv".to_string())
+        } else if lower.ends_with(".docx") {
+            Some("docx".to_string())
+        } else if lower.ends_with(".odt") {
+            Some("odt".to_string())
+        } else if lower.ends_with(".epub") {
+            Some("epub".to_string())
+        } else if lower.ends_with(".xlsx") {
+            Some("xlsx".to_string())
+        } else if lower.ends_with(".pdf") {
+            Some("pdf".to_string())
+        } else if lower.ends_with(".txt") {
+            Some("plain".to_string())
+        } else {
+            None
+        }
+    };
+
+    let clean_fmt = |s: &str| -> String {
+        s.split(['+', '-']).next().unwrap_or(s).to_ascii_lowercase()
+    };
+
+    let in_fmt = from_fmt
+        .as_deref()
+        .map(clean_fmt)
+        .or_else(|| files.first().and_then(|f| infer_fmt(f)))
+        .unwrap_or_else(|| "markdown".to_string());
+    let out_fmt = to_fmt
+        .as_deref()
+        .map(clean_fmt)
+        .or_else(|| out_path.as_deref().and_then(infer_fmt))
+        .unwrap_or_else(|| "html".to_string());
+
+    let raw_bytes: Vec<u8> = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let mut buf = Vec::new();
+        for f in &files {
+            if f == "-" {
+                buf.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
+            } else {
+                let full = resolve_posix_path(cwd, f);
+                match fs.read_file(&full) {
+                    Ok(b) => buf.extend_from_slice(&b),
+                    Err(e) => return err_out(&format!("pandoc: {f}: {e}\n"), 1),
+                }
+            }
+        }
+        buf
+    };
+
+    let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
+    let mut blocks: Vec<PandocBlock> = match in_fmt.as_str() {
+        "html" | "html5" => parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes)),
+        "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
+        "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
+        "json" => parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)),
+        "csv" | "tsv" => {
+            let delim = if in_fmt == "tsv" { '\t' } else { ',' };
+            let recs = parse_csv_rows(&String::from_utf8_lossy(&raw_bytes), delim);
+            if recs.is_empty() {
+                Vec::new()
+            } else {
+                vec![PandocBlock::Table(recs[0].clone(), recs[1..].to_vec())]
+            }
+        }
+        "xlsx" => {
+            let fname = files
+                .first()
+                .map(|f| f.rsplit('/').next().unwrap_or(f.as_str()))
+                .unwrap_or("Sheet1");
+            let sheets = read_xlsx_all_sheets(&raw_bytes, fname);
+            let mut b = Vec::new();
+            for sh in sheets {
+                b.push(PandocBlock::Header(
+                    1,
+                    pandoc_slug(&sh.name),
+                    vec![PandocInline::Text(sh.name)],
+                ));
+                if !sh.rows.is_empty() {
+                    b.push(PandocBlock::Table(
+                        sh.rows[0].clone(),
+                        sh.rows[1..].to_vec(),
+                    ));
+                }
+            }
+            b
+        }
+        "docx" | "odt" | "epub" | "epub3" => {
+            let entries = read_zip_entries_for_xlsx(&raw_bytes);
+            if let Some(md_bytes) = entries.get("__pandoc_source.md") {
+                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false)
+            } else if let Some(doc_xml) = entries.get("word/document.xml") {
+                parse_pandoc_html(&String::from_utf8_lossy(doc_xml))
+            } else if let Some(content_xml) = entries.get("content.xml") {
+                parse_pandoc_html(&String::from_utf8_lossy(content_xml))
+            } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
+                parse_pandoc_html(&String::from_utf8_lossy(ch_xml))
+            } else {
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false)
+            }
+        }
+        _ => parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments),
+    };
+
+    if shift_heading != 0 {
+        for b in &mut blocks {
+            if let PandocBlock::Header(lvl, _, _) = b {
+                let shifted = (((*lvl) as i32) + shift_heading).clamp(1, 6) as usize;
+                *lvl = shifted;
+            }
+        }
+    }
+
+    let title = meta.get("title").cloned().unwrap_or_else(|| "Document".to_string());
+    let out_bytes: Vec<u8> = match out_fmt.as_str() {
+        "html" | "html5" => render_pandoc_html(
+            &blocks,
+            standalone,
+            toc,
+            number_sections,
+            ascii,
+            &title,
+            &header_inc,
+            &before_inc,
+            &after_inc,
+        )
+        .into_bytes(),
+        "markdown" | "gfm" | "commonmark" | "commonmark_x" | "md" => {
+            render_pandoc_markdown(&blocks, input_from_html).into_bytes()
+        }
+        "plain" => render_pandoc_plain(&blocks).into_bytes(),
+        "rst" => render_pandoc_rst(&blocks).into_bytes(),
+        "latex" => render_pandoc_latex(&blocks).into_bytes(),
+        "rtf" => render_pandoc_rtf(&blocks).into_bytes(),
+        "json" => pandoc_doc_to_json(&blocks).into_bytes(),
+        "docx" => {
+            let md_src = render_pandoc_markdown(&blocks, false);
+            let html_src = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
+            let entries: Vec<(&str, &[u8])> = vec![
+                ("[Content_Types].xml", b"<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"/>"),
+                ("word/document.xml", html_src.as_bytes()),
+                ("__pandoc_source.md", md_src.as_bytes()),
+            ];
+            write_zip_stored(&entries)
+        }
+        "odt" => {
+            let md_src = render_pandoc_markdown(&blocks, false);
+            let html_src = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
+            let entries: Vec<(&str, &[u8])> = vec![
+                ("mimetype", b"application/vnd.oasis.opendocument.text"),
+                ("content.xml", html_src.as_bytes()),
+                ("__pandoc_source.md", md_src.as_bytes()),
+            ];
+            write_zip_stored(&entries)
+        }
+        "epub" | "epub3" => {
+            let md_src = render_pandoc_markdown(&blocks, false);
+            let html_src = render_pandoc_html(&blocks, true, false, false, false, &title, "", "", "");
+            let entries: Vec<(&str, &[u8])> = vec![
+                ("mimetype", b"application/epub+zip"),
+                ("EPUB/ch1.xhtml", html_src.as_bytes()),
+                ("__pandoc_source.md", md_src.as_bytes()),
+            ];
+            write_zip_stored(&entries)
+        }
+        "pdf" => {
+            let plain = render_pandoc_plain(&blocks);
+            let html = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
+            let pdf_str = format!(
+                "%PDF-1.4\n%%SAFE_PDF_V2%%\nVER:1.4\nTITLE:{}\nPAGE:0:{}:{}::\n%%EOF\n",
+                hex_enc_bytes(title.as_bytes()),
+                hex_enc_bytes(plain.trim_end().as_bytes()),
+                hex_enc_bytes(html.as_bytes()),
+            );
+            pdf_str.into_bytes()
+        }
+        _ => render_pandoc_html(&blocks, standalone, toc, number_sections, ascii, &title, "", "", "").into_bytes(),
+    };
+
+    if let Some(ref p) = out_path
+        && p != "-"
+    {
+        let full = resolve_posix_path(cwd, p);
+        if let Err(e) = fs.write_file(&full, &out_bytes) {
+            return err_out(&format!("pandoc: {p}: {e}\n"), 1);
+        }
+        return ok_out("");
+    }
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }

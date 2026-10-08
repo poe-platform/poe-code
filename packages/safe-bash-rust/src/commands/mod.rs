@@ -69,7 +69,7 @@ where
         return coreutils::try_run_coreutil("printenv", &[], stdin, cwd, &sub_env, fs);
     }
 
-    if cmd == "timeout" && !args.is_empty() {
+    if cmd == "timeout" {
         let mut idx = 0usize;
         let mut sig_num = 15i32;
         let mut preserve_status = false;
@@ -139,6 +139,11 @@ where
             }
             return Some(exec_sub(sub_words, stdin, cwd, env));
         }
+        return Some(BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "timeout: missing operand\n".to_string(),
+            exit_code: 125,
+        });
     }
 
     if let Some(res) = coreutils::try_run_coreutil(cmd, args, stdin, cwd, env, fs) {

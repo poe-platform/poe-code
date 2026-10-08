@@ -7,7 +7,7 @@ test('metadata discovery preserves pinned grouping without retaining all paths',
  const fixture=readFileSync(new URL('./fixtures/pinned-metadata-lookup.py',import.meta.url),'utf8');
  const program=readFileSync(new URL('./metadata-discovery.py',import.meta.url),'utf8');
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
-import builtins,contextlib,errno,gc,importlib.metadata as metadata,io,json,linecache,os,pathlib,sys,tempfile,types,weakref
+import builtins,contextlib,errno,gc,importlib.metadata as metadata,io,json,linecache,os,pathlib,sys,tempfile,types,weakref,zipfile
 from unittest.mock import patch
 fixture,program=json.load(sys.stdin)
 fixture='from __future__ import annotations\n'+fixture
@@ -104,6 +104,43 @@ with contextlib.ExitStack() as stack:
   expected=[str(p) for p in original(Root(names[:-1])).search(Prepared(query))]
   assert [str(p) for p in lookup.search(Prepared(query))]==expected
  del lookup;gc.collect();assert not files
+ # ZIP paths must retain archive semantics while group rows use caller storage.
+ payload=io.BytesIO()
+ zip_names=['zip_package_%04d-1.dist-info'%i for i in range(1024)]
+ with zipfile.ZipFile(payload,'w') as writer:
+  for name in zip_names:writer.writestr(name+'/METADATA','Name: '+name+'\n')
+ archive=zipfile.Path(io.BytesIO(payload.getvalue())).root
+ class ZipPath(zipfile.Path):
+  live=maximum=0
+  def __init__(self,*args,**kwargs):
+   super().__init__(*args,**kwargs);ZipPath.live+=1;ZipPath.maximum=max(ZipPath.maximum,ZipPath.live)
+  def __del__(self):ZipPath.live-=1
+ class ZipRoot:
+  root='/packages.zip'
+  def children(self):return self.zip_children()
+  def zip_children(self):return iter(zip_names)
+  def joinpath(self,child):return ZipPath(archive,child+'/')
+ zip_root=ZipRoot()
+ for failed_scan in (False,True):
+  ZipRoot.root='/packages' if failed_scan else '/packages.zip'
+  scan_failure=failed_scan;ZipPath.maximum=0
+  lookup=metadata.Lookup(zip_root)
+  assert ZipPath.maximum<=4,('ZIP metadata paths retained',ZipPath.maximum)
+  selected=list(lookup.search(Prepared('zip-package-0007')))
+  assert len(selected)==1 and isinstance(selected[0],zipfile.Path)
+  assert selected[0].joinpath('METADATA').read_text()=='Name: zip_package_0007-1.dist-info\n'
+  iterator=lookup.search(Prepared(None));first=next(iterator)
+  assert first.at==zip_names[0]+'/'
+  del lookup,selected,first;gc.collect()
+  assert sum(1 for _ in iterator)==1023
+  del iterator;gc.collect();assert not files
+  assert archive.read(zip_names[0]+'/METADATA').startswith(b'Name: '),'borrowed archive was closed'
+ scan_failure=False;ZipRoot.root='/packages.zip';write_failure=True
+ try:metadata.Lookup(zip_root)
+ except PermissionError as error:assert str(error)=='backing write denied'
+ else:raise AssertionError('ZIP scratch failure swallowed')
+ gc.collect();assert not files
+ write_failure=False;archive.close()
  # Native children suppress failed directory enumeration and then try ZIP.
  scan_failure=True
  lookup=metadata.Lookup(Root(names))

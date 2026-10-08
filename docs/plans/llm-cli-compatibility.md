@@ -220,9 +220,12 @@ adapt the pinned Importlib.metadata Lookup constructor to caller-backed group ro
 and ordered manifests. Native normalization and group ordering remain unchanged;
 FastPath retains its mtime/cache policy. Searches own their snapshot through iterator
 retirement, and scratch cleanup replays streamed creation records without mutating an
-active directory cursor. Fixed bootstrap and ZIP
-metadata lookup still use the native implementation. Plain runtimes without a package
-environment do not install this adapter. Dependency expansion now consumes parsed
+active directory cursor. ZIP lookup groups now use the same caller-backed rows,
+preserving archive-relative paths against one borrowed native ZIP root, including
+fallback after directory enumeration fails. Suspended ZIP searches retain their
+snapshot and archive semantics; backing failures retire partial rows. Native ZIP
+directory enumeration/parsing and fixed bootstrap lookup remain memory-backed.
+Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving
 extras propagation, constraints and native last-distribution version precedence.
 It no longer retains every dependency edge as a parsed requirement. Managed and

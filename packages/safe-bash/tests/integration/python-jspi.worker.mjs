@@ -167,6 +167,33 @@ roots=[before._safe_store.root,after._safe_store.root]
 del before,after
 fast.lookup.cache_clear();gc.collect()
 assert not any(os.path.exists(path) for path in roots)
+import zipfile
+with zipfile.ZipFile('/work/metadata.zip','w') as archive:
+ for index in range(128):
+  archive.writestr('zip_package_%03d-1.dist-info/METADATA'%index,'Name: zip-package-%03d'%index)
+NativeZipPath=zipfile.Path
+class ZipPath(NativeZipPath):
+ live=maximum=0
+ def __init__(self,*args,**kwargs):
+  super().__init__(*args,**kwargs);ZipPath.live+=1;ZipPath.maximum=max(ZipPath.maximum,ZipPath.live)
+ def __del__(self):ZipPath.live-=1
+try:
+ zipfile.Path=ZipPath
+ fast=metadata.FastPath('/work/metadata.zip')
+ lookup=fast.lookup(fast.mtime)
+ assert ZipPath.maximum<=4,ZipPath.maximum
+ selected=list(lookup.search(metadata.Prepared('zip-package-007')))
+ assert len(selected)==1 and isinstance(selected[0],ZipPath)
+ assert selected[0].joinpath('METADATA').read_text()=='Name: zip-package-007'
+ scratch=lookup._safe_store.root
+ iterator=lookup.search(metadata.Prepared(None));next(iterator)
+ del lookup,selected
+ fast.lookup.cache_clear();del fast;gc.collect()
+ assert os.path.isdir(scratch)
+ assert sum(1 for _ in iterator)==127
+ del iterator;gc.collect()
+ assert not os.path.exists(scratch)
+finally:zipfile.Path=NativeZipPath
 print('metadata-ok')
 `))};
     }finally{await shell.dispose();await environment.dispose();}

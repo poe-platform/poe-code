@@ -1,5 +1,5 @@
 def _safe_install_metadata_lookup(installation_root, runtime_root):
- import ast, errno, inspect, json, os, pathlib, tempfile, textwrap, weakref
+ import ast, errno, inspect, json, os, pathlib, tempfile, textwrap, weakref, zipfile
  from contextlib import suppress
  import importlib.metadata as metadata
  original = metadata.Lookup
@@ -43,16 +43,24 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    self.root = tempfile.mkdtemp(dir=installation_root, prefix='.metadata-')
    self.cleanup = weakref.finalize(self, retire, self.root)
    self.count = 0
+   self.archive = None
  class Rows:
   def __init__(self, store, path):
    self.store, self.path = store, path
   def append(self, value):
+   if isinstance(value, zipfile.Path):
+    if self.store.archive is not None and self.store.archive is not value.root:
+     raise ValueError('Metadata lookup changed ZIP archive')
+    self.store.archive = value.root
+    value = [value.at]
+   else:value = str(value)
    with open(self.path, 'a', encoding='utf-8') as output:
-    output.write(json.dumps(str(value)) + '\n')
+    output.write(json.dumps(value) + '\n')
   def __iter__(self):
    with open(self.path, encoding='utf-8') as source:
     for line in source:
-     yield pathlib.Path(json.loads(line))
+     value = json.loads(line)
+     yield zipfile.Path(self.store.archive, value[0]) if isinstance(value, list) else pathlib.Path(value)
  class Groups:
   def __init__(self, store):
    self.store = store
@@ -89,6 +97,9 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  class ScanFailure(Exception):
   pass
  def children(path):
+  if isinstance(path, ZipFallback):
+   yield from path.children()
+   return
   try:
    with os.scandir(path.root or '.') as entries:
     for entry in entries:
@@ -125,16 +136,17 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  class Lookup(original):
   def __init__(self, path):
    absolute = os.path.abspath(path.root or '.')
-   if absolute == runtime_root or absolute.startswith(runtime_root + '/') or not os.path.isdir(absolute):
+   if absolute == runtime_root or absolute.startswith(runtime_root + '/'):
     super().__init__(path)
     return
    self._safe_store = Store()
    try:
-    initialize(self, path)
-   except ScanFailure:
-    self._safe_store.cleanup()
-    del self._safe_store
-    super().__init__(ZipFallback(path))
+    try:
+     initialize(self, path if os.path.isdir(absolute) else ZipFallback(path))
+    except ScanFailure:
+     self._safe_store.cleanup()
+     self._safe_store = Store()
+     initialize(self, ZipFallback(path))
    except BaseException:
     self._safe_store.cleanup()
     raise

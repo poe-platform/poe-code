@@ -36,10 +36,13 @@ def row(name,legacy=False):return [name,'Name: '+name+'\nVersion: 1\n','file:///
 large=row('large');large[1]+='x'*50000
 for rows in [None,[],[large],[row('x'*20000)],[row('package-'+str(i),i%2==0) for i in range(130)],[row('duplicate'),row('duplicate')],[row('NonCanonical')],[row('package>=1')]]:
  index={};sealed=False;decoded=0
- def request(operation,key=None,value=None):
+ def request(operation,key=None,value=None,field=None):
   global sealed
   if operation=='start':return Result(-1 if rows is None else len(rows))
   if operation=='read':return Result(json.dumps(rows[key])[value:value+8192])
+  if operation=='field':
+   record=rows[index[key]] if key in index else None
+   return Result(json.dumps(record[field] if record is not None and field<len(record) else None)[value:value+8192])
   if operation=='has':return Result(key in index)
   if operation=='add':
    assert not sealed
@@ -64,12 +67,18 @@ for rows in [None,[],[large],[row('x'*20000)],[row('package-'+str(i),i%2==0) for
   assert len(records)==len(rows or [])
   assert list(records)==[row[0] for row in rows or []]
   assert decoded==0,'name iteration decoded complete metadata records'
+  for row in rows or []:assert records.origin(row[0])==(row[5] if len(row)==6 else None)
+  assert records.origin('missing') is None
+  assert decoded==0,'origin lookup decoded complete metadata records'
   for ordinal,(name,value) in enumerate(records.items()):
    expected=rows[ordinal] if len(rows[ordinal])==6 else rows[ordinal]+[None]
    assert value==expected
    assert records[name]==expected and records.origin(name)==expected[5]
   assert records.get('missing') is None
   assert 'missing' not in records
+  namespace['_safe_package_record']=lambda operation,*args:Result(False) if operation=='field' else request(operation,*args)
+  for row in rows or []:assert records.origin(row[0])==(row[5] if len(row)==6 else None)
+  assert records.origin('missing') is None
  namespace.clear();gc.collect()
 `],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);

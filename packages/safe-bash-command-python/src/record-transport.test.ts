@@ -40,17 +40,20 @@ import {installPythonPackages} from './provisioning-runtime.js';
  const runtime={version:'314.0.6',_api:{lockfile_packages:{},packageManager:{defaultChannel:'default',async installPackage(){},async downloadPackage(){}}},
   globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},async loadPackage(){},
   async runPythonAsync(){
-   const record=globals.get('_safe_package_record') as (operation:string,key?:unknown,value?:unknown)=>Promise<unknown>;
+   const record=globals.get('_safe_package_record') as (operation:string,key?:unknown,value?:unknown,field?:number)=>Promise<unknown>;
    assert.equal(await record('start'),1);
-   const read=async(operation:string,key:unknown)=>{let wire='';for(let offset=0;;){const chunk=await record(operation,key,offset);assert.equal(typeof chunk,'string');assert.ok((chunk as string).length<=8192);assert.ok(!(chunk as string).length||((chunk as string).charCodeAt((chunk as string).length-1)<0xd800||(chunk as string).charCodeAt((chunk as string).length-1)>0xdbff));if(!chunk)return JSON.parse(wire);wire+=chunk;offset+=(chunk as string).length;}};
+   const read=async(operation:string,key:unknown,field?:number)=>{let wire='';for(let offset=0;;){const chunk=await record(operation,key,offset,field);assert.equal(typeof chunk,'string');assert.ok((chunk as string).length<=8192);assert.ok(!(chunk as string).length||((chunk as string).charCodeAt((chunk as string).length-1)<0xd800||(chunk as string).charCodeAt((chunk as string).length-1)>0xdbff));if(!chunk)return JSON.parse(wire);wire+=chunk;offset+=(chunk as string).length;}};
    assert.deepEqual(await read('read',0),rows[0]);
    await record('add','fixture',0);await record('seal');
    assert.deepEqual(await read('get','fixture'),rows[0]);
    assert.equal(await record('get','missing',0),'null');
+   assert.equal(await read('field','fixture',1),rows[0]![1]);
+   assert.equal(await read('field','fixture',5),null);
+   assert.equal(await record('field','fixture',0,4),false);
    await record('append',wire);await record('pin',JSON.stringify('fixture==1'));
   },runPython(){throw new Error('whole inventory serialization');}};
  await installPythonPackages(runtime as never,{session:'1',requirements:['fixture==1'],restore:[],recordCount:1,offline:true},async(operation,...args)=>{
-  if(operation==='package-record-read'){assert.equal(args[1],0);const offset=args[2] as number;offsets.push(offset);return wire.slice(offset,offset+8192);}
+  if(operation==='package-record-read'){assert.equal(args[1],0);const offset=args[2] as number,field=args[3] as number|undefined;if(field===4)return false;if(field!==undefined)return JSON.stringify(rows[0]![field]).slice(offset,offset+8192);offsets.push(offset);return wire.slice(offset,offset+8192);}
   if(operation==='package-index'&&args[1]==='records-get')return args[2]==='fixture'?0:null;
   if(operation==='package-commit')committed=args[1];
  },65536);

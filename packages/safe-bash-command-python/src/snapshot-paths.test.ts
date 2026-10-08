@@ -28,9 +28,13 @@ class Path:
  def __str__(self):return Text(self.value)
 class Records:
  def __contains__(self,name):return name.startswith('package-') and name[8:].isdigit() and int(name[8:])<4096
- def items(self):
-  for i in range(4096):
-   name='package-'+str(i);yield name,[name,'metadata','origin',[],[],None]
+ def __iter__(self):
+  for i in range(4096):yield 'package-'+str(i)
+ def field(self,name,index):
+  assert index in (1,2),'restoration requested removal lists'
+  return Text('metadata' if index==1 else 'origin')
+ def origin(self,name):return None
+ def items(self):raise AssertionError('restoration requested full records')
 records=Records()
 def distribution(path):
  name=path.value.rsplit('/',1)[-1].removesuffix('-snapshot.dist-info').replace('_','-')

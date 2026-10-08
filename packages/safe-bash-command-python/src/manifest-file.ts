@@ -39,11 +39,14 @@ export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes
    return {revision:observed.revision,value};
   }finally{await file.close();}
  }
+ async function* chunks(file:NonNullable<Awaited<ReturnType<typeof openPythonPackageFile>>>){
+  for(let offset=0;offset<file.size;){const bytes=await file.read(offset,Math.min(65536,file.size-offset));offset+=bytes.length;yield bytes;}
+ }
  const store=createPythonPackageStreamingManifestStore({
   async get(scope,options){
    const result=await read(scope,options,async file=>{
     const bytes=new Uint8Array(file.size);
-    for(let offset=0;offset<bytes.length;){const chunk=await file.read(offset,Math.min(65536,bytes.length-offset));bytes.set(chunk,offset);offset+=chunk.length;}
+    let offset=0;for await(const chunk of chunks(file)){bytes.set(chunk,offset);offset+=chunk.length;}
     return bytes;
    });
    return result&&{revision:result.revision,bytes:result.value};
@@ -82,18 +85,13 @@ export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes
  return {...store,async openSnapshot(scope:string,options:{signal:AbortSignal;maxBytes:number}){
   let snapshot:Awaited<ReturnType<typeof readBackedPythonManifest>>|undefined;
   try{
-   const result=await read(scope,options,async file=>snapshot=await readBackedPythonManifest(fs,root,options.signal,{async *[Symbol.asyncIterator](){
-    for(let offset=0;offset<file.size;){const bytes=await file.read(offset,Math.min(65536,file.size-offset));offset+=bytes.length;yield bytes;}
-   }}));
+   const result=await read(scope,options,async file=>snapshot=await readBackedPythonManifest(fs,root,options.signal,chunks(file)));
    return result&&{...result.value,revision:result.revision};
   }catch(error){await snapshot?.close();throw error;}
  },getSnapshot(scope:string,options:{signal:AbortSignal;maxBytes:number}){
   return read(scope,options,async file=>{
-   const source={async *[Symbol.asyncIterator](){
-    for(let offset=0;offset<file.size;){const bytes=await file.read(offset,Math.min(65536,file.size-offset));offset+=bytes.length;yield bytes;}
-   }};
    let value:unknown;
-   for await(const item of jsonValues(source,new Budget(resolveJqLimits({maxInputBytes:options.maxBytes}),options.signal),{profile:'javascript'}))value=item;
+   for await(const item of jsonValues(chunks(file),new Budget(resolveJqLimits({maxInputBytes:options.maxBytes}),options.signal),{profile:'javascript'}))value=item;
    return value;
   });
  }};

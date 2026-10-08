@@ -43,19 +43,21 @@ export async function readBackedPythonManifest(fs:FileSystem,directory:string,si
    }
   }
   const encoder=new TextEncoder();
-  async function* json(node:LlmJsonNode):AsyncGenerator<string>{
-   if(node.type==='null'){yield 'null';return;}
+  async function* json(node:LlmJsonNode|undefined,legacy=false):AsyncGenerator<string>{
+   if(!node||node.type==='null'){yield 'null';return;}
    if(node.type==='string'){yield '"';for await(const text of document.text(node))for(let offset=0;offset<text.length;offset+=1024)yield JSON.stringify(text.slice(offset,offset+1024)).slice(1,-1);yield '"';return;}
-   yield '[';let count=0;for await(const {node:item} of children(node)){if(count++)yield ',';yield* json(item);}yield ']';
+   yield '[';let count=0;for await(const {node:item} of children(node)){if(count++)yield ',';yield* json(item);}if(legacy)yield ',null';yield ']';
   }
-  const reader=createPythonRecordReader(async function*(ordinal:number){
+  const reader=createPythonRecordReader(async function*(key:number){
+   const ordinal=Math.floor(key/7),field=key%7-1;
    const previous=await index.get(BigInt(ordinal));
    if(previous===undefined)invalid();
    const entry=await document.child(records!.id,Number(previous)-1);if(!entry)invalid();
-   yield encoder.encode('[');let count=0;
-   for await(const {node} of children(entry!.node)){if(count++)yield encoder.encode(',');for await(const part of json(node))yield encoder.encode(part);}
-   yield encoder.encode(version===2?',null]':']');
+   let selected:LlmJsonNode|undefined=entry!.node;
+   if(field>=0){selected=undefined;let position=0;for await(const {node} of children(entry!.node))if(position++===field){selected=node;break;}}
+   for await(const part of json(selected,field<0&&version===2))yield encoder.encode(part);
   });
-  return {installed,version,recordCount,readRecord(ordinal,offset){if(!Number.isSafeInteger(ordinal)||ordinal<0||ordinal>=recordCount||!Number.isSafeInteger(offset)||offset<0)invalid();return reader.read(ordinal,offset);},async close(){try{await reader.close();}finally{await close();}}};
+  const read=async(ordinal:number,offset:number,field=-1)=>{if(!Number.isSafeInteger(ordinal)||ordinal<0||ordinal>=recordCount||!Number.isSafeInteger(offset)||offset<0||!Number.isInteger(field)||field< -1||field>5)invalid();return reader.read(ordinal*7+field+1,offset);};
+  return {installed,version,recordCount,readRecord:read,async readField(ordinal,field,offset){if(field<0)invalid();return read(ordinal,offset,field);},async close(){try{await reader.close();}finally{await close();}}};
  }catch(error){await close();throw error;}
 }

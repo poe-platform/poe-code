@@ -32,6 +32,8 @@ export interface PythonPackageRecordSnapshot {
  readonly version:0|1|2|3;
  readonly recordCount:number;
  readRecord(ordinal:number,offset:number):Promise<string>;
+ /** Optional bounded JSON field transport; fields are numbered 0 through 5. */
+ readField?(ordinal:number,field:number,offset:number):Promise<string>;
  close():Promise<void>;
 }
 

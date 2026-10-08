@@ -440,3 +440,14 @@ name index. Long accepted names can span multiple windows. Verification: 726
 Python tests, 132 installed public tests, eight actual Worker cases and all 17
 unchanged bundle budgets pass. Later record access and final publication remain
 materialized.
+
+Native metadata-only restoration and origin lookup now select individual fields
+from the caller-backed document, using the existing bounded record transport.
+They no longer decode removal lists or complete metadata rows for these accesses.
+Custom snapshots without optional field reads retain whole-record compatibility.
+The record serializer and manifest byte iterator are shared across read modes.
+Verification: 728 Python tests, 134 installed public tests, eight actual Worker
+package cases and all 17 unchanged bundle budgets pass on the fresh artifact;
+lint, types and the selected workspace build pass. Native individual field strings,
+removal-list access, installed requirement arrays and final publication collections
+remain buffered, so the host-manifest gate remains open.

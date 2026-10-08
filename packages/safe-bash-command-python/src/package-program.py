@@ -442,11 +442,12 @@ from collections.abc import Mapping as _SafeMapping
 class _SafeRecords(_SafeMapping):
  def __init__(self, count):self.count = count
  @staticmethod
- def decode(operation, key, name_only=False):
+ def decode(operation, key, name_only=False, field=None):
   from pyodide.ffi import run_sync
   chunks, offset = [], 0
   while True:
-   chunk = run_sync(_safe_package_record(operation, key, offset))
+   chunk = run_sync(_safe_package_record(operation, key, offset, *([] if field is None else [field])))
+   if chunk is False:return NotImplemented
    if not chunk:break
    chunks.append(chunk)
    offset += len(chunk.encode('utf-16-le')) // 2
@@ -459,7 +460,7 @@ class _SafeRecords(_SafeMapping):
     except _safe_json.JSONDecodeError:pass
   if name_only:raise ValueError('Invalid Python package metadata snapshot')
   record = _safe_json.loads(''.join(chunks))
-  return record if record is None or len(record) == 6 else record + [None]
+  return record if operation == 'field' or record is None or len(record) == 6 else record + [None]
  @classmethod
  async def prepare(cls):
   count = await _safe_package_record('start')
@@ -484,9 +485,12 @@ class _SafeRecords(_SafeMapping):
    yield record[0], record
  def __iter__(self):
   for ordinal in range(self.count):yield self.decode('read', ordinal, True)
- def origin(self, name):
+ def field(self, name, index):
+  value = self.decode('field', name, field=index)
+  if value is not NotImplemented:return value
   record = self.get(name)
-  return record[5] if record is not None else None
+  return record[index] if record is not None else None
+ def origin(self, name):return self.field(name, 5)
 _safe_record_by_name, _safe_records_present = await _SafeRecords.prepare()
 _safe_metadata_only = _safe_uninstall is not None and _safe_records_present
 _safe_snapshot_root = None
@@ -498,15 +502,15 @@ if _safe_metadata_only:
  from pathlib import Path as _SafePath
  import sysconfig as _safe_sysconfig
  _safe_snapshot_root = _SafePath(_safe_sysconfig.get_path('purelib')).resolve()
- for _safe_record_name, _safe_record in _safe_record_by_name.items():
+ for _safe_record_name in _safe_record_by_name:
   if _safe_record_name in _safe_preloaded:
    continue
   _safe_path = _safe_snapshot_root / (_safe_record_name.replace('-', '_') + '-snapshot.dist-info')
   _safe_path.mkdir()
-  (_safe_path / 'METADATA').write_text(_safe_record[1])
-  (_safe_path / 'PYODIDE_URL').write_text(_safe_record[2])
+  (_safe_path / 'METADATA').write_text(_safe_record_by_name.field(_safe_record_name, 1))
+  (_safe_path / 'PYODIDE_URL').write_text(_safe_record_by_name.field(_safe_record_name, 2))
   (_safe_path / 'RECORD').write_text('')
-  _safe_origin = _safe_record[5]
+  _safe_origin = _safe_record_by_name.origin(_safe_record_name)
   if _safe_origin is not None: (_safe_path / 'direct_url.json').write_text(_safe_origin)
   _safe_dist = _safe_metadata.Distribution.at(_safe_path)
   if _safe_name(_safe_dist.metadata['Name']) != _safe_record_name:

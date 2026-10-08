@@ -162,7 +162,11 @@ caller-filesystem backend for this adapter. It requires retained reads, retained
 staging writers and cleanup, and guarded atomic staging publication. Writes use
 at most 64 KiB chunks; failed serialization or a stale revision leaves the prior
 manifest intact. Restores use incremental JSON decoding without retaining the
-complete encoded file or decoded JSON text. The compatibility `get` method still
+complete encoded file or decoded JSON text. Native metadata restoration reads
+individual saved fields without decoding unrelated removal lists. Custom
+`openSnapshot` stores can provide `readField(ordinal, field, offset)` for the same
+bounded JSON transport; stores without it retain whole-record compatibility.
+The compatibility `get` method still
 returns bytes. The directory remains caller-owned after environment disposal.
 An optional `filename` selects a single existing manifest file instead of the
 default scope-keyed filename.

@@ -197,7 +197,7 @@ interface PackageArtifact {url?:string;readonly key:string;readonly size:number;
 interface Session extends PythonPackageContext {
  snapshot?:PythonPackageRecordSnapshot|undefined;
  records:readonly PythonPackageRecord[]|undefined;
- recordReader?:ReturnType<typeof createPythonRecordReader<PythonPackageRecord>>|undefined;
+ recordReader?:ReturnType<typeof createPythonRecordReader<number>>|undefined;
  readonly cacheDirectory: string | undefined;
  readonly artifactDirectory: string | undefined;
  readonly noCache: boolean;
@@ -375,11 +375,11 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const {fs,signal,cwd,cacheDirectory:configuredCache}=session;
   const settings={signal};
   if(op==='package-record-read'){
-   const ordinal=args[1],offset=args[2];
-   if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(session.snapshot?.recordCount??session.records?.length??0)||!Number.isSafeInteger(offset)||(offset as number)<0)throw failure('Invalid package record request');
-   if(session.snapshot){const result=await session.snapshot.readRecord(ordinal as number,offset as number);check();return result;}
-   session.recordReader??=createPythonRecordReader((row:PythonPackageRecord)=>serializeLlmJsonValue(row.length===5?[...row,null]:row,signal));
-   const result=await session.recordReader.read(session.records![ordinal as number]!,offset as number);check();return result;
+   const ordinal=args[1],offset=args[2],field=args[3];
+   if(field!==undefined&&(!Number.isInteger(field)||(field as number)<0||(field as number)>5)||!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(session.snapshot?.recordCount??session.records?.length??0)||!Number.isSafeInteger(offset)||(offset as number)<0)throw failure('Invalid package record request');
+   if(session.snapshot){const result=await (field===undefined?session.snapshot.readRecord(ordinal as number,offset as number):session.snapshot.readField?.(ordinal as number,field as number,offset as number)??false);check();return result;}
+   session.recordReader??=createPythonRecordReader((key:number)=>{const row=session.records![Math.floor(key/7)]!,field=key%7-1;return serializeLlmJsonValue(field<0?(row.length===5?[...row,null]:row):row[field]??null,signal);});
+   const result=await session.recordReader.read((ordinal as number)*7+(field===undefined?0:(field as number)+1),offset as number);check();return result;
   }
   if(op==='package-commit') {
    await release(session,true);check();

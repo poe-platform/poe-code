@@ -186,7 +186,7 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
   const inputRecords=start.recordCount===undefined?start.records?.map((row):PythonPackageRecord=>[row[0],row[1],row[2],[...row[3]],[...row[4]],row[5]??null]):undefined;
   const recordCount=start.recordCount??inputRecords?.length??-1;
   const outputRecords:unknown[]=[],pinned:string[]=[];
-  bind('_safe_package_record',(operation:string,key?:unknown,value?:unknown)=>transfer(async()=>{
+  bind('_safe_package_record',(operation:string,key?:unknown,value?:unknown,field?:number)=>transfer(async()=>{
    if(operation==='pin'){
     if(typeof key!=='string')throw new Error('Invalid Python package pin');
     const pin=JSON.parse(key);
@@ -199,13 +199,15 @@ sys.path.insert(0, str(_package_loader.SITE_PACKAGES))
     if(start.restore!==undefined)outputRecords.push(JSON.parse(key));
     return null;
    }
-   if(operation==='read'||operation==='get'){
+   if(operation==='read'||operation==='get'||operation==='field'){
+    if(operation==='field'&&(!Number.isInteger(field)||field!<0||field!>5))throw new Error('Invalid Python package record field');
     const offset=value??0;
     if(!Number.isSafeInteger(offset)||(offset as number)<0)throw new Error('Invalid Python package record offset');
-    const ordinal=operation==='get'?await request('package-index',start.session,'records-get',key):key;
+    const ordinal=operation!=='read'?await request('package-index',start.session,'records-get',key):key;
     if(ordinal===null)return (offset as number)===0?'null':'';
     if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=recordCount)throw new Error('Invalid Python package record ordinal');
-    const chunk=start.recordCount===undefined?JSON.stringify(inputRecords![ordinal as number]).slice(offset as number,(offset as number)+8192):await request('package-record-read',start.session,ordinal,offset);
+    const chunk=start.recordCount===undefined?JSON.stringify(operation==='field'?inputRecords![ordinal as number]![field!]??null:inputRecords![ordinal as number]).slice(offset as number,(offset as number)+8192):await request('package-record-read',start.session,ordinal,offset,...operation==='field'?[field]:[]);
+    if(operation==='field'&&chunk===false)return false;
     if(typeof chunk!=='string'||chunk.length>8192)throw new Error('Invalid Python package record chunk');
     // The native string bridge must never receive half a UTF-16 pair.
     const last=chunk.charCodeAt(chunk.length-1);

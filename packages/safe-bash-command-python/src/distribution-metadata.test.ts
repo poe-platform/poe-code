@@ -3,14 +3,16 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 
-for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path'])test('native distribution metadata stages text before parsing with bounded reads: '+mode,()=>{
+for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path','nested','delivery-status','header-storage-error','header-parse-error','header-init-error'])test('native distribution metadata stages text before parsing with bounded reads: '+mode,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
-import ast,io,json,pathlib,sys,email.parser,importlib.metadata as metadata
+import ast,io,json,pathlib,sys,email.parser,email.feedparser,importlib.metadata as metadata
 from unittest.mock import patch
+import tempfile
 source,mode=json.load(sys.stdin)
 tracking=False;opened=[];stores=[]
 class Values:
- def __init__(self):self.values={};self.closed=False;stores.append(self)
+ def __init__(self):
+  self.values={};self.closed=False;stores.append(self)
  def put(self,key,value):
   if mode=='storage-error':raise OSError('storage denied')
   assert len(value)<=8192
@@ -35,6 +37,8 @@ if mode=='fallback':files[str(root/'METADATA')]=''
 if mode=='missing':files={}
 if mode=='legacy':files={str(root):'Name: legacy\nVersion: 3\n'}
 if mode=='long-line':files[str(root/'METADATA')]='Name: fixture\nRequires-Dist: '+('long😀'*20000)+'\n'
+if mode=='nested':files[str(root/'METADATA')]='Name: fixture\nContent-Type: multipart/mixed; boundary=part\n\n--part\n'+files[str(root/'METADATA')]+'\n--part--\n'
+if mode=='delivery-status':files[str(root/'METADATA')]='Name: fixture\nContent-Type: message/delivery-status\n\nAction: delivered\nStatus: 2.0.0\n\nAction: delayed\nStatus: 4.0.0\n'
 if mode=='malformed':files[str(root/'METADATA')]='Name: fixture\n continued\nBad Header\nbody\n'
 def open_file(path,*args,**kwargs):
  if str(path) not in files:raise FileNotFoundError(str(path))
@@ -48,29 +52,52 @@ class CustomPath:
  def open(self,**kwargs):raise AssertionError('custom path read_text bypassed')
 dist=Custom(root) if mode=='custom' else metadata.PathDistribution(CustomPath() if mode=='custom-path' else root)
 if mode=='custom-instance':dist.read_text=lambda name:'Name: instance\n'
-namespace={'_safe_metadata':metadata,'_SafeValues':Values}
+from functools import cache
+namespace={'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values}
 tree=ast.parse(source)
-selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text')]
+selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_safe_metadata_header_code','_safe_parse_metadata')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<metadata>','exec'),namespace)
-def describe(value):return (list(value.items()),value.get_payload() if hasattr(value,'get_payload') else None,[(type(error).__name__,str(error)) for error in getattr(value,'defects',[])])
+assert namespace['_safe_metadata_header_code']().co_firstlineno==email.feedparser.FeedParser._parsegen.__code__.co_firstlineno,'native parser traceback lines changed'
+def describe(value):
+ payload=value.get_payload() if hasattr(value,'get_payload') else None
+ return (list(value.items()),[describe(part) for part in payload] if isinstance(payload,list) else payload,[(type(error).__name__,str(error)) for error in getattr(value,'defects',[])])
 native_parse=email.parser.Parser.parse
 def parse(self,*args,**kwargs):
  assert all(file.closed for file in opened),'parser started before source closure'
  return native_parse(self,*args,**kwargs)
-with patch.object(pathlib.Path,'open',open_file),patch.object(email.parser.Parser,'parse',parse):
+header_files=[]
+class HeaderFile(io.StringIO):
+ def write(self,value):
+  assert len(value)<=98307
+  if mode=='header-storage-error':raise OSError('header storage denied')
+  return super().write(value)
+def header_file(**kwargs):
+ assert kwargs['dir']=='/caller'
+ if mode=='header-init-error':raise OSError('header initialization denied')
+ value=HeaderFile();header_files.append(value);return value
+native_headers=email.feedparser.FeedParser._parse_headers
+def parse_headers(self,lines):
+ if tracking:
+  assert not isinstance(lines,list) or not lines,'native parser accumulated all raw header lines'
+  if mode=='header-parse-error':raise OSError('header parse denied')
+ assert all(file.closed for file in opened),'parser started before source closure'
+ return native_headers(self,lines)
+with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Path,'open',open_file),patch.object(email.parser.Parser,'parse',parse),patch.object(email.feedparser.FeedParser,'_parse_headers',parse_headers):
  failure=None
  try:expected=describe(dist.metadata)
  except Exception as error:failure=(type(error),str(error))
  tracking=not mode.startswith('custom')
  try:actual=describe(namespace.get('_safe_distribution_metadata',lambda value:value.metadata)(dist))
  except Exception as error:
-  if mode=='storage-error':assert (type(error),str(error))==(OSError,'storage denied')
+  if mode in ('storage-error','header-storage-error','header-parse-error','header-init-error'):
+   expected_error={'storage-error':'storage denied','header-storage-error':'header storage denied','header-parse-error':'header parse denied','header-init-error':'header initialization denied'}[mode]
+   assert (type(error),str(error))==(OSError,expected_error)
   else:assert failure==(type(error),str(error)),(failure,type(error),str(error))
  else:
   assert failure is None
   assert actual==expected
-  assert mode!='storage-error','caller storage was bypassed'
-assert all(file.closed for file in opened)
+  assert mode not in ('storage-error','header-storage-error','header-parse-error','header-init-error'),'caller storage was bypassed'
+assert all(file.closed for file in opened+header_files)
 assert all(store.closed for store in stores)
 if mode in ('large','fallback','malformed'):assert stores
 `],{input:JSON.stringify([readFileSync(new URL('./package-program.py',import.meta.url),'utf8'),mode]),encoding:'utf8',timeout:5000});

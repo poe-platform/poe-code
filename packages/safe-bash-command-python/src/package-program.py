@@ -161,18 +161,81 @@ def _safe_read_metadata_text(distribution, filename, lifetime):
   try:source.close()
   except missing:failed = True
  return None if failed else text if text else ''
+class _SafeMetadataLines:
+ def __init__(self, lifetime):
+  from contextlib import ExitStack
+  import tempfile
+  self.lifetime = ExitStack()
+  lifetime.callback(self.lifetime.close)
+  self.file = tempfile.TemporaryFile(mode='w+', encoding='utf-8', dir=_safe_installation_root)
+  self.lifetime.callback(self.file.close)
+  self.count = 0
+ def append(self, line):
+  import json
+  for offset in range(0, len(line), 8192):
+   self.file.write(json.dumps(line[offset:offset+8192]) + '\n')
+  self.file.write('null\n')
+  self.count += 1
+ def __len__(self):return self.count
+ def __iter__(self):
+  import json
+  self.file.seek(0)
+  for index in range(len(self)):
+   parts = []
+   while True:
+    encoded = self.file.readline(98307)
+    if not encoded.endswith('\n'):raise ValueError('Invalid metadata header storage')
+    value = json.loads(encoded)
+    if value is None:break
+    if not isinstance(value, str) or len(value) > 8192:raise ValueError('Invalid metadata header storage')
+    parts.append(value)
+   yield ''.join(parts)
+from functools import cache as _safe_cache
+@_safe_cache
+def _safe_metadata_header_code():
+ import ast, inspect, textwrap
+ from email.feedparser import FeedParser
+ from types import CodeType
+ native = FeedParser._parsegen
+ tree = ast.parse(textwrap.dedent(inspect.getsource(native)))
+ class HeaderStorage(ast.NodeTransformer):
+  changed = 0
+  def visit_Assign(self, node):
+   if len(node.targets) == 1 and isinstance(node.targets[0], ast.Name) and node.targets[0].id == 'headers' and isinstance(node.value, ast.List) and not node.value.elts:
+    node.value = ast.copy_location(ast.Call(func=ast.Name(id='_safe_metadata_lines', ctx=ast.Load()), args=[], keywords=[]), node.value)
+    self.changed += 1
+   return self.generic_visit(node)
+ storage = HeaderStorage()
+ tree = storage.visit(tree)
+ if storage.changed != 1:raise RuntimeError('Unsupported native metadata header parser')
+ tree = ast.increment_lineno(ast.fix_missing_locations(tree), native.__code__.co_firstlineno - 1)
+ code = compile(tree, native.__code__.co_filename, 'exec')
+ return next(value for value in code.co_consts if isinstance(value, CodeType) and value.co_name == native.__name__)
+def _safe_parse_metadata(text, lifetime):
+ from email.feedparser import FeedParser
+ from types import FunctionType
+ native = FeedParser._parsegen
+ parsegen = FunctionType(_safe_metadata_header_code(), dict(native.__globals__, _safe_metadata_lines=lambda: _SafeMetadataLines(lifetime)), native.__name__, native.__defaults__, native.__closure__)
+ def parse_headers(self, lines):
+  try:return FeedParser._parse_headers(self, lines)
+  finally:lines.lifetime.close()
+ parser = type('_SafeMetadataFeedParser', (FeedParser,), {'_parsegen': parsegen, '_parse_headers': parse_headers})()
+ while True:
+  chunk = text.read(8192)
+  if not chunk:break
+  parser.feed(chunk)
+ return parser.close()
 def _safe_distribution_metadata(distribution):
  from contextlib import ExitStack
  from types import FunctionType, SimpleNamespace
  import email
- from email.parser import Parser
  if type(distribution) is not _safe_metadata.PathDistribution or 'read_text' in vars(distribution):
   return distribution.metadata
  with ExitStack() as lifetime:
   view = _safe_metadata.PathDistribution(distribution._path)
   view.read_text = lambda filename: _safe_read_metadata_text(distribution, filename, lifetime)
   def parse(text):
-   return Parser().parse(text) if isinstance(text, _SafeMetadataText) else email.message_from_string(text)
+   return _safe_parse_metadata(text, lifetime) if isinstance(text, _SafeMetadataText) else email.message_from_string(text)
   native = _safe_metadata.Distribution.metadata.fget
   metadata = FunctionType(native.__code__, dict(native.__globals__, email=SimpleNamespace(message_from_string=parse)), native.__name__, native.__defaults__, native.__closure__)
   return metadata(view)

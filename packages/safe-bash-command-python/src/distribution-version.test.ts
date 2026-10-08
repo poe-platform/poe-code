@@ -7,6 +7,7 @@ for(const mode of ['large','missing-version','duplicate','folded','decode-error'
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast,io,json,pathlib,sys,warnings,importlib.metadata as metadata
 from unittest.mock import patch
+import tempfile
 source,mode=json.load(sys.stdin)
 tracking=False;opened=[];stores=[]
 class Values:
@@ -36,9 +37,10 @@ class Custom(metadata.PathDistribution):
  def version(self):return 'custom'
 dist=(Custom if mode=='custom-version' else metadata.PathDistribution)(pathlib.Path('/fixture.dist-info'))
 if mode=='custom-read':dist.read_text=lambda name:'Version: instance\n'
-namespace={'_safe_metadata':metadata,'_SafeValues':Values}
+from functools import cache
+namespace={'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values}
 tree=ast.parse(source)
-selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_version','_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text')]
+selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_version','_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_safe_metadata_header_code','_safe_parse_metadata')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<version>','exec'),namespace)
 def capture(read):
  with warnings.catch_warnings(record=True) as messages:
@@ -46,7 +48,10 @@ def capture(read):
   try:result=('value',read())
   except Exception as error:result=('error',type(error),str(error))
   return result,[(message.category,str(message.message)) for message in messages]
-with patch.object(pathlib.Path,'open',open_file):
+def header_file(**kwargs):
+ assert kwargs['dir']=='/caller'
+ value=io.StringIO();stores.append(value);return value
+with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Path,'open',open_file):
  expected=capture(lambda:dist.version)
  tracking=True
  actual=capture(lambda:namespace.get('_safe_distribution_version',lambda value:value.version)(dist))

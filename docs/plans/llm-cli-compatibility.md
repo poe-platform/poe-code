@@ -601,3 +601,19 @@ direct-URL and egg text, and the remaining acceptance gates are still incomplete
 The fresh artifact passes 805 Python tests, 142 installed public tests, all three
 affected actual Worker cases, all 17 unchanged bundle profiles, lint, types and
 the scoped workspace build.
+
+
+The native email parser's raw-header line collection now uses caller-backed
+buffered file records with bounded reads and writes. A cached AST transformation
+changes only the empty
+`headers` allocation in the running standard-library parser; native control flow,
+header parsing and nested-message behavior remain in use, without mutating
+standard-library globals or traceback source offsets. The temporary file is
+created under the mounted caller installation root. Header storage closes immediately after native header
+parsing and also on initialization, write or parse failure. Differential cases
+cover multipart and delivery-status messages as well as existing metadata edges.
+Parsed message headers, adapter repair collections, individual header values and
+message bodies still buffer; the native metadata memory gate remains incomplete.
+The corrected artifact passes 810 Python tests, 142 installed public tests, all
+three affected actual Worker cases under unchanged timeouts, all 17 unchanged
+bundle profiles, lint, types and the scoped workspace build.

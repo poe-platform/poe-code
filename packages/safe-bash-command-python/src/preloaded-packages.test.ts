@@ -101,10 +101,11 @@ for(const mode of ['large','missing-name','decode-error','storage-error'])test('
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast,asyncio,io,json,pathlib,sys,importlib.metadata as metadata
 from unittest.mock import patch
+import tempfile
 source,mode=json.load(sys.stdin)
 tree=ast.parse(source)
 end=next(i for i,node in enumerate(tree.body) if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='_safe_preloaded' for t in node.targets))
-names=('_SafeMetadataText','_safe_read_metadata_text','_safe_distribution_metadata','_SafePreloaded')
+names=('_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_safe_metadata_header_code','_safe_parse_metadata','_safe_distribution_metadata','_SafePreloaded')
 body=[node for node in tree.body[:end+1] if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in names or node is tree.body[end]]
 stores=[];opened=[];events=[]
 class Values:
@@ -129,9 +130,13 @@ async def snapshot(operation,name=None):
  assert all(value.closed for value in opened)
  assert all(value.closed for value in stores)
  events.append((operation,name))
-namespace={'_safe_metadata':metadata,'_SafeValues':Values,'_safe_name':lambda name:name.lower().replace('_','-'),'_safe_package_preloaded':snapshot}
+from functools import cache
+namespace={'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values,'_safe_name':lambda name:name.lower().replace('_','-'),'_safe_package_preloaded':snapshot}
 code=compile(ast.Module(body=body,type_ignores=[]),'<bootstrap>','exec',flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
-with patch.object(pathlib.Path,'open',open_file),patch.object(metadata,'distributions',lambda:iter([metadata.PathDistribution(pathlib.Path('/host.dist-info'))])):
+def header_file(**kwargs):
+ assert kwargs['dir']=='/caller'
+ value=io.StringIO();stores.append(value);return value
+with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Path,'open',open_file),patch.object(metadata,'distributions',lambda:iter([metadata.PathDistribution(pathlib.Path('/host.dist-info'))])):
  try:asyncio.run(eval(code,namespace))
  except (UnicodeDecodeError,OSError) as error:
   assert mode in ('decode-error','storage-error'),error

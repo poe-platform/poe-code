@@ -311,6 +311,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-alias-unalias-shopt-hash-pdfseparate-pdfunite-matrix.test.ts",
   "obscure-truncate-dos2unix-unix2dos-expand-unexpand-fold-tac-rev-strings-matrix.test.ts",
   "obscure-getconf-locale-id-uname-nproc-pathchk-mktemp-readlink-realpath-install-matrix.test.ts",
+  "obscure-nl-paste-comm-seq-envsubst-printenv-basename-dirname-tee-sponge-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

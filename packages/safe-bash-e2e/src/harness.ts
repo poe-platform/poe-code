@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import * as sb from "@poe-platform/safe-bash";
 import { RustWasmBash } from "@poe-code/safe-bash-rust";
 export { sb };
+import { astGrepCommands } from "@poe-platform/safe-bash/commands/ast-grep";
 import { csvcutCommands } from "@poe-platform/safe-bash/commands/csvcut";
 import { csvgrepCommands } from "@poe-platform/safe-bash/commands/csvgrep";
 import { csvkitCommands } from "@poe-platform/safe-bash/commands/csvkit";
@@ -306,6 +307,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-qpdf-pdftk-pdfinfo-pdffonts-pdfdetach-pdftoppm-pdfimages-wkhtmltopdf-matrix.test.ts",
   "obscure-csvkit-csvcut-csvgrep-csvstat-csvjson-in2csv-csvclean-csvsql-sql2csv-matrix.test.ts",
   "obscure-pandoc-ssconvert-docx-odt-epub-xlsx-ods-html-latex-rst-matrix.test.ts",
+  "obscure-ast-grep-sg-caller-structural-search-rewrite-scan-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {
@@ -463,6 +465,7 @@ export class SafeBashE2EHarness {
           .use(sb.whoamiCommands({ replace: true }))
           .use(sb.yesCommands({ replace: true }))
           .use(sb.yqCommands({ replace: true }))
+          .use(astGrepCommands({ replace: true }))
           .use(csvcutCommands({ replace: true }))
           .use(csvgrepCommands({ replace: true }))
           .use(csvkitCommands({ replace: true, locale: { profile: "C", timezone: "UTC", formatNumber: (val, _prof, _fmt, grouping) => { const n = Number(val); const fixed = Number.isFinite(n) ? n.toFixed(3) : String(val); if (!grouping) return fixed; const [intPart, decPart] = fixed.split("."); const grouped = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ","); return decPart !== undefined ? grouped + "." + decPart : grouped; } } }))

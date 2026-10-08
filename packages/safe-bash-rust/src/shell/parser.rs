@@ -25,6 +25,7 @@ pub struct SimpleCommand {
     pub assignments: Vec<(String, String, bool)>,
     pub words: Vec<String>,
     pub redirects: Vec<Redirect>,
+    pub line: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -252,6 +253,21 @@ fn is_stop_word(tok: Option<&Token>, stops: &[&str]) -> bool {
     } else {
         false
     }
+}
+
+fn token_line(tokens: &[Token], idx: usize) -> usize {
+    let mut line = 1usize;
+    for tok in tokens.iter().take(idx) {
+        match tok {
+            Token::Newline => line += 1,
+            Token::Word(w) => line += w.bytes().filter(|&b| b == b'\n').count(),
+            Token::RedirectHereDoc { body, .. } => {
+                line += body.bytes().filter(|&b| b == b'\n').count() + 1;
+            }
+            _ => {}
+        }
+    }
+    line
 }
 
 fn skip_newlines(tokens: &[Token], pos: &mut usize) {
@@ -639,7 +655,7 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                         }
                         *pos += 1;
                     }
-                    let mut arm_tokens = Vec::new();
+                    let mut arm_tokens: Vec<Token> = (1..token_line(tokens, *pos)).map(|_| Token::Newline).collect();
                     let mut term = CaseTerminator::Break;
                     let mut nested_case_depth = 0usize;
                     while *pos < tokens.len() {
@@ -769,6 +785,7 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
         }
     }
 
+    let cmd_line = token_line(tokens, *pos);
     let mut assignments = Vec::new();
     let mut words = Vec::new();
     let mut redirects = Vec::new();
@@ -846,6 +863,7 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
         assignments,
         words,
         redirects,
+        line: cmd_line,
     })))
 }
 

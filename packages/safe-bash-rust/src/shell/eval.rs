@@ -28,6 +28,14 @@ pub enum FdTarget {
     Closed,
 }
 
+#[derive(Debug, Clone)]
+pub struct CallerFrame {
+    pub line: usize,
+    pub name: Option<String>,
+    pub file: String,
+    pub routine: String,
+}
+
 pub struct EvalState<'a> {
     pub cwd: &'a mut String,
     pub env: &'a mut BTreeMap<String, String>,
@@ -37,6 +45,10 @@ pub struct EvalState<'a> {
     pub functions: BTreeMap<String, Script>,
     pub exported_functions: BTreeSet<String>,
     pub func_stack: Vec<String>,
+    pub caller_frames: Vec<CallerFrame>,
+    pub caller_top_level: bool,
+    pub script_name: Option<String>,
+    pub current_line: usize,
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
     pub in_fds: BTreeMap<u32, String>,
@@ -96,6 +108,10 @@ impl<'a> EvalState<'a> {
             functions: BTreeMap::new(),
             exported_functions: BTreeSet::new(),
             func_stack: Vec::new(),
+            caller_frames: Vec::new(),
+            caller_top_level: false,
+            script_name: None,
+            current_line: 1,
             local_scopes: Vec::new(),
             fd_table,
             in_fds: BTreeMap::new(),
@@ -156,6 +172,10 @@ impl<'a> EvalState<'a> {
             functions: self.functions.clone(),
             exported_functions: self.exported_functions.clone(),
             func_stack: self.func_stack.clone(),
+            caller_frames: self.caller_frames.clone(),
+            caller_top_level: self.caller_top_level,
+            script_name: self.script_name.clone(),
+            current_line: self.current_line,
             local_scopes: Vec::new(),
             fd_table: self.fd_table.clone(),
             in_fds: self.in_fds.clone(),
@@ -1342,6 +1362,9 @@ impl<'a> EvalState<'a> {
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
         self.budget.tick_command().map_err(EvalError::Budget)?;
+        if simple.line > 0 {
+            self.current_line = simple.line;
+        }
         let mut debug_out = BuiltinOutcome {
             stdout: String::new(),
             stderr: String::new(),
@@ -1739,10 +1762,21 @@ impl<'a> EvalState<'a> {
                             } else {
                                 None
                             };
-                            let mut out = self.eval_script(&ast, stdin)?;
+                            let caller_frame = self.capture_caller_frame("source");
+                            self.caller_frames.insert(0, caller_frame);
+                            let prev_script_name = self.script_name.replace(target.clone());
+                            let prev_line = self.current_line;
+                            self.current_line = 1;
+                            let eval_res = self.eval_script(&ast, stdin);
+                            self.current_line = prev_line;
+                            self.script_name = prev_script_name;
+                            if !self.caller_frames.is_empty() {
+                                self.caller_frames.remove(0);
+                            }
                             if let Some(prev) = saved_args {
                                 self.pos_args = prev;
                             }
+                            let mut out = eval_res?;
                             self.last_exit = out.exit_code;
                             self.fire_return_trap(&mut out);
                             if let Some(ret_code) = self.return_requested.take() {
@@ -1856,6 +1890,9 @@ impl<'a> EvalState<'a> {
                 }
                 return self.dispatch_words(&args[idx..], stdin, true);
             }
+            "caller" => {
+                return Ok(self.builtin_caller(args));
+            }
             "type" | "which" => {
                 return Ok(self.builtin_type(cmd, args));
             }
@@ -1906,6 +1943,8 @@ impl<'a> EvalState<'a> {
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
             let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
+            let caller_frame = self.capture_caller_frame(cmd);
+            self.caller_frames.insert(0, caller_frame);
             self.func_stack.insert(0, cmd.to_string());
             self.sync_funcname();
             self.local_scopes.push(BTreeMap::new());
@@ -1948,6 +1987,9 @@ impl<'a> EvalState<'a> {
                 }
             }
             self.pos_args = prev_args;
+            if !self.caller_frames.is_empty() {
+                self.caller_frames.remove(0);
+            }
             if !self.func_stack.is_empty() {
                 self.func_stack.remove(0);
             }
@@ -1996,6 +2038,10 @@ impl<'a> EvalState<'a> {
                     functions: funcs_clone.clone(),
                     exported_functions: exported_clone.clone(),
                     func_stack: Vec::new(),
+                    caller_frames: Vec::new(),
+                    caller_top_level: false,
+                    script_name: None,
+                    current_line: 1,
                     local_scopes: Vec::new(),
                     fd_table,
                     in_fds: BTreeMap::new(),
@@ -2045,6 +2091,10 @@ impl<'a> EvalState<'a> {
             sub_env.insert("0".to_string(), cmd.clone());
             let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
             sub.pos_args = args.to_vec();
+            sub.caller_frames.clear();
+            sub.caller_top_level = true;
+            sub.script_name = Some(cmd.clone());
+            sub.current_line = 1;
             sub.func_stack.clear();
             sub.sync_funcname();
             sub.env.remove("BASH_SUBSHELL");
@@ -2100,6 +2150,116 @@ impl<'a> EvalState<'a> {
         None
     }
 
+
+    fn capture_caller_frame(&self, routine: &str) -> CallerFrame {
+        let name = self
+            .caller_frames
+            .first()
+            .map(|f| f.routine.clone())
+            .or_else(|| {
+                if self.caller_top_level {
+                    Some("main".to_string())
+                } else {
+                    None
+                }
+            });
+        let file = if name.is_none() {
+            "NULL".to_string()
+        } else {
+            self.script_name
+                .clone()
+                .unwrap_or_else(|| "shell".to_string())
+        };
+        CallerFrame {
+            line: self.current_line.max(1),
+            name,
+            file,
+            routine: routine.to_string(),
+        }
+    }
+
+    fn builtin_caller(&self, args: &[String]) -> BuiltinOutcome {
+        let terminated = args.first().map(|s| s.as_str()) == Some("--");
+        let operand = args.get(if terminated { 1 } else { 0 });
+        let invalid = |value: &str, reason: &str| BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("caller: {value}: {reason}\ncaller: usage: caller [expr]\n"),
+            exit_code: 2,
+        };
+        let mut index = 0usize;
+        if let Some(op) = operand {
+            if !terminated && op.starts_with('-') && op != "-" {
+                let prefix: String = op.chars().take(2).collect();
+                return invalid(&prefix, "invalid option");
+            }
+            let text = op.trim();
+            let negative = text.starts_with('-');
+            let offset = if negative || text.starts_with('+') { 1 } else { 0 };
+            let maximum: u128 = if negative {
+                9223372036854775808u128
+            } else {
+                9223372036854775807u128
+            };
+            if offset == text.len() {
+                return invalid(op, "invalid number");
+            }
+            let mut value: u128 = 0;
+            for b in text[offset..].bytes() {
+                if !b.is_ascii_digit() {
+                    let reason = if op.starts_with("0x") {
+                        "invalid hex number"
+                    } else if op.len() > 1 && op.as_bytes()[0] == b'0' && op.as_bytes()[1].is_ascii_digit() {
+                        "invalid octal number"
+                    } else {
+                        "invalid number"
+                    };
+                    return invalid(op, reason);
+                }
+                value = value.saturating_mul(10).saturating_add((b - b'0') as u128);
+                if value > maximum {
+                    return invalid(op, "invalid number");
+                }
+            }
+            if (negative && value != 0) || value > 9007199254740991u128 {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 1,
+                };
+            }
+            index = value as usize;
+        }
+        let Some(frame) = self.caller_frames.get(index) else {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 1,
+            };
+        };
+        if operand.is_some() && frame.name.is_none() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 1,
+            };
+        }
+        let output = if operand.is_none() {
+            format!("{} {}\n", frame.line, frame.file)
+        } else {
+            format!(
+                "{} {} {}\n",
+                frame.line,
+                frame.name.as_deref().unwrap_or(""),
+                frame.file
+            )
+        };
+        BuiltinOutcome {
+            stdout: output,
+            stderr: String::new(),
+            exit_code: 0,
+        }
+    }
+
     fn classify_command(&self, target: &str) -> Option<&'static str> {
         if self.functions.contains_key(target) {
             return Some("function");
@@ -2150,6 +2310,7 @@ impl<'a> EvalState<'a> {
                 | "jobs"
                 | "alias"
                 | "unalias"
+                | "caller"
         ) {
             return Some("builtin");
         }

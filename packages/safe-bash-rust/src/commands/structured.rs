@@ -34,6 +34,7 @@ pub fn try_run_structured_command(
         "mdq" => Some(cmd_mdq(args, stdin, cwd, fs)),
         "unrtf" => Some(cmd_unrtf(args, stdin, cwd, fs)),
         "pandoc" => Some(cmd_pandoc(args, stdin, cwd, fs)),
+        "ast-grep" | "sg" => Some(cmd_ast_grep(cmd, args, stdin, cwd, fs)),
         "ssconvert" => Some(cmd_ssconvert(args, stdin, cwd, fs)),
         "html-to-markdown" => Some(cmd_html_to_markdown(args, stdin, cwd, env, fs)),
         "mmdc" => Some(cmd_mmdc(args, stdin, cwd, fs)),
@@ -5185,7 +5186,12 @@ fn parse_yaml_block(
                     } else {
                         arr.push(JVal::Null);
                     }
-                } else if let Some((k, v)) = after_dash.split_once(':') {
+                } else if !after_dash.starts_with('{')
+                    && !after_dash.starts_with('[')
+                    && !after_dash.starts_with('"')
+                    && !after_dash.starts_with('\'')
+                    && let Some((k, v)) = after_dash.split_once(':')
+                    && !k.trim().contains(char::is_whitespace) {
                     let mut item_map = Vec::new();
                     let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
                     let val_s = v.trim();
@@ -24004,4 +24010,2673 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         return ok_out("");
     }
     ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+}
+
+const AST_GREP_HELP: &str = "Usage: ast-grep [run] -p PATTERN [-r REWRITE] [-l LANG] [PATH ...]\n       ast-grep scan [-r RULE.yml] [--inline-rules YAML] [PATH ...]\nAliases: sg\nLanguages: ts, tsx, js, jsx, json, yaml, html, css\n--json[=pretty|compact|stream]  Emit structural matches as JSON\n-U, --update-all               Apply rewrites to virtual files\n--stdin                       Search stdin (run requires --lang)\n--globs GLOB                  Include glob, or !GLOB to exclude (repeatable)\n--heading[=always|never|auto]   Group text matches by file\n-A N / -B N / -C N             Lines after / before / around matches\nExit status: 0 matches, 1 no matches, 2 invalid arguments or execution error.\n";
+
+#[derive(Debug, Clone)]
+struct AstCodeNode {
+    id: usize,
+    kind: String,
+    range: (usize, usize),
+    start: (usize, usize),
+    end: (usize, usize),
+    text: String,
+    trivia: bool,
+    language: String,
+    children: Vec<AstCodeNode>,
+    var_meta: Option<(String, bool)>,
+}
+
+#[derive(Debug, Clone)]
+struct AstCapture {
+    many: bool,
+    nodes: Vec<AstCodeNode>,
+    text: String,
+    range: (usize, usize),
+}
+
+#[derive(Debug, Clone)]
+struct AstMatch {
+    node: AstCodeNode,
+    captures: BTreeMap<String, AstCapture>,
+}
+
+#[derive(Debug, Clone)]
+enum AstPattern {
+    Text(String),
+    Rule(Box<AstRuleSpec>),
+}
+
+#[derive(Debug, Clone, Default)]
+struct AstRuleSpec {
+    pattern: Option<String>,
+    kind: Option<String>,
+    regex: Option<String>,
+    all: Vec<AstPattern>,
+    any: Vec<AstPattern>,
+    not: Option<AstPattern>,
+    inside: Option<AstPattern>,
+    has: Option<AstPattern>,
+    follows: Option<AstPattern>,
+    precedes: Option<AstPattern>,
+}
+
+#[derive(Debug, Clone)]
+struct AstSearchRule {
+    id: Option<String>,
+    language: Option<String>,
+    rule: AstPattern,
+    fix: Option<String>,
+    message: Option<String>,
+    severity: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct AstGrepOptions {
+    scan: bool,
+    pattern: Option<String>,
+    rewrite: Option<String>,
+    language: Option<String>,
+    rule_file: Option<String>,
+    inline_rules: Option<String>,
+    json: Option<String>,
+    update: bool,
+    stdin: bool,
+    heading: bool,
+    before: usize,
+    after: usize,
+    globs: Vec<String>,
+    paths: Vec<String>,
+    help: bool,
+}
+
+fn ast_grep_language_for(name_or_file: &str) -> Result<String, String> {
+    let suffix = name_or_file
+        .to_ascii_lowercase()
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_string();
+    let lang = match suffix.as_str() {
+        "ts" | "mts" | "cts" | "typescript" => "typescript",
+        "tsx" => "tsx",
+        "jsx" => "jsx",
+        "js" | "mjs" | "cjs" | "javascript" => "javascript",
+        "json" => "json",
+        "yaml" | "yml" => "yaml",
+        "html" => "html",
+        "css" => "css",
+        _ => return Err(format!("Unsupported language: {name_or_file}")),
+    };
+    Ok(lang.to_string())
+}
+
+fn parse_ast_grep_options(args: &[String]) -> Result<AstGrepOptions, String> {
+    let mut out = AstGrepOptions {
+        scan: false,
+        pattern: None,
+        rewrite: None,
+        language: None,
+        rule_file: None,
+        inline_rules: None,
+        json: None,
+        update: false,
+        stdin: false,
+        heading: false,
+        before: 0,
+        after: 0,
+        globs: Vec::new(),
+        paths: Vec::new(),
+        help: false,
+    };
+    let mut i = if matches!(args.first().map(|s| s.as_str()), Some("run" | "scan")) {
+        out.scan = args[0] == "scan";
+        1usize
+    } else {
+        0usize
+    };
+    while i < args.len() {
+        let arg = &args[i];
+        if arg == "--" {
+            out.paths.extend(args[i + 1..].iter().cloned());
+            break;
+        }
+        if !arg.starts_with('-') || arg == "-" {
+            out.paths.push(arg.clone());
+            i += 1;
+            continue;
+        }
+        let eq = arg.find('=');
+        let key = eq.map(|idx| &arg[..idx]).unwrap_or(arg.as_str());
+        let take_val = |i_ref: &mut usize| -> Result<String, String> {
+            if let Some(idx) = eq {
+                return Ok(arg[idx + 1..].to_string());
+            }
+            *i_ref += 1;
+            let Some(next) = args.get(*i_ref) else {
+                return Err(format!("missing value for {key}"));
+            };
+            Ok(next.clone())
+        };
+        if key == "-h" || key == "--help" {
+            out.help = true;
+        } else if key == "-U" || key == "--update-all" {
+            out.update = true;
+        } else if key == "--stdin" {
+            out.stdin = true;
+        } else if key == "--json" {
+            let v = if let Some(idx) = eq {
+                arg[idx + 1..].to_string()
+            } else if matches!(
+                args.get(i + 1).map(|s| s.as_str()),
+                Some("pretty" | "compact" | "stream")
+            ) {
+                i += 1;
+                args[i].clone()
+            } else {
+                "pretty".to_string()
+            };
+            if !matches!(v.as_str(), "pretty" | "compact" | "stream") {
+                return Err("invalid json mode".to_string());
+            }
+            out.json = Some(v);
+        } else if key == "--heading" {
+            let v = if let Some(idx) = eq {
+                arg[idx + 1..].to_string()
+            } else if matches!(
+                args.get(i + 1).map(|s| s.as_str()),
+                Some("always" | "never" | "auto")
+            ) {
+                i += 1;
+                args[i].clone()
+            } else {
+                "always".to_string()
+            };
+            if !matches!(v.as_str(), "always" | "never" | "auto") {
+                return Err("invalid heading mode".to_string());
+            }
+            out.heading = v == "always";
+        } else if key == "-p" || key == "--pattern" {
+            out.pattern = Some(take_val(&mut i)?);
+        } else if key == "-r" || key == "--rewrite" || key == "--rule" {
+            let val = take_val(&mut i)?;
+            if out.scan {
+                out.rule_file = Some(val);
+            } else {
+                out.rewrite = Some(val);
+            }
+        } else if key == "--inline-rules" {
+            out.inline_rules = Some(take_val(&mut i)?);
+        } else if key == "-l" || key == "--lang" {
+            let val = take_val(&mut i)?;
+            out.language = Some(ast_grep_language_for(&val.to_ascii_lowercase())?);
+        } else if key == "--globs" {
+            out.globs.push(take_val(&mut i)?);
+        } else if matches!(
+            key,
+            "-A" | "--after" | "-B" | "--before" | "-C" | "--context"
+        ) {
+            let raw = take_val(&mut i)?;
+            let Ok(v) = raw.parse::<usize>() else {
+                return Err("invalid context count".to_string());
+            };
+            if matches!(key, "-A" | "--after" | "-C" | "--context") {
+                out.after = v;
+            }
+            if matches!(key, "-B" | "--before" | "-C" | "--context") {
+                out.before = v;
+            }
+        } else {
+            return Err(format!("unknown option: {key}"));
+        }
+        i += 1;
+    }
+    if out.help {
+        return Ok(out);
+    }
+    if out.scan {
+        if out.rule_file.is_none() && out.inline_rules.is_none() {
+            return Err("scan requires --rule or --inline-rules".to_string());
+        }
+    } else if out.pattern.is_none() {
+        return Err("run requires --pattern".to_string());
+    }
+    if out.scan && (out.pattern.is_some() || out.language.is_some()) {
+        return Err("scan language and patterns belong in rules".to_string());
+    }
+    if !out.scan && (out.rule_file.is_some() || out.inline_rules.is_some()) {
+        return Err("rule files require scan".to_string());
+    }
+    if out.stdin && !out.paths.is_empty() {
+        return Err("--stdin cannot be combined with paths".to_string());
+    }
+    if out.stdin && !out.scan && out.language.is_none() {
+        return Err("--stdin requires --lang".to_string());
+    }
+    if out.stdin && out.update {
+        return Err("--update-all requires files".to_string());
+    }
+    if out.update && !out.scan && out.rewrite.is_none() {
+        return Err("--update-all requires --rewrite".to_string());
+    }
+    Ok(out)
+}
+
+fn parse_ast_pattern_val(val: &JVal, depth: usize) -> Result<AstPattern, String> {
+    if depth > 64 {
+        return Err("rule nesting limit exceeded".to_string());
+    }
+    match val {
+        JVal::Str(s) => Ok(AstPattern::Text(s.clone())),
+        JVal::Object(entries) => {
+            if entries.is_empty() {
+                return Err("empty rule".to_string());
+            }
+            let mut spec = AstRuleSpec::default();
+            for (k, v) in entries {
+                match k.as_str() {
+                    "pattern" => {
+                        let JVal::Str(s) = v else {
+                            return Err("invalid pattern".to_string());
+                        };
+                        spec.pattern = Some(s.clone());
+                    }
+                    "kind" => {
+                        let JVal::Str(s) = v else {
+                            return Err("invalid kind".to_string());
+                        };
+                        spec.kind = Some(s.clone());
+                    }
+                    "regex" => {
+                        let JVal::Str(s) = v else {
+                            return Err("invalid regex".to_string());
+                        };
+                        spec.regex = Some(s.clone());
+                    }
+                    "all" => {
+                        let JVal::Array(arr) = v else {
+                            return Err("invalid all".to_string());
+                        };
+                        if arr.is_empty() {
+                            return Err("invalid all".to_string());
+                        }
+                        for item in arr {
+                            spec.all.push(parse_ast_pattern_val(item, depth + 1)?);
+                        }
+                    }
+                    "any" => {
+                        let JVal::Array(arr) = v else {
+                            return Err("invalid any".to_string());
+                        };
+                        if arr.is_empty() {
+                            return Err("invalid any".to_string());
+                        }
+                        for item in arr {
+                            spec.any.push(parse_ast_pattern_val(item, depth + 1)?);
+                        }
+                    }
+                    "not" => spec.not = Some(parse_ast_pattern_val(v, depth + 1)?),
+                    "inside" => spec.inside = Some(parse_ast_pattern_val(v, depth + 1)?),
+                    "has" => spec.has = Some(parse_ast_pattern_val(v, depth + 1)?),
+                    "follows" => spec.follows = Some(parse_ast_pattern_val(v, depth + 1)?),
+                    "precedes" => spec.precedes = Some(parse_ast_pattern_val(v, depth + 1)?),
+                    _ => return Err(format!("unsupported rule field: {k}")),
+                }
+            }
+            Ok(AstPattern::Rule(Box::new(spec)))
+        }
+        _ => Err("expected a rule object".to_string()),
+    }
+}
+
+fn parse_ast_grep_rules(source: &str) -> Result<Vec<AstSearchRule>, String> {
+    let mut docs = Vec::new();
+    let mut cur = String::new();
+    for line in source.split('\n') {
+        if line.trim() == "---" {
+            if !cur.trim().is_empty() {
+                docs.push(std::mem::take(&mut cur));
+            } else {
+                cur.clear();
+            }
+        } else {
+            cur.push_str(line);
+            cur.push('\n');
+        }
+    }
+    if !cur.trim().is_empty() {
+        docs.push(cur);
+    }
+    let mut rules = Vec::new();
+    for doc in docs {
+        let parsed = parse_nested_yaml(&doc);
+        let items = match parsed {
+            JVal::Array(arr) => arr,
+            other => vec![other],
+        };
+        for item in items {
+            let JVal::Object(entries) = item else {
+                return Err("expected a rule object".to_string());
+            };
+            let mut id: Option<String> = None;
+            let mut language: Option<String> = None;
+            let mut rule_val: Option<JVal> = None;
+            let mut fix: Option<String> = None;
+            let mut message: Option<String> = None;
+            let mut severity: Option<String> = None;
+            for (k, v) in entries {
+                match k.as_str() {
+                    "id" => {
+                        if let JVal::Str(s) = v {
+                            id = Some(s);
+                        }
+                    }
+                    "language" => {
+                        if let JVal::Str(s) = v {
+                            language = Some(s);
+                        }
+                    }
+                    "rule" => rule_val = Some(v),
+                    "fix" => {
+                        let JVal::Str(s) = v else {
+                            return Err("invalid fix".to_string());
+                        };
+                        fix = Some(s);
+                    }
+                    "message" => {
+                        let JVal::Str(s) = v else {
+                            return Err("invalid message".to_string());
+                        };
+                        message = Some(s);
+                    }
+                    "severity" => {
+                        let JVal::Str(s) = v else {
+                            return Err("invalid severity".to_string());
+                        };
+                        severity = Some(s);
+                    }
+                    "note" => {}
+                    _ => return Err(format!("unsupported rule field: {k}")),
+                }
+            }
+            let (Some(id_str), Some(lang_str)) = (id, language) else {
+                return Err("rules require id and language".to_string());
+            };
+            let Some(rv) = rule_val else {
+                return Err("expected a rule object".to_string());
+            };
+            rules.push(AstSearchRule {
+                id: Some(id_str),
+                language: Some(ast_grep_language_for(&lang_str.to_ascii_lowercase())?),
+                rule: parse_ast_pattern_val(&rv, 0)?,
+                fix,
+                message,
+                severity,
+            });
+        }
+    }
+    Ok(rules)
+}
+
+struct AstBuilder<'a> {
+    source: &'a str,
+    language: String,
+    pos_table: Vec<(usize, usize)>,
+    next_id: usize,
+}
+
+impl<'a> AstBuilder<'a> {
+    fn new(source: &'a str, language: &str) -> Self {
+        let bytes = source.as_bytes();
+        let mut pos_table = vec![(0usize, 0usize); bytes.len() + 1];
+        let mut line = 0usize;
+        let mut col = 0usize;
+        let mut i = 0usize;
+        while i < bytes.len() {
+            let ch = source[i..].chars().next().unwrap_or('\0');
+            let w = ch.len_utf8().max(1);
+            for b in 0..w {
+                if i + b <= bytes.len() {
+                    pos_table[i + b] = (line, col);
+                }
+            }
+            if ch == '\n' || (ch == '\r' && bytes.get(i + 1) != Some(&b'\n')) {
+                line += 1;
+                col = 0;
+            } else {
+                col += w;
+            }
+            i += w;
+        }
+        pos_table[bytes.len()] = (line, col);
+        Self {
+            source,
+            language: language.to_string(),
+            pos_table,
+            next_id: 1,
+        }
+    }
+
+    fn alloc_id(&mut self) -> usize {
+        let id = self.next_id;
+        self.next_id += 1;
+        id
+    }
+
+    fn leaf(&mut self, kind: &str, from: usize, to: usize, trivia: bool) -> AstCodeNode {
+        let id = self.alloc_id();
+        AstCodeNode {
+            id,
+            kind: kind.to_string(),
+            range: (from, to),
+            start: self.pos_table[from],
+            end: self.pos_table[to],
+            text: self.source[from..to].to_string(),
+            trivia,
+            language: self.language.clone(),
+            children: Vec::new(),
+            var_meta: None,
+        }
+    }
+
+    fn push_gap_with_comments(&mut self, out: &mut Vec<AstCodeNode>, mut from: usize, to: usize) {
+        if from >= to {
+            return;
+        }
+        let bytes = self.source.as_bytes();
+        let allow_js_comments = matches!(
+            self.language.as_str(),
+            "typescript" | "tsx" | "javascript" | "jsx" | "css"
+        );
+        if !allow_js_comments {
+            out.push(self.leaf("Trivia", from, to, true));
+            return;
+        }
+        let mut i = from;
+        while i < to {
+            if self.language != "css" && i + 1 < to && bytes[i] == b'/' && bytes[i + 1] == b'/' {
+                if i > from {
+                    out.push(self.leaf("Trivia", from, i, true));
+                }
+                let mut end = i + 2;
+                while end < to && bytes[end] != b'\n' && bytes[end] != b'\r' {
+                    end += 1;
+                }
+                out.push(self.leaf("LineComment", i, end, true));
+                from = end;
+                i = end;
+                continue;
+            }
+            if i + 1 < to && bytes[i] == b'/' && bytes[i + 1] == b'*' {
+                if i > from {
+                    out.push(self.leaf("Trivia", from, i, true));
+                }
+                let mut end = i + 2;
+                while end + 1 < to && !(bytes[end] == b'*' && bytes[end + 1] == b'/') {
+                    end += 1;
+                }
+                end = (end + 2).min(to);
+                out.push(self.leaf("BlockComment", i, end, true));
+                from = end;
+                i = end;
+                continue;
+            }
+            let w = self.source[i..to]
+                .chars()
+                .next()
+                .map(|c| c.len_utf8())
+                .unwrap_or(1);
+            i += w;
+        }
+        if from < to {
+            out.push(self.leaf("Trivia", from, to, true));
+        }
+    }
+
+    fn branch(
+        &mut self,
+        kind: &str,
+        from: usize,
+        to: usize,
+        raw_children: Vec<AstCodeNode>,
+    ) -> AstCodeNode {
+        let mut children = Vec::new();
+        let mut end = from;
+        for c in raw_children {
+            if c.range.0 > end {
+                self.push_gap_with_comments(&mut children, end, c.range.0);
+            }
+            end = c.range.1;
+            children.push(c);
+        }
+        if !children.is_empty() && end < to {
+            self.push_gap_with_comments(&mut children, end, to);
+        }
+        let id = self.alloc_id();
+        AstCodeNode {
+            id,
+            kind: kind.to_string(),
+            range: (from, to),
+            start: self.pos_table[from],
+            end: self.pos_table[to],
+            text: self.source[from..to].to_string(),
+            trivia: false,
+            language: self.language.clone(),
+            children,
+            var_meta: None,
+        }
+    }
+}
+
+fn skip_ws_and_comments(s: &str, mut i: usize, end: usize, allow_line_comment: bool, allow_block_comment: bool) -> usize {
+    let b = s.as_bytes();
+    while i < end {
+        if b[i].is_ascii_whitespace() {
+            i += 1;
+            continue;
+        }
+        if s[i..end].starts_with('\u{feff}') {
+            i += '\u{feff}'.len_utf8();
+            continue;
+        }
+        if allow_line_comment && i + 1 < end && b[i] == b'/' && b[i + 1] == b'/' {
+            i += 2;
+            while i < end && b[i] != b'\n' && b[i] != b'\r' {
+                i += 1;
+            }
+            continue;
+        }
+        if allow_block_comment && i + 1 < end && b[i] == b'/' && b[i + 1] == b'*' {
+            i += 2;
+            while i + 1 < end && !(b[i] == b'*' && b[i + 1] == b'/') {
+                i += 1;
+            }
+            i = (i + 2).min(end);
+            continue;
+        }
+        break;
+    }
+    i
+}
+
+fn find_matching_delim(s: &str, open_pos: usize, end: usize, open_b: u8, close_b: u8) -> Option<usize> {
+    let b = s.as_bytes();
+    let mut depth = 0i32;
+    let mut i = open_pos;
+    while i < end {
+        if b[i] == b'"' || b[i] == b'\'' || b[i] == b'`' {
+            let q = b[i];
+            i += 1;
+            while i < end {
+                if b[i] == b'\\' {
+                    i += 2;
+                    continue;
+                }
+                if b[i] == q {
+                    i += 1;
+                    break;
+                }
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && b[i] == b'/' && b[i + 1] == b'/' {
+            i += 2;
+            while i < end && b[i] != b'\n' && b[i] != b'\r' {
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && b[i] == b'/' && b[i + 1] == b'*' {
+            i += 2;
+            while i + 1 < end && !(b[i] == b'*' && b[i + 1] == b'/') {
+                i += 1;
+            }
+            i = (i + 2).min(end);
+            continue;
+        }
+        if b[i] == open_b {
+            depth += 1;
+        } else if b[i] == close_b {
+            depth -= 1;
+            if depth == 0 {
+                return Some(i);
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn parse_json_ast_value(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    i = skip_ws_and_comments(s, i, end, false, false);
+    if i >= end {
+        return Err("unexpected end of json".to_string());
+    }
+    match bytes[i] {
+        b'{' => {
+            let Some(close) = find_matching_delim(s, i, end, b'{', b'}') else {
+                return Err("unclosed json object".to_string());
+            };
+            let mut children = vec![b.leaf("{", i, i + 1, false)];
+            let mut p = skip_ws_and_comments(s, i + 1, close, false, false);
+            while p < close {
+                let (key_node, after_key) = parse_json_ast_value(b, p, close)?;
+                if key_node.kind != "String" {
+                    return Err("json property key must be string".to_string());
+                }
+                let mut prop_key = key_node;
+                prop_key.kind = "PropertyName".to_string();
+                let colon = skip_ws_and_comments(s, after_key, close, false, false);
+                if colon >= close || bytes[colon] != b':' {
+                    return Err("expected ':' in json object".to_string());
+                }
+                let colon_leaf = b.leaf(":", colon, colon + 1, false);
+                let (val_node, after_val) = parse_json_ast_value(b, colon + 1, close)?;
+                let prop_start = prop_key.range.0;
+                let prop_end = val_node.range.1;
+                let prop = b.branch("Property", prop_start, prop_end, vec![prop_key, colon_leaf, val_node]);
+                children.push(prop);
+                p = skip_ws_and_comments(s, after_val, close, false, false);
+                if p < close {
+                    if bytes[p] != b',' {
+                        return Err("expected ',' in json object".to_string());
+                    }
+                    children.push(b.leaf(",", p, p + 1, false));
+                    p = skip_ws_and_comments(s, p + 1, close, false, false);
+                }
+            }
+            children.push(b.leaf("}", close, close + 1, false));
+            Ok((b.branch("Object", i, close + 1, children), close + 1))
+        }
+        b'[' => {
+            let Some(close) = find_matching_delim(s, i, end, b'[', b']') else {
+                return Err("unclosed json array".to_string());
+            };
+            let mut children = vec![b.leaf("[", i, i + 1, false)];
+            let mut p = skip_ws_and_comments(s, i + 1, close, false, false);
+            while p < close {
+                let (elem, after_elem) = parse_json_ast_value(b, p, close)?;
+                children.push(elem);
+                p = skip_ws_and_comments(s, after_elem, close, false, false);
+                if p < close {
+                    if bytes[p] != b',' {
+                        return Err("expected ',' in json array".to_string());
+                    }
+                    children.push(b.leaf(",", p, p + 1, false));
+                    p = skip_ws_and_comments(s, p + 1, close, false, false);
+                }
+            }
+            children.push(b.leaf("]", close, close + 1, false));
+            Ok((b.branch("Array", i, close + 1, children), close + 1))
+        }
+        b'"' => {
+            let mut p = i + 1;
+            while p < end {
+                if bytes[p] == b'\\' {
+                    p += 2;
+                    continue;
+                }
+                if bytes[p] == b'"' {
+                    return Ok((b.leaf("String", i, p + 1, false), p + 1));
+                }
+                p += 1;
+            }
+            Err("unclosed json string".to_string())
+        }
+        _ => {
+            let mut p = i;
+            while p < end && !bytes[p].is_ascii_whitespace() && !matches!(bytes[p], b',' | b'}' | b']' | b':') {
+                p += 1;
+            }
+            let tok = &s[i..p];
+            let kind = match tok {
+                "true" => "True",
+                "false" => "False",
+                "null" => "Null",
+                _ if tok.parse::<f64>().is_ok() => "Number",
+                _ => return Err(format!("invalid json token: {tok}")),
+            };
+            Ok((b.leaf(kind, i, p, false), p))
+        }
+    }
+}
+
+fn parse_json_ast(b: &mut AstBuilder<'_>) -> Result<AstCodeNode, String> {
+    let len = b.source.len();
+    let (val, next) = parse_json_ast_value(b, 0, len)?;
+    let trailing = skip_ws_and_comments(b.source, next, len, false, false);
+    if trailing != len {
+        return Err("trailing characters in json".to_string());
+    }
+    Ok(b.branch("JsonText", 0, len, vec![val]))
+}
+
+fn parse_yaml_ast(b: &mut AstBuilder<'_>) -> Result<AstCodeNode, String> {
+    let s = b.source;
+    let len = s.len();
+    let mut pairs = Vec::new();
+    let mut offset = 0usize;
+    for line in s.split('\n') {
+        let line_len = line.len();
+        let trimmed_end = line.trim_end_matches('\r');
+        let trimmed = trimmed_end.trim();
+        if !trimmed.is_empty() && !trimmed.starts_with('#') {
+            let lead = trimmed_end.len() - trimmed_end.trim_start().len();
+            let start = offset + lead;
+            let end = offset + trimmed_end.trim_end().len();
+            let content = &s[start..end];
+            if let Some(colon_rel) = content.find(':') {
+                let key_end_rel = content[..colon_rel].trim_end().len();
+                let key_start = start;
+                let key_end = start + key_end_rel;
+                let colon_pos = start + colon_rel;
+                let val_sub = &content[colon_rel + 1..];
+                let val_lead = val_sub.len() - val_sub.trim_start().len();
+                let val_start = colon_pos + 1 + val_lead;
+                let val_end = end;
+                let key_lit = b.leaf("Literal", key_start, key_end, false);
+                let key_node = b.branch("Key", key_start, key_end, vec![key_lit]);
+                let colon_node = b.leaf(":", colon_pos, colon_pos + 1, false);
+                let mut pair_children = vec![key_node, colon_node];
+                if val_start < val_end {
+                    pair_children.push(b.leaf("Literal", val_start, val_end, false));
+                }
+                pairs.push(b.branch("Pair", start, end, pair_children));
+            }
+        }
+        offset = (offset + line_len + 1).min(len);
+    }
+    if pairs.is_empty() {
+        return Ok(b.leaf("Stream", 0, len, false));
+    }
+    let first_start = pairs.first().map(|n| n.range.0).unwrap_or(0);
+    let last_end = pairs.last().map(|n| n.range.1).unwrap_or(len);
+    let mapping = b.branch("BlockMapping", first_start, last_end, pairs);
+    let doc = b.branch("Document", first_start, last_end, vec![mapping]);
+    Ok(b.branch("Stream", 0, len, vec![doc]))
+}
+
+fn parse_html_elements(b: &mut AstBuilder<'_>, mut i: usize, end: usize, stop_tag: Option<&str>) -> Result<(Vec<AstCodeNode>, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    let mut out = Vec::new();
+    while i < end {
+        if bytes[i] == b'<' {
+            if i + 1 < end && bytes[i + 1] == b'/' {
+                let Some(gt) = s[i..end].find('>') else {
+                    return Err("unclosed html close tag".to_string());
+                };
+                let tag_name = s[i + 2..i + gt].trim();
+                if let Some(expected) = stop_tag && tag_name.eq_ignore_ascii_case(expected) {
+                    return Ok((out, i));
+                }
+                return Err(format!("unexpected close tag </{tag_name}>"));
+            }
+            let Some(gt_rel) = s[i..end].find('>') else {
+                return Err("unclosed html open tag".to_string());
+            };
+            let open_end = i + gt_rel + 1;
+            let self_closing = open_end >= i + 2 && bytes[open_end - 2] == b'/';
+            let inner_end = if self_closing { open_end - 2 } else { open_end - 1 };
+            let mut name_end = i + 1;
+            while name_end < inner_end && !bytes[name_end].is_ascii_whitespace() {
+                name_end += 1;
+            }
+            let tag_name = s[i + 1..name_end].to_string();
+            if tag_name.is_empty() {
+                return Err("empty html tag name".to_string());
+            }
+            let start_tag = b.leaf("StartTag", i, i + 1, false);
+            let tag_leaf = b.leaf("TagName", i + 1, name_end, false);
+            let end_tag = b.leaf(
+                if self_closing { "SelfCloseEndTag" } else { "EndTag" },
+                inner_end,
+                open_end,
+                false,
+            );
+            let open_node = b.branch("OpenTag", i, open_end, vec![start_tag, tag_leaf, end_tag]);
+            if self_closing {
+                out.push(b.branch("Element", i, open_end, vec![open_node]));
+                i = open_end;
+                continue;
+            }
+            let (mut body_children, close_pos) = parse_html_elements(b, open_end, end, Some(&tag_name))?;
+            let Some(close_gt_rel) = s[close_pos..end].find('>') else {
+                return Err("missing html close tag".to_string());
+            };
+            let close_end = close_pos + close_gt_rel + 1;
+            let sc = b.leaf("StartCloseTag", close_pos, close_pos + 2, false);
+            let cn = b.leaf("TagName", close_pos + 2, close_end - 1, false);
+            let ce = b.leaf("EndTag", close_end - 1, close_end, false);
+            let close_node = b.branch("CloseTag", close_pos, close_end, vec![sc, cn, ce]);
+            let mut elem_children = vec![open_node];
+            elem_children.append(&mut body_children);
+            elem_children.push(close_node);
+            out.push(b.branch("Element", i, close_end, elem_children));
+            i = close_end;
+        } else {
+            let next_lt = s[i..end].find('<').map(|r| i + r).unwrap_or(end);
+            out.push(b.leaf("Text", i, next_lt, false));
+            i = next_lt;
+        }
+    }
+    if stop_tag.is_some() {
+        return Err("unclosed html element".to_string());
+    }
+    Ok((out, i))
+}
+
+fn parse_html_ast(b: &mut AstBuilder<'_>) -> Result<AstCodeNode, String> {
+    let len = b.source.len();
+    let (children, _) = parse_html_elements(b, 0, len, None)?;
+    Ok(b.branch("Document", 0, len, children))
+}
+
+fn parse_css_ast(b: &mut AstBuilder<'_>) -> Result<AstCodeNode, String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    let len = s.len();
+    let mut rules = Vec::new();
+    let mut i = skip_ws_and_comments(s, 0, len, false, true);
+    while i < len {
+        let Some(open_rel) = s[i..len].find('{') else {
+            return Err("invalid css rule".to_string());
+        };
+        let open_brace = i + open_rel;
+        let sel_end = s[i..open_brace].trim_end().len() + i;
+        if sel_end <= i {
+            return Err("empty css selector".to_string());
+        }
+        let sel_text = &s[i..sel_end];
+        let sel_node = if let Some(rest) = sel_text.strip_prefix('.') {
+            let dot = b.leaf(".", i, i + 1, false);
+            let cn = b.leaf("ClassName", i + 1, i + 1 + rest.len(), false);
+            b.branch("ClassSelector", i, sel_end, vec![dot, cn])
+        } else {
+            let tn = b.leaf("TagName", i, sel_end, false);
+            b.branch("TagSelector", i, sel_end, vec![tn])
+        };
+        let Some(close_brace) = find_matching_delim(s, open_brace, len, b'{', b'}') else {
+            return Err("unclosed css block".to_string());
+        };
+        let mut block_children = vec![b.leaf("{", open_brace, open_brace + 1, false)];
+        let mut p = skip_ws_and_comments(s, open_brace + 1, close_brace, false, true);
+        while p < close_brace {
+            let Some(colon_rel) = s[p..close_brace].find(':') else {
+                return Err("missing ':' in css declaration".to_string());
+            };
+            let colon_pos = p + colon_rel;
+            let prop_end = p + s[p..colon_pos].trim_end().len();
+            let prop_node = b.leaf("PropertyName", p, prop_end, false);
+            let colon_node = b.leaf(":", colon_pos, colon_pos + 1, false);
+            let val_start = skip_ws_and_comments(s, colon_pos + 1, close_brace, false, true);
+            let mut val_scan = val_start;
+            let mut semi_pos = None;
+            while val_scan < close_brace {
+                if bytes[val_scan] == b'"' || bytes[val_scan] == b'\'' {
+                    let q = bytes[val_scan];
+                    val_scan += 1;
+                    while val_scan < close_brace {
+                        if bytes[val_scan] == b'\\' {
+                            val_scan += 2;
+                            continue;
+                        }
+                        if bytes[val_scan] == q {
+                            val_scan += 1;
+                            break;
+                        }
+                        val_scan += 1;
+                    }
+                    continue;
+                }
+                if bytes[val_scan] == b';' {
+                    semi_pos = Some(val_scan);
+                    break;
+                }
+                val_scan += 1;
+            }
+            let raw_val_end = semi_pos.unwrap_or(close_brace);
+            let val_end = val_start + s[val_start..raw_val_end].trim_end().len();
+            if val_end <= val_start {
+                return Err("empty css value".to_string());
+            }
+            let val_text = &s[val_start..val_end];
+            let val_kind = if (val_text.starts_with('"') && val_text.ends_with('"'))
+                || (val_text.starts_with('\'') && val_text.ends_with('\''))
+            {
+                "StringLiteral"
+            } else {
+                "ValueName"
+            };
+            let val_node = b.leaf(val_kind, val_start, val_end, false);
+            let decl = b.branch("Declaration", p, val_end, vec![prop_node, colon_node, val_node]);
+            block_children.push(decl);
+            if let Some(sp) = semi_pos {
+                block_children.push(b.leaf(";", sp, sp + 1, false));
+                p = skip_ws_and_comments(s, sp + 1, close_brace, false, true);
+            } else {
+                p = close_brace;
+            }
+        }
+        block_children.push(b.leaf("}", close_brace, close_brace + 1, false));
+        let block_node = b.branch("Block", open_brace, close_brace + 1, block_children);
+        rules.push(b.branch("RuleSet", i, close_brace + 1, vec![sel_node, block_node]));
+        i = skip_ws_and_comments(s, close_brace + 1, len, false, true);
+    }
+    Ok(b.branch("StyleSheet", 0, len, rules))
+}
+
+fn is_js_ident_start(b: u8) -> bool {
+    b.is_ascii_alphabetic() || b == b'_' || b == b'$'
+}
+
+fn is_js_ident_cont(b: u8) -> bool {
+    b.is_ascii_alphanumeric() || b == b'_' || b == b'$'
+}
+
+fn parse_jsx_element(b: &mut AstBuilder<'_>, i: usize, end: usize) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    if i >= end || bytes[i] != b'<' {
+        return Err("expected '<'".to_string());
+    }
+    let mut p = i + 1;
+    while p < end && (is_js_ident_cont(bytes[p]) || bytes[p] == b'.' || bytes[p] == b'-') {
+        p += 1;
+    }
+    if p == i + 1 {
+        return Err("expected JSX tag identifier".to_string());
+    }
+    let tag_name = s[i + 1..p].to_string();
+    let mut tag_children = vec![
+        b.leaf("JSXStartTag", i, i + 1, false),
+        b.leaf("JSXIdentifier", i + 1, p, false),
+    ];
+    loop {
+        p = skip_ws_and_comments(s, p, end, true, true);
+        if p >= end {
+            return Err("unclosed JSX tag".to_string());
+        }
+        if p + 1 < end && bytes[p] == b'/' && bytes[p + 1] == b'>' {
+            tag_children.push(b.leaf("JSXSelfCloseEndTag", p, p + 2, false));
+            let self_tag = b.branch("JSXSelfClosingTag", i, p + 2, tag_children);
+            let elem = b.branch("JSXElement", i, p + 2, vec![self_tag]);
+            return Ok((elem, p + 2));
+        }
+        if bytes[p] == b'>' {
+            tag_children.push(b.leaf("JSXEndTag", p, p + 1, false));
+            let open_tag = b.branch("JSXOpenTag", i, p + 1, tag_children);
+            let mut elem_children = vec![open_tag];
+            let mut cur = p + 1;
+            loop {
+                if cur >= end {
+                    return Err("unclosed JSX element".to_string());
+                }
+                if cur + 1 < end && bytes[cur] == b'<' && bytes[cur + 1] == b'/' {
+                    let Some(gt_rel) = s[cur..end].find('>') else {
+                        return Err("unclosed JSX close tag".to_string());
+                    };
+                    let close_end = cur + gt_rel + 1;
+                    let close_name = s[cur + 2..close_end - 1].trim();
+                    if close_name != tag_name {
+                        return Err("mismatched JSX close tag".to_string());
+                    }
+                    let close_children = vec![
+                        b.leaf("JSXStartCloseTag", cur, cur + 2, false),
+                        b.leaf("JSXIdentifier", cur + 2, close_end - 1, false),
+                        b.leaf("JSXEndTag", close_end - 1, close_end, false),
+                    ];
+                    elem_children.push(b.branch("JSXCloseTag", cur, close_end, close_children));
+                    return Ok((b.branch("JSXElement", i, close_end, elem_children), close_end));
+                } else if bytes[cur] == b'<' {
+                    let (child_jsx, next_cur) = parse_jsx_element(b, cur, end)?;
+                    elem_children.push(child_jsx);
+                    cur = next_cur;
+                } else {
+                    let mut text_end = cur;
+                    while text_end < end && bytes[text_end] != b'<' {
+                        text_end += 1;
+                    }
+                    let text_slice = &s[cur..text_end];
+                    let trimmed = text_slice.trim();
+                    if trimmed.starts_with('$') {
+                        let lead = text_slice.len() - text_slice.trim_start().len();
+                        let vstart = cur + lead;
+                        let vend = vstart + trimmed.len();
+                        elem_children.push(b.leaf("JSXText", vstart, vend, false));
+                    } else {
+                        elem_children.push(b.leaf("JSXText", cur, text_end, false));
+                    }
+                    cur = text_end;
+                }
+            }
+        }
+        let attr_start = p;
+        while p < end && (is_js_ident_cont(bytes[p]) || bytes[p] == b'-') {
+            p += 1;
+        }
+        if p == attr_start {
+            return Err("invalid JSX attribute".to_string());
+        }
+        let mut attr_children = vec![b.leaf("JSXIdentifier", attr_start, p, false)];
+        let mut attr_end = p;
+        let eq_pos = skip_ws_and_comments(s, p, end, true, true);
+        if eq_pos < end && bytes[eq_pos] == b'=' {
+            attr_children.push(b.leaf("Equals", eq_pos, eq_pos + 1, false));
+            let val_pos = skip_ws_and_comments(s, eq_pos + 1, end, true, true);
+            if val_pos < end && bytes[val_pos] == b'{' {
+                let Some(close_brace) = find_matching_delim(s, val_pos, end, b'{', b'}') else {
+                    return Err("unclosed JSX attribute expression".to_string());
+                };
+                let (expr, _) = parse_js_expr(b, val_pos + 1, close_brace)?;
+                let lb = b.leaf("{", val_pos, val_pos + 1, false);
+                let rb = b.leaf("}", close_brace, close_brace + 1, false);
+                let esc = b.branch(
+                    "JSXEscape",
+                    val_pos,
+                    close_brace + 1,
+                    vec![lb, expr, rb],
+                );
+                attr_end = close_brace + 1;
+                attr_children.push(esc);
+                p = attr_end;
+            } else if val_pos < end && (bytes[val_pos] == b'"' || bytes[val_pos] == b'\'') {
+                let q = bytes[val_pos];
+                let mut qend = val_pos + 1;
+                while qend < end && bytes[qend] != q {
+                    if bytes[qend] == b'\\' {
+                        qend += 2;
+                    } else {
+                        qend += 1;
+                    }
+                }
+                qend = (qend + 1).min(end);
+                attr_children.push(b.leaf("String", val_pos, qend, false));
+                attr_end = qend;
+                p = attr_end;
+            }
+        }
+        tag_children.push(b.branch("JSXAttribute", attr_start, attr_end, attr_children));
+    }
+}
+
+fn find_top_level_js_op(s: &str, start: usize, end: usize) -> Option<(usize, usize)> {
+    let bytes = s.as_bytes();
+    if start < end && bytes[start] == b'<' {
+        return None;
+    }
+    let mut depth = 0i32;
+    let mut i = start;
+    let mut found: Option<(usize, usize)> = None;
+    while i < end {
+        if bytes[i] == b'"' || bytes[i] == b'\'' || bytes[i] == b'`' {
+            let q = bytes[i];
+            i += 1;
+            while i < end {
+                if bytes[i] == b'\\' {
+                    i += 2;
+                    continue;
+                }
+                if bytes[i] == q {
+                    i += 1;
+                    break;
+                }
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && bytes[i] == b'/' && bytes[i + 1] == b'/' {
+            i += 2;
+            while i < end && bytes[i] != b'\n' && bytes[i] != b'\r' {
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && bytes[i] == b'/' && bytes[i + 1] == b'*' {
+            i += 2;
+            while i + 1 < end && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+                i += 1;
+            }
+            i = (i + 2).min(end);
+            continue;
+        }
+        if matches!(bytes[i], b'(' | b'[' | b'{') {
+            depth += 1;
+            i += 1;
+            continue;
+        }
+        if matches!(bytes[i], b')' | b']' | b'}') {
+            depth -= 1;
+            i += 1;
+            continue;
+        }
+        if depth == 0 && matches!(bytes[i], b'+' | b'-' | b'*' | b'/') {
+            found = Some((i, i + 1));
+        }
+        i += 1;
+    }
+    found
+}
+
+fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    i = skip_ws_and_comments(s, i, end, true, true);
+    while end > i && bytes[end - 1].is_ascii_whitespace() {
+        end -= 1;
+    }
+    if i >= end {
+        return Err("empty js expression".to_string());
+    }
+    if let Some((op_start, op_end)) = find_top_level_js_op(s, i, end)
+        && op_start > i
+        && op_end < end
+    {
+        let (lhs, _) = parse_js_expr(b, i, op_start)?;
+        let op_leaf = b.leaf("ArithOp", op_start, op_end, false);
+        let (rhs, _) = parse_js_expr(b, op_end, end)?;
+        let start = lhs.range.0;
+        let stop = rhs.range.1;
+        return Ok((b.branch("BinaryExpression", start, stop, vec![lhs, op_leaf, rhs]), stop));
+    }
+    let (mut cur, mut pos) = match bytes[i] {
+        b'(' => {
+            let Some(close) = find_matching_delim(s, i, end, b'(', b')') else {
+                return Err("unclosed '('".to_string());
+            };
+            let (inner, _) = parse_js_expr(b, i + 1, close)?;
+            let lp = b.leaf("(", i, i + 1, false);
+            let rp = b.leaf(")", close, close + 1, false);
+            let node = b.branch(
+                "ParenthesizedExpression",
+                i,
+                close + 1,
+                vec![lp, inner, rp],
+            );
+            (node, close + 1)
+        }
+        b'[' => {
+            let Some(close) = find_matching_delim(s, i, end, b'[', b']') else {
+                return Err("unclosed '['".to_string());
+            };
+            let mut children = vec![b.leaf("[", i, i + 1, false)];
+            let mut p = skip_ws_and_comments(s, i + 1, close, true, true);
+            while p < close {
+                if bytes[p] == b',' {
+                    children.push(b.leaf(",", p, p + 1, false));
+                    p = skip_ws_and_comments(s, p + 1, close, true, true);
+                    continue;
+                }
+                let elem_end = find_comma_or_end(s, p, close);
+                let (elem, _) = parse_js_expr(b, p, elem_end)?;
+                children.push(elem);
+                p = skip_ws_and_comments(s, elem_end, close, true, true);
+                if p < close && bytes[p] == b',' {
+                    children.push(b.leaf(",", p, p + 1, false));
+                    p = skip_ws_and_comments(s, p + 1, close, true, true);
+                }
+            }
+            children.push(b.leaf("]", close, close + 1, false));
+            (b.branch("ArrayExpression", i, close + 1, children), close + 1)
+        }
+        b'{' => {
+            let Some(close) = find_matching_delim(s, i, end, b'{', b'}') else {
+                return Err("unclosed '{'".to_string());
+            };
+            let mut children = vec![b.leaf("{", i, i + 1, false)];
+            let mut p = skip_ws_and_comments(s, i + 1, close, true, true);
+            while p < close {
+                let prop_end = find_comma_or_end(s, p, close);
+                let prop_slice = s[p..prop_end].trim_end();
+                let prop_actual_end = p + prop_slice.len();
+                if let Some(colon_rel) = prop_slice.find(':') {
+                    let key_end = p + prop_slice[..colon_rel].trim_end().len();
+                    let colon_pos = p + colon_rel;
+                    let key_node = b.leaf("PropertyDefinition", p, key_end, false);
+                    let colon_node = b.leaf(":", colon_pos, colon_pos + 1, false);
+                    let (val_node, _) = parse_js_expr(b, colon_pos + 1, prop_actual_end)?;
+                    let prop = b.branch(
+                        "Property",
+                        p,
+                        val_node.range.1,
+                        vec![key_node, colon_node, val_node],
+                    );
+                    children.push(prop);
+                } else {
+                    let def = b.leaf("PropertyDefinition", p, prop_actual_end, false);
+                    let prop = b.branch("Property", p, prop_actual_end, vec![def]);
+                    children.push(prop);
+                }
+                p = skip_ws_and_comments(s, prop_end, close, true, true);
+                if p < close && bytes[p] == b',' {
+                    children.push(b.leaf(",", p, p + 1, false));
+                    p = skip_ws_and_comments(s, p + 1, close, true, true);
+                }
+            }
+            children.push(b.leaf("}", close, close + 1, false));
+            (b.branch("ObjectExpression", i, close + 1, children), close + 1)
+        }
+        b'"' | b'\'' | b'`' => {
+            let q = bytes[i];
+            let mut p = i + 1;
+            while p < end {
+                if bytes[p] == b'\\' {
+                    p += 2;
+                    continue;
+                }
+                if bytes[p] == q {
+                    p += 1;
+                    break;
+                }
+                p += 1;
+            }
+            (b.leaf("String", i, p.min(end), false), p.min(end))
+        }
+        b'<' if matches!(b.language.as_str(), "tsx" | "jsx") => parse_jsx_element(b, i, end)?,
+        c if c.is_ascii_digit() => {
+            let mut p = i + 1;
+            while p < end && (bytes[p].is_ascii_alphanumeric() || bytes[p] == b'.' || bytes[p] == b'_') {
+                p += 1;
+            }
+            (b.leaf("Number", i, p, false), p)
+        }
+        c if is_js_ident_start(c) => {
+            let mut p = i + 1;
+            while p < end && is_js_ident_cont(bytes[p]) {
+                p += 1;
+            }
+            let tok = &s[i..p];
+            let kind = match tok {
+                "true" | "false" => "BooleanLiteral",
+                "null" => "null",
+                _ => "VariableName",
+            };
+            (b.leaf(kind, i, p, false), p)
+        }
+        _ => return Err(format!("unexpected token in js expression at {}", &s[i..end])),
+    };
+
+    loop {
+        let next = skip_ws_and_comments(s, pos, end, true, true);
+        if next >= end {
+            break;
+        }
+        if bytes[next] == b'.' {
+            let dot = b.leaf(".", next, next + 1, false);
+            let prop_start = skip_ws_and_comments(s, next + 1, end, true, true);
+            let mut prop_end = prop_start;
+            while prop_end < end && is_js_ident_cont(bytes[prop_end]) {
+                prop_end += 1;
+            }
+            if prop_end == prop_start {
+                return Err("expected property name after '.'".to_string());
+            }
+            let prop = b.leaf("PropertyName", prop_start, prop_end, false);
+            let start = cur.range.0;
+            cur = b.branch("MemberExpression", start, prop_end, vec![cur, dot, prop]);
+            pos = prop_end;
+            continue;
+        }
+        if bytes[next] == b'(' {
+            let Some(close) = find_matching_delim(s, next, end, b'(', b')') else {
+                return Err("unclosed '(' in call".to_string());
+            };
+            let mut arg_children = vec![b.leaf("(", next, next + 1, false)];
+            let mut p = skip_ws_and_comments(s, next + 1, close, true, true);
+            while p < close {
+                let arg_end = find_comma_or_end(s, p, close);
+                let (arg_expr, _) = parse_js_expr(b, p, arg_end)?;
+                arg_children.push(arg_expr);
+                p = skip_ws_and_comments(s, arg_end, close, true, true);
+                if p < close && bytes[p] == b',' {
+                    arg_children.push(b.leaf(",", p, p + 1, false));
+                    p = skip_ws_and_comments(s, p + 1, close, true, true);
+                }
+            }
+            arg_children.push(b.leaf(")", close, close + 1, false));
+            let arg_list = b.branch("ArgList", next, close + 1, arg_children);
+            let start = cur.range.0;
+            cur = b.branch("CallExpression", start, close + 1, vec![cur, arg_list]);
+            pos = close + 1;
+            continue;
+        }
+        break;
+    }
+    Ok((cur, pos))
+}
+
+fn find_comma_or_end(s: &str, mut i: usize, end: usize) -> usize {
+    let bytes = s.as_bytes();
+    let mut depth = 0i32;
+    while i < end {
+        if bytes[i] == b'"' || bytes[i] == b'\'' || bytes[i] == b'`' {
+            let q = bytes[i];
+            i += 1;
+            while i < end {
+                if bytes[i] == b'\\' {
+                    i += 2;
+                    continue;
+                }
+                if bytes[i] == q {
+                    i += 1;
+                    break;
+                }
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && bytes[i] == b'/' && bytes[i + 1] == b'*' {
+            i += 2;
+            while i + 1 < end && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+                i += 1;
+            }
+            i = (i + 2).min(end);
+            continue;
+        }
+        if matches!(bytes[i], b'(' | b'[' | b'{') {
+            depth += 1;
+        } else if matches!(bytes[i], b')' | b']' | b'}') {
+            depth -= 1;
+        } else if depth == 0 && bytes[i] == b',' {
+            return i;
+        }
+        i += 1;
+    }
+    end
+}
+
+fn find_stmt_end(s: &str, mut i: usize, end: usize) -> (usize, Option<usize>) {
+    let bytes = s.as_bytes();
+    let mut depth = 0i32;
+    let mut jsx_depth = 0i32;
+    while i < end {
+        if bytes[i] == b'"' || bytes[i] == b'\'' || bytes[i] == b'`' {
+            let q = bytes[i];
+            i += 1;
+            while i < end {
+                if bytes[i] == b'\\' {
+                    i += 2;
+                    continue;
+                }
+                if bytes[i] == q {
+                    i += 1;
+                    break;
+                }
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && bytes[i] == b'/' && bytes[i + 1] == b'/' {
+            if depth == 0 && jsx_depth == 0 {
+                return (i, None);
+            }
+            i += 2;
+            while i < end && bytes[i] != b'\n' && bytes[i] != b'\r' {
+                i += 1;
+            }
+            continue;
+        }
+        if i + 1 < end && bytes[i] == b'/' && bytes[i + 1] == b'*' {
+            i += 2;
+            while i + 1 < end && !(bytes[i] == b'*' && bytes[i + 1] == b'/') {
+                i += 1;
+            }
+            i = (i + 2).min(end);
+            continue;
+        }
+        if matches!(bytes[i], b'(' | b'[' | b'{') {
+            depth += 1;
+        } else if matches!(bytes[i], b')' | b']' | b'}') {
+            depth -= 1;
+        } else if depth == 0 && bytes[i] == b'<' {
+            if i + 1 < end && bytes[i + 1] == b'/' {
+                jsx_depth = (jsx_depth - 1).max(0);
+            } else if i + 1 < end && is_js_ident_start(bytes[i + 1]) {
+                if let Some(gt_rel) = s[i..end].find('>') {
+                    let gt = i + gt_rel;
+                    if gt == 0 || bytes[gt - 1] != b'/' {
+                        jsx_depth += 1;
+                    }
+                    i = gt + 1;
+                    continue;
+                }
+            }
+        } else if depth == 0 && jsx_depth == 0 && bytes[i] == b';' {
+            return (i, Some(i));
+        } else if depth == 0 && jsx_depth == 0 && (bytes[i] == b'\n' || bytes[i] == b'\r') {
+            return (i, None);
+        }
+        i += 1;
+    }
+    (end, None)
+}
+
+fn parse_js_block(b: &mut AstBuilder<'_>, open_brace: usize, end: usize) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let Some(close_brace) = find_matching_delim(s, open_brace, end, b'{', b'}') else {
+        return Err("unclosed block '{'".to_string());
+    };
+    let mut children = vec![b.leaf("{", open_brace, open_brace + 1, false)];
+    let mut stmts = parse_js_stmt_list(b, open_brace + 1, close_brace)?;
+    children.append(&mut stmts);
+    children.push(b.leaf("}", close_brace, close_brace + 1, false));
+    Ok((b.branch("Block", open_brace, close_brace + 1, children), close_brace + 1))
+}
+
+fn parse_js_function_decl(b: &mut AstBuilder<'_>, fn_start: usize, end: usize) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    let fn_kw = b.leaf("function", fn_start, fn_start + 8, false);
+    let name_start = skip_ws_and_comments(s, fn_start + 8, end, true, true);
+    let mut name_end = name_start;
+    while name_end < end && is_js_ident_cont(bytes[name_end]) {
+        name_end += 1;
+    }
+    if name_end == name_start {
+        return Err("expected function name".to_string());
+    }
+    let name_node = b.leaf("VariableDefinition", name_start, name_end, false);
+    let param_open = skip_ws_and_comments(s, name_end, end, true, true);
+    if param_open >= end || bytes[param_open] != b'(' {
+        return Err("expected '(' after function name".to_string());
+    }
+    let Some(param_close) = find_matching_delim(s, param_open, end, b'(', b')') else {
+        return Err("unclosed parameter list".to_string());
+    };
+    let mut param_children = vec![b.leaf("(", param_open, param_open + 1, false)];
+    let mut p = skip_ws_and_comments(s, param_open + 1, param_close, true, true);
+    while p < param_close {
+        let p_end = find_comma_or_end(s, p, param_close);
+        let p_slice = s[p..p_end].trim_end();
+        let p_actual_end = p + p_slice.len();
+        if let Some(colon_rel) = p_slice.find(':') {
+            let id_end = p + p_slice[..colon_rel].trim_end().len();
+            let colon_pos = p + colon_rel;
+            param_children.push(b.leaf("VariableDefinition", p, id_end, false));
+            let ty_start = skip_ws_and_comments(s, colon_pos + 1, p_actual_end, true, true);
+            let ty_colon = b.leaf(":", colon_pos, colon_pos + 1, false);
+            let ty_name = b.leaf("TypeName", ty_start, p_actual_end, false);
+            param_children.push(b.branch("TypeAnnotation", colon_pos, p_actual_end, vec![ty_colon, ty_name]));
+        } else {
+            param_children.push(b.leaf("VariableDefinition", p, p_actual_end, false));
+        }
+        p = skip_ws_and_comments(s, p_end, param_close, true, true);
+        if p < param_close && bytes[p] == b',' {
+            param_children.push(b.leaf(",", p, p + 1, false));
+            p = skip_ws_and_comments(s, p + 1, param_close, true, true);
+        }
+    }
+    param_children.push(b.leaf(")", param_close, param_close + 1, false));
+    let param_list = b.branch("ParamList", param_open, param_close + 1, param_children);
+    let body_open = skip_ws_and_comments(s, param_close + 1, end, true, true);
+    if body_open >= end || bytes[body_open] != b'{' {
+        return Err("expected function body '{'".to_string());
+    }
+    let (block, after_block) = parse_js_block(b, body_open, end)?;
+    Ok((
+        b.branch(
+            "FunctionDeclaration",
+            fn_start,
+            after_block,
+            vec![fn_kw, name_node, param_list, block],
+        ),
+        after_block,
+    ))
+}
+
+fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Result<Vec<AstCodeNode>, String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    let mut stmts = Vec::new();
+    loop {
+        i = skip_ws_and_comments(s, i, end, true, true);
+        if i >= end {
+            break;
+        }
+        if s[i..end].starts_with("export ") || s[i..end].starts_with("export\t") {
+            let exp_kw = b.leaf("export", i, i + 6, false);
+            let inner_start = skip_ws_and_comments(s, i + 6, end, true, true);
+            if s[inner_start..end].starts_with("function ") || s[inner_start..end].starts_with("function\t") {
+                let (fn_decl, after_fn) = parse_js_function_decl(b, inner_start, end)?;
+                stmts.push(b.branch("ExportDeclaration", i, after_fn, vec![exp_kw, fn_decl]));
+                i = after_fn;
+                continue;
+            }
+        }
+        if s[i..end].starts_with("function ") || s[i..end].starts_with("function\t") {
+            let (fn_decl, after_fn) = parse_js_function_decl(b, i, end)?;
+            stmts.push(fn_decl);
+            i = after_fn;
+            continue;
+        }
+        if s[i..end].starts_with("for") && (i + 3 == end || !is_js_ident_cont(bytes[i + 3])) {
+            let for_kw = b.leaf("for", i, i + 3, false);
+            let spec_open = skip_ws_and_comments(s, i + 3, end, true, true);
+            if spec_open >= end || bytes[spec_open] != b'(' {
+                return Err("expected '(' after for".to_string());
+            }
+            let Some(spec_close) = find_matching_delim(s, spec_open, end, b'(', b')') else {
+                return Err("unclosed for spec".to_string());
+            };
+            let mut spec_children = vec![b.leaf("(", spec_open, spec_open + 1, false)];
+            let mut p = spec_open + 1;
+            while p < spec_close {
+                p = skip_ws_and_comments(s, p, spec_close, true, true);
+                if p >= spec_close {
+                    break;
+                }
+                if bytes[p] == b';' {
+                    spec_children.push(b.leaf(";", p, p + 1, false));
+                    p += 1;
+                    continue;
+                }
+                let mut part_end = p;
+                while part_end < spec_close && bytes[part_end] != b';' {
+                    part_end += 1;
+                }
+                let (expr, _) = parse_js_expr(b, p, part_end)?;
+                spec_children.push(expr);
+                p = part_end;
+            }
+            spec_children.push(b.leaf(")", spec_close, spec_close + 1, false));
+            let for_spec = b.branch("ForSpec", spec_open, spec_close + 1, spec_children);
+            let body_open = skip_ws_and_comments(s, spec_close + 1, end, true, true);
+            let (body_node, after_body) = if body_open < end && bytes[body_open] == b'{' {
+                parse_js_block(b, body_open, end)?
+            } else {
+                return Err("expected '{' in for statement".to_string());
+            };
+            stmts.push(b.branch("ForStatement", i, after_body, vec![for_kw, for_spec, body_node]));
+            i = after_body;
+            continue;
+        }
+        if s[i..end].starts_with("return") && (i + 6 == end || !is_js_ident_cont(bytes[i + 6])) {
+            let ret_kw = b.leaf("return", i, i + 6, false);
+            let (stmt_end, semi_pos) = find_stmt_end(s, i + 6, end);
+            let mut children = vec![ret_kw];
+            let expr_start = skip_ws_and_comments(s, i + 6, stmt_end, true, true);
+            if expr_start < stmt_end {
+                let (expr, _) = parse_js_expr(b, expr_start, stmt_end)?;
+                children.push(expr);
+            }
+            let final_end = if let Some(sp) = semi_pos {
+                children.push(b.leaf(";", sp, sp + 1, false));
+                sp + 1
+            } else {
+                stmt_end
+            };
+            stmts.push(b.branch("ReturnStatement", i, final_end, children));
+            i = final_end;
+            continue;
+        }
+        let (stmt_end, semi_pos) = find_stmt_end(s, i, end);
+        let (expr, _) = parse_js_expr(b, i, stmt_end)?;
+        let mut children = vec![expr];
+        let final_end = if let Some(sp) = semi_pos {
+            children.push(b.leaf(";", sp, sp + 1, false));
+            sp + 1
+        } else {
+            children[0].range.1
+        };
+        stmts.push(b.branch("ExpressionStatement", i, final_end, children));
+        i = if let Some(sp) = semi_pos { sp + 1 } else { stmt_end };
+    }
+    Ok(stmts)
+}
+
+fn parse_ast_code(source: &str, language: &str) -> Result<AstCodeNode, String> {
+    let mut b = AstBuilder::new(source, language);
+    match language {
+        "json" => parse_json_ast(&mut b),
+        "yaml" => parse_yaml_ast(&mut b),
+        "html" => parse_html_ast(&mut b),
+        "css" => parse_css_ast(&mut b),
+        "typescript" | "tsx" | "javascript" | "jsx" => {
+            let stmts = parse_js_stmt_list(&mut b, 0, source.len())?;
+            Ok(b.branch("Script", 0, source.len(), stmts))
+        }
+        _ => Err(format!("Unsupported language: {language}")),
+    }
+}
+
+fn parse_ast_variable_token(text: &str) -> Option<(String, bool)> {
+    let (many, rest) = if let Some(r) = text.strip_prefix("$$$") {
+        (true, r)
+    } else if let Some(r) = text.strip_prefix('$') {
+        if r.is_empty() {
+            return None;
+        }
+        (false, r)
+    } else {
+        return None;
+    };
+    if !rest.is_empty() {
+        let bytes = rest.as_bytes();
+        if !(bytes[0].is_ascii_uppercase() || bytes[0] == b'_') {
+            return None;
+        }
+        if !bytes[1..]
+            .iter()
+            .all(|&c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == b'_')
+        {
+            return None;
+        }
+    }
+    Some((rest.to_string(), many))
+}
+
+fn prepare_ast_pattern(pattern: &str, language: &str) -> (String, BTreeMap<String, (String, bool)>) {
+    let mut markers = BTreeMap::new();
+    if language != "json" && language != "css" {
+        return (pattern.to_string(), markers);
+    }
+    let mut prefix = "__ast_capture_".to_string();
+    while pattern.contains(&prefix) {
+        prefix.push('_');
+    }
+    let mut source = String::new();
+    let mut quote: Option<char> = None;
+    let mut escaped = false;
+    let mut comment = false;
+    let mut previous = String::new();
+    let mut containers: Vec<char> = Vec::new();
+    let chars: Vec<(usize, char)> = pattern.char_indices().collect();
+    let mut idx = 0usize;
+    while idx < chars.len() {
+        let (byte_pos, ch) = chars[idx];
+        if comment {
+            source.push(ch);
+            idx += 1;
+            if ch == '*' && idx < chars.len() && chars[idx].1 == '/' {
+                source.push('/');
+                idx += 1;
+                comment = false;
+            }
+            continue;
+        }
+        if let Some(q) = quote {
+            source.push(ch);
+            idx += 1;
+            if ch == q && !escaped {
+                quote = None;
+            }
+            escaped = ch == '\\' && !escaped;
+            previous = "string".to_string();
+            continue;
+        }
+        if ch == '"' || (ch == '\'' && language == "css") {
+            quote = Some(ch);
+            source.push(ch);
+            idx += 1;
+            continue;
+        }
+        if ch == '/' && idx + 1 < chars.len() && chars[idx + 1].1 == '*' && language == "css" {
+            comment = true;
+            source.push_str("/*");
+            idx += 2;
+            continue;
+        }
+        if ch == '$' {
+            let rest = &pattern[byte_pos..];
+            let pfx_len = if rest.starts_with("$$$") { 3 } else { 1 };
+            let mut end_len = pfx_len;
+            let rb = rest.as_bytes();
+            if end_len < rb.len() && (rb[end_len].is_ascii_uppercase() || rb[end_len] == b'_') {
+                end_len += 1;
+                while end_len < rb.len()
+                    && (rb[end_len].is_ascii_uppercase()
+                        || rb[end_len].is_ascii_digit()
+                        || rb[end_len] == b'_')
+                {
+                    end_len += 1;
+                }
+            }
+            let token = &rest[..end_len];
+            if let Some(val) = parse_ast_variable_token(token) {
+                let placeholder = format!("{prefix}{}__", markers.len());
+                let mut repl = if language == "json" {
+                    format!("\"{placeholder}\"")
+                } else {
+                    placeholder
+                };
+                markers.insert(repl.clone(), val.clone());
+                let next_non_ws = rest[end_len..].trim_start().chars().next();
+                if language == "json"
+                    && containers.last() == Some(&'{')
+                    && (previous == "{" || previous == ",")
+                    && next_non_ws != Some(':')
+                {
+                    repl.push_str(":null");
+                    markers.insert(repl.clone(), val);
+                }
+                source.push_str(&repl);
+                while idx < chars.len() && chars[idx].0 < byte_pos + end_len {
+                    idx += 1;
+                }
+                previous = "value".to_string();
+                continue;
+            }
+        }
+        if ch == '{' || ch == '[' {
+            containers.push(ch);
+        }
+        if ch == '}' || ch == ']' {
+            containers.pop();
+        }
+        if !ch.is_whitespace() {
+            previous = ch.to_string();
+        }
+        source.push(ch);
+        idx += 1;
+    }
+    (source, markers)
+}
+
+fn annotate_ast_markers(node: &mut AstCodeNode, markers: &BTreeMap<String, (String, bool)>) {
+    if let Some(meta) = markers.get(&node.text) {
+        node.var_meta = Some(meta.clone());
+    }
+    for c in &mut node.children {
+        annotate_ast_markers(c, markers);
+    }
+}
+
+fn find_first_kind(node: &AstCodeNode, kind: &str) -> Option<AstCodeNode> {
+    if node.kind == kind {
+        return Some(node.clone());
+    }
+    for c in &node.children {
+        if let Some(found) = find_first_kind(c, kind) {
+            return Some(found);
+        }
+    }
+    None
+}
+
+fn ast_pattern_node(pattern: &str, language: &str) -> Result<AstCodeNode, String> {
+    let (source, markers) = prepare_ast_pattern(pattern, language);
+    let mut tree = parse_ast_code(&source, language);
+    let mut selected: Option<AstCodeNode> = None;
+    if language == "json" && tree.is_err() {
+        let wrapped = format!("{{{source}}}");
+        tree = parse_ast_code(&wrapped, language);
+        if let Ok(ref root) = tree {
+            selected = find_first_kind(root, "Property");
+        }
+    }
+    if language == "css" && tree.is_err() {
+        let wrapped = format!("x{{{source}}}");
+        tree = parse_ast_code(&wrapped, language);
+        if let Ok(ref root) = tree {
+            selected = find_first_kind(root, "Declaration");
+        }
+    }
+    let mut root = tree.map_err(|_| format!("Invalid {language} pattern: {pattern}"))?;
+    annotate_ast_markers(&mut root, &markers);
+    if let Some(ref mut sel) = selected {
+        annotate_ast_markers(sel, &markers);
+    }
+    let mut result = selected.unwrap_or(root);
+    while matches!(
+        result.kind.as_str(),
+        "Script" | "JsonText" | "Stream" | "Document" | "ExpressionStatement" | "BlockMapping" | "StyleSheet"
+    ) {
+        let sig: Vec<&AstCodeNode> = result
+            .children
+            .iter()
+            .filter(|n| !n.trivia && n.kind != ";")
+            .collect();
+        if sig.len() != 1 {
+            break;
+        }
+        result = sig[0].clone();
+    }
+    Ok(result)
+}
+
+fn ast_variable(node: &AstCodeNode) -> Option<(String, bool)> {
+    if let Some(ref m) = node.var_meta {
+        return Some(m.clone());
+    }
+    if node.language == "json" || node.language == "css" {
+        return None;
+    }
+    let mut text = node.text.trim();
+    if node.kind == "ExpressionStatement" && let Some(stripped) = text.strip_suffix(';') {
+        text = stripped.trim_end();
+    }
+    parse_ast_variable_token(text)
+}
+
+fn ast_children(node: &AstCodeNode) -> Vec<AstCodeNode> {
+    let sig: Vec<AstCodeNode> = node
+        .children
+        .iter()
+        .filter(|n| {
+            !n.trivia && !((n.kind == "JSXText" || n.kind == "Text") && n.text.trim().is_empty())
+        })
+        .cloned()
+        .collect();
+    sig.iter()
+        .enumerate()
+        .filter(|&(i, n)| {
+            if n.kind == ";" {
+                return node.kind == "ForSpec";
+            }
+            if n.kind != "," {
+                return true;
+            }
+            node.kind == "ArrayExpression"
+                && (i == 1 || (i > 0 && sig.get(i - 1).map(|p| p.kind.as_str()) == Some(",")))
+        })
+        .map(|(_, n)| n.clone())
+        .collect()
+}
+
+fn ast_same(a: &AstCodeNode, b: &AstCodeNode) -> bool {
+    if a.kind != b.kind {
+        return false;
+    }
+    let ac = ast_children(a);
+    let bc = ast_children(b);
+    if !ac.is_empty() || !bc.is_empty() {
+        ac.len() == bc.len() && ac.iter().zip(bc.iter()).all(|(x, y)| ast_same(x, y))
+    } else {
+        a.text == b.text
+    }
+}
+
+fn ast_capture(
+    name: &str,
+    nodes: &[AstCodeNode],
+    owner: &AstCodeNode,
+    captures: &BTreeMap<String, AstCapture>,
+    many: bool,
+    source: &str,
+) -> Option<BTreeMap<String, AstCapture>> {
+    if name.is_empty() || name == "_" {
+        return Some(captures.clone());
+    }
+    if let Some(prev) = captures.get(name) {
+        if prev.nodes.len() != nodes.len()
+            || !nodes
+                .iter()
+                .zip(prev.nodes.iter())
+                .all(|(x, y)| ast_same(x, y))
+        {
+            return None;
+        }
+    }
+    let start = nodes.first().map(|n| n.range.0).unwrap_or(owner.range.0);
+    let end = nodes.last().map(|n| n.range.1).unwrap_or(start);
+    let text = source.get(start..end).unwrap_or("").to_string();
+    let mut next = captures.clone();
+    next.insert(
+        name.to_string(),
+        AstCapture {
+            many,
+            nodes: nodes.to_vec(),
+            text,
+            range: (start, end),
+        },
+    );
+    Some(next)
+}
+
+fn ast_structural(
+    pattern: &AstCodeNode,
+    node: &AstCodeNode,
+    captures: &BTreeMap<String, AstCapture>,
+    source: &str,
+) -> Option<BTreeMap<String, AstCapture>> {
+    if let Some((vname, many)) = ast_variable(pattern) {
+        let first_ch = node.kind.bytes().next().unwrap_or(0);
+        if node.trivia || node.kind == "ERROR" || !first_ch.is_ascii_uppercase() {
+            return None;
+        }
+        return ast_capture(&vname, std::slice::from_ref(node), node, captures, many, source);
+    }
+    if pattern.kind != node.kind {
+        return None;
+    }
+    let ps = ast_children(pattern);
+    let ns = ast_children(node);
+    if ps.is_empty() && ns.is_empty() {
+        return (pattern.text == node.text).then(|| captures.clone());
+    }
+    fn seq(
+        ps: &[AstCodeNode],
+        ns: &[AstCodeNode],
+        pi: usize,
+        ni: usize,
+        owner: &AstCodeNode,
+        state: &BTreeMap<String, AstCapture>,
+        source: &str,
+    ) -> Option<BTreeMap<String, AstCapture>> {
+        if pi == ps.len() {
+            return (ni == ns.len()).then(|| state.clone());
+        }
+        let p = &ps[pi];
+        if let Some((vname, true)) = ast_variable(p) {
+            for end in ni..=ns.len() {
+                if let Some(next) = ast_capture(&vname, &ns[ni..end], owner, state, true, source)
+                    && let Some(res) = seq(ps, ns, pi + 1, end, owner, &next, source)
+                {
+                    return Some(res);
+                }
+            }
+            return None;
+        }
+        if ni == ns.len() {
+            return None;
+        }
+        let next = ast_structural(p, &ns[ni], state, source)?;
+        seq(ps, ns, pi + 1, ni + 1, owner, &next, source)
+    }
+    seq(&ps, &ns, 0, 0, node, captures, source)
+}
+
+fn walk_ast_nodes<'a>(node: &'a AstCodeNode, out: &mut Vec<&'a AstCodeNode>) {
+    out.push(node);
+    for c in &node.children {
+        walk_ast_nodes(c, out);
+    }
+}
+
+fn find_ast_parent<'a>(root: &'a AstCodeNode, target_id: usize) -> Option<&'a AstCodeNode> {
+    for c in &root.children {
+        if c.id == target_id {
+            return Some(root);
+        }
+        if let Some(p) = find_ast_parent(c, target_id) {
+            return Some(p);
+        }
+    }
+    None
+}
+
+fn collect_ast_ancestors<'a>(root: &'a AstCodeNode, mut cur_id: usize) -> Vec<&'a AstCodeNode> {
+    let mut out = Vec::new();
+    while let Some(p) = find_ast_parent(root, cur_id) {
+        out.push(p);
+        cur_id = p.id;
+    }
+    out
+}
+
+fn collect_ast_siblings<'a>(root: &'a AstCodeNode, node: &'a AstCodeNode, previous: bool) -> Vec<AstCodeNode> {
+    let mut cur = node;
+    while let Some(p) = find_ast_parent(root, cur.id) {
+        if p.kind == "ExpressionStatement" {
+            cur = p;
+        } else {
+            break;
+        }
+    }
+    let Some(parent) = find_ast_parent(root, cur.id) else {
+        return Vec::new();
+    };
+    let Some(pos) = parent.children.iter().position(|c| c.id == cur.id) else {
+        return Vec::new();
+    };
+    let indices: Vec<usize> = if previous {
+        (0..pos).rev().collect()
+    } else {
+        (pos + 1..parent.children.len()).collect()
+    };
+    let mut out = Vec::new();
+    for idx in indices {
+        let sib = &parent.children[idx];
+        if sib.trivia || sib.kind == "," || sib.kind == ";" {
+            continue;
+        }
+        out.push(sib.clone());
+        if sib.kind == "ExpressionStatement" {
+            out.extend(ast_children(sib));
+        }
+    }
+    out
+}
+
+fn eval_ast_pattern(
+    pattern: &AstPattern,
+    language: &str,
+    root: &AstCodeNode,
+    node: &AstCodeNode,
+    captures: &BTreeMap<String, AstCapture>,
+    source: &str,
+) -> Result<Option<BTreeMap<String, AstCapture>>, String> {
+    match pattern {
+        AstPattern::Text(pat_str) => {
+            let pat_node = ast_pattern_node(pat_str, language)?;
+            Ok(ast_structural(&pat_node, node, captures, source))
+        }
+        AstPattern::Rule(spec) => {
+            let mut state = captures.clone();
+            if let Some(ref pat_str) = spec.pattern {
+                let pat_node = ast_pattern_node(pat_str, language)?;
+                let Some(next) = ast_structural(&pat_node, node, &state, source) else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            if let Some(ref k) = spec.kind && &node.kind != k {
+                return Ok(None);
+            }
+            if let Some(ref rx_str) = spec.regex {
+                let rx = ZeroRegex::new(vec![rx_str.clone()], false, false, false, false);
+                if !rx.is_match(&node.text) {
+                    return Ok(None);
+                }
+            }
+            for sub in &spec.all {
+                let Some(next) = eval_ast_pattern(sub, language, root, node, &state, source)? else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            if !spec.any.is_empty() {
+                let mut matched_any = None;
+                for sub in &spec.any {
+                    if let Some(next) = eval_ast_pattern(sub, language, root, node, &state, source)? {
+                        matched_any = Some(next);
+                        break;
+                    }
+                }
+                let Some(next) = matched_any else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            if let Some(ref neg) = spec.not
+                && eval_ast_pattern(neg, language, root, node, &state, source)?.is_some()
+            {
+                return Ok(None);
+            }
+            if let Some(ref inside_pat) = spec.inside {
+                let mut matched_rel = None;
+                for anc in collect_ast_ancestors(root, node.id) {
+                    if anc.trivia {
+                        continue;
+                    }
+                    if let Some(next) = eval_ast_pattern(inside_pat, language, root, anc, &state, source)? {
+                        matched_rel = Some(next);
+                        break;
+                    }
+                }
+                let Some(next) = matched_rel else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            if let Some(ref has_pat) = spec.has {
+                let mut desc = Vec::new();
+                for c in &node.children {
+                    walk_ast_nodes(c, &mut desc);
+                }
+                let mut matched_rel = None;
+                for d in desc {
+                    if d.trivia {
+                        continue;
+                    }
+                    if let Some(next) = eval_ast_pattern(has_pat, language, root, d, &state, source)? {
+                        matched_rel = Some(next);
+                        break;
+                    }
+                }
+                let Some(next) = matched_rel else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            if let Some(ref follows_pat) = spec.follows {
+                let mut matched_rel = None;
+                for sib in collect_ast_siblings(root, node, true) {
+                    if sib.trivia {
+                        continue;
+                    }
+                    if let Some(next) = eval_ast_pattern(follows_pat, language, root, &sib, &state, source)? {
+                        matched_rel = Some(next);
+                        break;
+                    }
+                }
+                let Some(next) = matched_rel else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            if let Some(ref precedes_pat) = spec.precedes {
+                let mut matched_rel = None;
+                for sib in collect_ast_siblings(root, node, false) {
+                    if sib.trivia {
+                        continue;
+                    }
+                    if let Some(next) = eval_ast_pattern(precedes_pat, language, root, &sib, &state, source)? {
+                        matched_rel = Some(next);
+                        break;
+                    }
+                }
+                let Some(next) = matched_rel else {
+                    return Ok(None);
+                };
+                state = next;
+            }
+            Ok(Some(state))
+        }
+    }
+}
+
+fn ast_find_matches(
+    root: &AstCodeNode,
+    pattern: &AstPattern,
+    source: &str,
+) -> Result<Vec<AstMatch>, String> {
+    if let AstPattern::Text(pat_str) = pattern {
+        let _ = ast_pattern_node(pat_str, &root.language)?;
+    }
+    let mut nodes = Vec::new();
+    walk_ast_nodes(root, &mut nodes);
+    let mut out = Vec::new();
+    for n in nodes {
+        if n.trivia || n.kind == "ERROR" {
+            continue;
+        }
+        let empty = BTreeMap::new();
+        if let Some(captures) = eval_ast_pattern(pattern, &root.language, root, n, &empty, source)? {
+            out.push(AstMatch {
+                node: n.clone(),
+                captures,
+            });
+        }
+    }
+    Ok(out)
+}
+
+fn ast_replacement(template: &str, m: &AstMatch) -> Result<String, String> {
+    let mut out = String::new();
+    let bytes = template.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] != b'$' {
+            let ch = template[i..].chars().next().unwrap_or('\0');
+            out.push(ch);
+            i += ch.len_utf8().max(1);
+            continue;
+        }
+        let start = i;
+        let pfx = if template[i..].starts_with("$$$") { 3 } else { 1 };
+        let mut end = i + pfx;
+        let Some(&first) = bytes.get(end) else {
+            out.push('$');
+            i += 1;
+            continue;
+        };
+        if !(first == b'_' || first.is_ascii_uppercase()) {
+            out.push('$');
+            i += 1;
+            continue;
+        }
+        while end < bytes.len() {
+            let c = bytes[end];
+            if !(c == b'_' || c.is_ascii_uppercase() || c.is_ascii_digit()) {
+                break;
+            }
+            end += 1;
+        }
+        let name = &template[i + pfx..end];
+        let Some(cap) = m.captures.get(name) else {
+            return Err(format!("Unknown rewrite capture: {}", &template[start..end]));
+        };
+        out.push_str(&cap.text);
+        i = end;
+    }
+    Ok(out)
+}
+
+fn apply_ast_edits(source: &str, edits: &[((usize, usize), String)]) -> Result<String, String> {
+    let mut sorted = edits.to_vec();
+    sorted.sort_by(|a, b| a.0.0.cmp(&b.0.0).then(a.0.1.cmp(&b.0.1)));
+    let mut out = String::new();
+    let mut end = 0usize;
+    for ((from, to), repl) in sorted {
+        if from < end || to < from || to > source.len() {
+            return Err("Invalid or overlapping edit range".to_string());
+        }
+        if !source.is_char_boundary(from) || !source.is_char_boundary(to) {
+            return Err("Edit splits a UTF-8 character".to_string());
+        }
+        out.push_str(&source[end..from]);
+        out.push_str(&repl);
+        end = to;
+    }
+    out.push_str(&source[end..]);
+    Ok(out)
+}
+
+fn ast_unicode_col(line_str: &str, byte_col: usize) -> usize {
+    let clamped = byte_col.min(line_str.len());
+    line_str.get(..clamped).map(|s| s.chars().count()).unwrap_or(0)
+}
+
+fn ast_capture_jval(node: &AstCodeNode, lines: &[&str]) -> JVal {
+    let sc = ast_unicode_col(lines.get(node.start.0).copied().unwrap_or(""), node.start.1);
+    let ec = ast_unicode_col(lines.get(node.end.0).copied().unwrap_or(""), node.end.1);
+    JVal::Object(vec![
+        ("text".to_string(), JVal::Str(node.text.clone())),
+        (
+            "range".to_string(),
+            JVal::Object(vec![
+                (
+                    "byteOffset".to_string(),
+                    JVal::Object(vec![
+                        ("start".to_string(), JVal::Number(node.range.0 as f64)),
+                        ("end".to_string(), JVal::Number(node.range.1 as f64)),
+                    ]),
+                ),
+                (
+                    "start".to_string(),
+                    JVal::Object(vec![
+                        ("line".to_string(), JVal::Number(node.start.0 as f64)),
+                        ("column".to_string(), JVal::Number(sc as f64)),
+                    ]),
+                ),
+                (
+                    "end".to_string(),
+                    JVal::Object(vec![
+                        ("line".to_string(), JVal::Number(node.end.0 as f64)),
+                        ("column".to_string(), JVal::Number(ec as f64)),
+                    ]),
+                ),
+            ]),
+        ),
+    ])
+}
+
+fn ast_json_record(
+    root: &AstCodeNode,
+    m: &AstMatch,
+    file: &str,
+    lines: &[&str],
+    rule: &AstSearchRule,
+) -> Result<(JVal, Option<String>), String> {
+    let node = &m.node;
+    let sc = ast_unicode_col(lines.get(node.start.0).copied().unwrap_or(""), node.start.1);
+    let ec = ast_unicode_col(lines.get(node.end.0).copied().unwrap_or(""), node.end.1);
+    let mut single = Vec::new();
+    let mut multi = Vec::new();
+    for (name, c) in &m.captures {
+        if !c.many {
+            if let Some(first) = c.nodes.first() {
+                single.push((name.clone(), ast_capture_jval(first, lines)));
+            }
+        } else {
+            let siblings: Vec<AstCodeNode> = if let Some(first) = c.nodes.first()
+                && let Some(parent) = find_ast_parent(root, first.id)
+            {
+                parent.children.clone()
+            } else {
+                c.nodes.clone()
+            };
+            let items: Vec<JVal> = siblings
+                .iter()
+                .filter(|n| n.kind != "Trivia" && n.range.0 >= c.range.0 && n.range.1 <= c.range.1)
+                .map(|n| ast_capture_jval(n, lines))
+                .collect();
+            multi.push((name.clone(), JVal::Array(items)));
+        }
+    }
+    let end_line_incl = (node.end.0 + 1).min(lines.len());
+    let matched_lines = lines
+        .get(node.start.0..end_line_incl)
+        .unwrap_or(&[])
+        .join("\n");
+    let mut fields = vec![
+        ("text".to_string(), JVal::Str(node.text.clone())),
+        (
+            "range".to_string(),
+            JVal::Object(vec![
+                (
+                    "byteOffset".to_string(),
+                    JVal::Object(vec![
+                        ("start".to_string(), JVal::Number(node.range.0 as f64)),
+                        ("end".to_string(), JVal::Number(node.range.1 as f64)),
+                    ]),
+                ),
+                (
+                    "start".to_string(),
+                    JVal::Object(vec![
+                        ("line".to_string(), JVal::Number(node.start.0 as f64)),
+                        ("column".to_string(), JVal::Number(sc as f64)),
+                    ]),
+                ),
+                (
+                    "end".to_string(),
+                    JVal::Object(vec![
+                        ("line".to_string(), JVal::Number(node.end.0 as f64)),
+                        ("column".to_string(), JVal::Number(ec as f64)),
+                    ]),
+                ),
+            ]),
+        ),
+        ("file".to_string(), JVal::Str(file.to_string())),
+        ("lines".to_string(), JVal::Str(matched_lines)),
+        ("language".to_string(), JVal::Str(node.language.clone())),
+        (
+            "metaVariables".to_string(),
+            JVal::Object(vec![
+                ("single".to_string(), JVal::Object(single)),
+                ("multi".to_string(), JVal::Object(multi)),
+                ("transformed".to_string(), JVal::Object(Vec::new())),
+            ]),
+        ),
+    ];
+    if let Some(ref rid) = rule.id {
+        fields.push(("ruleId".to_string(), JVal::Str(rid.clone())));
+        fields.push((
+            "message".to_string(),
+            JVal::Str(rule.message.clone().unwrap_or_default()),
+        ));
+        fields.push((
+            "severity".to_string(),
+            JVal::Str(
+                rule.severity
+                    .clone()
+                    .unwrap_or_else(|| "warning".to_string()),
+            ),
+        ));
+    }
+    let repl = if let Some(ref fix_tpl) = rule.fix {
+        let r = ast_replacement(fix_tpl, m)?;
+        fields.push(("replacement".to_string(), JVal::Str(r.clone())));
+        Some(r)
+    } else {
+        None
+    };
+    Ok((JVal::Object(fields), repl))
+}
+
+fn ast_text_output(source: &str, file: &str, matches: &[AstMatch], opts: &AstGrepOptions) -> String {
+    let mut lines: Vec<&str> = source.split('\n').collect();
+    if lines.last() == Some(&"") {
+        lines.pop();
+    }
+    let mut matched = std::collections::BTreeSet::new();
+    let mut shown = std::collections::BTreeSet::new();
+    for m in matches {
+        let end = if m.node.end.1 == 0 && m.node.end.0 > m.node.start.0 {
+            m.node.end.0 - 1
+        } else {
+            m.node.end.0
+        };
+        for n in m.node.start.0..=end {
+            matched.insert(n);
+        }
+        let from = m.node.start.0.saturating_sub(opts.before);
+        let to = (end + opts.after).min(lines.len().saturating_sub(1));
+        for n in from..=to {
+            if n < lines.len() {
+                shown.insert(n);
+            }
+        }
+    }
+    let mut out = if opts.heading {
+        format!("{file}\n")
+    } else {
+        String::new()
+    };
+    let mut prev: Option<usize> = None;
+    for n in shown {
+        if let Some(p) = prev && n > p + 1 {
+            out.push_str("--\n");
+        }
+        let sep = if matched.contains(&n) { ":" } else { "-" };
+        if !opts.heading {
+            out.push_str(file);
+            out.push_str(sep);
+        }
+        out.push_str(&(n + 1).to_string());
+        out.push_str(sep);
+        out.push_str(lines.get(n).copied().unwrap_or(""));
+        out.push('\n');
+        prev = Some(n);
+    }
+    out
+}
+
+fn ast_wildcard_match(pattern: &str, text: &str) -> bool {
+    let p: Vec<char> = pattern.chars().collect();
+    let t: Vec<char> = text.chars().collect();
+    let mut dp = vec![false; t.len() + 1];
+    dp[0] = true;
+    for &pc in &p {
+        if pc == '*' {
+            for j in 1..=t.len() {
+                dp[j] = dp[j] || dp[j - 1];
+            }
+        } else {
+            for j in (1..=t.len()).rev() {
+                dp[j] = dp[j - 1] && (pc == '?' || pc == t[j - 1]);
+            }
+            dp[0] = false;
+        }
+    }
+    dp[t.len()]
+}
+
+fn ast_glob_matches_path(glob: &str, rel_path: &str) -> bool {
+    if !glob.contains('/') {
+        let base = rel_path.rsplit('/').next().unwrap_or(rel_path);
+        ast_wildcard_match(glob, base)
+    } else {
+        ast_wildcard_match(glob, rel_path)
+    }
+}
+
+fn relative_to_cwd(cwd: &str, abs_path: &str) -> String {
+    let c = cwd.trim_end_matches('/');
+    if c.is_empty() || c == "/" {
+        abs_path.trim_start_matches('/').to_string()
+    } else if let Some(rest) = abs_path.strip_prefix(c) {
+        let trimmed = rest.trim_start_matches('/');
+        if trimmed.is_empty() {
+            ".".to_string()
+        } else {
+            trimmed.to_string()
+        }
+    } else {
+        abs_path.to_string()
+    }
+}
+
+fn cmd_ast_grep(
+    invoked: &str,
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let run = || -> Result<(String, i32), String> {
+        let opts = parse_ast_grep_options(args)?;
+        if opts.help {
+            return Ok((AST_GREP_HELP.to_string(), 0));
+        }
+        let rules: Vec<AstSearchRule> = if opts.scan {
+            let mut rs = Vec::new();
+            if let Some(ref rf) = opts.rule_file {
+                let full = resolve_posix_path(cwd, rf);
+                let bytes = fs.read_file(&full)?;
+                let text = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+                rs.extend(parse_ast_grep_rules(&text)?);
+            }
+            if let Some(ref ir) = opts.inline_rules {
+                rs.extend(parse_ast_grep_rules(ir)?);
+            }
+            if rs.is_empty() {
+                return Err("no rules".to_string());
+            }
+            rs
+        } else {
+            vec![AstSearchRule {
+                id: None,
+                language: opts.language.clone(),
+                rule: AstPattern::Text(opts.pattern.clone().unwrap_or_default()),
+                fix: opts.rewrite.clone(),
+                message: None,
+                severity: None,
+            }]
+        };
+        let includes: Vec<&str> = opts
+            .globs
+            .iter()
+            .filter(|g| !g.starts_with('!'))
+            .map(|g| g.as_str())
+            .collect();
+        let excludes: Vec<&str> = opts
+            .globs
+            .iter()
+            .filter_map(|g| g.strip_prefix('!'))
+            .collect();
+        let mut target_paths: Vec<Option<String>> = Vec::new();
+        if opts.stdin {
+            target_paths.push(None);
+        } else {
+            let roots = if opts.paths.is_empty() {
+                vec![".".to_string()]
+            } else {
+                opts.paths.clone()
+            };
+            let mut pending: Vec<String> = roots
+                .into_iter()
+                .map(|p| resolve_posix_path(cwd, &p))
+                .rev()
+                .collect();
+            let mut seen = std::collections::BTreeSet::new();
+            while let Some(path) = pending.pop() {
+                if !seen.insert(path.clone()) {
+                    continue;
+                }
+                let meta = fs.stat(&path)?;
+                if meta.kind == crate::vfs::VfsEntryKind::Directory {
+                    let mut children = fs.read_dir(&path)?;
+                    children.sort_by(|a, b| b.cmp(a));
+                    for child in children {
+                        let joined = if path == "/" {
+                            format!("/{child}")
+                        } else {
+                            format!("{path}/{child}")
+                        };
+                        pending.push(joined);
+                    }
+                } else if meta.kind == crate::vfs::VfsEntryKind::File {
+                    let rel = relative_to_cwd(cwd, &path);
+                    let inc_ok = includes.is_empty()
+                        || includes.iter().any(|g| ast_glob_matches_path(g, &rel));
+                    let exc_ok = !excludes.iter().any(|g| ast_glob_matches_path(g, &rel));
+                    if inc_ok && exc_ok {
+                        target_paths.push(Some(path));
+                    }
+                }
+            }
+        }
+        let mut stdout = String::new();
+        let mut count = 0usize;
+        if let Some(ref jm) = opts.json && jm != "stream" {
+            stdout.push_str(if jm == "pretty" { "[\n" } else { "[" });
+        }
+        for maybe_path in target_paths {
+            let mut language = opts.language.clone();
+            if let Some(ref p) = maybe_path && language.is_none() {
+                let Ok(l) = ast_grep_language_for(p) else {
+                    continue;
+                };
+                language = Some(l);
+            }
+            let relevant: Vec<&AstSearchRule> = rules
+                .iter()
+                .filter(|r| {
+                    maybe_path.is_none() || r.language.is_none() || r.language == language
+                })
+                .collect();
+            if relevant.is_empty() {
+                continue;
+            }
+            let source = match maybe_path {
+                None => stdin.to_string(),
+                Some(ref p) => {
+                    let bytes = fs.read_file(p)?;
+                    String::from_utf8(bytes).map_err(|e| e.to_string())?
+                }
+            };
+            let file_label = match maybe_path {
+                None => "STDIN".to_string(),
+                Some(ref p) => relative_to_cwd(cwd, p),
+            };
+            let lines: Vec<&str> = source.split('\n').collect();
+            let mut edits: Vec<((usize, usize), String)> = Vec::new();
+            let mut all_matches: Vec<AstMatch> = Vec::new();
+            for rule in relevant {
+                let lang = rule
+                    .language
+                    .as_deref()
+                    .or(language.as_deref())
+                    .ok_or_else(|| "missing language".to_string())?;
+                let tree = parse_ast_code(&source, lang)?;
+                let matches = ast_find_matches(&tree, &rule.rule, &source)?;
+                let mut last_end: Option<usize> = None;
+                for m in matches {
+                    count += 1;
+                    let (row_jval, repl_opt) = ast_json_record(&tree, &m, &file_label, &lines, rule)?;
+                    if let Some(ref jm) = opts.json {
+                        if jm != "stream" && count > 1 {
+                            stdout.push_str(if jm == "compact" { "," } else { ",\n" });
+                        }
+                        stdout.push_str(&row_jval.to_raw_string(jm != "pretty", false));
+                        if jm == "stream" {
+                            stdout.push('\n');
+                        }
+                    }
+                    if let Some(repl) = repl_opt
+                        && last_end.is_none_or(|le| m.node.range.0 >= le)
+                    {
+                        edits.push((m.node.range, repl));
+                        last_end = Some(m.node.range.1);
+                    }
+                    all_matches.push(m);
+                }
+            }
+            if opts.json.is_none() && !all_matches.is_empty() {
+                stdout.push_str(&ast_text_output(&source, &file_label, &all_matches, &opts));
+                if !edits.is_empty() {
+                    let rewritten = apply_ast_edits(&source, &edits)?;
+                    stdout.push_str(&rewritten);
+                    if !source.ends_with('\n') {
+                        stdout.push('\n');
+                    }
+                }
+            }
+            if opts.update
+                && let Some(ref p) = maybe_path
+                && !edits.is_empty()
+            {
+                let rewritten = apply_ast_edits(&source, &edits)?;
+                fs.write_file(p, rewritten.as_bytes())?;
+            }
+        }
+        if let Some(ref jm) = opts.json && jm != "stream" {
+            stdout.push_str(if jm == "pretty" { "\n]\n" } else { "]\n" });
+        }
+        Ok((stdout, if count > 0 { 0 } else { 1 }))
+    };
+    match run() {
+        Ok((stdout, code)) => BuiltinOutcome {
+            stdout,
+            stderr: String::new(),
+            exit_code: code,
+        },
+        Err(msg) => err_out(&format!("{invoked}: {msg}\n"), 2),
+    }
 }

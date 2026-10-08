@@ -1480,6 +1480,12 @@ impl<'a> EvalState<'a> {
         }
 
         let is_double_bracket = simple.words.first().map(|s| s.as_str()) == Some("[[");
+        let synced_fd0 = if !stdin.is_empty() && !self.in_fds.contains_key(&0) {
+            self.in_fds.insert(0, std::mem::take(stdin));
+            true
+        } else {
+            false
+        };
         let mut expanded_words = Vec::new();
         if is_double_bracket {
             for (i, w) in simple.words.iter().enumerate() {
@@ -1523,6 +1529,9 @@ impl<'a> EvalState<'a> {
                     match self.expand_word_to_fields(w) {
                         Ok(fields) => expanded_words.extend(fields),
                         Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
+                            if synced_fd0 {
+                                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                            }
                             let mut out = BuiltinOutcome {
                                 stdout: debug_out.stdout,
                                 stderr: format!("{}{msg}\n", debug_out.stderr),
@@ -1534,10 +1543,18 @@ impl<'a> EvalState<'a> {
                             }
                             return Ok(out);
                         }
-                        Err(e) => return Err(e),
+                        Err(e) => {
+                            if synced_fd0 {
+                                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                            }
+                            return Err(e);
+                        }
                     }
                 }
             }
+        }
+        if synced_fd0 {
+            *stdin = self.in_fds.remove(&0).unwrap_or_default();
         }
 
         // Handle permanent FD changes via `exec` with no command words
@@ -1969,7 +1986,10 @@ impl<'a> EvalState<'a> {
             "caller" => {
                 return Ok(self.builtin_caller(args));
             }
-            "type" | "which" => {
+            "type" => {
+                return Ok(self.builtin_type(cmd, args));
+            }
+            "which" if args.iter().any(|a| self.custom_commands.contains_key(a.as_str())) => {
                 return Ok(self.builtin_type(cmd, args));
             }
             "wait" => {
@@ -4790,8 +4810,11 @@ impl<'a> EvalState<'a> {
         sub.errexit = inherit_errexit && self.errexit && !self.in_condition;
         sub.fd_table.insert(1, FdTarget::Stdout);
         let ast = parse_script(cmd_str).map_err(EvalError::Syntax)?;
-        let mut empty_in = String::new();
-        let res = sub.eval_script(&ast, &mut empty_in);
+        let mut sub_in = self.in_fds.remove(&0).unwrap_or_default();
+        let res = sub.eval_script(&ast, &mut sub_in);
+        if !sub_in.is_empty() {
+            self.in_fds.insert(0, sub_in);
+        }
         self.budget.leave_recursion();
         self.budget.leave_substitution();
         let mut out = match res {

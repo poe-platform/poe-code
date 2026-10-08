@@ -9334,4 +9334,57 @@ mod tests {
         assert!(wdiff.stdout.contains("[-one-]") && wdiff.stdout.contains("{+two+}"));
     }
 
+    #[test]
+    fn unit_diff_formats_patch_backups_apply_patch_move_cmp_skip_and_diff3_conflict() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+        vfs.write_file("/work/a.txt", b"common\nold_val\n").unwrap();
+        vfs.write_file("/work/b.txt", b"common\nnew_val\n").unwrap();
+
+        let ifdef = try_run_text_command("diff", &args(&["-D", "FLAG", "/work/a.txt", "/work/b.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ifdef.exit_code, 1);
+        assert!(ifdef.stdout.contains("#ifndef FLAG\nold_val\n#else /* FLAG */\nnew_val\n#endif /* FLAG */\n"));
+
+        let rcs = try_run_text_command("diff", &args(&["-n", "/work/a.txt", "/work/b.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rcs.exit_code, 1);
+        assert_eq!(rcs.stdout, "d2 1\na2 1\nnew_val\n");
+
+        let ap = try_run_text_command(
+            "apply_patch",
+            &args(&[]),
+            "*** Begin Patch\n*** Update File: a.txt\n*** Move to: moved.txt\n@@\n common\n-old_val\n+moved_val\n*** End Patch\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ap.exit_code, 0);
+        assert!(!vfs.exists("/work/a.txt"));
+        assert_eq!(vfs.read_file("/work/moved.txt").unwrap(), b"common\nmoved_val\n");
+
+        vfs.write_file("/work/c1.bin", b"AAXBB").unwrap();
+        vfs.write_file("/work/c2.bin", b"AAYBB").unwrap();
+        let cmp_l = try_run_text_command("cmp", &args(&["-l", "/work/c1.bin", "/work/c2.bin"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cmp_l.exit_code, 1);
+        assert_eq!(cmp_l.stdout, "3 130 131\n");
+
+        let cmp_skip = try_run_text_command("cmp", &args(&["-s", "-i", "3:3", "/work/c1.bin", "/work/c2.bin"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cmp_skip.exit_code, 0);
+
+        vfs.write_file("/work/m.txt", b"mine\nsame\n").unwrap();
+        vfs.write_file("/work/o.txt", b"base\nsame\n").unwrap();
+        vfs.write_file("/work/t.txt", b"theirs\nsame\n").unwrap();
+        let d3 = try_run_text_command(
+            "diff3",
+            &args(&["-m", "-L", "M", "-L", "O", "-L", "T", "/work/m.txt", "/work/o.txt", "/work/t.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(d3.exit_code, 1);
+        assert!(d3.stdout.contains("<<<<<<< M\nmine\n||||||| O\nbase\n=======\ntheirs\n>>>>>>> T\n"));
+    }
 }

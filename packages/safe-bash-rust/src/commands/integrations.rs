@@ -221,7 +221,10 @@ struct GhIssueRecord {
     body: String,
     state: String,
     labels: Vec<String>,
+    assignees: Vec<String>,
+    is_pinned: bool,
     comments: Vec<String>,
+    linked_branches: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -234,6 +237,8 @@ struct GhPrRecord {
     base: String,
     is_draft: bool,
     labels: Vec<String>,
+    assignees: Vec<String>,
+    reviewers: Vec<String>,
     comments: Vec<String>,
 }
 
@@ -244,6 +249,24 @@ struct GhReleaseRecord {
     body: String,
     is_draft: bool,
     is_prerelease: bool,
+    assets: Vec<(String, usize, String, Vec<u8>)>,
+}
+
+#[derive(Clone, Debug)]
+struct GhDeployKeyRecord {
+    id: u64,
+    title: String,
+    key: String,
+    read_only: bool,
+    created_at: String,
+}
+
+#[derive(Clone, Debug)]
+struct GhAutolinkRecord {
+    id: u64,
+    key_prefix: String,
+    url_template: String,
+    is_alphanumeric: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -508,6 +531,8 @@ struct GhWorkflowRunRecord {
     attempt: u64,
     url: String,
     actor_login: String,
+    job_id: u64,
+    job_log: String,
 }
 
 fn default_gh_workflows() -> Vec<GhWorkflowRecord> {
@@ -525,7 +550,21 @@ struct GhRepoRecord {
     owner: String,
     name: String,
     description: String,
+    homepage_url: String,
+    visibility: String,
     is_private: bool,
+    is_archived: bool,
+    is_template: bool,
+    has_issues_enabled: bool,
+    has_wiki_enabled: bool,
+    has_projects_enabled: bool,
+    has_discussions_enabled: bool,
+    merge_commit_allowed: bool,
+    squash_merge_allowed: bool,
+    rebase_merge_allowed: bool,
+    auto_merge_allowed: bool,
+    delete_branch_on_merge: bool,
+    topics: Vec<String>,
     default_branch: String,
     next_number: u64,
     issues: Vec<GhIssueRecord>,
@@ -537,6 +576,17 @@ struct GhRepoRecord {
     workflows: Vec<GhWorkflowRecord>,
     workflow_runs: Vec<GhWorkflowRunRecord>,
     caches: Vec<GhCacheRecord>,
+    deploy_keys: Vec<GhDeployKeyRecord>,
+    autolinks: Vec<GhAutolinkRecord>,
+}
+
+#[derive(Clone, Debug)]
+struct GhHostAuthEntry {
+    user: String,
+    oauth_token: String,
+    git_protocol: String,
+    scopes: Vec<String>,
+    active: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -552,10 +602,14 @@ struct IntegrationState {
     op_snapshots: Vec<Value>,
     gh_user: String,
     gh_token: String,
+    gh_host: String,
+    gh_git_protocol: String,
+    gh_scopes: Vec<String>,
     gh_logged_in: bool,
+    gh_hosts: Vec<(String, Vec<GhHostAuthEntry>)>,
     gh_next_id: u64,
     gh_config: BTreeMap<String, String>,
-    gh_aliases: BTreeMap<String, String>,
+    gh_aliases: Vec<(String, String)>,
     gh_default_repo: Option<String>,
     gh_repos: BTreeMap<String, GhRepoRecord>,
     gh_gists: Vec<GhGistRecord>,
@@ -575,8 +629,7 @@ impl Default for IntegrationState {
         gh_config.insert("pager".into(), String::new());
         gh_config.insert("http_unix_socket".into(), String::new());
         gh_config.insert("browser".into(), String::new());
-        let mut gh_aliases = BTreeMap::new();
-        gh_aliases.insert("co".into(), "pr checkout".into());
+        let gh_aliases = vec![("co".to_string(), "pr checkout".to_string())];
         let mut gh_repos = BTreeMap::new();
         gh_repos.insert(
             "octocat/Hello-World".into(),
@@ -584,7 +637,21 @@ impl Default for IntegrationState {
                 owner: "octocat".into(),
                 name: "Hello-World".into(),
                 description: "My first repository on GitHub!".into(),
+                homepage_url: "https://github.com".into(),
+                visibility: "PUBLIC".into(),
                 is_private: false,
+                is_archived: false,
+                is_template: false,
+                has_issues_enabled: true,
+                has_wiki_enabled: true,
+                has_projects_enabled: true,
+                has_discussions_enabled: false,
+                merge_commit_allowed: true,
+                squash_merge_allowed: true,
+                rebase_merge_allowed: true,
+                auto_merge_allowed: true,
+                delete_branch_on_merge: false,
+                topics: vec!["octocat".into(), "github".into()],
                 default_branch: "main".into(),
                 next_number: 1,
                 issues: Vec::new(),
@@ -602,6 +669,8 @@ impl Default for IntegrationState {
                 workflows: default_gh_workflows(),
                 workflow_runs: Vec::new(),
                 caches: Vec::new(),
+                deploy_keys: Vec::new(),
+                autolinks: Vec::new(),
             },
         );
         Self {
@@ -616,8 +685,35 @@ impl Default for IntegrationState {
             op_snapshots: Vec::new(),
             gh_user: "octocat".into(),
             gh_token: "gho_default_safe_bash_token_1234567890".into(),
+            gh_host: "github.com".into(),
+            gh_git_protocol: "https".into(),
+            gh_scopes: vec![
+                "repo".into(),
+                "read:org".into(),
+                "workflow".into(),
+                "gist".into(),
+                "admin:public_key".into(),
+                "admin:gpg_key".into(),
+            ],
             gh_logged_in: true,
-            gh_next_id: 1000,
+            gh_hosts: vec![(
+                "github.com".into(),
+                vec![GhHostAuthEntry {
+                    user: "octocat".into(),
+                    oauth_token: "gho_default_safe_bash_token_1234567890".into(),
+                    git_protocol: "https".into(),
+                    scopes: vec![
+                        "repo".into(),
+                        "read:org".into(),
+                        "workflow".into(),
+                        "gist".into(),
+                        "admin:public_key".into(),
+                        "admin:gpg_key".into(),
+                    ],
+                    active: true,
+                }],
+            )],
+            gh_next_id: 1007,
             gh_config,
             gh_aliases,
             gh_default_repo: None,
@@ -3486,10 +3582,11 @@ fn format_gh_json_output(
     }
 }
 
-fn parse_gh_common_flags(args: &[String]) -> (Option<String>, Option<Vec<String>>, Option<String>) {
+fn parse_gh_common_flags(args: &[String]) -> (Option<String>, Option<Vec<String>>, Option<String>, Vec<String>) {
     let mut repo = None;
     let mut json_fields = None;
     let mut jq_expr = None;
+    let mut filtered = Vec::with_capacity(args.len());
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
@@ -3530,10 +3627,13 @@ fn parse_gh_common_flags(args: &[String]) -> (Option<String>, Option<Vec<String>
                 jq_expr = Some(a["--jq=".len()..].to_string());
                 i += 1;
             }
-            _ => i += 1,
+            _ => {
+                filtered.push(args[i].clone());
+                i += 1;
+            }
         }
     }
-    (repo, json_fields, jq_expr)
+    (repo, json_fields, jq_expr, filtered)
 }
 
 fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &BTreeMap<String, String>) -> String {
@@ -3548,24 +3648,73 @@ fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &
         .to_string();
     let (owner, name) = normalized.split_once('/').unwrap_or(("octocat", &normalized));
     let full = format!("{owner}/{name}");
-    st.gh_repos.entry(full.clone()).or_insert_with(|| GhRepoRecord {
-        owner: owner.to_string(),
-        name: name.to_string(),
-        description: String::new(),
-        is_private: false,
-        default_branch: "main".into(),
-        next_number: 1,
-        issues: Vec::new(),
-        prs: Vec::new(),
-        releases: Vec::new(),
-        labels: vec![("bug".into(), "d73a4a".into(), "Something isn't working".into())],
-        variables: BTreeMap::new(),
-        secrets: Vec::new(),
-        workflows: default_gh_workflows(),
-        workflow_runs: Vec::new(),
-        caches: Vec::new(),
-    });
+    if !st.gh_repos.contains_key(&full) {
+        st.gh_next_id += 7;
+        st.gh_repos.insert(
+            full.clone(),
+            GhRepoRecord {
+                owner: owner.to_string(),
+                name: name.to_string(),
+                description: String::new(),
+                homepage_url: String::new(),
+                visibility: "PUBLIC".into(),
+                is_private: false,
+                is_archived: false,
+                is_template: false,
+                has_issues_enabled: true,
+                has_wiki_enabled: true,
+                has_projects_enabled: true,
+                has_discussions_enabled: false,
+                merge_commit_allowed: true,
+                squash_merge_allowed: true,
+                rebase_merge_allowed: true,
+                auto_merge_allowed: true,
+                delete_branch_on_merge: false,
+                topics: Vec::new(),
+                default_branch: "main".into(),
+                next_number: 1,
+                issues: Vec::new(),
+                prs: Vec::new(),
+                releases: Vec::new(),
+                labels: vec![
+                    ("bug".into(), "d73a4a".into(), "Something isn't working".into()),
+                    ("documentation".into(), "0075ca".into(), "Improvements or additions to documentation".into()),
+                    ("enhancement".into(), "a2eeef".into(), "New feature or request".into()),
+                    ("good first issue".into(), "7057ff".into(), "Good for newcomers".into()),
+                    ("help wanted".into(), "008672".into(), "Extra attention is needed".into()),
+                ],
+                variables: BTreeMap::new(),
+                secrets: Vec::new(),
+                workflows: default_gh_workflows(),
+                workflow_runs: Vec::new(),
+                caches: Vec::new(),
+                deploy_keys: Vec::new(),
+                autolinks: Vec::new(),
+            },
+        );
+    }
     full
+}
+
+fn find_git_root_in_vfs(cwd: &str, fs: &dyn SafeBashFs) -> Option<String> {
+    let mut current = if cwd.is_empty() { "/".to_string() } else { cwd.to_string() };
+    loop {
+        let git_dir = if current == "/" {
+            "/.git".to_string()
+        } else {
+            format!("{current}/.git")
+        };
+        if fs.is_dir(&git_dir) || fs.exists(&git_dir) {
+            return Some(current);
+        }
+        if current == "/" {
+            return None;
+        }
+        current = match current.rsplit_once('/') {
+            Some(("", _)) | None => "/".to_string(),
+            Some((parent, _)) => parent.to_string(),
+        };
+    }
 }
 
 fn cmd_gh(
@@ -3600,7 +3749,29 @@ fn cmd_gh(
         };
     }
 
-    if args.iter().any(|a| a == "--help" || a == "-h") {
+    let sub_first = args.get(1).map(|s| s.as_str()).unwrap_or("");
+    let h_takes_value = first == "auth"
+        || first == "config"
+        || (first == "repo" && matches!(sub_first, "create" | "new" | "edit"));
+    let mut is_help = false;
+    let mut hi = 0usize;
+    while hi < args.len() {
+        let a = args[hi].as_str();
+        if a == "--help" {
+            is_help = true;
+            break;
+        }
+        if a == "-h" {
+            if h_takes_value && hi + 1 < args.len() && !args[hi + 1].starts_with('-') {
+                hi += 2;
+                continue;
+            }
+            is_help = true;
+            break;
+        }
+        hi += 1;
+    }
+    if is_help {
         let topic = args
             .iter()
             .filter(|a| !a.starts_with('-'))
@@ -3615,46 +3786,342 @@ fn cmd_gh(
     }
 
     let fs_id = fs.fs_id();
-    let (repo_flag, json_fields, jq_expr) = parse_gh_common_flags(args);
+    let (repo_flag, json_fields, jq_expr, filtered_args) = parse_gh_common_flags(args);
+    let args = &filtered_args;
 
     match first {
         "auth" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("status");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
+            let mut host_opt: Option<String> = None;
+            let mut user_opt: Option<String> = None;
+            let mut proto_opt: Option<String> = None;
+            let mut scopes_opt: Option<String> = None;
+            let mut with_token = false;
+            let mut show_token = false;
+            let mut active_only = false;
+            let mut i = 2usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-h" | "--hostname" if i + 1 < args.len() => {
+                        host_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-u" | "--user" if i + 1 < args.len() => {
+                        user_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-p" | "--git-protocol" if i + 1 < args.len() => {
+                        proto_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-s" | "--scopes" if i + 1 < args.len() => {
+                        scopes_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--with-token" => {
+                        with_token = true;
+                        i += 1;
+                    }
+                    "-t" | "--show-token" => {
+                        show_token = true;
+                        i += 1;
+                    }
+                    "-a" | "--active" => {
+                        active_only = true;
+                        i += 1;
+                    }
+                    _ => i += 1,
+                }
+            }
+            let env_token = env.get("GH_TOKEN").or_else(|| env.get("GITHUB_TOKEN")).cloned();
             match sub {
                 "status" => {
-                    if !st.gh_logged_in {
+                    if st.gh_hosts.is_empty() && env_token.is_none() {
                         return BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: "You are not logged into any GitHub hosts. Run gh auth login to authenticate.\n".into(),
+                            stderr: "You are not logged into any GitHub hosts. To log in, run: gh auth login\n".into(),
                             exit_code: 1,
                         };
                     }
+                    let mask_token = |tok: &str, show: bool| -> String {
+                        if show {
+                            tok.to_string()
+                        } else {
+                            let prefix: String = tok.chars().take(4).collect();
+                            let stars = "*".repeat(tok.chars().count().saturating_sub(4).max(4));
+                            format!("{prefix}{stars}")
+                        }
+                    };
+                    let mut hosts_to_show = st.gh_hosts.clone();
+                    if hosts_to_show.is_empty()
+                        && let Some(ref et) = env_token
+                    {
+                        hosts_to_show.push((
+                            host_opt.clone().unwrap_or_else(|| "github.com".into()),
+                            vec![GhHostAuthEntry {
+                                user: st.gh_user.clone(),
+                                oauth_token: et.clone(),
+                                git_protocol: st.gh_git_protocol.clone(),
+                                scopes: st.gh_scopes.clone(),
+                                active: true,
+                            }],
+                        ));
+                    }
+                    if let Some(ref h_filter) = host_opt {
+                        hosts_to_show.retain(|(h, _)| h == h_filter);
+                    }
+                    drop(map);
+                    if let Some(fields) = &json_fields {
+                        let mut hosts_obj = Vec::new();
+                        for (h, entries) in &hosts_to_show {
+                            let mut arr = Vec::new();
+                            for e in entries {
+                                if active_only && !e.active {
+                                    continue;
+                                }
+                                let tok_ref = env_token.as_deref().unwrap_or(&e.oauth_token);
+                                arr.push(jval!({
+                                    "host": h,
+                                    "login": e.user,
+                                    "active": e.active,
+                                    "state": "success",
+                                    "token": mask_token(tok_ref, show_token),
+                                    "scopes": e.scopes.join(", "),
+                                    "gitProtocol": e.git_protocol
+                                }));
+                            }
+                            hosts_obj.push((h.clone(), Value::Array(arr)));
+                        }
+                        let obj = jval!({ "hosts": JVal::Object(hosts_obj) });
+                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let mut lines = Vec::new();
+                    for (h, entries) in &hosts_to_show {
+                        lines.push(h.clone());
+                        for e in entries {
+                            if active_only && !e.active {
+                                continue;
+                            }
+                            let tok_ref = env_token.as_deref().unwrap_or(&e.oauth_token);
+                            let tok_disp = mask_token(tok_ref, show_token);
+                            let scopes_disp = e.scopes.iter().map(|s| format!("'{s}'")).collect::<Vec<_>>().join(", ");
+                            lines.push(format!("  ✓ Logged in to {h} account {} (keyring)", e.user));
+                            lines.push(format!("  - Active account: {}", e.active));
+                            lines.push(format!("  - Git operations protocol: {}", e.git_protocol));
+                            lines.push(format!("  - Token: {tok_disp}"));
+                            lines.push(format!("  - Token scopes: {scopes_disp}"));
+                        }
+                    }
                     BuiltinOutcome {
-                        stdout: format!(
-                            "github.com\n  ✓ Logged in to github.com account {} (keyring)\n  - Active account: true\n  - Git operations protocol: https\n  - Token: gho_**********************************\n  - Token scopes: 'repo', 'read:org', 'workflow', 'gist', 'admin:public_key', 'admin:gpg_key'\n",
-                            st.gh_user
-                        ),
+                        stdout: format!("{}\n", lines.join("\n")),
                         stderr: String::new(),
                         exit_code: 0,
                     }
                 }
-                "token" => BuiltinOutcome {
-                    stdout: format!("{}\n", st.gh_token),
-                    stderr: String::new(),
-                    exit_code: 0,
-                },
+                "token" => {
+                    let host = host_opt.unwrap_or_else(|| "github.com".into());
+                    let tok = env_token.unwrap_or_else(|| {
+                        st.gh_hosts
+                            .iter()
+                            .find(|(h, _)| h == &host)
+                            .and_then(|(_, entries)| {
+                                if let Some(ref u) = user_opt {
+                                    entries.iter().find(|e| &e.user == u)
+                                } else {
+                                    entries.iter().find(|e| e.active).or_else(|| entries.first())
+                                }
+                            })
+                            .map(|e| e.oauth_token.clone())
+                            .unwrap_or_default()
+                    });
+                    if tok.is_empty() {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("no oauth token found for {host}\n"),
+                            exit_code: 1,
+                        };
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("{tok}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
                 "login" => {
+                    let host = host_opt.unwrap_or_else(|| "github.com".into());
+                    let token = if with_token || !stdin.trim().is_empty() {
+                        let t = stdin.trim().to_string();
+                        if t.is_empty() {
+                            return gh_err("expected token on standard input");
+                        }
+                        t
+                    } else {
+                        env_token.unwrap_or_else(|| "gho_authenticated_safe_bash_token".into())
+                    };
+                    st.gh_host = host.clone();
+                    st.gh_token = token.clone();
+                    let user = user_opt.unwrap_or_else(|| st.gh_user.clone());
+                    st.gh_user = user.clone();
+                    if let Some(p) = proto_opt {
+                        st.gh_git_protocol = p.clone();
+                        st.gh_config.insert("git_protocol".into(), p);
+                    }
+                    if let Some(sc) = scopes_opt {
+                        st.gh_scopes = sc.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+                    }
                     st.gh_logged_in = true;
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    let entry = GhHostAuthEntry {
+                        user: user.clone(),
+                        oauth_token: token.clone(),
+                        git_protocol: st.gh_git_protocol.clone(),
+                        scopes: st.gh_scopes.clone(),
+                        active: true,
+                    };
+                    if let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host) {
+                        for e in entries.iter_mut() {
+                            e.active = false;
+                        }
+                        if let Some(existing) = entries.iter_mut().find(|e| e.user == user) {
+                            *existing = entry;
+                        } else {
+                            entries.push(entry);
+                        }
+                    } else {
+                        st.gh_hosts.push((host.clone(), vec![entry]));
+                    }
+                    let cfg_dir = env
+                        .get("GH_CONFIG_DIR")
+                        .cloned()
+                        .unwrap_or_else(|| format!("{}/.config/gh", env.get("HOME").cloned().unwrap_or_else(|| "/home/user".into())));
+                    let _ = fs.mkdir_all(&cfg_dir);
+                    let mut hosts_yml = String::new();
+                    for (h, entries) in &st.gh_hosts {
+                        if let Some(act) = entries.iter().find(|e| e.active).or_else(|| entries.first()) {
+                            hosts_yml.push_str(&format!(
+                                "{h}:\n    user: {}\n    oauth_token: {}\n    git_protocol: {}\n",
+                                act.user, act.oauth_token, act.git_protocol
+                            ));
+                        }
+                    }
+                    let _ = fs.write_file(&format!("{cfg_dir}/hosts.yml"), hosts_yml.as_bytes());
+                    BuiltinOutcome {
+                        stdout: format!("✓ Logged in as {user} on {host}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 "logout" => {
-                    st.gh_logged_in = false;
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    let host = host_opt.unwrap_or_else(|| "github.com".into());
+                    let Some(h_idx) = st.gh_hosts.iter().position(|(h, _)| h == &host) else {
+                        return gh_err(&format!("not logged in to {host}"));
+                    };
+                    if let Some(u) = user_opt {
+                        let entries = &mut st.gh_hosts[h_idx].1;
+                        entries.retain(|e| e.user != u);
+                        if entries.is_empty() {
+                            st.gh_hosts.remove(h_idx);
+                        } else if !entries.iter().any(|e| e.active) {
+                            entries[0].active = true;
+                            st.gh_user = entries[0].user.clone();
+                            st.gh_token = entries[0].oauth_token.clone();
+                        }
+                        st.gh_logged_in = !st.gh_hosts.is_empty();
+                        BuiltinOutcome {
+                            stdout: format!("✓ Logged out of {host} account {u}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        }
+                    } else {
+                        st.gh_hosts.remove(h_idx);
+                        st.gh_logged_in = !st.gh_hosts.is_empty();
+                        if !st.gh_logged_in {
+                            st.gh_token.clear();
+                        }
+                        BuiltinOutcome {
+                            stdout: format!("✓ Logged out of {host}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        }
+                    }
                 }
-                "setup-git" | "switch" | "refresh" => {
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                "setup-git" => {
+                    let host = host_opt.unwrap_or_else(|| "github.com".into());
+                    if let Some(git_root) = find_git_root_in_vfs(cwd, fs) {
+                        let git_cfg = if git_root == "/" {
+                            "/.git/config".to_string()
+                        } else {
+                            format!("{git_root}/.git/config")
+                        };
+                        let mut existing = fs
+                            .read_file(&git_cfg)
+                            .map(|b| String::from_utf8_lossy(&b).into_owned())
+                            .unwrap_or_default();
+                        let helper = format!("\n[credential \"https://{host}\"]\n\thelper = !gh auth git-credential\n");
+                        if !existing.contains(&format!("credential \"https://{host}\"")) {
+                            existing.push_str(&helper);
+                            let _ = fs.write_file(&git_cfg, existing.as_bytes());
+                        }
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Configured git credential helper for {host}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "switch" => {
+                    let host = host_opt.unwrap_or_else(|| "github.com".into());
+                    let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host) else {
+                        return gh_err(&format!("not logged in to {host}"));
+                    };
+                    let target_user = if let Some(u) = user_opt {
+                        let Some(found) = entries.iter().find(|e| e.user == u) else {
+                            return gh_err(&format!("no account \"{u}\" found on {host}"));
+                        };
+                        found.user.clone()
+                    } else if let Some(inactive) = entries.iter().find(|e| !e.active) {
+                        inactive.user.clone()
+                    } else if let Some(first_e) = entries.first() {
+                        first_e.user.clone()
+                    } else {
+                        return gh_err(&format!("not logged in to {host}"));
+                    };
+                    for e in entries.iter_mut() {
+                        e.active = e.user == target_user;
+                        if e.active {
+                            st.gh_user = e.user.clone();
+                            st.gh_token = e.oauth_token.clone();
+                            st.gh_git_protocol = e.git_protocol.clone();
+                            st.gh_scopes = e.scopes.clone();
+                        }
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Switched active account for {host} to {target_user}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "refresh" => {
+                    let host = host_opt.unwrap_or_else(|| "github.com".into());
+                    let Some((_, entries)) = st.gh_hosts.iter_mut().find(|(h, _)| h == &host) else {
+                        return gh_err(&format!("not logged in to {host}"));
+                    };
+                    if let Some(sc) = scopes_opt {
+                        for s in sc.split(',').map(|x| x.trim()).filter(|x| !x.is_empty()) {
+                            if !st.gh_scopes.iter().any(|e| e == s) {
+                                st.gh_scopes.push(s.to_string());
+                            }
+                        }
+                    }
+                    if let Some(act) = entries.iter_mut().find(|e| e.active) {
+                        act.scopes = st.gh_scopes.clone();
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Authentication credentials refreshed for {host}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => gh_err(&format!("unknown auth subcommand \"{sub}\"")),
             }
@@ -3663,25 +4130,59 @@ fn cmd_gh(
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
+            let pos: Vec<&str> = args
+                .iter()
+                .skip(2)
+                .enumerate()
+                .filter(|(idx, a)| {
+                    if a.starts_with('-') {
+                        return false;
+                    }
+                    if *idx > 0 {
+                        let prev = args[*idx + 1].as_str();
+                        if prev == "-h" || prev == "--host" {
+                            return false;
+                        }
+                    }
+                    true
+                })
+                .map(|(_, a)| a.as_str())
+                .collect();
             match sub {
                 "list" => {
                     let mut out = String::new();
+                    let default_keys = ["git_protocol", "editor", "prompt", "pager", "http_unix_socket", "browser"];
+                    for k in default_keys {
+                        if let Some(v) = st.gh_config.get(k) {
+                            out.push_str(&format!("{k}={v}\n"));
+                        }
+                    }
                     for (k, v) in &st.gh_config {
-                        out.push_str(&format!("{k}={v}\n"));
+                        if !default_keys.contains(&k.as_str()) {
+                            out.push_str(&format!("{k}={v}\n"));
+                        }
                     }
                     BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
                 }
                 "get" => {
-                    let key = args.get(2).map(|s| s.as_str()).unwrap_or("");
+                    let key = pos.first().copied().unwrap_or("");
                     let val = st.gh_config.get(key).cloned().unwrap_or_default();
                     BuiltinOutcome { stdout: format!("{val}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "set" => {
-                    if let (Some(k), Some(v)) = (args.get(2), args.get(3)) {
-                        st.gh_config.insert(k.clone(), v.clone());
+                    if let (Some(k), Some(v)) = (pos.first().copied(), pos.get(1).copied()) {
+                        st.gh_config.insert(k.to_string(), v.to_string());
+                        if k == "git_protocol" {
+                            st.gh_git_protocol = v.to_string();
+                        }
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
+                "clear-cache" => BuiltinOutcome {
+                    stdout: "✓ Cleared the cache\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                },
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
             }
         }
@@ -3698,16 +4199,42 @@ fn cmd_gh(
                     BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
                 }
                 "set" => {
-                    if let (Some(k), Some(v)) = (args.get(2), args.get(3)) {
-                        st.gh_aliases.insert(k.clone(), v.clone());
+                    let is_shell = args.iter().skip(2).any(|a| a == "-s" || a == "--shell");
+                    let pos: Vec<&str> = args.iter().skip(2).filter(|a| !a.starts_with('-')).map(|s| s.as_str()).collect();
+                    if let (Some(k), Some(v)) = (pos.first().copied(), pos.get(1).copied()) {
+                        let exp = if is_shell { format!("!{v}") } else { v.to_string() };
+                        if let Some(existing) = st.gh_aliases.iter_mut().find(|(ak, _)| ak == k) {
+                            existing.1 = exp.clone();
+                        } else {
+                            st.gh_aliases.push((k.to_string(), exp.clone()));
+                        }
+                        return BuiltinOutcome {
+                            stdout: format!("✓ Added alias for {k}: {exp}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
                 "delete" => {
-                    if let Some(k) = args.get(2) {
-                        st.gh_aliases.remove(k);
+                    if args.iter().skip(2).any(|a| a == "--all") {
+                        st.gh_aliases.clear();
+                        return BuiltinOutcome {
+                            stdout: "✓ Deleted all aliases\n".into(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    let k = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                    let Some(idx) = st.gh_aliases.iter().position(|(ak, _)| ak == &k) else {
+                        return gh_err(&format!("no such alias {k}"));
+                    };
+                    st.gh_aliases.remove(idx);
+                    BuiltinOutcome {
+                        stdout: format!("✓ Deleted alias {k}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
             }
@@ -3717,7 +4244,7 @@ fn cmd_gh(
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
             match sub {
-                "list" => {
+                "list" | "ls" => {
                     let arr: Vec<Value> = st
                         .gh_repos
                         .values()
@@ -3726,8 +4253,13 @@ fn cmd_gh(
                                 "name": r.name,
                                 "nameWithOwner": format!("{}/{}", r.owner, r.name),
                                 "description": r.description,
+                                "homepageUrl": r.homepage_url,
+                                "visibility": r.visibility,
                                 "isPrivate": r.is_private,
+                                "isArchived": r.is_archived,
+                                "isTemplate": r.is_template,
                                 "defaultBranchRef": { "name": r.default_branch },
+                                "repositoryTopics": r.topics.iter().map(|t| jval!({ "name": t })).collect::<Vec<_>>(),
                                 "url": format!("https://github.com/{}/{}", r.owner, r.name)
                             })
                         })
@@ -3758,8 +4290,24 @@ fn cmd_gh(
                             "name": r.name,
                             "nameWithOwner": format!("{}/{}", r.owner, r.name),
                             "description": r.description,
+                            "homepageUrl": r.homepage_url,
+                            "visibility": r.visibility,
                             "isPrivate": r.is_private,
+                            "isArchived": r.is_archived,
+                            "isTemplate": r.is_template,
+                            "hasIssuesEnabled": r.has_issues_enabled,
+                            "hasWikiEnabled": r.has_wiki_enabled,
+                            "hasProjectsEnabled": r.has_projects_enabled,
+                            "hasDiscussionsEnabled": r.has_discussions_enabled,
+                            "mergeCommitAllowed": r.merge_commit_allowed,
+                            "squashMergeAllowed": r.squash_merge_allowed,
+                            "rebaseMergeAllowed": r.rebase_merge_allowed,
+                            "autoMergeAllowed": r.auto_merge_allowed,
+                            "deleteBranchOnMerge": r.delete_branch_on_merge,
                             "defaultBranchRef": { "name": r.default_branch },
+                            "repositoryTopics": r.topics.iter().map(|t| jval!({ "name": t })).collect::<Vec<_>>(),
+                            "owner": { "login": r.owner },
+                            "sshUrl": format!("git@github.com:{}/{}.git", r.owner, r.name),
                             "url": format!("https://github.com/{}/{}", r.owner, r.name)
                         });
                         return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
@@ -3773,28 +4321,79 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                "create" => {
-                    let name_arg = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "new-repo".into());
-                    let is_private = args.iter().any(|a| a == "--private");
+                "create" | "new" => {
+                    let mut name_arg: Option<String> = None;
+                    let mut is_private = false;
+                    let mut visibility = "PUBLIC".to_string();
                     let mut desc = String::new();
-                    for w in args.windows(2) {
-                        if w[0] == "-d" || w[0] == "--description" {
-                            desc = w[1].clone();
+                    let mut homepage = String::new();
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-d" | "--description" if i + 1 < args.len() => {
+                                desc = args[i + 1].clone();
+                                i += 2;
+                            }
+                            "-h" | "--homepage" if i + 1 < args.len() => {
+                                homepage = args[i + 1].clone();
+                                i += 2;
+                            }
+                            "--private" => {
+                                is_private = true;
+                                visibility = "PRIVATE".into();
+                                i += 1;
+                            }
+                            "--internal" => {
+                                is_private = true;
+                                visibility = "INTERNAL".into();
+                                i += 1;
+                            }
+                            "--public" => {
+                                is_private = false;
+                                visibility = "PUBLIC".into();
+                                i += 1;
+                            }
+                            "-g" | "--gitignore" | "-l" | "--license" | "-r" | "--remote" | "-s" | "--source" | "-p" | "--template" | "-t" | "--team" => {
+                                i += 2;
+                            }
+                            a if !a.starts_with('-') => {
+                                if name_arg.is_none() {
+                                    name_arg = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
                         }
                     }
+                    let name_arg = name_arg.unwrap_or_else(|| "new-repo".into());
                     let (owner, name) = if let Some((o, n)) = name_arg.split_once('/') {
                         (o.to_string(), n.to_string())
                     } else {
                         (st.gh_user.clone(), name_arg)
                     };
                     let full = format!("{owner}/{name}");
+                    st.gh_next_id += 7;
                     st.gh_repos.insert(
                         full.clone(),
                         GhRepoRecord {
                             owner,
                             name,
                             description: desc,
+                            homepage_url: homepage,
+                            visibility,
                             is_private,
+                            is_archived: false,
+                            is_template: false,
+                            has_issues_enabled: true,
+                            has_wiki_enabled: true,
+                            has_projects_enabled: true,
+                            has_discussions_enabled: false,
+                            merge_commit_allowed: true,
+                            squash_merge_allowed: true,
+                            rebase_merge_allowed: true,
+                            auto_merge_allowed: true,
+                            delete_branch_on_merge: false,
+                            topics: Vec::new(),
                             default_branch: "main".into(),
                             next_number: 1,
                             issues: Vec::new(),
@@ -3812,6 +4411,8 @@ fn cmd_gh(
                             workflows: default_gh_workflows(),
                             workflow_runs: Vec::new(),
                             caches: Vec::new(),
+                            deploy_keys: Vec::new(),
+                            autolinks: Vec::new(),
                         },
                     );
                     BuiltinOutcome {
@@ -3820,11 +4421,496 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                "set-default" => {
-                    if let Some(r) = args.get(2) {
-                        st.gh_default_repo = Some(r.clone());
+                "edit" => {
+                    let mut pos_repo: Option<String> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-d" | "--description" | "-h" | "--homepage" | "--default-branch" | "--visibility"
+                            | "--add-topic" | "--remove-topic" | "-R" | "--repo" => {
+                                if i + 1 < args.len() {
+                                    i += 2;
+                                } else {
+                                    i += 1;
+                                }
+                            }
+                            "--enable-issues" | "--enable-wiki" | "--enable-projects" | "--enable-discussions"
+                            | "--enable-auto-merge" | "--enable-merge-commit" | "--enable-squash-merge"
+                            | "--enable-rebase-merge" | "--delete-branch-on-merge" | "--template" => {
+                                if i + 1 < args.len() && (args[i + 1] == "true" || args[i + 1] == "false") {
+                                    i += 2;
+                                } else {
+                                    i += 1;
+                                }
+                            }
+                            a if !a.starts_with('-') => {
+                                if pos_repo.is_none() {
+                                    pos_repo = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    let repo = st.gh_repos.get_mut(&full).unwrap();
+                    let parse_b = |val: Option<&String>| -> bool {
+                        match val.map(|s| s.as_str()) {
+                            Some("false") | Some("0") => false,
+                            _ => true,
+                        }
+                    };
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        let a = args[i].as_str();
+                        let (flag, eq_val) = if let Some((k, v)) = a.split_once('=') {
+                            (k, Some(v.to_string()))
+                        } else {
+                            (a, None)
+                        };
+                        let is_bool_flag = matches!(
+                            flag,
+                            "--enable-issues"
+                                | "--enable-wiki"
+                                | "--enable-projects"
+                                | "--enable-discussions"
+                                | "--enable-auto-merge"
+                                | "--enable-merge-commit"
+                                | "--enable-squash-merge"
+                                | "--enable-rebase-merge"
+                                | "--delete-branch-on-merge"
+                                | "--template"
+                        );
+                        let next_val = eq_val.clone().or_else(|| {
+                            let cand = args.get(i + 1)?;
+                            if is_bool_flag {
+                                if cand == "true" || cand == "false" {
+                                    Some(cand.clone())
+                                } else {
+                                    None
+                                }
+                            } else {
+                                Some(cand.clone())
+                            }
+                        });
+                        let step = if eq_val.is_some() {
+                            1
+                        } else if next_val.is_some() {
+                            2
+                        } else {
+                            1
+                        };
+                        match flag {
+                            "-d" | "--description" => {
+                                if let Some(v) = next_val {
+                                    repo.description = v;
+                                }
+                                i += step;
+                            }
+                            "-h" | "--homepage" => {
+                                if let Some(v) = next_val {
+                                    repo.homepage_url = v;
+                                }
+                                i += step;
+                            }
+                            "--default-branch" => {
+                                if let Some(v) = next_val {
+                                    repo.default_branch = v;
+                                }
+                                i += step;
+                            }
+                            "--visibility" => {
+                                if let Some(v) = next_val {
+                                    let up = v.to_ascii_uppercase();
+                                    repo.is_private = up != "PUBLIC";
+                                    repo.visibility = up;
+                                }
+                                i += step;
+                            }
+                            "--enable-issues" => {
+                                repo.has_issues_enabled = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-wiki" => {
+                                repo.has_wiki_enabled = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-projects" => {
+                                repo.has_projects_enabled = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-discussions" => {
+                                repo.has_discussions_enabled = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-auto-merge" => {
+                                repo.auto_merge_allowed = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-merge-commit" => {
+                                repo.merge_commit_allowed = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-squash-merge" => {
+                                repo.squash_merge_allowed = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--enable-rebase-merge" => {
+                                repo.rebase_merge_allowed = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--delete-branch-on-merge" => {
+                                repo.delete_branch_on_merge = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--template" => {
+                                repo.is_template = parse_b(next_val.as_ref());
+                                i += step;
+                            }
+                            "--add-topic" => {
+                                if let Some(v) = next_val {
+                                    for t in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        if !repo.topics.iter().any(|x| x == t) {
+                                            repo.topics.push(t.to_string());
+                                        }
+                                    }
+                                }
+                                i += step;
+                            }
+                            "--remove-topic" => {
+                                if let Some(v) = next_val {
+                                    for t in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        repo.topics.retain(|x| x != t);
+                                    }
+                                }
+                                i += step;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Edited repository {full}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "delete" => {
+                    let pos_repo = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
+                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    st.gh_repos.remove(&full);
+                    BuiltinOutcome {
+                        stdout: format!("✓ Deleted repository {full}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "archive" | "unarchive" => {
+                    let pos_repo = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
+                    let full = resolve_gh_repo_key(st, pos_repo.as_deref().or(repo_flag.as_deref()), env);
+                    if let Some(r) = st.gh_repos.get_mut(&full) {
+                        r.is_archived = sub == "archive";
+                    }
+                    let verb = if sub == "archive" { "Archived" } else { "Unarchived" };
+                    BuiltinOutcome {
+                        stdout: format!("✓ {verb} repository {full}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "rename" => {
+                    let new_name = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "renamed-repo".into());
+                    let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
+                    if let Some(mut r) = st.gh_repos.remove(&full) {
+                        let new_full = format!("{}/{new_name}", r.owner);
+                        r.name = new_name;
+                        st.gh_repos.insert(new_full.clone(), r);
+                        return BuiltinOutcome {
+                            stdout: format!("✓ Renamed repository to {new_full}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                }
+                "set-default" => {
+                    let Some(git_root) = find_git_root_in_vfs(cwd, fs) else {
+                        return gh_err("gh repo set-default: not a git repository");
+                    };
+                    let git_cfg = if git_root == "/" {
+                        "/.git/config".to_string()
+                    } else {
+                        format!("{git_root}/.git/config")
+                    };
+                    if args.iter().skip(2).any(|a| a == "-u" || a == "--unset") {
+                        st.gh_default_repo = None;
+                        if let Ok(bytes) = fs.read_file(&git_cfg) {
+                            let content = String::from_utf8_lossy(&bytes);
+                            let filtered: Vec<&str> = content
+                                .lines()
+                                .filter(|l| !l.trim().starts_with("gh-resolved ="))
+                                .collect();
+                            let _ = fs.write_file(&git_cfg, format!("{}\n", filtered.join("\n")).as_bytes());
+                        }
+                        return BuiltinOutcome {
+                            stdout: "✓ Unset default repository\n".into(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
+                    if args.iter().skip(2).any(|a| a == "-v" || a == "--view") {
+                        let Some(d) = st.gh_default_repo.clone() else {
+                            return BuiltinOutcome {
+                                stdout: "no default repository has been set; use `gh repo set-default` to select one\n".into(),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            };
+                        };
+                        return BuiltinOutcome {
+                            stdout: format!("{d}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
+                    let target = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "octocat/Hello-World".into());
+                    st.gh_default_repo = Some(target.clone());
+                    let mut existing = fs
+                        .read_file(&git_cfg)
+                        .map(|b| String::from_utf8_lossy(&b).into_owned())
+                        .unwrap_or_default();
+                    existing.push_str(&format!("\n[remote \"origin\"]\n\tgh-resolved = {target}\n"));
+                    let _ = fs.write_file(&git_cfg, existing.as_bytes());
+                    BuiltinOutcome {
+                        stdout: format!("✓ Set {target} as the default repository for the current directory\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "deploy-key" => {
+                    let dsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
+                    let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
+                    match dsub {
+                        "list" | "ls" => {
+                            let repo = st.gh_repos.get(&full).unwrap();
+                            if let Some(fields) = &json_fields {
+                                let arr: Vec<Value> = repo
+                                    .deploy_keys
+                                    .iter()
+                                    .map(|k| {
+                                        jval!({
+                                            "id": k.id,
+                                            "title": k.title,
+                                            "key": k.key,
+                                            "readOnly": k.read_only,
+                                            "createdAt": k.created_at
+                                        })
+                                    })
+                                    .collect();
+                                drop(map);
+                                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                            }
+                            let mut out = String::new();
+                            for k in &repo.deploy_keys {
+                                let ro = if k.read_only { "read-only" } else { "read-write" };
+                                out.push_str(&format!("{}\t{}\t{ro}\t{}\t{}\n", k.id, k.title, k.key, k.created_at));
+                            }
+                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                        }
+                        "add" => {
+                            let mut title = String::new();
+                            let mut allow_write = false;
+                            let mut key_file: Option<String> = None;
+                            let mut i = 3usize;
+                            while i < args.len() {
+                                match args[i].as_str() {
+                                    "-t" | "--title" if i + 1 < args.len() => {
+                                        title = args[i + 1].clone();
+                                        i += 2;
+                                    }
+                                    "-w" | "--allow-write" => {
+                                        allow_write = true;
+                                        i += 1;
+                                    }
+                                    "-R" | "--repo" => i += 2,
+                                    a if !a.starts_with('-') => {
+                                        if key_file.is_none() {
+                                            key_file = Some(a.to_string());
+                                        }
+                                        i += 1;
+                                    }
+                                    _ => i += 1,
+                                }
+                            }
+                            let key_content = match key_file.as_deref() {
+                                None | Some("-") => stdin.trim().to_string(),
+                                Some(p) => {
+                                    let resolved = resolve_posix_path(cwd, p);
+                                    match fs.read_file(&resolved) {
+                                        Ok(b) => String::from_utf8_lossy(&b).trim().to_string(),
+                                        Err(_) => return gh_err(&format!("{p}: No such file or directory")),
+                                    }
+                                }
+                            };
+                            if title.is_empty() {
+                                title = key_file.unwrap_or_else(|| "deploy-key".into());
+                            }
+                            st.gh_next_id += 1;
+                            let id = st.gh_next_id;
+                            let repo = st.gh_repos.get_mut(&full).unwrap();
+                            repo.deploy_keys.push(GhDeployKeyRecord {
+                                id,
+                                title,
+                                key: key_content,
+                                read_only: !allow_write,
+                                created_at: "2026-09-28T12:00:00Z".into(),
+                            });
+                            BuiltinOutcome {
+                                stdout: format!("✓ Deploy key added to {full}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "delete" => {
+                            let id_str = args.iter().skip(3).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                            let repo = st.gh_repos.get_mut(&full).unwrap();
+                            repo.deploy_keys.retain(|k| k.id.to_string() != id_str);
+                            BuiltinOutcome {
+                                stdout: format!("✓ Deploy key {id_str} deleted from {full}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                    }
+                }
+                "autolink" => {
+                    let asub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
+                    let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
+                    match asub {
+                        "list" | "ls" => {
+                            let repo = st.gh_repos.get(&full).unwrap();
+                            if let Some(fields) = &json_fields {
+                                let arr: Vec<Value> = repo
+                                    .autolinks
+                                    .iter()
+                                    .map(|a| {
+                                        jval!({
+                                            "id": a.id,
+                                            "keyPrefix": a.key_prefix,
+                                            "urlTemplate": a.url_template,
+                                            "isAlphanumeric": a.is_alphanumeric
+                                        })
+                                    })
+                                    .collect();
+                                drop(map);
+                                return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                            }
+                            let mut out = String::new();
+                            for a in &repo.autolinks {
+                                out.push_str(&format!("{}\t{}\t{}\t{}\n", a.id, a.key_prefix, a.url_template, a.is_alphanumeric));
+                            }
+                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                        }
+                        "create" => {
+                            let numeric = args.iter().skip(3).any(|a| a == "-n" || a == "--numeric");
+                            let pos: Vec<&str> = args
+                                .iter()
+                                .skip(3)
+                                .filter(|a| !a.starts_with('-'))
+                                .map(|s| s.as_str())
+                                .collect();
+                            let prefix = pos.first().copied().unwrap_or("TICKET-").to_string();
+                            let tpl = pos.get(1).copied().unwrap_or("https://example.com/TICKET?query=<num>").to_string();
+                            st.gh_next_id += 1;
+                            let id = st.gh_next_id;
+                            let repo = st.gh_repos.get_mut(&full).unwrap();
+                            repo.autolinks.push(GhAutolinkRecord {
+                                id,
+                                key_prefix: prefix.clone(),
+                                url_template: tpl,
+                                is_alphanumeric: !numeric,
+                            });
+                            BuiltinOutcome {
+                                stdout: format!("✓ Created autolink {id} for {full}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "view" => {
+                            let id_str = args.iter().skip(3).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                            let repo = st.gh_repos.get(&full).unwrap();
+                            let Some(al) = repo.autolinks.iter().find(|a| a.id.to_string() == id_str).cloned() else {
+                                return gh_err(&format!("autolink {id_str} not found"));
+                            };
+                            drop(map);
+                            if let Some(fields) = &json_fields {
+                                let obj = jval!({
+                                    "id": al.id,
+                                    "keyPrefix": al.key_prefix,
+                                    "urlTemplate": al.url_template,
+                                    "isAlphanumeric": al.is_alphanumeric
+                                });
+                                return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                            }
+                            BuiltinOutcome {
+                                stdout: format!(
+                                    "ID: {}\nKey Prefix: {}\nURL Template: {}\nAlphanumeric: {}\n",
+                                    al.id, al.key_prefix, al.url_template, al.is_alphanumeric
+                                ),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "delete" => {
+                            let id_str = args.iter().skip(3).find(|a| !a.starts_with('-')).cloned().unwrap_or_default();
+                            let repo = st.gh_repos.get_mut(&full).unwrap();
+                            repo.autolinks.retain(|a| a.id.to_string() != id_str);
+                            BuiltinOutcome {
+                                stdout: format!("✓ Deleted autolink {id_str} from {full}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                    }
+                }
+                "gitignore" => {
+                    let gsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
+                    if gsub == "list" {
+                        return BuiltinOutcome {
+                            stdout: "Node\nPython\nRust\nGo\nTypeScript\n".into(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
+                    let tpl = args.get(3).map(|s| s.as_str()).unwrap_or("Node");
+                    BuiltinOutcome {
+                        stdout: format!("# {tpl}\nnode_modules/\ndist/\n.env\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "license" => {
+                    let lsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
+                    if lsub == "list" {
+                        return BuiltinOutcome {
+                            stdout: "mit\tMIT License\napache-2.0\tApache License 2.0\ngpl-3.0\tGNU General Public License v3.0\n".into(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
+                    let key = args.get(3).map(|s| s.as_str()).unwrap_or("mit");
+                    BuiltinOutcome {
+                        stdout: format!("{} License\n\nPermission is hereby granted, free of charge...\n", key.to_ascii_uppercase()),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "credits" => {
+                    BuiltinOutcome {
+                        stdout: "Contributors: octocat\n".into(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
                 }
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
             }
@@ -3833,6 +4919,7 @@ fn cmd_gh(
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
+            let gh_user = st.gh_user.clone();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
             let repo = st.gh_repos.get_mut(&full).unwrap();
             match sub {
@@ -3840,6 +4927,7 @@ fn cmd_gh(
                     let mut title = "Untitled issue".to_string();
                     let mut body = String::new();
                     let mut labels = Vec::new();
+                    let mut assignees = Vec::new();
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
@@ -3861,6 +4949,17 @@ fn cmd_gh(
                                 }
                                 i += 2;
                             }
+                            "-a" | "--assignee" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    assignees.extend(
+                                        v.split(',')
+                                            .map(|s| s.trim())
+                                            .filter(|s| !s.is_empty())
+                                            .map(|s| if s == "@me" { gh_user.clone() } else { s.to_string() }),
+                                    );
+                                }
+                                i += 2;
+                            }
                             _ => i += 1,
                         }
                     }
@@ -3872,7 +4971,10 @@ fn cmd_gh(
                         body,
                         state: "OPEN".into(),
                         labels,
+                        assignees,
+                        is_pinned: false,
                         comments: Vec::new(),
+                        linked_branches: Vec::new(),
                     });
                     BuiltinOutcome {
                         stdout: format!("https://github.com/{full}/issues/{num}\n"),
@@ -3880,7 +4982,7 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                "list" => {
+                "list" | "ls" => {
                     let mut state_filter = "OPEN".to_string();
                     let mut i = 2usize;
                     while i < args.len() {
@@ -3909,8 +5011,10 @@ fn cmd_gh(
                                 "title": iss.title,
                                 "body": iss.body,
                                 "state": iss.state,
+                                "isPinned": iss.is_pinned,
                                 "url": format!("https://github.com/{full}/issues/{}", iss.number),
-                                "labels": iss.labels.iter().map(|l| jval!({ "name": l })).collect::<Vec<_>>()
+                                "labels": iss.labels.iter().map(|l| jval!({ "name": l })).collect::<Vec<_>>(),
+                                "assignees": iss.assignees.iter().map(|a| jval!({ "login": a })).collect::<Vec<_>>()
                             })
                         })
                         .collect();
@@ -3943,8 +5047,10 @@ fn cmd_gh(
                             "title": iss.title,
                             "body": iss.body,
                             "state": iss.state,
+                            "isPinned": iss.is_pinned,
                             "url": format!("https://github.com/{full}/issues/{}", iss.number),
                             "labels": iss.labels.iter().map(|l| jval!({ "name": l })).collect::<Vec<_>>(),
+                            "assignees": iss.assignees.iter().map(|a| jval!({ "login": a })).collect::<Vec<_>>(),
                             "comments": iss.comments.iter().map(|c| jval!({ "body": c })).collect::<Vec<_>>()
                         });
                         return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
@@ -4024,6 +5130,26 @@ fn cmd_gh(
                                 }
                                 i += 2;
                             }
+                            "--add-assignee" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                        if !iss.assignees.iter().any(|x| x == &login) {
+                                            iss.assignees.push(login);
+                                        }
+                                    }
+                                }
+                                i += 2;
+                            }
+                            "--remove-assignee" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                        iss.assignees.retain(|x| x != &login);
+                                    }
+                                }
+                                i += 2;
+                            }
                             _ => i += 1,
                         }
                     }
@@ -4042,6 +5168,182 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
+                "pin" | "unpin" => {
+                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) else {
+                        return gh_err(&format!("issue #{num} not found"));
+                    };
+                    iss.is_pinned = sub == "pin";
+                    let verb = if sub == "pin" { "Pinned" } else { "Unpinned" };
+                    BuiltinOutcome {
+                        stdout: format!("✓ {verb} issue #{num}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "lock" | "unlock" => {
+                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let Some(_iss) = repo.issues.iter().find(|i| i.number == num) else {
+                        return gh_err(&format!("issue #{num} not found"));
+                    };
+                    let verb = if sub == "lock" { "Locked" } else { "Unlocked" };
+                    BuiltinOutcome {
+                        stdout: format!("✓ {verb} issue #{num}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "transfer" => {
+                    let pos: Vec<&str> = args
+                        .iter()
+                        .skip(2)
+                        .enumerate()
+                        .filter(|(idx, a)| {
+                            if a.starts_with('-') {
+                                return false;
+                            }
+                            if *idx > 0 {
+                                let prev = args[*idx + 1].as_str();
+                                if prev == "-R" || prev == "--repo" {
+                                    return false;
+                                }
+                            }
+                            true
+                        })
+                        .map(|(_, s)| s.as_str())
+                        .collect();
+                    let num: u64 = pos.first().and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let dest = pos.get(1).copied().unwrap_or("octocat/Hello-World").to_string();
+                    let Some(idx) = repo.issues.iter().position(|i| i.number == num) else {
+                        return gh_err(&format!("issue #{num} not found"));
+                    };
+                    let mut moved = repo.issues.remove(idx);
+                    let dest_full = resolve_gh_repo_key(st, Some(&dest), env);
+                    let dest_repo = st.gh_repos.get_mut(&dest_full).unwrap();
+                    let new_num = dest_repo.next_number;
+                    dest_repo.next_number += 1;
+                    moved.number = new_num;
+                    dest_repo.issues.push(moved);
+                    BuiltinOutcome {
+                        stdout: format!("https://github.com/{dest_full}/issues/{new_num}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "develop" => {
+                    let mut branch_name: Option<String> = None;
+                    let mut list_flag = false;
+                    let mut num: u64 = 1;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-n" | "--name" if i + 1 < args.len() => {
+                                branch_name = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-b" | "--base" | "-R" | "--repo" => i += 2,
+                            "-l" | "--list" => {
+                                list_flag = true;
+                                i += 1;
+                            }
+                            a if !a.starts_with('-') => {
+                                if let Ok(n) = a.parse::<u64>() {
+                                    num = n;
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let Some(iss) = repo.issues.iter_mut().find(|i| i.number == num) else {
+                        return gh_err(&format!("issue #{num} not found"));
+                    };
+                    if list_flag {
+                        let mut out = String::new();
+                        for b in &iss.linked_branches {
+                            out.push_str(&format!("{b}\thttps://github.com/{full}/tree/{b}\n"));
+                        }
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
+                    let mut slug = String::new();
+                    let mut prev_dash = false;
+                    for c in iss.title.chars() {
+                        if c.is_ascii_alphanumeric() {
+                            slug.push(c.to_ascii_lowercase());
+                            prev_dash = false;
+                        } else if !prev_dash && !slug.is_empty() {
+                            slug.push('-');
+                            prev_dash = true;
+                        }
+                    }
+                    let slug = slug.trim_matches('-');
+                    let bname = branch_name.unwrap_or_else(|| format!("{num}-{slug}"));
+                    if !iss.linked_branches.iter().any(|b| b == &bname) {
+                        iss.linked_branches.push(bname.clone());
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("https://github.com/{full}/tree/{bname}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "status" => {
+                    let open: Vec<&GhIssueRecord> = repo.issues.iter().filter(|i| i.state == "OPEN").collect();
+                    let assigned_open: Vec<&&GhIssueRecord> = open
+                        .iter()
+                        .filter(|i| i.assignees.iter().any(|a| a == &gh_user))
+                        .collect();
+                    if let Some(fields) = &json_fields {
+                        let assigned_arr: Vec<Value> = assigned_open
+                            .iter()
+                            .map(|iss| {
+                                jval!({
+                                    "number": iss.number,
+                                    "title": iss.title,
+                                    "state": iss.state,
+                                    "url": format!("https://github.com/{full}/issues/{}", iss.number)
+                                })
+                            })
+                            .collect();
+                        let created_arr: Vec<Value> = open
+                            .iter()
+                            .map(|iss| {
+                                jval!({
+                                    "number": iss.number,
+                                    "title": iss.title,
+                                    "state": iss.state,
+                                    "url": format!("https://github.com/{full}/issues/{}", iss.number)
+                                })
+                            })
+                            .collect();
+                        let obj = jval!({
+                            "assigned": assigned_arr,
+                            "mentioned": [],
+                            "createdBy": created_arr
+                        });
+                        drop(map);
+                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let assigned_body = if assigned_open.is_empty() {
+                        "  There are no issues assigned to you".to_string()
+                    } else {
+                        assigned_open.iter().map(|i| format!("  #{}  {}", i.number, i.title)).collect::<Vec<_>>().join("\n")
+                    };
+                    let created_body = if open.is_empty() {
+                        "  There are no issues created by you".to_string()
+                    } else {
+                        open.iter().map(|i| format!("  #{}  {}", i.number, i.title)).collect::<Vec<_>>().join("\n")
+                    };
+                    BuiltinOutcome {
+                        stdout: format!("Relevant issues in {full}\n\nAssigned to you\n{assigned_body}\n\nCreated by you\n{created_body}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
             }
         }
@@ -4049,6 +5351,7 @@ fn cmd_gh(
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
+            let gh_user = st.gh_user.clone();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
             let repo = st.gh_repos.get_mut(&full).unwrap();
             match sub {
@@ -4059,6 +5362,8 @@ fn cmd_gh(
                     let mut base = repo.default_branch.clone();
                     let mut is_draft = false;
                     let mut labels = Vec::new();
+                    let mut assignees = Vec::new();
+                    let mut reviewers = Vec::new();
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
@@ -4096,6 +5401,28 @@ fn cmd_gh(
                                 }
                                 i += 2;
                             }
+                            "-a" | "--assignee" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    assignees.extend(
+                                        v.split(',')
+                                            .map(|s| s.trim())
+                                            .filter(|s| !s.is_empty())
+                                            .map(|s| if s == "@me" { gh_user.clone() } else { s.to_string() }),
+                                    );
+                                }
+                                i += 2;
+                            }
+                            "-r" | "--reviewer" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    reviewers.extend(
+                                        v.split(',')
+                                            .map(|s| s.trim())
+                                            .filter(|s| !s.is_empty())
+                                            .map(|s| s.to_string()),
+                                    );
+                                }
+                                i += 2;
+                            }
                             _ => i += 1,
                         }
                     }
@@ -4110,6 +5437,8 @@ fn cmd_gh(
                         base,
                         is_draft,
                         labels,
+                        assignees,
+                        reviewers,
                         comments: Vec::new(),
                     });
                     BuiltinOutcome {
@@ -4118,7 +5447,7 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                "list" => {
+                "list" | "ls" => {
                     let mut state_filter = "OPEN".to_string();
                     let mut i = 2usize;
                     while i < args.len() {
@@ -4157,6 +5486,8 @@ fn cmd_gh(
                                 "baseRefName": pr.base,
                                 "isDraft": pr.is_draft,
                                 "labels": pr.labels.iter().map(|l| jval!({ "name": l })).collect::<Vec<_>>(),
+                                "assignees": pr.assignees.iter().map(|a| jval!({ "login": a })).collect::<Vec<_>>(),
+                                "reviewRequests": pr.reviewers.iter().map(|r| jval!({ "login": r })).collect::<Vec<_>>(),
                                 "comments": pr.comments.iter().map(|c| jval!({ "body": c })).collect::<Vec<_>>(),
                                 "url": format!("https://github.com/{full}/pull/{}", pr.number)
                             })
@@ -4201,6 +5532,8 @@ fn cmd_gh(
                             "baseRefName": pr.base,
                             "isDraft": pr.is_draft,
                             "labels": pr.labels.iter().map(|l| jval!({ "name": l })).collect::<Vec<_>>(),
+                            "assignees": pr.assignees.iter().map(|a| jval!({ "login": a })).collect::<Vec<_>>(),
+                            "reviewRequests": pr.reviewers.iter().map(|r| jval!({ "login": r })).collect::<Vec<_>>(),
                             "comments": pr.comments.iter().map(|c| jval!({ "body": c })).collect::<Vec<_>>(),
                             "url": format!("https://github.com/{full}/pull/{}", pr.number)
                         });
@@ -4302,6 +5635,44 @@ fn cmd_gh(
                                 }
                                 i += 2;
                             }
+                            "--add-assignee" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                        if !pr.assignees.iter().any(|x| x == &login) {
+                                            pr.assignees.push(login);
+                                        }
+                                    }
+                                }
+                                i += 2;
+                            }
+                            "--remove-assignee" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for a in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        let login = if a == "@me" { gh_user.clone() } else { a.to_string() };
+                                        pr.assignees.retain(|x| x != &login);
+                                    }
+                                }
+                                i += 2;
+                            }
+                            "--add-reviewer" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for r in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        if !pr.reviewers.iter().any(|x| x == r) {
+                                            pr.reviewers.push(r.to_string());
+                                        }
+                                    }
+                                }
+                                i += 2;
+                            }
+                            "--remove-reviewer" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for r in v.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                                        pr.reviewers.retain(|x| x != r);
+                                    }
+                                }
+                                i += 2;
+                            }
                             _ => i += 1,
                         }
                     }
@@ -4348,6 +5719,203 @@ fn cmd_gh(
                     }
                     BuiltinOutcome { stdout: format!("https://github.com/{full}/pull/{num}#issuecomment-1\n"), stderr: String::new(), exit_code: 0 }
                 }
+                "lock" | "unlock" => {
+                    let num: u64 = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse().ok()).unwrap_or(1);
+                    let Some(_pr) = repo.prs.iter().find(|p| p.number == num) else {
+                        return gh_err(&format!("pull request #{num} not found"));
+                    };
+                    let verb = if sub == "lock" { "Locked" } else { "Unlocked" };
+                    BuiltinOutcome {
+                        stdout: format!("✓ {verb} pull request #{num}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "status" => {
+                    let open: Vec<&GhPrRecord> = repo.prs.iter().filter(|p| p.state == "OPEN").collect();
+                    let cur_branch = find_git_root_in_vfs(cwd, fs)
+                        .and_then(|root| {
+                            let head_path = if root == "/" { "/.git/HEAD".to_string() } else { format!("{root}/.git/HEAD") };
+                            fs.read_file(&head_path).ok()
+                        })
+                        .map(|b| {
+                            let s = String::from_utf8_lossy(&b).trim().to_string();
+                            s.strip_prefix("ref: refs/heads/").unwrap_or(&s).to_string()
+                        })
+                        .unwrap_or_else(|| "main".to_string());
+                    if let Some(fields) = &json_fields {
+                        let arr: Vec<Value> = open
+                            .iter()
+                            .map(|pr| {
+                                jval!({
+                                    "number": pr.number,
+                                    "title": pr.title,
+                                    "state": pr.state,
+                                    "headRefName": pr.head,
+                                    "baseRefName": pr.base,
+                                    "isDraft": pr.is_draft,
+                                    "url": format!("https://github.com/{full}/pull/{}", pr.number)
+                                })
+                            })
+                            .collect();
+                        let cur_pr = open
+                            .iter()
+                            .copied()
+                            .find(|pr| pr.head == cur_branch)
+                            .or_else(|| repo.prs.iter().find(|pr| pr.head == cur_branch));
+                        let current_branch = cur_pr
+                            .map(|pr| {
+                                jval!({
+                                    "number": pr.number,
+                                    "title": pr.title,
+                                    "state": pr.state,
+                                    "headRefName": pr.head,
+                                    "baseRefName": pr.base,
+                                    "isDraft": pr.is_draft,
+                                    "url": format!("https://github.com/{full}/pull/{}", pr.number)
+                                })
+                            })
+                            .unwrap_or(JVal::Null);
+                        let obj = jval!({
+                            "currentBranch": current_branch,
+                            "createdBy": arr,
+                            "needsReview": []
+                        });
+                        drop(map);
+                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let body = if open.is_empty() {
+                        "  There are no pull requests created by you".to_string()
+                    } else {
+                        open.iter().map(|p| format!("  #{}  {} [{}]", p.number, p.title, p.head)).collect::<Vec<_>>().join("\n")
+                    };
+                    BuiltinOutcome {
+                        stdout: format!("Relevant pull requests in {full}\n\nCreated by you\n{body}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "update-branch" => {
+                    let num_opt = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse::<u64>().ok());
+                    let pr_opt = match num_opt {
+                        Some(n) => repo.prs.iter().find(|p| p.number == n),
+                        None => repo.prs.first(),
+                    };
+                    let Some(pr) = pr_opt else {
+                        return gh_err(&format!("pull request #{} not found", num_opt.unwrap_or(1)));
+                    };
+                    BuiltinOutcome {
+                        stdout: format!("✓ Pull request #{} branch updated\n", pr.number),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "revert" => {
+                    let mut title_opt: Option<String> = None;
+                    let mut body_opt: Option<String> = None;
+                    let mut draft = false;
+                    let mut num_opt: Option<u64> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-t" | "--title" if i + 1 < args.len() => {
+                                title_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-b" | "--body" if i + 1 < args.len() => {
+                                body_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-d" | "--draft" => {
+                                draft = true;
+                                i += 1;
+                            }
+                            "-R" | "--repo" => i += 2,
+                            a if !a.starts_with('-') => {
+                                if num_opt.is_none() {
+                                    num_opt = a.parse::<u64>().ok();
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let orig_opt = match num_opt {
+                        Some(n) => repo.prs.iter().find(|p| p.number == n).cloned(),
+                        None => repo.prs.first().cloned(),
+                    };
+                    let Some(orig) = orig_opt else {
+                        return gh_err(&format!("pull request #{} not found", num_opt.unwrap_or(1)));
+                    };
+                    if orig.state != "MERGED" {
+                        return gh_err(&format!("pull request #{} is not merged and cannot be reverted", orig.number));
+                    }
+                    let rev_num = repo.next_number;
+                    repo.next_number += 1;
+                    repo.prs.push(GhPrRecord {
+                        number: rev_num,
+                        title: title_opt.unwrap_or_else(|| format!("Revert \"{}\"", orig.title)),
+                        body: body_opt.unwrap_or_else(|| format!("Reverts {full}#{}", orig.number)),
+                        state: "OPEN".into(),
+                        head: format!("revert-{}-{}", orig.number, orig.head),
+                        base: orig.base,
+                        is_draft: draft,
+                        labels: Vec::new(),
+                        assignees: Vec::new(),
+                        reviewers: Vec::new(),
+                        comments: Vec::new(),
+                    });
+                    BuiltinOutcome {
+                        stdout: format!("https://github.com/{full}/pull/{rev_num}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "checks" => {
+                    let num_opt = args.iter().skip(2).find(|a| !a.starts_with('-')).and_then(|s| s.parse::<u64>().ok());
+                    let pr_opt = match num_opt {
+                        Some(n) => repo.prs.iter().find(|p| p.number == n).cloned(),
+                        None => repo.prs.first().cloned(),
+                    };
+                    let Some(_pr) = pr_opt else {
+                        return gh_err(&format!("pull request #{} not found", num_opt.unwrap_or(1)));
+                    };
+                    drop(map);
+                    if let Some(fields) = &json_fields {
+                        let arr = vec![
+                            jval!({
+                                "bucket": "pass",
+                                "name": "build",
+                                "state": "SUCCESS",
+                                "workflow": "CI",
+                                "description": "Build succeeded",
+                                "link": format!("https://github.com/{full}/actions/runs/1"),
+                                "event": "pull_request",
+                                "startedAt": "2026-09-28T12:00:00Z",
+                                "completedAt": "2026-09-28T12:00:01Z"
+                            }),
+                            jval!({
+                                "bucket": "pass",
+                                "name": "test",
+                                "state": "SUCCESS",
+                                "workflow": "CI",
+                                "description": "All tests passed",
+                                "link": format!("https://github.com/{full}/actions/runs/1"),
+                                "event": "pull_request",
+                                "startedAt": "2026-09-28T12:00:00Z",
+                                "completedAt": "2026-09-28T12:00:01Z"
+                            }),
+                        ];
+                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    BuiltinOutcome {
+                        stdout: format!(
+                            "build\tpass\t1s\thttps://github.com/{full}/actions/runs/1\tBuild succeeded\ntest\tpass\t1s\thttps://github.com/{full}/actions/runs/1\tAll tests passed\n"
+                        ),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
             }
         }
@@ -4359,15 +5927,50 @@ fn cmd_gh(
             let repo = st.gh_repos.get_mut(&full).unwrap();
             match sub {
                 "create" => {
-                    let tag = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "v1.0.0".into());
-                    let mut title = tag.clone();
+                    let mut pos: Vec<String> = Vec::new();
+                    let mut title_opt: Option<String> = None;
                     let mut notes = String::new();
-                    for w in args.windows(2) {
-                        if w[0] == "-t" || w[0] == "--title" {
-                            title = w[1].clone();
-                        } else if w[0] == "-n" || w[0] == "--notes" {
-                            notes = w[1].clone();
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-t" | "--title" if i + 1 < args.len() => {
+                                title_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-n" | "--notes" if i + 1 < args.len() => {
+                                notes = args[i + 1].clone();
+                                i += 2;
+                            }
+                            "-F" | "--notes-file" if i + 1 < args.len() => {
+                                let p = resolve_posix_path(cwd, &args[i + 1]);
+                                if let Ok(b) = fs.read_file(&p) {
+                                    notes = String::from_utf8_lossy(&b).into_owned();
+                                }
+                                i += 2;
+                            }
+                            "-R" | "--repo" | "--target" => i += 2,
+                            a if !a.starts_with('-') => {
+                                pos.push(a.to_string());
+                                i += 1;
+                            }
+                            _ => i += 1,
                         }
+                    }
+                    let tag = pos.first().cloned().unwrap_or_else(|| "v1.0.0".into());
+                    let title = title_opt.unwrap_or_else(|| tag.clone());
+                    let mut assets = Vec::new();
+                    for file_arg in pos.iter().skip(1) {
+                        let (path_part, _) = file_arg.split_once('#').unwrap_or((file_arg.as_str(), ""));
+                        let name = path_part.rsplit('/').next().unwrap_or(path_part).to_string();
+                        let resolved = resolve_posix_path(cwd, path_part);
+                        let data = fs.read_file(&resolved).unwrap_or_default();
+                        let size = data.len();
+                        assets.push((
+                            name.clone(),
+                            size,
+                            format!("https://github.com/{full}/releases/download/{tag}/{name}"),
+                            data,
+                        ));
                     }
                     repo.releases.push(GhReleaseRecord {
                         tag_name: tag.clone(),
@@ -4375,6 +5978,7 @@ fn cmd_gh(
                         body: notes,
                         is_draft: args.iter().any(|a| a == "-d" || a == "--draft"),
                         is_prerelease: args.iter().any(|a| a == "-p" || a == "--prerelease"),
+                        assets,
                     });
                     BuiltinOutcome {
                         stdout: format!("https://github.com/{full}/releases/tag/{tag}\n"),
@@ -4382,11 +5986,20 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                "list" => {
+                "list" | "ls" => {
                     let arr: Vec<Value> = repo
                         .releases
                         .iter()
-                        .map(|rel| jval!({ "tagName": rel.tag_name, "name": rel.name, "isDraft": rel.is_draft, "isPrerelease": rel.is_prerelease }))
+                        .map(|rel| {
+                            jval!({
+                                "tagName": rel.tag_name,
+                                "name": rel.name,
+                                "body": rel.body,
+                                "isDraft": rel.is_draft,
+                                "isPrerelease": rel.is_prerelease,
+                                "assets": rel.assets.iter().map(|(n, sz, u, _)| jval!({ "name": n, "size": *sz, "url": u })).collect::<Vec<_>>()
+                            })
+                        })
                         .collect();
                     let rows: Vec<(String, String)> = repo.releases.iter().map(|r| (r.name.clone(), r.tag_name.clone())).collect();
                     drop(map);
@@ -4410,7 +6023,15 @@ fn cmd_gh(
                     };
                     drop(map);
                     if let Some(fields) = &json_fields {
-                        let obj = jval!({ "tagName": rel.tag_name, "name": rel.name, "body": rel.body, "isDraft": rel.is_draft, "isPrerelease": rel.is_prerelease });
+                        let obj = jval!({
+                            "tagName": rel.tag_name,
+                            "name": rel.name,
+                            "body": rel.body,
+                            "isDraft": rel.is_draft,
+                            "isPrerelease": rel.is_prerelease,
+                            "assets": rel.assets.iter().map(|(n, sz, u, _)| jval!({ "name": n, "size": *sz, "url": u })).collect::<Vec<_>>(),
+                            "url": format!("https://github.com/{full}/releases/tag/{}", rel.tag_name)
+                        });
                         return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
                     }
                     BuiltinOutcome {
@@ -4429,6 +6050,181 @@ fn cmd_gh(
                     repo.releases.retain(|r| r.tag_name != tag);
                     BuiltinOutcome {
                         stdout: format!("✓ Deleted release {tag}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "upload" => {
+                    let pos: Vec<&str> = args
+                        .iter()
+                        .skip(2)
+                        .filter(|a| !a.starts_with('-'))
+                        .map(|s| s.as_str())
+                        .collect();
+                    let tag = pos.first().copied().unwrap_or("");
+                    let Some(rel) = repo.releases.iter_mut().find(|r| r.tag_name == tag) else {
+                        return gh_err("release not found");
+                    };
+                    for file_arg in pos.iter().skip(1) {
+                        let (path_part, _) = file_arg.split_once('#').unwrap_or((*file_arg, ""));
+                        let name = path_part.rsplit('/').next().unwrap_or(path_part).to_string();
+                        let resolved = resolve_posix_path(cwd, path_part);
+                        let data = fs.read_file(&resolved).unwrap_or_default();
+                        let size = data.len();
+                        rel.assets.retain(|(n, _, _, _)| n != &name);
+                        rel.assets.push((
+                            name.clone(),
+                            size,
+                            format!("https://github.com/{full}/releases/download/{tag}/{name}"),
+                            data,
+                        ));
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Uploaded assets to {tag}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "download" => {
+                    let mut dir_opt: Option<String> = None;
+                    let mut out_opt: Option<String> = None;
+                    let mut tag_opt: Option<String> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-D" | "--dir" if i + 1 < args.len() => {
+                                dir_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-O" | "--output" if i + 1 < args.len() => {
+                                out_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-p" | "--pattern" | "-A" | "--archive" | "-R" | "--repo" => i += 2,
+                            a if !a.starts_with('-') => {
+                                if tag_opt.is_none() {
+                                    tag_opt = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let rel_opt = match tag_opt.as_deref() {
+                        Some(t) => repo.releases.iter().find(|r| r.tag_name == t).cloned(),
+                        None => repo.releases.last().cloned(),
+                    };
+                    let Some(rel) = rel_opt else {
+                        return gh_err("release not found");
+                    };
+                    let dest_dir = dir_opt.map(|d| resolve_posix_path(cwd, &d)).unwrap_or_else(|| cwd.to_string());
+                    let _ = fs.mkdir_all(&dest_dir);
+                    if let Some(o) = out_opt {
+                        let target = resolve_posix_path(cwd, &o);
+                        let data = rel
+                            .assets
+                            .first()
+                            .map(|(_, _, _, b)| b.clone())
+                            .unwrap_or_else(|| format!("archive:{}\n", rel.tag_name).into_bytes());
+                        let _ = fs.write_file(&target, &data);
+                    } else {
+                        for (name, _, _, data) in &rel.assets {
+                            let _ = fs.write_file(&format!("{dest_dir}/{name}"), data);
+                        }
+                    }
+                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                }
+                "edit" => {
+                    let mut tag_opt: Option<String> = None;
+                    let mut title_opt: Option<String> = None;
+                    let mut notes_opt: Option<String> = None;
+                    let mut draft_opt: Option<bool> = None;
+                    let mut prerelease_opt: Option<bool> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        let a = args[i].as_str();
+                        match a {
+                            "-t" | "--title" if i + 1 < args.len() => {
+                                title_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-n" | "--notes" if i + 1 < args.len() => {
+                                notes_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "--draft" => {
+                                if i + 1 < args.len() && (args[i + 1] == "true" || args[i + 1] == "false") {
+                                    draft_opt = Some(args[i + 1] != "false");
+                                    i += 2;
+                                } else {
+                                    draft_opt = Some(true);
+                                    i += 1;
+                                }
+                            }
+                            "--prerelease" => {
+                                if i + 1 < args.len() && (args[i + 1] == "true" || args[i + 1] == "false") {
+                                    prerelease_opt = Some(args[i + 1] != "false");
+                                    i += 2;
+                                } else {
+                                    prerelease_opt = Some(true);
+                                    i += 1;
+                                }
+                            }
+                            x if x.starts_with("--draft=") => {
+                                draft_opt = Some(&x["--draft=".len()..] != "false");
+                                i += 1;
+                            }
+                            x if x.starts_with("--prerelease=") => {
+                                prerelease_opt = Some(&x["--prerelease=".len()..] != "false");
+                                i += 1;
+                            }
+                            "-R" | "--repo" => i += 2,
+                            x if !x.starts_with('-') => {
+                                if tag_opt.is_none() {
+                                    tag_opt = Some(x.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let tag = tag_opt.unwrap_or_default();
+                    let Some(rel) = repo.releases.iter_mut().find(|r| r.tag_name == tag) else {
+                        return gh_err("release not found");
+                    };
+                    if let Some(t) = title_opt {
+                        rel.name = t;
+                    }
+                    if let Some(n) = notes_opt {
+                        rel.body = n;
+                    }
+                    if let Some(d) = draft_opt {
+                        rel.is_draft = d;
+                    }
+                    if let Some(p) = prerelease_opt {
+                        rel.is_prerelease = p;
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("https://github.com/{full}/releases/tag/{}\n", rel.tag_name),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "delete-asset" => {
+                    let pos: Vec<&str> = args
+                        .iter()
+                        .skip(2)
+                        .filter(|a| !a.starts_with('-'))
+                        .map(|s| s.as_str())
+                        .collect();
+                    let tag = pos.first().copied().unwrap_or("");
+                    let asset = pos.get(1).copied().unwrap_or("");
+                    let Some(rel) = repo.releases.iter_mut().find(|r| r.tag_name == tag) else {
+                        return gh_err("release not found");
+                    };
+                    rel.assets.retain(|(n, _, _, _)| n != asset);
+                    BuiltinOutcome {
+                        stdout: format!("✓ Deleted asset {asset} from release {tag}\n"),
                         stderr: String::new(),
                         exit_code: 0,
                     }
@@ -4569,8 +6365,12 @@ fn cmd_gh(
                     }
                 }
                 let val = body_val.unwrap_or_else(|| stdin.trim().to_string());
-                repo.variables.insert(k, val);
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                repo.variables.insert(k.clone(), val);
+                return BuiltinOutcome {
+                    stdout: format!("✓ Set Actions variable {k}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             if sub == "get" {
                 let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned() else {
@@ -4593,6 +6393,11 @@ fn cmd_gh(
             if sub == "delete" || sub == "remove" {
                 if let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned() {
                     repo.variables.remove(&k);
+                    return BuiltinOutcome {
+                        stdout: format!("✓ Deleted Actions variable {k}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    };
                 }
                 return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
             }
@@ -4613,13 +6418,22 @@ fn cmd_gh(
                 && let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned()
             {
                 if !repo.secrets.contains(&k) {
-                    repo.secrets.push(k);
+                    repo.secrets.push(k.clone());
                 }
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: format!("✓ Set Actions secret {k}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             if sub == "delete" || sub == "remove" {
                 if let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned() {
                     repo.secrets.retain(|s| s != &k);
+                    return BuiltinOutcome {
+                        stdout: format!("✓ Deleted Actions secret {k}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    };
                 }
                 return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
             }
@@ -4718,13 +6532,16 @@ fn cmd_gh(
                     let wf_name = repo.workflows[idx].name.clone();
                     let wf_path = repo.workflows[idx].path.clone();
                     let wf_id = repo.workflows[idx].id;
-                    let run_id = repo.next_number;
-                    repo.next_number += 1;
+                    st.gh_next_id += 1;
+                    let run_id = st.gh_next_id;
+                    st.gh_next_id += 1;
+                    let job_id = st.gh_next_id;
+                    let repo = st.gh_repos.get_mut(&full).unwrap();
                     repo.workflow_runs.push(GhWorkflowRunRecord {
                         database_id: run_id,
                         name: wf_name.clone(),
                         display_title: format!("Manual run of {wf_name}"),
-                        workflow_name: wf_name,
+                        workflow_name: wf_name.clone(),
                         workflow_database_id: wf_id,
                         head_branch: ref_branch.clone(),
                         event: "workflow_dispatch".into(),
@@ -4733,6 +6550,8 @@ fn cmd_gh(
                         attempt: 1,
                         url: format!("https://github.com/{full}/actions/runs/{run_id}"),
                         actor_login: st.gh_user.clone(),
+                        job_id,
+                        job_log: format!("{wf_name}\tbuild\t2026-09-28T12:00:00Z Completed workflow_dispatch\n"),
                     });
                     BuiltinOutcome {
                         stdout: format!("✓ Created workflow_dispatch event for {wf_path} at {ref_branch}\n"),
@@ -4780,6 +6599,24 @@ fn cmd_gh(
             let st = map.entry(fs_id).or_default();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
             let repo = st.gh_repos.get_mut(&full).unwrap();
+            if repo.workflow_runs.is_empty() {
+                repo.workflow_runs.push(GhWorkflowRunRecord {
+                    database_id: 101,
+                    name: "CI".into(),
+                    display_title: "Initial CI run".into(),
+                    workflow_name: "CI".into(),
+                    workflow_database_id: 1,
+                    head_branch: repo.default_branch.clone(),
+                    event: "push".into(),
+                    status: "completed".into(),
+                    conclusion: "success".into(),
+                    attempt: 1,
+                    url: format!("https://github.com/{full}/actions/runs/101"),
+                    actor_login: st.gh_user.clone(),
+                    job_id: 201,
+                    job_log: "CI\tbuild\t2026-09-28T12:00:00Z Running npm test\nCI\tbuild\t2026-09-28T12:00:01Z Pass\n".into(),
+                });
+            }
             match sub {
                 "list" | "ls" => {
                     if let Some(fields) = &json_fields {
@@ -4818,6 +6655,7 @@ fn cmd_gh(
                     BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
                 }
                 "view" => {
+                    let log_flag = args.iter().skip(2).any(|a| a == "--log" || a == "--log-failed");
                     let sel_id = args
                         .iter()
                         .skip(2)
@@ -4850,13 +6688,70 @@ fn cmd_gh(
                         });
                         return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
                     }
+                    if log_flag {
+                        return BuiltinOutcome {
+                            stdout: r.job_log.clone(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
                     BuiltinOutcome {
                         stdout: format!(
-                            "{} {} · {}\nTriggered via {} by {}\n\nJOBS\n✓ build in 1s (ID 1)\n\nView this run on GitHub: {}\n",
-                            r.head_branch, r.workflow_name, r.database_id, r.event, r.actor_login, r.url
+                            "✓ {} {} · {}\nTriggered via {} by {}\n\nJOBS\n✓ build in 1s (ID {})\n",
+                            r.head_branch, r.workflow_name, r.database_id, r.event, r.actor_login, r.job_id
                         ),
                         stderr: String::new(),
                         exit_code: 0,
+                    }
+                }
+                "watch" | "rerun" | "cancel" | "delete" => {
+                    let sel_id = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-') && a.chars().all(|c| c.is_ascii_digit()))
+                        .and_then(|s| s.parse::<u64>().ok());
+                    let idx_opt = match sel_id {
+                        Some(id) => repo.workflow_runs.iter().position(|r| r.database_id == id),
+                        None => if repo.workflow_runs.is_empty() { None } else { Some(0) },
+                    };
+                    let Some(idx) = idx_opt else {
+                        return gh_err("run not found");
+                    };
+                    let db_id = repo.workflow_runs[idx].database_id;
+                    match sub {
+                        "watch" => BuiltinOutcome {
+                            stdout: format!("✓ Run {} ({}) completed with '{}'\n", repo.workflow_runs[idx].workflow_name, db_id, repo.workflow_runs[idx].conclusion),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        },
+                        "rerun" => {
+                            repo.workflow_runs[idx].attempt += 1;
+                            repo.workflow_runs[idx].status = "completed".into();
+                            repo.workflow_runs[idx].conclusion = "success".into();
+                            BuiltinOutcome {
+                                stdout: format!("✓ Requested rerun of run {db_id}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "cancel" => {
+                            repo.workflow_runs[idx].status = "completed".into();
+                            repo.workflow_runs[idx].conclusion = "cancelled".into();
+                            BuiltinOutcome {
+                                stdout: format!("✓ Requested cancellation of workflow run {db_id}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "delete" => {
+                            repo.workflow_runs.remove(idx);
+                            BuiltinOutcome {
+                                stdout: format!("✓ Deleted workflow run {db_id}\n"),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        _ => unreachable!(),
                     }
                 }
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
@@ -5706,11 +7601,49 @@ fn cmd_gh(
                 _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
             }
         }
-        "status" => BuiltinOutcome {
-            stdout: "Assigned Issues\n  Nothing here ^_^\n\nAssigned Pull Requests\n  Nothing here ^_^\n\nReview Requests\n  Nothing here ^_^\n".into(),
-            stderr: String::new(),
-            exit_code: 0,
-        },
+        "status" => {
+            let map = states().lock().unwrap();
+            let st = map.get(&fs_id).cloned().unwrap_or_default();
+            drop(map);
+            let mut assigned_issues = Vec::new();
+            let mut assigned_prs = Vec::new();
+            let mut review_requests = Vec::new();
+            for (full, r) in &st.gh_repos {
+                for iss in &r.issues {
+                    if iss.state == "OPEN" && iss.assignees.iter().any(|a| a == &st.gh_user) {
+                        assigned_issues.push(format!("{full}#{}  {}", iss.number, iss.title));
+                    }
+                }
+                for pr in &r.prs {
+                    if pr.state == "OPEN" && pr.assignees.iter().any(|a| a == &st.gh_user) {
+                        assigned_prs.push(format!("{full}#{}  {}", pr.number, pr.title));
+                    }
+                    if pr.state == "OPEN" && pr.reviewers.iter().any(|rv| rv == &st.gh_user) {
+                        review_requests.push(format!("{full}#{}  {}", pr.number, pr.title));
+                    }
+                }
+            }
+            let issues_block = if assigned_issues.is_empty() {
+                "  Nothing here ^_^".to_string()
+            } else {
+                assigned_issues.into_iter().map(|s| format!("  {s}")).collect::<Vec<_>>().join("\n")
+            };
+            let prs_block = if assigned_prs.is_empty() {
+                "  Nothing here ^_^".to_string()
+            } else {
+                assigned_prs.into_iter().map(|s| format!("  {s}")).collect::<Vec<_>>().join("\n")
+            };
+            let reviews_block = if review_requests.is_empty() {
+                "  Nothing here ^_^".to_string()
+            } else {
+                review_requests.into_iter().map(|s| format!("  {s}")).collect::<Vec<_>>().join("\n")
+            };
+            BuiltinOutcome {
+                stdout: format!("Assigned Issues\n{issues_block}\n\nAssigned Pull Requests\n{prs_block}\n\nReview Requests\n{reviews_block}\n"),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        }
         "completion" => {
             let mut shell_name = "bash".to_string();
             let mut i = 1usize;
@@ -5901,7 +7834,7 @@ fn cmd_gh(
             let mut id_opt: Option<String> = None;
             let mut body_opt: Option<String> = None;
             let mut url_opt: Option<String> = None;
-            let mut repo_link_opt: Option<String> = None;
+            let mut repo_link_opt: Option<String> = repo_flag.clone();
             let mut undo = false;
             let mut is_json = false;
             let mut pos_num: Option<u64> = None;
@@ -6955,6 +8888,66 @@ mod tests {
         let comp_bash = cmd_op(&args(&["completion", "bash"]), "", &mut cwd, &mut env, &vfs, &mut noop);
         assert_eq!(comp_bash.exit_code, 0);
         assert!(comp_bash.stdout.contains("complete -o filenames -F _op op"));
+    }
+
+    #[test]
+    fn unit_gh_repo_issue_pr_release_run_auth_deep_parity() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/.git").unwrap();
+        vfs.write_file("/work/.git/config", b"[core]\n\trepositoryformatversion = 0\n").unwrap();
+        vfs.write_file("/work/id_ed25519.pub", b"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDeployKey deploy@acme\n").unwrap();
+        vfs.write_file("/work/artifact.tar.gz", b"BINARY-ARTIFACT-BYTES").unwrap();
+        let mut env = BTreeMap::new();
+
+        let login = cmd_gh(
+            &args(&["auth", "login", "--with-token", "-h", "github.com", "-u", "secbot", "-p", "ssh", "-s", "repo,workflow"]),
+            "gho_custom_token_12345\n",
+            "/work",
+            &mut env,
+            &vfs,
+        );
+        assert_eq!(login.exit_code, 0);
+        assert!(login.stdout.contains("✓ Logged in as secbot"));
+        let setup_git = cmd_gh(&args(&["auth", "setup-git", "-h", "github.com"]), "", "/work", &mut env, &vfs);
+        assert!(setup_git.stdout.contains("✓ Configured git credential helper for github.com"));
+
+        assert_eq!(
+            cmd_gh(&args(&["repo", "create", "acme/ops", "-d", "Ops Repo", "-h", "https://ops.acme.test", "--private"]), "", "/work", &mut env, &vfs).exit_code,
+            0
+        );
+        assert_eq!(
+            cmd_gh(&args(&["repo", "edit", "acme/ops", "--add-topic", "secops,infra", "--enable-auto-merge", "--delete-branch-on-merge"]), "", "/work", &mut env, &vfs).exit_code,
+            0
+        );
+        let dk = cmd_gh(&args(&["repo", "deploy-key", "add", "/work/id_ed25519.pub", "-R", "acme/ops", "-t", "prod-deploy", "-w"]), "", "/work", &mut env, &vfs);
+        assert!(dk.stdout.contains("✓ Deploy key added to acme/ops"));
+        let al = cmd_gh(&args(&["repo", "autolink", "create", "SEC-", "https://jira.acme.test/browse/SEC-<num>", "-n", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        assert!(al.stdout.contains("✓ Created autolink "));
+
+        cmd_gh(&args(&["issue", "create", "-R", "acme/ops", "-t", "Rotate keys", "-a", "@me"]), "", "/work", &mut env, &vfs);
+        let pin = cmd_gh(&args(&["issue", "pin", "1", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        assert!(pin.stdout.contains("✓ Pinned issue #1"));
+        let dev_create = cmd_gh(&args(&["issue", "develop", "1", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        assert!(dev_create.stdout.contains("https://github.com/acme/ops/tree/1-rotate-keys"));
+        let dev = cmd_gh(&args(&["issue", "develop", "1", "-R", "acme/ops", "--list"]), "", "/work", &mut env, &vfs);
+        assert!(dev.stdout.contains("1-rotate-keys\thttps://github.com/acme/ops/tree/1-rotate-keys"));
+
+        cmd_gh(&args(&["pr", "create", "-R", "acme/ops", "-t", "Fix rotation", "-H", "1-rotate-keys", "-a", "@me", "-r", "alice"]), "", "/work", &mut env, &vfs);
+        let checks = cmd_gh(&args(&["pr", "checks", "2", "-R", "acme/ops", "--json", "bucket,name,state"]), "", "/work", &mut env, &vfs);
+        assert!(checks.stdout.contains("\"bucket\": \"pass\""));
+        cmd_gh(&args(&["pr", "merge", "2", "-R", "acme/ops", "--squash"]), "", "/work", &mut env, &vfs);
+        let rev = cmd_gh(&args(&["pr", "revert", "2", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        assert!(rev.stdout.contains("https://github.com/acme/ops/pull/3"));
+
+        cmd_gh(&args(&["release", "create", "v1.0.0", "-R", "acme/ops", "-t", "v1.0.0", "-n", "Initial"]), "", "/work", &mut env, &vfs);
+        let up = cmd_gh(&args(&["release", "upload", "v1.0.0", "/work/artifact.tar.gz", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        assert!(up.stdout.contains("✓ Uploaded assets to v1.0.0"));
+
+        cmd_gh(&args(&["workflow", "run", "CI", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        let log_out = cmd_gh(&args(&["run", "view", "-R", "acme/ops", "--log"]), "", "/work", &mut env, &vfs);
+        assert!(log_out.stdout.contains("Completed workflow_dispatch"));
+        let rerun = cmd_gh(&args(&["run", "rerun", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
+        assert!(rerun.stdout.contains("✓ Requested rerun of run "));
     }
 
 }

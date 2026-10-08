@@ -5849,6 +5849,9 @@ fn cmd_yq(
         files.push(f.clone());
         filter = Some(".".to_string());
     }
+    if !explicit_expr && files.is_empty() && filter.as_deref() == Some("-") {
+        filter = Some(".".to_string());
+    }
 
     let mut final_filter = filter.unwrap_or_else(|| ".".to_string());
     if disable_env_ops
@@ -5905,8 +5908,9 @@ fn cmd_yq(
     }
     jq_args.push(final_filter.clone());
 
+    let is_stdin_only = files.is_empty() || (files.len() == 1 && files[0] == "-");
     let is_json_in = input_format.as_deref() == Some("json")
-        || (files.is_empty()
+        || (is_stdin_only
             && !null_input
             && (stdin.trim_start().starts_with('{') || stdin.trim_start().starts_with('[')));
     let quote_yaml = is_json_in && !pretty_print;
@@ -5923,7 +5927,7 @@ fn cmd_yq(
     if null_input {
         docs.push("null".to_string());
         doc_metas.push(YqDocMeta::default());
-    } else if files.is_empty() {
+    } else if is_stdin_only {
         let eff_in = if front_matter.is_some() {
             let (fm_yaml, fm_body) = split_yq_front_matter(stdin);
             front_matter_body = fm_body;
@@ -5943,9 +5947,15 @@ fn cmd_yq(
         }
     } else {
         for (f_idx, f) in files.iter().enumerate() {
-            let full = resolve_posix_path(cwd, f);
-            if let Ok(b) = fs.read_file(&full) {
-                let s = String::from_utf8_lossy(&b).into_owned();
+            let s_opt = if f == "-" {
+                Some(stdin.to_string())
+            } else {
+                let full = resolve_posix_path(cwd, f);
+                fs.read_file(&full)
+                    .ok()
+                    .map(|b| String::from_utf8_lossy(&b).into_owned())
+            };
+            if let Some(s) = s_opt {
                 let eff_in = if front_matter.is_some() && f_idx == 0 {
                     let (fm_yaml, fm_body) = split_yq_front_matter(&s);
                     front_matter_body = fm_body;
@@ -5958,8 +5968,13 @@ fn cmd_yq(
                 } else {
                     input_format.as_deref()
                 };
-                for (jv, meta) in
-                    parse_yq_input_docs_with_meta(&eff_in, eff_fmt, Some(f), f_idx, !xq_xml_mode)
+                for (jv, meta) in parse_yq_input_docs_with_meta(
+                    &eff_in,
+                    eff_fmt,
+                    if f == "-" { None } else { Some(f) },
+                    f_idx,
+                    !xq_xml_mode,
+                )
                 {
                     docs.push(jv.to_json_string(true, false, 0));
                     doc_metas.push(meta);
@@ -21757,6 +21772,17 @@ fn exec_sql_select_with_mode(
                     && expr_s[..over_pos].chars().filter(|&c| c == '(').count()
                         == expr_s[..over_pos].chars().filter(|&c| c == ')').count()
                     && expr_s.trim_end().ends_with(')')
+                    && is_matching_outer_delim(expr_s[over_pos + 5..].trim(), '(', ')')
+                    && expr_s[..over_pos]
+                        .trim()
+                        .split_once('(')
+                        .is_some_and(|(fname, rest)| {
+                            !fname.is_empty()
+                                && fname
+                                    .chars()
+                                    .all(|c| c.is_ascii_alphanumeric() || c == '_')
+                                && is_matching_outer_delim(&format!("({rest}"), '(', ')')
+                        })
                 {
                     let fn_part = expr_s[..over_pos].trim();
                     let fn_up = fn_part.to_ascii_uppercase();
@@ -22085,6 +22111,18 @@ fn exec_sql_select_with_mode(
                                 p_indices.sort_by(|&a_i, &b_i| cmp_rows(a_i, b_i));
                             }
                             let my_pos = p_indices.iter().position(|&oi| oi == my_idx).unwrap_or(0);
+                            let (start_pos, end_pos) = if order_keys.is_empty() {
+                                (0, p_indices.len().saturating_sub(1))
+                            } else {
+                                let mut ep = my_pos;
+                                while ep + 1 < p_indices.len()
+                                    && cmp_rows(p_indices[ep + 1], my_idx)
+                                        == std::cmp::Ordering::Equal
+                                {
+                                    ep += 1;
+                                }
+                                (0, ep)
+                            };
                             let wval = if fn_up.starts_with("ROW_NUMBER(") {
                                 (my_pos + 1).to_string()
                             } else if fn_up.starts_with("RANK(") {
@@ -22105,6 +22143,79 @@ fn exec_sql_select_with_mode(
                                     }
                                 }
                                 drank.to_string()
+                            } else if fn_up.starts_with("COUNT(") {
+                                if order_keys.is_empty() {
+                                    p_indices.len().to_string()
+                                } else {
+                                    (end_pos + 1).to_string()
+                                }
+                            } else if fn_up.starts_with("SUM(") {
+                                let col_idx = find_sql_col(&tbl.columns, inner).unwrap_or(0);
+                                let mut sum = 0.0f64;
+                                for &oi in &p_indices[start_pos..=end_pos] {
+                                    if let Some(v) = filtered[oi]
+                                        .get(col_idx)
+                                        .and_then(|s| s.parse::<f64>().ok())
+                                    {
+                                        sum += v;
+                                    }
+                                }
+                                if (sum - sum.round()).abs() < 1e-9 {
+                                    (sum.round() as i64).to_string()
+                                } else {
+                                    sum.to_string()
+                                }
+                            } else if fn_up.starts_with("AVG(") {
+                                let col_idx = find_sql_col(&tbl.columns, inner).unwrap_or(0);
+                                let mut sum = 0.0f64;
+                                let mut cnt = 0usize;
+                                for &oi in &p_indices[start_pos..=end_pos] {
+                                    if let Some(v) = filtered[oi]
+                                        .get(col_idx)
+                                        .and_then(|s| s.parse::<f64>().ok())
+                                    {
+                                        sum += v;
+                                        cnt += 1;
+                                    }
+                                }
+                                if cnt == 0 {
+                                    String::new()
+                                } else {
+                                    let avg = sum / (cnt as f64);
+                                    if (avg - avg.round()).abs() < 1e-9 {
+                                        format!("{:.1}", avg)
+                                    } else {
+                                        avg.to_string()
+                                    }
+                                }
+                            } else if fn_up.starts_with("MIN(") || fn_up.starts_with("MAX(") {
+                                let is_max = fn_up.starts_with("MAX(");
+                                let col_idx = find_sql_col(&tbl.columns, inner).unwrap_or(0);
+                                let mut best: Option<f64> = None;
+                                for &oi in &p_indices[start_pos..=end_pos] {
+                                    if let Some(v) = filtered[oi]
+                                        .get(col_idx)
+                                        .and_then(|s| s.parse::<f64>().ok())
+                                    {
+                                        best = Some(match best {
+                                            Some(b) => {
+                                                if is_max {
+                                                    b.max(v)
+                                                } else {
+                                                    b.min(v)
+                                                }
+                                            }
+                                            None => v,
+                                        });
+                                    }
+                                }
+                                match best {
+                                    Some(n) if (n - n.round()).abs() < 1e-9 => {
+                                        (n.round() as i64).to_string()
+                                    }
+                                    Some(n) => n.to_string(),
+                                    None => String::new(),
+                                }
                             } else if fn_up.starts_with("LAG(") || fn_up.starts_with("LEAD(") {
                                 let is_lag = fn_up.starts_with("LAG(");
                                 let args: Vec<&str> = inner.split(',').map(|s| s.trim()).collect();
@@ -23738,6 +23849,8 @@ fn eval_sql_row_expr(
                 } else {
                     return match found {
                         JVal::Null => String::new(),
+                        JVal::Bool(true) => "1".to_string(),
+                        JVal::Bool(false) => "0".to_string(),
                         JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
                         _ => found.to_raw_string(true, false),
                     };
@@ -24107,6 +24220,8 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>], tables
                 } else {
                     match found {
                         JVal::Null => String::new(),
+                        JVal::Bool(true) => "1".to_string(),
+                        JVal::Bool(false) => "0".to_string(),
                         JVal::Array(_) | JVal::Object(_) => found.to_json_string(true, false, 0),
                         _ => found.to_raw_string(true, false),
                     }
@@ -25030,7 +25145,15 @@ fn eval_sql_where(
             };
         }
     }
-    true
+    if trimmed.is_empty() {
+        return true;
+    }
+    let v = eval_sql_row_expr(trimmed, columns, row, tables);
+    !v.is_empty()
+        && v != "0"
+        && !v.eq_ignore_ascii_case("false")
+        && !v.eq_ignore_ascii_case("null")
+        && v.parse::<f64>().map(|n| n != 0.0).unwrap_or(true)
 }
 
 
@@ -34318,6 +34441,35 @@ mod tests {
         .unwrap();
         assert_eq!(pandoc.exit_code, 0);
         assert!(pandoc.stdout.contains("<h1"));
+    }
+    #[test]
+    fn unit_yq_dash_stdin_and_sqlite_json_extract_bool_window_concat() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+        let yq_out = try_run_structured_command(
+            "yq",
+            &args(&["-P", ".", "-"]),
+            "{\"repo\":\"acme/app\",\"runs\":2}\n",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(yq_out.exit_code, 0);
+        assert!(yq_out.stdout.contains("repo: acme/app"));
+        assert!(yq_out.stdout.contains("runs: 2"));
+        let sql = "\
+CREATE TABLE items (id INT PRIMARY KEY, owner TEXT, pinned INT);
+INSERT INTO items
+SELECT
+  json_extract(value, '$.id'),
+  json_extract(value, '$.owner'),
+  CASE WHEN json_extract(value, '$.pinned') THEN 1 ELSE 0 END
+FROM json_each('[{\"id\":1,\"owner\":\"alice\",\"pinned\":true},{\"id\":2,\"owner\":\"bob\",\"pinned\":false},{\"id\":3,\"owner\":\"alice\",\"pinned\":false}]');
+SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY owner) FROM items ORDER BY id;";
+        let sq_out = cmd_sqlite3(&args(&[":memory:", sql]), "", "/", &vfs);
+        assert_eq!(sq_out.exit_code, 0);
+        assert_eq!(sq_out.stdout, "1:alice:1:2\n2:bob:0:1\n3:alice:0:2\n");
     }
 
 }

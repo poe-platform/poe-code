@@ -194,7 +194,7 @@ class _SafeNames(_SafeMutableSet):
   os.unlink(self.journal)
   os.rmdir(self.root)
 
- def ordered(self):
+ def ordered(self, key=None):
   import heapq, json, os, tempfile
   root = tempfile.mkdtemp(dir=self.root, prefix='.sort-')
   serial = 0
@@ -206,8 +206,8 @@ class _SafeNames(_SafeMutableSet):
     for value in values:output.write(json.dumps(value) + '\n')
   try:
    chunk = []
-   for name in self:
-    chunk.append(name)
+   for ordinal, name in enumerate(self):
+    chunk.append((key(name), ordinal, name) if key else name)
     if len(chunk) == 64:
      save(sorted(chunk))
      chunk.clear()
@@ -223,7 +223,9 @@ class _SafeNames(_SafeMutableSet):
     current += 2
    if serial:
     with open(os.path.join(root, str(current)), encoding='utf-8') as source:
-     for line in source:yield json.loads(line)
+     for line in source:
+      value = json.loads(line)
+      yield value[2] if key else value
   finally:
    for index in range(serial):
     try:os.unlink(os.path.join(root, str(index)))
@@ -419,24 +421,34 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  return _safe_managed
 def _safe_removal_listing(_safe_dist):
  from micropip._utils import get_files_in_distribution as _safe_distribution_files
- import os as _safe_os
- def _safe_compact(paths):
-  compact = []
-  for path in sorted(paths, key=len):
-   if not any(path.startswith(parent.rstrip('*').rstrip('/') + '/') for parent in compact):
-    compact.append(path)
-  return compact
- _safe_files = {str(path) for path in _safe_distribution_files(_safe_dist) if not str(path).endswith('.pyc')}
- _safe_folders = _safe_compact({_safe_os.path.dirname(path) for path in _safe_files if path.endswith('__init__.py') or '.dist-info' in path})
- _safe_skipped = set()
- for _safe_folder in _safe_folders:
-  for _safe_dir, _, _safe_names in _safe_os.walk(_safe_folder):
-   for _safe_name_ in _safe_names:
-    _safe_path = _safe_os.path.join(_safe_dir, _safe_name_)
-    if not _safe_name_.endswith('.pyc') and _safe_os.path.isfile(_safe_path) and _safe_path not in _safe_files:
-     _safe_skipped.add(_safe_path)
- _safe_listing = set(_safe_files) | {_safe_os.path.join(folder, '*') for folder in _safe_folders}
- return [sorted(_safe_compact(_safe_listing)), sorted(_safe_compact(_safe_skipped))]
+ from contextlib import ExitStack, closing
+ import os
+ with ExitStack() as storage:
+  def names(values=()):
+   result = _SafeNames()
+   storage.callback(result.close)
+   for value in values:result.add(value)
+   return result
+  def compact(paths):
+   result, prefixes = names(), names()
+   with closing(paths.ordered(key=len)) as ordered:
+    for path in ordered:
+     if not any(path[:offset+1] in prefixes for offset, character in enumerate(path) if character == '/'):
+      result.add(path)
+      prefixes.add(path.rstrip('*').rstrip('/') + '/')
+   return result
+  files = names(str(path) for path in _safe_distribution_files(_safe_dist) if not str(path).endswith('.pyc'))
+  folders = compact(names(os.path.dirname(path) for path in files if path.endswith('__init__.py') or '.dist-info' in path))
+  skipped = names()
+  for folder in folders:
+   for directory, _, filenames in os.walk(folder):
+    for filename in filenames:
+     path = os.path.join(directory, filename)
+     if not filename.endswith('.pyc') and os.path.isfile(path) and path not in files:skipped.add(path)
+  listing = names(files)
+  for folder in folders:listing.add(os.path.join(folder, '*'))
+  for paths in (listing, skipped):
+   with closing(compact(paths).ordered()) as ordered:yield ordered
 _safe_uninstall = _safe_json.loads(_safe_package_uninstall_json)
 from collections.abc import Mapping as _SafeMapping
 class _SafeRecords(_SafeMapping):
@@ -606,13 +618,15 @@ if _safe_uninstall:
    await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
    if not _safe_uninstall['yes']:
     _safe_lists = (_safe_record_by_name.paths(_safe_target, field) for field in (3,4)) if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
-    for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
-     _safe_first_path = True
-     for _safe_path in _safe_paths:
-      if _safe_first_path:
-       await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
-       _safe_first_path = False
-      await _safe_package_emit('stdout', '    ' + _safe_path + '\n')
+    try:
+     for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
+      _safe_first_path = True
+      for _safe_path in _safe_paths:
+       if _safe_first_path:
+        await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
+        _safe_first_path = False
+       await _safe_package_emit('stdout', '    ' + _safe_path + '\n')
+    finally:_safe_lists.close()
     while True:
      await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
      _safe_answer = (await _safe_package_line()).strip().lower()
@@ -667,13 +681,32 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
    else:
     _safe_headers = _safe_dist.metadata
     _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
-    _safe_row = [_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip(), *_safe_removal_listing(_safe_dist), _safe_dist.read_text('direct_url.json')]
-    if _safe_output:
-     if _safe_rows:_safe_output.write(',')
-     _safe_json.dump(_safe_row, _safe_output)
-     _safe_rows += 1
-    else:await _safe_package_record('append', _safe_json.dumps(_safe_row))
-    del _safe_row
+    _safe_lists = _safe_removal_listing(_safe_dist)
+    try:
+     _safe_row = [_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip()]
+     if _safe_output:
+      if _safe_rows:_safe_output.write(',')
+      _safe_output.write('[')
+      for _safe_value in _safe_row:
+       _safe_json.dump(_safe_value, _safe_output)
+       _safe_output.write(',')
+      for _safe_paths in _safe_lists:
+       _safe_output.write('[')
+       _safe_first = True
+       for _safe_path in _safe_paths:
+        if not _safe_first:_safe_output.write(',')
+        _safe_json.dump(_safe_path, _safe_output)
+        _safe_first = False
+       _safe_output.write('],')
+      _safe_json.dump(_safe_dist.read_text('direct_url.json'), _safe_output)
+      _safe_output.write(']')
+      _safe_rows += 1
+     else:
+      _safe_row.extend(list(paths) for paths in _safe_lists)
+      _safe_row.append(_safe_dist.read_text('direct_url.json'))
+      await _safe_package_record('append', _safe_json.dumps(_safe_row))
+     del _safe_row
+    finally:_safe_lists.close()
  def _safe_inventory():
   for key in _safe_sources:yield _safe_sources.get(key)
   for name in _safe_versions.ordered():

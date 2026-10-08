@@ -93,6 +93,7 @@ with contextlib.ExitStack() as stack:
  before_files=set(files);before_directories=set(directories)
  with patch('builtins.sorted',bounded_sorted):
   assert list(managed.ordered())==native_sorted(managed)
+  assert list(managed.ordered(key=len))==native_sorted(managed,key=len)
  assert set(files)==before_files and directories==before_directories
  ordered=managed.ordered();assert next(ordered)=='package-0';ordered.close()
  assert set(files)==before_files and directories==before_directories

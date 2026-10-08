@@ -473,3 +473,14 @@ LLM tests, 142 installed public tests, eight actual Worker cases and all 17 unch
 bundle budgets pass. Parser private-state encapsulation keeps the publication path
 within those budgets. New distribution removal-list construction, scalar metadata,
 installed requirement arrays and the other acceptance gates remain incomplete.
+
+Removal-list compaction now keeps its files, folders, exclusions, prefixes and
+output names in existing caller-backed stores. Stable external length sorting
+preserves parent selection; lexical output streams into native publication without
+a complete removal array. Iterator failure and early termination close owned
+stores and sort files. Native micropip file discovery still creates its own file
+set and metadata list, and native directory walking retains per-directory entries;
+those discovery buffers remain open work rather than being hidden by this change.
+Verification on the fresh artifact: 745 Python tests, 142 installed public tests,
+eight actual Worker cases and all 17 unchanged bundle budgets pass, along with
+lint, types and the selected workspace build.

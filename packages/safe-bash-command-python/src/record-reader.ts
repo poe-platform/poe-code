@@ -1,16 +1,14 @@
-import {serializeLlmJsonValue} from 'safe-bash-command-llm';
-import type {PythonPackageRecord} from './manifest.js';
 
 /** Sequential transport keeps only an encoded window; backward reads replay.
  * The pure JSON iterator owns no resources. Session retirement aborts its signal. */
-export function createPythonRecordReader(signal:AbortSignal){
- let source:AsyncIterator<Uint8Array>|undefined,row:PythonPackageRecord|undefined;
+export function createPythonRecordReader<T>(encode:(row:T)=>AsyncIterable<Uint8Array>){
+ let source:AsyncIterator<Uint8Array>|undefined,row:T|undefined;
  let text='',position=0,tail:Promise<unknown>=Promise.resolve();
  return {
-  read(nextRow:PythonPackageRecord,offset:number):Promise<string>{
+  read(nextRow:T,offset:number):Promise<string>{
    const work=tail.then(async()=>{
     if(row!==nextRow||offset<position){source=undefined;position=0;text='';row=nextRow;}
-    source??=serializeLlmJsonValue(nextRow.length===5?[...nextRow,null]:nextRow,signal)[Symbol.asyncIterator]();
+    source??=encode(nextRow)[Symbol.asyncIterator]();
     const decoder=new TextDecoder();
     while(true){
      if(position<offset){const skip=Math.min(offset-position,text.length);text=text.slice(skip);position+=skip;}

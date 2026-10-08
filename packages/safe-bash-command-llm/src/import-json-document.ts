@@ -17,15 +17,18 @@ export interface EmbeddingJsonDocument {
 }
 /** Validate a complete JSON document before exposing caller-backed records.
  * Code points remain distinct even when their JavaScript strings look alike. */
-export async function withEmbeddingJsonDocument<T>(options:{fs:FileSystem;directory:string;signal:AbortSignal;maxFileBytes:number;maxOpenFiles:number},input:AsyncIterable<Uint8Array>,operation:(document:EmbeddingJsonDocument)=>Promise<T>):Promise<T>{
- const {signal}=options,store=new JsonDocumentStore(options);
+export interface JsonDocumentOptions {fs:FileSystem;directory:string;signal:AbortSignal;maxFileBytes:number;maxOpenFiles:number;profile?:'python39'|'javascript';maxControlBytes?:number;}
+export async function openJsonDocument(options:JsonDocumentOptions,input:AsyncIterable<Uint8Array>):Promise<EmbeddingJsonDocument&{close():Promise<void>}>{
+ const {signal}=options,store=new JsonDocumentStore(options),profile=options.profile??'python39';
  try{
   let root=0,parent=0,stringNode=0;
   const budget=new Budget(resolveJqLimits({maxInputBytes:Infinity,maxValueBytes:Infinity,maxCollectionSize:Infinity,maxSteps:Infinity}),signal);
-  for await(const event of jsonValues(input,budget,{stream:true,stringChunks:{maxControlBytes:65536,containers:true,codePoints:true},profile:'python39'})){
+  for await(const event of jsonValues(input,budget,{stream:true,stringChunks:{maxControlBytes:options.maxControlBytes??65536,containers:true,codePoints:profile==='python39'},profile})){
    signal.throwIfAborted();
    if(!Array.isArray(event)||!Array.isArray(event[0]))throw new Error('Invalid JSON parser event');
-   const path=event[0],value=event[1],kind=event[2],metadata=event[3] as {key:number[]|null;points:number[]|null};
+   const path=event[0],value=event[1],kind=event[2];
+   const points=(text:string)=>Array.from(text,char=>char.codePointAt(0)!);
+   const metadata=profile==='python39'?event[3] as {key:number[]|null;points:number[]|null}:{key:typeof path.at(-1)==='string'?points(path.at(-1) as string):null,points:typeof value==='string'?points(value):null};
    const insert=async(type:NodeType,token='')=>{
     const node=await store.insert(type,parent,Number(path.at(-1)),metadata.key,token);
     if(!parent)root=node;
@@ -39,7 +42,7 @@ export async function withEmbeddingJsonDocument<T>(options:{fs:FileSystem;direct
     if(!metadata.points)throw new Error('Missing JSON code points');
     await store.appendPoints(metadata.points);
     if(kind){await store.endString(stringNode);stringNode=0;}
-   }else if(kind===null){
+   }else if(kind===null||kind===undefined&&event.length>1){
     if(value instanceof Decimal)await insert('number',value.text);
     else if(typeof value==='number')await insert('number',String(value));
     else if(value===null)await insert('null');
@@ -47,8 +50,14 @@ export async function withEmbeddingJsonDocument<T>(options:{fs:FileSystem;direct
    }
   }
   if(!root)throw new EmptyJsonDocumentError();
-  return await operation({root:await store.node(root),child:store.child.bind(store),points:store.points.bind(store),async *text(node){
+  return {close:store.close.bind(store),root:await store.node(root),child:store.child.bind(store),points:store.points.bind(store),async *text(node){
    for await(const points of store.points(node))yield String.fromCodePoint(...points);
-  }});
- }finally{await store.close();}
+  }};
+ }catch(error){await store.close();throw error;}
+}
+
+/** Scoped compatibility helper; explicit readers must close their returned lease. */
+export async function withEmbeddingJsonDocument<T>(options:JsonDocumentOptions,input:AsyncIterable<Uint8Array>,operation:(document:EmbeddingJsonDocument)=>Promise<T>):Promise<T>{
+ const document=await openJsonDocument(options,input);
+ try{return await operation(document);}finally{await document.close();}
 }

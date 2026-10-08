@@ -25,7 +25,18 @@ export interface PythonPackageManifest {
   readonly bytes: Uint8Array;
 }
 
+/** Validated host snapshot whose metadata stays in caller backing storage. */
+export interface PythonPackageRecordSnapshot {
+ readonly revision:string;
+ readonly installed:readonly string[];
+ readonly version:0|1|2|3;
+ readonly recordCount:number;
+ readRecord(ordinal:number,offset:number):Promise<string>;
+ close():Promise<void>;
+}
+
 export interface PythonPackageManifestStore {
+  openSnapshot?(scope:string,options:{readonly signal:AbortSignal;readonly maxBytes:number}):Promise<PythonPackageRecordSnapshot|undefined>;
   get(scope: string, options: { readonly signal: AbortSignal }): Promise<PythonPackageManifest | undefined>;
   /** Optional incremental decoding; the returned value is validated by the environment.
    * Enforce maxBytes on original input and retire all read handles before returning. */

@@ -1,3 +1,4 @@
+import {readBackedPythonManifest} from './manifest-backed.js';
 import {jsonValues} from 'safe-bash-query-engine/input';
 import {Budget,resolveJqLimits} from 'safe-bash-query-engine/limits';
 import {compareIdentity,compareFileVersion} from '@poe-code/safe-fs/runtime-core';
@@ -77,7 +78,15 @@ export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes
    }finally{try{await owned.cleanup?.remove();}finally{await owned.cleanup?.close();}}
   },
  });
- return {...store,getSnapshot(scope:string,options:{signal:AbortSignal;maxBytes:number}){
+ return {...store,async openSnapshot(scope:string,options:{signal:AbortSignal;maxBytes:number}){
+  let snapshot:Awaited<ReturnType<typeof readBackedPythonManifest>>|undefined;
+  try{
+   const result=await read(scope,options,async file=>snapshot=await readBackedPythonManifest(fs,root,options.signal,{async *[Symbol.asyncIterator](){
+    for(let offset=0;offset<file.size;){const bytes=await file.read(offset,Math.min(65536,file.size-offset));offset+=bytes.length;yield bytes;}
+   }}));
+   return result&&{...result.value,revision:result.revision};
+  }catch(error){await snapshot?.close();throw error;}
+ },getSnapshot(scope:string,options:{signal:AbortSignal;maxBytes:number}){
   return read(scope,options,async file=>{
    const source={async *[Symbol.asyncIterator](){
     for(let offset=0;offset<file.size;){const bytes=await file.read(offset,Math.min(65536,file.size-offset));offset+=bytes.length;yield bytes;}

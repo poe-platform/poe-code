@@ -477,7 +477,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
  const fileStore=streamed?createPythonPackageFileManifestStore({fs:manifestFs,directory:'/work/manifests'}):undefined;
- const manifestStore=fileStore?{...fileStore,get(){throw new Error('Buffered manifest restore');},getSnapshot(...args){manifestTransfer.reads++;return fileStore.getSnapshot(...args);}}:createPythonPackageManifestStore();
+ const manifestStore=fileStore?{...fileStore,get(){throw new Error('Buffered manifest restore');},getSnapshot(){throw new Error('Materialized manifest restore');},openSnapshot(...args){manifestTransfer.reads++;return fileStore.openSnapshot(...args);}}:createPythonPackageManifestStore();
  const configuration={scope:'replacement',manifestStore,authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
   const files=indexes.get(url),bytes=files?new TextEncoder().encode(JSON.stringify({name:url.split('/').at(-2),files:published?files:files.slice(0,1)})):artifacts.get(url);
   if(files)indexRequests.push(url);

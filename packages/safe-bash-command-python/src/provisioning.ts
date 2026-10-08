@@ -1,3 +1,4 @@
+import {serializeLlmJsonValue} from 'safe-bash-command-llm';
 import {createPythonRecordReader} from './record-reader.js';
 import {createDefaultPythonManifestStore} from './manifest-default.js';
 import {header} from 'safe-bash-network-engine/shared';
@@ -12,7 +13,7 @@ import type { FileSystem } from "safe-bash-contracts/filesystem";
 import { resolvePath as resolve, dirname, basename } from "safe-bash-contracts/path";
 import type { HttpTransport, NetworkAuthorizer } from "safe-bash-network-engine/types";
 import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
-import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifestStore, type PythonInstalledSnapshot, type PythonPackageRecord } from './manifest.js';
+import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifestStore, type PythonInstalledSnapshot, type PythonPackageRecord, type PythonPackageRecordSnapshot } from './manifest.js';
 import { createPythonPackageCache, pythonPackageRuntimeKey as runtimeKey, type PythonPackageCache } from './cache.js';
 
 export type { PythonPackageCache } from './cache.js';
@@ -193,8 +194,9 @@ function normalizeRequirement(value: string, cwd: string): string {
 }
 interface PackageArtifact {url?:string;readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
 interface Session extends PythonPackageContext {
+ snapshot?:PythonPackageRecordSnapshot|undefined;
  records:readonly PythonPackageRecord[]|undefined;
- recordReader?:ReturnType<typeof createPythonRecordReader>|undefined;
+ recordReader?:ReturnType<typeof createPythonRecordReader<PythonPackageRecord>>|undefined;
  readonly cacheDirectory: string | undefined;
  readonly artifactDirectory: string | undefined;
  readonly noCache: boolean;
@@ -255,7 +257,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  function release(session:Session,all=false):Promise<void> {
   const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
   if(all){artifacts.push(...Object.values(session.indexes));session.indexes={};}
-  if(all){session.retained.clear();session.records=undefined;if(session.recordReader)artifacts.push(session.recordReader);session.recordReader=undefined;}
+  if(all){if(session.snapshot)artifacts.push(session.snapshot);session.snapshot=undefined;session.retained.clear();session.records=undefined;if(session.recordReader)artifacts.push(session.recordReader);session.recordReader=undefined;}
   if(session.closed&&session.installationRoot){artifacts.push(session.installationRoot);session.installationRoot=undefined;}
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
   if(!artifacts.length)return session.retiring??Promise.resolve();
@@ -288,24 +290,28 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   });
   const manifestCache = directory ? cache : defaultCache;
   if(!manifestStore&&!directory)manifestStore=ownedManifest=createDefaultPythonManifestStore({...context,signal:controller.signal},options.maxCacheBytes);
-  const structured=manifestStore?.getSnapshot;
+  const open=input.recordTransport==='host'?manifestStore?.openSnapshot:undefined;
+  let backed:PythonPackageRecordSnapshot|undefined,adopted=false;
+  try{
+  const structured=open?undefined:manifestStore?.getSnapshot;
   let snapshot: {revision:string;bytes?:Uint8Array;value?:unknown} | undefined;
   if(manifestStore) {
-   try { snapshot=await (structured?structured.call(manifestStore,manifestKey,{signal,maxBytes:maxManifestBytes}):manifestStore.get(manifestKey,context)); }
+   try { if(open)backed=await open.call(manifestStore,manifestKey,{signal,maxBytes:maxManifestBytes});else snapshot=await (structured?structured.call(manifestStore,manifestKey,{signal,maxBytes:maxManifestBytes}):manifestStore.get(manifestKey,context)); }
    catch(error) { signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
   }
   signal.throwIfAborted();
   if(snapshot!==undefined && (typeof snapshot!=='object' || !snapshot || typeof snapshot.revision!=='string' || !snapshot.revision || snapshot.revision.length>1024 || !structured&&!(snapshot.bytes instanceof Uint8Array))) throw failure('Invalid Python package manifest snapshot');
-  const manifestRevision = snapshot?.revision;
+  if(backed&&(!backed.revision||typeof backed.revision!=='string'||backed.revision.length>1024||![0,1,2,3].includes(backed.version)||!readPackageManifest(backed.installed)||!Number.isSafeInteger(backed.recordCount)||backed.recordCount< -1||typeof backed.readRecord!=='function'||typeof backed.close!=='function'))throw failure('Invalid Python package manifest snapshot');
+  const manifestRevision = backed?.revision??snapshot?.revision;
   const stored = manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
   signal.throwIfAborted();
   checkManifest(stored);
   const manifest = stored === undefined ? '' : digest(stored);
   let previous: unknown;
-  try { previous = structured ? (snapshot?snapshot.value:[]) : stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
+  try { previous = open ? backed?.installed??[] : structured ? (snapshot?snapshot.value:[]) : stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
   const saved = readPackageManifest(previous);
   if (!saved) throw failure('Invalid Python package environment manifest');
-  const legacy = Array.isArray(previous);
+  const legacy = backed?backed.version===0:Array.isArray(previous);
   const restore = saved.map(value=>normalizeRequirement(value,context.cwd));
   const requirements = [...(options.profile ? pythonDocumentPackages:[]),...(options.requirements??[]),...(context.requirements??[])].map(value=>normalizeRequirement(value,context.cwd));
   const constraints=[...options.constraints??[],...context.constraints??[]];
@@ -355,10 +361,13 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const offline=context.offline??options.offline??false;
   const records=(previous as {records?:readonly PythonPackageRecord[]}).records;
   const hostRecords=input.recordTransport==='host';
-  sessions.set(session,{...context,records:hostRecords?records:undefined,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
+  sessions.set(session,{...context,snapshot:backed,records:hostRecords?records:undefined,indexes:{},cacheDirectory:directory,artifactDirectory,noCache,cache,manifestCache,manifestRevision,controller:invocation,offline,requirements:unique,opening:false,retained:new Map(),closed:false,manifest,aborted});
   signal.addEventListener('abort',aborted,{once:true});
-  return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,...hostRecords?{recordCount:records?.length??-1}:{records},...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  adopted=true;
+  return {session,indexUrls,requirements:unique,restore,requested,...constraints.length?{constraints:[...new Set(constraints)]}:{},legacy,...hostRecords?{recordCount:backed?.recordCount??records?.length??-1}:{records},...controls,...input.uninstall ? {uninstall:input.uninstall} : {},offline};
+  }finally{if(!adopted)await backed?.close();}
  }
+
  async function dispatch(op:string,args:unknown[],_context:PythonPackageContext):Promise<unknown> {
   _context.signal.throwIfAborted();
   const session=sessions.get(String(args[0]))!;
@@ -371,8 +380,9 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const settings={signal};
   if(op==='package-record-read'){
    const ordinal=args[1],offset=args[2];
-   if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(session.records?.length??0)||!Number.isSafeInteger(offset)||(offset as number)<0)throw failure('Invalid package record request');
-   session.recordReader??=createPythonRecordReader(signal);
+   if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(session.snapshot?.recordCount??session.records?.length??0)||!Number.isSafeInteger(offset)||(offset as number)<0)throw failure('Invalid package record request');
+   if(session.snapshot){const result=await session.snapshot.readRecord(ordinal as number,offset as number);check();return result;}
+   session.recordReader??=createPythonRecordReader((row:PythonPackageRecord)=>serializeLlmJsonValue(row.length===5?[...row,null]:row,signal));
    const result=await session.recordReader.read(session.records![ordinal as number]!,offset as number);check();return result;
   }
   if(op==='package-commit') {

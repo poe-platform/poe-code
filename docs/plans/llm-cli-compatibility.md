@@ -402,3 +402,16 @@ The host encodes each record incrementally through a bounded window; backward
 reads replay serialization. The parsed array, native single-record JSON text and
 final publication collection remain materialized, so this does not close the
 host-manifest gate.
+
+
+The file/default manifest host path now validates saved metadata into the existing
+caller-backed JSON document store and indexes record ordinals on caller storage.
+A snapshot lease owns that index until session retirement; failed preparation
+closes it before returning. Direct inline preparation and custom stores without
+`openSnapshot` retain their compatibility path. Installed requirement arrays,
+native per-record strings and final publication collections remain buffered.
+The host snapshot change passes 722 Python and 1,624 LLM tests, 130 installed
+public tests, seven actual Worker package cases and all 17 unchanged bundle
+budgets. Worker restoration rejects the materialized snapshot API. The configured
+cache-directory compatibility path still buffers manifests; this partial delivery
+does not close the full gate.

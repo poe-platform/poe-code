@@ -34,3 +34,5 @@ export { createLlmUrlFragmentSource } from "./url-fragment-source.js";
 export { streamLlmToolChain, type LlmToolChainOptions } from "./tool-chain.js";
 
 export { createLlmFragmentLoaders, loadLlmPluginFragments, getLlmFragmentPrefix, type LlmFragmentLoader, type LlmFragmentLoaderContext, type LlmLoadedFragment } from "./fragment-loaders.js";
+
+export {openJsonDocument as openLlmJsonDocument, type EmbeddingJsonDocument as LlmJsonDocument, type EmbeddingJsonNode as LlmJsonNode} from './import-json-document.js';

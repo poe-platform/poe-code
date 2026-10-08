@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
-import {withEmbeddingJsonDocument} from './import-json-document.js';
+import {withEmbeddingJsonDocument,openJsonDocument} from './import-json-document.js';
 const signal=new AbortController().signal;
 test('JSON import staging preserves duplicate-key order, nested types and lone surrogates',async()=>{
  const fs=new MemoryFileSystem();const input='{"id":"old","body":"\\ud800","id":1e0,"empty":[]}';
@@ -61,4 +61,18 @@ for(const outcome of ['abort','callback','malformed','limit'] as const)test('pag
  }finally{retired=true;}}};
  await assert.rejects(withEmbeddingJsonDocument({fs,directory:'/',signal:controller.signal,maxFileBytes:outcome==='limit'?65536:1048576,maxOpenFiles:1},input,async()=>{entered=true;throw failure;}),error=>outcome==='abort'||outcome==='callback'?error===failure:error instanceof Error);
  assert.equal(entered,outcome==='callback');assert.equal(retired,true);assert.deepEqual(await fs.readdir('/'),[]);
+});
+
+test('owned JavaScript JSON documents preserve normalized duplicate keys and explicit lifetime',async()=>{
+ const fs=new MemoryFileSystem(),encoder=new TextEncoder();
+ const input='{"\\ud800\\udc00":1,"𐀀":2,"body":"\\ud800","version":1.0}';
+ const document=await openJsonDocument({fs,directory:'/',signal,maxFileBytes:1048576,maxOpenFiles:1,profile:'javascript'}, {async *[Symbol.asyncIterator](){for(const byte of encoder.encode(input))yield Uint8Array.of(byte);}});
+ try{
+  const first=await document.child(document.root.id);assert.ok(first);assert.equal(first.key,'𐀀');assert.equal(first.node.token,'2');
+  const body=await document.child(document.root.id,first.position);assert.ok(body);let text='';for await(const part of document.text(body.node))text+=part;assert.equal(text,'\ud800');
+  const version=await document.child(document.root.id,body.position);assert.ok(version);assert.equal(version.node.token,'1');
+  assert.equal(await document.child(document.root.id,version.position),undefined);
+ }finally{await document.close();}
+ await assert.rejects(document.child(document.root.id));
+ await document.close();assert.deepEqual(await fs.readdir('/'),[]);
 });

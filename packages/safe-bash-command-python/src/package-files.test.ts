@@ -66,7 +66,7 @@ class Custom(metadata.PathDistribution):
 dist=Custom(info) if mode=='custom' else metadata.PathDistribution(info)
 if mode=='custom-instance':dist.read_text=lambda filename:'instance,,1' if filename=='RECORD' else None
 namespace={'_safe_metadata':metadata,'_SafeNames':Names,'_SafeValues':Values}
-tree=ast.parse(source);selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.FunctionDef)) and n.name in ('_safe_distribution_files','_safe_metadata_files')]
+tree=ast.parse(source);selected=[n for n in tree.body if isinstance(n,(ast.ClassDef,ast.FunctionDef)) and n.name in ('_safe_distribution_files','_safe_metadata_files','_SafeMetadataText','_safe_read_metadata_text')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<distribution files>','exec'),namespace)
 NativePath=metadata.PackagePath
 class TrackedPath(NativePath):

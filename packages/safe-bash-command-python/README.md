@@ -167,8 +167,10 @@ individual saved fields without decoding unrelated removal lists. Saved uninstal
 confirmation lists stream one path at a time. Native file publication writes JSON
 strings in bounded fragments and emits selected metadata headers without joining
 them into a complete output string. Standard installed-distribution requirement
-values use caller storage during dependency resolution; native metadata parsing
-and custom-provider compatibility still have separate buffering costs. Standard installed-distribution
+values use caller storage during dependency resolution. Installer metadata reads
+stage decoded text on caller storage before native parsing; startup/version
+accessors, parser internals and custom-provider compatibility still have separate
+buffering costs. Standard installed-distribution
 file discovery stages metadata lines and parsed paths on caller storage while
 using the native metadata parser. Custom distribution providers retain native
 compatibility behavior and may buffer their file lists. Custom

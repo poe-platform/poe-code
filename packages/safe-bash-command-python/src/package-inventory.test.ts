@@ -109,7 +109,7 @@ def removal_paths():
 def listing(dist):
  yield removal_paths()
  yield iter(())
-namespace = {
+namespace = {'_safe_distribution_metadata':lambda distribution:distribution.metadata,
  '_safe_header_values':lambda headers,name:iter(headers.get_all(name, ())),
  '_safe_removal_listing':listing,
  '_safe_package_publication': '/publication.json' if mode.startswith('file') or mode.startswith('new-file') else None,

@@ -50,7 +50,7 @@ original = pm.Transaction
 micropip.package_manager = pm
 sys.modules['micropip'] = micropip
 sys.modules['micropip.package_manager'] = pm
-namespace = {'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement, '_safe_name':canonicalize_name, '_safe_preloaded':set(), '_safe_metadata':types.SimpleNamespace(distributions=distributions), '_safe_manager':types.SimpleNamespace(install=install), '_safe_validate':validate, '_safe_package_pre':False}
+namespace = {'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_distribution_requires':lambda distribution:(value for value in distribution.requires or ()),'_SafeRequirement':Requirement, '_safe_name':canonicalize_name, '_safe_preloaded':set(), '_safe_metadata':types.SimpleNamespace(distributions=distributions), '_safe_manager':types.SimpleNamespace(install=install), '_safe_validate':validate, '_safe_package_pre':False}
 class Names(set):
  def close(self):pass
 class Values(dict):

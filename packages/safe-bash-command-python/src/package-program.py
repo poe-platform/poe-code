@@ -288,6 +288,62 @@ class _SafeResolutions(_SafeNames):
    for requirement in requirements:output.write(json.dumps(requirement) + '\n')
   return False
 
+class _SafeMetadataText:
+ def __init__(self, lifetime):
+  self.blocks = _SafeValues()
+  lifetime.callback(self.blocks.close)
+  self.ordinal = 0
+  self.pending = ''
+ def __bool__(self):return bool(len(self.blocks))
+ def read(self, size):
+  if not size:return ''
+  if not self.pending and self.ordinal < len(self.blocks):
+   self.pending = self.blocks.get(str(self.ordinal))
+   self.ordinal += 1
+  result, self.pending = self.pending[:size], self.pending[size:]
+  return result
+ def splitlines(self):
+  tail = ''
+  for key in self.blocks:
+   lines = (tail + self.blocks.get(key)).splitlines(keepends=True)
+   tail = lines.pop() if lines else ''
+   for line in lines:yield line.splitlines()[0]
+  yield from tail.splitlines()
+def _safe_read_metadata_text(distribution, filename, lifetime):
+ from pathlib import PosixPath, WindowsPath
+ if type(distribution._path) not in (PosixPath, WindowsPath):return distribution.read_text(filename)
+ missing = (FileNotFoundError, IsADirectoryError, KeyError, NotADirectoryError, PermissionError)
+ try:source = distribution._path.joinpath(filename).open(encoding='utf-8')
+ except missing:return None
+ failed = False
+ try:
+  text = _SafeMetadataText(lifetime)
+  while True:
+   try:chunk = source.read(8192)
+   except missing:
+    failed = True
+    break
+   if not chunk:break
+   text.blocks.put(str(len(text.blocks)), chunk)
+ finally:
+  try:source.close()
+  except missing:failed = True
+ return None if failed else text if text else ''
+def _safe_distribution_metadata(distribution):
+ from contextlib import ExitStack
+ from types import FunctionType, SimpleNamespace
+ import email
+ from email.parser import Parser
+ if type(distribution) is not _safe_metadata.PathDistribution or 'read_text' in vars(distribution):
+  return distribution.metadata
+ with ExitStack() as lifetime:
+  view = _safe_metadata.PathDistribution(distribution._path)
+  view.read_text = lambda filename: _safe_read_metadata_text(distribution, filename, lifetime)
+  def parse(text):
+   return Parser().parse(text) if isinstance(text, _SafeMetadataText) else email.message_from_string(text)
+  native = _safe_metadata.Distribution.metadata.fget
+  metadata = FunctionType(native.__code__, dict(native.__globals__, email=SimpleNamespace(message_from_string=parse)), native.__name__, native.__defaults__, native.__closure__)
+  return metadata(view)
 def _safe_header_values(headers, name):
  from email.message import Message
  from email.policy import compat32
@@ -305,7 +361,7 @@ def _safe_distribution_requires(distribution):
  if type(distribution) is not _safe_metadata.PathDistribution or any(name in vars(distribution) for name in ('read_text', '_read_dist_info_reqs', '_read_egg_info_reqs', '_deps_from_requires_text', '_convert_egg_info_reqs_to_simple_reqs')):
   yield from distribution.requires or ()
   return
- headers = distribution.metadata
+ headers = _safe_distribution_metadata(distribution)
  # Non-string headers retain the native object-valued compatibility path.
  if any(type(value) is not str or _has_surrogates(value) for key, value in headers.raw_items()):
   yield from distribution.requires or ()
@@ -401,7 +457,7 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  _safe_versions = None
  def dependencies(versions=None):
   for distribution in _safe_metadata.distributions():
-   name = distribution.metadata['Name']
+   name = _safe_distribution_metadata(distribution)['Name']
    if not name or _safe_name(name) not in _safe_managed:
     del distribution
     continue
@@ -494,45 +550,13 @@ def _safe_distribution_files(distribution):
   yield from get_files_in_distribution(distribution)
   return
  with ExitStack() as lifetime:
-  class Text:
-   def __init__(self):
-    self.lines = _SafeValues()
-    lifetime.callback(self.lines.close)
-    self.present = False
-   def __bool__(self):return self.present
-   def splitlines(self):
-    for key in self.lines:yield self.lines.get(key)
-  missing = (FileNotFoundError, IsADirectoryError, KeyError, NotADirectoryError, PermissionError)
-  def read_text(filename):
-   try:source = distribution._path.joinpath(filename).open(encoding='utf-8')
-   except missing:return None
-   failed = False
-   try:
-    text = Text()
-    tail = ''
-    while True:
-     try:chunk = source.read(8192)
-     except missing:
-      failed = True
-      break
-     if not chunk:break
-     text.present = True
-     lines = (tail + chunk).splitlines(keepends=True)
-     tail = lines.pop() if lines else ''
-     for line in lines:text.lines.put(str(len(text.lines)), line.splitlines()[0])
-    if not failed:
-     for line in tail.splitlines():text.lines.put(str(len(text.lines)), line)
-   finally:
-    try:source.close()
-    except missing:failed = True
-   return None if failed else text if text.present else ''
   def collect(values):
    files = _SafeValues()
    lifetime.callback(files.close)
    for value in values:files.put(str(len(files)), str(value))
    return (files.get(key) for key in files)
   view = _safe_metadata.PathDistribution(distribution._path)
-  view.read_text = read_text
+  view.read_text = lambda filename: _safe_read_metadata_text(distribution, filename, lifetime)
   native = _safe_metadata.Distribution.files.fget
   # Reuse native CSV, hash, size, fallback and existence semantics unchanged;
   # only its final list allocation and metadata text storage are substituted.
@@ -723,7 +747,7 @@ if _safe_metadata_only:
   _safe_origin = _safe_record_by_name.origin(_safe_record_name)
   if _safe_origin is not None: (_safe_path / 'direct_url.json').write_text(_safe_origin)
   _safe_dist = _safe_metadata.Distribution.at(_safe_path)
-  if _safe_name(_safe_dist.metadata['Name']) != _safe_record_name:
+  if _safe_name(_safe_distribution_metadata(_safe_dist)['Name']) != _safe_record_name:
    raise ValueError('Python package metadata name conflict: ' + _safe_record_name)
   _SafeRequirement(_safe_record_name + '==' + _safe_dist.version)
  _safe_metadata.MetadataPathFinder.invalidate_caches()
@@ -764,8 +788,8 @@ if _safe_uninstall:
  _safe_versions = _SafeValues()
  try:
   for _safe_dist in _safe_metadata.distributions():
-   if _safe_dist.metadata['Name'] and _safe_name(_safe_dist.metadata['Name']) in _safe_targets:
-    _safe_versions.put(_safe_name(_safe_dist.metadata['Name']), _safe_dist.version)
+   if _safe_distribution_metadata(_safe_dist)['Name'] and _safe_name(_safe_distribution_metadata(_safe_dist)['Name']) in _safe_targets:
+    _safe_versions.put(_safe_name(_safe_distribution_metadata(_safe_dist)['Name']), _safe_dist.version)
   for _safe_target in _safe_targets:
    if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
     raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
@@ -829,7 +853,7 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
     _safe_output.write(_safe_json.dumps(part[offset:offset+4096])[1:-1])
   _safe_output.write('"')
  for _safe_dist in _safe_metadata.distributions():
-  _safe_dist_name = _safe_dist.metadata['Name']
+  _safe_dist_name = _safe_distribution_metadata(_safe_dist)['Name']
   if not _safe_dist_name:
    continue
   _safe_dist_name = _safe_name(_safe_dist_name)
@@ -845,7 +869,7 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
      _safe_rows += 1
     else:await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
    else:
-    _safe_headers = _safe_dist.metadata
+    _safe_headers = _safe_distribution_metadata(_safe_dist)
     def _safe_metadata_parts():
      for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra']:
       for value in _safe_header_values(_safe_headers, key):

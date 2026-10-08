@@ -554,3 +554,23 @@ released before backed requirements are consumed. The corrected artifact passes
 cases, all 17 unchanged bundle budgets, lint, types and the scoped build. Native
 oracle tests now run serially through both maintained Python workspace scripts,
 matching the repository default and retaining existing test timeouts.
+
+
+Explicit native metadata reads in resolution, restore checks and publication now
+stage decoded source text in 8,192-character caller-backed blocks. The original
+`Distribution.metadata` getter retains fallback selection and its native metadata
+adapter; its email entrypoint uses the existing `Parser.parse` streaming route.
+All source decoding and closure finish before parsing, preserving missing-file,
+permission and decode-error phase behavior. The common staged reader also serves
+native distribution file discovery, replacing its separate line store while
+preserving Python split-line behavior. Custom distribution types and instance
+read overrides retain their original metadata property. Nonstandard path objects
+retain native `read_text` behavior, including custom Traversables and ZIP paths.
+Differential coverage includes Unicode bodies, folded and malformed headers,
+empty/missing/legacy fallback, long lines, permission/read/decode/close failures,
+caller-storage denial and parser start ordering. Initial preloaded scanning,
+native version accessors, email-parser internal collections, direct-URL text and
+custom compatibility still buffer; this remains partial progress on the gates.
+The corrected artifact passes 793 Python tests, 142 installed public tests, all
+three affected actual Worker cases, all 17 unchanged bundle budgets, lint, types
+and the scoped build.

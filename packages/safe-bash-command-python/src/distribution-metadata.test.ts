@@ -1,0 +1,78 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {spawnSync} from 'node:child_process';
+import test from 'node:test';
+
+for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path'])test('native distribution metadata stages text before parsing with bounded reads: '+mode,()=>{
+ const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
+import ast,io,json,pathlib,sys,email.parser,importlib.metadata as metadata
+from unittest.mock import patch
+source,mode=json.load(sys.stdin)
+tracking=False;opened=[];stores=[]
+class Values:
+ def __init__(self):self.values={};self.closed=False;stores.append(self)
+ def put(self,key,value):
+  if mode=='storage-error':raise OSError('storage denied')
+  assert len(value)<=8192
+  self.values[key]=value
+ def get(self,key,default=None):return self.values.get(key,default)
+ def __len__(self):return len(self.values)
+ def close(self):self.closed=True
+class File(io.StringIO):
+ def __init__(self,text,path):super().__init__(text,newline=None);self.path=path;opened.append(self)
+ def read(self,size=-1):
+  if self.path.endswith('/METADATA') and (size<0 or self.tell()>=8192):
+   if mode=='permission':raise PermissionError('read denied')
+   if mode=='decode-error':raise UnicodeDecodeError('utf-8',b'\xff',0,1,'invalid start byte')
+  if tracking:assert 0<size<=8192,('unbounded metadata text read',size)
+  return super().read(size)
+ def close(self):
+  super().close()
+  if mode=='close-error' and self.path.endswith('/METADATA'):raise PermissionError('close denied')
+root=pathlib.Path('/fixture.dist-info')
+files={str(root/'METADATA'):'Name: fixture\r\nVersion: 1\r\n'+''.join('Requires-Dist: package-'+str(i)+';\n        python_version >= "3"\n' for i in range(1024))+'\n'+'description 😀\r\n'*2048,str(root/'PKG-INFO'):'Name: fallback\nVersion: 2\n'}
+if mode=='fallback':files[str(root/'METADATA')]=''
+if mode=='missing':files={}
+if mode=='legacy':files={str(root):'Name: legacy\nVersion: 3\n'}
+if mode=='long-line':files[str(root/'METADATA')]='Name: fixture\nRequires-Dist: '+('long😀'*20000)+'\n'
+if mode=='malformed':files[str(root/'METADATA')]='Name: fixture\n continued\nBad Header\nbody\n'
+def open_file(path,*args,**kwargs):
+ if str(path) not in files:raise FileNotFoundError(str(path))
+ return File(files[str(path)],str(path))
+class Custom(metadata.PathDistribution):
+ @property
+ def metadata(self):return {'Name':'custom'}
+class CustomPath:
+ def joinpath(self,name):return self
+ def read_text(self,**kwargs):return 'Name: custom-path\n'
+ def open(self,**kwargs):raise AssertionError('custom path read_text bypassed')
+dist=Custom(root) if mode=='custom' else metadata.PathDistribution(CustomPath() if mode=='custom-path' else root)
+if mode=='custom-instance':dist.read_text=lambda name:'Name: instance\n'
+namespace={'_safe_metadata':metadata,'_SafeValues':Values}
+tree=ast.parse(source)
+selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text')]
+exec(compile(ast.Module(body=selected,type_ignores=[]),'<metadata>','exec'),namespace)
+def describe(value):return (list(value.items()),value.get_payload() if hasattr(value,'get_payload') else None,[(type(error).__name__,str(error)) for error in getattr(value,'defects',[])])
+native_parse=email.parser.Parser.parse
+def parse(self,*args,**kwargs):
+ assert all(file.closed for file in opened),'parser started before source closure'
+ return native_parse(self,*args,**kwargs)
+with patch.object(pathlib.Path,'open',open_file),patch.object(email.parser.Parser,'parse',parse):
+ failure=None
+ try:expected=describe(dist.metadata)
+ except Exception as error:failure=(type(error),str(error))
+ tracking=not mode.startswith('custom')
+ try:actual=describe(namespace.get('_safe_distribution_metadata',lambda value:value.metadata)(dist))
+ except Exception as error:
+  if mode=='storage-error':assert (type(error),str(error))==(OSError,'storage denied')
+  else:assert failure==(type(error),str(error)),(failure,type(error),str(error))
+ else:
+  assert failure is None
+  assert actual==expected
+  assert mode!='storage-error','caller storage was bypassed'
+assert all(file.closed for file in opened)
+assert all(store.closed for store in stores)
+if mode in ('large','fallback','malformed'):assert stores
+`],{input:JSON.stringify([readFileSync(new URL('./package-program.py',import.meta.url),'utf8'),mode]),encoding:'utf8',timeout:5000});
+ assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
+});

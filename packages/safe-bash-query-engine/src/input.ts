@@ -80,59 +80,65 @@ function pythonJsonNumber(text: string, constants: boolean): boolean {
 }
 
 class JsonParser {
-  private readonly stack: (Json[] | Record<string, Json> | string)[] = [];
-  private next: Json | undefined;
-  private token = "";
-  private quoted = false;
-  private chunkedString = false;
-  private chunkedLeaf = false;
-  private stringPoints: number[] | undefined;
-  private readonly keyPoints = new Map<number, number[]>();
-  private completedValues = 0;
-  private escaped = false;
-  private bom = 0;
-  private bytes = 0;
-  private depth = 0;
-  private offset = 0;
-  private line = 1;
-  private column = 0;
+  readonly #stack: (Json[] | Record<string, Json> | string)[] = [];
+  #next: Json | undefined;
+  #token = "";
+  #quoted = false;
+  #chunkedString = false;
+  #chunkedLeaf = false;
+  #stringPoints: number[] | undefined;
+  readonly #keyPoints = new Map<number, number[]>();
+  #completedValues = 0;
+  #escaped = false;
+  #bom = 0;
+  #bytes = 0;
+  #depth = 0;
+  #offset = 0;
+  #line = 1;
+  #column = 0;
   readonly events: Json[] = [];
-  private _counts: WeakMap<object, number> | undefined;
-  private _closed: WeakSet<object> | undefined;
-  private _lastKey: WeakMap<object, string> | undefined;
-  private get counts(): WeakMap<object, number> { return this._counts ??= new WeakMap(); }
-  private get closed(): WeakSet<object> { return this._closed ??= new WeakSet(); }
-  private get lastKey(): WeakMap<object, string> { return this._lastKey ??= new WeakMap(); }
-  private reusableObj: Record<string, Json> = object();
-  private readonly reusableKeys: string[] = [];
-  private readonly reusableArr: Json[] = [];
-  private reusableInUse = false;
-  constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0, private readonly stringChunks?: JsonInputOptions["stringChunks"], private readonly profile?: JsonInputOptions["profile"]) {
-    this.line = line; this.column = column;
-    if (profile === "python39") this.bom = 3; // The Python byte transcoder already handled the BOM.
+  #_counts: WeakMap<object, number> | undefined;
+  #_closed: WeakSet<object> | undefined;
+  #_lastKey: WeakMap<object, string> | undefined;
+  get #counts(): WeakMap<object, number> { return this.#_counts ??= new WeakMap(); }
+  get #closed(): WeakSet<object> { return this.#_closed ??= new WeakSet(); }
+  get #lastKey(): WeakMap<object, string> { return this.#_lastKey ??= new WeakMap(); }
+  #reusableObj: Record<string, Json> = object();
+  readonly #reusableKeys: string[] = [];
+  readonly #reusableArr: Json[] = [];
+  #reusableInUse = false;
+
+  readonly #budget: Budget;
+  readonly #stream: boolean;
+  readonly #stringChunks: JsonInputOptions["stringChunks"] | undefined;
+  readonly #profile: JsonInputOptions["profile"] | undefined;
+  constructor(budget: Budget, stream = false, line = 1, column = 0, stringChunks?: JsonInputOptions["stringChunks"], profile?: JsonInputOptions["profile"]) {
+    this.#budget = budget; this.#stream = stream; this.#stringChunks = stringChunks; this.#profile = profile;
+    this.#line = line; this.#column = column;
+    if (profile === "python39") this.#bom = 3; // The Python byte transcoder already handled the BOM.
   }
   releaseReusable(): void {
-    invalidateCachedValueMetrics(this.reusableObj);
-    invalidateCachedValueMetrics(this.reusableArr);
-    this.reusableInUse = false;
+    invalidateCachedValueMetrics(this.#reusableObj);
+    invalidateCachedValueMetrics(this.#reusableArr);
+    this.#reusableInUse = false;
   }
   isQuotedUnescaped(): boolean {
-    return this.quoted && !this.escaped && this.bom >= 3;
+    return this.#quoted && !this.#escaped && this.#bom >= 3;
   }
   isUnquotedReady(): boolean {
-    return !this.quoted && this.bom >= 3;
+    return !this.#quoted && this.#bom >= 3;
   }
   isTopLevelIdle(): boolean {
-    return !this.quoted && !this.escaped && this.stack.length === 0 && this.token === "" && this.next === undefined && !this.stream;
+    return !this.#quoted && !this.#escaped && this.#stack.length === 0 && this.#token === "" && this.#next === undefined && !this.#stream;
   }
   tryParseFlatLine(bytes: Uint8Array, start: number, end: number): Json | undefined {
     const byteLen = end - start;
-    if (byteLen < 2 || (byteLen > this.budget.maxValueBytesSmi && byteLen > this.budget.limits.maxValueBytes)) return undefined;
+    if (byteLen < 2 || (byteLen > this.#budget.maxValueBytesSmi && byteLen > this.#budget.limits.maxValueBytes)) return undefined;
     if (bytes[start] !== 123 || bytes[end - 1] !== 125) return undefined;
-    if (this.budget.maxDepthSmi < 1) return undefined;
-    const canReuse = !this.reusableInUse;
-    let obj = canReuse ? this.reusableObj : object();
-    const rKeys = this.reusableKeys;
+    if (this.#budget.maxDepthSmi < 1) return undefined;
+    const canReuse = !this.#reusableInUse;
+    let obj = canReuse ? this.#reusableObj : object();
+    const rKeys = this.#reusableKeys;
     let shapeMatch = canReuse && rKeys.length > 0;
     let usedArr = false;
     let pos = start + 1;
@@ -167,7 +173,7 @@ class JsonParser {
               }
               obj = fresh;
               if (canReuse) {
-                this.reusableObj = obj;
+                this.#reusableObj = obj;
                 rKeys.length = count;
               }
             }
@@ -190,7 +196,7 @@ class JsonParser {
             }
             obj = fresh;
             if (canReuse) {
-              this.reusableObj = obj;
+              this.#reusableObj = obj;
               rKeys.length = count;
             }
           }
@@ -258,7 +264,7 @@ class JsonParser {
           let arr: Json[];
           if (canReuse && !usedArr) {
             usedArr = true;
-            arr = this.reusableArr;
+            arr = this.#reusableArr;
           } else {
             arr = [];
           }
@@ -305,7 +311,7 @@ class JsonParser {
                 return undefined;
               }
               arr[aIdx++] = elem;
-              if (aIdx > this.budget.maxCollectionSizeSmi && aIdx > this.budget.limits.maxCollectionSize) return undefined;
+              if (aIdx > this.#budget.maxCollectionSizeSmi && aIdx > this.#budget.limits.maxCollectionSize) return undefined;
               const aSep = bytes[pos]!;
               if (aSep === 44) {
                 pos++;
@@ -324,7 +330,7 @@ class JsonParser {
           return undefined;
         }
         count++;
-        if (count > this.budget.maxCollectionSizeSmi && count > this.budget.limits.maxCollectionSize) return undefined;
+        if (count > this.#budget.maxCollectionSizeSmi && count > this.#budget.limits.maxCollectionSize) return undefined;
         const kFirst = key.charCodeAt(0);
         if (kFirst >= 48 && kFirst <= 57 || key === "__proto__" || hasCustomKeyOrder(obj)) {
           if (shapeMatch) {
@@ -336,7 +342,7 @@ class JsonParser {
             }
             obj = fresh;
             if (canReuse) {
-              this.reusableObj = obj;
+              this.#reusableObj = obj;
               rKeys.length = count - 1;
               rKeys.push(key);
             }
@@ -361,336 +367,336 @@ class JsonParser {
       }
       obj = fresh;
       if (canReuse) {
-        this.reusableObj = obj;
+        this.#reusableObj = obj;
         rKeys.length = count;
       }
     }
-    if (canReuse) this.reusableInUse = true;
-    this.bom = 3;
-    this.offset += byteLen + 1;
-    this.line++;
-    this.column = 0;
-    this.bytes = 0;
-    this.budget.step(count * 3 + 2);
+    if (canReuse) this.#reusableInUse = true;
+    this.#bom = 3;
+    this.#offset += byteLen + 1;
+    this.#line++;
+    this.#column = 0;
+    this.#bytes = 0;
+    this.#budget.step(count * 3 + 2);
     return obj;
   }
   appendQuotedSpan(span: string): void {
     const len = span.length;
-    this.offset += len;
-    this.column += len;
-    this.bytes += len;
-    if (this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-    this.token += span;
-    this.flushStringChunks();
+    this.#offset += len;
+    this.#column += len;
+    this.#bytes += len;
+    if (this.#bytes > this.#budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    this.#token += span;
+    this.#flushStringChunks();
   }
   appendTokenSpan(span: string): void {
-    if (this.profile && this.completedValues) this.fail("Extra data");
+    if (this.#profile && this.#completedValues) this.#fail("Extra data");
     const len = span.length;
-    this.offset += len;
-    this.column += len;
-    this.bytes += len;
-    if (this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
-    this.token += span;
-    this.controlToken();
+    this.#offset += len;
+    this.#column += len;
+    this.#bytes += len;
+    if (this.#bytes > this.#budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    this.#token += span;
+    this.#controlToken();
   }
-  private controlToken(): void {
-    if (this.stringChunks && !this.chunkedString && this.token.length > this.stringChunks.maxControlBytes) {
+  #controlToken(): void {
+    if (this.#stringChunks && !this.#chunkedString && this.#token.length > this.#stringChunks.maxControlBytes) {
       throw new RangeError("JSON control token exceeds maxControlBytes");
     }
   }
-  private flushStringChunks(final = false): void {
-    if (!this.chunkedString) { this.controlToken(); return; }
-    if (!final && this.token.length < 4096) return;
+  #flushStringChunks(final = false): void {
+    if (!this.#chunkedString) { this.#controlToken(); return; }
+    if (!final && this.#token.length < 4096) return;
     // Keep incomplete UTF-8 sequences and escaped surrogate pairs together.
     // The existing string decoder remains responsible for validation.
-    let end = final ? this.token.length : 0;
+    let end = final ? this.#token.length : 0;
     if (!final) {
-      for (let offset = 0; offset < this.token.length;) {
-        const code = this.token.charCodeAt(offset);
+      for (let offset = 0; offset < this.#token.length;) {
+        const code = this.#token.charCodeAt(offset);
         let count = 1;
         if (code === 92) {
-          if (offset + 1 >= this.token.length) break;
-          count = this.token[offset + 1] === "u" ? 6 : 2;
-          if (offset + count > this.token.length) break;
+          if (offset + 1 >= this.#token.length) break;
+          count = this.#token[offset + 1] === "u" ? 6 : 2;
+          if (offset + count > this.#token.length) break;
           if (count === 6) {
-            const point = Number.parseInt(this.token.slice(offset + 2, offset + 6), 16);
+            const point = Number.parseInt(this.#token.slice(offset + 2, offset + 6), 16);
             if (point >= 0xd800 && point <= 0xdbff) count = 12;
           }
         } else if (code >= 0xc2 && code <= 0xdf) count = 2;
         else if (code >= 0xe0 && code <= 0xef) count = 3;
         else if (code >= 0xf0 && code <= 0xf4) count = 4;
-        if (offset + count > this.token.length) break;
+        if (offset + count > this.#token.length) break;
         offset += count;
         end = offset;
       }
     }
     if (!end && !final) return;
-    const tail = this.token.slice(end);
-    this.token = this.token.slice(0, end);
-    const decoded = this.string();
-    this.event([this.path(), decoded, final], this.stringPoints);
-    this.token = tail;
+    const tail = this.#token.slice(end);
+    this.#token = this.#token.slice(0, end);
+    const decoded = this.#string();
+    this.#event([this.path(), decoded, final], this.#stringPoints);
+    this.#token = tail;
   }
   path(): Json[] {
     const path: Json[] = [];
-    for (const frame of this.stack) {
-      if (Array.isArray(frame)) path.push(this.counts.get(frame) ?? frame.length);
+    for (const frame of this.#stack) {
+      if (Array.isArray(frame)) path.push(this.#counts.get(frame) ?? frame.length);
       else if (typeof frame === "string") path.push(frame);
     }
     return path;
   }
-  private event(value: Json, points?: number[]): void {
-    if (this.stringChunks?.codePoints && Array.isArray(value)) {
+  #event(value: Json, points?: number[]): void {
+    if (this.#stringChunks?.codePoints && Array.isArray(value)) {
       if (value.length === 1) value.push(null, "end");
       else if (value.length === 2) value.push(null);
-      value.push({ key: this.keyPoints.get(this.stack.length - 1) ?? null, points: points ?? null });
+      value.push({ key: this.#keyPoints.get(this.#stack.length - 1) ?? null, points: points ?? null });
     }
-    this.budget.value(value);
+    this.#budget.value(value);
     this.events.push(value);
   }
-  private leaf(value: Json): void {
-    if (value !== null && typeof value === "object" && this.closed.has(value)) return;
-    this.event([this.path(), value]);
+  #leaf(value: Json): void {
+    if (value !== null && typeof value === "object" && this.#closed.has(value)) return;
+    this.#event([this.path(), value]);
   }
-  private fail(detail: string, located = true): never {
-    throw new JqParseError(detail, this.offset, this.line, this.column, located);
+  #fail(detail: string, located = true): never {
+    throw new JqParseError(detail, this.#offset, this.#line, this.#column, located);
   }
-  private accept(value: Json): void {
-    this.budget.step();
-    if (this.next !== undefined) this.fail("Expected separator between values");
-    this.next = value;
+  #accept(value: Json): void {
+    this.#budget.step();
+    if (this.#next !== undefined) this.#fail("Expected separator between values");
+    this.#next = value;
   }
-  private literal(eof = false): void {
-    if (!this.token) return;
-    const text = this.token;
+  #literal(eof = false): void {
+    if (!this.#token) return;
+    const text = this.#token;
     const pattern = text[0] === "t" ? "true" : text[0] === "f" ? "false" : text.startsWith("nu") ? "null" : undefined;
     let value: Json | undefined;
     if (pattern) {
-      if (text !== pattern) this.fail("Invalid literal" + (eof ? " at EOF" : ""));
+      if (text !== pattern) this.#fail("Invalid literal" + (eof ? " at EOF" : ""));
       value = pattern === "true" ? true : pattern === "false" ? false : null;
     } else {
-      if (this.profile && !pythonJsonNumber(text, this.profile === "python39")) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
-      value = this.profile === "javascript" ? Number(text) : numericToken(text, this.budget);
-      if (this.profile && value instanceof Decimal) value = new Decimal(value.digits, value.exponent, value.negative, text, value.double);
-      if (value === undefined) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
+      if (this.#profile && !pythonJsonNumber(text, this.#profile === "python39")) this.#fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
+      value = this.#profile === "javascript" ? Number(text) : numericToken(text, this.#budget);
+      if (this.#profile && value instanceof Decimal) value = new Decimal(value.digits, value.exponent, value.negative, text, value.double);
+      if (value === undefined) this.#fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
     }
-    this.accept(value);
-    this.token = "";
+    this.#accept(value);
+    this.#token = "";
   }
-  private string(): string {
-    const points = this.stringChunks?.codePoints ? [] as number[] : undefined;
-    this.stringPoints = points;
-    const decoding = this.profile === "python39" ? (points ? "surrogatepass" : true) : this.profile ?? false;
+  #string(): string {
+    const points = this.#stringChunks?.codePoints ? [] as number[] : undefined;
+    this.#stringPoints = points;
+    const decoding = this.#profile === "python39" ? (points ? "surrogatepass" : true) : this.#profile ?? false;
     let fastAscii = true;
-    for (let index = 0; index < this.token.length; index++) {
-      const code = this.token.charCodeAt(index);
+    for (let index = 0; index < this.#token.length; index++) {
+      const code = this.#token.charCodeAt(index);
       if (code === 92 || code < 0x20 || code >= 0x80) {
         fastAscii = false;
         break;
       }
     }
     if (fastAscii) {
-      const steps = Math.ceil(this.token.length / 1024);
-      if (steps > 0) this.budget.step(steps * 2);
-      else this.budget.signal.throwIfAborted();
-      this.budget.text(this.token);
-      if (points) for (let i = 0; i < this.token.length; i++) points.push(this.token.charCodeAt(i));
-      return this.token;
+      const steps = Math.ceil(this.#token.length / 1024);
+      if (steps > 0) this.#budget.step(steps * 2);
+      else this.#budget.signal.throwIfAborted();
+      this.#budget.text(this.#token);
+      if (points) for (let i = 0; i < this.#token.length; i++) points.push(this.#token.charCodeAt(i));
+      return this.#token;
     }
     let result = "";
     let start = 0;
-    for (let index = 0; index < this.token.length; index++) {
-      if (index % 1024 === 0) this.budget.step();
-      const character = this.token[index]!;
+    for (let index = 0; index < this.#token.length; index++) {
+      if (index % 1024 === 0) this.#budget.step();
+      const character = this.#token[index]!;
       if (character === "\\") {
-        result += decodeUtf8(this.token.slice(start, index), this.budget, decoding, points);
-        const escaped = this.token[++index];
+        result += decodeUtf8(this.#token.slice(start, index), this.#budget, decoding, points);
+        const escaped = this.#token[++index];
         if (escaped === "u") {
-          const digits = this.token.slice(index + 1, index + 5);
-          if (digits.length < 4) this.fail("Invalid \\uXXXX escape");
-          if (!/^[0-9a-f]{4}$/iu.test(digits)) this.fail("Invalid characters in \\uXXXX escape");
+          const digits = this.#token.slice(index + 1, index + 5);
+          if (digits.length < 4) this.#fail("Invalid \\uXXXX escape");
+          if (!/^[0-9a-f]{4}$/iu.test(digits)) this.#fail("Invalid characters in \\uXXXX escape");
           let point = parseInt(digits, 16);
           index += 4;
           if (point >= 0xd800 && point <= 0xdbff) {
-            const tail = this.token.slice(index + 1, index + 7);
+            const tail = this.#token.slice(index + 1, index + 7);
             const low = /^\\u[0-9a-f]{4}$/iu.test(tail) ? parseInt(tail.slice(2), 16) : 0;
             if (low < 0xdc00 || low > 0xdfff) {
-              if (!this.profile) this.fail("Invalid \\uXXXX\\uXXXX surrogate pair escape");
+              if (!this.#profile) this.#fail("Invalid \\uXXXX\\uXXXX surrogate pair escape");
             } else {
               point = 0x10000 + ((point - 0xd800) << 10) + low - 0xdc00;
               index += 6;
             }
           }
           points?.push(point);
-          result += String.fromCodePoint(!this.profile && point >= 0xdc00 && point <= 0xdfff ? 0xfffd : point);
+          result += String.fromCodePoint(!this.#profile && point >= 0xdc00 && point <= 0xdfff ? 0xfffd : point);
         } else {
           const escapes: Record<string, string> = { '"': '"', "\\": "\\", "/": "/", b: "\b", f: "\f", n: "\n", r: "\r", t: "\t" };
-          if (escaped === undefined || !Object.hasOwn(escapes, escaped)) this.fail("Invalid escape");
+          if (escaped === undefined || !Object.hasOwn(escapes, escaped)) this.#fail("Invalid escape");
           result += escapes[escaped];
           points?.push(escapes[escaped]!.charCodeAt(0));
         }
         start = index + 1;
-      } else if (character.charCodeAt(0) < 0x20) this.fail("Invalid string: control characters from U+0000 through U+001F must be escaped");
+      } else if (character.charCodeAt(0) < 0x20) this.#fail("Invalid string: control characters from U+0000 through U+001F must be escaped");
     }
-    result += decodeUtf8(this.token.slice(start), this.budget, decoding, points);
-    this.budget.text(result);
+    result += decodeUtf8(this.#token.slice(start), this.#budget, decoding, points);
+    this.#budget.text(result);
     return result;
   }
-  private done(): Json | undefined {
-    if (this.stack.length || this.next === undefined) return undefined;
-    if (this.profile && this.completedValues++) this.fail("Extra data");
-    const value = this.next;
-    this.next = undefined;
-    this.budget.value(value);
-    if (this.stream && !this.chunkedLeaf) this.leaf(value);
-    this.chunkedLeaf = false;
-    this.bytes = 0;
+  #done(): Json | undefined {
+    if (this.#stack.length || this.#next === undefined) return undefined;
+    if (this.#profile && this.#completedValues++) this.#fail("Extra data");
+    const value = this.#next;
+    this.#next = undefined;
+    this.#budget.value(value);
+    if (this.#stream && !this.#chunkedLeaf) this.#leaf(value);
+    this.#chunkedLeaf = false;
+    this.#bytes = 0;
     return value;
   }
-  private append(): void {
-    const parent = this.stack.at(-1);
-    if (this.stream) {
-      if (!this.chunkedLeaf) this.leaf(this.next!);
-      this.chunkedLeaf = false;
-      const container = typeof parent === "string" ? this.stack.at(-2) as object : parent as object;
-      const count = (this.counts.get(container) ?? 0) + 1;
-      this.budget.collection(count);
-      this.counts.set(container, count);
-      if (typeof parent === "string") { this.keyPoints.delete(this.stack.length - 1); this.stack.pop(); }
-      else if (!Array.isArray(parent)) this.fail("Objects must consist of key:value pairs");
-      this.next = undefined;
+  #append(): void {
+    const parent = this.#stack.at(-1);
+    if (this.#stream) {
+      if (!this.#chunkedLeaf) this.#leaf(this.#next!);
+      this.#chunkedLeaf = false;
+      const container = typeof parent === "string" ? this.#stack.at(-2) as object : parent as object;
+      const count = (this.#counts.get(container) ?? 0) + 1;
+      this.#budget.collection(count);
+      this.#counts.set(container, count);
+      if (typeof parent === "string") { this.#keyPoints.delete(this.#stack.length - 1); this.#stack.pop(); }
+      else if (!Array.isArray(parent)) this.#fail("Objects must consist of key:value pairs");
+      this.#next = undefined;
       return;
     }
     if (Array.isArray(parent)) {
-      if (this.budget.limits.maxCollectionSize !== Infinity) this.budget.collection(parent.length + 1);
-      parent.push(this.next!);
+      if (this.#budget.limits.maxCollectionSize !== Infinity) this.#budget.collection(parent.length + 1);
+      parent.push(this.#next!);
     } else if (typeof parent === "string") {
-      const container = this.stack.at(-2) as Record<string, Json>;
-      if (this.budget.limits.maxCollectionSize !== Infinity && !Object.hasOwn(container, parent)) {
-        this.budget.collection(objectSize(container) + 1);
+      const container = this.#stack.at(-2) as Record<string, Json>;
+      if (this.#budget.limits.maxCollectionSize !== Infinity && !Object.hasOwn(container, parent)) {
+        this.#budget.collection(objectSize(container) + 1);
       }
-      put(container, parent, this.next!);
-      this.stack.pop();
-    } else this.fail("Objects must consist of key:value pairs");
-    this.next = undefined;
+      put(container, parent, this.#next!);
+      this.#stack.pop();
+    } else this.#fail("Objects must consist of key:value pairs");
+    this.#next = undefined;
   }
-  private structure(character: string): void {
-    const parent = this.stack.at(-1);
-    const closingPath = this.stream && (character === "]" || character === "}") ? this.path() : undefined;
-    const closingContainer = typeof parent === "string" ? this.stack.at(-2) : parent;
-    const closingCount = closingContainer && typeof closingContainer === "object" ? this.counts.get(closingContainer) ?? 0 : 0;
+  #structure(character: string): void {
+    const parent = this.#stack.at(-1);
+    const closingPath = this.#stream && (character === "]" || character === "}") ? this.path() : undefined;
+    const closingContainer = typeof parent === "string" ? this.#stack.at(-2) : parent;
+    const closingCount = closingContainer && typeof closingContainer === "object" ? this.#counts.get(closingContainer) ?? 0 : 0;
     if (character === "[" || character === "{") {
-      if (this.next !== undefined) this.fail("Expected separator between values");
-      if (++this.depth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
-      if (this.stringChunks?.containers) this.event([this.path(), character, "open"]);
-      this.stack.push(character === "[" ? [] : object());
+      if (this.#next !== undefined) this.#fail("Expected separator between values");
+      if (++this.#depth > this.#budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+      if (this.#stringChunks?.containers) this.#event([this.path(), character, "open"]);
+      this.#stack.push(character === "[" ? [] : object());
     } else if (character === ":") {
-      if (this.next === undefined) this.fail("Expected string key before ':'");
-      if (!parent || Array.isArray(parent) || typeof parent === "string") this.fail("':' not as part of an object");
-      if (typeof this.next !== "string") this.fail("Object keys must be strings");
-      if (this.stream) this.lastKey.set(parent as object, this.next);
-      if (this.stringPoints) this.keyPoints.set(this.stack.length, this.stringPoints);
-      this.stack.push(this.next);
-      this.next = undefined;
+      if (this.#next === undefined) this.#fail("Expected string key before ':'");
+      if (!parent || Array.isArray(parent) || typeof parent === "string") this.#fail("':' not as part of an object");
+      if (typeof this.#next !== "string") this.#fail("Object keys must be strings");
+      if (this.#stream) this.#lastKey.set(parent as object, this.#next);
+      if (this.#stringPoints) this.#keyPoints.set(this.#stack.length, this.#stringPoints);
+      this.#stack.push(this.#next);
+      this.#next = undefined;
     } else if (character === ",") {
-      if (this.next === undefined) this.fail("Expected value before ','");
-      if (!this.stack.length) this.fail("',' not as part of an object or array");
-      this.append();
+      if (this.#next === undefined) this.#fail("Expected value before ','");
+      if (!this.#stack.length) this.#fail("',' not as part of an object or array");
+      this.#append();
     } else if (character === "]") {
-      if (!Array.isArray(parent)) this.fail("Unmatched ']'");
-      if (this.next !== undefined) this.append();
-      else if (parent.length || closingCount) this.fail("Expected another array element");
-      this.next = this.stack.pop() as Json;
-      this.depth--;
+      if (!Array.isArray(parent)) this.#fail("Unmatched ']'");
+      if (this.#next !== undefined) this.#append();
+      else if (parent.length || closingCount) this.#fail("Expected another array element");
+      this.#next = this.#stack.pop() as Json;
+      this.#depth--;
     } else if (character === "}") {
-      if (!this.stack.length) this.fail("Unmatched '}'");
-      if (this.next !== undefined) {
-        if (typeof parent !== "string") this.fail("Objects must consist of key:value pairs");
-        this.append();
+      if (!this.#stack.length) this.#fail("Unmatched '}'");
+      if (this.#next !== undefined) {
+        if (typeof parent !== "string") this.#fail("Objects must consist of key:value pairs");
+        this.#append();
       } else {
-        if (typeof parent === "string" || Array.isArray(parent)) this.fail("Unmatched '}'");
+        if (typeof parent === "string" || Array.isArray(parent)) this.#fail("Unmatched '}'");
         let hasKey = closingCount > 0;
         if (!hasKey) {
           for (const k in parent!) {
             if (Object.hasOwn(parent!, k)) { hasKey = true; break; }
           }
         }
-        if (hasKey) this.fail("Expected another key-value pair");
+        if (hasKey) this.#fail("Expected another key-value pair");
       }
-      this.next = this.stack.pop() as Json;
-      this.depth--;
+      this.#next = this.#stack.pop() as Json;
+      this.#depth--;
     }
-    if (this.stringChunks?.containers && (character === "]" || character === "}")) this.event([this.path(), character, "close"]);
-    if (closingPath && this.next !== null && typeof this.next === "object") {
-      if (closingCount || (closingContainer && typeof closingContainer === "object" && (this.counts.get(closingContainer) ?? 0))) {
+    if (this.#stringChunks?.containers && (character === "]" || character === "}")) this.#event([this.path(), character, "close"]);
+    if (closingPath && this.#next !== null && typeof this.#next === "object") {
+      if (closingCount || (closingContainer && typeof closingContainer === "object" && (this.#counts.get(closingContainer) ?? 0))) {
         // A close event identifies the last child, including nested containers.
-        if (Array.isArray(closingContainer)) closingPath[closingPath.length - 1] = (this.counts.get(closingContainer) ?? 1) - 1;
-        else if (typeof parent !== "string") closingPath.push(this.lastKey.get(closingContainer as object)!);
-        this.event([closingPath]);
+        if (Array.isArray(closingContainer)) closingPath[closingPath.length - 1] = (this.#counts.get(closingContainer) ?? 1) - 1;
+        else if (typeof parent !== "string") closingPath.push(this.#lastKey.get(closingContainer as object)!);
+        this.#event([closingPath]);
       } else {
         if (Array.isArray(closingContainer)) closingPath.pop();
-        this.event([closingPath, this.next]);
+        this.#event([closingPath, this.#next]);
       }
-      this.closed.add(this.next);
+      this.#closed.add(this.#next);
     }
   }
   feed(character: string): Json | undefined {
-    this.offset++;
-    if (this.bom < 3) {
-      if (character.charCodeAt(0) === [0xef, 0xbb, 0xbf][this.bom]) { this.bom++; return undefined; }
-      if (this.bom) this.fail("Malformed BOM", false);
-      this.bom = 3;
+    this.#offset++;
+    if (this.#bom < 3) {
+      if (character.charCodeAt(0) === [0xef, 0xbb, 0xbf][this.#bom]) { this.#bom++; return undefined; }
+      if (this.#bom) this.#fail("Malformed BOM", false);
+      this.#bom = 3;
     }
-    if (character === "\n") { this.line++; this.column = 0; } else this.column++;
+    if (character === "\n") { this.#line++; this.#column = 0; } else this.#column++;
     const space = character === " " || character === "\t" || character === "\r" || character === "\n";
-    if (this.profile && this.completedValues && !space) this.fail("Extra data");
+    if (this.#profile && this.#completedValues && !space) this.#fail("Extra data");
     const structure = character === "[" || character === "]" || character === "{" || character === "}" || character === ":" || character === ",";
-    const endsScalar = !this.quoted && !this.stack.length && this.token !== "" && (space || structure || character === '"');
-    if (!endsScalar && (this.bytes || !space)) {
-      if (++this.bytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+    const endsScalar = !this.#quoted && !this.#stack.length && this.#token !== "" && (space || structure || character === '"');
+    if (!endsScalar && (this.#bytes || !space)) {
+      if (++this.#bytes > this.#budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     }
-    if (this.quoted) {
-      if (character === '"' && !this.escaped) {
-        if (this.chunkedString) {
-          this.flushStringChunks(true);
-          this.accept("");
-          this.chunkedLeaf = true;
-          this.chunkedString = false;
-        } else this.accept(this.string());
-        this.token = "";
-        this.quoted = false;
-        return this.done();
+    if (this.#quoted) {
+      if (character === '"' && !this.#escaped) {
+        if (this.#chunkedString) {
+          this.#flushStringChunks(true);
+          this.#accept("");
+          this.#chunkedLeaf = true;
+          this.#chunkedString = false;
+        } else this.#accept(this.#string());
+        this.#token = "";
+        this.#quoted = false;
+        return this.#done();
       }
-      this.token += character;
-      this.escaped = character === "\\" && !this.escaped;
-      this.flushStringChunks();
+      this.#token += character;
+      this.#escaped = character === "\\" && !this.#escaped;
+      this.#flushStringChunks();
       return undefined;
     }
-    if (!space && !structure && character !== '"') { this.token += character; this.controlToken(); return undefined; }
-    this.literal();
-    const output = this.done();
+    if (!space && !structure && character !== '"') { this.#token += character; this.#controlToken(); return undefined; }
+    this.#literal();
+    const output = this.#done();
     if (character === '"') {
-      this.quoted = true;
-      const parent = this.stack.at(-1);
-      this.chunkedString = !!this.stringChunks && (parent === undefined || Array.isArray(parent) || typeof parent === "string");
+      this.#quoted = true;
+      const parent = this.#stack.at(-1);
+      this.#chunkedString = !!this.#stringChunks && (parent === undefined || Array.isArray(parent) || typeof parent === "string");
     }
-    else if (structure) this.structure(character);
-    if (output !== undefined && (this.quoted || this.stack.length)) this.bytes = 1;
-    return this.done() ?? output;
+    else if (structure) this.#structure(character);
+    if (output !== undefined && (this.#quoted || this.#stack.length)) this.#bytes = 1;
+    return this.#done() ?? output;
   }
   finish(boundary?: { line: number; column: number; eof: boolean }): Json | undefined {
-    if (boundary && !this.quoted && !this.stack.length && this.token && numericToken(this.token, this.budget) !== undefined) {
-      throw new JqParseError(`Potentially truncated top-level numeric value${boundary.eof ? " at EOF" : ""}`, this.offset, boundary.line, boundary.column);
+    if (boundary && !this.#quoted && !this.#stack.length && this.#token && numericToken(this.#token, this.#budget) !== undefined) {
+      throw new JqParseError(`Potentially truncated top-level numeric value${boundary.eof ? " at EOF" : ""}`, this.#offset, boundary.line, boundary.column);
     }
-    if (boundary && !boundary.eof && this.stack.length && !this.quoted && !this.token) return undefined;
-    if (boundary && !boundary.eof && (this.quoted || this.token && this.stack.length)) {
-      throw new JqParseError("Truncated value", this.offset, boundary.line, boundary.column);
+    if (boundary && !boundary.eof && this.#stack.length && !this.#quoted && !this.#token) return undefined;
+    if (boundary && !boundary.eof && (this.#quoted || this.#token && this.#stack.length)) {
+      throw new JqParseError("Truncated value", this.#offset, boundary.line, boundary.column);
     }
-    if (this.quoted) this.fail("Unfinished string at EOF");
-    this.literal(true);
-    if (this.stack.length) this.fail("Unfinished JSON term at EOF");
-    const result = this.done();
-    if (this.profile && !this.completedValues) this.fail("Expecting value");
+    if (this.#quoted) this.#fail("Unfinished string at EOF");
+    this.#literal(true);
+    if (this.#stack.length) this.#fail("Unfinished JSON term at EOF");
+    const result = this.#done();
+    if (this.#profile && !this.#completedValues) this.#fail("Expecting value");
     return result;
   }
 }

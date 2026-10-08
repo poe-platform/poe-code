@@ -1518,65 +1518,138 @@ fn cmd_nl(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
 
 fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut sep: Option<String> = None;
+    let mut before = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if (a == "-s" || a == "--separator") && i + 1 < args.len() {
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if a == "-b" || a == "--before" {
+            before = true;
+            i += 1;
+        } else if (a == "-s" || a == "--separator") && i + 1 < args.len() {
             sep = Some(args[i + 1].clone());
             i += 2;
-        } else if let Some(rest) = a.strip_prefix("-s").or_else(|| a.strip_prefix("--separator="))
-            && !rest.is_empty()
-        {
+        } else if let Some(rest) = a.strip_prefix("--separator=") {
             sep = Some(rest.to_string());
             i += 1;
+        } else if let Some(rest) = a.strip_prefix("-s") && !rest.is_empty() {
+            sep = Some(rest.to_string());
+            i += 1;
+        } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                match chars[ci] {
+                    'b' => {
+                        before = true;
+                        ci += 1;
+                    }
+                    's' => {
+                        let inline: String = chars[ci + 1..].iter().collect();
+                        if !inline.is_empty() {
+                            sep = Some(inline);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            sep = Some(args[i].clone());
+                        }
+                        break;
+                    }
+                    _ => {
+                        ci += 1;
+                    }
+                }
+            }
+            i += 1;
+        } else {
+            files.push(a.clone());
+            i += 1;
+        }
+    }
+    let sep_bytes: Vec<u8> = match sep.as_deref() {
+        Some("") => vec![0u8],
+        Some(s) => crate::vfs::stream_string_to_bytes(s),
+        None => vec![b'\n'],
+    };
+    let targets: Vec<String> = if files.is_empty() {
+        vec!["-".to_string()]
+    } else {
+        files
+    };
+    let mut out_bytes: Vec<u8> = Vec::new();
+    for f in &targets {
+        let bytes = if f == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
+        } else {
+            let full = resolve_posix_path(cwd, f);
+            match fs.read_file(&full) {
+                Ok(b) => b,
+                Err(e) => {
+                    return BuiltinOutcome {
+                        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                        stderr: format!("tac: {f}: {e}\n"),
+                        exit_code: 1,
+                    };
+                }
+            }
+        };
+        let slen = sep_bytes.len();
+        let mut end = bytes.len();
+        if slen > 0 && bytes.len() >= slen {
+            let mut idx = bytes.len() - slen;
+            loop {
+                if bytes[idx..idx + slen] == sep_bytes[..] {
+                    let boundary = if before { idx } else { idx + slen };
+                    out_bytes.extend_from_slice(&bytes[boundary..end]);
+                    end = boundary;
+                    if idx < slen {
+                        break;
+                    }
+                    idx -= slen;
+                    continue;
+                }
+                if idx == 0 {
+                    break;
+                }
+                idx -= 1;
+            }
+        }
+        out_bytes.extend_from_slice(&bytes[0..end]);
+    }
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+}
+
+fn cmd_rev(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut files = Vec::new();
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
         } else if !a.starts_with('-') || a == "-" {
             files.push(a.clone());
             i += 1;
         } else {
-            i += 1;
+            return err_out(&format!("rev: invalid option -- '{}'\n", &a[1..]), 1);
         }
     }
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "tac") {
-        Ok(t) => t,
-        Err(e) => return e,
-    };
-    if let Some(ref s) = sep
-        && !s.is_empty()
-        && s != "\n"
-    {
-        let mut records: Vec<String> = Vec::new();
-        let mut start = 0usize;
-        while let Some(pos) = text[start..].find(s.as_str()) {
-            let end = start + pos + s.len();
-            records.push(text[start..end].to_string());
-            start = end;
-        }
-        if start < text.len() {
-            records.push(text[start..].to_string());
-        }
-        records.reverse();
-        return ok_out(&records.concat());
-    }
-    let mut lines: Vec<&str> = text.lines().collect();
-    lines.reverse();
-    if lines.is_empty() {
-        ok_out("")
-    } else {
-        ok_out(&format!("{}\n", lines.join("\n")))
-    }
-}
-
-fn cmd_rev(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let text = match read_inputs_or_stdin(args, stdin, cwd, fs, "rev") {
+    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "rev") {
         Ok(t) => t,
         Err(e) => return e,
     };
     let mut out = String::new();
-    for line in text.lines() {
-        let rev: String = line.chars().rev().collect();
+    for chunk in text.split_inclusive('\n') {
+        let (body, nl) = if let Some(b) = chunk.strip_suffix('\n') {
+            (b, "\n")
+        } else {
+            (chunk, "")
+        };
+        let rev: String = body.chars().rev().collect();
         out.push_str(&rev);
-        out.push('\n');
+        out.push_str(nl);
     }
     ok_out(&out)
 }
@@ -4942,7 +5015,10 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if (a == "-w" || a == "--width") && i + 1 < args.len() {
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if (a == "-w" || a == "--width") && i + 1 < args.len() {
             width = args[i + 1].parse().unwrap_or(80);
             i += 2;
         } else if let Some(rest) = a.strip_prefix("-w").or_else(|| a.strip_prefix("--width="))
@@ -4956,19 +5032,40 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         } else if a == "-b" || a == "--bytes" {
             bytes_mode = true;
             i += 1;
+        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
+            width = a[1..].parse().unwrap_or(80);
+            i += 1;
         } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
-            for ch in a[1..].chars() {
-                if ch == 's' {
-                    break_spaces = true;
-                } else if ch == 'b' {
-                    bytes_mode = true;
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                match chars[ci] {
+                    's' => {
+                        break_spaces = true;
+                        ci += 1;
+                    }
+                    'b' => {
+                        bytes_mode = true;
+                        ci += 1;
+                    }
+                    'w' => {
+                        let inline: String = chars[ci + 1..].iter().collect();
+                        if !inline.is_empty() {
+                            width = inline.parse().unwrap_or(80);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            width = args[i].parse().unwrap_or(80);
+                        }
+                        break;
+                    }
+                    _ => {
+                        ci += 1;
+                    }
                 }
             }
             i += 1;
-        } else if !a.starts_with('-') {
-            files.push(a.clone());
-            i += 1;
         } else {
+            files.push(a.clone());
             i += 1;
         }
     }
@@ -4976,52 +5073,70 @@ fn cmd_fold(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Ok(t) => t,
         Err(e) => return e,
     };
-    let mut out = String::new();
+    let raw_in = crate::vfs::stream_string_to_bytes(&text);
     let w = width.max(1);
-    for line in text.lines() {
+    let step_col = |col: usize, b: u8| -> usize {
         if bytes_mode {
-            let raw = crate::vfs::stream_string_to_bytes(line);
-            if raw.is_empty() {
-                out.push('\n');
-            } else {
-                for chunk in raw.chunks(w) {
-                    out.push_str(&crate::vfs::bytes_to_stream_string(chunk));
-                    out.push('\n');
-                }
-            }
+            col + 1
+        } else if b == 8 {
+            col.saturating_sub(1)
+        } else if b == b'\r' {
+            0
+        } else if b == b'\t' {
+            col + (8 - col % 8)
+        } else {
+            col + 1
+        }
+    };
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut line_buf: Vec<u8> = Vec::new();
+    let mut col = 0usize;
+    let mut last_blank = 0usize;
+
+    for &b in &raw_in {
+        if b == b'\n' {
+            out_bytes.extend_from_slice(&line_buf);
+            out_bytes.push(b'\n');
+            line_buf.clear();
+            col = 0;
+            last_blank = 0;
             continue;
         }
-        let chs: Vec<char> = line.chars().collect();
-        if chs.is_empty() {
-            out.push('\n');
-        } else if !break_spaces {
-            for chunk in chs.chunks(w) {
-                out.push_str(&chunk.iter().collect::<String>());
-                out.push('\n');
+        loop {
+            let next_col = step_col(col, b);
+            if next_col <= w || line_buf.is_empty() {
+                line_buf.push(b);
+                col = next_col;
+                if break_spaces && (b == b' ' || b == b'\t') {
+                    last_blank = line_buf.len();
+                }
+                break;
             }
-        } else {
-            let mut start = 0usize;
-            while start < chs.len() {
-                if chs.len() - start <= w {
-                    out.push_str(&chs[start..].iter().collect::<String>());
-                    out.push('\n');
-                    break;
+            if break_spaces && last_blank > 0 {
+                out_bytes.extend_from_slice(&line_buf[..last_blank]);
+                out_bytes.push(b'\n');
+                line_buf.drain(..last_blank);
+                col = 0;
+                last_blank = 0;
+                for (idx, &rem_b) in line_buf.iter().enumerate() {
+                    col = step_col(col, rem_b);
+                    if rem_b == b' ' || rem_b == b'\t' {
+                        last_blank = idx + 1;
+                    }
                 }
-                let window = &chs[start..start + w];
-                if let Some(rel_sp) = window.iter().rposition(|&c| c == ' ' || c == '\t') {
-                    let end = start + rel_sp + 1;
-                    out.push_str(&chs[start..end].iter().collect::<String>());
-                    out.push('\n');
-                    start = end;
-                } else {
-                    out.push_str(&window.iter().collect::<String>());
-                    out.push('\n');
-                    start += w;
-                }
+            } else {
+                out_bytes.extend_from_slice(&line_buf);
+                out_bytes.push(b'\n');
+                line_buf.clear();
+                col = 0;
+                last_blank = 0;
             }
         }
     }
-    ok_out(&out)
+    if !line_buf.is_empty() {
+        out_bytes.extend_from_slice(&line_buf);
+    }
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
 fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -5406,34 +5521,98 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     ok_out(&out)
 }
 
+struct ParsedTabs {
+    stops: Vec<usize>,
+    repeat: usize,
+    relative: bool,
+}
+
+impl ParsedTabs {
+    fn parse(specs: &[String]) -> Self {
+        let mut stops: Vec<usize> = Vec::new();
+        let mut abs_repeat = 0usize;
+        let mut rel_repeat = 0usize;
+        for spec in specs {
+            let mut marker: Option<char> = None;
+            for entry in spec.split([',', ' ', '\t']).filter(|s| !s.is_empty()) {
+                let mut prefix_len = 0usize;
+                for ch in entry.chars() {
+                    if ch == '+' || ch == '/' {
+                        marker = Some(ch);
+                        prefix_len += 1;
+                    } else {
+                        break;
+                    }
+                }
+                let num_str = &entry[prefix_len..];
+                if let Ok(n) = num_str.parse::<usize>() {
+                    match marker {
+                        Some('+') => rel_repeat = n,
+                        Some('/') => abs_repeat = n,
+                        _ => stops.push(n),
+                    }
+                }
+            }
+        }
+        let mut repeat = if abs_repeat > 0 { abs_repeat } else { rel_repeat };
+        let relative = rel_repeat > 0;
+        if stops.is_empty() && repeat == 0 {
+            repeat = 8;
+        } else if stops.len() == 1 && repeat == 0 {
+            repeat = stops.pop().unwrap_or(8);
+        }
+        Self {
+            stops,
+            repeat,
+            relative,
+        }
+    }
+
+    fn next_stop(&self, column: usize, fallback_plus_one: bool) -> Option<usize> {
+        if let Some(&s) = self.stops.iter().find(|&&s| s > column) {
+            return Some(s);
+        }
+        if self.repeat == 0 {
+            return if fallback_plus_one {
+                Some(column + 1)
+            } else {
+                None
+            };
+        }
+        let origin = if self.relative {
+            self.stops.last().copied().unwrap_or(0)
+        } else {
+            0
+        };
+        Some(column + self.repeat - (column.saturating_sub(origin)) % self.repeat)
+    }
+}
+
 fn cmd_expand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut tabs: Vec<usize> = Vec::new();
+    let mut tab_specs: Vec<String> = Vec::new();
     let mut initial_only = false;
     let mut files = Vec::new();
     let mut i = 0usize;
-    let parse_tabs = |spec: &str, out_tabs: &mut Vec<usize>| {
-        for p in spec.split([',', ' ']).filter(|x| !x.is_empty()) {
-            if let Ok(n) = p.parse::<usize>()
-                && n >= 1
-            {
-                out_tabs.push(n);
-            }
-        }
-    };
     while i < args.len() {
         let a = &args[i];
-        if a == "-i" || a == "--initial" {
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if a == "-i" || a == "--initial" {
             initial_only = true;
             i += 1;
         } else if (a == "-t" || a == "--tabs") && i + 1 < args.len() {
-            parse_tabs(&args[i + 1], &mut tabs);
+            tab_specs.push(args[i + 1].clone());
             i += 2;
         } else if let Some(rest) = a.strip_prefix("-t").or_else(|| a.strip_prefix("--tabs="))
             && !rest.is_empty()
         {
-            parse_tabs(rest, &mut tabs);
+            tab_specs.push(rest.to_string());
             i += 1;
-        } else if !a.starts_with('-') {
+        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit() || c == ',') {
+            tab_specs.push(a[1..].to_string());
+            i += 1;
+        } else if !a.starts_with('-') || a == "-" {
             files.push(a.clone());
             i += 1;
         } else {
@@ -5444,56 +5623,67 @@ fn cmd_expand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         Ok(t) => t,
         Err(e) => return e,
     };
-    let mut out = String::new();
-    let mut only_blanks = true;
-    for ch in text.chars() {
-        if ch == '\n' {
-            out.push('\n');
-            only_blanks = true;
-        } else if ch == '\t' && (!initial_only || only_blanks) {
-            let line_len = out.rfind('\n').map(|p| out.len() - p - 1).unwrap_or(out.len());
-            let spaces = if tabs.len() <= 1 {
-                let ts = tabs.first().copied().unwrap_or(8).max(1);
-                ts - (line_len % ts)
-            } else if let Some(&next_stop) = tabs.iter().find(|&&t| t > line_len) {
-                next_stop - line_len
-            } else {
-                1
-            };
-            for _ in 0..spaces {
-                out.push(' ');
+    let tabs = ParsedTabs::parse(&tab_specs);
+    let raw_in = crate::vfs::stream_string_to_bytes(&text);
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut column = 0usize;
+    let mut initial = true;
+    for &b in &raw_in {
+        if b == b'\t' && (!initial_only || initial) {
+            let stop = tabs.next_stop(column, true).unwrap_or(column + 1);
+            while column < stop {
+                out_bytes.push(b' ');
+                column += 1;
             }
         } else {
-            if ch != ' ' && ch != '\t' {
-                only_blanks = false;
+            out_bytes.push(b);
+            if b == b'\n' {
+                column = 0;
+                initial = true;
+            } else {
+                column = if b == 8 { column.saturating_sub(1) } else { column + 1 };
+                if b != b' ' && b != b'\t' {
+                    initial = false;
+                }
             }
-            out.push(ch);
         }
     }
-    ok_out(&out)
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
 fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut tabstop = 8usize;
-    let mut all_blanks = false;
+    let mut tab_specs: Vec<String> = Vec::new();
+    let mut all_flag = false;
+    let mut has_t = false;
+    let mut first_only = false;
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-a" || a == "--all" {
-            all_blanks = true;
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if a == "-a" || a == "--all" {
+            all_flag = true;
+            i += 1;
+        } else if a == "--first-only" {
+            first_only = true;
             i += 1;
         } else if (a == "-t" || a == "--tabs") && i + 1 < args.len() {
-            tabstop = args[i + 1].parse().unwrap_or(8).max(1);
-            all_blanks = true;
+            tab_specs.push(args[i + 1].clone());
+            has_t = true;
             i += 2;
         } else if let Some(rest) = a.strip_prefix("-t").or_else(|| a.strip_prefix("--tabs="))
             && !rest.is_empty()
         {
-            tabstop = rest.parse().unwrap_or(8).max(1);
-            all_blanks = true;
+            tab_specs.push(rest.to_string());
+            has_t = true;
             i += 1;
-        } else if !a.starts_with('-') {
+        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit() || c == ',') {
+            tab_specs.push(a[1..].to_string());
+            has_t = true;
+            i += 1;
+        } else if !a.starts_with('-') || a == "-" {
             files.push(a.clone());
             i += 1;
         } else {
@@ -5504,42 +5694,100 @@ fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         Ok(t) => t,
         Err(e) => return e,
     };
-    let mut out = String::new();
-    for line in text.split_inclusive('\n') {
-        let (body, nl) = if let Some(b) = line.strip_suffix('\n') {
-            (b, "\n")
-        } else {
-            (line, "")
-        };
-        let mut col = 0usize;
-        let mut pending_spaces = 0usize;
-        let mut seen_non_blank = false;
-        for ch in body.chars() {
-            if ch == ' ' && (!seen_non_blank || all_blanks) {
-                pending_spaces += 1;
-                col += 1;
-                if col.is_multiple_of(tabstop) && pending_spaces > 0 {
-                    out.push('\t');
-                    pending_spaces = 0;
-                }
+    let tabs = ParsedTabs::parse(&tab_specs);
+    let all = !first_only && (all_flag || has_t);
+    let raw_in = crate::vfs::stream_string_to_bytes(&text);
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut column = 0usize;
+    let mut initial = true;
+    let mut active = true;
+    let mut pending_start = 0usize;
+    let mut pending_count = 0usize;
+    let mut pending_tab = false;
+
+    let flush_blanks = |out: &mut Vec<u8>,
+                        pending_start: usize,
+                        column: usize,
+                        initial: bool,
+                        pending_count: &mut usize,
+                        pending_tab: &mut bool| {
+        if *pending_count == 0 {
+            return;
+        }
+        let convert_single = initial || *pending_count > 1 || *pending_tab;
+        let mut pos = pending_start;
+        while pos < column {
+            if let Some(stop) = tabs.next_stop(pos, false)
+                && stop <= column
+                && (stop - pos > 1 || convert_single)
+            {
+                out.push(b'\t');
+                pos = stop;
             } else {
-                for _ in 0..pending_spaces {
-                    out.push(' ');
-                }
-                pending_spaces = 0;
-                if ch != ' ' && ch != '\t' {
-                    seen_non_blank = true;
-                }
-                out.push(ch);
-                col += 1;
+                out.push(b' ');
+                pos += 1;
             }
         }
-        for _ in 0..pending_spaces {
-            out.push(' ');
+        *pending_count = 0;
+        *pending_tab = false;
+    };
+
+    for &b in &raw_in {
+        if active && (b == b' ' || b == b'\t') {
+            if let Some(stop) = tabs.next_stop(column, false) {
+                if pending_count == 0 {
+                    pending_start = column;
+                }
+                pending_count += 1;
+                if b == b'\t' {
+                    pending_tab = true;
+                    column = stop;
+                } else {
+                    column += 1;
+                }
+                continue;
+            }
+            flush_blanks(
+                &mut out_bytes,
+                pending_start,
+                column,
+                initial,
+                &mut pending_count,
+                &mut pending_tab,
+            );
+            active = false;
+        } else if pending_count > 0 {
+            flush_blanks(
+                &mut out_bytes,
+                pending_start,
+                column,
+                initial,
+                &mut pending_count,
+                &mut pending_tab,
+            );
         }
-        out.push_str(nl);
+        out_bytes.push(b);
+        if b == b'\n' {
+            column = 0;
+            initial = true;
+            active = true;
+        } else if active {
+            column = if b == 8 { column.saturating_sub(1) } else { column + 1 };
+            initial = false;
+            if !all {
+                active = false;
+            }
+        }
     }
-    ok_out(&out)
+    flush_blanks(
+        &mut out_bytes,
+        pending_start,
+        column,
+        initial,
+        &mut pending_count,
+        &mut pending_tab,
+    );
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
 fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -6584,60 +6832,273 @@ fn cmd_dos2unix(
     fs: &dyn SafeBashFs,
     to_dos: bool,
 ) -> BuiltinOutcome {
+    let mut keep_bom = to_dos;
+    let mut add_bom = false;
+    let mut force = false;
+    let mut add_eol = false;
+    let mut double_nl = false;
     let mut newfile_mode = false;
     let mut to_stdout = false;
-    let mut files: Vec<&String> = Vec::new();
-    for a in args {
-        if a == "-n" || a == "--newfile" {
+    let mut info_flags: Option<String> = None;
+    let mut files: Vec<String> = Vec::new();
+    let mut i = 0usize;
+
+    while i < args.len() {
+        let a = &args[i];
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if a == "-n" || a == "--newfile" {
             newfile_mode = true;
+            i += 1;
+        } else if a == "-o" || a == "--oldfile" {
+            newfile_mode = false;
+            to_stdout = false;
+            i += 1;
         } else if a == "-O" || a == "--to-stdout" {
+            newfile_mode = false;
             to_stdout = true;
-        } else if !a.starts_with('-') {
-            files.push(a);
-        }
-    }
-    let convert = |s: &str| -> String {
-        let lf = s.replace("\r\n", "\n");
-        if to_dos {
-            lf.replace('\n', "\r\n")
-        } else {
-            lf
-        }
-    };
-    if files.is_empty() {
-        return ok_out(&convert(stdin));
-    }
-    if to_stdout {
-        let mut out = String::new();
-        for f in files {
-            let p = resolve_posix_path(cwd, f);
-            if let Ok(bytes) = fs.read_file(&p) {
-                let text = String::from_utf8_lossy(&bytes);
-                out.push_str(&convert(&text));
+            i += 1;
+        } else if a == "-b" || a == "--keep-bom" {
+            keep_bom = true;
+            i += 1;
+        } else if a == "-r" || a == "--remove-bom" {
+            keep_bom = false;
+            add_bom = false;
+            i += 1;
+        } else if a == "-m" || a == "--add-bom" {
+            add_bom = true;
+            i += 1;
+        } else if a == "-f" || a == "--force" {
+            force = true;
+            i += 1;
+        } else if a == "-s" || a == "--safe" {
+            force = false;
+            i += 1;
+        } else if a == "-e" || a == "--add-eol" {
+            add_eol = true;
+            i += 1;
+        } else if a == "--no-add-eol" {
+            add_eol = false;
+            i += 1;
+        } else if a == "-l" || a == "--newline" {
+            double_nl = true;
+            i += 1;
+        } else if a == "-i" || a == "--info" {
+            info_flags = Some(String::new());
+            i += 1;
+        } else if let Some(rest) = a.strip_prefix("--info=") {
+            info_flags = Some(rest.to_string());
+            i += 1;
+        } else if let Some(rest) = a.strip_prefix("-i") && !rest.is_empty() {
+            info_flags = Some(rest.to_string());
+            i += 1;
+        } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
+            for ch in a[1..].chars() {
+                match ch {
+                    'b' => keep_bom = true,
+                    'r' => {
+                        keep_bom = false;
+                        add_bom = false;
+                    }
+                    'm' => add_bom = true,
+                    'f' => force = true,
+                    's' => force = false,
+                    'e' => add_eol = true,
+                    'l' => double_nl = true,
+                    'n' => newfile_mode = true,
+                    'o' => {
+                        newfile_mode = false;
+                        to_stdout = false;
+                    }
+                    'O' => {
+                        newfile_mode = false;
+                        to_stdout = true;
+                    }
+                    _ => {}
+                }
             }
+            i += 1;
+        } else {
+            files.push(a.clone());
+            i += 1;
+        }
+    }
+
+    if let Some(ref flags_str) = info_flags {
+        let has_explicit = flags_str.chars().any(|c| "dumbtec".contains(c));
+        let active_set = |ch: char| -> bool {
+            if ch == 'e' {
+                flags_str.contains('e') || (add_eol && !flags_str.contains('c'))
+            } else if has_explicit {
+                flags_str.contains(ch)
+            } else {
+                "dumbt".contains(ch)
+            }
+        };
+        let mut out = String::new();
+        for f in &files {
+            let p = resolve_posix_path(cwd, f);
+            let Ok(raw) = fs.read_file(&p) else {
+                continue;
+            };
+            let (bom_label, body) = if raw.starts_with(b"\xEF\xBB\xBF") {
+                ("UTF-8", &raw[3..])
+            } else {
+                ("no_bom", &raw[..])
+            };
+            let mut dos = 0usize;
+            let mut unix = 0usize;
+            let mut mac = 0usize;
+            let mut prev = None;
+            let mut last = "noeol";
+            let mut binary = false;
+            for &b in body {
+                if b < 32 && !matches!(b, 9 | 10 | 12 | 13) {
+                    binary = true;
+                }
+                if b == 13 {
+                    mac += 1;
+                    last = "mac";
+                } else if b == 10 && prev == Some(13) {
+                    dos += 1;
+                    mac = mac.saturating_sub(1);
+                    last = "dos";
+                } else if b == 10 {
+                    unix += 1;
+                    last = "unix";
+                } else {
+                    last = "noeol";
+                }
+                prev = Some(b);
+            }
+            let mut fields: Vec<String> = Vec::new();
+            if active_set('d') {
+                fields.push(format!("  {dos:>6}"));
+            }
+            if active_set('u') {
+                fields.push(format!("  {unix:>6}"));
+            }
+            if active_set('m') {
+                fields.push(format!("  {mac:>6}"));
+            }
+            if active_set('b') {
+                fields.push(format!("  {bom_label:<8}"));
+            }
+            if active_set('t') {
+                fields.push(if binary {
+                    "  binary".to_string()
+                } else {
+                    "  text  ".to_string()
+                });
+            }
+            if active_set('e') {
+                fields.push(format!(" {last:<5} "));
+            }
+            let display_name = if flags_str.contains('p') {
+                f.rsplit('/').next().unwrap_or(f)
+            } else {
+                f.as_str()
+            };
+            let sep = if fields.is_empty() { "" } else { "  " };
+            let term = if flags_str.contains('0') { "\0" } else { "\n" };
+            out.push_str(&format!("{}{sep}{display_name}{term}", fields.join("")));
         }
         return ok_out(&out);
+    }
+
+    let convert_bytes = |raw: &[u8]| -> Option<Vec<u8>> {
+        let (has_bom, body) = if raw.starts_with(b"\xEF\xBB\xBF") {
+            (true, &raw[3..])
+        } else {
+            (false, raw)
+        };
+        if !force
+            && body
+                .iter()
+                .any(|&b| b < 32 && !matches!(b, 9 | 10 | 12 | 13))
+        {
+            return None;
+        }
+        let mut out: Vec<u8> = Vec::with_capacity(raw.len() + 8);
+        if add_bom || (keep_bom && has_bom) {
+            out.extend_from_slice(b"\xEF\xBB\xBF");
+        }
+        let mut idx = 0usize;
+        while idx < body.len() {
+            let b = body[idx];
+            if b == b'\r' && body.get(idx + 1) == Some(&b'\n') {
+                let count = if double_nl { 2 } else { 1 };
+                for _ in 0..count {
+                    if to_dos {
+                        out.extend_from_slice(b"\r\n");
+                    } else {
+                        out.push(b'\n');
+                    }
+                }
+                idx += 2;
+            } else if b == b'\n' {
+                let count = if double_nl { 2 } else { 1 };
+                for _ in 0..count {
+                    if to_dos {
+                        out.extend_from_slice(b"\r\n");
+                    } else {
+                        out.push(b'\n');
+                    }
+                }
+                idx += 1;
+            } else {
+                out.push(b);
+                idx += 1;
+            }
+        }
+        if add_eol && !body.is_empty() && !body.ends_with(b"\n") {
+            if to_dos {
+                out.extend_from_slice(b"\r\n");
+            } else {
+                out.push(b'\n');
+            }
+        }
+        Some(out)
+    };
+
+    if files.is_empty() {
+        let raw = crate::vfs::stream_string_to_bytes(stdin);
+        let out = convert_bytes(&raw).unwrap_or(raw);
+        return ok_out(&crate::vfs::bytes_to_stream_string(&out));
+    }
+    if to_stdout {
+        let mut out_all: Vec<u8> = Vec::new();
+        for f in &files {
+            let p = resolve_posix_path(cwd, f);
+            if let Ok(bytes) = fs.read_file(&p)
+                && let Some(conv) = convert_bytes(&bytes)
+            {
+                out_all.extend_from_slice(&conv);
+            }
+        }
+        return ok_out(&crate::vfs::bytes_to_stream_string(&out_all));
     }
     if newfile_mode {
         for pair in files.chunks(2) {
             if pair.len() == 2 {
-                let in_p = resolve_posix_path(cwd, pair[0]);
-                let out_p = resolve_posix_path(cwd, pair[1]);
-                if let Ok(bytes) = fs.read_file(&in_p) {
-                    let text = String::from_utf8_lossy(&bytes);
-                    let converted = convert(&text);
-                    let _ = fs.write_file(&out_p, converted.as_bytes());
+                let in_p = resolve_posix_path(cwd, &pair[0]);
+                let out_p = resolve_posix_path(cwd, &pair[1]);
+                if let Ok(bytes) = fs.read_file(&in_p)
+                    && let Some(conv) = convert_bytes(&bytes)
+                {
+                    let _ = fs.write_file(&out_p, &conv);
                 }
             }
         }
         return ok_out("");
     }
-    for f in files {
+    for f in &files {
         let p = resolve_posix_path(cwd, f);
-        if let Ok(bytes) = fs.read_file(&p) {
-            let text = String::from_utf8_lossy(&bytes);
-            let converted = convert(&text);
-            let _ = fs.write_file(&p, converted.as_bytes());
+        if let Ok(bytes) = fs.read_file(&p)
+            && let Some(conv) = convert_bytes(&bytes)
+        {
+            let _ = fs.write_file(&p, &conv);
         }
     }
     ok_out("")
@@ -6949,7 +7410,10 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if (a == "-s" || a == "--size") && i + 1 < args.len() {
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if (a == "-s" || a == "--size") && i + 1 < args.len() {
             size_spec = Some(args[i + 1].clone());
             i += 2;
         } else if let Some(s) = a.strip_prefix("--size=") {
@@ -6964,15 +7428,29 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         } else if let Some(r) = a.strip_prefix("--reference=") {
             ref_file = Some(r.to_string());
             i += 1;
+        } else if let Some(r) = a.strip_prefix("-r") && !r.is_empty() {
+            ref_file = Some(r.to_string());
+            i += 1;
         } else if a == "-c" || a == "--no-create" {
             no_create = true;
+            i += 1;
+        } else if a == "-o" || a == "--io-blocks" {
             i += 1;
         } else if !a.starts_with('-') {
             files.push(a.clone());
             i += 1;
         } else {
-            i += 1;
+            return err_out(&format!("truncate: invalid option '{a}'\n"), 1);
         }
+    }
+    if size_spec.is_none() && ref_file.is_none() {
+        return err_out(
+            "truncate: you must specify either '--size' or '--reference'\n",
+            1,
+        );
+    }
+    if files.is_empty() {
+        return err_out("truncate: missing file operand\n", 1);
     }
     let ref_len = if let Some(rf) = &ref_file {
         let rp = resolve_posix_path(cwd, rf);
@@ -6989,33 +7467,60 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     } else {
         None
     };
-    let size_spec = size_spec.unwrap_or_else(|| "0".to_string());
-    let trimmed = size_spec.trim();
-    let (op, rest) = if let Some(r) = trimmed.strip_prefix('+') {
-        ('+', r)
-    } else if let Some(r) = trimmed.strip_prefix('-') {
-        ('-', r)
-    } else if let Some(r) = trimmed.strip_prefix('<') {
-        ('<', r)
-    } else if let Some(r) = trimmed.strip_prefix('>') {
-        ('>', r)
-    } else if let Some(r) = trimmed.strip_prefix('/') {
-        ('/', r)
-    } else if let Some(r) = trimmed.strip_prefix('%') {
-        ('%', r)
-    } else {
-        ('=', trimmed)
-    };
-    let num_len = rest.chars().take_while(|c| c.is_ascii_digit()).count();
-    let base_num = rest[..num_len].parse::<usize>().unwrap_or(0);
-    let unit = rest[num_len..].to_ascii_uppercase();
-    let mult = match unit.as_str() {
-        "K" | "KB" | "KIB" => 1024usize,
-        "M" | "MB" | "MIB" => 1024 * 1024,
-        "G" | "GB" | "GIB" => 1024 * 1024 * 1024,
-        _ => 1usize,
-    };
-    let delta = base_num.saturating_mul(mult);
+
+    let mut op = '=';
+    let mut delta = 0usize;
+    let has_size = size_spec.is_some();
+    if let Some(ref spec) = size_spec {
+        let trimmed = spec.trim();
+        let rest = if let Some(r) = trimmed.strip_prefix('+') {
+            op = '+';
+            r
+        } else if let Some(r) = trimmed.strip_prefix('-') {
+            op = '-';
+            r
+        } else if let Some(r) = trimmed.strip_prefix('<') {
+            op = '<';
+            r
+        } else if let Some(r) = trimmed.strip_prefix('>') {
+            op = '>';
+            r
+        } else if let Some(r) = trimmed.strip_prefix('/') {
+            op = '/';
+            r
+        } else if let Some(r) = trimmed.strip_prefix('%') {
+            op = '%';
+            r
+        } else {
+            op = '=';
+            trimmed
+        };
+        let rest = rest.trim_start();
+        let num_len = rest.chars().take_while(|c| c.is_ascii_digit()).count();
+        if num_len == 0 {
+            return err_out(&format!("truncate: Invalid number: '{spec}'\n"), 1);
+        }
+        let Ok(base_num) = rest[..num_len].parse::<usize>() else {
+            return err_out(&format!("truncate: Invalid number: '{spec}'\n"), 1);
+        };
+        let unit = rest[num_len..].trim().to_ascii_uppercase();
+        let mult = match unit.as_str() {
+            "" => 1usize,
+            "K" | "KIB" => 1024usize,
+            "KB" => 1000usize,
+            "M" | "MIB" => 1024 * 1024,
+            "MB" => 1_000_000usize,
+            "G" | "GIB" => 1024 * 1024 * 1024,
+            "GB" => 1_000_000_000usize,
+            _ => {
+                return err_out(&format!("truncate: Invalid number: '{spec}'\n"), 1);
+            }
+        };
+        delta = base_num.saturating_mul(mult);
+        if (op == '/' || op == '%') && delta == 0 {
+            return err_out("truncate: division by zero\n", 1);
+        }
+    }
 
     for f in files {
         let full = resolve_posix_path(cwd, &f);
@@ -7023,22 +7528,17 @@ fn cmd_truncate(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             continue;
         }
         let mut bytes = fs.read_file(&full).unwrap_or_default();
-        let target_len = if let Some(rl) = ref_len {
-            rl
+        let base = ref_len.unwrap_or(bytes.len());
+        let target_len = if !has_size {
+            base
         } else {
             match op {
-                '+' => bytes.len().saturating_add(delta),
-                '-' => bytes.len().saturating_sub(delta),
-                '<' => bytes.len().min(delta),
-                '>' => bytes.len().max(delta),
-                '/' => bytes.len().checked_div(delta).unwrap_or(0) * delta,
-                '%' => {
-                    if delta > 0 {
-                        bytes.len().div_ceil(delta) * delta
-                    } else {
-                        0
-                    }
-                }
+                '+' => base.saturating_add(delta),
+                '-' => base.saturating_sub(delta),
+                '<' => base.min(delta),
+                '>' => base.max(delta),
+                '/' => (base / delta) * delta,
+                '%' => base.div_ceil(delta) * delta,
                 _ => delta,
             }
         };

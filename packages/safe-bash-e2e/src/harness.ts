@@ -309,6 +309,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-pandoc-ssconvert-docx-odt-epub-xlsx-ods-html-latex-rst-matrix.test.ts",
   "obscure-ast-grep-sg-caller-structural-search-rewrite-scan-matrix.test.ts",
   "obscure-alias-unalias-shopt-hash-pdfseparate-pdfunite-matrix.test.ts",
+  "obscure-truncate-dos2unix-unix2dos-expand-unexpand-fold-tac-rev-strings-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

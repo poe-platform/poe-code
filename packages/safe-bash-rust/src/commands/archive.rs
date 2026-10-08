@@ -3554,14 +3554,21 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
 fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut min_len = 4usize;
     let mut radix: Option<char> = None;
+    let mut print_file = false;
+    let mut include_ws = false;
+    let mut encoding = 's';
+    let mut separator = "\n".to_string();
     let mut files = Vec::new();
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if (a == "-n" || a == "--bytes") && i + 1 < args.len() {
+        if a == "--" {
+            files.extend(args[i + 1..].iter().cloned());
+            break;
+        } else if (a == "-n" || a == "--bytes") && i + 1 < args.len() {
             min_len = args[i + 1].parse().unwrap_or(4).max(1);
             i += 2;
-        } else if let Some(rest) = a.strip_prefix("-n")
+        } else if let Some(rest) = a.strip_prefix("-n").or_else(|| a.strip_prefix("--bytes="))
             && !rest.is_empty()
         {
             min_len = rest.parse().unwrap_or(4).max(1);
@@ -3574,6 +3581,33 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         {
             radix = rest.chars().next();
             i += 1;
+        } else if a == "-o" {
+            radix = Some('o');
+            i += 1;
+        } else if a == "-f" || a == "--print-file-name" {
+            print_file = true;
+            i += 1;
+        } else if a == "-w" || a == "--include-all-whitespace" {
+            include_ws = true;
+            i += 1;
+        } else if (a == "-s" || a == "--output-separator") && i + 1 < args.len() {
+            separator = args[i + 1].clone();
+            i += 2;
+        } else if let Some(rest) = a
+            .strip_prefix("-s")
+            .or_else(|| a.strip_prefix("--output-separator="))
+            && !rest.is_empty()
+        {
+            separator = rest.to_string();
+            i += 1;
+        } else if (a == "-e" || a == "--encoding") && i + 1 < args.len() {
+            encoding = args[i + 1].chars().next().unwrap_or('s');
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--encoding="))
+            && !rest.is_empty()
+        {
+            encoding = rest.chars().next().unwrap_or('s');
+            i += 1;
         } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
             min_len = a[1..].parse().unwrap_or(4).max(1);
             i += 1;
@@ -3584,43 +3618,101 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             i += 1;
         }
     }
-    let data = if files.is_empty() || files[0] == "-" {
-        crate::vfs::stream_string_to_bytes(stdin)
+
+    let targets: Vec<String> = if files.is_empty() {
+        vec!["-".to_string()]
     } else {
-        let full = resolve_posix_path(cwd, &files[0]);
-        match fs.read_file(&full) {
-            Ok(b) => b,
-            Err(_) => return err_out(&format!("strings: {}: No such file\n", files[0]), 1),
-        }
+        files
     };
-    let mut out = String::new();
-    let mut cur = String::new();
-    let mut start_off = 0usize;
-    let push_match = |out: &mut String, cur: &str, off: usize| {
-        match radix {
-            Some('x') => out.push_str(&format!("{off:7x} {cur}\n")),
-            Some('d') => out.push_str(&format!("{off:7} {cur}\n")),
-            Some('o') => out.push_str(&format!("{off:7o} {cur}\n")),
-            _ => out.push_str(&format!("{cur}\n")),
-        }
+    let width: usize = match encoding {
+        'b' | 'l' => 2,
+        'B' | 'L' => 4,
+        _ => 1,
     };
-    for (idx, &b) in data.iter().enumerate() {
-        if matches!(b, 0x20..=0x7e | b'\t') {
-            if cur.is_empty() {
-                start_off = idx;
-            }
-            cur.push(b as char);
+    let sep_bytes = crate::vfs::stream_string_to_bytes(&separator);
+    let mut out_bytes: Vec<u8> = Vec::new();
+
+    for f in &targets {
+        let data = if f == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
         } else {
-            if cur.len() >= min_len {
-                push_match(&mut out, &cur, start_off);
+            let full = resolve_posix_path(cwd, f);
+            match fs.read_file(&full) {
+                Ok(b) => b,
+                Err(_) => return err_out(&format!("strings: {f}: No such file\n"), 1),
+            }
+        };
+
+        let mut cur_bytes: Vec<u8> = Vec::new();
+        let mut char_count = 0usize;
+        let mut start_off = 0usize;
+
+        let flush = |out: &mut Vec<u8>,
+                     cur: &mut Vec<u8>,
+                     chars: &mut usize,
+                     off: usize| {
+            if *chars >= min_len {
+                if print_file {
+                    let label = if f == "-" { "{standard input}" } else { f.as_str() };
+                    out.extend_from_slice(format!("{label}: ").as_bytes());
+                }
+                match radix {
+                    Some('x') => out.extend_from_slice(format!("{off:7x} ").as_bytes()),
+                    Some('d') => out.extend_from_slice(format!("{off:7} ").as_bytes()),
+                    Some('o') => out.extend_from_slice(format!("{off:7o} ").as_bytes()),
+                    _ => {}
+                }
+                out.extend_from_slice(cur);
+                out.extend_from_slice(&sep_bytes);
             }
             cur.clear();
+            *chars = 0;
+        };
+
+        if width == 1 {
+            for (idx, &b) in data.iter().enumerate() {
+                let ok = b == 9
+                    || (32..=126).contains(&b)
+                    || (encoding == 'S' && b >= 128)
+                    || (include_ws && (10..=13).contains(&b));
+                if ok {
+                    if char_count == 0 {
+                        start_off = idx;
+                    }
+                    cur_bytes.push(b);
+                    char_count += 1;
+                } else {
+                    flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                }
+            }
+        } else {
+            let little = encoding == 'l' || encoding == 'L';
+            let mut idx = 0usize;
+            while idx + width <= data.len() {
+                let mut code = 0u32;
+                for k in 0..width {
+                    let byte = data[idx + if little { width - 1 - k } else { k }] as u32;
+                    code = (code << 8) | byte;
+                }
+                let ok = code == 9
+                    || (32..=126).contains(&code)
+                    || (include_ws && (10..=13).contains(&code));
+                if ok {
+                    if char_count == 0 {
+                        start_off = idx;
+                    }
+                    cur_bytes.push(code as u8);
+                    char_count += 1;
+                } else {
+                    flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                }
+                idx += width;
+            }
         }
+        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
     }
-    if cur.len() >= min_len {
-        push_match(&mut out, &cur, start_off);
-    }
-    ok_out(&out)
+
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
 fn openssl_hash(name: &str, data: &[u8]) -> Vec<u8> {

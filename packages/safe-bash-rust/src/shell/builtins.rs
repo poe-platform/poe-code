@@ -1,6 +1,6 @@
 use crate::commands::search::regex_captures;
 use crate::shell::expand::{
-    bash_quote_value, decode_ansi_c_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
+    bash_quote_value, decode_ansi_c_escapes, decode_echo_b_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
     sync_array_metadata,
 };
 use crate::vfs::{SafeBashFs, resolve_posix_path};
@@ -327,9 +327,9 @@ pub fn try_run_builtin(
             let mut body = if interpret_escapes {
                 if let Some((before_c, _)) = raw.split_once("\\c") {
                     newline = false;
-                    decode_ansi_c_escapes(before_c)
+                    decode_echo_b_escapes(before_c)
                 } else {
-                    decode_ansi_c_escapes(&raw)
+                    decode_echo_b_escapes(&raw)
                 }
             } else {
                 raw
@@ -791,12 +791,12 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
                     }
                     'b' => {
                         if let Some((before_c, _)) = raw_arg.split_once("\\c") {
-                            let s = decode_ansi_c_escapes(before_c);
+                            let s = decode_echo_b_escapes(before_c);
                             out.push_str(&pad_string(&s, w_usize, left_align, false));
                             stop_all = true;
                             break;
                         }
-                        let s = decode_ansi_c_escapes(raw_arg);
+                        let s = decode_echo_b_escapes(raw_arg);
                         pad_string(&s, w_usize, left_align, false)
                     }
                     'q' => {

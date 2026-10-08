@@ -245,6 +245,14 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
 }
 
 pub fn decode_ansi_c_escapes(input: &str) -> String {
+    decode_c_escapes_inner(input, false)
+}
+
+pub fn decode_echo_b_escapes(input: &str) -> String {
+    decode_c_escapes_inner(input, true)
+}
+
+fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
     let mut out_bytes: Vec<u8> = Vec::with_capacity(input.len());
     let mut chars = input.chars().peekable();
     let push_char = |buf: &mut Vec<u8>, ch: char| {
@@ -310,7 +318,7 @@ pub fn decode_ansi_c_escapes(input: &str) -> String {
                 }
                 Some(oct) if ('0'..='7').contains(&oct) => {
                     let mut s = String::from(oct);
-                    let max_more = if oct == '0' { 3 } else { 2 };
+                    let max_more = if leading_zero_octal && oct == '0' { 3 } else { 2 };
                     for _ in 0..max_more {
                         if let Some(&oc) = chars.peek()
                             && ('0'..='7').contains(&oc)

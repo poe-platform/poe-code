@@ -18,9 +18,9 @@ pub fn try_run_coreutil(
         "head" => Some(cmd_head(args, stdin, cwd, fs)),
         "tail" => Some(cmd_tail(args, stdin, cwd, fs)),
         "wc" => Some(cmd_wc(args, stdin, cwd, env, fs)),
-        "sort" => Some(cmd_sort(args, stdin, cwd, fs)),
-        "uniq" => Some(cmd_uniq(args, stdin, cwd, fs)),
-        "cut" => Some(cmd_cut(args, stdin, cwd, fs)),
+        "sort" => Some(cmd_sort(args, stdin, cwd, env, fs)),
+        "uniq" => Some(cmd_uniq(args, stdin, cwd, env, fs)),
+        "cut" => Some(cmd_cut(args, stdin, cwd, env, fs)),
         "tr" => Some(cmd_tr(args, stdin)),
         "nl" => Some(cmd_nl(args, stdin, cwd, fs)),
         "tac" => Some(cmd_tac(args, stdin, cwd, fs)),
@@ -130,11 +130,12 @@ pub fn read_inputs_or_stdin(
 }
 
 fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut number_lines = false;
-    let mut number_nonblank = false;
-    let mut show_ends = false;
-    let mut show_tabs = false;
-    let mut squeeze_blank = false;
+    let mut flag_n = false;
+    let mut flag_b = false;
+    let mut flag_s = false;
+    let mut flag_e_ends = false;
+    let mut flag_t_tabs = false;
+    let mut flag_v = false;
     let mut files = Vec::new();
     let mut opts_done = false;
 
@@ -143,20 +144,50 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             opts_done = true;
             continue;
         }
+        if !opts_done && arg == "--help" {
+            return ok_out("Usage: cat [OPTION]... [FILE]...\n");
+        }
+        if !opts_done && arg.starts_with("--") {
+            match arg.as_str() {
+                "--number" => flag_n = true,
+                "--number-nonblank" => flag_b = true,
+                "--squeeze-blank" => flag_s = true,
+                "--show-ends" => flag_e_ends = true,
+                "--show-tabs" => flag_t_tabs = true,
+                "--show-nonprinting" => flag_v = true,
+                "--show-all" => {
+                    flag_v = true;
+                    flag_e_ends = true;
+                    flag_t_tabs = true;
+                }
+                _ => return err_out(&format!("cat: unrecognized option '{arg}'\n"), 2),
+            }
+            continue;
+        }
         if !opts_done && arg.starts_with('-') && arg.len() > 1 {
             for ch in arg[1..].chars() {
                 match ch {
-                    'n' => number_lines = true,
-                    'b' => number_nonblank = true,
-                    'E' | 'e' => show_ends = true,
-                    'T' | 't' => show_tabs = true,
-                    'A' => {
-                        show_ends = true;
-                        show_tabs = true;
+                    'n' => flag_n = true,
+                    'b' => flag_b = true,
+                    's' => flag_s = true,
+                    'E' => flag_e_ends = true,
+                    'T' => flag_t_tabs = true,
+                    'v' => flag_v = true,
+                    'e' => {
+                        flag_v = true;
+                        flag_e_ends = true;
                     }
-                    's' => squeeze_blank = true,
-                    'u' | 'v' => {}
-                    _ => {}
+                    't' => {
+                        flag_v = true;
+                        flag_t_tabs = true;
+                    }
+                    'A' => {
+                        flag_v = true;
+                        flag_e_ends = true;
+                        flag_t_tabs = true;
+                    }
+                    'u' => {}
+                    _ => return err_out(&format!("cat: invalid option -- '{ch}'\n"), 2),
                 }
             }
         } else {
@@ -164,296 +195,536 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     }
 
-    let mut raw = String::new();
+    let mut raw_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
-    if files.is_empty() {
-        raw.push_str(stdin);
+    let targets = if files.is_empty() {
+        vec!["-".to_string()]
     } else {
-        for f in &files {
-            if f == "-" {
-                raw.push_str(stdin);
-            } else {
-                let p = resolve_posix_path(cwd, f);
-                match fs.read_file(&p) {
-                    Ok(bytes) => raw.push_str(&crate::vfs::bytes_to_stream_string(&bytes)),
-                    Err(e) => {
-                        stderr.push_str(&format!("cat: {f}: {e}\n"));
-                        exit_code = 1;
-                    }
+        files
+    };
+    for f in &targets {
+        if f == "-" {
+            raw_bytes.extend_from_slice(&stream_string_to_bytes(stdin));
+        } else {
+            let p = resolve_posix_path(cwd, f);
+            if let Ok(st) = fs.stat(&p)
+                && st.kind == crate::vfs::VfsEntryKind::Directory
+            {
+                stderr.push_str(&format!("cat: {f}: Is a directory\n"));
+                exit_code = 1;
+                continue;
+            }
+            match fs.read_file(&p) {
+                Ok(bytes) => raw_bytes.extend_from_slice(&bytes),
+                Err(e) => {
+                    stderr.push_str(&format!("cat: {f}: {e}\n"));
+                    exit_code = 1;
                 }
             }
         }
     }
 
-    if !number_lines && !number_nonblank && !show_ends && !show_tabs && !squeeze_blank {
+    if !flag_n && !flag_b && !flag_s && !flag_e_ends && !flag_t_tabs && !flag_v {
         return BuiltinOutcome {
-            stdout: raw,
+            stdout: crate::vfs::bytes_to_stream_string(&raw_bytes),
             stderr,
             exit_code,
         };
     }
 
-    let mut out = String::new();
-    let mut line_no = 1usize;
-    let mut prev_blank = false;
-    for chunk in raw.split_inclusive('\n') {
-        let has_nl = chunk.ends_with('\n');
-        let content = chunk.strip_suffix('\n').unwrap_or(chunk);
-        let is_blank = content.is_empty();
-        if squeeze_blank && is_blank && prev_blank {
+    let show_ends_only_cr = flag_e_ends && !flag_v;
+    let mut line_start = true;
+    let mut blank_count = 0usize;
+    let mut number = 1usize;
+    let mut pending_cr = false;
+    let mut out_bytes: Vec<u8> = Vec::with_capacity(raw_bytes.len());
+
+    for &byte in &raw_bytes {
+        if pending_cr {
+            pending_cr = false;
+            if byte == 10 {
+                out_bytes.extend_from_slice(b"^M");
+            } else {
+                out_bytes.push(13);
+            }
+        }
+        if line_start && byte == 10 && flag_s && blank_count > 0 {
             continue;
         }
-        prev_blank = is_blank;
-
-        if number_nonblank {
-            if !is_blank {
-                out.push_str(&format!("{line_no:>6}\t"));
-                line_no += 1;
+        if line_start && (if flag_b { byte != 10 } else { flag_n }) {
+            out_bytes.extend_from_slice(format!("{number:>6}\t").as_bytes());
+            number += 1;
+        }
+        if byte == 10 {
+            if flag_e_ends {
+                out_bytes.push(b'$');
             }
-        } else if number_lines {
-            out.push_str(&format!("{line_no:>6}\t"));
-            line_no += 1;
+            out_bytes.push(10);
+            blank_count = if line_start { blank_count + 1 } else { 0 };
+            line_start = true;
+        } else {
+            line_start = false;
+            blank_count = 0;
+            if byte == 13 && show_ends_only_cr {
+                pending_cr = true;
+            } else if byte == 9 {
+                if flag_t_tabs {
+                    out_bytes.extend_from_slice(b"^I");
+                } else {
+                    out_bytes.push(9);
+                }
+            } else if flag_v {
+                let mut visible = byte;
+                if visible >= 128 {
+                    out_bytes.extend_from_slice(b"M-");
+                    visible -= 128;
+                }
+                if visible < 32 {
+                    out_bytes.push(b'^');
+                    out_bytes.push(visible + 64);
+                } else if visible == 127 {
+                    out_bytes.extend_from_slice(b"^?");
+                } else {
+                    out_bytes.push(visible);
+                }
+            } else {
+                out_bytes.push(byte);
+            }
+        }
+    }
+    if pending_cr {
+        out_bytes.push(13);
+    }
+
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr,
+        exit_code,
+    }
+}
+
+fn head_tail_normalize_args(name: &str, arguments: &[String]) -> Vec<String> {
+    let mut out = Vec::new();
+    let mut ended = false;
+    let mut idx = 0usize;
+    while idx < arguments.len() {
+        let argument = &arguments[idx];
+        if argument == "--" {
+            ended = true;
+        }
+        let bytes = argument.as_bytes();
+        let mut offset = 1usize;
+        while offset < bytes.len() && bytes[offset].is_ascii_digit() {
+            offset += 1;
+        }
+        if !ended
+            && !bytes.is_empty()
+            && (bytes[0] == b'-' || (name == "tail" && idx == 0 && bytes[0] == b'+'))
+            && offset > 1
+        {
+            let remainder = &argument[offset..];
+            let mut unit_flag = "-n";
+            let mut unit_suffix = "";
+            let mut rest = remainder;
+            if let Some(r) = rest.strip_prefix('c') {
+                unit_flag = "-c";
+                rest = r;
+            } else if let Some(r) = rest.strip_prefix('b') {
+                unit_flag = "-c";
+                unit_suffix = "b";
+                rest = r;
+            } else if let Some(r) = rest.strip_prefix('k') {
+                unit_flag = "-c";
+                unit_suffix = "K";
+                rest = r;
+            } else if let Some(r) = rest.strip_prefix('m') {
+                unit_flag = "-c";
+                unit_suffix = "M";
+                rest = r;
+            } else if let Some(r) = rest.strip_prefix('l') {
+                unit_flag = "-n";
+                rest = r;
+            }
+            let allowed = if name == "tail" { "qvzfF" } else { "qvz" };
+            if rest.chars().all(|ch| allowed.contains(ch)) {
+                let sign = if bytes[0] == b'+' { "+" } else { "" };
+                out.push(unit_flag.to_string());
+                out.push(format!("{sign}{}{unit_suffix}", &argument[1..offset]));
+                for ch in rest.chars() {
+                    out.push(format!("-{ch}"));
+                }
+                idx += 1;
+                continue;
+            }
+        }
+        out.push(argument.clone());
+        if !ended
+            && (matches!(
+                argument.as_str(),
+                "--lines" | "--bytes" | "--max-idle" | "--sleep-interval" | "--max-unchanged-stats"
+            ) || (argument.starts_with('-')
+                && !argument.starts_with("--")
+                && (argument.ends_with('n') || argument.ends_with('c') || argument.ends_with('s'))))
+            && idx + 1 < arguments.len()
+        {
+            idx += 1;
+            out.push(arguments[idx].clone());
+        }
+        idx += 1;
+    }
+    out
+}
+
+fn head_tail_count(amount: &str) -> Result<usize, String> {
+    let text = amount.strip_prefix(['+', '-']).unwrap_or(amount);
+    let bytes = text.as_bytes();
+    let mut offset = 0usize;
+    while offset < bytes.len() && bytes[offset].is_ascii_digit() {
+        offset += 1;
+    }
+    let suffix = &text[offset..];
+    let multiplier: u128 = if suffix.is_empty() {
+        1
+    } else if suffix == "b" {
+        512
+    } else {
+        let first_ch = suffix.chars().next().unwrap();
+        let norm_ch = if first_ch == 'k' { 'K' } else { first_ch };
+        let Some(pos) = "KMGTPEZYRQ".find(norm_ch) else {
+            return Err(format!("invalid number '{amount}'"));
+        };
+        let power = (pos + 1) as u32;
+        let ending = &suffix[first_ch.len_utf8()..];
+        if !matches!(ending, "" | "B" | "iB") {
+            return Err(format!("invalid number '{amount}'"));
+        }
+        let base: u128 = if ending == "B" { 1000 } else { 1024 };
+        base.saturating_pow(power)
+    };
+    if offset == 0 && suffix.is_empty() {
+        return Err(format!("invalid number '{amount}'"));
+    }
+    let count_base: u128 = if offset > 0 {
+        text[..offset]
+            .parse::<u128>()
+            .map_err(|_| format!("invalid number '{amount}'"))?
+    } else {
+        1
+    };
+    let total = count_base.saturating_mul(multiplier);
+    if total > (usize::MAX as u128) {
+        return Err(format!("invalid number '{amount}'"));
+    }
+    Ok(total as usize)
+}
+
+fn split_records_inclusive(raw: &[u8], delimiter: u8) -> Vec<&[u8]> {
+    if raw.is_empty() {
+        return Vec::new();
+    }
+    let mut records = Vec::new();
+    let mut start = 0usize;
+    for (idx, &b) in raw.iter().enumerate() {
+        if b == delimiter {
+            records.push(&raw[start..=idx]);
+            start = idx + 1;
+        }
+    }
+    if start < raw.len() {
+        records.push(&raw[start..]);
+    }
+    records
+}
+
+fn run_head_or_tail(
+    name: &str,
+    raw_args: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let norm = head_tail_normalize_args(name, raw_args);
+    let mut last_mode = 'n';
+    let mut last_n = "10".to_string();
+    let mut last_c = "10".to_string();
+    let mut last_header: Option<char> = None;
+    let mut zero_terminated = false;
+    let mut files = Vec::new();
+    let mut ended = false;
+    let mut i = 0usize;
+
+    while i < norm.len() {
+        let a = &norm[i];
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if let Some(val) = a.strip_prefix("--lines=") {
+            last_mode = 'n';
+            last_n = val.to_string();
+            i += 1;
+            continue;
+        }
+        if a == "--lines" {
+            if i + 1 >= norm.len() {
+                return err_out(&format!("{name}: option '--lines' requires an argument\n"), 2);
+            }
+            last_mode = 'n';
+            last_n = norm[i + 1].clone();
+            i += 2;
+            continue;
+        }
+        if let Some(val) = a.strip_prefix("--bytes=") {
+            last_mode = 'c';
+            last_c = val.to_string();
+            i += 1;
+            continue;
+        }
+        if a == "--bytes" {
+            if i + 1 >= norm.len() {
+                return err_out(&format!("{name}: option '--bytes' requires an argument\n"), 2);
+            }
+            last_mode = 'c';
+            last_c = norm[i + 1].clone();
+            i += 2;
+            continue;
+        }
+        if a == "--quiet" || a == "--silent" {
+            last_header = Some('q');
+            i += 1;
+            continue;
+        }
+        if a == "--verbose" {
+            last_header = Some('v');
+            i += 1;
+            continue;
+        }
+        if a == "--zero-terminated" {
+            zero_terminated = true;
+            i += 1;
+            continue;
+        }
+        if name == "tail"
+            && (a == "--retry"
+                || a == "--follow"
+                || a.starts_with("--follow=")
+                || a.starts_with("--sleep-interval=")
+                || a.starts_with("--max-unchanged-stats=")
+                || a.starts_with("--max-idle="))
+        {
+            i += 1;
+            continue;
+        }
+        if name == "tail"
+            && matches!(a.as_str(), "--sleep-interval" | "--max-unchanged-stats" | "--max-idle")
+        {
+            i += 2;
+            continue;
+        }
+        if a.starts_with("--") {
+            return err_out(&format!("{name}: unrecognized option '{a}'\n"), 2);
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut ci = 0usize;
+        while ci < chars.len() {
+            let ch = chars[ci];
+            match ch {
+                'q' => last_header = Some('q'),
+                'v' => last_header = Some('v'),
+                'z' => zero_terminated = true,
+                'f' | 'F' if name == "tail" => {}
+                's' if name == "tail" => {
+                    if ci + 1 >= chars.len() {
+                        i += 1;
+                    }
+                    break;
+                }
+                'n' | 'c' => {
+                    let val = if ci + 1 < chars.len() {
+                        chars[ci + 1..].iter().collect::<String>()
+                    } else if i + 1 < norm.len() {
+                        i += 1;
+                        norm[i].clone()
+                    } else {
+                        return err_out(&format!("{name}: option requires an argument -- '{ch}'\n"), 2);
+                    };
+                    last_mode = ch;
+                    if ch == 'n' {
+                        last_n = val;
+                    } else {
+                        last_c = val;
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("{name}: invalid option -- '{ch}'\n"), 2),
+            }
+            ci += 1;
+        }
+        i += 1;
+    }
+
+    let bytes_mode = last_mode == 'c';
+    let delimiter: u8 = if zero_terminated { 0 } else { 10 };
+    let amount = if bytes_mode { &last_c } else { &last_n };
+    let positive = amount.starts_with('+');
+    let negative = amount.starts_with('-');
+    let count = match head_tail_count(amount) {
+        Ok(c) => c,
+        Err(msg) => return err_out(&format!("{name}: {msg}\n"), 2),
+    };
+    let names = if files.is_empty() {
+        vec!["-".to_string()]
+    } else {
+        files
+    };
+    let show_headers = last_header == Some('v') || (last_header != Some('q') && names.len() > 1);
+
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut stderr = String::new();
+    let mut exit_code = 0;
+    let mut header_written = false;
+
+    for file in &names {
+        let raw_bytes: Vec<u8> = if file == "-" {
+            stream_string_to_bytes(stdin)
+        } else {
+            let p = resolve_posix_path(cwd, file);
+            match fs.stat(&p) {
+                Ok(st) => {
+                    if st.kind == crate::vfs::VfsEntryKind::Directory {
+                        stderr.push_str(&format!("{name}: {file}: Is a directory\n"));
+                        exit_code = 1;
+                        continue;
+                    }
+                }
+                Err(e) => {
+                    stderr.push_str(&format!("{name}: {file}: {e}\n"));
+                    exit_code = 1;
+                    continue;
+                }
+            }
+            match fs.read_file(&p) {
+                Ok(b) => b,
+                Err(e) => {
+                    stderr.push_str(&format!("{name}: {file}: {e}\n"));
+                    exit_code = 1;
+                    continue;
+                }
+            }
+        };
+
+        if show_headers {
+            let prefix = if header_written { "\n" } else { "" };
+            let label = if file == "-" { "standard input" } else { file.as_str() };
+            out_bytes.extend_from_slice(format!("{prefix}==> {label} <==\n").as_bytes());
+            header_written = true;
         }
 
-        if show_tabs {
-            out.push_str(&content.replace('\t', "^I"));
+        if name == "head" {
+            if bytes_mode {
+                let take = if negative {
+                    raw_bytes.len().saturating_sub(count)
+                } else {
+                    count.min(raw_bytes.len())
+                };
+                out_bytes.extend_from_slice(&raw_bytes[..take]);
+            } else {
+                let records = split_records_inclusive(&raw_bytes, delimiter);
+                let take = if negative {
+                    records.len().saturating_sub(count)
+                } else {
+                    count.min(records.len())
+                };
+                for rec in &records[..take] {
+                    out_bytes.extend_from_slice(rec);
+                }
+            }
+        } else if bytes_mode {
+            let start = if positive {
+                count.saturating_sub(1).min(raw_bytes.len())
+            } else {
+                raw_bytes.len().saturating_sub(count)
+            };
+            out_bytes.extend_from_slice(&raw_bytes[start..]);
         } else {
-            out.push_str(content);
-        }
-        if show_ends && has_nl {
-            out.push('$');
-        }
-        if has_nl {
-            out.push('\n');
+            let records = split_records_inclusive(&raw_bytes, delimiter);
+            let start = if positive {
+                count.saturating_sub(1).min(records.len())
+            } else {
+                records.len().saturating_sub(count)
+            };
+            for rec in &records[start..] {
+                out_bytes.extend_from_slice(rec);
+            }
         }
     }
 
     BuiltinOutcome {
-        stdout: out,
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
         stderr,
         exit_code,
     }
 }
 
 fn cmd_head(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut lines_limit: Option<(usize, bool)> = Some((10, false));
-    let mut bytes_limit: Option<(usize, bool)> = None;
-    let mut quiet = false;
-    let mut verbose = false;
-    let mut files = Vec::new();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if a == "-n" && i + 1 < args.len() {
-            let v = &args[i + 1];
-            let neg = v.starts_with('-');
-            lines_limit = Some((parse_size_mult(v.trim_start_matches(['+', '-'])), neg));
-            bytes_limit = None;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-n")
-            && !rest.is_empty()
-        {
-            let neg = rest.starts_with('-');
-            lines_limit = Some((parse_size_mult(rest.trim_start_matches(['+', '-'])), neg));
-            bytes_limit = None;
-            i += 1;
-        } else if a == "-c" && i + 1 < args.len() {
-            let v = &args[i + 1];
-            let neg = v.starts_with('-');
-            bytes_limit = Some((parse_size_mult(v.trim_start_matches(['+', '-'])), neg));
-            lines_limit = None;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-c")
-            && !rest.is_empty()
-        {
-            let neg = rest.starts_with('-');
-            bytes_limit = Some((parse_size_mult(rest.trim_start_matches(['+', '-'])), neg));
-            lines_limit = None;
-            i += 1;
-        } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().next().unwrap().is_ascii_digit() {
-            let s = &a[1..];
-            if let Some(num_s) = s.strip_suffix('c') {
-                bytes_limit = Some((parse_size_mult(num_s), false));
-                lines_limit = None;
-            } else {
-                let digits: String = s.chars().take_while(|c| c.is_ascii_digit()).collect();
-                lines_limit = Some((digits.parse().unwrap_or(10), false));
-                bytes_limit = None;
-            }
-            i += 1;
-        } else if a == "-q" || a == "--quiet" || a == "--silent" {
-            quiet = true;
-            verbose = false;
-            i += 1;
-        } else if a == "-v" || a == "--verbose" {
-            verbose = true;
-            quiet = false;
-            i += 1;
-        } else {
-            files.push(a.clone());
-            i += 1;
-        }
-    }
-
-    let take_head_one = |text: &str| -> String {
-        if let Some((bc, neg)) = bytes_limit {
-            let raw = crate::vfs::stream_string_to_bytes(text);
-            let take = if neg {
-                raw.len().saturating_sub(bc)
-            } else {
-                bc.min(raw.len())
-            };
-            return crate::vfs::bytes_to_stream_string(&raw[..take]);
-        }
-        let (n, neg) = lines_limit.unwrap_or((10, false));
-        let all_lines: Vec<&str> = text.split_inclusive('\n').collect();
-        let take = if neg {
-            all_lines.len().saturating_sub(n)
-        } else {
-            n.min(all_lines.len())
-        };
-        let mut s = String::new();
-        for line in &all_lines[..take] {
-            s.push_str(line);
-        }
-        s
-    };
-
-    if files.len() <= 1 && !verbose {
-        let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "head") {
-            Ok(t) => t,
-            Err(e) => return e,
-        };
-        return ok_out(&take_head_one(&text));
-    }
-
-    let mut out = String::new();
-    let show_headers = verbose || (!quiet && files.len() > 1);
-    let targets = if files.is_empty() {
-        vec!["-".to_string()]
-    } else {
-        files
-    };
-    for (idx, f) in targets.iter().enumerate() {
-        let single = match read_inputs_or_stdin(std::slice::from_ref(f), stdin, cwd, fs, "head") {
-            Ok(t) => t,
-            Err(e) => return e,
-        };
-        if show_headers {
-            if idx > 0 {
-                out.push('\n');
-            }
-            let name = if f == "-" { "standard input" } else { f.as_str() };
-            out.push_str(&format!("==> {name} <==\n"));
-        }
-        out.push_str(&take_head_one(&single));
-    }
-    ok_out(&out)
+    run_head_or_tail("head", args, stdin, cwd, fs)
 }
 
 fn cmd_tail(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut lines_limit: Option<(usize, bool)> = Some((10, false));
-    let mut bytes_limit: Option<(usize, bool)> = None;
-    let mut files = Vec::new();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if a == "-n" && i + 1 < args.len() {
-            let v = &args[i + 1];
-            let from_start = v.starts_with('+');
-            lines_limit = Some((parse_size_mult(v.trim_start_matches(['+', '-'])), from_start));
-            bytes_limit = None;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-n")
-            && !rest.is_empty()
-        {
-            let from_start = rest.starts_with('+');
-            lines_limit = Some((parse_size_mult(rest.trim_start_matches(['+', '-'])), from_start));
-            bytes_limit = None;
-            i += 1;
-        } else if a == "-c" && i + 1 < args.len() {
-            let v = &args[i + 1];
-            let from_start = v.starts_with('+');
-            bytes_limit = Some((parse_size_mult(v.trim_start_matches(['+', '-'])), from_start));
-            lines_limit = None;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-c")
-            && !rest.is_empty()
-        {
-            let from_start = rest.starts_with('+');
-            bytes_limit = Some((parse_size_mult(rest.trim_start_matches(['+', '-'])), from_start));
-            lines_limit = None;
-            i += 1;
-        } else if (a.starts_with('-') || (i == 0 && a.starts_with('+')))
-            && a.len() > 1
-            && a[1..].chars().next().unwrap().is_ascii_digit()
-        {
-            let from_start = a.starts_with('+');
-            let s = &a[1..];
-            if let Some(num_s) = s.strip_suffix('c') {
-                bytes_limit = Some((parse_size_mult(num_s), from_start));
-                lines_limit = None;
-            } else {
-                lines_limit = Some((parse_size_mult(s), from_start));
-                bytes_limit = None;
-            }
-            i += 1;
-        } else if a == "-q" || a == "-v" {
-            i += 1;
-        } else {
-            files.push(a.clone());
-            i += 1;
-        }
-    }
-
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "tail") {
-        Ok(t) => t,
-        Err(e) => return e,
-    };
-
-    if let Some((bc, from_start)) = bytes_limit {
-        let bytes = crate::vfs::stream_string_to_bytes(&text);
-        let slice = if from_start {
-            let start = bc.saturating_sub(1).min(bytes.len());
-            &bytes[start..]
-        } else {
-            let start = bytes.len().saturating_sub(bc);
-            &bytes[start..]
-        };
-        return ok_out(&crate::vfs::bytes_to_stream_string(slice));
-    }
-
-    let (n, from_start) = lines_limit.unwrap_or((10, false));
-    let all_lines: Vec<&str> = text.split_inclusive('\n').collect();
-    let slice = if from_start {
-        let start = n.saturating_sub(1).min(all_lines.len());
-        &all_lines[start..]
-    } else {
-        let start = all_lines.len().saturating_sub(n);
-        &all_lines[start..]
-    };
-    ok_out(&slice.concat())
+    run_head_or_tail("tail", args, stdin, cwd, fs)
 }
 
-fn parse_size_mult(s: &str) -> usize {
-    let trimmed = s.trim();
-    if trimmed == "K" || trimmed == "k" {
-        return 1024;
+const WC_ZERO_WIDTH_PACKED: &str = "0,v,2o,w,gx,33,9,1,7,3,8,0,2,0,l,0,69,6,4n,0,13,1,1f,1,4,19,2,0,2,1,2,1,2,8,s,3,7,a,h,a,2,0,1b,k,h,0,2u,6,3,5,3,1,2,3,x,0,3,0,v,s,2i,a,2,d,18,8,8,2,p,3,2,8,2,2,2,6,g,0,q,4,2,0,c,4,w,0,3,d,17,n,2,v,1k,0,2,0,5,7,5,0,4,6,b,1,u,0,3,0,9,1,3,1,n,0,8,0,2,2,5,2,5,5,3,1,3,0,2,7,2,3,3,0,4,3,p,4,2,0,7,3,3,1,n,0,8,0,3,0,3,0,3,3,4,n,5,0,2,6,b,1,4,0,2,b,2,0,a,0,4,0,n,0,8,0,3,0,6,2,5,7,2,0,3,2,2,e,3,3,d,6,2,7,3,0,9,1,3,1,n,0,8,0,3,0,6,2,3,0,2,5,3,1,3,9,2,3,3,0,4,3,j,a,2,0,7,2,4,0,5,2,3,0,2,0,3,2,3,2,4,2,d,3,3,0,3,2,4,0,4,2,2,5,2,d,m,5,4,0,9,0,4,0,o,0,h,2,2,2,5,i,4,1,2,1,3,3,b,6,b,0,c,0,4,0,o,0,b,0,6,2,3,0,6,1,3,0,3,8,3,5,3,0,3,3,b,0,4,d,c,0,4,0,16,1,5,4,4,0,4,0,3,3,f,3,r,1,3,0,j,2,p,0,a,0,2,1,8,7,4,5,9,5,b,1,4,b,1d,0,3,a,9,7,e,10,3,0,2,0,6,0,p,0,2,0,b,0,3,8,2,1,6,0,2,8,b,1,5,v,p,1,s,0,2,0,2,0,f,0,11,h,2,4,2,1,6,1c,9,0,7,0,e,10,1a,3,2,5,2,1,3,1,q,1,5,2,h,3,e,0,3,1,7,0,g,0,15,0,2,4,2,1,41,4f,22,0,5,1,8,0,2,0,5,1,16,0,5,1,y,0,5,1,8,0,2,0,5,1,g,0,1m,0,5,1,1w,4,u,2,r,5,2f,1,7,1,im,2,2i,6,j,2,2,8,k,1,4,8,j,d,e,0,4,e,1h,1,2,6,9,0,3,a,a,2,b,5,b,5,c,4,b,5,2i,6,6,1,z,0,2,4,1z,9,w,3,5,1,4,3,3,0,7,6,2,2,17,1,6,a,19,3,r,5,c,2,1m,1,3,2,1l,0,2,8,2,0,3,7,7,c,b,5,b,5,f,2d,1d,0,2,4,2,0,6,0,b,2,s,8,c,2,x,3,3,1,2,2,1l,0,2,1,4,0,2,2,3,7,1d,7,3,4,g,2,1p,6,18,1,c,a,2,c,2,6,5,0,7,0,4,1,2,4,5d,1r,7r,1,7,1,13,1,7,1,9,0,2,0,2,0,2,0,w,1,1i,0,g,0,f,1,7,0,k,1,4,0,a,0,c,4,p,6,1e,f,3,1,s,0,e,2,y,1q,3x,3,ig,o,c,k,1ed,1,x,0,9l,2,3,4,1a,0,2,4,2,1,1l,6,3,e,o,8,8,0,8,0,8,0,8,0,8,0,8,0,8,0,8,w,2n,x,r,0,2i,b,5z,p,1n,3,j,0,2f,3,2u,4,18,0,2n,0,2d,a,1d,0,mlq,2,1k,8,9p,j,1c,3,2,9,x,1,29,1,7,7,5o,4,3,0,2,0,6,n,h,0,4,0,5,0,q,1,6,3,b,5,1l,7,1x,9,d,n,e,0,13,7,q,a,3,a,v,5,1d,0,3,3,3,1,h,0,c,3,8,0,q,0,16,5,3,1,3,a,4,0,9,0,2,1,b,1,x,0,1g,0,2,2,3,1,6,1,2,0,2,n,i,1,9,a,7,1,7,1,7,8,8,0,8,0,1p,3,3a,0,3,0,5,2,b,5,8md,1nf,57z,1,2z,11,8,b,6,4,2,0,p,0,6,0,2,0,3,0,3,0,3i,f,ce,1,1j,6,2,v,h,f,b,l,10,0,k,0,5,3,6,0,3s,3,5b,2,7,1,7,1,7,1,4,2,8,0,8,c,3,1,d,0,r,0,k,0,3,0,g,1,f,x,3g,4,4,3,1a,2,2h,0,e,2,2,1a,1a,3m,u,2,1e,f,s,3,11,8,v,4,13,9,v,0,12,3,f,15,4f,1,b,5,11,3,11,3,15,7,1h,a,d,0,g,0,8,0,3,0,c,0,g,0,8,0,3,1u,8o,8,n,9,9,n,7,0,17,0,a,1w,7,1,2,0,19,0,3,2,2,1,o,0,21,7,a,1b,k,0,3,4,y,2,s,4,2,1r,1l,3,l,1,1c,e,5,0,4,0,u,9,a,6,a,6,1t,v,12,5,d,8,1j,2,u,1,s,4,r,6,5,b,8,27,22,1i,1g,c,1g,6,17,b,b,85,w,0,17,2,2,1,3,25,15,7,n,a,a,l,j,3,5,11,t,j,o,8,2,0,1j,e,8,3,v,0,3,1,2,b,1e,3,3,1,8,a,2,1,q,6,b,8,11,4,2,8,j,7,10,0,4,a,1h,8,b,3,3,0,h,0,l,a,j,0,t,2,3,0,2,1,7,0,3,1q,8,0,2,0,5,0,g,0,c,5,1c,0,4,c,b,7,3,0,9,1,3,1,n,0,8,0,3,0,6,2,4,0,5,1,3,1,4,1,2,5,2,4,8,4b,1l,7,3,2,2,0,m,0,2,0,4,t,1g,5,2,0,5,1,2,1,5,7,b,4l,1f,5,5,1,2,1,s,z,1g,7,3,0,2,1,5,a,b,5,e,i,18,0,2,0,3,5,2,0,3,5,b,1h,s,4,3,3,2,8,o,54,1c,8,2,1,2,2r,2c,b,9,1,2,1,9,0,3,0,v,0,3,3,2,0,5,0,4,8,b,1x,9,1,17,7,5,0,5,q,2,9,15,5,3,3,9,8,2,5,3,2,1b,c,2,1,a,c,22,6,b,6t,a,0,13,d,2,0,7,9,u,2,x,o,2,6,2,1,2,22,8,0,3,0,13,k,2,8,b,5,7,0,3,0,12,3,3,0,2,0,2,6,b,8l,k,1,5,8,g,0,11,7,3,0,2,0,o,2d,2,e,1f,c,po,2t,34,0,6,a,5h,217,2s,c,tt,g,7,33s,g8,6ns,fu,6,w,0,b,3,2a,0,b,5,v,6,2,9,1d,6,g,9,b,0,8,0,m,4,k,j3,2k,2s,24,4,1l,a,e,1r,5,b,3,d,4qh,7,yf,15,a,6w6,5,0,8,0,3,0,84,e,2,s,4,1,2,d,5,7,b1,1s3,30,4,e,2,a,6,b,1,2,1,2,3ov,39,1n,6v,9,14,1,1r,2,a,f,3,6,v,3,1q,k,1v,2,2,3d,l,b,l,b,2g,8,q,3q,2e,0,20,0,3,1,2,1,3,1,5,0,d,0,2,0,8,0,1u,0,5,1,9,0,8,0,t,0,5,0,6,0,2,2,8,0,9h,1,85,1,fn,1i,5,1d,9,0,f,0,8,vn,w,5,7,78,1r,41,1a,9,8,1,b,3,3,8v,v,h,19,3,b,4,2,cv,t,3,b,kl,8,0,5,0,3,0,g,0,5i,1,a,1b,1x,6,2,3,b,3,3,ls,1x,23,1q,5d,5,0,s,0,3,0,2,1,2,0,b,0,5,0,2,0,2,5,2,3,2,0,2,0,2,0,4,0,3,0,2,1,2,0,2,0,2,0,2,0,2,0,3,0,2,1,5,0,8,0,5,0,5,0,2,0,b,0,i,4,4,0,6,0,i,1f,3,7h,19,3,2t,b,g,1,g,0,g,0,12,9,4v,1j,u,c,19,3,a,6,3,d,7,49,rd,3,i,2,e,2,3c,3,2o,5,d,3,2,e,d,3,1l,7,b,5,15,7,v,1,3,25,9h,b,f,1,e,2,a,6,1b,0,8,7,f,3,a,6,a,6,44,0,1k,10,b,sl,wyp,v,37f,5,67,1,4g3,d,5rm,e,hb,1wh,f3,15t,3t8,4,38h,gnrj,1ekf,1,1ekf,1";
+const WC_WIDE_PACKED: &str = "3cw,2n,3i3,1,e,1,5b,3,4,0,3,0,ei,1,m,1,1f,b,18,0,k,0,e,0,9,1,i,1,6,1,9,0,6,0,m,0,8,1,2,0,5,0,3,0,8,0,5,1,t,0,10,0,2,0,5,2,2,0,1q,2,p,0,f,0,nw,1,1g,0,5,0,mj,p,2,2g,d,5x,r,1l,5,g,3,2d,5,2s,6,16,2,2l,2,2b,c,1b,2,mlo,4,1i,wq,s,hw,8mb,6l9,a5,3,2x,mv,9,n,y,2,i,2,3,46,2n,3k,6,m4a,3,d,1,f,4qf,9,yd,17,8,6w8,3,2,6,2,1,2,82,g,0,u,2,3,0,f,3,9,az,c21,0,5n,0,5b,0,3,9,2u,2,e,17,5,8,8,1,f,5,4b,w,d,8,2,1x,2,l,d,16,5,4,d,g,4,0,4,1y,2,0,2,56,3,1q,e,3,2,n,j,0,r,1,e,0,2f,2c,1d,1x,7,0,4,2,3,2,5,3,c,1,8,8,6c,b,5,0,7w,1a,2,9,2,54,35,c,4,8,8,19,2,6,9,d,5,8,8,8,zs,wyn,x,37d,7,65,3,4g1,f,5rk,g,h9,1wj,f1,15v,3t6,6,38f";
+
+fn decode_wc_ranges(packed: &str) -> Vec<(u32, u32)> {
+    let parts: Vec<&str> = packed.split(',').collect();
+    let mut out = Vec::with_capacity(parts.len() / 2);
+    let mut cur = 0u32;
+    let mut i = 0usize;
+    while i + 1 < parts.len() {
+        let start = cur + u32::from_str_radix(parts[i], 36).unwrap_or(0);
+        let end = start + u32::from_str_radix(parts[i + 1], 36).unwrap_or(0);
+        out.push((start, end));
+        cur = end;
+        i += 2;
     }
-    if trimmed == "M" || trimmed == "m" {
-        return 1024 * 1024;
+    out
+}
+
+fn wc_ranges_contains(ranges: &[(u32, u32)], point: u32) -> bool {
+    let mut low = 0usize;
+    let mut high = ranges.len();
+    while low < high {
+        let mid = (low + high) >> 1;
+        if point < ranges[mid].0 {
+            high = mid;
+        } else if point > ranges[mid].1 {
+            low = mid + 1;
+        } else {
+            return true;
+        }
     }
-    let digits: String = trimmed.chars().take_while(|c| c.is_ascii_digit()).collect();
-    let suffix = &trimmed[digits.len()..];
-    let base = digits.parse::<usize>().unwrap_or(0);
-    let mult = match suffix {
-        "b" => 512,
-        "k" | "K" | "KiB" => 1024,
-        "m" | "M" | "MiB" => 1024 * 1024,
-        _ => 1,
-    };
-    base.saturating_mul(mult)
+    false
+}
+
+fn wc_space(point: u32, posix: bool) -> bool {
+    point == 32
+        || (9..=13).contains(&point)
+        || point == 0x1680
+        || ((0x2000..=0x200a).contains(&point) && point != 0x2007)
+        || point == 0x2028
+        || point == 0x2029
+        || point == 0x205f
+        || point == 0x3000
+        || (!posix && matches!(point, 0xa0 | 0x2007 | 0x202f | 0x2060))
 }
 
 fn cmd_wc(
@@ -468,26 +739,31 @@ fn cmd_wc(
     let mut show_c = false;
     let mut show_m = false;
     let mut show_max_l = false;
-    let mut inline_c_locale = false;
+    let mut total_mode = "auto".to_string();
+    let mut files0_from: Option<String> = None;
+    let mut inline_locale: Option<String> = None;
     let mut files = Vec::new();
+    let mut ended = false;
+    let mut i = 0usize;
 
-    for a in args {
-        if a == "LC_ALL=C" || a == "LC_ALL=POSIX" {
-            inline_c_locale = true;
+    while i < args.len() {
+        let a = &args[i];
+        if !ended && a.starts_with("LC_ALL=") {
+            inline_locale = Some(a["LC_ALL=".len()..].to_string());
+            i += 1;
             continue;
         }
-        if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
-            for ch in a[1..].chars() {
-                match ch {
-                    'l' => show_l = true,
-                    'w' => show_w = true,
-                    'c' => show_c = true,
-                    'm' => show_m = true,
-                    'L' => show_max_l = true,
-                    _ => {}
-                }
-            }
-        } else if a == "--lines" {
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--lines" {
             show_l = true;
         } else if a == "--words" {
             show_w = true;
@@ -497,91 +773,337 @@ fn cmd_wc(
             show_m = true;
         } else if a == "--max-line-length" {
             show_max_l = true;
-        } else if !a.starts_with("--total") {
-            files.push(a.clone());
+        } else if let Some(val) = a.strip_prefix("--total=") {
+            total_mode = val.to_string();
+        } else if a == "--total" {
+            if i + 1 >= args.len() {
+                return err_out("wc: option '--total' requires an argument\n", 2);
+            }
+            total_mode = args[i + 1].clone();
+            i += 1;
+        } else if let Some(val) = a.strip_prefix("--files0-from=") {
+            files0_from = Some(val.to_string());
+        } else if a == "--files0-from" {
+            if i + 1 >= args.len() {
+                return err_out("wc: option '--files0-from' requires an argument\n", 2);
+            }
+            files0_from = Some(args[i + 1].clone());
+            i += 1;
+        } else if a.starts_with("--") {
+            return err_out(&format!("wc: unrecognized option '{a}'\n"), 2);
+        } else {
+            for ch in a[1..].chars() {
+                match ch {
+                    'l' => show_l = true,
+                    'w' => show_w = true,
+                    'c' => show_c = true,
+                    'm' => show_m = true,
+                    'L' => show_max_l = true,
+                    _ => return err_out(&format!("wc: invalid option -- '{ch}'\n"), 2),
+                }
+            }
         }
+        i += 1;
     }
 
-    if !show_l && !show_w && !show_c && !show_m && !show_max_l {
+    if !matches!(total_mode.as_str(), "auto" | "always" | "only" | "never") {
+        return err_out(&format!("wc: invalid argument '{total_mode}' for '--total'\n"), 2);
+    }
+
+    if !show_l && !show_w && !show_m && !show_c && !show_max_l {
         show_l = true;
         show_w = true;
         show_c = true;
     }
 
-    let is_c_locale = inline_c_locale
-        || matches!(
-            env.get("LC_ALL").or_else(|| env.get("LANG")).map(|s| s.as_str()),
-            Some("C") | Some("POSIX")
-        );
-    let count_one = |s: &str| -> (usize, usize, usize, usize, usize) {
-        let l = s.bytes().filter(|&b| b == b'\n').count();
-        let w = s.split_whitespace().count();
-        let c = stream_string_to_bytes(s).len();
-        let m = if is_c_locale { c } else { s.chars().count() };
-        let max_l = s.lines().map(|line| line.chars().count()).max().unwrap_or(0);
-        (l, w, c, m, max_l)
-    };
-
-    let format_counts = |l: usize, w: usize, c: usize, m: usize, max_l: usize, label: Option<&str>| -> String {
-        let mut nums = Vec::new();
-        if show_l {
-            nums.push(l.to_string());
-        }
-        if show_w {
-            nums.push(w.to_string());
-        }
-        if show_m {
-            nums.push(m.to_string());
-        }
-        if show_c {
-            nums.push(c.to_string());
-        }
-        if show_max_l {
-            nums.push(max_l.to_string());
-        }
-        if let Some(name) = label {
-            format!("{} {name}\n", nums.join(" "))
+    if let Some(ref f0) = files0_from {
+        let f_bytes = if f0 == "-" {
+            stream_string_to_bytes(stdin)
         } else {
-            format!("{}\n", nums.join(" "))
+            let p = resolve_posix_path(cwd, f0);
+            match fs.read_file(&p) {
+                Ok(b) => b,
+                Err(e) => return err_out(&format!("wc: {f0}: {e}\n"), 1),
+            }
+        };
+        let f_text = String::from_utf8_lossy(&f_bytes);
+        let stripped = f_text.strip_suffix('\0').unwrap_or(&f_text);
+        if !stripped.is_empty() {
+            for part in stripped.split('\0') {
+                if !part.is_empty() {
+                    files.push(part.to_string());
+                }
+            }
+        }
+    }
+
+    let selected_count = [show_l, show_w, show_m, show_c, show_max_l]
+        .iter()
+        .filter(|&&b| b)
+        .count();
+    let has_operands = !files.is_empty();
+    let names = if has_operands {
+        files
+    } else {
+        vec!["-".to_string()]
+    };
+
+    let locale = inline_locale
+        .as_deref()
+        .or_else(|| env.get("LC_ALL").map(|s| s.as_str()).filter(|s| !s.is_empty()))
+        .or_else(|| env.get("LC_CTYPE").map(|s| s.as_str()).filter(|s| !s.is_empty()))
+        .or_else(|| env.get("LANG").map(|s| s.as_str()).filter(|s| !s.is_empty()))
+        .unwrap_or("C.UTF-8");
+    let single_byte = locale == "C" || locale == "POSIX";
+    let posix = env.contains_key("POSIXLY_CORRECT");
+
+    let mut width = 1usize;
+    if total_mode != "only" && (names.len() > 1 || selected_count > 1) {
+        let mut total_size: u128 = 0;
+        for name in &names {
+            if name == "-" {
+                width = width.max(7);
+                continue;
+            }
+            let p = resolve_posix_path(cwd, name);
+            if let Ok(st) = fs.stat(&p) {
+                if st.kind != crate::vfs::VfsEntryKind::File {
+                    width = width.max(7);
+                } else {
+                    total_size += st.size as u128;
+                }
+            }
+        }
+        width = width.max(total_size.to_string().len());
+    }
+
+    let zero_ranges = decode_wc_ranges(WC_ZERO_WIDTH_PACKED);
+    let wide_ranges = decode_wc_ranges(WC_WIDE_PACKED);
+    let display_width = |point: u32| -> usize {
+        if (0x20..=0x7e).contains(&point) {
+            return 1;
+        }
+        if wc_ranges_contains(&zero_ranges, point) {
+            return 0;
+        }
+        if wc_ranges_contains(&wide_ranges, point) {
+            2
+        } else {
+            1
         }
     };
 
-    if files.is_empty() {
-        let (l, w, c, m, max_l) = count_one(stdin);
-        return ok_out(&format_counts(l, w, c, m, max_l, None));
-    }
+    let count_bytes = |bytes: &[u8]| -> (usize, usize, usize, usize, usize) {
+        let c = bytes.len();
+        if single_byte {
+            let mut l = 0usize;
+            let mut w = 0usize;
+            let m = c;
+            let mut max_l = 0usize;
+            let mut columns = 0usize;
+            let mut in_word = false;
+            for &byte in bytes {
+                if byte == 10 {
+                    l += 1;
+                    in_word = false;
+                    if columns > max_l {
+                        max_l = columns;
+                    }
+                    columns = 0;
+                } else if byte == 32 || (9..=13).contains(&byte) {
+                    in_word = false;
+                    if byte == 9 {
+                        columns += 8 - (columns & 7);
+                    } else if byte == 13 || byte == 12 {
+                        if columns > max_l {
+                            max_l = columns;
+                        }
+                        columns = 0;
+                    } else if byte == 32 {
+                        columns += 1;
+                    }
+                } else if (33..127).contains(&byte) {
+                    if !in_word {
+                        w += 1;
+                        in_word = true;
+                    }
+                    columns += 1;
+                }
+            }
+            if columns > max_l {
+                max_l = columns;
+            }
+            (l, w, m, c, max_l)
+        } else {
+            let l = bytes.iter().filter(|&&b| b == 10).count();
+            let mut w = 0usize;
+            let mut m = 0usize;
+            let mut max_l = 0usize;
+            let mut columns = 0usize;
+            let mut in_word = false;
+
+            let mut consume_point = |point_opt: Option<u32>| {
+                if let Some(point) = point_opt {
+                    m += 1;
+                    let is_ws = wc_space(point, posix);
+                    let is_pr = point >= 32 && !(127..160).contains(&point);
+                    if is_ws {
+                        in_word = false;
+                    } else if is_pr && !in_word {
+                        w += 1;
+                        in_word = true;
+                    }
+                    if point == 10 || point == 13 || point == 12 {
+                        if columns > max_l {
+                            max_l = columns;
+                        }
+                        columns = 0;
+                    } else if point == 9 {
+                        columns += 8 - (columns % 8);
+                    } else {
+                        columns += display_width(point);
+                    }
+                }
+            };
+
+            let mut remaining = 0u8;
+            let mut point = 0u32;
+            let mut lead = 0u8;
+            let mut first = false;
+            let mut idx = 0usize;
+            while idx < bytes.len() {
+                let byte = bytes[idx];
+                if remaining > 0 {
+                    let invalid = !(0x80..=0xbf).contains(&byte)
+                        || (first
+                            && ((lead == 0xe0 && byte < 0xa0)
+                                || (lead == 0xed && byte >= 0xa0)
+                                || (lead == 0xf0 && byte < 0x90)
+                                || (lead == 0xf4 && byte >= 0x90)));
+                    first = false;
+                    if invalid {
+                        remaining = 0;
+                        consume_point(None);
+                        continue;
+                    }
+                    point = (point << 6) | ((byte & 0x3f) as u32);
+                    remaining -= 1;
+                    if remaining == 0 {
+                        consume_point(Some(point));
+                    }
+                } else if byte < 0x80 {
+                    consume_point(Some(byte as u32));
+                } else if (0xc2..=0xf4).contains(&byte) {
+                    lead = byte;
+                    remaining = if byte < 0xe0 {
+                        1
+                    } else if byte < 0xf0 {
+                        2
+                    } else {
+                        3
+                    };
+                    point = (byte
+                        & if remaining == 1 {
+                            0x1f
+                        } else if remaining == 2 {
+                            0x0f
+                        } else {
+                            0x07
+                        }) as u32;
+                    first = true;
+                } else {
+                    consume_point(None);
+                }
+                idx += 1;
+            }
+            if remaining > 0 {
+                consume_point(None);
+            }
+            if columns > max_l {
+                max_l = columns;
+            }
+            (l, w, m, c, max_l)
+        }
+    };
+
+    let format_counts =
+        |l: usize, w: usize, m: usize, c: usize, max_l: usize, label: Option<&str>| -> String {
+            let mut nums = Vec::new();
+            if show_l {
+                nums.push(format!("{l:>width$}"));
+            }
+            if show_w {
+                nums.push(format!("{w:>width$}"));
+            }
+            if show_m {
+                nums.push(format!("{m:>width$}"));
+            }
+            if show_c {
+                nums.push(format!("{c:>width$}"));
+            }
+            if show_max_l {
+                nums.push(format!("{max_l:>width$}"));
+            }
+            if let Some(name) = label {
+                format!("{} {name}\n", nums.join(" "))
+            } else {
+                format!("{}\n", nums.join(" "))
+            }
+        };
 
     let mut out = String::new();
     let mut stderr = String::new();
-    let mut code = 0;
+    let mut exit_code = 0;
     let mut tot = (0usize, 0usize, 0usize, 0usize, 0usize);
 
-    for f in &files {
-        let p = resolve_posix_path(cwd, f);
-        match fs.read_file(&p) {
+    for name in &names {
+        let label = if has_operands { Some(name.as_str()) } else { None };
+        let raw_res: Result<Vec<u8>, String> = if name == "-" {
+            Ok(stream_string_to_bytes(stdin))
+        } else {
+            let p = resolve_posix_path(cwd, name);
+            match fs.stat(&p) {
+                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {
+                    stderr.push_str(&format!("wc: {name}: Is a directory\n"));
+                    exit_code = 1;
+                    if total_mode != "only" {
+                        out.push_str(&format_counts(0, 0, 0, 0, 0, label));
+                    }
+                    continue;
+                }
+                _ => {}
+            }
+            fs.read_file(&p)
+        };
+        match raw_res {
             Ok(bytes) => {
-                let s = String::from_utf8_lossy(&bytes);
-                let (l, w, c, m, max_l) = count_one(&s);
+                let (l, w, m, c, max_l) = count_bytes(&bytes);
                 tot.0 += l;
                 tot.1 += w;
-                tot.2 += c;
-                tot.3 += m;
+                tot.2 += m;
+                tot.3 += c;
                 tot.4 = tot.4.max(max_l);
-                out.push_str(&format_counts(l, w, c, m, max_l, Some(f)));
+                if total_mode != "only" {
+                    out.push_str(&format_counts(l, w, m, c, max_l, label));
+                }
             }
             Err(e) => {
-                stderr.push_str(&format!("wc: {f}: {e}\n"));
-                code = 1;
+                stderr.push_str(&format!("wc: {name}: {e}\n"));
+                exit_code = 1;
             }
         }
     }
-    if files.len() > 1 {
+
+    if total_mode == "only" {
+        out.push_str(&format_counts(tot.0, tot.1, tot.2, tot.3, tot.4, None));
+    } else if total_mode == "always" || (total_mode == "auto" && names.len() > 1) {
         out.push_str(&format_counts(tot.0, tot.1, tot.2, tot.3, tot.4, Some("total")));
     }
+
     BuiltinOutcome {
         stdout: out,
         stderr,
-        exit_code: code,
+        exit_code,
     }
 }
 
@@ -602,829 +1124,2105 @@ pub(crate) fn parse_leading_f64(s: &str) -> f64 {
     }
 }
 
-fn parse_human_sort_val(s: &str) -> f64 {
-    let trimmed = s.trim();
-    if trimmed.is_empty() {
-        return 0.0;
-    }
-    let mut num_end = 0usize;
-    for (idx, ch) in trimmed.char_indices() {
-        if ch.is_ascii_digit() || ch == '.' || (idx == 0 && (ch == '+' || ch == '-')) {
-            num_end = idx + ch.len_utf8();
-        } else {
-            break;
-        }
-    }
-    if num_end == 0 {
-        return 0.0;
-    }
-    let base = trimmed[..num_end].parse::<f64>().unwrap_or(0.0);
-    let unit = trimmed[num_end..].trim().chars().next().map(|c| c.to_ascii_uppercase());
-    let mult = match unit {
-        Some('K') => 1024.0,
-        Some('M') => 1024.0_f64.powi(2),
-        Some('G') => 1024.0_f64.powi(3),
-        Some('T') => 1024.0_f64.powi(4),
-        Some('P') => 1024.0_f64.powi(5),
-        Some('E') => 1024.0_f64.powi(6),
-        _ => 1.0,
-    };
-    base * mult
+#[derive(Clone, Debug)]
+struct SortNumericValue {
+    whole: Vec<u8>,
+    fraction: Vec<u8>,
+    negative: bool,
+    suffix_rank: usize,
 }
 
-fn parse_month_sort_val(s: &str) -> u8 {
-    let trimmed = s.trim();
-    if trimmed.len() < 3 {
+fn parse_sort_numeric(bytes: &[u8], human: bool) -> SortNumericValue {
+    let len = bytes.len();
+    let mut i = 0usize;
+    while i < len && (bytes[i] == b' ' || bytes[i] == b'\t') {
+        i += 1;
+    }
+    let mut neg = false;
+    if i < len && bytes[i] == b'-' {
+        neg = true;
+        i += 1;
+    }
+    let mut whole_start = i;
+    while whole_start < len && bytes[whole_start] == b'0' {
+        whole_start += 1;
+    }
+    let mut whole_end = whole_start;
+    while whole_end < len && bytes[whole_end].is_ascii_digit() {
+        whole_end += 1;
+    }
+    i = whole_end;
+    let mut frac_start = 0usize;
+    let mut frac_end = 0usize;
+    if i < len && bytes[i] == b'.' {
+        i += 1;
+        frac_start = i;
+        while i < len && bytes[i].is_ascii_digit() {
+            i += 1;
+        }
+        frac_end = i;
+        while frac_end > frac_start && bytes[frac_end - 1] == b'0' {
+            frac_end -= 1;
+        }
+    }
+    let whole = if whole_end > whole_start {
+        bytes[whole_start..whole_end].to_vec()
+    } else {
+        vec![b'0']
+    };
+    let fraction = if frac_end > frac_start {
+        bytes[frac_start..frac_end].to_vec()
+    } else {
+        Vec::new()
+    };
+    let nonzero = whole.as_slice() != b"0" || !fraction.is_empty();
+    let suffix_rank = if human && nonzero && i < len {
+        let s = if bytes[i] == b'k' { b'K' } else { bytes[i] };
+        b"KMGTPEZYRQ"
+            .iter()
+            .position(|&c| c == s)
+            .map(|p| p + 1)
+            .unwrap_or(0)
+    } else {
+        0
+    };
+    SortNumericValue {
+        whole,
+        fraction,
+        negative: neg && nonzero,
+        suffix_rank,
+    }
+}
+
+fn compare_sort_numeric(first: &SortNumericValue, second: &SortNumericValue) -> std::cmp::Ordering {
+    use std::cmp::Ordering;
+    if first.negative != second.negative {
+        return if first.negative {
+            Ordering::Less
+        } else {
+            Ordering::Greater
+        };
+    }
+    let mut compared = first.suffix_rank.cmp(&second.suffix_rank);
+    if compared == Ordering::Equal {
+        compared = first.whole.len().cmp(&second.whole.len());
+    }
+    if compared == Ordering::Equal {
+        compared = first.whole.cmp(&second.whole);
+    }
+    if compared == Ordering::Equal {
+        let width = first.fraction.len().max(second.fraction.len());
+        for idx in 0..width {
+            let a = first.fraction.get(idx).copied().unwrap_or(b'0');
+            let b = second.fraction.get(idx).copied().unwrap_or(b'0');
+            compared = a.cmp(&b);
+            if compared != Ordering::Equal {
+                break;
+            }
+        }
+    }
+    if first.negative {
+        compared.reverse()
+    } else {
+        compared
+    }
+}
+
+fn sort_general_numeric_value(bytes: &[u8]) -> (u8, f64) {
+    let mut start = 0usize;
+    while start < bytes.len() && (bytes[start] == b' ' || (9..=13).contains(&bytes[start])) {
+        start += 1;
+    }
+    let sub = &bytes[start..];
+    if sub.is_empty() {
+        return (0, 0.0);
+    }
+    let mut lower = Vec::with_capacity(sub.len());
+    for &b in sub {
+        lower.push(b.to_ascii_lowercase());
+    }
+    let neg = lower[0] == b'-';
+    let unsigned = if lower[0] == b'+' || lower[0] == b'-' {
+        &lower[1..]
+    } else {
+        &lower[..]
+    };
+    if unsigned.starts_with(b"nan") {
+        return (1, 0.0);
+    }
+    if unsigned.starts_with(b"inf") {
+        return (2, if neg { f64::NEG_INFINITY } else { f64::INFINITY });
+    }
+    if unsigned.starts_with(b"0x") {
+        let mut offset = 2usize;
+        let mut value = 0.0f64;
+        let mut scale = 1.0f64;
+        let mut fractional = false;
+        let mut digits = 0usize;
+        while offset < unsigned.len() {
+            let ch = unsigned[offset];
+            if ch == b'.' && !fractional {
+                fractional = true;
+                offset += 1;
+                continue;
+            }
+            let digit = match ch {
+                b'0'..=b'9' => Some((ch - b'0') as f64),
+                b'a'..=b'f' => Some((ch - b'a' + 10) as f64),
+                _ => None,
+            };
+            let Some(d) = digit else {
+                break;
+            };
+            digits += 1;
+            if fractional {
+                scale /= 16.0;
+                value += d * scale;
+            } else {
+                value = value * 16.0 + d;
+            }
+            offset += 1;
+        }
+        if digits > 0 {
+            if offset < unsigned.len() && unsigned[offset] == b'p' {
+                let exp_slice = &unsigned[offset + 1..];
+                let mut exp_end = 0usize;
+                if exp_end < exp_slice.len() && (exp_slice[0] == b'+' || exp_slice[0] == b'-') {
+                    exp_end += 1;
+                }
+                let exp_digits_start = exp_end;
+                while exp_end < exp_slice.len() && exp_slice[exp_end].is_ascii_digit() {
+                    exp_end += 1;
+                }
+                if exp_end > exp_digits_start
+                    && let Ok(exp_str) = std::str::from_utf8(&exp_slice[..exp_end])
+                    && let Ok(exp) = exp_str.parse::<i32>()
+                    && value != 0.0
+                {
+                    value *= 2.0f64.powi(exp);
+                }
+            }
+            return (2, if neg { -value } else { value });
+        }
+    }
+    let mut end = 0usize;
+    if end < lower.len() && (lower[0] == b'+' || lower[0] == b'-') {
+        end += 1;
+    }
+    let mut has_digits = false;
+    while end < lower.len() && lower[end].is_ascii_digit() {
+        has_digits = true;
+        end += 1;
+    }
+    if end < lower.len() && lower[end] == b'.' {
+        end += 1;
+        while end < lower.len() && lower[end].is_ascii_digit() {
+            has_digits = true;
+            end += 1;
+        }
+    }
+    if has_digits && end < lower.len() && lower[end] == b'e' {
+        let mut e_end = end + 1;
+        if e_end < lower.len() && (lower[e_end] == b'+' || lower[e_end] == b'-') {
+            e_end += 1;
+        }
+        let e_digits = e_end;
+        while e_end < lower.len() && lower[e_end].is_ascii_digit() {
+            e_end += 1;
+        }
+        if e_end > e_digits {
+            end = e_end;
+        }
+    }
+    if has_digits
+        && let Ok(s) = std::str::from_utf8(&lower[..end])
+        && let Ok(v) = s.parse::<f64>()
+        && !v.is_nan()
+    {
+        return (2, v);
+    }
+    (0, 0.0)
+}
+
+fn parse_month_sort_bytes(bytes: &[u8]) -> u8 {
+    let mut offset = 0usize;
+    while offset < bytes.len() && (bytes[offset] == b' ' || bytes[offset] == b'\t') {
+        offset += 1;
+    }
+    if offset + 3 > bytes.len() {
         return 0;
     }
-    let m: String = trimmed.chars().take(3).collect::<String>().to_ascii_uppercase();
-    match m.as_str() {
-        "JAN" => 1,
-        "FEB" => 2,
-        "MAR" => 3,
-        "APR" => 4,
-        "MAY" => 5,
-        "JUN" => 6,
-        "JUL" => 7,
-        "AUG" => 8,
-        "SEP" => 9,
-        "OCT" => 10,
-        "NOV" => 11,
-        "DEC" => 12,
+    let m = [
+        bytes[offset].to_ascii_uppercase(),
+        bytes[offset + 1].to_ascii_uppercase(),
+        bytes[offset + 2].to_ascii_uppercase(),
+    ];
+    match &m {
+        b"JAN" => 1,
+        b"FEB" => 2,
+        b"MAR" => 3,
+        b"APR" => 4,
+        b"MAY" => 5,
+        b"JUN" => 6,
+        b"JUL" => 7,
+        b"AUG" => 8,
+        b"SEP" => 9,
+        b"OCT" => 10,
+        b"NOV" => 11,
+        b"DEC" => 12,
         _ => 0,
     }
 }
 
-fn compare_version_str(a: &str, b: &str) -> std::cmp::Ordering {
-    let ab = a.as_bytes();
-    let bb = b.as_bytes();
-    let mut ia = 0usize;
-    let mut ib = 0usize;
-    while ia < ab.len() && ib < bb.len() {
-        let da = ab[ia].is_ascii_digit();
-        let db = bb[ib].is_ascii_digit();
-        if da && db {
-            let sa = ia;
-            while ia < ab.len() && ab[ia].is_ascii_digit() {
-                ia += 1;
-            }
-            let sb = ib;
-            while ib < bb.len() && bb[ib].is_ascii_digit() {
-                ib += 1;
-            }
-            let na = a[sa..ia].parse::<u128>().unwrap_or(0);
-            let nb = b[sb..ib].parse::<u128>().unwrap_or(0);
-            match na.cmp(&nb) {
-                std::cmp::Ordering::Equal => {}
-                ord => return ord,
-            }
-        } else {
-            match ab[ia].cmp(&bb[ib]) {
-                std::cmp::Ordering::Equal => {
-                    ia += 1;
-                    ib += 1;
-                }
-                ord => return ord,
-            }
-        }
+fn sort_version_order(byte: Option<u8>) -> i32 {
+    match byte {
+        Some(b'~') => -1,
+        None | Some(b'0'..=b'9') => 0,
+        Some(b) if b.is_ascii_alphabetic() => b as i32,
+        Some(b) => (b as i32) + 256,
     }
-    ab.len().cmp(&bb.len())
 }
 
-fn cmd_sort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    struct SortKeySpec {
-        col: usize,
-        start_char: usize,
-        end_col: Option<usize>,
-        end_char: Option<usize>,
-        numeric: bool,
-        general_numeric: bool,
-        human: bool,
-        version: bool,
-        month: bool,
-        reverse: bool,
-        ignore_case: bool,
-        ignore_blanks: bool,
-        dict_order: bool,
+fn compare_version_parts_bytes(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
+    use std::cmp::Ordering;
+    let mut first = 0usize;
+    let mut second = 0usize;
+    let is_digit = |b: Option<u8>| matches!(b, Some(b'0'..=b'9'));
+    while first < left.len() || second < right.len() {
+        while (first < left.len() && !is_digit(left.get(first).copied()))
+            || (second < right.len() && !is_digit(right.get(second).copied()))
+        {
+            let diff = sort_version_order(left.get(first).copied())
+                - sort_version_order(right.get(second).copied());
+            if diff != 0 {
+                return if diff < 0 {
+                    Ordering::Less
+                } else {
+                    Ordering::Greater
+                };
+            }
+            if first < left.len() {
+                first += 1;
+            }
+            if second < right.len() {
+                second += 1;
+            }
+        }
+        while left.get(first) == Some(&b'0') {
+            first += 1;
+        }
+        while right.get(second) == Some(&b'0') {
+            second += 1;
+        }
+        let mut difference: i32 = 0;
+        while is_digit(left.get(first).copied()) && is_digit(right.get(second).copied()) {
+            if difference == 0 {
+                difference = (left[first] as i32) - (right[second] as i32);
+            }
+            first += 1;
+            second += 1;
+        }
+        if is_digit(left.get(first).copied()) {
+            return Ordering::Greater;
+        }
+        if is_digit(right.get(second).copied()) {
+            return Ordering::Less;
+        }
+        if difference != 0 {
+            return if difference < 0 {
+                Ordering::Less
+            } else {
+                Ordering::Greater
+            };
+        }
     }
-    let mut reverse = false;
-    let mut numeric = false;
-    let mut general_numeric = false;
-    let mut human = false;
-    let mut version = false;
-    let mut month = false;
-    let mut unique = false;
-    let mut stable = false;
-    let mut ignore_case = false;
-    let mut ignore_blanks = false;
-    let mut dict_order = false;
-    let mut check_only = false;
-    let mut silent_check = false;
-    let mut zero_term = false;
+    Ordering::Equal
+}
+
+fn sort_version_prefix(bytes: &[u8]) -> &[u8] {
+    let mut matched = bytes.len();
+    let mut read_alpha = false;
+    let start = if bytes.first() == Some(&b'.') { 1 } else { 0 };
+    for (idx, &byte) in bytes.iter().enumerate().skip(start) {
+        let alpha = byte == b'~' || byte.is_ascii_alphabetic();
+        if read_alpha {
+            read_alpha = false;
+            if !alpha {
+                matched = bytes.len();
+            }
+        } else if byte == b'.' {
+            read_alpha = true;
+            if matched == bytes.len() {
+                matched = idx;
+            }
+        } else if !(alpha || byte.is_ascii_digit()) {
+            matched = bytes.len();
+        }
+    }
+    &bytes[..if read_alpha { bytes.len() } else { matched }]
+}
+
+fn compare_version_bytes(left: &[u8], right: &[u8]) -> std::cmp::Ordering {
+    let special = |bytes: &[u8]| -> i32 {
+        if bytes.is_empty() {
+            0
+        } else if bytes[0] != b'.' {
+            4
+        } else if bytes.len() == 1 {
+            1
+        } else if bytes.len() == 2 && bytes[1] == b'.' {
+            2
+        } else {
+            3
+        }
+    };
+    let s_cmp = special(left).cmp(&special(right));
+    if s_cmp != std::cmp::Ordering::Equal {
+        return s_cmp;
+    }
+    let pref_cmp = compare_version_parts_bytes(sort_version_prefix(left), sort_version_prefix(right));
+    if pref_cmp != std::cmp::Ordering::Equal {
+        return pref_cmp;
+    }
+    compare_version_parts_bytes(left, right)
+}
+
+#[derive(Clone, Debug)]
+struct SortKey {
+    start: usize,
+    start_character: usize,
+    start_blanks: bool,
+    end_blanks: bool,
+    end: Option<usize>,
+    end_character: Option<usize>,
+    flags: BTreeSet<char>,
+}
+
+fn parse_sort_key(specification: &str) -> Result<SortKey, String> {
+    let bytes = specification.as_bytes();
+    let mut offset = 0usize;
+    let parse_pos = |offset: &mut usize, min_val: usize| -> Result<usize, String> {
+        let begin = *offset;
+        while *offset < bytes.len() && bytes[*offset].is_ascii_digit() {
+            *offset += 1;
+        }
+        if *offset == begin {
+            return Err(format!("sort: invalid key '{specification}'\n"));
+        }
+        let val = specification[begin..*offset]
+            .parse::<usize>()
+            .map_err(|_| format!("sort: invalid key '{specification}'\n"))?;
+        if val < min_val {
+            return Err(format!("sort: invalid key '{specification}'\n"));
+        }
+        Ok(val)
+    };
+    let mut flags = BTreeSet::new();
+    let parse_endpoint = |offset: &mut usize,
+                          min_char: usize,
+                          flags: &mut BTreeSet<char>|
+     -> Result<(usize, Option<usize>, bool), String> {
+        let field = parse_pos(offset, 1)?;
+        let mut character = None;
+        let mut blanks = false;
+        if *offset < bytes.len() && bytes[*offset] == b'.' {
+            *offset += 1;
+            character = Some(parse_pos(offset, min_char)?);
+        }
+        while *offset < bytes.len() && b"bdfghiMnrV".contains(&bytes[*offset]) {
+            let f = bytes[*offset] as char;
+            *offset += 1;
+            flags.insert(f);
+            if f == 'b' {
+                blanks = true;
+            }
+        }
+        Ok((field, character, blanks))
+    };
+    let (start_field, start_char, start_blanks) = parse_endpoint(&mut offset, 1, &mut flags)?;
+    let mut end_field = None;
+    let mut end_char = None;
+    let mut end_blanks = false;
+    if offset < bytes.len() && bytes[offset] == b',' {
+        offset += 1;
+        let (ef, ec, eb) = parse_endpoint(&mut offset, 0, &mut flags)?;
+        end_field = Some(ef);
+        if let Some(c) = ec
+            && c > 0
+        {
+            end_char = Some(c);
+        }
+        end_blanks = eb;
+    }
+    if offset != bytes.len() {
+        return Err(format!("sort: invalid key '{specification}'\n"));
+    }
+    Ok(SortKey {
+        start: start_field,
+        start_character: start_char.unwrap_or(1),
+        start_blanks,
+        end_blanks,
+        end: end_field,
+        end_character: end_char,
+        flags,
+    })
+}
+
+fn extract_sort_key_bytes<'a>(
+    line: &'a [u8],
+    key: &SortKey,
+    separator: Option<u8>,
+    global_blanks: bool,
+) -> &'a [u8] {
+    let mut fields: Vec<(usize, usize)> = Vec::new();
+    if let Some(sep) = separator {
+        let mut start = 0usize;
+        for offset in 0..=line.len() {
+            if offset == line.len() || line[offset] == sep {
+                fields.push((start, offset));
+                start = offset + 1;
+            }
+        }
+    } else {
+        let mut offset = 0usize;
+        while offset < line.len() {
+            let leading = offset;
+            while offset < line.len() && (line[offset] == b' ' || line[offset] == b'\t') {
+                offset += 1;
+            }
+            let start = leading;
+            while offset < line.len() && line[offset] != b' ' && line[offset] != b'\t' {
+                offset += 1;
+            }
+            fields.push((start, offset));
+        }
+    }
+    let field_start = |field: Option<(usize, usize)>, skip_blanks: bool| -> usize {
+        let (mut offset, end) = field.unwrap_or((line.len(), line.len()));
+        if skip_blanks {
+            while offset < end && (line[offset] == b' ' || line[offset] == b'\t') {
+                offset += 1;
+            }
+        }
+        offset
+    };
+    let inherit_blanks = key.flags.is_empty() && global_blanks;
+    let start = field_start(
+        fields.get(key.start - 1).copied(),
+        key.start_blanks || inherit_blanks,
+    ) + key.start_character
+        - 1;
+    let last = key.end.and_then(|e| fields.get(e - 1).copied());
+    let end = match key.end {
+        None => line.len(),
+        Some(_) => match last {
+            None => line.len(),
+            Some(lf) => match key.end_character {
+                None => lf.1,
+                Some(ec) => (field_start(Some(lf), key.end_blanks || inherit_blanks) + ec).min(line.len()),
+            },
+        },
+    };
+    let s = start.min(line.len());
+    let e = end.max(s).min(line.len());
+    &line[s..e]
+}
+
+fn cmd_sort(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    _env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut flags: BTreeSet<char> = BTreeSet::new();
+    let mut raw_sep: Option<String> = None;
     let mut out_file: Option<String> = None;
-    let mut sep: Option<char> = None;
-    let mut keys: Vec<SortKeySpec> = Vec::new();
-    let mut files = Vec::new();
+    let mut key_specs: Vec<String> = Vec::new();
+    let mut files: Vec<String> = Vec::new();
+    let mut opts_done = false;
     let mut i = 0usize;
 
-    let parse_pos = |part: &str| -> Option<(usize, usize)> {
-        let num_dots: String = part.chars().take_while(|c| c.is_ascii_digit() || *c == '.').collect();
-        if let Some((f_s, c_s)) = num_dots.split_once('.') {
-            let f = f_s.parse::<usize>().ok()?;
-            let c = c_s.parse::<usize>().unwrap_or(1).max(1);
-            Some((f, c))
-        } else {
-            let f = num_dots.parse::<usize>().ok()?;
-            Some((f, 1))
-        }
-    };
-
-    #[allow(clippy::too_many_arguments)]
-    let parse_k = |spec: &str, def_n: bool, def_g: bool, def_h: bool, def_v: bool, def_m: bool, def_r: bool, def_f: bool, def_b: bool, def_d: bool| -> Option<SortKeySpec> {
-        let (start_part, end_part) = match spec.split_once(',') {
-            Some((a, b)) => (a, Some(b)),
-            None => (spec, None),
+    let apply_sort_mode = |mode: &str, flags: &mut BTreeSet<char>| -> Result<(), String> {
+        let f = match mode {
+            "numeric" => 'n',
+            "general-numeric" => 'g',
+            "human-numeric" => 'h',
+            "month" => 'M',
+            "version" => 'V',
+            _ => return Err(format!("sort: invalid sort argument '{mode}'\n")),
         };
-        let (col, start_char) = parse_pos(start_part)?;
-        let (end_col, end_char) = if let Some(ep) = end_part {
-            if let Some((ec, ech)) = parse_pos(ep) {
-                (Some(ec), if ep.contains('.') { Some(ech) } else { None })
-            } else {
-                (None, None)
-            }
-        } else {
-            (None, None)
-        };
-        let has_mods = spec.chars().any(|c| matches!(c, 'n' | 'g' | 'h' | 'V' | 'M' | 'r' | 'f' | 'b' | 'd'));
-        Some(SortKeySpec {
-            col,
-            start_char,
-            end_col,
-            end_char,
-            numeric: if has_mods { spec.contains('n') } else { def_n },
-            general_numeric: if has_mods { spec.contains('g') } else { def_g },
-            human: if has_mods { spec.contains('h') } else { def_h },
-            version: if has_mods { spec.contains('V') } else { def_v },
-            month: if has_mods { spec.contains('M') } else { def_m },
-            reverse: if has_mods { spec.contains('r') } else { def_r },
-            ignore_case: if has_mods { spec.contains('f') } else { def_f },
-            ignore_blanks: if has_mods { spec.contains('b') } else { def_b },
-            dict_order: if has_mods { spec.contains('d') } else { def_d },
-        })
+        flags.insert(f);
+        Ok(())
     };
 
     while i < args.len() {
         let a = &args[i];
-        if a == "-t" && i + 1 < args.len() {
-            sep = args[i + 1].chars().next();
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-t")
-            && !rest.is_empty()
-        {
-            sep = rest.chars().next();
+        if !opts_done && a == "--" {
+            opts_done = true;
             i += 1;
-        } else if a == "-o" && i + 1 < args.len() {
-            out_file = Some(args[i + 1].clone());
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-o").or_else(|| a.strip_prefix("--output="))
-            && !rest.is_empty()
-        {
-            out_file = Some(rest.to_string());
-            i += 1;
-        } else if a == "-k" && i + 1 < args.len() {
-            if let Some(k) = parse_k(&args[i + 1], numeric, general_numeric, human, version, month, reverse, ignore_case, ignore_blanks, dict_order) {
-                keys.push(k);
-            }
-            i += 2;
-        } else if let Some(spec) = a.strip_prefix("-k")
-            && !spec.is_empty()
-        {
-            if let Some(k) = parse_k(spec, numeric, general_numeric, human, version, month, reverse, ignore_case, ignore_blanks, dict_order) {
-                keys.push(k);
-            }
-            i += 1;
-        } else if a.starts_with('-') && a.len() > 1 {
-            for ch in a[1..].chars() {
-                match ch {
-                    'r' => reverse = true,
-                    'n' => numeric = true,
-                    'g' => general_numeric = true,
-                    'h' => human = true,
-                    'V' => version = true,
-                    'M' => month = true,
-                    'u' => unique = true,
-                    's' => stable = true,
-                    'f' => ignore_case = true,
-                    'b' => ignore_blanks = true,
-                    'd' => dict_order = true,
-                    'c' => check_only = true,
-                    'C' => {
-                        check_only = true;
-                        silent_check = true;
-                    }
-                    'z' => zero_term = true,
-                    _ => {}
+            continue;
+        }
+        if !opts_done && a.starts_with("--") {
+            if a == "--check" || a == "--check=diagnose-first" {
+                flags.insert('c');
+            } else if a == "--check=quiet" || a == "--check=silent" {
+                flags.insert('C');
+            } else if let Some(rest) = a.strip_prefix("--check=") {
+                return err_out(&format!("sort: invalid argument '{rest}' for '--check'\n"), 2);
+            } else if a == "--human-numeric-sort" {
+                flags.insert('h');
+            } else if a == "--numeric-sort" {
+                flags.insert('n');
+            } else if a == "--general-numeric-sort" {
+                flags.insert('g');
+            } else if a == "--month-sort" {
+                flags.insert('M');
+            } else if a == "--version-sort" {
+                flags.insert('V');
+            } else if a == "--dictionary-order" {
+                flags.insert('d');
+            } else if a == "--ignore-nonprinting" {
+                flags.insert('i');
+            } else if a == "--merge" {
+                flags.insert('m');
+            } else if a == "--reverse" {
+                flags.insert('r');
+            } else if a == "--ignore-case" {
+                flags.insert('f');
+            } else if a == "--ignore-leading-blanks" {
+                flags.insert('b');
+            } else if a == "--unique" {
+                flags.insert('u');
+            } else if a == "--stable" {
+                flags.insert('s');
+            } else if a == "--zero-terminated" {
+                flags.insert('z');
+            } else if a == "--field-separator" {
+                if i + 1 >= args.len() {
+                    return err_out("sort: option requires an argument -- 't'\n", 2);
                 }
-            }
-            i += 1;
-        } else {
-            files.push(a.clone());
-            i += 1;
-        }
-    }
-
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "sort") {
-        Ok(t) => t,
-        Err(e) => return e,
-    };
-    if text.is_empty() {
-        if let Some(ref of) = out_file {
-            let _ = fs.write_file(&resolve_posix_path(cwd, of), b"");
-        }
-        return ok_out("");
-    }
-
-    let mut lines: Vec<&str> = if zero_term {
-        let mut v: Vec<&str> = text.split('\0').collect();
-        if v.last() == Some(&"") {
-            v.pop();
-        }
-        v
-    } else {
-        text.lines().collect()
-    };
-
-    let extract_col = |line: &str, k: &SortKeySpec| -> String {
-        let field = if k.col >= 1 {
-            if let Some(d) = sep {
-                let parts: Vec<&str> = line.split(d).collect();
-                let start_idx = k.col - 1;
-                let end_idx = k.end_col.map(|ec| ec.saturating_sub(1)).unwrap_or(parts.len().saturating_sub(1));
-                if start_idx >= parts.len() {
-                    String::new()
-                } else if start_idx == end_idx || k.end_char.is_some() {
-                    parts[start_idx].to_string()
-                } else {
-                    parts[start_idx..=end_idx.min(parts.len() - 1)].join(&d.to_string())
+                raw_sep = Some(args[i + 1].clone());
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--field-separator=") {
+                raw_sep = Some(v.to_string());
+            } else if a == "--key" {
+                if i + 1 >= args.len() {
+                    return err_out("sort: option requires an argument -- 'k'\n", 2);
                 }
+                key_specs.push(args[i + 1].clone());
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--key=") {
+                key_specs.push(v.to_string());
+            } else if a == "--output" {
+                if i + 1 >= args.len() {
+                    return err_out("sort: option requires an argument -- 'o'\n", 2);
+                }
+                out_file = Some(args[i + 1].clone());
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--output=") {
+                out_file = Some(v.to_string());
+            } else if a == "--sort" {
+                if i + 1 >= args.len() {
+                    return err_out("sort: option '--sort' requires an argument\n", 2);
+                }
+                if let Err(msg) = apply_sort_mode(&args[i + 1], &mut flags) {
+                    return err_out(&msg, 2);
+                }
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--sort=") {
+                if let Err(msg) = apply_sort_mode(v, &mut flags) {
+                    return err_out(&msg, 2);
+                }
+            } else if a == "--buffer-size"
+                || a == "--max-input-bytes"
+                || a == "--max-records"
+                || a == "--batch-size"
+            {
+                if i + 1 >= args.len() {
+                    return err_out(&format!("sort: option '{a}' requires an argument\n"), 2);
+                }
+                i += 1;
+            } else if a.starts_with("--buffer-size=")
+                || a.starts_with("--max-input-bytes=")
+                || a.starts_with("--max-records=")
+                || a.starts_with("--batch-size=")
+            {
+                // Accepted resource flags
             } else {
-                let parts: Vec<&str> = line.split_whitespace().collect();
-                let start_idx = k.col - 1;
-                let end_idx = k.end_col.map(|ec| ec.saturating_sub(1)).unwrap_or(parts.len().saturating_sub(1));
-                if start_idx >= parts.len() {
-                    String::new()
-                } else if start_idx == end_idx || k.end_char.is_some() {
-                    parts[start_idx].to_string()
-                } else {
-                    parts[start_idx..=end_idx.min(parts.len() - 1)].join(" ")
-                }
+                return err_out(&format!("sort: unrecognized option '{a}'\n"), 2);
             }
-        } else {
-            line.to_string()
-        };
-        let f_trimmed = if k.ignore_blanks { field.trim_start() } else { field.as_str() };
-        let sliced: String = if k.start_char > 1 || k.end_char.is_some() {
-            let sc = k.start_char.saturating_sub(1);
-            let iter = f_trimmed.chars().skip(sc);
-            if let Some(ec) = k.end_char {
-                let take_n = ec.saturating_sub(sc);
-                iter.take(take_n).collect()
-            } else {
-                iter.collect()
-            }
-        } else {
-            f_trimmed.to_string()
-        };
-        let filtered: String = if k.dict_order {
-            sliced.chars().filter(|c| c.is_alphanumeric() || c.is_whitespace()).collect()
-        } else {
-            sliced
-        };
-        if k.ignore_case {
-            filtered.to_lowercase()
-        } else {
-            filtered
-        }
-    };
-
-    let cmp_keys_only = |a: &str, b: &str| -> std::cmp::Ordering {
-        if !keys.is_empty() {
-            for k in &keys {
-                let ka = extract_col(a, k);
-                let kb = extract_col(b, k);
-                let c = if k.human {
-                    parse_human_sort_val(&ka)
-                        .partial_cmp(&parse_human_sort_val(&kb))
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                } else if k.version {
-                    compare_version_str(&ka, &kb)
-                } else if k.month {
-                    parse_month_sort_val(&ka).cmp(&parse_month_sort_val(&kb))
-                } else if k.general_numeric {
-                    let na = ka.trim().parse::<f64>().unwrap_or_else(|_| parse_leading_f64(&ka));
-                    let nb = kb.trim().parse::<f64>().unwrap_or_else(|_| parse_leading_f64(&kb));
-                    na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-                } else if k.numeric {
-                    let na = parse_leading_f64(&ka);
-                    let nb = parse_leading_f64(&kb);
-                    na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-                } else {
-                    ka.cmp(&kb)
-                };
-                let c = if k.reverse { c.reverse() } else { c };
-                if c != std::cmp::Ordering::Equal {
-                    return c;
-                }
-            }
-            return std::cmp::Ordering::Equal;
-        }
-        let a_base = if ignore_blanks { a.trim_start() } else { a };
-        let b_base = if ignore_blanks { b.trim_start() } else { b };
-        let a_dict: String = if dict_order {
-            a_base.chars().filter(|c| c.is_alphanumeric() || c.is_whitespace()).collect()
-        } else {
-            a_base.to_string()
-        };
-        let b_dict: String = if dict_order {
-            b_base.chars().filter(|c| c.is_alphanumeric() || c.is_whitespace()).collect()
-        } else {
-            b_base.to_string()
-        };
-        let ka = if ignore_case { a_dict.to_lowercase() } else { a_dict };
-        let kb = if ignore_case { b_dict.to_lowercase() } else { b_dict };
-        let cmp = if human {
-            parse_human_sort_val(&ka)
-                .partial_cmp(&parse_human_sort_val(&kb))
-                .unwrap_or(std::cmp::Ordering::Equal)
-        } else if version {
-            compare_version_str(&ka, &kb)
-        } else if month {
-            parse_month_sort_val(&ka).cmp(&parse_month_sort_val(&kb))
-        } else if general_numeric {
-            let na = ka.trim().parse::<f64>().unwrap_or_else(|_| parse_leading_f64(&ka));
-            let nb = kb.trim().parse::<f64>().unwrap_or_else(|_| parse_leading_f64(&kb));
-            na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-        } else if numeric {
-            let na = parse_leading_f64(&ka);
-            let nb = parse_leading_f64(&kb);
-            na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal)
-        } else {
-            ka.cmp(&kb)
-        };
-        if reverse { cmp.reverse() } else { cmp }
-    };
-
-    if check_only {
-        for idx in 1..lines.len() {
-            let ord = cmp_keys_only(lines[idx - 1], lines[idx]);
-            if ord == std::cmp::Ordering::Greater || (unique && ord == std::cmp::Ordering::Equal) {
-                return if silent_check {
-                    err_out("", 1)
-                } else {
-                    err_out("sort: disorder\n", 1)
-                };
-            }
-        }
-        return ok_out("");
-    }
-
-    if stable || unique {
-        lines.sort_by(|a, b| cmp_keys_only(a, b));
-    } else {
-        lines.sort_by(|a, b| cmp_keys_only(a, b).then_with(|| if reverse { b.cmp(a) } else { a.cmp(b) }));
-    }
-
-    if unique {
-        lines.dedup_by(|a, b| cmp_keys_only(b, a) == std::cmp::Ordering::Equal);
-    }
-
-    let term = if zero_term { '\0' } else { '\n' };
-    let sep_s = if zero_term { "\0" } else { "\n" };
-    let mut out = lines.join(sep_s);
-    out.push(term);
-    if let Some(ref of) = out_file {
-        let _ = fs.write_file(&resolve_posix_path(cwd, of), out.as_bytes());
-        return ok_out("");
-    }
-    ok_out(&out)
-}
-
-fn uniq_compare_slice(line: &str, skip_fields: usize, skip_chars: usize, max_chars: Option<usize>) -> String {
-    let mut s = line;
-    for _ in 0..skip_fields {
-        s = s.trim_start_matches([' ', '\t']);
-        s = s.trim_start_matches(|c: char| c != ' ' && c != '\t');
-    }
-    let iter = s.chars().skip(skip_chars);
-    match max_chars {
-        Some(w) => iter.take(w).collect(),
-        None => iter.collect(),
-    }
-}
-
-fn cmd_uniq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut count = false;
-    let mut repeated_only = false;
-    let mut unique_only = false;
-    let mut ignore_case = false;
-    let mut skip_fields = 0usize;
-    let mut skip_chars = 0usize;
-    let mut max_chars: Option<usize> = None;
-    let mut all_repeated: Option<String> = None;
-    let mut group_mode: Option<String> = None;
-    let mut files = Vec::new();
-
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if a == "--all-repeated" {
-            all_repeated = Some("none".to_string());
             i += 1;
             continue;
         }
-        if let Some(v) = a.strip_prefix("--all-repeated=") {
-            all_repeated = Some(v.to_string());
-            i += 1;
-            continue;
-        }
-        if a == "--group" {
-            group_mode = Some("separate".to_string());
-            i += 1;
-            continue;
-        }
-        if let Some(v) = a.strip_prefix("--group=") {
-            group_mode = Some(v.to_string());
-            i += 1;
-            continue;
-        }
-        if a.starts_with('-') && a.len() > 1 {
+        if !opts_done && a.starts_with('-') && a.len() > 1 {
             let chars: Vec<char> = a[1..].chars().collect();
             let mut ci = 0usize;
             while ci < chars.len() {
-                match chars[ci] {
-                    'c' => count = true,
+                let ch = chars[ci];
+                match ch {
+                    'h' | 'n' | 'g' | 'M' | 'V' | 'd' | 'i' | 'm' | 'r' | 'f'
+                    | 'b' | 'u' | 's' | 'z' | 'c' | 'C' => {
+                        flags.insert(ch);
+                        ci += 1;
+                    }
+                    't' | 'k' | 'o' | 'S' => {
+                        let val = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out(
+                                &format!("sort: option requires an argument -- '{ch}'\n"),
+                                2,
+                            );
+                        };
+                        match ch {
+                            't' => raw_sep = Some(val),
+                            'k' => key_specs.push(val),
+                            'o' => out_file = Some(val),
+                            _ => {}
+                        }
+                        break;
+                    }
+                    _ => return err_out(&format!("sort: invalid option -- '{ch}'\n"), 2),
+                }
+            }
+            i += 1;
+            continue;
+        }
+        files.push(a.clone());
+        i += 1;
+    }
+
+    if flags.contains(&'c') && flags.contains(&'C') {
+        return err_out("sort: options '-cC' are incompatible\n", 2);
+    }
+    let checking = flags.contains(&'c') || flags.contains(&'C');
+    if checking && files.len() > 1 {
+        return err_out(
+            &format!(
+                "sort: extra operand '{}' not allowed with -{}\n",
+                files[1],
+                if flags.contains(&'C') { 'C' } else { 'c' }
+            ),
+            2,
+        );
+    }
+
+    let separator: Option<u8> = match raw_sep {
+        None => None,
+        Some(ref s) if s.is_empty() || s == "\\0" => Some(0u8),
+        Some(ref s) => {
+            let b = crate::vfs::stream_string_to_bytes(s);
+            if b.len() != 1 {
+                return err_out("sort: field separator must be one byte\n", 2);
+            }
+            Some(b[0])
+        }
+    };
+
+    let mut keys: Vec<SortKey> = Vec::with_capacity(key_specs.len());
+    for ks in &key_specs {
+        match parse_sort_key(ks) {
+            Ok(k) => keys.push(k),
+            Err(msg) => return err_out(&msg, 2),
+        }
+    }
+
+    let check_flag_set = |fset: &BTreeSet<char>| -> Result<(), String> {
+        let mode_count = ['g', 'h', 'M', 'n', 'V']
+            .iter()
+            .filter(|f| fset.contains(f))
+            .count();
+        let nontextual = ['g', 'h', 'M', 'n'].iter().any(|f| fset.contains(f));
+        if mode_count > 1 || (nontextual && (fset.contains(&'d') || fset.contains(&'i'))) {
+            return Err("sort: incompatible sort options\n".to_string());
+        }
+        Ok(())
+    };
+
+    if keys.is_empty() {
+        if let Err(msg) = check_flag_set(&flags) {
+            return err_out(&msg, 2);
+        }
+    } else {
+        for k in &keys {
+            let active_flags = if k.flags.is_empty() { &flags } else { &k.flags };
+            if let Err(msg) = check_flag_set(active_flags) {
+                return err_out(&msg, 2);
+            }
+        }
+    }
+
+    let delim_byte = if flags.contains(&'z') { 0u8 } else { b'\n' };
+    let names: Vec<String> = if files.is_empty() {
+        vec!["-".to_string()]
+    } else {
+        files
+    };
+
+    let mut per_file_records: Vec<Vec<Vec<u8>>> = Vec::with_capacity(names.len());
+    for name in &names {
+        let raw = if name == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
+        } else {
+            let path = resolve_posix_path(cwd, name);
+            if fs.is_dir(&path) {
+                return err_out(&format!("sort: read failed: {name}: Is a directory\n"), 2);
+            }
+            match fs.read_file(&path) {
+                Ok(b) => b,
+                Err(e) => return err_out(&format!("sort: cannot read: {name}: {e}\n"), 2),
+            }
+        };
+        if raw.is_empty() {
+            per_file_records.push(Vec::new());
+            continue;
+        }
+        let mut recs: Vec<Vec<u8>> = Vec::new();
+        let mut start = 0usize;
+        for (idx, &b) in raw.iter().enumerate() {
+            if b == delim_byte {
+                recs.push(raw[start..idx].to_vec());
+                start = idx + 1;
+            }
+        }
+        if start < raw.len() {
+            recs.push(raw[start..].to_vec());
+        }
+        per_file_records.push(recs);
+    }
+
+    let simple = keys.is_empty()
+        && !['b', 'f', 'h', 'n', 'g', 'M', 'V', 'd', 'i']
+            .iter()
+            .any(|f| flags.contains(f));
+    let global_rev = flags.contains(&'r');
+    let stable = flags.contains(&'s');
+    let unique = flags.contains(&'u');
+
+    let transform_slice = |slice: &[u8], fset: &BTreeSet<char>, is_unkeyed: bool| -> Vec<u8> {
+        let mut start = 0usize;
+        if is_unkeyed && fset.contains(&'b') {
+            while start < slice.len() && (slice[start] == b' ' || slice[start] == b'\t') {
+                start += 1;
+            }
+        }
+        let sub = &slice[start..];
+        let mut out = Vec::with_capacity(sub.len());
+        let has_d = fset.contains(&'d');
+        let has_i = fset.contains(&'i');
+        let has_f = fset.contains(&'f');
+        for &b in sub {
+            if has_d {
+                if !(b == b'\t' || b == b' ' || b.is_ascii_alphanumeric()) {
+                    continue;
+                }
+            } else if has_i && !(32..=126).contains(&b) {
+                continue;
+            }
+            out.push(if has_f { b.to_ascii_uppercase() } else { b });
+        }
+        out
+    };
+
+    let compare_single_key =
+        |first_raw: &[u8], second_raw: &[u8], fset: &BTreeSet<char>, is_unkeyed: bool| -> std::cmp::Ordering {
+            let first = transform_slice(first_raw, fset, is_unkeyed);
+            let second = transform_slice(second_raw, fset, is_unkeyed);
+            let ord = if fset.contains(&'g') {
+                let a = sort_general_numeric_value(&first);
+                let b = sort_general_numeric_value(&second);
+                a.0.cmp(&b.0)
+                    .then_with(|| a.1.partial_cmp(&b.1).unwrap_or(std::cmp::Ordering::Equal))
+            } else if fset.contains(&'M') {
+                parse_month_sort_bytes(&first).cmp(&parse_month_sort_bytes(&second))
+            } else if fset.contains(&'V') {
+                compare_version_bytes(&first, &second)
+            } else if fset.contains(&'n') || fset.contains(&'h') {
+                let h = fset.contains(&'h');
+                compare_sort_numeric(
+                    &parse_sort_numeric(&first, h),
+                    &parse_sort_numeric(&second, h),
+                )
+            } else {
+                first.cmp(&second)
+            };
+            if fset.contains(&'r') {
+                ord.reverse()
+            } else {
+                ord
+            }
+        };
+
+    let key_compare = |left: &[u8], right: &[u8]| -> std::cmp::Ordering {
+        if simple {
+            let ord = left.cmp(right);
+            return if global_rev { ord.reverse() } else { ord };
+        }
+        if keys.is_empty() {
+            return compare_single_key(left, right, &flags, true);
+        }
+        for key in &keys {
+            let fset = if key.flags.is_empty() {
+                &flags
+            } else {
+                &key.flags
+            };
+            let k1 = extract_sort_key_bytes(left, key, separator, fset.contains(&'b'));
+            let k2 = extract_sort_key_bytes(right, key, separator, fset.contains(&'b'));
+            let ord = compare_single_key(k1, k2, fset, false);
+            if ord != std::cmp::Ordering::Equal {
+                return ord;
+            }
+        }
+        std::cmp::Ordering::Equal
+    };
+
+    let full_compare = |left: &[u8], right: &[u8]| -> std::cmp::Ordering {
+        let ord = key_compare(left, right);
+        if ord != std::cmp::Ordering::Equal || simple || stable || unique {
+            return ord;
+        }
+        let fallback = left.cmp(right);
+        if global_rev {
+            fallback.reverse()
+        } else {
+            fallback
+        }
+    };
+
+    if checking {
+        let recs = &per_file_records[0];
+        for idx in 1..recs.len() {
+            let prev = &recs[idx - 1];
+            let cur = &recs[idx];
+            if full_compare(prev, cur) == std::cmp::Ordering::Greater
+                || (unique && key_compare(prev, cur) == std::cmp::Ordering::Equal)
+            {
+                if flags.contains(&'C') {
+                    return err_out("", 1);
+                }
+                return err_out(&format!("sort: disorder at record {}\n", idx + 1), 1);
+            }
+        }
+        return ok_out("");
+    }
+
+    let sorted_records: Vec<Vec<u8>> = if flags.contains(&'m') {
+        let mut cursors = vec![0usize; per_file_records.len()];
+        let total: usize = per_file_records.iter().map(|v| v.len()).sum();
+        let mut merged = Vec::with_capacity(total);
+        loop {
+            let mut best_file: Option<usize> = None;
+            for f_idx in 0..per_file_records.len() {
+                let c = cursors[f_idx];
+                if c < per_file_records[f_idx].len() {
+                    match best_file {
+                        None => best_file = Some(f_idx),
+                        Some(bf) => {
+                            let cand = &per_file_records[f_idx][c];
+                            let best = &per_file_records[bf][cursors[bf]];
+                            if full_compare(cand, best) == std::cmp::Ordering::Less {
+                                best_file = Some(f_idx);
+                            }
+                        }
+                    }
+                }
+            }
+            match best_file {
+                Some(bf) => {
+                    let c = cursors[bf];
+                    merged.push(per_file_records[bf][c].clone());
+                    cursors[bf] += 1;
+                }
+                None => break,
+            }
+        }
+        merged
+    } else {
+        let mut all: Vec<Vec<u8>> = per_file_records.into_iter().flatten().collect();
+        all.sort_by(|a, b| full_compare(a, b));
+        all
+    };
+
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut prev_emitted: Option<&[u8]> = None;
+    for rec in &sorted_records {
+        if unique
+            && let Some(prev) = prev_emitted
+            && key_compare(prev, rec) == std::cmp::Ordering::Equal
+        {
+            continue;
+        }
+        out_bytes.extend_from_slice(rec);
+        out_bytes.push(delim_byte);
+        prev_emitted = Some(rec);
+    }
+
+    if let Some(ref of) = out_file {
+        let dest = resolve_posix_path(cwd, of);
+        if let Err(e) = fs.write_file(&dest, &out_bytes) {
+            return err_out(&format!("sort: open failed: {of}: {e}\n"), 2);
+        }
+        return ok_out("");
+    }
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+}
+
+fn cmd_uniq(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut count_flag = false;
+    let mut repeated_only = false;
+    let mut unique_only = false;
+    let mut ignore_case = false;
+    let mut zero_term = false;
+    let mut skip_fields = 0usize;
+    let mut skip_chars = 0usize;
+    let mut max_chars: Option<usize> = None;
+    let mut has_all_repeated = false;
+    let mut repeated_method = "none".to_string();
+    let mut group_method: Option<String> = None;
+    let mut operands: Vec<String> = Vec::new();
+    let mut opts_done = false;
+    let mut i = 0usize;
+
+    let parse_nonneg = |val: &str, label: &str| -> Result<usize, String> {
+        if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(format!("uniq: invalid {label}: '{val}'\n"));
+        }
+        val.parse::<usize>()
+            .map_err(|_| format!("uniq: invalid {label}: '{val}'\n"))
+    };
+
+    while i < args.len() {
+        let a = &args[i];
+        if !opts_done && a == "--" {
+            opts_done = true;
+            i += 1;
+            continue;
+        }
+        if !opts_done && a.starts_with("--") {
+            if a == "--count" {
+                count_flag = true;
+            } else if a == "--repeated" {
+                repeated_only = true;
+            } else if a == "--unique" {
+                unique_only = true;
+            } else if a == "--ignore-case" {
+                ignore_case = true;
+            } else if a == "--zero-terminated" {
+                zero_term = true;
+            } else if a == "--all-repeated" {
+                has_all_repeated = true;
+                repeated_method = "none".to_string();
+            } else if let Some(v) = a.strip_prefix("--all-repeated=") {
+                if !matches!(v, "none" | "prepend" | "separate") {
+                    return err_out(
+                        &format!("uniq: invalid argument '{v}' for 'all-repeated'\n"),
+                        2,
+                    );
+                }
+                has_all_repeated = true;
+                repeated_method = v.to_string();
+            } else if a == "--group" {
+                group_method = Some("separate".to_string());
+            } else if let Some(v) = a.strip_prefix("--group=") {
+                if !matches!(v, "separate" | "prepend" | "append" | "both") {
+                    return err_out(&format!("uniq: invalid argument '{v}' for 'group'\n"), 2);
+                }
+                group_method = Some(v.to_string());
+            } else if a == "--skip-fields" || a == "--skip-chars" || a == "--check-chars" {
+                if i + 1 >= args.len() {
+                    return err_out(&format!("uniq: option '{a}' requires an argument\n"), 2);
+                }
+                let n = match parse_nonneg(&args[i + 1], a) {
+                    Ok(v) => v,
+                    Err(msg) => return err_out(&msg, 2),
+                };
+                match a.as_str() {
+                    "--skip-fields" => skip_fields = n,
+                    "--skip-chars" => skip_chars = n,
+                    _ => max_chars = Some(n),
+                }
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--skip-fields=") {
+                match parse_nonneg(v, "skip-fields") {
+                    Ok(n) => skip_fields = n,
+                    Err(msg) => return err_out(&msg, 2),
+                }
+            } else if let Some(v) = a.strip_prefix("--skip-chars=") {
+                match parse_nonneg(v, "skip-chars") {
+                    Ok(n) => skip_chars = n,
+                    Err(msg) => return err_out(&msg, 2),
+                }
+            } else if let Some(v) = a.strip_prefix("--check-chars=") {
+                match parse_nonneg(v, "check-chars") {
+                    Ok(n) => max_chars = Some(n),
+                    Err(msg) => return err_out(&msg, 2),
+                }
+            } else {
+                return err_out(&format!("uniq: unrecognized option '{a}'\n"), 2);
+            }
+            i += 1;
+            continue;
+        }
+        if !opts_done && a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                let ch = chars[ci];
+                match ch {
+                    'c' => count_flag = true,
                     'd' => repeated_only = true,
-                    'D' => all_repeated = Some("none".to_string()),
+                    'D' => {
+                        has_all_repeated = true;
+                        repeated_method = "none".to_string();
+                    }
                     'u' => unique_only = true,
                     'i' => ignore_case = true,
+                    'z' => zero_term = true,
                     'f' | 's' | 'w' => {
-                        let flag = chars[ci];
                         let val_str = if ci + 1 < chars.len() {
                             chars[ci + 1..].iter().collect::<String>()
                         } else if i + 1 < args.len() {
                             i += 1;
                             args[i].clone()
                         } else {
-                            String::new()
+                            return err_out(
+                                &format!("uniq: option requires an argument -- '{ch}'\n"),
+                                2,
+                            );
                         };
-                        if let Ok(n) = val_str.parse::<usize>() {
-                            match flag {
-                                'f' => skip_fields = n,
-                                's' => skip_chars = n,
-                                'w' => max_chars = Some(n),
-                                _ => {}
-                            }
+                        let n = match parse_nonneg(&val_str, &format!("-{ch}")) {
+                            Ok(v) => v,
+                            Err(msg) => return err_out(&msg, 2),
+                        };
+                        match ch {
+                            'f' => skip_fields = n,
+                            's' => skip_chars = n,
+                            _ => max_chars = Some(n),
                         }
                         break;
                     }
-                    _ => {}
+                    _ => return err_out(&format!("uniq: invalid option -- '{ch}'\n"), 2),
                 }
                 ci += 1;
             }
-        } else {
-            files.push(a.clone());
+            i += 1;
+            continue;
         }
+        operands.push(a.clone());
         i += 1;
     }
 
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "uniq") {
-        Ok(t) => t,
-        Err(e) => return e,
+    if has_all_repeated && count_flag {
+        return err_out(
+            "uniq: printing all duplicated lines and repeat counts is meaningless\n",
+            2,
+        );
+    }
+    if group_method.is_some()
+        && (has_all_repeated || count_flag || repeated_only || unique_only)
+    {
+        return err_out("uniq: --group is mutually exclusive with -c/-d/-D/-u\n", 2);
+    }
+    if operands.len() > 2 {
+        return err_out(&format!("uniq: extra operand '{}'\n", operands[2]), 2);
+    }
+    if operands.len() == 2 && operands[0] != "-" && operands[1] != "-" {
+        let src = resolve_posix_path(cwd, &operands[0]);
+        let dst = resolve_posix_path(cwd, &operands[1]);
+        if src == dst && fs.exists(&src) {
+            return err_out("uniq: input and output must be different files\n", 2);
+        }
+    }
+
+    let in_name = operands.first().map(|s| s.as_str()).unwrap_or("-");
+    let raw = if in_name == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let path = resolve_posix_path(cwd, in_name);
+        if fs.is_dir(&path) {
+            return err_out(&format!("uniq: {in_name}: Is a directory\n"), 1);
+        }
+        match fs.read_file(&path) {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("uniq: {in_name}: {e}\n"), 1),
+        }
     };
-    if text.is_empty() {
+
+    let delimiter = if zero_term { 0u8 } else { b'\n' };
+    let locale = env
+        .get("LC_ALL")
+        .or_else(|| env.get("LC_CTYPE"))
+        .or_else(|| env.get("LANG"))
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let byte_locale = locale == "C" || locale == "POSIX";
+    let identity_key =
+        skip_fields == 0 && skip_chars == 0 && max_chars.is_none() && !ignore_case;
+
+    let compute_key = |bytes: &[u8]| -> Vec<u8> {
+        if identity_key {
+            return bytes.to_vec();
+        }
+        let mut offset = 0usize;
+        for _ in 0..skip_fields {
+            while offset < bytes.len() && (bytes[offset] == b' ' || bytes[offset] == b'\t') {
+                offset += 1;
+            }
+            while offset < bytes.len() && bytes[offset] != b' ' && bytes[offset] != b'\t' {
+                offset += 1;
+            }
+        }
+        let sub = &bytes[offset.min(bytes.len())..];
+        let sliced: Vec<u8> = if !byte_locale
+            && let Ok(text) = std::str::from_utf8(sub)
+        {
+            let iter = text.chars().skip(skip_chars);
+            let s: String = match max_chars {
+                Some(w) => iter.take(w).collect(),
+                None => iter.collect(),
+            };
+            s.into_bytes()
+        } else {
+            let s_off = skip_chars.min(sub.len());
+            let e_off = match max_chars {
+                Some(w) => (s_off + w).min(sub.len()),
+                None => sub.len(),
+            };
+            sub[s_off..e_off].to_vec()
+        };
+        if ignore_case {
+            sliced.into_iter().map(|b| b.to_ascii_uppercase()).collect()
+        } else {
+            sliced
+        }
+    };
+
+    let mut records: Vec<&[u8]> = Vec::new();
+    if !raw.is_empty() {
+        let mut start = 0usize;
+        for (idx, &b) in raw.iter().enumerate() {
+            if b == delimiter {
+                records.push(&raw[start..idx]);
+                start = idx + 1;
+            }
+        }
+        if start < raw.len() {
+            records.push(&raw[start..]);
+        }
+    }
+
+    let expanded = has_all_repeated || group_method.is_some();
+    let method = group_method.as_deref().unwrap_or(&repeated_method);
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut previous: Option<&[u8]> = None;
+    let mut previous_key: Option<Vec<u8>> = None;
+    let mut count = 0usize;
+    let mut emitted_group = false;
+
+    let selected = |c: usize| -> bool { (!repeated_only || c > 1) && (!unique_only || c == 1) };
+    let emit_line = |out: &mut Vec<u8>, line: &[u8], c: usize| {
+        if count_flag {
+            let prefix = format!("{c:>7} ");
+            out.extend_from_slice(prefix.as_bytes());
+        }
+        out.extend_from_slice(line);
+        out.push(delimiter);
+    };
+
+    for line in records {
+        let cur_key = compute_key(line);
+        if let Some(ref pk) = previous_key
+            && pk == &cur_key
+        {
+            count += 1;
+            if expanded && !unique_only {
+                if has_all_repeated && count == 2 {
+                    if method == "prepend" || (method == "separate" && emitted_group) {
+                        out_bytes.push(delimiter);
+                    }
+                    emit_line(&mut out_bytes, previous.unwrap(), count);
+                    emitted_group = true;
+                }
+                out_bytes.extend_from_slice(line);
+                out_bytes.push(delimiter);
+            }
+        } else {
+            if !expanded
+                && let Some(prev) = previous
+                && selected(count)
+            {
+                emit_line(&mut out_bytes, prev, count);
+            }
+            previous = Some(line);
+            previous_key = Some(cur_key);
+            count = 1;
+            if group_method.is_some() {
+                if method == "prepend" || method == "both" || emitted_group {
+                    out_bytes.push(delimiter);
+                }
+                emit_line(&mut out_bytes, line, count);
+                emitted_group = true;
+            }
+        }
+    }
+    if !expanded
+        && let Some(prev) = previous
+        && selected(count)
+    {
+        emit_line(&mut out_bytes, prev, count);
+    }
+    if emitted_group && (method == "append" || method == "both") {
+        out_bytes.push(delimiter);
+    }
+
+    if let Some(out_name) = operands.get(1)
+        && out_name != "-"
+    {
+        let dst = resolve_posix_path(cwd, out_name);
+        if let Err(e) = fs.write_file(&dst, &out_bytes) {
+            return err_out(&format!("uniq: {out_name}: {e}\n"), 1);
+        }
         return ok_out("");
     }
-
-    let mut groups: Vec<Vec<&str>> = Vec::new();
-    for line in text.lines() {
-        if let Some(last) = groups.last_mut() {
-            let k1 = uniq_compare_slice(last[0], skip_fields, skip_chars, max_chars);
-            let k2 = uniq_compare_slice(line, skip_fields, skip_chars, max_chars);
-            let same = if ignore_case {
-                k1.eq_ignore_ascii_case(&k2)
-            } else {
-                k1 == k2
-            };
-            if same {
-                last.push(line);
-                continue;
-            }
-        }
-        groups.push(vec![line]);
-    }
-
-    let mut out = String::new();
-    if let Some(gmode) = group_mode {
-        for (g_idx, grp) in groups.iter().enumerate() {
-            if gmode == "prepend" || gmode == "both" || (gmode == "separate" && g_idx > 0) {
-                out.push('\n');
-            }
-            for l in grp {
-                out.push_str(l);
-                out.push('\n');
-            }
-            if gmode == "append" || gmode == "both" {
-                out.push('\n');
-            }
-        }
-        return ok_out(&out);
-    }
-    if let Some(amode) = all_repeated {
-        let rep_groups: Vec<&Vec<&str>> = groups.iter().filter(|g| g.len() >= 2).collect();
-        for (g_idx, grp) in rep_groups.iter().enumerate() {
-            if amode == "prepend" || (amode == "separate" && g_idx > 0) {
-                out.push('\n');
-            }
-            for l in *grp {
-                out.push_str(l);
-                out.push('\n');
-            }
-        }
-        return ok_out(&out);
-    }
-
-    for grp in groups {
-        let line = grp[0];
-        let n = grp.len();
-        if repeated_only && n < 2 {
-            continue;
-        }
-        if unique_only && n != 1 {
-            continue;
-        }
-        if count {
-            out.push_str(&format!("{n:>7} {line}\n"));
-        } else {
-            out.push_str(line);
-            out.push('\n');
-        }
-    }
-    ok_out(&out)
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
-fn cmd_cut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut delim = '\t';
+#[derive(Clone, Copy, Debug)]
+struct CutRange {
+    start: usize,
+    end: usize,
+}
+
+fn parse_cut_ranges(list: &str) -> Result<Vec<CutRange>, (String, i32)> {
+    let bytes = list.as_bytes();
+    let mut ranges: Vec<CutRange> = Vec::new();
+    let mut token_start = 0usize;
+    let mut dash: Option<usize> = None;
+    let mut start: usize = 0;
+    let mut end: usize = 0;
+    let mut invalid = false;
+    let mut needs_range = true;
+
+    for index in 0..=bytes.len() {
+        let ch = bytes.get(index).copied();
+        if matches!(ch, Some(b',') | Some(b' ') | Some(b'\t') | None) {
+            if index == token_start {
+                if needs_range && (ch == Some(b',') || ch.is_none()) {
+                    return Err(("cut: invalid range ''\n".to_string(), 2));
+                }
+                if ch == Some(b',') {
+                    needs_range = true;
+                }
+                token_start = index + 1;
+                continue;
+            }
+            let token = &list[token_start..index];
+            if invalid || (dash == Some(token_start) && dash == Some(index - 1)) {
+                return Err((format!("cut: invalid range '{token}'\n"), 2));
+            }
+            if dash == Some(token_start) {
+                start = 1;
+            }
+            if dash.is_none() {
+                end = start;
+            }
+            let open_end = dash.is_some() && dash == Some(index - 1);
+            if open_end {
+                end = usize::MAX;
+            }
+            if start < 1 {
+                return Err((format!("cut: invalid number in '{token}'\n"), 2));
+            }
+            if !open_end && end < 1 {
+                return Err((format!("cut: invalid number in '{token}'\n"), 2));
+            }
+            if end < start {
+                return Err((format!("cut: invalid decreasing range '{token}'\n"), 1));
+            }
+            ranges.push(CutRange { start, end });
+            needs_range = ch == Some(b',');
+            token_start = index + 1;
+            dash = None;
+            start = 0;
+            end = 0;
+            invalid = false;
+        } else if ch == Some(b'-') && dash.is_none() {
+            dash = Some(index);
+        } else if let Some(b) = ch {
+            if b.is_ascii_digit() {
+                let digit = (b - b'0') as usize;
+                if dash.is_none() {
+                    start = start.saturating_mul(10).saturating_add(digit);
+                } else {
+                    end = end.saturating_mul(10).saturating_add(digit);
+                }
+            } else {
+                invalid = true;
+            }
+        }
+    }
+    ranges.sort_by_key(|r| r.start);
+    let mut normalized: Vec<CutRange> = Vec::new();
+    for r in ranges {
+        if let Some(prev) = normalized.last_mut()
+            && r.start <= prev.end
+        {
+            prev.end = prev.end.max(r.end);
+        } else {
+            normalized.push(r);
+        }
+    }
+    Ok(normalized)
+}
+
+fn cmd_cut(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut mode: Option<char> = None;
+    let mut list_spec = String::new();
+    let mut raw_delim: Option<String> = None;
     let mut out_delim: Option<String> = None;
-    let mut fields_spec = String::new();
-    let mut chars_spec = String::new();
-    let mut bytes_mode = false;
     let mut only_delimited = false;
     let mut complement = false;
-    let mut files = Vec::new();
+    let mut zero_term = false;
+    let mut files: Vec<String> = Vec::new();
+    let mut opts_done = false;
     let mut i = 0usize;
+
+    let mut set_mode = |m: char, spec: String| -> Result<(), String> {
+        if mode.is_some() && mode != Some(m) {
+            return Err("cut: only one type of list may be specified\n".to_string());
+        }
+        mode = Some(m);
+        list_spec = spec;
+        Ok(())
+    };
 
     while i < args.len() {
         let a = &args[i];
-        if a == "--complement" {
-            complement = true;
+        if !opts_done && a == "--" {
+            opts_done = true;
             i += 1;
-        } else if a == "--output-delimiter" && i + 1 < args.len() {
-            out_delim = Some(args[i + 1].clone());
-            i += 2;
-        } else if let Some(od) = a.strip_prefix("--output-delimiter=") {
-            out_delim = Some(od.to_string());
-            i += 1;
-        } else if a == "-d" && i + 1 < args.len() {
-            delim = args[i + 1].chars().next().unwrap_or('\t');
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-d")
-            && !rest.is_empty()
-        {
-            delim = rest.chars().next().unwrap_or('\t');
-            i += 1;
-        } else if (a == "-f" || a == "-c" || a == "-b") && i + 1 < args.len() {
-            if a == "-f" {
-                fields_spec = args[i + 1].clone();
-            } else {
-                if a == "-b" {
-                    bytes_mode = true;
-                }
-                chars_spec = args[i + 1].clone();
-            }
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-f")
-            && !rest.is_empty()
-        {
-            fields_spec = rest.to_string();
-            i += 1;
-        } else if let Some(rest) = a.strip_prefix("-c").or_else(|| a.strip_prefix("-b"))
-            && !rest.is_empty()
-        {
-            if a.starts_with("-b") {
-                bytes_mode = true;
-            }
-            chars_spec = rest.to_string();
-            i += 1;
-        } else if a == "-s" || a == "--only-delimited" {
-            only_delimited = true;
-            i += 1;
-        } else {
-            files.push(a.clone());
-            i += 1;
+            continue;
         }
+        if !opts_done && a.starts_with("--") {
+            if a == "--complement" {
+                complement = true;
+            } else if a == "--only-delimited" {
+                only_delimited = true;
+            } else if a == "--zero-terminated" {
+                zero_term = true;
+            } else if a == "--output-delimiter" {
+                if i + 1 >= args.len() {
+                    return err_out("cut: option '--output-delimiter' requires an argument\n", 2);
+                }
+                out_delim = Some(args[i + 1].clone());
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--output-delimiter=") {
+                out_delim = Some(v.to_string());
+            } else if a == "--bytes" || a == "--characters" || a == "--fields" {
+                if i + 1 >= args.len() {
+                    return err_out(&format!("cut: option '{a}' requires an argument\n"), 2);
+                }
+                let m = a.chars().nth(2).unwrap();
+                if let Err(msg) = set_mode(m, args[i + 1].clone()) {
+                    return err_out(&msg, 2);
+                }
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--bytes=") {
+                if let Err(msg) = set_mode('b', v.to_string()) {
+                    return err_out(&msg, 2);
+                }
+            } else if let Some(v) = a.strip_prefix("--characters=") {
+                if let Err(msg) = set_mode('c', v.to_string()) {
+                    return err_out(&msg, 2);
+                }
+            } else if let Some(v) = a.strip_prefix("--fields=") {
+                if let Err(msg) = set_mode('f', v.to_string()) {
+                    return err_out(&msg, 2);
+                }
+            } else if a == "--delimiter" {
+                if i + 1 >= args.len() {
+                    return err_out("cut: option '--delimiter' requires an argument\n", 2);
+                }
+                raw_delim = Some(args[i + 1].clone());
+                i += 1;
+            } else if let Some(v) = a.strip_prefix("--delimiter=") {
+                raw_delim = Some(v.to_string());
+            } else {
+                return err_out(&format!("cut: unrecognized option '{a}'\n"), 2);
+            }
+            i += 1;
+            continue;
+        }
+        if !opts_done && a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                let ch = chars[ci];
+                match ch {
+                    's' => only_delimited = true,
+                    'z' => zero_term = true,
+                    'n' => {}
+                    'b' | 'c' | 'f' | 'd' => {
+                        let val = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out(
+                                &format!("cut: option requires an argument -- '{ch}'\n"),
+                                2,
+                            );
+                        };
+                        if ch == 'd' {
+                            raw_delim = Some(val);
+                        } else if let Err(msg) = set_mode(ch, val) {
+                            return err_out(&msg, 2);
+                        }
+                        break;
+                    }
+                    _ => return err_out(&format!("cut: invalid option -- '{ch}'\n"), 2),
+                }
+                ci += 1;
+            }
+            i += 1;
+            continue;
+        }
+        files.push(a.clone());
+        i += 1;
     }
 
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "cut") {
-        Ok(t) => t,
-        Err(e) => return e,
+    let Some(active_mode) = mode else {
+        return err_out("cut: you must specify a list of bytes, characters, or fields\n", 2);
+    };
+    if active_mode != 'f' && (raw_delim.is_some() || only_delimited) {
+        return err_out("cut: an input delimiter may be specified only when operating on fields\n", 2);
+    }
+
+    let ranges = match parse_cut_ranges(&list_spec) {
+        Ok(r) => r,
+        Err((msg, code)) => return err_out(&msg, code),
     };
 
-    let parse_ranges = |spec: &str, max_len: usize, comp: bool| -> Vec<usize> {
-        let mut selected_set = BTreeSet::new();
-        for part in spec.split(',') {
-            if let Some((s, e)) = part.split_once('-') {
-                let start = if s.is_empty() {
-                    1
-                } else {
-                    s.parse::<usize>().unwrap_or(1)
-                };
-                let end = if e.is_empty() {
-                    max_len
-                } else {
-                    e.parse::<usize>().unwrap_or(max_len)
-                };
-                for idx in start..=end.min(max_len) {
-                    if idx >= 1 {
-                        selected_set.insert(idx - 1);
-                    }
-                }
-            } else if let Ok(idx) = part.parse::<usize>()
-                && idx >= 1
-                && idx <= max_len
-            {
-                selected_set.insert(idx - 1);
-            }
+    let delim_str = raw_delim.as_deref().unwrap_or("\t");
+    let separator: Vec<u8> = if delim_str.is_empty() {
+        vec![0u8]
+    } else {
+        let mut ch_iter = delim_str.chars();
+        let first_ch = ch_iter.next().unwrap();
+        if ch_iter.next().is_some() {
+            return err_out("cut: the delimiter must be a single character\n", 2);
         }
-        if comp {
-            (0..max_len).filter(|idx| !selected_set.contains(idx)).collect()
+        let code = first_ch as u32;
+        if (0xE080..=0xE0FF).contains(&code) {
+            vec![(code - 0xE000) as u8]
         } else {
-            selected_set.into_iter().collect()
+            let mut buf = [0u8; 4];
+            first_ch.encode_utf8(&mut buf).as_bytes().to_vec()
         }
     };
 
-    let join_sep = out_delim.clone().unwrap_or_else(|| delim.to_string());
-    let mut out = String::new();
-    for line in text.lines() {
-        if !chars_spec.is_empty() {
-            if bytes_mode {
-                let raw = crate::vfs::stream_string_to_bytes(line);
-                let idxs = parse_ranges(&chars_spec, raw.len(), complement);
-                let mut picked = Vec::new();
-                let mut prev_idx: Option<usize> = None;
-                for idx in idxs {
-                    if let Some(&b) = raw.get(idx) {
-                        if let (Some(prev), Some(od)) = (prev_idx, out_delim.as_ref())
-                            && idx > prev + 1
-                        {
-                            picked.extend_from_slice(od.as_bytes());
-                        }
-                        picked.push(b);
-                        prev_idx = Some(idx);
-                    }
-                }
-                out.push_str(&crate::vfs::bytes_to_stream_string(&picked));
-            } else {
-                let chs: Vec<char> = line.chars().collect();
-                let idxs = parse_ranges(&chars_spec, chs.len(), complement);
-                let mut prev_idx: Option<usize> = None;
-                for idx in idxs {
-                    if let Some(&c) = chs.get(idx) {
-                        if let (Some(prev), Some(od)) = (prev_idx, out_delim.as_ref())
-                            && idx > prev + 1
-                        {
-                            out.push_str(od);
-                        }
-                        out.push(c);
-                        prev_idx = Some(idx);
-                    }
-                }
-            }
-            out.push('\n');
+    let output_delim_bytes: Vec<u8> = match out_delim {
+        None => separator.clone(),
+        Some(ref s) if s.is_empty() => vec![0u8],
+        Some(ref s) => crate::vfs::stream_string_to_bytes(s),
+    };
+
+    let locale = env
+        .get("LC_ALL")
+        .or_else(|| env.get("LC_CTYPE"))
+        .or_else(|| env.get("LANG"))
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    let byte_selection =
+        active_mode == 'b' || (active_mode == 'c' && (locale == "C" || locale == "POSIX"));
+    let record_delim = if zero_term { 0u8 } else { b'\n' };
+    let names: Vec<String> = if files.is_empty() {
+        vec!["-".to_string()]
+    } else {
+        files
+    };
+
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut stderr = String::new();
+    let mut exit_code = 0;
+
+    let find_sep = |record: &[u8], start: usize| -> Option<usize> {
+        if separator.len() == 1 {
+            record[start..]
+                .iter()
+                .position(|&b| b == separator[0])
+                .map(|p| start + p)
         } else {
-            if !line.contains(delim) {
-                if !only_delimited {
-                    out.push_str(line);
-                    out.push('\n');
-                }
+            record[start..]
+                .windows(separator.len())
+                .position(|w| w == separator.as_slice())
+                .map(|p| start + p)
+        }
+    };
+
+    for name in &names {
+        let raw = if name == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
+        } else {
+            let path = resolve_posix_path(cwd, name);
+            if fs.is_dir(&path) {
+                stderr.push_str(&format!("cut: {name}: Is a directory\n"));
+                exit_code = 1;
                 continue;
             }
-            let parts: Vec<&str> = line.split(delim).collect();
-            let idxs = parse_ranges(&fields_spec, parts.len(), complement);
-            let selected: Vec<&str> = idxs.into_iter().filter_map(|i| parts.get(i).copied()).collect();
-            out.push_str(&selected.join(&join_sep));
-            out.push('\n');
-        }
-    }
-    ok_out(&out)
-}
-
-fn expand_tr_set(spec: &str) -> Vec<char> {
-    let mut s = spec.to_string();
-    s = s.replace("[:lower:]", "abcdefghijklmnopqrstuvwxyz");
-    s = s.replace("[:upper:]", "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    s = s.replace("[:digit:]", "0123456789");
-    s = s.replace("[:alnum:]", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789");
-    s = s.replace("[:alpha:]", "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-    s = s.replace("[:space:]", " \t\n\r\x0b\x0c");
-    let dec = decode_ansi_c_escapes(&s);
-    let chars: Vec<char> = dec.chars().collect();
-    let mut out = Vec::new();
-    let mut i = 0usize;
-    while i < chars.len() {
-        if i + 2 < chars.len() && chars[i + 1] == '-' {
-            let start = chars[i] as u32;
-            let end = chars[i + 2] as u32;
-            if start <= end {
-                for cp in start..=end {
-                    if let Some(c) = char::from_u32(cp) {
-                        out.push(c);
-                    }
+            match fs.read_file(&path) {
+                Ok(b) => b,
+                Err(e) => {
+                    stderr.push_str(&format!("cut: {name}: {e}\n"));
+                    exit_code = 1;
+                    continue;
                 }
             }
-            i += 3;
-        } else {
-            out.push(chars[i]);
-            i += 1;
+        };
+        if raw.is_empty() {
+            continue;
+        }
+        let mut records: Vec<&[u8]> = Vec::new();
+        let mut r_start = 0usize;
+        for (idx, &b) in raw.iter().enumerate() {
+            if b == record_delim {
+                records.push(&raw[r_start..idx]);
+                r_start = idx + 1;
+            }
+        }
+        if r_start < raw.len() {
+            records.push(&raw[r_start..]);
+        }
+
+        for line_bytes in records {
+            let mut cursor = 0usize;
+            let selected = |position: usize, cursor: &mut usize| -> isize {
+                while *cursor < ranges.len() && position > ranges[*cursor].end {
+                    *cursor += 1;
+                }
+                let included = *cursor < ranges.len() && position >= ranges[*cursor].start;
+                if included != complement {
+                    *cursor as isize
+                } else {
+                    -1
+                }
+            };
+
+            if active_mode == 'f' {
+                let mut boundary = find_sep(line_bytes, 0);
+                if boundary.is_none() {
+                    if only_delimited {
+                        continue;
+                    }
+                    out_bytes.extend_from_slice(line_bytes);
+                } else {
+                    let mut field = 1usize;
+                    let mut start = 0usize;
+                    let mut emitted = false;
+                    loop {
+                        if selected(field, &mut cursor) >= 0 {
+                            if emitted {
+                                out_bytes.extend_from_slice(&output_delim_bytes);
+                            }
+                            let end = boundary.unwrap_or(line_bytes.len());
+                            out_bytes.extend_from_slice(&line_bytes[start..end]);
+                            emitted = true;
+                        }
+                        field += 1;
+                        if boundary.is_none() || (!complement && cursor >= ranges.len()) {
+                            break;
+                        }
+                        start = boundary.unwrap() + separator.len();
+                        boundary = if start <= line_bytes.len() {
+                            find_sep(line_bytes, start)
+                        } else {
+                            None
+                        };
+                    }
+                }
+            } else if byte_selection {
+                let mut emitted = false;
+                let mut previous_range: isize = -1;
+                for (index, &b) in line_bytes.iter().enumerate() {
+                    let range = selected(index + 1, &mut cursor);
+                    if range >= 0 {
+                        if range != previous_range && emitted && out_delim.is_some() {
+                            out_bytes.extend_from_slice(&output_delim_bytes);
+                        }
+                        out_bytes.push(b);
+                        emitted = true;
+                    }
+                    previous_range = range;
+                }
+            } else {
+                let text = String::from_utf8_lossy(line_bytes);
+                let mut emitted = false;
+                let mut previous_range: isize = -1;
+                for (index, ch) in text.chars().enumerate() {
+                    let range = selected(index + 1, &mut cursor);
+                    if range >= 0 {
+                        if range != previous_range && emitted && out_delim.is_some() {
+                            out_bytes.extend_from_slice(&output_delim_bytes);
+                        }
+                        let mut buf = [0u8; 4];
+                        out_bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
+                        emitted = true;
+                    }
+                    previous_range = range;
+                }
+            }
+            out_bytes.push(record_delim);
         }
     }
-    out
+
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr,
+        exit_code,
+    }
+}
+
+struct TrSet {
+    bytes: Vec<u8>,
+    case_offsets: BTreeSet<usize>,
+    ends_with_class: bool,
+}
+
+fn tr_class_bytes(name: &str) -> Option<Vec<u8>> {
+    match name {
+        "lower" => Some((b'a'..=b'z').collect()),
+        "upper" => Some((b'A'..=b'Z').collect()),
+        "digit" => Some((b'0'..=b'9').collect()),
+        "space" => Some(vec![9, 10, 11, 12, 13, 32]),
+        "blank" => Some(vec![9, 32]),
+        "cntrl" => {
+            let mut v: Vec<u8> = (0..32).collect();
+            v.push(127);
+            Some(v)
+        }
+        "graph" => Some((33..=126).collect()),
+        "print" => Some((32..=126).collect()),
+        "alpha" => {
+            let mut v: Vec<u8> = (b'A'..=b'Z').collect();
+            v.extend(b'a'..=b'z');
+            Some(v)
+        }
+        "alnum" => {
+            let mut v: Vec<u8> = (b'0'..=b'9').collect();
+            v.extend(b'A'..=b'Z');
+            v.extend(b'a'..=b'z');
+            Some(v)
+        }
+        "xdigit" => {
+            let mut v: Vec<u8> = (b'0'..=b'9').collect();
+            v.extend(b'A'..=b'F');
+            v.extend(b'a'..=b'f');
+            Some(v)
+        }
+        "punct" => Some(
+            (33..=126u8)
+                .filter(|b| !b.is_ascii_alphanumeric())
+                .collect(),
+        ),
+        _ => None,
+    }
+}
+
+fn parse_tr_character_set(
+    specification: &str,
+    repeat_length: Option<usize>,
+    translating_second: bool,
+) -> Result<TrSet, (String, i32)> {
+    #[derive(Clone)]
+    struct TrToken {
+        bytes: Vec<u8>,
+        literal: bool,
+        repeat: Option<usize>,
+        class_name: Option<String>,
+    }
+
+    let read_char = |offset: usize| -> (Vec<u8>, usize, bool) {
+        let rest = &specification[offset..];
+        let mut ch_iter = rest.chars();
+        let first = ch_iter.next().unwrap();
+        if first == '\\' {
+            let start = offset + 1;
+            if start >= specification.len() {
+                return (vec![b'\\'], start, false);
+            }
+            let after = specification.as_bytes();
+            let mut end = start;
+            while end < after.len()
+                && end - start < 3
+                && (b'0'..=b'7').contains(&after[end])
+            {
+                end += 1;
+            }
+            if end > start {
+                if end - start == 3 && after[start] >= b'4' {
+                    end -= 1;
+                }
+                let val = u8::from_str_radix(&specification[start..end], 8).unwrap_or(0);
+                return (vec![val], end, false);
+            }
+            let next_ch = specification[start..].chars().next().unwrap();
+            let next_end = start + next_ch.len_utf8();
+            let ctrl = match next_ch {
+                'a' => Some(7u8),
+                'b' => Some(8u8),
+                'f' => Some(12u8),
+                'n' => Some(10u8),
+                'r' => Some(13u8),
+                't' => Some(9u8),
+                'v' => Some(11u8),
+                '\\' => Some(92u8),
+                _ => None,
+            };
+            if let Some(b) = ctrl {
+                return (vec![b], next_end, false);
+            }
+            let code = next_ch as u32;
+            let bytes = if (0xE080..=0xE0FF).contains(&code) {
+                vec![(code - 0xE000) as u8]
+            } else {
+                let mut buf = [0u8; 4];
+                next_ch.encode_utf8(&mut buf).as_bytes().to_vec()
+            };
+            return (bytes, next_end, false);
+        }
+        let end = offset + first.len_utf8();
+        let code = first as u32;
+        let bytes = if (0xE080..=0xE0FF).contains(&code) {
+            vec![(code - 0xE000) as u8]
+        } else {
+            let mut buf = [0u8; 4];
+            first.encode_utf8(&mut buf).as_bytes().to_vec()
+        };
+        (bytes, end, first == '-')
+    };
+
+    let mut tokens: Vec<TrToken> = Vec::new();
+    let mut offset = 0usize;
+    while offset < specification.len() {
+        if specification[offset..].starts_with("[:")
+            && let Some(rel_end) = specification[offset + 2..].find(":]")
+        {
+            let class_end = offset + 2 + rel_end;
+            let first_bracket = specification[offset + 2..].find(']').map(|p| offset + 2 + p);
+            if first_bracket == Some(class_end + 1) {
+                let name = &specification[offset + 2..class_end];
+                let Some(bytes) = tr_class_bytes(name) else {
+                    return Err((format!("tr: unknown character class '{name}'\n"), 2));
+                };
+                if translating_second && name != "upper" && name != "lower" {
+                    return Err((
+                        "tr: when translating, the only character classes that may appear in string2 are 'upper' and 'lower'\n".to_string(),
+                        1,
+                    ));
+                }
+                tokens.push(TrToken {
+                    bytes,
+                    literal: false,
+                    repeat: None,
+                    class_name: Some(name.to_string()),
+                });
+                offset = class_end + 2;
+                continue;
+            }
+        }
+        if specification.as_bytes()[offset] == b'[' && offset + 1 < specification.len() {
+            let equivalent = specification.as_bytes()[offset + 1] == b'=';
+            let char_offset = offset + 1;
+            let (ch_bytes, ch_end, _) = read_char(char_offset);
+            if equivalent && offset + 2 < specification.len() {
+                let (mem_bytes, mem_end, _) = read_char(offset + 2);
+                if specification[mem_end..].starts_with("=]") {
+                    if mem_bytes.len() != 1 {
+                        return Err(("tr: equivalence expression requires one byte\n".to_string(), 2));
+                    }
+                    tokens.push(TrToken {
+                        bytes: mem_bytes,
+                        literal: false,
+                        repeat: None,
+                        class_name: None,
+                    });
+                    offset = mem_end + 2;
+                    continue;
+                }
+            }
+            if ch_end < specification.len()
+                && specification.as_bytes()[ch_end] == b'*'
+                && let Some(rel_close) = specification[ch_end + 1..].find(']')
+            {
+                let end = ch_end + 1 + rel_close;
+                let count_str = &specification[ch_end + 1..end];
+                let is_octal = count_str.starts_with('0');
+                let valid_digits = count_str.bytes().all(|b| {
+                    if is_octal {
+                        (b'0'..=b'7').contains(&b)
+                    } else {
+                        b.is_ascii_digit()
+                    }
+                });
+                if ch_bytes.len() != 1 || !valid_digits {
+                    return Err(("tr: invalid repeat expression\n".to_string(), 2));
+                }
+                let parsed_repeat = if count_str.is_empty() {
+                    0usize
+                } else {
+                    usize::from_str_radix(count_str, if is_octal { 8 } else { 10 }).unwrap_or(0)
+                };
+                if parsed_repeat == 0 && repeat_length.is_none() {
+                    return Err((
+                        "tr: the [c*] construct may appear in string2 only when translating\n"
+                            .to_string(),
+                        2,
+                    ));
+                }
+                let repeat = if parsed_repeat > 0 {
+                    parsed_repeat.min(repeat_length.map(|r| r.max(1)).unwrap_or(65536))
+                } else {
+                    0
+                };
+                tokens.push(TrToken {
+                    bytes: ch_bytes,
+                    literal: false,
+                    repeat: Some(repeat),
+                    class_name: None,
+                });
+                offset = end + 1;
+                continue;
+            }
+        }
+        let (ch_bytes, ch_end, ch_lit) = read_char(offset);
+        tokens.push(TrToken {
+            bytes: ch_bytes,
+            literal: ch_lit,
+            repeat: None,
+            class_name: None,
+        });
+        offset = ch_end;
+    }
+
+    let mut expanded: Vec<TrToken> = Vec::new();
+    let mut idx = 0usize;
+    while idx < tokens.len() {
+        let current = &tokens[idx];
+        if current.repeat.is_none()
+            && current.bytes.len() == 1
+            && idx + 2 < tokens.len()
+            && tokens[idx + 1].literal
+            && tokens[idx + 2].repeat.is_none()
+            && tokens[idx + 2].bytes.len() == 1
+        {
+            let first = current.bytes[0];
+            let last = tokens[idx + 2].bytes[0];
+            if last < first {
+                return Err(("tr: range endpoints are in reverse order\n".to_string(), 2));
+            }
+            expanded.push(TrToken {
+                bytes: (first..=last).collect(),
+                literal: false,
+                repeat: None,
+                class_name: None,
+            });
+            idx += 3;
+        } else {
+            expanded.push(current.clone());
+            idx += 1;
+        }
+    }
+
+    let fills = expanded.iter().filter(|t| t.repeat == Some(0)).count();
+    if fills > 1 {
+        return Err(("tr: only one indefinite repeat expression is allowed\n".to_string(), 2));
+    }
+    let length: usize = expanded
+        .iter()
+        .map(|t| t.repeat.unwrap_or(t.bytes.len()))
+        .sum();
+    let mut result: Vec<u8> = Vec::new();
+    let mut case_offsets: BTreeSet<usize> = BTreeSet::new();
+    for token in &expanded {
+        if matches!(token.class_name.as_deref(), Some("upper") | Some("lower")) {
+            case_offsets.insert(result.len());
+        }
+        match token.repeat {
+            None => result.extend_from_slice(&token.bytes),
+            Some(rep) => {
+                let count = if rep > 0 {
+                    rep
+                } else {
+                    repeat_length.unwrap_or(0).saturating_sub(length)
+                };
+                result.extend(std::iter::repeat_n(token.bytes[0], count));
+            }
+        }
+    }
+    let ends_with_class = expanded
+        .last()
+        .and_then(|t| t.class_name.as_ref())
+        .is_some();
+    Ok(TrSet {
+        bytes: result,
+        case_offsets,
+        ends_with_class,
+    })
 }
 
 fn cmd_tr(args: &[String], stdin: &str) -> BuiltinOutcome {
-    let mut delete = false;
-    let mut squeeze = false;
+    let mut deleting = false;
+    let mut squeezing = false;
     let mut complement = false;
     let mut truncate_set1 = false;
-    let mut sets = Vec::new();
+    let mut operands: Vec<String> = Vec::new();
+    let mut opts_done = false;
     for a in args {
-        if a.starts_with('-') && a.len() > 1 {
-            for ch in a[1..].chars() {
-                match ch {
-                    'd' => delete = true,
-                    's' => squeeze = true,
-                    'c' | 'C' => complement = true,
-                    't' => truncate_set1 = true,
-                    _ => {}
-                }
-            }
-        } else {
-            sets.push(a.clone());
-        }
-    }
-    let mut set1 = sets.first().map(|s| expand_tr_set(s)).unwrap_or_default();
-    let set2 = sets.get(1).map(|s| expand_tr_set(s)).unwrap_or_default();
-    if truncate_set1 && !set2.is_empty() && set1.len() > set2.len() {
-        set1.truncate(set2.len());
-    }
-
-    let in_set1 = |c: char| -> bool {
-        let contains = set1.contains(&c);
-        if complement { !contains } else { contains }
-    };
-
-    let mut out = String::with_capacity(stdin.len());
-    let mut prev_out: Option<char> = None;
-
-    for c in stdin.chars() {
-        if delete && in_set1(c) {
+        if !opts_done && a == "--" {
+            opts_done = true;
             continue;
         }
-        let mapped = if !delete && !set2.is_empty() && in_set1(c) {
-            if complement {
-                *set2.last().unwrap()
-            } else if let Some(pos) = set1.iter().position(|&x| x == c) {
-                *set2.get(pos).unwrap_or_else(|| set2.last().unwrap())
-            } else {
-                c
+        if !opts_done && a.starts_with("--") {
+            match a.as_str() {
+                "--delete" => deleting = true,
+                "--squeeze-repeats" => squeezing = true,
+                "--complement" => complement = true,
+                "--truncate-set1" => truncate_set1 = true,
+                _ => return err_out(&format!("tr: unrecognized option '{a}'\n"), 2),
             }
-        } else {
-            c
-        };
+            continue;
+        }
+        if !opts_done && a.starts_with('-') && a.len() > 1 {
+            for ch in a[1..].chars() {
+                match ch {
+                    'd' => deleting = true,
+                    's' => squeezing = true,
+                    'c' | 'C' => complement = true,
+                    't' => truncate_set1 = true,
+                    _ => return err_out(&format!("tr: invalid option -- '{ch}'\n"), 2),
+                }
+            }
+            continue;
+        }
+        operands.push(a.clone());
+    }
 
-        if squeeze {
-            let sq_target = if set2.is_empty() {
-                in_set1(mapped)
-            } else {
-                set2.contains(&mapped)
-            };
-            if sq_target && prev_out == Some(mapped) {
-                continue;
+    let translating = !deleting && operands.len() == 2;
+    if operands.is_empty()
+        || operands.len() > 2
+        || (!deleting && !squeezing && operands.len() != 2)
+        || (deleting && !squeezing && operands.len() != 1)
+        || (deleting && squeezing && operands.len() != 2)
+    {
+        return err_out("tr: invalid number of character sets\n", 2);
+    }
+
+    let first_set = match parse_tr_character_set(&operands[0], None, false) {
+        Ok(s) => s,
+        Err((msg, code)) => return err_out(&msg, code),
+    };
+    let mut first = first_set.bytes;
+    let mut first_case_offsets = first_set.case_offsets;
+    if complement {
+        let selected: BTreeSet<u8> = first.into_iter().collect();
+        first = (0..=255u8).filter(|b| !selected.contains(b)).collect();
+        first_case_offsets.clear();
+    }
+
+    let second_set = if let Some(op2) = operands.get(1) {
+        match parse_tr_character_set(
+            op2,
+            if translating { Some(first.len()) } else { None },
+            translating,
+        ) {
+            Ok(s) => s,
+            Err((msg, code)) => return err_out(&msg, code),
+        }
+    } else {
+        TrSet {
+            bytes: Vec::new(),
+            case_offsets: BTreeSet::new(),
+            ends_with_class: false,
+        }
+    };
+    let second = second_set.bytes;
+
+    if translating {
+        if !truncate_set1 && second_set.ends_with_class && first.len() > second.len() {
+            return err_out(
+                "tr: when translating with string1 longer than string2, the latter string must not end with a character class\n",
+                1,
+            );
+        }
+        for offset in &second_set.case_offsets {
+            if !first_case_offsets.contains(offset) {
+                return err_out("tr: misaligned [:upper:] and/or [:lower:] construct\n", 1);
             }
         }
-        prev_out = Some(mapped);
-        out.push(mapped);
     }
-    ok_out(&out)
+    if translating && truncate_set1 && first.len() > second.len() {
+        first.truncate(second.len());
+    }
+    if translating && second.is_empty() && !truncate_set1 {
+        return err_out("tr: when not truncating set1, string2 must be non-empty\n", 2);
+    }
+
+    let mut mapping = [0u8; 256];
+    for i in 0..256 {
+        mapping[i] = i as u8;
+    }
+    if translating && !second.is_empty() {
+        for (idx, &b) in first.iter().enumerate() {
+            mapping[b as usize] = second[idx.min(second.len() - 1)];
+        }
+    }
+    let mut removed = [false; 256];
+    if deleting {
+        for &b in &first {
+            removed[b as usize] = true;
+        }
+    }
+    let mut squeezed = [false; 256];
+    if squeezing {
+        let sq_source = if operands.len() == 2 { &second } else { &first };
+        for &b in sq_source {
+            squeezed[b as usize] = true;
+        }
+    }
+
+    let raw_in = crate::vfs::stream_string_to_bytes(stdin);
+    let mut out_bytes: Vec<u8> = Vec::with_capacity(raw_in.len());
+    let mut prev_out: Option<u8> = None;
+    for &b in &raw_in {
+        if deleting && removed[b as usize] {
+            continue;
+        }
+        let mapped = mapping[b as usize];
+        if squeezing && squeezed[mapped as usize] && prev_out == Some(mapped) {
+            continue;
+        }
+        prev_out = Some(mapped);
+        out_bytes.push(mapped);
+    }
+    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
 }
 
 fn validate_nl_style(s: &str) -> Result<(), String> {
@@ -8730,275 +10528,742 @@ fn cmd_install(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
     }
 }
 
-fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut delim: Option<char> = None;
-    let mut f1_idx = 1usize;
-    let mut f2_idx = 1usize;
-    let mut a1 = false;
-    let mut a2 = false;
-    let mut v1 = false;
-    let mut v2 = false;
-    let mut ignore_case = false;
-    let mut header = false;
-    let mut auto_format = false;
-    let mut empty_str = String::new();
-    let mut out_format: Vec<String> = Vec::new();
-    let mut files: Vec<String> = Vec::new();
-
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
-        if a == "--header" {
-            header = true;
-            i += 1;
-        } else if a == "-t" && i + 1 < args.len() {
-            delim = args[i + 1].chars().next();
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-t")
-            && !rest.is_empty()
-        {
-            delim = rest.chars().next();
-            i += 1;
-        } else if a == "-1" && i + 1 < args.len() {
-            f1_idx = args[i + 1].parse::<usize>().unwrap_or(1).max(1);
-            i += 2;
-        } else if a == "-2" && i + 1 < args.len() {
-            f2_idx = args[i + 1].parse::<usize>().unwrap_or(1).max(1);
-            i += 2;
-        } else if a == "-j" && i + 1 < args.len() {
-            let j = args[i + 1].parse::<usize>().unwrap_or(1).max(1);
-            f1_idx = j;
-            f2_idx = j;
-            i += 2;
-        } else if a == "-a" && i + 1 < args.len() {
-            if args[i + 1] == "1" {
-                a1 = true;
-            } else if args[i + 1] == "2" {
-                a2 = true;
-            }
-            i += 2;
-        } else if a == "-a1" {
-            a1 = true;
-            i += 1;
-        } else if a == "-a2" {
-            a2 = true;
-            i += 1;
-        } else if a == "-v" && i + 1 < args.len() {
-            if args[i + 1] == "1" {
-                v1 = true;
-            } else if args[i + 1] == "2" {
-                v2 = true;
-            }
-            i += 2;
-        } else if a == "-v1" {
-            v1 = true;
-            i += 1;
-        } else if a == "-v2" {
-            v2 = true;
-            i += 1;
-        } else if a == "-e" && i + 1 < args.len() {
-            empty_str = args[i + 1].clone();
-            i += 2;
-        } else if a == "-o" && i + 1 < args.len() {
-            if args[i + 1] == "auto" {
-                auto_format = true;
-            } else {
-                for spec in args[i + 1].split(|c: char| c == ',' || c.is_whitespace()).filter(|s| !s.is_empty()) {
-                    out_format.push(spec.to_string());
-                }
-            }
-            i += 2;
-        } else if a == "-i" || a == "--ignore-case" {
-            ignore_case = true;
-            i += 1;
-        } else {
-            files.push(a.clone());
-            i += 1;
+fn compare_join_keys(left: &[u8], right: &[u8], fold: bool) -> std::cmp::Ordering {
+    for idx in 0..left.len().min(right.len()) {
+        let mut a = left[idx];
+        let mut b = right[idx];
+        if fold {
+            a = a.to_ascii_lowercase();
+            b = b.to_ascii_lowercase();
+        }
+        if a != b {
+            return a.cmp(&b);
         }
     }
+    left.len().cmp(&right.len())
+}
 
-    if files.len() < 2 {
+fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    #[derive(Clone, Copy, PartialEq, Eq)]
+    enum OrderMode {
+        Default,
+        Check,
+        None,
+    }
+    #[derive(Clone)]
+    enum JoinFormat {
+        Default,
+        Auto,
+        Explicit(Vec<(usize, usize)>),
+    }
+
+    let mut files: Vec<String> = Vec::new();
+    let mut fields = [0usize, 0usize];
+    let mut explicit_fields: [Option<usize>; 2] = [None, None];
+    let mut unpaired = [false, false];
+    let mut paired = true;
+    let mut separator = b'\n';
+    let mut delimiter: Option<u8> = None;
+    let mut delimiter_choice: Option<i32> = None;
+    let mut whole = false;
+    let mut replacement: Vec<u8> = Vec::new();
+    let mut explicit_replacement: Option<String> = None;
+    let mut format = JoinFormat::Default;
+    let mut fold = false;
+    let mut header = false;
+    let mut order_mode = OrderMode::Default;
+    let mut literal = false;
+    let mut field_candidates: Vec<Option<u8>> = Vec::new();
+    let mut pending_fields = [0usize, 0usize];
+    let mut next_field_candidate: Option<u8> = None;
+
+    let parse_pos_num = |val: &str, label: &str| -> Result<usize, String> {
+        let s = val.strip_prefix('+').unwrap_or(val);
+        if s.is_empty() || !s.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(format!("join: invalid {label}: '{val}'\n"));
+        }
+        let n = s
+            .parse::<usize>()
+            .map_err(|_| format!("join: invalid {label}: '{val}'\n"))?;
+        if n < 1 {
+            return Err(format!("join: invalid {label}: '{val}'\n"));
+        }
+        Ok(n)
+    };
+
+    let set_field = |file_idx: usize,
+                     field: usize,
+                     explicit_fields: &mut [Option<usize>; 2],
+                     fields: &mut [usize; 2]|
+     -> Result<(), String> {
+        if let Some(existing) = explicit_fields[file_idx]
+            && existing != field
+        {
+            return Err(format!(
+                "join: incompatible join fields {}, {}\n",
+                existing, field
+            ));
+        }
+        explicit_fields[file_idx] = Some(field);
+        fields[file_idx] = field;
+        Ok(())
+    };
+
+    let mut apply_flag = |flag: char,
+                          value: &str,
+                          explicit_fields: &mut [Option<usize>; 2],
+                          fields: &mut [usize; 2]|
+     -> Result<(), String> {
+        match flag {
+            '1' | '2' | 'j' => {
+                let f = parse_pos_num(value, "field")? - 1;
+                if flag != '2' {
+                    set_field(0, f, explicit_fields, fields)?;
+                }
+                if flag != '1' {
+                    set_field(1, f, explicit_fields, fields)?;
+                }
+            }
+            'a' | 'v' => {
+                if value != "1" && value != "2" {
+                    return Err(format!("join: invalid file number: '{value}'\n"));
+                }
+                let f_idx = if value == "1" { 0 } else { 1 };
+                unpaired[f_idx] = true;
+                if flag == 'v' {
+                    paired = false;
+                }
+            }
+            'e' => {
+                if let Some(ref ex) = explicit_replacement
+                    && ex != value
+                {
+                    return Err("join: conflicting empty-field replacement strings\n".to_string());
+                }
+                explicit_replacement = Some(value.to_string());
+                replacement = crate::vfs::stream_string_to_bytes(value);
+            }
+            't' => {
+                let bytes = crate::vfs::stream_string_to_bytes(value);
+                let choice = if value == "\\0" {
+                    0
+                } else if !bytes.is_empty() {
+                    bytes[0] as i32
+                } else {
+                    -1
+                };
+                if let Some(prev_c) = delimiter_choice
+                    && prev_c != choice
+                {
+                    return Err("join: incompatible field delimiters\n".to_string());
+                }
+                delimiter_choice = Some(choice);
+                if value == "\\0" {
+                    delimiter = Some(0u8);
+                    whole = false;
+                } else if bytes.is_empty() {
+                    whole = true;
+                    delimiter = None;
+                } else if bytes.len() != 1 {
+                    return Err("join: multi-character tab\n".to_string());
+                } else {
+                    delimiter = Some(bytes[0]);
+                    whole = false;
+                }
+            }
+            'o' => {
+                if value == "auto" {
+                    if matches!(format, JoinFormat::Explicit(_)) {
+                        return Err("join: conflicting output format specifications\n".to_string());
+                    }
+                    format = JoinFormat::Auto;
+                } else {
+                    if matches!(format, JoinFormat::Auto) {
+                        return Err("join: conflicting output format specifications\n".to_string());
+                    }
+                    let mut specs: Vec<(usize, usize)> = Vec::new();
+                    for part in value
+                        .split(|c: char| c == ',' || c == ' ' || c == '\t')
+                        .filter(|s| !s.is_empty())
+                    {
+                        if part == "0" {
+                            specs.push((0, 0));
+                        } else if let Some((f_s, idx_s)) = part.split_once('.')
+                            && (f_s == "1" || f_s == "2")
+                        {
+                            let f_num = if f_s == "1" { 1usize } else { 2usize };
+                            let col = parse_pos_num(idx_s, "output field")? - 1;
+                            specs.push((f_num, col));
+                        } else {
+                            return Err(format!("join: invalid field specifier: '{part}'\n"));
+                        }
+                    }
+                    if specs.is_empty() {
+                        return Err(format!("join: invalid field specifier: '{value}'\n"));
+                    }
+                    match format {
+                        JoinFormat::Explicit(ref mut v) => v.extend(specs),
+                        _ => format = JoinFormat::Explicit(specs),
+                    }
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    };
+
+    let mut index = 0usize;
+    while index < args.len() {
+        let token = &args[index];
+        let candidate = next_field_candidate.take();
+        if literal || token == "-" || !token.starts_with('-') {
+            if files.len() == 2 {
+                let Some(pos) = field_candidates.iter().position(|c| c.is_some()) else {
+                    return err_out("join: extra operand\n", 1);
+                };
+                let f_num = field_candidates[pos].unwrap();
+                let flag_ch = if f_num == 1 { '1' } else { '2' };
+                let f_val = files.remove(pos);
+                field_candidates.remove(pos);
+                if let Err(msg) = apply_flag(flag_ch, &f_val, &mut explicit_fields, &mut fields) {
+                    return err_out(&msg, 1);
+                }
+                pending_fields[(f_num - 1) as usize] -= 1;
+            }
+            files.push(token.clone());
+            field_candidates.push(if literal { None } else { candidate });
+            index += 1;
+            continue;
+        }
+        if token == "--" {
+            literal = true;
+            index += 1;
+            continue;
+        }
+        if token.starts_with("--") {
+            match token.as_str() {
+                "--header" => header = true,
+                "--check-order" => order_mode = OrderMode::Check,
+                "--nocheck-order" => order_mode = OrderMode::None,
+                "--ignore-case" => fold = true,
+                "--zero-terminated" => separator = 0u8,
+                _ => return err_out(&format!("join: unrecognized option '{token}'\n"), 1),
+            }
+            index += 1;
+            continue;
+        }
+
+        let chars: Vec<(usize, char)> = token[1..].char_indices().collect();
+        let mut ci = 0usize;
+        while ci < chars.len() {
+            let (byte_pos, flag) = chars[ci];
+            match flag {
+                'i' => {
+                    fold = true;
+                    ci += 1;
+                }
+                'z' => {
+                    separator = 0u8;
+                    ci += 1;
+                }
+                '1' | '2' | 'j' | 'a' | 'e' | 'v' | 't' | 'o' => {
+                    let rest = &token[1 + byte_pos + flag.len_utf8()..];
+                    if flag == 'j' && (rest == "1" || rest == "2") && byte_pos == 0 {
+                        let d = if rest == "1" { 1u8 } else { 2u8 };
+                        pending_fields[(d - 1) as usize] += 1;
+                        next_field_candidate = Some(d);
+                        break;
+                    }
+                    let val = if !rest.is_empty() || ci + 1 < chars.len() {
+                        rest.to_string()
+                    } else if index + 1 < args.len() {
+                        index += 1;
+                        args[index].clone()
+                    } else {
+                        return err_out(
+                            &format!("join: option requires an argument -- '{flag}'\n"),
+                            1,
+                        );
+                    };
+                    if let Err(msg) = apply_flag(flag, &val, &mut explicit_fields, &mut fields) {
+                        return err_out(&msg, 1);
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("join: invalid option -- '{flag}'\n"), 1),
+            }
+        }
+        index += 1;
+    }
+
+    if files.len() != 2 {
         return err_out("join: missing operand\n", 1);
     }
-
-    let read_one = |f: &str| -> Result<String, String> {
-        if f == "-" {
-            Ok(stdin.to_string())
-        } else {
-            let p = resolve_posix_path(cwd, f);
-            fs.read_file(&p)
-                .map(|b| String::from_utf8_lossy(&b).into_owned())
-        }
-    };
-
-    let c1 = match read_one(&files[0]) {
-        Ok(s) => s,
-        Err(e) => return err_out(&format!("join: {}: {e}\n", files[0]), 1),
-    };
-    let c2 = match read_one(&files[1]) {
-        Ok(s) => s,
-        Err(e) => return err_out(&format!("join: {}: {e}\n", files[1]), 1),
-    };
-
-    let split_fields = |line: &str| -> Vec<String> {
-        if let Some(d) = delim {
-            line.split(d).map(|s| s.to_string()).collect()
-        } else {
-            line.split_whitespace().map(|s| s.to_string()).collect()
-        }
-    };
-
-    let rows1: Vec<Vec<String>> = c1.lines().filter(|l| !l.is_empty()).map(split_fields).collect();
-    let rows2: Vec<Vec<String>> = c2.lines().filter(|l| !l.is_empty()).map(split_fields).collect();
-    let sep = delim.map(|c| c.to_string()).unwrap_or_else(|| " ".to_string());
-
-    if auto_format && out_format.is_empty() {
-        out_format.push("0".to_string());
-        let cols1 = rows1.first().map(|r| r.len()).unwrap_or(1);
-        let cols2 = rows2.first().map(|r| r.len()).unwrap_or(1);
-        for c in 1..=cols1 {
-            if c != f1_idx {
-                out_format.push(format!("1.{c}"));
-            }
-        }
-        for c in 1..=cols2 {
-            if c != f2_idx {
-                out_format.push(format!("2.{c}"));
-            }
-        }
+    if pending_fields[0] > 0
+        && let Err(msg) = apply_flag('j', "1", &mut explicit_fields, &mut fields)
+    {
+        return err_out(&msg, 1);
+    }
+    if pending_fields[1] > 0
+        && let Err(msg) = apply_flag('j', "2", &mut explicit_fields, &mut fields)
+    {
+        return err_out(&msg, 1);
+    }
+    if files[0] == "-" && files[1] == "-" {
+        return err_out("join: both files cannot be standard input\n", 1);
     }
 
-    let norm_key = |k: &str| -> String {
-        if ignore_case {
-            k.to_lowercase()
+    let read_file_records = |name: &str| -> Result<Vec<Vec<u8>>, String> {
+        let raw = if name == "-" {
+            crate::vfs::stream_string_to_bytes(stdin)
         } else {
-            k.to_string()
+            let path = resolve_posix_path(cwd, name);
+            if fs.is_dir(&path) {
+                return Err(format!("join: {name}: Is a directory\n"));
+            }
+            fs.read_file(&path)
+                .map_err(|e| format!("join: {name}: {e}\n"))?
+        };
+        if raw.is_empty() {
+            return Ok(Vec::new());
+        }
+        let mut recs: Vec<Vec<u8>> = Vec::new();
+        let mut start = 0usize;
+        for (idx, &b) in raw.iter().enumerate() {
+            if b == separator {
+                recs.push(raw[start..idx].to_vec());
+                start = idx + 1;
+            }
+        }
+        if start < raw.len() {
+            recs.push(raw[start..].to_vec());
+        }
+        Ok(recs)
+    };
+
+    let raw_rows0 = match read_file_records(&files[0]) {
+        Ok(r) => r,
+        Err(msg) => return err_out(&msg, 1),
+    };
+    let raw_rows1 = match read_file_records(&files[1]) {
+        Ok(r) => r,
+        Err(msg) => return err_out(&msg, 1),
+    };
+    let raw_sources = [raw_rows0, raw_rows1];
+
+    #[derive(Clone)]
+    struct JoinRow {
+        fields: Vec<Vec<u8>>,
+        key: Vec<u8>,
+    }
+
+    let split_row = |bytes: &[u8], file_idx: usize| -> JoinRow {
+        let row_fields: Vec<Vec<u8>> = if whole {
+            vec![bytes.to_vec()]
+        } else if let Some(d) = delimiter {
+            let mut v: Vec<Vec<u8>> = Vec::new();
+            let mut start = 0usize;
+            for (idx, &b) in bytes.iter().enumerate() {
+                if b == d {
+                    v.push(bytes[start..idx].to_vec());
+                    start = idx + 1;
+                }
+            }
+            v.push(bytes[start..].to_vec());
+            v
+        } else {
+            let is_blank =
+                |b: u8| -> bool { b == b' ' || b == b'\t' || (separator == 0 && b == b'\n') };
+            let mut v: Vec<Vec<u8>> = Vec::new();
+            let mut offset = 0usize;
+            while offset < bytes.len() {
+                while offset < bytes.len() && is_blank(bytes[offset]) {
+                    offset += 1;
+                }
+                let start = offset;
+                while offset < bytes.len() && !is_blank(bytes[offset]) {
+                    offset += 1;
+                }
+                if offset > start {
+                    v.push(bytes[start..offset].to_vec());
+                }
+            }
+            if separator == 0 && !v.is_empty() && is_blank(*bytes.last().unwrap()) {
+                v.push(Vec::new());
+            }
+            v
+        };
+        let key = row_fields
+            .get(fields[file_idx])
+            .cloned()
+            .unwrap_or_default();
+        JoinRow {
+            fields: row_fields,
+            key,
         }
     };
 
-    let format_row = |key: &str, r1: Option<&[String]>, r2: Option<&[String]>| -> String {
-        if !out_format.is_empty() {
-            let parts: Vec<String> = out_format
-                .iter()
-                .map(|spec| {
-                    if spec == "0" {
-                        key.to_string()
-                    } else if let Some(rest) = spec.strip_prefix("1.") {
-                        let idx = rest.parse::<usize>().unwrap_or(1).saturating_sub(1);
-                        r1.and_then(|r| r.get(idx))
-                            .filter(|s| !s.is_empty())
-                            .cloned()
-                            .unwrap_or_else(|| empty_str.clone())
-                    } else if let Some(rest) = spec.strip_prefix("2.") {
-                        let idx = rest.parse::<usize>().unwrap_or(1).saturating_sub(1);
-                        r2.and_then(|r| r.get(idx))
-                            .filter(|s| !s.is_empty())
-                            .cloned()
-                            .unwrap_or_else(|| empty_str.clone())
+    let mut cursors = [0usize, 0usize];
+    let mut prev_keys: [Option<Vec<u8>>; 2] = [None, None];
+    let mut order_unpaired = false;
+    let mut order_failed = false;
+    let mut order_warned = [false, false];
+    let mut order_pending = [false, false];
+    let mut stderr = String::new();
+
+    let report_disorder = |file_idx: usize,
+                           order_mode: OrderMode,
+                           order_warned: &mut [bool; 2],
+                           order_failed: &mut bool,
+                           stderr: &mut String|
+     -> Result<(), ()> {
+        let msg = format!("join: file {} is not in sorted order\n", file_idx + 1);
+        if order_mode == OrderMode::Check {
+            stderr.push_str(&msg);
+            *order_failed = true;
+            return Err(());
+        }
+        if !order_warned[file_idx] {
+            order_warned[file_idx] = true;
+            *order_failed = true;
+            stderr.push_str(&msg);
+        }
+        Ok(())
+    };
+
+    let mark_unpaired = |order_unpaired: &mut bool,
+                             order_pending: &mut [bool; 2],
+                             order_warned: &mut [bool; 2],
+                             order_failed: &mut bool,
+                             stderr: &mut String|
+     -> Result<(), ()> {
+        if *order_unpaired {
+            return Ok(());
+        }
+        *order_unpaired = true;
+        for f_idx in 0..2 {
+            if order_pending[f_idx] {
+                order_pending[f_idx] = false;
+                report_disorder(f_idx, order_mode, order_warned, order_failed, stderr)?;
+            }
+        }
+        Ok(())
+    };
+
+    let next_row = |file_idx: usize,
+                        reset: bool,
+                        cursors: &mut [usize; 2],
+                        prev_keys: &mut [Option<Vec<u8>>; 2],
+                        order_unpaired: &bool,
+                        order_pending: &mut [bool; 2],
+                        order_warned: &mut [bool; 2],
+                        order_failed: &mut bool,
+                        stderr: &mut String|
+     -> Result<Option<JoinRow>, ()> {
+        let c = cursors[file_idx];
+        if c >= raw_sources[file_idx].len() {
+            return Ok(None);
+        }
+        cursors[file_idx] += 1;
+        let row = split_row(&raw_sources[file_idx][c], file_idx);
+        if !reset && order_mode != OrderMode::None && !order_warned[file_idx] {
+            let disordered = prev_keys[file_idx]
+                .as_ref()
+                .is_some_and(|pk| compare_join_keys(pk, &row.key, fold) == std::cmp::Ordering::Greater);
+            if order_mode == OrderMode::Default && !*order_unpaired {
+                order_pending[file_idx] = disordered;
+            } else if disordered {
+                report_disorder(file_idx, order_mode, order_warned, order_failed, stderr)?;
+            }
+        }
+        prev_keys[file_idx] = Some(row.key.clone());
+        Ok(Some(row))
+    };
+
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let out_delim = delimiter.unwrap_or(b' ');
+
+    let r0 = match next_row(
+        0,
+        false,
+        &mut cursors,
+        &mut prev_keys,
+        &order_unpaired,
+        &mut order_pending,
+        &mut order_warned,
+        &mut order_failed,
+        &mut stderr,
+    ) {
+        Ok(v) => v,
+        Err(()) => {
+            return BuiltinOutcome {
+                stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                stderr,
+                exit_code: 1,
+            };
+        }
+    };
+    let r1 = match next_row(
+        1,
+        false,
+        &mut cursors,
+        &mut prev_keys,
+        &order_unpaired,
+        &mut order_pending,
+        &mut order_warned,
+        &mut order_failed,
+        &mut stderr,
+    ) {
+        Ok(v) => v,
+        Err(()) => {
+            return BuiltinOutcome {
+                stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                stderr,
+                exit_code: 1,
+            };
+        }
+    };
+
+    let mut rows: [Option<JoinRow>; 2] = [r0, r1];
+    let counts = [
+        rows[0].as_ref().map(|r| r.fields.len()).unwrap_or(0),
+        rows[1].as_ref().map(|r| r.fields.len()).unwrap_or(0),
+    ];
+
+    let emit_row = |out: &mut Vec<u8>, left: Option<&JoinRow>, right: Option<&JoinRow>| {
+        let pair = [left, right];
+        let key: &[u8] = left
+            .or(right)
+            .map(|r| r.key.as_slice())
+            .unwrap_or(&[]);
+        let mut selected_fields: Vec<&[u8]> = Vec::new();
+        match format {
+            JoinFormat::Explicit(ref specs) => {
+                for &(f_num, col_idx) in specs {
+                    if f_num == 0 {
+                        selected_fields.push(key);
                     } else {
-                        empty_str.clone()
+                        let val = pair[f_num - 1]
+                            .and_then(|r| r.fields.get(col_idx))
+                            .map(|v| v.as_slice())
+                            .unwrap_or(&[]);
+                        selected_fields.push(val);
                     }
-                })
-                .collect();
-            return parts.join(&sep);
-        }
-        let mut parts = vec![key.to_string()];
-        if let Some(r) = r1 {
-            for (idx, val) in r.iter().enumerate() {
-                if idx + 1 != f1_idx {
-                    parts.push(if val.is_empty() && !empty_str.is_empty() { empty_str.clone() } else { val.clone() });
                 }
             }
-        }
-        if let Some(r) = r2 {
-            for (idx, val) in r.iter().enumerate() {
-                if idx + 1 != f2_idx {
-                    parts.push(if val.is_empty() && !empty_str.is_empty() { empty_str.clone() } else { val.clone() });
-                }
-            }
-        }
-        parts.join(&sep)
-    };
-
-    let mut out = String::new();
-    let mut i1 = 0usize;
-    let mut i2 = 0usize;
-
-    if header && !rows1.is_empty() && !rows2.is_empty() {
-        let hk = rows1[0].get(f1_idx - 1).map(|s| s.as_str()).unwrap_or("");
-        out.push_str(&format_row(hk, Some(&rows1[0]), Some(&rows2[0])));
-        out.push('\n');
-        i1 = 1;
-        i2 = 1;
-    }
-
-    while i1 < rows1.len() && i2 < rows2.len() {
-        let k1_raw = rows1[i1].get(f1_idx - 1).map(|s| s.as_str()).unwrap_or("");
-        let k2_raw = rows2[i2].get(f2_idx - 1).map(|s| s.as_str()).unwrap_or("");
-        let k1 = norm_key(k1_raw);
-        let k2 = norm_key(k2_raw);
-
-        match k1.cmp(&k2) {
-            std::cmp::Ordering::Less => {
-                if a1 || v1 {
-                    out.push_str(&format_row(k1_raw, Some(&rows1[i1]), None));
-                    out.push('\n');
-                }
-                i1 += 1;
-            }
-            std::cmp::Ordering::Greater => {
-                if a2 || v2 {
-                    out.push_str(&format_row(k2_raw, None, Some(&rows2[i2])));
-                    out.push('\n');
-                }
-                i2 += 1;
-            }
-            std::cmp::Ordering::Equal => {
-                let mut end1 = i1 + 1;
-                while end1 < rows1.len()
-                    && norm_key(rows1[end1].get(f1_idx - 1).map(|s| s.as_str()).unwrap_or("")) == k1
-                {
-                    end1 += 1;
-                }
-                let mut end2 = i2 + 1;
-                while end2 < rows2.len()
-                    && norm_key(rows2[end2].get(f2_idx - 1).map(|s| s.as_str()).unwrap_or("")) == k2
-                {
-                    end2 += 1;
-                }
-                if !v1 && !v2 {
-                    for r1 in &rows1[i1..end1] {
-                        let key_str = r1.get(f1_idx - 1).map(|s| s.as_str()).unwrap_or("");
-                        for r2 in &rows2[i2..end2] {
-                            out.push_str(&format_row(key_str, Some(r1), Some(r2)));
-                            out.push('\n');
+            JoinFormat::Auto | JoinFormat::Default => {
+                selected_fields.push(key);
+                for file_idx in 0..2 {
+                    let count = if matches!(format, JoinFormat::Auto) {
+                        counts[file_idx]
+                    } else {
+                        pair[file_idx].map(|r| r.fields.len()).unwrap_or(0)
+                    };
+                    for idx in 0..count {
+                        if idx != fields[file_idx] {
+                            let val = pair[file_idx]
+                                .and_then(|r| r.fields.get(idx))
+                                .map(|v| v.as_slice())
+                                .unwrap_or(&[]);
+                            selected_fields.push(val);
                         }
                     }
                 }
-                i1 = end1;
-                i2 = end2;
+            }
+        }
+        for (idx, field_bytes) in selected_fields.iter().enumerate() {
+            if idx > 0 {
+                out.push(out_delim);
+            }
+            if field_bytes.is_empty() {
+                out.extend_from_slice(&replacement);
+            } else {
+                out.extend_from_slice(field_bytes);
+            }
+        }
+        out.push(separator);
+    };
+
+    if header && (rows[0].is_some() || rows[1].is_some()) {
+        emit_row(&mut out_bytes, rows[0].as_ref(), rows[1].as_ref());
+        for f_idx in 0..2 {
+            if rows[f_idx].is_some() {
+                match next_row(
+                    f_idx,
+                    true,
+                    &mut cursors,
+                    &mut prev_keys,
+                    &order_unpaired,
+                    &mut order_pending,
+                    &mut order_warned,
+                    &mut order_failed,
+                    &mut stderr,
+                ) {
+                    Ok(v) => rows[f_idx] = v,
+                    Err(()) => {
+                        return BuiltinOutcome {
+                            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                            stderr,
+                            exit_code: 1,
+                        };
+                    }
+                }
             }
         }
     }
 
-    while i1 < rows1.len() {
-        if a1 || v1 {
-            let k1_raw = rows1[i1].get(f1_idx - 1).map(|s| s.as_str()).unwrap_or("");
-            out.push_str(&format_row(k1_raw, Some(&rows1[i1]), None));
-            out.push('\n');
+    while rows[0].is_some() && rows[1].is_some() {
+        let cmp = compare_join_keys(
+            &rows[0].as_ref().unwrap().key,
+            &rows[1].as_ref().unwrap().key,
+            fold,
+        );
+        if cmp != std::cmp::Ordering::Equal {
+            if mark_unpaired(
+                &mut order_unpaired,
+                &mut order_pending,
+                &mut order_warned,
+                &mut order_failed,
+                &mut stderr,
+            )
+            .is_err()
+            {
+                return BuiltinOutcome {
+                    stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                    stderr,
+                    exit_code: 1,
+                };
+            }
+            let file_idx = if cmp == std::cmp::Ordering::Less { 0 } else { 1 };
+            if unpaired[file_idx] {
+                emit_row(
+                    &mut out_bytes,
+                    if file_idx == 0 { rows[0].as_ref() } else { None },
+                    if file_idx == 1 { rows[1].as_ref() } else { None },
+                );
+            }
+            match next_row(
+                file_idx,
+                false,
+                &mut cursors,
+                &mut prev_keys,
+                &order_unpaired,
+                &mut order_pending,
+                &mut order_warned,
+                &mut order_failed,
+                &mut stderr,
+            ) {
+                Ok(v) => rows[file_idx] = v,
+                Err(()) => {
+                    return BuiltinOutcome {
+                        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                        stderr,
+                        exit_code: 1,
+                    };
+                }
+            }
+            continue;
         }
-        i1 += 1;
-    }
-    while i2 < rows2.len() {
-        if a2 || v2 {
-            let k2_raw = rows2[i2].get(f2_idx - 1).map(|s| s.as_str()).unwrap_or("");
-            out.push_str(&format_row(k2_raw, None, Some(&rows2[i2])));
-            out.push('\n');
+
+        let key = rows[0].as_ref().unwrap().key.clone();
+        let mut groups: [Vec<JoinRow>; 2] = [Vec::new(), Vec::new()];
+        for file_idx in 0..2 {
+            while rows[file_idx]
+                .as_ref()
+                .is_some_and(|r| compare_join_keys(&r.key, &key, fold) == std::cmp::Ordering::Equal)
+            {
+                groups[file_idx].push(rows[file_idx].take().unwrap());
+                match next_row(
+                    file_idx,
+                    false,
+                    &mut cursors,
+                    &mut prev_keys,
+                    &order_unpaired,
+                    &mut order_pending,
+                    &mut order_warned,
+                    &mut order_failed,
+                    &mut stderr,
+                ) {
+                    Ok(v) => rows[file_idx] = v,
+                    Err(()) => {
+                        return BuiltinOutcome {
+                            stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                            stderr,
+                            exit_code: 1,
+                        };
+                    }
+                }
+            }
         }
-        i2 += 1;
+        if paired {
+            for left in &groups[0] {
+                for right in &groups[1] {
+                    emit_row(&mut out_bytes, Some(left), Some(right));
+                }
+            }
+        }
     }
 
-    ok_out(&out)
+    for file_idx in 0..2 {
+        if !unpaired[file_idx] && order_mode == OrderMode::None {
+            continue;
+        }
+        if rows[file_idx].is_some()
+            && mark_unpaired(
+                &mut order_unpaired,
+                &mut order_pending,
+                &mut order_warned,
+                &mut order_failed,
+                &mut stderr,
+            )
+            .is_err()
+        {
+            return BuiltinOutcome {
+                stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                stderr,
+                exit_code: 1,
+            };
+        }
+        while let Some(ref cur) = rows[file_idx] {
+            if unpaired[file_idx] {
+                emit_row(
+                    &mut out_bytes,
+                    if file_idx == 0 { Some(cur) } else { None },
+                    if file_idx == 1 { Some(cur) } else { None },
+                );
+            }
+            match next_row(
+                file_idx,
+                false,
+                &mut cursors,
+                &mut prev_keys,
+                &order_unpaired,
+                &mut order_pending,
+                &mut order_warned,
+                &mut order_failed,
+                &mut stderr,
+            ) {
+                Ok(v) => rows[file_idx] = v,
+                Err(()) => {
+                    return BuiltinOutcome {
+                        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+                        stderr,
+                        exit_code: 1,
+                    };
+                }
+            }
+        }
+    }
+
+    if order_failed {
+        stderr.push_str("join: input is not in sorted order\n");
+    }
+
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr,
+        exit_code: if order_failed { 1 } else { 0 },
+    }
 }
 
 fn cmd_getopt(args: &[String]) -> BuiltinOutcome {

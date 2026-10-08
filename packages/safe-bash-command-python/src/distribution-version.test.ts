@@ -40,7 +40,7 @@ if mode=='custom-read':dist.read_text=lambda name:'Version: instance\n'
 from functools import cache
 namespace={'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values}
 tree=ast.parse(source)
-selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_version','_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_safe_metadata_header_code','_safe_parse_metadata')]
+selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_version','_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_SafeMetadataHeaders','_safe_metadata_header_code','_safe_parse_metadata')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<version>','exec'),namespace)
 def capture(read):
  with warnings.catch_warnings(record=True) as messages:

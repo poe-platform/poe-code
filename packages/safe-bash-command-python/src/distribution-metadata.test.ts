@@ -3,12 +3,19 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 
-for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path','nested','delivery-status','header-storage-error','header-parse-error','header-init-error'])test('native distribution metadata stages text before parsing with bounded reads: '+mode,()=>{
+for(const adapted of [false,true])for(const mode of ['large','fallback','missing','malformed','permission','decode-error','close-error','custom','custom-instance','storage-error','legacy','long-line','custom-path','nested','delivery-status','header-storage-error','header-parse-error','header-init-error','parsed-header-storage-error'])test('native distribution metadata stages text before parsing with bounded reads: '+mode+'; adapted='+adapted,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast,io,json,pathlib,sys,email.parser,email.feedparser,importlib.metadata as metadata
 from unittest.mock import patch
 import tempfile
-source,mode=json.load(sys.stdin)
+source,mode,adapted,fixture=json.load(sys.stdin)
+if adapted:
+ import types
+ native={"__package__":"importlib.metadata"}
+ exec(compile(fixture,'<pinned metadata message>','exec'),native)
+ native['_adapters']=types.SimpleNamespace(Message=native['Message'])
+ metadata._adapters=native['_adapters']
+ metadata.Distribution.metadata=property(native['metadata'])
 tracking=False;opened=[];stores=[]
 class Values:
  def __init__(self):
@@ -55,12 +62,12 @@ if mode=='custom-instance':dist.read_text=lambda name:'Name: instance\n'
 from functools import cache
 namespace={'_safe_installation_root':'/caller','_safe_cache':cache,'_safe_metadata':metadata,'_SafeValues':Values}
 tree=ast.parse(source)
-selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_safe_metadata_header_code','_safe_parse_metadata')]
+selected=[node for node in tree.body if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in ('_safe_distribution_metadata','_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_SafeMetadataHeaders','_safe_metadata_header_code','_safe_parse_metadata')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<metadata>','exec'),namespace)
 assert namespace['_safe_metadata_header_code']().co_firstlineno==email.feedparser.FeedParser._parsegen.__code__.co_firstlineno,'native parser traceback lines changed'
 def describe(value):
  payload=value.get_payload() if hasattr(value,'get_payload') else None
- return (list(value.items()),[describe(part) for part in payload] if isinstance(payload,list) else payload,[(type(error).__name__,str(error)) for error in getattr(value,'defects',[])])
+ return ([(key,[describe(part) for part in val] if isinstance(val,list) else val) for key,val in value.items()],[describe(part) for part in payload] if isinstance(payload,list) else payload,[(type(error).__name__,str(error)) for error in getattr(value,'defects',[])])
 native_parse=email.parser.Parser.parse
 def parse(self,*args,**kwargs):
  assert all(file.closed for file in opened),'parser started before source closure'
@@ -70,11 +77,17 @@ class HeaderFile(io.StringIO):
  def write(self,value):
   assert len(value)<=98307
   if mode=='header-storage-error':raise OSError('header storage denied')
+  if mode=='parsed-header-storage-error' and self is header_files[0]:raise OSError('parsed header storage denied')
   return super().write(value)
 def header_file(**kwargs):
  assert kwargs['dir']=='/caller'
  if mode=='header-init-error':raise OSError('header initialization denied')
  value=HeaderFile();header_files.append(value);return value
+native_close=email.feedparser.FeedParser.close
+def close_parser(self):
+ value=native_close(self)
+ if tracking:assert not isinstance(value._headers,list) or not value._headers,'native parser accumulated parsed header pairs'
+ return value
 native_headers=email.feedparser.FeedParser._parse_headers
 def parse_headers(self,lines):
  if tracking:
@@ -82,24 +95,24 @@ def parse_headers(self,lines):
   if mode=='header-parse-error':raise OSError('header parse denied')
  assert all(file.closed for file in opened),'parser started before source closure'
  return native_headers(self,lines)
-with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Path,'open',open_file),patch.object(email.parser.Parser,'parse',parse),patch.object(email.feedparser.FeedParser,'_parse_headers',parse_headers):
+with patch.object(tempfile,'TemporaryFile',header_file),patch.object(pathlib.Path,'open',open_file),patch.object(email.parser.Parser,'parse',parse),patch.object(email.feedparser.FeedParser,'_parse_headers',parse_headers),patch.object(email.feedparser.FeedParser,'close',close_parser):
  failure=None
  try:expected=describe(dist.metadata)
  except Exception as error:failure=(type(error),str(error))
  tracking=not mode.startswith('custom')
  try:actual=describe(namespace.get('_safe_distribution_metadata',lambda value:value.metadata)(dist))
  except Exception as error:
-  if mode in ('storage-error','header-storage-error','header-parse-error','header-init-error'):
-   expected_error={'storage-error':'storage denied','header-storage-error':'header storage denied','header-parse-error':'header parse denied','header-init-error':'header initialization denied'}[mode]
+  if mode in ('storage-error','header-storage-error','header-parse-error','header-init-error','parsed-header-storage-error'):
+   expected_error={'storage-error':'storage denied','header-storage-error':'header storage denied','header-parse-error':'header parse denied','header-init-error':'header initialization denied','parsed-header-storage-error':'parsed header storage denied'}[mode]
    assert (type(error),str(error))==(OSError,expected_error)
   else:assert failure==(type(error),str(error)),(failure,type(error),str(error))
  else:
   assert failure is None
   assert actual==expected
-  assert mode not in ('storage-error','header-storage-error','header-parse-error','header-init-error'),'caller storage was bypassed'
+  assert mode not in ('storage-error','header-storage-error','header-parse-error','header-init-error','parsed-header-storage-error'),'caller storage was bypassed'
 assert all(file.closed for file in opened+header_files)
 assert all(store.closed for store in stores)
 if mode in ('large','fallback','malformed'):assert stores
-`],{input:JSON.stringify([readFileSync(new URL('./package-program.py',import.meta.url),'utf8'),mode]),encoding:'utf8',timeout:5000});
+`],{input:JSON.stringify([readFileSync(new URL('./package-program.py',import.meta.url),'utf8'),mode,adapted,readFileSync(new URL('./fixtures/pinned-metadata-message.py',import.meta.url),'utf8')]),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

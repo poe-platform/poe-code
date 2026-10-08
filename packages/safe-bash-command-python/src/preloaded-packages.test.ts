@@ -105,7 +105,7 @@ import tempfile
 source,mode=json.load(sys.stdin)
 tree=ast.parse(source)
 end=next(i for i,node in enumerate(tree.body) if isinstance(node,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='_safe_preloaded' for t in node.targets))
-names=('_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_safe_metadata_header_code','_safe_parse_metadata','_safe_distribution_metadata','_SafePreloaded')
+names=('_SafeMetadataText','_safe_read_metadata_text','_SafeMetadataLines','_SafeMetadataHeaders','_safe_metadata_header_code','_safe_parse_metadata','_safe_distribution_metadata','_SafePreloaded')
 body=[node for node in tree.body[:end+1] if isinstance(node,(ast.FunctionDef,ast.ClassDef)) and node.name in names or node is tree.body[end]]
 stores=[];opened=[];events=[]
 class Values:

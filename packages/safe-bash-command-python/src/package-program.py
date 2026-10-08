@@ -190,6 +190,20 @@ class _SafeMetadataLines:
     if not isinstance(value, str) or len(value) > 8192:raise ValueError('Invalid metadata header storage')
     parts.append(value)
    yield ''.join(parts)
+class _SafeMetadataHeaders:
+ def __init__(self, lifetime):
+  self.lines = _SafeMetadataLines(lifetime)
+  self.reading = False
+ def append(self, pair):
+  if self.reading:
+   self.lines.file.seek(0, 2)
+   self.reading = False
+  for value in pair:self.lines.append(value)
+ def __len__(self):return len(self.lines) // 2
+ def __iter__(self):
+  self.reading = True
+  lines = iter(self.lines)
+  for name in lines:yield name, next(lines)
 from functools import cache as _safe_cache
 @_safe_cache
 def _safe_metadata_header_code():
@@ -219,7 +233,10 @@ def _safe_parse_metadata(text, lifetime):
  def parse_headers(self, lines):
   try:return FeedParser._parse_headers(self, lines)
   finally:lines.lifetime.close()
- parser = type('_SafeMetadataFeedParser', (FeedParser,), {'_parsegen': parsegen, '_parse_headers': parse_headers})()
+ def new_message(self):
+  FeedParser._new_message(self)
+  if len(self._msgstack) == 1:self._cur._headers = _SafeMetadataHeaders(lifetime)
+ parser = type('_SafeMetadataFeedParser', (FeedParser,), {'_parsegen': parsegen, '_parse_headers': parse_headers, '_new_message': new_message})()
  while True:
   chunk = text.read(8192)
   if not chunk:break
@@ -238,7 +255,10 @@ def _safe_distribution_metadata(distribution):
    return _safe_parse_metadata(text, lifetime) if isinstance(text, _SafeMetadataText) else email.message_from_string(text)
   native = _safe_metadata.Distribution.metadata.fget
   metadata = FunctionType(native.__code__, dict(native.__globals__, email=SimpleNamespace(message_from_string=parse)), native.__name__, native.__defaults__, native.__closure__)
-  return metadata(view)
+  result = metadata(view)
+  # Older Python returns the parser message without a repairing metadata adapter.
+  if isinstance(result._headers, _SafeMetadataHeaders):result._headers = list(result._headers)
+  return result
 
 def _safe_distribution_version(distribution):
  from types import SimpleNamespace
@@ -414,6 +434,12 @@ class _SafeResolutions(_SafeNames):
    for requirement in requirements:output.write(json.dumps(requirement) + '\n')
   return False
 
+def _safe_header_items(headers):
+ from email.message import Message
+ adapter = getattr(getattr(_safe_metadata, '_adapters', None), 'Message', Message)
+ if type(headers) in (Message, adapter) and type(headers).raw_items is Message.raw_items and 'raw_items' not in vars(headers):
+  yield from headers._headers
+ else:yield from headers.raw_items()
 def _safe_header_values(headers, name):
  from email.message import Message
  from email.policy import compat32
@@ -422,7 +448,7 @@ def _safe_header_values(headers, name):
   yield from headers.get_all(name, ())
   return
  name = name.lower()
- for key, value in headers.raw_items():
+ for key, value in _safe_header_items(headers):
   if key.lower() == name:yield headers.policy.header_fetch_parse(key, value)
 def _safe_distribution_requires(distribution):
  from contextlib import ExitStack
@@ -433,7 +459,7 @@ def _safe_distribution_requires(distribution):
   return
  headers = _safe_distribution_metadata(distribution)
  # Non-string headers retain the native object-valued compatibility path.
- if any(type(value) is not str or _has_surrogates(value) for key, value in headers.raw_items()):
+ if any(type(value) is not str or _has_surrogates(value) for key, value in _safe_header_items(headers)):
   yield from distribution.requires or ()
   return
  with ExitStack() as lifetime:

@@ -3,7 +3,7 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 
-for(const mode of ['large','empty','egg','decode-error','early','custom','custom-instance','storage-error','empty-header','folded','surrogate','metadata-lifetime'])test('native distribution requirements preserve order and fallback with caller backing: '+mode,()=>{
+for(const mode of ['large','empty','egg','decode-error','early','custom','custom-instance','storage-error','empty-header','folded','surrogate','metadata-lifetime','header-copy'])test('native distribution requirements preserve order and fallback with caller backing: '+mode,()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast,email.message,importlib.metadata as metadata,json,pathlib,sys,weakref
 from unittest.mock import patch
@@ -20,7 +20,7 @@ class Values:
  def close(self):self.closed=True
 namespace={'_safe_distribution_metadata':lambda distribution:distribution.metadata,'_safe_metadata':metadata,'_SafeValues':Values}
 tree=ast.parse(source)
-selected=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name in ('_safe_header_values','_safe_distribution_requires')]
+selected=[node for node in tree.body if isinstance(node,ast.FunctionDef) and node.name in ('_safe_header_items','_safe_header_values','_safe_distribution_requires')]
 exec(compile(ast.Module(body=selected,type_ignores=[]),'<requirements>','exec'),namespace)
 files={'METADATA':'Name: fixture\n'+''.join('Requires-Dist: package-'+str(i)+'; python_version >= "3"\n' for i in range(1024))}
 if mode in ('empty','egg'):files={'METADATA':'Name: fixture\n','requires.txt':'base>=1\n[extra:python_version >= "3"]\nchild @ https://example.test/wheel.whl\n'} if mode=='egg' else {'METADATA':'Name: fixture\n'}
@@ -36,8 +36,12 @@ class Custom(metadata.PathDistribution):
 dist=Custom(pathlib.Path('/fixture.dist-info')) if mode=='custom' else metadata.PathDistribution(pathlib.Path('/fixture.dist-info'))
 if mode=='custom-instance':dist._read_dist_info_reqs=lambda:['instance']
 native_metadata=metadata.PathDistribution.metadata.fget
+class Headers(list):
+ def copy(self):raise AssertionError('native header snapshot copied')
 def tracked_metadata(self):
- value=native_metadata(self);references.append(weakref.ref(value));return value
+ value=native_metadata(self)
+ if tracking and mode=='header-copy':value._headers=Headers(value._headers)
+ references.append(weakref.ref(value));return value
 original=email.message.Message.get_all
 def get_all(self,name,*args):
  if tracking:assert sum(key.lower()==name.lower() for key,value in self.raw_items())<=2,'native header list materialized'

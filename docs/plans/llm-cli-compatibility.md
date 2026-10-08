@@ -617,3 +617,19 @@ message bodies still buffer; the native metadata memory gate remains incomplete.
 The corrected artifact passes 810 Python tests, 142 installed public tests, all
 three affected actual Worker cases under unchanged timeouts, all 17 unchanged
 bundle profiles, lint, types and the scoped workspace build.
+
+
+The parser's intermediate root header pairs now use the buffered caller-file
+store until the native metadata adapter finishes. The adapter's repaired result
+retains its native behavior; older Python versions without that adapter receive
+a native header list before backing storage closes. Nested-message headers remain
+on their native compatibility path. Standard internal header scans now read the
+existing collection directly rather than copying it through `raw_items()`; custom
+message types and overrides retain their own methods. Verbatim methods from the
+pinned metadata adapter qualify folded values, duplicate fields, nested payloads,
+missing data and storage/parse failures on the local oracle. Final repaired header
+collections, bodies and individual scalar values remain buffered, so this does
+not close the full native metadata memory requirement.
+The fresh artifact passes 831 Python tests, 142 installed public tests, all three
+affected actual Worker cases under unchanged timeouts, all 17 unchanged bundle
+profiles, lint, types and the scoped workspace build.

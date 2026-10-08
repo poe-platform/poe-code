@@ -85,3 +85,74 @@ test('cancelling a staged manifest preserves prior bytes and retires staging',as
  assert.deepEqual(await store.get('shared',{signal:new AbortController().signal}),before);
  assert.equal((await backing.readdir('/manifests')).length,1);
 });
+
+
+test('file manifest structured restore bypasses buffered reads and preserves JSON semantics',async()=>{
+ const fs=new MemoryFileSystem(),signal=new AbortController().signal;
+ const store=createPythonPackageFileManifestStore({fs,directory:'/manifests'});
+ let reads=0;
+ const shared={...store,get(){assert.fail('buffered manifest read');},async getSnapshot(...args:Parameters<NonNullable<typeof store.getSnapshot>>){reads++;return store.getSnapshot(...args);}};
+ const env=createPythonPackageEnvironment({manifestStore:shared,scope:'shared'}),context={fs,cwd:'/',signal};
+ const first=await env.prepare(context);
+ const snapshot={version:3 as const,installed:['fixture==1'],records:[['fixture','x'.repeat(131072)+'\ud800😀','',[],[],null] as const]};
+ try{
+  await env.dispatch('package-commit',[first.session,snapshot],context);
+  const restored=await env.prepare(context);
+  try{assert.deepEqual(restored.records,snapshot.records);assert.deepEqual(restored.restore,snapshot.installed);}
+  finally{await env.finish(restored);}
+  assert.equal(reads,2);
+ }finally{await env.finish(first);await env.dispose();}
+});
+
+test('structured file reads enforce byte budgets and close retained files on invalid JSON',async()=>{
+ const backing=new MemoryFileSystem(),signal=new AbortController().signal;let opened=0,closed=0;
+ const fs=new Proxy(backing,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{const file=await target.openReadFile(...args);opened++;return {...file,async close(){closed++;await file.close();}};};
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const store=createPythonPackageFileManifestStore({fs,directory:'/manifests'}),options={signal};
+ await store.compareAndSet('scope',undefined,new TextEncoder().encode('["'+ 'x'.repeat(65536)+'"'),options);
+ await assert.rejects(store.getSnapshot('scope',{signal,maxBytes:2}),/maxManifestBytes/);
+ assert.equal(opened,0);
+ await assert.rejects(store.getSnapshot('scope',{signal,maxBytes:Infinity}));
+ assert.equal(opened,1);assert.equal(closed,1);
+});
+
+
+test('structured file reads close retained handles when cancelled during decoding',async()=>{
+ const backing=new MemoryFileSystem(),controller=new AbortController(),reason=new Error('cancel read');let armed=false,reads=0,closed=0;
+ const fs=new Proxy(backing,{get(target,key){
+  if(key==='openReadFile')return async(...args:Parameters<typeof target.openReadFile>)=>{
+   const file=await target.openReadFile(...args);
+   return {...file,async read(...args:Parameters<typeof file.read>){const bytes=await file.read(...args);if(armed&&++reads===2)controller.abort(reason);return bytes;},async close(){closed++;await file.close();}};
+  };
+  const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
+ }});
+ const store=createPythonPackageFileManifestStore({fs,directory:'/manifests'}),signal=controller.signal;
+ await store.compareAndSet('scope',undefined,new TextEncoder().encode('["fixture==1"]'),{signal});armed=true;
+ await assert.rejects(store.getSnapshot('scope',{signal,maxBytes:Infinity}),error=>error===reason);
+ assert.equal(reads,2);assert.equal(closed,1);
+});
+
+test('environment rejects malformed structured snapshots instead of restoring an empty environment',async()=>{
+ const fs=new MemoryFileSystem(),signal=new AbortController().signal;
+ const store=createPythonPackageFileManifestStore({fs,directory:'/manifests'});
+ for(const value of [undefined,null,{},true]){
+  const env=createPythonPackageEnvironment({scope:'shared',manifestStore:{...store,async getSnapshot(){return {revision:'version',value};},get(){assert.fail('buffered read fallback');}}});
+  try{await assert.rejects(env.prepare({fs,cwd:'/',signal}),/Invalid Python package environment manifest/);}
+  finally{await env.dispose();}
+ }
+});
+
+
+test('structured restore captures its revision before asynchronous requirement preparation',async()=>{
+ const context={fs:new MemoryFileSystem(),cwd:'/',signal:new AbortController().signal};
+ const snapshot={revision:'original',value:{version:1,installed:[]}};
+ const env=createPythonPackageEnvironment({scope:'shared',manifestStore:{
+  get(){assert.fail('buffered read');},async getSnapshot(){return snapshot;},
+  async compareAndSet(_scope,revision){assert.equal(revision,'original');return true;},
+ },async prepareRequirements(requirements){await Promise.resolve();snapshot.revision='later';return requirements;}});
+ const start=await env.prepare(context);
+ try{await env.dispatch('package-commit',[start.session,[]],context);}
+ finally{await env.finish(start);await env.dispose();}
+});

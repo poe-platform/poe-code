@@ -10,7 +10,7 @@ import type { FileSystem } from "safe-bash-contracts/filesystem";
 import { resolvePath as resolve, dirname, basename } from "safe-bash-contracts/path";
 import type { HttpTransport, NetworkAuthorizer } from "safe-bash-network-engine/types";
 import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
-import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifest, type PythonPackageManifestStore, type PythonInstalledSnapshot, type PythonPackageRecord } from './manifest.js';
+import { readPackageManifest, PythonPackageConflictError, type PythonPackageManifestStore, type PythonInstalledSnapshot, type PythonPackageRecord } from './manifest.js';
 import { createPythonPackageCache, pythonPackageRuntimeKey as runtimeKey, type PythonPackageCache } from './cache.js';
 
 export type { PythonPackageCache } from './cache.js';
@@ -278,20 +278,21 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },
   });
   const manifestCache = directory ? cache : defaultCache;
-  let snapshot: PythonPackageManifest | undefined;
+  const structured=manifestStore?.getSnapshot;
+  let snapshot: {revision:string;bytes?:Uint8Array;value?:unknown} | undefined;
   if(manifestStore) {
-   try { snapshot=await manifestStore.get(manifestKey,context); }
+   try { snapshot=await (structured?structured.call(manifestStore,manifestKey,{signal,maxBytes:maxManifestBytes}):manifestStore.get(manifestKey,context)); }
    catch(error) { signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
   }
   signal.throwIfAborted();
-  if(snapshot!==undefined && (typeof snapshot!=='object' || snapshot===null || typeof snapshot.revision!=='string' || !snapshot.revision || snapshot.revision.length>1024 || !(snapshot.bytes instanceof Uint8Array))) throw failure('Invalid Python package manifest snapshot');
+  if(snapshot!==undefined && (typeof snapshot!=='object' || !snapshot || typeof snapshot.revision!=='string' || !snapshot.revision || snapshot.revision.length>1024 || !structured&&!(snapshot.bytes instanceof Uint8Array))) throw failure('Invalid Python package manifest snapshot');
   const manifestRevision = snapshot?.revision;
   const stored = manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
   signal.throwIfAborted();
   checkManifest(stored);
   const manifest = stored === undefined ? '' : digest(stored);
   let previous: unknown;
-  try { previous = stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
+  try { previous = structured ? (snapshot?snapshot.value:[]) : stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
   const saved = readPackageManifest(previous);
   if (!saved) throw failure('Invalid Python package environment manifest');
   const legacy = Array.isArray(previous);

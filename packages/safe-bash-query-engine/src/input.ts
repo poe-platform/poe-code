@@ -10,9 +10,9 @@ export class JqParseError extends JqError {
   constructor(readonly detail: string, readonly offset: number, readonly line = 1, readonly column = offset, readonly located = true) { super(detail); }
   diagnostic(): string { return this.located ? `${this.detail} at line ${this.line}, column ${this.column}` : this.detail; }
 }
-export function decodeUtf8(bytes: string, budget: Budget, fatal: boolean | "surrogatepass" = false, points?: number[]): string {
+export function decodeUtf8(bytes: string, budget: Budget, fatal: boolean | "surrogatepass" | "javascript" = false, points?: number[]): string {
   budget.step(Math.ceil(bytes.length / 1024));
-  if (fatal === true && !points) return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(encodeLatin1(bytes));
+  if ((fatal === true || fatal === "javascript") && !points) return new TextDecoder("utf-8", { fatal: fatal === true, ignoreBOM: true }).decode(encodeLatin1(bytes));
   let ascii = true;
   for (let index = 0; index < bytes.length; index++) {
     if ((index & 1023) === 0) budget.signal.throwIfAborted();
@@ -75,18 +75,8 @@ function shortSliceString(bytes: Uint8Array, start: number, end: number): string
 
 /** The Python JSON scanner accepts these constants but otherwise requires JSON
  * number syntax. Preserve the existing decimal representation after admission. */
-function pythonJsonNumber(text: string): boolean {
-  if (text === "NaN" || text === "Infinity" || text === "-Infinity") return true;
-  let index = text[0] === "-" ? 1 : 0;
-  const digit = (offset: number) => { const code = text.charCodeAt(offset); return code >= 48 && code <= 57; };
-  if (text[index] === "0") index++;
-  else { if (!digit(index) || text[index] === "0") return false; while (digit(index)) index++; }
-  if (text[index] === ".") { index++; if (!digit(index)) return false; while (digit(index)) index++; }
-  if (text[index] === "e" || text[index] === "E") {
-    index++; if (text[index] === "+" || text[index] === "-") index++;
-    if (!digit(index)) return false; while (digit(index)) index++;
-  }
-  return index === text.length;
+function pythonJsonNumber(text: string, constants: boolean): boolean {
+  try { return constants && ["NaN", "Infinity", "-Infinity"].includes(text) || typeof JSON.parse(text) === "number"; } catch { return false; }
 }
 
 class JsonParser {
@@ -119,7 +109,7 @@ class JsonParser {
   private reusableInUse = false;
   constructor(private readonly budget: Budget, private readonly stream = false, line = 1, column = 0, private readonly stringChunks?: JsonInputOptions["stringChunks"], private readonly profile?: JsonInputOptions["profile"]) {
     this.line = line; this.column = column;
-    if (profile) this.bom = 3; // The Python byte transcoder already handled the BOM.
+    if (profile === "python39") this.bom = 3; // The Python byte transcoder already handled the BOM.
   }
   releaseReusable(): void {
     invalidateCachedValueMetrics(this.reusableObj);
@@ -479,8 +469,8 @@ class JsonParser {
       if (text !== pattern) this.fail("Invalid literal" + (eof ? " at EOF" : ""));
       value = pattern === "true" ? true : pattern === "false" ? false : null;
     } else {
-      if (this.profile && !pythonJsonNumber(text)) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
-      value = numericToken(text, this.budget);
+      if (this.profile && !pythonJsonNumber(text, this.profile === "python39")) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
+      value = this.profile === "javascript" ? Number(text) : numericToken(text, this.budget);
       if (this.profile && value instanceof Decimal) value = new Decimal(value.digits, value.exponent, value.negative, text, value.double);
       if (value === undefined) this.fail("Invalid numeric literal" + (eof ? " at EOF" : ""));
     }
@@ -490,7 +480,7 @@ class JsonParser {
   private string(): string {
     const points = this.stringChunks?.codePoints ? [] as number[] : undefined;
     this.stringPoints = points;
-    const decoding = this.profile === "python39" ? (points ? "surrogatepass" : true) : false;
+    const decoding = this.profile === "python39" ? (points ? "surrogatepass" : true) : this.profile ?? false;
     let fastAscii = true;
     for (let index = 0; index < this.token.length; index++) {
       const code = this.token.charCodeAt(index);
@@ -748,8 +738,8 @@ export interface JsonInputOptions {
    * ordinary leaf events. Keys and numeric tokens are bounded controls. Chunks
    * preceding a parse error are provisional; consumers must discard them. */
   readonly stringChunks?: { readonly maxControlBytes: number; readonly containers?: boolean; /** Preserve Python code points in a fourth event field: { key, points }. Requires python39. */ readonly codePoints?: boolean };
-  /** Python 3.9 JSON grammar, byte encoding detection and preserved escaped surrogates. */
-  readonly profile?: "python39";
+  /** Python byte JSON or JavaScript TextDecoder/JSON.parse semantics, as one document. */
+  readonly profile?: "python39" | "javascript";
   readonly stream?: boolean;
   readonly streamErrors?: boolean;
   readonly sequence?: boolean;
@@ -1057,10 +1047,11 @@ export function tryProcessFlatJsonChunkSync(
 }
 
 export async function* jsonValues(source: ByteSource, budget: Budget, options: JsonInputOptions = {}): AsyncGenerator<Json> {
+  const python = options.profile === "python39";
   if (options.stringChunks && (!options.stream || !Number.isSafeInteger(options.stringChunks.maxControlBytes) || options.stringChunks.maxControlBytes < 1)) {
     throw new RangeError("stringChunks requires stream and a positive maxControlBytes");
   }
-  if (options.stringChunks?.codePoints && options.profile !== "python39") throw new RangeError("codePoints requires python39");
+  if (options.stringChunks?.codePoints && !python) throw new RangeError("codePoints requires python39");
   let parser = new JsonParser(budget, options.stream, 1, 0, options.stringChunks, options.profile);
   let active = !options.sequence;
   let failed = false;
@@ -1079,7 +1070,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
   let line = 1;
   let column = 0;
   let nulTail: string | undefined;
-  const input = options.profile ? pythonJsonBytes(source, budget, options.stringChunks?.codePoints) : source;
+  const input = python ? pythonJsonBytes(source, budget, options.stringChunks?.codePoints) : source;
   const iter = (typeof (input as { tryNextSync?: unknown }).tryNextSync === "function"
     ? (input as unknown as AsyncIterator<Uint8Array>)
     : readBytes(input, budget.signal)[Symbol.asyncIterator]()) as AsyncIterator<Uint8Array> & {
@@ -1095,7 +1086,7 @@ export async function* jsonValues(source: ByteSource, budget: Budget, options: J
       if (rawChunk.byteLength === 0) { const pending = budget.ensureFreshWindow(); if (pending) await pending; }
       const pt = budget.tickSync();
       if (pt) await pt;
-      if (!options.profile) budget.inputBytes += rawChunk.byteLength;
+      if (!python) budget.inputBytes += rawChunk.byteLength;
       if (budget.inputBytes > budget.maxInputBytesSmi && budget.inputBytes > budget.limits.maxInputBytes) throw new JqLimitError("maxInputBytes");
       let fullText: string | undefined;
       let chunkOffset = 0;

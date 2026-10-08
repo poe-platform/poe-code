@@ -27,6 +27,9 @@ export interface PythonPackageManifest {
 
 export interface PythonPackageManifestStore {
   get(scope: string, options: { readonly signal: AbortSignal }): Promise<PythonPackageManifest | undefined>;
+  /** Optional incremental decoding; the returned value is validated by the environment.
+   * Enforce maxBytes on original input and retire all read handles before returning. */
+  getSnapshot?(scope: string, options: {readonly signal: AbortSignal; readonly maxBytes: number}): Promise<{readonly revision: string; readonly value: unknown} | undefined>;
   compareAndSet(scope: string, revision: string | undefined, bytes: Uint8Array, options: { readonly signal: AbortSignal }): Promise<boolean>;
   /** Optional structured publication, avoiding the environment's byte buffer.
    * The store must enforce maxBytes on the serialized representation. */

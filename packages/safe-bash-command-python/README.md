@@ -153,13 +153,17 @@ async byte source, avoiding a complete encoded manifest buffer during publicatio
 The backend must consume into private storage before atomically checking the
 revision and publishing; source failures must preserve the previous snapshot.
 The adapter enforces `maxManifestBytes` while serializing and closes failed sources.
-Existing byte-based stores remain supported. Manifest reads, installed requirement
-arrays and individual metadata records still have separate buffering costs.
+Existing byte-based stores remain supported. Stores may implement `getSnapshot`
+to decode incrementally; it must enforce `maxBytes` on the original input and
+close retained reads before returning. Installed requirement arrays and individual
+metadata records still have separate buffering costs.
 `createPythonPackageFileManifestStore({ fs, directory })` supplies a persistent
 caller-filesystem backend for this adapter. It requires retained reads, retained
 staging writers and cleanup, and guarded atomic staging publication. Writes use
 at most 64 KiB chunks; failed serialization or a stale revision leaves the prior
-manifest intact. The directory remains caller-owned after environment disposal.
+manifest intact. Restores use incremental JSON decoding without retaining the
+complete encoded file or decoded JSON text. The compatibility `get` method still
+returns bytes. The directory remains caller-owned after environment disposal.
 
 Hosts provisioning build tools can use `createPythonBuildEnvironment(options)`
 with `pythonCommands({ createExecutor, environment })`. Each build environment

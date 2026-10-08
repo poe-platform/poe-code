@@ -466,7 +466,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  artifacts.set('https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl',micropip);
  let published=false;
  const indexRequests=[];
- const manifestTransfer={chunks:0,maximum:0,commits:0};
+ const manifestTransfer={chunks:0,maximum:0,commits:0,reads:0};
  const manifestFs=new Proxy(backend,{get(target,key){
   if(key==='writeFile'||key==='readFile'||key==='appendFile')return ()=>{throw new Error('Whole manifest filesystem IO');};
   if(key==='createStagedFile')return async(...args)=>{
@@ -476,7 +476,8 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
   if(key==='publishStagedFile')return async(...args)=>{await target.publishStagedFile(...args);manifestTransfer.commits++;};
   const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
  }});
- const manifestStore=streamed?createPythonPackageFileManifestStore({fs:manifestFs,directory:'/work/manifests'}):createPythonPackageManifestStore();
+ const fileStore=streamed?createPythonPackageFileManifestStore({fs:manifestFs,directory:'/work/manifests'}):undefined;
+ const manifestStore=fileStore?{...fileStore,get(){throw new Error('Buffered manifest restore');},getSnapshot(...args){manifestTransfer.reads++;return fileStore.getSnapshot(...args);}}:createPythonPackageManifestStore();
  const configuration={scope:'replacement',manifestStore,authorize:({url})=>artifacts.has(url)||indexes.has(url),transport:async({url})=>{
   const files=indexes.get(url),bytes=files?new TextEncoder().encode(JSON.stringify({name:url.split('/').at(-2),files:published?files:files.slice(0,1)})):artifacts.get(url);
   if(files)indexRequests.push(url);

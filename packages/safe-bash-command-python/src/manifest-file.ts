@@ -1,3 +1,5 @@
+import {jsonValues} from 'safe-bash-query-engine/input';
+import {Budget,resolveJqLimits} from 'safe-bash-query-engine/limits';
 import {compareIdentity,compareFileVersion} from '@poe-code/safe-fs/runtime-core';
 import {FsError,type FileStat,type FileSystem,type FileStaging} from 'safe-bash-contracts';
 import {createBufferedOutput} from 'safe-bash-contracts/io';
@@ -9,7 +11,7 @@ import {openPythonPackageFile} from './package-file.js';
 import {createPythonPackageStreamingManifestStore} from './manifest.js';
 
 /** Persistent caller-owned manifests with native conditional publication.
- * Publication streams; the compatibility get method still returns owned bytes. */
+ * Publication and structured decoding stream; compatibility get returns owned bytes. */
 export function createPythonPackageFileManifestStore({fs,directory}:{readonly fs:FileSystem;readonly directory:string}){
  const root=resolvePath('/',directory);
  const observations=new Map<string,{revision:string;stat:FileStat}>();
@@ -17,23 +19,31 @@ export function createPythonPackageFileManifestStore({fs,directory}:{readonly fs
   if(typeof scope!=='string'||!scope)throw new TypeError('Invalid Python manifest scope');
   return resolvePath(root,bytesToHex(sha256(new TextEncoder().encode(scope)))+'.json');
  };
- return createPythonPackageStreamingManifestStore({
-  async get(scope,{signal}){
+ async function read<T>(scope:string,{signal,maxBytes=Infinity}:{signal:AbortSignal;maxBytes?:number},consume:(file:NonNullable<Awaited<ReturnType<typeof openPythonPackageFile>>>)=>Promise<T>){
+  signal.throwIfAborted();
+  let stat:FileStat;
+  try{stat=await fs.lstat(path(scope),{signal});}
+  catch(error){signal.throwIfAborted();if(error instanceof FsError&&error.code==='ENOENT'){observations.delete(scope);return undefined;}throw error;}
+  if(stat.size>maxBytes)throw new Error('Python package manifest exceeds maxManifestBytes');
+  const file=await openPythonPackageFile({fs,signal,cwd:root},path(scope),Infinity,stat);
+  if(!file)throw new Error('Python manifests require retained caller reads');
+  try{
+   const value=await consume(file);
    signal.throwIfAborted();
-   const filename=path(scope),settings={signal};
-   let stat:FileStat;
-   try{stat=await fs.lstat(filename,settings);}
-   catch(error){signal.throwIfAborted();if(error instanceof FsError&&error.code==='ENOENT'){observations.delete(scope);return undefined;}throw error;}
-   const file=await openPythonPackageFile({fs,signal,cwd:root},filename,Infinity,stat);
-   if(!file)throw new Error('Python manifests require retained caller reads');
-   try{
+   let observed=observations.get(scope);
+   if(!observed||compareIdentity(observed.stat,stat)!=='same'||!compareFileVersion(observed.stat,stat))observed={revision:crypto.randomUUID(),stat};
+   observations.set(scope,observed);
+   return {revision:observed.revision,value};
+  }finally{await file.close();}
+ }
+ const store=createPythonPackageStreamingManifestStore({
+  async get(scope,options){
+   const result=await read(scope,options,async file=>{
     const bytes=new Uint8Array(file.size);
     for(let offset=0;offset<bytes.length;){const chunk=await file.read(offset,Math.min(65536,bytes.length-offset));bytes.set(chunk,offset);offset+=chunk.length;}
-    let observed=observations.get(scope);
-    if(!observed||compareIdentity(observed.stat,stat)!=='same'||!compareFileVersion(observed.stat,stat))observed={revision:crypto.randomUUID(),stat};
-    observations.set(scope,observed);
-    return {revision:observed.revision,bytes};
-   }finally{await file.close();}
+    return bytes;
+   });
+   return result&&{revision:result.revision,bytes:result.value};
   },
   async compareAndSet(scope,expected,source,{signal}){
    signal.throwIfAborted();
@@ -65,4 +75,14 @@ export function createPythonPackageFileManifestStore({fs,directory}:{readonly fs
    }finally{try{await owned.cleanup?.remove();}finally{await owned.cleanup?.close();}}
   },
  });
+ return {...store,getSnapshot(scope:string,options:{signal:AbortSignal;maxBytes:number}){
+  return read(scope,options,async file=>{
+   const source={async *[Symbol.asyncIterator](){
+    for(let offset=0;offset<file.size;){const bytes=await file.read(offset,Math.min(65536,file.size-offset));offset+=bytes.length;yield bytes;}
+   }};
+   let value:unknown;
+   for await(const item of jsonValues(source,new Budget(resolveJqLimits({maxInputBytes:options.maxBytes}),options.signal),{profile:'javascript'}))value=item;
+   return value;
+  });
+ }};
 }

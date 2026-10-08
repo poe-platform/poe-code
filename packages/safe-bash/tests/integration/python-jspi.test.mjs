@@ -1116,8 +1116,8 @@ for(const streamed of [false,true])test('real workerd suppresses runtime depende
  }
  assert.equal(result.sdk.exitCode,0,JSON.stringify(result.sdk));
  assert.deepEqual(JSON.parse(result.sdk.stdout),reference.rows[4].versions);
- if(streamed){assert.ok(result.manifestTransfer.commits>0);assert.ok(result.manifestTransfer.chunks>=result.manifestTransfer.commits);assert.ok(result.manifestTransfer.maximum>0&&result.manifestTransfer.maximum<=65536);assert.equal(result.manifestTransfer.staging,0);}
- else assert.deepEqual(result.manifestTransfer,{chunks:0,maximum:0,commits:0});
+ if(streamed){assert.ok(result.manifestTransfer.reads>0);assert.ok(result.manifestTransfer.commits>0);assert.ok(result.manifestTransfer.chunks>=result.manifestTransfer.commits);assert.ok(result.manifestTransfer.maximum>0&&result.manifestTransfer.maximum<=65536);assert.equal(result.manifestTransfer.staging,0);}
+ else assert.deepEqual(result.manifestTransfer,{chunks:0,maximum:0,commits:0,reads:0});
  assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
  });
 

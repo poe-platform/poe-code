@@ -49,3 +49,9 @@ With `stringChunks.containers: true`, additional `[path, bracket, "open"|"close"
 events identify container types and boundaries without constructing their values.
 Numeric values in this profile retain their original token in `Decimal.text`, so
 consumers can distinguish integer IDs from floating-point IDs such as `1e0`.
+
+`profile: "javascript"` instead matches `JSON.parse(new TextDecoder().decode(bytes))`:
+one document, JavaScript numbers, replacement decoding for invalid UTF-8, and
+preserved escaped lone surrogates. It charges original input bytes and parses
+incrementally without retaining the entire JSON text. Returned objects, arrays
+and ordinary string values remain materialized unless streamed events are used.

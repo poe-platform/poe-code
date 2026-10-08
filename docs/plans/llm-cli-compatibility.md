@@ -384,3 +384,10 @@ The task owner must identify the authorized hosted workflow and ref and supply t
 isolated Poe and Joiner inputs. These have not been supplied; no workflow/ref is
 inferred from unrelated repository workflows. Implementation and local
 qualification continue independently of that hold.
+
+The caller-file manifest store now supports structured reads with incremental
+JavaScript-compatible JSON decoding through the existing query parser. Restore
+avoids the complete encoded byte buffer and JSON text while enforcing the raw
+byte budget and closing retained reads on failure or cancellation. Parsed package
+arrays, individual strings, the default manifest path and final native transport
+remain buffered; this is not the host-manifest exit criterion by itself.

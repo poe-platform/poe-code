@@ -1911,7 +1911,8 @@
             "safe-bash-command-soffice": "*",
             "safe-bash-command-pdftoppm": "*",
             "@noble/hashes": "2.4.0",
-            "safe-bash-command-tar": "*"
+            "safe-bash-command-tar": "*",
+            "safe-bash-query-engine": "*"
           },
           "portable": true
         },

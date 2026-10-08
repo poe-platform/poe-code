@@ -21476,6 +21476,7 @@ fn exec_sql_select_with_mode(
             select_part,
             &tbl.columns,
             &filtered,
+            tables,
             group_clause,
             having_clause,
             order_clause,
@@ -22246,6 +22247,7 @@ fn exec_sql_aggregate_select(
     select_part: &str,
     cols: &[String],
     rows: &[&Vec<String>],
+    tables: &BTreeMap<String, SqlTable>,
     group_clause: Option<&str>,
     having_clause: Option<&str>,
     order_clause: Option<&str>,
@@ -22273,7 +22275,7 @@ fn exec_sql_aggregate_select(
             exprs.push((trimmed.to_string(), def_alias));
         }
     }
-    let empty_tables = BTreeMap::new();
+    let empty_tables = tables;
     let groups: Vec<Vec<&Vec<String>>> = if let Some(gc) = group_clause {
         let g_specs: Vec<&str> = split_top_level_comma(gc)
             .into_iter()
@@ -22317,7 +22319,7 @@ fn exec_sql_aggregate_select(
             if eu.contains("OVER (") || eu.contains("OVER(") {
                 row_vals.push(String::new());
             } else {
-                row_vals.push(eval_sql_group_expr(e, cols, grp));
+                row_vals.push(eval_sql_group_expr(e, cols, grp, tables));
             }
         }
         if let Some(hc) = having_clause {
@@ -22334,7 +22336,7 @@ fn exec_sql_aggregate_select(
                 })
                 .collect();
             let ext_grp_refs: Vec<&Vec<String>> = ext_grp.iter().collect();
-            if !eval_sql_having(hc, &ext_cols, &ext_grp_refs) {
+            if !eval_sql_having(hc, &ext_cols, &ext_grp_refs, tables) {
                 continue;
             }
         }
@@ -22392,7 +22394,7 @@ fn exec_sql_aggregate_select(
             {
                 return out_rows[row_i].1.get(p_idx).cloned().unwrap_or_default();
             }
-            eval_sql_group_expr(key_expr, cols, &out_grps[row_i])
+            eval_sql_group_expr(key_expr, cols, &out_grps[row_i], tables)
         };
 
         let mut partitions: BTreeMap<String, Vec<usize>> = BTreeMap::new();
@@ -22535,27 +22537,54 @@ fn exec_sql_aggregate_select(
 }
 
 
-fn eval_sql_having(hc: &str, cols: &[String], grp: &[&Vec<String>]) -> bool {
+fn split_top_level_sql_cmp<'a>(s: &'a str, op: &str) -> Option<(&'a str, &'a str)> {
+    let bytes = s.as_bytes();
+    let op_bytes = op.as_bytes();
+    let mut depth = 0i32;
+    let mut in_sq = false;
+    let mut in_dq = false;
+    let mut i = 0usize;
+    while i + op_bytes.len() <= bytes.len() {
+        let b = bytes[i];
+        if b == b'\'' && !in_dq {
+            in_sq = !in_sq;
+        } else if b == b'"' && !in_sq {
+            in_dq = !in_dq;
+        } else if !in_sq && !in_dq {
+            if b == b'(' {
+                depth += 1;
+            } else if b == b')' {
+                depth -= 1;
+            } else if depth == 0 && &bytes[i..i + op_bytes.len()] == op_bytes {
+                return Some((&s[..i], &s[i + op_bytes.len()..]));
+            }
+        }
+        i += 1;
+    }
+    None
+}
+
+fn eval_sql_having(hc: &str, cols: &[String], grp: &[&Vec<String>], tables: &BTreeMap<String, SqlTable>) -> bool {
     let trimmed = hc.trim();
     if trimmed.starts_with('(') && find_matching_paren(trimmed) == Some(trimmed.len() - 1) {
-        return eval_sql_having(&trimmed[1..trimmed.len() - 1], cols, grp);
+        return eval_sql_having(&trimmed[1..trimmed.len() - 1], cols, grp, tables);
     }
     let upper = trimmed.to_ascii_uppercase();
     if let Some(or_p) = find_top_sql_bool_kw(&upper, " OR ") {
-        return eval_sql_having(&trimmed[..or_p], cols, grp)
-            || eval_sql_having(&trimmed[or_p + 4..], cols, grp);
+        return eval_sql_having(&trimmed[..or_p], cols, grp, tables)
+            || eval_sql_having(&trimmed[or_p + 4..], cols, grp, tables);
     }
     if let Some(and_p) = find_top_sql_bool_kw(&upper, " AND ") {
-        return eval_sql_having(&trimmed[..and_p], cols, grp)
-            && eval_sql_having(&trimmed[and_p + 5..], cols, grp);
+        return eval_sql_having(&trimmed[..and_p], cols, grp, tables)
+            && eval_sql_having(&trimmed[and_p + 5..], cols, grp, tables);
     }
-    if upper.starts_with("NOT ") {
-        return !eval_sql_having(&trimmed[4..], cols, grp);
+    if upper.starts_with("NOT ") && !upper.starts_with("NOT EXISTS") && !upper.contains(" NOT IN (") {
+        return !eval_sql_having(&trimmed[4..], cols, grp, tables);
     }
     for op in [">=", "<=", "!=", "<>", "=", ">", "<"] {
-        if let Some((lhs, rhs)) = trimmed.split_once(op) {
-            let lv = eval_sql_group_expr(lhs.trim(), cols, grp);
-            let rv = eval_sql_group_expr(rhs.trim(), cols, grp);
+        if let Some((lhs, rhs)) = split_top_level_sql_cmp(trimmed, op) {
+            let lv = eval_sql_group_expr(lhs.trim(), cols, grp, tables);
+            let rv = eval_sql_group_expr(rhs.trim(), cols, grp, tables);
             let ord = match (lv.parse::<f64>(), rv.parse::<f64>()) {
                 (Ok(na), Ok(nb)) => na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal),
                 _ => lv.cmp(&rv),
@@ -22570,6 +22599,9 @@ fn eval_sql_having(hc: &str, cols: &[String], grp: &[&Vec<String>]) -> bool {
                 _ => true,
             };
         }
+    }
+    if let Some(first_row) = grp.first() {
+        return eval_sql_where(trimmed, cols, first_row, tables);
     }
     true
 }
@@ -23792,13 +23824,13 @@ fn split_sql_case_branches(inner: &str) -> (Option<&str>, Vec<(&str, &str)>, Opt
     (base_expr, branches, else_branch)
 }
 
-fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> String {
+fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>], tables: &BTreeMap<String, SqlTable>) -> String {
     let s = expr.trim();
     let concat_parts = split_sql_concat(s);
     if concat_parts.len() > 1 {
         let mut res = String::new();
         for p in concat_parts {
-            res.push_str(&eval_sql_group_expr(p, cols, grp));
+            res.push_str(&eval_sql_group_expr(p, cols, grp, tables));
         }
         return res;
     }
@@ -23814,10 +23846,10 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
         let prefix_len = if is_type { 10 } else { 13 };
         let args = split_top_level_comma(&s[prefix_len..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
-            let doc_s = eval_sql_group_expr(doc_arg, cols, grp);
+            let doc_s = eval_sql_group_expr(doc_arg, cols, grp, tables);
             let path_s = args
                 .get(1)
-                .map(|a| eval_sql_group_expr(a, cols, grp))
+                .map(|a| eval_sql_group_expr(a, cols, grp, tables))
                 .unwrap_or_else(|| "$".to_string());
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
@@ -23855,17 +23887,17 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
         let inner = s[5..s.len() - 4].trim();
         let (base_opt, branches, else_opt) = split_sql_case_branches(inner);
         if let Some(base_expr) = base_opt {
-            let base_val = eval_sql_group_expr(base_expr, cols, grp);
+            let base_val = eval_sql_group_expr(base_expr, cols, grp, tables);
             if !base_val.is_empty() && !base_val.eq_ignore_ascii_case("NULL") {
                 for (cond_s, then_val) in branches {
-                    let when_val = eval_sql_group_expr(cond_s, cols, grp);
+                    let when_val = eval_sql_group_expr(cond_s, cols, grp, tables);
                     let matches = if let (Ok(bn), Ok(wn)) = (base_val.parse::<f64>(), when_val.parse::<f64>()) {
                         (bn - wn).abs() < 1e-12
                     } else {
                         base_val == when_val
                     };
                     if matches {
-                        return eval_sql_group_expr(then_val, cols, grp);
+                        return eval_sql_group_expr(then_val, cols, grp, tables);
                     }
                 }
             }
@@ -23874,26 +23906,26 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
                 let cond_up = cond_s.to_ascii_uppercase();
                 let cond_ok = if let Some(is_null_p) = cond_up.rfind(" IS NULL") {
                     let target_e = cond_s[..is_null_p].trim();
-                    let v = eval_sql_group_expr(target_e, cols, grp);
+                    let v = eval_sql_group_expr(target_e, cols, grp, tables);
                     v.is_empty() || v.eq_ignore_ascii_case("NULL")
                 } else if let Some(is_not_null_p) = cond_up.rfind(" IS NOT NULL") {
                     let target_e = cond_s[..is_not_null_p].trim();
-                    let v = eval_sql_group_expr(target_e, cols, grp);
+                    let v = eval_sql_group_expr(target_e, cols, grp, tables);
                     !v.is_empty() && !v.eq_ignore_ascii_case("NULL")
                 } else {
-                    eval_sql_having(cond_s, cols, grp)
+                    eval_sql_having(cond_s, cols, grp, tables)
                 };
                 if cond_ok {
-                    return eval_sql_group_expr(then_val, cols, grp);
+                    return eval_sql_group_expr(then_val, cols, grp, tables);
                 }
             }
         }
-        return eval_sql_group_expr(else_opt.unwrap_or("0"), cols, grp);
+        return eval_sql_group_expr(else_opt.unwrap_or("0"), cols, grp, tables);
     }
     if s.starts_with('(') && find_matching_paren(s) == Some(s.len() - 1) {
         let inner = s[1..s.len() - 1].trim();
         if !inner.to_ascii_uppercase().starts_with("SELECT ") {
-            return eval_sql_group_expr(inner, cols, grp);
+            return eval_sql_group_expr(inner, cols, grp, tables);
         }
     }
     for tier in [&['+', '-'][..], &['*', '/', '%'][..]] {
@@ -23927,8 +23959,8 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
             }
         }
         if let Some((sp, op)) = split_at {
-            let lv_s = eval_sql_group_expr(&s[..sp], cols, grp);
-            let rv_s = eval_sql_group_expr(&s[sp + 1..], cols, grp);
+            let lv_s = eval_sql_group_expr(&s[..sp], cols, grp, tables);
+            let rv_s = eval_sql_group_expr(&s[sp + 1..], cols, grp, tables);
             let lv = lv_s.parse::<f64>().unwrap_or(0.0);
             let rv = rv_s.parse::<f64>().unwrap_or(0.0);
             if op == '/'
@@ -23954,7 +23986,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
             return res.to_string();
         }
     }
-    let empty_tables = BTreeMap::new();
+    let empty_tables = tables;
     if let Some(f_pos) = upper.find(" FILTER")
         && s[f_pos + 7..].trim_start().starts_with('(')
     {
@@ -23975,7 +24007,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
             .copied()
             .filter(|r| eval_sql_where(w_cond, cols, r, &empty_tables))
             .collect();
-        return eval_sql_group_expr(base_agg, cols, &filtered_grp);
+        return eval_sql_group_expr(base_agg, cols, &filtered_grp, tables);
     }
     if upper.starts_with("PRINTF(") && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
@@ -23983,7 +24015,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
             let fmt_s = args[0].trim().trim_matches('\'').trim_matches('"');
             let eval_args: Vec<String> = args[1..]
                 .iter()
-                .map(|a| eval_sql_group_expr(a, cols, grp))
+                .map(|a| eval_sql_group_expr(a, cols, grp, tables))
                 .collect();
             return eval_sql_printf(fmt_s, &eval_args);
         }
@@ -23992,7 +24024,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
         let inner = &s[5..s.len() - 1];
         if let Some(as_pos) = inner.to_ascii_uppercase().rfind(" AS ") {
             let sub = inner[..as_pos].trim();
-            let val = eval_sql_group_expr(sub, cols, grp);
+            let val = eval_sql_group_expr(sub, cols, grp, tables);
             if let Ok(n) = val.parse::<f64>() {
                 return (n as i64).to_string();
             }
@@ -24002,14 +24034,14 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
     if upper.starts_with("ROUND(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[6..s.len() - 1]);
         if let Some(first) = args.first() {
-            let raw_v = eval_sql_group_expr(first, cols, grp);
+            let raw_v = eval_sql_group_expr(first, cols, grp, tables);
             if raw_v.is_empty() || raw_v.eq_ignore_ascii_case("NULL") {
                 return String::new();
             }
             let n = raw_v.parse::<f64>().unwrap_or(0.0);
             let digits = args
                 .get(1)
-                .and_then(|d| eval_sql_group_expr(d, cols, grp).parse::<i32>().ok())
+                .and_then(|d| eval_sql_group_expr(d, cols, grp, tables).parse::<i32>().ok())
                 .unwrap_or(0);
             if digits <= 0 {
                 return format!("{:.1}", n.round());
@@ -24025,7 +24057,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
     if (upper.starts_with("COALESCE(") || upper.starts_with("IFNULL(")) && upper.ends_with(')') {
         let pfx = if upper.starts_with("IFNULL(") { 7 } else { 9 };
         for arg in split_top_level_comma(&s[pfx..s.len() - 1]) {
-            let v = eval_sql_group_expr(arg, cols, grp);
+            let v = eval_sql_group_expr(arg, cols, grp, tables);
             if !v.is_empty() && !v.eq_ignore_ascii_case("NULL") {
                 return v;
             }
@@ -24035,11 +24067,11 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
     if upper.starts_with("IIF(") && upper.ends_with(')') {
         let args = split_top_level_comma(&s[4..s.len() - 1]);
         if args.len() >= 2 {
-            if eval_sql_having(args[0], cols, grp) {
-                return eval_sql_group_expr(args[1], cols, grp);
+            if eval_sql_having(args[0], cols, grp, tables) {
+                return eval_sql_group_expr(args[1], cols, grp, tables);
             }
             if let Some(f_arg) = args.get(2) {
-                return eval_sql_group_expr(f_arg, cols, grp);
+                return eval_sql_group_expr(f_arg, cols, grp, tables);
             }
             return String::new();
         }
@@ -24097,8 +24129,8 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
         let mut entries = Vec::new();
         let mut ai = 0usize;
         while ai + 1 < args.len() {
-            let k = eval_sql_group_expr(args[ai], cols, grp);
-            let v_s = eval_sql_group_expr(args[ai + 1], cols, grp);
+            let k = eval_sql_group_expr(args[ai], cols, grp, tables);
+            let v_s = eval_sql_group_expr(args[ai + 1], cols, grp, tables);
             let jv = parse_sql_arg_to_jval(&v_s, args[ai + 1]);
             entries.push((k, jv));
             ai += 2;
@@ -24110,7 +24142,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>]) -> Str
         let items: Vec<JVal> = args
             .into_iter()
             .map(|a| {
-                let v_s = eval_sql_group_expr(a, cols, grp);
+                let v_s = eval_sql_group_expr(a, cols, grp, tables);
                 parse_sql_arg_to_jval(&v_s, a)
             })
             .collect();

@@ -576,7 +576,28 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
             return Err("Conflicting attribute parameters".to_string());
         }
     }
-    let _ = query_attr;
+    let eval_field_attr = |f: &OpField| -> Result<String, String> {
+        match query_attr.as_deref().unwrap_or("value") {
+            "value" => Ok(f.value.clone()),
+            "type" => Ok(f.field_type.clone()),
+            "id" => Ok(f.id.clone()),
+            "purpose" => f
+                .purpose
+                .clone()
+                .ok_or_else(|| "Secret attribute is unavailable".to_string()),
+            _ => Err("Secret attribute is unavailable".to_string()),
+        }
+    };
+    let eval_file_attr = |fa: &OpFileAttachment| -> Result<String, String> {
+        match query_attr.as_deref().unwrap_or("content") {
+            "content" => Ok(String::from_utf8_lossy(&fa.content).to_string()),
+            "type" => Ok("FILE".to_string()),
+            "size" => Ok(fa.size.to_string()),
+            "id" => Ok(fa.id.clone()),
+            "name" => Ok(fa.name.clone()),
+            _ => Err("Secret attribute is unavailable".to_string()),
+        }
+    };
     let vault_sel = parts[0];
     let item_sel = parts[1];
     let vault = st
@@ -600,21 +621,21 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
             f.section_label.is_none()
                 && (f.id.eq_ignore_ascii_case(field_sel) || f.label.eq_ignore_ascii_case(field_sel))
         }) {
-            return Ok(f.value.clone());
+            return eval_field_attr(f);
         }
         if let Some(f) = item
             .fields
             .iter()
             .find(|f| f.id.eq_ignore_ascii_case(field_sel) || f.label.eq_ignore_ascii_case(field_sel))
         {
-            return Ok(f.value.clone());
+            return eval_field_attr(f);
         }
         if let Some(fa) = item
             .files
             .iter()
             .find(|fa| fa.id.eq_ignore_ascii_case(field_sel) || fa.name.eq_ignore_ascii_case(field_sel))
         {
-            return Ok(String::from_utf8_lossy(&fa.content).to_string());
+            return eval_file_attr(fa);
         }
         return Err("Object not found".to_string());
     }
@@ -633,7 +654,7 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
                 .unwrap_or(false);
         sec_ok && (f.id.eq_ignore_ascii_case(field_sel) || f.label.eq_ignore_ascii_case(field_sel))
     }) {
-        return Ok(f.value.clone());
+        return eval_field_attr(f);
     }
     if let Some(fa) = item.files.iter().find(|fa| {
         let sec_ok = fa
@@ -648,7 +669,7 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
                 .unwrap_or(false);
         sec_ok && (fa.id.eq_ignore_ascii_case(field_sel) || fa.name.eq_ignore_ascii_case(field_sel))
     }) {
-        return Ok(String::from_utf8_lossy(&fa.content).to_string());
+        return eval_file_attr(fa);
     }
     Err("Object not found".to_string())
 }
@@ -2678,7 +2699,13 @@ fn cmd_gh(
                             issues: Vec::new(),
                             prs: Vec::new(),
                             releases: Vec::new(),
-                            labels: Vec::new(),
+                            labels: vec![
+                                ("bug".into(), "d73a4a".into(), "Something isn't working".into()),
+                                ("documentation".into(), "0075ca".into(), "Improvements or additions to documentation".into()),
+                                ("enhancement".into(), "a2eeef".into(), "New feature or request".into()),
+                                ("good first issue".into(), "7057ff".into(), "Good for newcomers".into()),
+                                ("help wanted".into(), "008672".into(), "Extra attention is needed".into()),
+                            ],
                             variables: BTreeMap::new(),
                             secrets: Vec::new(),
                         },
@@ -3020,6 +3047,8 @@ fn cmd_gh(
                                 "title": pr.title,
                                 "body": pr.body,
                                 "state": pr.state,
+                                "closed": pr.state != "OPEN",
+                                "merged": pr.state == "MERGED",
                                 "headRefName": pr.head,
                                 "baseRefName": pr.base,
                                 "isDraft": pr.is_draft,
@@ -3062,6 +3091,8 @@ fn cmd_gh(
                             "title": pr.title,
                             "body": pr.body,
                             "state": pr.state,
+                            "closed": pr.state != "OPEN",
+                            "merged": pr.state == "MERGED",
                             "headRefName": pr.head,
                             "baseRefName": pr.base,
                             "isDraft": pr.is_draft,
@@ -3384,6 +3415,14 @@ fn cmd_gh(
             let repo = st.gh_repos.get_mut(&full).unwrap();
             if sub == "create" {
                 let name = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "label".into());
+                let force = args.iter().skip(2).any(|a| a == "-f" || a == "--force");
+                if !force && repo.labels.iter().any(|(n, _, _)| n.eq_ignore_ascii_case(&name)) {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("label \"{name}\" already exists; use --force to update\n"),
+                        exit_code: 1,
+                    };
+                }
                 let mut color = "ededed".to_string();
                 let mut desc = String::new();
                 for w in args.windows(2) {

@@ -13,7 +13,6 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
             cwd: Some("/work".into()),
             env,
             mode: BackendMode::NativeOnly,
-            ..Default::default()
         },
     );
     (shell, vfs)

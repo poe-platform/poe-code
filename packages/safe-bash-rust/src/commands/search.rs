@@ -1957,6 +1957,14 @@ fn cmd_grep(
     let mut globs: Vec<String> = Vec::new();
     let mut patterns: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
+    let mut has_explicit_pattern = false;
+    let mut help_requested = false;
+
+    let push_grep_pattern = |patterns: &mut Vec<String>, pat: &str| {
+        for part in pat.split('\n') {
+            patterns.push(part.to_string());
+        }
+    };
 
     let mut i = 0usize;
     let mut end_of_opts = false;
@@ -1969,6 +1977,9 @@ fn cmd_grep(
         }
         if !end_of_opts && a.starts_with("--") {
             match a.as_str() {
+                "--help" => {
+                    help_requested = true;
+                }
                 "--ignore-case" => ignore_case = true,
                 "--no-ignore-case" => ignore_case = false,
                 "--invert-match" => invert = true,
@@ -1977,8 +1988,14 @@ fn cmd_grep(
                 "--byte-offset" => byte_offset = true,
                 "--null" => null_delim = true,
                 "--null-data" => null_data = true,
-                "--files-with-matches" => files_with_matches = true,
-                "--files-without-match" => files_without_match = true,
+                "--files-with-matches" => {
+                    files_with_matches = true;
+                    files_without_match = false;
+                }
+                "--files-without-match" => {
+                    files_without_match = true;
+                    files_with_matches = false;
+                }
                 "--only-matching" => only_matching = true,
                 "--word-regexp" => word_regexp = true,
                 "--line-regexp" => line_regexp = true,
@@ -2008,9 +2025,20 @@ fn cmd_grep(
                     recursive = true;
                     dereference_recursive = true;
                 }
-                "--quiet" | "--silent" => quiet = true,
-                "--no-filename" => no_filename = true,
-                "--with-filename" => with_filename = true,
+                "--quiet" | "--silent" | "--no-messages" => quiet = true,
+                "--text" | "--binary" | "--line-buffered" => {
+                    if a == "--text" {
+                        ignore_binary = false;
+                    }
+                }
+                "--no-filename" => {
+                    no_filename = true;
+                    with_filename = false;
+                }
+                "--with-filename" => {
+                    with_filename = true;
+                    no_filename = false;
+                }
                 "--initial-tab" => initial_tab = true,
                 "--no-group-separator" => context_separator = None,
                 "--group-separator" if i + 1 < args.len() => {
@@ -2052,6 +2080,7 @@ fn cmd_grep(
                 }
                 "--file" if i + 1 < args.len() => {
                     i += 1;
+                    has_explicit_pattern = true;
                     let resolved = resolve_posix_path(cwd, &args[i]);
                     if let Ok(bytes) = fs.read_file(&resolved) {
                         for line in String::from_utf8_lossy(&bytes).lines() {
@@ -2059,11 +2088,96 @@ fn cmd_grep(
                         }
                     }
                 }
+                "--regexp" if i + 1 < args.len() => {
+                    i += 1;
+                    has_explicit_pattern = true;
+                    push_grep_pattern(&mut patterns, &args[i]);
+                }
+                "--max-count" if i + 1 < args.len() => {
+                    i += 1;
+                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: invalid max count\n"),
+                            exit_code: 2,
+                        };
+                    }
+                    max_count = args[i].parse().ok();
+                }
+                "--after-context" | "--before-context" | "--context" if i + 1 < args.len() => {
+                    let flag_name = a.clone();
+                    i += 1;
+                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: {}: invalid context length argument\n", args[i]),
+                            exit_code: 2,
+                        };
+                    }
+                    let n = args[i].parse::<usize>().unwrap_or(0);
+                    if flag_name == "--after-context" || flag_name == "--context" {
+                        after_ctx = n;
+                    }
+                    if flag_name == "--before-context" || flag_name == "--context" {
+                        before_ctx = n;
+                    }
+                }
+                "--color" | "--colour" if i + 1 < args.len() => {
+                    i += 1;
+                    if args[i] != "never" && args[i] != "auto" {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: unsupported color mode '{}'\n", args[i]),
+                            exit_code: 2,
+                        };
+                    }
+                }
+                "--binary-files" if i + 1 < args.len() => {
+                    i += 1;
+                    match args[i].as_str() {
+                        "without-match" => ignore_binary = true,
+                        "text" | "binary" => ignore_binary = false,
+                        other => {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: unsupported binary-files mode '{other}'; use text\n"),
+                                exit_code: 2,
+                            };
+                        }
+                    }
+                }
                 _ => {
                     if let Some(val) = a.strip_prefix("--max-count=") {
+                        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: invalid max count\n"),
+                                exit_code: 2,
+                            };
+                        }
                         max_count = val.parse().ok();
+                    } else if let Some(val) = a
+                        .strip_prefix("--after-context=")
+                        .or_else(|| a.strip_prefix("--before-context="))
+                        .or_else(|| a.strip_prefix("--context="))
+                    {
+                        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: {val}: invalid context length argument\n"),
+                                exit_code: 2,
+                            };
+                        }
+                        let n = val.parse::<usize>().unwrap_or(0);
+                        if a.starts_with("--after-context=") || a.starts_with("--context=") {
+                            after_ctx = n;
+                        }
+                        if a.starts_with("--before-context=") || a.starts_with("--context=") {
+                            before_ctx = n;
+                        }
                     } else if let Some(val) = a.strip_prefix("--regexp=") {
-                        patterns.push(val.to_string());
+                        has_explicit_pattern = true;
+                        push_grep_pattern(&mut patterns, val);
                     } else if let Some(val) = a.strip_prefix("--include=") {
                         globs.push(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--exclude=") {
@@ -2092,14 +2206,39 @@ fn cmd_grep(
                     } else if let Some(val) = a.strip_prefix("--group-separator=") {
                         context_separator = Some(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--file=") {
+                        has_explicit_pattern = true;
                         let resolved = resolve_posix_path(cwd, val);
                         if let Ok(bytes) = fs.read_file(&resolved) {
                             for line in String::from_utf8_lossy(&bytes).lines() {
                                 patterns.push(line.to_string());
                             }
                         }
-                    } else if a == "--binary-files=without-match" {
-                        ignore_binary = true;
+                    } else if let Some(val) = a.strip_prefix("--binary-files=") {
+                        match val {
+                            "without-match" => ignore_binary = true,
+                            "text" | "binary" => ignore_binary = false,
+                            other => {
+                                return BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{invoked_as}: unsupported binary-files mode '{other}'; use text\n"),
+                                    exit_code: 2,
+                                };
+                            }
+                        }
+                    } else if let Some(val) = a.strip_prefix("--color=").or_else(|| a.strip_prefix("--colour=")) {
+                        if val != "never" && val != "auto" {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: unsupported color mode '{val}'\n"),
+                                exit_code: 2,
+                            };
+                        }
+                    } else {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: unrecognized option '{a}'\n"),
+                            exit_code: 2,
+                        };
                     }
                 }
             }
@@ -2118,8 +2257,14 @@ fn cmd_grep(
                     'b' => byte_offset = true,
                     'Z' => null_delim = true,
                     'z' => null_data = true,
-                    'l' => files_with_matches = true,
-                    'L' => files_without_match = true,
+                    'l' => {
+                        files_with_matches = true;
+                        files_without_match = false;
+                    }
+                    'L' => {
+                        files_without_match = true;
+                        files_with_matches = false;
+                    }
                     'o' => only_matching = true,
                     'w' => word_regexp = true,
                     'x' => line_regexp = true,
@@ -2145,8 +2290,14 @@ fn cmd_grep(
                         dereference_recursive = true;
                     }
                     'q' | 's' => quiet = true,
-                    'h' => no_filename = true,
-                    'H' => with_filename = true,
+                    'h' => {
+                        no_filename = true;
+                        with_filename = false;
+                    }
+                    'H' => {
+                        with_filename = true;
+                        no_filename = false;
+                    }
                     'T' => initial_tab = true,
                     'I' => ignore_binary = true,
                     'a' => ignore_binary = false,
@@ -2169,16 +2320,24 @@ fn cmd_grep(
                         break;
                     }
                     'e' => {
+                        has_explicit_pattern = true;
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
-                            patterns.push(rest);
+                            push_grep_pattern(&mut patterns, &rest);
                         } else if i + 1 < args.len() {
                             i += 1;
-                            patterns.push(args[i].clone());
+                            push_grep_pattern(&mut patterns, &args[i]);
+                        } else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: option requires an argument -- 'e'\n"),
+                                exit_code: 2,
+                            };
                         }
                         break;
                     }
                     'f' => {
+                        has_explicit_pattern = true;
                         let file_arg = if ci + 1 < chars.len() {
                             chars[ci + 1..].iter().collect::<String>()
                         } else if i + 1 < args.len() {
@@ -2207,6 +2366,13 @@ fn cmd_grep(
                         } else {
                             String::new()
                         };
+                        if val_str.is_empty() || !val_str.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: {val_str}: invalid context length argument\n"),
+                                exit_code: 2,
+                            };
+                        }
                         if let Ok(n) = val_str.parse::<usize>() {
                             match flag {
                                 'm' => max_count = Some(n),
@@ -2233,19 +2399,37 @@ fn cmd_grep(
                         }
                         continue;
                     }
-                    _ => {}
+                    other => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: invalid option -- '{other}'\n"),
+                            exit_code: 2,
+                        };
+                    }
                 }
                 ci += 1;
             }
             i += 1;
             continue;
         }
-        if patterns.is_empty() {
-            patterns.push(a.clone());
+        if !has_explicit_pattern {
+            has_explicit_pattern = true;
+            push_grep_pattern(&mut patterns, a);
         } else {
             targets.push(a.clone());
         }
         i += 1;
+    }
+
+    if help_requested {
+        return ok_out("Usage: grep [OPTION]... PATTERN [FILE]...\n");
+    }
+    if !has_explicit_pattern {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{invoked_as}: missing pattern\n"),
+            exit_code: 2,
+        };
     }
 
     if !fixed_strings && patterns.iter().any(|p| has_unsupported_regex_features(p)) {
@@ -2352,6 +2536,7 @@ fn cmd_grep(
             no_ignore_dot: false,
             custom_ignore_files: Vec::new(),
             sort_by_path: false,
+            stats: false,
         },
     )
 }
@@ -2383,6 +2568,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut show_hidden = false;
     let mut unrestricted_level = 0usize;
     let mut json_output = false;
+    let mut stats = false;
     let mut multiline = false;
     let mut multiline_dotall = false;
     let mut replace: Option<String> = None;
@@ -2402,6 +2588,8 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut types_exclude: Vec<String> = Vec::new();
     let mut patterns: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
+    let mut has_explicit_pattern = false;
+    let mut help_or_version = false;
 
     let mut i = 0usize;
     let mut end_of_opts = false;
@@ -2414,24 +2602,57 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
         if !end_of_opts && a.starts_with("--") {
             match a.as_str() {
-                "--files" => list_files_only = true,
-                "--ignore-case" => ignore_case = true,
-                "--smart-case" => smart_case = true,
+                "--help" | "--version" => {
+                    help_or_version = true;
+                }
+                "--no-config" | "--pcre2" | "--no-pcre2" => {}
+                "--files" => {
+                    list_files_only = true;
+                    count_only = false;
+                    count_matches = false;
+                    files_with_matches = false;
+                    files_without_match = false;
+                    json_output = false;
+                }
+                "--ignore-case" => {
+                    ignore_case = true;
+                    smart_case = false;
+                }
+                "--smart-case" => {
+                    smart_case = true;
+                    ignore_case = false;
+                }
                 "--case-sensitive" => {
                     ignore_case = false;
                     smart_case = false;
                 }
                 "--invert-match" => invert = true,
-                "--count" => count_only = true,
+                "--no-invert-match" => invert = false,
+                "--count" => {
+                    count_only = true;
+                    count_matches = false;
+                    files_with_matches = false;
+                    files_without_match = false;
+                    list_files_only = false;
+                    json_output = false;
+                }
                 "--count-matches" => {
                     count_only = true;
                     count_matches = true;
+                    files_with_matches = false;
+                    files_without_match = false;
+                    list_files_only = false;
+                    json_output = false;
                 }
+                "--stats" => stats = true,
+                "--no-stats" => stats = false,
                 "--include-zero" => include_zero = true,
                 "--trim" => trim = true,
+                "--no-trim" => trim = false,
                 "--heading" => heading = true,
                 "--no-heading" => heading = false,
                 "--crlf" => crlf = true,
+                "--no-crlf" => crlf = false,
                 "--no-context-separator" => context_separator = None,
                 "--context-separator" if i + 1 < args.len() => {
                     i += 1;
@@ -2442,36 +2663,74 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     show_column = true;
                     line_number = true;
                 }
+                "--no-column" => show_column = false,
                 "--no-line-number" => line_number = false,
                 "--byte-offset" => byte_offset = true,
                 "--null" => null_delim = true,
                 "--hidden" => show_hidden = true,
+                "--no-hidden" => show_hidden = false,
                 "--no-ignore" => unrestricted_level = unrestricted_level.max(1),
+                "--ignore" => unrestricted_level = 0,
                 "--no-ignore-vcs" => no_ignore_vcs = true,
+                "--ignore-vcs" => no_ignore_vcs = false,
                 "--no-ignore-dot" => no_ignore_dot = true,
+                "--ignore-dot" => no_ignore_dot = false,
                 "--unrestricted" => unrestricted_level += 1,
-                "--json" => json_output = true,
+                "--json" => {
+                    json_output = true;
+                    count_only = false;
+                    count_matches = false;
+                    files_with_matches = false;
+                    files_without_match = false;
+                    list_files_only = false;
+                }
                 "--multiline" => multiline = true,
+                "--no-multiline" => multiline = false,
                 "--multiline-dotall" => {
                     multiline = true;
                     multiline_dotall = true;
                 }
+                "--no-multiline-dotall" => multiline_dotall = false,
                 "--ignore-file" if i + 1 < args.len() => {
                     i += 1;
                     custom_ignore_files.push(args[i].clone());
                 }
                 "--max-columns" if i + 1 < args.len() => {
                     i += 1;
+                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "rg: max-columns requires a nonnegative integer\n".to_string(),
+                            exit_code: 2,
+                        };
+                    }
                     max_columns = args[i].parse().ok();
                 }
                 "--sort" if i + 1 < args.len() => {
                     i += 1;
                     if args[i] == "path" {
                         sort_by_path = true;
+                    } else {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "rg: only --sort=path is supported\n".to_string(),
+                            exit_code: 2,
+                        };
+                    }
+                }
+                "--color" if i + 1 < args.len() => {
+                    i += 1;
+                    if args[i] != "never" {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "rg: only --color=never is supported\n".to_string(),
+                            exit_code: 2,
+                        };
                     }
                 }
                 "--file" if i + 1 < args.len() => {
                     i += 1;
+                    has_explicit_pattern = true;
                     let resolved = resolve_posix_path(cwd, &args[i]);
                     if let Ok(bytes) = fs.read_file(&resolved) {
                         for line in String::from_utf8_lossy(&bytes).lines() {
@@ -2481,12 +2740,34 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         }
                     }
                 }
-                "--files-with-matches" => files_with_matches = true,
-                "--files-without-match" => files_without_match = true,
+                "--files-with-matches" => {
+                    files_with_matches = true;
+                    files_without_match = false;
+                    count_only = false;
+                    count_matches = false;
+                    list_files_only = false;
+                    json_output = false;
+                }
+                "--files-without-match" => {
+                    files_without_match = true;
+                    files_with_matches = false;
+                    count_only = false;
+                    count_matches = false;
+                    list_files_only = false;
+                    json_output = false;
+                }
                 "--only-matching" => only_matching = true,
-                "--word-regexp" => word_regexp = true,
-                "--line-regexp" => line_regexp = true,
+                "--no-only-matching" => only_matching = false,
+                "--word-regexp" => {
+                    word_regexp = true;
+                    line_regexp = false;
+                }
+                "--line-regexp" => {
+                    line_regexp = true;
+                    word_regexp = false;
+                }
                 "--fixed-strings" => fixed_strings = true,
+                "--no-fixed-strings" => fixed_strings = false,
                 "--quiet" => quiet = true,
                 "--no-filename" => {
                     no_filename = true;
@@ -2502,10 +2783,24 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 }
                 "--type" if i + 1 < args.len() => {
                     i += 1;
+                    if !is_valid_rg_type(&args[i]) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("rg: unrecognized file type: {}\n", args[i]),
+                            exit_code: 2,
+                        };
+                    }
                     types_include.push(args[i].clone());
                 }
                 "--type-not" if i + 1 < args.len() => {
                     i += 1;
+                    if !is_valid_rg_type(&args[i]) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("rg: unrecognized file type: {}\n", args[i]),
+                            exit_code: 2,
+                        };
+                    }
                     types_exclude.push(args[i].clone());
                 }
                 "--glob" | "-g" if i + 1 < args.len() => {
@@ -2518,19 +2813,41 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 }
                 "--regexp" if i + 1 < args.len() => {
                     i += 1;
+                    has_explicit_pattern = true;
                     patterns.push(args[i].clone());
                 }
                 "--max-count" if i + 1 < args.len() => {
                     i += 1;
+                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "rg: max-count requires a nonnegative integer\n".to_string(),
+                            exit_code: 2,
+                        };
+                    }
                     max_count = args[i].parse().ok();
                 }
-                "--max-depth" if i + 1 < args.len() => {
+                "--max-depth" | "--maxdepth" if i + 1 < args.len() => {
                     i += 1;
+                    if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "rg: max-depth requires a nonnegative integer\n".to_string(),
+                            exit_code: 2,
+                        };
+                    }
                     max_depth = args[i].parse().ok();
                 }
                 "--max-filesize" if i + 1 < args.len() => {
                     i += 1;
                     max_filesize = parse_rg_filesize(&args[i]);
+                    if max_filesize.is_none() {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "rg: max-filesize requires a valid size\n".to_string(),
+                            exit_code: 2,
+                        };
+                    }
                 }
                 _ => {
                     if let Some(g) = a.strip_prefix("--glob=") {
@@ -2540,25 +2857,90 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     } else if let Some(cs) = a.strip_prefix("--context-separator=") {
                         context_separator = Some(cs.to_string());
                     } else if let Some(m) = a.strip_prefix("--max-count=") {
+                        if m.is_empty() || !m.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: max-count requires a nonnegative integer\n".to_string(),
+                                exit_code: 2,
+                            };
+                        }
                         max_count = m.parse().ok();
-                    } else if let Some(d) = a.strip_prefix("--max-depth=") {
+                    } else if let Some(d) = a.strip_prefix("--max-depth=").or_else(|| a.strip_prefix("--maxdepth=")) {
+                        if d.is_empty() || !d.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: max-depth requires a nonnegative integer\n".to_string(),
+                                exit_code: 2,
+                            };
+                        }
                         max_depth = d.parse().ok();
                     } else if let Some(mc) = a.strip_prefix("--max-columns=") {
+                        if mc.is_empty() || !mc.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: max-columns requires a nonnegative integer\n".to_string(),
+                                exit_code: 2,
+                            };
+                        }
                         max_columns = mc.parse().ok();
                     } else if let Some(igf) = a.strip_prefix("--ignore-file=") {
                         custom_ignore_files.push(igf.to_string());
                     } else if let Some(srt) = a.strip_prefix("--sort=") {
                         if srt == "path" {
                             sort_by_path = true;
+                        } else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: only --sort=path is supported\n".to_string(),
+                                exit_code: 2,
+                            };
+                        }
+                    } else if let Some(clr) = a.strip_prefix("--color=") {
+                        if clr != "never" {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: only --color=never is supported\n".to_string(),
+                                exit_code: 2,
+                            };
                         }
                     } else if let Some(fsz) = a.strip_prefix("--max-filesize=") {
                         max_filesize = parse_rg_filesize(fsz);
+                        if max_filesize.is_none() {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: max-filesize requires a valid size\n".to_string(),
+                                exit_code: 2,
+                            };
+                        }
                     } else if let Some(r) = a.strip_prefix("--replace=") {
                         replace = Some(r.to_string());
+                    } else if let Some(p) = a.strip_prefix("--regexp=") {
+                        has_explicit_pattern = true;
+                        patterns.push(p.to_string());
                     } else if let Some(t) = a.strip_prefix("--type=") {
+                        if !is_valid_rg_type(t) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("rg: unrecognized file type: {t}\n"),
+                                exit_code: 2,
+                            };
+                        }
                         types_include.push(t.to_string());
                     } else if let Some(t) = a.strip_prefix("--type-not=") {
+                        if !is_valid_rg_type(t) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("rg: unrecognized file type: {t}\n"),
+                                exit_code: 2,
+                            };
+                        }
                         types_exclude.push(t.to_string());
+                    } else {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("rg: unsupported option '{a}'\n"),
+                            exit_code: 2,
+                        };
                     }
                 }
             }
@@ -2570,24 +2952,54 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             let mut ci = 0usize;
             while ci < chars.len() {
                 match chars[ci] {
-                    'i' => ignore_case = true,
+                    'h' | 'V' => {
+                        help_or_version = true;
+                    }
+                    'P' => {}
+                    'i' => {
+                        ignore_case = true;
+                        smart_case = false;
+                    }
                     's' => {
                         ignore_case = false;
                         smart_case = false;
                     }
-                    'S' => smart_case = true,
+                    'S' => {
+                        smart_case = true;
+                        ignore_case = false;
+                    }
                     'v' => invert = true,
-                    'c' => count_only = true,
+                    'c' => {
+                        count_only = true;
+                        count_matches = false;
+                        files_with_matches = false;
+                        files_without_match = false;
+                        list_files_only = false;
+                        json_output = false;
+                    }
                     'n' => line_number = true,
                     'N' => line_number = false,
                     'b' => byte_offset = true,
                     '0' => null_delim = true,
                     '.' => show_hidden = true,
                     'u' => unrestricted_level += 1,
-                    'l' => files_with_matches = true,
+                    'l' => {
+                        files_with_matches = true;
+                        files_without_match = false;
+                        count_only = false;
+                        count_matches = false;
+                        list_files_only = false;
+                        json_output = false;
+                    }
                     'o' => only_matching = true,
-                    'w' => word_regexp = true,
-                    'x' => line_regexp = true,
+                    'w' => {
+                        word_regexp = true;
+                        line_regexp = false;
+                    }
+                    'x' => {
+                        line_regexp = true;
+                        word_regexp = false;
+                    }
                     'F' => fixed_strings = true,
                     'q' => quiet = true,
                     'I' => {
@@ -2610,26 +3022,55 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     }
                     't' => {
                         let rest: String = chars[ci + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            types_include.push(rest);
+                        let val = if !rest.is_empty() {
+                            rest
                         } else if i + 1 < args.len() {
                             i += 1;
-                            types_include.push(args[i].clone());
+                            args[i].clone()
+                        } else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: -t requires a value\n".to_string(),
+                                exit_code: 2,
+                            };
+                        };
+                        if !is_valid_rg_type(&val) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("rg: unrecognized file type: {val}\n"),
+                                exit_code: 2,
+                            };
                         }
+                        types_include.push(val);
                         break;
                     }
                     'U' => multiline = true,
                     'T' => {
                         let rest: String = chars[ci + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            types_exclude.push(rest);
+                        let val = if !rest.is_empty() {
+                            rest
                         } else if i + 1 < args.len() {
                             i += 1;
-                            types_exclude.push(args[i].clone());
+                            args[i].clone()
+                        } else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: -T requires a value\n".to_string(),
+                                exit_code: 2,
+                            };
+                        };
+                        if !is_valid_rg_type(&val) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("rg: unrecognized file type: {val}\n"),
+                                exit_code: 2,
+                            };
                         }
+                        types_exclude.push(val);
                         break;
                     }
                     'f' => {
+                        has_explicit_pattern = true;
                         let file_arg = if ci + 1 < chars.len() {
                             chars[ci + 1..].iter().collect::<String>()
                         } else if i + 1 < args.len() {
@@ -2649,6 +3090,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         break;
                     }
                     'e' => {
+                        has_explicit_pattern = true;
                         let rest: String = chars[ci + 1..].iter().collect();
                         if !rest.is_empty() {
                             patterns.push(rest);
@@ -2668,7 +3110,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         }
                         break;
                     }
-                    'm' | 'M' | 'A' | 'B' | 'C' => {
+                    'm' | 'M' | 'A' | 'B' | 'C' | 'd' | 'j' => {
                         let flag = chars[ci];
                         let val_str = if ci + 1 < chars.len() {
                             chars[ci + 1..].iter().collect::<String>()
@@ -2678,10 +3120,18 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         } else {
                             String::new()
                         };
+                        if val_str.is_empty() || !val_str.chars().all(|c| c.is_ascii_digit()) {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("rg: -{flag} requires a nonnegative integer\n"),
+                                exit_code: 2,
+                            };
+                        }
                         if let Ok(n) = val_str.parse::<usize>() {
                             match flag {
                                 'm' => max_count = Some(n),
                                 'M' => max_columns = Some(n),
+                                'd' => max_depth = Some(n),
                                 'A' => after_ctx = n,
                                 'B' => before_ctx = n,
                                 'C' => {
@@ -2693,19 +3143,37 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         }
                         break;
                     }
-                    _ => {}
+                    other => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("rg: unsupported option '-{other}'\n"),
+                            exit_code: 2,
+                        };
+                    }
                 }
                 ci += 1;
             }
             i += 1;
             continue;
         }
-        if !list_files_only && patterns.is_empty() {
+        if !list_files_only && !has_explicit_pattern {
+            has_explicit_pattern = true;
             patterns.push(a.clone());
         } else {
             targets.push(a.clone());
         }
         i += 1;
+    }
+
+    if help_or_version {
+        return ok_out("ripgrep (safe-bash)\n");
+    }
+    if !list_files_only && !has_explicit_pattern {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "rg: a search pattern is required\n".to_string(),
+            exit_code: 2,
+        };
     }
 
     if unrestricted_level >= 2 {
@@ -2854,6 +3322,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             no_ignore_dot,
             custom_ignore_files,
             sort_by_path,
+            stats,
         },
     )
 }
@@ -2907,6 +3376,7 @@ struct GrepConfig {
     no_ignore_dot: bool,
     custom_ignore_files: Vec<String>,
     sort_by_path: bool,
+    stats: bool,
 }
 
 fn parse_rg_filesize(s: &str) -> Option<usize> {
@@ -2920,6 +3390,40 @@ fn parse_rg_filesize(s: &str) -> Option<usize> {
     } else {
         trimmed.parse::<usize>().ok()
     }
+}
+
+fn is_valid_rg_type(t: &str) -> bool {
+    matches!(
+        t,
+        "all"
+            | "ada" | "agda" | "aidl" | "alire" | "amake" | "asciidoc" | "asm" | "asp" | "ats"
+            | "avro" | "awk" | "bat" | "batch" | "bazel" | "bitbake" | "boxlang" | "brotli"
+            | "buildstream" | "bzip2" | "c" | "cabal" | "candid" | "carp" | "cbor" | "ceylon"
+            | "cfml" | "clojure" | "cmake" | "cmd" | "cml" | "coffeescript" | "config"
+            | "container" | "coq" | "cpp" | "creole" | "crystal" | "cs" | "csharp" | "cshtml"
+            | "csproj" | "css" | "csv" | "cuda" | "cython" | "d" | "dart" | "devicetree"
+            | "dhall" | "diff" | "dita" | "docker" | "dockercompose" | "dts" | "dvc" | "ebuild"
+            | "edn" | "elisp" | "elixir" | "elm" | "erb" | "erlang" | "fennel" | "fidl" | "fish"
+            | "flatbuffers" | "fortran" | "fsharp" | "fut" | "gap" | "gdscript" | "gleam" | "gn"
+            | "go" | "gprbuild" | "gradle" | "graphql" | "groovy" | "gzip" | "h" | "haml" | "hare"
+            | "haskell" | "hbs" | "hs" | "html" | "hurl" | "hy" | "idris" | "janet" | "java"
+            | "jinja" | "jl" | "js" | "json" | "jsonl" | "julia" | "jupyter" | "k" | "kconfig"
+            | "kotlin" | "lean" | "less" | "license" | "lilypond" | "lisp" | "llvm" | "lock"
+            | "log" | "lua" | "lz4" | "lzma" | "m4" | "make" | "mako" | "man" | "markdown"
+            | "matlab" | "md" | "meson" | "minified" | "mint" | "mk" | "ml" | "mojo" | "motoko"
+            | "msbuild" | "nim" | "nix" | "objc" | "objcpp" | "ocaml" | "org" | "pants" | "pascal"
+            | "pdf" | "perl" | "php" | "pkgbuild" | "po" | "pod" | "postscript" | "prolog"
+            | "proto" | "protobuf" | "ps" | "puppet" | "purs" | "py" | "python" | "qmake" | "qml"
+            | "qrc" | "qui" | "r" | "racket" | "raku" | "rdoc" | "readme" | "reasonml" | "red"
+            | "rescript" | "robot" | "rocq" | "rst" | "ruby" | "rust" | "sass" | "scala"
+            | "scdoc" | "seed7" | "sh" | "slim" | "smarty" | "sml" | "solidity" | "soy" | "spark"
+            | "spec" | "sql" | "ssa" | "stylus" | "sv" | "svelte" | "svg" | "swift" | "swig"
+            | "systemd" | "taskpaper" | "tcl" | "tex" | "texinfo" | "textile" | "tf" | "thrift"
+            | "toml" | "ts" | "twig" | "txt" | "typescript" | "typoscript" | "typst" | "usd"
+            | "v" | "vala" | "vb" | "vcl" | "verilog" | "vhdl" | "vim" | "vimscript" | "vue"
+            | "webidl" | "wgsl" | "wiki" | "xml" | "xz" | "yacc" | "yaml" | "yang" | "z"
+            | "zig" | "zsh" | "zstd"
+    )
 }
 
 fn file_matches_rg_type(base: &str, t: &str) -> bool {
@@ -3323,7 +3827,7 @@ fn run_grep_engine(
                     let l_end = l_start + line.len();
                     if s < l_end && e > l_start {
                         any_match = true;
-                        if cfg.quiet {
+                        if cfg.quiet && !cfg.stats && !cfg.json_output {
                             return ok_out("");
                         }
                         span_matched = true;
@@ -3361,7 +3865,7 @@ fn run_grep_engine(
                 };
                 if is_matched {
                     any_match = true;
-                    if cfg.quiet {
+                    if cfg.quiet && !cfg.stats && !cfg.json_output {
                         return ok_out("");
                     }
                     file_submatch_count += line_matches.len().max(1);
@@ -3740,6 +4244,13 @@ fn run_grep_engine(
         out.push_str(&format!(
             "{{\"type\":\"summary\",\"data\":{{\"stats\":{{\"matches\":{total_matches},\"matched_lines\":{total_matched_lines},\"searches\":{searches},\"searches_with_match\":{searches_with_match}}}}}}}\n"
         ));
+    } else if cfg.stats {
+        let searches = inputs.len();
+        let bytes_printed = out.len();
+        let bytes_searched: usize = inputs.iter().map(|(_, c, _)| c.len()).sum();
+        out.push_str(&format!(
+            "\n{total_matches} matches\n{total_matched_lines} matched lines\n{searches_with_match} files contained matches\n{searches} files searched\n{bytes_printed} bytes printed\n{bytes_searched} bytes searched\n0.000000 seconds spent searching\n0.000000 seconds total\n"
+        ));
     }
 
     let exit_code = if had_error {
@@ -3766,6 +4277,11 @@ enum FindFollowMode {
 
 #[derive(Clone)]
 enum FindPred {
+    True,
+    False,
+    Depth,
+    MaxDepth,
+    MinDepth,
     Name { pat: String, ignore_case: bool },
     Path { pat: String, ignore_case: bool },
     Regex { pat: String, ignore_case: bool },
@@ -3774,11 +4290,14 @@ enum FindPred {
     Size { op: i8, count: usize, unit: usize },
     Perm { mode_kind: char, mask: u32 },
     Links { op: i8, count: usize },
+    Time { op: i8, count: i64, reference_ms: i64, unit_ms: i64 },
     Newer(u64),
     Prune,
     Quit,
+    Delete,
     Print { null_delim: bool },
     Printf(String),
+    Exec { cmd: Vec<String>, batch_idx: Option<usize> },
     Group(Box<FindPred>),
     Not(Box<FindPred>),
     And(Box<FindPred>, Box<FindPred>),
@@ -3786,52 +4305,86 @@ enum FindPred {
     Comma(Box<FindPred>, Box<FindPred>),
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum FindOp {
-    And,
-    Or,
-    Comma,
+fn validate_find_printf(fmt: &str) -> Result<(), String> {
+    let chars: Vec<char> = fmt.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] == '\\' {
+            if i + 1 >= chars.len() {
+                return Err("incomplete escape in -printf".to_string());
+            }
+            match chars[i + 1] {
+                'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | '\\' | 'c' => {
+                    i += 2;
+                }
+                '0'..='7' => {
+                    i += 2;
+                    let mut count = 1;
+                    while i < chars.len() && count < 3 && ('0'..='7').contains(&chars[i]) {
+                        i += 1;
+                        count += 1;
+                    }
+                }
+                other => {
+                    return Err(format!("unsupported escape '\\{other}' in -printf"));
+                }
+            }
+        } else if chars[i] == '%' {
+            if i + 1 >= chars.len() {
+                return Err("incomplete format directive in -printf".to_string());
+            }
+            match chars[i + 1] {
+                '%' | 'p' | 'f' | 'h' | 'P' | 'H' | 's' | 'd' | 'y' => {
+                    i += 2;
+                }
+                other => {
+                    return Err(format!("unsupported directive '%{other}' in -printf"));
+                }
+            }
+        } else {
+            i += 1;
+        }
+    }
+    Ok(())
 }
 
 fn render_find_printf(
     fmt: &str,
     disp_path: &str,
     root_disp: &str,
-    full_path: &str,
+    rel_p: &str,
+    st_opt: Option<&crate::vfs::FileStat>,
     depth: usize,
-    fs: &dyn SafeBashFs,
 ) -> String {
-    let base = basename_posix_path(disp_path);
-    let dir = crate::vfs::dirname_posix_path(disp_path);
-    let st_opt = fs.lstat(full_path).ok();
-    let sz = st_opt
-        .as_ref()
-        .map(|st| {
-            if st.kind == VfsEntryKind::Directory {
-                0
-            } else {
-                st.size
-            }
-        })
-        .unwrap_or(0);
+    let bytes = disp_path.as_bytes();
+    let mut end = bytes.len();
+    while end > 1 && bytes[end - 1] == b'/' {
+        end -= 1;
+    }
+    let mut slash = end as isize - 1;
+    while slash >= 0 && bytes[slash as usize] != b'/' {
+        slash -= 1;
+    }
+    let base = if end == 1 && bytes.first() == Some(&b'/') {
+        "/".to_string()
+    } else {
+        disp_path[(slash + 1) as usize..end].to_string()
+    };
+    let dir = if slash < 0 {
+        ".".to_string()
+    } else if slash == 0 {
+        "/".to_string()
+    } else {
+        disp_path[..slash as usize].to_string()
+    };
+    let sz = st_opt.map(|st| st.size).unwrap_or(0);
     let type_ch = st_opt
-        .as_ref()
         .map(|st| match st.kind {
             VfsEntryKind::File => "f",
             VfsEntryKind::Directory => "d",
             VfsEntryKind::Symlink => "l",
         })
         .unwrap_or("?");
-    let root_trimmed = root_disp.trim_end_matches('/');
-    let rel_p = if disp_path == root_disp || disp_path == root_trimmed {
-        ""
-    } else if root_trimmed.is_empty() || root_trimmed == "/" {
-        disp_path.trim_start_matches('/')
-    } else if let Some(rest) = disp_path.strip_prefix(root_trimmed) {
-        rest.trim_start_matches('/')
-    } else {
-        disp_path
-    };
 
     let mut out = String::new();
     let chars: Vec<char> = fmt.chars().collect();
@@ -3839,49 +4392,66 @@ fn render_find_printf(
     while i < chars.len() {
         if chars[i] == '\\' && i + 1 < chars.len() {
             match chars[i + 1] {
-                'n' => out.push('\n'),
-                't' => out.push('\t'),
-                'r' => out.push('\r'),
-                'a' => out.push('\x07'),
-                'b' => out.push('\x08'),
-                'f' => out.push('\x0c'),
-                'v' => out.push('\x0b'),
-                '\\' => out.push('\\'),
+                'a' => {
+                    out.push('\x07');
+                    i += 2;
+                }
+                'b' => {
+                    out.push('\x08');
+                    i += 2;
+                }
+                'f' => {
+                    out.push('\x0c');
+                    i += 2;
+                }
+                'n' => {
+                    out.push('\n');
+                    i += 2;
+                }
+                't' => {
+                    out.push('\t');
+                    i += 2;
+                }
+                'r' => {
+                    out.push('\r');
+                    i += 2;
+                }
+                'v' => {
+                    out.push('\x0b');
+                    i += 2;
+                }
+                '\\' => {
+                    out.push('\\');
+                    i += 2;
+                }
                 'c' => break,
-                d if ('0'..='7').contains(&d) => {
+                '0'..='7' => {
                     let mut oct = String::new();
-                    let mut j = i + 1;
-                    while j < chars.len() && j < i + 4 && ('0'..='7').contains(&chars[j]) {
-                        oct.push(chars[j]);
-                        j += 1;
+                    i += 1;
+                    while i < chars.len() && oct.len() < 3 && ('0'..='7').contains(&chars[i]) {
+                        oct.push(chars[i]);
+                        i += 1;
                     }
-                    if let Ok(val) = u8::from_str_radix(&oct, 8) {
-                        out.push(val as char);
-                    }
-                    i = j;
-                    continue;
+                    let val = u8::from_str_radix(&oct, 8).unwrap_or(0);
+                    out.push(val as char);
                 }
                 other => {
                     out.push('\\');
                     out.push(other);
+                    i += 2;
                 }
             }
-            i += 2;
         } else if chars[i] == '%' && i + 1 < chars.len() {
             match chars[i + 1] {
                 '%' => out.push('%'),
                 'p' => out.push_str(disp_path),
-                'P' => out.push_str(rel_p),
-                'H' => out.push_str(root_disp),
                 'f' => out.push_str(&base),
                 'h' => out.push_str(&dir),
+                'P' => out.push_str(rel_p),
+                'H' => out.push_str(root_disp),
                 's' => out.push_str(&sz.to_string()),
                 'd' => out.push_str(&depth.to_string()),
                 'y' => out.push_str(type_ch),
-                'm' => {
-                    let mode = st_opt.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0);
-                    out.push_str(&format!("{mode:o}"));
-                }
                 other => {
                     out.push('%');
                     out.push(other);
@@ -3896,25 +4466,476 @@ fn render_find_printf(
     out
 }
 
+fn parse_size_arg_strict(s: &str) -> Result<(i8, usize, usize), String> {
+    if s.is_empty() {
+        return Err("find: invalid -size argument".to_string());
+    }
+    let (op, rest) = if let Some(r) = s.strip_prefix('+') {
+        (1, r)
+    } else if let Some(r) = s.strip_prefix('-') {
+        (-1, r)
+    } else {
+        (0, s)
+    };
+    let (num_str, mult) = if let Some(n) = rest.strip_suffix('c') {
+        (n, 1usize)
+    } else if let Some(n) = rest.strip_suffix('w') {
+        (n, 2usize)
+    } else if let Some(n) = rest.strip_suffix('b') {
+        (n, 512usize)
+    } else if let Some(n) = rest.strip_suffix('k') {
+        (n, 1024usize)
+    } else if let Some(n) = rest.strip_suffix('M') {
+        (n, 1024 * 1024usize)
+    } else if let Some(n) = rest.strip_suffix('G') {
+        (n, 1024 * 1024 * 1024usize)
+    } else {
+        (rest, 512usize)
+    };
+    if num_str.is_empty() || !num_str.chars().all(|c| c.is_ascii_digit()) {
+        return Err("find: invalid -size argument".to_string());
+    }
+    let n = num_str
+        .parse::<usize>()
+        .map_err(|_| "find: invalid -size argument".to_string())?;
+    Ok((op, n, mult))
+}
+
+fn parse_perm_arg_strict(s: &str) -> Result<(char, u32), String> {
+    let (kind, rest) = if let Some(r) = s.strip_prefix('-') {
+        ('-', r)
+    } else if let Some(rest) = s.strip_prefix('/').or_else(|| s.strip_prefix('+')) {
+        ('/', rest)
+    } else {
+        ('=', s)
+    };
+    if rest.is_empty() {
+        return Err("find: invalid -perm mode".to_string());
+    }
+    if rest.chars().all(|c| ('0'..='7').contains(&c)) && rest.len() <= 4 {
+        let mask = u32::from_str_radix(rest, 8).unwrap_or(0) & 0o7777;
+        return Ok((kind, mask));
+    }
+    if rest.chars().any(|c| c.is_ascii_digit()) {
+        return Err("find: invalid -perm mode".to_string());
+    }
+    let mut mode = 0u32;
+    for clause in rest.split(',') {
+        if clause.is_empty() {
+            return Err("find: invalid -perm mode".to_string());
+        }
+        let bytes = clause.as_bytes();
+        let mut i = 0usize;
+        let mut who_u = false;
+        let mut who_g = false;
+        let mut who_o = false;
+        while i < bytes.len() && matches!(bytes[i], b'u' | b'g' | b'o' | b'a') {
+            match bytes[i] {
+                b'u' => who_u = true,
+                b'g' => who_g = true,
+                b'o' => who_o = true,
+                b'a' => {
+                    who_u = true;
+                    who_g = true;
+                    who_o = true;
+                }
+                _ => {}
+            }
+            i += 1;
+        }
+        if !who_u && !who_g && !who_o {
+            who_u = true;
+            who_g = true;
+            who_o = true;
+        }
+        if i >= bytes.len() {
+            return Err("find: invalid -perm mode".to_string());
+        }
+        while i < bytes.len() {
+            let op = bytes[i];
+            if !matches!(op, b'+' | b'-' | b'=') {
+                return Err("find: invalid -perm mode".to_string());
+            }
+            i += 1;
+            let mut r = false;
+            let mut w = false;
+            let mut x = false;
+            let mut s_bit = false;
+            let mut t_bit = false;
+            while i < bytes.len() && !matches!(bytes[i], b'+' | b'-' | b'=') {
+                match bytes[i] {
+                    b'r' => r = true,
+                    b'w' => w = true,
+                    b'x' | b'X' => x = true,
+                    b's' => s_bit = true,
+                    b't' => t_bit = true,
+                    _ => return Err("find: invalid -perm mode".to_string()),
+                }
+                i += 1;
+            }
+            let rwx = (if r { 4 } else { 0 }) | (if w { 2 } else { 0 }) | (if x { 1 } else { 0 });
+            let mut bits = 0u32;
+            let mut clear_mask = 0u32;
+            if who_u {
+                bits |= (rwx << 6) | (if s_bit { 0o4000 } else { 0 });
+                clear_mask |= 0o4700;
+            }
+            if who_g {
+                bits |= (rwx << 3) | (if s_bit { 0o2000 } else { 0 });
+                clear_mask |= 0o2070;
+            }
+            if who_o {
+                bits |= rwx | (if t_bit { 0o1000 } else { 0 });
+                clear_mask |= 0o1007;
+            }
+            match op {
+                b'+' => mode |= bits,
+                b'-' => mode &= !bits,
+                b'=' => mode = (mode & !clear_mask) | bits,
+                _ => {}
+            }
+        }
+    }
+    Ok((kind, mode & 0o7777))
+}
+
+fn parse_signed_count_strict(raw: &str, err_msg: &str) -> Result<(i8, usize), String> {
+    let (op, rest) = if let Some(r) = raw.strip_prefix('+') {
+        (1, r)
+    } else if let Some(r) = raw.strip_prefix('-') {
+        (-1, r)
+    } else {
+        (0, raw)
+    };
+    if rest.is_empty() || !rest.chars().all(|c| c.is_ascii_digit()) {
+        return Err(err_msg.to_string());
+    }
+    let count = rest.parse::<usize>().map_err(|_| err_msg.to_string())?;
+    Ok((op, count))
+}
+
+struct FindParseContext<'a> {
+    args: &'a [String],
+    idx: usize,
+    cwd: &'a str,
+    fs: &'a dyn SafeBashFs,
+    reference_ms: i64,
+    max_depth: Option<usize>,
+    min_depth: usize,
+    depth_first: bool,
+    explicit_depth: bool,
+    explicit_action: bool,
+    deletes: bool,
+    prunes: bool,
+    exec_batches: Vec<(Vec<String>, Vec<String>)>,
+}
+
+impl<'a> FindParseContext<'a> {
+    fn peek(&self) -> Option<&'a str> {
+        self.args.get(self.idx).map(|s| s.as_str())
+    }
+
+    fn parse_list(&mut self) -> Result<(FindPred, String), (i32, String)> {
+        let (mut left, mut tree) = self.parse_or()?;
+        while self.peek() == Some(",") {
+            self.idx += 1;
+            let (right, r_tree) = self.parse_or()?;
+            left = FindPred::Comma(Box::new(left), Box::new(right));
+            tree = format!("LIST({tree}, {r_tree})");
+        }
+        Ok((left, tree))
+    }
+
+    fn parse_or(&mut self) -> Result<(FindPred, String), (i32, String)> {
+        let (mut left, mut tree) = self.parse_and()?;
+        while matches!(self.peek(), Some("-o" | "-or")) {
+            self.idx += 1;
+            let (right, r_tree) = self.parse_and()?;
+            left = FindPred::Or(Box::new(left), Box::new(right));
+            tree = format!("OR({tree}, {r_tree})");
+        }
+        Ok((left, tree))
+    }
+
+    fn parse_and(&mut self) -> Result<(FindPred, String), (i32, String)> {
+        let (mut left, mut tree) = self.parse_primary()?;
+        while let Some(tok) = self.peek() {
+            if matches!(tok, ")" | "-o" | "-or" | ",") {
+                break;
+            }
+            if matches!(tok, "-a" | "-and") {
+                self.idx += 1;
+            }
+            let (right, r_tree) = self.parse_primary()?;
+            left = FindPred::And(Box::new(left), Box::new(right));
+            tree = format!("AND({tree}, {r_tree})");
+        }
+        Ok((left, tree))
+    }
+
+    fn parse_primary(&mut self) -> Result<(FindPred, String), (i32, String)> {
+        let Some(tok) = self.peek() else {
+            return Err((2, "find: expected expression\n".to_string()));
+        };
+        if matches!(tok, "!" | "-not") {
+            self.idx += 1;
+            let (inner, in_tree) = self.parse_primary()?;
+            return Ok((FindPred::Not(Box::new(inner)), format!("NOT({in_tree})")));
+        }
+        if tok == "(" {
+            self.idx += 1;
+            if self.peek() == Some(")") {
+                return Err((2, "find: empty parentheses are not allowed\n".to_string()));
+            }
+            let (inner, in_tree) = self.parse_list()?;
+            if self.peek() != Some(")") {
+                return Err((2, "find: missing closing ')'\n".to_string()));
+            }
+            self.idx += 1;
+            return Ok((FindPred::Group(Box::new(inner)), in_tree));
+        }
+
+        let start = self.idx;
+        self.idx += 1;
+        let label_for = |args: &[String], s: usize, e: usize| -> String {
+            format!("[{}]", args[s..e].iter().map(|t| format!("\"{}\"", t.replace('\\', "\\\\").replace('"', "\\\""))).collect::<Vec<_>>().join(","))
+        };
+        let take_arg = |this: &mut Self, opt: &str| -> Result<&'a str, (i32, String)> {
+            if let Some(v) = this.args.get(this.idx) {
+                this.idx += 1;
+                Ok(v.as_str())
+            } else {
+                Err((2, format!("find: missing argument to '{opt}'\n")))
+            }
+        };
+
+        let pred = match tok {
+            "-true" => FindPred::True,
+            "-false" => FindPred::False,
+            "-depth" | "-d" => {
+                self.depth_first = true;
+                self.explicit_depth = true;
+                FindPred::Depth
+            }
+            "-maxdepth" | "-mindepth" => {
+                let raw = take_arg(self, tok)?;
+                if raw.is_empty() || !raw.chars().all(|c| c.is_ascii_digit()) {
+                    return Err((2, format!("find: invalid argument '{raw}' to '{tok}'\n")));
+                }
+                let val = raw
+                    .parse::<usize>()
+                    .map_err(|_| (2, format!("find: invalid argument '{raw}' to '{tok}'\n")))?;
+                if tok == "-maxdepth" {
+                    self.max_depth = Some(val);
+                    FindPred::MaxDepth
+                } else {
+                    self.min_depth = val;
+                    FindPred::MinDepth
+                }
+            }
+            "-name" | "-iname" => {
+                let pat = take_arg(self, tok)?.to_string();
+                FindPred::Name {
+                    pat,
+                    ignore_case: tok == "-iname",
+                }
+            }
+            "-path" | "-wholename" | "-ipath" | "-iwholename" => {
+                let pat = take_arg(self, tok)?.to_string();
+                FindPred::Path {
+                    pat,
+                    ignore_case: tok.starts_with("-i"),
+                }
+            }
+            "-regex" | "-iregex" => {
+                let pat = take_arg(self, tok)?.to_string();
+                if has_unsupported_regex_features(&pat) {
+                    return Err((2, format!("find: invalid regex '{pat}'\n")));
+                }
+                FindPred::Regex {
+                    pat,
+                    ignore_case: tok == "-iregex",
+                }
+            }
+            "-type" => {
+                let raw = take_arg(self, tok)?;
+                let mut types = Vec::new();
+                for part in raw.split(',') {
+                    if part.len() != 1 {
+                        return Err((2, format!("find: Unknown argument to -type: {raw}\n")));
+                    }
+                    let ch = part.chars().next().unwrap();
+                    if !matches!(ch, 'f' | 'd' | 'l' | 'c') {
+                        return Err((2, format!("find: Unknown argument to -type: {raw}\n")));
+                    }
+                    types.push(ch);
+                }
+                if types.is_empty() {
+                    return Err((2, "find: Unknown argument to -type\n".to_string()));
+                }
+                FindPred::Type(types)
+            }
+            "-empty" => FindPred::Empty,
+            "-size" => {
+                let raw = take_arg(self, tok)?;
+                let (op, count, unit) =
+                    parse_size_arg_strict(raw).map_err(|m| (2, format!("{m}\n")))?;
+                FindPred::Size { op, count, unit }
+            }
+            "-perm" => {
+                let raw = take_arg(self, tok)?;
+                let (mode_kind, mask) =
+                    parse_perm_arg_strict(raw).map_err(|m| (2, format!("{m}\n")))?;
+                FindPred::Perm { mode_kind, mask }
+            }
+            "-links" => {
+                let raw = take_arg(self, tok)?;
+                let (op, count) =
+                    parse_signed_count_strict(raw, "find: invalid -links count")
+                        .map_err(|m| (2, format!("{m}\n")))?;
+                FindPred::Links { op, count }
+            }
+            "-mtime" | "-atime" | "-ctime" | "-mmin" | "-amin" | "-cmin" => {
+                let raw = take_arg(self, tok)?;
+                let (op, count) =
+                    parse_signed_count_strict(raw, &format!("find: invalid {tok} argument"))
+                        .map_err(|m| (2, format!("{m}\n")))?;
+                let unit_ms = if tok.ends_with("min") {
+                    60_000i64
+                } else {
+                    86_400_000i64
+                };
+                FindPred::Time {
+                    op,
+                    count: count as i64,
+                    reference_ms: self.reference_ms,
+                    unit_ms,
+                }
+            }
+            "-newer" => {
+                let raw = take_arg(self, tok)?;
+                let ref_full = resolve_posix_path(self.cwd, raw);
+                let st = self
+                    .fs
+                    .stat(&ref_full)
+                    .map_err(|e| (1, format!("find: '{raw}': {e}\n")))?;
+                FindPred::Newer(st.mtime_ms)
+            }
+            "-prune" => {
+                self.prunes = true;
+                FindPred::Prune
+            }
+            "-quit" => {
+                self.explicit_action = true;
+                FindPred::Quit
+            }
+            "-delete" => {
+                self.depth_first = true;
+                self.deletes = true;
+                self.explicit_action = true;
+                FindPred::Delete
+            }
+            "-print" => {
+                self.explicit_action = true;
+                FindPred::Print { null_delim: false }
+            }
+            "-print0" => {
+                self.explicit_action = true;
+                FindPred::Print { null_delim: true }
+            }
+            "-printf" => {
+                let fmt = take_arg(self, tok)?.to_string();
+                validate_find_printf(&fmt).map_err(|m| (2, format!("find: {m}\n")))?;
+                self.explicit_action = true;
+                FindPred::Printf(fmt)
+            }
+            "-exec" => {
+                let mut cmd_words = Vec::new();
+                let mut term: Option<&str> = None;
+                while let Some(w) = self.peek() {
+                    self.idx += 1;
+                    if w == ";" || w == "\\;" || w == "+" {
+                        term = Some(w);
+                        break;
+                    }
+                    cmd_words.push(w.to_string());
+                }
+                let Some(t) = term else {
+                    return Err((2, "find: missing argument to '-exec'\n".to_string()));
+                };
+                if cmd_words.is_empty() {
+                    return Err((2, "find: missing command for '-exec'\n".to_string()));
+                }
+                self.explicit_action = true;
+                if t == "+" {
+                    if cmd_words.last().map(|s| s.as_str()) != Some("{}")
+                        || cmd_words[..cmd_words.len() - 1]
+                            .iter()
+                            .any(|s| s.contains("{}"))
+                    {
+                        return Err((
+                            2,
+                            "find: -exec ... + requires '{}' immediately before '+'\n".to_string(),
+                        ));
+                    }
+                    let b_idx = self.exec_batches.len();
+                    self.exec_batches
+                        .push((cmd_words[..cmd_words.len() - 1].to_vec(), Vec::new()));
+                    FindPred::Exec {
+                        cmd: Vec::new(),
+                        batch_idx: Some(b_idx),
+                    }
+                } else {
+                    FindPred::Exec {
+                        cmd: cmd_words,
+                        batch_idx: None,
+                    }
+                }
+            }
+            other => {
+                return Err((2, format!("find: unknown predicate '{other}'\n")));
+            }
+        };
+
+        Ok((pred, label_for(self.args, start, self.idx)))
+    }
+}
+
+struct FindEvalState<'a, F>
+where
+    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
+    cwd: &'a mut String,
+    env: &'a mut BTreeMap<String, String>,
+    fs: &'a dyn SafeBashFs,
+    exec_sub: &'a mut F,
+    exec_batches: &'a mut Vec<(Vec<String>, Vec<String>)>,
+    out: &'a mut String,
+    err: &'a mut String,
+    exit_code: &'a mut i32,
+    quit: &'a mut bool,
+}
+
 #[allow(clippy::too_many_arguments)]
-fn eval_find_pred(
+fn eval_find_pred<F>(
     pred: &FindPred,
     disp_path: &str,
     root_disp: &str,
+    rel_p: &str,
     full_path: &str,
     depth: usize,
-    fs: &dyn SafeBashFs,
+    st_opt: Option<&crate::vfs::FileStat>,
     pruned: &mut bool,
-    quit: &mut bool,
-    printed: &mut Vec<String>,
-) -> bool {
+    state: &mut FindEvalState<'_, F>,
+) -> bool
+where
+    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
     match pred {
+        FindPred::True | FindPred::Depth | FindPred::MaxDepth | FindPred::MinDepth => true,
+        FindPred::False => false,
         FindPred::Name { pat, ignore_case } => {
-            let base = if depth == 0 && disp_path == "." {
-                ".".to_string()
-            } else {
-                basename_posix_path(disp_path)
-            };
+            let base = basename_posix_path(disp_path);
             if *ignore_case {
                 glob_match(&pat.to_ascii_lowercase(), &base.to_ascii_lowercase())
             } else {
@@ -3932,28 +4953,29 @@ fn eval_find_pred(
             let rx = ZeroRegex::new(vec![pat.clone()], *ignore_case, false, false, true);
             rx.is_match(disp_path)
         }
-        FindPred::Type(types) => match fs.lstat(full_path) {
-            Ok(st) => types.iter().any(|t| match t {
+        FindPred::Type(types) => match st_opt {
+            Some(st) => types.iter().any(|t| match t {
                 'f' => st.kind == VfsEntryKind::File,
                 'd' => st.kind == VfsEntryKind::Directory,
                 'l' => st.kind == VfsEntryKind::Symlink,
                 _ => false,
             }),
-            Err(_) => false,
+            None => false,
         },
-        FindPred::Empty => match fs.stat(full_path) {
-            Ok(st) => match st.kind {
+        FindPred::Empty => match st_opt {
+            Some(st) => match st.kind {
                 VfsEntryKind::File => st.size == 0,
-                VfsEntryKind::Directory => fs
+                VfsEntryKind::Directory => state
+                    .fs
                     .read_dir(full_path)
                     .map(|e| e.is_empty())
                     .unwrap_or(false),
                 _ => false,
             },
-            Err(_) => false,
+            None => false,
         },
-        FindPred::Size { op, count, unit } => match fs.stat(full_path) {
-            Ok(st) => {
+        FindPred::Size { op, count, unit } => match st_opt {
+            Some(st) => {
                 let actual = if *unit <= 1 {
                     st.size
                 } else if st.size == 0 {
@@ -3967,24 +4989,24 @@ fn eval_find_pred(
                     _ => actual == *count,
                 }
             }
-            Err(_) => false,
+            None => false,
         },
-        FindPred::Perm { mode_kind, mask } => match fs.stat(full_path) {
-            Ok(st) => {
+        FindPred::Perm { mode_kind, mask } => match st_opt {
+            Some(st) => {
                 let file_mode = st.mode & 0o7777;
                 match mode_kind {
                     '-' => (file_mode & *mask) == *mask,
-                    '/' => (file_mode & *mask) != 0,
+                    '/' => *mask == 0 || (file_mode & *mask) != 0,
                     _ => file_mode == *mask,
                 }
             }
-            Err(_) => false,
+            None => false,
         },
         FindPred::Links { op, count } => {
-            if fs.lstat(full_path).is_err() {
+            if st_opt.is_none() {
                 return false;
             }
-            let entries = fs.export_entries().unwrap_or_default();
+            let entries = state.fs.export_entries().unwrap_or_default();
             let mut canon = normalize_posix_path(full_path);
             for _ in 0..16 {
                 if let Some(ent) = entries.iter().find(|e| e.path == canon)
@@ -4008,126 +5030,176 @@ fn eval_find_pred(
                 _ => nlinks == *count,
             }
         }
-        FindPred::Newer(ref_mtime) => match fs.stat(full_path) {
-            Ok(st) => st.mtime_ms > *ref_mtime,
-            Err(_) => false,
+        FindPred::Time {
+            op,
+            count,
+            reference_ms,
+            unit_ms,
+        } => match st_opt {
+            Some(st) => {
+                let diff = (*reference_ms - st.mtime_ms as i64).max(0);
+                let age = diff / *unit_ms;
+                match op {
+                    1 => age > *count,
+                    -1 => age < *count,
+                    _ => age == *count,
+                }
+            }
+            None => false,
+        },
+        FindPred::Newer(ref_mtime) => match st_opt {
+            Some(st) => st.mtime_ms > *ref_mtime,
+            None => false,
         },
         FindPred::Prune => {
             *pruned = true;
             true
         }
         FindPred::Quit => {
-            *quit = true;
+            *state.quit = true;
+            true
+        }
+        FindPred::Delete => {
+            let base = basename_posix_path(disp_path);
+            if base == "." {
+                return true;
+            }
+            let is_dir = st_opt
+                .map(|st| st.kind == VfsEntryKind::Directory)
+                .unwrap_or(false);
+            if is_dir {
+                if let Ok(entries) = state.fs.read_dir(full_path)
+                    && !entries.is_empty()
+                {
+                    state.err.push_str(&format!(
+                        "find: cannot delete '{disp_path}': Directory not empty\n"
+                    ));
+                    *state.exit_code = 1;
+                    return true;
+                }
+            }
+            if let Err(e) = state.fs.remove(full_path, false) {
+                state
+                    .err
+                    .push_str(&format!("find: cannot delete '{disp_path}': {e}\n"));
+                *state.exit_code = 1;
+            }
             true
         }
         FindPred::Print { null_delim } => {
             let sep = if *null_delim { '\0' } else { '\n' };
-            printed.push(format!("{disp_path}{sep}"));
+            state.out.push_str(disp_path);
+            state.out.push(sep);
             true
         }
         FindPred::Printf(fmt) => {
-            let rendered = render_find_printf(fmt, disp_path, root_disp, full_path, depth, fs);
-            printed.push(rendered);
+            let rendered =
+                render_find_printf(fmt, disp_path, root_disp, rel_p, st_opt, depth);
+            state.out.push_str(&rendered);
             true
         }
-        FindPred::Group(inner) => {
-            eval_find_pred(inner, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
+        FindPred::Exec { cmd, batch_idx } => {
+            if let Some(b_idx) = batch_idx {
+                if let Some((_, pending)) = state.exec_batches.get_mut(*b_idx) {
+                    pending.push(disp_path.to_string());
+                }
+                true
+            } else {
+                let cmd_args: Vec<String> =
+                    cmd.iter().map(|w| w.replace("{}", disp_path)).collect();
+                let res = (state.exec_sub)(&cmd_args, "", state.cwd, state.env);
+                state.out.push_str(&res.stdout);
+                state.err.push_str(&res.stderr);
+                res.exit_code == 0
+            }
         }
-        FindPred::Not(inner) => {
-            !eval_find_pred(inner, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
-        }
+        FindPred::Group(inner) => eval_find_pred(
+            inner, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+        ),
+        FindPred::Not(inner) => !eval_find_pred(
+            inner, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+        ),
         FindPred::And(a, b) => {
-            eval_find_pred(a, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
-                && !*quit
-                && eval_find_pred(b, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
+            eval_find_pred(
+                a, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+            ) && !*state.quit
+                && eval_find_pred(
+                    b, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+                )
         }
         FindPred::Or(a, b) => {
-            eval_find_pred(a, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
-                || (!*quit
-                    && eval_find_pred(b, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed))
+            eval_find_pred(
+                a, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+            ) || (!*state.quit
+                && eval_find_pred(
+                    b, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+                ))
         }
         FindPred::Comma(a, b) => {
-            let _ = eval_find_pred(a, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed);
-            if *quit {
+            let _ = eval_find_pred(
+                a, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+            );
+            if *state.quit {
                 return false;
             }
-            eval_find_pred(b, disp_path, root_disp, full_path, depth, fs, pruned, quit, printed)
+            eval_find_pred(
+                b, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
+            )
         }
     }
 }
 
-fn parse_size_arg(s: &str) -> (i8, usize, usize) {
-    let (op, rest) = if let Some(r) = s.strip_prefix('+') {
-        (1, r)
-    } else if let Some(r) = s.strip_prefix('-') {
-        (-1, r)
-    } else {
-        (0, s)
-    };
-    let (num_str, mult) = if let Some(n) = rest.strip_suffix('c') {
-        (n, 1usize)
-    } else if let Some(n) = rest.strip_suffix('w') {
-        (n, 2usize)
-    } else if let Some(n) = rest.strip_suffix('b') {
-        (n, 512usize)
-    } else if let Some(n) = rest.strip_suffix('k') {
-        (n, 1024usize)
-    } else if let Some(n) = rest.strip_suffix('M') {
-        (n, 1024 * 1024usize)
-    } else if let Some(n) = rest.strip_suffix('G') {
-        (n, 1024 * 1024 * 1024usize)
-    } else {
-        (rest, 512usize)
-    };
-    let n = num_str.parse::<usize>().unwrap_or(0);
-    (op, n, mult)
-}
-
-fn parse_perm_arg(s: &str) -> (char, u32) {
-    let (kind, rest) = if let Some(r) = s.strip_prefix('-') {
-        ('-', r)
-    } else if let Some(rest) = s.strip_prefix('/').or_else(|| s.strip_prefix('+')) {
-        ('/', rest)
-    } else {
-        ('=', s)
-    };
-    if rest.chars().all(|c| c.is_ascii_digit()) {
-        return (kind, u32::from_str_radix(rest, 8).unwrap_or(0));
+fn realpath_find(path: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
+    let norm = normalize_posix_path(path);
+    if norm == "/" {
+        return Ok("/".to_string());
     }
-    let mut mask = 0u32;
-    for clause in rest.split(',') {
-        let mut who_mask = 0u32;
-        let mut perm_bits = 0u32;
-        let mut seen_op = false;
-        for ch in clause.chars() {
-            if !seen_op {
-                match ch {
-                    'u' => who_mask |= 0o700,
-                    'g' => who_mask |= 0o070,
-                    'o' => who_mask |= 0o007,
-                    'a' => who_mask |= 0o777,
-                    '+' | '-' | '=' => {
-                        if who_mask == 0 {
-                            who_mask = 0o777;
-                        }
-                        seen_op = true;
-                    }
-                    _ => {}
+    let mut cur = String::new();
+    let mut queue: Vec<String> = norm
+        .split('/')
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string())
+        .collect();
+    let mut hops = 0usize;
+    while !queue.is_empty() {
+        let seg = queue.remove(0);
+        if seg == "." {
+            continue;
+        }
+        if seg == ".." {
+            cur = crate::vfs::dirname_posix_path(if cur.is_empty() { "/" } else { &cur });
+            if cur == "/" {
+                cur.clear();
+            }
+            continue;
+        }
+        let next = format!("{cur}/{seg}");
+        if let Ok(target) = fs.readlink(&next) {
+            if !target.starts_with("__hardlink__:") {
+                hops += 1;
+                if hops > 40 {
+                    return Err("ELOOP: Too many levels of symbolic links".to_string());
                 }
-            } else {
-                match ch {
-                    'r' => perm_bits |= 0o444,
-                    'w' => perm_bits |= 0o222,
-                    'x' => perm_bits |= 0o111,
-                    's' => perm_bits |= 0o6000,
-                    't' => perm_bits |= 0o1000,
-                    _ => {}
+                let mut target_segs: Vec<String> = target
+                    .split('/')
+                    .filter(|s| !s.is_empty())
+                    .map(|s| s.to_string())
+                    .collect();
+                if target.starts_with('/') {
+                    cur.clear();
                 }
+                target_segs.extend(queue);
+                queue = target_segs;
+                continue;
             }
         }
-        mask |= (who_mask & perm_bits) | (perm_bits & 0o7000);
+        cur = next;
     }
-    (kind, mask)
+    if cur.is_empty() {
+        Ok("/".to_string())
+    } else {
+        Ok(cur)
+    }
 }
 
 fn cmd_find<F>(
@@ -4141,6 +5213,7 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let mut follow_mode = FindFollowMode::Never;
+    let mut debug_tree = false;
     let mut roots = Vec::new();
     let mut idx = 0usize;
     while idx < args.len() {
@@ -4157,8 +5230,23 @@ where
                 follow_mode = FindFollowMode::Always;
                 idx += 1;
             }
+            "-D" => {
+                idx += 1;
+                if idx >= args.len() || args[idx] != "tree" {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "find: invalid -D debug option\n".to_string(),
+                        exit_code: 2,
+                    };
+                }
+                debug_tree = true;
+                idx += 1;
+            }
             _ => break,
         }
+    }
+    if idx < args.len() && args[idx] == "--" {
+        idx += 1;
     }
     while idx < args.len() {
         let a = &args[idx];
@@ -4172,326 +5260,127 @@ where
         roots.push(".".to_string());
     }
 
-    let mut max_depth: Option<usize> = None;
-    let mut min_depth: usize = 0;
-    let mut print0 = false;
-    let mut explicit_print = false;
-    let mut depth_first = false;
-    let mut delete_matched = false;
-    let mut exec_template: Option<(Vec<String>, bool)> = None;
-    let mut pred: Option<FindPred> = None;
-    let mut pending_op = FindOp::And;
-    let mut pending_not = false;
-    let mut group_stack: Vec<(Option<FindPred>, bool, FindOp)> = Vec::new();
+    let now_ms = 1_700_000_000_000i64;
 
-    while idx < args.len() {
-        let a = &args[idx];
-        match a.as_str() {
-            "(" => {
-                group_stack.push((pred.take(), pending_not, pending_op));
-                pending_not = false;
-                pending_op = FindOp::And;
-                idx += 1;
-            }
-            ")" => {
-                let inner = pred.take().map(|p| FindPred::Group(Box::new(p)));
-                if let Some((mut outer_pred, mut outer_not, mut outer_op)) = group_stack.pop() {
-                    if let Some(in_p) = inner {
-                        combine_pred(&mut outer_pred, in_p, &mut outer_not, &mut outer_op);
-                    }
-                    pred = outer_pred;
-                    pending_not = outer_not;
-                    pending_op = outer_op;
-                } else {
-                    pred = inner;
+    let mut pctx = FindParseContext {
+        args,
+        idx,
+        cwd,
+        fs,
+        reference_ms: now_ms,
+        max_depth: None,
+        min_depth: 0,
+        depth_first: false,
+        explicit_depth: false,
+        explicit_action: false,
+        deletes: false,
+        prunes: false,
+        exec_batches: Vec::new(),
+    };
+
+    let (pred, tree) = if pctx.idx < args.len() {
+        match pctx.parse_list() {
+            Ok((p, t)) => {
+                if pctx.idx < args.len() {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("find: unexpected argument '{}'\n", args[pctx.idx]),
+                        exit_code: 2,
+                    };
                 }
-                idx += 1;
+                (Some(p), t)
             }
-            "-print" => {
-                explicit_print = true;
-                combine_pred(
-                    &mut pred,
-                    FindPred::Print { null_delim: false },
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 1;
-            }
-            "-printf" if idx + 1 < args.len() => {
-                explicit_print = true;
-                combine_pred(
-                    &mut pred,
-                    FindPred::Printf(args[idx + 1].clone()),
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 2;
-            }
-            "-print0" => {
-                print0 = true;
-                explicit_print = true;
-                combine_pred(
-                    &mut pred,
-                    FindPred::Print { null_delim: true },
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 1;
-            }
-            "-prune" => {
-                combine_pred(&mut pred, FindPred::Prune, &mut pending_not, &mut pending_op);
-                idx += 1;
-            }
-            "-quit" => {
-                combine_pred(&mut pred, FindPred::Quit, &mut pending_not, &mut pending_op);
-                idx += 1;
-            }
-            "-depth" => {
-                depth_first = true;
-                idx += 1;
-            }
-            "-delete" => {
-                delete_matched = true;
-                depth_first = true;
-                idx += 1;
-            }
-            "!" | "-not" => {
-                pending_not = !pending_not;
-                idx += 1;
-            }
-            "-o" | "-or" => {
-                pending_op = FindOp::Or;
-                idx += 1;
-            }
-            "-a" | "-and" => {
-                pending_op = FindOp::And;
-                idx += 1;
-            }
-            "," => {
-                pending_op = FindOp::Comma;
-                idx += 1;
-            }
-            "-maxdepth" if idx + 1 < args.len() => {
-                max_depth = args[idx + 1].parse().ok();
-                idx += 2;
-            }
-            "-mindepth" if idx + 1 < args.len() => {
-                min_depth = args[idx + 1].parse().unwrap_or(0);
-                idx += 2;
-            }
-            "-name" | "-iname" if idx + 1 < args.len() => {
-                let p = FindPred::Name {
-                    pat: args[idx + 1].clone(),
-                    ignore_case: a == "-iname",
+            Err((code, msg)) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: msg,
+                    exit_code: code,
                 };
-                combine_pred(&mut pred, p, &mut pending_not, &mut pending_op);
-                idx += 2;
-            }
-            "-path" | "-ipath" if idx + 1 < args.len() => {
-                let p = FindPred::Path {
-                    pat: args[idx + 1].clone(),
-                    ignore_case: a == "-ipath",
-                };
-                combine_pred(&mut pred, p, &mut pending_not, &mut pending_op);
-                idx += 2;
-            }
-            "-regex" | "-iregex" if idx + 1 < args.len() => {
-                let p = FindPred::Regex {
-                    pat: preprocess_ere_pattern(&args[idx + 1], false),
-                    ignore_case: a == "-iregex",
-                };
-                combine_pred(&mut pred, p, &mut pending_not, &mut pending_op);
-                idx += 2;
-            }
-            "-type" if idx + 1 < args.len() => {
-                let tlist: Vec<char> = args[idx + 1]
-                    .split(',')
-                    .filter_map(|s| s.chars().next())
-                    .collect();
-                combine_pred(
-                    &mut pred,
-                    FindPred::Type(if tlist.is_empty() { vec!['f'] } else { tlist }),
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 2;
-            }
-            "-empty" => {
-                combine_pred(&mut pred, FindPred::Empty, &mut pending_not, &mut pending_op);
-                idx += 1;
-            }
-            "-size" if idx + 1 < args.len() => {
-                let (op, count, unit) = parse_size_arg(&args[idx + 1]);
-                combine_pred(
-                    &mut pred,
-                    FindPred::Size { op, count, unit },
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 2;
-            }
-            "-perm" if idx + 1 < args.len() => {
-                let (mode_kind, mask) = parse_perm_arg(&args[idx + 1]);
-                combine_pred(
-                    &mut pred,
-                    FindPred::Perm { mode_kind, mask },
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 2;
-            }
-            "-links" if idx + 1 < args.len() => {
-                let raw = &args[idx + 1];
-                let (op, rest) = if let Some(r) = raw.strip_prefix('+') {
-                    (1, r)
-                } else if let Some(r) = raw.strip_prefix('-') {
-                    (-1, r)
-                } else {
-                    (0, raw.as_str())
-                };
-                let count = rest.parse::<usize>().unwrap_or(0);
-                combine_pred(
-                    &mut pred,
-                    FindPred::Links { op, count },
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 2;
-            }
-            "-newer" if idx + 1 < args.len() => {
-                let ref_full = resolve_posix_path(cwd, &args[idx + 1]);
-                let ref_mtime = fs.stat(&ref_full).map(|st| st.mtime_ms).unwrap_or(0);
-                combine_pred(
-                    &mut pred,
-                    FindPred::Newer(ref_mtime),
-                    &mut pending_not,
-                    &mut pending_op,
-                );
-                idx += 2;
-            }
-            "-exec" => {
-                idx += 1;
-                let mut cmd_words = Vec::new();
-                let mut batch = false;
-                while idx < args.len() {
-                    if args[idx] == ";" || args[idx] == "\\;" {
-                        idx += 1;
-                        break;
-                    }
-                    if args[idx] == "+" {
-                        batch = true;
-                        idx += 1;
-                        break;
-                    }
-                    cmd_words.push(args[idx].clone());
-                    idx += 1;
-                }
-                exec_template = Some((cmd_words, batch));
-            }
-            _ => {
-                idx += 1;
             }
         }
+    } else {
+        (None, "true".to_string())
+    };
+
+    if pctx.deletes && pctx.prunes && !pctx.explicit_depth {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "find: -delete implies -depth; -prune is ineffective without explicit -depth\n"
+                .to_string(),
+            exit_code: 1,
+        };
     }
 
-    let mut matched_paths = Vec::new();
-    let mut explicit_prints: Vec<String> = Vec::new();
+    let max_depth = pctx.max_depth;
+    let min_depth = pctx.min_depth;
+    let depth_first = pctx.depth_first;
+    let explicit_action = pctx.explicit_action;
+    let mut exec_batches = pctx.exec_batches;
+
+    let mut out = String::new();
     let mut err = String::new();
     let mut exit_code = 0;
     let mut quit = false;
 
+    if debug_tree {
+        let rendered_tree = if explicit_action {
+            tree
+        } else {
+            format!("AND({tree}, implicit -print)")
+        };
+        err.push_str(&format!(
+            "find: virtual expression tree (evaluation order; no optimizer)\n{rendered_tree}\n"
+        ));
+    }
+
+    let mut state = FindEvalState {
+        cwd,
+        env,
+        fs,
+        exec_sub,
+        exec_batches: &mut exec_batches,
+        out: &mut out,
+        err: &mut err,
+        exit_code: &mut exit_code,
+        quit: &mut quit,
+    };
+
     for r in &roots {
-        if quit {
+        if *state.quit {
             break;
         }
-        let full = resolve_posix_path(cwd, r);
-        if !fs.exists(&full) && fs.lstat(&full).is_err() {
-            err.push_str(&format!("find: '{r}': No such file or directory\n"));
-            exit_code = 1;
-            continue;
-        }
+        let full = resolve_posix_path(state.cwd, r);
+        let mut ancestors = std::collections::BTreeSet::new();
         walk_find(
             r,
             r,
+            "",
             &full,
             0,
             min_depth,
             max_depth,
             depth_first,
             follow_mode,
+            explicit_action,
             &pred,
-            fs,
-            &mut matched_paths,
-            &mut explicit_prints,
-            &mut quit,
+            &mut ancestors,
+            &mut state,
         );
     }
 
-    if delete_matched {
-        for (_, full) in &matched_paths {
-            let _ = fs.remove(full, true);
-        }
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: err,
-            exit_code,
-        };
-    }
-
-    if let Some((tpl, batch)) = exec_template {
-        let mut out = String::new();
-        if batch {
-            if !matched_paths.is_empty() {
-                let mut cmd_args = Vec::new();
-                for w in &tpl {
-                    if w == "{}" {
-                        for (disp, _) in &matched_paths {
-                            cmd_args.push(disp.clone());
-                        }
-                    } else {
-                        cmd_args.push(w.clone());
-                    }
-                }
-                let res = exec_sub(&cmd_args, "", cwd, env);
-                out.push_str(&res.stdout);
-                err.push_str(&res.stderr);
-            }
-        } else {
-            for (disp, _) in &matched_paths {
-                let cmd_args: Vec<String> = tpl
-                    .iter()
-                    .map(|w| w.replace("{}", disp))
-                    .collect();
-                let res = exec_sub(&cmd_args, "", cwd, env);
-                out.push_str(&res.stdout);
-                err.push_str(&res.stderr);
+    for (cmd_prefix, pending) in exec_batches {
+        if !pending.is_empty() {
+            let mut cmd_args = cmd_prefix;
+            cmd_args.extend(pending);
+            let res = (exec_sub)(&cmd_args, "", cwd, env);
+            out.push_str(&res.stdout);
+            err.push_str(&res.stderr);
+            if res.exit_code != 0 {
+                exit_code = 1;
             }
         }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err,
-            exit_code,
-        };
     }
 
-    if explicit_print {
-        let mut out = String::new();
-        for chunk in explicit_prints {
-            out.push_str(&chunk);
-        }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err,
-            exit_code,
-        };
-    }
-
-    let mut out = String::new();
-    let sep = if print0 { '\0' } else { '\n' };
-    for (disp, _) in matched_paths {
-        out.push_str(&disp);
-        out.push(sep);
-    }
     BuiltinOutcome {
         stdout: out,
         stderr: err,
@@ -4499,67 +5388,25 @@ where
     }
 }
 
-fn combine_pred(
-    current: &mut Option<FindPred>,
-    mut next: FindPred,
-    pending_not: &mut bool,
-    pending_op: &mut FindOp,
-) {
-    if *pending_not {
-        next = FindPred::Not(Box::new(next));
-        *pending_not = false;
-    }
-    let op = *pending_op;
-    *pending_op = FindOp::And;
-    *current = match current.take() {
-        None => Some(next),
-        Some(prev) => match op {
-            FindOp::Comma => Some(FindPred::Comma(Box::new(prev), Box::new(next))),
-            FindOp::Or => match prev {
-                FindPred::Comma(left, right) => Some(FindPred::Comma(
-                    left,
-                    Box::new(FindPred::Or(right, Box::new(next))),
-                )),
-                other => Some(FindPred::Or(Box::new(other), Box::new(next))),
-            },
-            FindOp::And => match prev {
-                FindPred::Comma(c_left, c_right) => {
-                    let new_right = match *c_right {
-                        FindPred::Or(o_left, o_right) => FindPred::Or(
-                            o_left,
-                            Box::new(FindPred::And(o_right, Box::new(next))),
-                        ),
-                        other => FindPred::And(Box::new(other), Box::new(next)),
-                    };
-                    Some(FindPred::Comma(c_left, Box::new(new_right)))
-                }
-                FindPred::Or(left, right) => Some(FindPred::Or(
-                    left,
-                    Box::new(FindPred::And(right, Box::new(next))),
-                )),
-                other => Some(FindPred::And(Box::new(other), Box::new(next))),
-            },
-        },
-    };
-}
-
 #[allow(clippy::too_many_arguments)]
-fn walk_find(
+fn walk_find<F>(
     disp: &str,
     root_disp: &str,
+    rel: &str,
     full: &str,
     depth: usize,
     min_depth: usize,
     max_depth: Option<usize>,
     depth_first: bool,
     follow_mode: FindFollowMode,
+    explicit_action: bool,
     pred: &Option<FindPred>,
-    fs: &dyn SafeBashFs,
-    out: &mut Vec<(String, String)>,
-    explicit_prints: &mut Vec<String>,
-    quit: &mut bool,
-) {
-    if *quit {
+    ancestors: &mut std::collections::BTreeSet<String>,
+    state: &mut FindEvalState<'_, F>,
+) where
+    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
+    if *state.quit {
         return;
     }
     if let Some(max_d) = max_depth {
@@ -4567,6 +5414,40 @@ fn walk_find(
             return;
         }
     }
+
+    let lstat_res = state.fs.lstat(full);
+    let Ok(mut st) = lstat_res else {
+        state
+            .err
+            .push_str(&format!("find: '{disp}': No such file or directory\n"));
+        *state.exit_code = 1;
+        return;
+    };
+
+    let is_symlink = st.kind == VfsEntryKind::Symlink;
+    let should_follow = is_symlink
+        && (follow_mode == FindFollowMode::Always
+            || (follow_mode == FindFollowMode::RootsOnly && depth == 0)
+            || disp.ends_with('/'));
+    if should_follow {
+        if let Err(e) = realpath_find(full, state.fs) {
+            state.err.push_str(&format!("find: '{disp}': {e}\n"));
+            *state.exit_code = 1;
+            return;
+        }
+        if let Ok(target_st) = state.fs.stat(full) {
+            st = target_st;
+        }
+    }
+
+    if disp.ends_with('/') && st.kind != VfsEntryKind::Directory {
+        state
+            .err
+            .push_str(&format!("find: '{disp}': ENOTDIR: Not a directory\n"));
+        *state.exit_code = 1;
+        return;
+    }
+
     let mut pruned = false;
     if !depth_first && depth >= min_depth {
         let ok = match pred {
@@ -4574,84 +5455,95 @@ fn walk_find(
                 p,
                 disp,
                 root_disp,
+                rel,
                 full,
                 depth,
-                fs,
+                Some(&st),
                 &mut pruned,
-                quit,
-                explicit_prints,
+                state,
             ),
             None => true,
         };
-        if ok {
-            out.push((disp.to_string(), full.to_string()));
+        if ok && !explicit_action {
+            state.out.push_str(disp);
+            state.out.push('\n');
         }
-        if *quit {
+        if *state.quit {
             return;
         }
     }
-    let can_descend = !pruned && max_depth.map(|max_d| depth < max_d).unwrap_or(true);
+
+    let can_descend = st.kind == VfsEntryKind::Directory
+        && (!pruned || depth_first)
+        && max_depth.map(|max_d| depth < max_d).unwrap_or(true);
     if can_descend {
-        let st_res = if follow_mode == FindFollowMode::Always
-            || (follow_mode == FindFollowMode::RootsOnly && depth == 0)
-        {
-            fs.stat(full).or_else(|_| fs.lstat(full))
-        } else {
-            fs.lstat(full)
+        let physical = match realpath_find(full, state.fs) {
+            Ok(p) => p,
+            Err(e) => {
+                state.err.push_str(&format!("find: '{disp}': {e}\n"));
+                *state.exit_code = 1;
+                return;
+            }
         };
-        if let Ok(st) = st_res {
-            if st.kind == VfsEntryKind::Directory {
-                if let Ok(entries) = fs.read_dir(full) {
-                    for e in entries {
-                        if *quit {
-                            return;
-                        }
-                        let child_disp = if disp == "/" {
-                            format!("/{e}")
-                        } else {
-                            format!("{}/{e}", disp.trim_end_matches('/'))
-                        };
-                        let child_full = normalize_posix_path(&format!("{full}/{e}"));
-                        walk_find(
-                            &child_disp,
-                            root_disp,
-                            &child_full,
-                            depth + 1,
-                            min_depth,
-                            max_depth,
-                            depth_first,
-                            follow_mode,
-                            pred,
-                            fs,
-                            out,
-                            explicit_prints,
-                            quit,
-                        );
-                    }
+        if ancestors.contains(&physical) {
+            state.err.push_str(&format!(
+                "find: '{disp}': ELOOP: Too many levels of symbolic links\n"
+            ));
+            *state.exit_code = 1;
+            return;
+        }
+        ancestors.insert(physical.clone());
+        let parent = disp.trim_end_matches('/');
+        if let Ok(entries) = state.fs.read_dir(full) {
+            for e in entries {
+                if *state.quit {
+                    break;
                 }
+                let child_disp = format!("{parent}/{e}");
+                let child_rel = if rel.is_empty() {
+                    e.clone()
+                } else {
+                    format!("{rel}/{e}")
+                };
+                let child_full = normalize_posix_path(&format!("{full}/{e}"));
+                walk_find(
+                    &child_disp,
+                    root_disp,
+                    &child_rel,
+                    &child_full,
+                    depth + 1,
+                    min_depth,
+                    max_depth,
+                    depth_first,
+                    follow_mode,
+                    explicit_action,
+                    pred,
+                    ancestors,
+                    state,
+                );
             }
         }
+        ancestors.remove(&physical);
     }
-    if depth_first && depth >= min_depth {
-        if *quit {
-            return;
-        }
+
+    if depth_first && depth >= min_depth && !*state.quit {
         let ok = match pred {
             Some(p) => eval_find_pred(
                 p,
                 disp,
                 root_disp,
+                rel,
                 full,
                 depth,
-                fs,
+                Some(&st),
                 &mut pruned,
-                quit,
-                explicit_prints,
+                state,
             ),
             None => true,
         };
-        if ok {
-            out.push((disp.to_string(), full.to_string()));
+        if ok && !explicit_action {
+            state.out.push_str(disp);
+            state.out.push('\n');
         }
     }
 }
@@ -4713,13 +5605,32 @@ fn format_fd_template(template: &str, path: &str) -> String {
     out
 }
 
+fn count_fd_placeholders(s: &str) -> usize {
+    let mut count = 0usize;
+    let bytes = s.as_bytes();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if s[i..].starts_with("{{") || s[i..].starts_with("}}") {
+            i += 2;
+        } else if s[i..].starts_with("{/.}") || s[i..].starts_with("{//}") {
+            count += 1;
+            i += 4;
+        } else if s[i..].starts_with("{/}") || s[i..].starts_with("{.}") {
+            count += 1;
+            i += 3;
+        } else if s[i..].starts_with("{}") {
+            count += 1;
+            i += 2;
+        } else {
+            let ch = s[i..].chars().next().unwrap();
+            i += ch.len_utf8();
+        }
+    }
+    count
+}
+
 fn has_fd_placeholder(s: &str) -> bool {
-    let cleaned = s.replace("{{", "").replace("}}", "");
-    cleaned.contains("{}")
-        || cleaned.contains("{/}")
-        || cleaned.contains("{//}")
-        || cleaned.contains("{.}")
-        || cleaned.contains("{/.}")
+    count_fd_placeholders(s) > 0
 }
 
 fn parse_fd_size_spec(spec: &str) -> Option<(char, usize)> {
@@ -4760,13 +5671,20 @@ fn parse_fd_type_char(s: &str) -> Option<char> {
         "l" | "symlink" => Some('l'),
         "x" | "executable" => Some('x'),
         "e" | "empty" => Some('e'),
-        other => other.chars().next(),
+        "s" | "socket" => Some('s'),
+        "p" | "pipe" | "fifo" => Some('p'),
+        "c" | "char-device" => Some('c'),
+        "b" | "block-device" => Some('b'),
+        _ => None,
     }
 }
 
 fn parse_fd_time_ms(spec: &str) -> Option<u64> {
     let s = spec.trim();
     if let Some(epoch_str) = s.strip_prefix('@') {
+        if epoch_str.is_empty() || !epoch_str.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
         return epoch_str.parse::<u64>().ok().map(|sec| sec * 1000);
     }
     let num_len = s.chars().take_while(|c| c.is_ascii_digit()).count();
@@ -4781,11 +5699,17 @@ fn parse_fd_time_ms(spec: &str) -> Option<u64> {
             "w" | "week" | "weeks" => n * 7 * 86_400_000,
             _ => return None,
         };
-        let now_ms = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_millis() as u64)
-            .unwrap_or(1_700_000_000_000);
+        let now_ms = 1_700_000_000_000u64;
         return Some(now_ms.saturating_sub(dur_ms));
+    }
+    if s.len() >= 10 && s.as_bytes().get(4) == Some(&b'-') && s.as_bytes().get(7) == Some(&b'-') {
+        let y = s[0..4].parse::<i64>().ok()?;
+        let m = s[5..7].parse::<u32>().ok()?;
+        let d = s[8..10].parse::<u32>().ok()?;
+        if (1..=12).contains(&m) && (1..=31).contains(&d) {
+            let days = (y - 1970) * 365 + ((y - 1969) / 4) + ((m as i64 - 1) * 30) + (d as i64 - 1);
+            return Some((days.max(0) as u64) * 86_400_000);
+        }
     }
     None
 }
@@ -4844,6 +5768,8 @@ where
     let mut absolute_path = false;
     let mut print0 = false;
     let mut quiet = false;
+    let mut list_details = false;
+    let mut strip_cwd_prefix = false;
     let mut glob_mode = false;
     let mut fixed_mode = false;
     let mut case_override: Option<bool> = None;
@@ -4853,9 +5779,24 @@ where
     let mut base_dir: Option<String> = None;
     let mut exec_cmd: Vec<String> = Vec::new();
     let mut exec_batch = false;
+    let mut has_exec = false;
     let mut and_patterns: Vec<String> = Vec::new();
     let mut operands: Vec<String> = Vec::new();
     let mut search_paths: Vec<String> = Vec::new();
+
+    let usage_err = |msg: &str| BuiltinOutcome {
+        stdout: String::new(),
+        stderr: format!("fd: {msg}\n"),
+        exit_code: 2,
+    };
+
+    let parse_non_neg = |val: &str| -> Option<usize> {
+        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+            None
+        } else {
+            val.parse::<usize>().ok()
+        }
+    };
 
     let mut i = 0usize;
     let mut end_of_opts = false;
@@ -4867,152 +5808,232 @@ where
             continue;
         }
         if !end_of_opts && (a == "-x" || a == "--exec" || a == "-X" || a == "--exec-batch") {
+            if has_exec {
+                return usage_err("cannot combine --exec and --exec-batch");
+            }
+            has_exec = true;
             exec_batch = a == "-X" || a == "--exec-batch";
             i += 1;
             while i < args.len() && args[i] != ";" {
                 exec_cmd.push(args[i].clone());
                 i += 1;
             }
-            i += 1;
+            if exec_cmd.is_empty() {
+                return usage_err("missing command for --exec");
+            }
+            if i < args.len() && args[i] == ";" {
+                i += 1;
+            }
             continue;
         }
-        if !end_of_opts && a.starts_with("--") {
-            match a.as_str() {
-                "--hidden" => show_hidden = true,
-                "--no-ignore" => respect_ignore = false,
-                "--no-ignore-vcs" => no_ignore_vcs = true,
-                "--no-ignore-parent" => no_ignore_parent = true,
-                "--strip-cwd-prefix" => {}
-                "--unrestricted" => {
-                    unrestricted += 1;
-                    respect_ignore = false;
-                    if unrestricted >= 2 {
-                        show_hidden = true;
+        if !end_of_opts && a.starts_with("--") && a.len() > 2 {
+            let (opt_name, inline_val) = match a.split_once('=') {
+                Some((k, v)) => (k, Some(v)),
+                None => (a.as_str(), None),
+            };
+            let take_val = |inline: Option<&str>, idx: &mut usize| -> Option<String> {
+                if let Some(v) = inline {
+                    Some(v.to_string())
+                } else if *idx + 1 < args.len() {
+                    *idx += 1;
+                    Some(args[*idx].clone())
+                } else {
+                    None
+                }
+            };
+            match opt_name {
+                "--hidden"
+                | "--no-ignore"
+                | "--no-ignore-vcs"
+                | "--no-ignore-parent"
+                | "--strip-cwd-prefix"
+                | "--unrestricted"
+                | "--follow"
+                | "--glob"
+                | "--fixed-strings"
+                | "--ignore-case"
+                | "--case-sensitive"
+                | "--full-path"
+                | "--absolute-path"
+                | "--print0"
+                | "--quiet"
+                | "--has-results"
+                | "--prune"
+                | "--list-details" => {
+                    if inline_val.is_some() {
+                        return usage_err(&format!("option '{opt_name}' does not take a value"));
                     }
-                }
-                "--follow" => follow = true,
-                "--glob" => glob_mode = true,
-                "--fixed-strings" => fixed_mode = true,
-                "--ignore-case" => case_override = Some(true),
-                "--case-sensitive" => case_override = Some(false),
-                "--full-path" => full_path = true,
-                "--absolute-path" => absolute_path = true,
-                "--print0" => print0 = true,
-                "--quiet" | "--has-results" => quiet = true,
-                "--prune" => prune = true,
-                "--extension" if i + 1 < args.len() => {
-                    i += 1;
-                    extensions.push(args[i].trim_start_matches('.').to_ascii_lowercase());
-                }
-                "--type" if i + 1 < args.len() => {
-                    i += 1;
-                    if let Some(c) = parse_fd_type_char(&args[i]) {
-                        types.push(c);
-                    }
-                }
-                "--ignore-file" if i + 1 < args.len() => {
-                    i += 1;
-                    custom_ignore_files.push(args[i].clone());
-                }
-                "--path-separator" if i + 1 < args.len() => {
-                    i += 1;
-                    path_separator = Some(args[i].clone());
-                }
-                "--changed-within" | "--change-newer-than" if i + 1 < args.len() => {
-                    i += 1;
-                    changed_within_ms = parse_fd_time_ms(&args[i]);
-                }
-                "--changed-before" | "--change-older-than" if i + 1 < args.len() => {
-                    i += 1;
-                    changed_before_ms = parse_fd_time_ms(&args[i]);
-                }
-                "--max-depth" if i + 1 < args.len() => {
-                    i += 1;
-                    max_depth = args[i].parse().ok();
-                }
-                "--min-depth" if i + 1 < args.len() => {
-                    i += 1;
-                    min_depth = args[i].parse().unwrap_or(1);
-                }
-                "--exact-depth" if i + 1 < args.len() => {
-                    i += 1;
-                    if let Ok(d) = args[i].parse::<usize>() {
-                        min_depth = d;
-                        max_depth = Some(d);
-                    }
-                }
-                "--max-results" if i + 1 < args.len() => {
-                    i += 1;
-                    max_results = args[i].parse().ok();
-                }
-                "--exclude" if i + 1 < args.len() => {
-                    i += 1;
-                    excludes.push(args[i].clone());
-                }
-                "--size" if i + 1 < args.len() => {
-                    i += 1;
-                    if let Some(sz) = parse_fd_size_spec(&args[i]) {
-                        sizes.push(sz);
-                    }
-                }
-                "--format" if i + 1 < args.len() => {
-                    i += 1;
-                    format_tpl = Some(args[i].clone());
-                }
-                "--search-path" if i + 1 < args.len() => {
-                    i += 1;
-                    search_paths.push(args[i].clone());
-                }
-                "--base-directory" if i + 1 < args.len() => {
-                    i += 1;
-                    base_dir = Some(args[i].clone());
-                }
-                "--and" if i + 1 < args.len() => {
-                    i += 1;
-                    and_patterns.push(args[i].clone());
-                }
-                _ => {
-                    if let Some(v) = a.strip_prefix("--extension=") {
-                        extensions.push(v.trim_start_matches('.').to_ascii_lowercase());
-                    } else if let Some(v) = a.strip_prefix("--type=") {
-                        if let Some(c) = parse_fd_type_char(v) {
-                            types.push(c);
+                    match opt_name {
+                        "--hidden" => show_hidden = true,
+                        "--no-ignore" => respect_ignore = false,
+                        "--no-ignore-vcs" => no_ignore_vcs = true,
+                        "--no-ignore-parent" => no_ignore_parent = true,
+                        "--strip-cwd-prefix" => strip_cwd_prefix = true,
+                        "--unrestricted" => {
+                            unrestricted += 1;
+                            respect_ignore = false;
+                            if unrestricted >= 2 {
+                                show_hidden = true;
+                            }
                         }
-                    } else if let Some(v) = a.strip_prefix("--ignore-file=") {
-                        custom_ignore_files.push(v.to_string());
-                    } else if let Some(v) = a.strip_prefix("--path-separator=") {
-                        path_separator = Some(v.to_string());
-                    } else if let Some(v) = a.strip_prefix("--changed-within=").or_else(|| a.strip_prefix("--change-newer-than=")) {
-                        changed_within_ms = parse_fd_time_ms(v);
-                    } else if let Some(v) = a.strip_prefix("--changed-before=").or_else(|| a.strip_prefix("--change-older-than=")) {
-                        changed_before_ms = parse_fd_time_ms(v);
-                    } else if let Some(v) = a.strip_prefix("--max-depth=") {
-                        max_depth = v.parse().ok();
-                    } else if let Some(v) = a.strip_prefix("--min-depth=") {
-                        min_depth = v.parse().unwrap_or(1);
-                    } else if let Some(v) = a.strip_prefix("--exact-depth=") {
-                        if let Ok(d) = v.parse::<usize>() {
-                            min_depth = d;
-                            max_depth = Some(d);
-                        }
-                    } else if let Some(v) = a.strip_prefix("--max-results=") {
-                        max_results = v.parse().ok();
-                    } else if let Some(v) = a.strip_prefix("--exclude=") {
-                        excludes.push(v.to_string());
-                    } else if let Some(v) = a.strip_prefix("--size=") {
-                        if let Some(sz) = parse_fd_size_spec(v) {
-                            sizes.push(sz);
-                        }
-                    } else if let Some(v) = a.strip_prefix("--format=") {
-                        format_tpl = Some(v.to_string());
-                    } else if let Some(v) = a.strip_prefix("--search-path=") {
-                        search_paths.push(v.to_string());
-                    } else if let Some(v) = a.strip_prefix("--base-directory=") {
-                        base_dir = Some(v.to_string());
-                    } else if let Some(v) = a.strip_prefix("--and=") {
-                        and_patterns.push(v.to_string());
+                        "--follow" => follow = true,
+                        "--glob" => glob_mode = true,
+                        "--fixed-strings" => fixed_mode = true,
+                        "--ignore-case" => case_override = Some(true),
+                        "--case-sensitive" => case_override = Some(false),
+                        "--full-path" => full_path = true,
+                        "--absolute-path" => absolute_path = true,
+                        "--print0" => print0 = true,
+                        "--quiet" | "--has-results" => quiet = true,
+                        "--prune" => prune = true,
+                        "--list-details" => list_details = true,
+                        _ => {}
                     }
                 }
+                "--extension" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --extension");
+                    };
+                    extensions.push(v.trim_start_matches('.').to_ascii_lowercase());
+                }
+                "--type" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --type");
+                    };
+                    let Some(c) = parse_fd_type_char(&v) else {
+                        return usage_err(&format!("unknown file type '{v}'"));
+                    };
+                    types.push(c);
+                }
+                "--ignore-file" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --ignore-file");
+                    };
+                    custom_ignore_files.push(v);
+                }
+                "--path-separator" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --path-separator");
+                    };
+                    path_separator = Some(v);
+                }
+                "--changed-within" | "--change-newer-than" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --changed-within");
+                    };
+                    let Some(ms) = parse_fd_time_ms(&v) else {
+                        return usage_err(&format!("invalid time '{v}'"));
+                    };
+                    changed_within_ms = Some(ms);
+                }
+                "--changed-before" | "--change-older-than" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --changed-before");
+                    };
+                    let Some(ms) = parse_fd_time_ms(&v) else {
+                        return usage_err(&format!("invalid time '{v}'"));
+                    };
+                    changed_before_ms = Some(ms);
+                }
+                "--max-depth" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --max-depth");
+                    };
+                    let Some(d) = parse_non_neg(&v) else {
+                        return usage_err(&format!("invalid --max-depth '{v}'"));
+                    };
+                    max_depth = Some(d);
+                }
+                "--min-depth" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --min-depth");
+                    };
+                    let Some(d) = parse_non_neg(&v) else {
+                        return usage_err(&format!("invalid --min-depth '{v}'"));
+                    };
+                    min_depth = d;
+                }
+                "--exact-depth" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --exact-depth");
+                    };
+                    let Some(d) = parse_non_neg(&v) else {
+                        return usage_err(&format!("invalid --exact-depth '{v}'"));
+                    };
+                    min_depth = d;
+                    max_depth = Some(d);
+                }
+                "--max-results" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --max-results");
+                    };
+                    let Some(n) = parse_non_neg(&v) else {
+                        return usage_err(&format!("invalid --max-results '{v}'"));
+                    };
+                    if n == 0 {
+                        return usage_err("--max-results must be greater than zero");
+                    }
+                    max_results = Some(n);
+                }
+                "--exclude" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --exclude");
+                    };
+                    excludes.push(v);
+                }
+                "--size" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --size");
+                    };
+                    let Some(sz) = parse_fd_size_spec(&v) else {
+                        return usage_err(&format!("invalid --size '{v}'"));
+                    };
+                    sizes.push(sz);
+                }
+                "--format" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --format");
+                    };
+                    format_tpl = Some(v);
+                }
+                "--search-path" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --search-path");
+                    };
+                    search_paths.push(v);
+                }
+                "--base-directory" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --base-directory");
+                    };
+                    base_dir = Some(v);
+                }
+                "--and" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --and");
+                    };
+                    and_patterns.push(v);
+                }
+                "--color" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --color");
+                    };
+                    if !matches!(v.as_str(), "never" | "auto" | "always") {
+                        return usage_err(&format!("invalid --color '{v}'"));
+                    }
+                }
+                "--threads" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --threads");
+                    };
+                    let Some(n) = parse_non_neg(&v) else {
+                        return usage_err(&format!("invalid --threads '{v}'"));
+                    };
+                    if n == 0 {
+                        return usage_err("--threads must be greater than zero");
+                    }
+                }
+                _ => return usage_err(&format!("unknown option '{opt_name}'")),
             }
             i += 1;
             continue;
@@ -5040,37 +6061,59 @@ where
                     'a' => absolute_path = true,
                     '0' => print0 = true,
                     'q' => quiet = true,
+                    'l' => list_details = true,
                     '1' => max_results = Some(1),
-                    'e' | 't' | 'd' | 'E' | 'S' | 'C' => {
+                    'e' | 't' | 'd' | 'E' | 'S' | 'C' | 'c' | 'j' => {
                         let flag = chars[ci];
                         let val = if ci + 1 < chars.len() {
-                            chars[ci + 1..].iter().collect::<String>()
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            rest.strip_prefix('=').unwrap_or(&rest).to_string()
                         } else if i + 1 < args.len() {
                             i += 1;
                             args[i].clone()
                         } else {
-                            String::new()
+                            return usage_err(&format!("missing argument for -{flag}"));
                         };
                         match flag {
                             'e' => extensions.push(val.trim_start_matches('.').to_ascii_lowercase()),
                             't' => {
-                                if let Some(c) = parse_fd_type_char(&val) {
-                                    types.push(c);
-                                }
+                                let Some(c) = parse_fd_type_char(&val) else {
+                                    return usage_err(&format!("unknown file type '{val}'"));
+                                };
+                                types.push(c);
                             }
-                            'd' => max_depth = val.parse().ok(),
+                            'd' => {
+                                let Some(d) = parse_non_neg(&val) else {
+                                    return usage_err(&format!("invalid depth '{val}'"));
+                                };
+                                max_depth = Some(d);
+                            }
                             'E' => excludes.push(val),
                             'S' => {
-                                if let Some(sz) = parse_fd_size_spec(&val) {
-                                    sizes.push(sz);
-                                }
+                                let Some(sz) = parse_fd_size_spec(&val) else {
+                                    return usage_err(&format!("invalid size '{val}'"));
+                                };
+                                sizes.push(sz);
                             }
                             'C' => base_dir = Some(val),
+                            'c' => {
+                                if !matches!(val.as_str(), "never" | "auto" | "always") {
+                                    return usage_err(&format!("invalid color '{val}'"));
+                                }
+                            }
+                            'j' => {
+                                let Some(n) = parse_non_neg(&val) else {
+                                    return usage_err(&format!("invalid threads '{val}'"));
+                                };
+                                if n == 0 {
+                                    return usage_err("threads must be greater than zero");
+                                }
+                            }
                             _ => {}
                         }
                         break;
                     }
-                    _ => {}
+                    other => return usage_err(&format!("unknown option '-{other}'")),
                 }
                 ci += 1;
             }
@@ -5081,15 +6124,42 @@ where
         i += 1;
     }
 
-    let pattern = if !operands.is_empty() {
-        let p = operands.remove(0);
-        if p.is_empty() || p == "." {
-            None
-        } else {
-            Some(p)
+    if has_exec && (format_tpl.is_some() || list_details) {
+        return usage_err("cannot combine --exec/--exec-batch with --format or --list-details");
+    }
+    if exec_batch {
+        let total_ph: usize = exec_cmd.iter().map(|w| count_fd_placeholders(w)).sum();
+        if total_ph > 1 {
+            return usage_err("--exec-batch permits at most one placeholder");
         }
+    }
+    if !search_paths.is_empty() && operands.len() > 1 {
+        return usage_err("cannot combine --search-path with positional path arguments");
+    }
+
+    let raw_pattern = if !operands.is_empty() {
+        Some(operands.remove(0))
     } else {
         None
+    };
+
+    if !glob_mode && !fixed_mode {
+        if let Some(ref p) = raw_pattern
+            && !p.is_empty()
+            && has_unsupported_regex_features(p)
+        {
+            return usage_err(&format!("invalid regex '{p}'"));
+        }
+        for ap in &and_patterns {
+            if has_unsupported_regex_features(ap) {
+                return usage_err(&format!("invalid regex '{ap}'"));
+            }
+        }
+    }
+
+    let pattern = match raw_pattern {
+        Some(p) if !p.is_empty() => Some(p),
+        _ => None,
     };
 
     let mut roots = if !search_paths.is_empty() {
@@ -5121,6 +6191,26 @@ where
         None => cwd.clone(),
     };
 
+    if base_dir.is_some() {
+        match fs.stat(&effective_cwd) {
+            Ok(st) if st.kind == VfsEntryKind::Directory => {}
+            Ok(_) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("fd: {}: not a directory\n", base_dir.as_deref().unwrap_or("")),
+                    exit_code: 1,
+                };
+            }
+            Err(e) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("fd: {}: {e}\n", base_dir.as_deref().unwrap_or("")),
+                    exit_code: 1,
+                };
+            }
+        }
+    }
+
     let cfg = FdConfig {
         extensions,
         types,
@@ -5145,22 +6235,48 @@ where
         and_patterns,
     };
 
-    let mut results: Vec<(String, bool)> = Vec::new();
-    for r in &roots {
-        let full = resolve_posix_path(&effective_cwd, r);
-        let mut init_rules = Vec::new();
-        if cfg.respect_ignore {
-            for igf in &custom_ignore_files {
-                let ig_path = resolve_posix_path(cwd, igf);
-                if let Ok(bytes) = fs.read_file(&ig_path) {
-                    for line in String::from_utf8_lossy(&bytes).lines() {
-                        let t = line.trim();
-                        if !t.is_empty() && !t.starts_with('#') {
-                            init_rules.push(t.to_string());
-                        }
+    let mut init_custom_rules = Vec::new();
+    for igf in &custom_ignore_files {
+        let ig_path = resolve_posix_path(&effective_cwd, igf);
+        match fs.read_file(&ig_path) {
+            Ok(bytes) => {
+                for line in String::from_utf8_lossy(&bytes).lines() {
+                    let t = line.trim();
+                    if !t.is_empty() && !t.starts_with('#') {
+                        init_custom_rules.push(t.to_string());
                     }
                 }
             }
+            Err(e) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("fd: {igf}: {e}\n"),
+                    exit_code: 1,
+                };
+            }
+        }
+    }
+
+    let mut err = String::new();
+    let mut root_failed = false;
+    let mut results: Vec<(String, bool, bool)> = Vec::new();
+    for r in &roots {
+        let full = resolve_posix_path(&effective_cwd, r);
+        match fs.stat(&full) {
+            Ok(st) if st.kind == VfsEntryKind::Directory => {}
+            Ok(_) => {
+                err.push_str(&format!("fd: {r}: not a directory\n"));
+                root_failed = true;
+                continue;
+            }
+            Err(e) => {
+                err.push_str(&format!("fd: {r}: {e}\n"));
+                root_failed = true;
+                continue;
+            }
+        }
+        let mut init_rules = init_custom_rules.clone();
+        if cfg.respect_ignore {
             let mut ancestor_dirs = Vec::new();
             if !no_ignore_parent {
                 ancestor_dirs.push("/".to_string());
@@ -5190,11 +6306,20 @@ where
                 }
             }
         }
+        let label = if r == "." {
+            ""
+        } else if r == "/" {
+            "/"
+        } else {
+            r.trim_end_matches('/')
+        };
+        let prefix_cwd = r == "." || r.starts_with("./");
         walk_fd(
-            r,
+            label,
             "",
             &full,
             0,
+            prefix_cwd,
             &cfg,
             &init_rules,
             fs,
@@ -5209,14 +6334,64 @@ where
     if quiet {
         return BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: if results.is_empty() { 1 } else { 0 },
+            stderr: err,
+            exit_code: if root_failed || results.is_empty() { 1 } else { 0 },
         };
     }
 
-    if !exec_cmd.is_empty() {
+    let format_entry_display = |raw_disp: &str, prefix_cwd: bool| -> String {
+        let mut disp = raw_disp.to_string();
+        if strip_cwd_prefix && prefix_cwd && disp.starts_with("./") {
+            disp = disp[2..].to_string();
+        } else if !strip_cwd_prefix
+            && prefix_cwd
+            && (has_exec || print0 || list_details)
+            && !disp.starts_with('/')
+            && !disp.starts_with("./")
+            && !disp.starts_with("../")
+        {
+            disp = format!("./{disp}");
+        }
+        if let Some(ref psep) = path_separator {
+            disp = disp.replace('/', psep);
+        }
+        disp
+    };
+
+    let mut sub_cwd = effective_cwd.clone();
+
+    if list_details {
         if results.is_empty() {
-            return ok_out("");
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: err,
+                exit_code: if root_failed { 1 } else { 0 },
+            };
+        }
+        let mut ls_cmd = vec!["ls".to_string(), "-ld".to_string()];
+        for (item, _, prefix_cwd) in &results {
+            ls_cmd.push(format_entry_display(item, *prefix_cwd));
+        }
+        let res = exec_sub(&ls_cmd, "", &mut sub_cwd, env);
+        err.push_str(&res.stderr);
+        return BuiltinOutcome {
+            stdout: res.stdout,
+            stderr: err,
+            exit_code: if root_failed {
+                1
+            } else {
+                res.exit_code
+            },
+        };
+    }
+
+    if has_exec {
+        if results.is_empty() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: err,
+                exit_code: if root_failed { 1 } else { 0 },
+            };
         }
         if exec_batch {
             let mut cmd_words: Vec<String> = Vec::new();
@@ -5224,39 +6399,51 @@ where
             if any_ph {
                 for w in &exec_cmd {
                     if has_fd_placeholder(w) {
-                        for (item, _) in &results {
-                            let clean = item.strip_prefix("./").unwrap_or(item);
-                            cmd_words.push(format_fd_template(w, clean));
+                        for (item, _, prefix_cwd) in &results {
+                            let disp = format_entry_display(item, *prefix_cwd);
+                            cmd_words.push(format_fd_template(w, &disp));
                         }
                     } else {
-                        cmd_words.push(w.clone());
+                        cmd_words.push(format_fd_template(w, ""));
                     }
                 }
             } else {
-                cmd_words.extend(exec_cmd.clone());
-                for (item, _) in &results {
-                    let clean = item.strip_prefix("./").unwrap_or(item);
-                    cmd_words.push(clean.to_string());
+                for w in &exec_cmd {
+                    cmd_words.push(format_fd_template(w, ""));
+                }
+                for (item, _, prefix_cwd) in &results {
+                    cmd_words.push(format_entry_display(item, *prefix_cwd));
                 }
             }
-            return exec_sub(&cmd_words, "", cwd, env);
+            let res = exec_sub(&cmd_words, "", &mut sub_cwd, env);
+            err.push_str(&res.stderr);
+            return BuiltinOutcome {
+                stdout: res.stdout,
+                stderr: err,
+                exit_code: if root_failed || res.exit_code != 0 {
+                    if res.exit_code != 0 { res.exit_code } else { 1 }
+                } else {
+                    0
+                },
+            };
         } else {
             let mut out = String::new();
-            let mut err = String::new();
-            let mut code = 0;
+            let mut code = if root_failed { 1 } else { 0 };
             let any_ph = exec_cmd.iter().any(|w| has_fd_placeholder(w));
-            for (item, _) in &results {
-                let clean = item.strip_prefix("./").unwrap_or(item);
+            for (item, _, prefix_cwd) in &results {
+                let disp = format_entry_display(item, *prefix_cwd);
                 let mut cmd_words: Vec<String> = Vec::new();
                 if any_ph {
                     for w in &exec_cmd {
-                        cmd_words.push(format_fd_template(w, clean));
+                        cmd_words.push(format_fd_template(w, &disp));
                     }
                 } else {
-                    cmd_words.extend(exec_cmd.clone());
-                    cmd_words.push(clean.to_string());
+                    for w in &exec_cmd {
+                        cmd_words.push(format_fd_template(w, ""));
+                    }
+                    cmd_words.push(disp);
                 }
-                let res = exec_sub(&cmd_words, "", cwd, env);
+                let res = exec_sub(&cmd_words, "", &mut sub_cwd, env);
                 out.push_str(&res.stdout);
                 err.push_str(&res.stderr);
                 if res.exit_code != 0 {
@@ -5272,26 +6459,44 @@ where
     }
 
     let sep = if print0 { '\0' } else { '\n' };
+    let dir_sep = path_separator.as_deref().unwrap_or("/");
     let mut out = String::new();
-    for (item, is_dir) in results {
-        let clean = item.strip_prefix("./").unwrap_or(&item);
+    for (item, is_dir, prefix_cwd) in results {
+        let disp = format_entry_display(&item, prefix_cwd);
         if let Some(fmt) = &format_tpl {
-            out.push_str(&format_fd_template(fmt, clean));
-        } else if let Some(psep) = &path_separator {
-            let replaced = clean.replace('/', psep);
-            out.push_str(&replaced);
-            if is_dir && !clean.ends_with('/') {
-                out.push_str(psep);
-            }
-        } else if is_dir && !clean.ends_with('/') {
-            out.push_str(clean);
-            out.push('/');
+            out.push_str(&format_fd_template(fmt, &disp));
         } else {
-            out.push_str(clean);
+            out.push_str(&disp);
+            if is_dir && !disp.ends_with(dir_sep) {
+                out.push_str(dir_sep);
+            }
         }
         out.push(sep);
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err,
+        exit_code: if root_failed { 1 } else { 0 },
+    }
+}
+
+fn match_fd_single_pattern(pat: &str, subj: &str, cfg: &FdConfig) -> bool {
+    if cfg.glob_mode {
+        if cfg.ignore_case {
+            glob_match(&pat.to_ascii_lowercase(), &subj.to_ascii_lowercase())
+        } else {
+            glob_match(pat, subj)
+        }
+    } else if cfg.fixed_mode {
+        if cfg.ignore_case {
+            subj.to_ascii_lowercase().contains(&pat.to_ascii_lowercase())
+        } else {
+            subj.contains(pat)
+        }
+    } else {
+        let rx = ZeroRegex::new(vec![pat.to_string()], cfg.ignore_case, false, false, false);
+        rx.is_match(subj)
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -5300,10 +6505,11 @@ fn walk_fd(
     rel: &str,
     full: &str,
     depth: usize,
+    prefix_cwd: bool,
     cfg: &FdConfig,
     ignore_rules: &[String],
     fs: &dyn SafeBashFs,
-    out: &mut Vec<(String, bool)>,
+    out: &mut Vec<(String, bool, bool)>,
 ) {
     if let Some(max_d) = cfg.max_depth {
         if depth > max_d {
@@ -5421,53 +6627,25 @@ fn walk_fd(
             if matches {
                 let subj = if cfg.full_path {
                     if cfg.absolute_path {
-                        full
+                        full.to_string()
+                    } else if prefix_cwd
+                        && !disp.starts_with('/')
+                        && !disp.starts_with("./")
+                        && !disp.starts_with("../")
+                    {
+                        format!("./{disp}")
                     } else {
-                        disp
+                        disp.to_string()
                     }
                 } else {
-                    &base
+                    base.clone()
                 };
                 if let Some(pat) = &cfg.pattern {
-                    if cfg.glob_mode {
-                        if cfg.ignore_case {
-                            matches = glob_match(&pat.to_ascii_lowercase(), &subj.to_ascii_lowercase());
-                        } else {
-                            matches = glob_match(pat, subj);
-                        }
-                    } else {
-                        let rx = ZeroRegex::new(
-                            vec![pat.clone()],
-                            cfg.ignore_case,
-                            cfg.fixed_mode,
-                            false,
-                            false,
-                        );
-                        matches = rx.is_match(subj);
-                    }
+                    matches = match_fd_single_pattern(pat, &subj, cfg);
                 }
-                if matches && !cfg.and_patterns.is_empty() {
-                    for and_pat in &cfg.and_patterns {
-                        let and_ok = if cfg.glob_mode {
-                            if cfg.ignore_case {
-                                glob_match(
-                                    &and_pat.to_ascii_lowercase(),
-                                    &subj.to_ascii_lowercase(),
-                                )
-                            } else {
-                                glob_match(and_pat, subj)
-                            }
-                        } else {
-                            let rx = ZeroRegex::new(
-                                vec![and_pat.clone()],
-                                cfg.ignore_case,
-                                cfg.fixed_mode,
-                                false,
-                                false,
-                            );
-                            rx.is_match(subj)
-                        };
-                        if !and_ok {
+                if matches {
+                    for ap in &cfg.and_patterns {
+                        if !match_fd_single_pattern(ap, &subj, cfg) {
                             matches = false;
                             break;
                         }
@@ -5476,18 +6654,22 @@ fn walk_fd(
             }
 
             if matches {
-                let out_path = if cfg.absolute_path {
+                matched_here = true;
+                let item = if cfg.absolute_path {
                     full.to_string()
                 } else {
                     disp.to_string()
                 };
-                out.push((out_path, is_dir));
-                matched_here = true;
+                out.push((item, is_dir, prefix_cwd));
             }
         }
     }
 
-    if is_dir && !(cfg.prune && matched_here) {
+    if cfg.prune && matched_here {
+        return;
+    }
+
+    if is_dir {
         if let Some(max_d) = cfg.max_depth {
             if depth >= max_d {
                 return;
@@ -5515,10 +6697,12 @@ fn walk_fd(
                 if !cfg.show_hidden && e.starts_with('.') {
                     continue;
                 }
-                let child_disp = if disp == "." {
+                let child_disp = if disp.is_empty() {
                     e.clone()
+                } else if disp == "/" {
+                    format!("/{e}")
                 } else {
-                    format!("{}/{e}", disp.trim_end_matches('/'))
+                    format!("{disp}/{e}")
                 };
                 let child_rel = if rel.is_empty() {
                     e.clone()
@@ -5531,6 +6715,7 @@ fn walk_fd(
                     &child_rel,
                     &child_full,
                     depth + 1,
+                    prefix_cwd,
                     cfg,
                     &local_rules,
                     fs,
@@ -5571,8 +6756,11 @@ fn xargs_display(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
 
-fn parse_xargs_delim(raw: &str) -> char {
-    match raw {
+fn parse_xargs_delim_strict(raw: &str) -> Result<char, String> {
+    if raw.is_empty() {
+        return Err("xargs: invalid delimiter".to_string());
+    }
+    let ch = match raw {
         "\\n" => '\n',
         "\\t" => '\t',
         "\\r" => '\r',
@@ -5580,19 +6768,54 @@ fn parse_xargs_delim(raw: &str) -> char {
         "\\\\" => '\\',
         _ => {
             if let Some(hex) = raw.strip_prefix("\\x") {
-                if let Ok(b) = u8::from_str_radix(hex, 16) {
-                    return b as char;
+                if hex.is_empty() || hex.len() > 2 || !hex.chars().all(|c| c.is_ascii_hexdigit()) {
+                    return Err("xargs: invalid delimiter".to_string());
                 }
-            } else if let Some(oct) = raw.strip_prefix('\\')
-                && !oct.is_empty()
-                && oct.chars().all(|c| ('0'..='7').contains(&c))
-                && let Ok(b) = u8::from_str_radix(oct, 8)
-            {
-                return b as char;
+                let b = u8::from_str_radix(hex, 16)
+                    .map_err(|_| "xargs: invalid delimiter".to_string())?;
+                if b > 127 {
+                    return Err("xargs: invalid delimiter".to_string());
+                }
+                b as char
+            } else if let Some(oct) = raw.strip_prefix('\\') {
+                if oct.is_empty() || oct.len() > 3 || !oct.chars().all(|c| ('0'..='7').contains(&c))
+                {
+                    return Err("xargs: invalid delimiter".to_string());
+                }
+                let b = u8::from_str_radix(oct, 8)
+                    .map_err(|_| "xargs: invalid delimiter".to_string())?;
+                if b > 127 {
+                    return Err("xargs: invalid delimiter".to_string());
+                }
+                b as char
+            } else {
+                let mut chars = raw.chars();
+                let Some(first) = chars.next() else {
+                    return Err("xargs: invalid delimiter".to_string());
+                };
+                if chars.next().is_some() || (first as u32) > 127 {
+                    return Err("xargs: invalid delimiter".to_string());
+                }
+                first
             }
-            raw.chars().next().unwrap_or('\n')
         }
-    }
+    };
+    Ok(ch)
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum XargsDelimMode {
+    Whitespace,
+    Null,
+    Custom(char),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum XargsBatchMode {
+    Default,
+    MaxArgs,
+    MaxLines,
+    Replace,
 }
 
 fn cmd_xargs<F>(
@@ -5606,20 +6829,45 @@ fn cmd_xargs<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    let mut null_delim = false;
+    let mut delim_mode = XargsDelimMode::Whitespace;
+    let mut batch_mode = XargsBatchMode::Default;
     let mut max_args: Option<usize> = None;
     let mut max_lines: Option<usize> = None;
     let mut max_chars: Option<usize> = None;
     let mut eof_marker: Option<String> = None;
     let mut arg_file: Option<String> = None;
     let mut replace_str: Option<String> = None;
-    let mut custom_delim: Option<char> = None;
     let mut no_run_if_empty = false;
     let mut verbose = false;
     let mut exit_on_size = false;
     let mut slot_var: Option<String> = None;
     let mut cmd_words: Vec<String> = Vec::new();
     let mut end_of_opts = false;
+
+    let usage_err = |msg: &str| BuiltinOutcome {
+        stdout: String::new(),
+        stderr: format!("xargs: {msg}\n"),
+        exit_code: 2,
+    };
+
+    let parse_pos_int = |val: &str| -> Option<usize> {
+        if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+            return None;
+        }
+        let n = val.parse::<usize>().ok()?;
+        if n == 0 { None } else { Some(n) }
+    };
+
+    let is_valid_ident = |s: &str| -> bool {
+        let mut chars = s.chars();
+        let Some(first) = chars.next() else {
+            return false;
+        };
+        if !(first.is_ascii_alphabetic() || first == '_') {
+            return false;
+        }
+        chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+    };
 
     let mut i = 0usize;
     while i < args.len() {
@@ -5629,82 +6877,243 @@ where
             i += 1;
             continue;
         }
-        if cmd_words.is_empty() && !end_of_opts && a.starts_with('-') && a.len() > 1 {
-            match a.as_str() {
-                "-0" | "--null" => null_delim = true,
-                "-r" | "--no-run-if-empty" => no_run_if_empty = true,
-                "-t" | "--verbose" => verbose = true,
-                "-x" | "--exit" => exit_on_size = true,
-                "-i" | "--replace" => replace_str = Some("{}".to_string()),
-                "-l" | "--max-lines" => max_lines = Some(1),
-                "-n" | "--max-args" if i + 1 < args.len() => {
-                    i += 1;
-                    max_args = args[i].parse().ok();
+        if cmd_words.is_empty() && !end_of_opts && a.starts_with("--") && a.len() > 2 {
+            let (opt_name, inline_val) = match a.split_once('=') {
+                Some((k, v)) => (k, Some(v)),
+                None => (a.as_str(), None),
+            };
+            let take_val = |inline: Option<&str>, idx: &mut usize| -> Option<String> {
+                if let Some(v) = inline {
+                    Some(v.to_string())
+                } else if *idx + 1 < args.len() {
+                    *idx += 1;
+                    Some(args[*idx].clone())
+                } else {
+                    None
                 }
-                "-L" if i + 1 < args.len() => {
-                    i += 1;
-                    max_lines = args[i].parse().ok();
-                }
-                "-s" | "--max-chars" if i + 1 < args.len() => {
-                    i += 1;
-                    max_chars = args[i].parse().ok();
-                }
-                "-E" | "-e" | "--eof" if i + 1 < args.len() => {
-                    i += 1;
-                    eof_marker = Some(args[i].clone());
-                }
-                "-a" | "--arg-file" if i + 1 < args.len() => {
-                    i += 1;
-                    arg_file = Some(args[i].clone());
-                }
-                "--process-slot-var" if i + 1 < args.len() => {
-                    i += 1;
-                    slot_var = Some(args[i].clone());
-                }
-                "-P" | "--max-procs" if i + 1 < args.len() => {
-                    i += 1;
-                }
-                "-I" if i + 1 < args.len() => {
-                    i += 1;
-                    replace_str = Some(args[i].clone());
-                }
-                "-d" | "--delimiter" if i + 1 < args.len() => {
-                    i += 1;
-                    custom_delim = Some(parse_xargs_delim(&args[i]));
-                }
-                _ => {
-                    if let Some(rest) = a.strip_prefix("--max-args=").or_else(|| a.strip_prefix("-n")) {
-                        max_args = rest.parse().ok();
-                    } else if let Some(rest) = a.strip_prefix("--max-lines=").or_else(|| a.strip_prefix("-L")).or_else(|| a.strip_prefix("-l")) && !rest.is_empty() {
-                        max_lines = rest.parse().ok();
-                    } else if let Some(rest) = a.strip_prefix("--max-chars=").or_else(|| a.strip_prefix("-s")) && !rest.is_empty() {
-                        max_chars = rest.parse().ok();
-                    } else if let Some(rest) = a.strip_prefix("--eof=").or_else(|| a.strip_prefix("-E")).or_else(|| a.strip_prefix("-e")) && !rest.is_empty() {
-                        eof_marker = Some(rest.to_string());
-                    } else if let Some(rest) = a.strip_prefix("--arg-file=").or_else(|| a.strip_prefix("-a")) && !rest.is_empty() {
-                        arg_file = Some(rest.to_string());
-                    } else if let Some(rest) = a.strip_prefix("--replace=").or_else(|| a.strip_prefix("-I")).or_else(|| a.strip_prefix("-i")) && !rest.is_empty() {
-                        replace_str = Some(rest.to_string());
-                    } else if let Some(rest) = a.strip_prefix("--delimiter=").or_else(|| a.strip_prefix("-d")) && !rest.is_empty() {
-                        custom_delim = Some(parse_xargs_delim(rest));
-                    } else if let Some(rest) = a.strip_prefix("--process-slot-var=") {
-                        slot_var = Some(rest.to_string());
-                    } else if !a.starts_with("--") {
-                        for ch in a[1..].chars() {
-                            match ch {
-                                '0' => null_delim = true,
-                                'r' => no_run_if_empty = true,
-                                't' => verbose = true,
-                                'x' => exit_on_size = true,
-                                _ => {}
-                            }
-                        }
+            };
+            match opt_name {
+                "--null" | "--no-run-if-empty" | "--verbose" | "--exit" => {
+                    if inline_val.is_some() {
+                        return usage_err(&format!("option '{opt_name}' does not take a value"));
+                    }
+                    match opt_name {
+                        "--null" => delim_mode = XargsDelimMode::Null,
+                        "--no-run-if-empty" => no_run_if_empty = true,
+                        "--verbose" => verbose = true,
+                        "--exit" => exit_on_size = true,
+                        _ => {}
                     }
                 }
+                "--replace" => {
+                    let repl = match inline_val {
+                        None => "{}".to_string(),
+                        Some(v) if !v.is_empty() => v.to_string(),
+                        Some(_) => return usage_err("empty replacement string"),
+                    };
+                    replace_str = Some(repl);
+                    batch_mode = XargsBatchMode::Replace;
+                }
+                "--max-lines" => {
+                    let n = match inline_val {
+                        None => 1usize,
+                        Some(v) => {
+                            let Some(parsed) = parse_pos_int(v) else {
+                                return usage_err("invalid --max-lines value");
+                            };
+                            parsed
+                        }
+                    };
+                    max_lines = Some(n);
+                    batch_mode = XargsBatchMode::MaxLines;
+                }
+                "--eof" => {
+                    let v = inline_val.unwrap_or("");
+                    if v.is_empty() {
+                        eof_marker = None;
+                    } else {
+                        eof_marker = Some(v.to_string());
+                    }
+                }
+                "--max-args" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --max-args");
+                    };
+                    let Some(n) = parse_pos_int(&v) else {
+                        return usage_err("invalid --max-args value");
+                    };
+                    max_args = Some(n);
+                    if !(batch_mode == XargsBatchMode::Replace && n == 1) {
+                        batch_mode = XargsBatchMode::MaxArgs;
+                    }
+                }
+                "--max-chars" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --max-chars");
+                    };
+                    let Some(n) = parse_pos_int(&v) else {
+                        return usage_err("invalid --max-chars value");
+                    };
+                    max_chars = Some(n);
+                }
+                "--max-procs" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --max-procs");
+                    };
+                    if v.is_empty() || !v.chars().all(|c| c.is_ascii_digit()) {
+                        return usage_err("invalid --max-procs value");
+                    }
+                }
+                "--delimiter" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --delimiter");
+                    };
+                    let Ok(ch) = parse_xargs_delim_strict(&v) else {
+                        return usage_err("invalid --delimiter value");
+                    };
+                    delim_mode = XargsDelimMode::Custom(ch);
+                }
+                "--arg-file" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --arg-file");
+                    };
+                    if v.is_empty() {
+                        return usage_err("invalid --arg-file value");
+                    }
+                    arg_file = Some(v);
+                }
+                "--process-slot-var" => {
+                    let Some(v) = take_val(inline_val, &mut i) else {
+                        return usage_err("missing value for --process-slot-var");
+                    };
+                    if !is_valid_ident(&v) {
+                        return usage_err("invalid --process-slot-var value");
+                    }
+                    slot_var = Some(v);
+                }
+                _ => return usage_err(&format!("unknown option '{opt_name}'")),
             }
-        } else {
-            cmd_words.push(a.clone());
+            i += 1;
+            continue;
         }
+        if cmd_words.is_empty() && !end_of_opts && a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                match chars[ci] {
+                    '0' => delim_mode = XargsDelimMode::Null,
+                    'r' => no_run_if_empty = true,
+                    't' => verbose = true,
+                    'x' => exit_on_size = true,
+                    'i' => {
+                        let repl = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else {
+                            "{}".to_string()
+                        };
+                        replace_str = Some(repl);
+                        batch_mode = XargsBatchMode::Replace;
+                        break;
+                    }
+                    'l' => {
+                        let n = if ci + 1 < chars.len() {
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            let Some(parsed) = parse_pos_int(&rest) else {
+                                return usage_err("invalid -l value");
+                            };
+                            parsed
+                        } else {
+                            1usize
+                        };
+                        max_lines = Some(n);
+                        batch_mode = XargsBatchMode::MaxLines;
+                        break;
+                    }
+                    'e' => {
+                        if ci + 1 < chars.len() {
+                            let rest: String = chars[ci + 1..].iter().collect();
+                            eof_marker = Some(rest);
+                        } else {
+                            eof_marker = None;
+                        }
+                        break;
+                    }
+                    'n' | 'L' | 's' | 'P' | 'E' | 'a' | 'I' | 'd' => {
+                        let flag = chars[ci];
+                        let val = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return usage_err(&format!("missing argument for -{flag}"));
+                        };
+                        match flag {
+                            'n' => {
+                                let Some(n) = parse_pos_int(&val) else {
+                                    return usage_err("invalid -n value");
+                                };
+                                max_args = Some(n);
+                                if !(batch_mode == XargsBatchMode::Replace && n == 1) {
+                                    batch_mode = XargsBatchMode::MaxArgs;
+                                }
+                            }
+                            'L' => {
+                                let Some(n) = parse_pos_int(&val) else {
+                                    return usage_err("invalid -L value");
+                                };
+                                max_lines = Some(n);
+                                batch_mode = XargsBatchMode::MaxLines;
+                            }
+                            's' => {
+                                let Some(n) = parse_pos_int(&val) else {
+                                    return usage_err("invalid -s value");
+                                };
+                                max_chars = Some(n);
+                            }
+                            'P' => {
+                                if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+                                    return usage_err("invalid -P value");
+                                }
+                            }
+                            'E' => {
+                                if val.is_empty() {
+                                    eof_marker = None;
+                                } else {
+                                    eof_marker = Some(val);
+                                }
+                            }
+                            'a' => {
+                                if val.is_empty() {
+                                    return usage_err("invalid -a value");
+                                }
+                                arg_file = Some(val);
+                            }
+                            'I' => {
+                                if val.is_empty() {
+                                    return usage_err("empty replacement string");
+                                }
+                                replace_str = Some(val);
+                                batch_mode = XargsBatchMode::Replace;
+                            }
+                            'd' => {
+                                let Ok(ch) = parse_xargs_delim_strict(&val) else {
+                                    return usage_err("invalid -d delimiter");
+                                };
+                                delim_mode = XargsDelimMode::Custom(ch);
+                            }
+                            _ => {}
+                        }
+                        break;
+                    }
+                    other => return usage_err(&format!("unknown option '-{other}'")),
+                }
+                ci += 1;
+            }
+            i += 1;
+            continue;
+        }
+        cmd_words.push(a.clone());
         i += 1;
     }
 
@@ -5714,7 +7123,7 @@ where
 
     let mut out = String::new();
     let mut err = String::new();
-    if (null_delim || custom_delim.is_some())
+    if delim_mode != XargsDelimMode::Whitespace
         && eof_marker.as_deref().is_some_and(|s| !s.is_empty())
     {
         err.push_str("xargs: warning: the -E option has no effect if -0 or -d is used.\n\n");
@@ -5729,11 +7138,30 @@ where
                 input_buf = String::from_utf8_lossy(&b).into_owned();
                 &input_buf
             }
-            Err(e) => return BuiltinOutcome { stdout: String::new(), stderr: format!("xargs: {af}: {e}\n"), exit_code: 1 },
+            Err(e) => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("xargs: {af}: {e}\n"),
+                    exit_code: 1,
+                }
+            }
         }
     } else {
         stdin
     };
+
+    if !matches!(
+        delim_mode,
+        XargsDelimMode::Null | XargsDelimMode::Custom('\0')
+    ) && input_str.contains('\0')
+    {
+        err.push_str("xargs: NUL in non-NUL-delimited input\n");
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err,
+            exit_code: 2,
+        };
+    }
 
     let mut child_stdin_first = if arg_file.is_some() { stdin } else { "" };
     let base_bytes: usize = cmd_words.iter().map(|w| w.len() + 1).sum();
@@ -5748,102 +7176,60 @@ where
         };
     }
 
-    let mut run_batch = |invoke: &[String], out: &mut String, err: &mut String, exit_code: &mut i32| -> Option<i32> {
-        if verbose {
-            let trace = invoke
-                .iter()
-                .map(|w| xargs_display(w))
-                .collect::<Vec<_>>()
-                .join(" ");
-            err.push_str(&trace);
-            err.push('\n');
-        }
-        let prev_slot = if let Some(ref sv) = slot_var {
-            let old = env.get(sv).cloned();
-            env.insert(sv.clone(), "0".to_string());
-            Some((sv.clone(), old))
-        } else {
-            None
-        };
-        let sub_in = std::mem::take(&mut child_stdin_first);
-        let res = exec_sub(invoke, sub_in, cwd, env);
-        if let Some((sv, old)) = prev_slot {
-            if let Some(val) = old {
-                env.insert(sv, val);
-            } else {
-                env.remove(&sv);
+    let mut run_batch =
+        |invoke: &[String], out: &mut String, err: &mut String, exit_code: &mut i32| -> Option<i32> {
+            if verbose {
+                let trace = invoke
+                    .iter()
+                    .map(|w| xargs_display(w))
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                err.push_str(&trace);
+                err.push('\n');
             }
-        }
-        out.push_str(&res.stdout);
-        err.push_str(&res.stderr);
-        if res.exit_code == 255 {
-            return Some(124);
-        }
-        if res.exit_code == 126 || res.exit_code == 127 {
-            return Some(res.exit_code);
-        }
-        if res.exit_code != 0 {
-            *exit_code = 123;
-        }
-        None
-    };
-
-    if let Some(l_limit) = max_lines
-        && !null_delim
-        && custom_delim.is_none()
-        && replace_str.is_none()
-    {
-        let mut line_batches: Vec<Vec<String>> = Vec::new();
-        let mut current_batch: Vec<String> = Vec::new();
-        let mut lines_in_batch = 0usize;
-        for line in input_str.lines() {
-            let mut toks = tokenize_xargs_input(line);
-            if let Some(ref eof) = eof_marker {
-                if let Some(pos) = toks.iter().position(|t| t == eof) {
-                    toks.truncate(pos);
-                    if !toks.is_empty() {
-                        current_batch.extend(toks);
-                    }
-                    break;
+            let prev_slot = if let Some(ref sv) = slot_var {
+                let old = env.get(sv).cloned();
+                env.insert(sv.clone(), "0".to_string());
+                Some((sv.clone(), old))
+            } else {
+                None
+            };
+            let sub_in = std::mem::take(&mut child_stdin_first);
+            let res = exec_sub(invoke, sub_in, cwd, env);
+            if let Some((sv, old)) = prev_slot {
+                if let Some(val) = old {
+                    env.insert(sv, val);
+                } else {
+                    env.remove(&sv);
                 }
             }
-            if toks.is_empty() {
-                continue;
+            out.push_str(&res.stdout);
+            err.push_str(&res.stderr);
+            if res.exit_code == 255 {
+                return Some(124);
             }
-            current_batch.extend(toks);
-            lines_in_batch += 1;
-            if lines_in_batch >= l_limit.max(1) {
-                line_batches.push(std::mem::take(&mut current_batch));
-                lines_in_batch = 0;
+            if res.exit_code == 126 || res.exit_code == 127 {
+                return Some(res.exit_code);
             }
-        }
-        if !current_batch.is_empty() {
-            line_batches.push(current_batch);
-        }
-        if line_batches.is_empty() {
-            if no_run_if_empty {
-                return BuiltinOutcome {
-                    stdout: out,
-                    stderr: err,
-                    exit_code: 0,
-                };
+            if res.exit_code != 0 {
+                *exit_code = 123;
             }
-            let mut exit_code = 0;
-            if let Some(abort_code) = run_batch(&cmd_words, &mut out, &mut err, &mut exit_code) {
-                exit_code = abort_code;
-            }
-            return BuiltinOutcome {
-                stdout: out,
-                stderr: err,
-                exit_code,
-            };
-        }
-        let mut exit_code = 0;
-        for batch in line_batches {
-            if let Some(mc) = max_chars {
-                let batch_bytes: usize = batch.iter().map(|w| w.len() + 1).sum();
-                if base_bytes + batch_bytes > mc {
-                    err.push_str("xargs: command size limit exceeded\n");
+            None
+        };
+
+    let parsed_items: Vec<(String, usize)> = match delim_mode {
+        XargsDelimMode::Null => parse_xargs_delimited_items(input_str, '\0', batch_mode == XargsBatchMode::Replace),
+        XargsDelimMode::Custom(d) => parse_xargs_delimited_items(input_str, d, batch_mode == XargsBatchMode::Replace),
+        XargsDelimMode::Whitespace => {
+            match parse_xargs_whitespace_items(
+                input_str,
+                batch_mode == XargsBatchMode::Replace,
+                batch_mode == XargsBatchMode::MaxLines,
+                eof_marker.as_deref(),
+            ) {
+                Ok(v) => v,
+                Err(msg) => {
+                    err.push_str(&format!("xargs: {msg}\n"));
                     return BuiltinOutcome {
                         stdout: out,
                         stderr: err,
@@ -5851,56 +7237,11 @@ where
                     };
                 }
             }
-            let mut invoke = cmd_words.clone();
-            invoke.extend(batch);
-            if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
-                return BuiltinOutcome {
-                    stdout: out,
-                    stderr: err,
-                    exit_code: abort_code,
-                };
-            }
         }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: err,
-            exit_code,
-        };
-    }
-
-    let mut items: Vec<String> = if null_delim {
-        if input_str.is_empty() {
-            Vec::new()
-        } else {
-            let mut parts: Vec<&str> = input_str.split('\0').collect();
-            if input_str.ends_with('\0') {
-                parts.pop();
-            }
-            parts.into_iter().map(|s| s.to_string()).collect()
-        }
-    } else if let Some(d) = custom_delim {
-        if input_str.is_empty() {
-            Vec::new()
-        } else {
-            let mut parts: Vec<&str> = input_str.split(d).collect();
-            if input_str.ends_with(d) {
-                parts.pop();
-            }
-            parts.into_iter().map(|s| s.to_string()).collect()
-        }
-    } else if replace_str.is_some() {
-        tokenize_xargs_replace_lines(input_str)
-    } else {
-        tokenize_xargs_input(input_str)
     };
-    if let Some(ref eof) = eof_marker
-        && let Some(pos) = items.iter().position(|t| t == eof)
-    {
-        items.truncate(pos);
-    }
 
-    if items.is_empty() {
-        if no_run_if_empty || replace_str.is_some() {
+    if parsed_items.is_empty() {
+        if no_run_if_empty || batch_mode == XargsBatchMode::Replace {
             return BuiltinOutcome {
                 stdout: out,
                 stderr: err,
@@ -5919,41 +7260,52 @@ where
     }
 
     let mut exit_code = 0;
-
-    if let Some(rep) = replace_str {
-        for item in &items {
-            let invoke: Vec<String> = if cmd_words.len() == 1 {
-                vec![cmd_words[0].clone(), item.clone()]
-            } else {
-                cmd_words.iter().map(|w| w.replace(&rep, item)).collect()
-            };
-            if let Some(mc) = max_chars {
-                let total_bytes: usize = invoke.iter().map(|w| w.len() + 1).sum();
-                if total_bytes > mc {
-                    err.push_str("xargs: command size limit exceeded\n");
+    match batch_mode {
+        XargsBatchMode::Replace => {
+            let repl = replace_str.as_deref().unwrap_or("{}");
+            for (item, _) in parsed_items {
+                let mut invoke: Vec<String> = Vec::with_capacity(cmd_words.len());
+                let mut replaced = false;
+                for w in &cmd_words {
+                    if w.contains(repl) {
+                        replaced = true;
+                        invoke.push(w.replace(repl, &item));
+                    } else {
+                        invoke.push(w.clone());
+                    }
+                }
+                if !replaced {
+                    invoke.push(item);
+                }
+                if let Some(mc) = max_chars {
+                    let invoke_bytes: usize = invoke.iter().map(|w| w.len() + 1).sum();
+                    if invoke_bytes > mc {
+                        err.push_str("xargs: command size limit exceeded\n");
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: err,
+                            exit_code: 2,
+                        };
+                    }
+                }
+                if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
                     return BuiltinOutcome {
                         stdout: out,
                         stderr: err,
-                        exit_code: 2,
+                        exit_code: abort_code,
                     };
                 }
-            }
-            if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
-                return BuiltinOutcome {
-                    stdout: out,
-                    stderr: err,
-                    exit_code: abort_code,
-                };
             }
         }
-    } else {
-        let max_n = max_args.unwrap_or(items.len()).max(1);
-        let mut cur_batch: Vec<String> = Vec::new();
-        let mut cur_bytes = 0usize;
-        for item in items {
-            let item_bytes = item.len() + 1;
-            if let Some(mc) = max_chars {
-                if base_bytes + item_bytes > mc {
+        XargsBatchMode::MaxLines => {
+            let limit = max_lines.unwrap_or(1).max(1);
+            let mut cur_batch: Vec<String> = Vec::new();
+            let mut cur_bytes = 0usize;
+            let mut lines_used = 0usize;
+            let mut cur_line: Option<usize> = None;
+            for (item, line_id) in parsed_items {
+                let item_bytes = item.len() + 1;
+                if let Some(mc) = max_chars && base_bytes + item_bytes > mc {
                     err.push_str("xargs: command size limit exceeded\n");
                     return BuiltinOutcome {
                         stdout: out,
@@ -5961,8 +7313,27 @@ where
                         exit_code: 2,
                     };
                 }
-                if !cur_batch.is_empty() && base_bytes + cur_bytes + item_bytes > mc {
-                    if exit_on_size && max_args.is_some() {
+                let is_new_line = cur_line != Some(line_id);
+                if is_new_line && lines_used >= limit && !cur_batch.is_empty() {
+                    let mut invoke = cmd_words.clone();
+                    invoke.extend(std::mem::take(&mut cur_batch));
+                    cur_bytes = 0;
+                    lines_used = 0;
+                    cur_line = None;
+                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code)
+                    {
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: err,
+                            exit_code: abort_code,
+                        };
+                    }
+                }
+                if let Some(mc) = max_chars
+                    && !cur_batch.is_empty()
+                    && base_bytes + cur_bytes + item_bytes > mc
+                {
+                    if exit_on_size {
                         err.push_str("xargs: command size limit exceeded\n");
                         return BuiltinOutcome {
                             stdout: out,
@@ -5973,7 +7344,10 @@ where
                     let mut invoke = cmd_words.clone();
                     invoke.extend(std::mem::take(&mut cur_batch));
                     cur_bytes = 0;
-                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
+                    lines_used = 0;
+                    cur_line = None;
+                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code)
+                    {
                         return BuiltinOutcome {
                             stdout: out,
                             stderr: err,
@@ -5981,13 +7355,16 @@ where
                         };
                     }
                 }
+                if cur_line != Some(line_id) {
+                    cur_line = Some(line_id);
+                    lines_used += 1;
+                }
+                cur_bytes += item_bytes;
+                cur_batch.push(item);
             }
-            cur_bytes += item_bytes;
-            cur_batch.push(item);
-            if cur_batch.len() >= max_n {
+            if !cur_batch.is_empty() {
                 let mut invoke = cmd_words.clone();
-                invoke.extend(std::mem::take(&mut cur_batch));
-                cur_bytes = 0;
+                invoke.extend(cur_batch);
                 if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
                     return BuiltinOutcome {
                         stdout: out,
@@ -5997,15 +7374,74 @@ where
                 }
             }
         }
-        if !cur_batch.is_empty() {
-            let mut invoke = cmd_words.clone();
-            invoke.extend(cur_batch);
-            if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
-                return BuiltinOutcome {
-                    stdout: out,
-                    stderr: err,
-                    exit_code: abort_code,
-                };
+        XargsBatchMode::Default | XargsBatchMode::MaxArgs => {
+            let max_n = if batch_mode == XargsBatchMode::MaxArgs {
+                max_args.unwrap_or(parsed_items.len()).max(1)
+            } else {
+                parsed_items.len().max(1)
+            };
+            let mut cur_batch: Vec<String> = Vec::new();
+            let mut cur_bytes = 0usize;
+            for (item, _) in parsed_items {
+                let item_bytes = item.len() + 1;
+                if let Some(mc) = max_chars {
+                    if base_bytes + item_bytes > mc {
+                        err.push_str("xargs: command size limit exceeded\n");
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: err,
+                            exit_code: 2,
+                        };
+                    }
+                    if !cur_batch.is_empty() && base_bytes + cur_bytes + item_bytes > mc {
+                        if exit_on_size && batch_mode == XargsBatchMode::MaxArgs {
+                            err.push_str("xargs: command size limit exceeded\n");
+                            return BuiltinOutcome {
+                                stdout: out,
+                                stderr: err,
+                                exit_code: 2,
+                            };
+                        }
+                        let mut invoke = cmd_words.clone();
+                        invoke.extend(std::mem::take(&mut cur_batch));
+                        cur_bytes = 0;
+                        if let Some(abort_code) =
+                            run_batch(&invoke, &mut out, &mut err, &mut exit_code)
+                        {
+                            return BuiltinOutcome {
+                                stdout: out,
+                                stderr: err,
+                                exit_code: abort_code,
+                            };
+                        }
+                    }
+                }
+                cur_bytes += item_bytes;
+                cur_batch.push(item);
+                if cur_batch.len() >= max_n {
+                    let mut invoke = cmd_words.clone();
+                    invoke.extend(std::mem::take(&mut cur_batch));
+                    cur_bytes = 0;
+                    if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code)
+                    {
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: err,
+                            exit_code: abort_code,
+                        };
+                    }
+                }
+            }
+            if !cur_batch.is_empty() {
+                let mut invoke = cmd_words.clone();
+                invoke.extend(cur_batch);
+                if let Some(abort_code) = run_batch(&invoke, &mut out, &mut err, &mut exit_code) {
+                    return BuiltinOutcome {
+                        stdout: out,
+                        stderr: err,
+                        exit_code: abort_code,
+                    };
+                }
             }
         }
     }
@@ -6017,66 +7453,185 @@ where
     }
 }
 
-fn tokenize_xargs_replace_lines(input: &str) -> Vec<String> {
+fn parse_xargs_delimited_items(
+    input: &str,
+    delim: char,
+    replace_mode: bool,
+) -> Vec<(String, usize)> {
+    if input.is_empty() {
+        return Vec::new();
+    }
+    let parts: Vec<&str> = input.split(delim).collect();
+    let end = if input.ends_with(delim) {
+        parts.len().saturating_sub(1)
+    } else {
+        parts.len()
+    };
     let mut out = Vec::new();
-    for raw_line in input.lines() {
-        let trimmed = raw_line.trim_matches([' ', '\t']);
-        if trimmed.is_empty() {
+    for (idx, &raw) in parts[..end].iter().enumerate() {
+        let mut item = raw.to_string();
+        if delim == '\n' && item.ends_with('\r') {
+            item.pop();
+        }
+        if replace_mode && item.is_empty() {
             continue;
         }
-        let mut cur = String::new();
-        let mut quote: Option<char> = None;
-        let mut chars = trimmed.chars().peekable();
-        while let Some(c) = chars.next() {
-            if let Some(q) = quote {
-                if c == q {
-                    quote = None;
-                } else {
-                    cur.push(c);
-                }
-            } else if c == '\'' || c == '"' {
-                quote = Some(c);
-            } else if c == '\\' {
-                if let Some(nc) = chars.next() {
-                    cur.push(nc);
-                }
-            } else {
-                cur.push(c);
-            }
-        }
-        out.push(cur);
+        out.push((item, idx + 1));
     }
     out
 }
 
-fn tokenize_xargs_input(input: &str) -> Vec<String> {
-    let mut out = Vec::new();
-    let mut cur = String::new();
+fn parse_xargs_whitespace_items(
+    input: &str,
+    replace_mode: bool,
+    line_mode: bool,
+    eof_marker: Option<&str>,
+) -> Result<Vec<(String, usize)>, String> {
+    let mut out: Vec<(String, usize)> = Vec::new();
+    let mut token = String::new();
+    let mut in_token = false;
     let mut quote: Option<char> = None;
-    let mut chars = input.chars().peekable();
-    while let Some(c) = chars.next() {
+    let mut escaped = false;
+    let mut line_id = 1usize;
+    let mut line_tokens: Vec<String> = Vec::new();
+    let mut line_has_blank = false;
+
+    let flush_line = |line_tokens: &mut Vec<String>,
+                      out: &mut Vec<(String, usize)>,
+                      line_id: &mut usize,
+                      line_has_blank: &mut bool|
+     -> bool {
+        if line_tokens.is_empty() {
+            *line_has_blank = false;
+            return false;
+        }
+        if let Some(eof) = eof_marker {
+            if !replace_mode {
+                if let Some(pos) = line_tokens.iter().position(|t| t == eof) {
+                    for t in line_tokens.drain(..pos) {
+                        out.push((t, *line_id));
+                    }
+                    line_tokens.clear();
+                    return true;
+                }
+            } else if line_tokens.len() == 1 && line_tokens[0] == eof {
+                line_tokens.clear();
+                return true;
+            }
+        }
+        if line_mode && *line_has_blank {
+            *line_has_blank = false;
+            return false;
+        }
+        for t in line_tokens.drain(..) {
+            out.push((t, *line_id));
+        }
+        *line_id += 1;
+        *line_has_blank = false;
+        false
+    };
+
+    for ch in input.chars() {
+        if escaped {
+            if ch == '\n' {
+                escaped = false;
+                continue;
+            }
+            token.push(ch);
+            in_token = true;
+            escaped = false;
+            line_has_blank = false;
+            continue;
+        }
         if let Some(q) = quote {
-            if c == q {
+            if ch == q {
                 quote = None;
+                in_token = true;
+            } else if ch == '\n' {
+                return Err("unmatched quote".to_string());
             } else {
-                cur.push(c);
+                token.push(ch);
+                in_token = true;
             }
-        } else if c == '\'' || c == '"' {
-            quote = Some(c);
-        } else if c == '\\' {
-            if let Some(nc) = chars.next() {
-                cur.push(nc);
+            line_has_blank = false;
+            continue;
+        }
+        if ch == '\\' {
+            escaped = true;
+            in_token = true;
+            line_has_blank = false;
+            continue;
+        }
+        if ch == '\'' || ch == '"' {
+            quote = Some(ch);
+            in_token = true;
+            line_has_blank = false;
+            continue;
+        }
+        if ch == '\n' {
+            if in_token {
+                let mut finished = std::mem::take(&mut token);
+                if replace_mode {
+                    while finished.ends_with(' ') || finished.ends_with('\t') {
+                        finished.pop();
+                    }
+                }
+                in_token = false;
+                if !replace_mode || !finished.is_empty() {
+                    line_tokens.push(finished);
+                }
             }
-        } else if c.is_whitespace() {
-            if !cur.is_empty() {
-                out.push(std::mem::take(&mut cur));
+            if flush_line(&mut line_tokens, &mut out, &mut line_id, &mut line_has_blank) {
+                return Ok(out);
             }
-        } else {
-            cur.push(c);
+            continue;
+        }
+        if ch == ' ' || ch == '\t' || ch == '\r' {
+            if replace_mode {
+                if in_token && ch != '\r' {
+                    token.push(ch);
+                }
+            } else {
+                if in_token {
+                    line_tokens.push(std::mem::take(&mut token));
+                    in_token = false;
+                }
+                if ch == ' ' || ch == '\t' {
+                    line_has_blank = true;
+                }
+            }
+            continue;
+        }
+        token.push(ch);
+        in_token = true;
+        line_has_blank = false;
+    }
+
+    if escaped {
+        return Err("trailing backslash".to_string());
+    }
+    if quote.is_some() {
+        return Err("unmatched quote".to_string());
+    }
+    if in_token {
+        if replace_mode {
+            while token.ends_with(' ') || token.ends_with('\t') {
+                token.pop();
+            }
+        }
+        if !replace_mode || !token.is_empty() {
+            line_tokens.push(token);
         }
     }
-    if !cur.is_empty() {
-        out.push(cur);
+    if replace_mode {
+        for t in &mut line_tokens {
+            while t.ends_with(' ') || t.ends_with('\t') {
+                t.pop();
+            }
+        }
+        line_tokens.retain(|t| !t.is_empty());
     }
-    out
+    line_has_blank = false;
+    let _ = flush_line(&mut line_tokens, &mut out, &mut line_id, &mut line_has_blank);
+    Ok(out)
 }

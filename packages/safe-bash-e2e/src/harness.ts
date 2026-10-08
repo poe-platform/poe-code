@@ -325,6 +325,8 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-df-cal-ncal-whoami-egrep-fgrep-rgrep-less-more-matrix.test.ts",
   "obscure-checksum-base-xxd-hexdump-od-strings-matrix.test.ts",
   "obscure-dd-truncate-install-expand-unexpand-split-csplit-shuf-matrix.test.ts",
+  "obscure-diff-diff3-patch-cmp-apply-patch-deep-matrix.test.ts",
+  "obscure-find-fd-rg-grep-xargs-deep-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

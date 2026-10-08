@@ -5573,7 +5573,13 @@ fn format_yq_single_val(
             jval_to_props_doc(v, &mut Vec::new(), is_shell, &mut props_out);
             props_out
         }
-        _ => jval_to_yaml(v, 0, quote_yaml),
+        _ => {
+            if raw_output && let JVal::Str(s) = v {
+                format!("{s}\n")
+            } else {
+                jval_to_yaml(v, 0, quote_yaml)
+            }
+        }
     }
 }
 
@@ -5599,6 +5605,8 @@ fn cmd_yq(
     let mut explicit_expr = false;
     let mut front_matter: Option<String> = None;
     let mut split_exp: Option<String> = None;
+    let mut join_output = false;
+    let mut extra_jq_args: Vec<String> = Vec::new();
     let mut output_format = "yaml".to_string();
     let mut input_format: Option<String> = None;
     let mut filter: Option<String> = None;
@@ -5679,8 +5687,34 @@ fn cmd_yq(
         if (a == "-I" || a == "--indent") && i + 1 < args.len() {
             if args[i + 1] == "0" {
                 compact_output = true;
+            } else {
+                extra_jq_args.push("--indent".to_string());
+                extra_jq_args.push(args[i + 1].clone());
             }
             i += 2;
+            continue;
+        }
+        if (a == "--arg" || a == "--argjson") && i + 2 < args.len() {
+            extra_jq_args.push(a.clone());
+            extra_jq_args.push(args[i + 1].clone());
+            extra_jq_args.push(args[i + 2].clone());
+            i += 3;
+            continue;
+        }
+        if a == "-S" || a == "--sort-keys" {
+            extra_jq_args.push("-S".to_string());
+            i += 1;
+            continue;
+        }
+        if a == "-j" || a == "--join-output" {
+            join_output = true;
+            extra_jq_args.push("-j".to_string());
+            i += 1;
+            continue;
+        }
+        if a == "--tab" {
+            extra_jq_args.push("--tab".to_string());
+            i += 1;
             continue;
         }
         if let Some(ind) = a.strip_prefix("-I=").or_else(|| a.strip_prefix("--indent=")) {
@@ -5771,6 +5805,24 @@ fn cmd_yq(
             continue;
         }
         if a.starts_with('-') && a != "-" {
+            for ch in a[1..].chars() {
+                match ch {
+                    'r' => raw_output = true,
+                    'c' => compact_output = true,
+                    'n' => null_input = true,
+                    'e' => exit_status = true,
+                    'P' => pretty_print = true,
+                    'i' => inplace = true,
+                    'N' => no_doc = true,
+                    '0' => nul_output = true,
+                    'S' => extra_jq_args.push("-S".to_string()),
+                    'j' => {
+                        join_output = true;
+                        extra_jq_args.push("-j".to_string());
+                    }
+                    _ => {}
+                }
+            }
             i += 1;
             continue;
         }
@@ -5815,7 +5867,7 @@ fn cmd_yq(
         return err_out("Error: file operations are disabled\n", 1);
     }
 
-    let mut jq_args = Vec::new();
+    let mut jq_args = extra_jq_args;
     let is_json_out = output_format == "json" || output_format == "j";
     if raw_output && is_json_out && split_exp.is_none() && !nul_output {
         jq_args.push("-r".to_string());
@@ -5938,7 +5990,7 @@ fn cmd_yq(
         return outcome;
     }
 
-    if raw_output && is_json_out && !eval_all_wrap_array && split_exp.is_none() && !nul_output {
+    if (raw_output || join_output) && is_json_out && !eval_all_wrap_array && split_exp.is_none() && !nul_output {
         if inplace && let Some(first_file) = files.first() {
             let full = resolve_posix_path(cwd, first_file);
             let _ = fs.write_file(&full, outcome.stdout.as_bytes());
@@ -5995,7 +6047,11 @@ fn cmd_yq(
     } else if output_format == "yaml" || output_format == "y" {
         let mut yaml_docs = Vec::new();
         for v in &vals {
-            yaml_docs.push(jval_to_yaml(v, 0, quote_yaml));
+            if raw_output && let JVal::Str(s) = v {
+                yaml_docs.push(format!("{s}\n"));
+            } else {
+                yaml_docs.push(jval_to_yaml(v, 0, quote_yaml));
+            }
         }
         let joined = if yaml_docs.len() > 1 && !is_derived_filter && !no_doc {
             yaml_docs.join("---\n")
@@ -6243,7 +6299,7 @@ fn parse_xml_element(s: &str, pos: &mut usize, use_plus_prefix: bool) -> Option<
             continue;
         }
         if rest.starts_with("</") {
-            if let Some(gt) = rest.find('>') {
+            if let Some(gt) = find_tag_close_gt(rest) {
                 *pos += gt + 1;
             } else {
                 *pos = s.len();
@@ -8347,6 +8403,9 @@ fn cmd_csvgrep(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 }
 
 fn format_csvkit_num(n: f64) -> String {
+    if (n - n.round()).abs() < 1e-11 && (n.to_bits() & 1) == 1 && n.abs() < 1e15 {
+        return format!("{:.1}", n.round());
+    }
     let rounded = (n * 1_000_000.0).round() / 1_000_000.0;
     let norm = if rounded == 0.0 { 0.0 } else { rounded };
     if norm.fract() == 0.0 && norm.abs() < 1e15 {
@@ -9821,6 +9880,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     .find(|(k, _)| k == "id")
                     .map(|(_, v)| match v {
                         JVal::Null => String::new(),
+                        JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
                         JVal::Number(n) => format_csvkit_num(*n),
                         _ => v.to_raw_string(true, false),
                     })
@@ -9840,6 +9900,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         .and_then(|p| p.iter().find(|(k, _)| k == pk))
                         .map(|(_, v)| match v {
                             JVal::Null => String::new(),
+                            JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
                             JVal::Number(n) => format_csvkit_num(*n),
                             _ => v.to_raw_string(true, false),
                         })
@@ -9951,6 +10012,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         .find(|(k, _)| k == h)
                         .map(|(_, v)| match v {
                             JVal::Null => String::new(),
+                            JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
                             JVal::Number(n) => format_csvkit_num(*n),
                             _ => v.to_raw_string(true, false),
                         })
@@ -13634,11 +13696,111 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 }
 
+fn extract_xml_decl_attr(src: &str, attr_name: &str) -> Option<String> {
+    let trimmed = src.trim_start();
+    if !trimmed.starts_with("<?xml") {
+        return None;
+    }
+    let end = trimmed.find("?>")?;
+    let decl = &trimmed[..end];
+    let pos = decl.find(attr_name)?;
+    let after = decl[pos + attr_name.len()..].trim_start();
+    let after_eq = after.strip_prefix('=')?.trim_start();
+    let q = after_eq.chars().next()?;
+    if q != '"' && q != '\'' {
+        return None;
+    }
+    let rest = &after_eq[q.len_utf8()..];
+    let close = rest.find(q)?;
+    Some(rest[..close].to_string())
+}
+
+fn find_tag_close_gt(s: &str) -> Option<usize> {
+    let mut in_q: Option<char> = None;
+    for (idx, ch) in s.char_indices() {
+        if let Some(q) = in_q {
+            if ch == q {
+                in_q = None;
+            }
+        } else if ch == '"' || ch == '\'' {
+            in_q = Some(ch);
+        } else if ch == '>' {
+            return Some(idx);
+        }
+    }
+    None
+}
+
+fn apply_xml_transforms(
+    nodes: &mut Vec<HtmlNode>,
+    noblanks: bool,
+    nocdata: bool,
+    preserve_space: bool,
+) {
+    if !noblanks && !nocdata {
+        return;
+    }
+    if nocdata {
+        let mut merged: Vec<HtmlNode> = Vec::with_capacity(nodes.len());
+        for node in nodes.drain(..) {
+            match node {
+                HtmlNode::Text(t) => {
+                    if let Some(HtmlNode::Text(prev)) = merged.last_mut() {
+                        prev.push_str(&t);
+                    } else {
+                        merged.push(HtmlNode::Text(t));
+                    }
+                }
+                other => merged.push(other),
+            }
+        }
+        *nodes = merged;
+    }
+    let total_len = nodes.len();
+    let mut kept: Vec<HtmlNode> = Vec::with_capacity(total_len);
+    let mut mixed = false;
+    for (idx, node) in nodes.drain(..).enumerate() {
+        match node {
+            HtmlNode::Element(mut el) => {
+                let mut child_preserve = preserve_space;
+                for (k, v) in &el.attrs {
+                    if k == "xml:space" || k == "space" {
+                        if v == "preserve" {
+                            child_preserve = true;
+                        } else if v == "default" {
+                            child_preserve = false;
+                        }
+                    }
+                }
+                apply_xml_transforms(&mut el.children, noblanks, nocdata, child_preserve);
+                kept.push(HtmlNode::Element(el));
+            }
+            HtmlNode::Text(t) => {
+                let is_blank = t.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n'));
+                if noblanks
+                    && !preserve_space
+                    && !mixed
+                    && is_blank
+                    && (!kept.is_empty() || idx + 1 < total_len)
+                {
+                    continue;
+                }
+                mixed = true;
+                kept.push(HtmlNode::Text(t));
+            }
+        }
+    }
+    *nodes = kept;
+}
+
 fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut xpath: Option<String> = None;
     let mut noout = false;
     let mut format_xml = false;
     let mut c14n = false;
+    let mut exc_c14n = false;
+    let mut noblanks = false;
+    let mut nocdata = false;
     let mut recover = false;
     let mut out_file: Option<String> = None;
     let mut encoding: Option<String> = None;
@@ -13657,16 +13819,29 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "--" => literal = true,
             "--noout" => noout = true,
             "--format" => format_xml = true,
-            "--c14n" | "--exc-c14n" => c14n = true,
+            "--c14n" => c14n = true,
+            "--exc-c14n" => {
+                c14n = true;
+                exc_c14n = true;
+            }
             "--recover" => recover = true,
-            "--noblanks" | "--nocdata" => {}
+            "--noblanks" => noblanks = true,
+            "--nocdata" => nocdata = true,
             "--output" | "-o" if i + 1 < args.len() => {
                 i += 1;
                 out_file = Some(args[i].clone());
             }
             "--encode" if i + 1 < args.len() => {
                 i += 1;
-                encoding = Some(args[i].clone());
+                let upper = args[i].to_ascii_uppercase();
+                let norm = match upper.as_str() {
+                    "UTF8" => "UTF-8".to_string(),
+                    "UTF16" => "UTF-16".to_string(),
+                    "ASCII" => "US-ASCII".to_string(),
+                    "LATIN1" => "ISO-8859-1".to_string(),
+                    _ => upper,
+                };
+                encoding = Some(norm);
             }
             "--xpath" if i + 1 < args.len() => {
                 i += 1;
@@ -13686,7 +13861,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         Err(e) => return err_out(&format!("xmllint: {e}"), 1),
     };
 
-    let dom = match parse_xml_strict_dom(&text) {
+    let mut dom = match parse_xml_strict_dom(&text) {
         Ok(d) => d,
         Err(e) => {
             if recover {
@@ -13702,6 +13877,8 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
     };
 
+    apply_xml_transforms(&mut dom, noblanks, nocdata, false);
+
     if noout {
         return ok_out("");
     }
@@ -13713,27 +13890,46 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         res.stdout
     } else if c14n {
         let mut out = String::new();
+        let in_scope = BTreeMap::new();
+        let rendered_ns = BTreeMap::new();
         for n in &dom {
             if let HtmlNode::Element(el) = n {
-                out.push_str(&serialize_xml_c14n(el));
-            }
-        }
-        out
-    } else if format_xml || out_file.is_some() || encoding.is_some() {
-        let decl = match encoding.as_deref() {
-            Some(enc) => format!("<?xml version=\"1.0\" encoding=\"{enc}\"?>\n"),
-            None => String::from("<?xml version=\"1.0\"?>\n"),
-        };
-        let mut out = decl;
-        for n in &dom {
-            if let HtmlNode::Element(el) = n {
-                out.push_str(&serialize_xml_pretty(el, 0));
-                out.push('\n');
+                out.push_str(&serialize_xml_c14n_with_scope(
+                    el,
+                    exc_c14n,
+                    &in_scope,
+                    &rendered_ns,
+                ));
             }
         }
         out
     } else {
-        text
+        let orig_version = extract_xml_decl_attr(&text, "version").unwrap_or_else(|| "1.0".to_string());
+        let orig_encoding = extract_xml_decl_attr(&text, "encoding");
+        let orig_standalone = extract_xml_decl_attr(&text, "standalone");
+        let eff_encoding = encoding.clone().or(orig_encoding);
+        let mut decl = format!("<?xml version=\"{orig_version}\"");
+        if let Some(ref enc) = eff_encoding {
+            decl.push_str(&format!(" encoding=\"{enc}\""));
+        }
+        if let Some(ref sa) = orig_standalone {
+            decl.push_str(&format!(" standalone=\"{sa}\""));
+        }
+        decl.push_str("?>\n");
+        let mut out = decl;
+        for n in &dom {
+            if let HtmlNode::Element(el) = n {
+                out.push_str(&serialize_xml_pretty(
+                    el,
+                    format_xml,
+                    0,
+                    false,
+                    eff_encoding.as_deref(),
+                ));
+                out.push('\n');
+            }
+        }
+        out
     };
     if let Some(of) = out_file && of != "-" {
         let full = resolve_posix_path(cwd, &of);
@@ -13813,7 +14009,7 @@ fn parse_xml_strict_children(
                     }
                 }
             }
-            let Some(gt) = rest.find('>') else {
+            let Some(gt) = find_tag_close_gt(rest) else {
                 return Err("Unclosed start tag".to_string());
             };
             let inside = &rest[1..gt];
@@ -13862,35 +14058,95 @@ fn parse_xml_strict_children(
     Ok(out)
 }
 
-fn serialize_xml_c14n(el: &HtmlElement) -> String {
+fn serialize_xml_c14n_with_scope(
+    el: &HtmlElement,
+    exclusive: bool,
+    in_scope_ns: &BTreeMap<String, String>,
+    rendered_ns: &BTreeMap<String, String>,
+) -> String {
+    let mut cur_scope = in_scope_ns.clone();
+    let mut normal_attrs: Vec<(String, String)> = Vec::new();
+    for (k, v) in &el.attrs {
+        if k == "xmlns" {
+            cur_scope.insert(String::new(), v.clone());
+        } else if let Some(prefix) = k.strip_prefix("xmlns:") {
+            cur_scope.insert(prefix.to_string(), v.clone());
+        } else {
+            normal_attrs.push((k.clone(), v.clone()));
+        }
+    }
+    let mut next_rendered = rendered_ns.clone();
+    let mut ns_attrs: Vec<(String, String)> = Vec::new();
+    let el_prefix = el.tag.split_once(':').map(|(p, _)| p).unwrap_or("");
+    for (prefix, uri) in &cur_scope {
+        if prefix == "xml" {
+            continue;
+        }
+        if exclusive {
+            let mut used = prefix == el_prefix && (!prefix.is_empty() || !uri.is_empty());
+            if !used && !prefix.is_empty() {
+                for (ak, _) in &normal_attrs {
+                    if let Some((ap, _)) = ak.split_once(':')
+                        && ap == prefix
+                    {
+                        used = true;
+                        break;
+                    }
+                }
+            }
+            if !used {
+                continue;
+            }
+        }
+        let prev = rendered_ns.get(prefix).map(|s| s.as_str()).unwrap_or("");
+        if prev != uri {
+            let attr_name = if prefix.is_empty() {
+                "xmlns".to_string()
+            } else {
+                format!("xmlns:{prefix}")
+            };
+            ns_attrs.push((attr_name, uri.clone()));
+            next_rendered.insert(prefix.clone(), uri.clone());
+        }
+    }
+    normal_attrs.sort_by(|(ka, _), (kb, _)| ka.cmp(kb));
+
     let mut out = String::new();
     out.push('<');
     out.push_str(&el.tag);
-    let mut sorted_attrs = el.attrs.clone();
-    fn attr_rank(k: &str) -> (u8, &str) {
-        if k == "xmlns" {
-            (0, "")
-        } else if let Some(rest) = k.strip_prefix("xmlns:") {
-            (1, rest)
-        } else {
-            (2, k)
-        }
-    }
-    sorted_attrs.sort_by(|(ka, _), (kb, _)| attr_rank(ka).cmp(&attr_rank(kb)));
-    for (k, v) in &sorted_attrs {
+    for (k, v) in ns_attrs.iter().chain(normal_attrs.iter()) {
         out.push(' ');
         out.push_str(k);
         out.push_str("=\"");
-        out.push_str(&v.replace('&', "&amp;").replace('<', "&lt;").replace('"', "&quot;"));
+        out.push_str(
+            &v.replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('"', "&quot;")
+                .replace('\t', "&#x9;")
+                .replace('\n', "&#xA;")
+                .replace('\r', "&#xD;"),
+        );
         out.push('"');
     }
     out.push('>');
     for c in &el.children {
         match c {
             HtmlNode::Text(t) => {
-                out.push_str(&t.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;"));
+                out.push_str(
+                    &t.replace('&', "&amp;")
+                        .replace('<', "&lt;")
+                        .replace('>', "&gt;")
+                        .replace('\r', "&#xD;"),
+                );
             }
-            HtmlNode::Element(child_el) => out.push_str(&serialize_xml_c14n(child_el)),
+            HtmlNode::Element(child_el) => {
+                out.push_str(&serialize_xml_c14n_with_scope(
+                    child_el,
+                    exclusive,
+                    &cur_scope,
+                    &next_rendered,
+                ));
+            }
         }
     }
     out.push_str("</");
@@ -13899,34 +14155,100 @@ fn serialize_xml_c14n(el: &HtmlElement) -> String {
     out
 }
 
-fn serialize_xml_pretty(el: &HtmlElement, indent: usize) -> String {
+fn escape_xml_str_with_encoding(s: &str, is_attr: bool, encoding: Option<&str>) -> String {
+    let mut out = String::with_capacity(s.len());
+    for ch in s.chars() {
+        let cp = ch as u32;
+        match ch {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' if !is_attr => out.push_str("&gt;"),
+            '"' if is_attr => out.push_str("&quot;"),
+            _ => match encoding {
+                Some("US-ASCII") if cp > 127 => out.push_str(&format!("&#{cp};")),
+                Some("ISO-8859-1") if cp > 255 => out.push_str(&format!("&#{cp};")),
+                _ => out.push(ch),
+            },
+        }
+    }
+    out
+}
+
+fn serialize_xml_pretty(
+    el: &HtmlElement,
+    format_xml: bool,
+    indent: usize,
+    inline_ctx: bool,
+    encoding: Option<&str>,
+) -> String {
     let mut out = String::new();
-    let pad = "  ".repeat(indent);
+    let pad = if format_xml && !inline_ctx {
+        "  ".repeat(indent)
+    } else {
+        String::new()
+    };
     out.push_str(&pad);
     out.push('<');
     out.push_str(&el.tag);
-    for (k, v) in &el.attrs {
-        out.push(' ');
-        out.push_str(k);
-        out.push_str("=\"");
-        out.push_str(&v.replace('&', "&amp;").replace('"', "&quot;"));
-        out.push('"');
+    for is_ns in [true, false] {
+        for (k, v) in &el.attrs {
+            let attr_is_ns = k == "xmlns" || k.starts_with("xmlns:");
+            if attr_is_ns == is_ns {
+                out.push(' ');
+                out.push_str(k);
+                out.push_str("=\"");
+                out.push_str(&escape_xml_str_with_encoding(v, true, encoding));
+                out.push('"');
+            }
+        }
+    }
+    if el.children.is_empty() {
+        out.push_str("/>");
+        return out;
     }
     out.push('>');
+    let mut preserve_space = false;
+    for (k, v) in &el.attrs {
+        if (k == "xml:space" || k == "space") && v == "preserve" {
+            preserve_space = true;
+        }
+    }
     let has_elem_child = el.children.iter().any(|c| matches!(c, HtmlNode::Element(_)));
-    if has_elem_child {
+    let has_nonblank_text = el.children.iter().any(|c| match c {
+        HtmlNode::Text(t) => !t.chars().all(|ch| matches!(ch, ' ' | '\t' | '\r' | '\n')),
+        _ => false,
+    });
+    let mixed = preserve_space || (has_elem_child && has_nonblank_text);
+    if format_xml && !inline_ctx && !mixed && has_elem_child {
         out.push('\n');
         for c in &el.children {
             if let HtmlNode::Element(child_el) = c {
-                out.push_str(&serialize_xml_pretty(child_el, indent + 1));
+                out.push_str(&serialize_xml_pretty(
+                    child_el,
+                    true,
+                    indent + 1,
+                    false,
+                    encoding,
+                ));
                 out.push('\n');
             }
         }
         out.push_str(&pad);
     } else {
         for c in &el.children {
-            if let HtmlNode::Text(t) = c {
-                out.push_str(&t.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;"));
+            match c {
+                HtmlNode::Text(t) => {
+                    out.push_str(&escape_xml_str_with_encoding(t, false, encoding));
+                }
+                HtmlNode::Element(child_el) => {
+                    out.push_str(&serialize_xml_pretty(
+                        child_el,
+                        format_xml,
+                        indent + 1,
+                        true,
+                        encoding,
+                    ));
+                }
             }
         }
     }
@@ -13951,6 +14273,48 @@ enum XPathVal {
     Bool(bool),
 }
 
+fn format_xpath_scalar_num(n: f64) -> String {
+    if n.is_nan() {
+        return "NaN".to_string();
+    }
+    if n == 0.0 {
+        return if n.is_sign_negative() {
+            "-0".to_string()
+        } else {
+            "0".to_string()
+        };
+    }
+    if !n.is_finite() {
+        return if n < 0.0 {
+            "-Infinity".to_string()
+        } else {
+            "Infinity".to_string()
+        };
+    }
+    let abs = n.abs();
+    let exp10 = abs.log10().floor() as i32;
+    let scale = 10f64.powi(5 - exp10);
+    let rounded = (n * scale).round() / scale;
+    let r_abs = rounded.abs();
+    if r_abs != 0.0 && (r_abs < 0.0001 || r_abs >= 1_000_000.0) {
+        let r_exp = r_abs.log10().floor() as i32;
+        let mant = rounded / 10f64.powi(r_exp);
+        let mant_clean = (mant * 100_000.0).round() / 100_000.0;
+        let mant_s = if mant_clean.fract() == 0.0 {
+            format!("{}", mant_clean as i64)
+        } else {
+            format!("{mant_clean}")
+        };
+        let sign_c = if r_exp >= 0 { '+' } else { '-' };
+        return format!("{mant_s}e{sign_c}{:02}", r_exp.unsigned_abs());
+    }
+    if rounded.fract() == 0.0 && rounded.abs() < 1e15 {
+        format!("{}", rounded as i64)
+    } else {
+        format!("{rounded}")
+    }
+}
+
 impl XPathVal {
     fn to_string_val(&self) -> String {
         match self {
@@ -13960,7 +14324,17 @@ impl XPathVal {
                 if n.is_nan() {
                     "NaN".to_string()
                 } else if *n == 0.0 {
-                    "0".to_string()
+                    if n.is_sign_negative() {
+                        "-0".to_string()
+                    } else {
+                        "0".to_string()
+                    }
+                } else if !n.is_finite() {
+                    if *n < 0.0 {
+                        "-Infinity".to_string()
+                    } else {
+                        "Infinity".to_string()
+                    }
                 } else if n.fract() == 0.0 && n.abs() < 1e15 {
                     format!("{}", *n as i64)
                 } else {
@@ -13975,8 +14349,23 @@ impl XPathVal {
         match self {
             XPathVal::Num(n) => *n,
             XPathVal::Bool(b) => if *b { 1.0 } else { 0.0 },
-            XPathVal::Str(s) => s.trim().parse::<f64>().unwrap_or(f64::NAN),
-            XPathVal::NodeSet(_) => self.to_string_val().trim().parse::<f64>().unwrap_or(f64::NAN),
+            XPathVal::Str(s) => {
+                let t = s.trim();
+                if t.is_empty() {
+                    f64::NAN
+                } else {
+                    t.parse::<f64>().unwrap_or(f64::NAN)
+                }
+            }
+            XPathVal::NodeSet(_) => {
+                let st = self.to_string_val();
+                let t = st.trim();
+                if t.is_empty() {
+                    f64::NAN
+                } else {
+                    t.parse::<f64>().unwrap_or(f64::NAN)
+                }
+            }
         }
     }
 
@@ -14021,7 +14410,7 @@ fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
                 match item {
                     XPathItem::Node(chain) => {
                         if let Some(el) = chain.last() {
-                            out.push(serialize_xml_c14n(el));
+                            out.push(serialize_xml_pretty(el, false, 0, true, Some("UTF-8")));
                         }
                     }
                     XPathItem::Attr(k, v) => {
@@ -14035,6 +14424,7 @@ fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
             }
             ok_out(&format!("{}\n", out.join("\n")))
         }
+        XPathVal::Num(n) => ok_out(&format!("{}\n", format_xpath_scalar_num(n))),
         scalar => ok_out(&format!("{}\n", scalar.to_string_val())),
     }
 }
@@ -14343,6 +14733,11 @@ fn eval_xpath_expr(
     if let Ok(n) = s.parse::<f64>() {
         return XPathVal::Num(n);
     }
+    if let Some(rest) = s.strip_prefix('-') {
+        return XPathVal::Num(
+            -eval_xpath_expr(dom, ctx_chain, pos, last, ns_map, rest).to_num_val(),
+        );
+    }
     if let Some((fname, args)) = parse_xpath_func_call(s) {
         let eval_arg = |idx: usize| -> XPathVal {
             args.get(idx)
@@ -14351,7 +14746,14 @@ fn eval_xpath_expr(
                     if let Some(ch) = ctx_chain {
                         XPathVal::NodeSet(vec![XPathItem::Node(ch.to_vec())])
                     } else {
-                        XPathVal::Str(String::new())
+                        let root_items: Vec<XPathItem> = dom
+                            .iter()
+                            .filter_map(|n| match n {
+                                HtmlNode::Element(el) => Some(XPathItem::Node(vec![el.clone()])),
+                                _ => None,
+                            })
+                            .collect();
+                        XPathVal::NodeSet(root_items)
                     }
                 })
         };
@@ -14408,9 +14810,17 @@ fn eval_xpath_expr(
             }
             "substring" => {
                 let st: Vec<char> = eval_arg(0).to_string_val().chars().collect();
-                let start_1 = (eval_arg(1).to_num_val() + 0.5).floor() as isize;
+                let start_num = eval_arg(1).to_num_val();
+                if start_num.is_nan() {
+                    return XPathVal::Str(String::new());
+                }
+                let start_1 = (start_num + 0.5).floor() as isize;
                 let end_1 = if args.len() >= 3 {
-                    start_1 + (eval_arg(2).to_num_val() + 0.5).floor() as isize
+                    let len_num = eval_arg(2).to_num_val();
+                    if len_num.is_nan() {
+                        return XPathVal::Str(String::new());
+                    }
+                    start_1 + (len_num + 0.5).floor() as isize
                 } else {
                     (st.len() as isize) + 1
                 };
@@ -14625,11 +15035,29 @@ fn eval_xpath_path_ctx(
     for (step_idx, (desc, raw_seg)) in steps.iter().enumerate() {
         let (base_test, preds) = split_xpath_predicates(raw_seg);
         if step_idx == 0 && !is_relative {
-            if *desc {
-                let mut chains = Vec::new();
-                collect_descendant_chains(dom, &[], &base_test, &mut chains);
-                let filtered = filter_xpath_chains(dom, ns_map, chains, &preds);
-                current = filtered.into_iter().map(XPathItem::Node).collect();
+            if *desc && base_test == "text()" {
+                let mut texts = Vec::new();
+                collect_html_text_nodes(dom, &mut texts);
+                current = texts.into_iter().map(XPathItem::Text).collect();
+            } else if *desc {
+                if let Some(attr_name) = base_test.strip_prefix('@') {
+                    let mut chains = Vec::new();
+                    collect_descendant_chains(dom, &[], "*", &mut chains);
+                    let mut attrs = Vec::new();
+                    for ch in chains {
+                        if let Some(el) = ch.last()
+                            && let Some((_, v)) = el.attrs.iter().find(|(k, _)| k == attr_name)
+                        {
+                            attrs.push(XPathItem::Attr(attr_name.to_string(), v.clone()));
+                        }
+                    }
+                    current = attrs;
+                } else {
+                    let mut chains = Vec::new();
+                    collect_descendant_chains(dom, &[], &base_test, &mut chains);
+                    let filtered = filter_xpath_chains(dom, ns_map, chains, &preds);
+                    current = filtered.into_iter().map(XPathItem::Node).collect();
+                }
             } else {
                 let mut chains = Vec::new();
                 for n in dom {
@@ -14676,9 +15104,19 @@ fn eval_xpath_path_ctx(
                 if let XPathItem::Node(chain) = item
                     && let Some(el) = chain.last()
                 {
-                    let mut buf = String::new();
-                    collect_html_text_concat(&el.children, &mut buf);
-                    next_items.push(XPathItem::Text(buf));
+                    if *desc {
+                        let mut texts = Vec::new();
+                        collect_html_text_nodes(&el.children, &mut texts);
+                        for t in texts {
+                            next_items.push(XPathItem::Text(t));
+                        }
+                    } else {
+                        for c in &el.children {
+                            if let HtmlNode::Text(t) = c {
+                                next_items.push(XPathItem::Text(t.clone()));
+                            }
+                        }
+                    }
                 }
             }
             current = next_items;
@@ -22256,7 +22694,7 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>) -> Ve
                 *pos += (2 + end_gt + 1).min(rest.len());
                 continue;
             }
-            if let Some(gt) = rest.find('>') {
+            if let Some(gt) = find_tag_close_gt(rest) {
                 let inside = &rest[1..gt];
                 let self_closing = inside.trim_end().ends_with('/');
                 let clean = inside.trim_end().trim_end_matches('/').trim();
@@ -22351,7 +22789,7 @@ fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>) -> Ve
 }
 
 fn parse_html_attrs(s: &str) -> Vec<(String, String)> {
-    let mut attrs = Vec::new();
+    let mut attrs: Vec<(String, String)> = Vec::new();
     let bytes = s.as_bytes();
     let mut i = 0usize;
     while i < bytes.len() {
@@ -22385,15 +22823,19 @@ fn parse_html_attrs(s: &str) -> Vec<(String, String)> {
                 if i < bytes.len() {
                     i += 1;
                 }
-                attrs.push((key, val));
+                if !attrs.iter().any(|(k, _)| k.eq_ignore_ascii_case(&key)) {
+                    attrs.push((key, val));
+                }
             } else {
                 let v_start = i;
                 while i < bytes.len() && !bytes[i].is_ascii_whitespace() {
                     i += 1;
                 }
-                attrs.push((key, unescape_xml_entities(&s[v_start..i])));
+                if !attrs.iter().any(|(k, _)| k.eq_ignore_ascii_case(&key)) {
+                    attrs.push((key, unescape_xml_entities(&s[v_start..i])));
+                }
             }
-        } else if !key.is_empty() {
+        } else if !key.is_empty() && !attrs.iter().any(|(k, _)| k.eq_ignore_ascii_case(&key)) {
             attrs.push((key, String::new()));
         }
     }
@@ -23099,13 +23541,68 @@ fn cmd_html_to_markdown(
 
 fn escape_markdown_text(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
-    for (idx, ch) in s.chars().enumerate() {
-        if (idx == 0 && ch == '#') || ch == '*' {
+    let mut prev_digit = false;
+    for ch in s.chars() {
+        if "\\`*_{}[]<>!|#+-&~=".contains(ch) || (matches!(ch, '.' | ')') && prev_digit) {
             out.push('\\');
         }
         out.push(ch);
+        prev_digit = ch.is_ascii_digit();
     }
     out
+}
+
+fn sanitize_markdown_destination(raw: &str, is_image: bool) -> Option<String> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty()
+        || trimmed.starts_with("//")
+        || trimmed.contains('\\')
+        || trimmed.bytes().any(|b| b < 0x20 || b == 0x7f)
+    {
+        return None;
+    }
+    let lower_clean: String = trimmed
+        .chars()
+        .filter(|c| !c.is_ascii_whitespace() && (*c as u32) >= 0x20)
+        .collect::<String>()
+        .to_ascii_lowercase();
+    if lower_clean.starts_with("javascript:")
+        || lower_clean.starts_with("vbscript:")
+        || lower_clean.starts_with("data:")
+        || lower_clean.starts_with("file:")
+        || lower_clean.contains("%0a")
+        || lower_clean.contains("%0d")
+        || lower_clean.contains("%00")
+    {
+        return None;
+    }
+    let _ = is_image;
+    let mut encoded = String::with_capacity(trimmed.len());
+    for ch in trimmed.chars() {
+        match ch {
+            ' ' => encoded.push_str("%20"),
+            '(' => encoded.push_str("%28"),
+            ')' => encoded.push_str("%29"),
+            _ => encoded.push(ch),
+        }
+    }
+    Some(encoded)
+}
+
+fn max_backtick_run(s: &str) -> usize {
+    let mut max_run = 0usize;
+    let mut cur = 0usize;
+    for ch in s.chars() {
+        if ch == '`' {
+            cur += 1;
+            if cur > max_run {
+                max_run = cur;
+            }
+        } else {
+            cur = 0;
+        }
+    }
+    max_run
 }
 
 fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) {
@@ -23116,7 +23613,7 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
                 HtmlNode::Element(el)
                     if matches!(
                         el.tag.as_str(),
-                        "strong" | "b" | "em" | "i" | "del" | "s" | "code" | "a" | "span" | "img"
+                        "strong" | "b" | "em" | "i" | "del" | "s" | "code" | "a" | "span" | "img" | "br"
                     )
             )
         });
@@ -23131,14 +23628,16 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
             }
             HtmlNode::Element(el) => match el.tag.as_str() {
                 "script" | "style" | "head" | "title" => {}
+                "br" => {
+                    out.push_str("  \n");
+                }
+                "hr" => {
+                    out.push_str("---\n\n");
+                }
                 "span" => {
                     let mut inner = String::new();
                     render_markdown_nodes(&el.children, &mut inner, true);
-                    if el.attrs.iter().any(|(k, v)| k == "class" && v == "name") {
-                        out.push_str(&inner.replace('-', "\\-"));
-                    } else {
-                        out.push_str(&inner);
-                    }
+                    out.push_str(&inner);
                 }
                 "h1" | "h2" | "h3" | "h4" | "h5" | "h6" => {
                     let level = el.tag[1..].parse::<usize>().unwrap_or(1);
@@ -23168,24 +23667,42 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
                     out.push_str(&format!("~~{}~~", inner.trim()));
                 }
                 "img" => {
-                    let src = el
+                    let src_raw = el
                         .attrs
                         .iter()
                         .find(|(k, _)| k.eq_ignore_ascii_case("src"))
                         .map(|(_, v)| v.as_str())
                         .unwrap_or("");
-                    let alt = el
+                    let alt_raw = el
                         .attrs
                         .iter()
                         .find(|(k, _)| k.eq_ignore_ascii_case("alt"))
                         .map(|(_, v)| v.as_str())
                         .unwrap_or("");
-                    out.push_str(&format!("![{alt}](<{src}>)"));
+                    let alt_esc = escape_markdown_text(alt_raw);
+                    if let Some(safe_src) = sanitize_markdown_destination(src_raw, true) {
+                        out.push_str(&format!("![{alt_esc}](<{safe_src}>)"));
+                    } else if !alt_esc.is_empty() {
+                        out.push_str(&alt_esc);
+                    }
                 }
                 "code" => {
                     let mut inner = String::new();
                     collect_html_text_concat(&el.children, &mut inner);
-                    out.push_str(&format!("`{}`", inner.trim()));
+                    let norm: String = inner
+                        .chars()
+                        .map(|c| if matches!(c, '\r' | '\n' | '\t') { ' ' } else { c })
+                        .collect();
+                    let trimmed = norm.trim();
+                    if !trimmed.is_empty() {
+                        let fence_len = (max_backtick_run(trimmed) + 1).max(1);
+                        let fence = "`".repeat(fence_len);
+                        if trimmed.starts_with('`') || trimmed.ends_with('`') {
+                            out.push_str(&format!("{fence} {trimmed} {fence}"));
+                        } else {
+                            out.push_str(&format!("{fence}{trimmed}{fence}"));
+                        }
+                    }
                 }
                 "pre" => {
                     let mut lang = String::new();
@@ -23195,19 +23712,34 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
                         .iter()
                         .find(|c| matches!(c, HtmlNode::Element(ce) if ce.tag == "code"))
                     {
-                        if let Some((_, cls)) = code_el.attrs.iter().find(|(k, _)| k == "class")
-                            && let Some(l) = cls.strip_prefix("language-")
-                        {
-                            lang = l.to_string();
+                        if let Some((_, cls)) = code_el.attrs.iter().find(|(k, _)| k == "class") {
+                            for tok in cls.split_whitespace() {
+                                if let Some(l) = tok.strip_prefix("language-")
+                                    && !l.is_empty()
+                                {
+                                    lang = l.to_string();
+                                    break;
+                                }
+                            }
                         }
                         collect_html_text_concat(&code_el.children, &mut code_text);
                     } else {
                         collect_html_text_concat(&el.children, &mut code_text);
                     }
-                    out.push_str(&format!("```{lang}\n{}\n```\n\n", code_text.trim()));
+                    let clean_code = code_text
+                        .strip_prefix("\r\n")
+                        .or_else(|| code_text.strip_prefix('\n'))
+                        .unwrap_or(&code_text);
+                    let clean_code = clean_code
+                        .strip_suffix("\r\n")
+                        .or_else(|| clean_code.strip_suffix('\n'))
+                        .unwrap_or(clean_code);
+                    let fence_len = (max_backtick_run(clean_code) + 1).max(3);
+                    let fence = "`".repeat(fence_len);
+                    out.push_str(&format!("{fence}{lang}\n{clean_code}\n{fence}\n\n"));
                 }
                 "a" => {
-                    let href = el
+                    let href_raw = el
                         .attrs
                         .iter()
                         .find(|(k, _)| k.eq_ignore_ascii_case("href"))
@@ -23215,20 +23747,32 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
                         .unwrap_or("");
                     let mut inner = String::new();
                     render_markdown_nodes(&el.children, &mut inner, true);
-                    out.push_str(&format!("[{}](<{href}>)", inner.trim()));
+                    if let Some(safe_href) = sanitize_markdown_destination(href_raw, false) {
+                        out.push_str(&format!("[{}](<{safe_href}>)", inner.trim()));
+                    } else {
+                        out.push_str(inner.trim());
+                    }
                 }
                 "ul" | "ol" => {
-                    for (idx, c) in el.children.iter().enumerate() {
+                    let start_num = el
+                        .attrs
+                        .iter()
+                        .find(|(k, _)| k.eq_ignore_ascii_case("start"))
+                        .and_then(|(_, v)| v.trim().parse::<usize>().ok())
+                        .unwrap_or(1);
+                    let mut li_idx = 0usize;
+                    for c in &el.children {
                         if let HtmlNode::Element(li) = c
                             && li.tag == "li"
                         {
                             let mut inner = String::new();
                             render_markdown_nodes(&li.children, &mut inner, true);
                             if el.tag == "ol" {
-                                out.push_str(&format!("{}. {}\n", idx + 1, inner.trim()));
+                                out.push_str(&format!("{}. {}\n", start_num + li_idx, inner.trim()));
                             } else {
                                 out.push_str(&format!("- {}\n", inner.trim()));
                             }
+                            li_idx += 1;
                         }
                     }
                     out.push('\n');
@@ -23236,19 +23780,47 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
                 "blockquote" => {
                     let mut inner = String::new();
                     render_markdown_nodes(&el.children, &mut inner, false);
-                    for line in inner.trim().lines() {
-                        out.push_str(&format!("> {line}\n"));
+                    for line in inner.trim().split('\n') {
+                        if line.trim().is_empty() {
+                            out.push_str(">\n");
+                        } else {
+                            out.push_str(&format!("> {line}\n"));
+                        }
                     }
                     out.push('\n');
                 }
                 "table" => {
-                    let mut rows: Vec<Vec<String>> = Vec::new();
+                    let mut caption = String::new();
+                    for c in &el.children {
+                        if let HtmlNode::Element(cap_el) = c
+                            && cap_el.tag == "caption"
+                        {
+                            render_markdown_nodes(&cap_el.children, &mut caption, true);
+                        }
+                    }
+                    if !caption.trim().is_empty() {
+                        out.push_str(caption.trim());
+                        out.push_str("\n\n");
+                    }
+                    let mut rows: Vec<(bool, Vec<String>)> = Vec::new();
                     collect_html_table_rows(&el.children, &mut rows);
                     if !rows.is_empty() {
-                        for (r_idx, r) in rows.iter().enumerate() {
-                            out.push_str(&format!("| {} |\n", r.join(" | ")));
-                            if r_idx == 0 {
-                                let sep: Vec<&str> = r.iter().map(|_| "---").collect();
+                        let max_cols = rows.iter().map(|(_, r)| r.len()).max().unwrap_or(1).max(1);
+                        let first_has_th = rows[0].0;
+                        if !first_has_th {
+                            let empty_hdr: Vec<&str> = (0..max_cols).map(|_| "").collect();
+                            let sep: Vec<&str> = (0..max_cols).map(|_| "---").collect();
+                            out.push_str(&format!("| {} |\n", empty_hdr.join(" | ")));
+                            out.push_str(&format!("| {} |\n", sep.join(" | ")));
+                        }
+                        for (r_idx, (_, r)) in rows.iter().enumerate() {
+                            let mut padded = r.clone();
+                            while padded.len() < max_cols {
+                                padded.push(String::new());
+                            }
+                            out.push_str(&format!("| {} |\n", padded.join(" | ")));
+                            if r_idx == 0 && first_has_th {
+                                let sep: Vec<&str> = (0..max_cols).map(|_| "---").collect();
                                 out.push_str(&format!("| {} |\n", sep.join(" | ")));
                             }
                         }
@@ -23263,22 +23835,40 @@ fn render_markdown_nodes(nodes: &[HtmlNode], out: &mut String, in_inline: bool) 
     }
 }
 
-fn collect_html_table_rows(nodes: &[HtmlNode], rows: &mut Vec<Vec<String>>) {
+fn collect_html_table_rows(nodes: &[HtmlNode], rows: &mut Vec<(bool, Vec<String>)>) {
     for n in nodes {
         if let HtmlNode::Element(el) = n {
             if el.tag == "tr" {
                 let mut row = Vec::new();
+                let mut has_th = false;
                 for c in &el.children {
                     if let HtmlNode::Element(cell) = c
                         && (cell.tag == "th" || cell.tag == "td")
                     {
+                        if cell.tag == "th" {
+                            has_th = true;
+                        }
                         let mut t = String::new();
                         render_markdown_nodes(&cell.children, &mut t, true);
-                        row.push(t.trim().replace('|', "\\|"));
+                        let mut escaped = String::with_capacity(t.trim().len());
+                        let mut backslashes = 0usize;
+                        for ch in t.trim().chars() {
+                            if ch == '|' && backslashes.is_multiple_of(2) {
+                                escaped.push_str("\\|");
+                            } else {
+                                escaped.push(ch);
+                            }
+                            if ch == '\\' {
+                                backslashes += 1;
+                            } else {
+                                backslashes = 0;
+                            }
+                        }
+                        row.push(escaped);
                     }
                 }
                 if !row.is_empty() {
-                    rows.push(row);
+                    rows.push((has_th, row));
                 }
             } else {
                 collect_html_table_rows(&el.children, rows);

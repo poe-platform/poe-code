@@ -148,3 +148,36 @@ impl Shell {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_shell_with_memory_fs_exec_options_and_limits() {
+        let (mut shell, vfs) = Shell::with_memory_fs();
+        vfs.mkdir_all("/app").unwrap();
+        let mut custom_limits = ShellLimits::default();
+        custom_limits.max_loop_iterations = 250;
+        shell.set_limits(custom_limits);
+        assert_eq!(shell.limits().max_loop_iterations, 250);
+
+        let mut env = BTreeMap::new();
+        env.insert("GREETING".into(), "hello".into());
+        let res = shell
+            .exec_with_options(
+                "read line; echo \"$GREETING:$line:$(pwd)\"",
+                ExecOptions {
+                    cwd: Some("/app".into()),
+                    stdin: Some("world\n".into()),
+                    timeout_ms: Some(1000),
+                    env,
+                },
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "hello:world:/app\n");
+        assert_eq!(shell.cwd(), "/app");
+        assert_eq!(shell.env().get("GREETING").map(|s| s.as_str()), Some("hello"));
+    }
+}

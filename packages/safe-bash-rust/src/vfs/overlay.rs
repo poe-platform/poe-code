@@ -214,6 +214,10 @@ impl SafeBashFs for OverlayVfs {
             .wrapping_add(self.upper.generation())
     }
 
+    fn fs_id(&self) -> u64 {
+        self.upper.fs_id()
+    }
+
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
         let mut merged = BTreeMap::new();
         for entry in self.lower.export_entries()? {
@@ -234,5 +238,30 @@ impl SafeBashFs for OverlayVfs {
             }
         }
         self.upper.replace_entries(entries)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn overlay_vfs_isolates_upper_writes_and_tracks_whiteouts() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.mkdir_all("/app").unwrap();
+        lower.write_file("/app/base.txt", b"original").unwrap();
+        lower.write_file("/app/keep.txt", b"unchanged").unwrap();
+
+        let upper = Arc::new(MemoryVfs::new());
+        let overlay = OverlayVfs::new(lower.clone(), upper.clone());
+
+        overlay.write_file("/app/base.txt", b"modified").unwrap();
+        assert_eq!(overlay.read_file("/app/base.txt").unwrap(), b"modified");
+        assert_eq!(lower.read_file("/app/base.txt").unwrap(), b"original");
+
+        overlay.remove_path("/app/keep.txt").unwrap();
+        assert!(!overlay.exists("/app/keep.txt"));
+        assert!(lower.exists("/app/keep.txt"));
     }
 }

@@ -9177,3 +9177,141 @@ fn cmd_wdiff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         exit_code: if changed { 1 } else { 0 },
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unit_sed_awk_diff_patch_apply_patch_cmp_wdiff() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+        vfs.mkdir_all("/work").unwrap();
+
+        let sed_out = try_run_text_command(
+            "sed",
+            &args(&["-E", "s/([a-z]+)=([0-9]+)/\\2:\\1/g"]),
+            "foo=12 bar=34\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(sed_out.exit_code, 0);
+        assert_eq!(sed_out.stdout, "12:foo 34:bar\n");
+
+        let awk_out = try_run_text_command(
+            "awk",
+            &args(&["-F:", "{ sum += $2 } END { print sum }"]),
+            "a:10\nb:25\nc:7\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(awk_out.exit_code, 0);
+        assert_eq!(awk_out.stdout, "42\n");
+
+        vfs.write_file("/work/orig.txt", b"line1\nline2\nline3\n")
+            .unwrap();
+        vfs.write_file("/work/mod.txt", b"line1\nline2_changed\nline3\n")
+            .unwrap();
+        let diff_out = try_run_text_command(
+            "diff",
+            &args(&["-u", "/work/orig.txt", "/work/mod.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(diff_out.exit_code, 1);
+        assert!(diff_out.stdout.contains("-line2\n+line2_changed\n"));
+
+        let patch_out = try_run_text_command(
+            "patch",
+            &args(&["/work/orig.txt"]),
+            &diff_out.stdout,
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(patch_out.exit_code, 0);
+        assert_eq!(
+            vfs.read_file("/work/orig.txt").unwrap(),
+            b"line1\nline2_changed\nline3\n"
+        );
+
+        let cmp_same = try_run_text_command(
+            "cmp",
+            &args(&["/work/orig.txt", "/work/mod.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(cmp_same.exit_code, 0);
+
+        vfs.write_file("/work/w1.txt", b"the quick brown fox\n")
+            .unwrap();
+        vfs.write_file("/work/w2.txt", b"the fast brown dog\n")
+            .unwrap();
+        let wdiff_out = try_run_text_command(
+            "wdiff",
+            &args(&["/work/w1.txt", "/work/w2.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(wdiff_out.exit_code, 1);
+        assert!(wdiff_out.stdout.contains("[-quick-] {+fast+}"));
+    }
+
+
+    #[test]
+    fn unit_sed_in_place_and_awk_associative_aggregation() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/cfg.ini", b"port=8080\nhost=localhost\n").unwrap();
+        let env = BTreeMap::new();
+
+        let sed_i = try_run_text_command(
+            "sed",
+            &args(&["-i", "s/8080/9090/g", "/work/cfg.ini"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(sed_i.exit_code, 0);
+        assert_eq!(
+            String::from_utf8_lossy(&vfs.read_file("/work/cfg.ini").unwrap()),
+            "port=9090\nhost=localhost\n"
+        );
+
+        let awk_agg = try_run_text_command(
+            "awk",
+            &args(&[
+                "-F,",
+                "{ sum[$1] += $2 } END { print \"a=\" sum[\"a\"], \"b=\" sum[\"b\"] }",
+            ]),
+            "a,10\nb,20\na,15\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(awk_agg.exit_code, 0);
+        assert_eq!(awk_agg.stdout, "a=25 b=20\n");
+    }
+}

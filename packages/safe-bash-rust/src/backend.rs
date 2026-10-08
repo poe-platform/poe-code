@@ -497,3 +497,80 @@ fn base64_decode(s: &str) -> Result<Vec<u8>, String> {
     }
     Ok(out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fs::MemoryVfs;
+
+    #[test]
+    fn unit_hybrid_backend_custom_command_functions_and_base64_roundtrip() {
+        let raw = b"safe-bash-rust-binary-\x00\xff-payload";
+        let enc = base64_encode(raw);
+        let dec = base64_decode(&enc).unwrap();
+        assert_eq!(dec, raw);
+
+        let mut backend = HybridBackend::new(BackendMode::NativeOnly);
+        backend.register_command(
+            "DoubleStdin",
+            Arc::new(|ctx| {
+                Ok(CommandResult {
+                    stdout: format!("{}{}", ctx.stdin, ctx.stdin),
+                    stderr: String::new(),
+                    exit_code: 0,
+                    cwd: ctx.cwd.clone(),
+                    env: ctx.env.clone(),
+                })
+            }),
+        );
+
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        let limits = ShellLimits::default();
+
+        let fn_def = backend
+            .try_execute_native_with_limits(
+                "greet() { echo \"hi-$1\"; }; greet world",
+                &mut cwd,
+                &mut env,
+                "",
+                None,
+                &limits,
+                &vfs,
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(fn_def.exit_code, 0);
+        assert_eq!(fn_def.stdout, "hi-world\n");
+
+        let fn_reuse = backend
+            .try_execute_native_with_limits(
+                "greet again",
+                &mut cwd,
+                &mut env,
+                "",
+                None,
+                &limits,
+                &vfs,
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(fn_reuse.stdout, "hi-again\n");
+
+        let custom = backend
+            .try_execute_native_with_limits(
+                "printf 'ab' | DoubleStdin",
+                &mut cwd,
+                &mut env,
+                "",
+                None,
+                &limits,
+                &vfs,
+            )
+            .unwrap()
+            .unwrap();
+        assert_eq!(custom.stdout, "abab");
+    }
+}

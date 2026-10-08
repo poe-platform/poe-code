@@ -1314,3 +1314,45 @@ fn sync_dirstack_env(cwd: &str, stack: &[String], env: &mut BTreeMap<String, Str
     }
     sync_array_metadata("DIRSTACK", env);
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unit_builtins_printf_test_pushd_popd_and_cd() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/a/b").unwrap();
+        let mut env = BTreeMap::new();
+        let mut cwd = "/a".to_string();
+        let mut stdin = String::new();
+
+        let pf = builtin_printf(&args(&["%s:%04d\\n", "item", "7"]), &mut env);
+        assert_eq!(pf.exit_code, 0);
+        assert_eq!(pf.stdout, "item:0007\n");
+
+        let t_ok = builtin_test("[", &args(&["-d", "/a/b", "]"]), "/", &mut env, &vfs);
+        assert_eq!(t_ok.exit_code, 0);
+
+        let push = try_run_builtin(
+            "pushd",
+            &args(&["/a/b"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(push.exit_code, 0);
+        assert_eq!(cwd, "/a/b");
+
+        let pop = try_run_builtin("popd", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        assert_eq!(pop.exit_code, 0);
+        assert_eq!(cwd, "/a");
+    }
+}

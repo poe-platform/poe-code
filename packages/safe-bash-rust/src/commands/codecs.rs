@@ -995,6 +995,159 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::archive::TarEntry;
+
+    #[test]
+    fn checksum_primitives_match_standard_vectors() {
+        assert_eq!(crc32_ieee(b"123456789"), 0xCBF43926);
+        assert_eq!(crc64_xz(b"123456789"), 0x995DC9BBDF1939FA);
+        assert_eq!(bzip2_crc32(b"123456789"), 0xFC891918);
+        let h0 = xxh64(b"", 0);
+        let h1 = xxh64(b"123456789", 0);
+        assert_ne!(h0, h1);
+    }
+
+    #[test]
+    fn gzip_magic_header_and_all_256_byte_roundtrip() {
+        let payload: Vec<u8> = (0u16..512).map(|i| (i & 0xff) as u8).collect();
+        let compressed = gzip_compress(&payload);
+        assert!(compressed.starts_with(&[0x1f, 0x8b, 0x08]));
+        let decoded = gzip_decompress(&compressed).unwrap();
+        assert_eq!(decoded, payload);
+
+        // Concatenated gzip members
+        let mut concat = gzip_compress(b"first-");
+        concat.extend_from_slice(&gzip_compress(b"second"));
+        assert_eq!(gzip_decompress(&concat).unwrap(), b"first-second");
+
+        // Reject non-gzip magic
+        assert!(gzip_decompress(b"not-gzip").is_err());
+    }
+
+    #[test]
+    fn bzip2_produces_genuine_bzh_header_not_gzip_and_roundtrips() {
+        for level in [1u8, 6, 9] {
+            let payload = b"BWT + MTF + Huffman bzip2 payload with repeated words repeated words\n";
+            let bz = bzip2_compress(payload, level);
+            assert_eq!(&bz[..3], b"BZh");
+            assert_eq!(bz[3], b'0' + level);
+            // Block magic 0x314159265359 ("1AY&SY")
+            assert_eq!(&bz[4..10], &[0x31, 0x41, 0x59, 0x26, 0x53, 0x59]);
+            assert_ne!(&bz[..2], &[0x1f, 0x8b]);
+            let decoded = bzip2_decompress(&bz).unwrap();
+            assert_eq!(decoded, payload);
+        }
+
+        // Empty bzip2 stream (EOS magic 0x177245385090)
+        let empty_bz = bzip2_compress(b"", 9);
+        assert_eq!(&empty_bz[..4], b"BZh9");
+        assert_eq!(bzip2_decompress(&empty_bz).unwrap(), b"");
+
+        // All 256 byte values
+        let all_bytes: Vec<u8> = (0u8..=255).collect();
+        let bz_all = bzip2_compress(&all_bytes, 9);
+        assert_eq!(bzip2_decompress(&bz_all).unwrap(), all_bytes);
+
+        // Reject gzip bytes passed to bzip2_decompress
+        let gz = gzip_compress(b"hello");
+        assert!(bzip2_decompress(&gz).is_err());
+    }
+
+    #[test]
+    fn xz_and_lzma_produce_genuine_headers_and_inspect_cleanly() {
+        let payload = b" genuine xz and lzma stream verification payload 0123456789 ";
+        for check_id in [0u8, 1, 4, 10] {
+            let xz = xz_compress(payload, check_id);
+            assert_eq!(&xz[..6], &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]);
+            assert_eq!(&xz[xz.len() - 2..], b"YZ");
+            assert_ne!(&xz[..2], &[0x1f, 0x8b]);
+            let info = inspect_xz_bytes(&xz).unwrap();
+            assert_eq!(info.streams, 1);
+            assert_eq!(info.uncompressed, payload.len());
+            let decoded = xz_decompress(&xz).unwrap();
+            assert_eq!(decoded, payload);
+        }
+
+        let lzma = lzma_compress(payload);
+        assert_eq!(&lzma[..3], &[0x5d, 0x00, 0x00]);
+        assert_eq!(lzma_decompress(&lzma).unwrap(), payload);
+        assert!(xz_decompress(&gzip_compress(b"wrong")).is_err());
+    }
+
+    #[test]
+    fn zstd_produces_rfc8878_frame_and_handles_multiblock_payloads() {
+        let payload = vec![0x5au8; 140_000]; // > 128 KiB block boundary
+        let zst = zstd_compress(&payload, true);
+        assert_eq!(&zst[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
+        assert_ne!(&zst[..2], &[0x1f, 0x8b]);
+        let decoded = zstd_decompress(&zst, false).unwrap();
+        assert_eq!(decoded, payload);
+        assert!(zstd_decompress(&gzip_compress(b"wrong"), false).is_err());
+    }
+
+    #[test]
+    fn pkzip_archive_serializes_and_parses_files_dirs_and_comments() {
+        let entries = vec![
+            TarEntry {
+                name: "dir/".into(),
+                typeflag: b'5',
+                mode: 0o755,
+                mtime: 1_700_000_000,
+                uid: 0,
+                gid: 0,
+                linkname: String::new(),
+                content: Vec::new(),
+            },
+            TarEntry {
+                name: "dir/hello.txt".into(),
+                typeflag: b'0',
+                mode: 0o640,
+                mtime: 1_700_000_000,
+                uid: 0,
+                gid: 0,
+                linkname: String::new(),
+                content: b"hello pkzip".to_vec(),
+            },
+        ];
+        let zip_bytes = serialize_zip_archive(&entries);
+        assert_eq!(&zip_bytes[..4], &[0x50, 0x4b, 0x03, 0x04]);
+        let parsed = parse_zip_archive(&zip_bytes).unwrap();
+        assert_eq!(parsed.len(), 2);
+        assert_eq!(parsed[0].name, "dir/");
+        assert_eq!(parsed[0].typeflag, b'5');
+        assert_eq!(parsed[1].name, "dir/hello.txt");
+        assert_eq!(parsed[1].content, b"hello pkzip");
+    }
+
+    #[test]
+    fn unit_deflate_empty_single_byte_and_repeating_runs() {
+        for sample in [&b""[..], &b"A"[..], &[b"X"[0]; 4096][..]] {
+            let gz = gzip_compress(sample);
+            assert_eq!(&gz[..2], &[0x1f, 0x8b]);
+            assert_eq!(gzip_decompress(&gz).unwrap(), sample);
+
+            let bz = bzip2_compress(sample, 9);
+            assert_eq!(&bz[..3], b"BZh");
+            assert_eq!(bzip2_decompress(&bz).unwrap(), sample);
+
+            let xz = xz_compress(sample, 0x04);
+            assert_eq!(&xz[..6], &[0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]);
+            assert_eq!(xz_decompress(&xz).unwrap(), sample);
+
+            let zs = zstd_compress(sample, true);
+            assert_eq!(&zs[..4], &[0x28, 0xb5, 0x2f, 0xfd]);
+            assert_eq!(zstd_decompress(&zs, false).unwrap(), sample);
+        }
+        assert!(gzip_decompress(b"not-gzip").is_err());
+        assert!(bzip2_decompress(b"not-bzip2").is_err());
+        assert!(xz_decompress(b"not-xz").is_err());
+        assert!(zstd_decompress(b"not-zstd", false).is_err());
+    }
+}
+
 // ---------------------------------------------------------------------------
 // XZ (.xz) and LZMA (.lzma)
 // ---------------------------------------------------------------------------

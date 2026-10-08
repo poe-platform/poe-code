@@ -22,9 +22,13 @@ enum MemoryNode {
     },
 }
 
+static NEXT_FS_ID: AtomicU64 = AtomicU64::new(1);
+static DEV_RANDOM_SEED: AtomicU64 = AtomicU64::new(0x9E37_79B9_7F4A_7C15);
+
 #[derive(Debug, Clone)]
 pub struct MemoryVfsLimits {
     pub max_total_bytes: usize,
+    pub max_file_bytes: usize,
     pub max_entries: usize,
     pub max_symlink_hops: usize,
 }
@@ -33,6 +37,7 @@ impl Default for MemoryVfsLimits {
     fn default() -> Self {
         Self {
             max_total_bytes: 256 * 1024 * 1024,
+            max_file_bytes: usize::MAX,
             max_entries: 100_000,
             max_symlink_hops: 32,
         }
@@ -48,6 +53,7 @@ struct MemoryState {
 
 #[derive(Clone)]
 pub struct MemoryVfs {
+    id: u64,
     state: Arc<RwLock<MemoryState>>,
     generation: Arc<AtomicU64>,
 }
@@ -65,6 +71,18 @@ impl MemoryVfs {
         }
     }
 
+    pub fn set_max_file_bytes(&self, max_file_bytes: usize) {
+        if let Ok(mut guard) = self.state.write() {
+            guard.limits.max_file_bytes = max_file_bytes;
+        }
+    }
+
+    pub fn set_max_entries(&self, max_entries: usize) {
+        if let Ok(mut guard) = self.state.write() {
+            guard.limits.max_entries = max_entries;
+        }
+    }
+
     pub fn new() -> Self {
         Self::with_limits(MemoryVfsLimits::default())
     }
@@ -79,6 +97,7 @@ impl MemoryVfs {
             },
         );
         Self {
+            id: NEXT_FS_ID.fetch_add(1, Ordering::Relaxed),
             state: Arc::new(RwLock::new(MemoryState {
                 nodes,
                 total_bytes: 0,
@@ -225,6 +244,21 @@ impl SafeBashFs for MemoryVfs {
         if norm == "/dev/zero" {
             return Ok(vec![0u8; 65536]);
         }
+        if norm == "/dev/urandom" || norm == "/dev/random" {
+            let mut st = DEV_RANDOM_SEED.fetch_add(0x9E37_79B9_7F4A_7C15, Ordering::Relaxed);
+            if st == 0 {
+                st = 0xCAFE_BABE_DEAD_BEEF;
+            }
+            let mut buf = vec![0u8; 4096];
+            for b in &mut buf {
+                st ^= st >> 12;
+                st ^= st << 25;
+                st ^= st >> 27;
+                let v = st.wrapping_mul(0x2545_F491_4F6C_DD1D);
+                *b = ((v >> 32) & 0xFF) as u8;
+            }
+            return Ok(buf);
+        }
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get(&resolved) {
@@ -241,7 +275,7 @@ impl SafeBashFs for MemoryVfs {
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        if norm == "/dev/null" {
+        if matches!(norm.as_str(), "/dev/null" | "/dev/zero" | "/dev/random" | "/dev/urandom") {
             return Ok(());
         }
         if norm == "/dev/full" {
@@ -265,6 +299,9 @@ impl SafeBashFs for MemoryVfs {
         let mode = existing_info.map(|(_, m)| m).unwrap_or(0o100644);
         if existing_info.is_none() && guard.nodes.len() >= guard.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".to_string());
+        }
+        if data.len() > guard.limits.max_file_bytes {
+            return Err("EFBIG: file size budget exceeded".to_string());
         }
         let next_total = guard.total_bytes.saturating_sub(old_len).saturating_add(data.len());
         if next_total > guard.limits.max_total_bytes {
@@ -391,7 +428,10 @@ impl SafeBashFs for MemoryVfs {
 
     fn exists(&self, path: &str) -> bool {
         let norm = normalize_posix_path(path);
-        if matches!(norm.as_str(), "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/urandom") {
+        if matches!(
+            norm.as_str(),
+            "/dev" | "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
+        ) {
             return true;
         }
         let Ok(guard) = self.state.read() else {
@@ -424,10 +464,12 @@ impl SafeBashFs for MemoryVfs {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-        match guard.nodes.get(&resolved) {
-            Some(MemoryNode::Directory { .. }) => {}
-            Some(_) => return Err(format!("ENOTDIR: not a directory, scandir '{norm}'")),
-            None => return Err(format!("ENOENT: no such file or directory, scandir '{norm}'")),
+        if resolved != "/dev" {
+            match guard.nodes.get(&resolved) {
+                Some(MemoryNode::Directory { .. }) => {}
+                Some(_) => return Err(format!("ENOTDIR: not a directory, scandir '{norm}'")),
+                None => return Err(format!("ENOENT: no such file or directory, scandir '{norm}'")),
+            }
         }
         let prefix = if resolved == "/" {
             "/".to_string()
@@ -435,6 +477,11 @@ impl SafeBashFs for MemoryVfs {
             format!("{resolved}/")
         };
         let mut children = Vec::new();
+        if resolved == "/dev" {
+            for dev in ["null", "random", "urandom", "zero"] {
+                children.push(dev.to_string());
+            }
+        }
         for key in guard.nodes.keys() {
             if key == &resolved {
                 continue;
@@ -442,6 +489,7 @@ impl SafeBashFs for MemoryVfs {
             if let Some(rest) = key.strip_prefix(&prefix)
                 && !rest.is_empty()
                 && !rest.contains('/')
+                && !children.iter().any(|c| c == rest)
             {
                 children.push(rest.to_string());
             }
@@ -480,7 +528,18 @@ impl SafeBashFs for MemoryVfs {
 
     fn stat(&self, path: &str) -> Result<FileStat, String> {
         let norm = normalize_posix_path(path);
-        if matches!(norm.as_str(), "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/urandom") {
+        if norm == "/dev" {
+            return Ok(FileStat {
+                kind: VfsEntryKind::Directory,
+                size: 0,
+                mode: 0o40755,
+                mtime_ms: 1_700_000_000_000,
+            });
+        }
+        if matches!(
+            norm.as_str(),
+            "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
+        ) {
             return Ok(FileStat {
                 kind: VfsEntryKind::File,
                 size: 0,
@@ -515,6 +574,25 @@ impl SafeBashFs for MemoryVfs {
 
     fn lstat(&self, path: &str) -> Result<FileStat, String> {
         let norm = normalize_posix_path(path);
+        if norm == "/dev" {
+            return Ok(FileStat {
+                kind: VfsEntryKind::Directory,
+                size: 0,
+                mode: 0o40755,
+                mtime_ms: 1_700_000_000_000,
+            });
+        }
+        if matches!(
+            norm.as_str(),
+            "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
+        ) {
+            return Ok(FileStat {
+                kind: VfsEntryKind::File,
+                size: 0,
+                mode: 0o20666,
+                mtime_ms: 1_700_000_000_000,
+            });
+        }
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
         match guard.nodes.get(&resolved) {
@@ -584,6 +662,10 @@ impl SafeBashFs for MemoryVfs {
 
     fn generation(&self) -> u64 {
         self.generation.load(Ordering::Relaxed)
+    }
+
+    fn fs_id(&self) -> u64 {
+        self.id
     }
 
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String> {
@@ -691,5 +773,81 @@ pub struct GitFsView<'a>(&'a MemoryVfs);
 impl GitFsView<'_> {
     pub fn readlink(&self, path: &str) -> Result<Vec<u8>, FsError> {
         self.0.readlink_bytes(path)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn memory_vfs_enforces_max_file_bytes_max_total_bytes_and_max_entries() {
+        let vfs = MemoryVfs::with_limits(MemoryVfsLimits {
+            max_total_bytes: 16,
+            max_file_bytes: 10,
+            max_entries: 5,
+            max_symlink_hops: 32,
+        });
+        vfs.mkdir_all("/work").unwrap();
+
+        // Per-file limit (10 bytes)
+        let too_big = vfs.write_file("/work/big.txt", b"0123456789A");
+        assert!(too_big.unwrap_err().contains("EFBIG"));
+
+        // Within per-file and total limit
+        vfs.write_file("/work/a.txt", b"0123456789").unwrap();
+        // Exceeds total limit (10 + 8 > 16)
+        let no_space = vfs.write_file("/work/b.txt", b"01234567");
+        assert!(no_space.unwrap_err().contains("ENOSPC"));
+
+        // Overwriting existing file reclaims its old bytes
+        vfs.write_file("/work/a.txt", b"0123").unwrap();
+        vfs.write_file("/work/b.txt", b"01234567").unwrap();
+
+        // Unlinking reclaims space and entry count
+        vfs.remove("/work/b.txt", false).unwrap();
+        vfs.write_file("/work/c.txt", b"0123456789").unwrap();
+    }
+
+    #[test]
+    fn memory_vfs_dev_virtual_devices_null_zero_random_urandom() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/dev").unwrap();
+        vfs.write_file("/dev/null", b"").unwrap();
+        vfs.write_file("/dev/zero", b"").unwrap();
+        vfs.write_file("/dev/random", b"").unwrap();
+        vfs.write_file("/dev/urandom", b"").unwrap();
+
+        // Writing to /dev/null discards bytes
+        vfs.write_file("/dev/null", b"discarded payload").unwrap();
+        assert_eq!(vfs.read_file("/dev/null").unwrap(), b"");
+
+        // Reading /dev/zero returns NUL bytes
+        let zeros = vfs.read_file("/dev/zero").unwrap();
+        assert!(!zeros.is_empty());
+        assert!(zeros.iter().all(|&b| b == 0));
+
+        // Reading /dev/urandom returns pseudo-random non-empty bytes
+        let rand_bytes = vfs.read_file("/dev/urandom").unwrap();
+        assert!(!rand_bytes.is_empty());
+        assert!(rand_bytes.iter().any(|&b| b != 0));
+    }
+
+    #[test]
+    fn memory_vfs_symlinks_permissions_rename_and_copy() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/a/b").unwrap();
+        vfs.write_file("/a/b/orig.txt", b"hello vfs").unwrap();
+        vfs.chmod("/a/b/orig.txt", 0o750).unwrap();
+        let st = vfs.stat("/a/b/orig.txt").unwrap();
+        assert_eq!(st.mode & 0o777, 0o750);
+
+        vfs.symlink("/a/b/orig.txt", "/a/link.txt").unwrap();
+        assert_eq!(SafeBashFs::readlink(&vfs, "/a/link.txt").unwrap(), "/a/b/orig.txt");
+        assert_eq!(vfs.read_file("/a/link.txt").unwrap(), b"hello vfs");
+        assert_eq!(vfs.list_dir("/a/b").unwrap(), vec!["orig.txt"]);
+        let exported = vfs.export_entries().unwrap();
+        assert!(exported.iter().any(|e| e.path == "/a/b/orig.txt"));
     }
 }

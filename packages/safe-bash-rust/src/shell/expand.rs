@@ -2648,3 +2648,40 @@ fn bash_lowercase(s: &str, pat: Option<&str>, all: bool) -> String {
     }
     out
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_arithmetic_parameter_expansion_and_glob_matching() {
+        let mut env = BTreeMap::new();
+        env.insert("X".to_string(), "6".to_string());
+        let val = eval_arith("X * 7 + (1 << 3) - 8", &mut env).unwrap();
+        assert_eq!(val, 42);
+        let _ = eval_arith("X += 4", &mut env).unwrap();
+        assert_eq!(env.get("X").map(String::as_str), Some("10"));
+
+        env.insert("WORD".to_string(), "hello_world_rust".to_string());
+        assert_eq!(
+            expand_parameter_expr("WORD#hello_", &mut env, 0, &[]).unwrap(),
+            "world_rust"
+        );
+        assert_eq!(
+            expand_parameter_expr("WORD%%_*", &mut env, 0, &[]).unwrap(),
+            "hello"
+        );
+        assert_eq!(
+            expand_parameter_expr("WORD//_/:", &mut env, 0, &[]).unwrap(),
+            "hello:world:rust"
+        );
+        assert_eq!(
+            expand_parameter_expr("WORD^^", &mut env, 0, &[]).unwrap(),
+            "HELLO_WORLD_RUST"
+        );
+
+        assert!(glob_match("*.rs", "main.rs"));
+        assert!(!glob_match("*.rs", "main.ts"));
+        assert!(glob_match_ext("@(foo|bar)-[0-9].txt", "BAR-7.TXT", true));
+    }
+}

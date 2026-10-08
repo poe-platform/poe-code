@@ -6327,3 +6327,92 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     }
     ok_out(&out)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unit_fs_commands_mkdir_cp_mv_ln_readlink_realpath_file_stat() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+
+        let mkdir_out = try_run_fs_command("mkdir", &args(&["-p", "/work/sub"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(mkdir_out.exit_code, 0);
+        vfs.write_file("/work/sub/data.txt", b"hello world\n").unwrap();
+
+        let cp_out = try_run_fs_command(
+            "cp",
+            &args(&["/work/sub/data.txt", "/work/copy.txt"]),
+            "",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(cp_out.exit_code, 0);
+        assert_eq!(vfs.read_file("/work/copy.txt").unwrap(), b"hello world\n");
+
+        let ln_out = try_run_fs_command(
+            "ln",
+            &args(&["-s", "sub/data.txt", "/work/link.txt"]),
+            "",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ln_out.exit_code, 0);
+
+        let rl_out = try_run_fs_command("readlink", &args(&["/work/link.txt"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(rl_out.stdout, "sub/data.txt\n");
+
+        let rp_out = try_run_fs_command("realpath", &args(&["/work/link.txt"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(rp_out.stdout, "/work/sub/data.txt\n");
+
+        let file_out = try_run_fs_command("file", &args(&["-b", "/work/copy.txt"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(file_out.exit_code, 0);
+        assert!(file_out.stdout.contains("ASCII text"));
+    }
+
+
+    #[test]
+    fn unit_chmod_touch_rm_du_and_tree() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+        let env = BTreeMap::new();
+
+        assert_eq!(
+            try_run_fs_command("touch", &args(&["/work/dir/f.txt"]), "", "/work", &env, &vfs)
+                .unwrap()
+                .exit_code,
+            0
+        );
+        assert!(vfs.exists("/work/dir/f.txt"));
+
+        assert_eq!(
+            try_run_fs_command("chmod", &args(&["755", "/work/dir/f.txt"]), "", "/work", &env, &vfs)
+                .unwrap()
+                .exit_code,
+            0
+        );
+        assert_eq!(vfs.stat("/work/dir/f.txt").unwrap().mode & 0o777, 0o755);
+
+        let tree_out = try_run_fs_command("tree", &args(&["/work"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(tree_out.exit_code, 0);
+        assert!(tree_out.stdout.contains("f.txt"));
+
+        assert_eq!(
+            try_run_fs_command("rm", &args(&["-rf", "/work/dir"]), "", "/work", &env, &vfs)
+                .unwrap()
+                .exit_code,
+            0
+        );
+        assert!(!vfs.exists("/work/dir"));
+    }
+}

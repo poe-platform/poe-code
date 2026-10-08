@@ -132,3 +132,25 @@ impl SafeBashFs for MountVfs {
         self.root.replace_entries(entries)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn mount_vfs_routes_longest_prefix_and_exports_combined_tree() {
+        let root = Arc::new(MemoryVfs::new());
+        let mnt = Arc::new(MemoryVfs::new());
+        root.mkdir_all("/mnt/data").unwrap();
+        let fs = MountVfs::new(root.clone()).with_mount("/mnt/data", mnt.clone());
+
+        fs.write_file("/root.txt", b"in-root").unwrap();
+        fs.write_file("/mnt/data/nested.txt", b"in-mount").unwrap();
+
+        assert_eq!(root.read_file("/root.txt").unwrap(), b"in-root");
+        assert!(!root.exists("/mnt/data/nested.txt"));
+        assert_eq!(mnt.read_file("/nested.txt").unwrap(), b"in-mount");
+        assert_eq!(fs.read_file("/mnt/data/nested.txt").unwrap(), b"in-mount");
+    }
+}

@@ -795,3 +795,26 @@ fn read_arith_command_tokens(
     }
     Err("Syntax error: unclosed `((".to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_tokenize_heredoc_redirections_and_operators() {
+        let script = "cat <<'EOF' | grep foo >> out.txt 2>&1\nhello $WORLD\nfoo bar\nEOF\n";
+        let tokens = tokenize_shell(script).unwrap();
+        assert!(tokens.iter().any(|t| matches!(
+            t,
+            Token::RedirectHereDoc {
+                fd: 0,
+                delimiter,
+                quoted: true,
+                body
+            } if delimiter == "EOF" && body == "hello $WORLD\nfoo bar\n"
+        )));
+        assert!(tokens.contains(&Token::Pipe));
+        assert!(tokens.contains(&Token::RedirectAppend(1)));
+        assert!(tokens.contains(&Token::RedirectDupOut(2)));
+    }
+}

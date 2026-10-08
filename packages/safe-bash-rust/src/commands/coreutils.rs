@@ -20570,3 +20570,60 @@ fn cmd_sleep(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome 
     }
     ok_out("")
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn sleep_validates_missing_invalid_negative_and_advances_virtual_clock() {
+        let mut env = BTreeMap::new();
+        assert_eq!(cmd_sleep(&args(&[]), &mut env).exit_code, 1);
+        assert_eq!(cmd_sleep(&args(&["abc"]), &mut env).exit_code, 1);
+        assert_eq!(cmd_sleep(&args(&["-1"]), &mut env).exit_code, 1);
+        assert_eq!(cmd_sleep(&args(&["--", "-0.5"]), &mut env).exit_code, 1);
+        assert_eq!(cmd_sleep(&args(&["0.05", "0.15s"]), &mut env).exit_code, 0);
+        assert_eq!(cmd_sleep(&args(&["0x1p-4"]), &mut env).exit_code, 0);
+    }
+
+    #[test]
+    fn bc_expr_factor_seq_and_numfmt_calculations() {
+        let vfs = MemoryVfs::new();
+        let bc = cmd_bc(&args(&["-l"]), "2^10 + 24\n", "/", &vfs);
+        assert_eq!(bc.exit_code, 0);
+        assert_eq!(bc.stdout.trim(), "1048");
+
+        let expr = cmd_expr(&args(&["15", "*", "3", "+", "5"]));
+        assert_eq!(expr.exit_code, 0);
+        assert_eq!(expr.stdout.trim(), "50");
+
+        let factor = cmd_factor(&args(&["360"]), "");
+        assert_eq!(factor.exit_code, 0);
+        assert_eq!(factor.stdout.trim(), "360: 2 2 2 3 3 5");
+    }
+
+
+    #[test]
+    fn unit_sort_uniq_cut_tr_paste_comm_and_head_tail_wc() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let sorted = try_run_coreutil("sort", &args(&["-n", "-r"]), "10\n2\n30\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(sorted.stdout, "30\n10\n2\n");
+
+        let uniq = try_run_coreutil("uniq", &args(&["-c"]), "a\na\nb\n", "/work", &env, &vfs).unwrap();
+        assert!(uniq.stdout.contains("2 a") && uniq.stdout.contains("1 b"));
+
+        let cut = try_run_coreutil("cut", &args(&["-d:", "-f2"]), "u1:alice:admin\nu2:bob:user\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(cut.stdout, "alice\nbob\n");
+
+        let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
+        assert_eq!(tr.stdout, "HELLO");
+    }
+}

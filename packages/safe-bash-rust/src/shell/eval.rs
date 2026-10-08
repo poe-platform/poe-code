@@ -3608,6 +3608,9 @@ impl<'a> EvalState<'a> {
                 };
             }
             self.env.remove(&resolved);
+            if resolved == "PATH" {
+                self.env.insert("__path_unset__".to_string(), "1".to_string());
+            }
             self.env.remove(&format!("__attr__{resolved}"));
             self.env.remove(&format!("__declared__{resolved}"));
             self.env.remove(&format!("__assoc__{resolved}"));
@@ -5605,4 +5608,25 @@ fn expand_braces(word: &str) -> Vec<String> {
     }
 
     vec![word.to_string()]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_brace_expansion_and_sequences() {
+        assert_eq!(
+            expand_braces("pre-{a,b,c}-post"),
+            vec!["pre-a-post", "pre-b-post", "pre-c-post"]
+        );
+        assert_eq!(
+            expand_braces("n{01..03}"),
+            vec!["n01", "n02", "n03"]
+        );
+        assert_eq!(
+            expand_braces("{d..a..2}"),
+            vec!["d", "b"]
+        );
+    }
 }

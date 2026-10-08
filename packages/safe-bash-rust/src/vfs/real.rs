@@ -113,3 +113,35 @@ impl SafeBashFs for RealVfs {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_real_vfs_confines_paths_and_performs_crud() {
+        let tmp_root = std::env::temp_dir().join(format!("safe_bash_real_vfs_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp_root);
+        std::fs::create_dir_all(&tmp_root).unwrap();
+
+        let vfs = RealVfs::new(&tmp_root).unwrap();
+        vfs.mkdir_all("/nested/dir").unwrap();
+        assert!(vfs.is_dir("/nested/dir"));
+
+        vfs.write_file("/nested/dir/hello.txt", b"real-vfs-bytes").unwrap();
+        assert!(vfs.exists("/nested/dir/hello.txt"));
+        assert_eq!(vfs.read_file("/nested/dir/hello.txt").unwrap(), b"real-vfs-bytes");
+        assert_eq!(vfs.list_dir("/nested/dir").unwrap(), vec!["hello.txt".to_string()]);
+
+        #[cfg(unix)]
+        {
+            vfs.symlink("hello.txt", "/nested/dir/link.txt").unwrap();
+            assert_eq!(vfs.readlink("/nested/dir/link.txt").unwrap(), "hello.txt");
+        }
+
+        vfs.remove_path("/nested/dir/hello.txt").unwrap();
+        assert!(!vfs.exists("/nested/dir/hello.txt"));
+
+        let _ = std::fs::remove_dir_all(&tmp_root);
+    }
+}

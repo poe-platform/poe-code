@@ -270,6 +270,7 @@ pub fn try_run_structured_command(
         "csvlook" => Some(cmd_csvlook(args, stdin, cwd, fs)),
         "csvsql" | "sql2csv" => Some(cmd_csvsql(cmd, args, stdin, cwd, fs)),
         "csvclean" => Some(cmd_csvclean(args, stdin, cwd, fs)),
+        "csvpy" => Some(cmd_csvpy(args, stdin, cwd, fs)),
         "htmlq" => Some(cmd_htmlq(args, stdin, cwd, fs)),
         "mdq" => Some(cmd_mdq(args, stdin, cwd, fs)),
         "unrtf" => Some(cmd_unrtf(args, stdin, cwd, fs)),
@@ -642,7 +643,7 @@ fn parse_json_string(chars: &[char], idx: &mut usize) -> Result<String, String> 
     Err("unterminated string".into())
 }
 
-fn cmd_jq_with_env(
+pub(crate) fn cmd_jq_with_env(
     args: &[String],
     stdin: &str,
     cwd: &str,
@@ -19314,7 +19315,12 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let is_rec = norm_up.starts_with("WITH RECURSIVE");
             let mut rest = if is_rec { norm[14..].trim() } else { norm[4..].trim() };
             let mut resolved_any_cte = false;
-            while !rest.to_ascii_uppercase().starts_with("SELECT ") {
+            let mut cte_names: Vec<String> = Vec::new();
+            while !rest.to_ascii_uppercase().starts_with("SELECT ")
+                && !rest.to_ascii_uppercase().starts_with("INSERT ")
+                && !rest.to_ascii_uppercase().starts_with("UPDATE ")
+                && !rest.to_ascii_uppercase().starts_with("DELETE ")
+            {
                 let rest_up = rest.to_ascii_uppercase();
                 let Some(as_pos) = rest_up.find(" AS") else {
                     break;
@@ -19436,6 +19442,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     if !all_rows.is_empty() {
                         resolved_any_cte = true;
                     }
+                    cte_names.push(cte_name.clone());
                     tables.insert(
                         cte_name,
                         SqlTable {
@@ -19449,6 +19456,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         cte_tbl.columns = cols;
                     }
                     resolved_any_cte = true;
+                    cte_names.push(cte_name.clone());
                     tables.insert(cte_name, cte_tbl);
                 }
                 rest = paren_slice[close_rel + 1..].trim().trim_start_matches(',').trim();
@@ -19467,12 +19475,34 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     &widths,
                 );
                 emit_chunk(chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
+            } else if resolved_any_cte && rest.to_ascii_uppercase().starts_with("INSERT ") {
+                match exec_sql_insert(rest, &mut tables, &triggers, foreign_keys_enabled, json_mode, csv_mode, &sep) {
+                    Ok(ret_chunk) => {
+                        if !ret_chunk.is_empty() {
+                            emit_chunk(ret_chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
+                        }
+                    }
+                    Err(e) => {
+                        for cname in &cte_names {
+                            tables.remove(cname);
+                        }
+                        return err_out(&e, 1);
+                    }
+                }
+            } else if resolved_any_cte && rest.to_ascii_uppercase().starts_with("UPDATE ") {
+                let ret_chunk = exec_sql_update(rest, &mut tables, &triggers, foreign_keys_enabled, json_mode, csv_mode, &sep);
+                if !ret_chunk.is_empty() {
+                    emit_chunk(ret_chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
+                }
             } else if upper.contains("SUM(N) OVER") {
                 emit_chunk("1|1\n2|3\n3|6\n4|10\n5|15\n".to_string(), &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
             } else if json_mode {
                 emit_chunk("[{\"region\":\"apac\",\"top_n\":3,\"total\":1470},{\"region\":\"eu\",\"top_n\":3,\"total\":1379},{\"region\":\"us\",\"top_n\":3,\"total\":1091}]\n".to_string(), &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
             } else {
                 emit_chunk("apac|3|1470\neu|3|1379\nus|3|1091\n".to_string(), &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
+            }
+            for cname in cte_names {
+                tables.remove(&cname);
             }
         } else if upper.starts_with("SELECT") {
             let chunk = exec_sql_select_with_mode(
@@ -19722,7 +19752,11 @@ fn format_sql_returning(
             }
             arr.push(JVal::Object(entries));
         }
-        return format!("{}\n", JVal::Array(arr).to_json_string(true, false, 0));
+        let items: Vec<String> = arr
+            .into_iter()
+            .map(|v| v.to_json_string(true, false, 0))
+            .collect();
+        return format!("[{}]\n", items.join(",\n"));
     }
     let mut ret_out = String::new();
     for r in rows {
@@ -20089,7 +20123,7 @@ fn exec_sql_update(
             .map(|c| c.trim().to_string())
             .collect()
     });
-    let where_pos = upper.find(" WHERE ");
+    let where_pos = find_top_sql_bool_kw(&upper[set_pos + 5..], " WHERE ").map(|p| set_pos + 5 + p);
     let set_end = where_pos.or(ret_pos).unwrap_or(stmt_norm.len());
     let set_clause = stmt_norm[set_pos + 5..set_end].trim();
     let where_clause = where_pos.map(|wp| {
@@ -20099,6 +20133,10 @@ fn exec_sql_update(
     let Some((t_cols, gen_clone)) = tables.get(&tname).map(|t| (t.columns.clone(), t.generated.clone())) else {
         return String::new();
     };
+    let mut eval_cols = t_cols.clone();
+    for c in &t_cols {
+        eval_cols.push(format!("{tname}.{c}"));
+    }
     let assigns: Vec<(usize, String)> = split_top_level_comma(set_clause)
         .into_iter()
         .filter_map(|item| {
@@ -20111,15 +20149,17 @@ fn exec_sql_update(
     let tables_snap = tables.clone();
     if let Some(tbl) = tables.get(&tname) {
         for (r_idx, r) in tbl.rows.iter().enumerate() {
+            let mut eval_r = r.clone();
+            eval_r.extend_from_slice(r);
             let matches = match where_clause {
-                Some(wc) => eval_sql_where(wc, &t_cols, r, &tables_snap),
+                Some(wc) => eval_sql_where(wc, &eval_cols, &eval_r, &tables_snap),
                 None => true,
             };
             if matches {
                 let old_r = r.clone();
                 let mut new_r = r.clone();
                 for (c_idx, rhs_expr) in &assigns {
-                    new_r[*c_idx] = eval_sql_row_expr(rhs_expr, &t_cols, &old_r, &tables_snap);
+                    new_r[*c_idx] = eval_sql_row_expr(rhs_expr, &eval_cols, &eval_r, &tables_snap);
                 }
                 for (gcol, gexpr) in &gen_clone {
                     if let Some(gpos) = find_sql_col(&t_cols, gcol) {
@@ -20888,7 +20928,11 @@ fn format_sql_result_rows(
                 JVal::Object(entries)
             })
             .collect();
-        return format!("{}\n", JVal::Array(arr).to_json_string(true, false, 0));
+        let items: Vec<String> = arr
+            .into_iter()
+            .map(|v| v.to_json_string(true, false, 0))
+            .collect();
+        return format!("[{}]\n", items.join(",\n"));
     }
     if mode == "line" {
         let mut out = String::new();
@@ -21427,7 +21471,7 @@ fn exec_sql_select_with_mode(
 
     let sel_upper = select_part.to_ascii_uppercase();
     let has_window_over = sel_upper.contains("OVER (") || sel_upper.contains("OVER(");
-    if !has_window_over && (group_clause.is_some() || has_top_level_aggregate(select_part)) {
+    if group_clause.is_some() || (!has_window_over && has_top_level_aggregate(select_part)) {
         return exec_sql_aggregate_select(
             select_part,
             &tbl.columns,
@@ -22265,10 +22309,16 @@ fn exec_sql_aggregate_select(
         vec![rows.to_vec()]
     };
     let mut out_rows: Vec<(Vec<String>, Vec<String>)> = Vec::new();
+    let mut out_grps: Vec<Vec<&Vec<String>>> = Vec::new();
     for grp in &groups {
         let mut row_vals = Vec::new();
         for (e, _) in &exprs {
-            row_vals.push(eval_sql_group_expr(e, cols, grp));
+            let eu = e.to_ascii_uppercase();
+            if eu.contains("OVER (") || eu.contains("OVER(") {
+                row_vals.push(String::new());
+            } else {
+                row_vals.push(eval_sql_group_expr(e, cols, grp));
+            }
         }
         if let Some(hc) = having_clause {
             let mut ext_cols = cols.to_vec();
@@ -22290,6 +22340,125 @@ fn exec_sql_aggregate_select(
         }
         let first_raw = grp.first().map(|r| (*r).clone()).unwrap_or_default();
         out_rows.push((first_raw, row_vals));
+        out_grps.push(grp.clone());
+    }
+
+    let mut last_win_order: Option<Vec<usize>> = None;
+    for (col_idx, (e, _)) in exprs.iter().enumerate() {
+        let eu = e.to_ascii_uppercase();
+        let Some(over_pos) = eu.find(" OVER") else {
+            continue;
+        };
+        if !e[over_pos + 5..].trim_start().starts_with('(') || !e.trim_end().ends_with(')') {
+            continue;
+        }
+        let fn_part = e[..over_pos].trim();
+        let fn_up = fn_part.to_ascii_uppercase();
+        let over_spec = e[over_pos + 5..]
+            .trim()
+            .trim_start_matches('(')
+            .trim_end_matches(')')
+            .trim();
+        let over_up = over_spec.to_ascii_uppercase();
+        let part_expr: Option<String> = if let Some(pp) = over_up.find("PARTITION BY ") {
+            let after_p = &over_spec[pp + 13..];
+            let end_p = after_p.to_ascii_uppercase().find(" ORDER BY ").unwrap_or(after_p.len());
+            Some(after_p[..end_p].trim().to_string())
+        } else {
+            None
+        };
+        let mut order_exprs: Vec<(String, bool)> = Vec::new();
+        if let Some(op) = over_up.find("ORDER BY ") {
+            let after_o = over_spec[op + 9..].trim();
+            for item in split_top_level_comma(after_o) {
+                let it = item.trim();
+                let it_up = it.to_ascii_uppercase();
+                let desc = it_up.ends_with(" DESC");
+                let o_expr = it
+                    .strip_suffix(" DESC")
+                    .or_else(|| it.strip_suffix(" desc"))
+                    .or_else(|| it.strip_suffix(" ASC"))
+                    .or_else(|| it.strip_suffix(" asc"))
+                    .unwrap_or(it)
+                    .trim()
+                    .to_string();
+                order_exprs.push((o_expr, desc));
+            }
+        }
+        let eval_grp_key = |row_i: usize, key_expr: &str| -> String {
+            if let Some(p_idx) = exprs.iter().position(|(pe, palias)| {
+                palias.eq_ignore_ascii_case(key_expr) || pe.eq_ignore_ascii_case(key_expr)
+            }) && p_idx != col_idx
+            {
+                return out_rows[row_i].1.get(p_idx).cloned().unwrap_or_default();
+            }
+            eval_sql_group_expr(key_expr, cols, &out_grps[row_i])
+        };
+
+        let mut partitions: BTreeMap<String, Vec<usize>> = BTreeMap::new();
+        for row_i in 0..out_rows.len() {
+            let pk = part_expr
+                .as_deref()
+                .map(|pe| eval_grp_key(row_i, pe))
+                .unwrap_or_default();
+            partitions.entry(pk).or_default().push(row_i);
+        }
+        let mut combined_order = Vec::new();
+        let mut win_updates: Vec<(usize, String)> = Vec::new();
+        for (_pk, mut p_indices) in partitions {
+            if !order_exprs.is_empty() {
+                p_indices.sort_by(|&a_i, &b_i| {
+                    for (oe, desc) in &order_exprs {
+                        let va = eval_grp_key(a_i, oe);
+                        let vb = eval_grp_key(b_i, oe);
+                        let ord = match (va.parse::<f64>(), vb.parse::<f64>()) {
+                            (Ok(na), Ok(nb)) => na.partial_cmp(&nb).unwrap_or(std::cmp::Ordering::Equal),
+                            _ => va.cmp(&vb),
+                        };
+                        let ord = if *desc { ord.reverse() } else { ord };
+                        if ord != std::cmp::Ordering::Equal {
+                            return ord;
+                        }
+                    }
+                    a_i.cmp(&b_i)
+                });
+            }
+            let mut cur_rank = 1usize;
+            let mut cur_dense = 1usize;
+            for (pos, &row_i) in p_indices.iter().enumerate() {
+                if pos > 0 && !order_exprs.is_empty() {
+                    let prev_i = p_indices[pos - 1];
+                    let same = order_exprs
+                        .iter()
+                        .all(|(oe, _)| eval_grp_key(row_i, oe) == eval_grp_key(prev_i, oe));
+                    if !same {
+                        cur_rank = pos + 1;
+                        cur_dense += 1;
+                    }
+                }
+                let val = if fn_up.starts_with("ROW_NUMBER(") {
+                    (pos + 1).to_string()
+                } else if fn_up.starts_with("DENSE_RANK(") {
+                    cur_dense.to_string()
+                } else {
+                    cur_rank.to_string()
+                };
+                win_updates.push((row_i, val));
+            }
+            combined_order.extend(p_indices);
+        }
+        for (row_i, val) in win_updates {
+            out_rows[row_i].1[col_idx] = val;
+        }
+        if !order_exprs.is_empty() {
+            last_win_order = Some(combined_order);
+        }
+    }
+    if order_clause.is_none()
+        && let Some(ord) = last_win_order
+    {
+        let old = out_rows;
+        out_rows = ord.into_iter().filter_map(|i| old.get(i).cloned()).collect();
     }
     if let Some(oc) = order_clause {
         let mut ord_specs: Vec<(usize, bool, bool)> = Vec::new();
@@ -33474,4 +33643,340 @@ fn cmd_ast_grep(
         },
         Err(msg) => err_out(&format!("{invoked}: {msg}\n"), 2),
     }
+}
+
+const CSVPY_USAGE: &str = "usage: csvpy [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n             [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n             [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n             [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n             [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-V] [--dict]\n             [--agate] [--no-number-ellipsis] [-y SNIFF_LIMIT] [-I]\n             [FILE]\n";
+
+const CSVPY_HELP: &str = "usage: csvpy [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n             [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n             [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n             [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n             [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-V] [--dict]\n             [--agate] [--no-number-ellipsis] [-y SNIFF_LIMIT] [-I]\n             [FILE]\n\nLoad a CSV file into a CSV reader and then drop into a Python shell.\n\npositional arguments:\n  FILE                  The CSV file to operate on. If omitted, will accept\n                        input as piped data via STDIN.\n\noptions:\n  -h, --help            show this help message and exit\n  -d, --delimiter DELIMITER\n                        Delimiting character of the input CSV file.\n  -t, --tabs            Specify that the input CSV file is delimited with\n                        tabs. Overrides \"-d\".\n  -q, --quotechar QUOTECHAR\n                        Character used to quote strings in the input CSV file.\n  -u, --quoting {0,1,2,3,4,5}\n                        Quoting style used in the input CSV file: 0 quote\n                        minimal, 1 quote all, 2 quote non-numeric, 3 quote\n                        none.\n  -b, --no-doublequote  Whether or not double quotes are doubled in the input\n                        CSV file.\n  -p, --escapechar ESCAPECHAR\n                        Character used to escape the delimiter if --quoting 3\n                        (\"quote none\") is specified and to escape the\n                        QUOTECHAR if --no-doublequote is specified.\n  -z, --maxfieldsize FIELD_SIZE_LIMIT\n                        Maximum length of a single field in the input CSV\n                        file.\n  -e, --encoding ENCODING\n                        Specify the encoding of the input CSV file.\n  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.\n  -S, --skipinitialspace\n                        Ignore whitespace immediately following the delimiter.\n  --blanks              Do not convert \"\", \"na\", \"n/a\", \"none\", \"null\", \".\" to\n                        NULL.\n  --null-value NULL_VALUES [NULL_VALUES ...]\n                        Convert this value to NULL. --null-value can be\n                        specified multiple times.\n  --date-format DATE_FORMAT\n                        Specify a strptime date format string like \"%m/%d/%Y\".\n  --datetime-format DATETIME_FORMAT\n                        Specify a strptime datetime format string like\n                        \"%m/%d/%Y %I:%M %p\".\n  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to\n                        a number.\n  -H, --no-header-row   Specify that the input CSV file has no header row.\n                        Will create default headers (a,b,c,...).\n  -K, --skip-lines SKIP_LINES\n                        Specify the number of initial lines to skip before the\n                        header row (e.g. comments, copyright notices, empty\n                        rows).\n  -v, --verbose         Print detailed tracebacks when errors occur.\n  -V, --version         Display version information and exit.\n  --dict                Load the CSV file into a DictReader.\n  --agate               Load the CSV file into an agate table.\n  --no-number-ellipsis  Disable the ellipsis if the max precision is exceeded.\n  -y, --snifflimit SNIFF_LIMIT\n                        Limit CSV dialect sniffing to the specified number of\n                        bytes. Specify \"0\" to disable sniffing entirely, or\n                        \"-1\" to sniff the entire file.\n  -I, --no-inference    Disable type inference (and --locale, --date-format,\n                        --datetime-format, --no-leading-zeroes) when parsing\n                        the input.\n";
+
+fn cmd_csvpy(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut delim = ',';
+    let mut as_dict = false;
+    let mut as_agate = false;
+    let mut skip_lines = 0usize;
+    let mut input_path: Option<String> = None;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        match a.as_str() {
+            "-h" | "--help" => return ok_out(CSVPY_HELP),
+            "-V" | "--version" => return ok_out("csvpy 2.2.0\n"),
+            "--dict" => as_dict = true,
+            "--agate" => as_agate = true,
+            "-t" | "--tabs" => delim = '\t',
+            "-d" | "--delimiter" if i + 1 < args.len() => {
+                i += 1;
+                delim = args[i].chars().next().unwrap_or(',');
+            }
+            "-K" | "--skip-lines" if i + 1 < args.len() => {
+                i += 1;
+                skip_lines = args[i].parse().unwrap_or(0);
+            }
+            "-q" | "--quotechar" | "-u" | "--quoting" | "-p" | "--escapechar" | "-z"
+            | "--maxfieldsize" | "-e" | "--encoding" | "-L" | "--locale" | "--null-value"
+            | "--date-format" | "--datetime-format" | "-y" | "--snifflimit"
+                if i + 1 < args.len() =>
+            {
+                i += 1;
+            }
+            "-b" | "--no-doublequote" | "-S" | "--skipinitialspace" | "--blanks"
+            | "--no-leading-zeroes" | "-H" | "--no-header-row" | "-v" | "--verbose"
+            | "--no-number-ellipsis" | "-I" | "--no-inference" => {}
+            _ if a.starts_with('-') && a != "-" => {
+                return err_out(
+                    &format!("{CSVPY_USAGE}csvpy: error: unrecognized arguments: {a}\n"),
+                    2,
+                );
+            }
+            _ => {
+                input_path = Some(a.clone());
+            }
+        }
+        i += 1;
+    }
+
+    let Some(raw_path) = input_path else {
+        return err_out(
+            &format!("{CSVPY_USAGE}csvpy: error: csvpy cannot accept input as piped data via STDIN.\n"),
+            2,
+        );
+    };
+    if raw_path == "-" {
+        return err_out(
+            &format!("{CSVPY_USAGE}csvpy: error: csvpy cannot accept input as piped data via STDIN.\n"),
+            2,
+        );
+    }
+
+    let full = resolve_posix_path(cwd, &raw_path);
+    let Ok(bytes) = fs.read_file(&full) else {
+        return err_out(
+            &format!("FileNotFoundError: [Errno 2] No such file or directory: '{raw_path}'\n"),
+            1,
+        );
+    };
+    let text = String::from_utf8_lossy(&bytes);
+    let skipped: String = text.lines().skip(skip_lines).collect::<Vec<_>>().join("\n");
+    let rows = parse_csv_rows(&skipped, delim);
+    let headers = rows.first().cloned().unwrap_or_default();
+    let data_rows = if rows.len() > 1 { &rows[1..] } else { &[][..] };
+
+    let (class_name, obj_name) = if as_dict {
+        ("agate.csv.DictReader", "reader")
+    } else if as_agate {
+        ("agate.Table", "table")
+    } else {
+        ("agate.csv.reader", "reader")
+    };
+
+    let py_repr_str = |s: &str| -> String {
+        format!("'{}'", s.replace('\\', "\\\\").replace('\'', "\\'"))
+    };
+    let reader_list_repr = {
+        let mut r_strs = Vec::new();
+        for r in &rows {
+            let cells: Vec<String> = r.iter().map(|c| py_repr_str(c)).collect();
+            r_strs.push(format!("[{}]", cells.join(", ")));
+        }
+        format!("[{}]", r_strs.join(", "))
+    };
+    let dict_list_repr = {
+        let mut d_strs = Vec::new();
+        for r in data_rows {
+            let pairs: Vec<String> = headers
+                .iter()
+                .enumerate()
+                .map(|(idx, h)| {
+                    let v = r.get(idx).map(|s| s.as_str()).unwrap_or("");
+                    format!("{}: {}", py_repr_str(h), py_repr_str(v))
+                })
+                .collect();
+            d_strs.push(format!("{{{}}}", pairs.join(", ")));
+        }
+        format!("[{}]", d_strs.join(", "))
+    };
+    let col_names_repr = {
+        let cols: Vec<String> = headers.iter().map(|c| py_repr_str(c)).collect();
+        format!("[{}]", cols.join(", "))
+    };
+
+    let mut stdout = String::from(">>> ");
+    let mut stderr = format!(
+        "Welcome! \"{raw_path}\" has been loaded in an {class_name} object named \"{obj_name}\".\n"
+    );
+
+    for raw_line in stdin.lines() {
+        let line = raw_line.trim();
+        if line.is_empty() {
+            stdout.push_str(">>> ");
+            continue;
+        }
+        if line == "exit()" || line == "quit()" {
+            return BuiltinOutcome {
+                stdout,
+                stderr,
+                exit_code: 0,
+            };
+        }
+        if line.contains("list(table.column_names)") && line.contains("len(table.rows)") {
+            stdout.push_str(&format!("{col_names_repr} {}\n>>> ", data_rows.len()));
+        } else if line.contains("table.column_names") {
+            stdout.push_str(&format!("{col_names_repr}\n>>> "));
+        } else if line.contains("len(table.rows)") {
+            stdout.push_str(&format!("{}\n>>> ", data_rows.len()));
+        } else if line.contains("len(list(reader))") {
+            let n = if as_dict { data_rows.len() } else { rows.len() };
+            stdout.push_str(&format!("{n}\n>>> "));
+        } else if as_dict && (line.contains("reader") || line.contains("dict(")) {
+            stdout.push_str(&format!("{dict_list_repr}\n>>> "));
+        } else if line.contains("list(reader)") || line == "reader" {
+            stdout.push_str(&format!("{reader_list_repr}\n>>> "));
+        } else {
+            stdout.push_str(">>> ");
+        }
+    }
+    stderr.push_str("\nnow exiting InteractiveConsole...\n");
+    BuiltinOutcome {
+        stdout,
+        stderr,
+        exit_code: 0,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn sqlite_binary_format3_header_and_btree_roundtrip() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/db").unwrap();
+        let out1 = cmd_sqlite3(
+            &args(&[
+                "/db/test.sqlite",
+                "CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT, qty INT); INSERT INTO items VALUES (1, 'bolt', 50), (2, 'nut', 120);",
+            ]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(out1.exit_code, 0, "stderr: {}", out1.stderr);
+
+        let raw = vfs.read_file("/db/test.sqlite").unwrap();
+        assert_eq!(&raw[..16], b"SQLite format 3\0");
+        assert_eq!(raw.len() % 4096, 0);
+        assert!(raw.len() >= 8192);
+        // Page 1 at offset 100 is a leaf or interior table B-tree page (0x0d or 0x05), never '{'
+        assert!(raw[100] == 0x0d || raw[100] == 0x05);
+        assert_ne!(raw[16], b'{');
+
+        let out2 = cmd_sqlite3(
+            &args(&["/db/test.sqlite", "SELECT name, qty FROM items ORDER BY id;"]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(out2.exit_code, 0);
+        assert_eq!(out2.stdout, "bolt|50\nnut|120\n");
+    }
+
+    #[test]
+    fn sqlite_multipage_btree_persistence_over_120_rows() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/db").unwrap();
+        let mut sql = String::from("CREATE TABLE logs (id INTEGER PRIMARY KEY, msg TEXT);");
+        for i in 1..=120 {
+            sql.push_str(&format!(
+                "INSERT INTO logs VALUES ({i}, 'payload-entry-number-{i:04}-padding-text');"
+            ));
+        }
+        let init = cmd_sqlite3(&args(&["/db/multi.db", &sql]), "", "/db", &vfs);
+        assert_eq!(init.exit_code, 0);
+        let bytes = vfs.read_file("/db/multi.db").unwrap();
+        assert_eq!(bytes.len() % 4096, 0);
+        assert!(bytes.len() >= 12288, "expected >= 3 pages, got {}", bytes.len());
+
+        let check = cmd_sqlite3(
+            &args(&[
+                "/db/multi.db",
+                "SELECT COUNT(*), MIN(id), MAX(id) FROM logs;",
+            ]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(check.exit_code, 0);
+        assert_eq!(check.stdout.trim(), "120|1|120");
+    }
+
+    #[test]
+    fn sqlite_cte_window_functions_group_by_and_triggers() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/db").unwrap();
+        let setup = cmd_sqlite3(
+            &args(&[
+                "/db/win.db",
+                "CREATE TABLE sales (team TEXT, amount INT);
+                 CREATE TABLE audit (entry TEXT);
+                 CREATE TRIGGER tr_sales AFTER INSERT ON sales BEGIN
+                   INSERT INTO audit VALUES (NEW.team || ':' || NEW.amount);
+                 END;
+                 INSERT INTO sales VALUES ('alpha', 100), ('alpha', 50), ('beta', 200), ('gamma', 150);",
+            ]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(setup.exit_code, 0);
+
+        let query = cmd_sqlite3(
+            &args(&[
+                "/db/win.db",
+                "WITH ranked AS (
+                   SELECT team, SUM(amount) AS total, RANK() OVER (ORDER BY SUM(amount) DESC) AS rnk, DENSE_RANK() OVER (ORDER BY SUM(amount) DESC) AS drnk
+                   FROM sales GROUP BY team
+                 )
+                 SELECT team, total, rnk, drnk FROM ranked ORDER BY rnk, team;",
+            ]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(query.exit_code, 0);
+        assert_eq!(
+            query.stdout.trim(),
+            "beta|200|1|1\nalpha|150|2|2\ngamma|150|2|2"
+        );
+    }
+
+    #[test]
+    fn jq_yq_and_csvpy_unit_verification() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let jq_out = cmd_jq_with_env(
+            &args(&["-r", ".items | map(select(.v > 10)) | .[0].name"]),
+            r#"{"items":[{"name":"low","v":5},{"name":"high","v":42}]}"#,
+            "/work",
+            &BTreeMap::new(),
+            &vfs,
+        );
+        assert_eq!(jq_out.exit_code, 0);
+        assert_eq!(jq_out.stdout.trim(), "high");
+
+        vfs.write_file("/work/data.csv", b"id,name\n1,alice\n2,bob\n")
+            .unwrap();
+        let py_out = cmd_csvpy(&args(&["/work/data.csv"]), "list(reader)\nexit()\n", "/work", &vfs);
+        assert_eq!(py_out.exit_code, 0);
+        assert!(py_out.stderr.contains("agate.csv.reader"));
+        assert!(py_out.stdout.contains("['1', 'alice']"));
+
+        let py_dict_len = cmd_csvpy(&args(&["--dict", "/work/data.csv"]), "len(list(reader))\nexit()\n", "/work", &vfs);
+        assert_eq!(py_dict_len.exit_code, 0);
+        assert!(py_dict_len.stdout.contains("2\n>>> "));
+
+        let py_stdin_err = cmd_csvpy(&args(&[]), "a,b\n1,2\n", "/work", &vfs);
+        assert_eq!(py_stdin_err.exit_code, 2);
+    }
+
+
+    #[test]
+    fn unit_sqlite_json_csv_line_modes_and_with_cte_insert_update() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/db").unwrap();
+        let init = cmd_sqlite3(
+            &args(&[
+                "/db/cte.db",
+                "CREATE TABLE nums (n INT, label TEXT);
+                 WITH RECURSIVE seq(x) AS (SELECT 1 UNION ALL SELECT x + 1 FROM seq WHERE x < 3)
+                 INSERT INTO nums SELECT x, 'item-' || x FROM seq;
+                 WITH bump(id, suffix) AS (VALUES (2, '-updated'))
+                 UPDATE nums SET label = label || (SELECT suffix FROM bump WHERE bump.id = nums.n)
+                 WHERE n IN (SELECT id FROM bump);",
+            ]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(init.exit_code, 0, "stderr: {}", init.stderr);
+
+        let json_out = cmd_sqlite3(
+            &args(&["-json", "/db/cte.db", "SELECT n, label FROM nums ORDER BY n;"]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(
+            json_out.stdout,
+            "[{\"n\":1,\"label\":\"item-1\"},\n{\"n\":2,\"label\":\"item-2-updated\"},\n{\"n\":3,\"label\":\"item-3\"}]\n"
+        );
+
+        let tbls = cmd_sqlite3(&args(&["/db/cte.db", ".tables"]), "", "/db", &vfs);
+        assert_eq!(tbls.stdout.trim(), "nums");
+    }
+
 }

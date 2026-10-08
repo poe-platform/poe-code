@@ -207,3 +207,67 @@ fn combine_streams(stdout: &str, stderr: &str) -> String {
         (false, false) => format!("{out_trimmed}\n{err_trimmed}"),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::backend::BackendMode;
+    use crate::fs::MemoryVfs;
+
+    #[test]
+    fn unit_poe_agent_shell_host_confinement_modes_and_background_jobs() {
+        let vfs = Arc::new(MemoryVfs::new());
+        vfs.mkdir_all("/workspace/sub").unwrap();
+        let mut host = PoeAgentShellHost::new(
+            vfs,
+            PoeAgentShellOptions {
+                cwd: Some("/workspace".into()),
+                allowed_paths: vec!["/workspace".into()],
+                shell: ShellOptions {
+                    cwd: Some("/workspace".into()),
+                    env: BTreeMap::new(),
+                    mode: BackendMode::NativeOnly,
+                },
+            },
+        );
+        assert_eq!(ShellMode::Read.as_str(), "read");
+        assert_eq!(ShellMode::Edit.as_str(), "edit");
+
+        let out = host
+            .run_command(AgentRunCommandRequest {
+                command: "echo agent-ok".into(),
+                cwd: Some("/workspace/sub".into()),
+                timeout_seconds: Some(5.0),
+                run_in_background: false,
+                mode: Some(ShellMode::Edit),
+            })
+            .unwrap();
+        assert_eq!(out, "agent-ok");
+
+        let escaped = host.run_command(AgentRunCommandRequest {
+            command: "pwd".into(),
+            cwd: Some("/etc".into()),
+            timeout_seconds: Some(5.0),
+            run_in_background: false,
+            mode: Some(ShellMode::Read),
+        });
+        assert!(escaped.is_err());
+
+        let handle = host
+            .run_command(AgentRunCommandRequest {
+                command: "echo bg-task".into(),
+                cwd: None,
+                timeout_seconds: Some(5.0),
+                run_in_background: true,
+                mode: Some(ShellMode::Edit),
+            })
+            .unwrap();
+        assert_eq!(handle, "background-1");
+
+        let bg = host.read_background(&handle).unwrap();
+        assert_eq!(bg.exit_code, Some(0));
+        assert!(bg.stdout.contains("bg-task"));
+        assert!(host.kill_background(&handle).unwrap().contains("already exited"));
+        assert!(host.read_background("background-999").is_err());
+    }
+}

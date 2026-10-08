@@ -469,8 +469,16 @@ pub unsafe extern "C" fn safe_bash_set_limit(
         "maxInputBytes" => lim.max_input_bytes = val,
         "maxParseUnits" => lim.max_parse_units = val,
         "maxSourceBytes" => lim.max_source_bytes = val,
-        "maxVfsBytes" => {
+        "maxVfsBytes" | "maxBytes" => {
             sess.memory_vfs.set_max_total_bytes(val);
+            return 0;
+        }
+        "maxFileBytes" => {
+            sess.memory_vfs.set_max_file_bytes(val);
+            return 0;
+        }
+        "maxFiles" => {
+            sess.memory_vfs.set_max_entries(val);
             return 0;
         }
         _ => return -1,
@@ -561,4 +569,76 @@ pub extern "C" fn safe_bash_output_len(id: u32) -> usize {
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_last_elapsed_ms(_id: u32) -> u32 {
     crate::commands::virtual_clock_elapsed_ms().ceil() as u32
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_wasm_ffi_session_lifecycle_limits_and_exec() {
+        let id = safe_bash_create_session();
+        assert!(id > 0);
+
+        let path = b"/workspace/ffi.txt";
+        let content = b"ffi-payload\n";
+        unsafe {
+            assert_eq!(
+                safe_bash_write_file(id, path.as_ptr(), path.len(), content.as_ptr(), content.len()),
+                0
+            );
+            let k = b"FFI_VAR";
+            let v = b"ffi_val";
+            assert_eq!(safe_bash_set_env(id, k.as_ptr(), k.len(), v.as_ptr(), v.len()), 0);
+            let lim_name = b"maxLoopIterations";
+            assert_eq!(safe_bash_set_limit(id, lim_name.as_ptr(), lim_name.len(), 500), 0);
+
+            let script = b"echo \"$FFI_VAR:$(cat /workspace/ffi.txt)\"";
+            let code = safe_bash_exec(id, script.as_ptr(), script.len(), std::ptr::null(), 0);
+            assert_eq!(code, 0);
+            let out_len = safe_bash_output_len(id);
+            assert!(out_len > 16);
+            let out_ptr = safe_bash_output_ptr(id);
+            let packet = std::slice::from_raw_parts(out_ptr, out_len);
+            let exit_code = i32::from_le_bytes(packet[0..4].try_into().unwrap());
+            let stdout_len = u32::from_le_bytes(packet[4..8].try_into().unwrap()) as usize;
+            let stdout_str = std::str::from_utf8(&packet[16..16 + stdout_len]).unwrap();
+            assert_eq!(exit_code, 0);
+            assert_eq!(stdout_str, "ffi_val:ffi-payload\n");
+        }
+
+        safe_bash_destroy_session(id);
+    }
+
+
+    #[test]
+    fn unit_wasm_ffi_mkdir_symlink_export_vfs_and_elapsed_ms() {
+        let id = safe_bash_create_session();
+        unsafe {
+            let dir = b"/workspace/sub";
+            assert_eq!(safe_bash_mkdir_all(id, dir.as_ptr(), dir.len()), 0);
+            let fpath = b"/workspace/sub/a.txt";
+            let fdata = b"hello";
+            assert_eq!(
+                safe_bash_write_file(id, fpath.as_ptr(), fpath.len(), fdata.as_ptr(), fdata.len()),
+                0
+            );
+            let target = b"a.txt";
+            let lpath = b"/workspace/sub/link.txt";
+            assert_eq!(
+                safe_bash_symlink(id, target.as_ptr(), target.len(), lpath.as_ptr(), lpath.len()),
+                0
+            );
+
+            let script = b"sleep 0.02; cat /workspace/sub/link.txt";
+            assert_eq!(
+                safe_bash_exec(id, script.as_ptr(), script.len(), std::ptr::null(), 0),
+                0
+            );
+            assert!(safe_bash_last_elapsed_ms(id) >= 20);
+            assert!(safe_bash_stat(id, fpath.as_ptr(), fpath.len(), 1) > 0);
+        }
+        safe_bash_destroy_session(id);
+    }
+
 }

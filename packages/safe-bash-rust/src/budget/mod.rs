@@ -239,3 +239,59 @@ impl ExecutionBudget {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn execution_budget_enforces_loop_command_output_recursion_and_cancellation_limits() {
+        let mut limits = ShellLimits::default();
+        limits.max_loop_iterations = 3;
+        limits.max_commands = 2;
+        limits.max_output_bytes = 10;
+        limits.max_function_depth = 2;
+        limits.max_substitution_depth = 2;
+        limits.max_filesystem_operations = 2;
+
+        let budget = ExecutionBudget::new(limits.clone(), None);
+        budget.tick_loop().unwrap();
+        budget.tick_loop().unwrap();
+        budget.tick_loop().unwrap();
+        let loop_err = budget.tick_loop().unwrap_err();
+        assert!(loop_err.contains("maxLoopIterations (3)"));
+        assert!(budget.check_exceeded().is_err());
+
+        let budget_cmd = ExecutionBudget::new(limits.clone(), None);
+        budget_cmd.tick_command().unwrap();
+        budget_cmd.tick_command().unwrap();
+        assert!(budget_cmd.tick_command().unwrap_err().contains("maxCommands (2)"));
+
+        let budget_out = ExecutionBudget::new(limits.clone(), None);
+        budget_out.record_stdout(6).unwrap();
+        budget_out.record_stderr(4).unwrap();
+        assert!(budget_out.record_stdout(1).unwrap_err().contains("maxOutputBytes (10)"));
+
+        let budget_rec = ExecutionBudget::new(limits.clone(), None);
+        budget_rec.enter_recursion().unwrap();
+        budget_rec.enter_recursion().unwrap();
+        assert!(budget_rec.enter_recursion().unwrap_err().contains("maxFunctionDepth (2)"));
+        budget_rec.leave_recursion();
+
+        let budget_sub = ExecutionBudget::new(limits.clone(), None);
+        budget_sub.enter_substitution().unwrap();
+        budget_sub.enter_substitution().unwrap();
+        assert!(budget_sub.enter_substitution().unwrap_err().contains("maxSubstitutionDepth (2)"));
+        budget_sub.leave_substitution();
+
+        let budget_fs = ExecutionBudget::new(limits.clone(), None);
+        budget_fs.tick_fs_op().unwrap();
+        budget_fs.tick_fs_op().unwrap();
+        assert!(budget_fs.tick_fs_op().unwrap_err().contains("maxFileSystemOperations (2)"));
+
+        let budget_cancel = ExecutionBudget::new(limits, None);
+        budget_cancel.cancel_token.cancel();
+        assert!(budget_cancel.cancel_token.is_cancelled());
+        assert!(budget_cancel.check_cancelled().unwrap_err().contains("cancelled"));
+    }
+}

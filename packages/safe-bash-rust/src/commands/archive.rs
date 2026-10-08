@@ -9915,3 +9915,139 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
 
 include!("media.rs");
 include!("graphviz.rs");
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn tar_with_bzip2_xz_and_zstd_writes_genuine_compressed_archives() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/src").unwrap();
+        vfs.write_file("/src/hello.txt", b"archive parity payload\n")
+            .unwrap();
+
+        for (flag, ext, magic) in [
+            ("-j", "bz2", &[0x42u8, 0x5a, 0x68][..]),
+            ("-J", "xz", &[0xfdu8, 0x37, 0x7a, 0x58, 0x5a, 0x00][..]),
+            ("--zstd", "zst", &[0x28u8, 0xb5, 0x2f, 0xfd][..]),
+        ] {
+            let archive_path = format!("/archive.tar.{ext}");
+            let create = cmd_tar(
+                &args(&[flag, "-cf", &archive_path, "-C", "/src", "hello.txt"]),
+                "",
+                "/",
+                &vfs,
+            );
+            assert_eq!(create.exit_code, 0, "stderr: {}", create.stderr);
+            let bytes = vfs.read_file(&archive_path).unwrap();
+            assert!(bytes.starts_with(magic), "wrong magic for {ext}");
+
+            let out_dir = format!("/out_{ext}");
+            vfs.mkdir_all(&out_dir).unwrap();
+            let extract = cmd_tar(
+                &args(&[flag, "-xf", &archive_path, "-C", &out_dir]),
+                "",
+                "/",
+                &vfs,
+            );
+            assert_eq!(extract.exit_code, 0);
+            assert_eq!(
+                vfs.read_file(&format!("{out_dir}/hello.txt")).unwrap(),
+                b"archive parity payload\n"
+            );
+        }
+    }
+
+    #[test]
+    fn graphviz_dot_and_neato_render_svg_and_dot_layouts() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/g.dot", b"digraph G { a -> b; b -> c; }\n")
+            .unwrap();
+        let dot_svg = cmd_graphviz("dot", &args(&["-Tsvg", "/work/g.dot"]), "", "/work", &vfs);
+        assert_eq!(dot_svg.exit_code, 0);
+        assert!(dot_svg.stdout.contains("<svg"));
+
+        let neato_svg = cmd_graphviz("neato", &args(&["-Tsvg", "/work/g.dot"]), "", "/work", &vfs);
+        assert_eq!(neato_svg.exit_code, 0);
+        assert!(neato_svg.stdout.contains("<svg"));
+    }
+
+    #[test]
+    fn hashes_base64_xxd_zip_and_qrencode_media_commands() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+        vfs.mkdir_all("/work").unwrap();
+
+        let sha = try_run_archive_command("sha256sum", &[], "abc", "/work", &env, &vfs).unwrap();
+        assert_eq!(sha.exit_code, 0);
+        assert!(sha
+            .stdout
+            .starts_with("ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"));
+
+        let b64_enc = try_run_archive_command("base64", &[], "safe-bash", "/work", &env, &vfs).unwrap();
+        assert_eq!(b64_enc.stdout, "c2FmZS1iYXNo\n");
+        let b64_dec =
+            try_run_archive_command("base64", &args(&["-d"]), &b64_enc.stdout, "/work", &env, &vfs)
+                .unwrap();
+        assert_eq!(b64_dec.stdout, "safe-bash");
+
+        let qr = try_run_archive_command(
+            "qrencode",
+            &args(&["-t", "SVG", "-o", "/work/qr.svg", "https://poe.com"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(qr.exit_code, 0);
+        let qr_svg = String::from_utf8(vfs.read_file("/work/qr.svg").unwrap()).unwrap();
+        assert!(qr_svg.contains("<svg"));
+    }
+
+
+    #[test]
+    fn unit_tar_list_and_xxd_reverse_roundtrip() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/src").unwrap();
+        vfs.write_file("/work/src/one.txt", b"111\n").unwrap();
+        vfs.write_file("/work/src/two.txt", b"222\n").unwrap();
+        let env = BTreeMap::new();
+
+        assert_eq!(
+            try_run_archive_command(
+                "tar",
+                &args(&["-cf", "/work/plain.tar", "-C", "/work/src", "one.txt", "two.txt"]),
+                "",
+                "/work",
+                &env,
+                &vfs,
+            )
+            .unwrap()
+            .exit_code,
+            0
+        );
+        let listed = try_run_archive_command(
+            "tar",
+            &args(&["-tf", "/work/plain.tar"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(listed.exit_code, 0);
+        assert!(listed.stdout.contains("one.txt") && listed.stdout.contains("two.txt"));
+
+        let hex = try_run_archive_command("xxd", &args(&["-p"]), "safe-bash", "/work", &env, &vfs).unwrap();
+        let rev = try_run_archive_command("xxd", &args(&["-r", "-p"]), &hex.stdout, "/work", &env, &vfs).unwrap();
+        assert_eq!(rev.stdout, "safe-bash");
+    }
+}

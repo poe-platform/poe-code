@@ -76,3 +76,33 @@ pub fn is_path_within(root: &str, candidate: &str) -> bool {
     }
     c == r || c.starts_with(&format!("{r}/"))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn normalize_and_resolve_posix_paths_handle_dots_and_roots() {
+        assert_eq!(normalize_posix_path(""), "/");
+        assert_eq!(normalize_posix_path("///a/./b/../c//"), "/a/c");
+        assert_eq!(normalize_posix_path("/../../escape"), "/escape");
+        assert_eq!(resolve_posix_path("/workspace/sub", "../file.txt"), "/workspace/file.txt");
+        assert_eq!(resolve_posix_path("/", "rel/path"), "/rel/path");
+        assert_eq!(resolve_posix_path("/workspace", "/abs/path"), "/abs/path");
+    }
+
+    #[test]
+    fn parent_basename_dirname_and_is_path_within_edge_cases() {
+        assert_eq!(parent_posix_path("/"), None);
+        assert_eq!(parent_posix_path("/a"), Some("/".into()));
+        assert_eq!(parent_posix_path("/a/b/c"), Some("/a/b".into()));
+        assert_eq!(basename_posix_path("/"), "/");
+        assert_eq!(basename_posix_path("/a/b/c.txt/"), "c.txt");
+        assert_eq!(dirname_posix_path("/"), "/");
+        assert_eq!(dirname_posix_path("/a"), "/");
+        assert_eq!(dirname_posix_path("bare.txt"), ".");
+        assert!(is_path_within("/workspace", "/workspace/sub/file"));
+        assert!(is_path_within("/workspace", "/workspace"));
+        assert!(!is_path_within("/workspace", "/workspace2/file"));
+    }
+}

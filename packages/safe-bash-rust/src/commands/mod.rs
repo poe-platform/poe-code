@@ -1,4 +1,5 @@
 pub mod codecs;
+pub mod integrations;
 pub mod archive;
 pub mod coreutils;
 pub mod fs;
@@ -628,17 +629,38 @@ where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     if cmd == "env" && !args.is_empty() {
+        let mut work_args: Vec<String> = args.to_vec();
         let mut idx = 0usize;
         let mut ignore_env = false;
+        let mut null_sep = false;
+        let mut chdir_target: Option<String> = None;
         let mut unsets = Vec::new();
         let mut overrides = Vec::new();
-        while idx < args.len() {
-            let a = &args[idx];
-            if a == "-i" || a == "--ignore-environment" || a == "-" {
+        while idx < work_args.len() {
+            let a = work_args[idx].clone();
+            if a == "--help" {
+                return Some(BuiltinOutcome {
+                    stdout: "Usage: env [OPTION]... [NAME=VALUE]... [COMMAND [ARG]...]\nPrint the environment or run a registered command with a modified environment.\n\nCommon supported options (additional behavior is documented in the package):\n  -i, --ignore-environment\n  -u, --unset=NAME\n  -C, --chdir=DIR\n  -S, --split-string=STR\n  -0, --null\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n".to_string(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
+            } else if a == "--version" {
+                return Some(BuiltinOutcome {
+                    stdout: "env (safe-bash virtual implementation)\n".to_string(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
+            } else if a == "--" {
+                idx += 1;
+                break;
+            } else if a == "-i" || a == "--ignore-environment" || a == "-" {
                 ignore_env = true;
                 idx += 1;
-            } else if a == "-u" && idx + 1 < args.len() {
-                unsets.push(args[idx + 1].clone());
+            } else if a == "-0" || a == "--null" {
+                null_sep = true;
+                idx += 1;
+            } else if (a == "-u" || a == "--unset") && idx + 1 < work_args.len() {
+                unsets.push(work_args[idx + 1].clone());
                 idx += 2;
             } else if let Some(rest) = a.strip_prefix("--unset=") {
                 unsets.push(rest.to_string());
@@ -646,6 +668,41 @@ where
             } else if let Some(rest) = a.strip_prefix("-u") && !rest.is_empty() {
                 unsets.push(rest.to_string());
                 idx += 1;
+            } else if (a == "-C" || a == "--chdir") && idx + 1 < work_args.len() {
+                chdir_target = Some(work_args[idx + 1].clone());
+                idx += 2;
+            } else if let Some(rest) = a.strip_prefix("--chdir=") {
+                chdir_target = Some(rest.to_string());
+                idx += 1;
+            } else if let Some(rest) = a.strip_prefix("-C") && !rest.is_empty() {
+                chdir_target = Some(rest.to_string());
+                idx += 1;
+            } else if a == "-S" || a == "--split-string" || a.starts_with("--split-string=") || (a.starts_with("-S") && a.len() > 2) {
+                let (raw_split, remove_count) = if let Some(rest) = a.strip_prefix("--split-string=") {
+                    (rest.to_string(), 1usize)
+                } else if a.starts_with("-S") && a.len() > 2 {
+                    (a[2..].to_string(), 1usize)
+                } else if idx + 1 < work_args.len() {
+                    (work_args[idx + 1].clone(), 2usize)
+                } else {
+                    return Some(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "env: option requires an argument -- 'S'\n".to_string(),
+                        exit_code: 125,
+                    });
+                };
+                match split_env_string(&raw_split, env) {
+                    Ok(tokens) => {
+                        work_args.splice(idx..idx + remove_count, tokens);
+                    }
+                    Err(msg) => {
+                        return Some(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("env: {msg}\n"),
+                            exit_code: 125,
+                        });
+                    }
+                }
             } else if let Some((k, v)) = a.split_once('=') {
                 if !k.is_empty() && !k.starts_with('-') {
                     overrides.push((k.to_string(), v.to_string()));
@@ -664,21 +721,40 @@ where
         };
         for u in unsets {
             sub_env.remove(&u);
+            if u == "PATH" {
+                sub_env.insert("__path_unset__".to_string(), "1".to_string());
+            }
         }
         for (k, v) in overrides {
             sub_env.remove(&format!("__unexported__{k}"));
             sub_env.insert(k, v);
         }
-        if idx < args.len() {
-            return Some(exec_sub(&args[idx..], stdin, cwd, &mut sub_env));
+        let mut exec_cwd = cwd.clone();
+        if let Some(dir) = chdir_target {
+            let resolved = crate::vfs::resolve_posix_path(cwd, &dir);
+            if !fs.is_dir(&resolved) {
+                return Some(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("env: cannot change directory to '{dir}': No such file or directory\n"),
+                    exit_code: 125,
+                });
+            }
+            exec_cwd = resolved;
         }
-        return coreutils::try_run_coreutil("printenv", &[], stdin, cwd, &sub_env, fs);
+        if idx < work_args.len() {
+            return Some(exec_sub(&work_args[idx..], stdin, &mut exec_cwd, &mut sub_env));
+        }
+        let print_args = if null_sep { vec!["-0".to_string()] } else { Vec::new() };
+        return coreutils::try_run_coreutil("printenv", &print_args, stdin, &exec_cwd, &sub_env, fs);
     }
 
     if cmd == "timeout" {
         return Some(run_timeout_command(args, stdin, cwd, env, exec_sub));
     }
 
+    if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_sub) {
+        return Some(res);
+    }
     if let Some(res) = coreutils::try_run_coreutil(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
@@ -706,6 +782,123 @@ fn timeout_err(msg: &str) -> BuiltinOutcome {
         stderr: format!("timeout: {msg}\n"),
         exit_code: 125,
     }
+}
+
+
+fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<String>, String> {
+    let chars: Vec<char> = raw.chars().collect();
+    let mut tokens = Vec::new();
+    let mut cur = String::new();
+    let mut active = false;
+    let mut quote: Option<char> = None;
+    let mut i = 0usize;
+    while i < chars.len() {
+        let ch = chars[i];
+        if quote.is_none() && matches!(ch, ' ' | '\t' | '\n' | '\r' | '\x0c' | '\x0b') {
+            if active {
+                tokens.push(std::mem::take(&mut cur));
+                active = false;
+            }
+            i += 1;
+            continue;
+        }
+        if quote.is_none() && ch == '#' && !active {
+            break;
+        }
+        if ch == '\'' && quote != Some('"') {
+            quote = if quote == Some('\'') { None } else { Some('\'') };
+            active = true;
+            i += 1;
+            continue;
+        }
+        if ch == '"' && quote != Some('\'') {
+            quote = if quote == Some('"') { None } else { Some('"') };
+            active = true;
+            i += 1;
+            continue;
+        }
+        if ch == '\\' {
+            i += 1;
+            if i >= chars.len() {
+                return Err("invalid backslash at end of string in -S".into());
+            }
+            let nxt = chars[i];
+            if quote == Some('\'') {
+                if nxt == '\'' || nxt == '\\' {
+                    cur.push(nxt);
+                } else {
+                    cur.push('\\');
+                    cur.push(nxt);
+                }
+            } else {
+                match nxt {
+                    'n' => cur.push('\n'),
+                    't' => cur.push('\t'),
+                    'r' => cur.push('\r'),
+                    'f' => cur.push('\x0c'),
+                    'v' => cur.push('\x0b'),
+                    'c' => {
+                        if quote == Some('"') {
+                            return Err("'\\c' must not appear in double-quoted -S string".into());
+                        }
+                        if active {
+                            tokens.push(cur);
+                        }
+                        return Ok(tokens);
+                    }
+                    '_' => {
+                        if quote.is_none() {
+                            if active {
+                                tokens.push(std::mem::take(&mut cur));
+                                active = false;
+                            }
+                            i += 1;
+                            continue;
+                        } else {
+                            cur.push(' ');
+                        }
+                    }
+                    other => cur.push(other),
+                }
+            }
+            active = true;
+            i += 1;
+            continue;
+        }
+        if ch == '$' && quote != Some('\'') {
+            let tail: String = chars[i..].iter().collect();
+            if i + 2 >= chars.len()
+                || chars[i + 1] != '{'
+                || !(chars[i + 2].is_ascii_alphabetic() || chars[i + 2] == '_')
+            {
+                return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
+            }
+            let mut end = i + 3;
+            while end < chars.len() && (chars[end].is_ascii_alphanumeric() || chars[end] == '_') {
+                end += 1;
+            }
+            if end >= chars.len() || chars[end] != '}' {
+                return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
+            }
+            let vname: String = chars[i + 2..end].iter().collect();
+            if let Some(val) = env.get(&vname) {
+                cur.push_str(val);
+                active = true;
+            }
+            i = end + 1;
+            continue;
+        }
+        cur.push(ch);
+        active = true;
+        i += 1;
+    }
+    if quote.is_some() {
+        return Err("unterminated quote in -S".into());
+    }
+    if active {
+        tokens.push(cur);
+    }
+    Ok(tokens)
 }
 
 fn run_timeout_command<F>(
@@ -946,4 +1139,107 @@ where
     }
 
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_signal_parsing_and_naming_parity() {
+        assert_eq!(parse_signal_spec("TERM"), Some(15));
+        assert_eq!(parse_signal_spec("SIGTERM"), Some(15));
+        assert_eq!(parse_signal_spec("9"), Some(9));
+        assert_eq!(parse_signal_spec("SIGKILL"), Some(9));
+        assert_eq!(parse_signal_spec("EXIT"), Some(0));
+        assert_eq!(parse_signal_spec("RTMIN+4"), Some(38));
+        assert_eq!(parse_signal_spec("RTMAX-2"), Some(62));
+        assert_eq!(parse_signal_spec("INVALID"), None);
+        assert_eq!(parse_signal_spec("99"), None);
+        assert_eq!(signal_name(15), "TERM");
+        assert_eq!(signal_name(9), "KILL");
+    }
+
+    #[test]
+    fn unit_nested_timeout_and_virtual_clock_preemption() {
+        let mut env = BTreeMap::new();
+        let mut cwd = "/".to_string();
+        reset_virtual_clock();
+
+        // Outer timeout 0.1s, inner timeout 1s executing a subcommand that advances virtual clock by 500ms
+        let args = vec![
+            "0.1s".to_string(),
+            "timeout".to_string(),
+            "1s".to_string(),
+            "work".to_string(),
+        ];
+        let out = run_timeout_command(&args, "", &mut cwd, &mut env, |sub_words, stdin, sub_cwd, sub_env| {
+            // Inner timeout call
+            let inner_args: Vec<String> = sub_words[1..].to_vec();
+            run_timeout_command(&inner_args, stdin, sub_cwd, sub_env, |_, _, _, env2| {
+                advance_virtual_clock(500.0, env2);
+                if is_timeout_expired() {
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                } else {
+                    BuiltinOutcome {
+                        stdout: "late\n".to_string(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+            })
+        });
+        assert_eq!(out.exit_code, 124);
+        assert_eq!(out.stdout, "");
+        assert!((virtual_clock_elapsed_ms() - 100.0).abs() < 1e-6);
+
+        // Verify --preserve-status with SIGINT (2) -> 130
+        reset_virtual_clock();
+        let args_ps = vec![
+            "--preserve-status".to_string(),
+            "-s".to_string(),
+            "INT".to_string(),
+            "0.05s".to_string(),
+            "slow".to_string(),
+        ];
+        let out_ps = run_timeout_command(&args_ps, "", &mut cwd, &mut env, |_, _, _, sub_env| {
+            advance_virtual_clock(200.0, sub_env);
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        });
+        assert_eq!(out_ps.exit_code, 130);
+    }
+
+    #[test]
+    fn unit_env_split_string_escapes_comments_and_validation() {
+        let mut env = BTreeMap::new();
+        env.insert("GREET".into(), "hello".into());
+        env.insert("TARGET".into(), "world".into());
+
+        let tokens = split_env_string(
+            r#"A="${GREET}_${TARGET}" B=two\tthree C="alpha\_beta" D=one\_two #comment ignored"#,
+            &env,
+        )
+        .unwrap();
+        assert_eq!(
+            tokens,
+            vec!["A=hello_world", "B=two	three", "C=alpha beta", "D=one", "two"]
+        );
+
+        let tokens_c = split_env_string(r#"FIRST=1 SECOND=2\cIGNORED_TAIL"#, &env).unwrap();
+        assert_eq!(tokens_c, vec!["FIRST=1", "SECOND=2"]);
+
+        let err_c_quote = split_env_string(r#"BAD="\c""#, &env).unwrap_err();
+        assert!(err_c_quote.contains("must not appear in double-quoted -S string"));
+
+        let err_var = split_env_string(r#"X=${BAD:-default}"#, &env).unwrap_err();
+        assert!(err_var.contains("only ${VARNAME} expansion is supported"));
+    }
 }

@@ -17,8 +17,8 @@
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && node scripts/build-wasm.mjs",
-    "test": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "test": "node ../mcp-protocol-rust/scripts/cargo.mjs test && node --test src/wasm.test.mjs",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && node --test src/wasm.test.mjs",
     "lint": "cargo clippy --all-targets -- -D warnings"
   },
   "dependencies": {},

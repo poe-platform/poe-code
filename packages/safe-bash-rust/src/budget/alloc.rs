@@ -50,3 +50,33 @@ impl AllocationGuard {
         self.allocated_bytes.load(Ordering::Relaxed)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn allocation_guard_tracks_reservations_and_enforces_limit() {
+        let guard = AllocationGuard::new(1024);
+        assert_eq!(guard.current_bytes(), 0);
+
+        guard.try_reserve(400).unwrap();
+        assert_eq!(guard.current_bytes(), 400);
+
+        guard.try_reserve(624).unwrap();
+        assert_eq!(guard.current_bytes(), 1024);
+
+        let err = guard.try_reserve(1).unwrap_err();
+        assert!(err.contains("Memory budget exceeded"));
+        assert_eq!(guard.current_bytes(), 1024);
+
+        guard.release(500);
+        assert_eq!(guard.current_bytes(), 524);
+
+        guard.try_reserve(500).unwrap();
+        assert_eq!(guard.current_bytes(), 1024);
+
+        guard.release(2048);
+        assert_eq!(guard.current_bytes(), 0);
+    }
+}

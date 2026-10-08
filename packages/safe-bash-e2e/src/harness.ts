@@ -340,9 +340,8 @@ const PURE_RUST_SUITE_FILES = [
 ];
 
 function isPureRustCaller(): boolean {
-  if (process.env.SAFE_BASH_E2E_FORCE_NATIVE === "1") return true;
-  const stack = new Error().stack ?? "";
-  return PURE_RUST_SUITE_FILES.some((f) => stack.includes(f));
+  if (process.env.SAFE_BASH_E2E_FORCE_NATIVE === "0") return false;
+  return true;
 }
 
 async function pathExists(fs: sb.FileSystem, targetPath: string): Promise<boolean> {
@@ -545,9 +544,10 @@ export class SafeBashE2EHarness {
       return { shell, shellFs };
     };
 
-    if (process.env.SAFE_BASH_E2E_BACKEND === "rust" && options.fs === undefined && !options.mountDev) {
+    if (process.env.SAFE_BASH_E2E_BACKEND === "rust" && options.fs === undefined) {
       const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
-      const forceNative = isPureRustCaller() && (!options.plugins || options.plugins.length === 0);
+      const hasCustomJsPlugins = (options.plugins ?? []).some((p) => p.name !== "xan-commands");
+      const forceNative = isPureRustCaller() && !hasCustomJsPlugins;
       const rustBash = new RustWasmBash({
         cwd: options.cwd ?? "/workspace",
         limits: options.limits,
@@ -611,7 +611,7 @@ export class SafeBashE2EHarness {
       if (options.cwd && options.cwd !== "/workspace") {
         rustBash.execSync(`cd ${JSON.stringify(sb.normalizePath(options.cwd))}`);
       }
-      if (options.plugins && options.plugins.length > 0) {
+      if (hasCustomJsPlugins) {
         (rustBash as unknown as { _getOrCreateCompanionSync(): void })._getOrCreateCompanionSync();
       }
       return new SafeBashE2EHarness(fs, undefined, rustBash as unknown as sb.Shell, recorder, false);

@@ -915,3 +915,20 @@ fn parse_assignment_word(word: &str) -> Option<(String, String, bool)> {
         None
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_validate_syntax_and_parse_compound_constructs() {
+        validate_basic_syntax("if [ 1 -eq 1 ]; then echo ok; fi").unwrap();
+        assert!(validate_basic_syntax("if [ 1 -eq 1 ]; then echo unclosed").is_err());
+
+        let parsed = parse_script(
+            "FOO=bar arr+=(1 2); for x in a b; do echo \"$x\"; done && (exit 0)",
+        )
+        .unwrap();
+        assert!(!parsed.lists.is_empty());
+    }
+}

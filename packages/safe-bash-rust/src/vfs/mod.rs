@@ -140,6 +140,10 @@ pub trait SafeBashFs: Send + Sync {
     fn generation(&self) -> u64 {
         0
     }
+
+    fn fs_id(&self) -> u64 {
+        0
+    }
 }
 
 pub fn bytes_to_stream_string(bytes: &[u8]) -> String {
@@ -173,4 +177,26 @@ pub fn stream_string_to_bytes(s: &str) -> Vec<u8> {
         }
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unit_stream_string_arbitrary_byte_roundtrip_and_fs_error() {
+        let all_bytes: Vec<u8> = (0u8..=255u8).collect();
+        let encoded = bytes_to_stream_string(&all_bytes);
+        let decoded = stream_string_to_bytes(&encoded);
+        assert_eq!(decoded, all_bytes);
+
+        let utf8_bytes = "hello 🌍".as_bytes();
+        let utf8_str = bytes_to_stream_string(utf8_bytes);
+        assert_eq!(utf8_str, "hello 🌍");
+        assert_eq!(stream_string_to_bytes(&utf8_str), utf8_bytes);
+
+        let err = FsError::new(FsErrorCode::NotFound, "No such file");
+        assert_eq!(err.code, FsErrorCode::NotFound);
+        assert_eq!(err.message, "No such file");
+    }
 }

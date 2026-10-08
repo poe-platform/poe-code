@@ -277,7 +277,7 @@ export class RustWasmBash {
     this.sessionId = this.exports.safe_bash_create_session();
     this.shell = this;
     this.fs = new WasmFileSystem(this);
-    this.forceNative = Boolean(options.forceNative);
+    this.forceNative = options.forceNative ?? true;
     this.ShellLimitError = options.ShellLimitError ?? ShellLimitError;
     this.companionFactory = options.companionFactory ?? null;
     this.companionSeed = options.companionSeed ?? null;
@@ -332,9 +332,21 @@ export class RustWasmBash {
       this.setLimits(options.limits);
     }
     if (options.memoryFsOptions) {
-      const caps = [options.memoryFsOptions.maxBytes, options.memoryFsOptions.maxFileBytes].filter((n) => typeof n === "number" && Number.isFinite(n));
-      if (caps.length > 0) {
-        this.setLimits({ maxVfsBytes: Math.min(...caps) });
+      const vfsLimits = {};
+      if (typeof options.memoryFsOptions.maxBytes === "number" && Number.isFinite(options.memoryFsOptions.maxBytes)) {
+        vfsLimits.maxBytes = options.memoryFsOptions.maxBytes;
+      }
+      if (typeof options.memoryFsOptions.maxFileBytes === "number" && Number.isFinite(options.memoryFsOptions.maxFileBytes)) {
+        vfsLimits.maxFileBytes = options.memoryFsOptions.maxFileBytes;
+      }
+      if (typeof options.memoryFsOptions.maxFiles === "number" && Number.isFinite(options.memoryFsOptions.maxFiles)) {
+        vfsLimits.maxFiles = options.memoryFsOptions.maxFiles;
+      }
+      if (typeof options.memoryFsOptions.maxMetadataUnits === "number" && Number.isFinite(options.memoryFsOptions.maxMetadataUnits)) {
+        vfsLimits.maxFiles = options.memoryFsOptions.maxMetadataUnits;
+      }
+      if (Object.keys(vfsLimits).length > 0) {
+        this.setLimits(vfsLimits);
       }
     }
     if (options.cwd && options.cwd !== "/workspace") {
@@ -800,6 +812,7 @@ export class RustWasmBash {
   }
 
   use(plugin) {
+    this.forceNative = false;
     const comp = this._getOrCreateCompanionSync();
     if (comp) {
       comp.shell.use(plugin);
@@ -808,6 +821,7 @@ export class RustWasmBash {
   }
 
   register(cmd, options) {
+    this.forceNative = false;
     const comp = this._getOrCreateCompanionSync();
     if (comp) {
       comp.shell.register(cmd, options);
@@ -816,6 +830,7 @@ export class RustWasmBash {
   }
 
   registerFileSystem(scheme, factory) {
+    this.forceNative = false;
     const comp = this._getOrCreateCompanionSync();
     if (comp) {
       comp.shell.registerFileSystem(scheme, factory);

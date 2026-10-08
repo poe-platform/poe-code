@@ -86,12 +86,16 @@ fn cmd_which(
             exit_code: 1,
         };
     }
-    let Some(path_str) = env.get("PATH").cloned() else {
+    let path_str = if let Some(p) = env.get("PATH").cloned() {
+        p
+    } else if env.get("__path_unset__").map(|v| v == "1").unwrap_or(false) {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: String::new(),
             exit_code: 1,
         };
+    } else {
+        "/bin:/usr/bin".to_string()
     };
     if path_str.is_empty() {
         return BuiltinOutcome {
@@ -455,6 +459,13 @@ pub fn is_known_command(name: &str) -> bool {
             | "sips"
             | "exiftool"
             | "identify"
+            | "csvpy"
+            | "dot"
+            | "gh"
+            | "ncal"
+            | "neato"
+            | "op"
+            | "tomlq"
     )
 }
 
@@ -7788,4 +7799,152 @@ fn parse_xargs_whitespace_items(
     line_has_blank = false;
     let _ = flush_line(&mut line_tokens, &mut out, &mut line_id, &mut line_has_blank);
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unit_is_known_command_and_which_parity() {
+        assert!(is_known_command("op"));
+        assert!(is_known_command("gh"));
+        assert!(is_known_command("sqlite3"));
+        assert!(is_known_command("bzip2"));
+        assert!(is_known_command("xz"));
+        assert!(is_known_command("zstd"));
+        assert!(!is_known_command("definitely_not_a_cmd"));
+
+        let vfs = MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let which_out = try_run_search_command(
+            "which",
+            &args(&["op", "gh", "sqlite3"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(which_out.exit_code, 0);
+        assert_eq!(which_out.stdout, "/bin/op\n/bin/gh\n/bin/sqlite3\n");
+    }
+
+    #[test]
+    fn unit_grep_rg_find_fd_and_xargs() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/sub").unwrap();
+        vfs.write_file("/work/a.txt", b"alpha:10\nbeta:20\nALPHA:30\n")
+            .unwrap();
+        vfs.write_file("/work/sub/b.rs", b"fn main() { println!(\"beta\"); }\n")
+            .unwrap();
+
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+
+        let grep_out = try_run_search_command(
+            "grep",
+            &args(&["-i", "-n", "^alpha", "a.txt"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(grep_out.exit_code, 0);
+        assert_eq!(grep_out.stdout, "1:alpha:10\n3:ALPHA:30\n");
+
+        let rg_out = try_run_search_command(
+            "rg",
+            &args(&["--files", "/work"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(rg_out.exit_code, 0);
+        assert!(rg_out.stdout.contains("/work/a.txt"));
+        assert!(rg_out.stdout.contains("/work/sub/b.rs"));
+
+        let find_out = try_run_search_command(
+            "find",
+            &args(&["/work", "-name", "*.rs"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(find_out.exit_code, 0);
+        assert_eq!(find_out.stdout, "/work/sub/b.rs\n");
+
+        let xargs_out = try_run_search_command(
+            "xargs",
+            &args(&["-n", "2", "echo"]),
+            "one two three",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |sub_words, _, _, _| BuiltinOutcome {
+                stdout: format!("{}\n", sub_words[1..].join(" ")),
+                stderr: String::new(),
+                exit_code: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(xargs_out.exit_code, 0);
+        assert_eq!(xargs_out.stdout, "one two\nthree\n");
+    }
+
+
+    #[test]
+    fn unit_rg_count_invert_and_find_maxdepth() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/a/b").unwrap();
+        vfs.write_file("/work/a/top.txt", b"match_me\nskip_me\nmatch_me_too\n").unwrap();
+        vfs.write_file("/work/a/b/deep.txt", b"match_me\n").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+
+        let rg_c = try_run_search_command(
+            "rg",
+            &args(&["-c", "match_me", "/work/a/top.txt"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+        )
+        .unwrap();
+        assert_eq!(rg_c.exit_code, 0);
+        assert!(rg_c.stdout.trim().ends_with("2"));
+
+        let find_d1 = try_run_search_command(
+            "find",
+            &args(&["/work/a", "-maxdepth", "1", "-name", "*.txt"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+        )
+        .unwrap();
+        assert_eq!(find_d1.exit_code, 0);
+        assert_eq!(find_d1.stdout.trim(), "/work/a/top.txt");
+    }
 }

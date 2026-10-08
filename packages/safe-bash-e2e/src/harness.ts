@@ -315,6 +315,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-mkdir-rmdir-rm-ln-cp-mv-chmod-stat-du-ls-matrix.test.ts",
   "obscure-cat-head-tail-wc-cut-tr-uniq-sort-join-matrix.test.ts",
   "obscure-split-csplit-fmt-pr-tsort-column-fold-expand-matrix.test.ts",
+  "obscure-getopt-shuf-dd-truncate-install-dos2unix-iconv-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

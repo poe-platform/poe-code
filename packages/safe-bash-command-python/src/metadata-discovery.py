@@ -14,7 +14,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    with open(journal, encoding='utf-8') as source:
     for line in source:
      group, name = json.loads(line)
-     if group not in ('0', '1', '2') or not isinstance(name, str):
+     if group not in ('0', '1', '2', '3') or not isinstance(name, str):
       raise ValueError('Invalid metadata cleanup record')
      directory = group_path(os.path.join(root, group), name)
      with suppress(FileNotFoundError):
@@ -30,8 +30,8 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
        raise
       directory = os.path.dirname(directory)
    os.unlink(journal)
-  # Infos, eggs and (only for ZIP discovery) distinct child names.
-  for group in ('0', '1', '2'):
+  # Infos, eggs and (only for ZIP discovery) child and archive membership.
+  for group in ('0', '1', '2', '3'):
    directory = os.path.join(root, group)
    with suppress(FileNotFoundError):
     os.unlink(os.path.join(directory, 'order'))
@@ -102,23 +102,42 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    if child not in seen:
     seen[child]
     yield child
+ def zip_names(archive, store):
+  import sys
+  parents = sys.modules[zipfile.CompleteDirs.__module__]._parents
+  names = Groups(store)
+  # Native Path.resolve_dir distinguishes explicit files from implied folders.
+  # Build the complete membership snapshot before yielding any path, so a file
+  # encountered before a later nested member resolves exactly as native ZIP.
+  for entry in archive.filelist:
+   names[entry.filename]
+   for parent in parents(entry.filename):
+    names[parent + '/']
+  archive._name_set = lambda: names
+  # Implied directory entries add no new top-level children. Their first root
+  # already occurred in an explicit member, and native appends them at the end.
+  for entry in archive.filelist:
+   yield entry.filename
  # Keep the pinned ZIP path construction, joinpath binding and filename order.
  # Replace only its eager deduplication table, leaving native ZIP parsing alone.
  zip_method = metadata.FastPath.zip_children
  zip_tree = ast.parse(textwrap.dedent(inspect.getsource(zip_method)))
  class ZipRewrite(ast.NodeTransformer):
-  count = 0
+  count = names = 0
   def visit_Call(self, node):
+   if ast.dump(node) == ast.dump(ast.parse('zip_path.root.namelist()').body[0].value):
+    self.names += 1
+    return ast.copy_location(ast.parse('_safe_zip_names(zip_path.root, _safe_store)').body[0].value, node)
    if isinstance(node.func, ast.Attribute) and isinstance(node.func.value, ast.Name) and node.func.value.id == 'dict' and node.func.attr == 'fromkeys' and len(node.args) == 1 and not node.keywords:
     self.count += 1
     return ast.copy_location(ast.Call(func=ast.Name(id='_safe_unique_children', ctx=ast.Load()), args=[node.args[0], ast.Name(id='_safe_store', ctx=ast.Load())], keywords=[]), node)
    return self.generic_visit(node)
  zip_rewrite = ZipRewrite()
  zip_tree = zip_rewrite.visit(zip_tree)
- if zip_rewrite.count != 1:
+ if (zip_rewrite.count, zip_rewrite.names) != (1, 1):
   raise RuntimeError('Unsupported native ZIP metadata discovery')
  zip_tree.body[0].args.args.append(ast.arg(arg='_safe_store'))
- zip_namespace = dict(zip_method.__globals__, _safe_unique_children=unique_children)
+ zip_namespace = dict(zip_method.__globals__, _safe_unique_children=unique_children, _safe_zip_names=zip_names)
  exec(compile(ast.fix_missing_locations(zip_tree), '<safe ZIP metadata children>', 'exec'), zip_namespace)
  zip_children = zip_namespace['zip_children']
  class ScanFailure(Exception):

@@ -225,8 +225,12 @@ preserving archive-relative paths against one borrowed native ZIP root, includin
 fallback after directory enumeration fails. Suspended ZIP searches retain their
 snapshot and archive semantics; backing failures retire partial rows. Native ZIP
 top-level child deduplication now uses caller-backed membership, preserving first
-discovery order without retaining every distinct child string. ZIP directory
-parsing, filename caches and fixed bootstrap lookup remain memory-backed.
+discovery order without retaining every distinct child string. Lookup traverses
+native entry records without constructing filename lists or implied-directory
+caches; caller-backed membership preserves explicit-file and directory resolution.
+Returned paths retain that membership after lookup eviction. Native ZIP directory
+parsing and fixed bootstrap lookup remain memory-backed, and explicit caller use
+of ZIP enumeration APIs is not yet bounded.
 Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving
 extras propagation, constraints and native last-distribution version precedence.

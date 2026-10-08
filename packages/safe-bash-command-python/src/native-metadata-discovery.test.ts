@@ -28,12 +28,13 @@ class Root:
  def children(self):return iter(self.names)
  def joinpath(self,child):return Path(self.root+'/'+child)
 # Virtual backing storage: tests never create host files.
-files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False
+files={};directories={'/owned','/packages'};children_by_parent={};allocations=[];write_failure=False;child_write_failure=False;member_write_failure=False
 class File(io.StringIO):
  def __init__(self,path,mode):
   self.path=path;self.mode=mode
   if write_failure and mode=='a' and path.endswith('/rows'):raise PermissionError('backing write denied')
   if child_write_failure and mode=='w' and '/2/' in path:raise PermissionError('child backing denied')
+  if member_write_failure and mode=='w' and '/3/' in path:raise PermissionError('member backing denied')
   if mode=='r' and path not in files:raise FileNotFoundError(path)
   super().__init__(files.get(path,'') if mode in ('r','a') else '')
   if mode=='a':self.seek(0,2)
@@ -110,6 +111,8 @@ with contextlib.ExitStack() as stack:
  zip_names=['zip_package_%04d-1.dist-info'%i for i in range(1024)]
  with zipfile.ZipFile(payload,'w') as writer:
   for name in zip_names:writer.writestr(name+'/METADATA','Name: '+name+'\n')
+  for name in ['plain','plain/nested','implicit/nested/file','explicit/','/absolute/file','double//file']:
+   writer.writestr(name,'data')
  archive=zipfile.Path(io.BytesIO(payload.getvalue())).root
  class ZipPath(zipfile.Path):
   live=maximum=0
@@ -154,26 +157,43 @@ with contextlib.ExitStack() as stack:
   def split(self,*args):
    parts=super().split(*args);parts[0]=Child(parts[0]);return parts
  NativeZipPath=zipfile.Path
+ queries=['plain','implicit','implicit/nested','explicit','/absolute','double','double/','absent']
+ expected_resolution={name:archive.resolve_dir(name) for name in queries}
+ # Use a fresh archive: the native oracle intentionally populated its caches.
+ archive.close();archive=NativeZipPath(io.BytesIO(payload.getvalue())).root
  class NativePath(NativeZipPath):
   def __init__(self,root,at=''):
    super().__init__(archive if root=='/packages.zip' else root,at)
- def archive_names():
-  for name in zip_names:
-   yield Filename(name+'/METADATA')
-   yield Filename(name+'/entry_points.txt')
- with patch.object(zipfile,'Path',NativePath),patch.object(archive,'namelist',side_effect=archive_names):
+ for entry in archive.filelist:entry.filename=Filename(entry.filename)
+ with patch.object(zipfile,'Path',NativePath),patch.object(archive,'namelist',side_effect=AssertionError('eager ZIP filename cache')):
   fast=metadata.FastPath('/packages.zip')
   lookup=metadata.Lookup(fast)
   assert Child.maximum<=4,('ZIP child names retained',Child.maximum)
   assert [p.at.rstrip('/') for p in lookup.search(Prepared(None))]==zip_names
-  del lookup,fast;gc.collect();assert not files
+  assert {name:archive.resolve_dir(name) for name in queries}==expected_resolution
+  assert not any(name.endswith('__names') or name.endswith('__lookup') for name in vars(archive))
+  selected=next(lookup.search(Prepared('zip-package-0007')))
+  del lookup,fast;gc.collect()
+  # Returned ZIP paths can outlive the lookup; membership backing lives as long
+  # as the archive that uses it, including after cache eviction.
+  assert selected.joinpath('METADATA').read_text()=='Name: zip_package_0007-1.dist-info\n'
+  del selected
+ archive.close();del archive;gc.collect();assert not files
+ archive=NativeZipPath(io.BytesIO(payload.getvalue())).root
+ with patch.object(zipfile,'Path',NativePath):
   child_write_failure=True
   try:metadata.Lookup(metadata.FastPath('/packages.zip'))
   except PermissionError as error:assert str(error)=='child backing denied'
   else:raise AssertionError('child scratch failure swallowed')
   gc.collect();assert not files
   child_write_failure=False
- archive.close()
+  member_write_failure=True
+  try:metadata.Lookup(metadata.FastPath('/packages.zip'))
+  except PermissionError as error:assert str(error)=='member backing denied'
+  else:raise AssertionError('member scratch failure swallowed')
+  gc.collect();assert not files
+  member_write_failure=False
+ archive.close();del archive;gc.collect();assert not files
  # Native children suppress failed directory enumeration and then try ZIP.
  scan_failure=True
  lookup=metadata.Lookup(Root(names))

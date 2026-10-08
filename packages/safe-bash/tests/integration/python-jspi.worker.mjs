@@ -134,7 +134,7 @@ with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
       await backend.mkdir('/work/metadata');
       for(let index=0;index<1024;index++)await backend.writeFile('/work/metadata/package_'+String(index).padStart(5,'0')+'-1.dist-info',new Uint8Array());
       return {metadata:await shell.exec('python -c '+quote(`
-import gc, importlib.metadata as metadata, os, sys
+import gc, importlib.metadata as metadata, os, sys, weakref
 class Path(str):
  live=maximum=0
  def __new__(cls,value):
@@ -174,14 +174,7 @@ with zipfile.ZipFile('/work/metadata.zip','w') as archive:
 NativeZipPath=zipfile.Path
 FastLookup=sys.modules[NativeZipPath.__module__].FastLookup
 NativeNames=FastLookup.namelist
-class Child(str):
- live=maximum=0
- def __new__(cls,value):
-  obj=super().__new__(cls,value);cls.live+=1;cls.maximum=max(cls.maximum,cls.live);return obj
- def __del__(self):Child.live-=1
-class Filename(str):
- def split(self,*args):
-  parts=super().split(*args);parts[0]=Child(parts[0]);return parts
+def eager_names(archive):raise AssertionError('eager ZIP filename cache')
 class ZipPath(NativeZipPath):
  live=maximum=0
  def __init__(self,*args,**kwargs):
@@ -189,18 +182,21 @@ class ZipPath(NativeZipPath):
  def __del__(self):ZipPath.live-=1
 try:
  zipfile.Path=ZipPath
- FastLookup.namelist=lambda archive:(Filename(name) for name in NativeNames(archive))
+ FastLookup.namelist=eager_names
  fast=metadata.FastPath('/work/metadata.zip')
  lookup=fast.lookup(fast.mtime)
  assert ZipPath.maximum<=4,ZipPath.maximum
- assert Child.maximum<=4,Child.maximum
  selected=list(lookup.search(metadata.Prepared('zip-package-007')))
  assert len(selected)==1 and isinstance(selected[0],ZipPath)
  assert selected[0].joinpath('METADATA').read_text()=='Name: zip-package-007'
  scratch=lookup._safe_store.root
  iterator=lookup.search(metadata.Prepared(None));next(iterator)
+ cached=weakref.ref(fast)
  del lookup,selected
  fast.lookup.cache_clear();del fast;gc.collect()
+ assert cached() is not None,'native FastPath cache unexpectedly released its archive'
+ metadata.MetadataPathFinder.invalidate_caches();gc.collect()
+ assert cached() is None,'native FastPath cache was not evicted'
  assert os.path.isdir(scratch)
  assert sum(1 for _ in iterator)==127
  del iterator;gc.collect()

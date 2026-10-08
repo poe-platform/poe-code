@@ -330,6 +330,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-cp-mv-rm-ln-readlink-realpath-touch-deep-matrix.test.ts",
   "obscure-sed-awk-deep-parity-matrix.test.ts",
   "obscure-shell-parameter-transforms-declare-parity.test.ts",
+  "obscure-jq-deep-parity-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

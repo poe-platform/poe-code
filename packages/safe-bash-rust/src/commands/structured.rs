@@ -1,7 +1,27 @@
-use crate::commands::search::{ZeroRegex, regex_captures, replace_regex_in_text};
+use crate::commands::search::{
+    ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
+};
 use std::sync::Mutex;
 
 static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
+static JQ_SHARED_INPUTS: Mutex<Vec<JVal>> = Mutex::new(Vec::new());
+
+fn pop_jq_shared_input() -> Option<JVal> {
+    let mut guard = JQ_SHARED_INPUTS.lock().ok()?;
+    if guard.is_empty() {
+        None
+    } else {
+        Some(guard.remove(0))
+    }
+}
+
+fn drain_jq_shared_inputs() -> Vec<JVal> {
+    if let Ok(mut guard) = JQ_SHARED_INPUTS.lock() {
+        std::mem::take(&mut *guard)
+    } else {
+        Vec::new()
+    }
+}
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
@@ -99,6 +119,16 @@ impl JVal {
             JVal::Null => "null".to_string(),
             JVal::Bool(b) => if *b { "true" } else { "false" }.to_string(),
             JVal::Number(n) => {
+                if n.is_nan() {
+                    return "null".to_string();
+                }
+                if n.is_infinite() {
+                    return if *n > 0.0 {
+                        "1.7976931348623157e+308".to_string()
+                    } else {
+                        "-1.7976931348623157e+308".to_string()
+                    };
+                }
                 if n.abs() >= 1e15
                     && let Ok(guard) = BIG_NUM_RAW.lock()
                     && let Some(ref map) = *guard
@@ -431,6 +461,12 @@ fn cmd_jq_with_env(
         }
         if !end_opts && a.starts_with("--") {
             match a.as_str() {
+                "--version" => return ok_out("jq-1.7.1\n"),
+                "--help" => {
+                    return ok_out(
+                        "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n",
+                    );
+                }
                 "--raw-output" => raw_output = true,
                 "--raw-input" => raw_input = true,
                 "--compact-output" => compact_output = true,
@@ -529,6 +565,12 @@ fn cmd_jq_with_env(
         if !end_opts && a.starts_with('-') && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
+                    'V' => return ok_out("jq-1.7.1\n"),
+                    'h' => {
+                        return ok_out(
+                            "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n",
+                        );
+                    }
                     'r' => raw_output = true,
                     'R' => raw_input = true,
                     'c' => compact_output = true,
@@ -574,11 +616,9 @@ fn cmd_jq_with_env(
 
     let raw_filter = filter.unwrap_or_else(|| ".".to_string());
     let filter_str = preprocess_jq_imports(&raw_filter, &lib_dirs, cwd, fs);
-    let mut inputs: Vec<JVal> = Vec::new();
+    let mut stream_inputs: Vec<JVal> = Vec::new();
 
-    if null_input {
-        inputs.push(JVal::Null);
-    } else {
+    if !null_input || !files.is_empty() || !stdin.is_empty() {
         let mut raw_text = String::new();
         if files.is_empty() {
             raw_text.push_str(stdin);
@@ -602,10 +642,10 @@ fn cmd_jq_with_env(
         }
         if raw_input {
             if slurp {
-                inputs.push(JVal::Str(raw_text));
+                stream_inputs.push(JVal::Str(raw_text));
             } else {
                 for line in raw_text.lines() {
-                    inputs.push(JVal::Str(line.to_string()));
+                    stream_inputs.push(JVal::Str(line.to_string()));
                 }
             }
         } else {
@@ -621,9 +661,9 @@ fn cmd_jq_with_env(
                         vals
                     };
                     if slurp {
-                        inputs.push(JVal::Array(vals));
+                        stream_inputs.push(JVal::Array(vals));
                     } else {
-                        inputs = vals;
+                        stream_inputs = vals;
                     }
                 }
                 Err(e) => return err_out(&format!("jq: parse error: {e}\n"), 4),
@@ -631,10 +671,26 @@ fn cmd_jq_with_env(
         }
     }
 
+    if let Ok(mut guard) = JQ_SHARED_INPUTS.lock() {
+        *guard = stream_inputs;
+    }
+
     let mut out = String::new();
     let mut last_truthy = false;
+    let mut first_null_done = false;
 
-    for input_val in inputs {
+    loop {
+        let input_val = if null_input {
+            if first_null_done {
+                break;
+            }
+            first_null_done = true;
+            JVal::Null
+        } else if let Some(v) = pop_jq_shared_input() {
+            v
+        } else {
+            break;
+        };
         match eval_jq(&filter_str, &input_val, &vars) {
             Ok(results) => {
                 for r in results {
@@ -675,7 +731,7 @@ fn eval_jq(
         return Ok(vec![input.clone()]);
     }
     if let Some(def_rest) = s.strip_prefix("def ")
-        && let Some((sig_and_body, after_semi)) = split_jq_binary(def_rest, ";")
+        && let Some((sig_and_body, after_semi)) = split_jq_def_semi(def_rest)
         && let Some((sig, body)) = sig_and_body.split_once(':')
     {
         let sig = sig.trim();
@@ -687,6 +743,12 @@ fn eval_jq(
             (sig, "")
         };
         let mut next_vars = vars.clone();
+        let lex_entries: Vec<(String, JVal)> = vars
+            .iter()
+            .filter(|(k, _)| !k.starts_with("__lex_") && *k != "ARGS")
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
+        next_vars.insert(format!("__lex_{fname}"), JVal::Object(lex_entries));
         next_vars.insert(
             format!("__def_{fname}"),
             JVal::Str(format!("{param}::{}", body.trim())),
@@ -722,8 +784,19 @@ fn eval_jq(
     if let Some(pipes) = split_jq_top(s, '|') {
         let mut current: Vec<(JVal, BTreeMap<String, JVal>)> =
             vec![(input.clone(), vars.clone())];
-        for stage in pipes {
+        for (stage_idx, stage) in pipes.iter().enumerate() {
             let st_trim = stage.trim();
+            if st_trim.starts_with("def ") {
+                let joined = pipes[stage_idx..].join(" | ");
+                let mut next = Vec::new();
+                for (item, item_vars) in &current {
+                    for out_item in eval_jq(&joined, item, item_vars)? {
+                        next.push((out_item, item_vars.clone()));
+                    }
+                }
+                current = next;
+                break;
+            }
             if let Some((val_expr, pat_part)) = split_jq_binary_right(st_trim, " as ") {
                 let pat = pat_part.trim();
                 if !pat.contains('(')
@@ -745,7 +818,7 @@ fn eval_jq(
             }
             let mut next = Vec::new();
             for (item, item_vars) in &current {
-                for out_item in eval_jq(&stage, item, item_vars)? {
+                for out_item in eval_jq(stage, item, item_vars)? {
                     next.push((out_item, item_vars.clone()));
                 }
             }
@@ -1057,20 +1130,27 @@ fn eval_jq(
     {
         let fmt = s[..q_idx].trim();
         let str_part = &s[q_idx + 1..s.len() - 1];
-        return Ok(vec![JVal::Str(eval_jq_interpolated_string_with_fmt(
+        return Ok(eval_jq_interpolated_strings_with_fmt(
             str_part,
             Some(fmt),
             input,
             vars,
-        )?)]);
+        )?
+        .into_iter()
+        .map(JVal::Str)
+        .collect());
     }
 
     if s.starts_with('"') && s.ends_with('"') && s.contains("\\(") {
-        return Ok(vec![JVal::Str(eval_jq_interpolated_string(
+        return Ok(eval_jq_interpolated_strings_with_fmt(
             &s[1..s.len() - 1],
+            None,
             input,
             vars,
-        )?)]);
+        )?
+        .into_iter()
+        .map(JVal::Str)
+        .collect());
     }
 
     if let Ok(mut parsed) = parse_json_stream(s) {
@@ -1085,7 +1165,13 @@ fn eval_jq(
     if let Some(JVal::Str(def_spec)) = vars.get(&format!("__def_{s}"))
         && let Some((_param, body)) = def_spec.split_once("::")
     {
-        return eval_jq(body, input, vars);
+        let mut call_vars = vars.clone();
+        if let Some(JVal::Object(lex)) = vars.get(&format!("__lex_{s}")) {
+            for (k, v) in lex {
+                call_vars.insert(k.clone(), v.clone());
+            }
+        }
+        return eval_jq(body, input, &call_vars);
     }
 
     if let Some(env_var) = s.strip_prefix("env.") {
@@ -1353,29 +1439,6 @@ fn eval_jq_update(
     input: &JVal,
     vars: &BTreeMap<String, JVal>,
 ) -> Result<Vec<JVal>, String> {
-    let lt = lhs.trim();
-    if op == "="
-        && let Some(slice_inner) = lt.strip_prefix(".[").and_then(|s| s.strip_suffix(']'))
-        && let Some((s_part, e_part)) = slice_inner.split_once(':')
-        && let JVal::Array(arr) = input
-    {
-        let len = arr.len() as isize;
-        let s_idx = resolve_slice_bound(s_part.trim(), len, 0);
-        let e_idx = resolve_slice_bound(e_part.trim(), len, len);
-        let rv = eval_jq(rhs, input, vars)?
-            .into_iter()
-            .next()
-            .unwrap_or(JVal::Array(Vec::new()));
-        if let JVal::Array(repl) = rv {
-            let mut new_arr = Vec::new();
-            new_arr.extend_from_slice(&arr[..s_idx]);
-            new_arr.extend(repl);
-            if e_idx < arr.len() {
-                new_arr.extend_from_slice(&arr[e_idx..]);
-            }
-            return Ok(vec![JVal::Array(new_arr)]);
-        }
-    }
     let paths = resolve_jq_lhs_paths(lhs, input, vars)?;
     if paths.is_empty() {
         return Ok(vec![input.clone()]);
@@ -1425,6 +1488,16 @@ fn resolve_jq_lhs_paths(
     while s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
         s = s[1..s.len() - 1].trim();
     }
+    if s.is_empty() || s == "." {
+        return Ok(vec![Vec::new()]);
+    }
+    if let Some(parts) = split_jq_top(s, ',') {
+        let mut out = Vec::new();
+        for part in parts {
+            out.extend(resolve_jq_lhs_paths(&part, input, vars)?);
+        }
+        return Ok(out);
+    }
     if let Some(stages) = split_jq_top(s, '|') {
         let mut paths: Vec<Vec<JVal>> = vec![Vec::new()];
         for stage in stages {
@@ -1441,6 +1514,37 @@ fn resolve_jq_lhs_paths(
             paths = next_paths;
         }
         return Ok(paths);
+    }
+    if s == ".." || s == "recurse" {
+        let mut out = vec![Vec::new()];
+        let mut all_paths = Vec::new();
+        collect_jq_paths(input, &mut Vec::new(), &mut all_paths);
+        for p in all_paths {
+            if let JVal::Array(segs) = p {
+                out.push(segs);
+            }
+        }
+        return Ok(out);
+    }
+    if matches!(
+        s,
+        "numbers"
+            | "strings"
+            | "booleans"
+            | "nulls"
+            | "arrays"
+            | "objects"
+            | "iterables"
+            | "scalars"
+            | "values"
+            | "empty"
+    ) {
+        let matched = !eval_jq(s, input, vars)?.is_empty();
+        return Ok(if matched {
+            vec![Vec::new()]
+        } else {
+            Vec::new()
+        });
     }
     if s.starts_with("select(") {
         let paren_part = &s[6..];
@@ -1482,13 +1586,25 @@ fn resolve_jq_lhs_paths(
                 }
                 chars[start..i].iter().collect()
             };
-            if i < chars.len() && chars[i] == '?' {
+            let optional = if i < chars.len() && chars[i] == '?' {
                 i += 1;
-            }
+                true
+            } else {
+                false
+            };
             if !key.is_empty() {
-                for p in &mut paths {
+                let mut next_paths = Vec::new();
+                for mut p in paths {
+                    if optional {
+                        let cur = get_jq_jval_path(input, &p);
+                        if !matches!(cur, JVal::Object(_) | JVal::Null) {
+                            continue;
+                        }
+                    }
                     p.push(JVal::Str(key.clone()));
+                    next_paths.push(p);
                 }
+                paths = next_paths;
             }
         } else if chars[i] == '[' {
             i += 1;
@@ -1545,6 +1661,26 @@ fn resolve_jq_lhs_paths(
                 for p in &mut paths {
                     p.push(JVal::Str(key.clone()));
                 }
+            } else if let Some((s_part, e_part)) = inside_trim.split_once(':') {
+                let mut next_paths = Vec::new();
+                for p in &paths {
+                    let cur = get_jq_jval_path(input, p);
+                    let len = match &cur {
+                        JVal::Array(arr) => arr.len() as isize,
+                        _ => 0,
+                    };
+                    let (s_idx, e_idx) = resolve_slice_bounds(s_part.trim(), e_part.trim(), len);
+                    let mut np = p.clone();
+                    np.push(JVal::Object(vec![(
+                        "__slice".to_string(),
+                        JVal::Array(vec![
+                            JVal::Number(s_idx as f64),
+                            JVal::Number(e_idx as f64),
+                        ]),
+                    )]));
+                    next_paths.push(np);
+                }
+                paths = next_paths;
             } else if let Ok(idx_num) = inside_trim.parse::<isize>() {
                 for p in &mut paths {
                     p.push(JVal::Number(idx_num as f64));
@@ -1569,37 +1705,6 @@ fn resolve_jq_lhs_paths(
         }
     }
     Ok(paths)
-}
-
-fn del_nested_jval(val: &mut JVal, path: &[&str]) {
-    if path.is_empty() {
-        return;
-    }
-    if let JVal::Object(map) = val {
-        let k = path[0];
-        if path.len() == 1 {
-            map.retain(|(ek, _)| ek != k);
-        } else if let Some((_, child)) = map.iter_mut().find(|(ek, _)| ek == k) {
-            del_nested_jval(child, &path[1..]);
-        }
-    }
-}
-
-fn del_recursive_key_jval(val: &mut JVal, key: &str) {
-    match val {
-        JVal::Object(map) => {
-            map.retain(|(k, _)| k != key);
-            for (_, child) in map.iter_mut() {
-                del_recursive_key_jval(child, key);
-            }
-        }
-        JVal::Array(items) => {
-            for item in items.iter_mut() {
-                del_recursive_key_jval(item, key);
-            }
-        }
-        _ => {}
-    }
 }
 
 fn clean_jval_num(n: f64) -> f64 {
@@ -1850,9 +1955,14 @@ fn try_eval_jq_builtin(
             }
         }
         "flatten" => {
-            if let JVal::Array(a) = input {
+            let src_items: Option<Vec<JVal>> = match input {
+                JVal::Array(a) => Some(a.clone()),
+                JVal::Object(entries) => Some(entries.iter().map(|(_, v)| v.clone()).collect()),
+                _ => None,
+            };
+            if let Some(a) = src_items {
                 let mut out = Vec::new();
-                flatten_jval(a, usize::MAX, &mut out);
+                flatten_jval(&a, usize::MAX, &mut out);
                 return Ok(Some(vec![JVal::Array(out)]));
             }
         }
@@ -1969,25 +2079,89 @@ fn try_eval_jq_builtin(
                 return Ok(Some(vec![JVal::Number(res)]));
             }
         }
-        "@csv" | "@tsv" => {
-            if let JVal::Array(a) = input {
-                let sep = if s == "@csv" { "," } else { "\t" };
-                let parts: Vec<String> = a
-                    .iter()
-                    .map(|v| match v {
-                        JVal::Null => String::new(),
-                        JVal::Str(st) => {
-                            if s == "@csv" {
-                                format!("\"{}\"", st.replace('"', "\"\""))
-                            } else {
-                                st.replace('\t', "\\t").replace('\n', "\\n")
-                            }
-                        }
-                        other => other.to_json_string(true, false, 0),
-                    })
-                    .collect();
-                return Ok(Some(vec![JVal::Str(parts.join(sep))]));
+        "isnan" => {
+            return Ok(Some(vec![JVal::Bool(
+                matches!(input, JVal::Number(n) if n.is_nan()),
+            )]));
+        }
+        "isinfinite" => {
+            return Ok(Some(vec![JVal::Bool(
+                matches!(input, JVal::Number(n) if n.is_infinite()),
+            )]));
+        }
+        "isfinite" => {
+            return Ok(Some(vec![JVal::Bool(
+                matches!(input, JVal::Number(n) if !n.is_infinite()),
+            )]));
+        }
+        "isnormal" => {
+            return Ok(Some(vec![JVal::Bool(
+                matches!(input, JVal::Number(n) if n.is_normal()),
+            )]));
+        }
+        "nan" => return Ok(Some(vec![JVal::Number(f64::NAN)])),
+        "infinite" => return Ok(Some(vec![JVal::Number(f64::INFINITY)])),
+        "trim" | "ltrim" | "rtrim" => {
+            let JVal::Str(st) = input else {
+                return Err(format!("{s} requires a string"));
+            };
+            let res = match s {
+                "trim" => st.trim(),
+                "ltrim" => st.trim_start(),
+                "rtrim" => st.trim_end(),
+                _ => st.as_str(),
+            };
+            return Ok(Some(vec![JVal::Str(res.to_string())]));
+        }
+        "input" => {
+            if let Some(v) = pop_jq_shared_input() {
+                return Ok(Some(vec![v]));
             }
+            return Err("break".to_string());
+        }
+        "inputs" => {
+            return Ok(Some(drain_jq_shared_inputs()));
+        }
+        "gmtime" => {
+            let JVal::Number(n) = input else {
+                return Err("gmtime() requires numeric inputs".to_string());
+            };
+            return Ok(Some(vec![JVal::Array(jq_gmtime(*n))]));
+        }
+        "mktime" => {
+            return Ok(Some(vec![JVal::Number(jq_mktime(input)? as f64)]));
+        }
+        "@csv" | "@tsv" => {
+            let JVal::Array(a) = input else {
+                return Err(format!("cannot be {s}-formatted, only array"));
+            };
+            let sep = if s == "@csv" { "," } else { "\t" };
+            let mut parts = Vec::with_capacity(a.len());
+            for v in a {
+                match v {
+                    JVal::Null => parts.push(String::new()),
+                    JVal::Str(st) => {
+                        if s == "@csv" {
+                            parts.push(format!("\"{}\"", st.replace('"', "\"\"")));
+                        } else {
+                            parts.push(
+                                st.replace('\\', "\\\\")
+                                    .replace('\t', "\\t")
+                                    .replace('\r', "\\r")
+                                    .replace('\n', "\\n")
+                                    .replace('\0', "\\0"),
+                            );
+                        }
+                    }
+                    JVal::Bool(_) | JVal::Number(_) => {
+                        parts.push(v.to_json_string(true, false, 0));
+                    }
+                    _ => {
+                        return Err(format!("cannot be {s}-formatted, only scalar"));
+                    }
+                }
+            }
+            return Ok(Some(vec![JVal::Str(parts.join(sep))]));
         }
         "fromjson" => {
             if let JVal::Str(st) = input {
@@ -2019,15 +2193,17 @@ fn try_eval_jq_builtin(
         "@sh" => {
             let vals = match input {
                 JVal::Array(a) => a.clone(),
+                JVal::Object(_) => return Err("cannot be sh-formatted".to_string()),
                 other => vec![other.clone()],
             };
-            let parts: Vec<String> = vals
-                .iter()
-                .map(|v| {
-                    let raw = v.to_raw_string(true, false);
-                    format!("'{}'", raw.replace('\'', "'\\''"))
-                })
-                .collect();
+            let mut parts = Vec::with_capacity(vals.len());
+            for v in &vals {
+                if matches!(v, JVal::Array(_) | JVal::Object(_)) {
+                    return Err("cannot be sh-formatted".to_string());
+                }
+                let raw = v.to_raw_string(true, false);
+                parts.push(format!("'{}'", raw.replace('\'', "'\\''")));
+            }
             return Ok(Some(vec![JVal::Str(parts.join(" "))]));
         }
         "@html" => {
@@ -2223,7 +2399,9 @@ fn try_eval_jq_builtin(
             for p in all_paths {
                 if let JVal::Array(ref segs) = p {
                     let target_val = get_jq_jval_path(input, segs);
-                    if !matches!(target_val, JVal::Array(_) | JVal::Object(_)) {
+                    if !matches!(target_val, JVal::Array(_) | JVal::Object(_))
+                        && target_val.is_truthy()
+                    {
                         filtered.push(p);
                     }
                 }
@@ -2240,27 +2418,89 @@ fn try_eval_jq_builtin(
             match fname {
                 "delpaths" => {
                     let mut updated = input.clone();
-                    if let Some(JVal::Array(mut path_list)) =
+                    if let Some(JVal::Array(path_list)) =
                         eval_jq(arg_expr, input, vars)?.into_iter().next()
                     {
-                        path_list.sort_by(|a, b| {
-                            let la = match a {
-                                JVal::Array(v) => v.len(),
-                                _ => 0,
-                            };
-                            let lb = match b {
-                                JVal::Array(v) => v.len(),
-                                _ => 0,
-                            };
-                            lb.cmp(&la)
-                        });
-                        for p in path_list {
-                            if let JVal::Array(segs) = p {
-                                delete_jq_jval_path(&mut updated, &segs);
-                            }
-                        }
+                        let seg_paths: Vec<Vec<JVal>> = path_list
+                            .into_iter()
+                            .filter_map(|p| match p {
+                                JVal::Array(segs) => Some(segs),
+                                _ => None,
+                            })
+                            .collect();
+                        delete_jq_paths_sorted(&mut updated, seg_paths);
                     }
                     return Ok(Some(vec![updated]));
+                }
+                "path" => {
+                    let paths = resolve_jq_lhs_paths(arg_expr, input, vars)?;
+                    return Ok(Some(paths.into_iter().map(JVal::Array).collect()));
+                }
+                "pick" => {
+                    let mut res = JVal::Null;
+                    for p in resolve_jq_lhs_paths(arg_expr, input, vars)? {
+                        let val = get_jq_jval_path(input, &p);
+                        set_jq_jval_path(&mut res, &p, val);
+                    }
+                    return Ok(Some(vec![res]));
+                }
+                "in" => {
+                    let mut out = Vec::new();
+                    for container in eval_jq(arg_expr, input, vars)? {
+                        let res = match (&container, input) {
+                            (JVal::Object(o), JVal::Str(ks)) => o.iter().any(|(ek, _)| ek == ks),
+                            (JVal::Array(a), JVal::Number(n)) => {
+                                let idx = *n as isize;
+                                idx >= 0 && (idx as usize) < a.len()
+                            }
+                            _ => false,
+                        };
+                        out.push(JVal::Bool(res));
+                    }
+                    return Ok(Some(out));
+                }
+                "strftime" | "strflocaltime" => {
+                    let fmt = eval_jq(arg_expr, input, vars)?
+                        .first()
+                        .map(|v| v.to_raw_string(true, false))
+                        .unwrap_or_default();
+                    return Ok(Some(vec![JVal::Str(jq_strftime(input, &fmt)?)]));
+                }
+                "strptime" => {
+                    let fmt = eval_jq(arg_expr, input, vars)?
+                        .first()
+                        .map(|v| v.to_raw_string(true, false))
+                        .unwrap_or_default();
+                    let JVal::Str(st) = input else {
+                        return Err("strptime/1 requires string inputs".to_string());
+                    };
+                    return Ok(Some(vec![JVal::Array(jq_strptime(st, &fmt)?)]));
+                }
+                "combinations" => {
+                    if let JVal::Array(items) = input {
+                        let mut width = 0usize;
+                        for v in eval_jq(arg_expr, input, vars)? {
+                            if let JVal::Number(n) = v {
+                                width += (n.ceil() as isize).max(0) as usize;
+                            }
+                        }
+                        if width == 0 {
+                            return Ok(Some(vec![JVal::Array(Vec::new())]));
+                        }
+                        let mut acc: Vec<Vec<JVal>> = vec![Vec::new()];
+                        for _ in 0..width {
+                            let mut next = Vec::new();
+                            for prefix in &acc {
+                                for item in items {
+                                    let mut p = prefix.clone();
+                                    p.push(item.clone());
+                                    next.push(p);
+                                }
+                            }
+                            acc = next;
+                        }
+                        return Ok(Some(acc.into_iter().map(JVal::Array).collect()));
+                    }
                 }
                 "paths" => {
                     let mut all_paths = Vec::new();
@@ -2473,6 +2713,10 @@ fn try_eval_jq_builtin(
                 }
                 "split" => {
                     if let JVal::Str(st) = input {
+                        if split_jq_binary(arg_expr, ";").is_some() {
+                            let parts = eval_jq_splits_regex(st, arg_expr, input, vars)?;
+                            return Ok(Some(vec![JVal::Array(parts)]));
+                        }
                         let sep = eval_jq(arg_expr, input, vars)?
                             .first()
                             .map(|v| v.to_raw_string(true, false))
@@ -2569,33 +2813,43 @@ fn try_eval_jq_builtin(
                 }
                 "test" => {
                     if let JVal::Str(st) = input {
-                        let pat_e = split_jq_binary(arg_expr, ";").map(|(a, _)| a).unwrap_or_else(|| arg_expr.to_string());
-                        let pat = eval_jq(&pat_e, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
-                        let (cleaned_pat, _) = strip_jq_named_groups(&pat);
+                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
+                        let (cleaned_pat, _) = parse_jq_regex_groups(&pat);
+                        let ignore_case = flags.contains('i');
                         let matched =
-                            ZeroRegex::new(vec![cleaned_pat], false, false, false, false).is_match(st);
+                            ZeroRegex::new(vec![cleaned_pat], ignore_case, false, false, false)
+                                .is_match(st);
                         return Ok(Some(vec![JVal::Bool(matched)]));
+                    }
+                }
+                "match" => {
+                    if let JVal::Str(st) = input {
+                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
+                        return Ok(Some(eval_jq_match_regex(st, &pat, &flags)));
                     }
                 }
                 "capture" => {
                     if let JVal::Str(st) = input {
-                        let pat_e = split_jq_binary(arg_expr, ";").map(|(a, _)| a).unwrap_or_else(|| arg_expr.to_string());
-                        let pat = eval_jq(&pat_e, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
+                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
+                        let ignore_case = flags.contains('i');
                         let (cleaned_pat, names) = strip_jq_named_groups(&pat);
-                        let rx = ZeroRegex::new(vec![cleaned_pat.clone()], false, false, false, false);
+                        let rx = ZeroRegex::new(
+                            vec![cleaned_pat.clone()],
+                            ignore_case,
+                            false,
+                            false,
+                            false,
+                        );
                         if let Some(&(s_idx, e_idx)) = rx.find_all(st).first() {
                             let matched_slice = &st[s_idx..e_idx];
                             let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
                             let core = core.strip_suffix('$').unwrap_or(core);
-                            let caps = regex_captures(&format!("^{core}$"), matched_slice, false)
-                                .or_else(|| regex_captures(&cleaned_pat, matched_slice, false))
-                                .unwrap_or_default();
+                            let caps =
+                                regex_captures(&format!("^{core}$"), matched_slice, ignore_case)
+                                    .or_else(|| {
+                                        regex_captures(&cleaned_pat, matched_slice, ignore_case)
+                                    })
+                                    .unwrap_or_default();
                             let mut obj = Vec::new();
                             for (idx, gname) in names.into_iter().enumerate() {
                                 let val = caps.get(idx + 1).cloned().unwrap_or_default();
@@ -2608,13 +2862,20 @@ fn try_eval_jq_builtin(
                 }
                 "scan" => {
                     if let JVal::Str(st) = input {
-                        let pat = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
+                        let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
+                        if pat.is_empty() && flags.contains('n') {
+                            return Ok(Some(Vec::new()));
+                        }
+                        let ignore_case = flags.contains('i');
                         let (cleaned_pat, _) = strip_jq_named_groups(&pat);
                         let has_groups = cleaned_pat.contains('(');
-                        let rx = ZeroRegex::new(vec![cleaned_pat.clone()], false, false, false, false);
+                        let rx = ZeroRegex::new(
+                            vec![cleaned_pat.clone()],
+                            ignore_case,
+                            false,
+                            false,
+                            false,
+                        );
                         let mut out = Vec::new();
                         let mut last_end = 0usize;
                         for (s_idx, e_idx) in rx.find_all(st) {
@@ -2623,9 +2884,15 @@ fn try_eval_jq_builtin(
                                 if has_groups {
                                     let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
                                     let core = core.strip_suffix('$').unwrap_or(core);
-                                    let caps = regex_captures(&format!("^{core}$"), matched_slice, false)
-                                        .or_else(|| regex_captures(&cleaned_pat, matched_slice, false))
-                                        .unwrap_or_default();
+                                    let caps = regex_captures(
+                                        &format!("^{core}$"),
+                                        matched_slice,
+                                        ignore_case,
+                                    )
+                                    .or_else(|| {
+                                        regex_captures(&cleaned_pat, matched_slice, ignore_case)
+                                    })
+                                    .unwrap_or_default();
                                     if caps.len() > 1 {
                                         out.push(JVal::Array(
                                             caps[1..].iter().map(|c| JVal::Str(c.clone())).collect(),
@@ -2644,103 +2911,112 @@ fn try_eval_jq_builtin(
                 }
                 "splits" => {
                     if let JVal::Str(st) = input {
-                        let pat_e = split_jq_binary(arg_expr, ";").map(|(a, _)| a).unwrap_or_else(|| arg_expr.to_string());
-                        let pat = eval_jq(&pat_e, input, vars)?
-                            .first()
-                            .map(|v| v.to_raw_string(true, false))
-                            .unwrap_or_default();
-                        let (cleaned_pat, _) = strip_jq_named_groups(&pat);
-                        let rx = ZeroRegex::new(vec![cleaned_pat], false, false, false, false);
-                        let mut out = Vec::new();
-                        let mut last_end = 0usize;
-                        for (s_idx, e_idx) in rx.find_all(st) {
-                            if s_idx >= last_end && e_idx > s_idx {
-                                out.push(JVal::Str(st[last_end..s_idx].to_string()));
-                                last_end = e_idx;
-                            }
-                        }
-                        out.push(JVal::Str(st[last_end..].to_string()));
-                        return Ok(Some(out));
+                        return Ok(Some(eval_jq_splits_regex(st, arg_expr, input, vars)?));
                     }
                 }
                 "sub" | "gsub" => {
                     if let JVal::Str(st) = input {
-                        if let Some((pat_e, repl_e)) = split_jq_binary(arg_expr, ";") {
-                            let pat = eval_jq(&pat_e, input, vars)?
+                        let parts = split_jq_top(arg_expr, ';')
+                            .unwrap_or_else(|| vec![arg_expr.to_string()]);
+                        if parts.len() >= 2 {
+                            let pat = eval_jq(parts[0].trim(), input, vars)?
                                 .first()
                                 .map(|v| v.to_raw_string(true, false))
                                 .unwrap_or_default();
+                            let repl_e = parts[1].trim();
+                            let flags = if let Some(f_e) = parts.get(2) {
+                                eval_jq(f_e.trim(), input, vars)?
+                                    .first()
+                                    .map(|v| v.to_raw_string(true, false))
+                                    .unwrap_or_default()
+                            } else {
+                                String::new()
+                            };
+                            let ignore_case = flags.contains('i');
+                            let is_global = fname == "gsub" || flags.contains('g');
                             let (cleaned_pat, names) = strip_jq_named_groups(&pat);
-                            if !names.is_empty() {
-                                let rx = ZeroRegex::new(vec![cleaned_pat.clone()], false, false, false, false);
-                                let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
-                                let core = core.strip_suffix('$').unwrap_or(core);
-                                let mut out = String::new();
-                                let mut last_end = 0usize;
-                                for (idx, (s_idx, e_idx)) in rx.find_all(st).into_iter().enumerate() {
-                                    if s_idx < last_end {
-                                        continue;
-                                    }
-                                    if fname == "sub" && idx > 0 {
-                                        break;
-                                    }
-                                    out.push_str(&st[last_end..s_idx]);
-                                    let matched_slice = &st[s_idx..e_idx];
-                                    let caps = regex_captures(&format!("^{core}$"), matched_slice, false)
-                                        .or_else(|| regex_captures(&cleaned_pat, matched_slice, false))
-                                        .unwrap_or_default();
+                            let rx = ZeroRegex::new(
+                                vec![cleaned_pat.clone()],
+                                ignore_case,
+                                false,
+                                false,
+                                false,
+                            );
+                            let core = cleaned_pat.strip_prefix('^').unwrap_or(&cleaned_pat);
+                            let core = core.strip_suffix('$').unwrap_or(core);
+                            let mut results: Vec<String> = vec![String::new()];
+                            let mut copied = 0usize;
+                            for (s_idx, e_idx) in rx.find_all(st) {
+                                if s_idx < copied {
+                                    continue;
+                                }
+                                let matched_slice = &st[s_idx..e_idx];
+                                let cap_input = if !names.is_empty() {
+                                    let caps = regex_captures(
+                                        &format!("^{core}$"),
+                                        matched_slice,
+                                        ignore_case,
+                                    )
+                                    .or_else(|| {
+                                        regex_captures(&cleaned_pat, matched_slice, ignore_case)
+                                    })
+                                    .unwrap_or_default();
                                     let mut cap_obj = Vec::new();
                                     for (g_i, gname) in names.iter().enumerate() {
                                         let v = caps.get(g_i + 1).cloned().unwrap_or_default();
                                         cap_obj.push((gname.clone(), JVal::Str(v)));
                                     }
-                                    let rep_s = eval_jq(repl_e.trim(), &JVal::Object(cap_obj), vars)?
-                                        .first()
-                                        .map(|v| v.to_raw_string(true, false))
-                                        .unwrap_or_default();
-                                    out.push_str(&rep_s);
-                                    last_end = e_idx;
+                                    JVal::Object(cap_obj)
+                                } else {
+                                    input.clone()
+                                };
+                                let rep_vals = eval_jq(repl_e, &cap_input, vars)?;
+                                let mut next = Vec::new();
+                                for (idx, rv) in rep_vals.iter().enumerate() {
+                                    let prefix =
+                                        results.get(idx).map(|s| s.as_str()).unwrap_or("");
+                                    let rep_s = if names.is_empty() {
+                                        let raw_rep = rv.to_raw_string(true, false);
+                                        let (replaced_one, _) = replace_regex_in_text(
+                                            matched_slice,
+                                            &cleaned_pat,
+                                            &raw_rep,
+                                            ignore_case,
+                                            false,
+                                            None,
+                                        );
+                                        replaced_one
+                                    } else {
+                                        rv.to_raw_string(true, false)
+                                    };
+                                    next.push(format!("{prefix}{}{rep_s}", &st[copied..s_idx]));
                                 }
-                                out.push_str(&st[last_end..]);
-                                return Ok(Some(vec![JVal::Str(out)]));
+                                if !next.is_empty() {
+                                    for idx in next.len()..results.len() {
+                                        next.push(results[idx].clone());
+                                    }
+                                    results = next;
+                                    copied = e_idx;
+                                }
+                                if !is_global {
+                                    break;
+                                }
+                                if e_idx == s_idx {
+                                    break;
+                                }
                             }
-                            let repl = eval_jq(&repl_e, input, vars)?
-                                .first()
-                                .map(|v| v.to_raw_string(true, false))
-                                .unwrap_or_default();
-                            let (res, _) = replace_regex_in_text(
-                                st,
-                                &cleaned_pat,
-                                &repl,
-                                false,
-                                fname == "gsub",
-                                None,
-                            );
-                            return Ok(Some(vec![JVal::Str(res)]));
+                            let out: Vec<JVal> = results
+                                .into_iter()
+                                .map(|prefix| JVal::Str(format!("{prefix}{}", &st[copied..])))
+                                .collect();
+                            return Ok(Some(out));
                         }
                     }
                 }
                 "del" => {
                     let mut updated = input.clone();
-                    let targets = split_jq_top(arg_expr, ',').unwrap_or_else(|| vec![arg_expr.to_string()]);
-                    for t in targets {
-                        let t_trim = t.trim();
-                        if let Some(after_rec) = t_trim.strip_prefix("..") {
-                            let rest = after_rec
-                                .trim()
-                                .strip_prefix('|')
-                                .map(|s| s.trim())
-                                .unwrap_or("");
-                            let rkey = rest.trim_start_matches('.').trim_end_matches('?').trim();
-                            if !rkey.is_empty() {
-                                del_recursive_key_jval(&mut updated, rkey);
-                                continue;
-                            }
-                        }
-                        let key = t_trim.trim_start_matches('.').trim_end_matches('?');
-                        let path: Vec<&str> = key.split('.').filter(|s| !s.is_empty()).collect();
-                        del_nested_jval(&mut updated, &path);
-                    }
+                    let paths = resolve_jq_lhs_paths(arg_expr, input, vars)?;
+                    delete_jq_paths_sorted(&mut updated, paths);
                     return Ok(Some(vec![updated]));
                 }
                 "walk" => {
@@ -2758,19 +3034,31 @@ fn try_eval_jq_builtin(
                     return eval_jq("from_entries", &mapped, vars).map(Some);
                 }
                 "flatten" => {
-                    if let JVal::Array(a) = input {
-                        let depth_f = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(n) => Some(*n),
-                                _ => None,
-                            })
-                            .unwrap_or(0.0);
-                        if depth_f < 0.0 {
+                    let src_items: Option<Vec<JVal>> = match input {
+                        JVal::Array(a) => Some(a.clone()),
+                        JVal::Object(entries) => {
+                            Some(entries.iter().map(|(_, v)| v.clone()).collect())
+                        }
+                        _ => None,
+                    };
+                    if let Some(a) = src_items {
+                        let d_val = eval_jq(arg_expr, input, vars)?
+                            .into_iter()
+                            .next()
+                            .unwrap_or(JVal::Null);
+                        let JVal::Number(depth_f) = d_val else {
+                            return Err("flatten depth must be a number".to_string());
+                        };
+                        if depth_f.is_nan() || depth_f < 0.0 {
                             return Err("flatten depth must not be negative".to_string());
                         }
+                        let eff_depth = if depth_f.is_infinite() || depth_f.fract() != 0.0 {
+                            usize::MAX
+                        } else {
+                            depth_f as usize
+                        };
                         let mut out = Vec::new();
-                        flatten_jval(a, depth_f as usize, &mut out);
+                        flatten_jval(&a, eff_depth, &mut out);
                         return Ok(Some(vec![JVal::Array(out)]));
                     }
                 }
@@ -2911,12 +3199,12 @@ fn try_eval_jq_builtin(
                                 _ => None,
                             })
                             .unwrap_or(0);
-                        let vals = eval_jq(expr_e.trim(), input, vars)?;
+                        let vals = eval_jq_limited(expr_e.trim(), n, input, vars)?;
                         return Ok(Some(vals.into_iter().take(n).collect()));
                     }
                 }
                 "first" => {
-                    let vals = eval_jq(arg_expr, input, vars)?;
+                    let vals = eval_jq_limited(arg_expr, 1, input, vars)?;
                     return Ok(Some(vals.into_iter().take(1).collect()));
                 }
                 "last" => {
@@ -2924,7 +3212,7 @@ fn try_eval_jq_builtin(
                     return Ok(Some(vals.into_iter().next_back().into_iter().collect()));
                 }
                 "isempty" => {
-                    let vals = eval_jq(arg_expr, input, vars)?;
+                    let vals = eval_jq_limited(arg_expr, 1, input, vars)?;
                     return Ok(Some(vec![JVal::Bool(vals.is_empty())]));
                 }
                 "nth" => {
@@ -2932,17 +3220,17 @@ fn try_eval_jq_builtin(
                         let n = eval_jq(n_e.trim(), input, vars)?
                             .first()
                             .and_then(|v| match v {
-                                JVal::Number(num) => Some(*num as usize),
+                                JVal::Number(num) => Some(num.ceil().max(0.0) as usize),
                                 _ => None,
                             })
                             .unwrap_or(0);
-                        let vals = eval_jq(expr_e.trim(), input, vars)?;
+                        let vals = eval_jq_limited(expr_e.trim(), n + 1, input, vars)?;
                         return Ok(Some(vals.into_iter().nth(n).into_iter().collect()));
                     } else if let JVal::Array(a) = input {
                         let n = eval_jq(arg_expr, input, vars)?
                             .first()
                             .and_then(|v| match v {
-                                JVal::Number(num) => Some(*num as usize),
+                                JVal::Number(num) => Some(num.ceil().max(0.0) as usize),
                                 _ => None,
                             })
                             .unwrap_or(0);
@@ -2958,12 +3246,12 @@ fn try_eval_jq_builtin(
                     let items = eval_jq(stream_e.trim(), input, vars)?;
                     let mut entries: Vec<(String, JVal)> = Vec::new();
                     for item in items {
-                        if let Some(kv) = eval_jq(idx_e.trim(), &item, vars)?.into_iter().next() {
+                        for kv in eval_jq(idx_e.trim(), &item, vars)? {
                             let key_s = kv.to_raw_string(true, false);
                             if let Some(existing) = entries.iter_mut().find(|(k, _)| k == &key_s) {
-                                existing.1 = item;
+                                existing.1 = item.clone();
                             } else {
-                                entries.push((key_s, item));
+                                entries.push((key_s, item.clone()));
                             }
                         }
                     }
@@ -3013,18 +3301,43 @@ fn try_eval_jq_builtin(
                     {
                         let params: Vec<&str> = param.split(';').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
                         let args: Vec<String> = split_jq_top(arg_expr, ';').unwrap_or_else(|| vec![arg_expr.to_string()]);
-                        let mut call_vars = vars.clone();
+                        let mut base_vars = vars.clone();
+                        if let Some(JVal::Object(lex)) = vars.get(&format!("__lex_{other}")) {
+                            for (k, v) in lex {
+                                base_vars.insert(k.clone(), v.clone());
+                            }
+                        }
                         let mut expanded = body.to_string();
+                        let mut val_param_streams: Vec<(String, Vec<JVal>)> = Vec::new();
                         for (idx, p) in params.iter().enumerate() {
                             let a_str = args.get(idx).map(|s| s.trim()).unwrap_or(".");
                             if let Some(vname) = p.strip_prefix('$') {
-                                let av = eval_jq(a_str, input, vars)?.into_iter().next().unwrap_or(JVal::Null);
-                                call_vars.insert(vname.trim().to_string(), av);
+                                let avs = eval_jq(a_str, input, vars)?;
+                                val_param_streams.push((vname.trim().to_string(), avs));
                             } else {
                                 expanded = replace_jq_ident(&expanded, p, &format!("({a_str})"));
                             }
                         }
-                        return eval_jq(&expanded, input, &call_vars).map(Some);
+                        if val_param_streams.is_empty() {
+                            return eval_jq(&expanded, input, &base_vars).map(Some);
+                        }
+                        let mut env_combos: Vec<BTreeMap<String, JVal>> = vec![base_vars];
+                        for (vname, avs) in val_param_streams {
+                            let mut next_combos = Vec::new();
+                            for env_map in &env_combos {
+                                for av in &avs {
+                                    let mut nm = env_map.clone();
+                                    nm.insert(vname.clone(), av.clone());
+                                    next_combos.push(nm);
+                                }
+                            }
+                            env_combos = next_combos;
+                        }
+                        let mut out = Vec::new();
+                        for env_map in env_combos {
+                            out.extend(eval_jq(&expanded, input, &env_map)?);
+                        }
+                        return Ok(Some(out));
                     }
                 }
             }
@@ -3429,9 +3742,38 @@ fn collect_jq_paths(val: &JVal, cur: &mut Vec<JVal>, out: &mut Vec<JVal>) {
     }
 }
 
+fn extract_jq_slice_seg(seg: &JVal) -> Option<(usize, usize)> {
+    if let JVal::Object(map) = seg
+        && let Some((_, JVal::Array(bounds))) = map.iter().find(|(k, _)| k == "__slice")
+        && bounds.len() == 2
+        && let (JVal::Number(s), JVal::Number(e)) = (&bounds[0], &bounds[1])
+    {
+        return Some(((*s as isize).max(0) as usize, (*e as isize).max(0) as usize));
+    }
+    None
+}
+
 fn get_jq_jval_path(val: &JVal, segs: &[JVal]) -> JVal {
     if segs.is_empty() {
         return val.clone();
+    }
+    if let Some((s, e)) = extract_jq_slice_seg(&segs[0]) {
+        return match val {
+            JVal::Array(arr) => {
+                let s_idx = s.min(arr.len());
+                let e_idx = e.min(arr.len()).max(s_idx);
+                let sliced = JVal::Array(arr[s_idx..e_idx].to_vec());
+                get_jq_jval_path(&sliced, &segs[1..])
+            }
+            JVal::Str(st) => {
+                let chs: Vec<char> = st.chars().collect();
+                let s_idx = s.min(chs.len());
+                let e_idx = e.min(chs.len()).max(s_idx);
+                let sliced = JVal::Str(chs[s_idx..e_idx].iter().collect());
+                get_jq_jval_path(&sliced, &segs[1..])
+            }
+            _ => JVal::Null,
+        };
     }
     match (val, &segs[0]) {
         (JVal::Object(map), JVal::Str(k)) => map
@@ -3461,6 +3803,26 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) {
         *val = new_val;
         return;
     }
+    if let Some((s, e)) = extract_jq_slice_seg(&segs[0]) {
+        if let JVal::Array(arr) = val {
+            let s_idx = s.min(arr.len());
+            let e_idx = e.min(arr.len()).max(s_idx);
+            if segs.len() == 1 {
+                let rep = match new_val {
+                    JVal::Array(items) => items,
+                    other => vec![other],
+                };
+                arr.splice(s_idx..e_idx, rep);
+            } else {
+                let mut sub = JVal::Array(arr[s_idx..e_idx].to_vec());
+                set_jq_jval_path(&mut sub, &segs[1..], new_val);
+                if let JVal::Array(rep) = sub {
+                    arr.splice(s_idx..e_idx, rep);
+                }
+            }
+        }
+        return;
+    }
     match &segs[0] {
         JVal::Str(k) => {
             if !matches!(val, JVal::Object(_)) {
@@ -3483,11 +3845,16 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) {
             }
         }
         JVal::Number(n) => {
-            let idx = (*n as isize).max(0) as usize;
+            let raw_idx = *n as isize;
             if !matches!(val, JVal::Array(_)) {
                 *val = JVal::Array(Vec::new());
             }
             if let JVal::Array(arr) = val {
+                let idx = if raw_idx < 0 {
+                    ((arr.len() as isize) + raw_idx).max(0) as usize
+                } else {
+                    raw_idx as usize
+                };
                 while arr.len() <= idx {
                     arr.push(JVal::Null);
                 }
@@ -3504,6 +3871,23 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) {
 
 fn delete_jq_jval_path(val: &mut JVal, segs: &[JVal]) {
     if segs.is_empty() {
+        *val = JVal::Null;
+        return;
+    }
+    if let Some((s, e)) = extract_jq_slice_seg(&segs[0]) {
+        if let JVal::Array(arr) = val {
+            let s_idx = s.min(arr.len());
+            let e_idx = e.min(arr.len()).max(s_idx);
+            if segs.len() == 1 {
+                arr.drain(s_idx..e_idx);
+            } else {
+                let mut sub = JVal::Array(arr[s_idx..e_idx].to_vec());
+                delete_jq_jval_path(&mut sub, &segs[1..]);
+                if let JVal::Array(rep) = sub {
+                    arr.splice(s_idx..e_idx, rep);
+                }
+            }
+        }
         return;
     }
     match (val, &segs[0]) {
@@ -3531,6 +3915,79 @@ fn delete_jq_jval_path(val: &mut JVal, segs: &[JVal]) {
             }
         }
         _ => {}
+    }
+}
+
+fn normalize_jq_path_for_delete(val: &JVal, path: &[JVal]) -> Vec<JVal> {
+    if path.is_empty() {
+        return Vec::new();
+    }
+    let mut out = Vec::with_capacity(path.len());
+    let mut cur = val;
+    for (i, seg) in path.iter().enumerate() {
+        match (cur, seg) {
+            (JVal::Array(arr), JVal::Number(n)) => {
+                let idx = *n as isize;
+                let r = if idx < 0 {
+                    (arr.len() as isize) + idx
+                } else {
+                    idx
+                };
+                out.push(JVal::Number(r as f64));
+                if r >= 0 && (r as usize) < arr.len() {
+                    cur = &arr[r as usize];
+                } else {
+                    out.extend_from_slice(&path[i + 1..]);
+                    break;
+                }
+            }
+            (JVal::Object(map), JVal::Str(k)) => {
+                out.push(seg.clone());
+                if let Some((_, next_v)) = map.iter().find(|(ek, _)| ek == k) {
+                    cur = next_v;
+                } else {
+                    out.extend_from_slice(&path[i + 1..]);
+                    break;
+                }
+            }
+            _ => {
+                out.push(seg.clone());
+                out.extend_from_slice(&path[i + 1..]);
+                break;
+            }
+        }
+    }
+    out
+}
+
+fn delete_jq_paths_sorted(val: &mut JVal, paths: Vec<Vec<JVal>>) {
+    let mut norm_paths: Vec<Vec<JVal>> = paths
+        .into_iter()
+        .map(|p| normalize_jq_path_for_delete(val, &p))
+        .collect();
+    norm_paths.sort_by(|a, b| {
+        let min_len = a.len().min(b.len());
+        for k in 0..min_len {
+            if a[k] != b[k] {
+                let a_idx = match &a[k] {
+                    JVal::Number(n) => Some(*n as isize),
+                    other => extract_jq_slice_seg(other).map(|(s, _)| s as isize),
+                };
+                let b_idx = match &b[k] {
+                    JVal::Number(n) => Some(*n as isize),
+                    other => extract_jq_slice_seg(other).map(|(s, _)| s as isize),
+                };
+                if let (Some(ai), Some(bi)) = (a_idx, b_idx) {
+                    return bi.cmp(&ai);
+                }
+                return compare_jval(&a[k], &b[k]);
+            }
+        }
+        b.len().cmp(&a.len())
+    });
+    norm_paths.dedup();
+    for p in norm_paths {
+        delete_jq_jval_path(val, &p);
     }
 }
 
@@ -3666,8 +4123,8 @@ fn eval_jq_path_with_root(
                     match v {
                         JVal::Array(a) => {
                             let len = a.len() as isize;
-                            let s_idx = resolve_slice_bound(s_part.trim(), len, 0);
-                            let e_idx = resolve_slice_bound(e_part.trim(), len, len);
+                            let (s_idx, e_idx) =
+                                resolve_slice_bounds(s_part.trim(), e_part.trim(), len);
                             if s_idx < e_idx {
                                 next.push(JVal::Array(a[s_idx..e_idx].to_vec()));
                             } else {
@@ -3677,8 +4134,8 @@ fn eval_jq_path_with_root(
                         JVal::Str(st) => {
                             let chs: Vec<char> = st.chars().collect();
                             let len = chs.len() as isize;
-                            let s_idx = resolve_slice_bound(s_part.trim(), len, 0);
-                            let e_idx = resolve_slice_bound(e_part.trim(), len, len);
+                            let (s_idx, e_idx) =
+                                resolve_slice_bounds(s_part.trim(), e_part.trim(), len);
                             if s_idx < e_idx {
                                 next.push(JVal::Str(chs[s_idx..e_idx].iter().collect()));
                             } else {
@@ -3748,13 +4205,609 @@ fn eval_jq_path_with_root(
     Ok(current)
 }
 
-fn resolve_slice_bound(s: &str, len: isize, default: isize) -> usize {
-    if s.is_empty() {
-        return default.clamp(0, len) as usize;
+fn resolve_slice_bounds(s_part: &str, e_part: &str, len: isize) -> (usize, usize) {
+    let s_idx = if s_part.is_empty() {
+        0
+    } else if let Ok(f) = s_part.parse::<f64>() {
+        let n = f.floor() as isize;
+        let idx = if n < 0 { len + n } else { n };
+        idx.clamp(0, len) as usize
+    } else {
+        0
+    };
+    let e_idx = if e_part.is_empty() {
+        len.max(0) as usize
+    } else if let Ok(f) = e_part.parse::<f64>() {
+        let n = f.ceil() as isize;
+        let idx = if n < 0 { len + n } else { n };
+        idx.clamp(0, len) as usize
+    } else {
+        len.max(0) as usize
+    };
+    (s_idx, e_idx)
+}
+
+fn split_jq_def_semi(s: &str) -> Option<(String, String)> {
+    let chars: Vec<char> = s.chars().collect();
+    let mut depth = 0i32;
+    let mut def_depth = 0i32;
+    let mut i = 0usize;
+    while i < chars.len() {
+        let c = chars[i];
+        if c == '"' {
+            i = skip_jq_string(&chars, i);
+            continue;
+        }
+        if matches!(c, '(' | '[' | '{') {
+            depth += 1;
+            i += 1;
+            continue;
+        }
+        if matches!(c, ')' | ']' | '}') {
+            depth -= 1;
+            i += 1;
+            continue;
+        }
+        if depth == 0 {
+            let prev_ok = i == 0 || !(chars[i - 1].is_ascii_alphanumeric() || chars[i - 1] == '_');
+            if prev_ok
+                && i + 4 <= chars.len()
+                && chars[i..i + 3] == ['d', 'e', 'f']
+                && chars[i + 3].is_ascii_whitespace()
+            {
+                def_depth += 1;
+                i += 4;
+                continue;
+            }
+            if c == ';' {
+                if def_depth > 0 {
+                    def_depth -= 1;
+                } else {
+                    let left: String = chars[..i].iter().collect();
+                    let right: String = chars[i + 1..].iter().collect();
+                    return Some((left, right));
+                }
+            }
+        }
+        i += 1;
     }
-    let n = s.parse::<isize>().unwrap_or(default);
-    let idx = if n < 0 { len + n } else { n };
-    idx.clamp(0, len) as usize
+    None
+}
+
+fn eval_jq_limited(
+    expr: &str,
+    max_items: usize,
+    input: &JVal,
+    vars: &BTreeMap<String, JVal>,
+) -> Result<Vec<JVal>, String> {
+    if max_items == 0 {
+        return Ok(Vec::new());
+    }
+    let saved_tail = JQ_SHARED_INPUTS.lock().ok().and_then(|mut queue| {
+        if queue.len() > max_items {
+            Some(queue.split_off(max_items))
+        } else {
+            None
+        }
+    });
+    let mut out = Vec::new();
+    let mut err_opt: Option<String> = None;
+    if let Some(parts) = split_jq_top(expr, ',') {
+        for part in parts {
+            if out.len() >= max_items {
+                break;
+            }
+            match eval_jq(part.trim(), input, vars) {
+                Ok(mut items) => {
+                    let rem = max_items - out.len();
+                    if items.len() > rem {
+                        items.truncate(rem);
+                    }
+                    out.extend(items);
+                }
+                Err(e) => {
+                    err_opt = Some(e);
+                    break;
+                }
+            }
+        }
+    } else {
+        match eval_jq(expr, input, vars) {
+            Ok(mut items) => {
+                if items.len() > max_items {
+                    items.truncate(max_items);
+                }
+                out = items;
+            }
+            Err(e) => err_opt = Some(e),
+        }
+    }
+    if let Some(tail) = saved_tail
+        && let Ok(mut queue) = JQ_SHARED_INPUTS.lock()
+    {
+        queue.extend(tail);
+    }
+    if let Some(e) = err_opt {
+        return Err(e);
+    }
+    Ok(out)
+}
+
+fn parse_jq_regex_args(
+    arg: &str,
+    input: &JVal,
+    vars: &BTreeMap<String, JVal>,
+) -> Result<(String, String), String> {
+    if let Some((pat_expr, flags_expr)) = split_jq_binary(arg, ";") {
+        let pat = eval_jq(pat_expr.trim(), input, vars)?
+            .first()
+            .map(|v| v.to_raw_string(true, false))
+            .unwrap_or_default();
+        let flags = eval_jq(flags_expr.trim(), input, vars)?
+            .first()
+            .map(|v| v.to_raw_string(true, false))
+            .unwrap_or_default();
+        return Ok((pat, flags));
+    }
+    let val = eval_jq(arg.trim(), input, vars)?
+        .into_iter()
+        .next()
+        .unwrap_or(JVal::Null);
+    if let JVal::Array(arr) = val {
+        let pat = arr
+            .first()
+            .map(|v| v.to_raw_string(true, false))
+            .unwrap_or_default();
+        let flags = arr
+            .get(1)
+            .map(|v| v.to_raw_string(true, false))
+            .unwrap_or_default();
+        return Ok((pat, flags));
+    }
+    Ok((val.to_raw_string(true, false), String::new()))
+}
+
+fn parse_jq_regex_groups(pat: &str) -> (String, Vec<Option<String>>) {
+    let chars: Vec<char> = pat.chars().collect();
+    let mut cleaned = String::new();
+    let mut groups = Vec::new();
+    let mut i = 0usize;
+    let mut in_bracket = false;
+    while i < chars.len() {
+        if chars[i] == '\\' && i + 1 < chars.len() {
+            cleaned.push(chars[i]);
+            cleaned.push(chars[i + 1]);
+            i += 2;
+            continue;
+        }
+        if chars[i] == '[' && !in_bracket {
+            in_bracket = true;
+            cleaned.push(chars[i]);
+            i += 1;
+            continue;
+        }
+        if chars[i] == ']' && in_bracket {
+            in_bracket = false;
+            cleaned.push(chars[i]);
+            i += 1;
+            continue;
+        }
+        if !in_bracket && chars[i] == '(' {
+            if i + 2 < chars.len() && chars[i + 1] == '?' && chars[i + 2] == '<' {
+                if chars.get(i + 3) != Some(&'=') && chars.get(i + 3) != Some(&'!') {
+                    if let Some(rel_gt) = chars[i + 3..].iter().position(|&c| c == '>') {
+                        let name: String = chars[i + 3..i + 3 + rel_gt].iter().collect();
+                        groups.push(Some(name));
+                        cleaned.push('(');
+                        i += 3 + rel_gt + 1;
+                        continue;
+                    }
+                }
+            } else if i + 1 < chars.len() && chars[i + 1] == '?' {
+                cleaned.push('(');
+                i += 1;
+                continue;
+            } else {
+                groups.push(None);
+                cleaned.push('(');
+                i += 1;
+                continue;
+            }
+        }
+        cleaned.push(chars[i]);
+        i += 1;
+    }
+    (cleaned, groups)
+}
+
+fn eval_jq_match_regex(s: &str, pat: &str, flags: &str) -> Vec<JVal> {
+    let (clean_pat, group_names) = parse_jq_regex_groups(pat);
+    let case_i = flags.contains('i');
+    let global = flags.contains('g');
+    let ignore_empty = flags.contains('n');
+    let rx = ZeroRegex::new(vec![clean_pat.clone()], case_i, false, false, false);
+    let byte_matches = rx.find_all(s);
+    let hay: Vec<(usize, char)> = s.char_indices().collect();
+    let mut out = Vec::new();
+    for (mb_start, mb_end) in byte_matches {
+        if ignore_empty && mb_start == mb_end {
+            continue;
+        }
+        let start_char = s[..mb_start].chars().count();
+        let end_char = start_char + s[mb_start..mb_end].chars().count();
+        let spans = regex_capture_spans_in_hay(&clean_pat, &hay, start_char, end_char, case_i);
+        let mut captures = Vec::new();
+        for (idx, span_opt) in spans.into_iter().enumerate() {
+            let name_jval = group_names
+                .get(idx)
+                .and_then(|n| n.clone())
+                .map(JVal::Str)
+                .unwrap_or(JVal::Null);
+            match span_opt {
+                Some((cs, ce)) => {
+                    let cap_str: String = hay[cs..ce].iter().map(|&(_, c)| c).collect();
+                    captures.push(JVal::Object(vec![
+                        ("offset".to_string(), JVal::Number(cs as f64)),
+                        ("length".to_string(), JVal::Number((ce - cs) as f64)),
+                        ("string".to_string(), JVal::Str(cap_str)),
+                        ("name".to_string(), name_jval),
+                    ]));
+                }
+                None => {
+                    captures.push(JVal::Object(vec![
+                        ("offset".to_string(), JVal::Number(-1.0)),
+                        ("length".to_string(), JVal::Number(0.0)),
+                        ("string".to_string(), JVal::Null),
+                        ("name".to_string(), name_jval),
+                    ]));
+                }
+            }
+        }
+        out.push(JVal::Object(vec![
+            ("offset".to_string(), JVal::Number(start_char as f64)),
+            (
+                "length".to_string(),
+                JVal::Number((end_char - start_char) as f64),
+            ),
+            ("string".to_string(), JVal::Str(s[mb_start..mb_end].to_string())),
+            ("captures".to_string(), JVal::Array(captures)),
+        ]));
+        if !global {
+            break;
+        }
+    }
+    out
+}
+
+fn eval_jq_splits_regex(
+    s: &str,
+    arg_expr: &str,
+    input: &JVal,
+    vars: &BTreeMap<String, JVal>,
+) -> Result<Vec<JVal>, String> {
+    let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
+    let (clean_pat, _) = parse_jq_regex_groups(&pat);
+    let case_i = flags.contains('i');
+    let ignore_empty = flags.contains('n');
+    let rx = ZeroRegex::new(vec![clean_pat], case_i, false, false, false);
+    let mut parts = Vec::new();
+    let mut last = 0usize;
+    for (ms, me) in rx.find_all(s) {
+        if ignore_empty && ms == me {
+            continue;
+        }
+        parts.push(JVal::Str(s[last..ms].to_string()));
+        last = me;
+    }
+    parts.push(JVal::Str(s[last..].to_string()));
+    Ok(parts)
+}
+
+fn jq_gmtime(epoch_f: f64) -> Vec<JVal> {
+    let epoch = epoch_f.floor() as i64;
+    let days = epoch.div_euclid(86400);
+    let rem = epoch.rem_euclid(86400);
+    let hour = rem / 3600;
+    let min = (rem % 3600) / 60;
+    let sec = rem % 60;
+    let wday = (days + 4).rem_euclid(7);
+    let z = days + 719468;
+    let era = (if z >= 0 { z } else { z - 146096 }) / 146097;
+    let doe = (z - era * 146097) as u64;
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let y = (yoe as i64) + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = (doy - (153 * mp + 2) / 5 + 1) as i64;
+    let m = (if mp < 10 { mp + 3 } else { mp - 9 }) as i64;
+    let year = if m <= 2 { y + 1 } else { y };
+    let is_leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+    const MONTH_OFFSETS: [i64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+    let yday = MONTH_OFFSETS[(m - 1) as usize] + (if is_leap && m > 2 { 1 } else { 0 }) + (d - 1);
+    vec![
+        JVal::Number(year as f64),
+        JVal::Number((m - 1) as f64),
+        JVal::Number(d as f64),
+        JVal::Number(hour as f64),
+        JVal::Number(min as f64),
+        JVal::Number(sec as f64),
+        JVal::Number(wday as f64),
+        JVal::Number(yday as f64),
+    ]
+}
+
+fn jq_mktime(val: &JVal) -> Result<i64, String> {
+    let JVal::Array(arr) = val else {
+        return Err("mktime requires array inputs".to_string());
+    };
+    let get_i = |idx: usize, def: i64| -> i64 {
+        arr.get(idx)
+            .and_then(|v| match v {
+                JVal::Number(n) => Some(*n as i64),
+                _ => None,
+            })
+            .unwrap_or(def)
+    };
+    let year = get_i(0, 1970);
+    let month_0 = get_i(1, 0);
+    let mday = get_i(2, 1);
+    let hour = get_i(3, 0);
+    let min = get_i(4, 0);
+    let sec = get_i(5, 0);
+    let m = month_0 + 1;
+    let y_adj = if m <= 2 { year - 1 } else { year };
+    let era = (if y_adj >= 0 { y_adj } else { y_adj - 399 }) / 400;
+    let yoe = y_adj - era * 400;
+    let doy = (153 * (if m > 2 { m - 3 } else { m + 9 }) + 2) / 5 + mday - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    let days = era * 146097 + doe - 719468;
+    Ok(days * 86400 + hour * 3600 + min * 60 + sec)
+}
+
+fn jq_strftime(val: &JVal, fmt: &str) -> Result<String, String> {
+    let epoch = match val {
+        JVal::Number(n) => *n as i64,
+        JVal::Array(_) => jq_mktime(val)?,
+        _ => return Err("strftime requires numeric or array inputs".to_string()),
+    };
+    let tm = jq_gmtime(epoch as f64);
+    let get_i = |idx: usize| -> i64 {
+        tm.get(idx)
+            .and_then(|v| match v {
+                JVal::Number(n) => Some(*n as i64),
+                _ => None,
+            })
+            .unwrap_or(0)
+    };
+    let year = get_i(0);
+    let month_0 = get_i(1).clamp(0, 11) as usize;
+    let mday = get_i(2);
+    let hour = get_i(3);
+    let min = get_i(4);
+    let sec = get_i(5);
+    let wday = get_i(6).clamp(0, 6) as usize;
+    let yday = get_i(7);
+    const WDAYS_SHORT: [&str; 7] = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const WDAYS_LONG: [&str; 7] = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+    ];
+    const MONTHS_SHORT: [&str; 12] = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+    ];
+    const MONTHS_LONG: [&str; 12] = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+    let chars: Vec<char> = fmt.chars().collect();
+    let mut out = String::new();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] == '%' && i + 1 < chars.len() {
+            match chars[i + 1] {
+                'Y' => out.push_str(&format!("{year:04}")),
+                'm' => out.push_str(&format!("{:02}", month_0 + 1)),
+                'd' => out.push_str(&format!("{mday:02}")),
+                'H' => out.push_str(&format!("{hour:02}")),
+                'M' => out.push_str(&format!("{min:02}")),
+                'S' => out.push_str(&format!("{sec:02}")),
+                'F' => out.push_str(&format!("{year:04}-{:02}-{mday:02}", month_0 + 1)),
+                'T' => out.push_str(&format!("{hour:02}:{min:02}:{sec:02}")),
+                'j' => out.push_str(&format!("{:03}", yday + 1)),
+                'a' => out.push_str(WDAYS_SHORT[wday]),
+                'A' => out.push_str(WDAYS_LONG[wday]),
+                'b' | 'h' => out.push_str(MONTHS_SHORT[month_0]),
+                'B' => out.push_str(MONTHS_LONG[month_0]),
+                'w' => out.push_str(&wday.to_string()),
+                'Z' => out.push_str("GMT"),
+                'z' => out.push_str("+0000"),
+                's' => out.push_str(&epoch.to_string()),
+                '%' => out.push('%'),
+                other => {
+                    out.push('%');
+                    out.push(other);
+                }
+            }
+            i += 2;
+        } else {
+            out.push(chars[i]);
+            i += 1;
+        }
+    }
+    Ok(out)
+}
+
+fn jq_strptime(s: &str, fmt: &str) -> Result<Vec<JVal>, String> {
+    let expanded_fmt = fmt.replace("%F", "%Y-%m-%d").replace("%T", "%H:%M:%S");
+    let fchars: Vec<char> = expanded_fmt.chars().collect();
+    let schars: Vec<char> = s.chars().collect();
+    let mut fi = 0usize;
+    let mut si = 0usize;
+    let mut year = 1970i64;
+    let mut month = 1i64;
+    let mut mday = 1i64;
+    let mut hour = 0i64;
+    let mut min = 0i64;
+    let mut sec = 0i64;
+    let mut tz_offset_secs = 0i64;
+    let mut week_monday: Option<i64> = None;
+    let mut weekday: Option<i64> = None;
+    let mut direct_epoch: Option<i64> = None;
+
+    let read_digits = |schars: &[char], si: &mut usize, max_d: usize| -> Option<i64> {
+        let start = *si;
+        while *si < schars.len() && (*si - start) < max_d && schars[*si].is_ascii_digit() {
+            *si += 1;
+        }
+        if *si == start {
+            return None;
+        }
+        let sub: String = schars[start..*si].iter().collect();
+        sub.parse::<i64>().ok()
+    };
+
+    while fi < fchars.len() {
+        if fchars[fi] == '%' && fi + 1 < fchars.len() {
+            let spec = fchars[fi + 1];
+            fi += 2;
+            match spec {
+                'Y' => {
+                    year = read_digits(&schars, &mut si, 4)
+                        .ok_or_else(|| "strptime: invalid %Y".to_string())?;
+                }
+                'm' => {
+                    month = read_digits(&schars, &mut si, 2)
+                        .ok_or_else(|| "strptime: invalid %m".to_string())?;
+                }
+                'd' => {
+                    mday = read_digits(&schars, &mut si, 2)
+                        .ok_or_else(|| "strptime: invalid %d".to_string())?;
+                }
+                'H' => {
+                    hour = read_digits(&schars, &mut si, 2)
+                        .ok_or_else(|| "strptime: invalid %H".to_string())?;
+                }
+                'M' => {
+                    min = read_digits(&schars, &mut si, 2)
+                        .ok_or_else(|| "strptime: invalid %M".to_string())?;
+                }
+                'S' => {
+                    sec = read_digits(&schars, &mut si, 2)
+                        .ok_or_else(|| "strptime: invalid %S".to_string())?;
+                }
+                'W' => {
+                    week_monday = Some(
+                        read_digits(&schars, &mut si, 2)
+                            .ok_or_else(|| "strptime: invalid %W".to_string())?,
+                    );
+                }
+                'w' => {
+                    weekday = Some(
+                        read_digits(&schars, &mut si, 1)
+                            .ok_or_else(|| "strptime: invalid %w".to_string())?,
+                    );
+                }
+                's' => {
+                    let start = si;
+                    if si < schars.len() && (schars[si] == '-' || schars[si] == '+') {
+                        si += 1;
+                    }
+                    while si < schars.len() && schars[si].is_ascii_digit() {
+                        si += 1;
+                    }
+                    let sub: String = schars[start..si].iter().collect();
+                    direct_epoch = Some(
+                        sub.parse::<i64>()
+                            .map_err(|_| "strptime: invalid %s".to_string())?,
+                    );
+                }
+                'z' => {
+                    if si < schars.len() && (schars[si] == 'Z' || schars[si] == 'z') {
+                        si += 1;
+                        tz_offset_secs = 0;
+                    } else if si < schars.len() && (schars[si] == '+' || schars[si] == '-') {
+                        let sign = if schars[si] == '-' { -1i64 } else { 1i64 };
+                        si += 1;
+                        let hh = read_digits(&schars, &mut si, 2).unwrap_or(0);
+                        if si < schars.len() && schars[si] == ':' {
+                            si += 1;
+                        }
+                        let mm = read_digits(&schars, &mut si, 2).unwrap_or(0);
+                        tz_offset_secs = sign * (hh * 3600 + mm * 60);
+                    }
+                }
+                '%' => {
+                    if schars.get(si) == Some(&'%') {
+                        si += 1;
+                    }
+                }
+                _ => {}
+            }
+        } else if fchars[fi].is_ascii_whitespace() {
+            while fi < fchars.len() && fchars[fi].is_ascii_whitespace() {
+                fi += 1;
+            }
+            while si < schars.len() && schars[si].is_ascii_whitespace() {
+                si += 1;
+            }
+        } else {
+            if schars.get(si) == Some(&fchars[fi]) {
+                si += 1;
+            }
+            fi += 1;
+        }
+    }
+
+    if let Some(ep) = direct_epoch {
+        return Ok(jq_gmtime(ep as f64));
+    }
+    if let Some(w_mon) = week_monday {
+        let jan1_tm = JVal::Array(vec![
+            JVal::Number(year as f64),
+            JVal::Number(0.0),
+            JVal::Number(1.0),
+            JVal::Number(hour as f64),
+            JVal::Number(min as f64),
+            JVal::Number(sec as f64),
+        ]);
+        let jan1_epoch = jq_mktime(&jan1_tm)?;
+        let jan1_wday = ((jan1_epoch.div_euclid(86400)) + 4).rem_euclid(7);
+        let first_monday_yday = (8 - jan1_wday) % 7;
+        let wd = weekday.unwrap_or(1);
+        let day_in_week = if wd == 0 { 6 } else { wd - 1 };
+        let yday = if w_mon > 0 {
+            first_monday_yday + (w_mon - 1) * 7 + day_in_week
+        } else {
+            day_in_week
+        };
+        return Ok(jq_gmtime((jan1_epoch + yday * 86400 - tz_offset_secs) as f64));
+    }
+
+    let tm = JVal::Array(vec![
+        JVal::Number(year as f64),
+        JVal::Number((month - 1) as f64),
+        JVal::Number(mday as f64),
+        JVal::Number(hour as f64),
+        JVal::Number(min as f64),
+        JVal::Number(sec as f64),
+    ]);
+    let epoch = jq_mktime(&tm)? - tz_offset_secs;
+    Ok(jq_gmtime(epoch as f64))
 }
 
 fn step_field(items: &[JVal], key: &str, optional: bool) -> Result<Vec<JVal>, String> {
@@ -5188,10 +6241,17 @@ fn parse_yaml_block(
                     }
                 } else if !after_dash.starts_with('{')
                     && !after_dash.starts_with('[')
-                    && !after_dash.starts_with('"')
-                    && !after_dash.starts_with('\'')
                     && let Some((k, v)) = after_dash.split_once(':')
-                    && !k.trim().contains(char::is_whitespace) {
+                    && {
+                        let kt = k.trim();
+                        if kt.starts_with('"') {
+                            kt.len() >= 2 && kt.ends_with('"')
+                        } else if kt.starts_with('\'') {
+                            kt.len() >= 2 && kt.ends_with('\'')
+                        } else {
+                            !kt.contains(char::is_whitespace)
+                        }
+                    } {
                     let mut item_map = Vec::new();
                     let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
                     let val_s = v.trim();
@@ -20676,23 +21736,15 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     }
 }
 
-fn eval_jq_interpolated_string(
-    inner: &str,
-    input: &JVal,
-    vars: &BTreeMap<String, JVal>,
-) -> Result<String, String> {
-    eval_jq_interpolated_string_with_fmt(inner, None, input, vars)
-}
-
-fn eval_jq_interpolated_string_with_fmt(
+fn eval_jq_interpolated_strings_with_fmt(
     inner: &str,
     fmt_opt: Option<&str>,
     input: &JVal,
     vars: &BTreeMap<String, JVal>,
-) -> Result<String, String> {
+) -> Result<Vec<String>, String> {
     let chars: Vec<char> = inner.chars().collect();
     let mut i = 0usize;
-    let mut out = String::new();
+    let mut acc: Vec<String> = vec![String::new()];
     while i < chars.len() {
         if chars[i] == '\\' && i + 1 < chars.len() {
             match chars[i + 1] {
@@ -20719,43 +21771,63 @@ fn eval_jq_interpolated_string_with_fmt(
                     if i < chars.len() && chars[i] == ')' {
                         i += 1;
                     }
-                    if let Some(val) = eval_jq(&expr, input, vars)?.first() {
+                    let vals = eval_jq(&expr, input, vars)?;
+                    let mut rhs_strs = Vec::new();
+                    for val in &vals {
                         if let Some(fmt) = fmt_opt {
-                            if let Some(formatted) = try_eval_jq_builtin(fmt, val, vars)?
-                                && let Some(fv) = formatted.first()
-                            {
-                                out.push_str(&fv.to_raw_string(true, false));
+                            if let Some(formatted) = try_eval_jq_builtin(fmt, val, vars)? {
+                                for fv in formatted {
+                                    rhs_strs.push(fv.to_raw_string(true, false));
+                                }
                             } else {
-                                out.push_str(&val.to_raw_string(true, false));
+                                rhs_strs.push(val.to_raw_string(true, false));
                             }
                         } else {
-                            out.push_str(&val.to_raw_string(true, false));
+                            rhs_strs.push(val.to_raw_string(true, false));
                         }
                     }
+                    let mut next_acc = Vec::new();
+                    for rhs in &rhs_strs {
+                        for lhs in &acc {
+                            next_acc.push(format!("{lhs}{rhs}"));
+                        }
+                    }
+                    acc = next_acc;
                 }
                 'n' => {
-                    out.push('\n');
+                    for s in &mut acc {
+                        s.push('\n');
+                    }
                     i += 2;
                 }
                 't' => {
-                    out.push('\t');
+                    for s in &mut acc {
+                        s.push('\t');
+                    }
                     i += 2;
                 }
                 'r' => {
-                    out.push('\r');
+                    for s in &mut acc {
+                        s.push('\r');
+                    }
                     i += 2;
                 }
                 other => {
-                    out.push(other);
+                    for s in &mut acc {
+                        s.push(other);
+                    }
                     i += 2;
                 }
             }
         } else {
-            out.push(chars[i]);
+            let ch = chars[i];
+            for s in &mut acc {
+                s.push(ch);
+            }
             i += 1;
         }
     }
-    Ok(out)
+    Ok(acc)
 }
 
 fn encode_base64_str(bytes: &[u8]) -> String {

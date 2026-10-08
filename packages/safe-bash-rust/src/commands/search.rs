@@ -1350,6 +1350,160 @@ pub fn regex_captures(pat: &str, text: &str, ignore_case: bool) -> Option<Vec<St
     None
 }
 
+fn count_atom_capturing_groups(atom: &RxAtom) -> usize {
+    match atom {
+        RxAtom::Group { alts, capturing } => {
+            let inner = alts
+                .first()
+                .map(|a| {
+                    parse_rx(a, false)
+                        .iter()
+                        .map(|t| count_atom_capturing_groups(&t.atom))
+                        .sum::<usize>()
+                })
+                .unwrap_or(0);
+            (if *capturing { 1 } else { 0 }) + inner
+        }
+        _ => 0,
+    }
+}
+
+pub fn regex_capture_spans_in_hay(
+    pat: &str,
+    hay: &[(usize, char)],
+    start_pos: usize,
+    target_end_pos: usize,
+    ignore_case: bool,
+) -> Vec<Option<(usize, usize)>> {
+    let s = pat.strip_prefix('^').unwrap_or(pat);
+    let core_pat = if s.ends_with('$') && !s.ends_with("\\$") {
+        &s[..s.len() - 1]
+    } else {
+        s
+    };
+    let tokens = parse_rx(core_pat, false);
+    for (end_pos, spans) in match_tokens_span_candidates(&tokens, hay, start_pos, ignore_case) {
+        if end_pos == target_end_pos {
+            return spans;
+        }
+    }
+    let total_groups: usize = tokens
+        .iter()
+        .map(|t| count_atom_capturing_groups(&t.atom))
+        .sum();
+    vec![None; total_groups]
+}
+
+fn match_tokens_span_candidates(
+    tokens: &[RxToken],
+    hay: &[(usize, char)],
+    pos: usize,
+    ignore_case: bool,
+) -> Vec<(usize, Vec<Option<(usize, usize)>>)> {
+    if tokens.is_empty() {
+        return vec![(pos, Vec::new())];
+    }
+    let tok = &tokens[0];
+    let rest = &tokens[1..];
+    if let Some(ok) = check_boundary_atom(&tok.atom, hay, pos) {
+        if ok {
+            return match_tokens_span_candidates(rest, hay, pos, ignore_case);
+        }
+        return Vec::new();
+    }
+    if let RxAtom::Group { alts, capturing } = &tok.atom
+        && tok.min == 1
+        && tok.max == Some(1)
+    {
+        let mut out = Vec::new();
+        for alt in alts {
+            let sub_tokens = parse_rx(alt, false);
+            for (end_pos, sub_spans) in
+                match_tokens_span_candidates(&sub_tokens, hay, pos, ignore_case)
+            {
+                let mut grp_spans = if *capturing {
+                    vec![Some((pos, end_pos))]
+                } else {
+                    Vec::new()
+                };
+                grp_spans.extend(sub_spans);
+                for (final_pos, rest_spans) in
+                    match_tokens_span_candidates(rest, hay, end_pos, ignore_case)
+                {
+                    let mut combined = grp_spans.clone();
+                    combined.extend(rest_spans);
+                    out.push((final_pos, combined));
+                }
+            }
+        }
+        return out;
+    }
+    let unmatched_groups = count_atom_capturing_groups(&tok.atom);
+    let mut steps: Vec<(usize, Vec<Option<(usize, usize)>>)> =
+        vec![(pos, vec![None; unmatched_groups])];
+    let mut count = 0usize;
+    let max_limit = tok.max.unwrap_or(hay.len().saturating_sub(pos) + 1);
+    while count < max_limit {
+        let cur_pos = steps.last().unwrap().0;
+        if let Some((next_pos, step_spans)) =
+            match_single_atom_with_spans(&tok.atom, hay, cur_pos, ignore_case)
+        {
+            if next_pos == cur_pos && count >= tok.min {
+                break;
+            }
+            steps.push((next_pos, step_spans));
+            count += 1;
+        } else {
+            break;
+        }
+    }
+    if steps.len() - 1 < tok.min {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for idx in (tok.min..steps.len()).rev() {
+        let (step_pos, ref step_spans) = steps[idx];
+        for (final_pos, rest_spans) in
+            match_tokens_span_candidates(rest, hay, step_pos, ignore_case)
+        {
+            let mut combined = step_spans.clone();
+            combined.extend(rest_spans);
+            out.push((final_pos, combined));
+        }
+    }
+    out
+}
+
+fn match_single_atom_with_spans(
+    atom: &RxAtom,
+    hay: &[(usize, char)],
+    pos: usize,
+    ignore_case: bool,
+) -> Option<(usize, Vec<Option<(usize, usize)>>)> {
+    match atom {
+        RxAtom::Group { alts, capturing } => {
+            for alt in alts {
+                let sub_tokens = parse_rx(alt, false);
+                if let Some((end_pos, sub_spans)) =
+                    match_tokens_span_candidates(&sub_tokens, hay, pos, ignore_case)
+                        .into_iter()
+                        .next()
+                {
+                    let mut spans = if *capturing {
+                        vec![Some((pos, end_pos))]
+                    } else {
+                        Vec::new()
+                    };
+                    spans.extend(sub_spans);
+                    return Some((end_pos, spans));
+                }
+            }
+            None
+        }
+        _ => match_single_atom(atom, hay, pos, ignore_case).map(|next| (next, Vec::new())),
+    }
+}
+
 fn match_tokens_with_caps(
     tokens: &[RxToken],
     hay: &[(usize, char)],

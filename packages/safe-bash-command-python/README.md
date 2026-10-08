@@ -163,7 +163,8 @@ staging writers and cleanup, and guarded atomic staging publication. Writes use
 at most 64 KiB chunks; failed serialization or a stale revision leaves the prior
 manifest intact. Restores use incremental JSON decoding without retaining the
 complete encoded file or decoded JSON text. Native metadata restoration reads
-individual saved fields without decoding unrelated removal lists. Custom
+individual saved fields without decoding unrelated removal lists. Saved uninstall
+confirmation lists stream one path at a time. Custom
 `openSnapshot` stores can provide `readField(ordinal, field, offset)` for the same
 bounded JSON transport; stores without it retain whole-record compatibility.
 The compatibility `get` method still

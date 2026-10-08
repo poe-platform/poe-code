@@ -34,13 +34,15 @@ class Result:
 sys.modules['pyodide.ffi']=types.SimpleNamespace(run_sync=lambda result:result.value)
 def row(name,legacy=False):return [name,'Name: '+name+'\nVersion: 1\n','file:///'+name+'.whl',[],[]]+([] if legacy else ['origin-'+name])
 large=row('large');large[1]+='x'*50000
-for rows in [None,[],[large],[row('x'*20000)],[row('package-'+str(i),i%2==0) for i in range(130)],[row('duplicate'),row('duplicate')],[row('NonCanonical')],[row('package>=1')]]:
- index={};sealed=False;decoded=0
+paths=row('paths');paths[3]=['/file-'+str(i)+' \" ] 😀' for i in range(4096)];paths[4]=['/long-'+('x'*20000)]
+for rows in [None,[],[large],[paths],[row('x'*20000)],[row('package-'+str(i),i%2==0) for i in range(130)],[row('duplicate'),row('duplicate')],[row('NonCanonical')],[row('package>=1')]]:
+ index={};sealed=False;decoded=0;field_reads=[]
  def request(operation,key=None,value=None,field=None):
   global sealed
   if operation=='start':return Result(-1 if rows is None else len(rows))
   if operation=='read':return Result(json.dumps(rows[key])[value:value+8192])
   if operation=='field':
+   field_reads.append((key,field,value))
    record=rows[index[key]] if key in index else None
    return Result(json.dumps(record[field] if record is not None and field<len(record) else None)[value:value+8192])
   if operation=='has':return Result(key in index)
@@ -76,9 +78,38 @@ for rows in [None,[],[large],[row('x'*20000)],[row('package-'+str(i),i%2==0) for
    assert records[name]==expected and records.origin(name)==expected[5]
   assert records.get('missing') is None
   assert 'missing' not in records
+  class ScalarDecoder(json.JSONDecoder):
+   def raw_decode(self,*args,**kwargs):
+    value,end=super().raw_decode(*args,**kwargs)
+    assert not isinstance(value,list),'native removal list materialized'
+    return value,end
+  namespace['_safe_json'].JSONDecoder=ScalarDecoder
+  before=decoded
+  for row in rows or []:
+   for field in (3,4):
+    iterator=records.paths(row[0],field);reads=len(field_reads)
+    if row[field]:
+     assert next(iterator)==row[field][0]
+     assert len(field_reads)-reads<=1+len(json.dumps(row[field][0]))//8192,'first path waited for the entire list'
+     assert list(iterator)==row[field][1:]
+    else:assert list(iterator)==[]
+  assert decoded==before,'path traversal decoded whole records'
+  namespace['_safe_json'].JSONDecoder=json.JSONDecoder
+  if rows and rows[0][0]=='paths':
+   for wire in ['[]',' [ \"a\" , \"\\ud83d\\ude00\" ] ','[','[1]','[[]]','[\"a\",]','[\"a\" \"b\"]','[\"a\"]null','[\"a\"]'+chr(11)]:
+    namespace['_safe_package_record']=lambda operation,key,offset,field:Result(wire[offset:offset+1])
+    try:expected=json.loads(wire)
+    except ValueError:expected=None
+    valid=isinstance(expected,list) and all(isinstance(value,str) for value in expected)
+    try:actual=list(records.paths('paths',3))
+    except ValueError:assert not valid,wire
+    else:assert valid and actual==expected,wire
+   namespace['_safe_package_record']=request
   namespace['_safe_package_record']=lambda operation,*args:Result(False) if operation=='field' else request(operation,*args)
   for row in rows or []:assert records.origin(row[0])==(row[5] if len(row)==6 else None)
   assert records.origin('missing') is None
+  for row in rows or []:
+   for field in (3,4):assert list(records.paths(row[0],field))==row[field]
  namespace.clear();gc.collect()
 `],{input:JSON.stringify(await loadPythonPackageProgram()),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);

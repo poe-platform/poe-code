@@ -451,3 +451,13 @@ package cases and all 17 unchanged bundle budgets pass on the fresh artifact;
 lint, types and the selected workspace build pass. Native individual field strings,
 removal-list access, installed requirement arrays and final publication collections
 remain buffered, so the host-manifest gate remains open.
+
+Saved uninstall confirmation lists now stream individual path strings through the
+existing field windows and native JSON decoder. The first path is available before
+the complete list is read; empty lists emit no heading. Long paths, Unicode,
+malformed framing and custom-store fallback have regressions, and the native
+confirmation layout was visually inspected. Verification: 729 Python tests,
+134 installed public tests, eight actual Worker cases and all 17 unchanged bundle
+budgets pass on the fresh artifact; lint, types and the selected build pass.
+New distribution removal-list construction, native final row publication and host
+publication collections still materialize data; the full manifest gate stays open.

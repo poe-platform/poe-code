@@ -442,15 +442,22 @@ from collections.abc import Mapping as _SafeMapping
 class _SafeRecords(_SafeMapping):
  def __init__(self, count):self.count = count
  @staticmethod
- def decode(operation, key, name_only=False, field=None):
+ def chunks(operation, key, field=None):
   from pyodide.ffi import run_sync
-  chunks, offset = [], 0
+  offset = 0
   while True:
    chunk = run_sync(_safe_package_record(operation, key, offset, *([] if field is None else [field])))
-   if chunk is False:return NotImplemented
-   if not chunk:break
-   chunks.append(chunk)
+   if not chunk:
+    if chunk is False:yield NotImplemented
+    return
+   yield chunk
    offset += len(chunk.encode('utf-16-le')) // 2
+ @classmethod
+ def decode(cls, operation, key, name_only=False, field=None):
+  chunks = []
+  for chunk in cls.chunks(operation, key, field):
+   if chunk is NotImplemented:return NotImplemented
+   chunks.append(chunk)
    if name_only:
     prefix = ''.join(chunks).lstrip()
     if not prefix:
@@ -490,6 +497,37 @@ class _SafeRecords(_SafeMapping):
   if value is not NotImplemented:return value
   record = self.get(name)
   return record[index] if record is not None else None
+ def paths(self, name, field):
+  decoder = _safe_json.JSONDecoder()
+  buffer, state = '', 'start'
+  failure = 'Invalid Python package removal list'
+  for chunk in self.chunks('field', name, field):
+   if chunk is NotImplemented:
+    if state != 'start':raise ValueError(failure)
+    yield from self[name][field]
+    return
+   buffer += chunk
+   while True:
+    buffer = buffer.lstrip(' \t\r\n')
+    if not buffer:break
+    if state == 'end':raise ValueError(failure)
+    if state == 'start':
+     if buffer[0] != '[':raise ValueError(failure)
+     buffer, state = buffer[1:], 'first'
+     continue
+    if buffer[0] == ']' and state in ('first', 'separator'):
+     buffer, state = buffer[1:], 'end'
+     continue
+    if state == 'separator':
+     if buffer[0] != ',':raise ValueError(failure)
+     buffer, state = buffer[1:], 'value'
+     continue
+    if buffer[0] != '"':raise ValueError(failure)
+    try:value, end = decoder.raw_decode(buffer)
+    except _safe_json.JSONDecodeError:break
+    buffer, state = buffer[end:], 'separator'
+    yield value
+  if state != 'end':raise ValueError(failure)
  def origin(self, name):return self.field(name, 5)
 _safe_record_by_name, _safe_records_present = await _SafeRecords.prepare()
 _safe_metadata_only = _safe_uninstall is not None and _safe_records_present
@@ -567,13 +605,14 @@ if _safe_uninstall:
    _safe_version = _safe_dist.version
    await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
    if not _safe_uninstall['yes']:
-    _safe_record = _safe_record_by_name.get(_safe_target)
-    _safe_lists = _safe_record[3:5] if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
+    _safe_lists = (_safe_record_by_name.paths(_safe_target, field) for field in (3,4)) if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
     for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
-     if _safe_paths:
-      await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
-      for _safe_path in _safe_paths:
-       await _safe_package_emit('stdout', '    ' + _safe_path + '\n')
+     _safe_first_path = True
+     for _safe_path in _safe_paths:
+      if _safe_first_path:
+       await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
+       _safe_first_path = False
+      await _safe_package_emit('stdout', '    ' + _safe_path + '\n')
     while True:
      await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
      _safe_answer = (await _safe_package_line()).strip().lower()

@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {loadPythonPackageProgram} from './package-program.js';
 
-for(const mode of ['install','remove','missing','decline','large','pin-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
+for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast, asyncio, json, sys, types
 from unittest.mock import patch
@@ -75,13 +75,16 @@ async def resolve(*args): return Names(['active']+['package-'+str(i) for i in ra
 async def emit(channel, value): output.append((channel, value))
 async def line(): return 'n'
 class Records(dict):
+ def get(self,*args):raise AssertionError('confirmation loaded a complete saved record')
+ def paths(self,name,field):yield from self[name][field]
  def __missing__(self,name):return [name,'metadata','',[],[],None]
 records = Records({name:[name, 'metadata', '', [], [], None] for name in ('active','remove')})
+if mode=='decline-paths':records['remove'][3:5]=[['/remove/one','/remove/two'],['/keep/manual']]
 namespace = {
  '_SafeNames':Names, '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
- '_safe_uninstall':None if mode in ('install','large','pin-failure') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
+ '_safe_uninstall':None if mode in ('install','large','pin-failure') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':not mode.startswith('decline')},
  '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':Names(['remove']), '_safe_package_emit':emit, '_safe_package_line':line,
  '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
 }
@@ -114,7 +117,9 @@ if namespace['_safe_uninstall']:
  assert closed[-1] is namespace['_safe_removed']
 assert [text for _,text in output if 'Successfully' in text] == (['  Successfully uninstalled remove-2\n'] if mode == 'remove' else [])
 if mode == 'missing': assert output == [('stderr', 'WARNING: Skipping missing as it is not installed.\n')]
-if mode == 'decline': assert output[-1] == ('stdout', 'Proceed (Y/n)? ')
+if mode.startswith('decline'):
+ assert output[-1] == ('stdout', 'Proceed (Y/n)? ')
+ assert [text for _,text in output][1:-1] == (['  Would remove:\n','    /remove/one\n','    /remove/two\n','  Would not remove (might be manually added):\n','    /keep/manual\n'] if mode=='decline-paths' else [])
 assert peak <= 3
 `],{input:JSON.stringify([await loadPythonPackageProgram(),mode]),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);

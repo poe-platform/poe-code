@@ -3,7 +3,7 @@ import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 import {loadPythonPackageProgram} from './package-program.js';
 
-for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure','file','file-failure','new-file'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
+for(const mode of ['install','remove','missing','decline','decline-paths','large','pin-failure','file','file-failure','new-file','new-file-large','new-file-write-failure'])test('package inventory streams distribution objects and reads only required versions; '+mode,async()=>{
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import ast, asyncio, json, sys, types
 from unittest.mock import patch
@@ -43,7 +43,7 @@ class Distribution:
   global live
   live -= 1
  @property
- def metadata(self): return Headers(Name=self.name)
+ def metadata(self): return Headers(Name=self.name, **({'Requires-Dist': '"\\\t\n😀' * 20000} if mode=='new-file-large' else {}))
  @property
  def version(self):
   if self.name.startswith('package-'):return Version('1')
@@ -79,7 +79,8 @@ async def line(): return 'n'
 class Writer:
  def __init__(self):self.parts=[];self.closed=False
  def write(self,value):
-  if mode=='file-failure' and self.parts:raise RuntimeError('write denied')
+  if mode=='new-file-large':assert len(value)<=49152,('unbounded JSON scalar write',len(value))
+  if mode=='file-failure' and self.parts or mode=='new-file-write-failure' and len(self.parts)>10:raise RuntimeError('write denied')
   self.parts.append(value)
  def __enter__(self):return self
  def __exit__(self,*args):self.closed=True
@@ -110,19 +111,20 @@ def listing(dist):
  yield iter(())
 namespace = {
  '_safe_removal_listing':listing,
- '_safe_package_publication': '/publication.json' if mode.startswith('file') or mode=='new-file' else None,
+ '_safe_package_publication': '/publication.json' if mode.startswith('file') or mode.startswith('new-file') else None,
  '_SafeNames':Names, '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
- '_safe_uninstall':None if mode in ('install','large','pin-failure','file','file-failure','new-file') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':not mode.startswith('decline')},
+ '_safe_uninstall':None if mode in ('install','large','pin-failure','file','file-failure','new-file','new-file-large','new-file-write-failure') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':not mode.startswith('decline')},
  '_safe_package_record':record, '_safe_preloaded':set(), '_safe_restored_names':Names(['remove']), '_safe_package_emit':emit, '_safe_package_line':line,
- '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:None if mode=='new-file' else '/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
+ '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:None if mode.startswith('new-file') else '/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
 }
 try:
  with patch('io.StringIO',side_effect=AssertionError('buffered inventory transport')), patch('builtins.open',return_value=writer):
   asyncio.run(eval(code, namespace))
 except RuntimeError as error:
- if mode=='file-failure':
+ if mode in ('file-failure','new-file-write-failure'):
+  if mode=='new-file-write-failure':assert namespace['_safe_lists'].gi_frame is None
   assert str(error)=='write denied' and writer.closed
   assert not pins and not published
   sys.exit(0)
@@ -134,7 +136,7 @@ except RuntimeError as error:
 assert mode!='pin-failure','pin failure was swallowed'
 assert closed[0] is namespace['_safe_roots']
 assert closed[-4:] == [namespace['_safe_sources'],namespace['_safe_versions'],namespace['_safe_managed'],namespace['_safe_restored_names']]
-assert len(closed)==(7 if namespace['_safe_uninstall'] else 6 if mode in ('file','new-file') else 5)
+assert len(closed)==(7 if namespace['_safe_uninstall'] else 6 if mode in ('file','new-file','new-file-large') else 5)
 expected = ['file:///active.whl', 'active==1']
 # Origins keep the normalized package name in the saved direct requirement.
 expected[0] = 'active @ ' + expected[0]
@@ -142,7 +144,7 @@ if mode=='large':
  expected[1:1]=['package-'+str(i)+' @ file:///package-'+str(i)+'.whl' for i in range(1024)]
  expected.extend(name+'==1' for name in sorted('package-'+str(i) for i in range(1024)))
 if mode != 'remove': expected.append('remove==2')
-if mode in ('file','new-file'):
+if mode in ('file','new-file','new-file-large'):
  assert writer.closed
  assert not published and not pins
  publication=json.loads(''.join(writer.parts))
@@ -150,8 +152,8 @@ if mode in ('file','new-file'):
  pins=publication['installed'];published=publication['records']
 assert pins == expected
 assert '_safe_installed_json' not in namespace
-if mode=='new-file':
- for name in records:records[name]=[name,'Name: '+name+'\n','file:///active.whl' if name=='active' else '',['/path/'+str(i) for i in range(1024)],[],None]
+if mode.startswith('new-file'):
+ for name in records:records[name]=[name,'Name: '+name+'\n'+('Requires-Dist: '+ '"\\\t\n😀' * 20000+'\n' if mode=='new-file-large' else ''),'file:///active.whl' if name=='active' else '',['/path/'+str(i) for i in range(1024)],[],None]
 assert published == [dict.__getitem__(records,name) for name in ('active','remove') if name != 'remove' or mode != 'remove'] + ([records['package-'+str(i)] for i in range(1024)] if mode=='large' else [])
 assert not any('Successfully' in text for _,text in output)
 if namespace['_safe_uninstall']:

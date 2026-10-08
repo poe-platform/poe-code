@@ -518,3 +518,18 @@ Python to avoid a repeated large-stdin timeout, retaining its timeout and checks
 The corrected artifact passes 766 Python tests, 142 installed public tests, all
 three affected actual Worker cases (editable extras, uninstall and directory
 manifests), all 17 unchanged bundle budgets, lint, types and the scoped build.
+
+
+Native caller-file publication now JSON-encodes strings in 4,096-character
+fragments (at most 48 KiB after escaping). Selected metadata headers are emitted
+as ordered parts instead of first joining a complete metadata string; names,
+origins, removal paths, direct-URL text and installed pins use the same encoder.
+Byte-only publication keeps its existing record compatibility path. Native
+metadata parsing, `get_all` header arrays, direct-URL reads and requirement arrays
+still retain their original buffers, so this does not close the manifest gate.
+A large Unicode/control-character regression reproduced a 400,033-character write;
+the corrected path preserves decoded values with bounded writes. Mid-publication
+write failure closes the output and removal iterator without publishing records.
+Verification on the fresh artifact: 768 Python tests, 142 installed public tests,
+three affected actual Worker cases, all 17 unchanged bundle budgets, lint, types
+and the scoped build pass.

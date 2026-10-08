@@ -781,6 +781,12 @@ from contextlib import nullcontext as _safe_nullcontext
 with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_publication else _safe_nullcontext()) as _safe_output:
  if _safe_output:_safe_output.write('{"version":3,"records":[')
  _safe_rows = 0
+ def _safe_write_json_string(parts):
+  _safe_output.write('"')
+  for part in parts:
+   for offset in range(0, len(part), 4096):
+    _safe_output.write(_safe_json.dumps(part[offset:offset+4096])[1:-1])
+  _safe_output.write('"')
  for _safe_dist in _safe_metadata.distributions():
   _safe_dist_name = _safe_dist.metadata['Name']
   if not _safe_dist_name:
@@ -799,32 +805,40 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
     else:await _safe_package_record('append', _safe_json.dumps(_safe_record_by_name[_safe_dist_name]))
    else:
     _safe_headers = _safe_dist.metadata
-    _safe_metadata_text = ''.join(key + ': ' + value + '\n' for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra'] for value in _safe_headers.get_all(key, []))
+    def _safe_metadata_parts():
+     for key in ['Metadata-Version', 'Name', 'Version', 'Requires-Python', 'Requires-Dist', 'Provides-Extra']:
+      for value in _safe_headers.get_all(key, []):
+       yield key
+       yield ': '
+       yield value
+       yield '\n'
     _safe_lists = _safe_removal_listing(_safe_dist)
     try:
-     _safe_row = [_safe_dist_name, _safe_metadata_text, (_safe_origin or '').strip()]
      if _safe_output:
       if _safe_rows:_safe_output.write(',')
       _safe_output.write('[')
-      for _safe_value in _safe_row:
-       _safe_json.dump(_safe_value, _safe_output)
+      for _safe_parts in ((_safe_dist_name,), _safe_metadata_parts(), ((_safe_origin or '').strip(),)):
+       _safe_write_json_string(_safe_parts)
        _safe_output.write(',')
       for _safe_paths in _safe_lists:
        _safe_output.write('[')
        _safe_first = True
        for _safe_path in _safe_paths:
         if not _safe_first:_safe_output.write(',')
-        _safe_json.dump(_safe_path, _safe_output)
+        _safe_write_json_string((_safe_path,))
         _safe_first = False
        _safe_output.write('],')
-      _safe_json.dump(_safe_dist.read_text('direct_url.json'), _safe_output)
+      _safe_direct_url = _safe_dist.read_text('direct_url.json')
+      if _safe_direct_url is None:_safe_output.write('null')
+      else:_safe_write_json_string((_safe_direct_url,))
       _safe_output.write(']')
       _safe_rows += 1
      else:
+      _safe_row = [_safe_dist_name, ''.join(_safe_metadata_parts()), (_safe_origin or '').strip()]
       _safe_row.extend(list(paths) for paths in _safe_lists)
       _safe_row.append(_safe_dist.read_text('direct_url.json'))
       await _safe_package_record('append', _safe_json.dumps(_safe_row))
-     del _safe_row
+      del _safe_row
     finally:_safe_lists.close()
  def _safe_inventory():
   for key in _safe_sources:yield _safe_sources.get(key)
@@ -838,7 +852,7 @@ with (open(_safe_package_publication, 'x', encoding='utf-8') if _safe_package_pu
     if _safe_source in _safe_seen:continue
     if _safe_seen:_safe_output.write(',')
     _safe_seen.add(_safe_source)
-    _safe_json.dump(_safe_source, _safe_output)
+    _safe_write_json_string((_safe_source,))
    else:await _safe_package_record('pin', _safe_json.dumps(_safe_source))
   if _safe_output:_safe_output.write(']}')
  finally:

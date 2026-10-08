@@ -1146,10 +1146,10 @@ test('real workerd scandir consumes caller directory entries lazily and closes e
  assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
-test('real workerd stores metadata lookup groups in caller storage and retires suspended searches',{timeout:90000},async()=>{
+for(const mode of ['metadata-discovery','metadata-plain'])test('real workerd stores metadata lookup groups in caller storage and retires suspended searches; '+mode,{timeout:90000},async()=>{
  const bytes=readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL);
  assert.equal(createHash('sha256').update(bytes).digest('hex'),'0ad7104a3cde648e5486a718799f3852f1d782ff19d4bfc13db9dc631df083f8');
- const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/metadata-discovery',{method:'POST',body:bytes});
+ const response=await nativeFixture.miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:bytes});
  const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
  assert.equal(result.metadata.exitCode,0,JSON.stringify(result));
  assert.equal(result.metadata.stdout,'metadata-ok\n');assert.equal(result.metadata.stderr,'');

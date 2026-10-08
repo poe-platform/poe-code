@@ -38,6 +38,7 @@ for(const statement of runtimeTree.statements){
   runtimePrograms[declaration.name.text]=declaration.initializer.text;
  }
 }
+runtimePrograms.pythonMetadataDiscovery=await readFile(new URL('../src/metadata-discovery.py',import.meta.url),'utf8');
 const buildProgram=await rawProgram('build-backend.ts','pythonBuildBackendProgram',{
  pythonSourceOriginProgram:origin,
  pythonDownloadFilenameProgram:await rawProgram('source-filename-program.ts','pythonDownloadFilenameProgram'),

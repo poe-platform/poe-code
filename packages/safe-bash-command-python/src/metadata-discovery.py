@@ -40,7 +40,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
   os.rmdir(root)
  class Store:
   def __init__(self):
-   self.root = tempfile.mkdtemp(dir=installation_root, prefix='.metadata-')
+   self.root = tempfile.mkdtemp(dir=installation_root() if callable(installation_root) else installation_root, prefix='.metadata-')
    self.cleanup = weakref.finalize(self, retire, self.root)
    self.count = 0
    self.archive = None
@@ -380,6 +380,11 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  metadata.Lookup = Lookup
  metadata.MetadataPathFinder.invalidate_caches()
 
-if '_safe_installation_root' in globals():
- _safe_install_metadata_lookup(_safe_installation_root, _safe_runtime_mount)
+if not globals().get('_safe_metadata_lookup_installed'):
+ if '_safe_metadata_root' in globals():
+  _safe_install_metadata_lookup(_safe_metadata_root, _safe_runtime_mount)
+  _safe_metadata_lookup_installed = True
+ elif '_safe_installation_root' in globals():
+  _safe_install_metadata_lookup(_safe_installation_root, _safe_runtime_mount)
+  _safe_metadata_lookup_installed = True
 del _safe_install_metadata_lookup

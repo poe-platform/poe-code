@@ -239,7 +239,9 @@ duplicate offsets, and retires sorting scratch after success or failure.
 implied directories through caller backing, preserving native filtering, duplicate
 members and eager file errors. Early exit and backing denial retire enumeration
 scratch. Fixed bootstrap lookup and other ZIP APIs retain their native behavior.
-Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
+Plain invocations install the same adapter and acquire scratch lazily through the
+host-owned session, preserving failure propagation and identity-checked retirement.
+Repeated installer setup preserves the existing adapter rather than wrapping it again. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving
 extras propagation, constraints and native last-distribution version precedence.
 It no longer retains every dependency edge as a parsed requirement. Managed and

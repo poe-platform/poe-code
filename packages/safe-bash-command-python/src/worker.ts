@@ -196,7 +196,7 @@ export async function runPythonWorker(options: {
       if (name.startsWith('/lib/')) libraries[start.runtimeMount + name] = library;
     }
     runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
-    const {pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup} = await loadPythonRuntimePrograms();
+    const {pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonHardLinks, pythonTreeCleanup, pythonMetadataDiscovery} = await loadPythonRuntimePrograms();
     runtime.runPython(pythonRuntimeRelocation);
     // Importlib needs only type, modification time and size. Its internal stat
     // consumer must not force fabrication of optional POSIX metadata in os.stat.
@@ -259,6 +259,8 @@ export async function runPythonWorker(options: {
     runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
     category = 'startup';
     if (start.packages) {
+      runtime.globals.set('_safe_metadata_root', () => request('package-root', start.packages!.session));
+      runtime.runPython(pythonMetadataDiscovery);
       const installationRoot = start.packages.requirements.length || start.packages.uninstall || start.packages.bootstrap
         ? request('package-root', start.packages.session) as string : undefined;
       await installPythonPackages(runtime, start.packages, request, start.maxTransferBytes, installationRoot);

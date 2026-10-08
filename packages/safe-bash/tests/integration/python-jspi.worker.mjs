@@ -127,13 +127,14 @@ with zipfile.ZipFile("pth_fixture-1.0-py3-none-any.whl","w") as wheel:
     if(generated.exitCode)throw new Error(JSON.stringify(generated));
   }finally{await bootstrap.dispose();}
   const url='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/micropip-0.11.1-py3-none-any.whl';
-  const environment=createPythonPackageEnvironment({requirements:['file:///work/pth_fixture-1.0-py3-none-any.whl'],cacheDirectory:'/work/packages',authorize:request=>request.url===url,transport:async()=>({status:200,headers:[],body:(async function*(){yield micropip;})(),async dispose(){}})});
+  const environment=createPythonPackageEnvironment({requirements:metadataDiscovery==='plain'?[]:['file:///work/pth_fixture-1.0-py3-none-any.whl'],cacheDirectory:'/work/packages',authorize:request=>request.url===url,transport:async()=>({status:200,headers:[],body:(async function*(){yield micropip;})(),async dispose(){}})});
   const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
   if(metadataDiscovery){
+    let metadata;
     try{
       await backend.mkdir('/work/metadata');
       for(let index=0;index<1024;index++)await backend.writeFile('/work/metadata/package_'+String(index).padStart(5,'0')+'-1.dist-info',new Uint8Array());
-      return {metadata:await shell.exec('python -c '+quote(`
+      metadata=await shell.exec('python -c '+quote(`
 import gc, importlib.metadata as metadata, os, sys, weakref
 class Path(str):
  live=maximum=0
@@ -231,8 +232,10 @@ finally:
  io.open=NativeOpen
  FastLookup.namelist=NativeNames
 print('metadata-ok')
-`))};
+`));
     }finally{await shell.dispose();await environment.dispose();}
+    if((await backend.readdir('/work')).some(entry=>entry.name.startsWith('.python-install-')))throw new Error('metadata scratch survived interpreter retirement');
+    return {metadata};
   }
   const command='python -c '+quote('import json, sys, __main__, linked_fixture; print(json.dumps([linked_fixture.value, sys.path.count("/work/pth-source"), getattr(sys, "_fixture_pth_runs", 0), getattr(__main__, "_pth_marker", None), getattr(sys, "_fixture_pth_argv", None)]))');
   try{
@@ -2243,8 +2246,8 @@ PY`);
       }catch(error){return Response.json({error:String(error),stack:error.stack,opened,closed,consumed,failures},{status:500});}
       finally{shell.dispose();clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/package-paths' || mode === '/metadata-discovery') {
-      try {return Response.json({...await qualifyPackagePaths(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/metadata-discovery'),failures});}
+    if (mode === '/package-paths' || mode === '/metadata-discovery' || mode === '/metadata-plain') {
+      try {return Response.json({...await qualifyPackagePaths(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/metadata-plain'?'plain':mode === '/metadata-discovery'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

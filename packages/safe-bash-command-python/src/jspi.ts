@@ -123,7 +123,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       filesystem.mount(filesystem.filesystems.MEMFS, {}, '/');
       filesystem.mkdir(start.runtimeMount);
       filesystem.mount({mount:() => bootstrap}, {}, start.runtimeMount);
-      const {pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup} = await loadPythonRuntimePrograms();
+      const {pythonRuntimeRelocation, pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup, pythonMetadataDiscovery} = await loadPythonRuntimePrograms();
       runtime.runPython(pythonRuntimeRelocation);
       filesystem.currentPath = start.invocation.cwd;
       native = createPythonNativeSyscalls({getUmask: () => guestMask, runtime:runtime._module, cwd:start.invocation.cwd,
@@ -151,6 +151,7 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
           if(payload[0]==='cursor'&&['directoryOpen','directoryNext','close'].includes(payload[1]))return {value:await dispatch({op:payload[1],args:[payload[2]]})};
           signal.throwIfAborted();
           const [operation, path, follow] = payload;
+          if (operation === 'metadata') return {value:await dispatch({op:'package-root',args:[start.packages?.session]})};
           if (operation === 'stat') return native!.metadata(path, follow);
           if (typeof path !== 'string') throw Object.assign(new Error('Invalid native Python path'), {code:'EINVAL'});
           const target = absolute(path);
@@ -215,6 +216,11 @@ def _safe_directory_cursor(operation, value):
  return _safe_native_request(json.dumps(['cursor', operation, value]))
 def _safe_tree_cleanup(path):
  return _safe_native_request(json.dumps(['tree', path]))
+def _safe_metadata_root():
+ value = json.loads(_safe_native_request('["metadata"]'))
+ if 'errno' in value:
+  raise OSError(value['errno'], 'metadata backing unavailable')
+ return value['value']
 `);
       for (const script of [pythonImportMetadata, pythonDirectoryEntries, pythonStatProjection, pythonTreeCleanup]) runtime.runPython(script);
       runtime.runPython(`
@@ -244,6 +250,7 @@ _safe_stat_type = _safe_native_stat_type
       if (typeof module._emscripten_dlopen_promise === 'function') installPythonJspiDynlib(module, active);
 
       if (start.packages) {
+        await runtime.runPythonAsync(pythonMetadataDiscovery);
         const installationRoot = start.packages.requirements.length || start.packages.uninstall || start.packages.bootstrap
           ? await dispatch({op:'package-root',args:[start.packages.session]}) as string : undefined;
         await installPythonPackages(runtime, start.packages,

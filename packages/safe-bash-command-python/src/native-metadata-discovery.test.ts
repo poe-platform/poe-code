@@ -3,13 +3,13 @@ import {readFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
 import test from 'node:test';
 
-test('metadata discovery preserves pinned grouping without retaining all paths',()=>{
+for(const plain of [false,true])test('metadata discovery preserves pinned grouping without retaining all paths; plain='+plain,()=>{
  const fixture=readFileSync(new URL('./fixtures/pinned-metadata-lookup.py',import.meta.url),'utf8');
  const program=readFileSync(new URL('./metadata-discovery.py',import.meta.url),'utf8');
  const result=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
 import builtins,contextlib,errno,gc,importlib.metadata as metadata,io,json,linecache,os,pathlib,sys,tempfile,types,warnings,weakref,zipfile
 from unittest.mock import patch
-fixture,program=json.load(sys.stdin)
+fixture,program,plain=json.load(sys.stdin)
 fixture='from __future__ import annotations\n'+fixture
 filename='<pinned metadata lookup>'
 linecache.cache[filename]=(len(fixture),None,fixture.splitlines(True),filename)
@@ -77,7 +77,25 @@ def rmdir(path):
 patches=[patch.object(metadata,'Lookup',original,create=True),patch.object(metadata.MetadataPathFinder,'invalidate_caches',create=True),patch('builtins.open',side_effect=lambda path,mode='r',**kwargs:File(str(path),mode)),patch('os.makedirs',side_effect=mkdir),patch('os.path.isdir',side_effect=lambda path:str(path) in directories),patch('os.path.exists',side_effect=lambda path:str(path) in files or str(path) in directories),patch('tempfile.mkdtemp',side_effect=temporary),patch('os.scandir',side_effect=scandir),patch('os.unlink',side_effect=unlink),patch('os.rmdir',side_effect=rmdir)]
 with contextlib.ExitStack() as stack:
  for item in patches:stack.enter_context(item)
- exec(program,{'_safe_installation_root':'/owned','_safe_runtime_mount':'/runtime'})
+ root_requests=[];root_denied=False
+ def backing_root():
+  root_requests.append(True)
+  if root_denied:raise PermissionError('root backing denied')
+  return '/owned'
+ scope={'_safe_runtime_mount':'/runtime'}
+ scope.update({'_safe_metadata_root':backing_root} if plain else {'_safe_installation_root':'/owned'})
+ exec(program,scope)
+ assert not root_requests,'eager metadata scratch acquisition'
+ installed=metadata.Lookup
+ exec(program,scope)
+ assert metadata.Lookup is installed,'metadata adapter installed twice'
+ if plain:
+  root_denied=True
+  try:metadata.Lookup(Root([]))
+  except PermissionError as error:assert str(error)=='root backing denied'
+  else:raise AssertionError('root acquisition failure swallowed')
+  assert not files
+  root_denied=False
  for entries in [['A-1.dist-info','B-1.dist-info','A-2.dist-info'],['A_B-1.dist-info','a.b-2.egg-info','ignored'],['EGG-INFO','foo-1.dist-info']]:
   names[:]=entries
   root=Root(entries)
@@ -326,6 +344,6 @@ with contextlib.ExitStack() as stack:
  assert [str(p) for p in lookup.search(Prepared(None))]==[str(p) for p in original(Root(names)).search(Prepared(None))]
  del lookup;gc.collect();assert len(allocations)==before
 
-`],{input:JSON.stringify([fixture,program]),encoding:'utf8',timeout:15000});
+`],{input:JSON.stringify([fixture,program,plain]),encoding:'utf8',timeout:15000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);assert.equal(result.stderr,'');
 });

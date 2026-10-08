@@ -34,3 +34,25 @@ pub use fs::{
     VfsEntryKind, VfsFileEntry,
 };
 pub use shell::{ExecOptions, ExecOutput, Shell, ShellOptions};
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Arc;
+
+    #[test]
+    fn unit_crate_root_public_api_shell_and_vfs_smoke() {
+        let vfs = Arc::new(MemoryVfs::new());
+        vfs.mkdir_all("/workspace").unwrap();
+        let mut shell = Shell::new(
+            vfs,
+            ShellOptions {
+                cwd: Some("/workspace".into()),
+                ..Default::default()
+            },
+        );
+        let out = shell.exec("printf 'root-api:%s' \"$(pwd)\"").unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(out.stdout, "root-api:/workspace");
+    }
+}

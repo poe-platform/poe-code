@@ -79,4 +79,11 @@ mod tests {
         guard.release(2048);
         assert_eq!(guard.current_bytes(), 0);
     }
+
+    #[test]
+    fn allocation_guard_unlimited_when_max_bytes_is_zero() {
+        let guard = AllocationGuard::new(0);
+        guard.try_reserve(10 * 1024 * 1024).unwrap();
+        assert_eq!(guard.current_bytes(), 0);
+    }
 }

@@ -270,4 +270,41 @@ mod tests {
         assert!(host.kill_background(&handle).unwrap().contains("already exited"));
         assert!(host.read_background("background-999").is_err());
     }
+
+    #[test]
+    fn unit_poe_agent_shell_host_read_mode_and_multiple_background_handles() {
+        let vfs = Arc::new(MemoryVfs::new());
+        vfs.mkdir_all("/workspace/proj").unwrap();
+        vfs.write_file("/workspace/proj/readme.md", b"agent-doc\n").unwrap();
+        let mut host = PoeAgentShellHost::new(
+            vfs,
+            PoeAgentShellOptions {
+                cwd: Some("/workspace/proj".into()),
+                allowed_paths: vec!["/workspace".into()],
+                shell: ShellOptions::default(),
+            },
+        );
+        let h1 = host
+            .run_command(AgentRunCommandRequest {
+                command: "cat readme.md".into(),
+                cwd: None,
+                timeout_seconds: Some(2.0),
+                run_in_background: true,
+                mode: Some(ShellMode::Edit),
+            })
+            .unwrap();
+        let h2 = host
+            .run_command(AgentRunCommandRequest {
+                command: "echo second-bg".into(),
+                cwd: None,
+                timeout_seconds: Some(2.0),
+                run_in_background: true,
+                mode: Some(ShellMode::Edit),
+            })
+            .unwrap();
+        assert_eq!(h1, "background-1");
+        assert_eq!(h2, "background-2");
+        assert!(host.read_background(&h1).unwrap().stdout.contains("agent-doc"));
+        assert!(host.read_background(&h2).unwrap().stdout.contains("second-bg"));
+    }
 }

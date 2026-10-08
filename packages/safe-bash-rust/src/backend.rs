@@ -573,4 +573,16 @@ mod tests {
             .unwrap();
         assert_eq!(custom.stdout, "abab");
     }
+
+    #[test]
+    fn unit_base64_decode_invalid_inputs_and_padding_lengths() {
+        assert!(base64_decode("abc").is_err());
+        assert!(base64_decode("ab!d").is_err());
+        assert_eq!(base64_decode("").unwrap(), b"");
+        for len in 1..=7 {
+            let input: Vec<u8> = (0..len).map(|i| (i * 37) as u8).collect();
+            let enc = base64_encode(&input);
+            assert_eq!(base64_decode(&enc).unwrap(), input);
+        }
+    }
 }

@@ -7880,6 +7880,15 @@ fn resolve_csv_col_indices(spec: &str, headers: &[String]) -> Vec<usize> {
 }
 
 fn resolve_csv_col_indices_opts(spec: &str, headers: &[String], zero_based: bool) -> Vec<usize> {
+    resolve_csv_col_indices_ext(spec, headers, zero_based, false)
+}
+
+fn resolve_csv_col_indices_ext(
+    spec: &str,
+    headers: &[String],
+    zero_based: bool,
+    is_exclude: bool,
+) -> Vec<usize> {
     let base = if zero_based { 0isize } else { 1isize };
     let resolve_single = |token: &str| -> Option<usize> {
         if let Ok(n) = token.parse::<isize>() {
@@ -7900,7 +7909,7 @@ fn resolve_csv_col_indices_opts(spec: &str, headers: &[String], zero_based: bool
             out.push(pos);
             continue;
         }
-        if let Some((a, b)) = p.split_once('-') {
+        if let Some((a, b)) = p.split_once(':').or_else(|| p.split_once('-')) {
             if headers.is_empty() {
                 continue;
             }
@@ -7911,12 +7920,17 @@ fn resolve_csv_col_indices_opts(spec: &str, headers: &[String], zero_based: bool
             } else {
                 continue;
             };
-            let end = if b.trim().is_empty() {
+            let default_end = if is_exclude {
+                headers.len().saturating_sub(2)
+            } else {
                 headers.len().saturating_sub(1)
+            };
+            let end = if b.trim().is_empty() {
+                default_end
             } else if let Some(idx) = resolve_single(b.trim()) {
                 idx
             } else {
-                headers.len().saturating_sub(1)
+                default_end
             };
             if start <= end {
                 for idx in start..=end.min(headers.len().saturating_sub(1)) {
@@ -7946,12 +7960,12 @@ fn resolve_csvkit_columns(
     zero_based: bool,
 ) -> Vec<usize> {
     let mut selected: Vec<usize> = if let Some(spec) = cols_spec {
-        resolve_csv_col_indices_opts(spec, headers, zero_based)
+        resolve_csv_col_indices_ext(spec, headers, zero_based, false)
     } else {
         (0..headers.len()).collect()
     };
     if let Some(not_spec) = not_cols_spec {
-        let excluded = resolve_csv_col_indices_opts(not_spec, headers, zero_based);
+        let excluded = resolve_csv_col_indices_ext(not_spec, headers, zero_based, true);
         selected.retain(|idx| !excluded.contains(idx));
     }
     selected
@@ -11113,7 +11127,13 @@ fn eval_xan_num_expr(expr: &str, headers: &[String], row: &[String]) -> Option<f
             b'(' => depth += 1,
             b')' => depth -= 1,
             b'+' | b'-' if depth == 0 && i > 0 => {
-                split_add = Some((i, b));
+                let prev_non_ws = s[..i].trim_end().as_bytes().last().copied();
+                if !matches!(
+                    prev_non_ws,
+                    None | Some(b'+') | Some(b'-') | Some(b'*') | Some(b'/') | Some(b'%') | Some(b'(')
+                ) {
+                    split_add = Some((i, b));
+                }
             }
             _ => {}
         }
@@ -11123,14 +11143,14 @@ fn eval_xan_num_expr(expr: &str, headers: &[String], row: &[String]) -> Option<f
         let b = eval_xan_num_expr(&s[idx + 1..], headers, row)?;
         return Some(if op == b'+' { a + b } else { a - b });
     }
-    // Next precedence: * and /
+    // Next precedence: *, /, and %
     depth = 0;
     let mut split_mul: Option<(usize, u8)> = None;
     for (i, &b) in bytes.iter().enumerate() {
         match b {
             b'(' => depth += 1,
             b')' => depth -= 1,
-            b'*' | b'/' if depth == 0 && i > 0 => {
+            b'*' | b'/' | b'%' if depth == 0 && i > 0 => {
                 split_mul = Some((i, b));
             }
             _ => {}
@@ -11145,7 +11165,24 @@ fn eval_xan_num_expr(expr: &str, headers: &[String], row: &[String]) -> Option<f
             }
             return Some(a / b);
         }
+        if op == b'%' {
+            if b == 0.0 {
+                return None;
+            }
+            return Some(a % b);
+        }
         return Some(a * b);
+    }
+    if let Some(rest) = s.strip_prefix('-') {
+        return eval_xan_num_expr(rest, headers, row).map(|v| -v);
+    }
+    if let Some(rest) = s.strip_prefix('+') {
+        return eval_xan_num_expr(rest, headers, row);
+    }
+    let lower_s = s.to_ascii_lowercase();
+    if lower_s.starts_with("len(") && s.ends_with(')') {
+        return eval_xan_value_expr(&s[4..s.len() - 1], headers, row)
+            .map(|v| v.chars().count() as f64);
     }
     if let Ok(n) = s.parse::<f64>() {
         return Some(n);
@@ -11257,17 +11294,24 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let mut explicit_delim: Option<char> = None;
             let mut no_headers = false;
             let mut check_align = false;
+            let mut human_readable = false;
+            let mut parallel = false;
             let mut files = Vec::new();
             let mut i = 0usize;
             while i < rest.len() {
                 match rest[i].as_str() {
                     "-n" | "--no-headers" => no_headers = true,
                     "-c" | "--check-alignment" => check_align = true,
+                    "-H" | "--human-readable" => human_readable = true,
+                    "-p" | "--parallel" => parallel = true,
+                    "-t" | "--threads" if i + 1 < rest.len() => {
+                        i += 1;
+                    }
                     "-d" | "--delimiter" if i + 1 < rest.len() => {
                         i += 1;
                         explicit_delim = rest[i].chars().next();
                     }
-                    a if !a.starts_with('-') => files.push(a.to_string()),
+                    a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
                     _ => {}
                 }
                 i += 1;
@@ -11298,7 +11342,33 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             } else {
                 rows.len().saturating_sub(1)
             };
-            ok_out(&format!("{cnt}\n"))
+            let mut out_s = cnt.to_string();
+            if human_readable && !parallel {
+                let raw = cnt.to_string();
+                let mut with_commas = String::with_capacity(raw.len() + raw.len() / 3);
+                for (idx, ch) in raw.chars().enumerate() {
+                    if idx > 0 && (raw.len() - idx) % 3 == 0 {
+                        with_commas.push(',');
+                    }
+                    with_commas.push(ch);
+                }
+                out_s = with_commas;
+                if cnt >= 10_000 {
+                    let (scale, unit) = if cnt >= 1_000_000 {
+                        (1_000_000.0, "M")
+                    } else {
+                        (1_000.0, "k")
+                    };
+                    let rounded = ((cnt as f64 / scale) * 10.0).round() / 10.0;
+                    let r_str = if rounded.fract() == 0.0 {
+                        format!("{}", rounded as i64)
+                    } else {
+                        format!("{rounded}")
+                    };
+                    out_s.push_str(&format!(" ({r_str}{unit})"));
+                }
+            }
+            ok_out(&format!("{out_s}\n"))
         }
         "headers" | "h" => {
             let mut just_names = false;
@@ -11512,11 +11582,15 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let mut start_cond: Option<String> = None;
             let mut end_cond: Option<String> = None;
             let mut explicit_delim: Option<char> = None;
+            let mut no_headers = false;
+            let mut raw_mode = false;
             let mut files = Vec::new();
             let mut i = 0usize;
             while i < rest.len() {
                 match rest[i].as_str() {
-                    "-s" | "--start" if i + 1 < rest.len() => {
+                    "-n" | "--no-headers" => no_headers = true,
+                    "--raw" => raw_mode = true,
+                    "-s" | "--start" | "--skip" if i + 1 < rest.len() => {
                         i += 1;
                         start = rest[i].parse().unwrap_or(0);
                     }
@@ -11560,7 +11634,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         i += 1;
                         explicit_delim = rest[i].chars().next();
                     }
-                    a if !a.starts_with('-') => files.push(a.to_string()),
+                    a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
                     _ => {}
                 }
                 i += 1;
@@ -11575,13 +11649,25 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 if all_rows.is_empty() {
                     return ok_out("");
                 }
-                let mut out = format_csv_row(&all_rows[0], ',');
+                let mut out = if no_headers {
+                    String::new()
+                } else {
+                    format_csv_row(&all_rows[0], ',')
+                };
                 let start_b = bo.min(text.len());
                 let end_b = end_byte.unwrap_or(text.len()).min(text.len());
                 if start_b < end_b {
-                    let sliced_rows = parse_csv_rows(&text[start_b..end_b], delim);
-                    for r in &sliced_rows {
-                        out.push_str(&format_csv_row(r, ','));
+                    if raw_mode {
+                        let slice_s = &text[start_b..end_b];
+                        out.push_str(slice_s);
+                        if !slice_s.ends_with('\n') {
+                            out.push('\n');
+                        }
+                    } else {
+                        let sliced_rows = parse_csv_rows(&text[start_b..end_b], delim);
+                        for r in &sliced_rows {
+                            out.push_str(&format_csv_row(r, ','));
+                        }
                     }
                 }
                 return ok_out(&out);
@@ -11591,8 +11677,12 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return ok_out("");
             }
             let headers = &rows[0];
-            let mut out = format_csv_row(headers, ',');
-            let data = &rows[1..];
+            let mut out = if no_headers {
+                String::new()
+            } else {
+                format_csv_row(headers, ',')
+            };
+            let data = if no_headers { &rows[..] } else { &rows[1..] };
             if let Some(ln) = last_n {
                 for r in &data[data.len().saturating_sub(ln)..] {
                     out.push_str(&format_csv_row(r, ','));
@@ -11606,10 +11696,14 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 return ok_out(&out);
             }
             if let Some(idx_str) = indices_spec {
-                for part in idx_str.split(',') {
-                    if let Ok(idx) = part.trim().parse::<usize>()
-                        && let Some(r) = data.get(idx)
-                    {
+                let mut parsed_indices: Vec<usize> = idx_str
+                    .split(',')
+                    .filter_map(|part| part.trim().parse::<usize>().ok())
+                    .collect();
+                parsed_indices.sort_unstable();
+                parsed_indices.dedup();
+                for idx in parsed_indices {
+                    if let Some(r) = data.get(idx) {
                         out.push_str(&format_csv_row(r, ','));
                     }
                 }
@@ -11638,16 +11732,31 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         "head" | "tail" => {
             let mut n = 10usize;
+            let mut no_headers = false;
+            let mut explicit_delim: Option<char> = None;
+            let mut out_file: Option<String> = None;
             let mut files = Vec::new();
             let mut i = 0usize;
             while i < rest.len() {
-                if rest[i] == "-l" || rest[i] == "-n" {
-                    if i + 1 < rest.len() {
+                match rest[i].as_str() {
+                    "-n" | "--no-headers" => no_headers = true,
+                    "-l" | "--limit" if i + 1 < rest.len() => {
                         i += 1;
                         n = rest[i].parse().unwrap_or(10);
                     }
-                } else if !rest[i].starts_with('-') {
-                    files.push(rest[i].clone());
+                    a if a.starts_with("--limit=") => {
+                        n = a["--limit=".len()..].parse().unwrap_or(10);
+                    }
+                    "-d" | "--delimiter" if i + 1 < rest.len() => {
+                        i += 1;
+                        explicit_delim = rest[i].chars().next();
+                    }
+                    "-o" | "--output" if i + 1 < rest.len() => {
+                        i += 1;
+                        out_file = Some(rest[i].clone());
+                    }
+                    a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
+                    _ => {}
                 }
                 i += 1;
             }
@@ -11655,19 +11764,48 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 Ok(t) => t,
                 Err(e) => return err_out(&e, 1),
             };
-            let rows = parse_csv_rows(&text, ',');
+            let inferred_delim = explicit_delim.or_else(|| {
+                files.first().and_then(|f| {
+                    if f.ends_with(".tsv") || f.ends_with(".tab") {
+                        Some('\t')
+                    } else if f.ends_with(".psv") {
+                        Some('|')
+                    } else if f.ends_with(".ssv") {
+                        Some(';')
+                    } else {
+                        None
+                    }
+                })
+            });
+            let delim = detect_xan_delim(&text, inferred_delim);
+            let rows = parse_csv_rows(&text, delim);
             if rows.is_empty() {
                 return ok_out("");
             }
-            let mut out = format_csv_row(&rows[0], ',');
-            let data = &rows[1..];
+            let out_delim = match out_file.as_deref() {
+                Some(of) if of.ends_with(".tsv") || of.ends_with(".tab") => '\t',
+                Some(of) if of.ends_with(".psv") => '|',
+                Some(of) if of.ends_with(".ssv") => ';',
+                _ => ',',
+            };
+            let mut out = if no_headers {
+                String::new()
+            } else {
+                format_csv_row(&rows[0], out_delim)
+            };
+            let data = if no_headers { &rows[..] } else { &rows[1..] };
             let slice = if sub == "head" {
                 &data[..n.min(data.len())]
             } else {
                 &data[data.len().saturating_sub(n)..]
             };
             for r in slice {
-                out.push_str(&format_csv_row(r, ','));
+                out.push_str(&format_csv_row(r, out_delim));
+            }
+            if let Some(of) = out_file {
+                let full = resolve_posix_path(cwd, &of);
+                let _ = fs.write_file(&full, out.as_bytes());
+                return ok_out("");
             }
             ok_out(&out)
         }
@@ -11848,6 +11986,8 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let mut exact = false;
             let mut ignore_case = false;
             let mut invert = false;
+            let mut every_col = false;
+            let mut no_headers = false;
             let mut limit: Option<usize> = None;
             let mut explicit_delim: Option<char> = None;
             let mut positional = Vec::new();
@@ -11861,6 +12001,8 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "-e" | "--exact" => exact = true,
                     "-i" | "--ignore-case" => ignore_case = true,
                     "-v" | "--invert-match" => invert = true,
+                    "--every-column" => every_col = true,
+                    "-n" | "--no-headers" => no_headers = true,
                     "-l" | "--limit" if i + 1 < rest.len() => {
                         i += 1;
                         limit = rest[i].parse().ok();
@@ -11897,10 +12039,15 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 .map(|s| resolve_xan_select_indices(&s, headers))
                 .filter(|v| !v.is_empty())
                 .unwrap_or_else(|| (0..headers.len()).collect());
-            let mut out = format_csv_row(headers, ',');
+            let mut out = if no_headers {
+                String::new()
+            } else {
+                format_csv_row(headers, ',')
+            };
             let mut count = 0usize;
-            for r in &rows[1..] {
-                let mut m = indices.iter().any(|&idx| {
+            let data_rows = if no_headers { &rows[..] } else { &rows[1..] };
+            for r in data_rows {
+                let cell_match = |&idx: &usize| -> bool {
                     let cell = r.get(idx).map(|s| s.as_str()).unwrap_or("");
                     let cmp_cell = if ignore_case {
                         cell.to_lowercase()
@@ -11912,7 +12059,12 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     } else {
                         cmp_cell.contains(&pat)
                     }
-                });
+                };
+                let mut m = if every_col {
+                    indices.iter().all(cell_match)
+                } else {
+                    indices.iter().any(cell_match)
+                };
                 if invert {
                     m = !m;
                 }
@@ -11958,6 +12110,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         "rename" => {
             let mut col_spec: Option<String> = None;
+            let mut no_headers = false;
             let mut explicit_delim: Option<char> = None;
             let mut positional = Vec::new();
             let mut i = 0usize;
@@ -11967,6 +12120,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         i += 1;
                         col_spec = Some(rest[i].clone());
                     }
+                    "-n" | "--no-headers" => no_headers = true,
                     "-d" | "--delimiter" if i + 1 < rest.len() => {
                         i += 1;
                         explicit_delim = rest[i].chars().next();
@@ -11979,7 +12133,10 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if positional.is_empty() {
                 return ok_out("");
             }
-            let new_names: Vec<String> = positional[0].split(',').map(|s| s.trim().to_string()).collect();
+            let new_names: Vec<String> = parse_csv_rows(&positional[0], ',')
+                .into_iter()
+                .next()
+                .unwrap_or_default();
             let files = &positional[1..];
             let text = match read_csv_input(files, stdin, cwd, fs) {
                 Ok(t) => t,
@@ -11990,7 +12147,11 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if rows.is_empty() {
                 return ok_out("");
             }
-            let mut headers = rows[0].clone();
+            let mut headers: Vec<String> = if no_headers {
+                (0..rows[0].len()).map(|idx| idx.to_string()).collect()
+            } else {
+                rows[0].clone()
+            };
             let selected = col_spec
                 .map(|s| resolve_xan_select_indices(&s, &headers))
                 .unwrap_or_else(|| (0..headers.len()).collect());
@@ -12002,7 +12163,8 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
             }
             let mut out = format_csv_row(&headers, ',');
-            for r in &rows[1..] {
+            let data_rows = if no_headers { &rows[..] } else { &rows[1..] };
+            for r in data_rows {
                 out.push_str(&format_csv_row(r, ','));
             }
             ok_out(&out)
@@ -12702,6 +12864,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         "stats" => {
             let mut col_spec: Option<String> = None;
+            let mut nulls = false;
             let mut explicit_delim: Option<char> = None;
             let mut files = Vec::new();
             let mut i = 0usize;
@@ -12711,6 +12874,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         i += 1;
                         col_spec = Some(rest[i].clone());
                     }
+                    "--nulls" => nulls = true,
                     "-d" | "--delimiter" if i + 1 < rest.len() => {
                         i += 1;
                         explicit_delim = rest[i].chars().next();
@@ -12746,6 +12910,9 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 let mut has_int = false;
                 let mut has_empty = false;
                 let mut sum = 0.0f64;
+                let mut numeric_cnt = 0usize;
+                let mut mean_acc = 0.0f64;
+                let mut m2 = 0.0f64;
                 let mut nums: Vec<f64> = Vec::new();
                 let mut lex_first: Option<String> = None;
                 let mut lex_last: Option<String> = None;
@@ -12758,6 +12925,12 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     if cell.is_empty() {
                         empty += 1;
                         has_empty = true;
+                        if nulls {
+                            numeric_cnt += 1;
+                            let delta = 0.0 - mean_acc;
+                            mean_acc += delta / (numeric_cnt as f64);
+                            m2 += delta * (0.0 - mean_acc);
+                        }
                         continue;
                     }
                     count += 1;
@@ -12778,6 +12951,10 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         }
                         sum += v;
                         nums.push(v);
+                        numeric_cnt += 1;
+                        let delta = v - mean_acc;
+                        mean_acc += delta / (numeric_cnt as f64);
+                        m2 += delta * (v - mean_acc);
                     } else {
                         has_str = true;
                     }
@@ -12813,18 +12990,18 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         format!("{n}")
                     }
                 };
-                let (mean_s, var_s, std_s, min_s, max_s) = if !nums.is_empty() {
-                    let mean = sum / (nums.len() as f64);
-                    let var = nums.iter().map(|x| (x - mean).powi(2)).sum::<f64>() / (nums.len() as f64);
+                let (mean_s, var_s, std_s, min_s, max_s) = if numeric_cnt > 0 {
+                    let mean = mean_acc;
+                    let var = (m2 / (numeric_cnt as f64)).max(0.0);
                     let std = var.sqrt();
-                    let min_v = nums.iter().cloned().reduce(f64::min).unwrap_or(0.0);
-                    let max_v = nums.iter().cloned().reduce(f64::max).unwrap_or(0.0);
+                    let min_s = nums.iter().cloned().reduce(f64::min).map(&fmt_num).unwrap_or_default();
+                    let max_s = nums.iter().cloned().reduce(f64::max).map(&fmt_num).unwrap_or_default();
                     (
                         fmt_num(mean),
                         fmt_num(var),
                         fmt_num(std),
-                        fmt_num(min_v),
-                        fmt_num(max_v),
+                        min_s,
+                        max_s,
                     )
                 } else {
                     (
@@ -12938,10 +13115,16 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         "to" => {
             let mut out_file: Option<String> = None;
             let mut explicit_delim: Option<char> = None;
+            let mut nulls = false;
+            let mut omit = false;
+            let mut no_headers = false;
             let mut positional = Vec::new();
             let mut i = 0usize;
             while i < rest.len() {
                 match rest[i].as_str() {
+                    "--nulls" => nulls = true,
+                    "--omit" => omit = true,
+                    "-n" | "--no-headers" => no_headers = true,
                     "-o" | "--output" if i + 1 < rest.len() => {
                         i += 1;
                         out_file = Some(rest[i].clone());
@@ -12969,12 +13152,28 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if rows.is_empty() {
                 return ok_out("");
             }
-            let headers = &rows[0];
+            let headers: Vec<String> = if no_headers {
+                (0..rows[0].len()).map(|idx| idx.to_string()).collect()
+            } else {
+                rows[0].clone()
+            };
+            let data_rows = if no_headers { &rows[..] } else { &rows[1..] };
+            let col_numeric: Vec<bool> = (0..headers.len())
+                .map(|ci| {
+                    data_rows.iter().all(|r| {
+                        let c = r.get(ci).map(|s| s.as_str()).unwrap_or("");
+                        c.is_empty()
+                            || (!c.starts_with("0x")
+                                && !c.starts_with("0X")
+                                && c.parse::<f64>().is_ok_and(|v| v.is_finite()))
+                    })
+                })
+                .collect();
             let mut out = String::new();
             if fmt == "json" {
                 out.push('[');
             }
-            for (ri, r) in rows[1..].iter().enumerate() {
+            for (ri, r) in data_rows.iter().enumerate() {
                 if fmt == "txt" {
                     for cell in r {
                         out.push_str(cell);
@@ -12985,20 +13184,27 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 if fmt == "json" && ri > 0 {
                     out.push(',');
                 }
-                out.push('{');
+                let mut entries: Vec<(String, JVal)> = Vec::new();
                 for (ci, h) in headers.iter().enumerate() {
-                    if ci > 0 {
-                        out.push(',');
-                    }
                     let cell = r.get(ci).map(|s| s.as_str()).unwrap_or("");
-                    out.push_str(&format!("\"{}\":", h.replace('"', "\\\"")));
-                    if !cell.is_empty() && cell.parse::<f64>().is_ok() {
-                        out.push_str(cell);
+                    if cell.is_empty() {
+                        if omit {
+                            continue;
+                        }
+                        if nulls {
+                            entries.push((h.clone(), JVal::Null));
+                        } else {
+                            entries.push((h.clone(), JVal::Str(String::new())));
+                        }
+                    } else if col_numeric.get(ci).copied().unwrap_or(false)
+                        && let Ok(n) = cell.parse::<f64>()
+                    {
+                        entries.push((h.clone(), JVal::Number(n)));
                     } else {
-                        out.push_str(&format!("\"{}\"", cell.replace('"', "\\\"")));
+                        entries.push((h.clone(), JVal::Str(cell.to_string())));
                     }
                 }
-                out.push('}');
+                out.push_str(&JVal::Object(entries).to_json_string(true, false, 0));
                 if fmt != "json" {
                     out.push('\n');
                 }
@@ -13272,6 +13478,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         "join" => {
             let mut join_mode = "inner";
             let mut ignore_case = false;
+            let mut nulls = false;
             let mut drop_key_opt: Option<String> = None;
             let mut explicit_delim: Option<char> = None;
             let mut positional = Vec::new();
@@ -13284,6 +13491,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--semi" => join_mode = "semi",
                     "--anti" => join_mode = "anti",
                     "--cross" => join_mode = "cross",
+                    "--nulls" => nulls = true,
                     "-i" | "--ignore-case" => ignore_case = true,
                     "--drop-key" if i + 1 < rest.len() => {
                         i += 1;
@@ -13298,13 +13506,17 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 i += 1;
             }
-            if positional.len() < 3 {
+            if (join_mode == "cross" && positional.len() < 2)
+                || (join_mode != "cross" && positional.len() < 3)
+            {
                 return ok_out("");
             }
-            let (left_key_spec, left_file, right_key_spec, right_file) = if positional.len() >= 4 {
-                (&positional[0], &positional[1], &positional[2], &positional[3])
+            let (left_key_spec, left_file, right_key_spec, right_file) = if join_mode == "cross" && positional.len() == 2 {
+                ("", &positional[0], "", &positional[1])
+            } else if positional.len() >= 4 {
+                (positional[0].as_str(), &positional[1], positional[2].as_str(), &positional[3])
             } else {
-                (&positional[0], &positional[1], &positional[0], &positional[2])
+                (positional[0].as_str(), &positional[1], positional[0].as_str(), &positional[2])
             };
             let left_text = match read_csv_input(std::slice::from_ref(left_file), stdin, cwd, fs) {
                 Ok(t) => t,
@@ -13360,7 +13572,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     }
                     k.push(if ignore_case { s.to_lowercase() } else { s });
                 }
-                if any_nonempty { Some(k) } else { None }
+                if any_nonempty || nulls { Some(k) } else { None }
             };
             let emit_pair = |a: Option<&[String]>, b: Option<&[String]>| -> String {
                 let mut combined = Vec::new();
@@ -15411,15 +15623,16 @@ fn find_sql_col(cols: &[String], target: &str) -> Option<usize> {
 
 
 fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut mode = "list".to_string();
     let mut csv_mode = false;
     let mut json_mode = false;
-    let mut markdown_mode = false;
-    let mut line_mode = false;
-    let mut quote_mode = false;
     let mut header_mode = false;
+    let mut echo_mode = false;
     let mut readonly_mode = false;
     let mut sep = "|".to_string();
+    let mut row_sep = "\n".to_string();
     let mut nullvalue = String::new();
+    let mut widths: Vec<usize> = Vec::new();
     let mut init_files: Vec<String> = Vec::new();
     let mut cmd_stmts: Vec<String> = Vec::new();
     let mut positional = Vec::new();
@@ -15428,15 +15641,53 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     while i < args.len() {
         match args[i].as_str() {
             "-csv" => {
+                mode = "csv".to_string();
                 csv_mode = true;
                 sep = ",".to_string();
             }
-            "-json" => json_mode = true,
-            "-markdown" => markdown_mode = true,
-            "-line" => line_mode = true,
-            "-quote" => quote_mode = true,
+            "-json" => {
+                mode = "json".to_string();
+                json_mode = true;
+            }
+            "-markdown" => {
+                mode = "markdown".to_string();
+                header_mode = true;
+            }
+            "-box" => {
+                mode = "box".to_string();
+                header_mode = true;
+            }
+            "-table" => {
+                mode = "table".to_string();
+                header_mode = true;
+            }
+            "-column" => {
+                mode = "column".to_string();
+            }
+            "-html" => {
+                mode = "html".to_string();
+            }
+            "-ascii" => {
+                mode = "ascii".to_string();
+                sep = "\x1f".to_string();
+                row_sep = "\x1e".to_string();
+            }
+            "-tabs" => {
+                mode = "tabs".to_string();
+                sep = "\t".to_string();
+            }
+            "-list" => {
+                mode = "list".to_string();
+            }
+            "-line" => {
+                mode = "line".to_string();
+            }
+            "-quote" => {
+                mode = "quote".to_string();
+            }
             "-header" => header_mode = true,
             "-noheader" => header_mode = false,
+            "-echo" => echo_mode = true,
             "-readonly" => readonly_mode = true,
             "-separator" if i + 1 < args.len() => {
                 i += 1;
@@ -15559,36 +15810,120 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         };
 
         if let Some(rest) = stmt.strip_prefix(".mode") {
-            let m = rest.trim();
+            let parts: Vec<&str> = rest.split_whitespace().collect();
+            let m_name = parts.first().copied().unwrap_or("list").to_ascii_lowercase();
+            let m_arg = parts.get(1).copied();
+            mode = m_name.clone();
             csv_mode = false;
             dot_mode_csv = false;
             json_mode = false;
-            markdown_mode = false;
-            line_mode = false;
-            quote_mode = false;
             insert_table = None;
-            if m.contains("csv") {
-                csv_mode = true;
-                dot_mode_csv = true;
-                sep = ",".to_string();
-            } else if m.contains("list") {
-                if sep == "," {
-                    sep = "|".to_string();
+            match m_name.as_str() {
+                "csv" => {
+                    csv_mode = true;
+                    dot_mode_csv = true;
+                    sep = ",".to_string();
+                    row_sep = "\n".to_string();
                 }
-            } else if m.contains("json") {
-                json_mode = true;
-            } else if m.contains("markdown") {
-                markdown_mode = true;
-            } else if m.contains("line") {
-                line_mode = true;
-            } else if m.contains("quote") {
-                quote_mode = true;
-            } else if let Some(after_ins) = m.strip_prefix("insert") {
-                let t = after_ins.trim();
-                insert_table = Some(if t.is_empty() { "table".to_string() } else { t.to_string() });
-            } else if m.contains("tabs") {
-                sep = "\t".to_string();
+                "list" => {
+                    if sep == "," || sep == "\t" || sep == "\x1f" {
+                        sep = "|".to_string();
+                    }
+                    row_sep = "\n".to_string();
+                }
+                "tabs" => {
+                    sep = "\t".to_string();
+                    row_sep = "\n".to_string();
+                }
+                "ascii" => {
+                    sep = "\x1f".to_string();
+                    row_sep = "\x1e".to_string();
+                }
+                "json" => {
+                    json_mode = true;
+                }
+                "markdown" => {
+                    if m_arg.is_none() {
+                        header_mode = true;
+                    }
+                }
+                "box" | "table" => {
+                    if m_arg.is_none() {
+                        header_mode = true;
+                    }
+                }
+                "column" => {
+                    row_sep = "\n".to_string();
+                }
+                "line" => {
+                    row_sep = "\n".to_string();
+                }
+                "quote" => {
+                    sep = ",".to_string();
+                    row_sep = "\n".to_string();
+                }
+                "insert" => {
+                    let t = m_arg.unwrap_or("table").trim_matches('"').trim_matches('\'');
+                    insert_table = Some(if t.is_empty() { "table".to_string() } else { t.to_string() });
+                }
+                _ => {}
             }
+            continue;
+        }
+        if let Some(rest) = stmt.strip_prefix(".width") {
+            widths = rest
+                .split_whitespace()
+                .map(|w| w.parse::<isize>().unwrap_or(0).unsigned_abs())
+                .collect();
+            continue;
+        }
+        if let Some(rest) = stmt.strip_prefix(".print") {
+            let msg = rest.strip_prefix(' ').unwrap_or(rest.trim());
+            emit_chunk(
+                format!("{msg}\n"),
+                &mut once_path,
+                &output_path,
+                &mut out,
+                cli_csv_mode,
+                dot_mode_csv,
+            );
+            continue;
+        }
+        if let Some(rest) = stmt.strip_prefix(".echo") {
+            let v = rest.trim().to_ascii_lowercase();
+            echo_mode = matches!(v.as_str(), "on" | "1" | "true");
+            continue;
+        }
+        if stmt == ".show" || stmt.starts_with(".show ") {
+            let rsep_disp = if row_sep == "\n" { "\\n" } else { row_sep.as_str() };
+            let info = format!(
+                "        echo: {}\n     headers: {}\n        mode: {}\n   nullvalue: \"{}\"\n      output: {}\ncolseparator: \"{}\"\nrowseparator: \"{}\"\n",
+                if echo_mode { "on" } else { "off" },
+                if header_mode { "on" } else { "off" },
+                mode,
+                nullvalue,
+                output_path.as_deref().unwrap_or("stdout"),
+                sep,
+                rsep_disp,
+            );
+            emit_chunk(info, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
+            continue;
+        }
+        if stmt == ".databases" || stmt.starts_with(".databases ") {
+            let db_disp = if db_path == ":memory:" {
+                "\"\" r/w".to_string()
+            } else {
+                let full = resolve_posix_path(cwd, &db_path);
+                format!("{full} {}", if readonly_mode { "r/o" } else { "r/w" })
+            };
+            emit_chunk(
+                format!("main: {db_disp}\n"),
+                &mut once_path,
+                &output_path,
+                &mut out,
+                cli_csv_mode,
+                dot_mode_csv,
+            );
             continue;
         }
         if let Some(rest) = stmt.strip_prefix(".separator") {
@@ -15678,16 +16013,45 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             continue;
         }
-        if stmt.starts_with(".tables") {
-            let mut names: Vec<String> = tables.keys().chain(views.keys()).cloned().collect();
+        if let Some(rest) = stmt.strip_prefix(".tables") {
+            let pat = rest.trim().trim_matches('\'').trim_matches('"').to_ascii_lowercase();
+            let mut names: Vec<String> = tables
+                .keys()
+                .chain(views.keys())
+                .filter(|n| !n.to_ascii_lowercase().starts_with("sqlite_"))
+                .cloned()
+                .collect();
             names.sort();
             names.dedup();
-            let chunk = if names.is_empty() {
-                String::new()
-            } else {
-                format!("{}\n", names.join(" "))
-            };
-            emit_chunk(chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
+            if !pat.is_empty() {
+                names.retain(|n| {
+                    sql_wildcard_match(n.to_ascii_lowercase().as_bytes(), pat.as_bytes(), b'%', b'_')
+                });
+            }
+            if !names.is_empty() {
+                let max_len = names.iter().map(|s| s.len()).max().unwrap_or(1);
+                let n_col = (79 / (max_len + 2)).max(1);
+                let n_row = names.len().div_ceil(n_col);
+                let mut rows_out = Vec::new();
+                for r in 0..n_row {
+                    let mut cells = Vec::new();
+                    for c in 0..n_col {
+                        let idx = c * n_row + r;
+                        if let Some(nm) = names.get(idx) {
+                            cells.push(format!("{nm:<max_len$}"));
+                        }
+                    }
+                    rows_out.push(cells.join("  "));
+                }
+                emit_chunk(
+                    format!("{}\n", rows_out.join("\n")),
+                    &mut once_path,
+                    &output_path,
+                    &mut out,
+                    cli_csv_mode,
+                    dot_mode_csv,
+                );
+            }
             continue;
         }
         if stmt.starts_with(".indexes") {
@@ -15702,6 +16066,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         if let Some(rest) = stmt.strip_prefix(".import") {
             let parts: Vec<&str> = rest.split_whitespace().collect();
             let mut skip_lines = 0usize;
+            let mut explicit_csv = false;
             let mut pos_parts = Vec::new();
             let mut pi = 0usize;
             while pi < parts.len() {
@@ -15710,6 +16075,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     pi += 2;
                 } else if let Some(s) = parts[pi].strip_prefix("--skip=") {
                     skip_lines = s.parse().unwrap_or(0);
+                    pi += 1;
+                } else if parts[pi] == "--csv" {
+                    explicit_csv = true;
                     pi += 1;
                 } else if parts[pi].starts_with('-') {
                     pi += 1;
@@ -15727,7 +16095,11 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     if tables.contains_key(&tname) {
                         let tbl_cols = tables.get(&tname).map(|t| t.columns.clone()).unwrap_or_default();
                         for l in lines {
-                            let cells = parse_csv_rows(l, ',').into_iter().next().unwrap_or_default();
+                            let cells = if tbl_cols.len() == 1 && !csv_mode && !explicit_csv {
+                                vec![l.to_string()]
+                            } else {
+                                parse_csv_rows(l, ',').into_iter().next().unwrap_or_default()
+                            };
                             if cells != tbl_cols {
                                 let allow = fire_sql_triggers(
                                     &tname,
@@ -16347,19 +16719,17 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 rest = paren_slice[close_rel + 1..].trim().trim_start_matches(',').trim();
             }
             if resolved_any_cte && rest.to_ascii_uppercase().starts_with("SELECT ") {
-                let chunk = exec_sql_select_ext(
+                let chunk = exec_sql_select_with_mode(
                     rest,
                     &tables,
                     &views,
-                    csv_mode,
-                    json_mode,
-                    markdown_mode,
-                    line_mode,
-                    quote_mode,
+                    &mode,
                     insert_table.as_deref(),
                     header_mode,
                     &sep,
+                    &row_sep,
                     &nullvalue,
+                    &widths,
                 );
                 emit_chunk(chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
             } else if upper.contains("SUM(N) OVER") {
@@ -16370,19 +16740,17 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 emit_chunk("apac|3|1470\neu|3|1379\nus|3|1091\n".to_string(), &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
             }
         } else if upper.starts_with("SELECT") {
-            let chunk = exec_sql_select_ext(
+            let chunk = exec_sql_select_with_mode(
                 stmt,
                 &tables,
                 &views,
-                csv_mode,
-                json_mode,
-                markdown_mode,
-                line_mode,
-                quote_mode,
+                &mode,
                 insert_table.as_deref(),
                 header_mode,
                 &sep,
+                &row_sep,
                 &nullvalue,
+                &widths,
             );
             emit_chunk(chunk, &mut once_path, &output_path, &mut out, cli_csv_mode, dot_mode_csv);
         }
@@ -17729,6 +18097,282 @@ fn exec_sql_select(
 }
 
 
+fn is_sql_numeric_text(s: &str) -> bool {
+    if s.is_empty() {
+        return false;
+    }
+    let body = s.strip_prefix('-').or_else(|| s.strip_prefix('+')).unwrap_or(s);
+    if body.len() > 1 && body.starts_with('0') && !body.starts_with("0.") {
+        return false;
+    }
+    s.parse::<f64>().is_ok()
+}
+
+#[allow(clippy::too_many_arguments)]
+fn format_sql_result_rows(
+    headers: &[String],
+    rows: &[Vec<String>],
+    proj_is_num: Option<&[bool]>,
+    mode: &str,
+    insert_table: Option<&str>,
+    header_mode: bool,
+    sep: &str,
+    row_sep: &str,
+    nullvalue: &str,
+    widths: &[usize],
+) -> String {
+    if headers.is_empty() {
+        return String::new();
+    }
+    fn display_cell<'a>(v: &'a str, nullvalue: &'a str) -> &'a str {
+        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+            nullvalue
+        } else {
+            v
+        }
+    }
+    if mode == "json" {
+        let arr: Vec<JVal> = rows
+            .iter()
+            .map(|pvals| {
+                let mut entries = Vec::new();
+                for (idx, (cname, val_s)) in headers.iter().zip(pvals.iter()).enumerate() {
+                    let allow_num = proj_is_num.and_then(|p| p.get(idx).copied()).unwrap_or(true);
+                    let jv = if val_s.is_empty() || val_s.eq_ignore_ascii_case("NULL") {
+                        JVal::Null
+                    } else if allow_num
+                        && is_sql_numeric_text(val_s)
+                        && let Ok(n) = val_s.parse::<f64>()
+                    {
+                        JVal::Number(n)
+                    } else {
+                        JVal::Str(val_s.clone())
+                    };
+                    entries.push((cname.clone(), jv));
+                }
+                JVal::Object(entries)
+            })
+            .collect();
+        return format!("{}\n", JVal::Array(arr).to_json_string(true, false, 0));
+    }
+    if mode == "line" {
+        let mut out = String::new();
+        let width = headers.iter().map(|h| h.chars().count()).max().unwrap_or(5).max(5);
+        for (r_i, vals) in rows.iter().enumerate() {
+            if r_i > 0 {
+                out.push('\n');
+            }
+            for (h, v) in headers.iter().zip(vals.iter()) {
+                let dv = display_cell(v, nullvalue);
+                let pad = width.saturating_sub(h.chars().count());
+                out.push_str(&" ".repeat(pad));
+                out.push_str(h);
+                out.push_str(" = ");
+                out.push_str(dv);
+                out.push('\n');
+            }
+        }
+        return out;
+    }
+    if matches!(mode, "column" | "table" | "markdown" | "box") {
+        if !header_mode && mode != "markdown" && rows.is_empty() {
+            return String::new();
+        }
+        let mut col_widths = Vec::with_capacity(headers.len());
+        for col in 0..headers.len() {
+            let w = if let Some(&ew) = widths.get(col) && ew > 0 {
+                ew
+            } else {
+                let mut max_w = headers[col].chars().count().max(1);
+                for r in rows {
+                    let cell = r.get(col).map(|s| display_cell(s, nullvalue)).unwrap_or(nullvalue);
+                    max_w = max_w.max(cell.chars().count());
+                }
+                max_w
+            };
+            col_widths.push(w);
+        }
+        let render_border = |left: &str, middle: &str, right: &str, line_ch: &str, padding: usize| -> String {
+            let mut s = String::from(left);
+            for (col, &w) in col_widths.iter().enumerate() {
+                if col > 0 {
+                    s.push_str(middle);
+                }
+                s.push_str(&line_ch.repeat(w + padding));
+            }
+            s.push_str(right);
+            s.push('\n');
+            s
+        };
+        let render_row = |vals: &[String], is_header: bool| -> String {
+            let framed = mode != "column";
+            let bar = if mode == "box" { "│" } else { "|" };
+            let mut s = String::new();
+            if framed {
+                s.push_str(bar);
+                s.push(' ');
+            }
+            for (col, raw_v) in vals.iter().enumerate() {
+                if col > 0 {
+                    if framed {
+                        s.push(' ');
+                        s.push_str(bar);
+                        s.push(' ');
+                    } else {
+                        s.push_str("  ");
+                    }
+                }
+                let cell = if is_header {
+                    raw_v.as_str()
+                } else {
+                    display_cell(raw_v, nullvalue)
+                };
+                let len = cell.chars().count();
+                let w = col_widths.get(col).copied().unwrap_or(0);
+                let padding = w.saturating_sub(len);
+                let left = if is_header && matches!(mode, "table" | "markdown") {
+                    padding / 2
+                } else {
+                    0
+                };
+                s.push_str(&" ".repeat(left));
+                s.push_str(cell);
+                s.push_str(&" ".repeat(padding - left));
+            }
+            if framed {
+                s.push(' ');
+                s.push_str(bar);
+            }
+            s.push('\n');
+            s
+        };
+        let mut out = String::new();
+        if mode == "table" {
+            out.push_str(&render_border("+", "+", "+", "-", 2));
+        } else if mode == "box" {
+            out.push_str(&render_border("┌", "┬", "┐", "─", 2));
+        }
+        if header_mode || mode == "markdown" {
+            out.push_str(&render_row(headers, true));
+            match mode {
+                "column" => out.push_str(&render_border("", "  ", "", "-", 0)),
+                "markdown" => out.push_str(&render_border("|-", "-|-", "-|", "-", 0)),
+                "table" => out.push_str(&render_border("+", "+", "+", "-", 2)),
+                "box" => out.push_str(&render_border("├", "┼", "┤", "─", 2)),
+                _ => {}
+            }
+        }
+        for r in rows {
+            out.push_str(&render_row(r, false));
+        }
+        if mode == "table" {
+            out.push_str(&render_border("+", "+", "+", "-", 2));
+        } else if mode == "box" {
+            out.push_str(&render_border("└", "┴", "┘", "─", 2));
+        }
+        return out;
+    }
+    if mode == "insert" || insert_table.is_some() {
+        let ins_tbl = insert_table.unwrap_or("table");
+        let mut out = String::new();
+        for vals in rows {
+            let quoted: Vec<String> = vals
+                .iter()
+                .enumerate()
+                .map(|(idx, v)| {
+                    let allow_num = proj_is_num.and_then(|p| p.get(idx).copied()).unwrap_or(true);
+                    if v.eq_ignore_ascii_case("NULL") {
+                        "NULL".to_string()
+                    } else if allow_num && is_sql_numeric_text(v) {
+                        v.clone()
+                    } else {
+                        format!("'{}'", v.replace('\'', "''"))
+                    }
+                })
+                .collect();
+            out.push_str(&format!("INSERT INTO {ins_tbl} VALUES({});\n", quoted.join(",")));
+        }
+        return out;
+    }
+    if mode == "quote" {
+        let mut out = String::new();
+        if header_mode {
+            let q_hdr: Vec<String> = headers
+                .iter()
+                .map(|h| format!("'{}'", h.replace('\'', "''")))
+                .collect();
+            out.push_str(&format!("{}\n", q_hdr.join(",")));
+        }
+        for vals in rows {
+            let quoted: Vec<String> = vals
+                .iter()
+                .map(|v| {
+                    if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+                        "NULL".to_string()
+                    } else if is_sql_numeric_text(v) {
+                        v.clone()
+                    } else {
+                        format!("'{}'", v.replace('\'', "''"))
+                    }
+                })
+                .collect();
+            out.push_str(&format!("{}\n", quoted.join(",")));
+        }
+        return out;
+    }
+    if mode == "html" {
+        let esc_html = |s: &str| -> String {
+            s.replace('&', "&amp;")
+                .replace('<', "&lt;")
+                .replace('>', "&gt;")
+                .replace('"', "&quot;")
+        };
+        let mut out = String::new();
+        if header_mode {
+            out.push_str("<TR>");
+            for h in headers {
+                out.push_str("<TH>");
+                out.push_str(&esc_html(h));
+                out.push_str("</TH>\n");
+            }
+            out.push_str("</TR>\n");
+        }
+        for vals in rows {
+            out.push_str("<TR>");
+            for v in vals {
+                let dv = display_cell(v, nullvalue);
+                out.push_str("<TD>");
+                out.push_str(&esc_html(dv));
+                out.push_str("</TD>\n");
+            }
+            out.push_str("</TR>\n");
+        }
+        return out;
+    }
+    let mut out = String::new();
+    if header_mode {
+        if mode == "csv" {
+            out.push_str(&format_csv_row(headers, ','));
+        } else {
+            out.push_str(&headers.join(sep));
+            out.push_str(row_sep);
+        }
+    }
+    for vals in rows {
+        let disp_vals: Vec<String> = vals
+            .iter()
+            .map(|v| display_cell(v, nullvalue).to_string())
+            .collect();
+        if mode == "csv" {
+            out.push_str(&format_csv_row(&disp_vals, ','));
+        } else {
+            out.push_str(&disp_vals.join(sep));
+            out.push_str(row_sep);
+        }
+    }
+    out
+}
+
 #[allow(clippy::too_many_arguments)]
 fn exec_sql_select_ext(
     stmt: &str,
@@ -17743,6 +18387,48 @@ fn exec_sql_select_ext(
     header_mode: bool,
     sep: &str,
     nullvalue: &str,
+) -> String {
+    let mode = if insert_table.is_some() {
+        "insert"
+    } else if json_mode {
+        "json"
+    } else if markdown_mode {
+        "markdown"
+    } else if line_mode {
+        "line"
+    } else if quote_mode {
+        "quote"
+    } else if csv_mode {
+        "csv"
+    } else {
+        "list"
+    };
+    exec_sql_select_with_mode(
+        stmt,
+        tables,
+        views,
+        mode,
+        insert_table,
+        header_mode,
+        sep,
+        "\n",
+        nullvalue,
+        &[],
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn exec_sql_select_with_mode(
+    stmt: &str,
+    tables: &BTreeMap<String, SqlTable>,
+    views: &BTreeMap<String, String>,
+    mode: &str,
+    insert_table: Option<&str>,
+    header_mode: bool,
+    sep: &str,
+    row_sep: &str,
+    nullvalue: &str,
+    widths: &[usize],
 ) -> String {
     let stmt_norm = stmt.replace(['\r', '\n', '\t'], " ");
     let stmt = stmt_norm.as_str();
@@ -17892,47 +18578,18 @@ fn exec_sql_select_ext(
                 vals.push(eval_sql_row_expr(trimmed, &[], &[], tables));
             }
         }
-        if json_mode {
-            let mut entries = Vec::new();
-            for (k, v) in aliases.into_iter().zip(vals.into_iter()) {
-                let jv = if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-                    JVal::Null
-                } else if let Ok(n) = v.parse::<f64>() {
-                    JVal::Number(n)
-                } else {
-                    JVal::Str(v)
-                };
-                entries.push((k, jv));
-            }
-            return format!("{}\n", JVal::Array(vec![JVal::Object(entries)]).to_json_string(true, false, 0));
-        }
-        if markdown_mode {
-            let mut out = String::new();
-            out.push_str(&format!("| {} |\n", aliases.join(" | ")));
-            let dashes: Vec<&str> = aliases.iter().map(|_| "---").collect();
-            out.push_str(&format!("|{}|\n", dashes.join("|")));
-            out.push_str(&format!("| {} |\n", vals.join(" | ")));
-            return out;
-        }
-        if line_mode {
-            let mut out = String::new();
-            let width = aliases.iter().map(|h| h.len()).max().unwrap_or(5).max(5);
-            for (h, v) in aliases.iter().zip(vals.iter()) {
-                let dv = if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-                    nullvalue
-                } else {
-                    v.as_str()
-                };
-                out.push_str(&format!("{h:>width$} = {dv}\n"));
-            }
-            return out;
-        }
-        let mut res = String::new();
-        if header_mode {
-            res.push_str(&format!("{}\n", aliases.join(sep)));
-        }
-        res.push_str(&format!("{}\n", vals.join(sep)));
-        return res;
+        return format_sql_result_rows(
+            &aliases,
+            &[vals],
+            None,
+            mode,
+            insert_table,
+            header_mode,
+            sep,
+            row_sep,
+            nullvalue,
+            widths,
+        );
     };
 
     let mut is_distinct = false;
@@ -18043,11 +18700,13 @@ fn exec_sql_select_ext(
             group_clause,
             having_clause,
             order_clause,
-            json_mode,
-            csv_mode,
+            mode,
+            insert_table,
             header_mode,
             sep,
+            row_sep,
             nullvalue,
+            widths,
         );
     }
 
@@ -18788,120 +19447,19 @@ fn exec_sql_select_ext(
         proj_rows.truncate(lim);
     }
 
-    if json_mode {
-        let arr: Vec<JVal> = proj_rows
-            .iter()
-            .map(|(_, pvals)| {
-                let mut entries = Vec::new();
-                for (idx, (cname, val_s)) in proj_headers.iter().zip(pvals.iter()).enumerate() {
-                    let allow_num = proj_is_num.get(idx).copied().unwrap_or(true);
-                    let jv = if val_s.is_empty() || val_s.eq_ignore_ascii_case("NULL") {
-                        JVal::Null
-                    } else if allow_num && let Ok(n) = val_s.parse::<f64>() {
-                        JVal::Number(n)
-                    } else {
-                        JVal::Str(val_s.clone())
-                    };
-                    entries.push((cname.clone(), jv));
-                }
-                JVal::Object(entries)
-            })
-            .collect();
-        return format!("{}\n", JVal::Array(arr).to_json_string(true, false, 0));
-    }
-    if markdown_mode {
-        let mut out = String::new();
-        out.push_str(&format!("| {} |\n", proj_headers.join(" | ")));
-        let dashes: Vec<&str> = proj_headers.iter().map(|_| "---").collect();
-        out.push_str(&format!("|{}|\n", dashes.join("|")));
-        for (_, vals) in proj_rows {
-            out.push_str(&format!("| {} |\n", vals.join(" | ")));
-        }
-        return out;
-    }
-    if line_mode {
-        let mut out = String::new();
-        let width = proj_headers.iter().map(|h| h.len()).max().unwrap_or(5).max(5);
-        for (r_i, (_, vals)) in proj_rows.iter().enumerate() {
-            if r_i > 0 {
-                out.push('\n');
-            }
-            for (h, v) in proj_headers.iter().zip(vals.iter()) {
-                let dv = if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-                    nullvalue
-                } else {
-                    v.as_str()
-                };
-                out.push_str(&format!("{h:>width$} = {dv}\n"));
-            }
-        }
-        return out;
-    }
-    if let Some(ins_tbl) = insert_table {
-        let mut out = String::new();
-        for (_, vals) in proj_rows {
-            let quoted: Vec<String> = vals
-                .iter()
-                .enumerate()
-                .map(|(idx, v)| {
-                    let allow_num = proj_is_num.get(idx).copied().unwrap_or(true);
-                    if allow_num && v.parse::<f64>().is_ok() {
-                        v.clone()
-                    } else {
-                        format!("'{}'", v.replace('\'', "''"))
-                    }
-                })
-                .collect();
-            out.push_str(&format!("INSERT INTO {ins_tbl} VALUES({});\n", quoted.join(",")));
-        }
-        return out;
-    }
-    if quote_mode {
-        let mut out = String::new();
-        for (_, vals) in proj_rows {
-            let quoted: Vec<String> = vals
-                .iter()
-                .map(|v| {
-                    if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-                        "NULL".to_string()
-                    } else if v.parse::<f64>().is_ok() {
-                        v.clone()
-                    } else {
-                        format!("'{}'", v.replace('\'', "''"))
-                    }
-                })
-                .collect();
-            out.push_str(&format!("{}\n", quoted.join(",")));
-        }
-        return out;
-    }
-
-    let mut out = String::new();
-    if header_mode {
-        if csv_mode {
-            out.push_str(&format_csv_row(&proj_headers, ','));
-        } else {
-            out.push_str(&format!("{}\n", proj_headers.join(sep)));
-        }
-    }
-    for (_, vals) in proj_rows {
-        let disp_vals: Vec<String> = vals
-            .into_iter()
-            .map(|v| {
-                if (v.is_empty() || v.eq_ignore_ascii_case("NULL")) && !nullvalue.is_empty() {
-                    nullvalue.to_string()
-                } else {
-                    v
-                }
-            })
-            .collect();
-        if csv_mode {
-            out.push_str(&format_csv_row(&disp_vals, ','));
-        } else {
-            out.push_str(&format!("{}\n", disp_vals.join(sep)));
-        }
-    }
-    out
+    let only_rows: Vec<Vec<String>> = proj_rows.into_iter().map(|(_, vals)| vals).collect();
+    format_sql_result_rows(
+        &proj_headers,
+        &only_rows,
+        Some(&proj_is_num),
+        mode,
+        insert_table,
+        header_mode,
+        sep,
+        row_sep,
+        nullvalue,
+        widths,
+    )
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -18912,11 +19470,13 @@ fn exec_sql_aggregate_select(
     group_clause: Option<&str>,
     having_clause: Option<&str>,
     order_clause: Option<&str>,
-    json_mode: bool,
-    csv_mode: bool,
+    mode: &str,
+    insert_table: Option<&str>,
     header_mode: bool,
     sep: &str,
+    row_sep: &str,
     nullvalue: &str,
+    widths: &[usize],
 ) -> String {
     let raw_items = split_top_level_comma(select_part);
     let mut exprs: Vec<(String, String)> = Vec::new();
@@ -19054,53 +19614,20 @@ fn exec_sql_aggregate_select(
             });
         }
     }
-    if json_mode {
-        let arr: Vec<JVal> = out_rows
-            .iter()
-            .map(|(_, rvals)| {
-                let mut entries = Vec::new();
-                for ((_, alias), val_s) in exprs.iter().zip(rvals.iter()) {
-                    let jv = if val_s.is_empty() || val_s.eq_ignore_ascii_case("NULL") {
-                        JVal::Null
-                    } else if let Ok(n) = val_s.parse::<f64>() {
-                        JVal::Number(n)
-                    } else {
-                        JVal::Str(val_s.clone())
-                    };
-                    entries.push((alias.clone(), jv));
-                }
-                JVal::Object(entries)
-            })
-            .collect();
-        return format!("{}\n", JVal::Array(arr).to_json_string(true, false, 0));
-    }
-    let mut out = String::new();
     let hdr: Vec<String> = exprs.iter().map(|(_, alias)| alias.clone()).collect();
-    if header_mode {
-        if csv_mode {
-            out.push_str(&format_csv_row(&hdr, ','));
-        } else {
-            out.push_str(&format!("{}\n", hdr.join(sep)));
-        }
-    }
-    for (_, r) in out_rows {
-        let disp: Vec<String> = r
-            .into_iter()
-            .map(|v| {
-                if (v.is_empty() || v.eq_ignore_ascii_case("NULL")) && !nullvalue.is_empty() {
-                    nullvalue.to_string()
-                } else {
-                    v
-                }
-            })
-            .collect();
-        if csv_mode {
-            out.push_str(&format_csv_row(&disp, ','));
-        } else {
-            out.push_str(&format!("{}\n", disp.join(sep)));
-        }
-    }
-    out
+    let only_rows: Vec<Vec<String>> = out_rows.into_iter().map(|(_, r)| r).collect();
+    format_sql_result_rows(
+        &hdr,
+        &only_rows,
+        None,
+        mode,
+        insert_table,
+        header_mode,
+        sep,
+        row_sep,
+        nullvalue,
+        widths,
+    )
 }
 
 
@@ -19317,7 +19844,10 @@ fn parse_sql_arg_to_jval(val_s: &str, raw_expr: &str) -> JVal {
     if (rt.starts_with('\'') && rt.ends_with('\'')) || (rt.starts_with('"') && rt.ends_with('"')) {
         return JVal::Str(val_s.to_string());
     }
-    if let Ok(n) = val_s.parse::<f64>() {
+    if val_s.is_empty() {
+        return JVal::Null;
+    }
+    if is_sql_numeric_text(val_s) && let Ok(n) = val_s.parse::<f64>() {
         return JVal::Number(n);
     }
     if (val_s.starts_with('{') || val_s.starts_with('['))
@@ -19509,28 +20039,50 @@ fn eval_sql_row_expr(
         let inner = eval_sql_row_expr(&s[7..s.len() - 1], cols, row, tables);
         return inner.chars().count().to_string();
     }
+    if upper.starts_with("OCTET_LENGTH(") && s.ends_with(')') {
+        let inner = eval_sql_row_expr(&s[13..s.len() - 1], cols, row, tables);
+        return inner.len().to_string();
+    }
     if (upper.starts_with("SUBSTR(") || upper.starts_with("SUBSTRING(")) && s.ends_with(')') {
         let pfx = if upper.starts_with("SUBSTRING(") { 10 } else { 7 };
         let parts = split_top_level_comma(&s[pfx..s.len() - 1]);
         if parts.len() >= 2 {
             let text = eval_sql_row_expr(parts[0], cols, row, tables);
-            let start = eval_sql_row_expr(parts[1], cols, row, tables)
-                .trim()
-                .parse::<usize>()
-                .unwrap_or(1)
-                .saturating_sub(1);
             let chs: Vec<char> = text.chars().collect();
-            if start >= chs.len() {
-                return String::new();
-            }
-            if parts.len() >= 3 {
-                let len = eval_sql_row_expr(parts[2], cols, row, tables)
+            let pos = eval_sql_row_expr(parts[1], cols, row, tables)
+                .trim()
+                .parse::<f64>()
+                .unwrap_or(1.0) as isize;
+            let mut len = if parts.len() >= 3 {
+                eval_sql_row_expr(parts[2], cols, row, tables)
                     .trim()
-                    .parse::<usize>()
-                    .unwrap_or(0);
-                return chs[start..(start + len).min(chs.len())].iter().collect();
+                    .parse::<f64>()
+                    .unwrap_or(0.0) as isize
+            } else {
+                chs.len() as isize
+            };
+            let start_idx: isize = if pos > 0 {
+                pos - 1
+            } else if pos < 0 {
+                chs.len() as isize + pos
+            } else {
+                if parts.len() >= 3 && len > 0 {
+                    len -= 1;
+                }
+                0
+            };
+            if len < 0 {
+                let end_idx = start_idx.max(0) as usize;
+                let begin_idx = (start_idx.max(0) + len).max(0) as usize;
+                return chs[begin_idx.min(chs.len())..end_idx.min(chs.len())].iter().collect();
             }
-            return chs[start..].iter().collect();
+            if start_idx < 0 {
+                let adj_len = (len + start_idx).max(0) as usize;
+                return chs[..adj_len.min(chs.len())].iter().collect();
+            }
+            let st = (start_idx as usize).min(chs.len());
+            let en = (st + len as usize).min(chs.len());
+            return chs[st..en].iter().collect();
         }
     }
     if upper.starts_with("INSTR(") && s.ends_with(')') {
@@ -19742,7 +20294,7 @@ fn eval_sql_row_expr(
             return base.replace(&from_s, &to_s);
         }
     }
-    if upper.starts_with("PRINTF(") && s.ends_with(')') {
+    if (upper.starts_with("PRINTF(") || upper.starts_with("FORMAT(")) && s.ends_with(')') {
         let args = split_top_level_comma(&s[7..s.len() - 1]);
         if let Some(fmt_raw) = args.first() {
             let fmt_s = eval_sql_row_expr(fmt_raw, cols, row, tables);
@@ -19752,6 +20304,192 @@ fn eval_sql_row_expr(
                 .collect();
             return eval_sql_printf(&fmt_s, &eval_args);
         }
+    }
+    if upper.starts_with("CONCAT(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[7..s.len() - 1]);
+        let mut out_s = String::new();
+        for a in args {
+            let v = eval_sql_row_expr(a, cols, row, tables);
+            if !v.eq_ignore_ascii_case("NULL") {
+                out_s.push_str(&v);
+            }
+        }
+        return out_s;
+    }
+    if upper.starts_with("CONCAT_WS(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[10..s.len() - 1]);
+        if let Some(sep_arg) = args.first() {
+            let sep_s = eval_sql_row_expr(sep_arg, cols, row, tables);
+            let mut parts_v = Vec::new();
+            for a in &args[1..] {
+                let rt = a.trim();
+                let v = eval_sql_row_expr(a, cols, row, tables);
+                let is_lit_empty = rt == "''" || rt == "\"\"";
+                if (!v.is_empty() || is_lit_empty) && !v.eq_ignore_ascii_case("NULL") {
+                    parts_v.push(v);
+                }
+            }
+            return parts_v.join(&sep_s);
+        }
+        return String::new();
+    }
+    if (upper.starts_with("LPAD(") || upper.starts_with("RPAD(")) && s.ends_with(')') {
+        let is_left = upper.starts_with("LPAD(");
+        let args = split_top_level_comma(&s[5..s.len() - 1]);
+        if args.len() >= 2 {
+            let base = eval_sql_row_expr(args[0], cols, row, tables);
+            let target_len = eval_sql_row_expr(args[1], cols, row, tables)
+                .trim()
+                .parse::<f64>()
+                .unwrap_or(0.0)
+                .max(0.0) as usize;
+            let pad_s = args
+                .get(2)
+                .map(|a| eval_sql_row_expr(a, cols, row, tables))
+                .filter(|p| !p.is_empty())
+                .unwrap_or_else(|| " ".to_string());
+            let base_chars: Vec<char> = base.chars().collect();
+            if base_chars.len() >= target_len {
+                return base;
+            }
+            let needed = target_len - base_chars.len();
+            let pad_chars: Vec<char> = pad_s.chars().collect();
+            let mut fill = String::with_capacity(needed);
+            for i in 0..needed {
+                fill.push(pad_chars[i % pad_chars.len()]);
+            }
+            return if is_left {
+                format!("{fill}{base}")
+            } else {
+                format!("{base}{fill}")
+            };
+        }
+    }
+    if upper.starts_with("REPEAT(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[7..s.len() - 1]);
+        if args.len() >= 2 {
+            let base = eval_sql_row_expr(args[0], cols, row, tables);
+            let count = eval_sql_row_expr(args[1], cols, row, tables)
+                .trim()
+                .parse::<f64>()
+                .unwrap_or(0.0)
+                .max(0.0) as usize;
+            return base.repeat(count);
+        }
+    }
+    if upper.starts_with("REVERSE(") && s.ends_with(')') {
+        let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables);
+        return base.chars().rev().collect();
+    }
+    if upper.starts_with("CHAR(") && s.ends_with(')') {
+        let args = split_top_level_comma(&s[5..s.len() - 1]);
+        let mut out_s = String::new();
+        for a in args {
+            let cp = eval_sql_row_expr(a, cols, row, tables)
+                .trim()
+                .parse::<f64>()
+                .unwrap_or(0.0)
+                .max(0.0) as u32;
+            if let Some(ch) = char::from_u32(cp) {
+                out_s.push(ch);
+            }
+        }
+        return out_s;
+    }
+    if upper.starts_with("UNICODE(") && s.ends_with(')') {
+        let base = eval_sql_row_expr(&s[8..s.len() - 1], cols, row, tables);
+        return base.chars().next().map(|c| (c as u32).to_string()).unwrap_or_default();
+    }
+    if upper.starts_with("UNHEX(") && s.ends_with(')') {
+        let h: String = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables)
+            .chars()
+            .filter(|c| !c.is_whitespace())
+            .collect();
+        if h.len() % 2 != 0 || !h.chars().all(|c| c.is_ascii_hexdigit()) {
+            return String::new();
+        }
+        let mut bytes = Vec::with_capacity(h.len() / 2);
+        let mut i = 0usize;
+        while i + 2 <= h.len() {
+            if let Ok(b) = u8::from_str_radix(&h[i..i + 2], 16) {
+                bytes.push(b);
+            }
+            i += 2;
+        }
+        return String::from_utf8_lossy(&bytes).to_string();
+    }
+    if upper.starts_with("SIGN(") && s.ends_with(')') {
+        let v = eval_sql_row_expr(&s[5..s.len() - 1], cols, row, tables);
+        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+            return String::new();
+        }
+        let n = v.parse::<f64>().unwrap_or(0.0);
+        return if n > 0.0 {
+            "1".to_string()
+        } else if n < 0.0 {
+            "-1".to_string()
+        } else {
+            "0".to_string()
+        };
+    }
+    if (upper.starts_with("CEIL(") || upper.starts_with("CEILING(") || upper.starts_with("FLOOR(") || upper.starts_with("TRUNC(") || upper.starts_with("SQRT("))
+        && s.ends_with(')')
+    {
+        let open_p = s.find('(').unwrap_or(4);
+        let fn_name = &upper[..open_p];
+        let v = eval_sql_row_expr(&s[open_p + 1..s.len() - 1], cols, row, tables);
+        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+            return String::new();
+        }
+        let n = v.parse::<f64>().unwrap_or(0.0);
+        let r = match fn_name {
+            "CEIL" | "CEILING" => n.ceil(),
+            "FLOOR" => n.floor(),
+            "TRUNC" => n.trunc(),
+            "SQRT" => n.sqrt(),
+            _ => n,
+        };
+        if (r - r.round()).abs() < 1e-9 {
+            return (r.round() as i64).to_string();
+        }
+        return r.to_string();
+    }
+    if (upper.starts_with("MOD(") || upper.starts_with("POW(") || upper.starts_with("POWER("))
+        && s.ends_with(')')
+    {
+        let open_p = s.find('(').unwrap_or(3);
+        let fn_name = &upper[..open_p];
+        let args = split_top_level_comma(&s[open_p + 1..s.len() - 1]);
+        if args.len() >= 2 {
+            let va = eval_sql_row_expr(args[0], cols, row, tables);
+            let vb = eval_sql_row_expr(args[1], cols, row, tables);
+            if va.is_empty() || vb.is_empty() || va.eq_ignore_ascii_case("NULL") || vb.eq_ignore_ascii_case("NULL") {
+                return String::new();
+            }
+            let a = va.parse::<f64>().unwrap_or(0.0);
+            let b = vb.parse::<f64>().unwrap_or(0.0);
+            if fn_name == "MOD" {
+                if b == 0.0 {
+                    return String::new();
+                }
+                let r = a % b;
+                if (r - r.round()).abs() < 1e-9 {
+                    return (r.round() as i64).to_string();
+                }
+                return r.to_string();
+            } else {
+                let r = a.powf(b);
+                if (r - r.round()).abs() < 1e-9 {
+                    return (r.round() as i64).to_string();
+                }
+                return r.to_string();
+            }
+        }
+    }
+    if upper.starts_with("JSON_QUOTE(") && s.ends_with(')') {
+        let raw_arg = s[11..s.len() - 1].trim();
+        let val_s = eval_sql_row_expr(raw_arg, cols, row, tables);
+        return parse_sql_arg_to_jval(&val_s, raw_arg).to_json_string(true, false, 0);
     }
     if upper.starts_with("CAST(") && find_matching_paren(&s[4..]) == Some(s.len() - 5) {
         let inner = &s[5..s.len() - 1];
@@ -19795,13 +20533,22 @@ fn eval_sql_row_expr(
         let args = split_top_level_comma(&s[prefix_len..s.len() - 1]);
         if let Some(doc_arg) = args.first() {
             let doc_s = eval_sql_row_expr(doc_arg, cols, row, tables);
-            let path_s = args
-                .get(1)
-                .map(|a| eval_sql_row_expr(a, cols, row, tables))
-                .unwrap_or_else(|| "$".to_string());
             if let Ok(mut parsed) = parse_json_stream(&doc_s)
                 && let Some(jval) = parsed.pop()
             {
+                if !is_type && args.len() > 2 {
+                    let mut items = Vec::with_capacity(args.len() - 1);
+                    for p_arg in &args[1..] {
+                        let ps = eval_sql_row_expr(p_arg, cols, row, tables);
+                        let segs = parse_sql_json_path(&ps);
+                        items.push(get_jq_jval_path(&jval, &segs));
+                    }
+                    return JVal::Array(items).to_json_string(true, false, 0);
+                }
+                let path_s = args
+                    .get(1)
+                    .map(|a| eval_sql_row_expr(a, cols, row, tables))
+                    .unwrap_or_else(|| "$".to_string());
                 let segs = parse_sql_json_path(&path_s);
                 let found = get_jq_jval_path(&jval, &segs);
                 if is_type {

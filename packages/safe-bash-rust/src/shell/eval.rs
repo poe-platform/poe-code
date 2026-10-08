@@ -3,8 +3,9 @@ use crate::budget::ExecutionBudget;
 use crate::commands::try_run_command;
 use crate::shell::builtins::{BuiltinOutcome, try_run_builtin};
 use crate::shell::expand::{
-    decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr, expand_globs_in_word,
-    expand_parameter_expr, glob_match_ext, resolve_nameref_base, sync_array_metadata,
+    bash_quote_double, decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr,
+    expand_globs_in_word, expand_parameter_expr, get_var_meta_info, glob_match_ext,
+    resolve_nameref_base, sync_array_metadata,
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
@@ -1268,6 +1269,11 @@ impl<'a> EvalState<'a> {
             .contains_key(&format!("__unexported__{resolved}"));
         if allexport || self.in_prefix_assignment || attr.contains('x') {
             self.env.remove(&format!("__unexported__{resolved}"));
+            if allexport && !attr.contains('x') {
+                let mut new_attr = attr.clone();
+                new_attr.push('x');
+                self.env.insert(format!("__attr__{resolved}"), new_attr);
+            }
         } else if !already_existed || was_unexported {
             self.env
                 .insert(format!("__unexported__{resolved}"), "1".to_string());
@@ -2059,7 +2065,10 @@ impl<'a> EvalState<'a> {
                 Err(e) => Err(e),
             };
             let local_frame = self.local_scopes.pop().unwrap_or_default();
-            for (k, orig) in local_frame {
+            for (k, orig) in &local_frame {
+                if k.starts_with("__") {
+                    continue;
+                }
                 let prefix = format!("{k}[");
                 let arr_keys: Vec<String> = self
                     .env
@@ -2073,6 +2082,20 @@ impl<'a> EvalState<'a> {
                 self.env.remove(&format!("__attr__{k}"));
                 self.env.remove(&format!("__assoc__{k}"));
                 self.env.remove(&format!("__nameref__{k}"));
+                self.env.remove(&format!("__declared__{k}"));
+                match orig {
+                    Some(v) => {
+                        self.env.insert(k.clone(), v.clone());
+                    }
+                    None => {
+                        self.env.remove(k);
+                    }
+                }
+            }
+            for (k, orig) in local_frame {
+                if !k.starts_with("__") {
+                    continue;
+                }
                 match orig {
                     Some(v) => {
                         self.env.insert(k, v);
@@ -2740,6 +2763,7 @@ impl<'a> EvalState<'a> {
                         'x' => self.apply_set_option("xtrace", enable),
                         'T' => self.apply_set_option("functrace", enable),
                         'E' => self.apply_set_option("errtrace", enable),
+                        'B' => self.apply_set_option("braceexpand", enable),
                         'o' => {
                             if i + 1 < args.len() && !args[i + 1].starts_with('-') {
                                 i += 1;
@@ -3170,32 +3194,56 @@ impl<'a> EvalState<'a> {
         cmd: &str,
         args: &[String],
     ) -> Result<BuiltinOutcome, EvalError> {
-        let is_local = cmd == "local";
-        let mut is_nameref = false;
-        let mut is_assoc = false;
-        let mut is_indexed = false;
-        let mut is_int = false;
-        let mut is_lower = false;
-        let mut is_upper = false;
-        let mut is_readonly = cmd == "readonly";
-        let mut is_export = cmd == "export";
+        let mut enabled: BTreeSet<char> = BTreeSet::new();
+        let mut disabled: BTreeSet<char> = BTreeSet::new();
+        if cmd == "readonly" {
+            enabled.insert('r');
+        }
+        if cmd == "export" {
+            enabled.insert('x');
+        }
+        let mut is_global = false;
         let mut func_names_only = false;
         let mut func_mode = false;
         let mut print_mode = false;
         let mut operands = Vec::new();
+        let mut end_of_opts = false;
 
         for arg in args {
-            if arg.starts_with('-') && arg.len() > 1 && !arg.contains('=') {
+            if !end_of_opts && arg == "--" {
+                end_of_opts = true;
+                continue;
+            }
+            if !end_of_opts
+                && (arg.starts_with('-') || (cmd != "export" && cmd != "readonly" && arg.starts_with('+')))
+                && arg.len() > 1
+                && !arg.contains('=')
+            {
+                let is_plus = arg.starts_with('+');
                 for ch in arg[1..].chars() {
+                    if cmd == "export" && ch == 'n' {
+                        enabled.remove(&'x');
+                        disabled.insert('x');
+                        continue;
+                    }
                     match ch {
-                        'n' => is_nameref = true,
-                        'A' => is_assoc = true,
-                        'a' => is_indexed = true,
-                        'i' => is_int = true,
-                        'l' => is_lower = true,
-                        'u' => is_upper = true,
-                        'r' => is_readonly = true,
-                        'x' => is_export = true,
+                        'n' | 'A' | 'a' | 'i' | 'l' | 'u' | 'r' | 'x' => {
+                            if is_plus {
+                                enabled.remove(&ch);
+                                disabled.insert(ch);
+                            } else {
+                                disabled.remove(&ch);
+                                if ch == 'l' {
+                                    enabled.remove(&'u');
+                                    disabled.insert('u');
+                                } else if ch == 'u' {
+                                    enabled.remove(&'l');
+                                    disabled.insert('l');
+                                }
+                                enabled.insert(ch);
+                            }
+                        }
+                        'g' => is_global = !is_plus,
                         'F' => func_names_only = true,
                         'f' => func_mode = true,
                         'p' => print_mode = true,
@@ -3206,6 +3254,14 @@ impl<'a> EvalState<'a> {
                 operands.push(arg.clone());
             }
         }
+
+        let is_nameref = enabled.contains(&'n');
+        let is_assoc = enabled.contains(&'A');
+        let is_indexed = enabled.contains(&'a');
+        let is_readonly = enabled.contains(&'r');
+        let is_export = enabled.contains(&'x');
+        let is_local = cmd == "local"
+            || ((cmd == "declare" || cmd == "typeset") && !is_global && !self.local_scopes.is_empty());
 
         if func_names_only {
             let mut out = String::new();
@@ -3224,9 +3280,13 @@ impl<'a> EvalState<'a> {
             });
         }
 
-        if func_mode && is_export {
+        if func_mode && (is_export || disabled.contains(&'x')) {
             for name in &operands {
-                self.exported_functions.insert(name.clone());
+                if disabled.contains(&'x') {
+                    self.exported_functions.remove(name);
+                } else {
+                    self.exported_functions.insert(name.clone());
+                }
             }
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
@@ -3246,16 +3306,48 @@ impl<'a> EvalState<'a> {
             });
         }
 
-        if print_mode {
+        if (cmd == "readonly" || cmd == "export") && operands.is_empty() {
             let mut out = String::new();
-            for name in &operands {
-                let attr = self
-                    .env
-                    .get(&format!("__attr__{name}"))
-                    .cloned()
-                    .unwrap_or_else(|| "-".to_string());
-                let val = self.env.get(name).cloned().unwrap_or_default();
-                out.push_str(&format!("declare -{attr} {name}=\"{val}\"\n"));
+            let mut candidate_names: BTreeSet<String> = BTreeSet::new();
+            for k in self.env.keys() {
+                if let Some(n) = k.strip_prefix("__attr__") {
+                    candidate_names.insert(n.to_string());
+                } else if !k.starts_with("__") && !k.contains('[') {
+                    candidate_names.insert(k.clone());
+                }
+            }
+            for name in candidate_names {
+                let (has_var, is_arr_assoc, is_arr, entries, flags) = get_var_meta_info(&name, self.env);
+                if !has_var {
+                    continue;
+                }
+                if cmd == "readonly" {
+                    if !flags.contains('r') {
+                        continue;
+                    }
+                    if is_arr {
+                        let mut pairs = Vec::new();
+                        for (k, v) in entries {
+                            let qk = if is_arr_assoc { bash_quote_double(&k) } else { k };
+                            pairs.push(format!("[{qk}]={}", bash_quote_double(&v)));
+                        }
+                        let prefix_fl = if is_arr_assoc { "Ar" } else { "ar" };
+                        out.push_str(&format!("declare -{prefix_fl} {name}=({})\n", pairs.join(" ")));
+                    } else if let Some(val) = self.env.get(&name) {
+                        out.push_str(&format!("declare -r {name}={}\n", bash_quote_double(val)));
+                    } else {
+                        out.push_str(&format!("declare -r {name}\n"));
+                    }
+                } else {
+                    if !flags.contains('x') {
+                        continue;
+                    }
+                    if let Some(val) = self.env.get(&name) {
+                        out.push_str(&format!("declare -x {name}={}\n", bash_quote_double(val)));
+                    } else {
+                        out.push_str(&format!("declare -x {name}\n"));
+                    }
+                }
             }
             return Ok(BuiltinOutcome {
                 stdout: out,
@@ -3264,30 +3356,62 @@ impl<'a> EvalState<'a> {
             });
         }
 
-        let mut attr_str = String::new();
-        if is_indexed {
-            attr_str.push('a');
-        }
-        if is_assoc {
-            attr_str.push('A');
-        }
-        if is_int {
-            attr_str.push('i');
-        }
-        if is_lower {
-            attr_str.push('l');
-        }
-        if is_nameref {
-            attr_str.push('n');
-        }
-        if is_readonly {
-            attr_str.push('r');
-        }
-        if is_upper {
-            attr_str.push('u');
-        }
-        if is_export {
-            attr_str.push('x');
+        if print_mode {
+            let mut out = String::new();
+            let mut stderr = String::new();
+            let mut status = 0;
+            let names: Vec<String> = if !operands.is_empty() {
+                operands
+            } else {
+                let mut set = BTreeSet::new();
+                for k in self.env.keys() {
+                    if let Some(n) = k.strip_prefix("__attr__") {
+                        set.insert(n.to_string());
+                    } else if let Some(n) = k.strip_prefix("__declared__") {
+                        set.insert(n.to_string());
+                    } else if let Some(n) = k.strip_prefix("__assoc__") {
+                        set.insert(n.to_string());
+                    } else if let Some((b, _)) = k.split_once('[') {
+                        if !b.starts_with("__") {
+                            set.insert(b.to_string());
+                        }
+                    } else if !k.starts_with("__") {
+                        set.insert(k.clone());
+                    }
+                }
+                set.into_iter().collect()
+            };
+            for name in &names {
+                let (has_var, is_arr_assoc, is_arr, entries, flags) = get_var_meta_info(name, self.env);
+                if !has_var {
+                    stderr.push_str(&format!("{cmd}: {name}: not found\n"));
+                    status = 1;
+                    continue;
+                }
+                let flag_str = if flags.is_empty() {
+                    "--".to_string()
+                } else {
+                    format!("-{flags}")
+                };
+                if is_arr {
+                    let mut pairs = Vec::with_capacity(entries.len());
+                    for (k, v) in entries {
+                        let qk = if is_arr_assoc { bash_quote_double(&k) } else { k };
+                        let qv = bash_quote_double(&v);
+                        pairs.push(format!("[{qk}]={qv}"));
+                    }
+                    out.push_str(&format!("declare {flag_str} {name}=({})\n", pairs.join(" ")));
+                } else if let Some(val) = self.env.get(name) {
+                    out.push_str(&format!("declare {flag_str} {name}={}\n", bash_quote_double(val)));
+                } else {
+                    out.push_str(&format!("declare {flag_str} {name}\n"));
+                }
+            }
+            return Ok(BuiltinOutcome {
+                stdout: out,
+                stderr,
+                exit_code: status,
+            });
         }
 
         for op in operands {
@@ -3306,6 +3430,17 @@ impl<'a> EvalState<'a> {
                 && !frame.contains_key(&base_name)
             {
                 frame.insert(base_name.clone(), self.env.get(&base_name).cloned());
+                for meta_prefix in ["__attr__", "__assoc__", "__nameref__", "__declared__"] {
+                    let mk = format!("{meta_prefix}{base_name}");
+                    frame.insert(mk.clone(), self.env.get(&mk).cloned());
+                }
+                self.env.remove(&format!("__attr__{base_name}"));
+                self.env.remove(&format!("__assoc__{base_name}"));
+                self.env.remove(&format!("__nameref__{base_name}"));
+                self.env.remove(&format!("__declared__{base_name}"));
+                if val_opt.is_none() || !append {
+                    self.env.remove(&base_name);
+                }
             }
 
             if self
@@ -3327,6 +3462,13 @@ impl<'a> EvalState<'a> {
             if is_export {
                 self.env.remove(&format!("__unexported__{base_name}"));
             }
+            if disabled.contains(&'x') {
+                self.env
+                    .insert(format!("__unexported__{base_name}"), "1".to_string());
+            }
+            if disabled.contains(&'n') {
+                self.env.remove(&format!("__nameref__{base_name}"));
+            }
 
             if is_nameref {
                 if let Some(target) = val_opt {
@@ -3343,8 +3485,23 @@ impl<'a> EvalState<'a> {
                 continue;
             }
 
-            let pre_attr = attr_str.replace('r', "");
-            if !pre_attr.is_empty() {
+            let mut cur_attr = self
+                .env
+                .get(&format!("__attr__{base_name}"))
+                .cloned()
+                .unwrap_or_default();
+            for &d in &disabled {
+                cur_attr = cur_attr.chars().filter(|&c| c != d).collect();
+            }
+            for &e in &enabled {
+                if "aAilnrux".contains(e) && !cur_attr.contains(e) {
+                    cur_attr.push(e);
+                }
+            }
+            let pre_attr: String = cur_attr.chars().filter(|&c| c != 'r').collect();
+            if pre_attr.is_empty() {
+                self.env.remove(&format!("__attr__{base_name}"));
+            } else {
                 self.env
                     .insert(format!("__attr__{base_name}"), pre_attr);
             }
@@ -3353,22 +3510,17 @@ impl<'a> EvalState<'a> {
                 self.assign_variable(&var_name, &v, append)?;
             } else if is_indexed || is_assoc {
                 sync_array_metadata(&base_name, self.env);
-            } else if is_local && !self.env.contains_key(&base_name) {
+            } else if is_local && !self.env.contains_key(&base_name) && enabled.is_empty() && disabled.is_empty() {
                 self.env.insert(base_name.clone(), String::new());
+            } else if !self.env.contains_key(&base_name) {
+                self.env
+                    .insert(format!("__declared__{base_name}"), "1".to_string());
             }
 
-            if !attr_str.is_empty() {
-                let mut merged = self
-                    .env
-                    .get(&format!("__attr__{base_name}"))
-                    .cloned()
-                    .unwrap_or_default();
-                for ch in attr_str.chars() {
-                    if !merged.contains(ch) {
-                        merged.push(ch);
-                    }
-                }
-                self.env.insert(format!("__attr__{base_name}"), merged);
+            if cur_attr.is_empty() {
+                self.env.remove(&format!("__attr__{base_name}"));
+            } else {
+                self.env.insert(format!("__attr__{base_name}"), cur_attr);
             }
         }
 
@@ -3436,6 +3588,9 @@ impl<'a> EvalState<'a> {
                 };
             }
             self.env.remove(&resolved);
+            self.env.remove(&format!("__attr__{resolved}"));
+            self.env.remove(&format!("__declared__{resolved}"));
+            self.env.remove(&format!("__assoc__{resolved}"));
             let prefix = format!("{resolved}[");
             let arr_keys: Vec<String> = self
                 .env
@@ -4752,7 +4907,7 @@ impl<'a> EvalState<'a> {
                 .cloned()
                 .unwrap_or_else(|| "bash".to_string()));
         }
-        if matches!(first, '?' | '#' | '@' | '*' | '$' | '!') || first.is_ascii_digit() {
+        if matches!(first, '?' | '#' | '@' | '*' | '$' | '!' | '-') || first.is_ascii_digit() {
             *idx += 1;
             let key = first.to_string();
             return expand_parameter_expr(&key, self.env, self.last_exit, &self.pos_args)

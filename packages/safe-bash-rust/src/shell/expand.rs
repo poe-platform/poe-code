@@ -273,6 +273,19 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                 Some('\\') => out_bytes.push(b'\\'),
                 Some('\'') => out_bytes.push(b'\''),
                 Some('"') => out_bytes.push(b'"'),
+                Some('?') => out_bytes.push(b'?'),
+                Some('c') => {
+                    if let Some(ctrl) = chars.next() {
+                        if ctrl == '\\' && chars.peek() == Some(&'\\') {
+                            chars.next();
+                        }
+                        let b = if ctrl == '?' { 0x7f } else { (ctrl as u8) & 0x1f };
+                        out_bytes.push(b);
+                    } else {
+                        out_bytes.push(b'\\');
+                        out_bytes.push(b'c');
+                    }
+                }
                 Some('x') => {
                     let mut hex = String::new();
                     for _ in 0..2 {
@@ -282,7 +295,10 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                             hex.push(chars.next().unwrap());
                         }
                     }
-                    if let Ok(val) = u8::from_str_radix(&hex, 16) {
+                    if hex.is_empty() {
+                        out_bytes.push(b'\\');
+                        out_bytes.push(b'x');
+                    } else if let Ok(val) = u8::from_str_radix(&hex, 16) {
                         out_bytes.push(val);
                     }
                 }
@@ -1036,6 +1052,123 @@ pub fn expand_parameter_expr(
         return Ok(pos_args.join(&sep));
     }
 
+    // Parameter transforms @E, @Q, @P, @u, @U, @L, @a, @A, @k, @K
+    if let Some((var, xform)) = expr.rsplit_once('@')
+        && matches!(xform, "E" | "Q" | "P" | "u" | "U" | "L" | "a" | "A" | "k" | "K")
+    {
+        let eff_var = if let Some(ptr) = var.strip_prefix('!') {
+            let target = lookup_var(ptr, env, last_exit, pos_args);
+            if target.is_empty() {
+                return Ok(String::new());
+            }
+            target
+        } else {
+            var.to_string()
+        };
+        match xform {
+            "E" | "Q" | "P" | "U" | "u" | "L" => {
+                if let Some(elems) = lookup_array_elements(&eff_var, env, pos_args) {
+                    let mut out = Vec::with_capacity(elems.len());
+                    for el in &elems {
+                        out.push(apply_value_transform(el, xform, env, last_exit, pos_args)?);
+                    }
+                    let sep = if eff_var.ends_with("[*]") || eff_var == "*" {
+                        env.get("IFS")
+                            .and_then(|s| s.chars().next())
+                            .map(|c| c.to_string())
+                            .unwrap_or_else(|| {
+                                if env.contains_key("IFS") {
+                                    String::new()
+                                } else {
+                                    " ".to_string()
+                                }
+                            })
+                    } else {
+                        " ".to_string()
+                    };
+                    return Ok(out.join(&sep));
+                }
+                if !is_var_set(&eff_var, env, pos_args) {
+                    return Ok(String::new());
+                }
+                let val = lookup_var(&eff_var, env, last_exit, pos_args);
+                return apply_value_transform(&val, xform, env, last_exit, pos_args);
+            }
+            "a" => {
+                let base = eff_var
+                    .strip_suffix("[@]")
+                    .or_else(|| eff_var.strip_suffix("[*]"))
+                    .unwrap_or(&eff_var);
+                let resolved = resolve_nameref_base(base, env).to_string();
+                let (has_var, _, _, _, flags) = get_var_meta_info(&resolved, env);
+                return Ok(if has_var { flags } else { String::new() });
+            }
+            "A" => {
+                let base = eff_var
+                    .strip_suffix("[@]")
+                    .or_else(|| eff_var.strip_suffix("[*]"))
+                    .unwrap_or(&eff_var);
+                let resolved = resolve_nameref_base(base, env).to_string();
+                let (has_var, is_assoc, is_array, entries, flags) = get_var_meta_info(&resolved, env);
+                if !has_var {
+                    return Ok(String::new());
+                }
+                if is_array {
+                    let mut pairs = Vec::with_capacity(entries.len());
+                    for (k, v) in entries {
+                        let qk = if is_assoc { bash_quote_double(&k) } else { k };
+                        let qv = bash_quote_double(&v);
+                        pairs.push(format!("[{qk}]={qv}"));
+                    }
+                    let fl = if flags.is_empty() { "a".to_string() } else { flags };
+                    return Ok(format!("declare -{fl} {resolved}=({})", pairs.join(" ")));
+                }
+                if let Some(raw_val) = env.get(&resolved) {
+                    let quoted = bash_quote_value(raw_val);
+                    if flags.is_empty() {
+                        return Ok(format!("{resolved}={quoted}"));
+                    }
+                    return Ok(format!("declare -{flags} {resolved}={quoted}"));
+                }
+                return Ok(if flags.is_empty() {
+                    String::new()
+                } else {
+                    format!("declare -{flags} {resolved}")
+                });
+            }
+            "k" | "K" => {
+                let base = eff_var
+                    .strip_suffix("[@]")
+                    .or_else(|| eff_var.strip_suffix("[*]"))
+                    .unwrap_or(&eff_var);
+                let resolved = resolve_nameref_base(base, env).to_string();
+                let (_, is_assoc, is_array, entries, _) = get_var_meta_info(&resolved, env);
+                if is_array {
+                    let mut parts = Vec::new();
+                    for (k, v) in entries {
+                        if xform == "K" {
+                            let qk = if is_assoc { bash_quote_value(&k) } else { k };
+                            let qv = bash_quote_double(&v);
+                            parts.push(format!("{qk} {qv}"));
+                        } else {
+                            parts.push(k);
+                            parts.push(v);
+                        }
+                    }
+                    return Ok(parts.join(" "));
+                }
+                let Some(raw_val) = env.get(&resolved) else {
+                    return Ok(String::new());
+                };
+                if xform == "K" {
+                    return Ok(bash_quote_value(raw_val));
+                }
+                return Ok(raw_val.clone());
+            }
+            _ => {}
+        }
+    }
+
     // Indirect / keys / prefix discovery: ${!var}, ${!prefix*}, ${!prefix@}, ${!arr[@]}, ${!arr[*]}
     if let Some(rest) = expr.strip_prefix('!') {
         if let Some(arr_base) = rest.strip_suffix("[@]").or_else(|| rest.strip_suffix("[*]")) {
@@ -1102,73 +1235,6 @@ pub fn expand_parameter_expr(
             return Ok(val.len().to_string());
         }
         return Ok(val.chars().count().to_string());
-    }
-
-    // Parameter transforms @E, @Q, @u, @U, @L, @a, @A, @k, @K
-    if let Some((var, xform)) = expr.rsplit_once('@')
-        && matches!(xform, "E" | "Q" | "u" | "U" | "L" | "a" | "A" | "k" | "K")
-    {
-        match xform {
-            "E" => {
-                let val = lookup_var(var, env, last_exit, pos_args);
-                return Ok(decode_ansi_c_escapes(&val));
-            }
-            "Q" => {
-                let val = lookup_var(var, env, last_exit, pos_args);
-                return Ok(bash_quote_value(&val));
-            }
-            "U" => {
-                let val = lookup_var(var, env, last_exit, pos_args);
-                return Ok(bash_uppercase(&val, None, true));
-            }
-            "u" => {
-                let val = lookup_var(var, env, last_exit, pos_args);
-                return Ok(bash_uppercase(&val, None, false));
-            }
-            "L" => {
-                let val = lookup_var(var, env, last_exit, pos_args);
-                return Ok(bash_lowercase(&val, None, true));
-            }
-            "a" => {
-                let base = var.strip_suffix("[@]").or_else(|| var.strip_suffix("[*]")).unwrap_or(var);
-                let resolved = resolve_nameref_base(base, env);
-                if let Some(attr) = env.get(&format!("__attr__{resolved}")) {
-                    return Ok(attr.clone());
-                }
-                if env.get(&format!("__assoc__{resolved}")).map(|v| v == "1").unwrap_or(false) {
-                    return Ok("A".to_string());
-                }
-                if env.contains_key(&format!("{resolved}[#]")) {
-                    return Ok("a".to_string());
-                }
-                return Ok(String::new());
-            }
-            "k" | "K" => {
-                let base = var.strip_suffix("[@]").or_else(|| var.strip_suffix("[*]")).unwrap_or(var);
-                let resolved = resolve_nameref_base(base, env);
-                let prefix = format!("{resolved}[");
-                let is_assoc = env.get(&format!("__assoc__{resolved}")).map(|v| v == "1").unwrap_or(false);
-                let mut entries: Vec<(String, String)> = env
-                    .iter()
-                    .filter_map(|(k, v)| {
-                        k.strip_prefix(&prefix)
-                            .and_then(|s| s.strip_suffix(']'))
-                            .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
-                            .map(|sub| (sub.to_string(), v.clone()))
-                    })
-                    .collect();
-                if !is_assoc {
-                    entries.sort_by_key(|(k, _)| k.parse::<i64>().unwrap_or(0));
-                }
-                let mut parts = Vec::new();
-                for (k, v) in entries {
-                    parts.push(k);
-                    parts.push(v);
-                }
-                return Ok(parts.join(" "));
-            }
-            _ => {}
-        }
     }
 
     // Find top-level operator after variable name (respecting [...] subscript)
@@ -1453,7 +1519,7 @@ pub fn expand_parameter_expr(
         && !is_var_set(expr, env, pos_args)
         && !expr.ends_with("[@]")
         && !expr.ends_with("[*]")
-        && !matches!(expr, "?" | "#" | "@" | "*" | "$" | "!" | "0")
+        && !matches!(expr, "?" | "#" | "@" | "*" | "$" | "!" | "0" | "-")
     {
         return Err(format!("{expr}: unbound variable"));
     }
@@ -1632,22 +1698,31 @@ pub fn expand_double_quoted_at_expr(
                 if let Some(op) = op_rest.strip_prefix('@') {
                     match op {
                         "Q" => return Some(elems.iter().map(|e| bash_quote_value(e)).collect()),
-                        "U" => return Some(elems.iter().map(|e| e.to_uppercase()).collect()),
-                        "u" => {
+                        "E" => return Some(elems.iter().map(|e| decode_ansi_c_escapes(e)).collect()),
+                        "P" => {
                             return Some(
                                 elems
                                     .iter()
-                                    .map(|e| {
-                                        let mut c = e.chars();
-                                        match c.next() {
-                                            Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
-                                            None => String::new(),
-                                        }
-                                    })
+                                    .map(|e| apply_value_transform(e, "P", env, 0, pos_args).unwrap_or_default())
                                     .collect(),
                             )
                         }
-                        "L" => return Some(elems.iter().map(|e| e.to_lowercase()).collect()),
+                        "U" => return Some(elems.iter().map(|e| bash_uppercase(e, None, true)).collect()),
+                        "u" => return Some(elems.iter().map(|e| bash_uppercase(e, None, false)).collect()),
+                        "L" => return Some(elems.iter().map(|e| bash_lowercase(e, None, true)).collect()),
+                        "k" if var.ends_with("[@]") => {
+                            let arr_base = var.strip_suffix("[@]").unwrap();
+                            let resolved = resolve_nameref_base(arr_base, env).to_string();
+                            let (_, _, is_array, entries, _) = get_var_meta_info(&resolved, env);
+                            if is_array {
+                                let mut tokens = Vec::new();
+                                for (k, v) in entries {
+                                    tokens.push(k);
+                                    tokens.push(v);
+                                }
+                                return Some(tokens);
+                            }
+                        }
                         _ => {}
                     }
                 }
@@ -1767,6 +1842,32 @@ fn expand_nested_dollar(
     if *i >= chars.len() {
         return Ok("$".to_string());
     }
+    if chars[*i] == '(' && chars.get(*i + 1) == Some(&'(') {
+        *i += 2;
+        let mut depth = 1usize;
+        let mut inner = String::new();
+        while *i < chars.len() && depth > 0 {
+            if chars[*i] == '(' {
+                depth += 1;
+                inner.push('(');
+                *i += 1;
+            } else if chars[*i] == ')' {
+                if depth == 1 && chars.get(*i + 1) == Some(&')') {
+                    *i += 2;
+                    break;
+                }
+                depth = depth.saturating_sub(1);
+                inner.push(')');
+                *i += 1;
+            } else {
+                inner.push(chars[*i]);
+                *i += 1;
+            }
+        }
+        let expanded = expand_nested_operand(&inner, env, last_exit, pos_args)?;
+        let val = eval_arith(&expanded, env)?;
+        return Ok(val.to_string());
+    }
     if chars[*i] == '{' {
         *i += 1;
         let mut depth = 1usize;
@@ -1870,27 +1971,162 @@ pub fn resolve_nameref_base<'a>(base: &'a str, env: &'a BTreeMap<String, String>
 
 
 pub fn bash_quote_value(val: &str) -> String {
-    if val.chars().any(|c| c == '\n' || c == '\t' || c == '\r' || (c as u32) < 0x20 || (c as u32) == 0x7f) {
+    bash_quote_value_mode(val, false)
+}
+
+pub fn bash_quote_double(val: &str) -> String {
+    bash_quote_value_mode(val, true)
+}
+
+pub fn bash_quote_value_mode(val: &str, double_quoted: bool) -> String {
+    if val.chars().any(|c| (c as u32) < 0x20 || (c as u32) == 0x7f || c.is_control()) {
         let mut out = String::new();
         out.push('$');
         out.push('\'');
         for c in val.chars() {
             match c {
-                '\n' => out.push_str("\\n"),
+                '\x07' => out.push_str("\\a"),
+                '\x08' => out.push_str("\\b"),
                 '\t' => out.push_str("\\t"),
+                '\n' => out.push_str("\\n"),
+                '\x0b' => out.push_str("\\v"),
+                '\x0c' => out.push_str("\\f"),
                 '\r' => out.push_str("\\r"),
+                '\x1b' => out.push_str("\\E"),
                 '\\' => out.push_str("\\\\"),
                 '\'' => out.push_str("\\'"),
                 c if (c as u32) < 0x20 || (c as u32) == 0x7f => {
-                    out.push_str(&format!("\\x{:02x}", c as u32));
+                    out.push_str(&format!("\\{:03o}", c as u32));
+                }
+                c if c.is_control() => {
+                    let mut buf = [0u8; 4];
+                    for &b in c.encode_utf8(&mut buf).as_bytes() {
+                        out.push_str(&format!("\\{:03o}", b));
+                    }
                 }
                 _ => out.push(c),
             }
         }
         out.push('\'');
         out
+    } else if double_quoted {
+        let mut out = String::with_capacity(val.len() + 2);
+        out.push('"');
+        for c in val.chars() {
+            if matches!(c, '"' | '\\' | '$' | '`') {
+                out.push('\\');
+            }
+            out.push(c);
+        }
+        out.push('"');
+        out
     } else {
         format!("'{}'", val.replace('\'', "'\\''"))
+    }
+}
+
+pub fn get_var_meta_info(
+    resolved: &str,
+    env: &BTreeMap<String, String>,
+) -> (bool, bool, bool, Vec<(String, String)>, String) {
+    let attr = env.get(&format!("__attr__{resolved}")).cloned().unwrap_or_default();
+    let is_assoc = env
+        .get(&format!("__assoc__{resolved}"))
+        .map(|v| v == "1")
+        .unwrap_or(false)
+        || attr.contains('A');
+    let prefix = format!("{resolved}[");
+    let mut entries: Vec<(String, String)> = env
+        .iter()
+        .filter_map(|(k, v)| {
+            k.strip_prefix(&prefix)
+                .and_then(|s| s.strip_suffix(']'))
+                .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
+                .map(|sub| (sub.to_string(), v.clone()))
+        })
+        .collect();
+    if !is_assoc {
+        entries.sort_by_key(|(k, _)| k.parse::<i64>().unwrap_or(0));
+    }
+    let is_indexed = !is_assoc
+        && (!entries.is_empty()
+            || env.contains_key(&format!("{resolved}[#]"))
+            || attr.contains('a'));
+    let is_array = is_assoc || is_indexed;
+    let has_var = is_array
+        || env.contains_key(resolved)
+        || !attr.is_empty()
+        || env.contains_key(&format!("__declared__{resolved}"))
+        || env.contains_key(&format!("__nameref__{resolved}"));
+    let mut flags = String::new();
+    if is_indexed {
+        flags.push('a');
+    }
+    if is_assoc {
+        flags.push('A');
+    }
+    if attr.contains('i') {
+        flags.push('i');
+    }
+    if attr.contains('l') {
+        flags.push('l');
+    }
+    if attr.contains('n') || env.contains_key(&format!("__nameref__{resolved}")) {
+        flags.push('n');
+    }
+    if attr.contains('r') {
+        flags.push('r');
+    }
+    if attr.contains('u') {
+        flags.push('u');
+    }
+    if attr.contains('x') {
+        flags.push('x');
+    }
+    (has_var, is_assoc, is_array, entries, flags)
+}
+
+fn apply_value_transform(
+    val: &str,
+    xform: &str,
+    env: &mut BTreeMap<String, String>,
+    last_exit: i32,
+    pos_args: &[String],
+) -> Result<String, String> {
+    match xform {
+        "E" => Ok(decode_ansi_c_escapes(val)),
+        "Q" => Ok(bash_quote_value(val)),
+        "U" => Ok(bash_uppercase(val, None, true)),
+        "u" => Ok(bash_uppercase(val, None, false)),
+        "L" => Ok(bash_lowercase(val, None, true)),
+        "P" => {
+            let chars: Vec<char> = val.chars().collect();
+            let mut decoded = String::new();
+            let mut i = 0usize;
+            while i < chars.len() {
+                if chars[i] == '\\' && i + 1 < chars.len() {
+                    let esc = chars[i + 1];
+                    i += 2;
+                    match esc {
+                        'n' => decoded.push('\n'),
+                        'r' => decoded.push('\r'),
+                        't' => decoded.push('\t'),
+                        'e' | 'E' => decoded.push('\x1b'),
+                        'a' => decoded.push('\x07'),
+                        '\\' => decoded.push_str("\\\\"),
+                        other => {
+                            decoded.push('\\');
+                            decoded.push(other);
+                        }
+                    }
+                } else {
+                    decoded.push(chars[i]);
+                    i += 1;
+                }
+            }
+            expand_nested_operand(&decoded, env, last_exit, pos_args)
+        }
+        _ => Ok(val.to_string()),
     }
 }
 
@@ -2034,6 +2270,31 @@ pub fn lookup_var(
     }
     if name == "?" {
         return last_exit.to_string();
+    }
+    if name == "-" {
+        let mut flags = String::new();
+        if env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
+            flags.push('a');
+        }
+        if env.get("__set_errexit").map(|v| v == "1").unwrap_or(false) {
+            flags.push('e');
+        }
+        if env.get("__set_noglob").map(|v| v == "1").unwrap_or(false) {
+            flags.push('f');
+        }
+        if env.get("__set_noexec").map(|v| v == "1").unwrap_or(false) {
+            flags.push('n');
+        }
+        if env.get("__set_nounset").map(|v| v == "1").unwrap_or(false) {
+            flags.push('u');
+        }
+        if env.get("__set_braceexpand").map(|v| v != "0").unwrap_or(true) {
+            flags.push('B');
+        }
+        if env.get("__set_noclobber").map(|v| v == "1").unwrap_or(false) {
+            flags.push('C');
+        }
+        return flags;
     }
     if name == "#" {
         return pos_args.len().to_string();

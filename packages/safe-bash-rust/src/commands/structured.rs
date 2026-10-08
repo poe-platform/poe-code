@@ -33787,6 +33787,32 @@ fn cmd_csvpy(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else if line.contains("len(list(reader))") {
             let n = if as_dict { data_rows.len() } else { rows.len() };
             stdout.push_str(&format!("{n}\n>>> "));
+        } else if as_dict && (line.contains("for ") && line.contains(" in reader")) {
+            let mut extracted_col: Option<String> = None;
+            for quote_ch in ['\'', '"'] {
+                let pat = format!("[{quote_ch}");
+                if let Some(start) = line.find(&pat) {
+                    let after = &line[start + pat.len()..];
+                    let end_pat = format!("{quote_ch}]");
+                    if let Some(end) = after.find(&end_pat) {
+                        extracted_col = Some(after[..end].to_string());
+                        break;
+                    }
+                }
+            }
+            if let Some(col) = extracted_col {
+                let col_idx = headers.iter().position(|h| h == &col);
+                let vals: Vec<String> = data_rows
+                    .iter()
+                    .map(|r| {
+                        let v = col_idx.and_then(|i| r.get(i)).map(|s| s.as_str()).unwrap_or("");
+                        py_repr_str(v)
+                    })
+                    .collect();
+                stdout.push_str(&format!("[{}]\n>>> ", vals.join(", ")));
+            } else {
+                stdout.push_str(&format!("{dict_list_repr}\n>>> "));
+            }
         } else if as_dict && (line.contains("reader") || line.contains("dict(")) {
             stdout.push_str(&format!("{dict_list_repr}\n>>> "));
         } else if line.contains("list(reader)") || line == "reader" {

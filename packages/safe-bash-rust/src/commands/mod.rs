@@ -703,13 +703,17 @@ where
                         });
                     }
                 }
-            } else if let Some((k, v)) = a.split_once('=') {
-                if !k.is_empty() && !k.starts_with('-') {
-                    overrides.push((k.to_string(), v.to_string()));
-                    idx += 1;
-                } else {
-                    break;
-                }
+            } else {
+                break;
+            }
+        }
+        while idx < work_args.len() {
+            if let Some((k, v)) = work_args[idx].split_once('=')
+                && !k.is_empty()
+                && !k.starts_with('-')
+            {
+                overrides.push((k.to_string(), v.to_string()));
+                idx += 1;
             } else {
                 break;
             }
@@ -817,49 +821,41 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
             i += 1;
             continue;
         }
-        if ch == '\\' {
+        if ch == '\\' && (quote != Some('\'') || matches!(chars.get(i + 1), Some('\\' | '\''))) {
             i += 1;
             if i >= chars.len() {
                 return Err("invalid backslash at end of string in -S".into());
             }
             let nxt = chars[i];
-            if quote == Some('\'') {
-                if nxt == '\'' || nxt == '\\' {
-                    cur.push(nxt);
-                } else {
-                    cur.push('\\');
-                    cur.push(nxt);
+            match nxt {
+                'n' => cur.push('\n'),
+                't' => cur.push('\t'),
+                'r' => cur.push('\r'),
+                'f' => cur.push('\x0c'),
+                'v' => cur.push('\x0b'),
+                'c' => {
+                    if quote == Some('"') {
+                        return Err("'\\c' must not appear in double-quoted -S string".into());
+                    }
+                    if active {
+                        tokens.push(cur);
+                    }
+                    return Ok(tokens);
                 }
-            } else {
-                match nxt {
-                    'n' => cur.push('\n'),
-                    't' => cur.push('\t'),
-                    'r' => cur.push('\r'),
-                    'f' => cur.push('\x0c'),
-                    'v' => cur.push('\x0b'),
-                    'c' => {
-                        if quote == Some('"') {
-                            return Err("'\\c' must not appear in double-quoted -S string".into());
-                        }
+                '_' => {
+                    if quote.is_none() {
                         if active {
-                            tokens.push(cur);
+                            tokens.push(std::mem::take(&mut cur));
+                            active = false;
                         }
-                        return Ok(tokens);
+                        i += 1;
+                        continue;
+                    } else {
+                        cur.push(' ');
                     }
-                    '_' => {
-                        if quote.is_none() {
-                            if active {
-                                tokens.push(std::mem::take(&mut cur));
-                                active = false;
-                            }
-                            i += 1;
-                            continue;
-                        } else {
-                            cur.push(' ');
-                        }
-                    }
-                    other => cur.push(other),
                 }
+                '"' | '#' | '$' | '\'' | '\\' => cur.push(nxt),
+                other => return Err(format!("invalid sequence '\\{other}' in -S")),
             }
             active = true;
             i += 1;
@@ -893,7 +889,7 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
         i += 1;
     }
     if quote.is_some() {
-        return Err("unterminated quote in -S".into());
+        return Err("no terminating quote in -S string".into());
     }
     if active {
         tokens.push(cur);

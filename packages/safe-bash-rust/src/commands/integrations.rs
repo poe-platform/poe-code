@@ -524,13 +524,59 @@ fn generate_recipe_password(spec: Option<&str>, seq: u64) -> String {
 }
 
 fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, String> {
-    let rest = uri
-        .strip_prefix("op://")
-        .ok_or_else(|| format!("invalid secret reference: {uri}"))?;
-    let parts: Vec<&str> = rest.split('/').filter(|s| !s.is_empty()).collect();
-    if parts.len() < 3 {
-        return Err(format!("invalid secret reference: {uri}"));
+    if uri.len() < 5 || !uri[..5].eq_ignore_ascii_case("op://") {
+        return Err("Invalid secret reference scheme".to_string());
     }
+    let query_start = uri.find('?');
+    let path_part = match query_start {
+        Some(q) => &uri[5..q],
+        None => &uri[5..],
+    };
+    let parts: Vec<&str> = path_part.split('/').collect();
+    let is_allowed_ref_char = |c: char| -> bool {
+        let lc = c.to_ascii_lowercase();
+        lc.is_ascii_lowercase()
+            || lc.is_ascii_digit()
+            || matches!(lc, '-' | '_' | '.' | ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c')
+    };
+    if (parts.len() != 3 && parts.len() != 4)
+        || parts
+            .iter()
+            .any(|p| p.is_empty() || p.chars().any(|c| !is_allowed_ref_char(c)))
+    {
+        return Err("Invalid secret reference path; use IDs for unsupported names".to_string());
+    }
+    let mut query_attr: Option<String> = None;
+    if let Some(q_idx) = query_start {
+        let mut seen_keys = std::collections::BTreeSet::new();
+        let mut has_attribute = false;
+        let mut has_attr = false;
+        for entry in uri[q_idx + 1..].split('&') {
+            let Some(eq) = entry.find('=') else {
+                return Err("Invalid secret reference query".to_string());
+            };
+            let key = &entry[..eq];
+            let val = &entry[eq + 1..];
+            if eq < 1
+                || val.is_empty()
+                || !matches!(key, "attribute" | "attr" | "ssh-format")
+                || !seen_keys.insert(key.to_string())
+            {
+                return Err("Invalid secret reference query".to_string());
+            }
+            if key == "attribute" {
+                has_attribute = true;
+                query_attr = Some(val.to_string());
+            } else if key == "attr" {
+                has_attr = true;
+                query_attr = Some(val.to_string());
+            }
+        }
+        if has_attribute && has_attr {
+            return Err("Conflicting attribute parameters".to_string());
+        }
+    }
+    let _ = query_attr;
     let vault_sel = parts[0];
     let item_sel = parts[1];
     let vault = st
@@ -3726,6 +3772,7 @@ mod tests {
                 "TLS",
                 "--vault",
                 "Certs",
+                r"Docs\.Private.api\.key=secret_dot_val",
                 r"Docs\.Private.api\=key=secret_eq_val",
             ]),
             "",
@@ -3735,7 +3782,18 @@ mod tests {
             &mut exec,
         );
         assert_eq!(esc_ok.exit_code, 0, "{}", esc_ok.stderr);
-        let r_esc = cmd_op(
+        let r_dot = cmd_op(
+            &args(&["read", "op://Certs/TLS/Docs.Private/api.key"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut exec,
+        );
+        assert_eq!(r_dot.exit_code, 0, "{}", r_dot.stderr);
+        assert_eq!(r_dot.stdout, "secret_dot_val
+");
+        let r_eq_unsupported = cmd_op(
             &args(&["read", "op://Certs/TLS/Docs.Private/api=key"]),
             "",
             &mut cwd,
@@ -3743,9 +3801,10 @@ mod tests {
             &vfs,
             &mut exec,
         );
-        assert_eq!(r_esc.exit_code, 0, "{}", r_esc.stderr);
-        assert_eq!(r_esc.stdout, "secret_eq_val
-");
+        assert_eq!(r_eq_unsupported.exit_code, 1);
+        assert!(r_eq_unsupported
+            .stderr
+            .contains("Invalid secret reference path; use IDs for unsupported names"));
 
         let esc_bad = cmd_op(
             &args(&["item", "edit", "TLS", "--vault", "Certs", r"bad\q=val"]),

@@ -20626,4 +20626,25 @@ mod tests {
         let tr = try_run_coreutil("tr", &args(&["a-z", "A-Z"]), "hello", "/work", &env, &vfs).unwrap();
         assert_eq!(tr.stdout, "HELLO");
     }
+
+    #[test]
+    fn unit_nl_tac_rev_join_comm_tsort_and_envsubst() {
+        let vfs = MemoryVfs::new();
+        let mut env = BTreeMap::new();
+        env.insert("APP".into(), "poe".into());
+
+        let tac = try_run_coreutil("tac", &[], "line1\nline2\nline3\n", "/", &env, &vfs).unwrap();
+        assert_eq!(tac.stdout, "line3\nline2\nline1\n");
+
+        let rev = try_run_coreutil("rev", &[], "abcd\n1234\n", "/", &env, &vfs).unwrap();
+        assert_eq!(rev.stdout, "dcba\n4321\n");
+
+        let subst = try_run_coreutil("envsubst", &[], "service=$APP\n", "/", &env, &vfs).unwrap();
+        assert_eq!(subst.stdout, "service=poe\n");
+
+        let tsort = try_run_coreutil("tsort", &[], "a b\nb c\n", "/", &env, &vfs).unwrap();
+        assert_eq!(tsort.exit_code, 0);
+        assert_eq!(tsort.stdout, "a\nb\nc\n");
+    }
+
 }

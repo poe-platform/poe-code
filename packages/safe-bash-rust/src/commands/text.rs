@@ -9314,4 +9314,24 @@ mod tests {
         assert_eq!(awk_agg.exit_code, 0);
         assert_eq!(awk_agg.stdout, "a=25 b=20\n");
     }
+
+    #[test]
+    fn unit_cmp_wdiff_and_diff3_merge_operations() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+        vfs.write_file("/work/f1.txt", b"hello one world\n").unwrap();
+        vfs.write_file("/work/f2.txt", b"hello two world\n").unwrap();
+
+        let cmp_same = try_run_text_command("cmp", &args(&["/work/f1.txt", "/work/f1.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cmp_same.exit_code, 0);
+
+        let cmp_diff = try_run_text_command("cmp", &args(&["-s", "/work/f1.txt", "/work/f2.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cmp_diff.exit_code, 1);
+
+        let wdiff = try_run_text_command("wdiff", &args(&["/work/f1.txt", "/work/f2.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(wdiff.exit_code, 1);
+        assert!(wdiff.stdout.contains("[-one-]") && wdiff.stdout.contains("{+two+}"));
+    }
+
 }

@@ -2684,4 +2684,20 @@ mod tests {
         assert!(!glob_match("*.rs", "main.ts"));
         assert!(glob_match_ext("@(foo|bar)-[0-9].txt", "BAR-7.TXT", true));
     }
+
+    #[test]
+    fn unit_ansi_c_escapes_tilde_and_associative_array_expansion() {
+        let decoded = decode_ansi_c_escapes(r"line1\nline2\t\x41\u0042");
+        assert_eq!(decoded, "line1\nline2\tAB");
+
+        let mut env = BTreeMap::new();
+        env.insert("HOME".to_string(), "/home/tester".to_string());
+        assert_eq!(expand_parameter_expr("HOME#/home/", &mut env, 0, &[]).unwrap(), "tester");
+
+        let mut a = eval_arith("2 ** 8 - 6", &mut env).unwrap();
+        assert_eq!(a, 250);
+        a = eval_arith("15 & 7 | 8", &mut env).unwrap();
+        assert_eq!(a, 15);
+    }
+
 }

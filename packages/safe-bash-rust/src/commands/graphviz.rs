@@ -3729,3 +3729,62 @@ fn cmd_graphviz(
         ok_out("")
     }
 }
+
+
+#[cfg(test)]
+mod graphviz_unit_tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn gv_args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unit_graphviz_formats_svg_json_plain_dot_canon_and_png() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let src = "digraph Pipeline { rankdir=LR; start [shape=box]; start -> end [label=\"ok\"]; }\n";
+        vfs.write_file("/work/p.dot", src.as_bytes()).unwrap();
+
+        for fmt in ["svg", "json", "plain", "dot", "canon", "pdf"] {
+            let flag = format!("-T{fmt}");
+            let out = cmd_graphviz("dot", &gv_args(&[&flag, "/work/p.dot"]), "", "/work", &vfs);
+            assert_eq!(out.exit_code, 0, "format {fmt} failed: {}", out.stderr);
+            assert!(!out.stdout.is_empty());
+        }
+
+        let png = cmd_graphviz(
+            "dot",
+            &gv_args(&["-Tpng", "-o", "/work/p.png", "/work/p.dot"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(png.exit_code, 0);
+        let png_bytes = vfs.read_file("/work/p.png").unwrap();
+        assert!(png_bytes.starts_with(b"\x89PNG\r\n\x1a\n"));
+    }
+
+    #[test]
+    fn unit_graphviz_neato_attributes_and_error_validation() {
+        let vfs = MemoryVfs::new();
+        let neato = cmd_graphviz(
+            "neato",
+            &gv_args(&["-Tjson", "-Gpad=0.2", "-Nshape=ellipse", "-Ecolor=blue"]),
+            "graph G { a -- b -- c; }\n",
+            "/",
+            &vfs,
+        );
+        assert_eq!(neato.exit_code, 0);
+        assert!(neato.stdout.contains("\"id\"") && neato.stdout.contains("\"nodes\""));
+
+        let bad_fmt = cmd_graphviz("dot", &gv_args(&["-Tinvalid"]), "digraph { a -> b }", "/", &vfs);
+        assert_eq!(bad_fmt.exit_code, 1);
+        assert!(bad_fmt.stderr.contains("unknown format"));
+
+        let bad_layout = cmd_graphviz("dot", &gv_args(&["-Ktwopi"]), "digraph { a -> b }", "/", &vfs);
+        assert_eq!(bad_layout.exit_code, 1);
+        assert!(bad_layout.stderr.contains("unsupported layout"));
+    }
+}

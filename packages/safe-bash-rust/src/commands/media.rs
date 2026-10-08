@@ -12190,3 +12190,94 @@ fn cmd_media_doc(
         _ => ok_out(""),
     }
 }
+
+
+#[cfg(test)]
+mod media_unit_tests {
+    use super::*;
+    use crate::vfs::MemoryVfs;
+
+    fn media_args(list: &[&str]) -> Vec<String> {
+        list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn unit_media_qrencode_svgo_and_rsvg_convert() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/media").unwrap();
+
+        let qr_ascii = cmd_media_doc(
+            "qrencode",
+            &media_args(&["-t", "ASCII", "-o", "-", "SAFE-BASH-QR"]),
+            "",
+            "/media",
+            &vfs,
+        );
+        assert_eq!(qr_ascii.exit_code, 0);
+        assert!(qr_ascii.stdout.contains("#"));
+
+        let qr_svg = cmd_media_doc(
+            "qrencode",
+            &media_args(&["-t", "SVG", "-o", "/media/code.svg", "https://example.com"]),
+            "",
+            "/media",
+            &vfs,
+        );
+        assert_eq!(qr_svg.exit_code, 0);
+        assert!(vfs.exists("/media/code.svg"));
+
+        let svgo = cmd_media_doc(
+            "svgo",
+            &media_args(&["/media/code.svg", "-o", "/media/min.svg"]),
+            "",
+            "/media",
+            &vfs,
+        );
+        assert_eq!(svgo.exit_code, 0);
+        assert!(vfs.exists("/media/min.svg"));
+
+        let rsvg = cmd_media_doc(
+            "rsvg-convert",
+            &media_args(&["-f", "png", "-o", "/media/code.png", "/media/min.svg"]),
+            "",
+            "/media",
+            &vfs,
+        );
+        assert_eq!(rsvg.exit_code, 0);
+        assert!(vfs.read_file("/media/code.png").unwrap().starts_with(b"\x89PNG"));
+    }
+
+    #[test]
+    fn unit_media_wkhtmltopdf_pdfinfo_pdftotext_and_identify() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/docs").unwrap();
+        vfs.write_file(
+            "/docs/page.html",
+            b"<html><head><title>SpecDoc</title></head><body><h1>Hello PDF World</h1></body></html>",
+        )
+        .unwrap();
+
+        let wk = cmd_media_doc(
+            "wkhtmltopdf",
+            &media_args(&["/docs/page.html", "/docs/out.pdf"]),
+            "",
+            "/docs",
+            &vfs,
+        );
+        assert_eq!(wk.exit_code, 0, "stderr: {}", wk.stderr);
+
+        let info = cmd_media_doc("pdfinfo", &media_args(&["/docs/out.pdf"]), "", "/docs", &vfs);
+        assert_eq!(info.exit_code, 0);
+        assert!(info.stdout.contains("Pages:"));
+
+        let txt = cmd_media_doc(
+            "pdftotext",
+            &media_args(&["/docs/out.pdf", "-"]),
+            "",
+            "/docs",
+            &vfs,
+        );
+        assert_eq!(txt.exit_code, 0);
+        assert!(txt.stdout.contains("Hello PDF World"));
+    }
+}

@@ -931,4 +931,23 @@ mod tests {
         .unwrap();
         assert!(!parsed.lists.is_empty());
     }
+
+    #[test]
+    fn unit_parse_case_while_until_functions_and_pipelines() {
+        let script = r#"
+            my_fn() {
+                case "$1" in
+                    a|b) echo "ab" ;;
+                    *) echo "other" ;;
+                esac
+            }
+            while false; do echo no; done
+            until true; do echo no; done
+            ! true | false && my_fn a
+        "#;
+        validate_basic_syntax(script).unwrap();
+        let parsed = parse_script(script).unwrap();
+        assert!(parsed.lists.len() >= 4);
+    }
+
 }

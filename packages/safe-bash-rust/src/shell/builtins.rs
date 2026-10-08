@@ -1355,4 +1355,28 @@ mod tests {
         assert_eq!(pop.exit_code, 0);
         assert_eq!(cwd, "/a");
     }
+
+    #[test]
+    fn unit_builtins_declare_readonly_unset_getopts_and_eval_test() {
+        let vfs = MemoryVfs::new();
+        let mut env = BTreeMap::new();
+        let mut cwd = "/".to_string();
+        let mut stdin = "alpha beta gamma\n".to_string();
+
+        let ec = try_run_builtin(
+            "echo",
+            &args(&["-n", "-e", "alpha\tbeta"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ec.exit_code, 0);
+        assert_eq!(ec.stdout, "alpha\tbeta");
+
+        let t_num = builtin_test("[", &args(&["42", "-gt", "10", "-a", "a", "=", "a", "]"]), "/", &mut env, &vfs);
+        assert_eq!(t_num.exit_code, 0);
+    }
+
 }

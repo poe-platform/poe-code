@@ -817,4 +817,15 @@ mod tests {
         assert!(tokens.contains(&Token::RedirectAppend(1)));
         assert!(tokens.contains(&Token::RedirectDupOut(2)));
     }
+
+    #[test]
+    fn unit_tokenize_here_string_arithmetic_for_and_fd_redirections() {
+        let tokens = tokenize_shell("for ((i=0; i<3; i++)); do cat <<< \"val=$i\" 3>&2 2>/dev/null; done").unwrap();
+        assert!(tokens.iter().any(|t| matches!(t, Token::RedirectHereString(0))));
+        assert!(tokens.contains(&Token::RedirectDupOut(3)));
+        assert!(tokens.contains(&Token::RedirectOut(2)));
+        assert!(tokens.contains(&Token::LParen));
+        assert!(tokens.contains(&Token::RParen));
+    }
+
 }

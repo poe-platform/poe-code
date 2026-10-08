@@ -33979,4 +33979,32 @@ mod tests {
         assert_eq!(tbls.stdout.trim(), "nums");
     }
 
+
+    #[test]
+    fn unit_mdq_pandoc_unrtf_mmdc_and_html_to_markdown() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+        let md = "# Title\n\n- item1\n- item2\n";
+        let mdq_out = try_run_structured_command("mdq", &args(&["# Title"]), md, "/", &env, &vfs).unwrap();
+        assert_eq!(mdq_out.exit_code, 0);
+        assert!(mdq_out.stdout.contains("Title"));
+
+        let html = "<h1>Doc</h1><p>Hello <strong>world</strong></p>";
+        let h2m = try_run_structured_command("html-to-markdown", &[], html, "/", &env, &vfs).unwrap();
+        assert_eq!(h2m.exit_code, 0);
+        assert!(h2m.stdout.contains("**world**"));
+
+        let pandoc = try_run_structured_command(
+            "pandoc",
+            &args(&["-f", "markdown", "-t", "html"]),
+            "# Hi\n\nparagraph\n",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pandoc.exit_code, 0);
+        assert!(pandoc.stdout.contains("<h1"));
+    }
+
 }

@@ -7947,4 +7947,42 @@ mod tests {
         assert_eq!(find_d1.exit_code, 0);
         assert_eq!(find_d1.stdout.trim(), "/work/a/top.txt");
     }
+
+    #[test]
+    fn unit_fd_extension_filter_and_fgrep_fixed_strings() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/repo/pkg").unwrap();
+        vfs.write_file("/repo/pkg/lib.ts", b"a.b*c\nplain\n").unwrap();
+        vfs.write_file("/repo/pkg/readme.md", b"docs\n").unwrap();
+        let mut cwd = "/repo".to_string();
+        let mut env = BTreeMap::new();
+
+        let fd_out = try_run_search_command(
+            "fd",
+            &args(&["-e", "ts", ".", "/repo"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(fd_out.exit_code, 0);
+        assert!(fd_out.stdout.contains("lib.ts") && !fd_out.stdout.contains("readme.md"));
+
+        let fgrep_out = try_run_search_command(
+            "fgrep",
+            &args(&["a.b*c", "/repo/pkg/lib.ts"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(fgrep_out.exit_code, 0);
+        assert_eq!(fgrep_out.stdout, "a.b*c
+");
+    }
+
 }

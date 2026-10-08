@@ -5629,4 +5629,21 @@ mod tests {
             vec!["d", "b"]
         );
     }
+
+    #[test]
+    fn unit_nested_brace_expansion_and_zero_padded_descending_ranges() {
+        assert_eq!(
+            expand_braces("v{003..001}"),
+            vec!["v003", "v002", "v001"]
+        );
+        assert_eq!(
+            expand_braces("{x,y}{1..2}"),
+            vec!["x1", "x2", "y1", "y2"]
+        );
+        assert_eq!(
+            expand_braces("literal_without_range"),
+            vec!["literal_without_range"]
+        );
+    }
+
 }

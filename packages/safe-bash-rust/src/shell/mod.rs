@@ -180,4 +180,23 @@ mod tests {
         assert_eq!(shell.cwd(), "/app");
         assert_eq!(shell.env().get("GREETING").map(|s| s.as_str()), Some("hello"));
     }
+
+    #[test]
+    fn unit_shell_traps_namerefs_arrays_and_subshell_isolation() {
+        let (mut shell, _vfs) = Shell::with_memory_fs();
+        let res = shell
+            .exec(
+                r#"
+                declare -A map=([k1]="v1" [k2]="v2")
+                declare -n ref=map
+                (ref[k1]="subshell_only")
+                echo "${ref[k1]}:${ref[k2]}:${#map[@]}"
+                "#,
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "v1:v2:2
+");
+    }
+
 }

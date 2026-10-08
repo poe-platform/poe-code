@@ -3810,4 +3810,80 @@ mod tests {
         );
         assert!(lbls.stdout.contains("\"p0\""));
     }
+
+    #[test]
+    fn unit_op_vault_document_template_and_gh_release_workflow() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+
+        let mut noop = |_: &[String], _: &str, _: &mut String, _: &mut BTreeMap<String, String>| -> BuiltinOutcome {
+            unreachable!()
+        };
+        let v_create = cmd_op(
+            &args(&["vault", "create", "SecOps", "--format", "json"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(v_create.exit_code, 0);
+        assert!(v_create.stdout.contains("SecOps"));
+
+        let doc_create = cmd_op(
+            &args(&["document", "create", "--title", "CertPem", "--vault", "SecOps", "--format", "json"]),
+            "-----BEGIN CERT-----\nMIIB\n-----END CERT-----\n",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(doc_create.exit_code, 0);
+
+        let doc_get = cmd_op(
+            &args(&["document", "get", "CertPem", "--vault", "SecOps"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(doc_get.exit_code, 0);
+        assert!(doc_get.stdout.contains("BEGIN CERT"));
+
+        assert_eq!(
+            cmd_gh(
+                &args(&["repo", "create", "acme/rel-repo", "--public"]),
+                "",
+                &mut cwd,
+                &mut env,
+                &vfs,
+            )
+            .exit_code,
+            0
+        );
+        assert_eq!(
+            cmd_gh(
+                &args(&["release", "create", "v2.0.0", "-R", "acme/rel-repo", "-t", "Release 2.0", "-n", "Notes"]),
+                "",
+                &mut cwd,
+                &mut env,
+                &vfs,
+            )
+            .exit_code,
+            0
+        );
+        let rel_view = cmd_gh(
+            &args(&["release", "view", "v2.0.0", "-R", "acme/rel-repo", "--json", "tagName,name,body"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+        );
+        assert_eq!(rel_view.exit_code, 0);
+        assert!(rel_view.stdout.contains("v2.0.0") && rel_view.stdout.contains("Release 2.0"));
+    }
+
 }

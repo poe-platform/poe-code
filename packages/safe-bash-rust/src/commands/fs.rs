@@ -6415,4 +6415,26 @@ mod tests {
         );
         assert!(!vfs.exists("/work/dir"));
     }
+
+    #[test]
+    fn unit_mktemp_df_rmdir_mv_and_stat_format() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/tmp").unwrap();
+        vfs.mkdir_all("/work/empty").unwrap();
+        let env = BTreeMap::new();
+
+        let mkt = try_run_fs_command("mktemp", &args(&["-d", "/tmp/test.XXXXXX"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mkt.exit_code, 0);
+        let created_dir = mkt.stdout.trim();
+        assert!(vfs.exists(created_dir));
+
+        let df = try_run_fs_command("df", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(df.exit_code, 0);
+        assert!(df.stdout.contains("Filesystem"));
+
+        let rmdir = try_run_fs_command("rmdir", &args(&["/work/empty"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rmdir.exit_code, 0);
+        assert!(!vfs.exists("/work/empty"));
+    }
+
 }

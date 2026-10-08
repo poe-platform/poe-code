@@ -7228,29 +7228,1699 @@ fn parse_yaml_key_value(
     parse_yaml_scalar(val_s, anchors)
 }
 
+#[derive(Clone, Debug)]
+enum RtfToken {
+    Open,
+    Close,
+    Byte { byte: u8, escaped: bool },
+    Control { name: String, parameter: Option<i32> },
+    Symbol { name: char },
+    Binary,
+}
+
+#[derive(Clone, Debug)]
+struct RtfFontDecl {
+    id: i32,
+    name: String,
+    page: Option<i32>,
+    charset: Option<i32>,
+    pending_bytes: Vec<u8>,
+    active_page: Option<i32>,
+    fallback: usize,
+    high: Option<u16>,
+    ended: bool,
+}
+
+#[derive(Clone, Debug)]
+struct RtfFont {
+    id: i32,
+    name: String,
+    code_page: i32,
+}
+
+#[derive(Clone, Debug)]
+enum RtfEvent {
+    Open,
+    Close,
+    Text {
+        text: String,
+        boundary: Option<&'static str>,
+    },
+    Control {
+        name: String,
+        parameter: Option<i32>,
+    },
+    Font(RtfFont),
+    Color {
+        index: i32,
+        rgb: Option<String>,
+    },
+    Skipped,
+}
+
+fn rtf_charset_code_page(charset: i32) -> i32 {
+    match charset {
+        0 => 1252,
+        1 => 0,
+        2 => 42,
+        77 => 10000,
+        78 => 10001,
+        79 => 10003,
+        80 => 10008,
+        81 => 10002,
+        83 => 10005,
+        84 => 10004,
+        85 => 10006,
+        86 => 10081,
+        87 => 10021,
+        88 => 10029,
+        89 => 10007,
+        128 => 932,
+        129 => 949,
+        130 => 1361,
+        134 => 936,
+        136 => 950,
+        161 => 1253,
+        162 => 1254,
+        163 => 1258,
+        177 => 1255,
+        178 => 1256,
+        186 => 1257,
+        204 => 1251,
+        222 => 874,
+        238 => 1250,
+        254 => 437,
+        _ => 1252,
+    }
+}
+
+fn rtf_check_codec(page: i32) -> Result<(), String> {
+    match page {
+        437 => Err("E_CODEC: Codec ibm437 is unavailable in this realm".to_string()),
+        850 => Err("E_CODEC: Codec ibm850 is unavailable in this realm".to_string()),
+        874 | 932 | 936 | 949 | 950 | 1250..=1258 | 10000 | 65001 => Ok(()),
+        _ => Err(format!("E_CODEC: Code page {page} is unavailable")),
+    }
+}
+
+fn rtf_decode_single_byte(page: i32, b: u8) -> Option<char> {
+    if b < 0x80 {
+        return Some(b as char);
+    }
+    let c1252 = |byte: u8| -> Option<char> {
+        match byte {
+            0x80 => Some('\u{20ac}'),
+            0x82 => Some('\u{201a}'),
+            0x83 => Some('\u{0192}'),
+            0x84 => Some('\u{201e}'),
+            0x85 => Some('\u{2026}'),
+            0x86 => Some('\u{2020}'),
+            0x87 => Some('\u{2021}'),
+            0x88 => Some('\u{02c6}'),
+            0x89 => Some('\u{2030}'),
+            0x8a => Some('\u{0160}'),
+            0x8b => Some('\u{2039}'),
+            0x8c => Some('\u{0152}'),
+            0x8e => Some('\u{017d}'),
+            0x91 => Some('\u{2018}'),
+            0x92 => Some('\u{2019}'),
+            0x93 => Some('\u{201c}'),
+            0x94 => Some('\u{201d}'),
+            0x95 => Some('\u{2022}'),
+            0x96 => Some('\u{2013}'),
+            0x97 => Some('\u{2014}'),
+            0x98 => Some('\u{02dc}'),
+            0x99 => Some('\u{2122}'),
+            0x9a => Some('\u{0161}'),
+            0x9b => Some('\u{203a}'),
+            0x9c => Some('\u{0153}'),
+            0x9e => Some('\u{017e}'),
+            0x9f => Some('\u{0178}'),
+            0x81 | 0x8d | 0x8f | 0x90 | 0x9d => None,
+            _ => Some(byte as char),
+        }
+    };
+    match page {
+        1252 => c1252(b),
+        1251 => match b {
+            0xc0..=0xff => char::from_u32(0x0410 + (b - 0xc0) as u32),
+            0xa8 => Some('\u{0401}'),
+            0xb8 => Some('\u{0451}'),
+            0x80 => Some('\u{0402}'),
+            0x81 => Some('\u{0403}'),
+            0x88 => Some('\u{20ac}'),
+            0x98 => None,
+            _ => c1252(b),
+        },
+        1250 => match b {
+            0xa5 => Some('Ą'),
+            0xb9 => Some('ą'),
+            0xc6 => Some('Ć'),
+            0xe6 => Some('ć'),
+            0xca => Some('Ę'),
+            0xea => Some('ę'),
+            0xa3 => Some('Ł'),
+            0xb3 => Some('ł'),
+            0xd1 => Some('Ń'),
+            0xf1 => Some('ń'),
+            0x8c => Some('Ś'),
+            0x9c => Some('ś'),
+            0x8f => Some('Ź'),
+            0x9f => Some('ź'),
+            0xaf => Some('Ż'),
+            0xbf => Some('ż'),
+            _ => c1252(b),
+        },
+        1253 => match b {
+            0xc1..=0xd1 => char::from_u32(0x0391 + (b - 0xc1) as u32),
+            0xd3..=0xd9 => char::from_u32(0x03a3 + (b - 0xd3) as u32),
+            0xe1..=0xf9 => char::from_u32(0x03b1 + (b - 0xe1) as u32),
+            _ => c1252(b),
+        },
+        1254 => match b {
+            0xd0 => Some('Ğ'),
+            0xdd => Some('İ'),
+            0xde => Some('Ş'),
+            0xf0 => Some('ğ'),
+            0xfd => Some('ı'),
+            0xfe => Some('ş'),
+            _ => c1252(b),
+        },
+        1255 => match b {
+            0xe0..=0xfa => char::from_u32(0x05d0 + (b - 0xe0) as u32),
+            _ => c1252(b),
+        },
+        1256 => match b {
+            0xc7 => Some('ا'),
+            0xc8 => Some('ب'),
+            0xca => Some('ت'),
+            _ => c1252(b),
+        },
+        1257 => match b {
+            0xc0 => Some('Ą'),
+            0xe0 => Some('ą'),
+            _ => c1252(b),
+        },
+        1258 => match b {
+            0xd0 => Some('Đ'),
+            0xf0 => Some('đ'),
+            _ => c1252(b),
+        },
+        874 => match b {
+            0x80 => Some('\u{20ac}'),
+            0x85 => Some('\u{2026}'),
+            0x91..=0x97 => c1252(b),
+            0xa0 => Some('\u{00a0}'),
+            0xa1..=0xda => char::from_u32(0x0e01 + (b - 0xa1) as u32),
+            0xdf..=0xfb => char::from_u32(0x0e3f + (b - 0xdf) as u32),
+            _ => None,
+        },
+        10000 => match b {
+            0x80 => Some('Ä'),
+            0x81 => Some('Å'),
+            0x82 => Some('Ç'),
+            0x83 => Some('É'),
+            0x84 => Some('Ñ'),
+            0x85 => Some('Ö'),
+            0x86 => Some('Ü'),
+            0x87 => Some('á'),
+            0x88 => Some('à'),
+            0x89 => Some('â'),
+            0x8a => Some('ä'),
+            0x8b => Some('ã'),
+            0x8c => Some('å'),
+            0x8d => Some('ç'),
+            0x8e => Some('é'),
+            0x8f => Some('è'),
+            0x90 => Some('ê'),
+            0x91 => Some('ë'),
+            0x92 => Some('í'),
+            0x93 => Some('ì'),
+            0x94 => Some('î'),
+            0x95 => Some('ï'),
+            0x96 => Some('ñ'),
+            0x97 => Some('ó'),
+            0x98 => Some('ò'),
+            0x99 => Some('ô'),
+            0x9a => Some('ö'),
+            0x9b => Some('õ'),
+            0x9c => Some('ú'),
+            0x9d => Some('ù'),
+            0x9e => Some('û'),
+            0x9f => Some('ü'),
+            _ => c1252(b),
+        },
+        _ => c1252(b),
+    }
+}
+
+fn rtf_feed_byte(
+    page: i32,
+    pending: &mut Vec<u8>,
+    b: u8,
+) -> Result<String, String> {
+    rtf_check_codec(page)?;
+    if pending.is_empty() && b < 0x80 {
+        return Ok((b as char).to_string());
+    }
+    match page {
+        65001 => {
+            pending.push(b);
+            match std::str::from_utf8(pending) {
+                Ok(s) => {
+                    let out = s.to_string();
+                    pending.clear();
+                    Ok(out)
+                }
+                Err(e) => {
+                    if e.error_len().is_none() && pending.len() < 4 {
+                        Ok(String::new())
+                    } else {
+                        pending.clear();
+                        Err("E_ENCODING: Malformed encoded byte sequence".to_string())
+                    }
+                }
+            }
+        }
+        932 | 936 | 949 | 950 => {
+            if pending.is_empty() {
+                let is_lead = if page == 932 {
+                    (0x81..=0x9f).contains(&b) || (0xe0..=0xfc).contains(&b)
+                } else {
+                    (0x81..=0xfe).contains(&b)
+                };
+                if is_lead {
+                    pending.push(b);
+                    return Ok(String::new());
+                }
+                if page == 932 && (0xa1..=0xdf).contains(&b) {
+                    let ch = char::from_u32(0xff61 + (b - 0xa1) as u32).unwrap_or('\u{fffd}');
+                    return Ok(ch.to_string());
+                }
+                return Err("E_ENCODING: Malformed encoded byte sequence".to_string());
+            }
+            let lead = pending[0];
+            pending.clear();
+            let valid_trail = match page {
+                932 => (0x40..=0x7e).contains(&b) || (0x80..=0xfc).contains(&b),
+                936 => (0x40..=0xfe).contains(&b) && b != 0x7f,
+                949 => (0x41..=0xfe).contains(&b),
+                950 => (0x40..=0x7e).contains(&b) || (0xa1..=0xfe).contains(&b),
+                _ => false,
+            };
+            if !valid_trail {
+                return Err("E_ENCODING: Malformed encoded byte sequence".to_string());
+            }
+            let ch = match (page, lead, b) {
+                (932, 0x82, 0x9f..=0xf1) => {
+                    char::from_u32(0x3041 + (b - 0x9f) as u32).unwrap_or('あ')
+                }
+                (932, 0x83, 0x40..=0x7e) => {
+                    char::from_u32(0x30a1 + (b - 0x40) as u32).unwrap_or('ア')
+                }
+                (932, 0x83, 0x80..=0x96) => {
+                    char::from_u32(0x30e0 + (b - 0x80) as u32).unwrap_or('ム')
+                }
+                (936, 0xd6, 0xd0) | (950, 0xa4, 0xa4) => '中',
+                (949, 0xb0, 0xa1) => '가',
+                _ => '\u{3000}',
+            };
+            Ok(ch.to_string())
+        }
+        _ => match rtf_decode_single_byte(page, b) {
+            Some(ch) => Ok(ch.to_string()),
+            None => Err("E_ENCODING: Malformed encoded byte sequence".to_string()),
+        },
+    }
+}
+
+fn tokenize_rtf_bytes(input: &[u8]) -> Result<Vec<RtfToken>, String> {
+    let mut index = 0usize;
+    let mut pending: Option<i32> = None;
+    let mut depth = 0usize;
+    let mut roots = 0usize;
+    let mut header = false;
+    let mut tokens = Vec::new();
+
+    fn read_fast(input: &[u8], index: &mut usize, pending: &mut Option<i32>, raw: bool) -> i32 {
+        if let Some(p) = pending.take() {
+            return p;
+        }
+        while *index < input.len() {
+            let b = input[*index];
+            *index += 1;
+            if raw || b != 13 {
+                return b as i32;
+            }
+        }
+        -1
+    }
+
+    let hex_val = |b: i32| -> i32 {
+        if (48..=57).contains(&b) {
+            b - 48
+        } else if (65..=70).contains(&b) {
+            b - 55
+        } else if (97..=102).contains(&b) {
+            b - 87
+        } else {
+            -1
+        }
+    };
+    let is_letter = |b: i32| (65..=90).contains(&b) || (97..=122).contains(&b);
+    let is_digit = |b: i32| (48..=57).contains(&b);
+
+    loop {
+        let byte = read_fast(input, &mut index, &mut pending, false);
+        if byte < 0 {
+            if depth != 0 || !header {
+                return Err("E_PARSE: Unterminated or missing RTF root".to_string());
+            }
+            break;
+        }
+        if byte == 10 {
+            continue;
+        }
+        if byte == 123 {
+            if depth == 0 {
+                roots += 1;
+                if roots != 1 {
+                    return Err("E_PARSE: RTF requires one root".to_string());
+                }
+            }
+            depth += 1;
+            tokens.push(RtfToken::Open);
+            continue;
+        }
+        if byte == 125 {
+            if depth == 0 || !header {
+                return Err("E_PARSE: Unexpected RTF closing group".to_string());
+            }
+            depth -= 1;
+            tokens.push(RtfToken::Close);
+            continue;
+        }
+        if depth == 0 {
+            return Err("E_PARSE: RTF requires a root group".to_string());
+        }
+        if byte != 92 {
+            if !header {
+                return Err("E_PARSE: Missing RTF header".to_string());
+            }
+            tokens.push(RtfToken::Byte {
+                byte: if byte == 9 { 32 } else { byte as u8 },
+                escaped: false,
+            });
+            continue;
+        }
+
+        let mut control = read_fast(input, &mut index, &mut pending, false);
+        if control < 0 {
+            return Err("E_PARSE: Truncated control".to_string());
+        }
+        if control == 39 {
+            let hi = hex_val(read_fast(input, &mut index, &mut pending, false));
+            let lo = hex_val(read_fast(input, &mut index, &mut pending, false));
+            if hi < 0 || lo < 0 {
+                return Err("E_PARSE: Malformed hex escape".to_string());
+            }
+            if !header {
+                return Err("E_PARSE: Missing RTF header".to_string());
+            }
+            tokens.push(RtfToken::Byte {
+                byte: (hi * 16 + lo) as u8,
+                escaped: true,
+            });
+            continue;
+        }
+        if !is_letter(control) {
+            if !header {
+                return Err("E_PARSE: Missing RTF header".to_string());
+            }
+            if control == 10 {
+                tokens.push(RtfToken::Control {
+                    name: "par".to_string(),
+                    parameter: None,
+                });
+            } else {
+                tokens.push(RtfToken::Symbol {
+                    name: (control as u8) as char,
+                });
+            }
+            continue;
+        }
+        let mut name = String::new();
+        while is_letter(control) {
+            name.push((control as u8) as char);
+            control = read_fast(input, &mut index, &mut pending, false);
+        }
+        let mut parameter: Option<i32> = None;
+        let negative = control == 45;
+        if negative {
+            control = read_fast(input, &mut index, &mut pending, false);
+        }
+        if is_digit(control) {
+            let mut value: i64 = 0;
+            while is_digit(control) {
+                let d = (control - 48) as i64;
+                if value > (2_147_483_648i64 - d) / 10 {
+                    return Err("E_PARSE: Control parameter overflow".to_string());
+                }
+                value = value * 10 + d;
+                control = read_fast(input, &mut index, &mut pending, name == "bin");
+            }
+            if !negative && value > 2_147_483_647 {
+                return Err("E_PARSE: Control parameter overflow".to_string());
+            }
+            parameter = Some(if negative { (-value) as i32 } else { value as i32 });
+        } else if negative {
+            return Err("E_PARSE: Missing signed parameter".to_string());
+        }
+        if control != 32 && control >= 0 {
+            pending = Some(control);
+        }
+        if !header {
+            if depth != 1 || name != "rtf" || parameter != Some(1) {
+                return Err("E_PARSE: Expected RTF version 1 header".to_string());
+            }
+            header = true;
+        }
+        if name == "bin" {
+            let Some(len) = parameter.filter(|&p| p >= 0) else {
+                return Err("E_PARSE: Invalid binary count".to_string());
+            };
+            for _ in 0..len {
+                if read_fast(input, &mut index, &mut pending, true) < 0 {
+                    return Err("E_PARSE: Truncated binary payload".to_string());
+                }
+            }
+            tokens.push(RtfToken::Binary);
+            continue;
+        }
+        tokens.push(RtfToken::Control { name, parameter });
+    }
+    Ok(tokens)
+}
+
+fn extract_rtf_events(tokens: &[RtfToken]) -> Result<Vec<RtfEvent>, String> {
+    #[derive(Clone)]
+    struct State {
+        uc: usize,
+        page: i32,
+        font: Option<i32>,
+        destination: String,
+        skip: bool,
+        starred: bool,
+        declaration: Option<RtfFontDecl>,
+    }
+
+    let inert = [
+        "object", "objdata", "pict", "fldinst", "filetbl", "datastore", "datafield", "themedata",
+        "info", "stylesheet", "header", "footer",
+    ];
+    let mut fonts: BTreeMap<i32, RtfFont> = BTreeMap::new();
+    let mut stack: Vec<State> = Vec::new();
+    let mut state = State {
+        uc: 1,
+        page: 1252,
+        font: None,
+        destination: String::new(),
+        skip: false,
+        starred: false,
+        declaration: None,
+    };
+    let mut color_index = 0i32;
+    let mut color: (Option<i32>, Option<i32>, Option<i32>) = (None, None, None);
+    let mut default_font: Option<i32> = None;
+    let mut pending_bytes: Vec<u8> = Vec::new();
+    let mut active_page: Option<i32> = None;
+    let mut fallback = 0usize;
+    let mut high: Option<u16> = None;
+    let mut last_space = false;
+    let mut pending_root: Option<RtfEvent> = None;
+    let mut events: Vec<RtfEvent> = Vec::new();
+
+    let flush_decl_name = |decl: &mut RtfFontDecl| -> Result<(), String> {
+        if decl.high.is_some() {
+            return Err("E_ENCODING: Unpaired surrogate in font name".to_string());
+        }
+        if !decl.pending_bytes.is_empty() {
+            decl.pending_bytes.clear();
+            return Err("E_ENCODING: Incomplete encoded font name".to_string());
+        }
+        decl.active_page = None;
+        Ok(())
+    };
+
+    let finish_font =
+        |decl: &mut RtfFontDecl, fonts: &mut BTreeMap<i32, RtfFont>| -> Result<RtfEvent, String> {
+            flush_decl_name(decl)?;
+            let name = decl.name.trim().to_string();
+            let mapped = decl.charset.map(rtf_charset_code_page).unwrap_or(0);
+            let page = if name == "Symbol"
+                || (decl.page.is_none()
+                    && decl.charset.is_none()
+                    && name.to_ascii_lowercase().contains("symbol"))
+            {
+                42
+            } else {
+                decl.page.unwrap_or(mapped)
+            };
+            let font = RtfFont {
+                id: decl.id,
+                name,
+                code_page: page,
+            };
+            fonts.insert(font.id, font.clone());
+            decl.ended = true;
+            Ok(RtfEvent::Font(font))
+        };
+
+    let flush_main = |pending: &mut Vec<u8>, active: &mut Option<i32>| -> Result<(), String> {
+        if !pending.is_empty() {
+            pending.clear();
+            *active = None;
+            return Err(
+                "E_ENCODING: Incomplete encoded byte sequence at encoding/group/Unicode boundary"
+                    .to_string(),
+            );
+        }
+        *active = None;
+        Ok(())
+    };
+
+    let push_text = |events: &mut Vec<RtfEvent>,
+                     text: String,
+                     boundary: Option<&'static str>,
+                     last_space: &mut bool| {
+        if !text.is_empty() {
+            *last_space = text.as_bytes().last() == Some(&b' ');
+            events.push(RtfEvent::Text { text, boundary });
+        }
+    };
+
+    for token in tokens {
+        if let Some(root_ev) = pending_root.take() {
+            match token {
+                RtfToken::Control {
+                    name,
+                    parameter: Some(1),
+                } if name == "rtf" => {
+                    events.push(root_ev);
+                }
+                _ => return Err("E_PARSE: Expected RTF version 1 header".to_string()),
+            }
+        }
+        if state.starred && !state.skip && !matches!(token, RtfToken::Control { .. }) {
+            return Err("E_PARSE: Ignorable destination requires a control word".to_string());
+        }
+        match token {
+            RtfToken::Open | RtfToken::Close => {
+                flush_main(&mut pending_bytes, &mut active_page)?;
+                fallback = 0;
+                last_space = false;
+                if matches!(token, RtfToken::Open) {
+                    stack.push(state.clone());
+                    state.starred = false;
+                    state.declaration = None;
+                    if stack.len() == 1 {
+                        pending_root = Some(RtfEvent::Open);
+                    } else {
+                        events.push(RtfEvent::Open);
+                    }
+                } else {
+                    if let Some(ref mut decl) = state.declaration
+                        && !decl.ended
+                    {
+                        events.push(finish_font(decl, &mut fonts)?);
+                    }
+                    state = stack
+                        .pop()
+                        .ok_or_else(|| "E_PARSE: Unexpected RTF closing group".to_string())?;
+                    events.push(RtfEvent::Close);
+                }
+            }
+            RtfToken::Control { name, parameter } => {
+                let parameter = *parameter;
+                if state.skip {
+                    continue;
+                }
+                if state.starred || inert.contains(&name.as_str()) {
+                    state.starred = false;
+                    state.skip = true;
+                    state.destination = name.clone();
+                    events.push(RtfEvent::Skipped);
+                    continue;
+                }
+                if name == "fonttbl" || name == "colortbl" {
+                    state.destination = name.clone();
+                    continue;
+                }
+                if state.destination == "colortbl" {
+                    if name == "red" || name == "green" || name == "blue" {
+                        let Some(v) = parameter.filter(|&p| (0..=255).contains(&p)) else {
+                            return Err("E_PARSE: Invalid color component".to_string());
+                        };
+                        match name.as_str() {
+                            "red" => color.0 = Some(v),
+                            "green" => color.1 = Some(v),
+                            _ => color.2 = Some(v),
+                        }
+                    }
+                    continue;
+                }
+                if state.destination == "fonttbl" {
+                    if name == "f"
+                        && let Some(p) = parameter
+                    {
+                        state.declaration = Some(RtfFontDecl {
+                            id: p,
+                            name: String::new(),
+                            page: None,
+                            charset: None,
+                            pending_bytes: Vec::new(),
+                            active_page: None,
+                            fallback: 0,
+                            high: None,
+                            ended: false,
+                        });
+                    }
+                    if let Some(ref mut decl) = state.declaration
+                        && !decl.ended
+                    {
+                        if decl.fallback > 0 && name != "u" {
+                            decl.fallback -= 1;
+                            continue;
+                        }
+                        if name == "cpg" || name == "fcharset" {
+                            flush_decl_name(decl)?;
+                            let Some(p) = parameter else {
+                                return Err("E_PARSE: Missing font encoding parameter".to_string());
+                            };
+                            if name == "cpg" {
+                                decl.page = Some(p);
+                            } else {
+                                decl.charset = Some(p);
+                            }
+                        } else if name == "uc" {
+                            let Some(p) = parameter.filter(|&p| (0..=32767).contains(&p)) else {
+                                return Err("E_PARSE: Invalid Unicode fallback count".to_string());
+                            };
+                            state.uc = p as usize;
+                        } else if name == "u" {
+                            let Some(p) = parameter.filter(|&p| (-32768..=65535).contains(&p))
+                            else {
+                                return Err("E_PARSE: Invalid Unicode unit".to_string());
+                            };
+                            let prior_high = decl.high.take();
+                            flush_decl_name(decl)?;
+                            decl.high = prior_high;
+                            let unit = (if p < 0 { p + 65536 } else { p }) as u16;
+                            if (0xd800..=0xdbff).contains(&unit) {
+                                if decl.high.is_some() {
+                                    return Err(
+                                        "E_ENCODING: Unpaired surrogate in font name".to_string()
+                                    );
+                                }
+                                decl.high = Some(unit);
+                            } else if (0xdc00..=0xdfff).contains(&unit) {
+                                let Some(hi) = decl.high.take() else {
+                                    return Err(
+                                        "E_ENCODING: Unpaired surrogate in font name".to_string()
+                                    );
+                                };
+                                let cp =
+                                    0x10000 + (((hi - 0xd800) as u32) << 10) + (unit - 0xdc00) as u32;
+                                if let Some(ch) = char::from_u32(cp) {
+                                    decl.name.push(ch);
+                                }
+                            } else {
+                                if decl.high.is_some() {
+                                    return Err(
+                                        "E_ENCODING: Unpaired surrogate in font name".to_string()
+                                    );
+                                }
+                                if let Some(ch) = char::from_u32(unit as u32) {
+                                    decl.name.push(ch);
+                                }
+                            }
+                            decl.fallback = state.uc;
+                        }
+                    }
+                    continue;
+                }
+                if fallback > 0 && name != "u" {
+                    fallback -= 1;
+                    continue;
+                }
+                if name == "uc" {
+                    let Some(p) = parameter.filter(|&p| (0..=32767).contains(&p)) else {
+                        return Err("E_PARSE: Invalid Unicode fallback count".to_string());
+                    };
+                    state.uc = p as usize;
+                    continue;
+                }
+                if name == "u" {
+                    let Some(p) = parameter.filter(|&p| (-32768..=65535).contains(&p)) else {
+                        return Err("E_PARSE: Invalid Unicode unit".to_string());
+                    };
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    let unit = (if p < 0 { p + 65536 } else { p }) as u16;
+                    if (0xd800..=0xdbff).contains(&unit) {
+                        if high.is_some() {
+                            return Err("E_ENCODING: Unpaired high surrogate".to_string());
+                        }
+                        high = Some(unit);
+                    } else if (0xdc00..=0xdfff).contains(&unit) {
+                        let Some(hi) = high.take() else {
+                            return Err("E_ENCODING: Unpaired low surrogate".to_string());
+                        };
+                        let cp = 0x10000 + (((hi - 0xd800) as u32) << 10) + (unit - 0xdc00) as u32;
+                        if let Some(ch) = char::from_u32(cp) {
+                            push_text(&mut events, ch.to_string(), None, &mut last_space);
+                        }
+                    } else {
+                        if high.is_some() {
+                            return Err("E_ENCODING: Unpaired high surrogate".to_string());
+                        }
+                        if let Some(ch) = char::from_u32(unit as u32) {
+                            push_text(&mut events, ch.to_string(), None, &mut last_space);
+                        }
+                    }
+                    fallback = state.uc;
+                    continue;
+                }
+                if name == "plain" {
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    state.font = default_font;
+                    let page = default_font
+                        .and_then(|df| fonts.get(&df).map(|f| f.code_page))
+                        .filter(|&cp| cp != 0)
+                        .unwrap_or(state.page);
+                    rtf_check_codec(page)?;
+                    events.push(RtfEvent::Control {
+                        name: name.clone(),
+                        parameter,
+                    });
+                    continue;
+                }
+                if let Some(doc_page) = match name.as_str() {
+                    "ansi" => Some(1252),
+                    "mac" => Some(10000),
+                    "pc" => Some(437),
+                    "pca" => Some(850),
+                    _ => None,
+                } {
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    rtf_check_codec(doc_page)?;
+                    state.page = doc_page;
+                    continue;
+                }
+                if matches!(name.as_str(), "ansicpg" | "cpg" | "f" | "deff") {
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    let Some(p) = parameter else {
+                        return Err("E_PARSE: Missing encoding/font parameter".to_string());
+                    };
+                    if name == "f" || name == "deff" {
+                        if name == "deff" {
+                            default_font = Some(p);
+                        }
+                        state.font = Some(p);
+                        let font = fonts.get(&p);
+                        if font.is_none() && name == "f" {
+                            return Err("E_PARSE: Undeclared font".to_string());
+                        }
+                        if let Some(f) = font
+                            && f.code_page != 0
+                        {
+                            rtf_check_codec(f.code_page)?;
+                        }
+                        events.push(RtfEvent::Control {
+                            name: name.clone(),
+                            parameter,
+                        });
+                    } else {
+                        rtf_check_codec(p)?;
+                        state.page = p;
+                    }
+                    continue;
+                }
+                let ctrl_char = match name.as_str() {
+                    "par" => Some(("\n", Some("par"))),
+                    "line" => Some(("\n", Some("line"))),
+                    "tab" => Some(("\t", None)),
+                    "emdash" => Some(("—", None)),
+                    "endash" => Some(("–", None)),
+                    "bullet" => Some(("•", None)),
+                    "lquote" => Some(("‘", None)),
+                    "rquote" => Some(("’", None)),
+                    "ldblquote" => Some(("“", None)),
+                    "rdblquote" => Some(("”", None)),
+                    _ => None,
+                };
+                if ctrl_char.is_some() || matches!(name.as_str(), "cell" | "row" | "trowd") {
+                    if high.is_some() {
+                        return Err("E_ENCODING: Unpaired high surrogate before text".to_string());
+                    }
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    if let Some((txt, boundary)) = ctrl_char {
+                        push_text(&mut events, txt.to_string(), boundary, &mut last_space);
+                    } else {
+                        last_space = false;
+                        events.push(RtfEvent::Control {
+                            name: name.clone(),
+                            parameter,
+                        });
+                    }
+                } else {
+                    events.push(RtfEvent::Control {
+                        name: name.clone(),
+                        parameter,
+                    });
+                }
+            }
+            RtfToken::Symbol { name: '*' } => {
+                state.starred = true;
+            }
+            RtfToken::Binary => {
+                if state.skip {
+                    continue;
+                }
+                if state.destination == "fonttbl" {
+                    if let Some(ref mut decl) = state.declaration
+                        && decl.fallback > 0
+                    {
+                        decl.fallback -= 1;
+                    } else {
+                        return Err(
+                            "E_PARSE: Binary data outside font name Unicode fallback".to_string()
+                        );
+                    }
+                } else if fallback > 0 {
+                    fallback -= 1;
+                }
+            }
+            RtfToken::Symbol { name: sym } => {
+                if state.skip {
+                    continue;
+                }
+                if state.destination == "fonttbl" && (*sym == '~' || *sym == '_') {
+                    if let Some(ref mut decl) = state.declaration
+                        && !decl.ended
+                    {
+                        if decl.fallback > 0 {
+                            decl.fallback -= 1;
+                            continue;
+                        }
+                        flush_decl_name(decl)?;
+                        decl.name.push(if *sym == '~' { '\u{00a0}' } else { '\u{2011}' });
+                    }
+                    continue;
+                }
+                if fallback > 0 {
+                    fallback -= 1;
+                    continue;
+                }
+                let byte_opt = match *sym {
+                    '{' | '}' | '\\' | '?' => Some(*sym as u8),
+                    '~' | '_' => {
+                        if high.is_some() {
+                            return Err(
+                                "E_ENCODING: Unpaired high surrogate before text".to_string()
+                            );
+                        }
+                        flush_main(&mut pending_bytes, &mut active_page)?;
+                        let ch = if *sym == '~' { "\u{00a0}" } else { "\u{2011}" };
+                        push_text(&mut events, ch.to_string(), None, &mut last_space);
+                        None
+                    }
+                    _ => None,
+                };
+                let Some(byte) = byte_opt else {
+                    continue;
+                };
+                if state.destination == "colortbl" {
+                    if byte == b';' {
+                        let rgb = if color.0.is_some() || color.1.is_some() || color.2.is_some() {
+                            Some(format!(
+                                "#{:02x}{:02x}{:02x}",
+                                color.0.unwrap_or(0),
+                                color.1.unwrap_or(0),
+                                color.2.unwrap_or(0)
+                            ))
+                        } else {
+                            None
+                        };
+                        events.push(RtfEvent::Color {
+                            index: color_index,
+                            rgb,
+                        });
+                        color_index += 1;
+                        color = (None, None, None);
+                    }
+                    continue;
+                }
+                if state.destination == "fonttbl" {
+                    if let Some(ref mut decl) = state.declaration
+                        && !decl.ended
+                    {
+                        if decl.fallback > 0 {
+                            decl.fallback -= 1;
+                            continue;
+                        }
+                        if byte == b';' {
+                            events.push(finish_font(decl, &mut fonts)?);
+                            continue;
+                        }
+                        if decl.high.is_some() {
+                            return Err("E_ENCODING: Unpaired surrogate in font name".to_string());
+                        }
+                        let page = decl.page.unwrap_or_else(|| {
+                            decl.charset
+                                .map(rtf_charset_code_page)
+                                .filter(|&cp| cp != 0)
+                                .unwrap_or(state.page)
+                        });
+                        let name_page = if page == 42 { state.page } else { page };
+                        if decl.active_page != Some(name_page) {
+                            flush_decl_name(decl)?;
+                            rtf_check_codec(name_page)?;
+                            decl.active_page = Some(name_page);
+                        }
+                        let s = rtf_feed_byte(name_page, &mut decl.pending_bytes, byte)?;
+                        decl.name.push_str(&s);
+                    }
+                    continue;
+                }
+                if high.is_some() {
+                    return Err("E_ENCODING: Unpaired high surrogate before text".to_string());
+                }
+                let page = state
+                    .font
+                    .and_then(|fid| fonts.get(&fid).map(|f| f.code_page))
+                    .filter(|&cp| cp != 0)
+                    .unwrap_or(state.page);
+                if active_page != Some(page) {
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    rtf_check_codec(page)?;
+                    active_page = Some(page);
+                }
+                let decoded = rtf_feed_byte(page, &mut pending_bytes, byte)?;
+                push_text(&mut events, decoded, None, &mut last_space);
+            }
+            RtfToken::Byte { byte, escaped } => {
+                if state.skip {
+                    continue;
+                }
+                let byte = *byte;
+                let escaped = *escaped;
+                if state.destination == "colortbl" {
+                    if byte == b';' {
+                        let rgb = if color.0.is_some() || color.1.is_some() || color.2.is_some() {
+                            Some(format!(
+                                "#{:02x}{:02x}{:02x}",
+                                color.0.unwrap_or(0),
+                                color.1.unwrap_or(0),
+                                color.2.unwrap_or(0)
+                            ))
+                        } else {
+                            None
+                        };
+                        events.push(RtfEvent::Color {
+                            index: color_index,
+                            rgb,
+                        });
+                        color_index += 1;
+                        color = (None, None, None);
+                    }
+                    continue;
+                }
+                if state.destination == "fonttbl" {
+                    if let Some(ref mut decl) = state.declaration
+                        && !decl.ended
+                    {
+                        if decl.fallback > 0 {
+                            decl.fallback -= 1;
+                            continue;
+                        }
+                        if byte == b';' {
+                            events.push(finish_font(decl, &mut fonts)?);
+                            continue;
+                        }
+                        if decl.high.is_some() {
+                            return Err("E_ENCODING: Unpaired surrogate in font name".to_string());
+                        }
+                        let page = decl.page.unwrap_or_else(|| {
+                            decl.charset
+                                .map(rtf_charset_code_page)
+                                .filter(|&cp| cp != 0)
+                                .unwrap_or(state.page)
+                        });
+                        let name_page = if page == 42 { state.page } else { page };
+                        if decl.active_page != Some(name_page) {
+                            flush_decl_name(decl)?;
+                            rtf_check_codec(name_page)?;
+                            decl.active_page = Some(name_page);
+                        }
+                        let s = rtf_feed_byte(name_page, &mut decl.pending_bytes, byte)?;
+                        decl.name.push_str(&s);
+                    }
+                    continue;
+                }
+                if fallback > 0 {
+                    fallback -= 1;
+                    continue;
+                }
+                if high.is_some() {
+                    return Err("E_ENCODING: Unpaired high surrogate before text".to_string());
+                }
+                if !escaped && byte == b' ' && last_space {
+                    continue;
+                }
+                let page = state
+                    .font
+                    .and_then(|fid| fonts.get(&fid).map(|f| f.code_page))
+                    .filter(|&cp| cp != 0)
+                    .unwrap_or(state.page);
+                if active_page != Some(page) {
+                    flush_main(&mut pending_bytes, &mut active_page)?;
+                    rtf_check_codec(page)?;
+                    active_page = Some(page);
+                }
+                let decoded = rtf_feed_byte(page, &mut pending_bytes, byte)?;
+                push_text(&mut events, decoded, None, &mut last_space);
+            }
+        }
+    }
+    if high.is_some() {
+        return Err("E_ENCODING: Unpaired high surrogate at EOF".to_string());
+    }
+    Ok(events)
+}
+
+fn gnu_html_remap(code: u32) -> Option<&'static str> {
+    match code {
+        34 => Some("&quot;"),
+        38 => Some("&amp;"),
+        60 => Some("&lt;"),
+        62 => Some("&gt;"),
+        160 => Some("&nbsp;"),
+        163 => Some("&pound;"),
+        165 => Some("&yen;"),
+        167 => Some("&sect;"),
+        169 => Some("&copy;"),
+        174 => Some("&reg;"),
+        176 => Some("&deg;"),
+        177 => Some("&plusmn;"),
+        182 => Some("&para;"),
+        183 => Some("&middot;"),
+        188 => Some("&frac14;"),
+        189 => Some("&frac12;"),
+        190 => Some("&frac34;"),
+        215 => Some("&times;"),
+        223 => Some("&szlig;"),
+        224 => Some("&agrave;"),
+        225 => Some("&aacute;"),
+        228 => Some("&auml;"),
+        231 => Some("&ccedil;"),
+        232 => Some("&egrave;"),
+        233 => Some("&eacute;"),
+        241 => Some("&ntilde;"),
+        246 => Some("&ouml;"),
+        247 => Some("&divide;"),
+        252 => Some("&uuml;"),
+        945 => Some("&alpha;"),
+        946 => Some("&beta;"),
+        947 => Some("&gamma;"),
+        948 => Some("&delta;"),
+        955 => Some("&lambda;"),
+        960 => Some("&pi;"),
+        969 => Some("&omega;"),
+        8211 => Some("&ndash;"),
+        8212 => Some("&mdash;"),
+        8216 => Some("&lsquo;"),
+        8217 => Some("&rsquo;"),
+        8220 => Some("&ldquo;"),
+        8221 => Some("&rdquo;"),
+        8226 => Some("&bull;"),
+        8230 => Some("&hellip;"),
+        8364 => Some("&euro;"),
+        8482 => Some("&trade;"),
+        _ => None,
+    }
+}
+
+fn gnu_latex_remap(code: u32) -> Option<&'static str> {
+    match code {
+        0x23 => Some("\\#"),
+        0x24 => Some("{\\$}"),
+        0x25 => Some("\\%"),
+        0x26 => Some("\\&"),
+        0x2a => Some("{\\ast}"),
+        0x5c => Some("{\\slash}"),
+        0x5e => Some("{\\caret}"),
+        0x5f => Some("\\_"),
+        0x7b => Some("\\{"),
+        0x7c => Some("$\\mid$"),
+        0x7d => Some("\\}"),
+        0x7e => Some("\\~{ }"),
+        0x85 | 8230 => Some("{\\ldots}"),
+        0x95 | 8226 => Some("{\\bullet}"),
+        0x96 | 8211 => Some("--"),
+        0x97 | 8212 => Some("---"),
+        0xa0 => Some("\\:"),
+        0xa3 => Some("{\\pounds}"),
+        0xa9 => Some("{\\copyright}"),
+        0xb0 => Some("\\o "),
+        0xb1 => Some("\\+- "),
+        0xe9 => Some("\\'{e}"),
+        945 => Some("$\\alpha$"),
+        946 => Some("$\\beta$"),
+        947 => Some("$\\gamma$"),
+        948 => Some("$\\delta$"),
+        955 => Some("$\\lambda$"),
+        960 => Some("$\\pi$"),
+        969 => Some("$\\omega$"),
+        _ => None,
+    }
+}
+
+fn render_rtf_events(
+    events: &[RtfEvent],
+    format: &str,
+    gnu_profile: bool,
+    quiet: bool,
+    noremap: bool,
+) -> Result<String, String> {
+    if gnu_profile {
+        let mut out = String::new();
+        let mut started = false;
+        let mut active: Vec<&'static str> = Vec::new();
+        let mut stack: Vec<Vec<&'static str>> = Vec::new();
+        let begin_tag = |name: &str| -> &'static str {
+            match (format, name) {
+                ("html", "bold") => "<b>",
+                ("html", "italic") => "<i>",
+                ("html", "underline") => "<u>",
+                ("html", "strikethru") => "<s>",
+                ("latex", "bold") => "{\\bf ",
+                ("latex", "italic") => "{\\it ",
+                ("latex", "underline") => "",
+                ("latex", "strikethru") => "{",
+                _ => "",
+            }
+        };
+        let end_tag = |name: &str| -> &'static str {
+            match (format, name) {
+                ("html", "bold") => "</b>",
+                ("html", "italic") => "</i>",
+                ("html", "underline") => "</u>",
+                ("html", "strikethru") => "</s>",
+                ("latex", "bold") | ("latex", "italic") | ("latex", "strikethru") => "}",
+                ("latex", "underline") => "\n",
+                _ => "",
+            }
+        };
+        for event in events {
+            if !started {
+                started = true;
+                match format {
+                    "text" => {
+                        if !quiet {
+                            out.push_str(
+                                "###  Translation from RTF performed by UnRTF, version 0.21.10 \n",
+                            );
+                        }
+                        out.push_str("\n-----------------\n");
+                    }
+                    "html" => {
+                        out.push_str("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n");
+                        if !quiet {
+                            out.push_str(
+                                "<!-- Translation from RTF performed by UnRTF, version 0.21.10 -->\n",
+                            );
+                        }
+                        out.push_str("</head>\n<body>");
+                    }
+                    "latex" => {
+                        out.push_str("\\documentclass[11pt]{article}\n\\title{}\n");
+                        if !quiet {
+                            out.push_str(
+                                "%  Translation from RTF performed by UnRTF, version 0.21.10 \n",
+                            );
+                        }
+                        out.push_str("\n\n\\begin{document}\n\\maketitle\n\n");
+                    }
+                    _ => return Err("E_PROFILE: Unsupported output personality".to_string()),
+                }
+            }
+            match event {
+                RtfEvent::Open => stack.push(active.clone()),
+                RtfEvent::Close => {
+                    for &name in active.iter().rev() {
+                        out.push_str(end_tag(name));
+                    }
+                    active = stack.pop().unwrap_or_default();
+                    if !stack.is_empty() {
+                        for &name in &active {
+                            out.push_str(begin_tag(name));
+                        }
+                    }
+                }
+                RtfEvent::Control { name, parameter } => {
+                    let ctrl = match name.as_str() {
+                        "b" => Some("bold"),
+                        "i" => Some("italic"),
+                        "ul" => Some("underline"),
+                        "strike" => Some("strikethru"),
+                        _ => None,
+                    };
+                    if ctrl.is_some() || name == "plain" || name == "ulnone" {
+                        if let Some(c) = ctrl
+                            && *parameter != Some(0)
+                        {
+                            if !active.contains(&c) {
+                                active.push(c);
+                                out.push_str(begin_tag(c));
+                            }
+                            continue;
+                        }
+                        for &val in active.iter().rev() {
+                            out.push_str(end_tag(val));
+                        }
+                        if name == "plain" {
+                            active.clear();
+                        } else {
+                            let target = ctrl.unwrap_or("underline");
+                            active.retain(|&item| item != target);
+                            if *parameter != Some(0) && name != "ulnone" {
+                                active.push(target);
+                            }
+                        }
+                        for &val in &active {
+                            out.push_str(begin_tag(val));
+                        }
+                    }
+                }
+                RtfEvent::Text { text, .. } => {
+                    for ch in text.chars() {
+                        let code = ch as u32;
+                        if ch == '\n' {
+                            match format {
+                                "html" => out.push_str("<br>\n"),
+                                "latex" => out.push_str("\\par\n"),
+                                _ => out.push('\n'),
+                            }
+                        } else if noremap {
+                            out.push(ch);
+                        } else if format == "html" {
+                            if let Some(rep) = gnu_html_remap(code) {
+                                out.push_str(rep);
+                            } else {
+                                out.push(ch);
+                            }
+                        } else if format == "latex" {
+                            if let Some(rep) = gnu_latex_remap(code) {
+                                out.push_str(rep);
+                            } else {
+                                out.push(ch);
+                            }
+                        } else {
+                            out.push(ch);
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        if started {
+            match format {
+                "html" => out.push_str("</body>\n</html>\n"),
+                "latex" => out.push_str("\\end{document}\n"),
+                _ => {}
+            }
+        }
+        return Ok(out);
+    }
+
+    let html = format == "html";
+    if !html && format != "text" {
+        return Err("E_PROFILE: Unsupported output format".to_string());
+    }
+    #[derive(Clone, Default, PartialEq)]
+    struct Style {
+        bold: bool,
+        italic: bool,
+        underline: bool,
+        strike: bool,
+        font: Option<i32>,
+        size: Option<i32>,
+        color: Option<String>,
+    }
+    let mut style = Style::default();
+    let mut paragraph = false;
+    let mut table = false;
+    let mut row = false;
+    let mut cell = false;
+    let mut default_font: Option<i32> = None;
+    let mut stack: Vec<Style> = Vec::new();
+    let mut fonts: BTreeMap<i32, String> = BTreeMap::new();
+    let mut colors: BTreeMap<i32, Option<String>> = BTreeMap::new();
+    let mut run = String::new();
+    let mut run_style = Style::default();
+    let mut out = String::new();
+    let mut has_event = false;
+
+    let styled = |text: &str,
+                  st: &Style,
+                  default_font: Option<i32>,
+                  fonts: &BTreeMap<i32, String>|
+     -> String {
+        let mut start = String::new();
+        let mut end = String::new();
+        for (enabled, tag) in [
+            (st.bold, "strong"),
+            (st.italic, "em"),
+            (st.underline, "u"),
+            (st.strike, "s"),
+        ] {
+            if enabled {
+                start.push_str(&format!("<{tag}>"));
+                end = format!("</{tag}>{end}");
+            }
+        }
+        let mut css = Vec::new();
+        let font_id = st.font.or(default_font);
+        if let Some(fid) = font_id
+            && let Some(font) = fonts.get(&fid)
+        {
+            let mut name = String::new();
+            for ch in font.chars() {
+                let code = ch as u32;
+                if ch.is_ascii_alphanumeric() || ch == ' ' || ch == '-' {
+                    name.push(ch);
+                } else {
+                    name.push_str(&format!("\\{code:x} "));
+                }
+            }
+            css.push(format!("font-family:&#39;{name}&#39;"));
+        }
+        if let Some(sz) = st.size {
+            let pt = (sz as f64) / 2.0;
+            if pt.fract() == 0.0 {
+                css.push(format!("font-size:{}pt", pt as i64));
+            } else {
+                css.push(format!("font-size:{pt}pt"));
+            }
+        }
+        if let Some(ref col) = st.color {
+            css.push(format!("color:{col}"));
+        }
+        if !css.is_empty() {
+            start.push_str(&format!("<span style=\"{}\">", css.join(";")));
+            end = format!("</span>{end}");
+        }
+        format!("{start}{text}{end}")
+    };
+
+    let flush = |run: &mut String,
+                 run_style: &Style,
+                 table: bool,
+                 row: bool,
+                 cell: &mut bool,
+                 paragraph: &mut bool,
+                 default_font: Option<i32>,
+                 fonts: &BTreeMap<i32, String>|
+     -> Result<String, String> {
+        if run.is_empty() {
+            return Ok(String::new());
+        }
+        let prefix = if table {
+            if !row {
+                return Err("E_PARSE: Text outside table row".to_string());
+            }
+            if !*cell {
+                *cell = true;
+                "<td>"
+            } else {
+                ""
+            }
+        } else if !*paragraph {
+            *paragraph = true;
+            "<p>"
+        } else {
+            ""
+        };
+        let res = format!("{prefix}{}", styled(run, run_style, default_font, fonts));
+        run.clear();
+        Ok(res)
+    };
+
+    for event in events {
+        if !has_event {
+            has_event = true;
+            if html {
+                out.push_str("<!DOCTYPE html><html><body>");
+            }
+        }
+        match event {
+            RtfEvent::Open => {
+                stack.push(style.clone());
+            }
+            RtfEvent::Close => {
+                style = stack.pop().unwrap_or_default();
+            }
+            RtfEvent::Font(f) => {
+                fonts.insert(f.id, f.name.clone());
+            }
+            RtfEvent::Color { index, rgb } => {
+                colors.insert(*index, rgb.clone());
+            }
+            RtfEvent::Text { text, boundary } => {
+                if !html {
+                    out.push_str(text);
+                    continue;
+                }
+                if table && !row {
+                    out.push_str(&flush(
+                        &mut run,
+                        &run_style,
+                        table,
+                        row,
+                        &mut cell,
+                        &mut paragraph,
+                        default_font,
+                        &fonts,
+                    )?);
+                    out.push_str("</tbody></table>");
+                    table = false;
+                }
+                for ch in text.chars() {
+                    if ch == '\n' {
+                        out.push_str(&flush(
+                            &mut run,
+                            &run_style,
+                            table,
+                            row,
+                            &mut cell,
+                            &mut paragraph,
+                            default_font,
+                            &fonts,
+                        )?);
+                        if table || *boundary == Some("line") {
+                            let prefix = if table {
+                                if !row {
+                                    return Err("E_PARSE: Text outside table row".to_string());
+                                }
+                                if !cell {
+                                    cell = true;
+                                    "<td>"
+                                } else {
+                                    ""
+                                }
+                            } else if !paragraph {
+                                paragraph = true;
+                                "<p>"
+                            } else {
+                                ""
+                            };
+                            out.push_str(prefix);
+                            out.push_str("<br>");
+                        } else if paragraph {
+                            paragraph = false;
+                            out.push_str("</p>");
+                        } else {
+                            out.push_str("<p></p>");
+                        }
+                    } else {
+                        let eff_font = style.font.or(default_font);
+                        let same = run_style.bold == style.bold
+                            && run_style.italic == style.italic
+                            && run_style.underline == style.underline
+                            && run_style.strike == style.strike
+                            && run_style.font == eff_font
+                            && run_style.size == style.size
+                            && run_style.color == style.color;
+                        if !run.is_empty() && !same {
+                            out.push_str(&flush(
+                                &mut run,
+                                &run_style,
+                                table,
+                                row,
+                                &mut cell,
+                                &mut paragraph,
+                                default_font,
+                                &fonts,
+                            )?);
+                        }
+                        if run.is_empty() {
+                            run_style = style.clone();
+                            run_style.font = eff_font;
+                        }
+                        match ch {
+                            '&' => run.push_str("&amp;"),
+                            '<' => run.push_str("&lt;"),
+                            '>' => run.push_str("&gt;"),
+                            '\t' => run.push_str("&#9;"),
+                            _ => run.push(ch),
+                        }
+                    }
+                }
+            }
+            RtfEvent::Control { name, parameter } => {
+                let parameter = *parameter;
+                if html && matches!(name.as_str(), "trowd" | "cell" | "row") {
+                    out.push_str(&flush(
+                        &mut run,
+                        &run_style,
+                        table,
+                        row,
+                        &mut cell,
+                        &mut paragraph,
+                        default_font,
+                        &fonts,
+                    )?);
+                }
+                match name.as_str() {
+                    "plain" => style = Style::default(),
+                    "f" | "deff" => {
+                        if let Some(p) = parameter {
+                            if name == "deff" {
+                                default_font = Some(p);
+                            }
+                            style.font = Some(p);
+                        }
+                    }
+                    "fs" => {
+                        let Some(p) = parameter.filter(|&p| (1..=32767).contains(&p)) else {
+                            return Err("E_PARSE: Invalid font size".to_string());
+                        };
+                        style.size = Some(p);
+                    }
+                    "cf" => {
+                        let Some(p) = parameter else {
+                            return Err("E_PARSE: Undeclared color".to_string());
+                        };
+                        let Some(col_opt) = colors.get(&p) else {
+                            return Err("E_PARSE: Undeclared color".to_string());
+                        };
+                        style.color = col_opt.clone();
+                    }
+                    "b" => style.bold = parameter != Some(0),
+                    "i" => style.italic = parameter != Some(0),
+                    "ul" | "ulnone" => style.underline = name == "ul" && parameter != Some(0),
+                    "strike" => style.strike = parameter != Some(0),
+                    "trowd" => {
+                        if row {
+                            return Err("E_PARSE: Nested or unterminated table row".to_string());
+                        }
+                        if html {
+                            if paragraph {
+                                paragraph = false;
+                                out.push_str("</p>");
+                            }
+                            if !table {
+                                out.push_str("<table><tbody>");
+                            }
+                            out.push_str("<tr>");
+                            table = true;
+                        }
+                        row = true;
+                    }
+                    "cell" => {
+                        if !row {
+                            return Err("E_PARSE: Cell outside table row".to_string());
+                        }
+                        if html {
+                            out.push_str(if cell { "</td>" } else { "<td></td>" });
+                            cell = false;
+                        } else {
+                            out.push('\t');
+                        }
+                    }
+                    "row" => {
+                        if !row {
+                            return Err("E_PARSE: Row end outside table".to_string());
+                        }
+                        if html {
+                            if cell {
+                                out.push_str("</td>");
+                            }
+                            out.push_str("</tr>");
+                            cell = false;
+                        } else {
+                            out.push('\n');
+                        }
+                        row = false;
+                    }
+                    _ => {}
+                }
+            }
+            RtfEvent::Skipped => {}
+        }
+    }
+    out.push_str(&flush(
+        &mut run,
+        &run_style,
+        table,
+        row,
+        &mut cell,
+        &mut paragraph,
+        default_font,
+        &fonts,
+    )?);
+    if row {
+        return Err("E_PARSE: Unterminated table row".to_string());
+    }
+    if html && has_event {
+        if paragraph {
+            out.push_str("</p>");
+        }
+        if table {
+            out.push_str("</tbody></table>");
+        }
+        out.push_str("</body></html>");
+    }
+    Ok(out)
+}
+
 fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut mode = "html".to_string();
-    let mut gnu_profile = false;
+    let mut format = "html".to_string();
+    let mut profile: Option<String> = None;
     let mut quiet = false;
     let mut noremap = false;
-    let mut files: Vec<String> = Vec::new();
+    let mut file: Option<String> = None;
     let mut operands = false;
     let mut expect_format = false;
 
     for a in args {
-        if expect_format {
-            if a != "text" && a != "html" && a != "latex" {
-                return err_out("unrtf: E_PROFILE: Unsupported output format\n", 1);
-            }
-            mode = a.clone();
-            expect_format = false;
-            continue;
-        }
-        if !operands && let Some(val) = a.strip_prefix("-t=") {
+        if expect_format || (!operands && a.starts_with("-t=")) {
+            let val = if expect_format { a.as_str() } else { &a[3..] };
             if val != "text" && val != "html" && val != "latex" {
                 return err_out("unrtf: E_PROFILE: Unsupported output format\n", 1);
             }
-            mode = val.to_string();
+            format = val.to_string();
+            expect_format = false;
             continue;
         }
         if !operands && a == "-t" {
@@ -7262,19 +8932,18 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             continue;
         }
         if operands {
-            files.push(a.clone());
-        } else if a == "--text" {
-            mode = "text".to_string();
-        } else if a == "--html" {
-            mode = "html".to_string();
-        } else if a == "--latex" {
-            mode = "latex".to_string();
-        } else if let Some(prof) = a.strip_prefix("--profile=") {
-            if prof == "gnu-0.21.10" {
-                gnu_profile = true;
-            } else {
-                return err_out("unrtf: E_PROFILE: Unsupported output personality\n", 1);
+            if file.is_some() {
+                return err_out("unrtf: E_PARSE: Only one input file is supported\n", 1);
             }
+            file = Some(a.clone());
+        } else if a == "--text" {
+            format = "text".to_string();
+        } else if a == "--html" {
+            format = "html".to_string();
+        } else if a == "--latex" {
+            format = "latex".to_string();
+        } else if let Some(prof) = a.strip_prefix("--profile=") {
+            profile = Some(prof.to_string());
         } else if a == "--quiet" {
             quiet = true;
         } else if a == "--noremap" {
@@ -7287,519 +8956,73 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 1,
             );
         } else {
-            files.push(a.clone());
+            if file.is_some() {
+                return err_out("unrtf: E_PARSE: Only one input file is supported\n", 1);
+            }
+            file = Some(a.clone());
         }
     }
     if expect_format {
-        return err_out("unrtf: E_PROFILE: Unsupported output format\n", 1);
+        return err_out("unrtf: E_PARSE: Missing output format after -t\n", 1);
     }
-    if files.len() > 1 {
-        return err_out("unrtf: E_PARSE: Only one input file is supported\n", 1);
+    if profile.is_none() && (format == "latex" || noremap) {
+        profile = Some("gnu-0.21.10".to_string());
     }
-    if mode == "latex" || noremap {
-        gnu_profile = true;
-    }
-
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
-        Ok(t) => t,
-        Err(e) => return err_out(&format!("unrtf: {e}"), 1),
-    };
-    let trimmed = text.trim_start();
-    if !trimmed.starts_with("{\\rtf") {
-        return err_out("unrtf: input is not a valid RTF document\n", 1);
-    }
-
-    let chars: Vec<char> = trimmed.chars().collect();
+    if let Some(ref prof) = profile
+        && prof != "standards-strict"
+        && prof != "gnu-0.21.10"
     {
-        let mut depth = 0i32;
-        let mut k = 0usize;
-        while k < chars.len() {
-            if chars[k] == '\\' {
-                k += 2;
-                continue;
-            }
-            if chars[k] == '{' {
-                depth += 1;
-            } else if chars[k] == '}' {
-                depth -= 1;
-                if depth < 0 {
-                    return err_out("unrtf: E_PARSE: Unmatched closing brace\n", 1);
-                }
-            }
-            k += 1;
-        }
-        if depth != 0 {
-            return err_out("unrtf: E_PARSE: Unclosed RTF group\n", 1);
-        }
+        return err_out(
+            "unrtf: E_PROFILE: Only standards-strict extraction is admitted; native-legacy and recovery are not implemented\n",
+            1,
+        );
+    }
+    let gnu_profile = profile.as_deref() == Some("gnu-0.21.10");
+    if (format != "text" && format != "html" && !(gnu_profile && format == "latex"))
+        || (noremap && !gnu_profile)
+    {
+        return err_out("unrtf: E_PROFILE: Option requires the GNU personality profile\n", 1);
+    }
+    if file.as_deref().is_some_and(|f| f.contains('\0')) {
+        return err_out("unrtf: E_PARSE: NUL is unavailable in VFS paths\n", 1);
     }
 
-    let mut body = String::new();
-    let mut i = 0usize;
-    let mut group_stack: Vec<(Vec<&'static str>, usize)> = Vec::new();
-    let mut active_tags: Vec<&'static str> = Vec::new();
-    let mut uc_skip: usize = 1;
-    let mut in_table = false;
-    let mut in_row = false;
-    let mut in_cell = false;
-    let mut pending_high_surrogate: Option<u32> = None;
-
-    let map_html_tag = |tag: &'static str| -> &'static str {
-        if gnu_profile {
-            match tag {
-                "strike" => "s",
-                _ => tag,
-            }
-        } else {
-            match tag {
-                "b" => "strong",
-                "i" => "em",
-                "strike" => "s",
-                _ => tag,
+    let input_bytes: Vec<u8> = match file.as_deref() {
+        None | Some("-") => stdin.as_bytes().to_vec(),
+        Some(f) => {
+            let path = resolve_posix_path(cwd, f);
+            match fs.read_file(&path) {
+                Ok(b) => b,
+                Err(_) => {
+                    let fallback = format!("{path}.rtf");
+                    match fs.read_file(&fallback) {
+                        Ok(b) => b,
+                        Err(_) => {
+                            return err_out(
+                                &format!(
+                                    "unrtf: ENOENT: ENOENT: no such file or directory '{fallback}'\n"
+                                ),
+                                1,
+                            );
+                        }
+                    }
+                }
             }
         }
     };
 
-    let emit_close_tag = |out: &mut String, tag: &'static str, mode: &str| {
-        if mode == "html" {
-            let htag = map_html_tag(tag);
-            out.push_str(&format!("</{htag}>"));
-        } else if mode == "latex" {
-            out.push('}');
-        }
+    let tokens = match tokenize_rtf_bytes(&input_bytes) {
+        Ok(t) => t,
+        Err(e) => return err_out(&format!("unrtf: {e}\n"), 1),
     };
-    let emit_open_tag = |out: &mut String, tag: &'static str, mode: &str| {
-        if mode == "html" {
-            let htag = map_html_tag(tag);
-            out.push_str(&format!("<{htag}>"));
-        } else if mode == "latex" {
-            let ltag = match tag {
-                "b" => "\\bf ",
-                "i" => "\\it ",
-                "u" => "\\underline{",
-                _ => "",
-            };
-            out.push('{');
-            out.push_str(ltag);
-        }
+    let events = match extract_rtf_events(&tokens) {
+        Ok(ev) => ev,
+        Err(e) => return err_out(&format!("unrtf: {e}\n"), 1),
     };
-
-    let push_escaped_char =
-        |out: &mut String, ch: char, mode: &str, gnu_profile: bool, noremap: bool| {
-            if mode == "html" {
-                match ch {
-                    '&' => out.push_str("&amp;"),
-                    '<' => out.push_str("&lt;"),
-                    '>' => out.push_str("&gt;"),
-                    '"' if gnu_profile && !noremap => out.push_str("&quot;"),
-                    '\u{00a0}' if gnu_profile && !noremap => out.push_str("&nbsp;"),
-                    _ => out.push(ch),
-                }
-            } else if mode == "latex" && gnu_profile && !noremap {
-                match ch {
-                    '\u{2013}' => out.push_str("--"),
-                    '\u{2014}' => out.push_str("---"),
-                    '\u{2022}' => out.push_str("{\\bullet}"),
-                    '#' => out.push_str("\\#"),
-                    '$' => out.push_str("{\\$}"),
-                    '%' => out.push_str("\\%"),
-                    '&' => out.push_str("\\&"),
-                    '_' => out.push_str("\\_"),
-                    _ => out.push(ch),
-                }
-            } else {
-                out.push(ch);
-            }
-        };
-
-    let ensure_table_cell = |out: &mut String, mode: &str, in_row: bool, in_cell: &mut bool| {
-        if mode == "html" && in_row && !*in_cell {
-            out.push_str("<td>");
-            *in_cell = true;
-        }
+    let out = match render_rtf_events(&events, &format, gnu_profile, quiet, noremap) {
+        Ok(s) => s,
+        Err(e) => return err_out(&format!("unrtf: {e}\n"), 1),
     };
-
-    let decode_cp1252 = |b: u8| -> char {
-        match b {
-            0x80 => '\u{20ac}',
-            0x82 => '\u{201a}',
-            0x83 => '\u{0192}',
-            0x84 => '\u{201e}',
-            0x85 => '\u{2026}',
-            0x86 => '\u{2020}',
-            0x87 => '\u{2021}',
-            0x88 => '\u{02c6}',
-            0x89 => '\u{2030}',
-            0x8a => '\u{0160}',
-            0x8b => '\u{2039}',
-            0x8c => '\u{0152}',
-            0x8e => '\u{017d}',
-            0x91 => '\u{2018}',
-            0x92 => '\u{2019}',
-            0x93 => '\u{201c}',
-            0x94 => '\u{201d}',
-            0x95 => '\u{2022}',
-            0x96 => '\u{2013}',
-            0x97 => '\u{2014}',
-            0x98 => '\u{02dc}',
-            0x99 => '\u{2122}',
-            0x9a => '\u{0161}',
-            0x9b => '\u{203a}',
-            0x9c => '\u{0153}',
-            0x9e => '\u{017e}',
-            0x9f => '\u{0178}',
-            _ => b as char,
-        }
-    };
-
-    while i < chars.len() {
-        match chars[i] {
-            '{' => {
-                let rest: String = chars[i + 1..chars.len().min(i + 24)].iter().collect();
-                let rest_trim = rest.trim_start();
-                if rest_trim.starts_with("\\fonttbl")
-                    || rest_trim.starts_with("\\colortbl")
-                    || rest_trim.starts_with("\\stylesheet")
-                    || rest_trim.starts_with("\\info")
-                    || rest_trim.starts_with("\\pict")
-                    || rest_trim.starts_with("\\object")
-                    || rest_trim.starts_with("\\objdata")
-                    || rest_trim.starts_with("\\fldinst")
-                    || rest_trim.starts_with("\\header")
-                    || rest_trim.starts_with("\\footer")
-                    || rest_trim.starts_with("\\*")
-                {
-                    let mut depth = 1i32;
-                    i += 1;
-                    while i < chars.len() && depth > 0 {
-                        if chars[i] == '\\' {
-                            i += 2;
-                            continue;
-                        }
-                        if chars[i] == '{' {
-                            depth += 1;
-                        } else if chars[i] == '}' {
-                            depth -= 1;
-                        }
-                        i += 1;
-                    }
-                    continue;
-                }
-                group_stack.push((Vec::new(), uc_skip));
-                i += 1;
-            }
-            '}' => {
-                if let Some((group_tags, saved_uc)) = group_stack.pop() {
-                    uc_skip = saved_uc;
-                    for tag in group_tags.into_iter().rev() {
-                        emit_close_tag(&mut body, tag, &mode);
-                        if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
-                            active_tags.remove(pos);
-                        }
-                    }
-                }
-                i += 1;
-            }
-            '\\' => {
-                i += 1;
-                if i >= chars.len() {
-                    break;
-                }
-                if chars[i] == '\'' && i + 2 < chars.len() {
-                    let hex: String = chars[i + 1..i + 3].iter().collect();
-                    if let Ok(b) = u8::from_str_radix(&hex, 16) {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, decode_cp1252(b), &mode, gnu_profile, noremap);
-                    }
-                    i += 3;
-                    continue;
-                }
-                if matches!(chars[i], '\\' | '{' | '}') {
-                    ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                    push_escaped_char(&mut body, chars[i], &mode, gnu_profile, noremap);
-                    i += 1;
-                    continue;
-                }
-                if chars[i] == '~' {
-                    ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                    push_escaped_char(&mut body, '\u{00a0}', &mode, gnu_profile, noremap);
-                    i += 1;
-                    continue;
-                }
-                if chars[i] == '_' {
-                    ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                    push_escaped_char(&mut body, '\u{2011}', &mode, gnu_profile, noremap);
-                    i += 1;
-                    continue;
-                }
-                let start = i;
-                while i < chars.len() && chars[i].is_ascii_alphabetic() {
-                    i += 1;
-                }
-                let word: String = chars[start..i].iter().collect();
-                let num_start = i;
-                if i < chars.len() && (chars[i] == '-' || chars[i].is_ascii_digit()) {
-                    i += 1;
-                    while i < chars.len() && chars[i].is_ascii_digit() {
-                        i += 1;
-                    }
-                }
-                let param_str: String = chars[num_start..i].iter().collect();
-                let param: Option<i32> = if param_str.is_empty() {
-                    None
-                } else {
-                    param_str.parse::<i32>().ok()
-                };
-                if i < chars.len() && chars[i] == ' ' {
-                    i += 1;
-                }
-                match word.as_str() {
-                    "par" | "line" => {
-                        if mode == "html" {
-                            if in_row {
-                                ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                                body.push_str("<br>");
-                            } else if gnu_profile {
-                                body.push_str("<br>\n");
-                            } else {
-                                body.push('\n');
-                            }
-                        } else if mode == "latex" {
-                            body.push_str("\\par\n");
-                        } else {
-                            body.push('\n');
-                        }
-                    }
-                    "trowd" => {
-                        if mode == "html" {
-                            if !in_table {
-                                body.push_str("<table><tbody>");
-                                in_table = true;
-                            }
-                            body.push_str("<tr>");
-                        }
-                        in_row = true;
-                        in_cell = false;
-                    }
-                    "cell" => {
-                        if mode == "html" {
-                            if in_cell {
-                                body.push_str("</td>");
-                                in_cell = false;
-                            } else {
-                                body.push_str("<td></td>");
-                            }
-                        } else if mode == "text" {
-                            body.push('\t');
-                        }
-                    }
-                    "row" => {
-                        if mode == "html" {
-                            if in_cell {
-                                body.push_str("</td>");
-                                in_cell = false;
-                            }
-                            body.push_str("</tr>");
-                        } else {
-                            body.push('\n');
-                        }
-                        in_row = false;
-                    }
-                    "tab" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        if mode == "html" && !gnu_profile {
-                            body.push_str("&#9;");
-                        } else {
-                            body.push('\t');
-                        }
-                    }
-                    "emdash" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{2014}', &mode, gnu_profile, noremap);
-                    }
-                    "endash" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{2013}', &mode, gnu_profile, noremap);
-                    }
-                    "bullet" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{2022}', &mode, gnu_profile, noremap);
-                    }
-                    "lquote" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{2018}', &mode, gnu_profile, noremap);
-                    }
-                    "rquote" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{2019}', &mode, gnu_profile, noremap);
-                    }
-                    "ldblquote" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{201c}', &mode, gnu_profile, noremap);
-                    }
-                    "rdblquote" => {
-                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                        push_escaped_char(&mut body, '\u{201d}', &mode, gnu_profile, noremap);
-                    }
-                    "plain" => {
-                        if let Some((top_tags, _)) = group_stack.last_mut() {
-                            for tag in top_tags.drain(..).rev() {
-                                emit_close_tag(&mut body, tag, &mode);
-                                if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
-                                    active_tags.remove(pos);
-                                }
-                            }
-                        }
-                    }
-                    "b" | "i" | "ul" | "strike" => {
-                        let tag: &'static str = match word.as_str() {
-                            "b" => "b",
-                            "i" => "i",
-                            "ul" => "u",
-                            _ => "strike",
-                        };
-                        if param == Some(0) {
-                            if let Some(pos) = active_tags.iter().rposition(|&t| t == tag) {
-                                active_tags.remove(pos);
-                                emit_close_tag(&mut body, tag, &mode);
-                            }
-                            if let Some((top, _)) = group_stack.last_mut()
-                                && let Some(pos) = top.iter().rposition(|&t| t == tag)
-                            {
-                                top.remove(pos);
-                            }
-                        } else {
-                            ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                            emit_open_tag(&mut body, tag, &mode);
-                            active_tags.push(tag);
-                            if let Some((top, _)) = group_stack.last_mut() {
-                                top.push(tag);
-                            }
-                        }
-                    }
-                    "ulnone" => {
-                        if let Some(pos) = active_tags.iter().rposition(|&t| t == "u") {
-                            active_tags.remove(pos);
-                            emit_close_tag(&mut body, "u", &mode);
-                        }
-                        if let Some((top, _)) = group_stack.last_mut()
-                            && let Some(pos) = top.iter().rposition(|&t| t == "u")
-                        {
-                            top.remove(pos);
-                        }
-                    }
-                    "uc" => {
-                        if let Some(p) = param
-                            && p >= 0
-                        {
-                            uc_skip = p as usize;
-                        }
-                    }
-                    "u" => {
-                        if let Some(code) = param {
-                            let u = if code < 0 {
-                                (code + 65536) as u32
-                            } else {
-                                code as u32
-                            };
-                            if (0xd800..=0xdbff).contains(&u) {
-                                pending_high_surrogate = Some(u);
-                            } else if (0xdc00..=0xdfff).contains(&u) {
-                                if let Some(hi) = pending_high_surrogate.take() {
-                                    let cp = 0x10000 + ((hi - 0xd800) << 10) + (u - 0xdc00);
-                                    if let Some(ch) = char::from_u32(cp) {
-                                        ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                                        push_escaped_char(&mut body, ch, &mode, gnu_profile, noremap);
-                                    }
-                                }
-                            } else if let Some(ch) = char::from_u32(u) {
-                                ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                                push_escaped_char(&mut body, ch, &mode, gnu_profile, noremap);
-                            }
-                            let mut rem_skip = uc_skip;
-                            while rem_skip > 0 && i < chars.len() {
-                                if chars[i] == '\\' && i + 1 < chars.len() {
-                                    if chars[i + 1] == '\'' && i + 3 < chars.len() {
-                                        i += 4;
-                                        rem_skip -= 1;
-                                        continue;
-                                    } else if !chars[i + 1].is_ascii_alphabetic() {
-                                        i += 2;
-                                        rem_skip -= 1;
-                                        continue;
-                                    } else {
-                                        break;
-                                    }
-                                } else if chars[i] == '{' || chars[i] == '}' {
-                                    break;
-                                } else {
-                                    i += 1;
-                                    rem_skip -= 1;
-                                }
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-            '\r' | '\n' => {
-                i += 1;
-            }
-            c => {
-                if mode == "html" && in_table && !in_row && !c.is_whitespace() {
-                    body.push_str("</tbody></table>");
-                    in_table = false;
-                }
-                ensure_table_cell(&mut body, &mode, in_row, &mut in_cell);
-                push_escaped_char(&mut body, c, &mode, gnu_profile, noremap);
-                i += 1;
-            }
-        }
-    }
-    if mode == "html" && in_table {
-        if in_cell {
-            body.push_str("</td>");
-        }
-        if in_row {
-            body.push_str("</tr>");
-        }
-        body.push_str("</tbody></table>");
-    }
-
-    let mut out = String::new();
-    if mode == "latex" {
-        out.push_str("\\documentclass[11pt]{article}\n\\title{}\n");
-        if !quiet {
-            out.push_str("\\%  Translation from RTF performed by UnRTF, version 0.21.10 \n");
-        }
-        out.push_str("\n\n\\begin{document}\n\\maketitle\n\n");
-        out.push_str(&body);
-        out.push_str("\n\\end{document}\n");
-    } else if mode == "html" {
-        if gnu_profile {
-            out.push_str("<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n<html>\n<head>\n<meta http-equiv=\"content-type\" content=\"text/html; charset=utf-8\">\n");
-            if !quiet {
-                out.push_str("<!-- Translation from RTF performed by UnRTF, version 0.21.10 -->\n");
-            }
-            out.push_str("</head>\n<body>");
-            out.push_str(&body);
-            out.push_str("</body>\n</html>\n");
-        } else {
-            out.push_str("<!DOCTYPE html><html><body>");
-            out.push_str(&body);
-            out.push_str("</body></html>\n");
-        }
-    } else {
-        if gnu_profile {
-            if !quiet {
-                out.push_str("###  Translation from RTF performed by UnRTF, version 0.21.10 \n");
-            }
-            out.push_str("\n-----------------\n");
-        }
-        out.push_str(&body);
-        if !out.ends_with('\n') {
-            out.push('\n');
-        }
-    }
     ok_out(&out)
 }
 
@@ -24214,6 +25437,59 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         )
                     }
                 },
+                "flowchart" => match v {
+                    JVal::Object(fpairs) => {
+                        for (fk, fv) in fpairs {
+                            if !matches!(fk.as_str(), "rankSpacing" | "nodeSpacing" | "wrappingWidth") {
+                                return err_out(
+                                    &format!("mmdc: E_CONFIG: Unsupported flowchart configuration '{fk}'\n"),
+                                    2,
+                                );
+                            }
+                            if !matches!(fv, JVal::Number(n) if n.is_finite() && *n > 0.0) {
+                                return err_out(
+                                    &format!("mmdc: E_CONFIG: Configuration 'flowchart.{fk}' must be a positive number\n"),
+                                    2,
+                                );
+                            }
+                        }
+                    }
+                    _ => {
+                        return err_out("mmdc: E_CONFIG: Configuration 'flowchart' must be an object\n", 2);
+                    }
+                },
+                "themeVariables" => match v {
+                    JVal::Object(vpairs) => {
+                        for (vk, vv) in vpairs {
+                            if !matches!(
+                                vk.as_str(),
+                                "primaryColor"
+                                    | "primaryTextColor"
+                                    | "primaryBorderColor"
+                                    | "lineColor"
+                                    | "textColor"
+                                    | "background"
+                                    | "noteBkgColor"
+                                    | "noteTextColor"
+                                    | "noteBorderColor"
+                            ) {
+                                return err_out(
+                                    &format!("mmdc: E_CONFIG: Unsupported theme variable '{vk}'\n"),
+                                    2,
+                                );
+                            }
+                            if !matches!(vv, JVal::Str(_)) {
+                                return err_out(
+                                    &format!("mmdc: E_CONFIG: Theme variable '{vk}' must be a color string\n"),
+                                    2,
+                                );
+                            }
+                        }
+                    }
+                    _ => {
+                        return err_out("mmdc: E_CONFIG: Configuration 'themeVariables' must be an object\n", 2);
+                    }
+                },
                 _ => {}
             }
         }
@@ -26464,6 +27740,112 @@ fn eval_ss_formula_expr(expr: &str, rows: &[Vec<String>]) -> Option<f64> {
     None
 }
 
+fn split_top_level_formula_args(inner: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let bytes = inner.as_bytes();
+    let mut start = 0usize;
+    let mut depth = 0i32;
+    let mut in_quotes = false;
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] == b'"' {
+            if in_quotes && i + 1 < bytes.len() && bytes[i + 1] == b'"' {
+                i += 2;
+                continue;
+            }
+            in_quotes = !in_quotes;
+            i += 1;
+            continue;
+        }
+        if !in_quotes {
+            match bytes[i] {
+                b'(' => depth += 1,
+                b')' => depth -= 1,
+                b',' if depth == 0 => {
+                    out.push(inner[start..i].trim());
+                    start = i + 1;
+                }
+                _ => {}
+            }
+        }
+        i += 1;
+    }
+    out.push(inner[start..].trim());
+    out
+}
+
+fn eval_ss_formula_cond(cond: &str, rows: &[Vec<String>]) -> Option<bool> {
+    let c = cond.trim();
+    for op in [">=", "<=", "<>", "!=", "==", "=", ">", "<"] {
+        if let Some((lhs, rhs)) = c.split_once(op) {
+            let l_num = eval_ss_formula_expr(lhs, rows);
+            let r_num = eval_ss_formula_expr(rhs, rows);
+            if let (Some(ln), Some(rn)) = (l_num, r_num) {
+                return Some(match op {
+                    ">=" => ln >= rn,
+                    "<=" => ln <= rn,
+                    "<>" | "!=" => (ln - rn).abs() > 1e-12,
+                    "==" | "=" => (ln - rn).abs() <= 1e-12,
+                    ">" => ln > rn,
+                    "<" => ln < rn,
+                    _ => false,
+                });
+            }
+            let ls = eval_ss_formula_cell_str(lhs, rows).unwrap_or_else(|| lhs.trim().trim_matches('"').to_string());
+            let rs = eval_ss_formula_cell_str(rhs, rows).unwrap_or_else(|| rhs.trim().trim_matches('"').to_string());
+            return Some(match op {
+                "<>" | "!=" => ls != rs,
+                "==" | "=" => ls == rs,
+                ">=" => ls >= rs,
+                "<=" => ls <= rs,
+                ">" => ls > rs,
+                "<" => ls < rs,
+                _ => false,
+            });
+        }
+    }
+    eval_ss_formula_expr(c, rows).map(|v| v != 0.0)
+}
+
+fn eval_ss_formula_cell_str(expr: &str, rows: &[Vec<String>]) -> Option<String> {
+    let s = expr.trim();
+    if s.starts_with('"') && s.ends_with('"') && s.len() >= 2 {
+        return Some(s[1..s.len() - 1].replace("\"\"", "\""));
+    }
+    let upper = s.to_ascii_uppercase();
+    if let Some(rest) = upper.strip_prefix("IF") {
+        let rest_orig = s[2..].trim();
+        if rest_orig.starts_with('(') && rest_orig.ends_with(')') && rest.trim().starts_with('(') {
+            let args = split_top_level_formula_args(&rest_orig[1..rest_orig.len() - 1]);
+            if args.len() >= 2 {
+                let cond = eval_ss_formula_cond(args[0], rows)?;
+                let chosen = if cond { args[1] } else { args.get(2).copied().unwrap_or("0") };
+                return eval_ss_formula_cell_str(chosen, rows);
+            }
+        }
+    }
+    if let Some(rest) = upper.strip_prefix("ROUND") {
+        let rest_orig = s[5..].trim();
+        if rest_orig.starts_with('(') && rest_orig.ends_with(')') && rest.trim().starts_with('(') {
+            let args = split_top_level_formula_args(&rest_orig[1..rest_orig.len() - 1]);
+            if !args.is_empty() {
+                let val = eval_ss_formula_expr(args[0], rows)?;
+                let digits = args.get(1).and_then(|d| eval_ss_formula_expr(d, rows)).unwrap_or(0.0) as i32;
+                let factor = 10f64.powi(digits);
+                return Some(format_ss_number((val * factor).round() / factor));
+            }
+        }
+    }
+    if let Some(rest) = upper.strip_prefix("ABS") {
+        let rest_orig = s[3..].trim();
+        if rest_orig.starts_with('(') && rest_orig.ends_with(')') && rest.trim().starts_with('(') {
+            let val = eval_ss_formula_expr(&rest_orig[1..rest_orig.len() - 1], rows)?;
+            return Some(format_ss_number(val.abs()));
+        }
+    }
+    eval_ss_formula_expr(s, rows).map(format_ss_number)
+}
+
 fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
     let mut formulas: Vec<(usize, usize, String)> = Vec::new();
     for (r_idx, row) in sheet.rows.iter_mut().enumerate() {
@@ -26481,9 +27863,9 @@ fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
     }
     for _ in 0..4 {
         for (r_idx, c_idx, f) in &formulas {
-            if let Some(val) = eval_ss_formula_expr(f, &sheet.rows) {
+            if let Some(val) = eval_ss_formula_cell_str(f, &sheet.rows) {
                 if let Some(cell) = sheet.rows.get_mut(*r_idx).and_then(|r| r.get_mut(*c_idx)) {
-                    *cell = format_ss_number(val);
+                    *cell = val;
                 }
             }
         }
@@ -29789,6 +31171,54 @@ fn parse_js_function_decl(b: &mut AstBuilder<'_>, fn_start: usize, end: usize) -
     ))
 }
 
+fn parse_js_var_decl(
+    b: &mut AstBuilder<'_>,
+    start: usize,
+    end: usize,
+    kw: &str,
+) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    let (stmt_end, semi_pos) = find_stmt_end(s, start, end);
+    let kw_leaf = b.leaf(kw, start, start + kw.len(), false);
+    let mut children = vec![kw_leaf];
+    let name_start = skip_ws_and_comments(s, start + kw.len(), stmt_end, true, true);
+    let mut name_end = name_start;
+    while name_end < stmt_end && is_js_ident_cont(bytes[name_end]) {
+        name_end += 1;
+    }
+    if name_end > name_start {
+        children.push(b.leaf("VariableDefinition", name_start, name_end, false));
+    }
+    let mut pos = skip_ws_and_comments(s, name_end, stmt_end, true, true);
+    if pos < stmt_end && bytes[pos] == b':' {
+        let colon_pos = pos;
+        let mut eq_pos = pos + 1;
+        while eq_pos < stmt_end && bytes[eq_pos] != b'=' {
+            eq_pos += 1;
+        }
+        let ty_end = start + s[start..eq_pos].trim_end().len();
+        let ty_start = skip_ws_and_comments(s, colon_pos + 1, ty_end, true, true);
+        let colon_leaf = b.leaf(":", colon_pos, colon_pos + 1, false);
+        let ty_leaf = b.leaf("TypeName", ty_start, ty_end, false);
+        children.push(b.branch("TypeAnnotation", colon_pos, ty_end, vec![colon_leaf, ty_leaf]));
+        pos = skip_ws_and_comments(s, eq_pos, stmt_end, true, true);
+    }
+    if pos < stmt_end && bytes[pos] == b'=' {
+        children.push(b.leaf("Equals", pos, pos + 1, false));
+        let (rhs, _) = parse_js_expr(b, pos + 1, stmt_end)?;
+        children.push(rhs);
+    }
+    let final_end = if let Some(sp) = semi_pos {
+        children.push(b.leaf(";", sp, sp + 1, false));
+        sp + 1
+    } else {
+        stmt_end
+    };
+    let next_i = if let Some(sp) = semi_pos { sp + 1 } else { stmt_end };
+    Ok((b.branch("VariableDeclaration", start, final_end, children), next_i))
+}
+
 fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Result<Vec<AstCodeNode>, String> {
     let s = b.source;
     let bytes = s.as_bytes();
@@ -29807,11 +31237,41 @@ fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Resul
                 i = after_fn;
                 continue;
             }
+            for kw in ["const", "let", "var"] {
+                if s[inner_start..end].starts_with(kw)
+                    && inner_start + kw.len() < end
+                    && bytes[inner_start + kw.len()].is_ascii_whitespace()
+                {
+                    let (vdecl, after_v) = parse_js_var_decl(b, inner_start, end, kw)?;
+                    stmts.push(b.branch("ExportDeclaration", i, after_v, vec![exp_kw, vdecl]));
+                    i = after_v;
+                    break;
+                }
+            }
+            if i > inner_start {
+                continue;
+            }
         }
         if s[i..end].starts_with("function ") || s[i..end].starts_with("function\t") {
             let (fn_decl, after_fn) = parse_js_function_decl(b, i, end)?;
             stmts.push(fn_decl);
             i = after_fn;
+            continue;
+        }
+        let mut matched_var = false;
+        for kw in ["const", "let", "var"] {
+            if s[i..end].starts_with(kw)
+                && i + kw.len() < end
+                && bytes[i + kw.len()].is_ascii_whitespace()
+            {
+                let (vdecl, after_v) = parse_js_var_decl(b, i, end, kw)?;
+                stmts.push(vdecl);
+                i = after_v;
+                matched_var = true;
+                break;
+            }
+        }
+        if matched_var {
             continue;
         }
         if s[i..end].starts_with("for") && (i + 3 == end || !is_js_ident_cont(bytes[i + 3])) {

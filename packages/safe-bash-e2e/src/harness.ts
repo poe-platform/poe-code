@@ -335,6 +335,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-xmllint-htmlq-mdq-deep-parity-matrix.test.ts",
   "obscure-xan-csvkit-sqlite3-deep-parity-matrix.test.ts",
   "obscure-jq-yq-xq-xmllint-htmlq-mdq-html-to-markdown-deep-parity-matrix.test.ts",
+  "obscure-unrtf-mmdc-pandoc-ssconvert-ast-grep-deep-parity-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

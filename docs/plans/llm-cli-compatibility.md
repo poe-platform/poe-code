@@ -229,7 +229,10 @@ discovery order without retaining every distinct child string. Lookup traverses
 native entry records without constructing filename lists or implied-directory
 caches; caller-backed membership preserves explicit-file and directory resolution.
 Returned paths retain that membership after lookup eviction. Native ZIP directory
-parsing and fixed bootstrap lookup remain memory-backed, and explicit caller use
+parsing now reads through a bounded view of the declared directory instead of
+copying the complete directory into a byte buffer, preserving native rejection
+and restoring the parser after failed opens. Native entry tables and fixed
+bootstrap lookup remain memory-backed, and explicit caller use
 of ZIP enumeration APIs is not yet bounded.
 Plain runtimes without a package environment do not install this adapter. Dependency expansion now consumes parsed
 requirements lazily and revisits the stable graph for pending installs, preserving

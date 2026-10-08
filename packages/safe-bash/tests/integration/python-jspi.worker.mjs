@@ -167,11 +167,23 @@ roots=[before._safe_store.root,after._safe_store.root]
 del before,after
 fast.lookup.cache_clear();gc.collect()
 assert not any(os.path.exists(path) for path in roots)
-import zipfile
+import zipfile, io
 with zipfile.ZipFile('/work/metadata.zip','w') as archive:
  for index in range(128):
-  archive.writestr('zip_package_%03d-1.dist-info/METADATA'%index,'Name: zip-package-%03d'%index)
+  info=zipfile.ZipInfo('zip_package_%03d-1.dist-info/METADATA'%index)
+  info.comment=b'x'*1024
+  archive.writestr(info,'Name: zip-package-%03d'%index)
 NativeZipPath=zipfile.Path
+NativeOpen=io.open
+class ObservedFile:
+ maximum=0
+ def __init__(self,file):self.file=file
+ def __getattr__(self,name):return getattr(self.file,name)
+ def read(self,size=-1):
+  value=self.file.read(size);ObservedFile.maximum=max(ObservedFile.maximum,len(value));return value
+def observed_open(path,*args,**kwargs):
+ file=NativeOpen(path,*args,**kwargs)
+ return ObservedFile(file) if path=='/work/metadata.zip' else file
 FastLookup=sys.modules[NativeZipPath.__module__].FastLookup
 NativeNames=FastLookup.namelist
 def eager_names(archive):raise AssertionError('eager ZIP filename cache')
@@ -182,10 +194,12 @@ class ZipPath(NativeZipPath):
  def __del__(self):ZipPath.live-=1
 try:
  zipfile.Path=ZipPath
+ io.open=observed_open
  FastLookup.namelist=eager_names
  fast=metadata.FastPath('/work/metadata.zip')
  lookup=fast.lookup(fast.mtime)
  assert ZipPath.maximum<=4,ZipPath.maximum
+ assert 0<ObservedFile.maximum<=65558,ObservedFile.maximum
  selected=list(lookup.search(metadata.Prepared('zip-package-007')))
  assert len(selected)==1 and isinstance(selected[0],ZipPath)
  assert selected[0].joinpath('METADATA').read_text()=='Name: zip-package-007'
@@ -203,6 +217,7 @@ try:
  assert not os.path.exists(scratch)
 finally:
  zipfile.Path=NativeZipPath
+ io.open=NativeOpen
  FastLookup.namelist=NativeNames
 print('metadata-ok')
 `))};

@@ -118,13 +118,54 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
   # already occurred in an explicit member, and native appends them at the end.
   for entry in archive.filelist:
    yield entry.filename
+ native_parser = zipfile.ZipFile._RealGetContents
+ parser_tree = ast.parse(textwrap.dedent(inspect.getsource(native_parser)))
+ directory_read = ast.dump(ast.parse('data = fp.read(size_cd)').body[0])
+ directory_buffer = ast.dump(ast.parse('fp = io.BytesIO(data)').body[0])
+ class DirectoryRewrite(ast.NodeTransformer):
+  reads = buffers = 0
+  def visit_Assign(self, node):
+   shape = ast.dump(node)
+   if shape == directory_read:
+    self.reads += 1
+    return None
+   if shape == directory_buffer:
+    self.buffers += 1
+    return ast.copy_location(ast.parse('fp = _safe_directory_window(fp, size_cd)').body[0], node)
+   return node
+ class Window:
+  def __init__(self, source, size):
+   self.source, self.remaining = source, size
+  def read(self, size=-1):
+   size = self.remaining if size is None or size < 0 else min(size, self.remaining)
+   value = self.source.read(size)
+   self.remaining -= len(value)
+   return value
+ parser_rewrite = DirectoryRewrite()
+ parser_tree = parser_rewrite.visit(parser_tree)
+ if (parser_rewrite.reads, parser_rewrite.buffers) != (1, 1):
+  raise RuntimeError('Unsupported native ZIP directory parser')
+ parser_namespace = dict(native_parser.__globals__, _safe_directory_window=Window)
+ exec(compile(ast.fix_missing_locations(parser_tree), '<safe metadata ZIP directory>', 'exec'), parser_namespace)
+ def open_zip(root):
+  # Construction is synchronous on the native dispatch lane. Restore even when
+  # the native parser rejects an archive; later user ZIP opens remain unchanged.
+  previous = zipfile.ZipFile._RealGetContents
+  zipfile.ZipFile._RealGetContents = parser_namespace['_RealGetContents']
+  try:
+   return zipfile.Path(root)
+  finally:
+   zipfile.ZipFile._RealGetContents = previous
  # Keep the pinned ZIP path construction, joinpath binding and filename order.
  # Replace only its eager deduplication table, leaving native ZIP parsing alone.
  zip_method = metadata.FastPath.zip_children
  zip_tree = ast.parse(textwrap.dedent(inspect.getsource(zip_method)))
  class ZipRewrite(ast.NodeTransformer):
-  count = names = 0
+  count = names = paths = 0
   def visit_Call(self, node):
+   if ast.dump(node) == ast.dump(ast.parse('zipfile.Path(self.root)').body[0].value):
+    self.paths += 1
+    return ast.copy_location(ast.parse('_safe_open_zip(self.root)').body[0].value, node)
    if ast.dump(node) == ast.dump(ast.parse('zip_path.root.namelist()').body[0].value):
     self.names += 1
     return ast.copy_location(ast.parse('_safe_zip_names(zip_path.root, _safe_store)').body[0].value, node)
@@ -134,10 +175,10 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    return self.generic_visit(node)
  zip_rewrite = ZipRewrite()
  zip_tree = zip_rewrite.visit(zip_tree)
- if (zip_rewrite.count, zip_rewrite.names) != (1, 1):
+ if (zip_rewrite.count, zip_rewrite.names, zip_rewrite.paths) != (1, 1, 1):
   raise RuntimeError('Unsupported native ZIP metadata discovery')
  zip_tree.body[0].args.args.append(ast.arg(arg='_safe_store'))
- zip_namespace = dict(zip_method.__globals__, _safe_unique_children=unique_children, _safe_zip_names=zip_names)
+ zip_namespace = dict(zip_method.__globals__, _safe_unique_children=unique_children, _safe_zip_names=zip_names, _safe_open_zip=open_zip)
  exec(compile(ast.fix_missing_locations(zip_tree), '<safe ZIP metadata children>', 'exec'), zip_namespace)
  zip_children = zip_namespace['zip_children']
  class ScanFailure(Exception):

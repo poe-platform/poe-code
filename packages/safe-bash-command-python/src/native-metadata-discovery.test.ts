@@ -194,6 +194,36 @@ with contextlib.ExitStack() as stack:
   gc.collect();assert not files
   member_write_failure=False
  archive.close();del archive;gc.collect();assert not files
+ # Opening the real archive must not copy its complete central directory.
+ class Source(io.BytesIO):
+  maximum=0
+  failure=False
+  def read(self,size=-1):
+   if Source.failure:raise OSError('ZIP source read denied')
+   value=super().read(size);Source.maximum=max(Source.maximum,len(value));return value
+ source_bytes=payload.getvalue()
+ class ReadingPath(NativeZipPath):
+  def __init__(self,root,at=''):
+   super().__init__(Source(source_bytes) if root=='/packages.zip' else root,at)
+ original_parser=zipfile.ZipFile._RealGetContents
+ with patch.object(zipfile,'Path',ReadingPath):
+  fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
+  assert [p.at.rstrip('/') for p in lookup.search(Prepared(None))]==zip_names
+  assert Source.maximum<=65558,('whole ZIP directory read',Source.maximum)
+  assert zipfile.ZipFile._RealGetContents is original_parser,'ZIP parser patch leaked'
+  del lookup,fast;gc.collect();assert not files
+  for source_bytes in [b'',payload.getvalue()[:-22],payload.getvalue().replace(b'PK\x01\x02',b'XX\x01\x02',1)]:
+   expected=[p.at for p in original(metadata.FastPath('/packages.zip')).search(Prepared(None))]
+   fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
+   assert [p.at for p in lookup.search(Prepared(None))]==expected
+   assert zipfile.ZipFile._RealGetContents is original_parser,'rejected ZIP leaked parser patch'
+   del lookup,fast;gc.collect();assert not files
+  source_bytes=payload.getvalue();Source.failure=True
+  fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
+  assert list(lookup.search(Prepared(None)))==[]
+  assert zipfile.ZipFile._RealGetContents is original_parser,'failed ZIP read leaked parser patch'
+  del lookup,fast;gc.collect();assert not files
+  Source.failure=False
  # Native children suppress failed directory enumeration and then try ZIP.
  scan_failure=True
  lookup=metadata.Lookup(Root(names))

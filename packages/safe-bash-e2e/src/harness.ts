@@ -331,6 +331,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-sed-awk-deep-parity-matrix.test.ts",
   "obscure-shell-parameter-transforms-declare-parity.test.ts",
   "obscure-jq-deep-parity-matrix.test.ts",
+  "obscure-yq-deep-parity-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

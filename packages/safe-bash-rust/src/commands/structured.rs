@@ -6,11 +6,231 @@ use std::sync::Mutex;
 static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
 static JQ_SHARED_INPUTS: Mutex<Vec<JVal>> = Mutex::new(Vec::new());
 
+#[derive(Clone, Default)]
+struct YqDocMeta {
+    file_index: usize,
+    doc_index: usize,
+    filename: String,
+    head_comment: String,
+    anchors: BTreeMap<String, String>,
+    aliases: BTreeMap<String, String>,
+    styles: BTreeMap<String, String>,
+}
+
+struct YqRuntimeState {
+    active: bool,
+    queue: Vec<YqDocMeta>,
+    current: YqDocMeta,
+}
+
+static YQ_RUNTIME_STATE: Mutex<YqRuntimeState> = Mutex::new(YqRuntimeState {
+    active: false,
+    queue: Vec::new(),
+    current: YqDocMeta {
+        file_index: 0,
+        doc_index: 0,
+        filename: String::new(),
+        head_comment: String::new(),
+        anchors: BTreeMap::new(),
+        aliases: BTreeMap::new(),
+        styles: BTreeMap::new(),
+    },
+});
+
+fn in_yq_mode() -> bool {
+    YQ_RUNTIME_STATE.lock().map(|g| g.active).unwrap_or(false)
+}
+
+fn get_yq_doc_meta() -> YqDocMeta {
+    YQ_RUNTIME_STATE
+        .lock()
+        .map(|g| g.current.clone())
+        .unwrap_or_default()
+}
+
+fn lookup_yq_path_meta(kind: &str, path: &str) -> Option<String> {
+    let meta = get_yq_doc_meta();
+    let val = match kind {
+        "anchor" => meta.anchors.get(path).cloned().unwrap_or_default(),
+        "alias" => meta.aliases.get(path).cloned().unwrap_or_default(),
+        "style" => meta.styles.get(path).cloned().unwrap_or_default(),
+        _ => return None,
+    };
+    Some(val)
+}
+
+fn yq_tag(v: &JVal) -> &'static str {
+    match v {
+        JVal::Null => "!!null",
+        JVal::Bool(_) => "!!bool",
+        JVal::Number(n) => {
+            if n.fract() == 0.0 && n.is_finite() {
+                "!!int"
+            } else {
+                "!!float"
+            }
+        }
+        JVal::Str(_) => "!!str",
+        JVal::Array(_) => "!!seq",
+        JVal::Object(_) => "!!map",
+    }
+}
+
+fn yq_kind(v: &JVal) -> &'static str {
+    match v {
+        JVal::Array(_) => "seq",
+        JVal::Object(_) => "map",
+        _ => "scalar",
+    }
+}
+
+fn yq_glob_match(text: &str, pattern: &str) -> bool {
+    let name = text.as_bytes();
+    let glob = pattern.as_bytes();
+    let mut name_idx = 0usize;
+    let mut pat_idx = 0usize;
+    let mut restart_pat = 0usize;
+    let mut restart_name = 0usize;
+    while pat_idx < glob.len() || name_idx < name.len() {
+        if pat_idx < glob.len() {
+            let ch = glob[pat_idx];
+            if ch == b'*' {
+                restart_pat = pat_idx;
+                restart_name = name_idx + 1;
+                pat_idx += 1;
+                continue;
+            }
+            if name_idx < name.len() && (ch == b'?' || ch == name[name_idx]) {
+                pat_idx += 1;
+                name_idx += 1;
+                continue;
+            }
+        }
+        if restart_name > 0 && restart_name <= name.len() {
+            pat_idx = restart_pat;
+            name_idx = restart_name;
+            continue;
+        }
+        return false;
+    }
+    true
+}
+
+fn collect_yq_recurse_with_keys(val: &JVal, out: &mut Vec<JVal>) {
+    out.push(val.clone());
+    match val {
+        JVal::Array(items) => {
+            for item in items {
+                collect_yq_recurse_with_keys(item, out);
+            }
+        }
+        JVal::Object(entries) => {
+            for (k, v) in entries {
+                out.push(JVal::Str(k.clone()));
+                collect_yq_recurse_with_keys(v, out);
+            }
+        }
+        _ => {}
+    }
+}
+
+fn extract_yaml_doc_meta(
+    raw_doc: &str,
+    file_index: usize,
+    doc_index: usize,
+    filename: &str,
+) -> YqDocMeta {
+    let mut head_comments = Vec::new();
+    let mut in_head = true;
+    let mut anchors = BTreeMap::new();
+    let mut aliases = BTreeMap::new();
+    let mut styles = BTreeMap::new();
+    let mut path_stack: Vec<(usize, String)> = Vec::new();
+
+    for line in raw_doc.lines() {
+        let trimmed_end = line.trim_end();
+        let stripped = trimmed_end.trim_start();
+        if stripped.is_empty() || stripped == "---" {
+            continue;
+        }
+        if stripped.starts_with('#') {
+            if in_head {
+                let c = stripped
+                    .strip_prefix("# ")
+                    .or_else(|| stripped.strip_prefix('#'))
+                    .unwrap_or("");
+                head_comments.push(c.to_string());
+            }
+            continue;
+        }
+        in_head = false;
+        let indent = trimmed_end.len() - stripped.len();
+        while path_stack.last().is_some_and(|(ind, _)| *ind >= indent) {
+            path_stack.pop();
+        }
+        if !stripped.starts_with('-')
+            && let Some((k, v)) = stripped.split_once(':')
+        {
+            let key = k.trim().trim_matches('"').trim_matches('\'').to_string();
+            let mut full_path = String::new();
+            for (_, pk) in &path_stack {
+                full_path.push('.');
+                full_path.push_str(pk);
+            }
+            full_path.push('.');
+            full_path.push_str(&key);
+
+            let mut val_s = v.trim();
+            if let Some(rest) = val_s.strip_prefix('&') {
+                let end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+                let aname = rest[..end].to_string();
+                anchors.insert(full_path.clone(), aname);
+                val_s = rest[end..].trim();
+            }
+            if let Some(al) = val_s.strip_prefix('*') {
+                aliases.insert(full_path.clone(), al.trim().to_string());
+            } else if val_s.starts_with('\'') && val_s.ends_with('\'') && val_s.len() >= 2 {
+                styles.insert(full_path.clone(), "single".to_string());
+            } else if val_s.starts_with('"') && val_s.ends_with('"') && val_s.len() >= 2 {
+                styles.insert(full_path.clone(), "double".to_string());
+            } else if (val_s.starts_with('[') && val_s.ends_with(']'))
+                || (val_s.starts_with('{') && val_s.ends_with('}'))
+            {
+                styles.insert(full_path.clone(), "flow".to_string());
+            } else if val_s == "|" || val_s.starts_with('|') {
+                styles.insert(full_path.clone(), "literal".to_string());
+            } else if val_s == ">" || val_s.starts_with('>') {
+                styles.insert(full_path.clone(), "folded".to_string());
+            }
+
+            if val_s.is_empty() {
+                path_stack.push((indent, key));
+            }
+        }
+    }
+
+    YqDocMeta {
+        file_index,
+        doc_index,
+        filename: filename.to_string(),
+        head_comment: head_comments.join("\n"),
+        anchors,
+        aliases,
+        styles,
+    }
+}
+
 fn pop_jq_shared_input() -> Option<JVal> {
     let mut guard = JQ_SHARED_INPUTS.lock().ok()?;
     if guard.is_empty() {
         None
     } else {
+        if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock()
+            && yq_state.active
+            && !yq_state.queue.is_empty()
+        {
+            yq_state.current = yq_state.queue.remove(0);
+        }
         Some(guard.remove(0))
     }
 }
@@ -782,6 +1002,15 @@ fn eval_jq(
     }
 
     if let Some(pipes) = split_jq_top(s, '|') {
+        if pipes.len() == 2 && in_yq_mode() {
+            let p0 = pipes[0].trim();
+            let p1 = pipes[1].trim();
+            if matches!(p1, "anchor" | "alias" | "style") && p0.starts_with('.') {
+                if let Some(val) = lookup_yq_path_meta(p1, p0) {
+                    return Ok(vec![JVal::Str(val)]);
+                }
+            }
+        }
         let mut current: Vec<(JVal, BTreeMap<String, JVal>)> =
             vec![(input.clone(), vars.clone())];
         for (stage_idx, stage) in pipes.iter().enumerate() {
@@ -1004,9 +1233,17 @@ fn eval_jq(
                 .next()
                 .unwrap_or(JVal::Null);
             let ord = compare_jval(&lv, &rv);
+            let yq_eq = if in_yq_mode()
+                && let (JVal::Str(lx), JVal::Str(ry)) = (&lv, &rv)
+                && (ry.contains('*') || ry.contains('?'))
+            {
+                yq_glob_match(lx, ry)
+            } else {
+                jval_eq(&lv, &rv)
+            };
             let res = match cmp_op {
-                "==" => jval_eq(&lv, &rv),
-                "!=" => !jval_eq(&lv, &rv),
+                "==" => yq_eq,
+                "!=" => !yq_eq,
                 "<=" => ord != std::cmp::Ordering::Greater,
                 ">=" => ord != std::cmp::Ordering::Less,
                 "<" => ord == std::cmp::Ordering::Less,
@@ -1865,7 +2102,58 @@ fn try_eval_jq_builtin(
     match s {
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),
-        "type" => return Ok(Some(vec![JVal::Str(input.type_name().to_string())])),
+        "type" => {
+            let t = if in_yq_mode() {
+                yq_tag(input)
+            } else {
+                input.type_name()
+            };
+            return Ok(Some(vec![JVal::Str(t.to_string())]));
+        }
+        "kind" => return Ok(Some(vec![JVal::Str(yq_kind(input).to_string())])),
+        "tag" => return Ok(Some(vec![JVal::Str(yq_tag(input).to_string())])),
+        "upcase" => {
+            if let JVal::Str(st) = input {
+                return Ok(Some(vec![JVal::Str(st.to_uppercase())]));
+            }
+        }
+        "downcase" => {
+            if let JVal::Str(st) = input {
+                return Ok(Some(vec![JVal::Str(st.to_lowercase())]));
+            }
+        }
+        "documentIndex" | "di" | "document_index" => {
+            return Ok(Some(vec![JVal::Number(get_yq_doc_meta().doc_index as f64)]));
+        }
+        "fileIndex" | "fi" | "file_index" => {
+            return Ok(Some(vec![JVal::Number(get_yq_doc_meta().file_index as f64)]));
+        }
+        "filename" => {
+            return Ok(Some(vec![JVal::Str(get_yq_doc_meta().filename)]));
+        }
+        "head_comment" => {
+            return Ok(Some(vec![JVal::Str(get_yq_doc_meta().head_comment)]));
+        }
+        "anchor" => {
+            return Ok(Some(vec![JVal::Str(
+                lookup_yq_path_meta("anchor", ".").unwrap_or_default(),
+            )]));
+        }
+        "alias" => {
+            return Ok(Some(vec![JVal::Str(
+                lookup_yq_path_meta("alias", ".").unwrap_or_default(),
+            )]));
+        }
+        "style" => {
+            return Ok(Some(vec![JVal::Str(
+                lookup_yq_path_meta("style", ".").unwrap_or_default(),
+            )]));
+        }
+        "..." => {
+            let mut out = Vec::new();
+            collect_yq_recurse_with_keys(input, &mut out);
+            return Ok(Some(out));
+        }
         "length" => {
             let len = match input {
                 JVal::Null => 0,
@@ -2437,6 +2725,37 @@ fn try_eval_jq_builtin(
                     return Ok(Some(paths.into_iter().map(JVal::Array).collect()));
                 }
                 "pick" => {
+                    if arg_expr.trim().starts_with('[')
+                        && let Some(JVal::Array(keys)) =
+                            eval_jq(arg_expr, input, vars)?.into_iter().next()
+                    {
+                        match input {
+                            JVal::Object(entries) => {
+                                let mut picked = Vec::new();
+                                for k in keys {
+                                    let ks = k.to_raw_string(true, false);
+                                    if let Some((_, v)) = entries.iter().find(|(ek, _)| ek == &ks) {
+                                        picked.push((ks, v.clone()));
+                                    }
+                                }
+                                return Ok(Some(vec![JVal::Object(picked)]));
+                            }
+                            JVal::Array(items) => {
+                                let mut picked = Vec::new();
+                                for k in keys {
+                                    if let JVal::Number(n) = k
+                                        && n >= 0.0
+                                        && n.fract() == 0.0
+                                        && let Some(v) = items.get(n as usize)
+                                    {
+                                        picked.push(v.clone());
+                                    }
+                                }
+                                return Ok(Some(vec![JVal::Array(picked)]));
+                            }
+                            _ => return Ok(Some(vec![JVal::Null])),
+                        }
+                    }
                     let mut res = JVal::Null;
                     for p in resolve_jq_lhs_paths(arg_expr, input, vars)? {
                         let val = get_jq_jval_path(input, &p);
@@ -5121,6 +5440,135 @@ fn jval_to_props_doc(v: &JVal, path: &mut Vec<String>, is_shell: bool, out: &mut
     }
 }
 
+fn split_yq_front_matter(text: &str) -> (String, Option<String>) {
+    let first_nl = text.find('\n');
+    let mut pos = match first_nl {
+        Some(idx) if text[..idx].trim_end() == "---" => idx + 1,
+        _ => 0,
+    };
+    while pos < text.len() {
+        let next_nl = text[pos..].find('\n').map(|rel| pos + rel);
+        let line_end = next_nl.unwrap_or(text.len());
+        let line = text[pos..line_end].trim_end();
+        if line == "---" || line == "..." {
+            let body_start = next_nl.map(|idx| idx + 1).unwrap_or(text.len());
+            return (text[..pos].to_string(), Some(text[body_start..].to_string()));
+        }
+        pos = next_nl.map(|idx| idx + 1).unwrap_or(text.len());
+    }
+    (text.to_string(), None)
+}
+
+fn yq_uri_encode(s: &str) -> String {
+    let mut out = String::new();
+    for b in s.bytes() {
+        if b == b' ' {
+            out.push('+');
+        } else if b.is_ascii_alphanumeric() || matches!(b, b'-' | b'_' | b'.' | b'~') {
+            out.push(b as char);
+        } else {
+            out.push_str(&format!("%{b:02X}"));
+        }
+    }
+    out
+}
+
+fn yq_uri_decode(s: &str) -> String {
+    let bytes = s.trim_end_matches(&['\r', '\n'][..]).as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0usize;
+    while i < bytes.len() {
+        if bytes[i] == b'+' {
+            out.push(b' ');
+            i += 1;
+        } else if bytes[i] == b'%'
+            && i + 2 < bytes.len()
+            && let Ok(hex_str) = std::str::from_utf8(&bytes[i + 1..i + 3])
+            && let Ok(val) = u8::from_str_radix(hex_str, 16)
+        {
+            out.push(val);
+            i += 3;
+        } else {
+            out.push(bytes[i]);
+            i += 1;
+        }
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+fn write_jval_lua(val: &JVal, depth: usize, out: &mut String) {
+    match val {
+        JVal::Null => out.push_str("nil"),
+        JVal::Bool(_) | JVal::Number(_) | JVal::Str(_) => {
+            out.push_str(&val.to_json_string(true, false, 0));
+        }
+        JVal::Array(items) => {
+            out.push_str("{\n");
+            for child in items {
+                out.push_str(&"\t".repeat(depth + 1));
+                write_jval_lua(child, depth + 1, out);
+                out.push_str(";\n");
+            }
+            out.push_str(&"\t".repeat(depth));
+            out.push('}');
+        }
+        JVal::Object(entries) => {
+            out.push_str("{\n");
+            for (k, child) in entries {
+                out.push_str(&"\t".repeat(depth + 1));
+                out.push_str(&format!(
+                    "[{}] = ",
+                    JVal::Str(k.clone()).to_json_string(true, false, 0)
+                ));
+                write_jval_lua(child, depth + 1, out);
+                out.push_str(";\n");
+            }
+            out.push_str(&"\t".repeat(depth));
+            out.push('}');
+        }
+    }
+}
+
+fn jval_to_lua_doc(val: &JVal) -> String {
+    let mut out = String::from("return ");
+    write_jval_lua(val, 0, &mut out);
+    out.push_str(";\n");
+    out
+}
+
+fn format_yq_single_val(
+    v: &JVal,
+    output_format: &str,
+    compact_output: bool,
+    raw_output: bool,
+    quote_yaml: bool,
+) -> String {
+    match output_format {
+        "json" | "j" => {
+            if raw_output {
+                format!("{}\n", v.to_raw_string(compact_output, false))
+            } else {
+                format!("{}\n", v.to_json_string(compact_output, false, 0))
+            }
+        }
+        "xml" | "x" => jval_to_xml_doc(v),
+        "csv" | "c" => jval_to_csv_doc(v, ','),
+        "tsv" | "t" => jval_to_csv_doc(v, '\t'),
+        "toml" => jval_to_toml_or_ini_doc(v, true),
+        "ini" | "i" => jval_to_toml_or_ini_doc(v, false),
+        "lua" | "l" => jval_to_lua_doc(v),
+        "base64" => encode_base64_str(jval_primitive_str(v).as_bytes()),
+        "uri" => yq_uri_encode(&jval_primitive_str(v)),
+        "props" | "p" | "shell" | "s" => {
+            let is_shell = output_format == "shell" || output_format == "s";
+            let mut props_out = String::new();
+            jval_to_props_doc(v, &mut Vec::new(), is_shell, &mut props_out);
+            props_out
+        }
+        _ => jval_to_yaml(v, 0, quote_yaml),
+    }
+}
+
 fn cmd_yq(
     args: &[String],
     stdin: &str,
@@ -5133,6 +5581,16 @@ fn cmd_yq(
     let mut inplace = false;
     let mut pretty_print = false;
     let mut eval_all = false;
+    let mut xq_xml_mode = false;
+    let mut no_doc = false;
+    let mut nul_output = false;
+    let mut null_input = false;
+    let mut exit_status = false;
+    let mut disable_env_ops = false;
+    let mut disable_file_ops = false;
+    let mut explicit_expr = false;
+    let mut front_matter: Option<String> = None;
+    let mut split_exp: Option<String> = None;
     let mut output_format = "yaml".to_string();
     let mut input_format: Option<String> = None;
     let mut filter: Option<String> = None;
@@ -5140,6 +5598,17 @@ fn cmd_yq(
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
+        if a == "--xq-xml" {
+            xq_xml_mode = true;
+            i += 1;
+            continue;
+        }
+        if a == "-V" || a == "--version" {
+            return ok_out("yq (safe-bash; bounded Mike Farah v4.53.3 profile)\n");
+        }
+        if a == "-h" || a == "--help" {
+            return ok_out("yq is a portable command-line data file processor (https://github.com/mikefarah/yq/) \nSee https://mikefarah.gitbook.io/yq/ for detailed documentation and examples.\n");
+        }
         if a == "-P" || a == "--prettyPrint" {
             pretty_print = true;
             i += 1;
@@ -5154,7 +5623,7 @@ fn cmd_yq(
             i += 1;
             continue;
         }
-        if a == "-r" || a == "--raw-output" {
+        if a == "-r" || a == "--raw-output" || a == "--unwrapScalar" {
             raw_output = true;
             i += 1;
             continue;
@@ -5166,6 +5635,36 @@ fn cmd_yq(
         }
         if a == "-i" || a == "--inplace" {
             inplace = true;
+            i += 1;
+            continue;
+        }
+        if a == "-N" || a == "--no-doc" {
+            no_doc = true;
+            i += 1;
+            continue;
+        }
+        if a == "-0" || a == "--nul-output" {
+            nul_output = true;
+            i += 1;
+            continue;
+        }
+        if a == "-n" || a == "--null-input" {
+            null_input = true;
+            i += 1;
+            continue;
+        }
+        if a == "-e" || a == "--exit-status" {
+            exit_status = true;
+            i += 1;
+            continue;
+        }
+        if a == "--security-disable-env-ops" {
+            disable_env_ops = true;
+            i += 1;
+            continue;
+        }
+        if a == "--security-disable-file-ops" {
+            disable_file_ops = true;
             i += 1;
             continue;
         }
@@ -5203,6 +5702,56 @@ fn cmd_yq(
             i += 1;
             continue;
         }
+        if a == "--from-file" && i + 1 < args.len() {
+            let full = resolve_posix_path(cwd, &args[i + 1]);
+            if let Ok(b) = fs.read_file(&full) {
+                filter = Some(String::from_utf8_lossy(&b).trim().to_string());
+                explicit_expr = true;
+            }
+            i += 2;
+            continue;
+        }
+        if let Some(ff) = a.strip_prefix("--from-file=") {
+            let full = resolve_posix_path(cwd, ff);
+            if let Ok(b) = fs.read_file(&full) {
+                filter = Some(String::from_utf8_lossy(&b).trim().to_string());
+                explicit_expr = true;
+            }
+            i += 1;
+            continue;
+        }
+        if a == "--expression" && i + 1 < args.len() {
+            filter = Some(args[i + 1].clone());
+            explicit_expr = true;
+            i += 2;
+            continue;
+        }
+        if let Some(ex) = a.strip_prefix("--expression=") {
+            filter = Some(ex.to_string());
+            explicit_expr = true;
+            i += 1;
+            continue;
+        }
+        if (a == "-f" || a == "--front-matter") && i + 1 < args.len() {
+            front_matter = Some(args[i + 1].to_ascii_lowercase());
+            i += 2;
+            continue;
+        }
+        if let Some(fm) = a.strip_prefix("-f=").or_else(|| a.strip_prefix("--front-matter=")) {
+            front_matter = Some(fm.to_ascii_lowercase());
+            i += 1;
+            continue;
+        }
+        if (a == "-s" || a == "--split-exp") && i + 1 < args.len() {
+            split_exp = Some(args[i + 1].clone());
+            i += 2;
+            continue;
+        }
+        if let Some(se) = a.strip_prefix("-s=").or_else(|| a.strip_prefix("--split-exp=")) {
+            split_exp = Some(se.to_string());
+            i += 1;
+            continue;
+        }
         if a.starts_with("--") {
             if !matches!(
                 a.as_str(),
@@ -5224,14 +5773,9 @@ fn cmd_yq(
         }
         i += 1;
     }
-    let mut jq_args = Vec::new();
-    if raw_output {
-        jq_args.push("-r".to_string());
-    }
-    if compact_output || output_format != "json" {
-        jq_args.push("-c".to_string());
-    }
-    if files.is_empty()
+
+    if !explicit_expr
+        && files.is_empty()
         && let Some(ref f) = filter
         && (f.contains('/')
             || f.ends_with(".yaml")
@@ -5244,48 +5788,122 @@ fn cmd_yq(
         files.push(f.clone());
         filter = Some(".".to_string());
     }
+
     let mut final_filter = filter.unwrap_or_else(|| ".".to_string());
-    if eval_all || final_filter.contains("fileIndex") || final_filter.contains("ireduce") {
-        if final_filter.contains("fileIndex") || final_filter.contains("ireduce") {
-            jq_args.push("-s".to_string());
-            for idx in 0..10 {
-                let pat1 = format!("select(fileIndex == {idx})");
-                let pat2 = format!("select(fileIndex=={idx})");
-                let repl = format!(".[{idx}]");
-                final_filter = final_filter.replace(&pat1, &repl).replace(&pat2, &repl);
-            }
-            if final_filter.contains("ireduce") {
-                final_filter = final_filter.replace(". as ", "reduce .[] as ").replace(" ireduce ", " ");
-            }
+    if disable_env_ops
+        && (final_filter.contains("env(")
+            || final_filter.contains("strenv(")
+            || final_filter.contains("env."))
+    {
+        return err_out("Error: env operations are disabled\n", 1);
+    }
+    if disable_file_ops
+        && (final_filter.contains("load(")
+            || final_filter.contains("load_xml(")
+            || final_filter.contains("load_props(")
+            || final_filter.contains("load_base64(")
+            || final_filter.contains("load_str("))
+    {
+        return err_out("Error: file operations are disabled\n", 1);
+    }
+
+    let mut jq_args = Vec::new();
+    let is_json_out = output_format == "json" || output_format == "j";
+    if raw_output && is_json_out && split_exp.is_none() && !nul_output {
+        jq_args.push("-r".to_string());
+    }
+    if compact_output || !is_json_out || split_exp.is_some() || nul_output {
+        jq_args.push("-c".to_string());
+    }
+    if exit_status {
+        jq_args.push("-e".to_string());
+    }
+
+    let mut eval_all_wrap_array = false;
+    if eval_all
+        && (final_filter.contains("select(fileIndex") || final_filter.contains("ireduce"))
+    {
+        jq_args.push("-s".to_string());
+        for idx in 0..10 {
+            let pat1 = format!("select(fileIndex == {idx})");
+            let pat2 = format!("select(fileIndex=={idx})");
+            let repl = format!(".[{idx}]");
+            final_filter = final_filter.replace(&pat1, &repl).replace(&pat2, &repl);
+        }
+        if final_filter.contains("ireduce") {
+            final_filter = final_filter
+                .replace(". as ", "reduce .[] as ")
+                .replace(" ireduce ", " ");
+        }
+    } else if eval_all {
+        let ft = final_filter.trim();
+        if ft.starts_with('[') && ft.ends_with(']') && is_matching_outer_delim(ft, '[', ']') {
+            eval_all_wrap_array = true;
+            final_filter = ft[1..ft.len() - 1].trim().to_string();
         }
     }
-    jq_args.push(final_filter);
+    jq_args.push(final_filter.clone());
 
     let is_json_in = input_format.as_deref() == Some("json")
         || (files.is_empty()
+            && !null_input
             && (stdin.trim_start().starts_with('{') || stdin.trim_start().starts_with('[')));
     let quote_yaml = is_json_in && !pretty_print;
-    let filter_for_check = jq_args.last().cloned().unwrap_or_default();
     let is_derived_filter = {
-        let ft = filter_for_check.trim();
-        ft.ends_with('}') || ft.ends_with(']')
+        let ft = final_filter.trim();
+        ft.ends_with('}') || ft.ends_with(']') || eval_all_wrap_array
     };
+
     let mut docs = Vec::new();
+    let mut doc_metas = Vec::new();
     let mut raw_sources = Vec::new();
-    if files.is_empty() {
-        raw_sources.push(stdin.to_string());
-        for jv in parse_yq_input_docs(stdin, input_format.as_deref(), None) {
+    let mut front_matter_body: Option<String> = None;
+
+    if null_input {
+        docs.push("null".to_string());
+        doc_metas.push(YqDocMeta::default());
+    } else if files.is_empty() {
+        let eff_in = if front_matter.is_some() {
+            let (fm_yaml, fm_body) = split_yq_front_matter(stdin);
+            front_matter_body = fm_body;
+            fm_yaml
+        } else {
+            stdin.to_string()
+        };
+        let eff_fmt = if front_matter.is_some() {
+            Some("yaml")
+        } else {
+            input_format.as_deref()
+        };
+        raw_sources.push(eff_in.clone());
+        for (jv, meta) in parse_yq_input_docs_with_meta(&eff_in, eff_fmt, None, 0, !xq_xml_mode) {
             docs.push(jv.to_json_string(true, false, 0));
+            doc_metas.push(meta);
         }
     } else {
-        for f in &files {
+        for (f_idx, f) in files.iter().enumerate() {
             let full = resolve_posix_path(cwd, f);
             if let Ok(b) = fs.read_file(&full) {
                 let s = String::from_utf8_lossy(&b).into_owned();
-                for jv in parse_yq_input_docs(&s, input_format.as_deref(), Some(f)) {
+                let eff_in = if front_matter.is_some() && f_idx == 0 {
+                    let (fm_yaml, fm_body) = split_yq_front_matter(&s);
+                    front_matter_body = fm_body;
+                    fm_yaml
+                } else {
+                    s
+                };
+                let eff_fmt = if front_matter.is_some() && f_idx == 0 {
+                    Some("yaml")
+                } else {
+                    input_format.as_deref()
+                };
+                for (jv, meta) in
+                    parse_yq_input_docs_with_meta(&eff_in, eff_fmt, Some(f), f_idx, !xq_xml_mode)
+                {
                     docs.push(jv.to_json_string(true, false, 0));
+                    doc_metas.push(meta);
                 }
-                raw_sources.push(s);
+                raw_sources.push(eff_in);
             }
         }
     }
@@ -5294,53 +5912,109 @@ fn cmd_yq(
             return err_out("Error: unknown alias\n", 1);
         }
     }
+
+    if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock() {
+        yq_state.active = !xq_xml_mode;
+        yq_state.current = doc_metas.first().cloned().unwrap_or_default();
+        yq_state.queue = doc_metas;
+    }
+
     let outcome = cmd_jq_with_env(&jq_args, &docs.join("\n"), cwd, env, fs);
+
+    if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock() {
+        yq_state.active = false;
+        yq_state.queue.clear();
+    }
+
     if outcome.exit_code != 0 {
         return outcome;
     }
-    let final_out = if raw_output || output_format == "json" || output_format == "j" {
-        outcome.stdout
-    } else if let Ok(vals) = parse_json_stream(&outcome.stdout) {
-        if output_format == "xml" || output_format == "x" {
-            let mut xml_out = String::new();
-            for v in &vals {
-                xml_out.push_str(&jval_to_xml_doc(v));
-            }
-            xml_out
-        } else if output_format == "csv" || output_format == "c" || output_format == "tsv" || output_format == "t" {
-            let delim = if output_format == "tsv" || output_format == "t" { '\t' } else { ',' };
-            let mut csv_out = String::new();
-            for v in &vals {
-                csv_out.push_str(&jval_to_csv_doc(v, delim));
-            }
-            csv_out
-        } else if output_format == "toml" {
-            let mut toml_out = String::new();
-            for v in &vals {
-                toml_out.push_str(&jval_to_toml_doc(v));
-            }
-            toml_out
-        } else if output_format == "props" || output_format == "p" || output_format == "shell" || output_format == "s" {
-            let is_shell = output_format == "shell" || output_format == "s";
-            let mut props_out = String::new();
-            for v in &vals {
-                jval_to_props_doc(v, &mut Vec::new(), is_shell, &mut props_out);
-            }
-            props_out
-        } else {
-            let mut yaml_docs = Vec::new();
-            for v in vals {
-                yaml_docs.push(jval_to_yaml(&v, 0, quote_yaml));
-            }
-            if yaml_docs.len() > 1 && !is_derived_filter {
-                yaml_docs.join("---\n")
-            } else {
-                yaml_docs.join("")
+
+    if raw_output && is_json_out && !eval_all_wrap_array && split_exp.is_none() && !nul_output {
+        if inplace && let Some(first_file) = files.first() {
+            let full = resolve_posix_path(cwd, first_file);
+            let _ = fs.write_file(&full, outcome.stdout.as_bytes());
+            return ok_out("");
+        }
+        return ok_out(&outcome.stdout);
+    }
+
+    let Ok(mut vals) = parse_json_stream(&outcome.stdout) else {
+        return ok_out(&outcome.stdout);
+    };
+    if eval_all_wrap_array {
+        vals = vec![JVal::Array(vals)];
+    }
+
+    if let Some(ref s_exp) = split_exp {
+        let ext = match output_format.as_str() {
+            "yaml" | "y" => "yml",
+            "json" | "j" => "json",
+            other => other,
+        };
+        let mut base_vars: BTreeMap<String, JVal> = BTreeMap::new();
+        for (k, v) in env {
+            base_vars.insert(k.clone(), JVal::Str(v.clone()));
+        }
+        for (idx, v) in vals.iter().enumerate() {
+            base_vars.insert("index".to_string(), JVal::Number(idx as f64));
+            let name = eval_jq(s_exp, v, &base_vars)
+                .ok()
+                .and_then(|mut r| r.drain(..).next())
+                .map(|nv| nv.to_raw_string(true, false))
+                .unwrap_or_default();
+            if !name.is_empty() {
+                let target_path = resolve_posix_path(cwd, &format!("{name}.{ext}"));
+                let doc_str =
+                    format_yq_single_val(v, &output_format, compact_output, raw_output, quote_yaml);
+                let _ = fs.write_file(&target_path, doc_str.as_bytes());
             }
         }
-    } else {
+        return ok_out("");
+    }
+
+    let final_out = if is_json_out && !nul_output && !eval_all_wrap_array {
         outcome.stdout
+    } else if nul_output {
+        let mut nul_out = String::new();
+        for v in &vals {
+            let s = format_yq_single_val(v, &output_format, compact_output, raw_output, quote_yaml);
+            let trimmed = s.strip_suffix("\r\n").or_else(|| s.strip_suffix('\n')).unwrap_or(&s);
+            nul_out.push_str(trimmed);
+            nul_out.push('\0');
+        }
+        nul_out
+    } else if output_format == "yaml" || output_format == "y" {
+        let mut yaml_docs = Vec::new();
+        for v in &vals {
+            yaml_docs.push(jval_to_yaml(v, 0, quote_yaml));
+        }
+        let joined = if yaml_docs.len() > 1 && !is_derived_filter && !no_doc {
+            yaml_docs.join("---\n")
+        } else {
+            yaml_docs.join("")
+        };
+        if front_matter.as_deref() == Some("process")
+            && let Some(ref body) = front_matter_body
+        {
+            format!("---\n{joined}---\n{body}")
+        } else {
+            joined
+        }
+    } else {
+        let mut buf = String::new();
+        for v in &vals {
+            buf.push_str(&format_yq_single_val(
+                v,
+                &output_format,
+                compact_output,
+                raw_output,
+                quote_yaml,
+            ));
+        }
+        buf
     };
+
     if inplace && let Some(first_file) = files.first() {
         let full = resolve_posix_path(cwd, first_file);
         let _ = fs.write_file(&full, final_out.as_bytes());
@@ -5356,7 +6030,7 @@ fn cmd_xq(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let mut yq_args = vec!["-p".to_string(), "xml".to_string()];
+    let mut yq_args = vec!["--xq-xml".to_string(), "-p".to_string(), "xml".to_string()];
     let mut want_yaml = false;
     for a in args {
         if a == "-y" || a == "--yaml-output" {
@@ -5366,11 +6040,11 @@ fn cmd_xq(
         }
     }
     if want_yaml {
-        yq_args.insert(2, "-o".to_string());
-        yq_args.insert(3, "yaml".to_string());
+        yq_args.insert(3, "-o".to_string());
+        yq_args.insert(4, "yaml".to_string());
     } else if !yq_args.iter().any(|a| a == "-o" || a == "--output-format" || a.starts_with("-o=")) {
-        yq_args.insert(2, "-o".to_string());
-        yq_args.insert(3, "json".to_string());
+        yq_args.insert(3, "-o".to_string());
+        yq_args.insert(4, "json".to_string());
     }
     cmd_yq(&yq_args, stdin, cwd, env, fs)
 }
@@ -5450,7 +6124,7 @@ fn skip_xml_trivia(s: &str, pos: &mut usize) {
     }
 }
 
-fn parse_xml_element(s: &str, pos: &mut usize) -> Option<(String, JVal)> {
+fn parse_xml_element(s: &str, pos: &mut usize, use_plus_prefix: bool) -> Option<(String, JVal)> {
     skip_xml_trivia(s, pos);
     if *pos >= s.len() || !s[*pos..].starts_with('<') || s[*pos..].starts_with("</") {
         return None;
@@ -5519,7 +6193,12 @@ fn parse_xml_element(s: &str, pos: &mut usize) -> Option<(String, JVal)> {
             }
         }
         if !attr_name.is_empty() {
-            attrs.push((format!("@{attr_name}"), JVal::Str(attr_val)));
+            let attr_key = if use_plus_prefix {
+                format!("+@{attr_name}")
+            } else {
+                format!("@{attr_name}")
+            };
+            attrs.push((attr_key, JVal::Str(attr_val)));
         }
     }
 
@@ -5564,7 +6243,7 @@ fn parse_xml_element(s: &str, pos: &mut usize) -> Option<(String, JVal)> {
             break;
         }
         if rest.starts_with('<') {
-            if let Some(child) = parse_xml_element(s, pos) {
+            if let Some(child) = parse_xml_element(s, pos, use_plus_prefix) {
                 children.push(child);
             } else {
                 *pos += 1;
@@ -5599,16 +6278,17 @@ fn parse_xml_element(s: &str, pos: &mut usize) -> Option<(String, JVal)> {
         }
     } else {
         if !trimmed.is_empty() {
-            entries.push(("#text".to_string(), JVal::Str(trimmed.to_string())));
+            let text_key = if use_plus_prefix { "+content" } else { "#text" };
+            entries.push((text_key.to_string(), JVal::Str(trimmed.to_string())));
         }
         JVal::Object(entries)
     };
     Some((tag_name, val))
 }
 
-fn parse_xml_to_jval(input: &str) -> JVal {
+fn parse_xml_to_jval(input: &str, use_plus_prefix: bool) -> JVal {
     let mut pos = 0usize;
-    if let Some((root_tag, root_val)) = parse_xml_element(input, &mut pos) {
+    if let Some((root_tag, root_val)) = parse_xml_element(input, &mut pos, use_plus_prefix) {
         JVal::Object(vec![(root_tag, root_val)])
     } else {
         JVal::Null
@@ -5762,28 +6442,127 @@ fn jval_to_csv_doc(val: &JVal, delim: char) -> String {
     out
 }
 
-fn jval_to_toml_doc(val: &JVal) -> String {
+fn format_toml_key(k: &str) -> String {
+    if !k.is_empty()
+        && k.chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
+    {
+        k.to_string()
+    } else {
+        JVal::Str(k.to_string()).to_json_string(true, false, 0)
+    }
+}
+
+fn format_toml_val(v: &JVal) -> String {
+    match v {
+        JVal::Array(items) => {
+            let parts: Vec<String> = items.iter().map(format_toml_val).collect();
+            format!("[{}]", parts.join(", "))
+        }
+        JVal::Object(entries) => {
+            let parts: Vec<String> = entries
+                .iter()
+                .map(|(k, child)| format!("{} = {}", format_toml_key(k), format_toml_val(child)))
+                .collect();
+            format!("{{ {} }}", parts.join(", "))
+        }
+        other => other.to_json_string(true, false, 0),
+    }
+}
+
+fn write_toml_or_ini_table(
+    entries: &[(String, JVal)],
+    path: &[String],
+    is_toml: bool,
+    out: &mut String,
+) {
+    let leaves: Vec<&(String, JVal)> = entries
+        .iter()
+        .filter(|(_, child)| !matches!(child, JVal::Object(_)))
+        .collect();
+    let width = leaves.iter().map(|(k, _)| k.len()).max().unwrap_or(0);
+    if !path.is_empty() {
+        let joined = path
+            .iter()
+            .map(|k| if is_toml { format_toml_key(k) } else { k.clone() })
+            .collect::<Vec<_>>()
+            .join(".");
+        out.push_str(&format!("[{joined}]\n"));
+    }
+    for (k, child) in leaves {
+        let k_fmt = if is_toml { format_toml_key(k) } else { k.clone() };
+        let pad = if !is_toml {
+            " ".repeat(width.saturating_sub(k.len()))
+        } else {
+            String::new()
+        };
+        let v_fmt = if is_toml {
+            format_toml_val(child)
+        } else {
+            jval_primitive_str(child)
+        };
+        out.push_str(&format!("{k_fmt}{pad} = {v_fmt}\n"));
+    }
+    for (k, child) in entries {
+        if let JVal::Object(sub) = child {
+            out.push('\n');
+            let mut sub_path = path.to_vec();
+            sub_path.push(k.clone());
+            write_toml_or_ini_table(sub, &sub_path, is_toml, out);
+        }
+    }
+}
+
+fn jval_to_toml_or_ini_doc(val: &JVal, is_toml: bool) -> String {
     let JVal::Object(entries) = val else {
         return String::new();
     };
     let mut out = String::new();
-    for (k, v) in entries {
-        if !matches!(v, JVal::Object(_)) {
-            out.push_str(&format!("{k} = {}\n", v.to_json_string(true, false, 0)));
-        }
-    }
-    for (k, v) in entries {
-        if let JVal::Object(sub) = v {
-            if !out.is_empty() {
-                out.push('\n');
-            }
-            out.push_str(&format!("[{k}]\n"));
-            for (sk, sv) in sub {
-                out.push_str(&format!("{sk} = {}\n", sv.to_json_string(true, false, 0)));
-            }
-        }
-    }
+    write_toml_or_ini_table(entries, &[], is_toml, &mut out);
     out
+}
+
+fn parse_ini_to_jval(input: &str) -> JVal {
+    let mut root: Vec<(String, JVal)> = Vec::new();
+    let mut current_section: Option<String> = None;
+    for line in input.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty()
+            || trimmed.starts_with('#')
+            || trimmed.starts_with(';')
+            || trimmed.starts_with('!')
+        {
+            continue;
+        }
+        if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            let sec_name = trimmed[1..trimmed.len() - 1].to_string();
+            if !root.iter().any(|(k, _)| k == &sec_name) {
+                root.push((sec_name.clone(), JVal::Object(Vec::new())));
+            }
+            current_section = Some(sec_name);
+            continue;
+        }
+        if let Some((lhs, rhs)) = trimmed.split_once('=').or_else(|| trimmed.split_once(':')) {
+            let key = lhs.trim().to_string();
+            let val = JVal::Str(rhs.trim().to_string());
+            if let Some(ref sec) = current_section {
+                if let Some((_, JVal::Object(sec_entries))) =
+                    root.iter_mut().find(|(k, _)| k == sec)
+                {
+                    if let Some((_, existing)) = sec_entries.iter_mut().find(|(k, _)| k == &key) {
+                        *existing = val;
+                    } else {
+                        sec_entries.push((key, val));
+                    }
+                }
+            } else if let Some((_, existing)) = root.iter_mut().find(|(k, _)| k == &key) {
+                *existing = val;
+            } else {
+                root.push((key, val));
+            }
+        }
+    }
+    JVal::Object(root)
 }
 
 fn parse_yq_csv_to_jval(input: &str, delim: char) -> JVal {
@@ -5847,45 +6626,90 @@ fn parse_props_to_jval(input: &str) -> JVal {
     root
 }
 
-fn parse_yq_input_docs(input: &str, fmt: Option<&str>, filename: Option<&str>) -> Vec<JVal> {
+fn parse_yq_input_docs_with_meta(
+    input: &str,
+    fmt: Option<&str>,
+    filename: Option<&str>,
+    file_index: usize,
+    use_plus_xml: bool,
+) -> Vec<(JVal, YqDocMeta)> {
+    let fname = filename.unwrap_or("");
+    let single_meta = || YqDocMeta {
+        file_index,
+        doc_index: 0,
+        filename: fname.to_string(),
+        ..Default::default()
+    };
+    if fmt == Some("base64") {
+        let clean: String = input.chars().filter(|c| !matches!(c, '\r' | '\n')).collect();
+        let bytes = decode_base64_str(&clean).unwrap_or_default();
+        return vec![(
+            JVal::Str(String::from_utf8_lossy(&bytes).into_owned()),
+            single_meta(),
+        )];
+    }
+    if fmt == Some("uri") {
+        return vec![(JVal::Str(yq_uri_decode(input)), single_meta())];
+    }
+    if matches!(fmt, Some("ini") | Some("i"))
+        || filename.map(|f| f.ends_with(".ini")).unwrap_or(false)
+    {
+        return vec![(parse_ini_to_jval(input), single_meta())];
+    }
     let is_xml = matches!(fmt, Some("xml") | Some("x"))
         || filename.map(|f| f.ends_with(".xml")).unwrap_or(false);
     if is_xml {
-        return vec![parse_xml_to_jval(input)];
+        return vec![(parse_xml_to_jval(input, use_plus_xml), single_meta())];
     }
     let is_toml = fmt == Some("toml")
         || filename.map(|f| f.ends_with(".toml")).unwrap_or(false);
     if is_toml {
-        return vec![parse_toml_to_jval(input)];
+        return vec![(parse_toml_to_jval(input), single_meta())];
     }
     let is_props = matches!(fmt, Some("props") | Some("p"))
         || filename.map(|f| f.ends_with(".properties")).unwrap_or(false);
     if is_props {
-        return vec![parse_props_to_jval(input)];
+        return vec![(parse_props_to_jval(input), single_meta())];
     }
     let is_csv = matches!(fmt, Some("csv") | Some("c"))
         || (fmt.is_none() && filename.map(|f| f.ends_with(".csv")).unwrap_or(false));
     if is_csv {
-        return vec![parse_yq_csv_to_jval(input, ',')];
+        return vec![(parse_yq_csv_to_jval(input, ','), single_meta())];
     }
     let is_tsv = matches!(fmt, Some("tsv") | Some("t"))
         || (fmt.is_none() && filename.map(|f| f.ends_with(".tsv")).unwrap_or(false));
     if is_tsv {
-        return vec![parse_yq_csv_to_jval(input, '\t')];
+        return vec![(parse_yq_csv_to_jval(input, '\t'), single_meta())];
     }
     let trimmed = input.trim_start();
     if (trimmed.starts_with('{') || trimmed.starts_with('['))
         && let Ok(vals) = parse_json_stream(trimmed)
         && !vals.is_empty()
     {
-        return vals;
+        return vals
+            .into_iter()
+            .enumerate()
+            .map(|(d_idx, v)| {
+                (
+                    v,
+                    YqDocMeta {
+                        file_index,
+                        doc_index: d_idx,
+                        filename: fname.to_string(),
+                        ..Default::default()
+                    },
+                )
+            })
+            .collect();
     }
     let mut docs = Vec::new();
     let mut current_doc = String::new();
     for line in input.lines() {
         if line.trim() == "---" || line.trim() == "..." {
             if !current_doc.trim().is_empty() {
-                docs.push(parse_nested_yaml(&current_doc));
+                let d_idx = docs.len();
+                let meta = extract_yaml_doc_meta(&current_doc, file_index, d_idx, fname);
+                docs.push((parse_nested_yaml(&current_doc), meta));
                 current_doc.clear();
             }
         } else {
@@ -5894,10 +6718,12 @@ fn parse_yq_input_docs(input: &str, fmt: Option<&str>, filename: Option<&str>) -
         }
     }
     if !current_doc.trim().is_empty() {
-        docs.push(parse_nested_yaml(&current_doc));
+        let d_idx = docs.len();
+        let meta = extract_yaml_doc_meta(&current_doc, file_index, d_idx, fname);
+        docs.push((parse_nested_yaml(&current_doc), meta));
     }
     if docs.is_empty() {
-        docs.push(JVal::Null);
+        docs.push((JVal::Null, single_meta()));
     }
     docs
 }
@@ -6143,7 +6969,7 @@ fn split_top_level_comma(s: &str) -> Vec<&str> {
 
 fn parse_nested_yaml(input: &str) -> JVal {
     let trimmed = input.trim_start();
-    if (trimmed.starts_with('{') || trimmed.starts_with('['))
+    if (trimmed.starts_with('{') || trimmed.starts_with('[') || trimmed.starts_with('"'))
         && let Ok(mut vals) = parse_json_stream(trimmed)
         && let Some(first) = vals.drain(..).next()
     {
@@ -6162,8 +6988,17 @@ fn parse_nested_yaml(input: &str) -> JVal {
             }
         })
         .collect();
-    let mut idx = 0usize;
     let mut anchors = BTreeMap::new();
+    if lines.len() == 1 {
+        let only = lines[0].1;
+        if (only.starts_with('\'') && only.ends_with('\''))
+            || (only.starts_with('"') && only.ends_with('"'))
+            || (!only.starts_with('-') && !only.contains(':'))
+        {
+            return parse_yaml_scalar(only, &mut anchors);
+        }
+    }
+    let mut idx = 0usize;
     parse_yaml_block(&lines, &mut idx, 0, &mut anchors)
 }
 

@@ -253,6 +253,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-sqlite3-fts5-triggers-savepoint-json-cte-upsert-views-matrix.test.ts",
   "obscure-htmlq-xmllint-xq-html-to-markdown-unrtf-mmdc-dom-matrix.test.ts",
   "obscure-diff-diff3-patch-apply-patch-cmp-sed-awk-merge-matrix.test.ts",
+  "obscure-diff-diff3-patch-apply-patch-cmp-wdiff-matrix.test.ts",
   "obscure-jq-yq-recursive-reduce-foreach-regex-paths-env-matrix.test.ts",
   "obscure-rg-grep-find-fd-xargs-readlink-realpath-stat-tree-vfs-matrix.test.ts",
   "obscure-xan-csvkit-csvsql-csvjoin-csvgrep-csvstat-tabular-etl-matrix.test.ts",

@@ -16,10 +16,10 @@ pub fn try_run_text_command(
         "sed" => Some(cmd_sed(args, stdin, cwd, fs)),
         "awk" | "gawk" | "mawk" => Some(cmd_awk(args, stdin, cwd, env, fs)),
         "diff" => Some(cmd_diff(args, stdin, cwd, fs)),
-        "diff3" => Some(cmd_diff3(args, cwd, fs)),
+        "diff3" => Some(cmd_diff3(args, stdin, cwd, fs)),
         "patch" => Some(cmd_patch(args, stdin, cwd, fs)),
         "apply_patch" | "apply-patch" => Some(cmd_apply_patch(args, stdin, cwd, fs)),
-        "cmp" => Some(cmd_cmp(args, stdin, cwd, fs)),
+        "cmp" => Some(cmd_cmp(args, stdin, cwd, env, fs)),
         "wdiff" => Some(cmd_wdiff(args, stdin, cwd, fs)),
         _ => None,
     }
@@ -3522,18 +3522,28 @@ struct DiffOpts {
     ctx_lines: Option<usize>,
     new_file: bool,
     unidir_new_file: bool,
+    recursive: bool,
     brief: bool,
     report_identical: bool,
     ignore_case: bool,
     ignore_all_space: bool,
+    ignore_space_change: bool,
+    ignore_tab_expansion: bool,
+    ignore_trailing_space: bool,
     ignore_blank_lines: bool,
+    expand_tabs: bool,
+    initial_tab: bool,
+    left_column: bool,
     suppress_common: bool,
     no_deref: bool,
     show_c_func: bool,
+    show_func_regexes: Vec<String>,
+    width: usize,
     ifdef_macro: String,
     labels: Vec<String>,
     ignore_regexes: Vec<String>,
     excludes: Vec<String>,
+    starting_file: Option<String>,
 }
 
 fn diff_glob_matches(pat: &str, name: &str) -> bool {
@@ -3549,6 +3559,67 @@ fn diff_glob_matches(pat: &str, name: &str) -> bool {
     false
 }
 
+fn expand_tabs_line(line: &str) -> String {
+    let mut column = 0usize;
+    let mut result = String::new();
+    for ch in line.chars() {
+        if ch == '\t' {
+            let count = 8 - (column % 8);
+            result.extend(std::iter::repeat_n(' ', count));
+            column += count;
+        } else {
+            result.push(ch);
+            if ch == '\r' {
+                column = 0;
+            } else if ch == '\x08' {
+                column = column.saturating_sub(1);
+            } else {
+                column += 1;
+            }
+        }
+    }
+    result
+}
+
+fn sbs_clipped(line: &str, width: usize, expand: bool) -> (String, usize) {
+    let mut column = 0usize;
+    let mut text = String::new();
+    for ch in line.chars() {
+        if ch == '\n' {
+            break;
+        }
+        let next = if ch == '\t' {
+            column + 8 - (column % 8)
+        } else {
+            column + 1
+        };
+        if next > width {
+            break;
+        }
+        if ch == '\t' && expand {
+            text.extend(std::iter::repeat_n(' ', next - column));
+        } else {
+            text.push(ch);
+        }
+        column = next;
+    }
+    (text, column)
+}
+
+fn sbs_padding(mut column: usize, target: usize, expand: bool) -> String {
+    let mut result = String::new();
+    if !expand {
+        while column + 8 - (column % 8) <= target {
+            result.push('\t');
+            column += 8 - (column % 8);
+        }
+    }
+    if target > column {
+        result.extend(std::iter::repeat_n(' ', target - column));
+    }
+    result
+}
+
 #[allow(clippy::too_many_arguments)]
 fn diff_two_texts(
     label_a: &str,
@@ -3557,19 +3628,42 @@ fn diff_two_texts(
     text_b: &str,
     opts: &DiffOpts,
 ) -> (String, bool) {
-    let format = opts.format.unwrap_or(DiffFormat::Normal);
+    let format = opts.format.unwrap_or(if !opts.show_func_regexes.is_empty() || opts.show_c_func {
+        DiffFormat::Context
+    } else {
+        DiffFormat::Normal
+    });
     let brief = opts.brief;
     let report_identical = opts.report_identical;
     let ignore_case = opts.ignore_case;
-    let ignore_all_space = opts.ignore_all_space;
     let ignore_blank_lines = opts.ignore_blank_lines;
 
     let norm_line = |l: &str| -> String {
-        let mut s = if ignore_all_space {
-            l.split_whitespace().collect::<Vec<_>>().join(" ")
+        let mut s = if opts.ignore_tab_expansion {
+            expand_tabs_line(l)
         } else {
             l.to_string()
         };
+        if opts.ignore_all_space {
+            s.retain(|c| !matches!(c, ' ' | '\t' | '\x0b' | '\x0c' | '\r'));
+        } else if opts.ignore_space_change {
+            let mut out_s = String::new();
+            let mut prev_ws = false;
+            for c in s.chars() {
+                let is_ws = matches!(c, ' ' | '\t' | '\x0b' | '\x0c' | '\r');
+                if is_ws {
+                    if !prev_ws {
+                        out_s.push(' ');
+                    }
+                } else {
+                    out_s.push(c);
+                }
+                prev_ws = is_ws;
+            }
+            s = out_s.trim_end_matches(' ').to_string();
+        } else if opts.ignore_trailing_space {
+            s = s.trim_end_matches([' ', '\t', '\x0b', '\x0c', '\r']).to_string();
+        }
         if ignore_case {
             s = s.to_ascii_lowercase();
         }
@@ -3591,15 +3685,9 @@ fn diff_two_texts(
     let norm_a: Vec<String> = lines_a.iter().map(|l| norm_line(l)).collect();
     let norm_b: Vec<String> = lines_b.iter().map(|l| norm_line(l)).collect();
 
-    if norm_a == norm_b && a_no_nl == b_no_nl {
-        if report_identical {
-            return (format!("Files {label_a} and {label_b} are identical\n"), false);
-        }
-        return (String::new(), false);
-    }
-
     let edits = compute_lcs_edits(&norm_a, &norm_b);
-    if !opts.ignore_regexes.is_empty() {
+    let mut differed = !(norm_a == norm_b && a_no_nl == b_no_nl);
+    if differed && !opts.ignore_regexes.is_empty() {
         let rx = ZeroRegex::new(opts.ignore_regexes.clone(), ignore_case, false, false, false);
         let all_ignored = edits.iter().all(|e| match e {
             DiffEdit::Keep(_) => true,
@@ -3607,20 +3695,74 @@ fn diff_two_texts(
             DiffEdit::Insert(ib) => rx.is_match(lines_b[*ib]),
         });
         if all_ignored {
-            if report_identical {
-                return (format!("Files {label_a} and {label_b} are identical\n"), false);
-            }
-            return (String::new(), false);
+            differed = false;
         }
     }
 
-    if brief {
-        return (format!("Files {label_a} and {label_b} differ\n"), true);
+    if !differed && format != DiffFormat::Ifdef && format != DiffFormat::SideBySide {
+        if report_identical {
+            return (format!("Files {label_a} and {label_b} are identical\n"), false);
+        }
+        return (String::new(), false);
     }
 
+    if brief {
+        if differed {
+            return (format!("Files {label_a} and {label_b} differ\n"), true);
+        }
+        if report_identical {
+            return (format!("Files {label_a} and {label_b} are identical\n"), false);
+        }
+        return (String::new(), false);
+    }
+
+    let fmt_line_body = |prefix: &str, line: &str| -> String {
+        let pfx = if opts.initial_tab {
+            let base = if prefix.len() == 2 {
+                &prefix[..1]
+            } else {
+                prefix.trim_end()
+            };
+            format!("{base}\t")
+        } else {
+            prefix.to_string()
+        };
+        let body = if opts.expand_tabs {
+            expand_tabs_line(line)
+        } else {
+            line.to_string()
+        };
+        format!("{pfx}{body}\n")
+    };
+
+    let find_func_heading = |old_start: usize| -> String {
+        let mut patterns = opts.show_func_regexes.clone();
+        if opts.show_c_func && patterns.is_empty() {
+            patterns.push("^[A-Za-z_$]".to_string());
+        }
+        if patterns.is_empty() {
+            return String::new();
+        }
+        let rx = ZeroRegex::new(patterns, false, false, false, false);
+        let limit = old_start.saturating_sub(1).max(usize::from(opts.show_c_func)).min(lines_a.len());
+        lines_a[..limit]
+            .iter()
+            .rev()
+            .find(|l| rx.is_match(l))
+            .map(|l| {
+                let truncated: String = l.chars().take(40).collect();
+                format!(" {truncated}")
+            })
+            .unwrap_or_default()
+    };
+
     let mut out = String::new();
-    if format == DiffFormat::Unified {
-        out.push_str(&format!("--- {label_a}\n+++ {label_b}\n"));
+    if format == DiffFormat::Unified || format == DiffFormat::Context {
+        if format == DiffFormat::Unified {
+            out.push_str(&format!("--- {label_a}\n+++ {label_b}\n"));
+        } else {
+            out.push_str(&format!("*** {label_a}\n--- {label_b}\n"));
+        }
         let ctx = opts.ctx_lines.unwrap_or(3);
         let last_a = lines_a.len().saturating_sub(1);
         let last_b = lines_b.len().saturating_sub(1);
@@ -3677,6 +3819,23 @@ fn diff_two_texts(
             }
         }
 
+        let unified_range = |start: usize, count: usize| -> String {
+            if count == 0 {
+                format!("{start},0")
+            } else if count == 1 {
+                format!("{start}")
+            } else {
+                format!("{start},{count}")
+            }
+        };
+        let context_range = |start: usize, count: usize| -> String {
+            if count <= 1 {
+                format!("{start}")
+            } else {
+                format!("{start},{}", start + count - 1)
+            }
+        };
+
         for (hs, he) in hunk_ranges {
             let slice = &tagged[hs..=he];
             let old_count = slice
@@ -3701,121 +3860,180 @@ fn diff_two_texts(
                     _ => None,
                 })
                 .unwrap_or(if new_count == 0 { 0 } else { 1 });
-            let func_heading = if opts.show_c_func {
-                lines_a
-                    .iter()
-                    .take(old_start.max(1))
-                    .rev()
-                    .find(|l| {
-                        !l.is_empty()
-                            && !l.starts_with(' ')
-                            && !l.starts_with('\t')
-                            && l.contains('(')
-                    })
-                    .or_else(|| {
-                        lines_a.iter().find(|l| {
-                            !l.is_empty()
-                                && !l.starts_with(' ')
-                                && !l.starts_with('\t')
-                                && l.contains('(')
-                        })
-                    })
-                    .map(|l| format!(" {}", l.trim()))
-                    .unwrap_or_default()
+            let func_heading = find_func_heading(old_start);
+
+            if format == DiffFormat::Unified {
+                out.push_str(&format!(
+                    "@@ -{} +{} @@{func_heading}\n",
+                    unified_range(old_start, old_count),
+                    unified_range(new_start, new_count)
+                ));
+                for (edit, ia, ib) in slice {
+                    match *edit {
+                        DiffEdit::Keep(ia_idx) => {
+                            out.push_str(&fmt_line_body(" ", lines_a[ia_idx]));
+                            if ia_idx == last_a && *ib == last_b && (a_no_nl || b_no_nl) {
+                                out.push_str("\\ No newline at end of file\n");
+                            }
+                        }
+                        DiffEdit::Delete(ia_idx) => {
+                            out.push_str(&fmt_line_body("-", lines_a[ia_idx]));
+                            if ia_idx == last_a && a_no_nl {
+                                out.push_str("\\ No newline at end of file\n");
+                            }
+                        }
+                        DiffEdit::Insert(ib_idx) => {
+                            let _ = ia;
+                            out.push_str(&fmt_line_body("+", lines_b[ib_idx]));
+                            if ib_idx == last_b && b_no_nl {
+                                out.push_str("\\ No newline at end of file\n");
+                            }
+                        }
+                    }
+                }
             } else {
-                String::new()
-            };
-            out.push_str(&format!(
-                "@@ -{old_start},{old_count} +{new_start},{new_count} @@{func_heading}\n"
-            ));
-            for (edit, ia, ib) in slice {
-                match *edit {
-                    DiffEdit::Keep(ia_idx) => {
-                        out.push_str(&format!(" {}\n", lines_a[ia_idx]));
-                        if ia_idx == last_a && *ib == last_b && (a_no_nl || b_no_nl) {
-                            out.push_str("\\ No newline at end of file\n");
+                let any_del = slice.iter().any(|(e, _, _)| matches!(e, DiffEdit::Delete(_)));
+                let any_ins = slice.iter().any(|(e, _, _)| matches!(e, DiffEdit::Insert(_)));
+                out.push_str(&format!(
+                    "***************{func_heading}\n*** {} ****\n",
+                    context_range(old_start, old_count)
+                ));
+                if any_del {
+                    let mut si = 0usize;
+                    while si < slice.len() {
+                        match slice[si].0 {
+                            DiffEdit::Keep(ia_idx) => {
+                                out.push_str(&fmt_line_body("  ", lines_a[ia_idx]));
+                                si += 1;
+                            }
+                            DiffEdit::Delete(_) | DiffEdit::Insert(_) => {
+                                let mut grp_del = false;
+                                let mut grp_ins = false;
+                                let mut ge = si;
+                                while ge < slice.len() && !matches!(slice[ge].0, DiffEdit::Keep(_)) {
+                                    if matches!(slice[ge].0, DiffEdit::Delete(_)) {
+                                        grp_del = true;
+                                    } else {
+                                        grp_ins = true;
+                                    }
+                                    ge += 1;
+                                }
+                                let pfx = if grp_del && grp_ins { "! " } else { "- " };
+                                while si < ge {
+                                    if let DiffEdit::Delete(ia_idx) = slice[si].0 {
+                                        out.push_str(&fmt_line_body(pfx, lines_a[ia_idx]));
+                                    }
+                                    si += 1;
+                                }
+                            }
                         }
                     }
-                    DiffEdit::Delete(ia_idx) => {
-                        out.push_str(&format!("-{}\n", lines_a[ia_idx]));
-                        if ia_idx == last_a && a_no_nl {
-                            out.push_str("\\ No newline at end of file\n");
+                }
+                out.push_str(&format!("--- {} ----\n", context_range(new_start, new_count)));
+                if any_ins {
+                    let mut si = 0usize;
+                    while si < slice.len() {
+                        match slice[si].0 {
+                            DiffEdit::Keep(ia_idx) => {
+                                out.push_str(&fmt_line_body("  ", lines_a[ia_idx]));
+                                si += 1;
+                            }
+                            DiffEdit::Delete(_) | DiffEdit::Insert(_) => {
+                                let mut grp_del = false;
+                                let mut grp_ins = false;
+                                let mut ge = si;
+                                while ge < slice.len() && !matches!(slice[ge].0, DiffEdit::Keep(_)) {
+                                    if matches!(slice[ge].0, DiffEdit::Delete(_)) {
+                                        grp_del = true;
+                                    } else {
+                                        grp_ins = true;
+                                    }
+                                    ge += 1;
+                                }
+                                let pfx = if grp_del && grp_ins { "! " } else { "+ " };
+                                while si < ge {
+                                    if let DiffEdit::Insert(ib_idx) = slice[si].0 {
+                                        out.push_str(&fmt_line_body(pfx, lines_b[ib_idx]));
+                                    }
+                                    si += 1;
+                                }
+                            }
                         }
                     }
-                    DiffEdit::Insert(ib_idx) => {
-                        let _ = ia;
-                        out.push_str(&format!("+{}\n", lines_b[ib_idx]));
-                        if ib_idx == last_b && b_no_nl {
-                            out.push_str("\\ No newline at end of file\n");
-                        }
-                    }
-                }
-            }
-        }
-    } else if format == DiffFormat::Context {
-        out.push_str(&format!("*** {label_a}\n--- {label_b}\n***************\n"));
-        out.push_str(&format!("*** 1,{} ****\n", lines_a.len()));
-        let mut ei = 0usize;
-        while ei < edits.len() {
-            match edits[ei] {
-                DiffEdit::Keep(ia) => {
-                    out.push_str(&format!("  {}\n", lines_a[ia]));
-                    ei += 1;
-                }
-                DiffEdit::Delete(ia) => {
-                    let has_ins = ei + 1 < edits.len() && matches!(edits[ei + 1], DiffEdit::Insert(_));
-                    let prefix = if has_ins { "!" } else { "-" };
-                    out.push_str(&format!("{prefix} {}\n", lines_a[ia]));
-                    ei += 1;
-                }
-                DiffEdit::Insert(_) => {
-                    ei += 1;
-                }
-            }
-        }
-        out.push_str(&format!("--- 1,{} ----\n", lines_b.len()));
-        let mut ei2 = 0usize;
-        while ei2 < edits.len() {
-            match edits[ei2] {
-                DiffEdit::Keep(ia) => {
-                    out.push_str(&format!("  {}\n", lines_a[ia]));
-                    ei2 += 1;
-                }
-                DiffEdit::Delete(_) => {
-                    ei2 += 1;
-                }
-                DiffEdit::Insert(ib) => {
-                    let had_del = ei2 > 0 && matches!(edits[ei2 - 1], DiffEdit::Delete(_));
-                    let prefix = if had_del { "!" } else { "+" };
-                    out.push_str(&format!("{prefix} {}\n", lines_b[ib]));
-                    ei2 += 1;
                 }
             }
         }
     } else if format == DiffFormat::SideBySide {
+        let width = if opts.width > 0 { opts.width } else { 130 };
+        let mut half = width.saturating_sub(3) / 2;
+        let mut right_start = width - half;
+        if !opts.expand_tabs {
+            right_start = ((width + 11) / 16) * 8;
+            half = right_start.saturating_sub(3).min(width.saturating_sub(right_start));
+            if half == 0 {
+                right_start = width;
+            }
+        }
+        let marker_col = (half + right_start).saturating_sub(1) / 2;
+
+        let emit_row = |out: &mut String, left: Option<&str>, right: Option<&str>, marker: char| {
+            if marker == ' ' && opts.suppress_common {
+                return;
+            }
+            let (first_text, first_col) = sbs_clipped(left.unwrap_or(""), half, opts.expand_tabs);
+            let mut row_text = first_text;
+            if marker == ' ' && opts.left_column {
+                row_text.push_str(&sbs_padding(first_col, marker_col, opts.expand_tabs));
+                row_text.push('(');
+                row_text.push('\n');
+                out.push_str(&row_text);
+                return;
+            }
+            if marker != ' ' {
+                row_text.push_str(&sbs_padding(first_col, marker_col, opts.expand_tabs));
+                row_text.push(marker);
+            }
+            if let Some(r) = right
+                && !r.is_empty()
+            {
+                let col = if marker == ' ' { first_col } else { marker_col + 1 };
+                let (second_text, _) = sbs_clipped(r, half, opts.expand_tabs);
+                row_text.push_str(&sbs_padding(col, right_start, opts.expand_tabs));
+                row_text.push_str(&second_text);
+            }
+            row_text.push('\n');
+            out.push_str(&row_text);
+        };
+
         let mut ei = 0usize;
         while ei < edits.len() {
             match edits[ei] {
                 DiffEdit::Keep(ia) => {
-                    if !opts.suppress_common {
-                        out.push_str(&format!("{:<16}   {}\n", lines_a[ia], lines_a[ia]));
-                    }
+                    emit_row(&mut out, Some(lines_a[ia]), Some(lines_a[ia]), ' ');
                     ei += 1;
                 }
-                DiffEdit::Delete(ia) => {
-                    if ei + 1 < edits.len()
-                        && let DiffEdit::Insert(ib) = edits[ei + 1]
-                    {
-                        out.push_str(&format!("{:<16} | {}\n", lines_a[ia], lines_b[ib]));
-                        ei += 2;
-                    } else {
-                        out.push_str(&format!("{:<16} <\n", lines_a[ia]));
+                DiffEdit::Delete(_) | DiffEdit::Insert(_) => {
+                    let mut dels = Vec::new();
+                    let mut inss = Vec::new();
+                    while ei < edits.len() {
+                        match edits[ei] {
+                            DiffEdit::Keep(_) => break,
+                            DiffEdit::Delete(ia) => dels.push(lines_a[ia]),
+                            DiffEdit::Insert(ib) => inss.push(lines_b[ib]),
+                        }
                         ei += 1;
                     }
-                }
-                DiffEdit::Insert(ib) => {
-                    out.push_str(&format!("{:<16} > {}\n", "", lines_b[ib]));
-                    ei += 1;
+                    let max_n = dels.len().max(inss.len());
+                    for k in 0..max_n {
+                        let l = dels.get(k).copied();
+                        let r = inss.get(k).copied();
+                        let m = match (l, r) {
+                            (None, Some(_)) => '>',
+                            (Some(_), None) => '<',
+                            _ => '|',
+                        };
+                        emit_row(&mut out, l, r, m);
+                    }
                 }
             }
         }
@@ -3844,23 +4062,23 @@ fn diff_two_texts(
                         for d in dels {
                             out.push_str(&format!("{d}\n"));
                         }
-                        out.push_str("#else\n");
+                        out.push_str(&format!("#else /* {m} */\n"));
                         for ins in inss {
                             out.push_str(&format!("{ins}\n"));
                         }
-                        out.push_str("#endif\n");
+                        out.push_str(&format!("#endif /* {m} */\n"));
                     } else if !dels.is_empty() {
                         out.push_str(&format!("#ifndef {m}\n"));
                         for d in dels {
                             out.push_str(&format!("{d}\n"));
                         }
-                        out.push_str("#endif\n");
+                        out.push_str(&format!("#endif /* ! {m} */\n"));
                     } else if !inss.is_empty() {
                         out.push_str(&format!("#ifdef {m}\n"));
                         for ins in inss {
                             out.push_str(&format!("{ins}\n"));
                         }
-                        out.push_str("#endif\n");
+                        out.push_str(&format!("#endif /* {m} */\n"));
                     }
                 }
             }
@@ -3951,30 +4169,33 @@ fn diff_two_texts(
                         let b_range = fmt_range(inss[0] + 1, *inss.last().unwrap() + 1);
                         out.push_str(&format!("{a_range}c{b_range}\n"));
                         for ia in dels {
-                            out.push_str(&format!("< {}\n", lines_a[ia]));
+                            out.push_str(&fmt_line_body("< ", lines_a[ia]));
                         }
                         out.push_str("---\n");
                         for ib in inss {
-                            out.push_str(&format!("> {}\n", lines_b[ib]));
+                            out.push_str(&fmt_line_body("> ", lines_b[ib]));
                         }
                     } else if !dels.is_empty() {
                         let a_range = fmt_range(dels[0] + 1, *dels.last().unwrap() + 1);
                         out.push_str(&format!("{a_range}d{hb}\n"));
                         for ia in dels {
-                            out.push_str(&format!("< {}\n", lines_a[ia]));
+                            out.push_str(&fmt_line_body("< ", lines_a[ia]));
                         }
                     } else if !inss.is_empty() {
                         let b_range = fmt_range(inss[0] + 1, *inss.last().unwrap() + 1);
                         out.push_str(&format!("{ha}a{b_range}\n"));
                         for ib in inss {
-                            out.push_str(&format!("> {}\n", lines_b[ib]));
+                            out.push_str(&fmt_line_body("> ", lines_b[ib]));
                         }
                     }
                 }
             }
         }
     }
-    (out, true)
+    if !differed && report_identical {
+        out.push_str(&format!("Files {label_a} and {label_b} are identical\n"));
+    }
+    (out, differed)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -3998,6 +4219,11 @@ fn diff_dirs_recursive(
         set.insert(n);
     }
     for name in set {
+        if let Some(ref sf) = opts.starting_file
+            && name.as_str() < sf.as_str()
+        {
+            continue;
+        }
         if opts.excludes.iter().any(|p| diff_glob_matches(p, &name)) {
             continue;
         }
@@ -4071,16 +4297,22 @@ fn diff_dirs_recursive(
                 out.push_str(&format!("Only in {}: {name}\n", disp_b.trim_end_matches('/')));
             }
         } else if fs.is_dir(&ca) && fs.is_dir(&cb) {
-            diff_dirs_recursive(
-                &da,
-                &db,
-                &ca,
-                &cb,
-                opts,
-                fs,
-                out,
-                any_diff,
-            );
+            if opts.recursive {
+                let mut child_opts = opts.clone();
+                child_opts.starting_file = None;
+                diff_dirs_recursive(
+                    &da,
+                    &db,
+                    &ca,
+                    &cb,
+                    &child_opts,
+                    fs,
+                    out,
+                    any_diff,
+                );
+            } else {
+                out.push_str(&format!("Common subdirectories: {da} and {db}\n"));
+            }
         } else {
             let ta = fs.read_file(&ca).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
             let tb = fs.read_file(&cb).map(|b| String::from_utf8_lossy(&b).into_owned()).unwrap_or_default();
@@ -4104,6 +4336,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut from_file: Option<String> = None;
     let mut to_file: Option<String> = None;
     let mut files = Vec::new();
+    let mut exclude_files = Vec::new();
 
     let mut i = 0usize;
     while i < args.len() {
@@ -4114,19 +4347,27 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             "-e" | "--ed" => opts.format = Some(DiffFormat::Ed),
             "-n" | "--rcs" => opts.format = Some(DiffFormat::Rcs),
             "-y" | "--side-by-side" => opts.format = Some(DiffFormat::SideBySide),
+            "--left-column" => opts.left_column = true,
             "--suppress-common-lines" => opts.suppress_common = true,
             "--no-dereference" => opts.no_deref = true,
-            "-p" | "--show-c-function" => opts.show_c_func = true,
+            "--strip-trailing-cr" | "-a" | "--text" => {}
+            "-p" | "--show-c-function" => {
+                opts.show_c_func = true;
+                opts.show_func_regexes.push("^[A-Za-z_$]".to_string());
+            }
             "-N" | "--new-file" => opts.new_file = true,
             "-P" | "--unidirectional-new-file" => opts.unidir_new_file = true,
             "-q" | "--brief" => opts.brief = true,
             "-s" | "--report-identical-files" => opts.report_identical = true,
             "-i" | "--ignore-case" => opts.ignore_case = true,
-            "-w" | "-b" | "-E" | "-Z" | "-t" | "--ignore-all-space" | "--ignore-space-change" => {
-                opts.ignore_all_space = true;
-            }
+            "-w" | "--ignore-all-space" => opts.ignore_all_space = true,
+            "-b" | "--ignore-space-change" => opts.ignore_space_change = true,
+            "-E" | "--ignore-tab-expansion" => opts.ignore_tab_expansion = true,
+            "-Z" | "--ignore-trailing-space" => opts.ignore_trailing_space = true,
+            "-t" | "--expand-tabs" => opts.expand_tabs = true,
+            "-T" | "--initial-tab" => opts.initial_tab = true,
             "-B" | "--ignore-blank-lines" => opts.ignore_blank_lines = true,
-            "-r" | "--recursive" => {}
+            "-r" | "--recursive" => opts.recursive = true,
             "-U" if i + 1 < args.len() => {
                 opts.format = Some(DiffFormat::Unified);
                 i += 1;
@@ -4137,8 +4378,21 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 i += 1;
                 opts.ctx_lines = args[i].parse().ok();
             }
-            "-W" | "-F" | "-S" if i + 1 < args.len() => {
+            "-W" | "--width" if i + 1 < args.len() => {
                 i += 1;
+                opts.width = args[i].parse().unwrap_or(130);
+            }
+            "-F" | "--show-function-line" if i + 1 < args.len() => {
+                i += 1;
+                opts.show_func_regexes.push(args[i].clone());
+            }
+            "-S" | "--starting-file" if i + 1 < args.len() => {
+                i += 1;
+                opts.starting_file = Some(args[i].clone());
+            }
+            "-X" | "--exclude-from" if i + 1 < args.len() => {
+                i += 1;
+                exclude_files.push(args[i].clone());
             }
             "-D" if i + 1 < args.len() => {
                 opts.format = Some(DiffFormat::Ifdef);
@@ -4164,8 +4418,25 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 opts.ignore_regexes
                     .push(a["--ignore-matching-lines=".len()..].to_string());
             }
+            _ if a.starts_with("--show-function-line=") => {
+                opts.show_func_regexes
+                    .push(a["--show-function-line=".len()..].to_string());
+            }
+            _ if a.starts_with("--width=") => {
+                opts.width = a["--width=".len()..].parse().unwrap_or(130);
+            }
+            _ if a.starts_with("--ifdef=") => {
+                opts.format = Some(DiffFormat::Ifdef);
+                opts.ifdef_macro = a["--ifdef=".len()..].to_string();
+            }
             _ if a.starts_with("--exclude=") => {
                 opts.excludes.push(a["--exclude=".len()..].to_string());
+            }
+            _ if a.starts_with("--exclude-from=") => {
+                exclude_files.push(a["--exclude-from=".len()..].to_string());
+            }
+            _ if a.starts_with("--starting-file=") => {
+                opts.starting_file = Some(a["--starting-file=".len()..].to_string());
             }
             _ if a.starts_with("--from-file=") => {
                 from_file = Some(a["--from-file=".len()..].to_string());
@@ -4199,12 +4470,21 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         'y' => opts.format = Some(DiffFormat::SideBySide),
                         'N' => opts.new_file = true,
                         'P' => opts.unidir_new_file = true,
+                        'r' => opts.recursive = true,
                         'q' => opts.brief = true,
                         's' => opts.report_identical = true,
                         'i' => opts.ignore_case = true,
-                        'w' | 'b' | 'E' | 'Z' | 't' => opts.ignore_all_space = true,
+                        'w' => opts.ignore_all_space = true,
+                        'b' => opts.ignore_space_change = true,
+                        'E' => opts.ignore_tab_expansion = true,
+                        'Z' => opts.ignore_trailing_space = true,
+                        't' => opts.expand_tabs = true,
+                        'T' => opts.initial_tab = true,
                         'B' => opts.ignore_blank_lines = true,
-                        'p' => opts.show_c_func = true,
+                        'p' => {
+                            opts.show_c_func = true;
+                            opts.show_func_regexes.push("^[A-Za-z_$]".to_string());
+                        }
                         _ => {}
                     }
                 }
@@ -4212,6 +4492,18 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             _ => files.push(a.clone()),
         }
         i += 1;
+    }
+
+    for exf in exclude_files {
+        let full = resolve_posix_path(cwd, &exf);
+        if let Ok(bytes) = fs.read_file(&full) {
+            let txt = String::from_utf8_lossy(&bytes);
+            for line in txt.lines() {
+                if !line.is_empty() {
+                    opts.excludes.push(line.to_string());
+                }
+            }
+        }
     }
 
     if let Some(ff) = from_file {
@@ -4252,27 +4544,38 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("diff: missing operand\n", 2);
     }
 
-    let full_a = resolve_posix_path(cwd, &files[0]);
-    let full_b = resolve_posix_path(cwd, &files[1]);
-    if files[0] != "-" && files[1] != "-" && fs.is_dir(&full_a) && fs.is_dir(&full_b) {
-        let mut out = String::new();
-        let mut any_diff = false;
-        diff_dirs_recursive(
-            &files[0],
-            &files[1],
-            &full_a,
-            &full_b,
-            &opts,
-            fs,
-            &mut out,
-            &mut any_diff,
-        );
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: String::new(),
-            exit_code: if any_diff { 1 } else { 0 },
-        };
+    let mut full_a = resolve_posix_path(cwd, &files[0]);
+    let mut full_b = resolve_posix_path(cwd, &files[1]);
+    if files[0] != "-" && files[1] != "-" {
+        if fs.is_dir(&full_a) && fs.is_dir(&full_b) {
+            let mut out = String::new();
+            let mut any_diff = false;
+            diff_dirs_recursive(
+                &files[0],
+                &files[1],
+                &full_a,
+                &full_b,
+                &opts,
+                fs,
+                &mut out,
+                &mut any_diff,
+            );
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: String::new(),
+                exit_code: if any_diff { 1 } else { 0 },
+            };
+        } else if !fs.is_dir(&full_a) && fs.is_dir(&full_b) {
+            let base = files[0].rsplit('/').next().unwrap_or(&files[0]).to_string();
+            files[1] = format!("{}/{base}", files[1].trim_end_matches('/'));
+            full_b = resolve_posix_path(cwd, &files[1]);
+        } else if fs.is_dir(&full_a) && !fs.is_dir(&full_b) {
+            let base = files[1].rsplit('/').next().unwrap_or(&files[1]).to_string();
+            files[0] = format!("{}/{base}", files[0].trim_end_matches('/'));
+            full_a = resolve_posix_path(cwd, &files[0]);
+        }
     }
+    let _ = (full_a, full_b);
 
     let read_side = |name: &str| -> Result<String, String> {
         if name == "-" {
@@ -4357,20 +4660,79 @@ fn compute_lcs_edits(a: &[String], b: &[String]) -> Vec<DiffEdit> {
 
 #[derive(Clone, Default)]
 struct PatchOpts {
-    strip: usize,
+    strip: Option<usize>,
     reverse: bool,
     dry_run: bool,
     backup: bool,
     backup_suffix: String,
+    backup_prefix: Option<String>,
+    backup_basename_prefix: Option<String>,
+    version_control: Option<String>,
     remove_empty: bool,
     ignore_ws: bool,
     fuzz: usize,
     forward_only: bool,
+    force: bool,
     merge_mode: bool,
     merge_diff3: bool,
     atomic: bool,
     ifdef_guard: Option<String>,
     work_cwd: String,
+}
+
+fn decode_patch_header_path(raw_line: &str) -> (String, bool) {
+    let is_epoch = raw_line.split_once('\t').is_some_and(|(_, ts)| {
+        let t = ts.trim();
+        t.starts_with("1970-01-01 00:00:00") || t.starts_with("1969-12-31 ")
+    });
+    let trimmed = raw_line.trim_start();
+    if let Some(rest) = trimmed.strip_prefix('"') {
+        let mut bytes = Vec::new();
+        let chars: Vec<char> = rest.chars().collect();
+        let mut idx = 0usize;
+        while idx < chars.len() {
+            let ch = chars[idx];
+            idx += 1;
+            if ch == '"' {
+                break;
+            }
+            if ch == '\\' && idx < chars.len() {
+                let esc = chars[idx];
+                idx += 1;
+                if ('0'..='7').contains(&esc) && idx + 1 < chars.len() && ('0'..='7').contains(&chars[idx]) && ('0'..='7').contains(&chars[idx + 1]) {
+                    let oct_s: String = [esc, chars[idx], chars[idx + 1]].iter().collect();
+                    idx += 2;
+                    if let Ok(b) = u8::from_str_radix(&oct_s, 8) {
+                        bytes.push(b);
+                        continue;
+                    }
+                }
+                match esc {
+                    'a' => bytes.push(7),
+                    'b' => bytes.push(8),
+                    't' => bytes.push(9),
+                    'n' => bytes.push(10),
+                    'v' => bytes.push(11),
+                    'f' => bytes.push(12),
+                    'r' => bytes.push(13),
+                    '"' => bytes.push(b'"'),
+                    '\\' => bytes.push(b'\\'),
+                    other => {
+                        let mut buf = [0u8; 4];
+                        bytes.extend_from_slice(other.encode_utf8(&mut buf).as_bytes());
+                    }
+                }
+            } else {
+                let mut buf = [0u8; 4];
+                bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
+            }
+        }
+        return (String::from_utf8_lossy(&bytes).into_owned(), is_epoch);
+    }
+    if let Some((before_tab, _)) = trimmed.split_once('\t') {
+        return (before_tab.trim_end().to_string(), is_epoch);
+    }
+    (trimmed.split_whitespace().next().unwrap_or("").to_string(), is_epoch)
 }
 
 fn convert_context_diff_to_unified(text: &str) -> String {
@@ -4394,7 +4756,7 @@ fn convert_context_diff_to_unified(text: &str) -> String {
                 continue;
             }
         }
-        if lines[i] == "***************" {
+        if lines[i].starts_with("***************") {
             i += 1;
             if i < lines.len() && lines[i].starts_with("*** ") && lines[i].ends_with("****") {
                 let a_range = lines[i]
@@ -4406,7 +4768,7 @@ fn convert_context_diff_to_unified(text: &str) -> String {
                 let mut old_part = Vec::new();
                 while i < lines.len()
                     && !(lines[i].starts_with("--- ") && lines[i].ends_with("----"))
-                    && lines[i] != "***************"
+                    && !lines[i].starts_with("***************")
                 {
                     old_part.push(lines[i]);
                     i += 1;
@@ -4421,7 +4783,7 @@ fn convert_context_diff_to_unified(text: &str) -> String {
                         .to_string();
                     i += 1;
                     while i < lines.len()
-                        && lines[i] != "***************"
+                        && !lines[i].starts_with("***************")
                         && !lines[i].starts_with("*** ")
                     {
                         new_part.push(lines[i]);
@@ -4497,6 +4859,8 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             opts.ignore_ws = true;
         } else if a == "-N" || a == "--forward" {
             opts.forward_only = true;
+        } else if a == "-f" || a == "--force" || a == "-t" || a == "--batch" {
+            opts.force = true;
         } else if a == "--atomic" {
             opts.atomic = true;
         } else if a == "--merge" || a == "--merge=diff3" || a == "--merge=merge" {
@@ -4517,21 +4881,36 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             opts.backup_suffix = args[i].clone();
         } else if let Some(s) = a.strip_prefix("--suffix=") {
             opts.backup_suffix = s.to_string();
+        } else if (a == "-B" || a == "--prefix") && i + 1 < args.len() {
+            i += 1;
+            opts.backup_prefix = Some(args[i].clone());
+        } else if let Some(p) = a.strip_prefix("--prefix=") {
+            opts.backup_prefix = Some(p.to_string());
+        } else if (a == "-Y" || a == "--basename-prefix") && i + 1 < args.len() {
+            i += 1;
+            opts.backup_basename_prefix = Some(args[i].clone());
+        } else if let Some(p) = a.strip_prefix("--basename-prefix=") {
+            opts.backup_basename_prefix = Some(p.to_string());
+        } else if (a == "-V" || a == "--version-control") && i + 1 < args.len() {
+            i += 1;
+            opts.version_control = Some(args[i].clone());
+        } else if let Some(vc) = a.strip_prefix("--version-control=") {
+            opts.version_control = Some(vc.to_string());
         } else if (a == "-F" || a == "--fuzz") && i + 1 < args.len() {
             i += 1;
             opts.fuzz = args[i].parse().unwrap_or(0);
         } else if let Some(f) = a.strip_prefix("--fuzz=") {
             opts.fuzz = f.parse().unwrap_or(0);
-        } else if (a == "-V" || a == "--version-control") && i + 1 < args.len() {
-            i += 1;
-        } else if a == "-f" || a == "--force" || a == "-t" || a == "--batch" || a.starts_with("--reject-format") {
+        } else if a.starts_with("--reject-format") {
         } else if let Some(p) = a.strip_prefix("-p") {
             if !p.is_empty() {
-                opts.strip = p.parse().unwrap_or(0);
+                opts.strip = Some(p.parse().unwrap_or(0));
             } else if i + 1 < args.len() {
                 i += 1;
-                opts.strip = args[i].parse().unwrap_or(0);
+                opts.strip = Some(args[i].parse().unwrap_or(0));
             }
+        } else if let Some(p) = a.strip_prefix("--strip=") {
+            opts.strip = Some(p.parse().unwrap_or(0));
         } else if a == "-i" && i + 1 < args.len() {
             i += 1;
             input_file = Some(args[i].clone());
@@ -4564,6 +4943,7 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     };
     let normalized_patch = convert_context_diff_to_unified(&patch_text);
 
+    let mut stdout_patched = String::new();
     match apply_unified_diff(
         &normalized_patch,
         target_file.as_deref(),
@@ -4571,10 +4951,66 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         reject_file.as_deref(),
         &opts,
         fs,
+        &mut stdout_patched,
     ) {
-        Ok(msg) => ok_out(if silent { "" } else { &msg }),
+        Ok((status_msg, had_failure)) => {
+            if output_file.as_deref() == Some("-") {
+                BuiltinOutcome {
+                    stdout: stdout_patched,
+                    stderr: if silent { String::new() } else { status_msg },
+                    exit_code: if had_failure { 1 } else { 0 },
+                }
+            } else {
+                BuiltinOutcome {
+                    stdout: if silent { String::new() } else { status_msg },
+                    stderr: String::new(),
+                    exit_code: if had_failure { 1 } else { 0 },
+                }
+            }
+        }
         Err(e) => err_out(&format!("patch: {e}\n"), 1),
     }
+}
+
+fn compute_backup_path(orig_full: &str, opts: &PatchOpts, fs: &dyn SafeBashFs) -> String {
+    let cwd = &opts.work_cwd;
+    if opts.backup_prefix.is_some() || opts.backup_basename_prefix.is_some() {
+        let cwd_prefix = format!("{}/", cwd.trim_end_matches('/'));
+        let rel = orig_full.strip_prefix(&cwd_prefix).unwrap_or(orig_full);
+        let prefixed = if let Some(ref pre) = opts.backup_prefix {
+            format!("{pre}{rel}")
+        } else {
+            let dir = crate::vfs::dirname_posix_path(orig_full);
+            let base = orig_full.rsplit('/').next().unwrap_or(orig_full);
+            let bp = opts.backup_basename_prefix.as_deref().unwrap_or("");
+            if dir == "/" {
+                format!("/{bp}{base}")
+            } else {
+                format!("{dir}/{bp}{base}")
+            }
+        };
+        return resolve_posix_path(cwd, &format!("{prefixed}{}", opts.backup_suffix));
+    }
+    let vc = opts.version_control.as_deref().unwrap_or("simple");
+    if vc == "numbered" || vc == "existing" {
+        let parent = crate::vfs::dirname_posix_path(orig_full);
+        let base = orig_full.rsplit('/').next().unwrap_or(orig_full);
+        let prefix = format!("{base}.~");
+        let mut max_ver = 0usize;
+        for entry in fs.list_dir(&parent).unwrap_or_default() {
+            if let Some(rest) = entry.strip_prefix(&prefix)
+                && let Some(num_s) = rest.strip_suffix('~')
+                && let Ok(n) = num_s.parse::<usize>()
+                && n > max_ver
+            {
+                max_ver = n;
+            }
+        }
+        if max_ver > 0 || vc == "numbered" {
+            return format!("{orig_full}.~{}~", max_ver + 1);
+        }
+    }
+    format!("{orig_full}{}", opts.backup_suffix)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -4588,17 +5024,33 @@ fn flush_patched_file(
     opts: &PatchOpts,
     fs: &dyn SafeBashFs,
     staged_writes: &mut Option<StagedPatchWrites>,
+    stdout_patched: &mut String,
 ) -> Result<(), String> {
+    let content = if file_lines.is_empty() {
+        String::new()
+    } else if no_trailing_newline {
+        file_lines.join("\n")
+    } else {
+        format!("{}\n", file_lines.join("\n"))
+    };
+    if output_override == Some("-") {
+        stdout_patched.push_str(&content);
+        return Ok(());
+    }
     if opts.dry_run {
         return Ok(());
     }
     let cwd = &opts.work_cwd;
     let orig_full = resolve_posix_path(cwd, target);
     if opts.backup && output_override.is_none() && let Ok(orig_bytes) = fs.read_file(&orig_full) {
-        let bak_path = format!("{orig_full}{}", opts.backup_suffix);
+        let bak_path = compute_backup_path(&orig_full, opts, fs);
         if let Some(staged) = staged_writes {
             staged.push((bak_path, Some(orig_bytes)));
         } else {
+            let bak_parent = crate::vfs::dirname_posix_path(&bak_path);
+            if !bak_parent.is_empty() && bak_parent != "/" && !fs.exists(&bak_parent) {
+                let _ = fs.mkdir_all(&bak_parent);
+            }
             let _ = fs.write_file(&bak_path, &orig_bytes);
         }
     }
@@ -4612,13 +5064,6 @@ fn flush_patched_file(
         }
         return Ok(());
     }
-    let content = if file_lines.is_empty() {
-        String::new()
-    } else if no_trailing_newline {
-        file_lines.join("\n")
-    } else {
-        format!("{}\n", file_lines.join("\n"))
-    };
     if let Some(staged) = staged_writes {
         staged.push((full, Some(content.into_bytes())));
         return Ok(());
@@ -4653,6 +5098,17 @@ fn parse_normal_diff_cmd(line: &str) -> Option<(char, usize)> {
     None
 }
 
+fn resolve_patch_target_path(chosen_raw: &str, strip: Option<usize>, cwd: &str, fs: &dyn SafeBashFs) -> String {
+    if let Some(s) = strip {
+        return strip_path_components(chosen_raw, s);
+    }
+    let candidate_full = resolve_posix_path(cwd, chosen_raw);
+    if fs.exists(&candidate_full) {
+        return chosen_raw.to_string();
+    }
+    chosen_raw.rsplit('/').next().unwrap_or(chosen_raw).to_string()
+}
+
 #[allow(clippy::too_many_arguments)]
 fn apply_unified_diff(
     patch_text: &str,
@@ -4661,7 +5117,8 @@ fn apply_unified_diff(
     reject_file: Option<&str>,
     opts: &PatchOpts,
     fs: &dyn SafeBashFs,
-) -> Result<String, String> {
+    stdout_patched: &mut String,
+) -> Result<(String, bool), String> {
     let strip = opts.strip;
     let reverse = opts.reverse;
     let dry_run = opts.dry_run;
@@ -4672,83 +5129,103 @@ fn apply_unified_diff(
         None
     };
 
-    if !patch_text.contains("@@ ")
-        && let Some(target) = explicit_target
-    {
-        let p_lines: Vec<&str> = patch_text.lines().collect();
-        let full = resolve_posix_path(cwd, target);
-        let mut file_lines: Vec<String> = fs
-            .read_file(&full)
-            .map(|b| String::from_utf8_lossy(&b).lines().map(|s| s.to_string()).collect())
-            .unwrap_or_default();
-        let mut p_idx = 0usize;
-        let mut applied_any = false;
-        let mut offset: isize = 0;
-        while p_idx < p_lines.len() {
-            if let Some((op, a_start)) = parse_normal_diff_cmd(p_lines[p_idx]) {
-                p_idx += 1;
-                let mut old_lines = Vec::new();
-                let mut new_lines = Vec::new();
-                while p_idx < p_lines.len() && parse_normal_diff_cmd(p_lines[p_idx]).is_none() {
-                    if let Some(r) = p_lines[p_idx].strip_prefix("< ") {
-                        old_lines.push(r.to_string());
-                    } else if let Some(a) = p_lines[p_idx].strip_prefix("> ") {
-                        new_lines.push(a.to_string());
+    if !patch_text.contains("@@ ") {
+        let index_target = patch_text
+            .lines()
+            .find_map(|l| l.strip_prefix("Index: "))
+            .map(|p| {
+                let (dec, _) = decode_patch_header_path(p);
+                resolve_patch_target_path(&dec, strip, cwd, fs)
+            });
+        let normal_target = explicit_target
+            .map(|s| s.to_string())
+            .or(index_target);
+        if let Some(target) = normal_target {
+            let p_lines: Vec<&str> = patch_text.lines().collect();
+            let full = resolve_posix_path(cwd, &target);
+            let mut file_lines: Vec<String> = fs
+                .read_file(&full)
+                .map(|b| String::from_utf8_lossy(&b).lines().map(|s| s.to_string()).collect())
+                .unwrap_or_default();
+            let mut p_idx = 0usize;
+            let mut applied_any = false;
+            let mut offset: isize = 0;
+            while p_idx < p_lines.len() {
+                if let Some((op, a_start)) = parse_normal_diff_cmd(p_lines[p_idx]) {
+                    p_idx += 1;
+                    let mut old_lines = Vec::new();
+                    let mut new_lines = Vec::new();
+                    while p_idx < p_lines.len() && parse_normal_diff_cmd(p_lines[p_idx]).is_none() {
+                        if let Some(r) = p_lines[p_idx].strip_prefix("< ") {
+                            old_lines.push(r.to_string());
+                        } else if let Some(a) = p_lines[p_idx].strip_prefix("> ") {
+                            new_lines.push(a.to_string());
+                        }
+                        p_idx += 1;
                     }
+                    if reverse {
+                        std::mem::swap(&mut old_lines, &mut new_lines);
+                    }
+                    if !old_lines.is_empty() {
+                        let hint = ((a_start.saturating_sub(1) as isize) + offset).max(0) as usize;
+                        if let Some(pos) = find_subslice_pos(&file_lines, &old_lines, hint) {
+                            let old_len = old_lines.len();
+                            let new_len = new_lines.len();
+                            file_lines.splice(pos..pos + old_len, new_lines);
+                            offset += (new_len as isize) - (old_len as isize);
+                        }
+                    } else if !new_lines.is_empty() {
+                        let ins_pos = if op == 'a' && !reverse {
+                            ((a_start as isize) + offset).clamp(0, file_lines.len() as isize) as usize
+                        } else {
+                            ((a_start.saturating_sub(1) as isize) + offset)
+                                .clamp(0, file_lines.len() as isize) as usize
+                        };
+                        let new_len = new_lines.len();
+                        file_lines.splice(ins_pos..ins_pos, new_lines);
+                        offset += new_len as isize;
+                    }
+                    applied_any = true;
+                } else {
                     p_idx += 1;
                 }
-                if reverse {
-                    std::mem::swap(&mut old_lines, &mut new_lines);
-                }
-                if !old_lines.is_empty() {
-                    let hint = ((a_start.saturating_sub(1) as isize) + offset).max(0) as usize;
-                    if let Some(pos) = find_subslice_pos(&file_lines, &old_lines, hint) {
-                        let old_len = old_lines.len();
-                        let new_len = new_lines.len();
-                        file_lines.splice(pos..pos + old_len, new_lines);
-                        offset += (new_len as isize) - (old_len as isize);
-                    }
-                } else if !new_lines.is_empty() {
-                    let ins_pos = if op == 'a' && !reverse {
-                        ((a_start as isize) + offset).clamp(0, file_lines.len() as isize) as usize
-                    } else {
-                        ((a_start.saturating_sub(1) as isize) + offset)
-                            .clamp(0, file_lines.len() as isize) as usize
-                    };
-                    let new_len = new_lines.len();
-                    file_lines.splice(ins_pos..ins_pos, new_lines);
-                    offset += new_len as isize;
-                }
-                applied_any = true;
-            } else {
-                p_idx += 1;
             }
-        }
-        if applied_any {
-            flush_patched_file(
-                target,
-                output_override,
-                &file_lines,
-                false,
-                false,
-                false,
-                opts,
-                fs,
-                &mut staged_writes,
-            )?;
-            return Ok(format!("patching file {target}\n"));
+            if applied_any {
+                flush_patched_file(
+                    &target,
+                    output_override,
+                    &file_lines,
+                    false,
+                    false,
+                    false,
+                    opts,
+                    fs,
+                    &mut staged_writes,
+                    stdout_patched,
+                )?;
+                let msg = if let Some(out_ov) = output_override {
+                    format!("patching file {out_ov} (read from {target})\n")
+                } else {
+                    format!("patching file {target}\n")
+                };
+                return Ok((msg, false));
+            }
         }
     }
 
     let mut current_target: Option<String> = None;
     let mut pending_minus_raw = String::new();
+    let mut pending_minus_epoch = false;
     let mut delete_to_dev_null = false;
     let mut created_from_dev_null = false;
     let mut no_trailing_newline = false;
     let mut file_lines: Vec<String> = Vec::new();
     let mut offset: isize = 0;
     let mut any_hunk_failed = false;
+    let mut failed_hunk_count = 0usize;
+    let mut total_hunk_count = 0usize;
     let mut failed_rej_lines: Vec<String> = Vec::new();
+    let mut status_out = String::new();
 
     let lines: Vec<&str> = patch_text.lines().collect();
     let mut idx = 0usize;
@@ -4767,33 +5244,36 @@ fn apply_unified_diff(
                     opts,
                     fs,
                     &mut staged_writes,
+                    stdout_patched,
                 )?;
             }
-            pending_minus_raw = minus_path.split_whitespace().next().unwrap_or("").to_string();
+            let (dec_minus, is_ep) = decode_patch_header_path(minus_path);
+            pending_minus_raw = dec_minus;
+            pending_minus_epoch = is_ep;
             idx += 1;
             continue;
         }
         if let Some(plus_path) = line.strip_prefix("+++ ") {
-            let raw_plus = plus_path.split_whitespace().next().unwrap_or("");
-            delete_to_dev_null = if reverse {
-                pending_minus_raw == "/dev/null"
-            } else {
-                raw_plus == "/dev/null"
-            };
-            created_from_dev_null = if reverse {
-                raw_plus == "/dev/null"
-            } else {
-                pending_minus_raw == "/dev/null"
-            };
+            let (raw_plus_owned, plus_epoch) = decode_patch_header_path(plus_path);
+            let raw_plus = raw_plus_owned.as_str();
+            let old_is_null = pending_minus_raw == "/dev/null" || pending_minus_epoch;
+            let new_is_null = raw_plus == "/dev/null" || plus_epoch;
+            delete_to_dev_null = if reverse { old_is_null } else { new_is_null };
+            created_from_dev_null = if reverse { new_is_null } else { old_is_null };
             let chosen_raw = if raw_plus == "/dev/null" {
                 pending_minus_raw.as_str()
             } else {
                 raw_plus
             };
-            let stripped = strip_path_components(chosen_raw, strip);
+            let stripped = resolve_patch_target_path(chosen_raw, strip, cwd, fs);
             let target = explicit_target.unwrap_or(&stripped).to_string();
+            if let Some(out_ov) = output_override {
+                status_out.push_str(&format!("patching file {out_ov} (read from {target})\n"));
+            } else {
+                status_out.push_str(&format!("patching file {target}\n"));
+            }
             let full = resolve_posix_path(cwd, &target);
-            if let Ok(bytes) = fs.read_file(&full) {
+            if !created_from_dev_null && let Ok(bytes) = fs.read_file(&full) {
                 let s = String::from_utf8_lossy(&bytes);
                 no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
                 file_lines = s.lines().map(|l| l.to_string()).collect();
@@ -4808,6 +5288,7 @@ fn apply_unified_diff(
         }
 
         if line.starts_with("@@ ") {
+            total_hunk_count += 1;
             if current_target.is_some() && file_lines.is_empty() && !created_from_dev_null {
                 if let Some(t) = &current_target {
                     let full = resolve_posix_path(cwd, t);
@@ -4830,7 +5311,13 @@ fn apply_unified_diff(
             let mut new_no_nl = false;
             while idx < lines.len() {
                 let hl = lines[idx];
-                if hl.starts_with("@@ ") || hl.starts_with("--- ") || hl.starts_with("+++ ") {
+                if hl.starts_with("@@ ")
+                    || hl.starts_with("--- ")
+                    || hl.starts_with("+++ ")
+                    || hl.starts_with("diff ")
+                    || hl.starts_with("Index: ")
+                    || hl == "-- "
+                {
                     break;
                 }
                 raw_hunk_lines.push(hl.to_string());
@@ -4871,7 +5358,7 @@ fn apply_unified_diff(
                 std::mem::swap(&mut hunk_old, &mut hunk_new);
             }
             let expected_pos = ((orig_start.saturating_sub(1) as isize) + offset).max(0) as usize;
-            let pos_opt = find_subslice_pos(&file_lines, &hunk_old, expected_pos)
+            let mut pos_opt = find_subslice_pos(&file_lines, &hunk_old, expected_pos)
                 .or_else(|| {
                     if opts.ignore_ws || opts.fuzz > 0 {
                         find_subslice_pos_fuzzy(&file_lines, &hunk_old, expected_pos, opts.ignore_ws, opts.fuzz)
@@ -4879,10 +5366,30 @@ fn apply_unified_diff(
                         None
                     }
                 });
+
+            if pos_opt.is_none()
+                && !reverse
+                && !opts.force
+                && !hunk_new.is_empty()
+                && let Some(rev_pos) = find_subslice_pos(&file_lines, &hunk_new, expected_pos)
+            {
+                if opts.forward_only {
+                    status_out.push_str("Reversed (or previously applied) patch detected!  Skipping patch.\n");
+                    any_hunk_failed = true;
+                    failed_hunk_count += 1;
+                    continue;
+                } else {
+                    status_out.push_str("Reversed (or previously applied) patch detected!  Assuming -R.\n");
+                    std::mem::swap(&mut hunk_old, &mut hunk_new);
+                    pos_opt = Some(rev_pos);
+                }
+            }
+
             let pos = match pos_opt {
                 Some(p) => p,
                 None => {
                     any_hunk_failed = true;
+                    failed_hunk_count += 1;
                     if opts.merge_mode {
                         let ins_at = expected_pos.min(file_lines.len());
                         let end_at = (ins_at + hunk_old.len()).min(file_lines.len());
@@ -4950,23 +5457,35 @@ fn apply_unified_diff(
             opts,
             fs,
             &mut staged_writes,
+            stdout_patched,
         )?;
         if any_hunk_failed {
             if !opts.merge_mode && !opts.forward_only {
-                let rej_target = if let Some(r) = reject_file {
-                    Some(r.to_string())
-                } else {
-                    Some(format!("{target}.rej"))
+                let rej_target = match reject_file {
+                    Some("-") => None,
+                    Some(r) => Some(r.to_string()),
+                    None => Some(format!("{target}.rej")),
                 };
-                if let Some(rt) = rej_target
-                    && !dry_run
-                {
-                    let rej_full = resolve_posix_path(cwd, &rt);
-                    let rej_body = format!("{}\n", failed_rej_lines.join("\n"));
-                    let _ = fs.write_file(&rej_full, rej_body.as_bytes());
+                if let Some(ref rt) = rej_target {
+                    status_out.push_str(&format!(
+                        "{failed_hunk_count} out of {} {} FAILED -- saving rejects to file {rt}\n",
+                        total_hunk_count.max(1),
+                        if total_hunk_count <= 1 { "hunk" } else { "hunks" }
+                    ));
+                    if !dry_run {
+                        let rej_full = resolve_posix_path(cwd, rt);
+                        let rej_body = format!("{}\n", failed_rej_lines.join("\n"));
+                        let _ = fs.write_file(&rej_full, rej_body.as_bytes());
+                    }
+                } else {
+                    status_out.push_str(&format!(
+                        "{failed_hunk_count} out of {} {} FAILED\n",
+                        total_hunk_count.max(1),
+                        if total_hunk_count <= 1 { "hunk" } else { "hunks" }
+                    ));
                 }
             }
-            return Err("hunk failed to apply".to_string());
+            return Ok((status_out, true));
         }
         if let Some(staged) = staged_writes {
             for (full, data_opt) in staged {
@@ -4981,9 +5500,9 @@ fn apply_unified_diff(
                 }
             }
         }
-        Ok(format!("patching file {target}\n"))
+        Ok((status_out, false))
     } else {
-        Ok(String::new())
+        Ok((String::new(), false))
     }
 }
 
@@ -5075,6 +5594,87 @@ enum StagedPatchOp {
     Delete(String),
 }
 
+fn apply_patch_norm(s: &str, pass: u8) -> String {
+    if pass == 0 {
+        return s.to_string();
+    }
+    let trimmed = if pass == 1 { s.trim_end() } else { s.trim() };
+    if pass < 3 {
+        return trimmed.to_string();
+    }
+    let mut out = String::with_capacity(trimmed.len());
+    for ch in trimmed.chars() {
+        if "‐‑‒–—―−".contains(ch) {
+            out.push('-');
+        } else if "‘’‚‛".contains(ch) {
+            out.push('\'');
+        } else if "“”„‟".contains(ch) {
+            out.push('"');
+        } else if "\u{00a0}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200a}\u{202f}\u{205f}\u{3000}".contains(ch) {
+            out.push(' ');
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+fn find_apply_patch_slice(
+    lines: &[String],
+    pattern: &[String],
+    start: usize,
+    eof: bool,
+) -> Option<usize> {
+    if pattern.len() > lines.len() {
+        return None;
+    }
+    let last = lines.len() - pattern.len();
+    let first = if eof { last } else { start.min(last) };
+    for pass in 0..4u8 {
+        for cand in first..=last {
+            let mut matched = true;
+            for (off, pat) in pattern.iter().enumerate() {
+                let act = &lines[cand + off];
+                let ok = if pass == 0 {
+                    act == pat
+                } else {
+                    apply_patch_norm(act, pass) == apply_patch_norm(pat, pass)
+                };
+                if !ok {
+                    matched = false;
+                    break;
+                }
+            }
+            if matched {
+                return Some(cand);
+            }
+        }
+    }
+    if !eof && first > 0 {
+        for pass in 0..4u8 {
+            for cand in 0..first {
+                let mut matched = true;
+                for (off, pat) in pattern.iter().enumerate() {
+                    let act = &lines[cand + off];
+                    let ok = if pass == 0 {
+                        act == pat
+                    } else {
+                        apply_patch_norm(act, pass) == apply_patch_norm(pat, pass)
+                    };
+                    if !ok {
+                        matched = false;
+                        break;
+                    }
+                }
+                if matched {
+                    return Some(cand);
+                }
+            }
+        }
+    }
+    None
+}
+
 fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let patch_input = if !args.is_empty() {
         args.join("\n")
@@ -5105,11 +5705,27 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         None
     };
 
+    let check_path_conflict = |full: &str, target: &str, seen: &mut Vec<String>| -> Option<BuiltinOutcome> {
+        for prev in seen.iter() {
+            if full == prev
+                || full.starts_with(&format!("{prev}/"))
+                || prev.starts_with(&format!("{full}/"))
+            {
+                return Some(err_out(
+                    &format!("apply_patch: duplicate or conflicting file target {target}\n"),
+                    2,
+                ));
+            }
+        }
+        seen.push(full.to_string());
+        None
+    };
+
     let lines: Vec<&str> = patch_input.lines().collect();
     let mut idx = 0usize;
     let mut staged_ops: Vec<StagedPatchOp> = Vec::new();
     let mut summary_lines: Vec<String> = Vec::new();
-    let mut seen_targets: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
+    let mut seen_paths: Vec<String> = Vec::new();
 
     while idx < lines.len() {
         let line = lines[idx];
@@ -5127,8 +5743,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             if let Some(err) = reject_unsafe_target(target, &full) {
                 return err;
             }
-            if !seen_targets.insert(full.clone()) {
-                return err_out(&format!("apply_patch: duplicate file target {target}\n"), 1);
+            if let Some(err) = check_path_conflict(&full, target, &mut seen_paths) {
+                return err;
             }
             let payload = if content_lines.is_empty() {
                 String::new()
@@ -5145,8 +5761,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             if let Some(err) = reject_unsafe_target(target, &full) {
                 return err;
             }
-            if !seen_targets.insert(full.clone()) {
-                return err_out(&format!("apply_patch: duplicate file target {target}\n"), 1);
+            if let Some(err) = check_path_conflict(&full, target, &mut seen_paths) {
+                return err;
             }
             if !fs.exists(&full) {
                 return err_out(&format!("apply_patch: {target}: No such file\n"), 1);
@@ -5162,13 +5778,15 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
             if let Some(err) = reject_unsafe_target(target, &full) {
                 return err;
             }
-            if !seen_targets.insert(full.clone()) {
-                return err_out(&format!("apply_patch: duplicate file target {target}\n"), 1);
+            if let Some(err) = check_path_conflict(&full, target, &mut seen_paths) {
+                return err;
             }
-            let orig = match fs.read_file(&full) {
-                Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+            let orig_bytes = match fs.read_file(&full) {
+                Ok(b) => b,
                 Err(e) => return err_out(&format!("apply_patch: {}\n", e), 1),
             };
+            let orig = String::from_utf8_lossy(&orig_bytes).into_owned();
+            let terminated = orig.is_empty() || orig.ends_with('\n');
             let use_crlf = orig.contains("\r\n");
             let line_sep = if use_crlf { "\r\n" } else { "\n" };
             let mut file_lines: Vec<String> = orig.lines().map(|s| s.to_string()).collect();
@@ -5178,6 +5796,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                 move_to = Some(mv.trim().to_string());
                 idx += 1;
             }
+            let mut cursor = 0usize;
+            let mut any_hunk = false;
             while idx < lines.len()
                 && (!lines[idx].starts_with("*** ") || lines[idx] == "*** End of File")
             {
@@ -5186,35 +5806,83 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                     continue;
                 }
                 if lines[idx].starts_with("@@") {
-                    let anchor = lines[idx].strip_prefix("@@").unwrap_or("").trim();
-                    let mut hint = 0usize;
-                    if !anchor.is_empty()
-                        && let Some(apos) = file_lines
-                            .iter()
-                            .position(|l| l.trim() == anchor || l.contains(anchor))
-                    {
-                        hint = apos;
+                    any_hunk = true;
+                    let mut anchors = Vec::new();
+                    while idx < lines.len() && lines[idx].starts_with("@@") {
+                        let anchor = lines[idx].strip_prefix("@@").unwrap_or("").trim();
+                        if !anchor.is_empty() {
+                            anchors.push(anchor.to_string());
+                        }
+                        idx += 1;
                     }
-                    idx += 1;
-                    let mut old_block = Vec::new();
-                    let mut new_block = Vec::new();
+                    let mut hunk_items: Vec<(char, String)> = Vec::new();
                     while idx < lines.len()
                         && !lines[idx].starts_with("@@")
                         && !lines[idx].starts_with("*** ")
                     {
                         let hl = lines[idx];
                         if let Some(r) = hl.strip_prefix('-') {
-                            old_block.push(r.to_string());
+                            hunk_items.push(('-', r.to_string()));
                         } else if let Some(a) = hl.strip_prefix('+') {
-                            new_block.push(a.to_string());
+                            hunk_items.push(('+', a.to_string()));
                         } else if let Some(c) = hl.strip_prefix(' ') {
-                            old_block.push(c.to_string());
-                            new_block.push(c.to_string());
+                            hunk_items.push((' ', c.to_string()));
+                        } else if hl.is_empty() {
+                            hunk_items.push((' ', String::new()));
                         }
                         idx += 1;
                     }
-                    if let Some(pos) = find_subslice_pos(&file_lines, &old_block, hint) {
-                        file_lines.splice(pos..pos + old_block.len(), new_block);
+                    let mut hunk_eof = false;
+                    if idx < lines.len() && lines[idx] == "*** End of File" {
+                        hunk_eof = true;
+                        idx += 1;
+                    }
+                    let mut anchor_pos: Option<usize> = None;
+                    for anc in &anchors {
+                        if let Some(apos) = find_apply_patch_slice(&file_lines, std::slice::from_ref(anc), cursor, false) {
+                            cursor = apos + 1;
+                            anchor_pos = Some(apos);
+                        }
+                    }
+                    let old_block: Vec<String> = hunk_items
+                        .iter()
+                        .filter(|(k, _)| *k != '+')
+                        .map(|(_, s)| s.clone())
+                        .collect();
+                    let search_start = if let Some(ap) = anchor_pos
+                        && !old_block.is_empty()
+                        && apply_patch_norm(&file_lines[ap], 3) == apply_patch_norm(&old_block[0], 3)
+                    {
+                        ap
+                    } else {
+                        cursor
+                    };
+                    let pos_opt = if old_block.is_empty() {
+                        Some(if hunk_eof { file_lines.len() } else { search_start.min(file_lines.len()) })
+                    } else {
+                        find_apply_patch_slice(&file_lines, &old_block, search_start, hunk_eof)
+                    };
+                    if let Some(pos) = pos_opt {
+                        let mut replacement = Vec::new();
+                        let mut matched = pos;
+                        for (kind, text) in hunk_items {
+                            match kind {
+                                ' ' => {
+                                    replacement.push(file_lines[matched].clone());
+                                    matched += 1;
+                                }
+                                '-' => {
+                                    matched += 1;
+                                }
+                                '+' => {
+                                    replacement.push(text);
+                                }
+                                _ => {}
+                            }
+                        }
+                        let rep_len = replacement.len();
+                        file_lines.splice(pos..pos + old_block.len(), replacement);
+                        cursor = pos + rep_len;
                     } else {
                         return err_out("apply_patch: context mismatch\n", 1);
                     }
@@ -5222,19 +5890,33 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                     idx += 1;
                 }
             }
-            let updated = format!("{}{line_sep}", file_lines.join(line_sep));
+            let updated_bytes = if !any_hunk {
+                orig_bytes
+            } else if file_lines.is_empty() {
+                Vec::new()
+            } else if terminated {
+                format!("{}{line_sep}", file_lines.join(line_sep)).into_bytes()
+            } else {
+                file_lines.join(line_sep).into_bytes()
+            };
             if let Some(dest) = move_to {
                 let dest_full = resolve_posix_path(cwd, &dest);
                 if let Some(err) = reject_unsafe_target(&dest, &dest_full) {
                     return err;
                 }
                 if dest_full != full {
+                    if let Some(err) = check_path_conflict(&dest_full, &dest, &mut seen_paths) {
+                        return err;
+                    }
+                    if fs.exists(&dest_full) {
+                        return err_out(&format!("apply_patch: {dest}: destination already exists\n"), 1);
+                    }
                     staged_ops.push(StagedPatchOp::Delete(full));
                 }
-                staged_ops.push(StagedPatchOp::Write(dest_full, updated.into_bytes()));
+                staged_ops.push(StagedPatchOp::Write(dest_full, updated_bytes));
                 summary_lines.push(format!("M {dest}"));
             } else {
-                staged_ops.push(StagedPatchOp::Write(full, updated.into_bytes()));
+                staged_ops.push(StagedPatchOp::Write(full, updated_bytes));
                 summary_lines.push(format!("M {target}"));
             }
             continue;
@@ -5265,68 +5947,231 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     }
     ok_out(&out)
 }
+fn parse_cmp_byte_count(raw: &str) -> Result<usize, String> {
+    let s = raw.trim();
+    if s.is_empty() {
+        return Err(format!("invalid byte count '{raw}'"));
+    }
+    let s = s.strip_prefix('+').unwrap_or(s);
+    let (base, rest) = if let Some(h) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
+        (16u32, h)
+    } else if s.starts_with('0') && s.len() > 1 && s[1..].chars().next().is_some_and(|c| c.is_ascii_digit()) {
+        (8u32, &s[1..])
+    } else {
+        (10u32, s)
+    };
+    let mut split_idx = 0usize;
+    for (idx, ch) in rest.char_indices() {
+        if ch.to_digit(base).is_some() {
+            split_idx = idx + ch.len_utf8();
+        } else {
+            break;
+        }
+    }
+    let num_part = &rest[..split_idx];
+    let suf_part = &rest[split_idx..];
+    let mut val: u128 = if num_part.is_empty() {
+        if base != 10 || suf_part.is_empty() {
+            return Err(format!("invalid byte count '{raw}'"));
+        }
+        1
+    } else {
+        u128::from_str_radix(num_part, base).map_err(|_| format!("invalid byte count '{raw}'"))?
+    };
+    if !suf_part.is_empty() {
+        let first = suf_part.chars().next().unwrap();
+        let power: u32 = match first {
+            'k' | 'K' => 1,
+            'M' => 2,
+            'G' => 3,
+            'T' => 4,
+            'P' => 5,
+            'E' => 6,
+            _ => return Err(format!("invalid byte count '{raw}'")),
+        };
+        let tail = &suf_part[first.len_utf8()..];
+        let mult: u128 = match tail {
+            "" | "iB" => 1024u128.pow(power),
+            "B" | "D" => 1000u128.pow(power),
+            _ => return Err(format!("invalid byte count '{raw}'")),
+        };
+        val = val.saturating_mul(mult);
+    }
+    Ok(val.min(usize::MAX as u128) as usize)
+}
 
-fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmp_print_byte(byte: u8) -> String {
+    let prefix = if byte >= 128 { "M-" } else { "" };
+    let ch = byte & 127;
+    let body = if ch < 32 {
+        format!("^{}", (ch + 64) as char)
+    } else if ch == 127 {
+        "^?".to_string()
+    } else {
+        (ch as char).to_string()
+    };
+    format!("{prefix}{body}")
+}
+
+fn cmd_cmp(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut silent = false;
     let mut verbose_list = false;
     let mut print_bytes = false;
-    let mut ignore_initial: Option<(usize, usize)> = None;
+    let mut skips = (0usize, 0usize);
     let mut max_bytes: Option<usize> = None;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
+
+    let apply_skip = |v: &str, sk: &mut (usize, usize)| -> Result<(), String> {
+        if let Some((s1, s2)) = v.split_once(':') {
+            let n1 = parse_cmp_byte_count(s1)?;
+            let n2 = parse_cmp_byte_count(s2)?;
+            sk.0 = sk.0.max(n1);
+            sk.1 = sk.1.max(n2);
+        } else {
+            let n = parse_cmp_byte_count(v)?;
+            sk.0 = sk.0.max(n);
+            sk.1 = sk.1.max(n);
+        }
+        Ok(())
+    };
+
     while i < args.len() {
         let a = &args[i];
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
         if a == "-s" || a == "--quiet" || a == "--silent" {
+            if verbose_list {
+                return err_out("cmp: options -l and -s are incompatible\n", 2);
+            }
             silent = true;
             i += 1;
         } else if a == "-l" || a == "--verbose" {
+            if silent {
+                return err_out("cmp: options -l and -s are incompatible\n", 2);
+            }
             verbose_list = true;
             i += 1;
-        } else if a == "-b" || a == "--print-bytes" {
+        } else if a == "-b" || a == "-c" || a == "--print-bytes" || a == "--print-chars" {
             print_bytes = true;
             i += 1;
         } else if (a == "-i" || a == "--ignore-initial") && i + 1 < args.len() {
-            let v = &args[i + 1];
-            if let Some((s1, s2)) = v.split_once(':') {
-                ignore_initial = Some((s1.parse().unwrap_or(0), s2.parse().unwrap_or(0)));
-            } else {
-                let n = v.parse().unwrap_or(0);
-                ignore_initial = Some((n, n));
+            if let Err(e) = apply_skip(&args[i + 1], &mut skips) {
+                return err_out(&format!("cmp: {e}\n"), 2);
             }
             i += 2;
         } else if let Some(rest) = a.strip_prefix("--ignore-initial=").or_else(|| a.strip_prefix("-i")) && !rest.is_empty() {
-            if let Some((s1, s2)) = rest.split_once(':') {
-                ignore_initial = Some((s1.parse().unwrap_or(0), s2.parse().unwrap_or(0)));
-            } else {
-                let n = rest.parse().unwrap_or(0);
-                ignore_initial = Some((n, n));
+            if let Err(e) = apply_skip(rest, &mut skips) {
+                return err_out(&format!("cmp: {e}\n"), 2);
             }
             i += 1;
         } else if (a == "-n" || a == "--bytes") && i + 1 < args.len() {
-            max_bytes = args[i + 1].parse().ok();
+            match parse_cmp_byte_count(&args[i + 1]) {
+                Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
+                Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+            }
             i += 2;
-        } else if let Some(rest) = a.strip_prefix("--bytes=") {
-            max_bytes = rest.parse().ok();
+        } else if let Some(rest) = a.strip_prefix("--bytes=").or_else(|| a.strip_prefix("-n")) && !rest.is_empty() {
+            match parse_cmp_byte_count(rest) {
+                Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
+                Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+            }
             i += 1;
-        } else if let Some(rest) = a.strip_prefix("-n") && !rest.is_empty() {
-            max_bytes = rest.parse().ok();
-            i += 1;
-        } else if !a.starts_with('-') || a == "-" {
-            files.push(a.clone());
+        } else if !a.starts_with("--") {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut ci = 0usize;
+            while ci < chars.len() {
+                match chars[ci] {
+                    's' => {
+                        if verbose_list {
+                            return err_out("cmp: options -l and -s are incompatible\n", 2);
+                        }
+                        silent = true;
+                    }
+                    'l' => {
+                        if silent {
+                            return err_out("cmp: options -l and -s are incompatible\n", 2);
+                        }
+                        verbose_list = true;
+                    }
+                    'b' | 'c' => print_bytes = true,
+                    'i' => {
+                        let rest: String = chars[ci + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out("cmp: option requires an argument -- 'i'\n", 2);
+                        };
+                        if let Err(e) = apply_skip(&val, &mut skips) {
+                            return err_out(&format!("cmp: {e}\n"), 2);
+                        }
+                        break;
+                    }
+                    'n' => {
+                        let rest: String = chars[ci + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out("cmp: option requires an argument -- 'n'\n", 2);
+                        };
+                        match parse_cmp_byte_count(&val) {
+                            Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
+                            Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+                        }
+                        break;
+                    }
+                    other => return err_out(&format!("cmp: invalid option -- '{other}'\n"), 2),
+                }
+                ci += 1;
+            }
             i += 1;
         } else {
-            i += 1;
+            return err_out(&format!("cmp: unrecognized option '{a}'\n"), 2);
         }
     }
-    if files.len() < 2 {
+
+    if files.is_empty() {
         return err_out("cmp: missing operand\n", 2);
     }
-    let (skip1, skip2) = ignore_initial.unwrap_or_else(|| {
-        (
-            files.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0),
-            files.get(3).and_then(|s| s.parse::<usize>().ok()).unwrap_or(0),
-        )
-    });
+    if files.len() > 4 {
+        return err_out(&format!("cmp: extra operand '{}'\n", files[4]), 2);
+    }
+    let name1 = files[0].clone();
+    let name2 = files.get(1).cloned().unwrap_or_else(|| "-".to_string());
+    if let Some(pos_s1) = files.get(2) {
+        match parse_cmp_byte_count(pos_s1) {
+            Ok(n) => skips.0 = skips.0.max(n),
+            Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+        }
+    }
+    if let Some(pos_s2) = files.get(3) {
+        match parse_cmp_byte_count(pos_s2) {
+            Ok(n) => skips.1 = skips.1.max(n),
+            Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+        }
+    }
+
     let read_b = |f: &str| -> Result<Vec<u8>, String> {
         if f == "-" {
             return Ok(crate::vfs::stream_string_to_bytes(stdin));
@@ -5335,20 +6180,34 @@ fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         fs.read_file(&full)
             .map_err(|_| format!("cmp: {f}: No such file or directory\n"))
     };
-    let raw1 = match read_b(&files[0]) {
+    let raw1 = match read_b(&name1) {
         Ok(b) => b,
-        Err(e) => return err_out(&e, 2),
+        Err(e) => return err_out(if silent { "" } else { &e }, 2),
     };
-    let raw2 = match read_b(&files[1]) {
+    let raw2 = match read_b(&name2) {
         Ok(b) => b,
-        Err(e) => return err_out(&e, 2),
+        Err(e) => return err_out(if silent { "" } else { &e }, 2),
     };
-    let mut b1 = raw1[skip1.min(raw1.len())..].to_vec();
-    let mut b2 = raw2[skip2.min(raw2.len())..].to_vec();
+    let mut b1 = raw1[skips.0.min(raw1.len())..].to_vec();
+    let mut b2 = raw2[skips.1.min(raw2.len())..].to_vec();
+    let mut known = usize::MAX;
+    if name1 != "-" {
+        known = known.min(b1.len());
+    }
+    if name2 != "-" {
+        known = known.min(b2.len());
+    }
     if let Some(limit) = max_bytes {
+        known = known.min(limit);
         b1.truncate(limit);
         b2.truncate(limit);
     }
+    let width = if known < usize::MAX {
+        known.to_string().len()
+    } else {
+        19
+    };
+
     if b1 == b2 {
         return ok_out("");
     }
@@ -5359,68 +6218,263 @@ fn cmd_cmp(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             exit_code: 1,
         };
     }
+
     let min_len = b1.len().min(b2.len());
-    if verbose_list {
-        let mut out = String::new();
-        for i in 0..min_len {
-            if b1[i] != b2[i] {
-                out.push_str(&format!("{} {:o} {:o}\n", i + 1, b1[i], b2[i]));
+    let mut newlines = 0usize;
+    let mut last_byte: Option<u8> = None;
+    let mut out = String::new();
+
+    for idx in 0..min_len {
+        let c1 = b1[idx];
+        let c2 = b2[idx];
+        let compared = idx + 1;
+        if c1 != c2 {
+            if !verbose_list {
+                let locale = env
+                    .get("LC_ALL")
+                    .or_else(|| env.get("LC_MESSAGES"))
+                    .or_else(|| env.get("LANG"))
+                    .map(|s| s.as_str())
+                    .unwrap_or("");
+                let unit = if !print_bytes && (locale.is_empty() || locale == "C" || locale == "POSIX") {
+                    "char"
+                } else {
+                    "byte"
+                };
+                let detail = if print_bytes {
+                    format!(
+                        " is {:>3o} {} {:>3o} {}",
+                        c1,
+                        cmp_print_byte(c1),
+                        c2,
+                        cmp_print_byte(c2)
+                    )
+                } else {
+                    String::new()
+                };
+                return BuiltinOutcome {
+                    stdout: format!(
+                        "{name1} {name2} differ: {unit} {compared}, line {}{detail}\n",
+                        newlines + 1
+                    ),
+                    stderr: String::new(),
+                    exit_code: 1,
+                };
+            }
+            if print_bytes {
+                out.push_str(&format!(
+                    "{compared:>width$} {:>3o} {:<4} {:>3o} {}\n",
+                    c1,
+                    cmp_print_byte(c1),
+                    c2,
+                    cmp_print_byte(c2),
+                    width = width
+                ));
+            } else {
+                out.push_str(&format!(
+                    "{compared:>width$} {:>3o} {:>3o}\n",
+                    c1,
+                    c2,
+                    width = width
+                ));
             }
         }
-        return BuiltinOutcome {
-            stdout: out,
-            stderr: String::new(),
-            exit_code: 1,
-        };
-    }
-    let mut diff_pos = min_len;
-    let mut line_num = 1usize;
-    for i in 0..min_len {
-        if b1[i] != b2[i] {
-            diff_pos = i;
-            break;
+        if c1 == b'\n' {
+            newlines += 1;
         }
-        if b1[i] == b'\n' {
-            line_num += 1;
-        }
+        last_byte = Some(c1);
     }
-    if print_bytes && diff_pos < min_len {
-        let c1 = b1[diff_pos];
-        let c2 = b2[diff_pos];
-        return BuiltinOutcome {
-            stdout: format!(
-                "{} {} differ: byte {}, line {} is {:o} {} {:o} {}\n",
-                files[0],
-                files[1],
-                diff_pos + 1,
-                line_num,
-                c1,
-                c1 as char,
-                c2,
-                c2 as char
-            ),
-            stderr: String::new(),
-            exit_code: 1,
+
+    let mut stderr = String::new();
+    if b1.len() != b2.len() {
+        let shorter = if b1.len() < b2.len() { &name1 } else { &name2 };
+        let detail = if min_len == 0 {
+            "which is empty".to_string()
+        } else if verbose_list {
+            format!("after byte {min_len}")
+        } else if last_byte == Some(b'\n') {
+            format!("after byte {min_len}, line {newlines}")
+        } else {
+            format!("after byte {min_len}, in line {}", newlines + 1)
         };
+        stderr = format!("cmp: EOF on {shorter} {detail}\n");
     }
+
     BuiltinOutcome {
-        stdout: format!(
-            "{} {} differ: char {}, line {}\n",
-            files[0],
-            files[1],
-            diff_pos + 1,
-            line_num
-        ),
-        stderr: String::new(),
+        stdout: out,
+        stderr,
         exit_code: 1,
     }
 }
 
-fn cmd_diff3(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut merge_mode = false;
-    let mut ed_mode = false;
-    let mut only_three = false;
-    let mut ed_trailer = false;
+#[derive(Clone, Copy)]
+struct Diff3Range {
+    start: usize,
+    end: usize,
+}
+
+#[derive(Clone, Copy)]
+struct Diff3Edit {
+    base: Diff3Range,
+    variant: Diff3Range,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Diff3RegionKind {
+    Left,
+    Right,
+    Identical,
+    Adjacent,
+    Conflict,
+}
+
+#[derive(Clone, Copy)]
+struct Diff3Region {
+    kind: Diff3RegionKind,
+    base: Diff3Range,
+    left: Diff3Range,
+    right: Diff3Range,
+}
+
+fn diff3_pair_edits(base: &[String], variant: &[String]) -> Vec<Diff3Edit> {
+    let raw = compute_lcs_edits(base, variant);
+    let mut edits = Vec::new();
+    let mut b_idx = 0usize;
+    let mut v_idx = 0usize;
+    let mut ei = 0usize;
+    while ei < raw.len() {
+        if matches!(raw[ei], DiffEdit::Keep(_)) {
+            b_idx += 1;
+            v_idx += 1;
+            ei += 1;
+            continue;
+        }
+        let b_start = b_idx;
+        let v_start = v_idx;
+        while ei < raw.len() && !matches!(raw[ei], DiffEdit::Keep(_)) {
+            match raw[ei] {
+                DiffEdit::Delete(_) => b_idx += 1,
+                DiffEdit::Insert(_) => v_idx += 1,
+                DiffEdit::Keep(_) => break,
+            }
+            ei += 1;
+        }
+        edits.push(Diff3Edit {
+            base: Diff3Range {
+                start: b_start,
+                end: b_idx,
+            },
+            variant: Diff3Range {
+                start: v_start,
+                end: v_idx,
+            },
+        });
+    }
+    edits
+}
+
+fn diff3_align_regions(
+    left_lines: &[String],
+    right_lines: &[String],
+    left: &[Diff3Edit],
+    right: &[Diff3Edit],
+) -> Vec<Diff3Region> {
+    let streams = [left, right];
+    let mut offsets = [0usize, 0usize];
+    let mut delta = [0isize, 0isize];
+    let mut result = Vec::new();
+
+    while offsets[0] < left.len() || offsets[1] < right.len() {
+        let next_left = left.get(offsets[0]);
+        let next_right = right.get(offsets[1]);
+        let first_side = if next_right.is_none()
+            || next_left.is_some_and(|nl| nl.base.start <= next_right.unwrap().base.start)
+        {
+            0
+        } else {
+            1
+        };
+        let first = streams[first_side][offsets[first_side]];
+        let start = first.base.start;
+        let mut end = first.base.end;
+        let initial_delta = delta;
+        let mut seen = [false, false];
+        let mut overlap = false;
+        let mut last: [Option<Diff3Range>; 2] = [None, None];
+
+        loop {
+            let a = left.get(offsets[0]);
+            let b = right.get(offsets[1]);
+            let side = if b.is_none() || a.is_some_and(|al| al.base.start <= b.unwrap().base.start) {
+                0
+            } else {
+                1
+            };
+            let Some(edit) = streams[side].get(offsets[side]).copied() else {
+                break;
+            };
+            if edit.base.start > end {
+                break;
+            }
+            if let Some(other) = last[1 - side] {
+                let a_empty = edit.base.start == edit.base.end;
+                let b_empty = other.start == other.end;
+                let ov = if a_empty && b_empty {
+                    edit.base.start == other.start
+                } else if a_empty {
+                    edit.base.start > other.start && edit.base.start < other.end
+                } else if b_empty {
+                    other.start > edit.base.start && other.start < edit.base.end
+                } else {
+                    edit.base.start < other.end && other.start < edit.base.end
+                };
+                overlap = overlap || ov;
+            }
+            last[side] = Some(edit.base);
+            seen[side] = true;
+            end = end.max(edit.base.end);
+            delta[side] = (edit.variant.end as isize) - (edit.base.end as isize);
+            offsets[side] += 1;
+        }
+        let base = Diff3Range { start, end };
+        let l = Diff3Range {
+            start: ((start as isize) + initial_delta[0]) as usize,
+            end: ((end as isize) + delta[0]) as usize,
+        };
+        let r = Diff3Range {
+            start: ((start as isize) + initial_delta[1]) as usize,
+            end: ((end as isize) + delta[1]) as usize,
+        };
+        let mut kind = if !seen[0] {
+            Diff3RegionKind::Right
+        } else if !seen[1] {
+            Diff3RegionKind::Left
+        } else if overlap {
+            Diff3RegionKind::Conflict
+        } else {
+            Diff3RegionKind::Adjacent
+        };
+        if seen[0]
+            && seen[1]
+            && l.end - l.start == r.end - r.start
+            && left_lines[l.start..l.end] == right_lines[r.start..r.end]
+        {
+            kind = Diff3RegionKind::Identical;
+        }
+        result.push(Diff3Region {
+            kind,
+            base,
+            left: l,
+            right: r,
+        });
+    }
+    result
+}
+
+fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut merge = false;
+    let mut selector: Option<char> = None;
+    let mut write_quit = false;
     let mut initial_tab = false;
     let mut labels: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
@@ -5428,16 +6482,28 @@ fn cmd_diff3(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     while i < args.len() {
         let a = &args[i];
         if a == "-m" || a == "--merge" {
-            merge_mode = true;
+            merge = true;
             i += 1;
-        } else if matches!(a.as_str(), "-e" | "-E" | "-x" | "-3" | "--ed") {
-            ed_mode = true;
-            if a == "-3" {
-                only_three = true;
-            }
+        } else if a == "-A" || a == "--show-all" {
+            selector = Some('A');
+            i += 1;
+        } else if a == "-e" || a == "--ed" {
+            selector = Some('e');
+            i += 1;
+        } else if a == "-E" || a == "--show-overlap" {
+            selector = Some('E');
+            i += 1;
+        } else if a == "-x" || a == "--overlap-only" {
+            selector = Some('x');
+            i += 1;
+        } else if a == "-X" {
+            selector = Some('X');
+            i += 1;
+        } else if a == "-3" || a == "--easy-only" {
+            selector = Some('3');
             i += 1;
         } else if a == "-i" {
-            ed_trailer = true;
+            write_quit = true;
             i += 1;
         } else if a == "-T" || a == "--initial-tab" {
             initial_tab = true;
@@ -5451,7 +6517,7 @@ fn cmd_diff3(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         } else if let Some(lbl) = a.strip_prefix("-L") && !lbl.is_empty() {
             labels.push(lbl.to_string());
             i += 1;
-        } else if !a.starts_with('-') {
+        } else if a == "-" || !a.starts_with('-') {
             files.push(a.clone());
             i += 1;
         } else {
@@ -5461,128 +6527,240 @@ fn cmd_diff3(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     if files.len() < 3 {
         return err_out("diff3: missing operand\n", 2);
     }
-    let read_lines = |p: &str| -> Vec<String> {
+    let read_lines = |p: &str| -> Result<Vec<String>, String> {
+        if p == "-" {
+            return Ok(stdin.lines().map(|l| l.to_string()).collect());
+        }
         let full = resolve_posix_path(cwd, p);
-        fs.read_file(&full)
-            .map(|b| String::from_utf8_lossy(&b).lines().map(|l| l.to_string()).collect())
-            .unwrap_or_default()
+        let bytes = fs
+            .read_file(&full)
+            .map_err(|_| format!("diff3: {p}: No such file or directory\n"))?;
+        Ok(String::from_utf8_lossy(&bytes)
+            .lines()
+            .map(|l| l.to_string())
+            .collect())
     };
-    let ours = read_lines(&files[0]);
-    let base = read_lines(&files[1]);
-    let theirs = read_lines(&files[2]);
-    let lbl0 = labels.first().unwrap_or(&files[0]);
-    let lbl1 = labels.get(1).unwrap_or(&files[1]);
-    let lbl2 = labels.get(2).unwrap_or(&files[2]);
-    let max_len = ours.len().max(base.len()).max(theirs.len());
-    let mut out = String::new();
-    if !merge_mode && ed_mode {
-        let mut ranges: Vec<(usize, usize)> = Vec::new();
-        let mut idx = 0usize;
-        let should_include = |o: &str, b: &str, t: &str| -> bool {
-            if only_three {
-                t != b && o == b
-            } else {
-                o != b || t != b
+    let f0 = match read_lines(&files[0]) {
+        Ok(v) => v,
+        Err(e) => return err_out(&e, 2),
+    };
+    let f1 = match read_lines(&files[1]) {
+        Ok(v) => v,
+        Err(e) => return err_out(&e, 2),
+    };
+    let f2 = match read_lines(&files[2]) {
+        Ok(v) => v,
+        Err(e) => return err_out(&e, 2),
+    };
+    let all_files = [f0, f1, f2];
+    let lbls = [
+        labels.first().unwrap_or(&files[0]).clone(),
+        labels.get(1).unwrap_or(&files[1]).clone(),
+        labels.get(2).unwrap_or(&files[2]).clone(),
+    ];
+
+    let report = selector.is_none() && !merge;
+    let sel = selector.unwrap_or('A');
+    let preferred_common = if report { 2usize } else { 1usize };
+    let common = if files[preferred_common] == "-" {
+        3 - preferred_common
+    } else {
+        preferred_common
+    };
+    let other = 3 - common;
+
+    let base_lines = &all_files[common];
+    let left_lines = &all_files[0];
+    let right_lines = &all_files[other];
+    let left_edits = diff3_pair_edits(base_lines, left_lines);
+    let right_edits = diff3_pair_edits(base_lines, right_lines);
+    let mut regions = diff3_align_regions(left_lines, right_lines, &left_edits, &right_edits);
+    if !merge && !report {
+        regions.reverse();
+    }
+
+    let address = |r: Diff3Range| -> String {
+        if r.start == r.end {
+            format!("{}a", r.start)
+        } else if r.start + 1 == r.end {
+            format!("{}c", r.start + 1)
+        } else {
+            format!("{},{}c", r.start + 1, r.end)
+        }
+    };
+    let indent = if initial_tab { "\t" } else { "  " };
+    let emit_range = |out: &mut String, file_idx: usize, r: Diff3Range, mode: &str| -> bool {
+        let mut dots = false;
+        for line in &all_files[file_idx][r.start..r.end] {
+            if mode == "report" {
+                out.push_str(indent);
+            } else if mode == "ed" && line.starts_with('.') {
+                dots = true;
+                out.push('.');
             }
+            out.push_str(line);
+            out.push('\n');
+        }
+        dots
+    };
+
+    let mut out = String::new();
+    let mut conflict = false;
+    let mut cursor = 0usize;
+
+    for region in regions {
+        let mut ranges = [
+            Diff3Range { start: 0, end: 0 },
+            Diff3Range { start: 0, end: 0 },
+            Diff3Range { start: 0, end: 0 },
+        ];
+        ranges[0] = region.left;
+        ranges[other] = region.right;
+        ranges[common] = region.base;
+        let base_r = ranges[1];
+        let theirs_r = ranges[2];
+        let different = match region.kind {
+            Diff3RegionKind::Left => 1usize,
+            Diff3RegionKind::Right => other + 1,
+            Diff3RegionKind::Identical => common + 1,
+            Diff3RegionKind::Adjacent | Diff3RegionKind::Conflict => 0,
         };
-        while idx < max_len {
-            let o = ours.get(idx).map(|s| s.as_str()).unwrap_or("");
-            let b = base.get(idx).map(|s| s.as_str()).unwrap_or("");
-            let t = theirs.get(idx).map(|s| s.as_str()).unwrap_or("");
-            if should_include(o, b, t) {
-                let start = idx;
-                let mut has_theirs_change = false;
-                while idx < max_len {
-                    let o2 = ours.get(idx).map(|s| s.as_str()).unwrap_or("");
-                    let b2 = base.get(idx).map(|s| s.as_str()).unwrap_or("");
-                    let t2 = theirs.get(idx).map(|s| s.as_str()).unwrap_or("");
-                    if should_include(o2, b2, t2) {
-                        if t2 != b2 {
-                            has_theirs_change = true;
-                        }
-                        idx += 1;
-                    } else {
-                        break;
+        if report {
+            if different == 0 {
+                out.push_str("====\n");
+            } else {
+                out.push_str(&format!("===={different}\n"));
+            }
+            let sequence = if different == 2 { [0usize, 2, 1] } else { [0usize, 1, 2] };
+            for (seq_i, &file_idx) in sequence.iter().enumerate() {
+                out.push_str(&format!("{}:{}\n", file_idx + 1, address(ranges[file_idx])));
+                if different == 0
+                    || file_idx + 1 == different
+                    || (seq_i == 1 && different != 1)
+                    || (seq_i == 2 && different == 1)
+                {
+                    emit_range(&mut out, file_idx, ranges[file_idx], "report");
+                }
+            }
+            continue;
+        }
+        let flagged = (different == 0 && matches!(sel, 'A' | 'E' | 'X'))
+            || (different == 2 && sel == 'A');
+        let replace = (different == 3 && matches!(sel, 'A' | 'E' | 'e' | '3'))
+            || (different == 0 && matches!(sel, 'e' | 'x'));
+        if merge {
+            emit_range(
+                &mut out,
+                0,
+                Diff3Range {
+                    start: cursor,
+                    end: region.left.start,
+                },
+                "source",
+            );
+            if flagged {
+                conflict = true;
+                if different == 2 {
+                    out.push_str(&format!("<<<<<<< {}\n", lbls[1]));
+                    emit_range(&mut out, 1, base_r, "changed");
+                } else {
+                    out.push_str(&format!("<<<<<<< {}\n", lbls[0]));
+                    emit_range(&mut out, 0, region.left, "changed");
+                    if sel == 'A' {
+                        out.push_str(&format!("||||||| {}\n", lbls[1]));
+                        emit_range(&mut out, 1, base_r, "changed");
                     }
                 }
-                if has_theirs_change {
-                    ranges.push((start, idx - 1));
+                out.push_str("=======\n");
+                emit_range(&mut out, 2, theirs_r, "changed");
+                out.push_str(&format!(">>>>>>> {}\n", lbls[2]));
+            } else if replace {
+                emit_range(&mut out, 2, theirs_r, "changed");
+            } else {
+                emit_range(&mut out, 0, region.left, "source");
+            }
+            cursor = region.left.end;
+        } else if replace {
+            if theirs_r.start == theirs_r.end {
+                if region.left.start != region.left.end {
+                    let addr = address(region.left);
+                    out.push_str(&format!("{}d\n", &addr[..addr.len() - 1]));
                 }
             } else {
-                idx += 1;
-            }
-        }
-        for (s, e) in ranges.into_iter().rev() {
-            if s == e {
-                out.push_str(&format!("{}c\n", s + 1));
-            } else {
-                out.push_str(&format!("{},{}c\n", s + 1, e + 1));
-            }
-            for k in s..=e {
-                if let Some(t) = theirs.get(k) {
-                    out.push_str(t);
-                    out.push('\n');
+                out.push_str(&format!("{}\n", address(region.left)));
+                let dots = emit_range(&mut out, 2, theirs_r, "ed");
+                out.push_str(".\n");
+                if dots {
+                    let s = region.left.start + 1;
+                    let e = region.left.start + (theirs_r.end - theirs_r.start);
+                    if e > s {
+                        out.push_str(&format!("{s},{e}s/^\\.//\n"));
+                    } else {
+                        out.push_str(&format!("{s}s/^\\.//\n"));
+                    }
                 }
             }
-            out.push_str(".\n");
-        }
-        if ed_trailer {
-            out.push_str("w\nq\n");
-        }
-        return ok_out(&out);
-    }
-    if !merge_mode {
-        let indent = if initial_tab { "\t" } else { "  " };
-        for i in 0..max_len {
-            let o = ours.get(i).map(|s| s.as_str()).unwrap_or("");
-            let b = base.get(i).map(|s| s.as_str()).unwrap_or("");
-            let t = theirs.get(i).map(|s| s.as_str()).unwrap_or("");
-            if o != b || t != b {
-                let tag = if o != b && b == t {
-                    "====1"
-                } else if o == t && o != b {
-                    "====2"
-                } else if t != b && o == b {
-                    "====3"
-                } else {
-                    "===="
-                };
-                out.push_str(&format!(
-                    "{tag}\n1:{}c\n{indent}{o}\n2:{}c\n{indent}{b}\n3:{}c\n{indent}{t}\n",
-                    i + 1,
-                    i + 1,
-                    i + 1
-                ));
+        } else if flagged {
+            conflict = true;
+            out.push_str(&format!("{}a\n", region.left.end));
+            let mut dots = false;
+            if different != 2 {
+                if sel == 'A' {
+                    out.push_str(&format!("||||||| {}\n", lbls[1]));
+                    dots = emit_range(&mut out, 1, base_r, "ed");
+                }
+                out.push_str("=======\n");
+                dots = emit_range(&mut out, 2, theirs_r, "ed") || dots;
             }
-        }
-        return ok_out(&out);
-    }
-    let mut has_conflict = false;
-    for i in 0..max_len {
-        let o = ours.get(i).map(|s| s.as_str()).unwrap_or("");
-        let b = base.get(i).map(|s| s.as_str()).unwrap_or("");
-        let t = theirs.get(i).map(|s| s.as_str()).unwrap_or("");
-        if o != b && t == b {
-            out.push_str(&format!("{o}\n"));
-        } else if t != b && o == b {
-            out.push_str(&format!("{t}\n"));
-        } else if o != b && t != b && o != t {
-            has_conflict = true;
+            out.push_str(&format!(">>>>>>> {}\n.\n", lbls[2]));
+            if dots {
+                let s = region.left.end + 2;
+                let e = region.left.end + (base_r.end - base_r.start) + (theirs_r.end - theirs_r.start) + 2;
+                out.push_str(&format!("{s},{e}s/^\\.//\n"));
+            }
             out.push_str(&format!(
-                "<<<<<<< {}\n{o}\n||||||| {}\n{b}\n=======\n{t}\n>>>>>>> {}\n",
-                lbl0, lbl1, lbl2
+                "{}a\n<<<<<<< {}\n",
+                region.left.start,
+                lbls[if different == 2 { 1 } else { 0 }]
             ));
-        } else {
-            out.push_str(&format!("{o}\n"));
+            if different == 2 {
+                let base_dots = emit_range(&mut out, 1, base_r, "ed");
+                out.push_str("=======\n.\n");
+                if base_dots {
+                    let s = region.left.start + 2;
+                    let e = region.left.start + (base_r.end - base_r.start) + 1;
+                    if e > s {
+                        out.push_str(&format!("{s},{e}s/^\\.//\n"));
+                    } else {
+                        out.push_str(&format!("{s}s/^\\.//\n"));
+                    }
+                }
+            } else {
+                out.push_str(".\n");
+            }
         }
     }
+
+    if merge {
+        emit_range(
+            &mut out,
+            0,
+            Diff3Range {
+                start: cursor,
+                end: all_files[0].len(),
+            },
+            "source",
+        );
+    } else if !report && write_quit {
+        out.push_str("w\nq\n");
+    }
+
     BuiltinOutcome {
         stdout: out,
         stderr: String::new(),
-        exit_code: if has_conflict { 1 } else { 0 },
+        exit_code: if merge && conflict { 1 } else { 0 },
     }
 }
-
 fn cmd_wdiff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.len() == 1 && args[0] == "--help" {
         return ok_out("Usage: wdiff OLD NEW\nCompare whitespace-delimited words; [-deleted-] and {+inserted+}.\n");

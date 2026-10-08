@@ -497,3 +497,24 @@ regression where a sibling becomes a symlink while another subtree is visited.
 The corrected artifact passes 753 Python tests, 142 installed public tests, both
 affected actual Worker cases (uninstall and directory manifests), all 17 unchanged
 bundle budgets, lint, types and the selected workspace build.
+
+
+Standard `PathDistribution` file discovery now stages decoded metadata lines,
+parsed filenames and metadata-directory entries on caller storage. It reuses the
+native `Distribution.files` parser, including CSV, hash, size, fallback and
+existence semantics, without modifying native globals. Complete decoding still
+precedes parsing, and complete parsing precedes path resolution. Custom provider
+types and instances overriding metadata methods retain native compatibility;
+non-Path metadata directories retain their Traversable glob behavior. These
+compatibility paths and individual large lines may still buffer, as do scalar
+metadata and installed requirement arrays; the complete manifest gate stays open.
+Differential cases cover large file lists/directories, Unicode line boundaries,
+CSV quoting, missing/empty metadata, custom providers, read/decode/scan failures
+and early iterator closure. The actual editable Worker regression exposed a
+missing-list cleanup error; a closeable empty generator fixes it. The legacy-build
+fixture now includes native diagnostics in its result so startup failures remain
+inspectable. The ZIP oracle reconstructs identical trailing zero padding in
+Python to avoid a repeated large-stdin timeout, retaining its timeout and checks.
+The corrected artifact passes 766 Python tests, 142 installed public tests, all
+three affected actual Worker cases (editable extras, uninstall and directory
+manifests), all 17 unchanged bundle budgets, lint, types and the scoped build.

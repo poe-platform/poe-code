@@ -251,7 +251,7 @@ async function qualifyLegacyBuild(backend,createExecutor,assets,format='director
   const extras=format==='editable-extras'||format==='editable-file',llmEditable=format==='llm-editable'||extras,editable=format==='editable'||llmEditable;
   const base='https://cdn.jsdelivr.net/pyodide/v314.0.6/full/';
   const wheels=new Map(assets.map(({file,bytes})=>[base+file,Uint8Array.from(bytes)]));
-  const requests=[];
+  const requests=[],diagnostics=[];
   backend=new Proxy(backend,{get(target,key){
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl')||path.includes('-sha256-'))throw new Error('Whole wheel read');return target.readFile(path,...args);};
     const value=Reflect.get(target,key);return typeof value==='function'?value.bind(target):value;
@@ -294,8 +294,8 @@ def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
     if(format==='remote-redirect'&&url===sourceRequestURL)return {status:302,headers:[['location',sourceURL]],body:(async function*(){})(),async dispose(){}};
     return {status:200,headers:format.startsWith('remote-metadata')&&url===sourceURL?(invalidMetadata?(zipArchive?[['content-disposition','attachment; filename="../../source.whl"']]:[['content-type','application/zip']]):[['content-disposition','attachment; filename="../../project.'+(zipArchive?'zip':'tar.gz')+'"']]):format==='remote-redirect'&&url===sourceURL?[['content-disposition','attachment; filename="legacy-source.tar.gz"']]:[],body:(async function*(){const bytes=wheels.get(url);for(let offset=0;offset<bytes.length;offset+=65536)yield bytes.subarray(offset,offset+65536);})(),async dispose(){}};
   }},{directory:'/work/builds',extractArchive:extractPythonSourceArchive,python:{createExecutor}});
-  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment}));
-  if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment})}));
+  const shell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))}));
+  if(llmEditable)shell.use(llmCommands({managePackages:createPythonLlmPackageManager({createExecutor,environment,onDiagnostic:event=>diagnostics.push(String(event.cause ?? event))})}));
   const inspect=`python -c 'import legacy_fixture, json; from importlib.metadata import distributions; names={d.metadata["Name"] for d in distributions()}; print(json.dumps([legacy_fixture.value, "setuptools" in names, "pyparsing" in names, "build-helper" in names]))${extras?'; import build_helper; assert build_helper.answer == 41':''}'`;
   try{
     let rejected,rejectedBuildEntries;
@@ -369,7 +369,7 @@ with zipfile.ZipFile("build_helper-1.0-py3-none-any.whl","w") as wheel:
       removed=await shell.exec('python -c "import legacy_fixture"');
       sourceRetained=new TextDecoder().decode(await backend.readFile(sourceDirectory+'/legacy_fixture.py'));
     }
-    return {rejected,rejectedBuildEntries,installed,imported,failed,restored,records,provenance,sourceDigest,hashName,metadata,uninstalled,removed,sourceRetained,sourceReplay,replayedWithoutNetwork,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
+    return {diagnostics,rejected,rejectedBuildEntries,installed,imported,failed,restored,records,provenance,sourceDigest,hashName,metadata,uninstalled,removed,sourceRetained,sourceReplay,replayedWithoutNetwork,requests,buildEntries:(await backend.readdir('/work/builds')).map(entry=>entry.name)};
   }finally{await shell.dispose();await environment.dispose();}
 }
 

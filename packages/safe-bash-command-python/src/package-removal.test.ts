@@ -41,7 +41,7 @@ def walk(folder):
  if folder=='/site/a':yield '/site/a',[],['__init__.py','a.py','cache.pyc','manual.txt']
  if folder=='/site/pkg.dist-info':yield folder,[],['METADATA','RECORD']
 sys.modules['micropip._utils']=types.SimpleNamespace(get_files_in_distribution=files)
-namespace={'_SafeNames':Names,'_safe_walk_files':lambda folder:(os.path.join(directory,name) for directory,_,names in walk(folder) for name in names)}
+namespace={'_SafeNames':Names,'_safe_distribution_files':files,'_safe_walk_files':lambda folder:(os.path.join(directory,name) for directory,_,names in walk(folder) for name in names)}
 tree=ast.parse(source);nodes=[n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='_safe_removal_listing']
 exec(compile(ast.Module(body=nodes,type_ignores=[]),'<removal>','exec'),namespace)
 try:

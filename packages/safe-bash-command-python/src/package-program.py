@@ -419,6 +419,88 @@ async def _safe_resolve(_safe_roots, upgrade=False, force=False, constraints=(),
  _safe_extras.close()
  _safe_requested_names.close()
  return _safe_managed
+def _safe_metadata_files(directory):
+ import os
+ from pathlib import Path
+ if not isinstance(directory, Path):
+  yield from directory.glob('*')
+  return
+ names = _SafeNames()
+ try:
+  try:scan = os.scandir(directory)
+  except OSError:return
+  failed = False
+  try:
+   while True:
+    try:entry = next(scan)
+    except StopIteration:break
+    except OSError:
+     failed = True
+     break
+    names.add(entry.name)
+  finally:
+   try:scan.close()
+   except OSError:failed = True
+  if not failed:
+   for name in names:yield directory / name
+ finally:names.close()
+def _safe_distribution_files(distribution):
+ from contextlib import ExitStack, closing
+ from types import FunctionType
+ from micropip._utils import get_root, get_dist_info, get_files_in_distribution
+ # Custom metadata providers retain their public calling conventions.
+ if type(distribution) is not _safe_metadata.PathDistribution or any(name in vars(distribution) for name in ('read_text', 'locate_file', '_read_files_distinfo', '_read_files_egginfo', '_read_files_egginfo_installed', '_read_files_egginfo_sources')):
+  yield from get_files_in_distribution(distribution)
+  return
+ with ExitStack() as lifetime:
+  class Text:
+   def __init__(self):
+    self.lines = _SafeValues()
+    lifetime.callback(self.lines.close)
+    self.present = False
+   def __bool__(self):return self.present
+   def splitlines(self):
+    for key in self.lines:yield self.lines.get(key)
+  missing = (FileNotFoundError, IsADirectoryError, KeyError, NotADirectoryError, PermissionError)
+  def read_text(filename):
+   try:source = distribution._path.joinpath(filename).open(encoding='utf-8')
+   except missing:return None
+   failed = False
+   try:
+    text = Text()
+    tail = ''
+    while True:
+     try:chunk = source.read(8192)
+     except missing:
+      failed = True
+      break
+     if not chunk:break
+     text.present = True
+     lines = (tail + chunk).splitlines(keepends=True)
+     tail = lines.pop() if lines else ''
+     for line in lines:text.lines.put(str(len(text.lines)), line.splitlines()[0])
+    if not failed:
+     for line in tail.splitlines():text.lines.put(str(len(text.lines)), line)
+   finally:
+    try:source.close()
+    except missing:failed = True
+   return None if failed else text if text.present else ''
+  def collect(values):
+   files = _SafeValues()
+   lifetime.callback(files.close)
+   for value in values:files.put(str(len(files)), str(value))
+   return (files.get(key) for key in files)
+  view = _safe_metadata.PathDistribution(distribution._path)
+  view.read_text = read_text
+  native = _safe_metadata.Distribution.files.fget
+  # Reuse native CSV, hash, size, fallback and existence semantics unchanged;
+  # only its final list allocation and metadata text storage are substituted.
+  files = FunctionType(native.__code__, dict(native.__globals__, list=collect), native.__name__, native.__defaults__, native.__closure__)
+  root = get_root(distribution)
+  with closing(files(view) or (path for path in ())) as paths:
+   for path in paths:yield (root / path).resolve()
+  with closing(_safe_metadata_files(get_dist_info(distribution))) as paths:
+   yield from paths
 def _safe_walk_files(root):
  from contextlib import ExitStack
  import os
@@ -459,7 +541,6 @@ def _safe_walk_files(root):
      pending.put(str(count), path)
      count += 1
 def _safe_removal_listing(_safe_dist):
- from micropip._utils import get_files_in_distribution as _safe_distribution_files
  from contextlib import ExitStack, closing
  import os
  with ExitStack() as storage:

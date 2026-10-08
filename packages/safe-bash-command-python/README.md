@@ -164,7 +164,10 @@ at most 64 KiB chunks; failed serialization or a stale revision leaves the prior
 manifest intact. Restores use incremental JSON decoding without retaining the
 complete encoded file or decoded JSON text. Native metadata restoration reads
 individual saved fields without decoding unrelated removal lists. Saved uninstall
-confirmation lists stream one path at a time. Custom
+confirmation lists stream one path at a time. Standard installed-distribution
+file discovery stages metadata lines and parsed paths on caller storage while
+using the native metadata parser. Custom distribution providers retain native
+compatibility behavior and may buffer their file lists. Custom
 `openSnapshot` stores can provide `readField(ordinal, field, offset)` for the same
 bounded JSON transport; stores without it retain whole-record compatibility.
 The compatibility `get` method still

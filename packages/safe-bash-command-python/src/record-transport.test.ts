@@ -84,3 +84,43 @@ for(const mode of [undefined,'host','inline'] as const)test('executor selects ho
   finally{await env.finish(restored);}
  }finally{await env.finish(first);await env.dispose();}
 });
+
+ test('host record encoding never serializes a complete large metadata string',async()=>{
+ const fs=new MemoryFileSystem(),context={fs,cwd:'/',signal:new AbortController().signal},env=createPythonPackageEnvironment();
+ const first=await env.prepare(context),row=['fixture','x'.repeat(100000)+'😀\ud800','',[],[],null] as const;
+ try{
+  await env.dispatch('package-commit',[first.session,{version:3,installed:['fixture==1'],records:[row]}],context);
+  const start=await env.prepare({...context,recordTransport:'host'}),expected=JSON.stringify(row);
+  const original=JSON.stringify;let largest=0;
+  JSON.stringify=((value:unknown,...args:unknown[])=>{
+   if(typeof value==='string')largest=Math.max(largest,value.length);
+   if(value===row||Array.isArray(value)&&value[1]===row[1])largest=Math.max(largest,row[1].length);
+   return Reflect.apply(original,JSON,[value,...args]);
+  }) as typeof JSON.stringify;
+  try{
+   let actual='';
+   for(let offset=0;;offset+=8192){const chunk=await env.dispatch('package-record-read',[start.session,0,offset],context) as string;actual+=chunk;if(chunk.length<8192)break;}
+   assert.equal(actual,expected);
+   assert.ok(largest<=1024,`serialized a ${largest}-character value`);
+   assert.equal(await env.dispatch('package-record-read',[start.session,0,0],context),expected.slice(0,8192));
+   assert.equal(await env.dispatch('package-record-read',[start.session,0,37],context),expected.slice(37,8229));
+   for(const offset of [8240,1000000,0,8192,0])assert.equal(await env.dispatch('package-record-read',[start.session,0,offset],context),expected.slice(offset,offset+8192));
+   const offsets=[0,8192,41,16400];
+   assert.deepEqual(await Promise.all(offsets.map(offset=>env.dispatch('package-record-read',[start.session,0,offset],context))),offsets.map(offset=>expected.slice(offset,offset+8192)));
+  }finally{JSON.stringify=original;await env.finish(start);}
+ }finally{await env.finish(first);await env.dispose();}
+});
+
+for(const abort of [false,true])test(`host record reads retire while pending; abort=${abort}`,async()=>{
+ const fs=new MemoryFileSystem(),controller=new AbortController(),context={fs,cwd:'/',signal:controller.signal},env=createPythonPackageEnvironment();
+ const first=await env.prepare(context);
+ try{
+  await env.dispatch('package-commit',[first.session,{version:3,installed:['fixture==1'],records:[['fixture','x'.repeat(100000),'',[],[],null]]}],context);
+  const start=await env.prepare({...context,recordTransport:'host'});
+  const pending=env.dispatch('package-record-read',[start.session,0,0],context);
+  const rejected=assert.rejects(pending);
+  if(abort)controller.abort(new Error('cancel record read'));
+  await env.finish(start);await rejected;
+ }finally{await env.finish(first);await env.dispose();}
+ assert.deepEqual(await fs.readdir('/'),[]);
+});

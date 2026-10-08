@@ -1,3 +1,4 @@
+import {createPythonRecordReader} from './record-reader.js';
 import {createDefaultPythonManifestStore} from './manifest-default.js';
 import {header} from 'safe-bash-network-engine/shared';
 import {bytesToHex} from 'safe-bash-io-engine/byte-encoding';
@@ -193,7 +194,7 @@ function normalizeRequirement(value: string, cwd: string): string {
 interface PackageArtifact {url?:string;readonly key:string;readonly size:number;read(offset:number,length:number):Uint8Array|Promise<Uint8Array>;close?():Promise<void>}
 interface Session extends PythonPackageContext {
  records:readonly PythonPackageRecord[]|undefined;
- recordJson?:{ordinal:number;text:string}|undefined;
+ recordReader?:ReturnType<typeof createPythonRecordReader>|undefined;
  readonly cacheDirectory: string | undefined;
  readonly artifactDirectory: string | undefined;
  readonly noCache: boolean;
@@ -254,7 +255,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
  function release(session:Session,all=false):Promise<void> {
   const artifacts:Array<Pick<PackageArtifact,'close'>>=all?[...session.retained.values()]:[];
   if(all){artifacts.push(...Object.values(session.indexes));session.indexes={};}
-  if(all){session.retained.clear();session.records=undefined;session.recordJson=undefined;}
+  if(all){session.retained.clear();session.records=undefined;if(session.recordReader)artifacts.push(session.recordReader);session.recordReader=undefined;}
   if(session.closed&&session.installationRoot){artifacts.push(session.installationRoot);session.installationRoot=undefined;}
   if(session.opened){artifacts.push(session.opened);session.opened=undefined;}
   if(!artifacts.length)return session.retiring??Promise.resolve();
@@ -371,11 +372,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   if(op==='package-record-read'){
    const ordinal=args[1],offset=args[2];
    if(!Number.isSafeInteger(ordinal)||(ordinal as number)<0||(ordinal as number)>=(session.records?.length??0)||!Number.isSafeInteger(offset)||(offset as number)<0)throw failure('Invalid package record request');
-   if(session.recordJson?.ordinal!==ordinal){
-    const row=session.records![ordinal as number]!;
-    session.recordJson={ordinal:ordinal as number,text:JSON.stringify(row.length===5?[...row,null]:row)};
-   }
-   return session.recordJson!.text.slice(offset as number,(offset as number)+8192);
+   session.recordReader??=createPythonRecordReader(signal);
+   const result=await session.recordReader.read(session.records![ordinal as number]!,offset as number);check();return result;
   }
   if(op==='package-commit') {
    await release(session,true);check();

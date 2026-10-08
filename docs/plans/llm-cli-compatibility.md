@@ -398,5 +398,7 @@ retain their configured lifetime.
 Native startup now requests host-owned saved records through bounded messages;
 metadata arrays no longer enter the default executor startup payload. Inline
 records remain available for custom executors and direct SDK preparation.
-The host parsed array, single-record JSON text and final publication collection
-remain materialized, so this does not close the host-manifest gate.
+The host encodes each record incrementally through a bounded window; backward
+reads replay serialization. The parsed array, native single-record JSON text and
+final publication collection remain materialized, so this does not close the
+host-manifest gate.

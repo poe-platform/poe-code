@@ -65,6 +65,7 @@ export class WasmFileSystem {
 export class RustWasmBash {
   readonly shell: RustWasmBash;
   readonly fs: WasmFileSystem;
+  readonly forceNative: boolean;
   readonly state: {
     cwd: string;
     env: Record<string, string>;

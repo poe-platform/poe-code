@@ -17,7 +17,8 @@
       "@poe-platform/safe-bash/mapfile": ["../safe-bash/src/shell/extensions/mapfile/index.ts"],
       "@poe-platform/safe-bash/read": ["../safe-bash/src/shell/extensions/read/index.ts"],
       "@poe-platform/safe-bash/trap": ["../safe-bash/src/shell/extensions/trap/index.ts"],
-      "@poe-platform/safe-bash/install": ["../safe-bash/src/commands/install/index.ts"]
+      "@poe-platform/safe-bash/install": ["../safe-bash/src/commands/install/index.ts"],
+      "@poe-code/safe-bash-rust": ["../safe-bash-rust/src/index.d.ts"]
     }
   },
   "include": [

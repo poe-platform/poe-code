@@ -220,7 +220,7 @@ printf 'a\tb\tc\td\n' | expand -t 3,+5 | tr ' ' '.'
 `);
     assert.equal(r.exitCode, 0, `stderr: ${r.stderr}`);
     assert.deepEqual(r.stdout.trim().split("\n"), [
-      "a..b...c....d.e" ? "a..b...c....d" : "",
+      "a..b...c....d",
       "a..b..c.....d",
       "a..b....c....d",
     ]);

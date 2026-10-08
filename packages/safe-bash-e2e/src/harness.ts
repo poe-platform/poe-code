@@ -57,7 +57,9 @@ export interface E2EHarnessOptions {
   readonly env?: Readonly<Record<string, string>>;
   readonly limits?: sb.ShellLimits;
   readonly fs?: sb.FileSystem;
-  readonly memoryFsOptions?: ConstructorParameters<typeof sb.MemoryFileSystem>[0];
+  readonly memoryFsOptions?: ConstructorParameters<typeof sb.MemoryFileSystem>[0] & {
+    readonly maxFiles?: number;
+  };
   readonly mountDev?: boolean;
   readonly shellExtensions?: boolean;
   readonly bareShell?: boolean;
@@ -340,6 +342,24 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-openssl-gpg-ssh-x509-crypt-dgst-archive-parity-matrix.test.ts",
   "obscure-sqlite3-null-typeof-quote-json-cte-triggers-xan-parity-matrix.test.ts",
   "obscure-column-file-pdftoppm-pdftohtml-coreutils-media-parity-matrix.test.ts",
+  "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
+  "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
+  "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",
+  "obscure-gh-project-codespace-browse-attestation-op-vault-group-sqlite-shell-parity-matrix.test.ts",
+  "obscure-gh-repo-issue-pr-release-run-auth-sqlite-op-parity-matrix.test.ts",
+  "obscure-graphviz-media-csvkit-sqlite-op-gh-shell-parity-matrix.test.ts",
+  "obscure-mmdc-mdq-html2md-ssconvert-csvkit-sqlite-op-gh-shell-parity-matrix.test.ts",
+  "obscure-op-env-snapshot-plugin-completion-sqlite-xan-yq-xmllint-shell-parity-matrix.test.ts",
+  "obscure-op-gh-sqlite-codecs-timeout-dev-polyglot-parity-matrix.test.ts",
+  "obscure-pdf-audio-image-git-curl-sqlite-op-gh-shell-parity-matrix.test.ts",
+  "obscure-pdfdetach-pdffonts-pdftohtml-composite-montage-sqlite-op-gh-shell-parity-matrix.test.ts",
+  "obscure-polyglot-secops-sqlite-op-gh-archive-shell-parity-matrix.test.ts",
+  "obscure-shell-traps-arrays-namerefs-sqlite-op-gh-codecs-parity-matrix.test.ts",
+  "obscure-sqlite-views-fts5-json-tree-op-gh-tar-shell-parity-matrix.test.ts",
+  "obscure-sqlite-window-triggers-op-gh-codecs-timeout-vfs-parity-matrix.test.ts",
+  "obscure-vfs-quotas-env-op-gh-sqlite-archive-deep-parity-matrix.test.ts",
+  "obscure-xan-yq-xmllint-openssl-gpg-ssh-sqlite-codecs-parity-matrix.test.ts",
+  "rust-typescript-native-parity-verification.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

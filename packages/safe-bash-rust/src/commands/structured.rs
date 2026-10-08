@@ -16473,6 +16473,7 @@ struct SqlTable {
     not_null_cols: Vec<String>,
     check_exprs: Vec<String>,
     foreign_keys: Vec<SqlForeignKey>,
+    unique_indexes: Vec<(String, Vec<String>)>,
     is_fts5: bool,
     next_seq: usize,
     create_sql: String,
@@ -17714,6 +17715,7 @@ fn parse_create_table_metadata(create_sql: &str) -> (SqlTable, Option<usize>, Ve
             not_null_cols,
             check_exprs,
             foreign_keys,
+            unique_indexes: Vec::new(),
             is_fts5: false,
             next_seq: 0,
             create_sql: stmt.to_string(),
@@ -17856,13 +17858,34 @@ fn serialize_sql_db(
         .and_then(|t| t.columns.first().cloned())
         .unwrap_or_else(|| "id".to_string());
     for idx_name in indexes {
-        master_entries.push(MasterEntry {
-            m_type: "index".to_string(),
-            name: idx_name.clone(),
-            tbl_name: default_tbl.clone(),
-            rootpage: 0,
-            sql: format!("CREATE INDEX {idx_name} ON {default_tbl}({default_col})"),
-        });
+        let mut found_unique: Option<(String, Vec<String>)> = None;
+        for (tname, tbl) in tables {
+            if let Some((_, ucols)) = tbl
+                .unique_indexes
+                .iter()
+                .find(|(uname, _)| uname.eq_ignore_ascii_case(idx_name))
+            {
+                found_unique = Some((tname.clone(), ucols.clone()));
+                break;
+            }
+        }
+        if let Some((tname, ucols)) = found_unique {
+            master_entries.push(MasterEntry {
+                m_type: "index".to_string(),
+                name: idx_name.clone(),
+                tbl_name: tname.clone(),
+                rootpage: 0,
+                sql: format!("CREATE UNIQUE INDEX {idx_name} ON {tname}({})", ucols.join(", ")),
+            });
+        } else {
+            master_entries.push(MasterEntry {
+                m_type: "index".to_string(),
+                name: idx_name.clone(),
+                tbl_name: default_tbl.clone(),
+                rootpage: 0,
+                sql: format!("CREATE INDEX {idx_name} ON {default_tbl}({default_col})"),
+            });
+        }
     }
 
     for (vname, view_sql) in views {
@@ -18057,7 +18080,36 @@ fn deserialize_sql_db(
                 tables.insert(m_name, tbl);
             } else if m_type == "index" {
                 if !m_name.starts_with("sqlite_autoindex_") && !indexes.contains(&m_name) {
-                    indexes.push(m_name);
+                    indexes.push(m_name.clone());
+                }
+                let norm = m_sql.replace(['\r', '\n', '\t'], " ");
+                let norm_up = norm.to_ascii_uppercase();
+                if norm_up.starts_with("CREATE UNIQUE INDEX ")
+                    && let Some(on_p) = norm_up.find(" ON ")
+                {
+                    let after_on = norm[on_p + 4..].trim();
+                    if let Some(open) = after_on.find('(')
+                        && let Some(close) = after_on.rfind(')')
+                    {
+                        let tname = after_on[..open].trim().trim_matches('"').to_string();
+                        let ucols: Vec<String> = split_top_level_comma(&after_on[open + 1..close])
+                            .into_iter()
+                            .map(|c| {
+                                c.split_whitespace()
+                                    .next()
+                                    .unwrap_or("")
+                                    .trim_matches('"')
+                                    .to_string()
+                            })
+                            .filter(|c| !c.is_empty())
+                            .collect();
+                        if !ucols.is_empty()
+                            && let Some(tbl) = tables.get_mut(&tname)
+                            && !tbl.unique_indexes.iter().any(|(n, _)| n.eq_ignore_ascii_case(&m_name))
+                        {
+                            tbl.unique_indexes.push((m_name, ucols));
+                        }
+                    }
                 }
             } else if m_type == "view" {
                 let norm = m_sql.replace(['\r', '\n', '\t'], " ");
@@ -19036,11 +19088,15 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .unwrap_or("")
                 .trim_matches('"');
             indexes.retain(|i| !i.eq_ignore_ascii_case(idx_name));
+            for tbl in tables.values_mut() {
+                tbl.unique_indexes.retain(|(n, _)| !n.eq_ignore_ascii_case(idx_name));
+            }
             continue;
         }
         if upper.starts_with("CREATE INDEX ") || upper.starts_with("CREATE UNIQUE INDEX ") {
             let norm = stmt.replace(['\r', '\n', '\t'], " ");
             let norm_up = norm.to_ascii_uppercase();
+            let is_unique = norm_up.starts_with("CREATE UNIQUE INDEX ");
             if let Some(on_p) = norm_up.find(" ON ") {
                 let idx_name = norm[..on_p]
                     .split_whitespace()
@@ -19049,7 +19105,32 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .trim_matches('"')
                     .to_string();
                 if !idx_name.is_empty() && !indexes.contains(&idx_name) {
-                    indexes.push(idx_name);
+                    indexes.push(idx_name.clone());
+                }
+                if is_unique && !idx_name.is_empty() {
+                    let after_on = norm[on_p + 4..].trim();
+                    if let Some(open) = after_on.find('(')
+                        && let Some(close) = after_on.rfind(')')
+                    {
+                        let tname = after_on[..open].trim().trim_matches('"').to_string();
+                        let ucols: Vec<String> = split_top_level_comma(&after_on[open + 1..close])
+                            .into_iter()
+                            .map(|c| {
+                                c.split_whitespace()
+                                    .next()
+                                    .unwrap_or("")
+                                    .trim_matches('"')
+                                    .to_string()
+                            })
+                            .filter(|c| !c.is_empty())
+                            .collect();
+                        if !ucols.is_empty()
+                            && let Some(tbl) = tables.get_mut(&tname)
+                            && !tbl.unique_indexes.iter().any(|(n, _)| n.eq_ignore_ascii_case(&idx_name))
+                        {
+                            tbl.unique_indexes.push((idx_name, ucols));
+                        }
+                    }
                 }
             }
             continue;
@@ -19282,6 +19363,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         not_null_cols,
                         check_exprs,
                         foreign_keys,
+                        unique_indexes: Vec::new(),
                         is_fts5: false,
                         next_seq: 0,
                         create_sql: stmt.trim().trim_end_matches(';').to_string(),
@@ -19953,7 +20035,7 @@ fn exec_sql_insert(
     let stmt_snap = tables.clone();
     let mut affected_rows: Vec<Vec<String>> = Vec::new();
     for vals in value_tuples {
-        let (defaults_clone, gen_clone, nn_clone, chk_clone, fk_clone, is_fts5) = tables
+        let (defaults_clone, gen_clone, nn_clone, chk_clone, fk_clone, unique_idx_clone, is_fts5) = tables
             .get(&tname)
             .map(|t| {
                 (
@@ -19962,6 +20044,7 @@ fn exec_sql_insert(
                     t.not_null_cols.clone(),
                     t.check_exprs.clone(),
                     t.foreign_keys.clone(),
+                    t.unique_indexes.clone(),
                     t.is_fts5,
                 )
             })
@@ -20060,9 +20143,46 @@ fn exec_sql_insert(
             }
         }
 
-        let existing_idx = tables
-            .get(&tname)
-            .and_then(|tbl| tbl.rows.iter().position(|er| er.first() == row.first()));
+        let mut unique_conflict_idx: Option<(usize, Vec<String>)> = None;
+        if let Some(tbl) = tables.get(&tname) {
+            for (_uname, ucols) in &unique_idx_clone {
+                let col_positions: Vec<usize> = ucols
+                    .iter()
+                    .filter_map(|uc| find_sql_col(&t_cols, uc))
+                    .collect();
+                if col_positions.len() == ucols.len()
+                    && col_positions
+                        .iter()
+                        .all(|&p| !row.get(p).map(|s| s.as_str()).unwrap_or("").is_empty())
+                    && let Some(dup_idx) = tbl
+                        .rows
+                        .iter()
+                        .position(|er| col_positions.iter().all(|&p| er.get(p) == row.get(p)))
+                {
+                    unique_conflict_idx = Some((dup_idx, ucols.clone()));
+                    break;
+                }
+            }
+        }
+        if let Some((_, ref ucols)) = unique_conflict_idx
+            && !(is_do_nothing || is_or_replace || is_do_update)
+        {
+            *tables = stmt_snap;
+            let col_desc = ucols
+                .iter()
+                .map(|c| format!("{tname}.{c}"))
+                .collect::<Vec<_>>()
+                .join(", ");
+            return Err(format!("Error: UNIQUE constraint failed: {col_desc}\n"));
+        }
+
+        let existing_idx = unique_conflict_idx
+            .map(|(idx, _)| idx)
+            .or_else(|| {
+                tables
+                    .get(&tname)
+                    .and_then(|tbl| tbl.rows.iter().position(|er| er.first() == row.first()))
+            });
         if let Some(e_idx) = existing_idx
             && (is_do_nothing || is_or_replace || is_do_update)
         {
@@ -34147,6 +34267,29 @@ mod tests {
 
         let tbls = cmd_sqlite3(&args(&["/db/cte.db", ".tables"]), "", "/db", &vfs);
         assert_eq!(tbls.stdout.trim(), "nums");
+
+        let uidx = cmd_sqlite3(
+            &args(&["/db/cte.db", "CREATE UNIQUE INDEX idx_nums_label ON nums(label);"]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(uidx.exit_code, 0);
+        let dup_ins = cmd_sqlite3(
+            &args(&["/db/cte.db", "INSERT INTO nums VALUES (9, 'item-1');"]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(dup_ins.exit_code, 1);
+        assert!(dup_ins.stderr.contains("UNIQUE constraint failed: nums.label"));
+        let drop_idx = cmd_sqlite3(
+            &args(&["/db/cte.db", "DROP INDEX idx_nums_label; INSERT INTO nums VALUES (9, 'item-1');"]),
+            "",
+            "/db",
+            &vfs,
+        );
+        assert_eq!(drop_idx.exit_code, 0);
     }
 
 

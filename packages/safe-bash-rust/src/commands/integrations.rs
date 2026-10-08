@@ -253,6 +253,189 @@ struct OpGroupRecord {
     description: Option<String>,
 }
 
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+struct OpVaultGroupGrant {
+    id: String,
+    vault_id: String,
+    group_id: String,
+    permissions: Vec<String>,
+}
+
+#[allow(dead_code)]
+#[derive(Clone, Debug)]
+struct GhProjectRecord {
+    number: u64,
+    id: String,
+    title: String,
+    short_description: String,
+    readme: String,
+    is_public: bool,
+    closed: bool,
+    is_template: bool,
+    owner: String,
+    url: String,
+    fields: Vec<(String, String, String)>,
+    items: Vec<(String, String, String, String, Option<String>)>,
+    linked_repos: Vec<String>,
+}
+
+#[derive(Clone, Debug)]
+struct GhCodespaceRecord {
+    name: String,
+    display_name: String,
+    repository: String,
+    branch: String,
+    state: String,
+    machine_name: String,
+    created_at: String,
+}
+
+fn expand_vault_permissions(perms: &[String]) -> Result<Vec<String>, String> {
+    let mut expanded = Vec::new();
+    let mut add = |p: &str| {
+        if !expanded.iter().any(|x| x == p) {
+            expanded.push(p.to_string());
+        }
+    };
+    for p in perms {
+        match p.as_str() {
+            "allow_viewing" => {
+                add("view_items");
+                add("view_and_copy_passwords");
+                add("view_item_history");
+            }
+            "allow_editing" => {
+                for g in [
+                    "create_items",
+                    "edit_items",
+                    "archive_items",
+                    "delete_items",
+                    "import_items",
+                    "export_items",
+                    "copy_and_share_items",
+                    "print_items",
+                ] {
+                    add(g);
+                }
+            }
+            "allow_managing" => add("manage_vault"),
+            "view_items"
+            | "create_items"
+            | "view_and_copy_passwords"
+            | "edit_items"
+            | "archive_items"
+            | "delete_items"
+            | "view_item_history"
+            | "import_items"
+            | "export_items"
+            | "copy_and_share_items"
+            | "print_items"
+            | "manage_vault"
+            | "move_items" => add(p),
+            _ => return Err("Invalid vault permission".into()),
+        }
+    }
+    let move_reqs = [
+        "view_items",
+        "edit_items",
+        "archive_items",
+        "view_and_copy_passwords",
+        "view_item_history",
+        "copy_and_share_items",
+    ];
+    if move_reqs.iter().all(|r| expanded.iter().any(|x| x == r)) {
+        if !expanded.iter().any(|x| x == "move_items") {
+            expanded.push("move_items".to_string());
+        }
+    }
+    Ok(expanded)
+}
+
+fn change_vault_permissions(
+    current: &[String],
+    requested: &[String],
+    is_grant: bool,
+) -> Result<Vec<String>, String> {
+    if is_grant && requested.is_empty() {
+        return Err("Vault permissions are required".into());
+    }
+    if !is_grant && requested.is_empty() {
+        return Ok(Vec::new());
+    }
+    if requested.iter().any(|p| p == "move_items") {
+        return Err("move_items is derived from its underlying vault permissions".into());
+    }
+    let existing: Vec<String> = expand_vault_permissions(current)?
+        .into_iter()
+        .filter(|p| p != "move_items")
+        .collect();
+    let selected: Vec<String> = expand_vault_permissions(requested)?
+        .into_iter()
+        .filter(|p| p != "move_items")
+        .collect();
+    let mut remaining = Vec::new();
+    if is_grant {
+        for p in existing.into_iter().chain(selected.into_iter()) {
+            if !remaining.contains(&p) {
+                remaining.push(p);
+            }
+        }
+    } else {
+        for p in existing {
+            if !selected.contains(&p) {
+                remaining.push(p);
+            }
+        }
+    }
+    let prereqs: &[(&str, &[&str])] = &[
+        ("view_items", &[]),
+        ("create_items", &["view_items"]),
+        ("view_and_copy_passwords", &["view_items"]),
+        ("edit_items", &["view_and_copy_passwords", "view_items"]),
+        ("archive_items", &["edit_items", "view_and_copy_passwords", "view_items"]),
+        ("delete_items", &["edit_items", "view_and_copy_passwords", "view_items"]),
+        ("view_item_history", &["view_and_copy_passwords", "view_items"]),
+        ("import_items", &["create_items", "view_items"]),
+        ("export_items", &["view_item_history", "view_and_copy_passwords", "view_items"]),
+        ("copy_and_share_items", &["view_item_history", "view_and_copy_passwords", "view_items"]),
+        ("print_items", &["view_item_history", "view_and_copy_passwords", "view_items"]),
+        ("manage_vault", &[]),
+    ];
+    let mut missing = Vec::new();
+    let mut dependent = Vec::new();
+    for p in &remaining {
+        if let Some((_, reqs)) = prereqs.iter().find(|(k, _)| k == p) {
+            for req in *reqs {
+                if !remaining.iter().any(|x| x == req) {
+                    if !missing.contains(&req.to_string()) {
+                        missing.push(req.to_string());
+                    }
+                    if !dependent.contains(p) {
+                        dependent.push(p.clone());
+                    }
+                }
+            }
+        }
+    }
+    if !missing.is_empty() {
+        missing.sort();
+        dependent.sort();
+        return if is_grant {
+            Err(format!(
+                "Required vault permissions must be granted explicitly: {}",
+                missing.join(", ")
+            ))
+        } else {
+            Err(format!(
+                "Dependent vault permissions must also be revoked: {}",
+                dependent.join(", ")
+            ))
+        };
+    }
+    expand_vault_permissions(&remaining)
+}
+
 #[derive(Clone, Debug)]
 struct GhGistFileRecord {
     filename: String,
@@ -362,6 +545,7 @@ struct IntegrationState {
     op_default_vault: Option<String>,
     op_vaults: Vec<OpVault>,
     op_groups: Vec<OpGroupRecord>,
+    op_vault_groups: Vec<OpVaultGroupGrant>,
     op_items: Vec<OpItem>,
     op_docs: Vec<OpDocument>,
     op_envs: BTreeMap<String, BTreeMap<String, String>>,
@@ -378,6 +562,8 @@ struct IntegrationState {
     gh_ssh_keys: Vec<GhSshKeyRecord>,
     gh_gpg_keys: Vec<GhGpgKeyRecord>,
     gh_extensions: Vec<(String, String, String)>,
+    gh_projects: Vec<GhProjectRecord>,
+    gh_codespaces: Vec<GhCodespaceRecord>,
 }
 
 impl Default for IntegrationState {
@@ -423,6 +609,7 @@ impl Default for IntegrationState {
             op_default_vault: None,
             op_vaults: Vec::new(),
             op_groups: Vec::new(),
+            op_vault_groups: Vec::new(),
             op_items: Vec::new(),
             op_docs: Vec::new(),
             op_envs: BTreeMap::new(),
@@ -439,6 +626,8 @@ impl Default for IntegrationState {
             gh_ssh_keys: Vec::new(),
             gh_gpg_keys: Vec::new(),
             gh_extensions: Vec::new(),
+            gh_projects: Vec::new(),
+            gh_codespaces: Vec::new(),
         }
     }
 }
@@ -1369,6 +1558,117 @@ where
                         return op_err("vault not found");
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                }
+                "group" => {
+                    let gsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
+                    let mut vault_sel: Option<String> = None;
+                    let mut group_sel: Option<String> = None;
+                    let mut perms_raw: Option<String> = None;
+                    let mut i = 3usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "--vault" if i + 1 < args.len() => {
+                                vault_sel = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "--group" if i + 1 < args.len() => {
+                                group_sel = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "--permissions" if i + 1 < args.len() => {
+                                perms_raw = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "--format" => i += 2,
+                            a if !a.starts_with('-') => {
+                                if vault_sel.is_none() {
+                                    vault_sel = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    match gsub {
+                        "grant" | "revoke" => {
+                            let vs = vault_sel.unwrap_or_default();
+                            let gs = group_sel.unwrap_or_default();
+                            let Some(v) = st.op_vaults.iter().find(|v| v.id.eq_ignore_ascii_case(&vs) || v.name.eq_ignore_ascii_case(&vs)) else {
+                                return op_err("Object not found");
+                            };
+                            let vid = v.id.clone();
+                            let Some(g) = st.op_groups.iter().find(|g| g.id.eq_ignore_ascii_case(&gs) || g.name.eq_ignore_ascii_case(&gs)) else {
+                                return op_err("Object not found");
+                            };
+                            let gid = g.id.clone();
+                            let req_perms: Vec<String> = perms_raw
+                                .map(|s| s.split(',').filter(|p| !p.is_empty()).map(|p| p.to_string()).collect())
+                                .unwrap_or_default();
+                            let cur_perms: Vec<String> = st
+                                .op_vault_groups
+                                .iter()
+                                .find(|vg| vg.vault_id == vid && vg.group_id == gid)
+                                .map(|vg| vg.permissions.clone())
+                                .unwrap_or_default();
+                            let new_perms = match change_vault_permissions(&cur_perms, &req_perms, gsub == "grant") {
+                                Ok(p) => p,
+                                Err(e) => return op_err(&e),
+                            };
+                            if let Some(existing) = st.op_vault_groups.iter_mut().find(|vg| vg.vault_id == vid && vg.group_id == gid) {
+                                if new_perms.is_empty() && gsub == "revoke" {
+                                    st.op_vault_groups.retain(|vg| !(vg.vault_id == vid && vg.group_id == gid));
+                                    return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                                }
+                                existing.permissions = new_perms;
+                            } else if gsub == "grant" {
+                                let id = next_op_id(st);
+                                st.op_vault_groups.push(OpVaultGroupGrant {
+                                    id,
+                                    vault_id: vid,
+                                    group_id: gid,
+                                    permissions: new_perms,
+                                });
+                            }
+                            BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                        }
+                        "list" => {
+                            let vs = vault_sel.unwrap_or_default();
+                            let Some(v) = st.op_vaults.iter().find(|v| v.id.eq_ignore_ascii_case(&vs) || v.name.eq_ignore_ascii_case(&vs)) else {
+                                return op_err("Object not found");
+                            };
+                            let vid = v.id.clone();
+                            let mut arr = Vec::new();
+                            let mut out = String::new();
+                            for vg in st.op_vault_groups.iter().filter(|vg| vg.vault_id == vid) {
+                                if let Some(g) = st.op_groups.iter().find(|g| g.id == vg.group_id) {
+                                    let p_arr: Vec<Value> = vg.permissions.iter().map(|p| JVal::Str(p.clone())).collect();
+                                    arr.push(jval!({
+                                        "id": g.id,
+                                        "name": g.name,
+                                        "permissions": p_arr
+                                    }));
+                                    if out.is_empty() {
+                                        out.push_str("id\tname\tpermissions\n");
+                                    }
+                                    let p_compact = format!(
+                                        "[{}]",
+                                        vg.permissions
+                                            .iter()
+                                            .map(|p| format!("\"{p}\""))
+                                            .collect::<Vec<_>>()
+                                            .join(",")
+                                    );
+                                    out.push_str(&format!("{}\t{}\t{p_compact}\n", g.id, g.name));
+                                }
+                            }
+                            if format_json {
+                                let s = to_pretty_json(&Value::Array(arr));
+                                return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                            }
+                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                        }
+                        _ => op_err("Unsupported admin action"),
+                    }
                 }
                 _ => op_err(&format!("unknown vault subcommand \"{sub}\"")),
             }
@@ -4975,11 +5275,602 @@ fn cmd_gh(
             stderr: String::new(),
             exit_code: 0,
         },
-        "completion" | "browse" | "project" | "codespace" | "cs" | "attestation" => {
-            if let Some(fields) = &json_fields {
-                return format_gh_json_output(&Value::Array(Vec::new()), fields, jq_expr.as_deref(), cwd, env, fs);
+        "completion" => {
+            let mut shell_name = "bash".to_string();
+            let mut i = 1usize;
+            while i < args.len() {
+                if (args[i] == "-s" || args[i] == "--shell") && i + 1 < args.len() {
+                    shell_name = args[i + 1].clone();
+                    i += 2;
+                } else {
+                    i += 1;
+                }
             }
-            BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+            BuiltinOutcome {
+                stdout: format!(
+                    "# {shell_name} completion for gh\ncomplete -W \"pr repo issue api auth release run workflow gist search label secret variable cache ssh-key gpg-key attestation config alias status browse version\" gh\n"
+                ),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        }
+        "browse" => {
+            let mut branch_opt: Option<String> = None;
+            let mut settings = false;
+            let mut wiki = false;
+            let mut releases = false;
+            let mut projects = false;
+            let mut pos_arg: Option<String> = None;
+            let mut i = 1usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-R" | "--repo" => i += 2,
+                    "-b" | "--branch" if i + 1 < args.len() => {
+                        branch_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-s" | "--settings" => {
+                        settings = true;
+                        i += 1;
+                    }
+                    "-w" | "--wiki" => {
+                        wiki = true;
+                        i += 1;
+                    }
+                    "-r" | "--releases" => {
+                        releases = true;
+                        i += 1;
+                    }
+                    "-p" | "--projects" => {
+                        projects = true;
+                        i += 1;
+                    }
+                    "-n" | "--no-browser" | "-c" | "--commit" => i += 1,
+                    a if !a.starts_with('-') => {
+                        if pos_arg.is_none() {
+                            pos_arg = Some(a.to_string());
+                        }
+                        i += 1;
+                    }
+                    _ => i += 1,
+                }
+            }
+            let mut map = states().lock().unwrap();
+            let st = map.entry(fs_id).or_default();
+            let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
+            let repo = st.gh_repos.get(&full).unwrap();
+            let base_url = format!("https://github.com/{full}");
+            let has_branch_flag = branch_opt.is_some();
+            let branch = branch_opt.unwrap_or_else(|| repo.default_branch.clone());
+            let target_url = if settings {
+                format!("{base_url}/settings")
+            } else if wiki {
+                format!("{base_url}/wiki")
+            } else if releases {
+                format!("{base_url}/releases")
+            } else if projects {
+                format!("{base_url}/projects")
+            } else if let Some(arg) = pos_arg {
+                if arg.bytes().all(|b| b.is_ascii_digit()) && !arg.is_empty() {
+                    let num: u64 = arg.parse().unwrap_or(0);
+                    if repo.prs.iter().any(|p| p.number == num) {
+                        format!("{base_url}/pull/{num}")
+                    } else {
+                        format!("{base_url}/issues/{num}")
+                    }
+                } else {
+                    format!("{base_url}/blob/{branch}/{}", arg.trim_start_matches('/'))
+                }
+            } else if has_branch_flag {
+                format!("{base_url}/tree/{branch}")
+            } else {
+                base_url
+            };
+            BuiltinOutcome {
+                stdout: format!("{target_url}\n"),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        }
+        "attestation" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("verify");
+            if sub != "verify" {
+                return gh_err(&format!("unknown command \"{sub}\" for \"gh attestation\""));
+            }
+            let mut owner_opt: Option<String> = None;
+            let mut bundle_opt: Option<String> = None;
+            let mut is_json = json_fields.is_some();
+            let mut file_arg: Option<String> = None;
+            let mut i = 2usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-R" | "--repo" => i += 2,
+                    "-o" | "--owner" if i + 1 < args.len() => {
+                        owner_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-b" | "--bundle" if i + 1 < args.len() => {
+                        bundle_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--format" if i + 1 < args.len() => {
+                        if args[i + 1] == "json" {
+                            is_json = true;
+                        }
+                        i += 2;
+                    }
+                    a if a == "--format=json" => {
+                        is_json = true;
+                        i += 1;
+                    }
+                    a if !a.starts_with('-') => {
+                        if file_arg.is_none() {
+                            file_arg = Some(a.to_string());
+                        }
+                        i += 1;
+                    }
+                    _ => i += 1,
+                }
+            }
+            let Some(farg) = file_arg else {
+                return gh_err("artifact path required for attestation verify");
+            };
+            let resolved = resolve_posix_path(cwd, &farg);
+            let Ok(bytes) = fs.read_file(&resolved) else {
+                return gh_err(&format!("{farg}: No such file or directory"));
+            };
+            let digest_bytes = sha256_bytes(&bytes);
+            let mut digest = String::new();
+            for b in &digest_bytes {
+                digest.push_str(&format!("{b:02x}"));
+            }
+            let map = states().lock().unwrap();
+            let st = map.get(&fs_id).cloned().unwrap_or_default();
+            let repo_str = repo_flag.unwrap_or_else(|| {
+                format!("{}/Hello-World", owner_opt.unwrap_or_else(|| st.gh_user.clone()))
+            });
+            let _ = bundle_opt;
+            if is_json {
+                let res = jval!([{
+                    "verified": true,
+                    "subjectDigest": format!("sha256:{digest}"),
+                    "issuer": "https://token.actions.githubusercontent.com",
+                    "repository": repo_str,
+                    "workflowRef": "octocat/Hello-World/.github/workflows/release.yml@refs/heads/main"
+                }]);
+                let s = to_pretty_json(&res);
+                return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+            }
+            BuiltinOutcome {
+                stdout: format!("Loaded digest sha256:{digest} for file://{farg}\n✓ Verification succeeded!\n"),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        }
+        "project" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
+                return BuiltinOutcome {
+                    stdout: "Work with GitHub Projects.\n\nUSAGE\n  gh project <command> [flags]\n\nCORE COMMANDS\n  close\n  copy\n  create\n  delete\n  edit\n  field-create\n  field-delete\n  field-list\n  item-add\n  item-archive\n  item-create\n  item-delete\n  item-edit\n  item-list\n  link\n  list\n  mark-template\n  unlink\n  view\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            let mut owner_opt: Option<String> = None;
+            let mut title_opt: Option<String> = None;
+            let mut short_desc_opt: Option<String> = None;
+            let mut readme_opt: Option<String> = None;
+            let mut name_opt: Option<String> = None;
+            let mut dtype_opt: Option<String> = None;
+            let mut id_opt: Option<String> = None;
+            let mut body_opt: Option<String> = None;
+            let mut url_opt: Option<String> = None;
+            let mut repo_link_opt: Option<String> = None;
+            let mut undo = false;
+            let mut is_json = false;
+            let mut pos_num: Option<u64> = None;
+            let mut i = 2usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "--owner" if i + 1 < args.len() => {
+                        owner_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--title" if i + 1 < args.len() => {
+                        title_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--short-description" if i + 1 < args.len() => {
+                        short_desc_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--readme" if i + 1 < args.len() => {
+                        readme_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--name" if i + 1 < args.len() => {
+                        name_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--data-type" if i + 1 < args.len() => {
+                        dtype_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--id" | "--item-id" if i + 1 < args.len() => {
+                        id_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--body" if i + 1 < args.len() => {
+                        body_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--url" if i + 1 < args.len() => {
+                        url_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--repo" | "-R" if i + 1 < args.len() => {
+                        repo_link_opt = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--format" if i + 1 < args.len() => {
+                        if args[i + 1] == "json" {
+                            is_json = true;
+                        }
+                        i += 2;
+                    }
+                    "--undo" => {
+                        undo = true;
+                        i += 1;
+                    }
+                    a if !a.starts_with('-') => {
+                        if pos_num.is_none()
+                            && let Ok(n) = a.parse::<u64>()
+                        {
+                            pos_num = Some(n);
+                        }
+                        i += 1;
+                    }
+                    _ => i += 1,
+                }
+            }
+            let mut map = states().lock().unwrap();
+            let st = map.entry(fs_id).or_default();
+            let owner = owner_opt.unwrap_or_else(|| st.gh_user.clone());
+            match sub {
+                "create" => {
+                    let num = (st.gh_projects.len() + 1) as u64;
+                    let title = title_opt.unwrap_or_else(|| format!("Project {num}"));
+                    let url = format!("https://github.com/orgs/{owner}/projects/{num}");
+                    let p = GhProjectRecord {
+                        number: num,
+                        id: format!("PVT_{num}"),
+                        title: title.clone(),
+                        short_description: short_desc_opt.unwrap_or_default(),
+                        readme: readme_opt.unwrap_or_default(),
+                        is_public: false,
+                        closed: false,
+                        is_template: false,
+                        owner: owner.clone(),
+                        url: url.clone(),
+                        fields: vec![
+                            ("PVTF_1".into(), "Title".into(), "TITLE".into()),
+                            ("PVTF_2".into(), "Status".into(), "SINGLE_SELECT".into()),
+                        ],
+                        items: Vec::new(),
+                        linked_repos: Vec::new(),
+                    };
+                    st.gh_projects.push(p.clone());
+                    if is_json {
+                        let val = jval!({
+                            "number": p.number,
+                            "id": p.id,
+                            "title": p.title,
+                            "shortDescription": p.short_description,
+                            "readme": p.readme,
+                            "public": p.is_public,
+                            "closed": p.closed,
+                            "owner": p.owner,
+                            "url": p.url
+                        });
+                        return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    BuiltinOutcome { stdout: format!("{url}\n"), stderr: String::new(), exit_code: 0 }
+                }
+                "list" => {
+                    if is_json {
+                        let arr: Vec<Value> = st
+                            .gh_projects
+                            .iter()
+                            .map(|p| {
+                                jval!({
+                                    "number": p.number,
+                                    "id": p.id,
+                                    "title": p.title,
+                                    "closed": p.closed,
+                                    "url": p.url
+                                })
+                            })
+                            .collect();
+                        let cnt = arr.len();
+                        let val = jval!({ "projects": arr, "totalCount": cnt });
+                        return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let mut out = String::new();
+                    for p in &st.gh_projects {
+                        let st_str = if p.closed { "closed" } else { "open" };
+                        out.push_str(&format!("{}\t{}\t{st_str}\t{}\n", p.number, p.title, p.id));
+                    }
+                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                }
+                _ => {
+                    let num = pos_num.unwrap_or(1);
+                    if !st.gh_projects.iter().any(|p| p.number == num) {
+                        st.gh_projects.push(GhProjectRecord {
+                            number: num,
+                            id: format!("PVT_{num}"),
+                            title: format!("Project {num}"),
+                            short_description: String::new(),
+                            readme: String::new(),
+                            is_public: false,
+                            closed: false,
+                            is_template: false,
+                            owner: owner.clone(),
+                            url: format!("https://github.com/orgs/{owner}/projects/{num}"),
+                            fields: vec![
+                                ("PVTF_1".into(), "Title".into(), "TITLE".into()),
+                                ("PVTF_2".into(), "Status".into(), "SINGLE_SELECT".into()),
+                            ],
+                            items: Vec::new(),
+                            linked_repos: Vec::new(),
+                        });
+                    }
+                    if sub == "delete" {
+                        st.gh_projects.retain(|p| p.number != num);
+                        return BuiltinOutcome {
+                            stdout: format!("Deleted project {num}\n"),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
+                    let p = st.gh_projects.iter_mut().find(|p| p.number == num).unwrap();
+                    match sub {
+                        "view" => {
+                            if is_json {
+                                let val = jval!({
+                                    "number": p.number,
+                                    "id": p.id,
+                                    "title": p.title,
+                                    "closed": p.closed,
+                                    "url": p.url
+                                });
+                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                            }
+                            let st_str = if p.closed { "closed" } else { "open" };
+                            BuiltinOutcome {
+                                stdout: format!("Title: {}\nNumber: {}\nID: {}\nState: {st_str}\nURL: {}\n", p.title, p.number, p.id, p.url),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "edit" => {
+                            if let Some(t) = title_opt {
+                                p.title = t;
+                            }
+                            if let Some(sd) = short_desc_opt {
+                                p.short_description = sd;
+                            }
+                            if let Some(rm) = readme_opt {
+                                p.readme = rm;
+                            }
+                            BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
+                        }
+                        "close" => {
+                            p.closed = !undo;
+                            BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
+                        }
+                        "field-list" => {
+                            let mut out = String::new();
+                            for (fid, fname, ftype) in &p.fields {
+                                out.push_str(&format!("{fname}\t{ftype}\t{fid}\n"));
+                            }
+                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                        }
+                        "field-create" => {
+                            let fid = format!("PVTF_{}", p.fields.len() + 1);
+                            p.fields.push((
+                                fid.clone(),
+                                name_opt.unwrap_or_else(|| "New Field".into()),
+                                dtype_opt.unwrap_or_else(|| "TEXT".into()),
+                            ));
+                            BuiltinOutcome { stdout: format!("{fid}\n"), stderr: String::new(), exit_code: 0 }
+                        }
+                        "field-delete" => {
+                            let fid = id_opt.unwrap_or_default();
+                            p.fields.retain(|(id, _, _)| id != &fid);
+                            BuiltinOutcome { stdout: format!("Deleted field {fid}\n"), stderr: String::new(), exit_code: 0 }
+                        }
+                        "item-create" | "item-add" => {
+                            let iid = format!("PVTI_{}", p.items.len() + 1);
+                            let ititle = title_opt.or_else(|| url_opt.clone()).unwrap_or_else(|| format!("Item {}", p.items.len() + 1));
+                            let ibody = body_opt.unwrap_or_default();
+                            let itype = if sub == "item-add" { "ISSUE" } else { "DRAFT_ISSUE" };
+                            p.items.push((iid.clone(), ititle, ibody, itype.into(), url_opt));
+                            BuiltinOutcome { stdout: format!("Created item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                        }
+                        "item-list" => {
+                            let mut out = String::new();
+                            for (iid, ititle, _, itype, _) in &p.items {
+                                out.push_str(&format!("{itype}\t{ititle}\t{iid}\n"));
+                            }
+                            BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                        }
+                        "item-delete" => {
+                            let iid = id_opt.unwrap_or_default();
+                            p.items.retain(|(id, _, _, _, _)| id != &iid);
+                            BuiltinOutcome { stdout: format!("Deleted item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                        }
+                        "link" | "unlink" => {
+                            let rname = repo_link_opt.unwrap_or_else(|| "octocat/repo".into());
+                            let verb = if sub == "link" { "Linked" } else { "Unlinked" };
+                            BuiltinOutcome {
+                                stdout: format!("{verb} {rname} to project {}\n", p.number),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            }
+                        }
+                        "mark-template" => {
+                            p.is_template = !undo;
+                            BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
+                        }
+                        _ => BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 },
+                    }
+                }
+            }
+        }
+        "codespace" | "cs" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
+                return BuiltinOutcome {
+                    stdout: "Connect to and manage codespaces.\n\nUSAGE\n  gh codespace <command> [flags]\n\nCORE COMMANDS\n  code\n  cp\n  create\n  delete\n  edit\n  jupyter\n  list\n  logs\n  ports\n  rebuild\n  ssh\n  stop\n  view\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            let mut cs_repo: Option<String> = repo_flag.clone();
+            let mut cs_branch: Option<String> = None;
+            let mut cs_name: Option<String> = None;
+            let mut cs_machine: Option<String> = None;
+            let mut cs_disp: Option<String> = None;
+            let mut pos_arg: Option<String> = None;
+            let mut i = 2usize;
+            while i < args.len() {
+                match args[i].as_str() {
+                    "-r" | "-R" | "--repo" if i + 1 < args.len() => {
+                        cs_repo = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-b" | "--branch" if i + 1 < args.len() => {
+                        cs_branch = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-c" | "--codespace" if i + 1 < args.len() => {
+                        cs_name = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-m" | "--machine" if i + 1 < args.len() => {
+                        cs_machine = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "-d" | "--display-name" if i + 1 < args.len() => {
+                        cs_disp = Some(args[i + 1].clone());
+                        i += 2;
+                    }
+                    "--json" | "-q" | "--jq" | "-t" | "--template" => i += 2,
+                    a if !a.starts_with('-') => {
+                        if pos_arg.is_none() {
+                            pos_arg = Some(a.to_string());
+                        }
+                        i += 1;
+                    }
+                    _ => i += 1,
+                }
+            }
+            let mut map = states().lock().unwrap();
+            let st = map.entry(fs_id).or_default();
+            match sub {
+                "create" => {
+                    let name = format!("codespace-{}", st.gh_codespaces.len() + 1);
+                    let disp = cs_disp.unwrap_or_else(|| name.clone());
+                    let repo = cs_repo.unwrap_or_else(|| "octocat/repo".into());
+                    let branch = cs_branch.unwrap_or_else(|| "main".into());
+                    let machine = cs_machine.unwrap_or_else(|| "basicLinux32gb".into());
+                    st.gh_codespaces.push(GhCodespaceRecord {
+                        name: name.clone(),
+                        display_name: disp,
+                        repository: repo,
+                        branch,
+                        state: "Available".into(),
+                        machine_name: machine,
+                        created_at: "2026-09-28T12:00:00Z".into(),
+                    });
+                    BuiltinOutcome { stdout: format!("{name}\n"), stderr: String::new(), exit_code: 0 }
+                }
+                "list" => {
+                    if let Some(fields) = &json_fields {
+                        let arr: Vec<Value> = st
+                            .gh_codespaces
+                            .iter()
+                            .map(|cs| {
+                                jval!({
+                                    "name": cs.name,
+                                    "displayName": cs.display_name,
+                                    "repository": cs.repository,
+                                    "branch": cs.branch,
+                                    "state": cs.state,
+                                    "machineName": cs.machine_name,
+                                    "createdAt": cs.created_at
+                                })
+                            })
+                            .collect();
+                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let mut out = String::new();
+                    for cs in &st.gh_codespaces {
+                        out.push_str(&format!("{}\t{}\t{}\t{}\t{}\n", cs.name, cs.display_name, cs.repository, cs.branch, cs.state));
+                    }
+                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                }
+                "view" => {
+                    let sel = cs_name
+                        .or(pos_arg)
+                        .unwrap_or_else(|| st.gh_codespaces.first().map(|c| c.name.clone()).unwrap_or_else(|| "codespace-1".into()));
+                    let Some(cs) = st.gh_codespaces.iter().find(|c| c.name == sel) else {
+                        return gh_err(&format!("codespace {sel} not found"));
+                    };
+                    if let Some(fields) = &json_fields {
+                        let val = jval!({
+                            "name": cs.name,
+                            "displayName": cs.display_name,
+                            "repository": cs.repository,
+                            "branch": cs.branch,
+                            "state": cs.state,
+                            "machineName": cs.machine_name,
+                            "createdAt": cs.created_at
+                        });
+                        return format_gh_json_output(&val, fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("Name: {}\nRepository: {}\nBranch: {}\nState: {}\n", cs.name, cs.repository, cs.branch, cs.state),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "stop" => {
+                    let sel = cs_name.or(pos_arg).unwrap_or_default();
+                    if let Some(cs) = st.gh_codespaces.iter_mut().find(|c| c.name == sel) {
+                        cs.state = "Shutdown".into();
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("✓ Stopped codespace {sel}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "delete" => {
+                    let sel = cs_name.or(pos_arg).unwrap_or_default();
+                    st.gh_codespaces.retain(|c| c.name != sel);
+                    BuiltinOutcome {
+                        stdout: format!("✓ Deleted codespace {sel}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                _ => BuiltinOutcome {
+                    stdout: format!("✓ Codespace {sub} executed\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                },
+            }
         }
         _ => gh_err(&format!("unknown command \"{first}\" for \"gh\"")),
     }
@@ -5488,6 +6379,32 @@ mod tests {
         let search_repos = cmd_gh(&args(&["search", "repos", "Hello"]), "", &mut cwd, &mut env, &vfs);
         assert_eq!(search_repos.exit_code, 0);
         assert!(search_repos.stdout.contains("octocat/Hello-World"));
+
+        let _ = cmd_op(&args(&["vault", "create", "ProdVault"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        let vg_grant = cmd_op(
+            &args(&["vault", "group", "grant", "--vault", "ProdVault", "--group", "PlatformEng", "--permissions", "view_items,view_and_copy_passwords,edit_items"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(vg_grant.exit_code, 0);
+        let vg_list = cmd_op(&args(&["vault", "group", "list", "ProdVault", "--format", "json"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(vg_list.exit_code, 0);
+        assert!(vg_list.stdout.contains("PlatformEng") && vg_list.stdout.contains("edit_items"));
+
+        let browse_out = cmd_gh(&args(&["browse", "-R", "octocat/Hello-World", "-s", "-n"]), "", &mut cwd, &mut env, &vfs);
+        assert_eq!(browse_out.exit_code, 0);
+        assert_eq!(browse_out.stdout, "https://github.com/octocat/Hello-World/settings\n");
+
+        let proj_create = cmd_gh(&args(&["project", "create", "--title", "Roadmap"]), "", &mut cwd, &mut env, &vfs);
+        assert_eq!(proj_create.exit_code, 0);
+        assert!(proj_create.stdout.contains("/projects/1"));
+
+        let cs_create = cmd_gh(&args(&["codespace", "create", "-R", "octocat/Hello-World", "-b", "main"]), "", &mut cwd, &mut env, &vfs);
+        assert_eq!(cs_create.exit_code, 0);
+        assert_eq!(cs_create.stdout, "codespace-1\n");
     }
 
 }

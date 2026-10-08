@@ -21135,7 +21135,9 @@ fn format_sql_result_rows(
         return String::new();
     }
     fn display_cell<'a>(v: &'a str, nullvalue: &'a str) -> &'a str {
-        if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
+        if v == "\x00LIT_NULL" {
+            "NULL"
+        } else if v.is_empty() || v == "NULL" {
             nullvalue
         } else {
             v
@@ -21148,7 +21150,9 @@ fn format_sql_result_rows(
                 let mut entries = Vec::new();
                 for (idx, (cname, val_s)) in headers.iter().zip(pvals.iter()).enumerate() {
                     let allow_num = proj_is_num.and_then(|p| p.get(idx).copied()).unwrap_or(true);
-                    let jv = if val_s.is_empty() || val_s.eq_ignore_ascii_case("NULL") {
+                    let jv = if val_s == "\x00LIT_NULL" {
+                        JVal::Str("NULL".to_string())
+                    } else if val_s.is_empty() || val_s == "NULL" {
                         JVal::Null
                     } else if allow_num
                         && is_sql_numeric_text(val_s)
@@ -23193,7 +23197,8 @@ fn eval_sql_row_expr(
     if concat_parts.len() > 1 {
         let mut res = String::new();
         for p in concat_parts {
-            res.push_str(&eval_sql_row_expr(p, cols, row, tables));
+            let pv = eval_sql_row_expr(p, cols, row, tables);
+            res.push_str(if pv == "\x00LIT_NULL" { "NULL" } else { &pv });
         }
         return res;
     }
@@ -23467,7 +23472,15 @@ fn eval_sql_row_expr(
     }
     if upper.starts_with("TYPEOF(") && s.ends_with(')') {
         let inner_raw = s[7..s.len() - 1].trim();
+        if (inner_raw.starts_with('\'') && inner_raw.ends_with('\''))
+            || (inner_raw.starts_with('"') && inner_raw.ends_with('"'))
+        {
+            return "text".to_string();
+        }
         let v = eval_sql_row_expr(inner_raw, cols, row, tables);
+        if v == "\x00LIT_NULL" {
+            return "text".to_string();
+        }
         if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
             return "null".to_string();
         }
@@ -23480,9 +23493,18 @@ fn eval_sql_row_expr(
         return "text".to_string();
     }
     if upper.starts_with("QUOTE(") && s.ends_with(')') {
-        let v = eval_sql_row_expr(&s[6..s.len() - 1], cols, row, tables);
+        let inner_raw = s[6..s.len() - 1].trim();
+        let is_str_lit = (inner_raw.starts_with('\'') && inner_raw.ends_with('\''))
+            || (inner_raw.starts_with('"') && inner_raw.ends_with('"'));
+        let v = eval_sql_row_expr(inner_raw, cols, row, tables);
+        if is_str_lit {
+            return format!("'{}'", v.replace('\'', "''"));
+        }
+        if v == "\x00LIT_NULL" {
+            return "'NULL'".to_string();
+        }
         if v.is_empty() || v.eq_ignore_ascii_case("NULL") {
-            return "NULL".to_string();
+            return "\x00LIT_NULL".to_string();
         }
         if v.parse::<f64>().is_ok() {
             return v;
@@ -24818,6 +24840,9 @@ fn eval_sql_scalar_expr(expr: &str) -> String {
         if let Some(as_pos) = inner.to_ascii_uppercase().find(" AS ") {
             return eval_sql_scalar_expr(&inner[..as_pos]);
         }
+    }
+    if s.eq_ignore_ascii_case("NULL") {
+        return String::new();
     }
     s.trim_matches('\'').trim_matches('"').to_string()
 }
@@ -34472,4 +34497,12 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(sq_out.stdout, "1:alice:1:2\n2:bob:0:1\n3:alice:0:2\n");
     }
 
+    #[test]
+    fn unit_sqlite3_quote_typeof_json_quote_null_and_string_literals_parity() {
+        let vfs = MemoryVfs::new();
+        let sql = "SELECT QUOTE(NULL), TYPEOF(NULL), JSON_QUOTE(NULL), QUOTE('NULL'), TYPEOF('NULL'), QUOTE('null'), TYPEOF('null'), QUOTE(''), TYPEOF('');";
+        let out = cmd_sqlite3(&args(&[":memory:", sql]), "", "/", &vfs);
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(out.stdout, "NULL|null|null|'NULL'|text|'null'|text|''|text\n");
+    }
 }

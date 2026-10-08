@@ -1889,6 +1889,10 @@ impl SvgEl {
 }
 
 fn parse_svg_xml(source: &str) -> Result<SvgEl, String> {
+    parse_svg_xml_impl(source, true)
+}
+
+fn parse_svg_xml_impl(source: &str, require_svg_root: bool) -> Result<SvgEl, String> {
     let bytes = source.as_bytes();
     let mut roots: Vec<SvgEl> = Vec::new();
     let mut stack: Vec<SvgEl> = Vec::new();
@@ -2052,7 +2056,7 @@ fn parse_svg_xml(source: &str) -> Result<SvgEl, String> {
             }
         }
     }
-    if !stack.is_empty() || roots.len() != 1 || roots[0].name != "svg" {
+    if !stack.is_empty() || roots.len() != 1 || (require_svg_root && roots[0].name != "svg") {
         return Err(format!("Malformed SVG at offset {i}"));
     }
     Ok(roots.remove(0))
@@ -2385,7 +2389,7 @@ fn collect_svg_texts(el: &SvgEl, out: &mut Vec<String>) {
         let mut t = String::new();
         for ch in &el.children {
             if let SvgChild::Text(s) = ch {
-                t.push_str(s);
+                t.push_str(&xml_unescape_str(s));
             }
         }
         if !t.is_empty() {
@@ -2398,6 +2402,351 @@ fn collect_svg_texts(el: &SvgEl, out: &mut Vec<String>) {
             collect_svg_texts(sub, out);
         }
     }
+}
+
+fn svg_tokens(source: &str) -> Result<Vec<Result<f64, char>>, String> {
+    let bytes = source.as_bytes();
+    let mut out = Vec::new();
+    let mut i = 0usize;
+    while i < bytes.len() {
+        let b = bytes[i];
+        if b.is_ascii_whitespace() || b == b',' {
+            i += 1;
+            continue;
+        }
+        if !b"0123456789.+-".contains(&b) {
+            let ch = source[i..].chars().next().unwrap();
+            out.push(Err(ch));
+            i += ch.len_utf8();
+            continue;
+        }
+        let start = i;
+        i += 1;
+        while i < bytes.len() && b"0123456789.".contains(&bytes[i]) {
+            i += 1;
+        }
+        if i < bytes.len() && (bytes[i] == b'e' || bytes[i] == b'E') {
+            i += 1;
+            if i < bytes.len() && (bytes[i] == b'+' || bytes[i] == b'-') {
+                i += 1;
+            }
+            while i < bytes.len() && bytes[i].is_ascii_digit() {
+                i += 1;
+            }
+        }
+        let num: f64 = source[start..i]
+            .parse()
+            .map_err(|_| "Invalid SVG number".to_string())?;
+        if !num.is_finite() {
+            return Err("Invalid SVG number".to_string());
+        }
+        out.push(Ok(num));
+    }
+    Ok(out)
+}
+
+fn svg_numbers(source: &str) -> Result<Vec<f64>, String> {
+    let mut out = Vec::new();
+    for tok in svg_tokens(source)? {
+        match tok {
+            Ok(n) => out.push(n),
+            Err(_) => return Err("Expected SVG number".to_string()),
+        }
+    }
+    Ok(out)
+}
+
+fn svg_validate_path(source: &str) -> Result<(), String> {
+    let input = svg_tokens(source)?;
+    if !input.is_empty() && !matches!(input[0], Err('M') | Err('m')) {
+        return Err("SVG path must begin with moveto".to_string());
+    }
+    let mut i = 0usize;
+    let mut command = '\0';
+    let take_num = |idx: &mut usize| -> Result<f64, String> {
+        let Some(tok) = input.get(*idx) else {
+            return Err("Invalid SVG path".to_string());
+        };
+        *idx += 1;
+        match tok {
+            Ok(n) => Ok(*n),
+            Err(_) => Err("Invalid SVG path".to_string()),
+        }
+    };
+    while i < input.len() {
+        if let Err(ch) = input[i] {
+            command = ch;
+            i += 1;
+        }
+        let upper = command.to_ascii_uppercase();
+        match upper {
+            'Z' => {
+                command = '\0';
+            }
+            'M' | 'L' | 'T' => {
+                take_num(&mut i)?;
+                take_num(&mut i)?;
+                if upper == 'M' {
+                    command = if command == 'm' { 'l' } else { 'L' };
+                }
+            }
+            'H' | 'V' => {
+                take_num(&mut i)?;
+            }
+            'C' => {
+                for _ in 0..6 {
+                    take_num(&mut i)?;
+                }
+            }
+            'S' | 'Q' => {
+                for _ in 0..4 {
+                    take_num(&mut i)?;
+                }
+            }
+            _ => return Err(format!("Unsupported SVG path command {command}")),
+        }
+    }
+    Ok(())
+}
+
+fn svg_validate_transforms(source: &str) -> Result<(), String> {
+    let bytes = source.as_bytes();
+    let mut offset = 0usize;
+    while offset < bytes.len() {
+        while offset < bytes.len() && (bytes[offset].is_ascii_whitespace() || bytes[offset] == b',') {
+            offset += 1;
+        }
+        if offset == bytes.len() {
+            break;
+        }
+        let Some(open_rel) = source[offset..].find('(') else {
+            return Err("Invalid SVG transform".to_string());
+        };
+        let open = offset + open_rel;
+        let Some(close_rel) = source[open..].find(')') else {
+            return Err("Invalid SVG transform".to_string());
+        };
+        let close = open + close_rel;
+        let name = source[offset..open].trim();
+        let args = svg_numbers(&source[open + 1..close])?;
+        let ok = match name {
+            "matrix" => args.len() == 6,
+            "translate" | "scale" => (1..=2).contains(&args.len()),
+            "rotate" => args.len() == 1 || args.len() == 3,
+            _ => false,
+        };
+        if !ok {
+            return Err(format!("Unsupported SVG transform {name}"));
+        }
+        offset = close + 1;
+    }
+    Ok(())
+}
+
+fn validate_and_extract_svg_render(source: &str) -> Result<(f64, f64, Vec<String>), String> {
+    let root = parse_svg_xml_impl(source, false)?;
+    let root_local = root.name.rsplit(':').next().unwrap_or(&root.name);
+    if root_local != "svg" {
+        return Err("Expected SVG document".to_string());
+    }
+    let root_attrs: BTreeMap<String, String> = root
+        .attrs
+        .iter()
+        .map(|(k, v)| (k.rsplit(':').next().unwrap_or(k).to_string(), xml_unescape_str(v)))
+        .collect();
+    if let Some(par) = root_attrs.get("preserveAspectRatio")
+        && par != "xMidYMid meet"
+        && par != "xMidYMid"
+    {
+        return Err("Unsupported SVG preserveAspectRatio".to_string());
+    }
+    let vbox = if let Some(vb) = root_attrs.get("viewBox") {
+        let nums = svg_numbers(vb)?;
+        if nums.len() != 4 || nums[2] <= 0.0 || nums[3] <= 0.0 {
+            return Err("Invalid SVG viewBox".to_string());
+        }
+        Some(nums)
+    } else {
+        None
+    };
+    let width = parse_svg_length_px(
+        root_attrs.get("width").map(|s| s.as_str()),
+        vbox.as_ref().map(|b| b[2]).unwrap_or(300.0),
+    )?;
+    let height = parse_svg_length_px(
+        root_attrs.get("height").map(|s| s.as_str()),
+        vbox.as_ref().map(|b| b[3]).unwrap_or(150.0),
+    )?;
+    let pixels = width.ceil() * height.ceil();
+    if !(width > 0.0 && height > 0.0) || !pixels.is_finite() || pixels > 16_000_000.0 {
+        return Err("SVG pixel limit exceeded".to_string());
+    }
+
+    fn visit(
+        node: &SvgEl,
+        inherited: &BTreeMap<String, String>,
+        is_root: bool,
+        texts: &mut Vec<String>,
+    ) -> Result<(), String> {
+        let local_name = node.name.rsplit(':').next().unwrap_or(&node.name);
+        let mut own: BTreeMap<String, String> = BTreeMap::new();
+        for (k, v) in &node.attrs {
+            own.insert(k.rsplit(':').next().unwrap_or(k).to_string(), xml_unescape_str(v));
+        }
+        let mut a = inherited.clone();
+        for (k, v) in &own {
+            a.insert(k.clone(), v.clone());
+        }
+        if let Some(style) = own.get("style") {
+            for decl in style.split(';') {
+                if let Some((sk, sv)) = decl.split_once(':') {
+                    a.insert(sk.trim().to_string(), sv.trim().to_string());
+                }
+            }
+        }
+        if a.get("display").map(|s| s.as_str()) == Some("none")
+            || a.get("visibility").map(|s| s.as_str()) == Some("hidden")
+        {
+            return Ok(());
+        }
+        if matches!(local_name, "defs" | "title" | "desc" | "metadata") {
+            return Ok(());
+        }
+        for key in ["clip-path", "mask", "filter", "marker-start", "marker-mid", "marker-end"] {
+            if let Some(v) = a.get(key)
+                && !v.is_empty()
+                && v != "none"
+            {
+                return Err(format!("Unsupported SVG {key}"));
+            }
+        }
+        for key in ["opacity", "fill-opacity", "stroke-opacity"] {
+            if let Some(v) = a.get(key)
+                && v.trim().parse::<f64>().ok() != Some(1.0)
+            {
+                return Err(format!("Unsupported SVG {key}"));
+            }
+        }
+        if !is_root && local_name == "svg" {
+            return Err("Unsupported nested SVG viewport".to_string());
+        }
+        if let Some(tf) = own.get("transform") {
+            svg_validate_transforms(tf)?;
+        }
+        if let Some(da) = a.get("stroke-dasharray")
+            && !da.is_empty()
+            && da != "none"
+        {
+            let dash = svg_numbers(da)?;
+            if dash.is_empty() || dash.iter().any(|&v| v < 0.0) {
+                return Err("Invalid SVG dash array".to_string());
+            }
+            parse_svg_length_px(a.get("stroke-dashoffset").map(|s| s.as_str()), 0.0)?;
+        }
+        if let Some(lc) = a.get("stroke-linecap")
+            && !lc.is_empty()
+            && !matches!(lc.as_str(), "butt" | "round" | "square")
+        {
+            return Err("Invalid SVG stroke-linecap".to_string());
+        }
+        if let Some(lj) = a.get("stroke-linejoin")
+            && !lj.is_empty()
+            && !matches!(lj.as_str(), "miter" | "round" | "bevel")
+        {
+            return Err("Invalid SVG stroke-linejoin".to_string());
+        }
+        let n = |key: &str, fallback: f64| -> Result<f64, String> {
+            parse_svg_length_px(a.get(key).map(|s| s.as_str()), fallback)
+        };
+        match local_name {
+            "svg" | "g" | "a" => {}
+            "rect" => {
+                let _ = (n("x", 0.0)?, n("y", 0.0)?);
+                let rw = n("width", 0.0)?;
+                let rh = n("height", 0.0)?;
+                let ry_def = n("ry", 0.0)?;
+                let rx = n("rx", ry_def)?;
+                let ry = n("ry", rx)?;
+                if rw < 0.0 || rh < 0.0 || rx < 0.0 || ry < 0.0 {
+                    return Err("Negative SVG rectangle size".to_string());
+                }
+            }
+            "line" => {
+                let _ = (n("x1", 0.0)?, n("y1", 0.0)?, n("x2", 0.0)?, n("y2", 0.0)?);
+            }
+            "path" => {
+                svg_validate_path(a.get("d").map(|s| s.as_str()).unwrap_or(""))?;
+            }
+            "polygon" | "polyline" => {
+                let pts = svg_numbers(a.get("points").map(|s| s.as_str()).unwrap_or(""))?;
+                if pts.len() % 2 != 0 {
+                    return Err("Invalid SVG points".to_string());
+                }
+            }
+            "ellipse" | "circle" => {
+                let _ = (n("cx", 0.0)?, n("cy", 0.0)?);
+                let rx = n(if local_name == "circle" { "r" } else { "rx" }, 0.0)?;
+                let ry = n(if local_name == "circle" { "r" } else { "ry" }, 0.0)?;
+                if rx < 0.0 || ry < 0.0 {
+                    return Err("Negative SVG radius".to_string());
+                }
+            }
+            "text" => {
+                if node.children.iter().any(|c| matches!(c, SvgChild::El(_))) {
+                    return Err("Unsupported SVG text children".to_string());
+                }
+                if a.get("fill").map(|s| s.as_str()) != Some("none") {
+                    if let Some(st) = a.get("stroke")
+                        && !st.is_empty()
+                        && st != "none"
+                    {
+                        return Err("Unsupported SVG text stroke".to_string());
+                    }
+                    let _ = (n("font-size", 16.0)?, n("x", 0.0)?, n("y", 0.0)?);
+                    let mut t = String::new();
+                    for ch in &node.children {
+                        if let SvgChild::Text(s) = ch {
+                            t.push_str(&xml_unescape_str(s));
+                        }
+                    }
+                    if !t.is_empty() {
+                        texts.push(t);
+                    }
+                }
+            }
+            other => return Err(format!("Unsupported SVG element {other}")),
+        }
+        if local_name != "text" {
+            let mut styles = BTreeMap::new();
+            for key in [
+                "fill",
+                "stroke",
+                "stroke-width",
+                "fill-rule",
+                "font-size",
+                "text-anchor",
+                "visibility",
+                "stroke-dasharray",
+                "stroke-dashoffset",
+                "stroke-linecap",
+                "stroke-linejoin",
+            ] {
+                if let Some(v) = a.get(key) {
+                    styles.insert(key.to_string(), v.clone());
+                }
+            }
+            for ch in &node.children {
+                if let SvgChild::El(sub) = ch {
+                    visit(sub, &styles, false, texts)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    let mut texts = Vec::new();
+    visit(&root, &BTreeMap::new(), true, &mut texts)?;
+    Ok((width, height, texts))
 }
 
 
@@ -5360,8 +5709,9 @@ fn cmd_media_doc(
             let mut ftr_center = String::new();
             let mut ftr_right = String::new();
             let mut replacements: Vec<(String, String)> = Vec::new();
-            let mut pos_args: Vec<(String, bool)> = Vec::new();
+            let mut pos_args: Vec<(String, bool, bool)> = Vec::new();
             let mut next_is_cover = false;
+            let mut next_is_cover_obj = false;
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
@@ -5450,15 +5800,18 @@ fn cmd_media_doc(
                         i += 1;
                     }
                     "cover" => {
+                        next_is_cover_obj = true;
                         i += 1;
                     }
                     "page" => {
                         next_is_cover = false;
+                        next_is_cover_obj = false;
                         i += 1;
                     }
                     a if a == "-" || !a.starts_with('-') => {
-                        pos_args.push((a.to_string(), next_is_cover));
+                        pos_args.push((a.to_string(), next_is_cover, next_is_cover_obj));
                         next_is_cover = false;
+                        next_is_cover_obj = false;
                         i += 1;
                     }
                     _ => {
@@ -5484,8 +5837,8 @@ fn cmd_media_doc(
             doc.page_w = pw;
             doc.page_h = ph;
             let mut all_headings: Vec<(String, String, usize)> = Vec::new();
-            let mut page_meta: Vec<(String, bool)> = Vec::new();
-            for (src, is_cover) in &pos_args[..pos_args.len() - 1] {
+            let mut page_meta: Vec<(String, bool, bool)> = Vec::new();
+            for (src, is_cover, is_cover_obj) in &pos_args[..pos_args.len() - 1] {
                 if src.ends_with(".txt") {
                     return err_out("wkhtmltopdf: unsupported .txt input\n", 1);
                 }
@@ -5518,8 +5871,10 @@ fn cmd_media_doc(
                 }
                 for page_html in split_html_pages(&raw_html) {
                     let page_num = doc.pages.len() + 1;
-                    for (ht, hl) in extract_html_headings(&page_html) {
-                        all_headings.push((ht, hl, page_num));
+                    if !*is_cover_obj {
+                        for (ht, hl) in extract_html_headings(&page_html) {
+                            all_headings.push((ht, hl, page_num));
+                        }
                     }
                     let text = strip_html_tags(&page_html);
                     let images = extract_html_images(&page_html, base_dir, fs);
@@ -5531,7 +5886,7 @@ fn cmd_media_doc(
                         images,
                         urls,
                     });
-                    page_meta.push((src.clone(), *is_cover));
+                    page_meta.push((src.clone(), *is_cover, *is_cover_obj));
                 }
             }
             if let Some(t) = title_opt {
@@ -5540,7 +5895,7 @@ fn cmd_media_doc(
             if doc.title.is_empty() {
                 doc.title = "Document".to_string();
             }
-            let counted_total = page_meta.iter().filter(|(_, is_cov)| !*is_cov).count() as i64;
+            let counted_total = page_meta.iter().filter(|(_, is_cov, _)| !*is_cov).count() as i64;
             let topage_val = counted_total + page_offset;
             let mut logical_page = 1 + page_offset;
             let sub_tokens = |tmpl: &str, pno: i64, webpage: &str, title: &str| -> String {
@@ -5556,19 +5911,30 @@ fn cmd_media_doc(
                 out
             };
             for (idx, pg) in doc.pages.iter_mut().enumerate() {
-                let (ref wp, is_cov) = page_meta[idx];
+                let (ref wp, is_cov, is_cov_obj) = page_meta[idx];
                 let cur_pno = logical_page;
                 if !is_cov {
                     logical_page += 1;
                 }
-                let mut extra = Vec::new();
-                for t in [&hdr_left, &hdr_center, &hdr_right, &ftr_left, &ftr_center, &ftr_right] {
-                    if !t.is_empty() {
-                        extra.push(sub_tokens(t, cur_pno, wp, &doc.title));
+                if !is_cov_obj {
+                    let mut hdr_parts = Vec::new();
+                    for t in [&hdr_left, &hdr_center, &hdr_right] {
+                        if !t.is_empty() {
+                            hdr_parts.push(sub_tokens(t, cur_pno, wp, &doc.title));
+                        }
                     }
-                }
-                if !extra.is_empty() {
-                    pg.text = format!("{}\n{}", pg.text, extra.join(" "));
+                    let mut ftr_parts = Vec::new();
+                    for t in [&ftr_left, &ftr_center, &ftr_right] {
+                        if !t.is_empty() {
+                            ftr_parts.push(sub_tokens(t, cur_pno, wp, &doc.title));
+                        }
+                    }
+                    if !hdr_parts.is_empty() {
+                        pg.text = format!("{}\n{}", hdr_parts.join(" "), pg.text);
+                    }
+                    if !ftr_parts.is_empty() {
+                        pg.text = format!("{}\n{}", pg.text, ftr_parts.join(" "));
+                    }
                 }
             }
             if outline {
@@ -6308,7 +6674,7 @@ fn cmd_media_doc(
                     if !enc_pw.is_empty() && supplied != enc_pw {
                         return err_out(&format!("qpdf: {f}: invalid password\n"), 2);
                     }
-                    return ok_out("R = 6\nP = -4\nUser password = \nextract for accessibility: allowed\nextract for any purpose: allowed\nprint low resolution: allowed\nprint high resolution: allowed\nmodify document assembly: allowed\nmodify forms: allowed\nmodify annotations: allowed\nmodify other: allowed\nstream encryption method: AESv3\nstring encryption method: AESv3\nfile encryption method: AESv3\n");
+                    return ok_out("R = 6\nV = 5\nLength = 256\nprint: allowed\nmodify: allowed\nextract for accessibility: allowed\n");
                 }
                 return ok_out("File is not encrypted\n");
             }
@@ -11026,31 +11392,9 @@ fn cmd_media_doc(
             } else {
                 stdin.to_string()
             };
-            let root = match parse_svg_xml(&src) {
+            let (width, height, texts) = match validate_and_extract_svg_render(&src) {
                 Ok(r) => r,
                 Err(e) => return err_out(&format!("rsvg-convert: {e}\n"), 1),
-            };
-            let mut vb_w = 300.0f64;
-            let mut vb_h = 150.0f64;
-            if let Some(vb) = root.get_attr("viewBox") {
-                let nums: Vec<f64> = vb
-                    .split(|c: char| matches!(c, ',' | ' ' | '\t' | '\r' | '\n'))
-                    .filter(|s| !s.is_empty())
-                    .filter_map(|s| s.parse::<f64>().ok())
-                    .collect();
-                if nums.len() != 4 || nums[2] <= 0.0 || nums[3] <= 0.0 {
-                    return err_out("rsvg-convert: Invalid SVG viewBox\n", 1);
-                }
-                vb_w = nums[2];
-                vb_h = nums[3];
-            }
-            let width = match parse_svg_length_px(root.get_attr("width"), vb_w) {
-                Ok(v) if v > 0.0 => v,
-                _ => return err_out("rsvg-convert: Invalid SVG width\n", 1),
-            };
-            let height = match parse_svg_length_px(root.get_attr("height"), vb_h) {
-                Ok(v) if v > 0.0 => v,
-                _ => return err_out("rsvg-convert: Invalid SVG height\n", 1),
             };
             let rendered = if format == "png" {
                 let im = ImageMeta {
@@ -11062,8 +11406,6 @@ fn cmd_media_doc(
                 };
                 write_image_bytes(&im)
             } else {
-                let mut texts = Vec::new();
-                collect_svg_texts(&root, &mut texts);
                 let mut doc = PdfDoc::new();
                 doc.version = "1.7".to_string();
                 doc.page_w = width * 0.75;
@@ -11753,7 +12095,11 @@ fn cmd_media_doc(
             if input_opt.is_some() && operand_opt.is_some() {
                 return err_out("qrencode: Choose a file or an input string\n", 1);
             }
+            let input_limit = if structured { 113_424usize } else { 7089usize };
             let mut data = if let Some(op) = operand_opt {
+                if op.len() > input_limit {
+                    return err_out("qrencode: Input exceeds byte limit\n", 1);
+                }
                 crate::vfs::stream_string_to_bytes(&op)
             } else if let Some(ref inp) = input_opt && inp != "-" {
                 let full = resolve_posix_path(cwd, inp);
@@ -11764,6 +12110,9 @@ fn cmd_media_doc(
             } else {
                 crate::vfs::stream_string_to_bytes(stdin)
             };
+            if data.len() > input_limit {
+                return err_out("qrencode: Input exceeds byte limit\n", 1);
+            }
             if ignorecase && !byte_mode {
                 let mut idx = 0usize;
                 while idx < data.len() {
@@ -11793,6 +12142,24 @@ fn cmd_media_doc(
             let margin = margin_opt.unwrap_or(if micro { 2 } else { 4 });
             let mut stdout_bytes = Vec::new();
             for (idx, sym) in syms.iter().enumerate() {
+                let n = sym.len();
+                let width = n + 2 * margin;
+                let pixels = width.saturating_mul(size);
+                let raster = rtype == "PNG" || rtype == "PNG32";
+                let vector = rtype == "SVG" || rtype == "EPS";
+                let estimate = if raster {
+                    pixels.saturating_mul(pixels).saturating_mul(24).saturating_add(1_048_576)
+                } else if vector {
+                    n.saturating_mul(n).saturating_mul(240).saturating_add(4096)
+                } else {
+                    width.saturating_mul(width).saturating_mul(48).saturating_add(4096)
+                };
+                let max_mem = (64 * 1024 * 1024usize)
+                    .saturating_sub(data.len().saturating_mul(64))
+                    .saturating_sub(n.saturating_mul(n).saturating_mul(16));
+                if pixels > 0x7fff_ffff || estimate > max_mem {
+                    return err_out("qrencode: QR output exceeds memory budget\n", 1);
+                }
                 let rendered = qr_render(sym, &rtype, size, margin, fg, bg);
                 if let Some(ref out_p) = output_opt && out_p != "-" {
                     let mut name = out_p.clone();

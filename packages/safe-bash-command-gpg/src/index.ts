@@ -507,6 +507,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let symmetric = false;
       let decrypt = false;
       let armor = false;
+      let withColons = false;
       let passphrase: string | undefined;
       let passphraseFile: string | undefined;
       let passphraseFd: string | undefined;
@@ -529,6 +530,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           quickGenKey = true;
         else if (a === "--export") exportKeys = true;
         else if (a === "--import") importKeys = true;
+        else if (a === "--with-colons") withColons = true;
         else if ((a === "-u" || a === "--local-user") && i + 1 < args.length) signerUid = args[++i]!;
         else if (a.startsWith("-bsau") && a.length > 5) {
           detachSign = true;
@@ -623,10 +625,18 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
 
         if (listKeys) {
           const keys = await loadKeyring(context);
+          const filtered = positionals.length === 0
+            ? keys
+            : keys.filter(k => positionals.some(q => k.uid.includes(q) || k.keyIdHex.includes(q.toUpperCase())));
           const lines: string[] = [];
-          for (const k of keys) {
-            lines.push(`sec   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
-            lines.push(`uid                 [ultimate] ${k.uid}`);
+          for (const k of filtered) {
+            if (withColons) {
+              lines.push(`sec:u:255:22:${k.keyIdHex}:1790553600:::u:::scESC:::+:::23::0:`);
+              lines.push(`uid:u::::1790553600::${k.keyIdHex}::${k.uid}::::::::::0:`);
+            } else {
+              lines.push(`sec   ed25519/${k.keyIdHex} 2026-09-28 [SC]`);
+              lines.push(`uid                 [ultimate] ${k.uid}`);
+            }
           }
           await writeText(context.stdout, lines.length > 0 ? `${lines.join("\n")}\n` : "");
           return { exitCode: 0 };

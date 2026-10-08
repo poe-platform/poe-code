@@ -1,6 +1,17 @@
 import { Parser, type DefaultTreeAdapterMap } from "parse5";
 import { drainCooperativeSteps } from "safe-bash-contracts/yield";
-import { PdfDocument, decodePng, type PdfRgbColor } from "@poe-code/pdf-ast";
+import {
+  PdfDocument,
+  cosArray,
+  cosDict,
+  cosName,
+  cosNumber,
+  cosString,
+  decodePng,
+  dictSet,
+  type PdfCosDict,
+  type PdfRgbColor,
+} from "@poe-code/pdf-ast";
 import {
   createWkhtmltopdfCommand,
   wkhtmltopdfCommands,
@@ -337,6 +348,7 @@ type DrawAction = (page: ReturnType<PdfDocument["addPage"]>, doc: PdfDocument, g
 
 interface LaidOutPageSpec {
   readonly actions: DrawAction[];
+  readonly headings?: readonly { title: string; level: number }[];
 }
 
 function rgbColor(r: number, g: number, b: number, grayscale: boolean): PdfRgbColor {
@@ -349,6 +361,7 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
     let cooperativeWork = 0;
     const pages: LaidOutPageSpec[] = [];
     let currentActions: DrawAction[] = [];
+    let currentHeadings: { title: string; level: number }[] = [];
     const headerReserve = settings.header.left || settings.header.center || settings.header.right ? 24 : 0;
     const footerReserve = settings.footer.left || settings.footer.center || settings.footer.right ? 24 : 0;
     const topY = box.height - box.marginTop - headerReserve;
@@ -356,8 +369,9 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
     const contentWidth = Math.max(72, box.width - box.marginLeft - box.marginRight);
     let cursorY = topY;
     const flushPage = () => {
-        pages.push({ actions: currentActions });
+        pages.push({ actions: currentActions, headings: currentHeadings });
         currentActions = [];
+        currentHeadings = [];
         cursorY = topY;
     };
     const ensureHeight = (needed: number) => {
@@ -383,6 +397,9 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
             const maxChars = Math.max(15, Math.floor(contentWidth / (fontSize * 0.55)));
             const lines = wrapTextLines(block.text ?? "", maxChars);
             ensureHeight(lines.length * lineHeight + 10);
+            if (block.text) {
+                currentHeadings.push({ title: block.text, level });
+            }
             cursorY -= 4;
             const blockTopY = cursorY;
             for (const line of lines) {
@@ -693,18 +710,24 @@ function* layoutObjectPagesSteps(blocks: readonly HtmlBlock[], box: ReturnType<t
 
 function substituteFurnitureTokens(
   template: string,
-  tokens: { page: number; topage: number; webpage: string; title: string; section?: string; subsection?: string }
+  tokens: { page: number; topage: number; webpage: string; title: string; section?: string; subsection?: string },
+  replacements: readonly [string, string][] = []
 ): string {
   const isoDate = new Date().toISOString().slice(0, 10);
-  return template
+  let out = template
     .replace(/\[page\]/g, String(tokens.page))
     .replace(/\[topage\]/g, String(tokens.topage))
+    .replace(/\[toPage\]/g, String(tokens.topage))
     .replace(/\[webpage\]/g, tokens.webpage)
     .replace(/\[title\]/g, tokens.title)
     .replace(/\[section\]/g, tokens.section ?? tokens.title)
     .replace(/\[subsection\]/g, tokens.subsection ?? "")
     .replace(/\[isodate\]/g, isoDate)
     .replace(/\[date\]/g, isoDate);
+  for (const [rk, rv] of replacements) {
+    if (rk) out = out.split(`[${rk}]`).join(rv);
+  }
+  return out;
 }
 
 function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Generator<void, Uint8Array, void> {
@@ -735,7 +758,7 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
         const pages = (yield* layoutObjectPagesSteps(parsed.blocks, box, obj.settings, signal));
         laidOutPerObject.push(pages);
         objectMeta.push({
-            title: parsed.title || inferredDocumentTitle || "Document",
+            title: job.global.documentTitle || parsed.title || inferredDocumentTitle || "Document",
             webpage: obj.input ?? "-",
             settings: obj.settings,
         });
@@ -760,16 +783,19 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
         creator: "wkhtmltopdf (pdf-ast-static)",
         producer: "@poe-code/pdf-ast",
     });
+    const outlineEntries: { title: string; level: number; pageRef: ReturnType<PdfDocument["addPage"]>["ref"] }[] = [];
     for (const outPage of sequence.pages) {
         yield;
         signal.throwIfAborted();
         const spec = laidOutPerObject[outPage.objectIndex]![outPage.pageIndex]!;
         const meta = objectMeta[outPage.objectIndex]!;
         const page = doc.addPage({ width: box.width, height: box.height });
-        for (const action of spec.actions) {
-            if (++cooperativeWork % 64 === 0)
-                yield;
-            action(page, doc, grayscale);
+        if (job.global.outline && job.global.outlineDepth > 0 && outPage.copyIndex === 0 && meta.settings.includeInOutline) {
+            for (const h of spec.headings ?? []) {
+                if (h.level <= job.global.outlineDepth) {
+                    outlineEntries.push({ title: h.title, level: h.level, pageRef: page.ref });
+                }
+            }
         }
         const tokens = {
             page: outPage.logicalPage,
@@ -777,11 +803,12 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
             webpage: meta.webpage,
             title: meta.title,
         };
+        const repl = meta.settings.replacements;
         const header = meta.settings.header;
         const footer = meta.settings.footer;
         const headerY = box.height - Math.max(18, box.marginTop * 0.6);
         if (header.left) {
-            page.drawText(substituteFurnitureTokens(header.left, tokens), {
+            page.drawText(substituteFurnitureTokens(header.left, tokens, repl), {
                 x: box.marginLeft,
                 y: headerY,
                 size: Math.min(10, header.fontSize || 9),
@@ -790,7 +817,7 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
             });
         }
         if (header.center) {
-            const text = substituteFurnitureTokens(header.center, tokens);
+            const text = substituteFurnitureTokens(header.center, tokens, repl);
             page.drawText(text, {
                 x: Math.max(box.marginLeft, (box.width - text.length * 4.5) / 2),
                 y: headerY,
@@ -800,7 +827,7 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
             });
         }
         if (header.right) {
-            const text = substituteFurnitureTokens(header.right, tokens);
+            const text = substituteFurnitureTokens(header.right, tokens, repl);
             page.drawText(text, {
                 x: Math.max(box.marginLeft, box.width - box.marginRight - text.length * 4.8),
                 y: headerY,
@@ -819,9 +846,14 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
                 strokeWidth: 0.5,
             });
         }
+        for (const action of spec.actions) {
+            if (++cooperativeWork % 64 === 0)
+                yield;
+            action(page, doc, grayscale);
+        }
         const footerY = Math.max(12, box.marginBottom * 0.5);
         if (footer.left) {
-            page.drawText(substituteFurnitureTokens(footer.left, tokens), {
+            page.drawText(substituteFurnitureTokens(footer.left, tokens, repl), {
                 x: box.marginLeft,
                 y: footerY,
                 size: Math.min(10, footer.fontSize || 9),
@@ -830,7 +862,7 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
             });
         }
         if (footer.center) {
-            const text = substituteFurnitureTokens(footer.center, tokens);
+            const text = substituteFurnitureTokens(footer.center, tokens, repl);
             page.drawText(text, {
                 x: Math.max(box.marginLeft, (box.width - text.length * 4.5) / 2),
                 y: footerY,
@@ -840,7 +872,7 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
             });
         }
         if (footer.right) {
-            const text = substituteFurnitureTokens(footer.right, tokens);
+            const text = substituteFurnitureTokens(footer.right, tokens, repl);
             page.drawText(text, {
                 x: Math.max(box.marginLeft, box.width - box.marginRight - text.length * 4.8),
                 y: footerY,
@@ -858,6 +890,52 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
                 stroke: rgbColor(0.7, 0.7, 0.74, grayscale),
                 strokeWidth: 0.5,
             });
+        }
+    }
+    if (outlineEntries.length > 0 && doc.cos.rootRef) {
+        const catalog = doc.cos.resolveDict(doc.cos.rootRef);
+        if (catalog) {
+            const outlinesDict = cosDict({ Type: cosName("Outlines") });
+            const outlinesRef = doc.cos.allocateObject(outlinesDict);
+            dictSet(catalog, "Outlines", outlinesRef);
+            interface OutlineParentState {
+                ref: ReturnType<typeof doc.cos.allocateObject>;
+                dict: PdfCosDict;
+                children: Array<{ ref: ReturnType<typeof doc.cos.allocateObject>; dict: PdfCosDict }>;
+            }
+            const stack: OutlineParentState[] = [{ ref: outlinesRef, dict: outlinesDict, children: [] }];
+            for (const bm of outlineEntries) {
+                const targetLevel = Math.max(1, bm.level);
+                while (stack.length > targetLevel) {
+                    stack.pop();
+                }
+                while (stack.length < targetLevel) {
+                    const top = stack[stack.length - 1]!;
+                    const lastChild = top.children[top.children.length - 1];
+                    if (lastChild) {
+                        stack.push({ ref: lastChild.ref, dict: lastChild.dict, children: [] });
+                    } else {
+                        break;
+                    }
+                }
+                const parentState = stack[stack.length - 1]!;
+                const itemDict = cosDict({
+                    Title: cosString(bm.title),
+                    Parent: parentState.ref,
+                    Dest: cosArray([bm.pageRef, cosName("XYZ"), { kind: "null" }, { kind: "null" }, { kind: "null" }]),
+                });
+                const itemRef = doc.cos.allocateObject(itemDict);
+                const prevSibling = parentState.children[parentState.children.length - 1];
+                if (prevSibling) {
+                    dictSet(prevSibling.dict, "Next", itemRef);
+                    dictSet(itemDict, "Prev", prevSibling.ref);
+                } else {
+                    dictSet(parentState.dict, "First", itemRef);
+                }
+                dictSet(parentState.dict, "Last", itemRef);
+                parentState.children.push({ ref: itemRef, dict: itemDict });
+                dictSet(parentState.dict, "Count", cosNumber(parentState.children.length));
+            }
         }
     }
     return doc.save();

@@ -8341,6 +8341,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut symmetric = false;
     let mut decrypt = false;
     let mut armor = false;
+    let mut with_colons = false;
     let mut passphrase: Option<String> = None;
     let mut passphrase_file: Option<String> = None;
     let mut passphrase_fd: Option<String> = None;
@@ -8375,6 +8376,8 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             export_keys = true;
         } else if a == "--import" {
             import_keys = true;
+        } else if a == "--with-colons" {
+            with_colons = true;
         } else if (a == "-u" || a == "--local-user") && i + 1 < args.len() {
             i += 1;
             signer_uid = args[i].clone();
@@ -8624,7 +8627,20 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let keys = load_keyring();
         let mut out = String::new();
         for (u, kid, _, _) in keys {
-            out.push_str(&format!("sec   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
+            if !positionals.is_empty()
+                && !positionals
+                    .iter()
+                    .any(|q| u.contains(q.as_str()) || kid.contains(&q.to_ascii_uppercase()))
+            {
+                continue;
+            }
+            if with_colons {
+                out.push_str(&format!(
+                    "sec:u:255:22:{kid}:1790553600:::u:::scESC:::+:::23::0:\nuid:u::::1790553600::{kid}::{u}::::::::::0:\n"
+                ));
+            } else {
+                out.push_str(&format!("sec   ed25519/{kid} 2026-09-28 [SC]\nuid                 [ultimate] {u}\n"));
+            }
         }
         return ok_out(&out);
     }

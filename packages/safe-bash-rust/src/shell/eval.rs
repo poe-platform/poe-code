@@ -73,6 +73,7 @@ pub struct EvalState<'a> {
     pub return_requested: Option<i32>,
     pub break_count: usize,
     pub continue_count: usize,
+    pub active_aliases: BTreeSet<String>,
     pub allow_unported_fallback: bool,
 }
 
@@ -136,6 +137,7 @@ impl<'a> EvalState<'a> {
             return_requested: None,
             break_count: 0,
             continue_count: 0,
+            active_aliases: BTreeSet::new(),
             allow_unported_fallback,
         }
     }
@@ -200,6 +202,7 @@ impl<'a> EvalState<'a> {
             return_requested: None,
             break_count: 0,
             continue_count: 0,
+            active_aliases: self.active_aliases.clone(),
             allow_unported_fallback: self.allow_unported_fallback,
         }
     }
@@ -1409,6 +1412,73 @@ impl<'a> EvalState<'a> {
             }
         }
 
+        if self
+            .env
+            .get("__shopt_expand_aliases")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            && let Some(first_word) = simple.words.first()
+            && !first_word.is_empty()
+            && !first_word.contains(['\'', '"', '\\', '$', '`'])
+            && !self.active_aliases.contains(first_word)
+            && let Some(first_alias_val) = self.env.get(&format!("__alias__{first_word}")).cloned()
+        {
+            let first_name = first_word.clone();
+            let mut trailing_ws = self.alias_chain_has_trailing_ws(&first_name);
+            let mut pieces: Vec<String> = Vec::new();
+            for (k, v, app) in &simple.assignments {
+                pieces.push(format!("{k}{}{v}", if *app { "+=" } else { "=" }));
+            }
+            pieces.push(first_alias_val);
+            let mut next_seen = self.active_aliases.clone();
+            next_seen.insert(first_name.clone());
+            for w in &simple.words[1..] {
+                if trailing_ws
+                    && !w.is_empty()
+                    && !w.contains(['\'', '"', '\\', '$', '`'])
+                    && !next_seen.contains(w)
+                    && let Some(next_val) = self.env.get(&format!("__alias__{w}")).cloned()
+                {
+                    trailing_ws = self.alias_chain_has_trailing_ws(w);
+                    pieces.push(next_val);
+                } else {
+                    trailing_ws = false;
+                    pieces.push(w.clone());
+                }
+            }
+            let rewritten = pieces.join(" ");
+            let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
+                self.setup_redirects(&simple.redirects, stdin)?;
+            if let Some(err_out) = redir_err {
+                self.restore_redirects(saved_fds, saved_in);
+                return Ok(err_out);
+            }
+            let eff_stdin = if use_local { &mut local_stdin } else { stdin };
+            self.active_aliases.insert(first_name.clone());
+            let alias_res = match parse_script(&rewritten) {
+                Ok(ast) => self.eval_script(&ast, eff_stdin),
+                Err(msg) => Err(EvalError::Syntax(msg)),
+            };
+            self.active_aliases.remove(&first_name);
+            let mut out = match alias_res {
+                Ok(o) => o,
+                Err(e) => {
+                    self.restore_redirects(saved_fds, saved_in);
+                    return Err(e);
+                }
+            };
+            if !debug_out.stdout.is_empty() || !debug_out.stderr.is_empty() {
+                out.stdout = format!("{}{}", debug_out.stdout, out.stdout);
+                out.stderr = format!("{}{}", debug_out.stderr, out.stderr);
+            }
+            if let Some(dfd) = dup_fd {
+                self.in_fds.insert(dfd, local_stdin);
+            }
+            self.route_outcome(&mut out);
+            self.restore_redirects(saved_fds, saved_in);
+            return Ok(out);
+        }
+
         let is_double_bracket = simple.words.first().map(|s| s.as_str()) == Some("[[");
         let mut expanded_words = Vec::new();
         if is_double_bracket {
@@ -1700,6 +1770,12 @@ impl<'a> EvalState<'a> {
             }
             "shopt" => {
                 return Ok(self.builtin_shopt(args));
+            }
+            "alias" => {
+                return Ok(self.builtin_alias(args));
+            }
+            "unalias" => {
+                return Ok(self.builtin_unalias(args));
             }
             "trap" => {
                 return Ok(self.builtin_trap(args));
@@ -2066,6 +2142,7 @@ impl<'a> EvalState<'a> {
                     return_requested: None,
                     break_count: 0,
                     continue_count: 0,
+                    active_aliases: BTreeSet::new(),
                     allow_unported_fallback: allow_fallback,
                 };
                 let mut sub_in = sub_stdin.to_string();
@@ -2666,72 +2743,338 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn alias_chain_has_trailing_ws(&self, start_name: &str) -> bool {
+        let mut visited = self.active_aliases.clone();
+        let mut curr = start_name.to_string();
+        let mut trailing = false;
+        while !visited.contains(&curr) {
+            visited.insert(curr.clone());
+            let Some(val) = self.env.get(&format!("__alias__{curr}")) else {
+                break;
+            };
+            if val.ends_with(' ') || val.ends_with('\t') {
+                trailing = true;
+            }
+            let trimmed = val.trim();
+            if !trimmed.is_empty()
+                && !trimmed.contains(|c: char| c.is_whitespace() || "'\"\\$`;|&()<>".contains(c))
+            {
+                curr = trimmed.to_string();
+            } else {
+                break;
+            }
+        }
+        trailing
+    }
+
+    fn builtin_alias(&mut self, raw_args: &[String]) -> BuiltinOutcome {
+        let mut args: Vec<String> = raw_args.to_vec();
+        if args.first().map(|s| s.as_str()) == Some("-L") {
+            args[0] = "-p".to_string();
+        }
+        let mut index = 0usize;
+        let mut print = false;
+        while index < args.len() {
+            let arg = &args[index];
+            if arg == "--" {
+                index += 1;
+                break;
+            }
+            if !arg.starts_with('-') || arg == "-" {
+                break;
+            }
+            if arg[1..].chars().all(|c| c == 'p') {
+                print = true;
+            } else {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("alias: {arg}: invalid option\n"),
+                    exit_code: 2,
+                };
+            }
+            index += 1;
+        }
+
+        let mut stdout = String::new();
+        let mut stderr = String::new();
+        let format_entry = |name: &str, val: &str| -> String {
+            format!("alias {name}='{}'\n", val.replace('\'', "'\\''"))
+        };
+
+        if print || index == args.len() {
+            for (k, v) in self.env.iter() {
+                if let Some(name) = k.strip_prefix("__alias__") {
+                    stdout.push_str(&format_entry(name, v));
+                }
+            }
+        }
+
+        let mut exit_code = 0;
+        for arg in &args[index..] {
+            if let Some(eq) = arg.find('=') {
+                let name = &arg[..eq];
+                let val = &arg[eq + 1..];
+                if name.is_empty()
+                    || name
+                        .chars()
+                        .any(|c| " /$`=;|&()<>'\"\\\t\r\n".contains(c))
+                {
+                    stderr.push_str(&format!("alias: {name}: invalid alias name\n"));
+                    exit_code = 1;
+                    continue;
+                }
+                self.env
+                    .insert(format!("__alias__{name}"), val.to_string());
+            } else if let Some(val) = self.env.get(&format!("__alias__{arg}")) {
+                stdout.push_str(&format_entry(arg, val));
+            } else {
+                stderr.push_str(&format!("alias: {arg}: not found\n"));
+                exit_code = 1;
+            }
+        }
+
+        BuiltinOutcome {
+            stdout,
+            stderr,
+            exit_code,
+        }
+    }
+
+    fn builtin_unalias(&mut self, args: &[String]) -> BuiltinOutcome {
+        let mut index = 0usize;
+        let mut all = false;
+        while index < args.len() {
+            let arg = &args[index];
+            if arg == "--" {
+                index += 1;
+                break;
+            }
+            if !arg.starts_with('-') || arg == "-" {
+                break;
+            }
+            if arg[1..].chars().all(|c| c == 'a') {
+                all = true;
+            } else {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unalias: {arg}: invalid option\n"),
+                    exit_code: 2,
+                };
+            }
+            index += 1;
+        }
+
+        if all {
+            let keys: Vec<String> = self
+                .env
+                .keys()
+                .filter(|k| k.starts_with("__alias__"))
+                .cloned()
+                .collect();
+            for k in keys {
+                self.env.remove(&k);
+            }
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        }
+
+        if index == args.len() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "unalias: usage: unalias [-a] name [name ...]\n".to_string(),
+                exit_code: 2,
+            };
+        }
+
+        let mut stderr = String::new();
+        let mut exit_code = 0;
+        for name in &args[index..] {
+            if self.env.remove(&format!("__alias__{name}")).is_none() {
+                stderr.push_str(&format!("unalias: {name}: not found\n"));
+                exit_code = 1;
+            }
+        }
+
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code,
+        }
+    }
+
+    fn get_shopt_enabled(&self, name: &str, opt_mode: bool) -> bool {
+        if opt_mode {
+            match name {
+                "errexit" => self.errexit,
+                "nounset" => self.nounset,
+                "pipefail" => self.pipefail,
+                "noclobber" => self.noclobber,
+                "noexec" => self.noexec,
+                "xtrace" => self.xtrace,
+                "braceexpand" => self
+                    .env
+                    .get("__set_braceexpand")
+                    .map(|v| v != "0")
+                    .unwrap_or(true),
+                other => self
+                    .env
+                    .get(&format!("__set_{other}"))
+                    .map(|v| v == "1")
+                    .unwrap_or(false),
+            }
+        } else {
+            self.env
+                .get(&format!("__shopt_{name}"))
+                .map(|v| v == "1")
+                .unwrap_or(false)
+        }
+    }
+
     fn builtin_shopt(&mut self, args: &[String]) -> BuiltinOutcome {
         let mut set_flag = false;
         let mut unset_flag = false;
         let mut quiet = false;
         let mut print_flag = false;
         let mut opt_mode = false;
-        let mut names = Vec::new();
+        let mut index = 0usize;
 
-        for a in args {
-            if a.starts_with('-') && a.len() > 1 {
-                for ch in a[1..].chars() {
-                    match ch {
-                        's' => set_flag = true,
-                        'u' => unset_flag = true,
-                        'q' => quiet = true,
-                        'p' => print_flag = true,
-                        'o' => opt_mode = true,
-                        _ => {}
+        while index < args.len() {
+            let option = &args[index];
+            if option == "--" {
+                index += 1;
+                break;
+            }
+            if !option.starts_with('-') || option == "-" {
+                break;
+            }
+            for flag in option[1..].chars() {
+                match flag {
+                    'p' => print_flag = true,
+                    'q' => quiet = true,
+                    's' => set_flag = true,
+                    'u' => unset_flag = true,
+                    'o' => opt_mode = true,
+                    _ => {
+                        let bad = if option.starts_with("--") {
+                            option.clone()
+                        } else {
+                            format!("-{flag}")
+                        };
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!(
+                                "shopt: {bad}: unsupported option\nshopt: usage: shopt [-opqsu] [--] [option ...]\n"
+                            ),
+                            exit_code: 2,
+                        };
                     }
                 }
-            } else {
-                names.push(a.as_str());
             }
+            index += 1;
         }
 
-        let mut all_enabled = true;
-        let mut out = String::new();
-        for name in names {
-            let key = if opt_mode {
-                format!("__set_{name}")
-            } else {
-                format!("__shopt_{name}")
+        if set_flag && unset_flag {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "shopt: cannot set and unset shell options simultaneously\n".to_string(),
+                exit_code: 1,
             };
-            if set_flag {
-                if opt_mode {
-                    self.apply_set_option(name, true);
+        }
+
+        const SET_OPTIONS: &[&str] = &[
+            "allexport",
+            "braceexpand",
+            "errexit",
+            "errtrace",
+            "functrace",
+            "noclobber",
+            "noexec",
+            "noglob",
+            "nounset",
+            "pipefail",
+            "xtrace",
+        ];
+        const SHOPT_OPTIONS: &[&str] = &[
+            "dotglob",
+            "expand_aliases",
+            "extdebug",
+            "extglob",
+            "failglob",
+            "globstar",
+            "inherit_errexit",
+            "lastpipe",
+            "nocaseglob",
+            "nocasematch",
+            "nullglob",
+            "xpg_echo",
+        ];
+        let known = if opt_mode { SET_OPTIONS } else { SHOPT_OPTIONS };
+
+        let emit = |out: &mut String, name: &str, enabled: bool| {
+            if !quiet {
+                if print_flag {
+                    if opt_mode {
+                        let sign = if enabled { "-" } else { "+" };
+                        out.push_str(&format!("set {sign}o {name}\n"));
+                    } else {
+                        let flag = if enabled { "s" } else { "u" };
+                        out.push_str(&format!("shopt -{flag} {name}\n"));
+                    }
                 } else {
-                    self.env.insert(key, "1".to_string());
+                    let status = if enabled { "on" } else { "off" };
+                    out.push_str(&format!("{name:<20}\t{status}\n"));
                 }
-            } else if unset_flag {
+            }
+        };
+
+        let mut out = String::new();
+        let mut stderr = String::new();
+        if index == args.len() {
+            for &name in known {
+                let enabled = self.get_shopt_enabled(name, opt_mode);
+                if (!set_flag || enabled) && (!unset_flag || !enabled) {
+                    emit(&mut out, name, enabled);
+                }
+            }
+            return BuiltinOutcome {
+                stdout: out,
+                stderr,
+                exit_code: 0,
+            };
+        }
+
+        let mut status = 0;
+        for name in &args[index..] {
+            if !known.contains(&name.as_str()) {
+                stderr.push_str(&format!(
+                    "shopt: {name}: invalid shell option name\n"
+                ));
+                status = 1;
+            } else if set_flag || unset_flag {
                 if opt_mode {
-                    self.apply_set_option(name, false);
+                    self.apply_set_option(name, set_flag);
                 } else {
-                    self.env.insert(key, "0".to_string());
+                    self.env.insert(
+                        format!("__shopt_{name}"),
+                        if set_flag { "1" } else { "0" }.to_string(),
+                    );
                 }
             } else {
-                let enabled = self.env.get(&key).map(|v| v == "1").unwrap_or(false);
+                let enabled = self.get_shopt_enabled(name, opt_mode);
+                emit(&mut out, name, enabled);
                 if !enabled {
-                    all_enabled = false;
-                }
-                if !quiet {
-                    if print_flag {
-                        let flag = if enabled { "-s" } else { "-u" };
-                        out.push_str(&format!("shopt {flag} {name}\n"));
-                    } else {
-                        let status = if enabled { "on" } else { "off" };
-                        out.push_str(&format!("{name}\t{status}\n"));
-                    }
+                    status = 1;
                 }
             }
         }
 
         BuiltinOutcome {
             stdout: out,
-            stderr: String::new(),
-            exit_code: if all_enabled { 0 } else { 1 },
+            stderr,
+            exit_code: status,
         }
     }
 

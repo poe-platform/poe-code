@@ -1793,21 +1793,73 @@ fn paper_size_label(w: f64, h: f64) -> &'static str {
     }
 }
 
-fn format_printf_num(pattern: &str, num: usize) -> String {
-    if let Some(pos) = pattern.find('%') {
-        let after = &pattern[pos + 1..];
-        if let Some(d_pos) = after.find('d') {
-            let spec = &after[..d_pos];
-            let width: usize = spec.trim_start_matches('0').parse().unwrap_or(0);
-            let formatted = if spec.starts_with('0') && width > 0 {
-                format!("{num:0width$}", width = width)
-            } else {
-                format!("{num}")
-            };
-            return format!("{}{formatted}{}", &pattern[..pos], &after[d_pos + 1..]);
+fn has_pdfseparate_spec(pattern: &str) -> bool {
+    let chars: Vec<char> = pattern.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] != '%' {
+            i += 1;
+            continue;
         }
+        if chars.get(i + 1) == Some(&'%') {
+            i += 2;
+            continue;
+        }
+        let mut j = i + 1;
+        while j < chars.len() && chars[j].is_ascii_digit() {
+            j += 1;
+        }
+        if chars.get(j) == Some(&'d') {
+            return true;
+        }
+        i += 1;
     }
-    pattern.to_string()
+    false
+}
+
+fn format_printf_num(pattern: &str, num: usize) -> String {
+    let chars: Vec<char> = pattern.chars().collect();
+    let mut out = String::new();
+    let mut replaced = false;
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] != '%' {
+            out.push(chars[i]);
+            i += 1;
+            continue;
+        }
+        if chars.get(i + 1) == Some(&'%') {
+            out.push('%');
+            i += 2;
+            continue;
+        }
+        if !replaced {
+            let mut j = i + 1;
+            let mut digits = String::new();
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                digits.push(chars[j]);
+                j += 1;
+            }
+            if chars.get(j) == Some(&'d') {
+                let width: usize = digits.parse().unwrap_or(0);
+                if width > 0 {
+                    if digits.starts_with('0') {
+                        out.push_str(&format!("{num:0width$}", width = width));
+                    } else {
+                        out.push_str(&format!("{num:>width$}", width = width));
+                    }
+                } else {
+                    out.push_str(&num.to_string());
+                }
+                replaced = true;
+                i = j + 1;
+                continue;
+            }
+        }
+        out.push('%');
+        i += 1;
+    }
+    out
 }
 
 #[derive(Clone, Debug)]
@@ -5562,19 +5614,33 @@ fn cmd_media_doc(
                     exit_code: 0,
                 };
             }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n".to_string(),
-                    exit_code: 0,
-                };
-            }
             let mut pos: Vec<String> = Vec::new();
-            for a in args {
+            let mut i = 0usize;
+            while i < args.len() {
+                let a = &args[i];
+                if a == "-v" || a == "--version" {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "pdfunite version 24.08.0\n".to_string(),
+                        exit_code: 0,
+                    };
+                }
+                if matches!(a.as_str(), "-h" | "-help" | "--help" | "-?") {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n".to_string(),
+                        exit_code: 0,
+                    };
+                }
+                if a == "--" {
+                    pos.extend(args[i + 1..].iter().cloned());
+                    break;
+                }
                 if a.starts_with('-') {
                     return err_out(&format!("pdfunite: unknown option {a}\n"), 99);
                 }
                 pos.push(a.clone());
+                i += 1;
             }
             if pos.len() < 3 {
                 return err_out("Syntax Warning: pdfunite requires at least two input files and an output file.\n", 99);
@@ -5632,37 +5698,46 @@ fn cmd_media_doc(
                     exit_code: 0,
                 };
             }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n".to_string(),
-                    exit_code: 0,
-                };
-            }
             let mut first_p = 1usize;
             let mut last_p: Option<usize> = None;
             let mut pos: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
+                    "-v" | "--version" => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "pdfseparate version 24.08.0\n".to_string(),
+                            exit_code: 0,
+                        };
+                    }
+                    "-h" | "-help" | "--help" | "-?" => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n".to_string(),
+                            exit_code: 0,
+                        };
+                    }
+                    "--" => {
+                        pos.extend(args[i + 1..].iter().cloned());
+                        break;
+                    }
                     "-f" => {
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
                             return err_out("pdfseparate: invalid -f argument\n", 99);
                         };
-                        if v == 0 {
-                            return err_out("pdfseparate: invalid -f argument\n", 99);
-                        }
-                        first_p = v;
+                        first_p = v.max(1);
                         i += 2;
                     }
                     "-l" => {
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
                             return err_out("pdfseparate: invalid -l argument\n", 99);
                         };
-                        if v == 0 {
-                            return err_out("pdfseparate: invalid -l argument\n", 99);
+                        if v > 0 {
+                            last_p = Some(v);
+                        } else {
+                            last_p = None;
                         }
-                        last_p = Some(v);
                         i += 2;
                     }
                     a if !a.starts_with('-') => {
@@ -5682,6 +5757,9 @@ fn cmd_media_doc(
             let Ok(b) = fs.read_file(&src) else {
                 return err_out(&format!("I/O Error: Couldn't open file '{}'\n", pos[0]), 99);
             };
+            if !b.starts_with(b"%PDF-") {
+                return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
+            }
             let doc = PdfDoc::parse(&b);
             let total = doc.pages.len().max(1);
             let end_p = last_p.unwrap_or(total);
@@ -5689,9 +5767,7 @@ fn cmd_media_doc(
                 return err_out("Wrong page range given: the first page can not be after the last page.\n", 99);
             }
             let count = end_p - first_p + 1;
-            let has_spec = pat.contains("%d")
-                || (pat.contains('%') && pat.ends_with("d.pdf"))
-                || pat.contains("%0");
+            let has_spec = has_pdfseparate_spec(pat);
             if count > 1 && !has_spec {
                 return err_out(&format!("Error: '{pat}' must contain '%d' if more than one page should be extracted\n"), 99);
             }

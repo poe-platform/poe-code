@@ -308,6 +308,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-csvkit-csvcut-csvgrep-csvstat-csvjson-in2csv-csvclean-csvsql-sql2csv-matrix.test.ts",
   "obscure-pandoc-ssconvert-docx-odt-epub-xlsx-ods-html-latex-rst-matrix.test.ts",
   "obscure-ast-grep-sg-caller-structural-search-rewrite-scan-matrix.test.ts",
+  "obscure-alias-unalias-shopt-hash-pdfseparate-pdfunite-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {
@@ -494,6 +495,8 @@ export class SafeBashE2EHarness {
           .use(pdfinfoCommands({ replace: true }))
           .use(pdftotextCommands({ replace: true }))
           .use(pdftkCommands({ replace: true }))
+          .use(sb.pdfseparateCommands({ replace: true }))
+          .use(sb.pdfuniteCommands({ replace: true }))
           .use(qpdfCommands({ replace: true }))
           .use(xanCommands({ replace: true }))
           .use(sofficeCommands({ replace: true }))

@@ -346,12 +346,7 @@ pub fn try_run_builtin(
         "printf" => Some(builtin_printf(args, env)),
         "test" | "[" | "[[" => Some(builtin_test(cmd, args, cwd, env, fs)),
         "umask" => Some(builtin_umask(args, env)),
-        "hash" => Some(builtin_hash(args, env)),
-        "alias" | "unalias" => Some(BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        }),
+        "hash" => Some(builtin_hash(args, cwd, env, fs)),
         "let" => {
             if args.is_empty() {
                 return Some(BuiltinOutcome {
@@ -480,8 +475,94 @@ fn builtin_umask(args: &[String], env: &mut BTreeMap<String, String>) -> Builtin
     }
 }
 
-fn builtin_hash(args: &[String], env: &mut BTreeMap<String, String>) -> BuiltinOutcome {
-    if args.is_empty() || args.first().map(|s| s.as_str()) == Some("-r") {
+fn resolve_hash_command(name: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> Option<String> {
+    if name.contains('/') {
+        let full = resolve_posix_path(cwd, name);
+        if fs.exists(&full) && !fs.is_dir(&full) {
+            return Some(full);
+        }
+        return None;
+    }
+    let path_env = env
+        .get("PATH")
+        .cloned()
+        .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
+    for dir in path_env.split(':').filter(|d| !d.is_empty()) {
+        let cand = resolve_posix_path(cwd, &format!("{dir}/{name}"));
+        if fs.exists(&cand) && !fs.is_dir(&cand) {
+            return Some(cand);
+        }
+    }
+    if crate::commands::search::is_known_command(name) {
+        return Some(format!("/usr/bin/{name}"));
+    }
+    None
+}
+
+fn builtin_hash(
+    args: &[String],
+    cwd: &str,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut hash_args: Vec<String> = args.to_vec();
+    let mut reset = false;
+    let mut list_mode = false;
+    let mut delete_mode = false;
+    let mut print_target = false;
+    let mut custom_path: Option<String> = None;
+
+    while let Some(first) = hash_args.first() {
+        if !first.starts_with('-') || first == "-" {
+            break;
+        }
+        let option = hash_args.remove(0);
+        if option == "--" {
+            break;
+        }
+        let chars: Vec<char> = option.chars().collect();
+        let mut i = 1usize;
+        while i < chars.len() {
+            let flag = chars[i];
+            match flag {
+                'r' => reset = true,
+                'l' => list_mode = true,
+                'd' => delete_mode = true,
+                't' => print_target = true,
+                'p' => {
+                    let inline: String = chars[i + 1..].iter().collect();
+                    let p = if !inline.is_empty() {
+                        Some(inline)
+                    } else if !hash_args.is_empty() {
+                        Some(hash_args.remove(0))
+                    } else {
+                        None
+                    };
+                    let Some(path) = p else {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "hash: -p: option requires an argument\n".to_string(),
+                            exit_code: 2,
+                        };
+                    };
+                    custom_path = Some(path);
+                    break;
+                }
+                _ => {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!(
+                            "hash: -{flag}: invalid option\nhash: usage: hash [-lr] [-p pathname] [-dt] [name ...]\n"
+                        ),
+                        exit_code: 2,
+                    };
+                }
+            }
+            i += 1;
+        }
+    }
+
+    if reset {
         let keys: Vec<String> = env
             .keys()
             .filter(|k| k.starts_with("__hash__"))
@@ -490,50 +571,80 @@ fn builtin_hash(args: &[String], env: &mut BTreeMap<String, String>) -> BuiltinO
         for k in keys {
             env.remove(&k);
         }
+    }
+
+    if print_target && hash_args.is_empty() {
         return BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stderr: "hash: -t: option requires arguments\n".to_string(),
+            exit_code: 1,
         };
     }
-    if args[0] == "-p" && args.len() >= 3 {
-        let path = &args[1];
-        let name = &args[2];
-        env.insert(format!("__hash__{name}"), path.clone());
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        };
-    }
-    if args[0] == "-d" && args.len() >= 2 {
-        let name = &args[1];
-        env.remove(&format!("__hash__{name}"));
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        };
-    }
-    if args[0] == "-t" && args.len() >= 2 {
-        let name = &args[1];
-        if let Some(p) = env.get(&format!("__hash__{name}")) {
-            return BuiltinOutcome {
-                stdout: format!("{p}\n"),
-                stderr: String::new(),
-                exit_code: 0,
-            };
+
+    if hash_args.is_empty() {
+        let mut stdout = String::new();
+        if !reset {
+            for (k, target) in env.iter() {
+                if let Some(name) = k.strip_prefix("__hash__") {
+                    if list_mode {
+                        stdout.push_str(&format!("builtin hash -p {target} {name}\n"));
+                    } else {
+                        stdout.push_str(&format!("0\t{target}\n"));
+                    }
+                }
+            }
         }
         return BuiltinOutcome {
-            stdout: format!("/usr/bin/{name}\n"),
+            stdout,
             stderr: String::new(),
             exit_code: 0,
         };
     }
+
+    let mut status = 0;
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    for name in &hash_args {
+        if delete_mode {
+            if env.remove(&format!("__hash__{name}")).is_none() {
+                stderr.push_str(&format!("hash: {name}: not found\n"));
+                status = 1;
+            }
+            continue;
+        }
+        if let Some(ref cp) = custom_path {
+            env.insert(format!("__hash__{name}"), cp.clone());
+            continue;
+        }
+        if print_target {
+            let existing = env
+                .get(&format!("__hash__{name}"))
+                .cloned()
+                .or_else(|| resolve_hash_command(name, cwd, env, fs));
+            if let Some(target) = existing {
+                if hash_args.len() > 1 {
+                    stdout.push_str(&format!("{name}\t{target}\n"));
+                } else {
+                    stdout.push_str(&format!("{target}\n"));
+                }
+            } else {
+                stderr.push_str(&format!("hash: {name}: not found\n"));
+                status = 1;
+            }
+            continue;
+        }
+        if let Some(resolved) = resolve_hash_command(name, cwd, env, fs) {
+            env.insert(format!("__hash__{name}"), resolved);
+        } else {
+            stderr.push_str(&format!("hash: {name}: not found\n"));
+            status = 1;
+        }
+    }
+
     BuiltinOutcome {
-        stdout: String::new(),
-        stderr: String::new(),
-        exit_code: 0,
+        stdout,
+        stderr,
+        exit_code: status,
     }
 }
 

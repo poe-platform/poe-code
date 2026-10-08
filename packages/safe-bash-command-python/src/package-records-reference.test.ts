@@ -62,6 +62,8 @@ for rows in [None,[],[large],[row('x'*20000)],[row('package-'+str(i),i%2==0) for
   assert namespace['_safe_metadata_only']==(rows is not None)
   records=namespace['_safe_record_by_name']
   assert len(records)==len(rows or [])
+  assert list(records)==[row[0] for row in rows or []]
+  assert decoded==0,'name iteration decoded complete metadata records'
   for ordinal,(name,value) in enumerate(records.items()):
    expected=rows[ordinal] if len(rows[ordinal])==6 else rows[ordinal]+[None]
    assert value==expected

@@ -483,7 +483,7 @@ class _SafeRecords(_SafeMapping):
    record = self.decode('read', ordinal)
    yield record[0], record
  def __iter__(self):
-  for name, record in self.items():yield name
+  for ordinal in range(self.count):yield self.decode('read', ordinal, True)
  def origin(self, name):
   record = self.get(name)
   return record[5] if record is not None else None

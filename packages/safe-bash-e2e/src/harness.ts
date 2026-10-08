@@ -327,6 +327,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-dd-truncate-install-expand-unexpand-split-csplit-shuf-matrix.test.ts",
   "obscure-diff-diff3-patch-cmp-apply-patch-deep-matrix.test.ts",
   "obscure-find-fd-rg-grep-xargs-deep-matrix.test.ts",
+  "obscure-cp-mv-rm-ln-readlink-realpath-touch-deep-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

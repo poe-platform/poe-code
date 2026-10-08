@@ -23,10 +23,10 @@ pub fn try_run_fs_command(
         "mkdir" => Some(cmd_mkdir(args, cwd, env, fs)),
         "rmdir" => Some(cmd_rmdir(args, cwd, fs)),
         "rm" => Some(cmd_rm(args, stdin, cwd, fs)),
-        "cp" => Some(cmd_cp(args, cwd, env, fs)),
-        "mv" => Some(cmd_mv(args, cwd, env, fs)),
+        "cp" => Some(cmd_cp(args, stdin, cwd, env, fs)),
+        "mv" => Some(cmd_mv(args, stdin, cwd, env, fs)),
         "touch" => Some(cmd_touch(args, cwd, env, fs)),
-        "ln" => Some(cmd_ln(args, cwd, env, fs)),
+        "ln" => Some(cmd_ln(args, stdin, cwd, env, fs)),
         "readlink" => Some(cmd_readlink(args, cwd, fs)),
         "realpath" => Some(cmd_realpath(args, cwd, fs)),
         "chmod" => Some(cmd_chmod(args, cwd, env, fs)),
@@ -169,6 +169,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut sort_mode = "name";
     let mut reverse = false;
     let mut indicator = "none";
+    let mut quote_name = false;
     let mut ended = false;
     let mut targets = Vec::new();
     let mut i = 0usize;
@@ -181,6 +182,54 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         }
         if a == "--" {
             ended = true;
+            i += 1;
+            continue;
+        }
+        if a == "--sort" || a.starts_with("--sort=") {
+            let sel = if a == "--sort" {
+                if i + 1 >= args.len() {
+                    return err_out("ls: option '--sort' requires an argument\n", 2);
+                }
+                i += 1;
+                args[i].as_str()
+            } else {
+                &a["--sort=".len()..]
+            };
+            sort_mode = match sel {
+                "time" => "time",
+                "size" => "size",
+                "version" => "version",
+                "extension" => "ext",
+                "none" => "none",
+                "name" => "name",
+                _ => return err_out("ls: --sort requires 'time' or 'size'\n", 2),
+            };
+            i += 1;
+            continue;
+        }
+        if a == "--indicator-style" || a.starts_with("--indicator-style=") {
+            let sel = if a == "--indicator-style" {
+                if i + 1 >= args.len() {
+                    return err_out("ls: option '--indicator-style' requires an argument\n", 2);
+                }
+                i += 1;
+                args[i].as_str()
+            } else {
+                &a["--indicator-style=".len()..]
+            };
+            let styles = ["none", "slash", "file-type", "classify"];
+            let matches: Vec<&str> = styles
+                .iter()
+                .copied()
+                .filter(|s| !sel.is_empty() && s.starts_with(sel))
+                .collect();
+            if matches.len() != 1 {
+                return err_out(
+                    &format!("ls: invalid argument '{sel}' for '--indicator-style'\n"),
+                    1,
+                );
+            }
+            indicator = matches[0];
             i += 1;
             continue;
         }
@@ -198,23 +247,12 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             recursive = true;
         } else if a == "--reverse" {
             reverse = true;
-        } else if a == "--classify" || a == "--indicator-style=classify" {
+        } else if a == "--quote-name" {
+            quote_name = true;
+        } else if a == "--classify" {
             indicator = "classify";
-        } else if a == "--file-type" || a == "--indicator-style=file-type" {
+        } else if a == "--file-type" {
             indicator = "file-type";
-        } else if a == "--indicator-style=slash" {
-            indicator = "slash";
-        } else if a == "--indicator-style=none" {
-            indicator = "none";
-        } else if let Some(s) = a.strip_prefix("--sort=") {
-            sort_mode = match s {
-                "time" => "time",
-                "size" => "size",
-                "version" => "version",
-                "extension" => "ext",
-                "none" => "none",
-                _ => "name",
-            };
         } else if a.starts_with('-') && !a.starts_with("--") && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
@@ -237,6 +275,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'r' => reverse = true,
                     'F' => indicator = "classify",
                     'p' => indicator = "slash",
+                    'Q' => quote_name = true,
                     _ => {}
                 }
             }
@@ -249,11 +288,31 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         targets.push(".".to_string());
     }
 
+    let fmt_name = |name: &str| -> String {
+        if !quote_name {
+            return name.to_string();
+        }
+        let mut s = String::from("\"");
+        for ch in name.chars() {
+            match ch {
+                '"' => s.push_str("\\\""),
+                '\\' => s.push_str("\\\\"),
+                _ => s.push(ch),
+            }
+        }
+        s.push('"');
+        s
+    };
+
     let suffix_for = |full_path: &str| -> &'static str {
         if indicator == "none" {
             return "";
         }
-        if fs.readlink(full_path).is_ok() {
+        if fs
+            .readlink(full_path)
+            .map(|t| !t.starts_with("__hardlink__:"))
+            .unwrap_or(false)
+        {
             if indicator == "file-type" || indicator == "classify" {
                 return "@";
             }
@@ -336,7 +395,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut output_written = false;
 
     for (disp, p) in &file_targets {
-        out.push_str(&format!("{disp}{}\n", suffix_for(p)));
+        out.push_str(&format!("{}{}\n", fmt_name(disp), suffix_for(p)));
         output_written = true;
     }
 
@@ -352,6 +411,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         fs: &dyn SafeBashFs,
         sort_items: &dyn Fn(&mut Vec<(String, String)>),
         suffix_for: &dyn Fn(&str) -> &'static str,
+        fmt_name: &dyn Fn(&str) -> String,
         output_written: &mut bool,
         out: &mut String,
         stderr: &mut String,
@@ -361,7 +421,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             if *output_written {
                 out.push('\n');
             }
-            out.push_str(&format!("{disp}:\n"));
+            out.push_str(&format!("{}:\n", fmt_name(disp)));
             *output_written = true;
         }
         match fs.list_dir(dir_p) {
@@ -383,7 +443,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 }
                 sort_items(&mut children);
                 for (name, pe) in &children {
-                    out.push_str(&format!("{name}{}\n", suffix_for(pe)));
+                    out.push_str(&format!("{}{}\n", fmt_name(name), suffix_for(pe)));
                     *output_written = true;
                 }
                 if recursive {
@@ -404,6 +464,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                                 fs,
                                 sort_items,
                                 suffix_for,
+                                fmt_name,
                                 output_written,
                                 out,
                                 stderr,
@@ -433,6 +494,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             fs,
             &sort_items,
             &suffix_for,
+            &fmt_name,
             &mut output_written,
             &mut out,
             &mut stderr,
@@ -505,11 +567,13 @@ fn cmd_mkdir(
                         }
                         break;
                     }
-                    _ => {}
+                    ch => return err_out(&format!("mkdir: invalid option -- '{ch}'\n"), 2),
                 }
                 j += 1;
             }
             i += 1;
+        } else if a.starts_with("--") {
+            return err_out(&format!("mkdir: unrecognized option '{a}'\n"), 2);
         } else {
             operands.push(a.clone());
             i += 1;
@@ -549,6 +613,25 @@ fn cmd_mkdir(
                     "mkdir: cannot create directory '{a}': No such file or directory\n"
                 ));
                 code = 1;
+                continue;
+            }
+        } else {
+            // Check that no existing ancestor component is a non-directory
+            let mut anc = String::new();
+            let mut blocked = false;
+            for seg in p.split('/').filter(|s| !s.is_empty()) {
+                anc.push('/');
+                anc.push_str(seg);
+                if (fs.exists(&anc) || fs.lstat(&anc).is_ok()) && !fs.is_dir(&anc) {
+                    stderr.push_str(&format!(
+                        "mkdir: cannot create directory '{a}': File exists\n"
+                    ));
+                    code = 1;
+                    blocked = true;
+                    break;
+                }
+            }
+            if blocked {
                 continue;
             }
         }
@@ -620,9 +703,11 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 match ch {
                     'p' => parents = true,
                     'v' => verbose = true,
-                    _ => {}
+                    _ => return err_out(&format!("rmdir: invalid option -- '{ch}'\n"), 2),
                 }
             }
+        } else if a.starts_with("--") {
+            return err_out(&format!("rmdir: unrecognized option '{a}'\n"), 2);
         } else {
             operands.push(a.clone());
         }
@@ -643,6 +728,13 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         let mut cur_p = resolve_posix_path(cwd, a);
         let mut cur_disp = a.clone();
         loop {
+            if cur_p == "/" {
+                stderr.push_str(&format!(
+                    "rmdir: failed to remove '{cur_disp}': Device or resource busy\n"
+                ));
+                code = 1;
+                break;
+            }
             if !fs.exists(&cur_p) && fs.lstat(&cur_p).is_err() {
                 stderr.push_str(&format!(
                     "rmdir: failed to remove '{cur_disp}': No such file or directory\n"
@@ -704,7 +796,7 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
 
 fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut force = false;
-    let mut interactive = false;
+    let mut interactive = "never";
     let mut recursive = false;
     let mut dir_mode = false;
     let mut verbose = false;
@@ -718,12 +810,39 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         if !opts_done && a.starts_with('-') && a.len() > 1 {
             if a == "--force" {
                 force = true;
-                interactive = false;
-            } else if a == "--interactive" || a == "--interactive=always" || a == "--interactive=yes" {
-                interactive = true;
-                force = false;
-            } else if a == "--interactive=never" || a == "--interactive=no" || a == "--interactive=none" {
-                interactive = false;
+                interactive = "never";
+            } else if a == "--interactive" || a.starts_with("--interactive=") {
+                let policy = if a == "--interactive" {
+                    "always"
+                } else {
+                    &a["--interactive=".len()..]
+                };
+                let policies = [
+                    ("never", "never"),
+                    ("no", "never"),
+                    ("none", "never"),
+                    ("once", "once"),
+                    ("always", "always"),
+                    ("yes", "always"),
+                ];
+                let mut modes = std::collections::BTreeSet::new();
+                if !policy.is_empty() {
+                    for (name, mode) in policies {
+                        if name.starts_with(policy) {
+                            modes.insert(mode);
+                        }
+                    }
+                }
+                if modes.len() != 1 {
+                    return err_out(
+                        &format!("rm: invalid argument '{policy}' for '--interactive'\n"),
+                        2,
+                    );
+                }
+                interactive = modes.into_iter().next().unwrap();
+                if interactive == "always" {
+                    force = false;
+                }
             } else if a == "--recursive" {
                 recursive = true;
             } else if a == "--dir" {
@@ -735,18 +854,23 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     match ch {
                         'f' => {
                             force = true;
-                            interactive = false;
+                            interactive = "never";
                         }
                         'i' => {
-                            interactive = true;
+                            interactive = "always";
                             force = false;
+                        }
+                        'I' => {
+                            interactive = "once";
                         }
                         'r' | 'R' => recursive = true,
                         'd' => dir_mode = true,
                         'v' => verbose = true,
-                        _ => {}
+                        _ => return err_out(&format!("rm: invalid option -- '{ch}'\n"), 2),
                     }
                 }
+            } else {
+                return err_out(&format!("rm: unrecognized option '{a}'\n"), 2);
             }
         } else {
             targets.push(a.clone());
@@ -762,49 +886,167 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut stderr = String::new();
     let mut code = 0;
     let mut stdin_lines = stdin.lines();
-    for t in targets {
-        let p = resolve_posix_path(cwd, &t);
+    if interactive == "once" && (recursive || targets.len() > 3) {
+        stderr.push_str(&format!(
+            "rm: remove {} argument{}{}?",
+            targets.len(),
+            if targets.len() == 1 { "" } else { "s" },
+            if recursive { " recursively" } else { "" }
+        ));
+        stderr.push(' ');
+        let ans = stdin_lines.next().unwrap_or("");
+        let first = ans.trim_start().chars().next().unwrap_or('n');
+        if first != 'y' && first != 'Y' {
+            return BuiltinOutcome {
+                stdout,
+                stderr,
+                exit_code: 0,
+            };
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn remove_operand(
+        operand: &str,
+        cwd: &str,
+        force: bool,
+        interactive: &str,
+        recursive: bool,
+        dir_mode: bool,
+        verbose: bool,
+        fs: &dyn SafeBashFs,
+        stdin_lines: &mut std::str::Lines<'_>,
+        stdout: &mut String,
+        stderr: &mut String,
+        code: &mut i32,
+    ) -> bool {
+        let trimmed = operand.trim_end_matches('/');
+        let last_seg = trimmed.rsplit('/').next().unwrap_or(trimmed);
+        let p = resolve_posix_path(cwd, operand);
+        if p == "/" || last_seg == "." || last_seg == ".." {
+            stderr.push_str(&format!(
+                "rm: cannot remove '{operand}': refusing to remove root, '.' or '..'\n"
+            ));
+            *code = 1;
+            return false;
+        }
+        let is_sym = fs
+            .readlink(&p)
+            .map(|lt| !lt.starts_with("__hardlink__:"))
+            .unwrap_or(false);
         let exists = fs.exists(&p) || fs.lstat(&p).is_ok();
         if !exists {
             if !force {
-                stderr.push_str(&format!("rm: cannot remove '{t}': No such file or directory\n"));
-                code = 1;
+                stderr.push_str(&format!(
+                    "rm: cannot remove '{operand}': No such file or directory\n"
+                ));
+                *code = 1;
             }
-            continue;
+            return true;
         }
-        let is_real_dir = fs.is_dir(&p) && fs.readlink(&p).is_err();
+        if operand.ends_with('/') && (!fs.is_dir(&p) || is_sym && !fs.is_dir(&p)) {
+            stderr.push_str(&format!("rm: cannot remove '{operand}': Not a directory\n"));
+            *code = 1;
+            return false;
+        }
+        let is_real_dir = fs.is_dir(&p) && !is_sym;
         if is_real_dir && !recursive && !dir_mode {
-            stderr.push_str(&format!("rm: cannot remove '{t}': Is a directory\n"));
-            code = 1;
-            continue;
+            stderr.push_str(&format!("rm: cannot remove '{operand}': Is a directory\n"));
+            *code = 1;
+            return false;
         }
         if is_real_dir && !recursive && dir_mode {
             if fs.list_dir(&p).map(|e| !e.is_empty()).unwrap_or(false) {
-                stderr.push_str(&format!("rm: cannot remove '{t}': Directory not empty\n"));
-                code = 1;
-                continue;
+                stderr.push_str(&format!(
+                    "rm: cannot remove '{operand}': Directory not empty\n"
+                ));
+                *code = 1;
+                return false;
             }
         }
-        if interactive && !force {
+        if interactive == "always" {
+            if is_real_dir && recursive {
+                let entries = fs.list_dir(&p).unwrap_or_default();
+                if !entries.is_empty() {
+                    stderr.push_str(&format!("rm: descend into directory '{operand}'? "));
+                    let ans = stdin_lines.next().unwrap_or("");
+                    let first = ans.trim_start().chars().next().unwrap_or('n');
+                    if first != 'y' && first != 'Y' {
+                        return false;
+                    }
+                    let mut all_removed = true;
+                    for e in entries {
+                        let child_op = child_disp_path(operand, &e);
+                        if !remove_operand(
+                            &child_op,
+                            cwd,
+                            force,
+                            interactive,
+                            recursive,
+                            dir_mode,
+                            verbose,
+                            fs,
+                            stdin_lines,
+                            stdout,
+                            stderr,
+                            code,
+                        ) {
+                            all_removed = false;
+                        }
+                    }
+                    if !all_removed {
+                        return false;
+                    }
+                }
+            }
+            let type_label = if is_sym {
+                "symbolic link"
+            } else if is_real_dir {
+                "directory"
+            } else if fs.lstat(&p).map(|s| s.size == 0).unwrap_or(false) {
+                "regular empty file"
+            } else {
+                "regular file"
+            };
+            stderr.push_str(&format!("rm: remove {type_label} '{operand}'? "));
             let ans = stdin_lines.next().unwrap_or("");
-            let first = ans.trim().chars().next().unwrap_or('n');
+            let first = ans.trim_start().chars().next().unwrap_or('n');
             if first != 'y' && first != 'Y' {
-                continue;
+                return false;
             }
         }
         match fs.remove_path(&p) {
             Ok(()) => {
                 if verbose {
-                    stdout.push_str(&format!("removed '{t}'\n"));
+                    stdout.push_str(&format!("removed '{operand}'\n"));
                 }
+                true
             }
             Err(e) => {
                 if !force {
-                    stderr.push_str(&format!("rm: cannot remove '{t}': {e}\n"));
-                    code = 1;
+                    stderr.push_str(&format!("rm: cannot remove '{operand}': {e}\n"));
+                    *code = 1;
                 }
+                false
             }
         }
+    }
+
+    for t in targets {
+        remove_operand(
+            &t,
+            cwd,
+            force,
+            interactive,
+            recursive,
+            dir_mode,
+            verbose,
+            fs,
+            &mut stdin_lines,
+            &mut stdout,
+            &mut stderr,
+            &mut code,
+        );
     }
     BuiltinOutcome {
         stdout,
@@ -825,11 +1067,23 @@ fn copy_recursive_ext(
     top: bool,
 ) -> Result<(), String> {
     let preserve_link = deref_mode == 'P' || (deref_mode == 'H' && !top);
-    if preserve_link && let Ok(link_target) = fs.readlink(src) {
+    if preserve_link
+        && let Ok(link_target) = fs.readlink(src)
+        && !link_target.starts_with("__hardlink__:")
+    {
         let _ = fs.remove_path(dst);
         return fs.symlink(&link_target, dst);
     }
-    if fs.is_dir(src) {
+    let is_dir_to_copy = if preserve_link {
+        fs.is_dir(src)
+            && !fs
+                .readlink(src)
+                .map(|t| !t.starts_with("__hardlink__:"))
+                .unwrap_or(false)
+    } else {
+        fs.is_dir(src)
+    };
+    if is_dir_to_copy {
         fs.mkdir_all(dst)?;
         if let Ok(st) = fs.stat(src) {
             let _ = fs.chmod(dst, st.mode);
@@ -849,12 +1103,22 @@ fn copy_recursive_ext(
         }
         Ok(())
     } else {
-        let data = fs.read_file(src)?;
+        let read_src = if !preserve_link
+            && fs
+                .readlink(src)
+                .map(|t| !t.starts_with("__hardlink__:"))
+                .unwrap_or(false)
+        {
+            canonicalize_posix_path(src, 'e', false, fs)?
+        } else {
+            src.to_string()
+        };
+        let data = fs.read_file(&read_src)?;
         if fs.readlink(dst).is_ok() {
             let _ = fs.remove_path(dst);
         }
         fs.write_file(dst, &data)?;
-        if let Ok(st) = fs.stat(src) {
+        if let Ok(st) = fs.stat(&read_src) {
             let _ = fs.chmod(dst, st.mode);
             let _ = fs.set_mtime(dst, st.mtime_ms);
         }
@@ -862,21 +1126,37 @@ fn copy_recursive_ext(
     }
 }
 
+fn canonical_entry_identity(path: &str, follow: bool, fs: &dyn SafeBashFs) -> String {
+    let entries = fs.export_entries().unwrap_or_default();
+    let resolved = if follow {
+        canonicalize_posix_path(path, 'm', false, fs).unwrap_or_else(|_| normalize_posix_path(path))
+    } else {
+        let parent = crate::vfs::dirname_posix_path(path);
+        let base = basename_posix_path(path);
+        let canon_parent = canonicalize_posix_path(&parent, 'm', false, fs)
+            .unwrap_or_else(|_| normalize_posix_path(&parent));
+        child_disp_path(&canon_parent, &base)
+    };
+    resolve_hardlink_root_path(&resolved, &entries)
+}
+
 fn cmd_cp(
     args: &[String],
+    stdin: &str,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut operands: Vec<String> = Vec::new();
     let mut end_opts = false;
-    let mut no_clobber = false;
+    let mut overwrite: Option<char> = None;
     let mut update_only = false;
     let mut hard_link = false;
     let mut sym_link = false;
     let mut verbose = false;
     let mut no_target_dir = false;
     let mut target_dir: Option<String> = None;
+    let mut t_count = 0usize;
     let mut backup_flag = false;
     let mut suffix_flag = false;
     let mut backup_control: Option<String> = None;
@@ -887,6 +1167,9 @@ fn cmd_cp(
         .unwrap_or_else(|| "~".to_string());
     let mut recursive = false;
     let mut deref_opt: Option<char> = None;
+    let mut remove_destination = false;
+    let mut attributes_only = false;
+    let mut preserve_links = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
@@ -903,12 +1186,17 @@ fn cmd_cp(
         }
         if !end_opts && (a == "-t" || a == "--target-directory") && i + 1 < args.len() {
             target_dir = Some(args[i + 1].clone());
+            t_count += 1;
             i += 2;
             continue;
         }
         if !end_opts && a.starts_with('-') && a != "-" {
             if a == "--no-clobber" {
-                no_clobber = true;
+                overwrite = Some('n');
+            } else if a == "--interactive" {
+                overwrite = Some('i');
+            } else if a == "--force" {
+                // accepted
             } else if a == "--update" {
                 update_only = true;
             } else if a == "--link" {
@@ -921,6 +1209,7 @@ fn cmd_cp(
                 no_target_dir = true;
             } else if let Some(td) = a.strip_prefix("--target-directory=") {
                 target_dir = Some(td.to_string());
+                t_count += 1;
             } else if a == "--dereference" {
                 deref_opt = Some('L');
             } else if a == "--no-dereference" {
@@ -928,6 +1217,34 @@ fn cmd_cp(
             } else if a == "--archive" {
                 recursive = true;
                 deref_opt = Some('P');
+                preserve_links = true;
+            } else if a == "--preserve" {
+                // mode, ownership, timestamps
+            } else if let Some(attrs) = a.strip_prefix("--preserve=") {
+                for attr in attrs.split(',') {
+                    match attr {
+                        "mode" | "ownership" | "timestamps" => {}
+                        "links" => preserve_links = true,
+                        "all" | "context" | "xattr" => {
+                            return err_out(
+                                &format!("cp: preserving {attr} is unavailable\n"),
+                                1,
+                            );
+                        }
+                        _ => {
+                            return err_out(
+                                &format!("cp: invalid argument '{attr}' for 'preserve'\n"),
+                                2,
+                            );
+                        }
+                    }
+                }
+            } else if a == "--remove-destination" {
+                remove_destination = true;
+            } else if a == "--attributes-only" {
+                attributes_only = true;
+            } else if a == "--one-file-system" {
+                // -x
             } else if a == "--recursive" {
                 recursive = true;
             } else if let Some(ctrl) = a.strip_prefix("--backup=") {
@@ -942,7 +1259,9 @@ fn cmd_cp(
                 let mut j = 0usize;
                 while j < chars.len() {
                     match chars[j] {
-                        'n' => no_clobber = true,
+                        'n' => overwrite = Some('n'),
+                        'i' => overwrite = Some('i'),
+                        'f' | 'p' | 'x' => {}
                         'u' => update_only = true,
                         'l' => hard_link = true,
                         's' => sym_link = true,
@@ -950,12 +1269,15 @@ fn cmd_cp(
                         'v' => verbose = true,
                         'T' => no_target_dir = true,
                         't' => {
+                            t_count += 1;
                             let rest: String = chars[j + 1..].iter().collect();
                             if !rest.is_empty() {
                                 target_dir = Some(rest);
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 target_dir = Some(args[i].clone());
+                            } else {
+                                return err_out("cp: option requires an argument -- 't'\n", 2);
                             }
                             break;
                         }
@@ -967,6 +1289,8 @@ fn cmd_cp(
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 backup_suffix = args[i].clone();
+                            } else {
+                                return err_out("cp: option requires an argument -- 'S'\n", 2);
                             }
                             break;
                         }
@@ -974,14 +1298,21 @@ fn cmd_cp(
                         'a' => {
                             recursive = true;
                             deref_opt = Some('P');
+                            preserve_links = true;
                         }
-                        'd' | 'P' => deref_opt = Some('P'),
+                        'd' => {
+                            deref_opt = Some('P');
+                            preserve_links = true;
+                        }
+                        'P' => deref_opt = Some('P'),
                         'L' => deref_opt = Some('L'),
                         'H' => deref_opt = Some('H'),
-                        _ => {}
+                        ch => return err_out(&format!("cp: invalid option -- '{ch}'\n"), 2),
                     }
                     j += 1;
                 }
+            } else {
+                return err_out(&format!("cp: unrecognized option '{a}'\n"), 2);
             }
             i += 1;
             continue;
@@ -989,8 +1320,19 @@ fn cmd_cp(
         operands.push(a.clone());
         i += 1;
     }
+    let no_clobber = overwrite == Some('n');
+    let interactive = overwrite == Some('i');
+    if t_count > 1 {
+        return err_out("cp: multiple target directories specified\n", 2);
+    }
+    if hard_link && sym_link {
+        return err_out("cp: cannot make both hard and symbolic links\n", 2);
+    }
     if target_dir.is_some() && no_target_dir {
         return err_out("cp: cannot combine --target-directory and --no-target-directory\n", 2);
+    }
+    if no_target_dir && operands.len() != 2 {
+        return err_out("cp: invalid number of operands with -T\n", 2);
     }
     let eff_operands: Vec<String> = if let Some(ref td) = target_dir {
         let mut v = operands;
@@ -1009,18 +1351,42 @@ fn cmd_cp(
     } else {
         BackupMode::None
     };
+    if backup_mode != BackupMode::None && no_clobber {
+        return err_out(
+            "cp: options --backup and --no-clobber are mutually exclusive\n",
+            2,
+        );
+    }
     let deref_mode = deref_opt.unwrap_or(if recursive { 'P' } else { 'H' });
     let dst_raw = eff_operands.last().unwrap();
     let dst_base = resolve_posix_path(cwd, dst_raw);
     let dst_is_dir = !no_target_dir && fs.is_dir(&dst_base);
+    if (target_dir.is_some() || eff_operands.len() > 2) && !dst_is_dir {
+        return err_out(&format!("cp: target '{dst_raw}' is not a directory\n"), 1);
+    }
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut code = 0;
+    let mut declined = false;
+    let mut stdin_lines = stdin.lines();
+    let mut copied_targets: BTreeMap<String, String> = BTreeMap::new();
 
     for src_raw in &eff_operands[..eff_operands.len() - 1] {
         let src = resolve_posix_path(cwd, src_raw);
+        if !fs.exists(&src) && fs.lstat(&src).is_err() {
+            stderr.push_str(&format!(
+                "cp: cannot stat '{src_raw}': No such file or directory\n"
+            ));
+            code = 1;
+            continue;
+        }
+        let src_is_sym = fs
+            .readlink(&src)
+            .map(|t| !t.starts_with("__hardlink__:"))
+            .unwrap_or(false);
+        let preserve_top_link = src_is_sym && deref_mode == 'P';
         let src_is_dir = if deref_mode == 'P' {
-            fs.is_dir(&src) && fs.readlink(&src).is_err()
+            fs.is_dir(&src) && !src_is_sym
         } else {
             fs.is_dir(&src)
         };
@@ -1040,17 +1406,73 @@ fn cmd_cp(
         } else {
             dst_raw.clone()
         };
-        if fs.exists(&target) || fs.lstat(&target).is_ok() {
+        let target_exists = fs.exists(&target) || fs.lstat(&target).is_ok();
+        if target_exists {
             if no_clobber {
                 continue;
             }
-            if update_only {
+            if update_only && !src_is_dir && !fs.is_dir(&target) {
                 let sm = fs.stat(&src).map(|s| s.mtime_ms).unwrap_or(0);
                 let tm = fs.stat(&target).map(|s| s.mtime_ms).unwrap_or(0);
                 if sm <= tm {
                     continue;
                 }
             }
+        }
+        let follow_target = !preserve_top_link && !(remove_destination && !src_is_dir) && !sym_link && !hard_link;
+        let phys_src = canonical_entry_identity(&src, !preserve_top_link, fs);
+        let phys_dst = canonical_entry_identity(&target, follow_target, fs);
+        if phys_src == phys_dst {
+            stderr.push_str(&format!(
+                "cp: '{src_raw}' and '{disp_target}' are the same file\n"
+            ));
+            code = 1;
+            continue;
+        }
+        if src_is_dir && phys_dst.starts_with(&format!("{}/", phys_src.trim_end_matches('/'))) {
+            stderr.push_str(&format!(
+                "cp: cannot copy a directory, '{src_raw}', into itself, '{disp_target}'\n"
+            ));
+            code = 1;
+            continue;
+        }
+        if interactive && !src_is_dir && target_exists && !fs.is_dir(&target) {
+            stderr.push_str(&format!("cp: overwrite '{disp_target}'? "));
+            let ans = stdin_lines.next().unwrap_or("");
+            let first = ans.bytes().next().unwrap_or(b'n');
+            if first != b'y' && first != b'Y' {
+                declined = true;
+                continue;
+            }
+        }
+        if let Some(prev_src) = copied_targets.get(&phys_dst)
+            && prev_src != &phys_src
+        {
+            stderr.push_str(&format!(
+                "cp: will not overwrite just-created '{disp_target}' with '{src_raw}'\n"
+            ));
+            code = 1;
+            continue;
+        }
+        if sym_link && !src_raw.starts_with('/') {
+            let cwd_real = canonicalize_posix_path(cwd, 'm', false, fs)
+                .unwrap_or_else(|_| normalize_posix_path(cwd));
+            let dst_parent_real = canonicalize_posix_path(
+                &crate::vfs::dirname_posix_path(&target),
+                'm',
+                false,
+                fs,
+            )
+            .unwrap_or_else(|_| crate::vfs::dirname_posix_path(&target));
+            if dst_parent_real != cwd_real {
+                stderr.push_str(&format!(
+                    "cp: '{src_raw}': can make relative symbolic links only in current directory\n"
+                ));
+                code = 1;
+                continue;
+            }
+        }
+        if target_exists {
             create_backup_for_target(&target, backup_mode, &backup_suffix, fs);
         }
         let copy_res = if sym_link {
@@ -1059,11 +1481,32 @@ fn cmd_cp(
         } else if hard_link {
             let _ = fs.remove_path(&target);
             fs.symlink(&format!("__hardlink__:{src}"), &target)
+        } else if attributes_only && !src_is_dir {
+            if (!target_exists || remove_destination || backup_mode != BackupMode::None)
+                && !preserve_top_link
+            {
+                if remove_destination && target_exists && backup_mode == BackupMode::None {
+                    let _ = fs.remove_path(&target);
+                }
+                let _ = fs.write_file(&target, &[]);
+            }
+            if let Ok(st) = fs.stat(&src) {
+                let _ = fs.chmod(&target, st.mode);
+                let _ = fs.set_mtime(&target, st.mtime_ms);
+            }
+            Ok(())
         } else {
+            if remove_destination && !src_is_dir && target_exists && backup_mode == BackupMode::None
+            {
+                let _ = fs.remove_path(&target);
+            }
             copy_recursive_ext(&src, &target, fs, deref_mode, true)
         };
         match copy_res {
             Ok(()) => {
+                if preserve_links {
+                    copied_targets.insert(phys_dst, phys_src);
+                }
                 if verbose {
                     stdout.push_str(&format!("'{src_raw}' -> '{disp_target}'\n"));
                 }
@@ -1077,12 +1520,13 @@ fn cmd_cp(
     BuiltinOutcome {
         stdout,
         stderr,
-        exit_code: code,
+        exit_code: if declined { 1 } else { code },
     }
 }
 
 fn cmd_mv(
     args: &[String],
+    stdin: &str,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -1094,6 +1538,7 @@ fn cmd_mv(
     let mut verbose = false;
     let mut no_target_dir = false;
     let mut target_dir: Option<String> = None;
+    let mut t_count = 0usize;
     let mut backup_flag = false;
     let mut suffix_flag = false;
     let mut backup_control: Option<String> = None;
@@ -1118,6 +1563,7 @@ fn cmd_mv(
         }
         if !end_opts && (a == "-t" || a == "--target-directory") && i + 1 < args.len() {
             target_dir = Some(args[i + 1].clone());
+            t_count += 1;
             i += 2;
             continue;
         }
@@ -1136,6 +1582,7 @@ fn cmd_mv(
                 no_target_dir = true;
             } else if let Some(td) = a.strip_prefix("--target-directory=") {
                 target_dir = Some(td.to_string());
+                t_count += 1;
             } else if let Some(ctrl) = a.strip_prefix("--backup=") {
                 backup_control = Some(ctrl.to_string());
             } else if a == "--backup" {
@@ -1154,12 +1601,15 @@ fn cmd_mv(
                         'T' => no_target_dir = true,
                         'b' => backup_flag = true,
                         't' => {
+                            t_count += 1;
                             let rest: String = chars[j + 1..].iter().collect();
                             if !rest.is_empty() {
                                 target_dir = Some(rest);
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 target_dir = Some(args[i].clone());
+                            } else {
+                                return err_out("mv: option requires an argument -- 't'\n", 2);
                             }
                             break;
                         }
@@ -1171,13 +1621,17 @@ fn cmd_mv(
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 backup_suffix = args[i].clone();
+                            } else {
+                                return err_out("mv: option requires an argument -- 'S'\n", 2);
                             }
                             break;
                         }
-                        _ => {}
+                        ch => return err_out(&format!("mv: invalid option -- '{ch}'\n"), 2),
                     }
                     j += 1;
                 }
+            } else {
+                return err_out(&format!("mv: unrecognized option '{a}'\n"), 2);
             }
             i += 1;
             continue;
@@ -1186,6 +1640,10 @@ fn cmd_mv(
         i += 1;
     }
     let no_clobber = overwrite == Some('n');
+    let interactive = overwrite == Some('i');
+    if t_count > 1 {
+        return err_out("mv: multiple target directories specified\n", 2);
+    }
     let backup_mode = if let Some(ref ctrl) = backup_control {
         parse_backup_control(ctrl)
     } else if backup_flag || suffix_flag {
@@ -1198,6 +1656,9 @@ fn cmd_mv(
     }
     if target_dir.is_some() && no_target_dir {
         return err_out("mv: cannot combine --target-directory and --no-target-directory\n", 2);
+    }
+    if no_target_dir && operands.len() != 2 {
+        return err_out("mv: invalid number of operands with -T\n", 2);
     }
     let eff_operands: Vec<String> = if let Some(ref td) = target_dir {
         let mut v = operands;
@@ -1212,12 +1673,33 @@ fn cmd_mv(
     let dst_raw = eff_operands.last().unwrap();
     let dst_base = resolve_posix_path(cwd, dst_raw);
     let dst_is_dir = !no_target_dir && fs.is_dir(&dst_base);
+    if target_dir.is_some() && !dst_is_dir {
+        if !fs.exists(&dst_base) && fs.lstat(&dst_base).is_err() {
+            return err_out(
+                &format!("mv: failed to access '{dst_raw}': No such file or directory\n"),
+                1,
+            );
+        }
+        return err_out(&format!("mv: target '{dst_raw}' is not a directory\n"), 1);
+    }
+    if eff_operands.len() > 2 && !dst_is_dir {
+        return err_out(&format!("mv: target '{dst_raw}' is not a directory\n"), 1);
+    }
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut code = 0;
+    let mut declined = false;
+    let mut stdin_lines = stdin.lines();
 
     for src_raw in &eff_operands[..eff_operands.len() - 1] {
         let src = resolve_posix_path(cwd, src_raw);
+        if !fs.exists(&src) && fs.lstat(&src).is_err() {
+            stderr.push_str(&format!(
+                "mv: cannot stat '{src_raw}': No such file or directory\n"
+            ));
+            code = 1;
+            continue;
+        }
         let name = basename_posix_path(&src);
         let target = if dst_is_dir {
             child_disp_path(&dst_base, &name)
@@ -1229,10 +1711,27 @@ fn cmd_mv(
         } else {
             dst_raw.clone()
         };
-        if src == target {
+        if target.starts_with(&format!("{}/", src.trim_end_matches('/'))) {
+            stderr.push_str(&format!(
+                "mv: cannot move '{src_raw}' to a subdirectory of itself, '{disp_target}'\n"
+            ));
+            code = 1;
             continue;
         }
-        if fs.exists(&target) || fs.lstat(&target).is_ok() {
+        let target_exists = fs.exists(&target) || fs.lstat(&target).is_ok();
+        if src == target {
+            if no_clobber {
+                continue;
+            }
+            if update_only || interactive || backup_mode != BackupMode::None {
+                stderr.push_str(&format!(
+                    "mv: '{src_raw}' and '{disp_target}' are the same file\n"
+                ));
+                code = 1;
+            }
+            continue;
+        }
+        if target_exists {
             if no_clobber {
                 continue;
             }
@@ -1240,6 +1739,15 @@ fn cmd_mv(
                 let sm = fs.stat(&src).map(|s| s.mtime_ms).unwrap_or(0);
                 let tm = fs.stat(&target).map(|s| s.mtime_ms).unwrap_or(0);
                 if sm <= tm {
+                    continue;
+                }
+            }
+            if interactive {
+                stderr.push_str(&format!("mv: overwrite '{disp_target}'? "));
+                let ans = stdin_lines.next().unwrap_or("");
+                let first = ans.bytes().next().unwrap_or(b'n');
+                if first != b'y' && first != b'Y' {
+                    declined = true;
                     continue;
                 }
             }
@@ -1260,7 +1768,7 @@ fn cmd_mv(
     BuiltinOutcome {
         stdout,
         stderr,
-        exit_code: code,
+        exit_code: if declined { 1 } else { code },
     }
 }
 fn cmd_touch(
@@ -1272,8 +1780,14 @@ fn cmd_touch(
     let mut no_create = false;
     let mut only_atime = false;
     let mut only_mtime = false;
+    let mut has_r = false;
+    let mut has_d = false;
+    let mut has_t = false;
+    let mut ref_file: Option<String> = None;
     let mut ref_mtime: Option<u64> = None;
     let mut ref_atime: Option<u64> = None;
+    let mut operands: Vec<String> = Vec::new();
+    let mut ended = false;
     let umask_val = env
         .get("__umask")
         .and_then(|s| u32::from_str_radix(s, 8).ok())
@@ -1281,42 +1795,182 @@ fn cmd_touch(
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-r" && i + 1 < args.len() {
-            let rp = resolve_posix_path(cwd, &args[i + 1]);
-            if let Ok(st) = fs.stat(&rp) {
-                ref_mtime = Some(st.mtime_ms);
-                let at = atime_store()
-                    .lock()
-                    .ok()
-                    .and_then(|m| m.get(&rp).copied())
-                    .unwrap_or(st.mtime_ms);
-                ref_atime = Some(at);
-            }
+        if ended {
+            operands.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if (a == "-r" || a == "--reference") && i + 1 < args.len() {
+            has_r = true;
+            ref_file = Some(args[i + 1].clone());
             i += 2;
             continue;
         }
-        if (a == "-d" || a == "-t") && i + 1 < args.len() {
+        if let Some(rf) = a.strip_prefix("--reference=") {
+            has_r = true;
+            ref_file = Some(rf.to_string());
+            i += 1;
+            continue;
+        }
+        if (a == "-d" || a == "--date") && i + 1 < args.len() {
+            has_d = true;
             let ts = parse_touch_timestamp_ms(&args[i + 1]);
             ref_mtime = Some(ts);
             ref_atime = Some(ts);
             i += 2;
             continue;
         }
-        if a.starts_with('-') {
-            if a.contains('c') {
-                no_create = true;
-            }
-            if a.contains('a') {
-                only_atime = true;
-            }
-            if a.contains('m') {
-                only_mtime = true;
+        if let Some(ds) = a.strip_prefix("--date=") {
+            has_d = true;
+            let ts = parse_touch_timestamp_ms(ds);
+            ref_mtime = Some(ts);
+            ref_atime = Some(ts);
+            i += 1;
+            continue;
+        }
+        if a == "-t" && i + 1 < args.len() {
+            has_t = true;
+            let ts = parse_touch_timestamp_ms(&args[i + 1]);
+            ref_mtime = Some(ts);
+            ref_atime = Some(ts);
+            i += 2;
+            continue;
+        }
+        if a == "--time" || a.starts_with("--time=") {
+            let val = if a == "--time" {
+                if i + 1 >= args.len() {
+                    return err_out("touch: option '--time' requires an argument\n", 2);
+                }
+                i += 1;
+                args[i].as_str()
+            } else {
+                &a["--time=".len()..]
+            };
+            match val {
+                "atime" | "access" | "use" => only_atime = true,
+                "mtime" | "modify" => only_mtime = true,
+                _ => {
+                    return err_out(
+                        &format!("touch: invalid argument '{val}' for '--time'\n"),
+                        2,
+                    );
+                }
             }
             i += 1;
             continue;
         }
-        let touch_a = !only_mtime || only_atime;
-        let touch_m = !only_atime || only_mtime;
+        if a == "--no-create" {
+            no_create = true;
+            i += 1;
+            continue;
+        }
+        if a == "--no-dereference" {
+            i += 1;
+            continue;
+        }
+        if a.starts_with("--") {
+            return err_out(&format!("touch: unrecognized option '{a}'\n"), 2);
+        }
+        if a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a[1..].chars().collect();
+            let mut j = 0usize;
+            while j < chars.len() {
+                match chars[j] {
+                    'c' => no_create = true,
+                    'a' => only_atime = true,
+                    'm' => only_mtime = true,
+                    'f' | 'h' => {}
+                    'r' => {
+                        has_r = true;
+                        let rest: String = chars[j + 1..].iter().collect();
+                        if !rest.is_empty() {
+                            ref_file = Some(rest);
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            ref_file = Some(args[i].clone());
+                        } else {
+                            return err_out("touch: option requires an argument -- 'r'\n", 2);
+                        }
+                        break;
+                    }
+                    'd' => {
+                        has_d = true;
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out("touch: option requires an argument -- 'd'\n", 2);
+                        };
+                        let ts = parse_touch_timestamp_ms(&val);
+                        ref_mtime = Some(ts);
+                        ref_atime = Some(ts);
+                        break;
+                    }
+                    't' => {
+                        has_t = true;
+                        let rest: String = chars[j + 1..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            rest
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out("touch: option requires an argument -- 't'\n", 2);
+                        };
+                        let ts = parse_touch_timestamp_ms(&val);
+                        ref_mtime = Some(ts);
+                        ref_atime = Some(ts);
+                        break;
+                    }
+                    ch => return err_out(&format!("touch: invalid option -- '{ch}'\n"), 2),
+                }
+                j += 1;
+            }
+            i += 1;
+            continue;
+        }
+        operands.push(a.clone());
+        i += 1;
+    }
+    if operands.is_empty() {
+        return err_out("touch: missing file operand\n", 2);
+    }
+    if has_t && (has_d || has_r) {
+        return err_out("touch: cannot specify times from more than one source\n", 1);
+    }
+    if let Some(ref rf) = ref_file {
+        let rp = resolve_posix_path(cwd, rf);
+        match fs.stat(&rp) {
+            Ok(st) => {
+                if !has_d && !has_t {
+                    ref_mtime = Some(st.mtime_ms);
+                    let at = atime_store()
+                        .lock()
+                        .ok()
+                        .and_then(|m| m.get(&rp).copied())
+                        .unwrap_or(st.mtime_ms);
+                    ref_atime = Some(at);
+                }
+            }
+            Err(e) => {
+                return err_out(
+                    &format!("touch: failed to get attributes of '{rf}': {e}\n"),
+                    1,
+                );
+            }
+        }
+    }
+    let touch_a = !only_mtime || only_atime;
+    let touch_m = !only_atime || only_mtime;
+    for a in &operands {
         let p = resolve_posix_path(cwd, a);
         if !fs.exists(&p) {
             if !no_create {
@@ -1349,7 +2003,6 @@ fn cmd_touch(
                 }
             }
         }
-        i += 1;
     }
     ok_out("")
 }
@@ -1432,11 +2085,14 @@ fn resolve_hardlink_root_path(
 
 fn cmd_ln(
     args: &[String],
+    stdin: &str,
     cwd: &str,
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut force = false;
+    let mut interactive = false;
+    let mut logical = false;
     let mut symbolic = false;
     let mut relative = false;
     let mut no_deref = false;
@@ -1479,7 +2135,16 @@ fn cmd_ln(
         }
         if a.starts_with("--") {
             match a.as_str() {
-                "--force" => force = true,
+                "--force" => {
+                    force = true;
+                    interactive = false;
+                }
+                "--interactive" => {
+                    interactive = true;
+                    force = false;
+                }
+                "--logical" => logical = true,
+                "--physical" => logical = false,
                 "--symbolic" => symbolic = true,
                 "--relative" => relative = true,
                 "--no-dereference" => no_deref = true,
@@ -1496,14 +2161,23 @@ fn cmd_ln(
                 s if s.starts_with("--target-directory=") => {
                     target_dir = Some(s["--target-directory=".len()..].to_string());
                 }
-                _ => {}
+                _ => return err_out(&format!("ln: unrecognized option '{a}'\n"), 2),
             }
         } else if a.starts_with('-') && a.len() > 1 {
             let chars: Vec<char> = a[1..].chars().collect();
             let mut j = 0usize;
             while j < chars.len() {
                 match chars[j] {
-                    'f' => force = true,
+                    'f' => {
+                        force = true;
+                        interactive = false;
+                    }
+                    'i' => {
+                        interactive = true;
+                        force = false;
+                    }
+                    'L' => logical = true,
+                    'P' => logical = false,
                     's' => symbolic = true,
                     'r' => relative = true,
                     'n' | 'h' => no_deref = true,
@@ -1531,7 +2205,7 @@ fn cmd_ln(
                         }
                         break;
                     }
-                    _ => {}
+                    ch => return err_out(&format!("ln: invalid option -- '{ch}'\n"), 2),
                 }
                 j += 1;
             }
@@ -1585,6 +2259,8 @@ fn cmd_ln(
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut code = 0;
+    let mut declined = false;
+    let mut stdin_lines = stdin.lines();
 
     for src_op in &eff_operands[..eff_operands.len() - 1] {
         let base_name = basename_posix_path(src_op);
@@ -1598,8 +2274,25 @@ fn cmd_ln(
         } else {
             last_op.clone()
         };
+        let src_full = resolve_posix_path(cwd, src_op);
+        if !symbolic && src_full == link_path {
+            stderr.push_str(&format!(
+                "ln: '{src_op}' and '{disp_target}' are the same file\n"
+            ));
+            code = 1;
+            continue;
+        }
         if fs.exists(&link_path) || fs.lstat(&link_path).is_ok() {
-            if !force && backup_mode == BackupMode::None {
+            let src_entry = canonical_entry_identity(&src_full, false, fs);
+            let dst_entry = canonical_entry_identity(&link_path, false, fs);
+            if src_entry == dst_entry {
+                stderr.push_str(&format!(
+                    "ln: '{src_op}' and '{disp_target}' are the same file\n"
+                ));
+                code = 1;
+                continue;
+            }
+            if !force && !interactive && backup_mode == BackupMode::None {
                 stderr.push_str(&format!(
                     "ln: failed to create link '{disp_target}': File exists\n"
                 ));
@@ -1613,6 +2306,15 @@ fn cmd_ln(
                 code = 1;
                 continue;
             }
+            if interactive {
+                stderr.push_str(&format!("ln: replace '{disp_target}'? "));
+                let ans = stdin_lines.next().unwrap_or("");
+                let first = ans.trim_start().chars().next().unwrap_or('n');
+                if first != 'y' && first != 'Y' {
+                    declined = true;
+                    continue;
+                }
+            }
             create_backup_for_target(&link_path, backup_mode, &backup_suffix, fs);
             let _ = fs.remove_path(&link_path);
         }
@@ -1625,10 +2327,22 @@ fn cmd_ln(
                 src_op.clone()
             }
         } else {
-            let target_full = resolve_posix_path(cwd, src_op);
-            let entries = fs.export_entries().unwrap_or_default();
-            let canon = resolve_hardlink_root_path(&target_full, &entries);
-            format!("__hardlink__:{canon}")
+            let target_full = if logical {
+                canonicalize_posix_path(&src_full, 'e', false, fs)
+                    .unwrap_or_else(|_| src_full.clone())
+            } else {
+                src_full.clone()
+            };
+            if !logical
+                && let Ok(sym_t) = fs.readlink(&target_full)
+                && !sym_t.starts_with("__hardlink__:")
+            {
+                sym_t
+            } else {
+                let entries = fs.export_entries().unwrap_or_default();
+                let canon = resolve_hardlink_root_path(&target_full, &entries);
+                format!("__hardlink__:{canon}")
+            }
         };
         if let Err(e) = fs.symlink(&stored_target, &link_path) {
             stderr.push_str(&format!("ln: {e}\n"));
@@ -1644,14 +2358,14 @@ fn cmd_ln(
     BuiltinOutcome {
         stdout,
         stderr,
-        exit_code: code,
+        exit_code: if declined { 1 } else { code },
     }
 }
 fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut mode = 'L';
     let mut no_newline = false;
     let mut zero = false;
-    let mut verbose = false;
+    let mut verbose_mode = "default";
     let mut ended = false;
     let mut targets = Vec::new();
     for a in args {
@@ -1669,8 +2383,8 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             "--canonicalize-missing" => mode = 'm',
             "--no-newline" => no_newline = true,
             "--zero" => zero = true,
-            "--verbose" => verbose = true,
-            "--quiet" | "--silent" => verbose = false,
+            "--verbose" => verbose_mode = "verbose",
+            "--quiet" | "--silent" => verbose_mode = "quiet",
             s if s.starts_with('-') && !s.starts_with("--") && s.len() > 1 => {
                 for ch in s[1..].chars() {
                     match ch {
@@ -1679,8 +2393,8 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                         'm' => mode = 'm',
                         'n' => no_newline = true,
                         'z' => zero = true,
-                        'v' => verbose = true,
-                        'q' | 's' => verbose = false,
+                        'v' => verbose_mode = "verbose",
+                        'q' | 's' => verbose_mode = "quiet",
                         _ => {
                             return err_out(&format!("readlink: invalid option -- '{ch}'\n"), 1);
                         }
@@ -1698,6 +2412,9 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     }
     let mut out = String::new();
     let mut err_buf = String::new();
+    if no_newline && targets.len() > 1 && verbose_mode != "quiet" {
+        err_buf.push_str("readlink: ignoring --no-newline with multiple arguments\n");
+    }
     let mut exit_code = 0;
     let term = if no_newline && targets.len() == 1 {
         ""
@@ -1715,7 +2432,7 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     out.push_str(term);
                 }
                 _ => {
-                    if verbose {
+                    if verbose_mode == "verbose" {
                         err_buf.push_str(&format!("readlink: {target}: Invalid argument\n"));
                     }
                     exit_code = 1;
@@ -1733,7 +2450,7 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     out.push_str(term);
                 }
                 Err(msg) => {
-                    if verbose {
+                    if verbose_mode == "verbose" {
                         err_buf.push_str(&format!("readlink: {target}: {msg}\n"));
                     }
                     exit_code = 1;
@@ -1974,13 +2691,19 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         } else if let Some(r) = a.strip_prefix("--relative-to=") {
             rel_to = Some(r.to_string());
             i += 1;
-        } else if a == "--relative-to" && i + 1 < args.len() {
+        } else if a == "--relative-to" {
+            if i + 1 >= args.len() {
+                return err_out("realpath: option '--relative-to' requires an argument\n", 2);
+            }
             rel_to = Some(args[i + 1].clone());
             i += 2;
         } else if let Some(r) = a.strip_prefix("--relative-base=") {
             rel_base = Some(r.to_string());
             i += 1;
-        } else if a == "--relative-base" && i + 1 < args.len() {
+        } else if a == "--relative-base" {
+            if i + 1 >= args.len() {
+                return err_out("realpath: option '--relative-base' requires an argument\n", 2);
+            }
             rel_base = Some(args[i + 1].clone());
             i += 2;
         } else if a == "--canonicalize" {
@@ -2087,6 +2810,13 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     let mut err_buf = String::new();
     let mut exit_code = 0;
     for a in targets {
+        if a.is_empty() {
+            if !quiet {
+                err_buf.push_str("realpath: '': No such file or directory\n");
+            }
+            exit_code = 1;
+            continue;
+        }
         let raw = raw_for(&a);
         let resolved = match canonicalize_realpath_operand(&raw, mode, no_symlinks, logical, fs) {
             Ok(r) => r,

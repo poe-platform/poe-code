@@ -317,6 +317,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-split-csplit-fmt-pr-tsort-column-fold-expand-matrix.test.ts",
   "obscure-getopt-shuf-dd-truncate-install-dos2unix-iconv-matrix.test.ts",
   "obscure-date-cal-numfmt-factor-expr-seq-matrix.test.ts",
+  "obscure-xxd-od-hexdump-base64-base32-strings-cksum-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {

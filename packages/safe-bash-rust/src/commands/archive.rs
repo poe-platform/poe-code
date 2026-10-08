@@ -962,29 +962,74 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut bits: Option<usize> = None;
     let mut tag = true;
     let mut base64_mode = false;
+    let mut raw_mode = false;
+    let mut zero_delim = false;
+    let mut binary_mode = false;
     let mut check_mode = false;
     let mut quiet = false;
     let mut status_only = false;
+    let mut warn_mode = false;
+    let mut strict = false;
+    let mut ignore_missing = false;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
+        let a = args[i].as_str();
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        match a {
             "-a" | "--algorithm" if i + 1 < args.len() => {
                 i += 1;
                 algo = args[i].to_ascii_lowercase();
+            }
+            _ if a.starts_with("--algorithm=") => {
+                algo = a["--algorithm=".len()..].to_ascii_lowercase();
+            }
+            _ if a.starts_with("-a") && a.len() > 2 => {
+                algo = a[2..].to_ascii_lowercase();
             }
             "-l" | "--length" if i + 1 < args.len() => {
                 i += 1;
                 bits = args[i].parse().ok();
             }
+            _ if a.starts_with("--length=") => {
+                bits = a["--length=".len()..].parse().ok();
+            }
+            _ if a.starts_with("-l") && a.len() > 2 => {
+                bits = a[2..].parse().ok();
+            }
             "--tag" => tag = true,
             "--untagged" => tag = false,
             "--base64" => base64_mode = true,
+            "--raw" => raw_mode = true,
+            "-z" | "--zero" => zero_delim = true,
+            "-b" | "--binary" => binary_mode = true,
             "-c" | "--check" => check_mode = true,
             "--quiet" => quiet = true,
             "--status" => status_only = true,
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
+            "-w" | "--warn" => warn_mode = true,
+            "--strict" => strict = true,
+            "--ignore-missing" => ignore_missing = true,
+            _ => {
+                for ch in a[1..].chars() {
+                    match ch {
+                        'b' => binary_mode = true,
+                        'c' => check_mode = true,
+                        'z' => zero_delim = true,
+                        'w' => warn_mode = true,
+                        _ => {}
+                    }
+                }
+            }
         }
         i += 1;
     }
@@ -1000,112 +1045,271 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         algo = format!("sha{resolved_bits}");
     }
 
-    if check_mode {
-        let mut check_input = String::new();
-        if files.is_empty() || files[0] == "-" {
-            check_input.push_str(stdin);
-        } else {
-            for f in &files {
-                let full = resolve_posix_path(cwd, f);
-                match fs.read_file(&full) {
-                    Ok(b) => check_input.push_str(&String::from_utf8_lossy(&b)),
-                    Err(_) => return err_out(&format!("cksum: {f}: No such file\n"), 1),
+    let escape_fname = |f: &str| -> (bool, String) {
+        if f.contains('\\') || f.contains('\n') || f.contains('\r') {
+            let mut s = String::with_capacity(f.len() + 4);
+            for c in f.chars() {
+                match c {
+                    '\\' => s.push_str("\\\\"),
+                    '\n' => s.push_str("\\n"),
+                    '\r' => s.push_str("\\r"),
+                    _ => s.push(c),
                 }
+            }
+            (true, s)
+        } else {
+            (false, f.to_string())
+        }
+    };
+    let unescape_fname = |f: &str| -> Option<String> {
+        let mut out = String::new();
+        let mut chs = f.chars();
+        while let Some(c) = chs.next() {
+            if c == '\\' {
+                match chs.next() {
+                    Some('n') => out.push('\n'),
+                    Some('r') => out.push('\r'),
+                    Some('\\') => out.push('\\'),
+                    _ => return None,
+                }
+            } else {
+                out.push(c);
             }
         }
+        Some(out)
+    };
+
+    if check_mode {
+        let manifests = if files.is_empty() {
+            vec!["-".to_string()]
+        } else {
+            files
+        };
         let mut out = String::new();
-        let mut exit_code = 0;
-        for raw_line in check_input.lines() {
-            let line = raw_line.trim();
-            if line.is_empty() || line.starts_with('#') {
-                continue;
-            }
-            let (line_algo, line_bits, fname, expected_hex) =
-                if let Some(open) = line.find('(')
-                    && let Some(close) = line.rfind(") = ")
-                    && open < close
-                {
-                    let lbl = line[..open].trim();
-                    let fnm = line[open + 1..close].trim().to_string();
-                    let exp = line[close + 4..].trim().to_string();
-                    let (la, lb) = if lbl == "BLAKE2b" {
-                        ("blake2b".to_string(), 512usize)
-                    } else if let Some(b_str) = lbl.strip_prefix("BLAKE2b-") {
-                        ("blake2b".to_string(), b_str.parse().unwrap_or(512))
-                    } else if let Some(b_str) = lbl.strip_prefix("SHA3-") {
-                        ("sha3".to_string(), b_str.parse().unwrap_or(256))
-                    } else {
-                        let low = lbl.to_ascii_lowercase();
-                        let b = match low.as_str() {
-                            "sha224" => 224,
-                            "sha256" | "sm3" => 256,
-                            "sha384" => 384,
-                            "md5" => 128,
-                            "sha1" => 160,
-                            _ => 512,
-                        };
-                        (low, b)
-                    };
-                    (la, lb, fnm, exp)
-                } else {
-                    let mut parts = line.splitn(2, char::is_whitespace);
-                    let exp = parts.next().unwrap_or("").trim().to_string();
-                    let fnm = parts
-                        .next()
-                        .unwrap_or("")
-                        .trim()
-                        .trim_start_matches('*')
-                        .to_string();
-                    let check_algo = if algo == "crc" {
-                        match exp.len() * 4 {
-                            128 => "md5".to_string(),
-                            160 => "sha1".to_string(),
-                            224 => "sha224".to_string(),
-                            256 => "sha256".to_string(),
-                            384 => "sha384".to_string(),
-                            512 => "sha512".to_string(),
-                            _ => algo.clone(),
-                        }
-                    } else {
-                        algo.clone()
-                    };
-                    (check_algo, exp.len() * 4, fnm, exp)
-                };
-            let full = resolve_posix_path(cwd, &fname);
-            match fs.read_file(&full) {
-                Ok(bytes) => {
-                    let actual = compute_digest_hex_bits(&line_algo, &bytes, line_bits);
-                    if actual.eq_ignore_ascii_case(&expected_hex) {
-                        if !quiet && !status_only {
-                            out.push_str(&format!("{fname}: OK\n"));
-                        }
-                    } else {
-                        if !status_only {
-                            out.push_str(&format!("{fname}: FAILED\n"));
-                        }
-                        exit_code = 1;
+        let mut err = String::new();
+        let mut overall_ok = true;
+        for manifest in &manifests {
+            let content = if manifest == "-" {
+                stdin.to_string()
+            } else {
+                let full = resolve_posix_path(cwd, manifest);
+                match fs.read_file(&full) {
+                    Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                    Err(_) => {
+                        err.push_str(&format!("cksum: {manifest}: No such file or directory\n"));
+                        overall_ok = false;
+                        continue;
                     }
                 }
-                Err(_) => {
-                    if !status_only {
-                        out.push_str(&format!("{fname}: FAILED open or read\n"));
+            };
+            let mut malformed = 0usize;
+            let mut failures = 0usize;
+            let mut mismatched = 0usize;
+            let mut valid = false;
+            let mut matched = false;
+            for (line_idx, raw_line) in content.lines().enumerate() {
+                let line_num = line_idx + 1;
+                let mut line = raw_line.trim_end_matches('\r');
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                while line.starts_with(' ') || line.starts_with('\t') {
+                    line = &line[1..];
+                }
+                let is_escaped = line.starts_with('\\');
+                if is_escaped {
+                    line = &line[1..];
+                }
+                let parsed_entry: Option<(String, usize, String, String)> =
+                    if let Some(open) = line.find('(')
+                        && let Some(close) = line.rfind(')')
+                        && open < close
+                    {
+                        let raw_lbl = line[..open].trim_end_matches(' ');
+                        let mut suffix = &line[close + 1..];
+                        while suffix.starts_with(' ') || suffix.starts_with('\t') {
+                            suffix = &suffix[1..];
+                        }
+                        if !suffix.starts_with('=') {
+                            None
+                        } else {
+                            let mut exp = &suffix[1..];
+                            while exp.starts_with(' ') || exp.starts_with('\t') {
+                                exp = &exp[1..];
+                            }
+                            let raw_fnm = &line[open + 1..close];
+                            let (la, lb) = if raw_lbl == "BLAKE2b" {
+                                ("blake2b".to_string(), 512usize)
+                            } else if let Some(b_str) = raw_lbl.strip_prefix("BLAKE2b-") {
+                                ("blake2b".to_string(), b_str.parse().unwrap_or(0))
+                            } else if let Some(b_str) = raw_lbl.strip_prefix("SHA3-") {
+                                ("sha3".to_string(), b_str.parse().unwrap_or(0))
+                            } else {
+                                let low = raw_lbl.to_ascii_lowercase();
+                                let b = match low.as_str() {
+                                    "sha224" => 224,
+                                    "sha256" | "sm3" => 256,
+                                    "sha384" => 384,
+                                    "sha512" => 512,
+                                    "md5" => 128,
+                                    "sha1" => 160,
+                                    _ => 0,
+                                };
+                                (low, b)
+                            };
+                            if lb == 0 {
+                                None
+                            } else {
+                                Some((la, lb, raw_fnm.to_string(), exp.to_string()))
+                            }
+                        }
+                    } else if let Some(sep_idx) = line.find([' ', '\t']) {
+                        let after = &line[sep_idx..];
+                        if after.len() < 2 || !matches!(after.as_bytes()[1], b' ' | b'*') {
+                            None
+                        } else {
+                            let exp = &line[..sep_idx];
+                            let raw_fnm = &after[2..];
+                            let check_algo = if algo == "crc" {
+                                match exp.len() * 4 {
+                                    128 => "md5".to_string(),
+                                    160 => "sha1".to_string(),
+                                    224 => "sha224".to_string(),
+                                    256 => "sha256".to_string(),
+                                    384 => "sha384".to_string(),
+                                    512 => "sha512".to_string(),
+                                    _ => algo.clone(),
+                                }
+                            } else {
+                                algo.clone()
+                            };
+                            let lb = match check_algo.as_str() {
+                                "md5" => 128,
+                                "sha1" => 160,
+                                "sha224" => 224,
+                                "sha256" | "sm3" => 256,
+                                "sha384" => 384,
+                                "sha512" => 512,
+                                _ => resolved_bits,
+                            };
+                            Some((check_algo, lb, raw_fnm.to_string(), exp.to_string()))
+                        }
+                    } else {
+                        None
+                    };
+
+                let Some((line_algo, line_bits, raw_fnm, encoded_digest)) = parsed_entry else {
+                    malformed += 1;
+                    if warn_mode {
+                        err.push_str(&format!(
+                            "cksum: {manifest}: {line_num}: improperly formatted {algo} checksum line\n"
+                        ));
                     }
-                    exit_code = 1;
+                    continue;
+                };
+                let Some(fname) = (if is_escaped {
+                    unescape_fname(&raw_fnm)
+                } else {
+                    Some(raw_fnm)
+                }) else {
+                    malformed += 1;
+                    continue;
+                };
+                let expected_hex = if encoded_digest.len() % 2 == 0
+                    && encoded_digest.chars().all(|c| c.is_ascii_hexdigit())
+                    && encoded_digest.len() * 4 == line_bits
+                {
+                    encoded_digest.to_ascii_lowercase()
+                } else if let Ok(decoded) = base64_decode_strict(&encoded_digest)
+                    && base64_encode(&decoded) == encoded_digest
+                    && decoded.len() * 8 == line_bits
+                {
+                    hex_encode(&decoded)
+                } else {
+                    malformed += 1;
+                    if warn_mode {
+                        err.push_str(&format!(
+                            "cksum: {manifest}: {line_num}: improperly formatted {algo} checksum line\n"
+                        ));
+                    }
+                    continue;
+                };
+
+                valid = true;
+                let (needs_esc, disp_fname) = escape_fname(&fname);
+                let disp_prefix = if needs_esc { "\\" } else { "" };
+                let full = resolve_posix_path(cwd, &fname);
+                match fs.read_file(&full) {
+                    Ok(bytes) => {
+                        let actual = compute_digest_hex_bits(&line_algo, &bytes, line_bits);
+                        if actual.eq_ignore_ascii_case(&expected_hex) {
+                            matched = true;
+                            if !quiet && !status_only {
+                                out.push_str(&format!("{disp_prefix}{disp_fname}: OK\n"));
+                            }
+                        } else {
+                            mismatched += 1;
+                            if !status_only {
+                                out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED\n"));
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        if ignore_missing && fname != "-" {
+                            continue;
+                        }
+                        failures += 1;
+                        err.push_str(&format!("cksum: {fname}: No such file or directory\n"));
+                        if !status_only {
+                            out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
+                        }
+                    }
+                }
+            }
+            if !valid {
+                err.push_str(&format!(
+                    "cksum: {manifest}: no properly formatted checksum lines found\n"
+                ));
+                overall_ok = false;
+            } else {
+                if !status_only {
+                    if malformed > 0 {
+                        err.push_str(&format!(
+                            "cksum: WARNING: {malformed} improperly formatted checksum line(s)\n"
+                        ));
+                    }
+                    if failures > 0 {
+                        err.push_str(&format!(
+                            "cksum: WARNING: {failures} listed file(s) could not be read\n"
+                        ));
+                    }
+                    if mismatched > 0 {
+                        err.push_str(&format!(
+                            "cksum: WARNING: {mismatched} computed checksum(s) did NOT match\n"
+                        ));
+                    }
+                    if ignore_missing && !matched {
+                        err.push_str(&format!("cksum: {manifest}: no file was verified\n"));
+                    }
+                }
+                if !(matched && failures == 0 && mismatched == 0 && (!strict || malformed == 0)) {
+                    overall_ok = false;
                 }
             }
         }
         return BuiltinOutcome {
             stdout: out,
-            stderr: String::new(),
-            exit_code,
+            stderr: err,
+            exit_code: if overall_ok { 0 } else { 1 },
         };
     }
 
+    let term = if zero_delim { "\0" } else { "\n" };
     let format_for_bytes = |b: &[u8], fname: Option<&str>| -> String {
         match algo.as_str() {
             "crc" => match fname {
-                Some(f) => format!("{} {} {f}\n", posix_crc32(b), b.len()),
-                None => format!("{} {}\n", posix_crc32(b), b.len()),
+                Some(f) => format!("{} {} {f}{term}", posix_crc32(b), b.len()),
+                None => format!("{} {}{term}", posix_crc32(b), b.len()),
             },
             "bsd" => {
                 let mut crc: u32 = 0;
@@ -1114,8 +1318,8 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 }
                 let blocks = (b.len() + 1023) / 1024;
                 match fname {
-                    Some(f) => format!("{crc:05} {blocks:>5} {f}\n"),
-                    None => format!("{crc:05} {blocks:>5}\n"),
+                    Some(f) => format!("{crc:05} {blocks:>5} {f}{term}"),
+                    None => format!("{crc:05} {blocks:>5}{term}"),
                 }
             }
             "sysv" => {
@@ -1124,8 +1328,8 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 let crc = (r & 0xffff) + (r >> 16);
                 let blocks = (b.len() + 511) / 512;
                 match fname {
-                    Some(f) => format!("{crc} {blocks} {f}\n"),
-                    None => format!("{crc} {blocks}\n"),
+                    Some(f) => format!("{crc} {blocks} {f}{term}"),
+                    None => format!("{crc} {blocks}{term}"),
                 }
             }
             "crc32b" => {
@@ -1142,26 +1346,35 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 }
                 let final_crc = !crc;
                 match fname {
-                    Some(f) => format!("{final_crc} {} {f}\n", b.len()),
-                    None => format!("{final_crc} {}\n", b.len()),
+                    Some(f) => format!("{final_crc} {} {f}{term}", b.len()),
+                    None => format!("{final_crc} {}{term}", b.len()),
                 }
             }
             _ => {
                 let hex = compute_digest_hex_bits(&algo, b, resolved_bits);
-                let encoded = if base64_mode {
-                    let mut raw = Vec::with_capacity(hex.len() / 2);
-                    let chs: Vec<char> = hex.chars().collect();
-                    for pair in chs.chunks(2) {
-                        let s: String = pair.iter().collect();
-                        if let Ok(v) = u8::from_str_radix(&s, 16) {
-                            raw.push(v);
-                        }
+                let mut raw = Vec::with_capacity(hex.len() / 2);
+                let chs: Vec<char> = hex.chars().collect();
+                for pair in chs.chunks(2) {
+                    let s: String = pair.iter().collect();
+                    if let Ok(v) = u8::from_str_radix(&s, 16) {
+                        raw.push(v);
                     }
+                }
+                if raw_mode {
+                    return crate::vfs::bytes_to_stream_string(&raw);
+                }
+                let encoded = if base64_mode {
                     base64_encode(&raw)
                 } else {
                     hex
                 };
-                let f_disp = fname.unwrap_or("-");
+                let f_raw = fname.unwrap_or("-");
+                let (needs_esc, f_disp) = if zero_delim {
+                    (false, f_raw.to_string())
+                } else {
+                    escape_fname(f_raw)
+                };
+                let pfx = if needs_esc { "\\" } else { "" };
                 if tag {
                     let label = if algo == "blake2b" {
                         if resolved_bits == 512 {
@@ -1174,9 +1387,10 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     } else {
                         algo.to_ascii_uppercase()
                     };
-                    format!("{label} ({f_disp}) = {encoded}\n")
+                    format!("{pfx}{label} ({f_disp}) = {encoded}{term}")
                 } else {
-                    format!("{encoded}  {f_disp}\n")
+                    let marker = if binary_mode { "*" } else { " " };
+                    format!("{pfx}{encoded} {marker}{f_disp}{term}")
                 }
             }
         }
@@ -1188,17 +1402,23 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
     let mut out = String::new();
     for f in &files {
-        let full = resolve_posix_path(cwd, f);
-        if let Ok(b) = fs.read_file(&full) {
-            out.push_str(&format_for_bytes(&b, Some(f)));
+        if f == "-" {
+            let bytes = crate::vfs::stream_string_to_bytes(stdin);
+            out.push_str(&format_for_bytes(&bytes, Some("-")));
         } else {
-            return err_out(&format!("cksum: {f}: No such file or directory\n"), 1);
+            let full = resolve_posix_path(cwd, f);
+            if let Ok(b) = fs.read_file(&full) {
+                out.push_str(&format_for_bytes(&b, Some(f)));
+            } else {
+                return err_out(&format!("cksum: {f}: No such file or directory\n"), 1);
+            }
         }
     }
     ok_out(&out)
 }
 
 const B64_CHARS: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const B32_CHARS: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
 
 fn base64_encode(data: &[u8]) -> String {
     let mut out = String::with_capacity(((data.len() + 2) / 3) * 4);
@@ -1221,6 +1441,98 @@ fn base64_encode(data: &[u8]) -> String {
         }
     }
     out
+}
+
+fn decode_base_quantum(
+    quantum: &[i16],
+    q_len: usize,
+    a_bits: u32,
+    a_quantum: usize,
+    valid_lengths: &[usize],
+    out: &mut Vec<u8>,
+) -> bool {
+    if a_bits == 5 && q_len < a_quantum {
+        return false;
+    }
+    let mut carry = 0u32;
+    let mut bits = 0u32;
+    let mut length = 0usize;
+    while length < q_len && quantum[length] >= 0 {
+        carry = (carry << a_bits) | (quantum[length] as u32);
+        length += 1;
+        bits += a_bits;
+        if bits >= 8 {
+            bits -= 8;
+            out.push(((carry >> bits) & 0xff) as u8);
+        }
+        carry &= (1 << bits) - 1;
+    }
+    let mut valid_tail =
+        q_len == a_quantum && carry == 0 && valid_lengths.contains(&length);
+    if valid_tail {
+        for &sym in &quantum[length..q_len] {
+            if sym != -1 {
+                valid_tail = false;
+                break;
+            }
+        }
+    }
+    valid_tail
+}
+
+fn decode_base_stream(
+    data: &[u8],
+    alphabet: &[u8],
+    a_bits: u32,
+    a_quantum: usize,
+    valid_lengths: &[usize],
+    ignore_garbage: bool,
+) -> Result<Vec<u8>, ()> {
+    let mut lookup = [-2i16; 256];
+    for (idx, &b) in alphabet.iter().enumerate() {
+        lookup[b as usize] = idx as i16;
+    }
+    lookup[b'=' as usize] = -1;
+    let mut quantum = [0i16; 8];
+    let mut q_len = 0usize;
+    let mut last_byte: Option<u8> = None;
+    let mut out = Vec::new();
+    for &byte in data {
+        let symbol = lookup[byte as usize];
+        if ignore_garbage && symbol == -2 {
+            continue;
+        }
+        if byte == b'\n' || byte == b'\r' {
+            continue;
+        }
+        last_byte = Some(byte);
+        quantum[q_len] = symbol;
+        q_len += 1;
+        if q_len == a_quantum {
+            let valid = decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, &mut out);
+            q_len = 0;
+            if !valid {
+                return Err(());
+            }
+        }
+    }
+    if q_len > 0 {
+        if last_byte != Some(b'=') {
+            while q_len < a_quantum {
+                quantum[q_len] = -1;
+                q_len += 1;
+            }
+        }
+        let valid = decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, &mut out);
+        if !valid {
+            return Err(());
+        }
+    }
+    Ok(out)
+}
+
+fn base64_decode_strict(input: &str) -> Result<Vec<u8>, ()> {
+    decode_base_stream(input.as_bytes(), B64_CHARS, 6, 4, &[2, 3, 4], false)
 }
 
 fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
@@ -1249,89 +1561,88 @@ fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn cmd_base64(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut decode = false;
-    let mut wrap_cols: Option<usize> = Some(76);
-    let mut files = Vec::new();
-
-    let mut i = 0usize;
-    while i < args.len() {
-        match args[i].as_str() {
-            "-d" | "--decode" | "-D" => decode = true,
-            "-w" | "--wrap" if i + 1 < args.len() => {
-                i += 1;
-                let w = args[i].parse::<usize>().unwrap_or(76);
-                wrap_cols = if w == 0 { None } else { Some(w) };
-            }
-            a if a.starts_with("-w") => {
-                let w = a[2..].parse::<usize>().unwrap_or(76);
-                wrap_cols = if w == 0 { None } else { Some(w) };
-            }
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
-        }
-        i += 1;
-    }
-
-    let data = if files.is_empty() || files[0] == "-" {
-        crate::vfs::stream_string_to_bytes(stdin)
-    } else {
-        let full = resolve_posix_path(cwd, &files[0]);
-        match fs.read_file(&full) {
-            Ok(b) => b,
-            Err(_) => return err_out(&format!("base64: {}: No such file\n", files[0]), 1),
-        }
-    };
-
-    if decode {
-        let s = String::from_utf8_lossy(&data);
-        match base64_decode(&s) {
-            Ok(bytes) => ok_out(&crate::vfs::bytes_to_stream_string(&bytes)),
-            Err(e) => err_out(&format!("base64: {e}\n"), 1),
-        }
-    } else {
-        let encoded = base64_encode(&data);
-        if encoded.is_empty() {
-            return ok_out("");
-        }
-        if let Some(w) = wrap_cols {
-            let mut out = String::new();
-            let chars: Vec<char> = encoded.chars().collect();
-            for chunk in chars.chunks(w) {
-                let line: String = chunk.iter().collect();
-                out.push_str(&line);
-                out.push('\n');
-            }
-            ok_out(&out)
-        } else {
-            ok_out(&encoded)
-        }
-    }
-}
-
-const B32_CHARS: &[u8; 32] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
-
-fn cmd_base32(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn run_base_cmd(
+    name: &str,
+    alphabet: &[u8],
+    a_bits: u32,
+    a_quantum: usize,
+    valid_lengths: &[usize],
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut decode = false;
     let mut ignore_garbage = false;
     let mut wrap_cols: usize = 76;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
-            "-d" | "--decode" | "-D" => decode = true,
-            "-i" | "--ignore-garbage" => ignore_garbage = true,
-            "-w" | "--wrap" if i + 1 < args.len() => {
-                i += 1;
-                wrap_cols = args[i].parse().unwrap_or(76);
+        let a = args[i].as_str();
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        if a.starts_with("--") {
+            match a {
+                "--decode" => decode = true,
+                "--ignore-garbage" => ignore_garbage = true,
+                "--wrap" if i + 1 < args.len() => {
+                    i += 1;
+                    match args[i].parse::<usize>() {
+                        Ok(w) => wrap_cols = w,
+                        Err(_) => return err_out(&format!("{name}: invalid wrap size: '{}'\n", args[i]), 1),
+                    }
+                }
+                _ if a.starts_with("--wrap=") => {
+                    let v = &a["--wrap=".len()..];
+                    match v.parse::<usize>() {
+                        Ok(w) => wrap_cols = w,
+                        Err(_) => return err_out(&format!("{name}: invalid wrap size: '{v}'\n"), 1),
+                    }
+                }
+                _ => return err_out(&format!("{name}: unrecognized option '{a}'\n"), 1),
             }
-            a if a.starts_with("-w") => {
-                wrap_cols = a[2..].parse().unwrap_or(76);
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut c_idx = 0usize;
+        while c_idx < chars.len() {
+            match chars[c_idx] {
+                'd' | 'D' => decode = true,
+                'i' => ignore_garbage = true,
+                'w' => {
+                    let rest: String = chars[c_idx + 1..].iter().collect();
+                    let val_str = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(&format!("{name}: option requires an argument -- 'w'\n"), 1);
+                    };
+                    match val_str.parse::<usize>() {
+                        Ok(w) => wrap_cols = w,
+                        Err(_) => return err_out(&format!("{name}: invalid wrap size: '{val_str}'\n"), 1),
+                    }
+                    break;
+                }
+                other => return err_out(&format!("{name}: invalid option -- '{other}'\n"), 1),
             }
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
+            c_idx += 1;
         }
         i += 1;
+    }
+    if files.len() > 1 {
+        return err_out(&format!("{name}: extra operand '{}'\n", files[1]), 1);
     }
     let data = if files.is_empty() || files[0] == "-" {
         crate::vfs::stream_string_to_bytes(stdin)
@@ -1339,203 +1650,422 @@ fn cmd_base32(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         let full = resolve_posix_path(cwd, &files[0]);
         match fs.read_file(&full) {
             Ok(b) => b,
-            Err(_) => return err_out(&format!("base32: {}: No such file\n", files[0]), 1),
+            Err(_) => return err_out(&format!("{name}: {}: No such file\n", files[0]), 1),
         }
     };
+
     if decode {
-        let mut out = Vec::new();
-        let mut buf = 0u64;
-        let mut bits = 0u8;
-        for ch in String::from_utf8_lossy(&data).chars() {
-            if ch.is_whitespace() || ch == '=' {
-                continue;
-            }
-            let val = match ch.to_ascii_uppercase() {
-                'A'..='Z' => (ch.to_ascii_uppercase() as u8) - b'A',
-                '2'..='7' => (ch as u8) - b'2' + 26,
-                _ => {
-                    if ignore_garbage {
-                        continue;
-                    }
-                    return err_out("base32: invalid input\n", 1);
-                }
-            };
-            buf = (buf << 5) | (val as u64);
-            bits += 5;
-            if bits >= 8 {
-                bits -= 8;
-                out.push(((buf >> bits) & 0xff) as u8);
-            }
+        match decode_base_stream(&data, alphabet, a_bits, a_quantum, valid_lengths, ignore_garbage) {
+            Ok(bytes) => ok_out(&crate::vfs::bytes_to_stream_string(&bytes)),
+            Err(()) => err_out(&format!("{name}: invalid input\n"), 1),
         }
-        ok_out(&crate::vfs::bytes_to_stream_string(&out))
     } else {
         if data.is_empty() {
             return ok_out("");
         }
-        let mut out = String::new();
-        for chunk in data.chunks(5) {
-            let mut buf = 0u64;
-            for i in 0..5 {
-                buf = (buf << 8) | (*chunk.get(i).unwrap_or(&0) as u64);
-            }
-            let valid_chars = match chunk.len() {
-                1 => 2,
-                2 => 4,
-                3 => 5,
-                4 => 7,
-                _ => 8,
-            };
-            for i in 0..8 {
-                if i < valid_chars {
-                    let idx = ((buf >> (35 - i * 5)) & 0x1f) as usize;
-                    out.push(B32_CHARS[idx] as char);
-                } else {
-                    out.push('=');
+        let mut carry = 0u32;
+        let mut bits = 0u32;
+        let mut symbols = 0usize;
+        let mut column = 0usize;
+        let mask = (1u32 << a_bits) - 1;
+        let mut out: Vec<u8> = Vec::new();
+        let emit_byte = |byte: u8, out: &mut Vec<u8>, symbols: &mut usize, column: &mut usize| {
+            out.push(byte);
+            *symbols = (*symbols + 1) % a_quantum;
+            if wrap_cols > 0 {
+                *column += 1;
+                if *column == wrap_cols {
+                    out.push(b'\n');
+                    *column = 0;
                 }
             }
-        }
-        if wrap_cols == 0 {
-            ok_out(&out)
-        } else {
-            let mut wrapped = String::new();
-            let chars: Vec<char> = out.chars().collect();
-            for chunk in chars.chunks(wrap_cols) {
-                let line: String = chunk.iter().collect();
-                wrapped.push_str(&line);
-                wrapped.push('\n');
+        };
+        for &b in &data {
+            carry = (carry << 8) | (b as u32);
+            bits += 8;
+            while bits >= a_bits {
+                bits -= a_bits;
+                let idx = ((carry >> bits) & mask) as usize;
+                emit_byte(alphabet[idx], &mut out, &mut symbols, &mut column);
             }
-            ok_out(&wrapped)
+            carry &= (1 << bits) - 1;
         }
+        if bits > 0 {
+            let idx = ((carry << (a_bits - bits)) & mask) as usize;
+            emit_byte(alphabet[idx], &mut out, &mut symbols, &mut column);
+        }
+        while symbols != 0 {
+            emit_byte(b'=', &mut out, &mut symbols, &mut column);
+        }
+        if wrap_cols > 0 && column > 0 {
+            out.push(b'\n');
+        }
+        ok_out(&crate::vfs::bytes_to_stream_string(&out))
+    }
+}
+
+fn cmd_base64(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    run_base_cmd("base64", B64_CHARS, 6, 4, &[2, 3, 4], args, stdin, cwd, fs)
+}
+
+fn cmd_base32(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    run_base_cmd("base32", B32_CHARS, 5, 8, &[2, 4, 5, 7, 8], args, stdin, cwd, fs)
+}
+
+fn parse_xxd_num(text: &str) -> Result<usize, String> {
+    if let Some(hex) = text.strip_prefix("0x").or_else(|| text.strip_prefix("0X")) {
+        usize::from_str_radix(hex, 16).map_err(|_| format!("invalid number '{text}'"))
+    } else if text.starts_with('0') && text.len() > 1 && text.chars().all(|c| ('0'..='7').contains(&c)) {
+        usize::from_str_radix(text, 8).map_err(|_| format!("invalid number '{text}'"))
+    } else if text == "0" || (!text.starts_with('0') && text.chars().all(|c| c.is_ascii_digit())) {
+        text.parse::<usize>().map_err(|_| format!("invalid number '{text}'"))
+    } else {
+        Err(format!("invalid number '{text}'"))
     }
 }
 
 fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut autoskip = false;
+    let mut capitalize = false;
     let mut plain = false;
     let mut reverse = false;
-    let mut c_include = false;
-    let mut bits_mode = false;
-    let mut little_endian = false;
+    let mut decimal_addr = false;
     let mut upper_hex = false;
-    let mut seek_offset = 0usize;
-    let mut cols = 16usize;
-    let mut explicit_cols = false;
-    let mut group_bytes = 2usize;
-    let mut explicit_group = false;
+    let mut bits_mode = false;
+    let mut c_include = false;
+    let mut little_endian = false;
+    let mut cols_opt: Option<usize> = None;
+    let mut group_opt: Option<usize> = None;
     let mut max_len: Option<usize> = None;
-    let mut files = Vec::new();
+    let mut seek_spec: Option<String> = None;
+    let mut displacement: usize = 0;
+    let mut custom_name: Option<String> = None;
+    let mut operands: Vec<String> = Vec::new();
 
+    let mut ended = false;
+    let mut normalized_args: Vec<String> = Vec::with_capacity(args.len());
+    for arg in args {
+        if ended {
+            normalized_args.push(arg.clone());
+            continue;
+        }
+        if arg == "--" {
+            ended = true;
+            normalized_args.push(arg.clone());
+            continue;
+        }
+        let mapped = match arg.as_str() {
+            "-ps" | "-plain" | "-postscript" => "-p",
+            "-revert" => "-r",
+            "-cols" => "-c",
+            "-groupsize" => "-g",
+            "-len" => "-l",
+            "-bits" => "-b",
+            "-include" => "-i",
+            "-name" => "-n",
+            "-autoskip" => "-a",
+            "-capitalize" => "-C",
+            other => other,
+        };
+        normalized_args.push(mapped.to_string());
+    }
+
+    ended = false;
     let mut i = 0usize;
-    while i < args.len() {
-        match args[i].as_str() {
-            "-p" | "-ps" | "-postscript" => plain = true,
-            "-r" | "-revert" => reverse = true,
-            "-i" | "-include" => c_include = true,
-            "-b" | "-bits" => bits_mode = true,
-            "-e" => little_endian = true,
-            "-u" => upper_hex = true,
-            "-l" if i + 1 < args.len() => {
-                i += 1;
-                max_len = args[i].parse().ok();
+    while i < normalized_args.len() {
+        let a = normalized_args[i].as_str();
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            operands.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut c_idx = 0usize;
+        while c_idx < chars.len() {
+            let ch = chars[c_idx];
+            match ch {
+                'a' => autoskip = !autoskip,
+                'C' => capitalize = true,
+                'p' => plain = true,
+                'r' => reverse = true,
+                'd' => decimal_addr = true,
+                'u' => upper_hex = true,
+                'b' => bits_mode = true,
+                'i' => c_include = true,
+                'e' => little_endian = true,
+                'c' | 'g' | 'l' | 's' | 'o' | 'n' => {
+                    let rest: String = chars[c_idx + 1..].iter().collect();
+                    let val = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < normalized_args.len() {
+                        i += 1;
+                        normalized_args[i].clone()
+                    } else {
+                        return err_out(&format!("xxd: option requires an argument -- '{ch}'\n"), 2);
+                    };
+                    match ch {
+                        'c' => match parse_xxd_num(&val) {
+                            Ok(v) => cols_opt = Some(v),
+                            Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+                        },
+                        'g' => match parse_xxd_num(&val) {
+                            Ok(v) => group_opt = Some(v),
+                            Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+                        },
+                        'l' => match parse_xxd_num(&val) {
+                            Ok(v) => max_len = Some(v),
+                            Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+                        },
+                        's' => seek_spec = Some(val),
+                        'o' => match parse_xxd_num(&val) {
+                            Ok(v) => displacement = v,
+                            Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+                        },
+                        'n' => custom_name = Some(val),
+                        _ => {}
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("xxd: invalid option -- '{ch}'\n"), 2),
             }
-            "-s" if i + 1 < args.len() => {
-                i += 1;
-                let s_arg = args[i].trim_start_matches('+');
-                seek_offset = if let Some(hex_s) = s_arg.strip_prefix("0x").or_else(|| s_arg.strip_prefix("0X")) {
-                    usize::from_str_radix(hex_s, 16).unwrap_or(0)
-                } else {
-                    s_arg.parse().unwrap_or(0)
-                };
-            }
-            "-c" | "-cols" if i + 1 < args.len() => {
-                i += 1;
-                cols = args[i].parse().unwrap_or(16).max(1);
-                explicit_cols = true;
-            }
-            "-g" if i + 1 < args.len() => {
-                i += 1;
-                group_bytes = args[i].parse().unwrap_or(2);
-                explicit_group = true;
-            }
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
+            c_idx += 1;
         }
         i += 1;
     }
-    if bits_mode {
-        if !explicit_cols {
-            cols = 6;
-        }
-        if !explicit_group {
-            group_bytes = 1;
-        }
-    } else if little_endian && !explicit_group {
-        group_bytes = 4;
+
+    if operands.len() > 2 {
+        return err_out(&format!("xxd: extra operand '{}'\n", operands[2]), 2);
+    }
+    if (plain && (bits_mode || c_include || little_endian))
+        || (little_endian && (bits_mode || c_include))
+        || (bits_mode && c_include)
+    {
+        return err_out("xxd: incompatible display modes\n", 2);
+    }
+    if reverse && (bits_mode || c_include || little_endian) {
+        return err_out("xxd: cannot revert this type of hexdump\n", 2);
     }
 
-    let mut data = if files.is_empty() || files[0] == "-" {
+    let default_cols = if plain {
+        30
+    } else if c_include {
+        12
+    } else if bits_mode {
+        6
+    } else {
+        16
+    };
+    let cols = match cols_opt {
+        Some(0) if !plain => default_cols,
+        Some(c) => c,
+        None => default_cols,
+    };
+    let group_bytes = group_opt.unwrap_or(if little_endian {
+        4
+    } else if bits_mode {
+        1
+    } else {
+        2
+    });
+
+    let infile = operands.first().map(|s| s.as_str()).unwrap_or("-");
+    let outfile = operands.get(1).map(|s| s.as_str());
+
+    let raw_data = if infile == "-" {
         crate::vfs::stream_string_to_bytes(stdin)
     } else {
-        let full = resolve_posix_path(cwd, &files[0]);
+        let full = resolve_posix_path(cwd, infile);
         match fs.read_file(&full) {
             Ok(b) => b,
-            Err(_) => return err_out(&format!("xxd: {}: No such file\n", files[0]), 2),
+            Err(_) => return err_out(&format!("xxd: {infile}: No such file\n"), 2),
         }
     };
 
-    if reverse {
-        let text = String::from_utf8_lossy(&data);
-        let mut hex_only = String::new();
-        if plain {
-            hex_only.extend(text.chars().filter(|c| c.is_ascii_hexdigit()));
-        } else {
-            for line in text.lines() {
-                let hex_part = if let Some((addr, rest)) = line.split_once(": ")
-                    && !addr.is_empty()
-                    && addr.chars().all(|c| c.is_ascii_hexdigit())
-                {
-                    let max_hex = rest.find("  ").unwrap_or_else(|| rest.len().min(40));
-                    &rest[..max_hex.min(40)]
-                } else {
-                    line
-                };
-                hex_only.extend(hex_part.chars().filter(|c| c.is_ascii_hexdigit()));
+    let finish_output = |bytes: &[u8]| -> BuiltinOutcome {
+        if let Some(out_name) = outfile
+            && out_name != "-"
+        {
+            let full_out = resolve_posix_path(cwd, out_name);
+            if let Err(e) = fs.write_file(&full_out, bytes) {
+                return err_out(&format!("xxd: {out_name}: {e}\n"), 2);
             }
+            return ok_out("");
         }
-        let mut bytes = Vec::new();
-        let chars: Vec<char> = hex_only.chars().collect();
-        for pair in chars.chunks(2) {
-            if pair.len() == 2 {
-                let s: String = pair.iter().collect();
-                if let Ok(b) = u8::from_str_radix(&s, 16) {
-                    bytes.push(b);
+        ok_out(&crate::vfs::bytes_to_stream_string(bytes))
+    };
+
+    if reverse {
+        let seek_offset = if let Some(ref spec) = seek_spec {
+            let rel = spec.strip_prefix('+').unwrap_or(spec.as_str());
+            if rel.starts_with('-') {
+                return err_out("xxd: Sorry, cannot seek.\n", 4);
+            }
+            match parse_xxd_num(rel) {
+                Ok(v) => v,
+                Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+            }
+        } else {
+            0usize
+        };
+        let mut out_bytes: Vec<u8> = Vec::new();
+        if plain {
+            if seek_offset > 0 {
+                out_bytes.resize(seek_offset, 0);
+            }
+            let mut high: Option<u8> = None;
+            for &b in &raw_data {
+                if b == b' ' || (9..=13).contains(&b) {
+                    continue;
+                }
+                let digit = match b {
+                    b'0'..=b'9' => Some(b - b'0'),
+                    b'a'..=b'f' => Some(b - b'a' + 10),
+                    b'A'..=b'F' => Some(b - b'A' + 10),
+                    _ => None,
+                };
+                if let Some(d) = digit {
+                    if let Some(h) = high {
+                        out_bytes.push((h << 4) | d);
+                        high = None;
+                    } else {
+                        high = Some(d);
+                    }
+                } else {
+                    high = None;
+                }
+            }
+        } else {
+            for line in raw_data.split(|&b| b == b'\n') {
+                let trimmed_non_ws = line.iter().any(|&b| b != b' ' && !(9..=13).contains(&b));
+                if !trimmed_non_ws || line == b"*" {
+                    continue;
+                }
+                let Some(colon_pos) = line.iter().position(|&b| b == b':') else {
+                    return err_out("xxd: invalid input: expected hexadecimal address and colon\n", 1);
+                };
+                if colon_pos == 0 || colon_pos > 14 {
+                    return err_out("xxd: invalid input: expected hexadecimal address and colon\n", 1);
+                }
+                let mut addr = 0usize;
+                for &b in &line[..colon_pos] {
+                    let d = match b {
+                        b'0'..=b'9' => (b - b'0') as usize,
+                        b'a'..=b'f' => (b - b'a' + 10) as usize,
+                        b'A'..=b'F' => (b - b'A' + 10) as usize,
+                        _ => return err_out("xxd: invalid input: expected hexadecimal address and colon\n", 1),
+                    };
+                    addr = addr.saturating_mul(16).saturating_add(d);
+                }
+                addr = addr.saturating_add(seek_offset);
+                if out_bytes.len() < addr {
+                    out_bytes.resize(addr, 0);
+                }
+                let mut row_bytes: Vec<u8> = Vec::new();
+                let mut high: Option<u8> = None;
+                let mut spaces = 0usize;
+                for &b in &line[colon_pos + 1..] {
+                    if b == b' ' || b == b'\t' || b == b'\r' {
+                        spaces += 1;
+                        if !row_bytes.is_empty() && spaces >= 2 {
+                            break;
+                        }
+                        continue;
+                    }
+                    let digit = match b {
+                        b'0'..=b'9' => Some(b - b'0'),
+                        b'a'..=b'f' => Some(b - b'a' + 10),
+                        b'A'..=b'F' => Some(b - b'A' + 10),
+                        _ => None,
+                    };
+                    let Some(d) = digit else {
+                        break;
+                    };
+                    spaces = 0;
+                    if let Some(h) = high {
+                        row_bytes.push((h << 4) | d);
+                        high = None;
+                        if row_bytes.len() == cols {
+                            break;
+                        }
+                    } else {
+                        high = Some(d);
+                    }
+                }
+                for (k, &rb) in row_bytes.iter().enumerate() {
+                    if addr + k < out_bytes.len() {
+                        out_bytes[addr + k] = rb;
+                    } else {
+                        out_bytes.push(rb);
+                    }
                 }
             }
         }
-        return ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
+        return finish_output(&out_bytes);
     }
 
-    if seek_offset > 0 {
-        if seek_offset < data.len() {
-            data = data[seek_offset..].to_vec();
+    let seek_offset: usize = if let Some(ref spec) = seek_spec {
+        let rel = spec.strip_prefix('+').unwrap_or(spec.as_str());
+        if let Some(neg) = rel.strip_prefix('-') {
+            if infile == "-" {
+                return err_out("xxd: negative seek requires an input file\n", 2);
+            }
+            let n = match parse_xxd_num(neg) {
+                Ok(v) => v,
+                Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+            };
+            if n > raw_data.len() {
+                return err_out("xxd: Sorry, cannot seek.\n", 4);
+            }
+            raw_data.len() - n
         } else {
-            data.clear();
+            match parse_xxd_num(rel) {
+                Ok(v) => v,
+                Err(e) => return err_out(&format!("xxd: {e}\n"), 2),
+            }
         }
+    } else {
+        0usize
+    };
+
+    if seek_offset > raw_data.len() && infile == "-" {
+        return err_out("xxd: Sorry, cannot seek.\n", 4);
     }
+    let mut data = if seek_offset < raw_data.len() {
+        raw_data[seek_offset..].to_vec()
+    } else {
+        Vec::new()
+    };
     if let Some(l) = max_len {
         data.truncate(l);
     }
 
     if c_include {
         let mut out = String::new();
-        let var_name = files.first().filter(|f| *f != "-").map(|f| {
-            f.chars()
+        let raw_var = custom_name.or_else(|| if infile != "-" { Some(infile.to_string()) } else { None });
+        let var_name = raw_var.map(|f| {
+            let mut ident: String = f
+                .chars()
                 .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-                .collect::<String>()
+                .collect();
+            if ident.chars().next().is_some_and(|c| c.is_ascii_digit()) {
+                ident.insert_str(0, "__");
+            }
+            if capitalize {
+                ident = ident.to_ascii_uppercase();
+            }
+            ident
         });
         if let Some(ref vn) = var_name {
             out.push_str(&format!("unsigned char {vn}[] = {{\n"));
         }
-        for (c_idx, chunk) in data.chunks(12).enumerate() {
+        let inc_cols = cols.max(1);
+        let pfx = if upper_hex { "0X" } else { "0x" };
+        for (c_idx, chunk) in data.chunks(inc_cols).enumerate() {
             if c_idx > 0 {
                 out.push_str(",\n");
             }
@@ -1544,9 +2074,9 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 .iter()
                 .map(|b| {
                     if upper_hex {
-                        format!("0x{b:02X}")
+                        format!("{pfx}{b:02X}")
                     } else {
-                        format!("0x{b:02x}")
+                        format!("{pfx}{b:02x}")
                     }
                 })
                 .collect();
@@ -1556,72 +2086,660 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             out.push('\n');
         }
         if let Some(ref vn) = var_name {
-            out.push_str(&format!("}};\nunsigned int {vn}_len = {};\n", data.len()));
+            let len_sfx = if capitalize { "_LEN" } else { "_len" };
+            out.push_str(&format!("}};\nunsigned int {vn}{len_sfx} = {};\n", data.len()));
         }
-        return ok_out(&out);
+        return finish_output(out.as_bytes());
     }
 
     if plain {
-        let mut hex = hex_encode(&data);
-        if upper_hex {
-            hex = hex.to_ascii_uppercase();
+        if data.is_empty() {
+            return finish_output(b"");
         }
-        if hex.is_empty() {
-            return ok_out("");
+        let mut out = String::new();
+        if cols == 0 {
+            let mut hex = hex_encode(&data);
+            if upper_hex {
+                hex = hex.to_ascii_uppercase();
+            }
+            out.push_str(&hex);
+            out.push('\n');
+        } else {
+            for chunk in data.chunks(cols) {
+                let mut hex = hex_encode(chunk);
+                if upper_hex {
+                    hex = hex.to_ascii_uppercase();
+                }
+                out.push_str(&hex);
+                out.push('\n');
+            }
         }
-        return ok_out(&format!("{hex}\n"));
+        return finish_output(out.as_bytes());
     }
 
-    let g = if group_bytes == 0 { cols } else { group_bytes };
+    let octets = if group_bytes == 0 { cols } else { group_bytes.min(cols) };
+    let width = if little_endian {
+        ((cols + octets - 1) / octets) * (octets * 2 + 1) - 1
+    } else {
+        cols * (if bits_mode { 8 } else { 2 }) + if group_bytes > 0 { (cols - 1) / group_bytes } else { 0 }
+    };
+
     let mut out = String::new();
-    for (idx, chunk) in data.chunks(cols).enumerate() {
-        out.push_str(&format!("{:08x}: ", seek_offset + idx * cols));
-        for b_idx in 0..cols {
-            let src_idx = if little_endian {
-                let grp_start = (b_idx / g) * g;
-                let grp_end = (grp_start + g).min(chunk.len());
-                let offset_in_grp = b_idx - grp_start;
-                if b_idx < grp_end {
-                    Some(grp_end - 1 - offset_in_grp)
-                } else {
-                    None
-                }
-            } else {
-                Some(b_idx)
-            };
-            if let Some(si) = src_idx
-                && let Some(&b) = chunk.get(si)
-            {
+    let mut zero_run = 0usize;
+    let mut zero_second = String::new();
+    let mut zero_last = String::new();
+    let finish_zeros = |out_buf: &mut String, z_run: &mut usize, z_sec: &str, z_last: &str, at_end: bool| {
+        if *z_run >= if at_end { 4 } else { 3 } {
+            out_buf.push_str("*\n");
+            if at_end {
+                out_buf.push_str(z_last);
+            }
+        } else if *z_run == 3 {
+            out_buf.push_str(z_sec);
+            out_buf.push_str(z_last);
+        } else if *z_run == 2 {
+            out_buf.push_str(z_last);
+        }
+        *z_run = 0;
+    };
+
+    let mut offset = seek_offset + displacement;
+    for chunk in data.chunks(cols) {
+        let addr_str = if decimal_addr {
+            format!("{offset:08}")
+        } else {
+            format!("{offset:08x}")
+        };
+        let mut hex_data = String::new();
+        let mut ascii = String::new();
+        for (idx, &b) in chunk.iter().enumerate() {
+            if !little_endian && group_bytes > 0 && idx > 0 && idx % group_bytes == 0 {
+                hex_data.push(' ');
+            }
+            if !little_endian {
                 if bits_mode {
-                    out.push_str(&format!("{b:08b}"));
+                    hex_data.push_str(&format!("{b:08b}"));
                 } else if upper_hex {
-                    out.push_str(&format!("{b:02X}"));
+                    hex_data.push_str(&format!("{b:02X}"));
                 } else {
-                    out.push_str(&format!("{b:02x}"));
-                }
-            } else {
-                if bits_mode {
-                    out.push_str("        ");
-                } else {
-                    out.push_str("  ");
+                    hex_data.push_str(&format!("{b:02x}"));
                 }
             }
-            if (b_idx + 1) % g == 0 || b_idx + 1 == cols {
-                out.push(' ');
+            ascii.push(if (0x20..=0x7e).contains(&b) { b as char } else { '.' });
+        }
+        if little_endian {
+            let mut start = 0usize;
+            while start < chunk.len() {
+                if start > 0 {
+                    hex_data.push(' ');
+                }
+                for k in (start..start + octets).rev() {
+                    if let Some(&b) = chunk.get(k) {
+                        if upper_hex {
+                            hex_data.push_str(&format!("{b:02X}"));
+                        } else {
+                            hex_data.push_str(&format!("{b:02x}"));
+                        }
+                    } else {
+                        hex_data.push_str("  ");
+                    }
+                }
+                start += octets;
             }
         }
-        out.push(' ');
-        for &b in chunk {
-            let ch = if (0x20..=0x7e).contains(&b) {
-                b as char
-            } else {
-                '.'
-            };
-            out.push(ch);
+        let formatted = format!("{addr_str}: {hex_data:<width$}  {ascii}\n");
+        if autoskip && chunk.len() == cols && chunk.iter().all(|&b| b == 0) {
+            if zero_run == 0 {
+                out.push_str(&formatted);
+            }
+            if zero_run == 1 {
+                zero_second = formatted.clone();
+            }
+            zero_run += 1;
+            zero_last = formatted;
+        } else {
+            finish_zeros(&mut out, &mut zero_run, &zero_second, &zero_last, false);
+            out.push_str(&formatted);
         }
-        out.push('\n');
+        offset += chunk.len();
     }
-    ok_out(&out)
+    finish_zeros(&mut out, &mut zero_run, &zero_second, &zero_last, true);
+    finish_output(out.as_bytes())
+}
+
+#[derive(Clone)]
+enum HexdumpFormatItem {
+    Standard(String),
+    Custom(HexdumpCustomFormat),
+}
+
+#[derive(Clone)]
+struct HexdumpConversion {
+    code: String,
+    flags: String,
+    width: usize,
+    precision: Option<usize>,
+    bytes: usize,
+}
+
+#[derive(Clone)]
+enum HexdumpPart {
+    Literal(String),
+    Conv(HexdumpConversion),
+}
+
+#[derive(Clone)]
+struct HexdumpUnit {
+    repeat: usize,
+    bytes: usize,
+    explicit_repeat: bool,
+    parts: Vec<HexdumpPart>,
+}
+
+#[derive(Clone)]
+struct HexdumpCustomFormat {
+    units: Vec<HexdumpUnit>,
+    size: usize,
+    final_unit_idx: Option<usize>,
+}
+
+fn parse_hexdump_custom(text: &str) -> Result<HexdumpCustomFormat, String> {
+    let bytes = text.as_bytes();
+    let mut at = 0usize;
+    let skip_space = |pos: &mut usize| {
+        while *pos < bytes.len() && matches!(bytes[*pos], b' ' | b'\t' | b'\n' | b'\r') {
+            *pos += 1;
+        }
+    };
+    let read_int = |pos: &mut usize| -> Option<usize> {
+        let start = *pos;
+        while *pos < bytes.len() && bytes[*pos].is_ascii_digit() {
+            *pos += 1;
+        }
+        if start == *pos {
+            None
+        } else {
+            std::str::from_utf8(&bytes[start..*pos]).ok()?.parse().ok()
+        }
+    };
+    let mut units = Vec::new();
+    while at < bytes.len() {
+        skip_space(&mut at);
+        if at == bytes.len() {
+            break;
+        }
+        let repeat = read_int(&mut at);
+        skip_space(&mut at);
+        let mut size: Option<usize> = None;
+        if at < bytes.len() && bytes[at] == b'/' {
+            at += 1;
+            skip_space(&mut at);
+            size = read_int(&mut at).filter(|&v| v > 0);
+            skip_space(&mut at);
+        }
+        if at >= bytes.len() || bytes[at] != b'"' {
+            return Err(format!("bad format: {text}"));
+        }
+        at += 1;
+        let mut parts = Vec::new();
+        let mut literal = String::new();
+        while at < bytes.len() && bytes[at] != b'"' {
+            let ch = bytes[at] as char;
+            at += 1;
+            if ch == '\\' {
+                if at >= bytes.len() {
+                    return Err(format!("bad format: {text}"));
+                }
+                let esc = bytes[at] as char;
+                at += 1;
+                let mapped = match esc {
+                    'a' => '\x07',
+                    'b' => '\x08',
+                    'f' => '\x0c',
+                    'n' => '\n',
+                    'r' => '\r',
+                    't' => '\t',
+                    'v' => '\x0b',
+                    other => other,
+                };
+                literal.push(mapped);
+            } else if ch != '%' {
+                literal.push(ch);
+            } else if at < bytes.len() && bytes[at] == b'%' {
+                at += 1;
+                literal.push('%');
+            } else {
+                if !literal.is_empty() {
+                    parts.push(HexdumpPart::Literal(std::mem::take(&mut literal)));
+                }
+                let mut flags = String::new();
+                while at < bytes.len() && "#0- +".contains(bytes[at] as char) {
+                    flags.push(bytes[at] as char);
+                    at += 1;
+                }
+                let width = read_int(&mut at).unwrap_or(0);
+                let mut precision = None;
+                if at < bytes.len() && bytes[at] == b'.' {
+                    at += 1;
+                    precision = Some(read_int(&mut at).unwrap_or(0));
+                }
+                if at >= bytes.len() {
+                    return Err(format!("bad format: {text}"));
+                }
+                let mut code = String::new();
+                let c0 = bytes[at] as char;
+                at += 1;
+                code.push(c0);
+                if c0 == '_' {
+                    if at >= bytes.len() {
+                        return Err(format!("bad format: {text}"));
+                    }
+                    let c1 = bytes[at] as char;
+                    at += 1;
+                    code.push(c1);
+                    if c1 == 'a' || c1 == 'A' {
+                        if at >= bytes.len() {
+                            return Err(format!("bad format: {text}"));
+                        }
+                        code.push(bytes[at] as char);
+                        at += 1;
+                    }
+                }
+                let conv_bytes = if code.starts_with("_a") || code.starts_with("_A") {
+                    0
+                } else if let Some(sz) = size {
+                    sz
+                } else if code == "s" {
+                    precision.ok_or_else(|| format!("bad format: {text}"))?
+                } else if matches!(code.as_str(), "c" | "_c" | "_p" | "_u") {
+                    1
+                } else {
+                    4
+                };
+                parts.push(HexdumpPart::Conv(HexdumpConversion {
+                    code,
+                    flags,
+                    width,
+                    precision,
+                    bytes: conv_bytes,
+                }));
+            }
+        }
+        if at >= bytes.len() || bytes[at] != b'"' {
+            return Err(format!("bad format: {text}"));
+        }
+        at += 1;
+        if !literal.is_empty() {
+            parts.push(HexdumpPart::Literal(literal));
+        }
+        let unit_bytes = size.unwrap_or_else(|| {
+            parts
+                .iter()
+                .map(|p| match p {
+                    HexdumpPart::Conv(c) => c.bytes,
+                    HexdumpPart::Literal(_) => 0,
+                })
+                .sum()
+        });
+        units.push(HexdumpUnit {
+            repeat: repeat.unwrap_or(1),
+            explicit_repeat: repeat.is_some(),
+            bytes: unit_bytes,
+            parts,
+        });
+    }
+    let total_size: usize = units.iter().map(|u| u.bytes * u.repeat).sum();
+    let final_unit_idx = units.iter().rposition(|u| {
+        u.parts.iter().any(|p| matches!(p, HexdumpPart::Conv(c) if c.code.starts_with("_A")))
+    });
+    Ok(HexdumpCustomFormat {
+        units,
+        size: total_size,
+        final_unit_idx,
+    })
+}
+
+const HEXDUMP_CONTROLS: [&str; 32] = [
+    "nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "lf", "vt", "ff", "cr",
+    "so", "si", "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", "can", "em", "sub", "esc",
+    "fs", "gs", "rs", "us",
+];
+
+fn format_hexdump_conv(
+    conv: &HexdumpConversion,
+    block: &[u8],
+    offset: usize,
+    used: usize,
+    address: usize,
+) -> String {
+    if conv.bytes > 0 && offset >= used {
+        return " ".repeat(conv.width);
+    }
+    let mut val = 0u128;
+    if conv.code != "s" && !matches!(conv.code.as_str(), "e" | "E" | "f" | "g" | "G") {
+        for k in (0..conv.bytes).rev() {
+            let b = if offset + k < used { block[offset + k] } else { 0 };
+            val = (val << 8) | (b as u128);
+        }
+    }
+    let text = if conv.code == "s" {
+        let mut end = used.min(offset + conv.bytes).min(offset + conv.precision.unwrap_or(conv.bytes));
+        for k in offset..end {
+            if block[k] == 0 {
+                end = k;
+                break;
+            }
+        }
+        crate::vfs::bytes_to_stream_string(&block[offset..end])
+    } else if matches!(conv.code.as_str(), "c" | "_p" | "_c" | "_u") {
+        let byte = (val & 0xff) as u8;
+        match conv.code.as_str() {
+            "c" => (byte as char).to_string(),
+            "_p" => {
+                if (0x20..=0x7e).contains(&byte) {
+                    (byte as char).to_string()
+                } else {
+                    ".".to_string()
+                }
+            }
+            "_u" => {
+                if (byte as usize) < HEXDUMP_CONTROLS.len() {
+                    HEXDUMP_CONTROLS[byte as usize].to_string()
+                } else if byte == 127 {
+                    "del".to_string()
+                } else if byte > 127 {
+                    format!("{byte:02x}")
+                } else {
+                    (byte as char).to_string()
+                }
+            }
+            _ => match byte {
+                0 => "\\0".to_string(),
+                7 => "\\a".to_string(),
+                8 => "\\b".to_string(),
+                9 => "\\t".to_string(),
+                10 => "\\n".to_string(),
+                11 => "\\v".to_string(),
+                12 => "\\f".to_string(),
+                13 => "\\r".to_string(),
+                0x20..=0x7e => (byte as char).to_string(),
+                _ => format!("{byte:03o}"),
+            },
+        }
+    } else if matches!(conv.code.as_str(), "e" | "E" | "f" | "g" | "G") {
+        let mut copy = [0u8; 8];
+        let take = conv.bytes.min(used.saturating_sub(offset));
+        copy[..take].copy_from_slice(&block[offset..offset + take]);
+        let num = if conv.bytes == 4 {
+            f32::from_le_bytes([copy[0], copy[1], copy[2], copy[3]]) as f64
+        } else {
+            f64::from_le_bytes(copy)
+        };
+        let prec = conv.precision.unwrap_or(6);
+        format!("{num:.prec$}")
+    } else {
+        let is_addr = conv.code.starts_with('_');
+        let raw_u = if is_addr { (address + offset) as u128 } else { val };
+        let bits = conv.bytes * 8;
+        let is_signed = !is_addr && (conv.code == "d" || conv.code == "i");
+        let (neg, mag) = if is_signed && bits > 0 && raw_u >= (1u128 << (bits - 1)) {
+            (true, (1u128 << bits) - raw_u)
+        } else {
+            (false, raw_u)
+        };
+        let kind = conv.code.chars().last().unwrap_or('d');
+        let radix = match kind {
+            'x' | 'X' => 16,
+            'o' => 8,
+            _ => 10,
+        };
+        let sign = if neg {
+            "-"
+        } else if (conv.code == "d" || conv.code == "i" || conv.code.ends_with('d')) && conv.flags.contains('+') {
+            "+"
+        } else if (conv.code == "d" || conv.code == "i" || conv.code.ends_with('d')) && conv.flags.contains(' ') {
+            " "
+        } else {
+            ""
+        };
+        let raw_digits = if mag == 0 && conv.precision == Some(0) {
+            String::new()
+        } else {
+            match radix {
+                16 => format!("{mag:x}"),
+                8 => format!("{mag:o}"),
+                _ => format!("{mag}"),
+            }
+        };
+        let prec_len = conv.precision.unwrap_or(0);
+        let digits = if raw_digits.len() < prec_len {
+            format!("{}{raw_digits}", "0".repeat(prec_len - raw_digits.len()))
+        } else {
+            raw_digits
+        };
+        let prefix = if conv.flags.contains('#') {
+            if radix == 16 && mag != 0 {
+                "0x"
+            } else if radix == 8 && !digits.starts_with('0') {
+                "0"
+            } else {
+                ""
+            }
+        } else {
+            ""
+        };
+        let mut combined = if conv.flags.contains('0') && !conv.flags.contains('-') && conv.precision.is_none() {
+            let pad_target = conv.width.saturating_sub(sign.len() + prefix.len());
+            let padded_digits = if digits.len() < pad_target {
+                format!("{}{digits}", "0".repeat(pad_target - digits.len()))
+            } else {
+                digits
+            };
+            format!("{sign}{prefix}{padded_digits}")
+        } else {
+            format!("{sign}{prefix}{digits}")
+        };
+        if kind == 'X' {
+            combined = combined.to_ascii_uppercase();
+        }
+        combined
+    };
+    if text.len() >= conv.width {
+        text
+    } else if conv.flags.contains('-') {
+        format!("{text}{}", " ".repeat(conv.width - text.len()))
+    } else {
+        format!("{}{text}", " ".repeat(conv.width - text.len()))
+    }
+}
+
+fn format_hexdump_custom(
+    fmt: &HexdumpCustomFormat,
+    block: &[u8],
+    used: usize,
+    address: usize,
+    is_final: bool,
+) -> String {
+    let mut offset = 0usize;
+    let mut result = String::new();
+    for (idx, unit) in fmt.units.iter().enumerate() {
+        if is_final && Some(idx) != fmt.final_unit_idx {
+            continue;
+        }
+        let unit_is_final = unit
+            .parts
+            .iter()
+            .any(|p| matches!(p, HexdumpPart::Conv(c) if c.code.starts_with("_A")));
+        if unit_is_final != is_final {
+            if !is_final {
+                offset += unit.bytes * unit.repeat;
+            }
+            continue;
+        }
+        let repeat = if !is_final
+            && idx + 1 == fmt.units.len()
+            && !unit.explicit_repeat
+            && unit.bytes > 0
+            && fmt.size < block.len()
+        {
+            unit.repeat + (block.len() - fmt.size) / unit.bytes
+        } else {
+            unit.repeat
+        };
+        for count in 0..repeat {
+            let mut pos = offset;
+            for (p_idx, part) in unit.parts.iter().enumerate() {
+                match part {
+                    HexdumpPart::Literal(lit) => {
+                        let mut end = lit.len();
+                        if count + 1 == repeat && repeat > 1 && p_idx + 1 == unit.parts.len() {
+                            while end > 0 && matches!(lit.as_bytes()[end - 1], b' ' | b'\t') {
+                                end -= 1;
+                            }
+                        }
+                        result.push_str(&lit[..end]);
+                    }
+                    HexdumpPart::Conv(conv) => {
+                        result.push_str(&format_hexdump_conv(conv, block, pos, used, address));
+                        pos += conv.bytes;
+                    }
+                }
+            }
+            offset += unit.bytes;
+        }
+    }
+    result
+}
+
+fn format_hexdump_block(block: &[u8], used: usize, address: usize, format: &str) -> String {
+    let canonical = format == "C";
+    let mut result = if canonical {
+        format!("{address:08x}  ")
+    } else {
+        format!("{address:07x} ")
+    };
+    if canonical {
+        for idx in 0..16 {
+            if idx == 8 {
+                result.push(' ');
+            }
+            if idx < used {
+                result.push_str(&format!("{:02x}", block[idx]));
+            } else {
+                result.push_str("  ");
+            }
+            if idx != 15 {
+                result.push(' ');
+            }
+        }
+        result.push_str("  |");
+        for &b in &block[..used] {
+            result.push(if (0x20..=0x7e).contains(&b) { b as char } else { '.' });
+        }
+        result.push_str("|\n");
+        return result;
+    }
+    if format != "default" {
+        let byte_format = format == "b" || format == "c";
+        let stride = if byte_format { 1 } else { 2 };
+        let width = if byte_format { 3 } else { 7 };
+        let mut idx = 0usize;
+        while idx < 16 {
+            let field = if idx < used {
+                let byte = block[idx];
+                if format == "c" {
+                    match byte {
+                        0 => "\\0".to_string(),
+                        7 => "\\a".to_string(),
+                        8 => "\\b".to_string(),
+                        9 => "\\t".to_string(),
+                        10 => "\\n".to_string(),
+                        11 => "\\v".to_string(),
+                        12 => "\\f".to_string(),
+                        13 => "\\r".to_string(),
+                        0x20..=0x7e => (byte as char).to_string(),
+                        _ => format!("{byte:03o}"),
+                    }
+                } else if format == "b" {
+                    format!("{byte:03o}")
+                } else {
+                    let hi = if idx + 1 < used { block[idx + 1] as u16 } else { 0 };
+                    let word = (byte as u16) | (hi << 8);
+                    match format {
+                        "d" => format!("{word:05}"),
+                        "o" => format!("{word:06o}"),
+                        _ => format!("{word:04x}"),
+                    }
+                }
+            } else {
+                String::new()
+            };
+            result.push_str(&format!("{field:>width$}"));
+            if idx + stride < 16 {
+                result.push(' ');
+            }
+            idx += stride;
+        }
+        result.push('\n');
+        return result;
+    }
+    let mut idx = 0usize;
+    while idx < 16 {
+        if idx < used {
+            let hi = if idx + 1 < used { block[idx + 1] as u16 } else { 0 };
+            let word = (block[idx] as u16) | (hi << 8);
+            result.push_str(&format!("{word:04x}"));
+        } else {
+            result.push_str("    ");
+        }
+        if idx != 14 {
+            result.push(' ');
+        }
+        idx += 2;
+    }
+    result.push('\n');
+    result
+}
+
+fn parse_hexdump_num(text: &str, is_skip: bool) -> Result<usize, String> {
+    let s = text.trim_start();
+    let s = s.strip_prefix('+').unwrap_or(s);
+    if s.starts_with('-') {
+        return Err(format!("{text}: bad value"));
+    }
+    let (base, digits_and_suffix) = if is_skip && (s.starts_with("0x") || s.starts_with("0X")) {
+        (16u32, &s[2..])
+    } else if is_skip && s.starts_with('0') {
+        (8u32, s)
+    } else {
+        (10u32, s)
+    };
+    let mut end = 0usize;
+    for (idx, ch) in digits_and_suffix.char_indices() {
+        if ch.to_digit(base).is_some() {
+            end = idx + ch.len_utf8();
+        } else {
+            break;
+        }
+    }
+    let num_part = &digits_and_suffix[..end];
+    let suffix = &digits_and_suffix[end..];
+    let mut val = if num_part.is_empty() {
+        0usize
+    } else {
+        usize::from_str_radix(num_part, base).map_err(|_| format!("{text}: bad value"))?
+    };
+    if is_skip {
+        let mult = match suffix {
+            "" => 1usize,
+            "b" => 512,
+            "k" | "K" | "KiB" => 1024,
+            "m" | "M" | "MiB" => 1_048_576,
+            _ => return Err(format!("{text}: bad skip value")),
+        };
+        val = val.saturating_mul(mult);
+    }
+    Ok(val)
 }
 
 fn cmd_hexdump(
@@ -1631,41 +2749,92 @@ fn cmd_hexdump(
     fs: &dyn SafeBashFs,
     default_canonical: bool,
 ) -> BuiltinOutcome {
-    let mut canonical = default_canonical;
+    let name = if default_canonical { "hd" } else { "hexdump" };
+    let mut ordered: Vec<HexdumpFormatItem> = if default_canonical {
+        vec![HexdumpFormatItem::Standard("C".to_string())]
+    } else {
+        Vec::new()
+    };
+    let mut has_std = default_canonical;
     let mut no_squeeze = false;
     let mut skip = 0usize;
     let mut max_len: Option<usize> = None;
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
-        let a = &args[i];
-        if a == "-C" {
-            canonical = true;
+        let a = args[i].as_str();
+        if !ended && a == "--" {
+            ended = true;
             i += 1;
-        } else if a == "-v" {
-            no_squeeze = true;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.to_string());
             i += 1;
-        } else if a == "-s" && i + 1 < args.len() {
-            skip = args[i + 1].parse().unwrap_or(0);
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-s") && !rest.is_empty() {
-            skip = rest.parse().unwrap_or(0);
-            i += 1;
-        } else if a == "-n" && i + 1 < args.len() {
-            max_len = args[i + 1].parse().ok();
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-n") && !rest.is_empty() {
-            max_len = rest.parse().ok();
-            i += 1;
-        } else if a == "-e" && i + 1 < args.len() {
-            i += 2;
-        } else if !a.starts_with('-') || a == "-" {
-            files.push(a.clone());
-            i += 1;
-        } else {
-            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut c_idx = 0usize;
+        while c_idx < chars.len() {
+            let flag = chars[c_idx];
+            match flag {
+                'v' => no_squeeze = true,
+                'C' | 'b' | 'c' | 'd' | 'o' | 'x' => {
+                    has_std = true;
+                    ordered.push(HexdumpFormatItem::Standard(flag.to_string()));
+                }
+                'n' | 's' | 'e' => {
+                    let rest: String = chars[c_idx + 1..].iter().collect();
+                    let param = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(&format!("{name}: option requires an argument -- '{flag}'\n"), 1);
+                    };
+                    if flag == 'n' {
+                        match parse_hexdump_num(&param, false) {
+                            Ok(v) => max_len = Some(v),
+                            Err(e) => return err_out(&format!("{name}: {e}\n"), 1),
+                        }
+                    } else if flag == 's' {
+                        match parse_hexdump_num(&param, true) {
+                            Ok(v) => skip = v,
+                            Err(e) => return err_out(&format!("{name}: {e}\n"), 1),
+                        }
+                    } else {
+                        match parse_hexdump_custom(&param) {
+                            Ok(cf) => ordered.push(HexdumpFormatItem::Custom(cf)),
+                            Err(e) => return err_out(&format!("{name}: {e}\n"), 1),
+                        }
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("{name}: unsupported option -- '{flag}'\n"), 1),
+            }
+            c_idx += 1;
+        }
+        i += 1;
+    }
+    if ordered.is_empty() {
+        has_std = true;
+        ordered.push(HexdumpFormatItem::Standard("default".to_string()));
+    }
+    if max_len == Some(0) {
+        return ok_out("");
+    }
+    let mut block_size = if has_std { 16usize } else { 0usize };
+    for item in &ordered {
+        if let HexdumpFormatItem::Custom(cf) = item {
+            block_size = block_size.max(cf.size);
         }
     }
+    if block_size == 0 {
+        return ok_out("");
+    }
+
     let raw = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
         crate::vfs::stream_string_to_bytes(stdin)
     } else {
@@ -1677,12 +2846,13 @@ fn cmd_hexdump(
                 let p = resolve_posix_path(cwd, f);
                 match fs.read_file(&p) {
                     Ok(b) => combined.extend_from_slice(&b),
-                    Err(e) => return err_out(&format!("hexdump: {f}: {e}\n"), 1),
+                    Err(e) => return err_out(&format!("{name}: {f}: {e}\n"), 1),
                 }
             }
         }
         combined
     };
+
     let start = skip.min(raw.len());
     let mut slice = &raw[start..];
     if let Some(n) = max_len {
@@ -1691,232 +2861,628 @@ fn cmd_hexdump(
     if slice.is_empty() {
         return ok_out("");
     }
+
     let mut out = String::new();
-    let mut prev_chunk: Option<&[u8]> = None;
+    let mut prev_block: Option<Vec<u8>> = None;
     let mut squeezing = false;
-    for (idx, chunk) in slice.chunks(16).enumerate() {
-        let addr = start + idx * 16;
-        if !no_squeeze && chunk.len() == 16 && prev_chunk == Some(chunk) {
+    let mut address = start;
+    for chunk in slice.chunks(block_size) {
+        let used = chunk.len();
+        let mut block = vec![0u8; block_size];
+        block[..used].copy_from_slice(chunk);
+        let same = prev_block
+            .as_ref()
+            .is_some_and(|prev| prev[..used] == block[..used]);
+        if !no_squeeze && same {
             if !squeezing {
                 out.push_str("*\n");
                 squeezing = true;
             }
+            address += used;
             continue;
         }
         squeezing = false;
-        prev_chunk = Some(chunk);
-        if canonical {
-            let left: Vec<String> = chunk.iter().take(8).map(|b| format!("{b:02x}")).collect();
-            let right: Vec<String> = chunk.iter().skip(8).map(|b| format!("{b:02x}")).collect();
-            let ascii: String = chunk
-                .iter()
-                .map(|&b| if (0x20..=0x7e).contains(&b) { b as char } else { '.' })
-                .collect();
-            out.push_str(&format!(
-                "{addr:08x}  {:<23}  {:<23}  |{ascii}|\n",
-                left.join(" "),
-                right.join(" ")
-            ));
-        } else {
-            let mut words = Vec::new();
-            let mut k = 0usize;
-            while k < chunk.len() {
-                let lo = chunk[k];
-                let hi = *chunk.get(k + 1).unwrap_or(&0);
-                let w = u16::from_le_bytes([lo, hi]);
-                words.push(format!("{w:04x}"));
-                k += 2;
+        prev_block = Some(block.clone());
+        for item in &ordered {
+            match item {
+                HexdumpFormatItem::Standard(fmt) => {
+                    out.push_str(&format_hexdump_block(&block, used, address, fmt));
+                }
+                HexdumpFormatItem::Custom(cf) => {
+                    out.push_str(&format_hexdump_custom(cf, &block, used, address, false));
+                }
             }
-            out.push_str(&format!("{addr:07x} {}\n", words.join(" ")));
         }
+        address += used;
     }
-    let end_addr = start + slice.len();
-    if canonical {
-        out.push_str(&format!("{end_addr:08x}\n"));
-    } else {
-        out.push_str(&format!("{end_addr:07x}\n"));
+    let final_item = ordered.iter().rev().find(|item| match item {
+        HexdumpFormatItem::Standard(_) => true,
+        HexdumpFormatItem::Custom(cf) => cf.final_unit_idx.is_some(),
+    });
+    if let Some(item) = final_item {
+        match item {
+            HexdumpFormatItem::Custom(cf) => {
+                let dummy = vec![0u8; block_size];
+                out.push_str(&format_hexdump_custom(cf, &dummy, 0, address, true));
+            }
+            HexdumpFormatItem::Standard(fmt) => {
+                if address > start {
+                    if fmt == "C" {
+                        out.push_str(&format!("{address:08x}\n"));
+                    } else {
+                        out.push_str(&format!("{address:07x}\n"));
+                    }
+                }
+            }
+        }
     }
     ok_out(&out)
 }
 
+#[derive(Clone)]
+struct OdFormat {
+    kind: char,
+    size: usize,
+    printable: bool,
+}
+
+fn parse_od_numeric(text: &str, allow_suffixes: bool) -> Result<usize, String> {
+    let mut num_text = text;
+    let mut multiplier = 1usize;
+    let is_hex = text.starts_with("0x") || text.starts_with("0X");
+    if allow_suffixes && !is_hex {
+        for (sfx, mult) in [
+            ("KiB", 1024usize),
+            ("MiB", 1_048_576),
+            ("GiB", 1_073_741_824),
+            ("KB", 1000),
+            ("MB", 1_000_000),
+            ("GB", 1_000_000_000),
+            ("b", 512),
+            ("k", 1024),
+            ("K", 1024),
+            ("m", 1_048_576),
+            ("M", 1_048_576),
+            ("G", 1_073_741_824),
+        ] {
+            if let Some(prefix) = text.strip_suffix(sfx) {
+                num_text = if prefix.is_empty() { "1" } else { prefix };
+                multiplier = mult;
+                break;
+            }
+        }
+    }
+    let parsed = if let Some(hex) = num_text.strip_prefix("0x").or_else(|| num_text.strip_prefix("0X")) {
+        usize::from_str_radix(hex, 16).map_err(|_| format!("invalid number '{text}'"))?
+    } else if num_text.starts_with('0') && num_text.chars().all(|c| ('0'..='7').contains(&c)) {
+        usize::from_str_radix(num_text, 8).map_err(|_| format!("invalid number '{text}'"))?
+    } else if !num_text.starts_with('0') && num_text.chars().all(|c| c.is_ascii_digit()) {
+        num_text.parse::<usize>().map_err(|_| format!("invalid number '{text}'"))?
+    } else {
+        return Err(format!("invalid number '{text}'"));
+    };
+    Ok(parsed.saturating_mul(multiplier))
+}
+
+fn parse_od_formats(text: &str) -> Result<Vec<OdFormat>, String> {
+    let mut result = Vec::new();
+    let chars: Vec<char> = text.chars().collect();
+    let mut offset = 0usize;
+    while offset < chars.len() {
+        let kind = chars[offset];
+        offset += 1;
+        let mut size = 1usize;
+        if kind != 'a' && kind != 'c' {
+            if !"douxf".contains(kind) {
+                return Err(format!("unsupported type '{text}'"));
+            }
+            if let Some(&next) = chars.get(offset) {
+                let mapped = match next {
+                    'C' => Some(1),
+                    'S' => Some(2),
+                    'I' | 'F' => Some(4),
+                    'L' | 'D' => Some(8),
+                    '0'..='9' => next.to_digit(10).map(|d| d as usize),
+                    _ => None,
+                };
+                if let Some(sz) = mapped {
+                    size = sz;
+                    offset += 1;
+                } else {
+                    size = if kind == 'f' { 8 } else { 4 };
+                }
+            } else {
+                size = if kind == 'f' { 8 } else { 4 };
+            }
+            let valid = if kind == 'f' {
+                matches!(size, 4 | 8)
+            } else {
+                matches!(size, 1 | 2 | 4 | 8)
+            };
+            if !valid {
+                return Err(format!("unsupported type '{text}'"));
+            }
+        }
+        let mut printable = false;
+        if chars.get(offset) == Some(&'z') {
+            printable = true;
+            offset += 1;
+        }
+        result.push(OdFormat {
+            kind,
+            size,
+            printable,
+        });
+    }
+    if result.is_empty() {
+        return Err("empty output type".to_string());
+    }
+    Ok(result)
+}
+
+fn od_field_width(fmt: &OdFormat) -> usize {
+    let bits = fmt.size * 8;
+    match fmt.kind {
+        'a' | 'c' => 3,
+        'f' => if fmt.size == 4 { 15 } else { 24 },
+        'o' => (bits + 2) / 3,
+        'x' => bits / 4,
+        'd' => (1u128 << (bits - 1)).to_string().len() + 1,
+        _ => {
+            if bits == 64 {
+                u64::MAX.to_string().len()
+            } else {
+                ((1u128 << bits) - 1).to_string().len()
+            }
+        }
+    }
+}
+
+const OD_NAMES: [&str; 33] = [
+    "nul", "soh", "stx", "etx", "eot", "enq", "ack", "bel", "bs", "ht", "nl", "vt", "ff", "cr",
+    "so", "si", "dle", "dc1", "dc2", "dc3", "dc4", "nak", "syn", "etb", "can", "em", "sub", "esc",
+    "fs", "gs", "rs", "us", "sp",
+];
+
+fn format_od_float(value: f64, size: usize) -> String {
+    if value.is_nan() {
+        return "nan".to_string();
+    }
+    if !value.is_finite() {
+        return if value.is_sign_negative() { "-inf".to_string() } else { "inf".to_string() };
+    }
+    if value == 0.0 && value.is_sign_negative() {
+        return "-0".to_string();
+    }
+    if size == 4 {
+        format!("{}", value as f32)
+    } else {
+        format!("{value}")
+    }
+}
+
+fn format_od_row(
+    row: &[u8],
+    fmt: &OdFormat,
+    big_endian: bool,
+    row_width: usize,
+    chars_per_byte: f64,
+) -> String {
+    let mut text = String::new();
+    let width = od_field_width(fmt);
+    let mut offset = 0usize;
+    while offset < row.len() {
+        let col_end = (((offset + fmt.size) as f64) * chars_per_byte).ceil() as usize;
+        let col_start = ((offset as f64) * chars_per_byte).ceil() as usize;
+        let col_width = col_end.saturating_sub(col_start);
+        let lead_spaces = col_width.saturating_sub(width + 1);
+        text.push_str(&" ".repeat(lead_spaces));
+        if fmt.size == 1 && (fmt.kind == 'x' || fmt.kind == 'o') {
+            let b = row[offset];
+            if fmt.kind == 'x' {
+                text.push_str(&format!(" {b:02x}"));
+            } else {
+                text.push_str(&format!(" {b:03o}"));
+            }
+            offset += fmt.size;
+            continue;
+        }
+        if fmt.kind == 'a' {
+            let b = row[offset] & 127;
+            let name = if (b as usize) < OD_NAMES.len() {
+                OD_NAMES[b as usize].to_string()
+            } else if b == 127 {
+                "del".to_string()
+            } else {
+                (b as char).to_string()
+            };
+            text.push_str(&format!(" {name:>3}"));
+            offset += fmt.size;
+            continue;
+        }
+        if fmt.kind == 'f' {
+            let mut bytes = [0u8; 8];
+            let take = fmt.size.min(row.len() - offset);
+            bytes[..take].copy_from_slice(&row[offset..offset + take]);
+            let val = if fmt.size == 4 {
+                let arr = [bytes[0], bytes[1], bytes[2], bytes[3]];
+                (if big_endian { f32::from_be_bytes(arr) } else { f32::from_le_bytes(arr) }) as f64
+            } else {
+                if big_endian { f64::from_be_bytes(bytes) } else { f64::from_le_bytes(bytes) }
+            };
+            let s = format_od_float(val, fmt.size);
+            text.push_str(&format!(" {s:>width$}"));
+            offset += fmt.size;
+            continue;
+        }
+        if fmt.kind == 'c' {
+            let b = row[offset];
+            let ch_str = match b {
+                0 => "\\0".to_string(),
+                7 => "\\a".to_string(),
+                8 => "\\b".to_string(),
+                9 => "\\t".to_string(),
+                10 => "\\n".to_string(),
+                11 => "\\v".to_string(),
+                12 => "\\f".to_string(),
+                13 => "\\r".to_string(),
+                0x20..=0x7e => (b as char).to_string(),
+                _ => format!("{b:03o}"),
+            };
+            text.push_str(&format!(" {ch_str:>3}"));
+            offset += fmt.size;
+            continue;
+        }
+        let mut number = 0u128;
+        for idx in 0..fmt.size {
+            let b = *row.get(offset + idx).unwrap_or(&0) as u128;
+            let shift = if big_endian { fmt.size - idx - 1 } else { idx };
+            number |= b << (shift * 8);
+        }
+        let bits = fmt.size * 8;
+        let formatted_num = match fmt.kind {
+            'o' => format!("{number:0width$o}"),
+            'x' => format!("{number:0width$x}"),
+            'd' => {
+                let signed = if number >= (1u128 << (bits - 1)) {
+                    (number as i128) - (1i128 << bits)
+                } else {
+                    number as i128
+                };
+                format!("{signed:>width$}")
+            }
+            _ => format!("{number:>width$}"),
+        };
+        text.push(' ');
+        text.push_str(&formatted_num);
+        offset += fmt.size;
+    }
+    if fmt.printable {
+        let mut ascii = String::with_capacity(row.len());
+        for &b in row {
+            ascii.push(if (0x20..=0x7e).contains(&b) { b as char } else { '.' });
+        }
+        let target_len = ((row_width as f64) * chars_per_byte).ceil() as usize;
+        if text.len() < target_len {
+            text.push_str(&" ".repeat(target_len - text.len()));
+        }
+        text.push_str(&format!("  >{ascii}<"));
+    }
+    text
+}
+
 fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut format_type = "o2".to_string();
     let mut addr_radix = 'o';
     let mut big_endian = false;
-    let mut max_len: Option<usize> = None;
+    let mut verbose = false;
+    let mut requested_width: usize = 16;
     let mut skip_bytes: usize = 0;
-    let mut files = Vec::new();
+    let mut max_len: Option<usize> = None;
+    let mut strings_min: Option<usize> = None;
+    let mut type_specs: Vec<String> = Vec::new();
+    let mut files: Vec<String> = Vec::new();
 
+    let short_aliases = |ch: char| -> Option<&'static str> {
+        match ch {
+            'a' => Some("a"),
+            'b' => Some("o1"),
+            'B' | 'o' => Some("o2"),
+            'c' => Some("c"),
+            'd' => Some("u2"),
+            'D' => Some("u4"),
+            'e' | 'F' => Some("f8"),
+            'f' => Some("f4"),
+            'h' | 'x' => Some("x2"),
+            'i' => Some("d4"),
+            'I' | 'l' | 'L' => Some("d8"),
+            'O' => Some("o4"),
+            's' => Some("d2"),
+            'X' => Some("x4"),
+            _ => None,
+        }
+    };
+
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
-        match args[i].as_str() {
-            "-An" => addr_radix = 'n',
-            "-Ax" => addr_radix = 'x',
-            "-Ad" => addr_radix = 'd',
-            "-Ao" => addr_radix = 'o',
-            "-A" if i + 1 < args.len() => {
-                i += 1;
-                addr_radix = args[i].chars().next().unwrap_or('o');
+        let a = args[i].as_str();
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended || a == "-" || !a.starts_with('-') {
+            files.push(a.to_string());
+            i += 1;
+            continue;
+        }
+        if a.starts_with("--") {
+            match a {
+                "--output-duplicates" => verbose = true,
+                "--strings" => strings_min = Some(3),
+                _ if a.starts_with("--strings=") => {
+                    match parse_od_numeric(&a["--strings=".len()..], false) {
+                        Ok(v) if v >= 1 => strings_min = Some(v),
+                        _ => return err_out("od: invalid strings length\n", 2),
+                    }
+                }
+                "--width" => requested_width = 32,
+                _ if a.starts_with("--width=") => {
+                    match parse_od_numeric(&a["--width=".len()..], false) {
+                        Ok(v) if v >= 1 => requested_width = v,
+                        _ => return err_out("od: invalid width\n", 2),
+                    }
+                }
+                "--endian=big" => big_endian = true,
+                "--endian=little" => big_endian = false,
+                "--endian" if i + 1 < args.len() => {
+                    i += 1;
+                    big_endian = args[i] == "big";
+                }
+                _ if a.starts_with("--address-radix=") => {
+                    addr_radix = a["--address-radix=".len()..].chars().next().unwrap_or('o');
+                }
+                "--address-radix" if i + 1 < args.len() => {
+                    i += 1;
+                    addr_radix = args[i].chars().next().unwrap_or('o');
+                }
+                _ if a.starts_with("--skip-bytes=") => {
+                    match parse_od_numeric(&a["--skip-bytes=".len()..], true) {
+                        Ok(v) => skip_bytes = v,
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
+                    }
+                }
+                "--skip-bytes" if i + 1 < args.len() => {
+                    i += 1;
+                    match parse_od_numeric(&args[i], true) {
+                        Ok(v) => skip_bytes = v,
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
+                    }
+                }
+                _ if a.starts_with("--read-bytes=") => {
+                    match parse_od_numeric(&a["--read-bytes=".len()..], true) {
+                        Ok(v) => max_len = Some(v),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
+                    }
+                }
+                "--read-bytes" if i + 1 < args.len() => {
+                    i += 1;
+                    match parse_od_numeric(&args[i], true) {
+                        Ok(v) => max_len = Some(v),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
+                    }
+                }
+                _ if a.starts_with("--format=") || a.starts_with("--type=") => {
+                    let eq = a.find('=').unwrap();
+                    type_specs.push(a[eq + 1..].to_string());
+                }
+                "--format" | "--type" if i + 1 < args.len() => {
+                    i += 1;
+                    type_specs.push(args[i].clone());
+                }
+                _ => return err_out(&format!("od: unrecognized option '{a}'\n"), 2),
             }
-            "--endian=big" => big_endian = true,
-            "--endian=little" => big_endian = false,
-            "-t" if i + 1 < args.len() => {
-                i += 1;
-                format_type = args[i].clone();
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut c_idx = 0usize;
+        while c_idx < chars.len() {
+            let flag = chars[c_idx];
+            if flag == 'v' {
+                verbose = true;
+            } else if flag == 'S' {
+                let rest: String = chars[c_idx + 1..].iter().collect();
+                if rest.is_empty() {
+                    strings_min = Some(3);
+                } else {
+                    match parse_od_numeric(&rest, false) {
+                        Ok(v) if v >= 1 => strings_min = Some(v),
+                        _ => return err_out("od: invalid strings length\n", 2),
+                    }
+                }
+                break;
+            } else if flag == 'w' {
+                let rest: String = chars[c_idx + 1..].iter().collect();
+                if rest.is_empty() {
+                    requested_width = 32;
+                } else {
+                    match parse_od_numeric(&rest, false) {
+                        Ok(v) if v >= 1 => requested_width = v,
+                        _ => return err_out("od: invalid width\n", 2),
+                    }
+                }
+                break;
+            } else if let Some(mapped) = short_aliases(flag) {
+                type_specs.push(mapped.to_string());
+            } else if matches!(flag, 'A' | 'j' | 'N' | 't') {
+                let rest: String = chars[c_idx + 1..].iter().collect();
+                let param = if !rest.is_empty() {
+                    rest
+                } else if i + 1 < args.len() {
+                    i += 1;
+                    args[i].clone()
+                } else {
+                    return err_out(&format!("od: option '-{flag}' requires an argument\n"), 2);
+                };
+                match flag {
+                    'A' => addr_radix = param.chars().next().unwrap_or('o'),
+                    'j' => match parse_od_numeric(&param, true) {
+                        Ok(v) => skip_bytes = v,
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
+                    },
+                    'N' => match parse_od_numeric(&param, true) {
+                        Ok(v) => max_len = Some(v),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
+                    },
+                    't' => type_specs.push(param),
+                    _ => {}
+                }
+                break;
+            } else {
+                return err_out(&format!("od: invalid option -- '{flag}'\n"), 2);
             }
-            "-N" if i + 1 < args.len() => {
-                i += 1;
-                max_len = args[i].parse::<usize>().ok();
-            }
-            "-j" if i + 1 < args.len() => {
-                i += 1;
-                skip_bytes = args[i].parse::<usize>().unwrap_or(0);
-            }
-            "-c" => format_type = "c".to_string(),
-            "-x" => format_type = "x1".to_string(),
-            a if a.starts_with("-t") => format_type = a[2..].to_string(),
-            a if a.starts_with("-N") => max_len = a[2..].parse::<usize>().ok(),
-            a if a.starts_with("-j") => skip_bytes = a[2..].parse::<usize>().unwrap_or(0),
-            a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
+            c_idx += 1;
         }
         i += 1;
     }
 
-    let mut data = if files.is_empty() || files[0] == "-" {
-        crate::vfs::stream_string_to_bytes(stdin)
-    } else {
-        let full = resolve_posix_path(cwd, &files[0]);
-        match fs.read_file(&full) {
-            Ok(b) => b,
-            Err(_) => return err_out(&format!("od: {}: No such file\n", files[0]), 1),
-        }
-    };
-    if skip_bytes > 0 {
-        if skip_bytes >= data.len() {
-            data.clear();
-        } else {
-            data.drain(0..skip_bytes);
+    if type_specs.is_empty() {
+        type_specs.push("o2".to_string());
+    }
+    let mut selected: Vec<OdFormat> = Vec::new();
+    for spec in &type_specs {
+        match parse_od_formats(spec) {
+            Ok(fmts) => selected.extend(fmts),
+            Err(e) => return err_out(&format!("od: {e}\n"), 2),
         }
     }
-    if let Some(limit) = max_len && data.len() > limit {
-        data.truncate(limit);
+
+    let mut data: Vec<u8> = Vec::new();
+    let mut exit_code = 0;
+    let mut err_buf = String::new();
+    if files.is_empty() {
+        data.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
+    } else {
+        let mut used_stdin = false;
+        for f in &files {
+            if f == "-" {
+                if !used_stdin {
+                    used_stdin = true;
+                    data.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
+                }
+            } else {
+                let full = resolve_posix_path(cwd, f);
+                match fs.read_file(&full) {
+                    Ok(b) => data.extend_from_slice(&b),
+                    Err(e) => {
+                        exit_code = 1;
+                        err_buf.push_str(&format!("od: {f}: {e}\n"));
+                    }
+                }
+            }
+        }
+    }
+
+    if skip_bytes > data.len() {
+        err_buf.push_str("od: cannot skip past end of input\n");
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: err_buf,
+            exit_code: 1,
+        };
+    }
+    let mut slice = &data[skip_bytes..];
+    if let Some(limit) = max_len {
+        slice = &slice[..limit.min(slice.len())];
     }
 
     let fmt_addr = |addr: usize| -> String {
         match addr_radix {
+            'n' => String::new(),
             'x' => format!("{addr:06x}"),
             'd' => format!("{addr:07}"),
             _ => format!("{addr:07o}"),
         }
     };
 
+    if let Some(min_s) = strings_min {
+        let mut out = String::new();
+        let mut cur = String::new();
+        let mut start_addr = String::new();
+        let mut offset = skip_bytes;
+        for &b in slice {
+            if (32..=126).contains(&b) {
+                if cur.is_empty() {
+                    start_addr = fmt_addr(offset);
+                }
+                cur.push(b as char);
+            } else {
+                if b == 0 && cur.len() >= min_s {
+                    if start_addr.is_empty() {
+                        out.push_str(&format!("{cur}\n"));
+                    } else {
+                        out.push_str(&format!("{start_addr} {cur}\n"));
+                    }
+                }
+                cur.clear();
+            }
+            offset += 1;
+        }
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err_buf,
+            exit_code,
+        };
+    }
+
+    let alignment = selected.iter().map(|f| f.size).max().unwrap_or(1);
+    let width = if requested_width % alignment == 0 {
+        requested_width
+    } else {
+        alignment
+    };
+    let chars_per_byte = selected
+        .iter()
+        .map(|f| ((od_field_width(f) + 1) as f64) / (f.size as f64))
+        .fold(0.0f64, f64::max);
+
     let mut out = String::new();
-    for (idx, chunk) in data.chunks(16).enumerate() {
-        if addr_radix != 'n' {
-            out.push_str(&fmt_addr(skip_bytes + idx * 16));
+    let mut prev_row: Option<&[u8]> = None;
+    let mut suppressed = false;
+    let mut offset = skip_bytes;
+    for row in slice.chunks(width) {
+        if !verbose && prev_row == Some(row) {
+            if !suppressed {
+                out.push_str("*\n");
+                suppressed = true;
+            }
+        } else {
+            let addr = fmt_addr(offset);
+            let pad = if selected.len() > 1 {
+                " ".repeat(addr.len())
+            } else {
+                String::new()
+            };
+            for (idx, fmt) in selected.iter().enumerate() {
+                let prefix = if idx == 0 { addr.as_str() } else { pad.as_str() };
+                out.push_str(prefix);
+                out.push_str(&format_od_row(row, fmt, big_endian, width, chars_per_byte));
+                out.push('\n');
+            }
+            prev_row = Some(row);
+            suppressed = false;
         }
-        match format_type.as_str() {
-            "x2" => {
-                for pair in chunk.chunks(2) {
-                    let b0 = pair[0];
-                    let b1 = *pair.get(1).unwrap_or(&0);
-                    let w = if big_endian {
-                        u16::from_be_bytes([b0, b1])
-                    } else {
-                        u16::from_le_bytes([b0, b1])
-                    };
-                    out.push_str(&format!(" {w:04x}"));
-                }
-            }
-            "x4" => {
-                for quad in chunk.chunks(4) {
-                    let mut arr = [0u8; 4];
-                    arr[..quad.len()].copy_from_slice(quad);
-                    let w = if big_endian {
-                        u32::from_be_bytes(arr)
-                    } else {
-                        u32::from_le_bytes(arr)
-                    };
-                    out.push_str(&format!(" {w:08x}"));
-                }
-            }
-            "u2" => {
-                for pair in chunk.chunks(2) {
-                    let b0 = pair[0];
-                    let b1 = *pair.get(1).unwrap_or(&0);
-                    let w = if big_endian {
-                        u16::from_be_bytes([b0, b1])
-                    } else {
-                        u16::from_le_bytes([b0, b1])
-                    };
-                    out.push_str(&format!(" {w}"));
-                }
-            }
-            "u4" => {
-                for quad in chunk.chunks(4) {
-                    let mut arr = [0u8; 4];
-                    arr[..quad.len()].copy_from_slice(quad);
-                    let w = if big_endian {
-                        u32::from_be_bytes(arr)
-                    } else {
-                        u32::from_le_bytes(arr)
-                    };
-                    out.push_str(&format!(" {w}"));
-                }
-            }
-            "d1" => {
-                for &b in chunk {
-                    out.push_str(&format!(" {}", b as i8));
-                }
-            }
-            "d2" => {
-                for pair in chunk.chunks(2) {
-                    let b0 = pair[0];
-                    let b1 = *pair.get(1).unwrap_or(&0);
-                    let w = if big_endian {
-                        i16::from_be_bytes([b0, b1])
-                    } else {
-                        i16::from_le_bytes([b0, b1])
-                    };
-                    out.push_str(&format!(" {w}"));
-                }
-            }
-            "c" => {
-                for &b in chunk {
-                    let s = match b {
-                        b'\n' => "\\n".to_string(),
-                        b'\t' => "\\t".to_string(),
-                        b'\r' => "\\r".to_string(),
-                        b'\0' => "\\0".to_string(),
-                        0x20..=0x7e => format!("  {}", b as char),
-                        _ => format!("{b:03o}"),
-                    };
-                    out.push_str(&format!(" {s:>3}"));
-                }
-            }
-            t if t.starts_with('x') => {
-                for &b in chunk {
-                    out.push_str(&format!(" {b:02x}"));
-                }
-            }
-            t if t.starts_with('u') || t.starts_with('d') => {
-                for &b in chunk {
-                    out.push_str(&format!(" {b:3}"));
-                }
-            }
-            _ => {
-                for &b in chunk {
-                    out.push_str(&format!(" {b:03o}"));
-                }
-            }
-        }
-        out.push('\n');
+        offset += row.len();
     }
     if addr_radix != 'n' {
-        out.push_str(&format!("{}\n", fmt_addr(skip_bytes + data.len())));
+        out.push_str(&format!("{}\n", fmt_addr(offset)));
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 struct TarEntry {
@@ -3557,6 +5123,7 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut print_file = false;
     let mut include_ws = false;
     let mut encoding = 's';
+    let mut unicode_mode = "default".to_string();
     let mut separator = "\n".to_string();
     let mut files = Vec::new();
     let mut i = 0usize;
@@ -3608,8 +5175,22 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         {
             encoding = rest.chars().next().unwrap_or('s');
             i += 1;
+        } else if (a == "-U" || a == "--unicode") && i + 1 < args.len() {
+            unicode_mode = args[i + 1].clone();
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("-U").or_else(|| a.strip_prefix("--unicode="))
+            && !rest.is_empty()
+        {
+            unicode_mode = rest.to_string();
+            i += 1;
         } else if a.starts_with('-') && a.len() > 1 && a[1..].chars().all(|c| c.is_ascii_digit()) {
-            min_len = a[1..].parse().unwrap_or(4).max(1);
+            let num_str = &a[1..];
+            let parsed = if num_str.starts_with('0') && num_str.chars().all(|c| ('0'..='7').contains(&c)) {
+                usize::from_str_radix(num_str, 8).unwrap_or(4)
+            } else {
+                num_str.parse().unwrap_or(4)
+            };
+            min_len = parsed.max(1);
             i += 1;
         } else if !a.starts_with('-') || a == "-" {
             files.push(a.clone());
@@ -3617,6 +5198,19 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         } else {
             i += 1;
         }
+    }
+
+    let unicode = match unicode_mode.as_str() {
+        "d" | "default" => "default",
+        "i" | "invalid" => "invalid",
+        "l" | "locale" => "locale",
+        "x" | "hex" => "hex",
+        "e" | "escape" => "escape",
+        "h" | "highlight" => "highlight",
+        other => return err_out(&format!("strings: invalid Unicode option '{other}'\n"), 1),
+    };
+    if unicode != "default" {
+        encoding = 'S';
     }
 
     let targets: Vec<String> = if files.is_empty() {
@@ -3670,19 +5264,93 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         };
 
         if width == 1 {
+            let mut utf8: Vec<u8> = Vec::new();
+            let mut utf8_width = 0usize;
             for (idx, &b) in data.iter().enumerate() {
-                let ok = b == 9
-                    || (32..=126).contains(&b)
-                    || (encoding == 'S' && b >= 128)
-                    || (include_ws && (10..=13).contains(&b));
-                if ok {
-                    if char_count == 0 {
-                        start_off = idx;
+                let cur_b = b;
+                let mut reprocess = true;
+                while reprocess {
+                    reprocess = false;
+                    if unicode != "default" && cur_b >= 128 {
+                        if utf8.is_empty() {
+                            utf8_width = if (0xc0..0xe0).contains(&cur_b) {
+                                2
+                            } else if (0xe0..0xf0).contains(&cur_b) {
+                                3
+                            } else if (0xf0..0xf8).contains(&cur_b) {
+                                4
+                            } else {
+                                0
+                            };
+                            if utf8_width == 0 {
+                                flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                                break;
+                            }
+                        } else if !(0x80..0xc0).contains(&cur_b) {
+                            utf8.clear();
+                            flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                            reprocess = true;
+                            continue;
+                        }
+                        utf8.push(cur_b);
+                        if utf8.len() < utf8_width {
+                            break;
+                        }
+                        if unicode == "invalid" {
+                            flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                        } else if unicode == "locale" {
+                            if char_count == 0 {
+                                start_off = idx + 1 - utf8.len();
+                            }
+                            cur_bytes.extend_from_slice(&utf8);
+                            char_count += 1;
+                        } else {
+                            let text = if unicode == "hex" {
+                                let hex_s: String = utf8.iter().map(|v| format!("{v:02x}")).collect();
+                                format!("<0x{hex_s}>")
+                            } else {
+                                let mut code = (utf8[0] & if utf8_width == 2 { 31 } else { 15 }) as u32;
+                                for &cont in &utf8[1..] {
+                                    code = code * 64 + ((cont & 63) as u32);
+                                }
+                                if utf8_width == 4 {
+                                    code = (((utf8[0] & 7) as u32) << 18)
+                                        | (((utf8[1] & 63) as u32) << 14)
+                                        | (((utf8[2] & 63) as u32) << 6)
+                                        | ((utf8[3] & 63) as u32);
+                                }
+                                if utf8_width == 4 {
+                                    format!("\\u{code:06x}")
+                                } else {
+                                    format!("\\u{code:04x}")
+                                }
+                            };
+                            if char_count == 0 {
+                                start_off = idx + 1 - utf8.len();
+                            }
+                            cur_bytes.extend_from_slice(text.as_bytes());
+                            char_count += 1;
+                        }
+                        utf8.clear();
+                        break;
                     }
-                    cur_bytes.push(b);
-                    char_count += 1;
-                } else {
-                    flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                    if !utf8.is_empty() {
+                        utf8.clear();
+                        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                    }
+                    let ok = cur_b == 9
+                        || (32..=126).contains(&cur_b)
+                        || (encoding == 'S' && cur_b >= 128)
+                        || (include_ws && (10..=13).contains(&cur_b));
+                    if ok {
+                        if char_count == 0 {
+                            start_off = idx;
+                        }
+                        cur_bytes.push(cur_b);
+                        char_count += 1;
+                    } else {
+                        flush(&mut out_bytes, &mut cur_bytes, &mut char_count, start_off);
+                    }
                 }
             }
         } else {

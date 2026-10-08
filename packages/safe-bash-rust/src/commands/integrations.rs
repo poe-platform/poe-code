@@ -246,6 +246,41 @@ struct GhReleaseRecord {
 }
 
 #[derive(Clone, Debug)]
+struct GhWorkflowRecord {
+    id: u64,
+    name: String,
+    path: String,
+    state: String,
+    content: String,
+}
+
+#[derive(Clone, Debug)]
+struct GhWorkflowRunRecord {
+    database_id: u64,
+    name: String,
+    display_title: String,
+    workflow_name: String,
+    workflow_database_id: u64,
+    head_branch: String,
+    event: String,
+    status: String,
+    conclusion: String,
+    attempt: u64,
+    url: String,
+    actor_login: String,
+}
+
+fn default_gh_workflows() -> Vec<GhWorkflowRecord> {
+    vec![GhWorkflowRecord {
+        id: 1,
+        name: "CI".into(),
+        path: ".github/workflows/ci.yml".into(),
+        state: "active".into(),
+        content: "name: CI\non: [push, pull_request]\njobs:\n  test:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm test\n".into(),
+    }]
+}
+
+#[derive(Clone, Debug)]
 struct GhRepoRecord {
     owner: String,
     name: String,
@@ -259,6 +294,8 @@ struct GhRepoRecord {
     labels: Vec<(String, String, String)>,
     variables: BTreeMap<String, String>,
     secrets: Vec<String>,
+    workflows: Vec<GhWorkflowRecord>,
+    workflow_runs: Vec<GhWorkflowRunRecord>,
 }
 
 #[derive(Clone, Debug)]
@@ -312,6 +349,8 @@ impl Default for IntegrationState {
                 ],
                 variables: BTreeMap::new(),
                 secrets: Vec::new(),
+                workflows: default_gh_workflows(),
+                workflow_runs: Vec::new(),
             },
         );
         Self {
@@ -1579,6 +1618,7 @@ where
                     let mut sel: Option<String> = None;
                     let mut vault_sel: Option<String> = None;
                     let mut otp_mode = false;
+                    let mut fields_spec: Vec<String> = Vec::new();
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
@@ -1590,7 +1630,27 @@ where
                                 otp_mode = true;
                                 i += 1;
                             }
-                            "--fields" | "--format" => i += 2,
+                            "--fields" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    for part in v.split(',') {
+                                        let p = part.trim();
+                                        if !p.is_empty() {
+                                            fields_spec.push(p.to_string());
+                                        }
+                                    }
+                                }
+                                i += 2;
+                            }
+                            "--format" => i += 2,
+                            a if a.starts_with("--fields=") => {
+                                for part in a["--fields=".len()..].split(',') {
+                                    let p = part.trim();
+                                    if !p.is_empty() {
+                                        fields_spec.push(p.to_string());
+                                    }
+                                }
+                                i += 1;
+                            }
                             a if a.starts_with("--") => i += 1,
                             a => {
                                 if sel.is_none() {
@@ -1636,6 +1696,64 @@ where
                         return BuiltinOutcome { stdout: "287082\n".to_string(), stderr: String::new(), exit_code: 0 };
                     }
                     let vname = st.op_vaults.iter().find(|v| v.id == it.vault_id).map(|v| v.name.as_str()).unwrap_or("Private");
+                    if !fields_spec.is_empty() {
+                        let full_item = item_json(it, vname);
+                        let empty_fields = Vec::new();
+                        let item_fields = full_item.get("fields").and_then(|v| v.as_array()).unwrap_or(&empty_fields);
+                        let mut selected: Vec<Value> = Vec::new();
+                        for selector in &fields_spec {
+                            let (key, match_val) = match selector.split_once('=') {
+                                Some((k, v)) => (k, v.to_ascii_lowercase()),
+                                None => ("label", selector.to_ascii_lowercase()),
+                            };
+                            if key != "label" && key != "type" {
+                                return op_err("Unsupported field selector");
+                            }
+                            let mut matches: Vec<Value> = Vec::new();
+                            for f in item_fields {
+                                let f_val = f.get(key).and_then(|v| v.as_str()).unwrap_or("");
+                                let id_val = f.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                                if f_val.to_ascii_lowercase() == match_val
+                                    || (key == "label" && id_val.to_ascii_lowercase() == match_val)
+                                {
+                                    matches.push(f.clone());
+                                }
+                            }
+                            if matches.is_empty() {
+                                return op_err("Field not found");
+                            }
+                            for m in matches {
+                                if !selected.contains(&m) {
+                                    selected.push(m);
+                                }
+                            }
+                        }
+                        if format_json {
+                            let out_val = if selected.len() == 1 {
+                                selected[0].clone()
+                            } else {
+                                Value::Array(selected)
+                            };
+                            let out = to_pretty_json(&out_val);
+                            return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        }
+                        let vals: Vec<String> = selected
+                            .iter()
+                            .map(|f| {
+                                let txt = f.get("value").and_then(|v| v.as_str()).unwrap_or("");
+                                if txt.chars().any(|c| matches!(c, ',' | '"' | '\r' | '\n')) {
+                                    format!("\"{}\"", txt.replace('"', "\"\""))
+                                } else {
+                                    txt.to_string()
+                                }
+                            })
+                            .collect();
+                        return BuiltinOutcome {
+                            stdout: format!("{}\n", vals.join(",")),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                    }
                     let out = to_pretty_json(&item_json(it, vname));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
@@ -2463,6 +2581,8 @@ fn resolve_gh_repo_key(st: &mut IntegrationState, explicit: Option<&str>, env: &
         labels: vec![("bug".into(), "d73a4a".into(), "Something isn't working".into())],
         variables: BTreeMap::new(),
         secrets: Vec::new(),
+        workflows: default_gh_workflows(),
+        workflow_runs: Vec::new(),
     });
     full
 }
@@ -2708,6 +2828,8 @@ fn cmd_gh(
                             ],
                             variables: BTreeMap::new(),
                             secrets: Vec::new(),
+                            workflows: default_gh_workflows(),
+                            workflow_runs: Vec::new(),
                         },
                     );
                     BuiltinOutcome {
@@ -3526,7 +3648,239 @@ fn cmd_gh(
             }
             BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
         }
-        "workflow" | "run" | "gist" | "search" | "status"
+        "workflow" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
+            let mut map = states().lock().unwrap();
+            let st = map.entry(fs_id).or_default();
+            let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
+            let repo = st.gh_repos.get_mut(&full).unwrap();
+            let find_wf_idx = |wfs: &[GhWorkflowRecord], sel: Option<&str>| -> Option<usize> {
+                let Some(s) = sel else {
+                    return if wfs.is_empty() { None } else { Some(0) };
+                };
+                wfs.iter().position(|w| {
+                    w.id.to_string() == s
+                        || w.name.eq_ignore_ascii_case(s)
+                        || w.path.ends_with(s)
+                })
+            };
+            match sub {
+                "list" | "ls" => {
+                    let show_all = args.iter().any(|a| a == "-a" || a == "--all");
+                    let filtered: Vec<&GhWorkflowRecord> = repo
+                        .workflows
+                        .iter()
+                        .filter(|w| show_all || w.state == "active")
+                        .collect();
+                    if let Some(fields) = &json_fields {
+                        let arr: Vec<Value> = filtered
+                            .iter()
+                            .map(|w| {
+                                jval!({
+                                    "id": w.id,
+                                    "name": w.name,
+                                    "path": w.path,
+                                    "state": w.state
+                                })
+                            })
+                            .collect();
+                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let mut out = String::new();
+                    for w in filtered {
+                        out.push_str(&format!("{}\t{}\t{}\n", w.name, w.state, w.id));
+                    }
+                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                }
+                "view" => {
+                    let yaml_flag = args.iter().any(|a| a == "-y" || a == "--yaml");
+                    let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).map(|s| s.as_str());
+                    let Some(idx) = find_wf_idx(&repo.workflows, sel) else {
+                        return gh_err("workflow not found");
+                    };
+                    let w = &repo.workflows[idx];
+                    if yaml_flag {
+                        return BuiltinOutcome { stdout: w.content.clone(), stderr: String::new(), exit_code: 0 };
+                    }
+                    BuiltinOutcome {
+                        stdout: format!("{} - {}\nID: {}\nState: {}\n", w.name, w.path, w.id, w.state),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "run" => {
+                    let mut ref_branch = repo.default_branch.clone();
+                    let mut sel: Option<String> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-r" | "--ref" => {
+                                if let Some(v) = args.get(i + 1) {
+                                    ref_branch = v.clone();
+                                }
+                                i += 2;
+                            }
+                            "-R" | "--repo" | "-f" | "--raw-field" | "-F" | "--field" => i += 2,
+                            a if !a.starts_with('-') => {
+                                if sel.is_none() {
+                                    sel = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let Some(idx) = find_wf_idx(&repo.workflows, sel.as_deref()) else {
+                        return gh_err("workflow not found");
+                    };
+                    let wf_name = repo.workflows[idx].name.clone();
+                    let wf_path = repo.workflows[idx].path.clone();
+                    let wf_id = repo.workflows[idx].id;
+                    let run_id = repo.next_number;
+                    repo.next_number += 1;
+                    repo.workflow_runs.push(GhWorkflowRunRecord {
+                        database_id: run_id,
+                        name: wf_name.clone(),
+                        display_title: format!("Manual run of {wf_name}"),
+                        workflow_name: wf_name,
+                        workflow_database_id: wf_id,
+                        head_branch: ref_branch.clone(),
+                        event: "workflow_dispatch".into(),
+                        status: "completed".into(),
+                        conclusion: "success".into(),
+                        attempt: 1,
+                        url: format!("https://github.com/{full}/actions/runs/{run_id}"),
+                        actor_login: st.gh_user.clone(),
+                    });
+                    BuiltinOutcome {
+                        stdout: format!("✓ Created workflow_dispatch event for {wf_path} at {ref_branch}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                "enable" | "disable" => {
+                    let mut sel: Option<String> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-R" | "--repo" => i += 2,
+                            a if !a.starts_with('-') => {
+                                if sel.is_none() {
+                                    sel = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let Some(idx) = find_wf_idx(&repo.workflows, sel.as_deref()) else {
+                        return gh_err("workflow not found");
+                    };
+                    repo.workflows[idx].state = if sub == "enable" {
+                        "active".into()
+                    } else {
+                        "disabled_manually".into()
+                    };
+                    let wf_name = repo.workflows[idx].name.clone();
+                    let verb = if sub == "enable" { "Enabled" } else { "Disabled" };
+                    BuiltinOutcome {
+                        stdout: format!("✓ {verb} {wf_name}\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                _ => gh_err(&format!("unknown command \"{sub}\" for \"gh workflow\"")),
+            }
+        }
+        "run" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
+            let mut map = states().lock().unwrap();
+            let st = map.entry(fs_id).or_default();
+            let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
+            let repo = st.gh_repos.get_mut(&full).unwrap();
+            match sub {
+                "list" | "ls" => {
+                    if let Some(fields) = &json_fields {
+                        let arr: Vec<Value> = repo
+                            .workflow_runs
+                            .iter()
+                            .map(|r| {
+                                jval!({
+                                    "attempt": r.attempt,
+                                    "conclusion": r.conclusion,
+                                    "createdAt": "2026-01-01T00:00:00Z",
+                                    "databaseId": r.database_id,
+                                    "displayTitle": r.display_title,
+                                    "event": r.event,
+                                    "headBranch": r.head_branch,
+                                    "name": r.name,
+                                    "number": r.database_id,
+                                    "startedAt": "2026-01-01T00:00:00Z",
+                                    "status": r.status,
+                                    "updatedAt": "2026-01-01T00:00:00Z",
+                                    "url": r.url,
+                                    "workflowDatabaseId": r.workflow_database_id,
+                                    "workflowName": r.workflow_name
+                                })
+                            })
+                            .collect();
+                        return format_gh_json_output(&Value::Array(arr), fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    let mut out = String::new();
+                    for r in &repo.workflow_runs {
+                        out.push_str(&format!(
+                            "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+                            r.status, r.conclusion, r.display_title, r.workflow_name, r.head_branch, r.event, r.database_id
+                        ));
+                    }
+                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                }
+                "view" => {
+                    let sel_id = args
+                        .iter()
+                        .skip(2)
+                        .find(|a| !a.starts_with('-') && a.chars().all(|c| c.is_ascii_digit()))
+                        .and_then(|s| s.parse::<u64>().ok());
+                    let run_opt = match sel_id {
+                        Some(id) => repo.workflow_runs.iter().find(|r| r.database_id == id),
+                        None => repo.workflow_runs.first(),
+                    };
+                    let Some(r) = run_opt else {
+                        return gh_err(&format!("run {} not found", sel_id.unwrap_or(0)));
+                    };
+                    if let Some(fields) = &json_fields {
+                        let obj = jval!({
+                            "attempt": r.attempt,
+                            "conclusion": r.conclusion,
+                            "createdAt": "2026-01-01T00:00:00Z",
+                            "databaseId": r.database_id,
+                            "displayTitle": r.display_title,
+                            "event": r.event,
+                            "headBranch": r.head_branch,
+                            "name": r.name,
+                            "number": r.database_id,
+                            "startedAt": "2026-01-01T00:00:00Z",
+                            "status": r.status,
+                            "updatedAt": "2026-01-01T00:00:00Z",
+                            "url": r.url,
+                            "workflowDatabaseId": r.workflow_database_id,
+                            "workflowName": r.workflow_name
+                        });
+                        return format_gh_json_output(&obj, fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    BuiltinOutcome {
+                        stdout: format!(
+                            "{} {} · {}\nTriggered via {} by {}\n\nJOBS\n✓ build in 1s (ID 1)\n\nView this run on GitHub: {}\n",
+                            r.head_branch, r.workflow_name, r.database_id, r.event, r.actor_login, r.url
+                        ),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+            }
+        }
+        "gist" | "search" | "status"
         | "completion" | "browse" | "ssh-key" | "gpg-key" | "cache" | "org" | "project"
         | "ruleset" | "extension" | "codespace" | "attestation" => {
             if let Some(fields) = &json_fields {

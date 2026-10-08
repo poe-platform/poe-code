@@ -5007,6 +5007,23 @@ impl<'a> EvalState<'a> {
         if let Some(code) = sub.exit_requested {
             out.exit_code = code;
         }
+        if let Some(exit_handler) = sub.traps.get("EXIT").cloned()
+            && !exit_handler.is_empty()
+        {
+            sub.in_trap = true;
+            sub.exit_requested = None;
+            sub.last_exit = out.exit_code;
+            if let Ok(trap_ast) = parse_script(&exit_handler) {
+                let mut empty_in = String::new();
+                if let Ok(trap_out) = sub.eval_script(&trap_ast, &mut empty_in) {
+                    out.stdout.push_str(&trap_out.stdout);
+                    out.stderr.push_str(&trap_out.stderr);
+                }
+            }
+            if let Some(code) = sub.exit_requested {
+                out.exit_code = code;
+            }
+        }
         if !out.stderr.is_empty() {
             let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
             let mut dummy = BuiltinOutcome {

@@ -19,10 +19,12 @@ class Record(list):
   assert Record.live<=3,'complete snapshot retained in Python'
  def __del__(self):Record.live-=1
 def decode(value):
+ global decoded
  parsed=json.loads(value)
  if isinstance(parsed,list):
   if parsed and isinstance(parsed[0],list):return [Record(row) for row in parsed]
-  if len(parsed)>=5:return Record(parsed)
+  if len(parsed)>=5:
+   decoded+=1;return Record(parsed)
  return parsed
 class Result:
  def __init__(self,value):self.value=value
@@ -31,8 +33,9 @@ class Result:
   return self.value
 sys.modules['pyodide.ffi']=types.SimpleNamespace(run_sync=lambda result:result.value)
 def row(name,legacy=False):return [name,'Name: '+name+'\nVersion: 1\n','file:///'+name+'.whl',[],[]]+([] if legacy else ['origin-'+name])
-for rows in [None,[],[row('package-'+str(i),i%2==0) for i in range(130)],[row('duplicate'),row('duplicate')],[row('NonCanonical')],[row('package>=1')]]:
- index={};sealed=False
+large=row('large');large[1]+='x'*50000
+for rows in [None,[],[large],[row('x'*20000)],[row('package-'+str(i),i%2==0) for i in range(130)],[row('duplicate'),row('duplicate')],[row('NonCanonical')],[row('package>=1')]]:
+ index={};sealed=False;decoded=0
  def request(operation,key=None,value=None):
   global sealed
   if operation=='start':return Result(-1 if rows is None else len(rows))
@@ -46,7 +49,7 @@ for rows in [None,[],[row('package-'+str(i),i%2==0) for i in range(130)],[row('d
    assert sealed
    return Result(json.dumps(rows[index[key]] if key in index else None)[value:value+8192])
   raise AssertionError(operation)
- namespace={'_safe_json':types.SimpleNamespace(loads=decode),'_safe_package_records_json':json.dumps(rows),'_safe_package_uninstall_json':'{}','_safe_package_record':request,'_SafeRequirement':Requirement,'_safe_name':canonicalize_name}
+ namespace={'_safe_json':types.SimpleNamespace(loads=decode,JSONDecoder=json.JSONDecoder,JSONDecodeError=json.JSONDecodeError),'_safe_package_uninstall_json':'{}','_safe_package_record':request,'_SafeRequirement':Requirement,'_safe_name':canonicalize_name}
  invalid=rows and (rows[0][0] in ['duplicate','NonCanonical','package>=1'])
  try:
   pending=eval(code,namespace)
@@ -55,6 +58,7 @@ for rows in [None,[],[row('package-'+str(i),i%2==0) for i in range(130)],[row('d
   assert invalid and str(error)=='Invalid Python package metadata snapshot',error
  else:
   assert not invalid
+  assert decoded==0,'startup decoded complete metadata records merely to index names'
   assert namespace['_safe_metadata_only']==(rows is not None)
   records=namespace['_safe_record_by_name']
   assert len(records)==len(rows or [])

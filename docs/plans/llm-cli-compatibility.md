@@ -433,3 +433,10 @@ record source. Verification: 726 Python tests, 132 installed public tests, eight
 actual Worker cases and all 17 unchanged bundle budgets pass. Native JSON decoding
 still materializes each record and final publication retains a collection, so the
 full gate remains open.
+
+Native startup now reads only each saved record's name using the standard JSON
+decoder, rather than deserializing its metadata and removal lists to build the
+name index. Long accepted names can span multiple windows. Verification: 726
+Python tests, 132 installed public tests, eight actual Worker cases and all 17
+unchanged bundle budgets pass. Later record access and final publication remain
+materialized.

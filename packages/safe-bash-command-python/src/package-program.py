@@ -442,7 +442,7 @@ from collections.abc import Mapping as _SafeMapping
 class _SafeRecords(_SafeMapping):
  def __init__(self, count):self.count = count
  @staticmethod
- def decode(operation, key):
+ def decode(operation, key, name_only=False):
   from pyodide.ffi import run_sync
   chunks, offset = [], 0
   while True:
@@ -450,14 +450,21 @@ class _SafeRecords(_SafeMapping):
    if not chunk:break
    chunks.append(chunk)
    offset += len(chunk.encode('utf-16-le')) // 2
+   if name_only:
+    prefix = ''.join(chunks).lstrip()
+    if not prefix:
+     chunks.clear();continue
+    if not prefix.startswith('['):raise ValueError('Invalid Python package metadata snapshot')
+    try:return _safe_json.JSONDecoder().raw_decode(prefix[1:].lstrip())[0]
+    except _safe_json.JSONDecodeError:pass
+  if name_only:raise ValueError('Invalid Python package metadata snapshot')
   record = _safe_json.loads(''.join(chunks))
   return record if record is None or len(record) == 6 else record + [None]
  @classmethod
  async def prepare(cls):
   count = await _safe_package_record('start')
   for ordinal in range(max(count, 0)):
-   record = cls.decode('read', ordinal)
-   name = record[0]
+   name = cls.decode('read', ordinal, True)
    if _SafeRequirement(name).name != name or _safe_name(name) != name or await _safe_package_record('has', name):
     raise ValueError('Invalid Python package metadata snapshot')
    await _safe_package_record('add', name, ordinal)

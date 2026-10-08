@@ -146,6 +146,16 @@ deleted or unavailable. Older snapshots need one successful restore to acquire
 that metadata. Ordinary Python execution still restores the installed code. Editable installs and other pip lifecycle flags
 still require additional installer support.
 
+Hosts with atomic streaming storage can wrap their manifest backend with
+`createPythonPackageStreamingManifestStore({ get, compareAndSet })` and pass it as
+`manifestStore` with an explicit `scope`. Its backend `compareAndSet` receives an
+async byte source, avoiding a complete encoded manifest buffer during publication.
+The backend must consume into private storage before atomically checking the
+revision and publishing; source failures must preserve the previous snapshot.
+The adapter enforces `maxManifestBytes` while serializing and closes failed sources.
+Existing byte-based stores remain supported. Manifest reads, installed requirement
+arrays and individual metadata records still have separate buffering costs.
+
 Hosts provisioning build tools can use `createPythonBuildEnvironment(options)`
 with `pythonCommands({ createExecutor, environment })`. Each build environment
 has a private installed snapshot, ignoring the target's manifest, scope, default

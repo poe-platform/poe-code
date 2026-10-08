@@ -1,3 +1,6 @@
+import {serializeLlmJsonValue} from 'safe-bash-command-llm';
+import {toByteSource} from 'safe-bash-contracts/io';
+
 /** Native distribution metadata and pip-compatible removal listings. */
 export type PythonPackageRecord = readonly [name:string, metadata:string, origin:string, remove:readonly string[], skip:readonly string[],directUrl?:string|null];
 
@@ -25,6 +28,42 @@ export interface PythonPackageManifest {
 export interface PythonPackageManifestStore {
   get(scope: string, options: { readonly signal: AbortSignal }): Promise<PythonPackageManifest | undefined>;
   compareAndSet(scope: string, revision: string | undefined, bytes: Uint8Array, options: { readonly signal: AbortSignal }): Promise<boolean>;
+  /** Optional structured publication, avoiding the environment's byte buffer.
+   * The store must enforce maxBytes on the serialized representation. */
+  compareAndSetSnapshot?(scope: string, revision: string | undefined, snapshot: PythonInstalledSnapshot | readonly string[], options: { readonly signal: AbortSignal; readonly maxBytes: number }): Promise<boolean>;
+}
+
+export interface PythonPackageStreamingManifestStore {
+ get: PythonPackageManifestStore['get'];
+ /** Consume privately, then atomically compare and publish. Source errors must
+  * leave the prior snapshot unchanged. A stale revision may return false early. */
+ compareAndSet(scope: string, revision: string | undefined, source: AsyncIterable<Uint8Array>, options: {readonly signal: AbortSignal}): Promise<boolean>;
+}
+
+/** Adapt an atomic streaming store without assembling encoded manifest bytes. */
+export function createPythonPackageStreamingManifestStore(store:PythonPackageStreamingManifestStore):PythonPackageManifestStore {
+ return {
+  get:store.get.bind(store),
+  compareAndSet(scope,revision,bytes,options){return store.compareAndSet(scope,revision,toByteSource(bytes),options);},
+  async compareAndSetSnapshot(scope,revision,snapshot,options){
+   let consumed=false;
+   const source=(async function*(){
+    let size=0;
+    for await(const bytes of serializeLlmJsonValue(snapshot,options.signal)){
+     size+=bytes.length;
+     if(size>options.maxBytes)throw Object.assign(new Error('Python package manifest exceeds maxManifestBytes'),{code:'EPACKAGE'});
+     yield bytes;
+    }
+    consumed=true;
+   })();
+   try{
+    const committed=await store.compareAndSet(scope,revision,source,options);
+    options.signal.throwIfAborted();
+    if(committed===true&&!consumed)throw new Error('Python manifest store returned before consuming its source');
+    return committed;
+   }finally{await source.return();}
+  },
+ };
 }
 
 export class PythonPackageConflictError extends Error {

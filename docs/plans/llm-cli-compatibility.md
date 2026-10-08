@@ -269,7 +269,12 @@ Version-name ordering merges bounded 64-name runs with two input cursors; source
 retain discovery order. Publication sends ordered, individually JSON-encoded requirements through the
 awaited record callback; no whole-inventory JSON string crosses the interpreter
 boundary. Source and version stores retire even when a pin transfer fails.
-The host still collects manifest arrays and serializes their complete byte buffer.
+The host still collects manifest arrays. Caller-supplied atomic streaming stores
+can use `createPythonPackageStreamingManifestStore` to publish bounded serialized
+chunks, including large escaped metadata strings, without a complete encoded
+manifest buffer. The adapter checks byte limits and complete consumption; backend
+atomicity remains the storage owner's responsibility. Default and legacy stores
+still serialize complete byte buffers, and manifest restoration remains buffered.
 Cache publication now retains a SHA-256 fingerprint instead of the complete
 decoded manifest text per session. Conflict checks cover changed bytes even when
 UTF-8 decoding produces identical text; restoration and serialization still buffer.

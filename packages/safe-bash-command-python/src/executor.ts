@@ -446,8 +446,8 @@ export { createPythonBuildDependencies,type PythonBuildDependenciesRequest } fro
 export { createPythonSourceSnapshot, type PythonSourceSnapshot } from './source-snapshot.js';
 export { createPythonBuildBackend, type PythonBuildHookRequest, type PythonSourceRequirementRequest, type PythonEditableRequirementRequest, type PythonSourceRequirement, type PythonLegacyBuildRequest, type PythonLegacyRequirementsRequest, type PythonBuildHookContext, type PythonBuildSystemRequest, type PythonBuildSystemDetails, type PythonBuildRequirementsRequest, type PythonBuildRequirementsStatus } from './build-backend.js';
 export type { PythonPackageInstallOptions, PythonPackageOptions, PythonPackageCache, PythonPackageProgress, PythonPackageStart, PythonPackageContext, PythonPackageEnvironment, PythonPackagePrepareContext } from './provisioning.js';
-export { PythonPackageConflictError, createPythonPackageManifestStore } from './manifest.js';
-export type { PythonPackageManifest, PythonPackageManifestStore } from './manifest.js';
+export { PythonPackageConflictError, createPythonPackageManifestStore, createPythonPackageStreamingManifestStore } from './manifest.js';
+export type { PythonPackageManifest, PythonPackageManifestStore, PythonPackageStreamingManifestStore } from './manifest.js';
 export { createPythonPackageCache } from './cache.js';
 export { createPythonExecutorPool } from './executor-pool.js';
 export type { PythonExecutorPool, PythonExecutorPoolOptions } from './executor-pool.js';

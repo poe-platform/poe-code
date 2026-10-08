@@ -212,10 +212,11 @@ function artifactKey(digest:string):string {return runtimeKey+'-sha256-'+digest;
 
 /** Trusted host cache; content is rehashed on every read. No runtime or network work at construction. */
 export function createPythonPackageEnvironment(options: PythonPackageOptions = {}): PythonPackageEnvironment {
+ const {manifestStore}=options;
  if (options.cache && options.cacheDirectory) throw new TypeError('Choose package cache or cacheDirectory, not both');
- if (options.manifestStore && (typeof options.scope !== 'string' || !options.scope.trim())) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
- if (options.scope !== undefined && !options.manifestStore) throw new TypeError('Python scope requires a manifestStore');
- const manifestKey = runtimeKey+'-environment'+(options.manifestStore ? '-'+digest(encoder.encode(JSON.stringify(options.scope))) : '');
+ if (manifestStore && (typeof options.scope !== 'string' || !options.scope.trim())) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
+ if (options.scope !== undefined && !manifestStore) throw new TypeError('Python scope requires a manifestStore');
+ const manifestKey = runtimeKey+'-environment'+(manifestStore ? '-'+digest(encoder.encode(JSON.stringify(options.scope))) : '');
  if (options.profile !== undefined && options.profile !== 'documents') throw new TypeError('Unknown Python package profile');
  const maxBytes = options.maxDownloadBytes ?? Infinity;
  const maxManifestBytes = options.maxManifestBytes ?? Infinity;
@@ -224,8 +225,8 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const value = options[name];
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`${name} must be a positive integer`);
  }
- const checkManifest=(bytes:Uint8Array|undefined)=>{
-  if(bytes&&bytes.length>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
+ const checkManifest=(size=0)=>{
+  if(size>maxManifestBytes)throw failure('Python package manifest exceeds maxManifestBytes');
  };
  const checkMetadata=(bytes:Uint8Array)=>{
   if(bytes.length>maxMetadataBytes)throw failure('Python package cache metadata exceeds maxMetadataBytes');
@@ -278,16 +279,16 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   });
   const manifestCache = directory ? cache : defaultCache;
   let snapshot: PythonPackageManifest | undefined;
-  if(options.manifestStore) {
-   try { snapshot=await options.manifestStore.get(manifestKey,context); }
+  if(manifestStore) {
+   try { snapshot=await manifestStore.get(manifestKey,context); }
    catch(error) { signal.throwIfAborted();throw failure('Cannot read Python package environment manifest',error); }
   }
   signal.throwIfAborted();
   if(snapshot!==undefined && (typeof snapshot!=='object' || snapshot===null || typeof snapshot.revision!=='string' || !snapshot.revision || snapshot.revision.length>1024 || !(snapshot.bytes instanceof Uint8Array))) throw failure('Invalid Python package manifest snapshot');
   const manifestRevision = snapshot?.revision;
-  const stored = options.manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
+  const stored = manifestStore ? snapshot?.bytes : await manifestCache.get(manifestKey);
   signal.throwIfAborted();
-  checkManifest(stored);
+  checkManifest(stored?.length);
   const manifest = stored === undefined ? '' : digest(stored);
   let previous: unknown;
   try { previous = stored === undefined ? [] : JSON.parse(decoder.decode(stored)); } catch { /* Malformed JSON follows the same manifest validation below. */ }
@@ -363,21 +364,22 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    // Legacy executors publish supplemental pins. Modern executors publish the
    // complete installed state, so removed roots cannot reappear on startup.
    const state=Array.isArray(pinned) ? [...new Set([...session.requirements,...saved])] : {...(pinned as PythonInstalledSnapshot),installed:[...new Set(saved)]};
-   const manifestBytes=encoder.encode(JSON.stringify(state));
-   checkManifest(manifestBytes);
+   const streamed=manifestStore?.compareAndSetSnapshot;
+   const manifestBytes=streamed?undefined:encoder.encode(JSON.stringify(state));
+   checkManifest(manifestBytes?.length);
    const commit = committing.then(async()=>{
     check();
-    if(options.manifestStore) {
-     const committed=await options.manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes,settings);
+    if(manifestStore) {
+     const committed=await (streamed?streamed.call(manifestStore,manifestKey,session.manifestRevision,state,{signal,maxBytes:maxManifestBytes}):manifestStore.compareAndSet(manifestKey,session.manifestRevision,manifestBytes!,settings));
      check();
      if(typeof committed!=='boolean')throw failure('Invalid Python package manifest publication result');
      if(!committed)throw new PythonPackageConflictError();
     } else {
      const current = await session.manifestCache.get(manifestKey);
      check();
-     checkManifest(current);
+     checkManifest(current?.length);
      if ((current===undefined?'':digest(current))!==session.manifest) throw new PythonPackageConflictError();
-     await session.manifestCache.set(manifestKey,manifestBytes);
+     await session.manifestCache.set(manifestKey,manifestBytes!);
     }
     check();
    });

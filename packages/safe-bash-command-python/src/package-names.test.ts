@@ -159,6 +159,54 @@ with contextlib.ExitStack() as stack:
   files[path]=original
  history.close()
  assert not files and directories=={'/owned'},(len(files),directories)
+ # Run the real uninstall block against the same virtual backing.
+ start=next(i for i,n in enumerate(tree.body) if isinstance(n,ast.Assign) and any(isinstance(t,ast.Name) and t.id=='_safe_removed' for t in n.targets))
+ end=next(i for i,n in enumerate(tree.body) if i>start and isinstance(n,ast.Expr) and isinstance(n.value,ast.Call) and isinstance(n.value.func,ast.Attribute) and isinstance(n.value.func.value,ast.Name) and n.value.func.value.id=='_safe_managed')
+ uninstall_code=compile(ast.Module(body=tree.body[start:end],type_ignores=[]),'<uninstall state>','exec',flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+ class Version(str):
+  live=0
+  def __new__(cls,value):
+   obj=super().__new__(cls,value);cls.live+=1;return obj
+  def __del__(self):Version.live-=1
+  def __radd__(self,other):return Source(str(other)+str(self))
+ removed=[];emitted=[]
+ class Missing(Exception):pass
+ def installed():
+  for i in range(1024):
+   yield types.SimpleNamespace(metadata={'Name':'package-'+str(i)},version=Version('1'))
+   assert Name.live<=8,('uninstall target names retained',Name.live)
+   assert Version.live<=8,('uninstall versions retained',Version.live)
+ def distribution(name):
+  if name in removed:raise Missing(name)
+  return types.SimpleNamespace(version=Version('1'))
+ def uninstall(names):
+  assert Source.live<=8,('uninstall removed names retained',Source.live)
+  removed.extend(str(name) for name in names)
+ async def emit(channel,value):emitted.append((channel,str(value)))
+ restored=namespace['_SafeNames']('package-'+str(i) for i in range(1024))
+ namespace.update(_safe_json=json,_safe_uninstall={'packages':['package-'+str(i) for i in range(1024)]+['package-0','absent'], 'yes':True},_safe_name=Name,_safe_preloaded=set(),_safe_managed=set(),_safe_restored_names=restored,_safe_package_emit=emit,_safe_manager=types.SimpleNamespace(uninstall=uninstall),_safe_metadata=types.SimpleNamespace(distributions=installed,distribution=distribution,PackageNotFoundError=Missing,MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)))
+ asyncio.run(eval(uninstall_code,namespace))
+ assert removed==['package-'+str(i) for i in range(1024)]
+ assert not any('Successfully' in text for _,text in emitted),'success preceded manifest publication'
+ asyncio.run(namespace['_safe_publish_uninstalled']())
+ assert [text for _,text in emitted if 'Successfully' in text]==['  Successfully uninstalled package-'+str(i)+'-1\n' for i in range(1024)]
+ assert emitted.count(('stderr','WARNING: Skipping absent as it is not installed.\n'))==1
+ restored.close()
+ assert not files and directories=={'/owned'},(len(files),directories)
+ for failure in (PermissionError('output denied'),asyncio.CancelledError()):
+  pending=namespace['_SafeValues']();pending.put('0','package-0-1');pending.put('1','package-1-1')
+  calls=[]
+  async def fail_emit(channel,text):
+   calls.append(text)
+   raise failure
+  namespace.update(_safe_removed=pending,_safe_package_emit=fail_emit)
+  async def check_failure():
+   try:await namespace['_safe_publish_uninstalled']()
+   except BaseException as error:assert error is failure
+   else:raise AssertionError('publication output failure swallowed')
+  asyncio.run(check_failure())
+  assert calls==['  Successfully uninstalled package-0-1\n']
+  assert not files and directories=={'/owned'},(len(files),directories)
 `],{input:JSON.stringify(source),encoding:'utf8',timeout:5000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);
 });

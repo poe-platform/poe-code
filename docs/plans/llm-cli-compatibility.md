@@ -268,6 +268,10 @@ Publication source records and last-version lookups now use caller storage.
 Version-name ordering merges bounded 64-name runs with two input cursors; sources
 retain discovery order. Publication writes JSON incrementally without a second
 whole-inventory list, but the returned JSON string remains materialized.
+Uninstall targets, discovered versions and success records now use caller storage.
+Targets retain first-occurrence order; success messages stream from their records
+only after manifest publication, with cleanup on output failure or cancellation.
+The uninstall result no longer crosses into JavaScript as a buffered JSON array.
 This does not bound host manifests, native requirement/constraint inputs,
 final serialized publication results,
 native executable allocation, or the remaining ZIP fallback.

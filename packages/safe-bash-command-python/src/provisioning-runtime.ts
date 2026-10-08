@@ -250,13 +250,7 @@ _safe_installer_failure
   if(transportFailure)throw transportFailure.error;
   const pinned=JSON.parse(runtime.runPython('_safe_installed_json')) as string[];
   await request('package-commit',start.session,start.restore === undefined ? pinned : {version:3,installed:pinned,records:outputRecords});
-  if(start.uninstall){
-   const removed=JSON.parse(runtime.runPython('_safe_uninstalled_json')) as string[];
-   for(const name of removed){
-    const bytes=new TextEncoder().encode('  Successfully uninstalled '+name+'\n');
-    for(let offset=0;offset<bytes.length;offset+=maxTransferBytes)await request('stdout',Array.from(bytes.subarray(offset,offset+maxTransferBytes)));
-   }
-  }
+  if(start.uninstall)await runtime.runPythonAsync('await _safe_publish_uninstalled()');
  }catch(error){
   await installing;
   accepting=false;

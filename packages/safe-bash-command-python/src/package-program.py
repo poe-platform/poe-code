@@ -526,54 +526,66 @@ if _safe_metadata_only:
     _safe_roots.put(str(_safe_root_index), str(_safe_root))
 _safe_managed = await _safe_resolve(_safe_roots, _safe_package_upgrade, _safe_package_forceReinstall, _safe_json.loads(_safe_package_constraints_json), _safe_package_noDeps)
 _safe_roots.close()
-_safe_removed = []
+_safe_removed = _SafeValues() if _safe_uninstall else None
+async def _safe_publish_uninstalled():
+ try:
+  for key in _safe_removed:
+   await _safe_package_emit('stdout', '  Successfully uninstalled ' + _safe_removed.get(key) + '\n')
+ finally:
+  _safe_removed.close()
 if _safe_uninstall:
- _safe_targets = list(dict.fromkeys(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages']))
- _safe_versions = {_safe_name(d.metadata['Name']): d.version for d in _safe_metadata.distributions() if d.metadata['Name'] and _safe_name(d.metadata['Name']) in _safe_targets}
- for _safe_target in _safe_targets:
-  if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
-   raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
- for _safe_target in _safe_targets:
-  if _safe_target not in _safe_versions:
-   await _safe_package_emit('stderr', 'WARNING: Skipping ' + _safe_target + ' as it is not installed.\n')
-   continue
-  _safe_dist = _safe_metadata.distribution(_safe_target)
-  _safe_version = _safe_dist.version
-  await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
-  if not _safe_uninstall['yes']:
-   _safe_record = _safe_record_by_name.get(_safe_target)
-   _safe_lists = _safe_record[3:5] if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
-   for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
-    if _safe_paths:
-     await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
-     for _safe_path in _safe_paths:
-      await _safe_package_emit('stdout', '    ' + _safe_path + '\n')
-   while True:
-    await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
-    _safe_answer = (await _safe_package_line()).strip().lower()
-    if _safe_answer in ('y', 'n', ''):
-     break
-    await _safe_package_emit('stdout', 'Your response (' + repr(_safe_answer) + ') was not one of the expected responses: y, n, \n')
-   if _safe_answer == 'n':
+ _safe_targets = _SafeNames(_safe_name(_SafeRequirement(source).name) for source in _safe_uninstall['packages'])
+ _safe_versions = _SafeValues()
+ try:
+  for _safe_dist in _safe_metadata.distributions():
+   if _safe_dist.metadata['Name'] and _safe_name(_safe_dist.metadata['Name']) in _safe_targets:
+    _safe_versions.put(_safe_name(_safe_dist.metadata['Name']), _safe_dist.version)
+  for _safe_target in _safe_targets:
+   if _safe_target in _safe_preloaded or _safe_target in _safe_managed:
+    raise ValueError('Cannot uninstall host-required Python package: ' + _safe_target)
+  for _safe_target in _safe_targets:
+   if _safe_target not in _safe_versions:
+    await _safe_package_emit('stderr', 'WARNING: Skipping ' + _safe_target + ' as it is not installed.\n')
     continue
-  import logging as _safe_logging
-  _safe_logger = _safe_logging.getLogger('micropip')
-  _safe_disabled = _safe_logger.disabled
-  try:
-   _safe_logger.disabled = True
-   _safe_manager.uninstall([_safe_target])
-  finally:
-   _safe_logger.disabled = _safe_disabled
-  _safe_metadata.MetadataPathFinder.invalidate_caches()
-  try:
-   _safe_metadata.distribution(_safe_target)
-  except _safe_metadata.PackageNotFoundError:
-   pass
-  else:
-   raise ValueError('Python package removal did not complete: ' + _safe_target)
-  _safe_restored_names.discard(_safe_target)
-  _safe_removed.append(_safe_target + '-' + _safe_version)
-_safe_uninstalled_json = _safe_json.dumps(_safe_removed)
+   _safe_dist = _safe_metadata.distribution(_safe_target)
+   _safe_version = _safe_dist.version
+   await _safe_package_emit('stdout', 'Found existing installation: ' + _safe_target + ' ' + _safe_version + '\nUninstalling ' + _safe_target + '-' + _safe_version + ':\n')
+   if not _safe_uninstall['yes']:
+    _safe_record = _safe_record_by_name.get(_safe_target)
+    _safe_lists = _safe_record[3:5] if _safe_snapshot_path(_safe_target) == str(_safe_dist._path) else _safe_removal_listing(_safe_dist)
+    for _safe_heading, _safe_paths in zip(['Would remove:', 'Would not remove (might be manually added):'], _safe_lists):
+     if _safe_paths:
+      await _safe_package_emit('stdout', '  ' + _safe_heading + '\n')
+      for _safe_path in _safe_paths:
+       await _safe_package_emit('stdout', '    ' + _safe_path + '\n')
+    while True:
+     await _safe_package_emit('stdout', 'Proceed (Y/n)? ')
+     _safe_answer = (await _safe_package_line()).strip().lower()
+     if _safe_answer in ('y', 'n', ''):
+      break
+     await _safe_package_emit('stdout', 'Your response (' + repr(_safe_answer) + ') was not one of the expected responses: y, n, \n')
+    if _safe_answer == 'n':
+     continue
+   import logging as _safe_logging
+   _safe_logger = _safe_logging.getLogger('micropip')
+   _safe_disabled = _safe_logger.disabled
+   try:
+    _safe_logger.disabled = True
+    _safe_manager.uninstall([_safe_target])
+   finally:
+    _safe_logger.disabled = _safe_disabled
+   _safe_metadata.MetadataPathFinder.invalidate_caches()
+   try:
+    _safe_metadata.distribution(_safe_target)
+   except _safe_metadata.PackageNotFoundError:
+    pass
+   else:
+    raise ValueError('Python package removal did not complete: ' + _safe_target)
+   _safe_restored_names.discard(_safe_target)
+   _safe_removed.put(str(len(_safe_removed)), _safe_target + '-' + _safe_version)
+ finally:
+  _safe_versions.close()
+  _safe_targets.close()
 _safe_managed.update(_safe_restored_names)
 _safe_sources = _SafeValues()
 _safe_versions = _SafeValues()

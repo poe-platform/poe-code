@@ -71,7 +71,7 @@ class Records(dict):
  def __missing__(self,name):return [name,'metadata','',[],[],None]
 records = Records({name:[name, 'metadata', '', [], [], None] for name in ('active','remove')})
 namespace = {
- '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
+ '_SafeNames':Names, '_SafeValues':Values, '_safe_package_noDeps':False, '_safe_package_constraints_json':'[]', '_safe_json':json, '_safe_resolve':resolve, '_safe_roots':Names(), '_safe_package_upgrade':False, '_safe_package_forceReinstall':False,
  '_safe_metadata':types.SimpleNamespace(distributions=distributions, distribution=distribution, PackageNotFoundError=Missing, MetadataPathFinder=types.SimpleNamespace(invalidate_caches=lambda:None)),
  '_safe_name':lambda value:value.lower(), '_SafeRequirement':lambda value:types.SimpleNamespace(name=value),
  '_safe_uninstall':None if mode in ('install','large') else {'packages':['missing' if mode == 'missing' else 'remove'], 'yes':mode != 'decline'},
@@ -79,7 +79,9 @@ namespace = {
  '_safe_manager':types.SimpleNamespace(uninstall=uninstall), '_safe_snapshot_path':lambda name:'/installed/'+name if name in records or name.startswith('package-') else None, '_safe_record_by_name':records,
 }
 asyncio.run(eval(code, namespace))
-assert closed == [namespace['_safe_roots'],namespace['_safe_sources'],namespace['_safe_versions'],namespace['_safe_managed'],namespace['_safe_restored_names']]
+assert closed[0] is namespace['_safe_roots']
+assert closed[-4:] == [namespace['_safe_sources'],namespace['_safe_versions'],namespace['_safe_managed'],namespace['_safe_restored_names']]
+assert len(closed)==(7 if namespace['_safe_uninstall'] else 5)
 expected = ['file:///active.whl', 'active==1']
 # Origins keep the normalized package name in the saved direct requirement.
 expected[0] = 'active @ ' + expected[0]
@@ -89,7 +91,11 @@ if mode=='large':
 if mode != 'remove': expected.append('remove==2')
 assert json.loads(namespace['_safe_installed_json']) == expected
 assert published == [records[name] for name in ('active','remove') if name != 'remove' or mode != 'remove'] + ([records['package-'+str(i)] for i in range(1024)] if mode=='large' else [])
-assert json.loads(namespace['_safe_uninstalled_json']) == (['remove-2'] if mode == 'remove' else [])
+assert not any('Successfully' in text for _,text in output)
+if namespace['_safe_uninstall']:
+ asyncio.run(namespace['_safe_publish_uninstalled']())
+ assert closed[-1] is namespace['_safe_removed']
+assert [text for _,text in output if 'Successfully' in text] == (['  Successfully uninstalled remove-2\n'] if mode == 'remove' else [])
 if mode == 'missing': assert output == [('stderr', 'WARNING: Skipping missing as it is not installed.\n')]
 if mode == 'decline': assert output[-1] == ('stdout', 'Proceed (Y/n)? ')
 assert peak <= 3

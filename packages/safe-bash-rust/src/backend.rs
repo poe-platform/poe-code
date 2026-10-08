@@ -193,6 +193,9 @@ impl HybridBackend {
         limits: &ShellLimits,
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
+        if script != ":" {
+            crate::commands::reset_virtual_clock();
+        }
         let budget = ExecutionBudget::new(limits.clone(), timeout_ms);
         let budgeted_fs = BudgetedFs {
             inner: fs,

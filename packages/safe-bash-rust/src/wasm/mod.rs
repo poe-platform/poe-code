@@ -557,3 +557,8 @@ pub extern "C" fn safe_bash_output_len(id: u32) -> usize {
     };
     map.get(&id).map(|s| s.last_output_buf.len()).unwrap_or(0)
 }
+
+#[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_last_elapsed_ms(_id: u32) -> u32 {
+    crate::commands::virtual_clock_elapsed_ms().ceil() as u32
+}

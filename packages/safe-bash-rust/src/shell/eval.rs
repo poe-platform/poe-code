@@ -254,7 +254,7 @@ impl<'a> EvalState<'a> {
         let mut last_code = self.last_exit;
 
         for list in &script.lists {
-            if self.noexec {
+            if self.noexec || crate::commands::is_timeout_expired() {
                 break;
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
@@ -332,6 +332,7 @@ impl<'a> EvalState<'a> {
                 || self.return_requested.is_some()
                 || self.break_count > 0
                 || self.continue_count > 0
+                || crate::commands::is_timeout_expired()
             {
                 break;
             }
@@ -368,6 +369,7 @@ impl<'a> EvalState<'a> {
                 || self.return_requested.is_some()
                 || self.break_count > 0
                 || self.continue_count > 0
+                || crate::commands::is_timeout_expired()
             {
                 break;
             }
@@ -718,6 +720,10 @@ impl<'a> EvalState<'a> {
                 let mut code = 0;
 
                 for val in expanded_items {
+                    crate::commands::tick_virtual_loop(self.env);
+                    if crate::commands::is_timeout_expired() {
+                        break;
+                    }
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
                     self.assign_variable(var, &val, false)?;
                     let step = self.eval_script(body, eff_stdin)?;
@@ -869,6 +875,10 @@ impl<'a> EvalState<'a> {
                 }
 
                 loop {
+                    crate::commands::tick_virtual_loop(self.env);
+                    if crate::commands::is_timeout_expired() {
+                        break;
+                    }
                     if !cond.trim().is_empty() {
                         let exp_cond = self.expand_word_to_string(cond)?;
                         let cval = eval_arith(&exp_cond, self.env).unwrap_or(0);
@@ -939,6 +949,10 @@ impl<'a> EvalState<'a> {
                 let mut iter_count = 0usize;
 
                 loop {
+                    crate::commands::tick_virtual_loop(self.env);
+                    if crate::commands::is_timeout_expired() {
+                        break;
+                    }
                     iter_count += 1;
                     if self.in_pipeline_producer && iter_count > 1024 {
                         break;
@@ -3174,11 +3188,17 @@ impl<'a> EvalState<'a> {
         if action == "-" {
             for s in sigs {
                 let norm = Self::normalize_signal_name(s);
+                self.env.remove(&format!("__trap_ignored__{norm}"));
                 self.traps.remove(&norm);
             }
         } else {
             for s in sigs {
                 let norm = Self::normalize_signal_name(s);
+                if action.is_empty() {
+                    self.env.insert(format!("__trap_ignored__{norm}"), "1".to_string());
+                } else {
+                    self.env.remove(&format!("__trap_ignored__{norm}"));
+                }
                 self.traps.insert(norm, action.clone());
             }
         }

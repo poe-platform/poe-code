@@ -12,7 +12,10 @@ let compiledWasmModule = null;
 
 function createWasmInstance() {
   if (!compiledWasmModule) {
-    const wasmPath = path.join(__dirname, "safe_bash_rust.wasm");
+    let wasmPath = path.join(__dirname, "safe_bash_rust.wasm");
+    if (!fs.existsSync(wasmPath)) {
+      wasmPath = path.join(__dirname, "../dist/safe_bash_rust.wasm");
+    }
     const bytes = fs.readFileSync(wasmPath);
     compiledWasmModule = new WebAssembly.Module(bytes);
   }
@@ -664,6 +667,10 @@ export class RustWasmBash {
     }
     const resetLimits = {};
     if (options.limits) {
+      const sharedKeys = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxPipelineBytes", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"];
+      if (sharedKeys.some((k) => options.limits[k] !== undefined && options.limits[k] !== Infinity)) {
+        setTempEnv("__has_finite_shared_quota", "1");
+      }
       for (const [k, v] of Object.entries(options.limits)) {
         if (typeof v === "number") {
           resetLimits[k] = this._baseLimits[k] ?? 100000;
@@ -708,6 +715,13 @@ export class RustWasmBash {
         } else {
           this.setEnv(k, oldVal);
         }
+      }
+    }
+    if (typeof this.exports.safe_bash_last_elapsed_ms === "function") {
+      const elapsedMs = this.exports.safe_bash_last_elapsed_ms(this.sessionId) >>> 0;
+      if (elapsedMs > 0 && res.exitCode !== 1) {
+        const waitMs = Math.min(elapsedMs, 50);
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
       }
     }
     if (options.stdout && typeof options.stdout.write === "function" && res.stdoutBytes.byteLength > 0) {

@@ -54,7 +54,7 @@ pub fn try_run_coreutil(
         "hostname" => Some(cmd_hostname(args, cwd, env, fs)),
         "nproc" => Some(cmd_nproc(args, env)),
         "id" => Some(cmd_id(args, env, fs)),
-        "sleep" => Some(ok_out("")),
+        "sleep" => Some(cmd_sleep(args, env)),
         "factor" => Some(cmd_factor(args, stdin)),
         "expand" => Some(cmd_expand(args, stdin, cwd, fs)),
         "unexpand" => Some(cmd_unexpand(args, stdin, cwd, fs)),
@@ -20519,3 +20519,54 @@ fn cmd_truncate(
     }
 }
 
+
+fn cmd_sleep(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome {
+    let mut after_double_dash = false;
+    let mut operands: Vec<&str> = Vec::new();
+    for a in args {
+        if !after_double_dash && a == "--" {
+            after_double_dash = true;
+            continue;
+        }
+        if !after_double_dash && a == "--help" {
+            return ok_out(
+                "Usage: sleep NUMBER[smhd] ...\nSum finite nonnegative decimal or hexadecimal durations; cancellation clears pending timers.\n",
+            );
+        }
+        if !after_double_dash && a == "--version" {
+            return ok_out("sleep (safe-bash virtual command)\n");
+        }
+        if !after_double_dash && a.starts_with('-') && a != "-" {
+            return err_out(&format!("sleep: invalid option: {a}\n"), 1);
+        }
+        operands.push(a.as_str());
+    }
+    if operands.is_empty() {
+        return err_out("sleep: missing operand\n", 1);
+    }
+
+    let mut parsed = Vec::with_capacity(operands.len());
+    for op in operands {
+        match crate::commands::parse_sleep_interval(op) {
+            Ok(iv) => parsed.push(iv),
+            Err(crate::commands::SleepParseError::Invalid) => {
+                return err_out(&format!("sleep: invalid time interval: {op}\n"), 1);
+            }
+            Err(crate::commands::SleepParseError::Overflow) => {
+                return err_out("sleep: time interval exceeds supported finite range\n", 1);
+            }
+        }
+    }
+
+    let total_ms = match crate::commands::sum_sleep_intervals_ms(&parsed) {
+        Ok(ms) => ms,
+        Err(()) => {
+            return err_out("sleep: time interval exceeds supported finite range\n", 1);
+        }
+    };
+
+    if total_ms > 0 {
+        crate::commands::advance_virtual_clock(total_ms as f64, env);
+    }
+    ok_out("")
+}

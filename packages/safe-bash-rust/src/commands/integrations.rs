@@ -549,7 +549,7 @@ struct IntegrationState {
     op_items: Vec<OpItem>,
     op_docs: Vec<OpDocument>,
     op_envs: BTreeMap<String, BTreeMap<String, String>>,
-    op_snapshots: BTreeMap<String, Value>,
+    op_snapshots: Vec<Value>,
     gh_user: String,
     gh_token: String,
     gh_logged_in: bool,
@@ -613,7 +613,7 @@ impl Default for IntegrationState {
             op_items: Vec::new(),
             op_docs: Vec::new(),
             op_envs: BTreeMap::new(),
-            op_snapshots: BTreeMap::new(),
+            op_snapshots: Vec::new(),
             gh_user: "octocat".into(),
             gh_token: "gho_default_safe_bash_token_1234567890".into(),
             gh_logged_in: true,
@@ -1681,7 +1681,11 @@ where
                 "template" => {
                     let tsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
                     if tsub == "list" || tsub == "ls" {
-                        let out = to_pretty_json(&jval!(["Login"]));
+                        let out = if format_json {
+                            to_pretty_json(&jval!(["Login"]))
+                        } else {
+                            "[\"Login\"]".to_string()
+                        };
                         return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
                     }
                     let cat = args.get(3).map(|s| s.as_str()).unwrap_or("Login");
@@ -2238,18 +2242,23 @@ where
                     let (Some(sel), Some(dst_sel)) = (sel, dst_vault) else {
                         return op_err("item selector and --destination-vault are required");
                     };
-                    let Some(dst) = find_or_ensure_vault(st, Some(&dst_sel)) else {
-                        return op_err("destination vault not found");
+                    let Some(dst) = find_vault(st, Some(&dst_sel)).cloned() else {
+                        return op_err("Object not found");
                     };
                     let cur_id = cur_vault.as_deref().and_then(|vs| {
                         st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
                     });
+                    if cur_vault.is_some() && cur_id.is_none() {
+                        return op_err("Object not found");
+                    }
+                    let new_id = next_op_id(st);
                     let Some(it) = st.op_items.iter_mut().find(|it| {
                         let v_ok = cur_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
-                        v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
+                        it.state != "DELETED" && v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
                     }) else {
-                        return op_err("item not found");
+                        return op_err("Object not found");
                     };
+                    it.id = new_id;
                     it.vault_id = dst.id.clone();
                     let out = to_pretty_json(&item_json(it, &dst.name));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
@@ -2773,44 +2782,316 @@ where
             }
             if sub == "snapshot" {
                 let ssub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
-                if ssub == "create" {
-                    let snap_id = args.get(3).cloned().unwrap_or_else(|| "snap-1".into());
-                    let mut var_names = Vec::new();
-                    let mut i = 4usize;
-                    while i < args.len() {
-                        if args[i] == "--vars"
-                            && let Some(v) = args.get(i + 1)
-                        {
-                            var_names = v.split(',').map(|s| s.trim().to_string()).collect();
-                            i += 2;
+                match ssub {
+                    "create" => {
+                        let mut snap_name: Option<String> = None;
+                        let mut has_vars_flag = false;
+                        let mut var_names: Vec<String> = Vec::new();
+                        let mut i = 3usize;
+                        while i < args.len() {
+                            match args[i].as_str() {
+                                "--vars" if i + 1 < args.len() => {
+                                    has_vars_flag = true;
+                                    for part in args[i + 1].split(',') {
+                                        let p = part.trim();
+                                        if !p.is_empty() && !var_names.iter().any(|x| x == p) {
+                                            var_names.push(p.to_string());
+                                        }
+                                    }
+                                    i += 2;
+                                }
+                                "--format" if i + 1 < args.len() => i += 2,
+                                a if a.starts_with("--vars=") => {
+                                    has_vars_flag = true;
+                                    for part in a["--vars=".len()..].split(',') {
+                                        let p = part.trim();
+                                        if !p.is_empty() && !var_names.iter().any(|x| x == p) {
+                                            var_names.push(p.to_string());
+                                        }
+                                    }
+                                    i += 1;
+                                }
+                                a if a.starts_with('-') => i += 1,
+                                a => {
+                                    if snap_name.is_none() {
+                                        snap_name = Some(a.to_string());
+                                    } else {
+                                        return op_err("Invalid environment snapshot arguments");
+                                    }
+                                    i += 1;
+                                }
+                            }
+                        }
+                        let Some(name) = snap_name else {
+                            return op_err("Invalid environment snapshot arguments");
+                        };
+                        let snap_id = next_op_id(st);
+                        let scope = if has_vars_flag { "selected" } else { "complete" };
+                        let mut vars_obj = Map::new();
+                        if has_vars_flag {
+                            for vn in &var_names {
+                                match env.get(vn) {
+                                    Some(val) => vars_obj.insert(vn.clone(), JVal::Str(val.clone())),
+                                    None => vars_obj.insert(vn.clone(), JVal::Null),
+                                }
+                            }
                         } else {
-                            i += 1;
+                            for (k, v) in env.iter() {
+                                vars_obj.insert(k.clone(), JVal::Str(v.clone()));
+                            }
                         }
+                        let var_count = vars_obj.0.len();
+                        let stored = jval!({
+                            "id": snap_id,
+                            "name": name,
+                            "snapshot": {
+                                "version": 1,
+                                "scope": scope,
+                                "variables": vars_obj
+                            }
+                        });
+                        st.op_snapshots.push(stored);
+                        let meta = jval!({
+                            "id": snap_id,
+                            "name": name,
+                            "variables": var_count,
+                            "scope": scope
+                        });
+                        let out = to_pretty_json(&meta);
+                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
                     }
-                    let mut vars_obj = Map::new();
-                    for vn in &var_names {
-                        if let Some(val) = env.get(vn) {
-                            vars_obj.insert(vn.clone(), JVal::Str(val.clone()));
-                        }
+                    "list" | "ls" => {
+                        let arr: Vec<Value> = st
+                            .op_snapshots
+                            .iter()
+                            .map(|s| {
+                                let id = s.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                                let name = s.get("name").and_then(|v| v.as_str()).unwrap_or(id);
+                                let snap_obj = s.get("snapshot");
+                                let scope = snap_obj
+                                    .and_then(|v| v.get("scope"))
+                                    .and_then(|v| v.as_str())
+                                    .unwrap_or("complete");
+                                let vlen = match snap_obj.and_then(|v| v.get("variables")) {
+                                    Some(JVal::Object(entries)) => entries.len(),
+                                    _ => 0,
+                                };
+                                jval!({
+                                    "id": id,
+                                    "name": name,
+                                    "variables": vlen,
+                                    "scope": scope
+                                })
+                            })
+                            .collect();
+                        let out = to_pretty_json(&Value::Array(arr));
+                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
                     }
-                    let snap = jval!({
-                        "id": snap_id,
-                        "snapshot": {
-                            "scope": if var_names.is_empty() { "all" } else { "selected" },
-                            "variables": vars_obj
+                    "get" => {
+                        let sel = args
+                            .iter()
+                            .skip(3)
+                            .find(|a| !a.starts_with('-'))
+                            .cloned()
+                            .unwrap_or_default();
+                        if sel.is_empty() {
+                            return op_err("Invalid environment snapshot arguments");
                         }
-                    });
-                    st.op_snapshots.insert(snap_id, snap.clone());
-                    let out = to_pretty_json(&snap);
-                    return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
-                }
-                if ssub == "get" {
-                    let snap_id = args.get(3).cloned().unwrap_or_default();
-                    let Some(snap) = st.op_snapshots.get(&snap_id) else {
-                        return op_err("snapshot not found");
-                    };
-                    let out = to_pretty_json(snap);
-                    return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                        let Some(snap) = st.op_snapshots.iter().find(|s| {
+                            let id = s.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                            let name = s.get("name").and_then(|v| v.as_str()).unwrap_or("");
+                            id.eq_ignore_ascii_case(&sel) || name.eq_ignore_ascii_case(&sel)
+                        }) else {
+                            return op_err("Object not found");
+                        };
+                        let out = to_pretty_json(snap);
+                        return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                    }
+                    "delete" | "rm" => {
+                        let sel = args
+                            .iter()
+                            .skip(3)
+                            .find(|a| !a.starts_with('-'))
+                            .cloned()
+                            .unwrap_or_default();
+                        if sel.is_empty() {
+                            return op_err("Invalid environment snapshot arguments");
+                        }
+                        let before = st.op_snapshots.len();
+                        st.op_snapshots.retain(|s| {
+                            let id = s.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                            let name = s.get("name").and_then(|v| v.as_str()).unwrap_or("");
+                            !id.eq_ignore_ascii_case(&sel) && !name.eq_ignore_ascii_case(&sel)
+                        });
+                        if st.op_snapshots.len() == before {
+                            return op_err("Object not found");
+                        }
+                        return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                    }
+                    "restore" => {
+                        let mut shell_opt: Option<String> = None;
+                        let mut no_masking = false;
+                        let mut pos_args: Vec<String> = Vec::new();
+                        let mut literal = false;
+                        let mut i = 3usize;
+                        while i < args.len() {
+                            let a = args[i].as_str();
+                            if literal {
+                                pos_args.push(a.to_string());
+                                i += 1;
+                                continue;
+                            }
+                            if a == "--" {
+                                literal = true;
+                                i += 1;
+                                continue;
+                            }
+                            match a {
+                                "--shell" if i + 1 < args.len() => {
+                                    shell_opt = Some(args[i + 1].clone());
+                                    i += 2;
+                                }
+                                "--no-masking" => {
+                                    no_masking = true;
+                                    i += 1;
+                                }
+                                "--format" if i + 1 < args.len() => i += 2,
+                                _ if a.starts_with("--shell=") => {
+                                    shell_opt = Some(a["--shell=".len()..].to_string());
+                                    i += 1;
+                                }
+                                _ if a.starts_with('-') => i += 1,
+                                _ => {
+                                    pos_args.push(a.to_string());
+                                    i += 1;
+                                }
+                            }
+                        }
+                        let Some(sel) = pos_args.first().cloned() else {
+                            return op_err("Invalid environment snapshot arguments");
+                        };
+                        let Some(snap) = st.op_snapshots.iter().find(|s| {
+                            let id = s.get("id").and_then(|v| v.as_str()).unwrap_or("");
+                            let name = s.get("name").and_then(|v| v.as_str()).unwrap_or("");
+                            id.eq_ignore_ascii_case(&sel) || name.eq_ignore_ascii_case(&sel)
+                        }).cloned() else {
+                            return op_err("Object not found");
+                        };
+                        drop(map);
+                        let snap_obj = snap.get("snapshot");
+                        let scope = snap_obj
+                            .and_then(|v| v.get("scope"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("complete");
+                        let empty_entries = Vec::new();
+                        let snap_entries = match snap_obj.and_then(|v| v.get("variables")) {
+                            Some(JVal::Object(entries)) => entries,
+                            _ => &empty_entries,
+                        };
+                        if let Some(sh) = shell_opt {
+                            if pos_args.len() != 1 {
+                                return op_err("Shell output cannot be combined with a child command");
+                            }
+                            if !matches!(sh.as_str(), "bash" | "zsh" | "sh" | "fish" | "powershell") {
+                                return op_err("Unsupported restoration shell");
+                            }
+                            let mut names: Vec<String> = Vec::new();
+                            if scope == "complete" {
+                                for k in env.keys() {
+                                    if !names.contains(k) {
+                                        names.push(k.clone());
+                                    }
+                                }
+                            }
+                            for (k, _) in snap_entries {
+                                if !names.contains(k) {
+                                    names.push(k.clone());
+                                }
+                            }
+                            for name in &names {
+                                let valid = !name.is_empty()
+                                    && name.chars().enumerate().all(|(idx, ch)| {
+                                        ch == '_'
+                                            || ch.is_ascii_alphabetic()
+                                            || (idx > 0 && ch.is_ascii_digit())
+                                    });
+                                if !valid {
+                                    return op_err("Environment contains a name that cannot be restored by a shell script");
+                                }
+                            }
+                            let mut lines: Vec<String> = Vec::new();
+                            for name in &names {
+                                let val_opt = snap_entries
+                                    .iter()
+                                    .find(|(k, _)| k == name)
+                                    .and_then(|(_, v)| v.as_str());
+                                match val_opt {
+                                    Some(val) => {
+                                        if sh == "powershell" {
+                                            lines.push(format!("$env:{name} = '{}'", val.replace('\'', "''")));
+                                        } else if sh == "fish" {
+                                            lines.push(format!(
+                                                "set -gx {name} '{}'",
+                                                val.replace('\\', "\\\\").replace('\'', "\\'")
+                                            ));
+                                        } else {
+                                            lines.push(format!(
+                                                "export {name}='{}'",
+                                                val.replace('\'', "'\\''")
+                                            ));
+                                        }
+                                    }
+                                    None => {
+                                        if sh == "powershell" {
+                                            lines.push(format!(
+                                                "Remove-Item Env:{name} -ErrorAction SilentlyContinue"
+                                            ));
+                                        } else if sh == "fish" {
+                                            lines.push(format!("set -e {name}"));
+                                        } else {
+                                            lines.push(format!("unset {name}"));
+                                        }
+                                    }
+                                }
+                            }
+                            return BuiltinOutcome {
+                                stdout: format!("{}\n", lines.join("\n")),
+                                stderr: String::new(),
+                                exit_code: 0,
+                            };
+                        }
+                        if pos_args.len() > 1 {
+                            let mut child_env: BTreeMap<String, String> = if scope == "selected" {
+                                env.clone()
+                            } else {
+                                BTreeMap::new()
+                            };
+                            let mut secrets: Vec<String> = Vec::new();
+                            for (k, v) in snap_entries {
+                                match v {
+                                    JVal::Str(s) => {
+                                        child_env.insert(k.clone(), s.clone());
+                                        if !s.is_empty() && !secrets.contains(s) {
+                                            secrets.push(s.clone());
+                                        }
+                                    }
+                                    _ => {
+                                        child_env.remove(k);
+                                    }
+                                }
+                            }
+                            let mut out = exec_sub(&pos_args[1..], stdin, cwd, &mut child_env);
+                            if !no_masking {
+                                for sec in &secrets {
+                                    out.stdout = out.stdout.replace(sec, "<concealed by 1Password>");
+                                    out.stderr = out.stderr.replace(sec, "<concealed by 1Password>");
+                                }
+                            }
+                            return out;
+                        }
+                        return op_err("Host environment restoration is unavailable; use --shell or supply a child command after --");
+                    }
+                    _ => return op_err("Unsupported admin action"),
                 }
             }
             BuiltinOutcome { stdout: "{}\n".into(), stderr: String::new(), exit_code: 0 }
@@ -2988,13 +3269,168 @@ where
                 _ => op_err("Unsupported admin action"),
             }
         }
-        "user" | "connect" | "service-account" | "events-api" | "plugin" => {
+        "plugin" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
+            const PLUGINS: &[(&str, &str, &str, &str)] = &[
+                ("akamai", "Akamai CLI", "Akamai", "Client Secret, Host, Access Token, Client Token"),
+                ("claude", "Claude Code", "Anthropic", "API Key"),
+                ("argocd", "Argo CD CLI", "Argo CD", "Auth Token"),
+                ("aws", "AWS CLI", "AWS", "Access Key ID, Secret Access Key"),
+                ("cdk", "AWS CDK Toolkit", "AWS", "Access Key ID, Secret Access Key"),
+                ("sam", "AWS SAM CLI", "AWS", "Access Key ID, Secret Access Key"),
+                ("eksctl", "eksctl CLI", "AWS", "Access Key ID, Secret Access Key"),
+                ("awslogs", "awslogs", "AWS", "Access Key ID, Secret Access Key"),
+                ("axiom", "Axiom CLI", "Axiom", "Token, Organization"),
+                ("binance-cli", "Binance CLI", "Binance", "API Key, API Secret"),
+                ("cachix", "Cachix CLI", "Cachix", "Token"),
+                ("cargo", "Cargo CLI", "Cargo", "Token"),
+                ("circleci", "CircleCI CLI", "CircleCI", "Token"),
+                ("civo", "Civo CLI", "Civo", "API Key"),
+                ("cline", "Cline CLI", "Cline", "API Key"),
+                ("wrangler", "Cloudflare Workers CLI", "Cloudflare Workers", "Token"),
+                ("crash", "CrateDB Shell", "CrateDB", "Host, Username, Password"),
+                ("crowdin", "Crowdin CLI", "Crowdin", "Token"),
+                ("agent", "Cursor CLI", "Cursor", "API Key"),
+                ("databricks", "Databricks CLI", "Databricks", "Host, Token"),
+                ("dog", "Dogshell", "Datadog", "API Key, App Key"),
+                ("descope", "Descope CLI", "Descope", "Project ID, Management Key"),
+                ("doctl", "DigitalOcean CLI", "DigitalOcean", "Token"),
+                ("exercism", "Exercism CLI", "Exercism", "URL, API Key, Directory"),
+                ("expo", "Expo CLI", "Expo", "Token"),
+                ("eas", "EAS CLI", "Expo", "Token"),
+                ("fastly", "Fastly CLI", "Fastly", "Token"),
+                ("flyctl", "Flyctl", "Fly.io", "Token"),
+                ("fly", "Fly", "Fly.io", "Token"),
+                ("fossa", "FOSSA CLI", "FOSSA", "API Key"),
+                ("tea", "Gitea CLI", "Gitea", "Token, Host Address, User"),
+                ("gh", "GitHub CLI", "GitHub", "Token"),
+                ("copilot", "GitHub Copilot CLI", "GitHub Copilot", "Token"),
+                ("glab", "GitLab CLI", "GitLab", "Token"),
+                ("gemini", "Google Gemini CLI", "Google Gemini CLI", "API Key"),
+                ("vault", "Vault CLI", "HashiCorp Vault", "Token"),
+                ("heroku", "Heroku CLI", "Heroku", "API Key"),
+                ("hcloud", "Hetzner Cloud CLI", "Hetzner Cloud", "Token"),
+                ("brew", "Homebrew CLI", "Homebrew", "Token"),
+                ("huggingface-cli", "HuggingFace CLI", "Hugging Face", "User Access Token"),
+                ("influx", "InfluxDB CLI", "InfluxDB", "Host, Organization, Access Token"),
+                ("junie", "JetBrains Junie CLI", "JetBrains Junie", "API Key"),
+                ("kaggle", "Kaggle CLI", "Kaggle", "Token, Username"),
+                ("kiro-cli", "Kiro CLI", "Kiro", "API Key"),
+                ("lacework", "Lacework CLI", "Lacework", "Account, API Key ID, API Secret"),
+                ("forge", "Laravel Forge CLI", "Laravel Forge", "Token"),
+                ("vapor", "Laravel Vapor CLI", "Laravel Vapor", "Token"),
+                ("linode-cli", "Linode CLI", "Linode", "Token"),
+                ("localstack", "LocalStack CLI", "LocalStack", "API Key"),
+                ("atlas", "MongoDB Atlas CLI", "MongoDB Atlas", "Public Key, Private Key"),
+                ("mysql", "mysql", "MySQL", "Password"),
+                ("ngrok", "ngrok CLI", "ngrok", "Authtoken"),
+                ("ohdear", "Oh Dear CLI", "Oh Dear", "Token"),
+                ("okta", "Okta CLI", "Okta", "Token, Org URL"),
+                ("openai", "OpenAI CLI", "OpenAI", "API Key"),
+                ("oaieval", "OpenAI Evals CLI", "OpenAI", "API Key"),
+                ("oaievalset", "OpenAI Eval Set CLI", "OpenAI", "API Key"),
+                ("codex", "OpenAI Codex", "OpenAI", "API Key"),
+                ("opencode", "OpenCode CLI", "OpenCode", "API Key"),
+                ("tofu", "OpenTofu", "OpenTofu", "Depends on configured credentials"),
+                ("pd", "Pipedream CLI", "Pipedream", "API Key"),
+                ("psql", "psql", "PostgreSQL", "Host, User, Password"),
+                ("pg_dump", "pg_dump", "PostgreSQL", "Host, User, Password"),
+                ("pg_restore", "pg_restore", "PostgreSQL", "Host, User, Password"),
+                ("pgcli", "pgcli", "PostgreSQL", "Host, User, Password"),
+                ("pulumi", "Pulumi CLI", "Pulumi", "Token"),
+                ("twine", "Twine", "PyPI", "Token"),
+                ("flit", "Flit", "PyPI", "Token"),
+                ("hatch", "Hatch", "PyPI", "Token"),
+                ("rdme", "ReadMe CLI", "ReadMe", "API Key"),
+                ("redis-cli", "Redis CLI", "Redis", "Password"),
+                ("-", "", "rediscloud", "Account Key, User Key"),
+                ("scw", "Scaleway CLI", "Scaleway", "Access Key ID, Secret Access Key"),
+                ("sentry-cli", "Sentry CLI", "Sentry", "Token"),
+                ("snowsql", "Snowflake CLI", "Snowflake", "Account, Username, Password"),
+                ("snyk", "Snyk CLI", "Snyk", "Token"),
+                ("src", "Sourcegraph CLI", "Sourcegraph", "Token"),
+                ("stripe", "Stripe CLI", "Stripe", "Key"),
+                ("todoist", "Todoist CLI", "Todoist", "Token"),
+                ("td", "Treasure Data Toolbelt", "Treasure Data", "API Key"),
+                ("tugboat", "Tugboat CLI", "Tugboat", "Token"),
+                ("twilio", "Twilio CLI", "Twilio", "Account SID, API Key, API Secret"),
+                ("upctl", "UpCloud CLI", "UpCloud", "Username, Password"),
+                ("upstash", "Upstash CLI", "Upstash", "API Key, Email"),
+                ("vercel", "Vercel CLI", "Vercel", "Token"),
+                ("vsql", "Vertica CLI", "Vertica", "Username, Password, Database"),
+                ("vultr-cli", "Vultr CLI", "Vultr", "API Key"),
+                ("ysqlsh", "YugabyteDB SQL Shell", "YugabyteDB", "Host, Username, Password"),
+                ("zapier", "Zapier CLI", "Zapier", "Key"),
+                ("zcli", "Zendesk CLI", "Zendesk", "Subdomain, Email, Token"),
+            ];
+            match sub {
+                "list" | "ls" => {
+                    if format_json {
+                        let arr: Vec<Value> = PLUGINS
+                            .iter()
+                            .map(|(exec, name, pname, _)| {
+                                if *pname == "rediscloud" {
+                                    jval!({
+                                        "source": "1password-registry",
+                                        "plugin_name": pname
+                                    })
+                                } else {
+                                    jval!({
+                                        "source": "1password-registry",
+                                        "name": name,
+                                        "executable": exec,
+                                        "plugin_name": pname
+                                    })
+                                }
+                            })
+                            .collect();
+                        let s = to_pretty_json(&Value::Array(arr));
+                        return BuiltinOutcome { stdout: format!("{s}\n"), stderr: String::new(), exit_code: 0 };
+                    }
+                    let mut out = String::from("EXECUTABLE         NAME                  REQUIRED FIELDS\n");
+                    for (exec, _, pname, reqs) in PLUGINS {
+                        out.push_str(&format!("{exec:<19}{pname:<22}{reqs}\n"));
+                    }
+                    BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                }
+                "inspect" => {
+                    let target = args.get(2).map(|s| s.as_str()).unwrap_or("");
+                    if target.is_empty() {
+                        return op_err("Plugin selection capability is unavailable");
+                    }
+                    if PLUGINS.iter().any(|(exec, _, _, _)| exec.eq_ignore_ascii_case(target)) {
+                        return op_err("Plugin configuration is unavailable");
+                    }
+                    op_err("Object not found")
+                }
+                _ => op_err("Unsupported admin action"),
+            }
+        }
+        "user" | "connect" | "service-account" | "events-api" => {
             BuiltinOutcome { stdout: if format_json { "[]\n".into() } else { String::new() }, stderr: String::new(), exit_code: 0 }
         }
-        "completion" => BuiltinOutcome {
-            stdout: "# op completion\n".into(),
-            stderr: String::new(),
-            exit_code: 0,
+        "completion" => {
+            let pos: Vec<&str> = args
+                .iter()
+                .skip(1)
+                .filter(|a| !a.starts_with('-'))
+                .map(|s| s.as_str())
+                .collect();
+            if pos.len() != 1 {
+                return op_err("completion requires one shell: bash, zsh, fish, or powershell");
+            }
+            let script = match pos[0] {
+                "bash" => "_op() {\n  local response directive choice current op_cword\n  local -a op_words\n  if declare -F _get_comp_words_by_ref >/dev/null; then\n    _get_comp_words_by_ref -n =: -w op_words -i op_cword -c current || return\n  else\n    op_words=(\"${COMP_WORDS[@]}\")\n    op_cword=$COMP_CWORD\n    current=\"${op_words[op_cword]}\"\n  fi\n  op_words[op_cword]=\"$current\"\n  COMPREPLY=()\n  response=$(OP_COMPATIBILITY_CHANNEL=stable \"${op_words[0]}\" __completeNoDesc \"${op_words[@]:1:op_cword}\" 2>/dev/null) || return\n  directive=\"${response##*$'\\n'}\"\n  case \"$directive\" in\n    :0) while IFS= read -r choice; do COMPREPLY+=(\"$choice\"); done < <(compgen -f -- \"$current\") ;;\n    :4) while IFS= read -r choice; do [[ \"$choice\" == :4 ]] || COMPREPLY+=(\"$choice\"); done <<< \"$response\" ;;\n  esac\n}\ncomplete -o filenames -F _op op\n",
+                "zsh" => "#compdef op\n_op() {\n  local line directive\n  local -a response candidates descriptions\n  response=(\"${(@f)$(OP_COMPATIBILITY_CHANNEL=stable \"${words[1]}\" __complete \"${(@)words[2,CURRENT]}\" 2>/dev/null)}\")\n  directive=\"${response[-1]}\"\n  case \"$directive\" in\n    :0) _files ;;\n    :4)\n      for line in \"${response[@]}\"; do\n        [[ \"$line\" == :4 ]] && continue\n        candidates+=(\"${line%%$'\\t'*}\")\n        descriptions+=(\"${line#*$'\\t'}\")\n      done\n      (( ${#candidates} )) && compadd -d descriptions -- \"${candidates[@]}\"\n      ;;\n  esac\n  return 0\n}\ncompdef _op op\n",
+                "fish" => "function __op_candidates\n  set -lx OP_COMPATIBILITY_CHANNEL stable\n  set -l tokens (commandline -opc)\n  set -l current (commandline -ct)\n  set -l response ($tokens[1] __complete $tokens[2..-1] \"$current\" 2>/dev/null)\n  set -l directive $response[-1]\n  switch \"$directive\"\n    case :0\n      __fish_complete_path \"$current\"\n    case :4\n      set -e response[-1]\n      for candidate in $response\n        printf \"%s\\n\" \"$candidate\"\n      end\n  end\nend\ncomplete -c op -f -a '(__op_candidates)'\n",
+                "powershell" => "Register-ArgumentCompleter -Native -CommandName op -ScriptBlock {\n  param($wordToComplete, $commandAst, $cursorPosition)\n  $program = $commandAst.CommandElements[0].Value\n  $arguments = @()\n  foreach ($element in ($commandAst.CommandElements | Select-Object -Skip 1)) {\n    if ($element.Extent.EndOffset -ge $cursorPosition) { break }\n    if ($element -is [System.Management.Automation.Language.StringConstantExpressionAst]) { $arguments += $element.Value }\n    else { $arguments += $element.Extent.Text }\n  }\n  $current = $wordToComplete\n  if ($current -eq \"\" -and ($PSVersionTable.PSVersion -lt [version]\"7.3\" -or $PSNativeCommandArgumentPassing -eq \"Legacy\")) { $current = '\"\"' }\n  $previousChannel = $env:OP_COMPATIBILITY_CHANNEL\n  try {\n    $env:OP_COMPATIBILITY_CHANNEL = 'stable'\n    $response = @(& $program __complete @arguments $current 2>$null)\n  } finally { $env:OP_COMPATIBILITY_CHANNEL = $previousChannel }\n  if ($response.Count -eq 0) { return }\n  $directive = $response[-1]\n  if ($directive -eq \":0\") { return }\n  if ($directive -ne \":4\") { \"\"; return }\n  if ($response.Count -eq 1) { \"\"; return }\n  foreach ($line in $response[0..($response.Count - 2)]) {\n    $parts = $line.Split([char]9, 2)\n    $description = if ($parts.Count -gt 1) { $parts[1] } else { \" \" }\n    [System.Management.Automation.CompletionResult]::new($parts[0], $parts[0], 'ParameterValue', $description)\n  }\n}\n",
+                _ => return op_err("completion requires one shell: bash, zsh, fish, or powershell"),
+            };
+            BuiltinOutcome {
+                stdout: script.to_string(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
         },
         _ => op_err(&format!("unknown command \"{first}\" for \"op\"")),
     }
@@ -5669,6 +6105,16 @@ fn cmd_gh(
                             BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
                         }
                         "field-list" => {
+                            if is_json {
+                                let arr: Vec<Value> = p
+                                    .fields
+                                    .iter()
+                                    .map(|(fid, fname, ftype)| jval!({ "id": fid, "name": fname, "dataType": ftype }))
+                                    .collect();
+                                let cnt = arr.len();
+                                let val = jval!({ "fields": arr, "totalCount": cnt });
+                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                            }
                             let mut out = String::new();
                             for (fid, fname, ftype) in &p.fields {
                                 out.push_str(&format!("{fname}\t{ftype}\t{fid}\n"));
@@ -5694,15 +6140,59 @@ fn cmd_gh(
                             let ititle = title_opt.or_else(|| url_opt.clone()).unwrap_or_else(|| format!("Item {}", p.items.len() + 1));
                             let ibody = body_opt.unwrap_or_default();
                             let itype = if sub == "item-add" { "ISSUE" } else { "DRAFT_ISSUE" };
-                            p.items.push((iid.clone(), ititle, ibody, itype.into(), url_opt));
+                            p.items.push((iid.clone(), ititle.clone(), ibody.clone(), itype.into(), url_opt));
+                            if is_json {
+                                let val = jval!({
+                                    "id": iid,
+                                    "title": ititle,
+                                    "body": ibody,
+                                    "type": itype,
+                                    "fieldValues": {}
+                                });
+                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                            }
                             BuiltinOutcome { stdout: format!("Created item {iid}\n"), stderr: String::new(), exit_code: 0 }
                         }
                         "item-list" => {
+                            if is_json {
+                                let arr: Vec<Value> = p
+                                    .items
+                                    .iter()
+                                    .map(|(iid, ititle, ibody, itype, _)| {
+                                        jval!({
+                                            "id": iid,
+                                            "title": ititle,
+                                            "body": ibody,
+                                            "type": itype,
+                                            "fieldValues": {}
+                                        })
+                                    })
+                                    .collect();
+                                let cnt = arr.len();
+                                let val = jval!({ "items": arr, "totalCount": cnt });
+                                return format_gh_json_output(&val, &[], jq_expr.as_deref(), cwd, env, fs);
+                            }
                             let mut out = String::new();
                             for (iid, ititle, _, itype, _) in &p.items {
                                 out.push_str(&format!("{itype}\t{ititle}\t{iid}\n"));
                             }
                             BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
+                        }
+                        "item-edit" => {
+                            let iid = id_opt.unwrap_or_else(|| "PVTI_1".into());
+                            if let Some(it) = p.items.iter_mut().find(|(id, _, _, _, _)| id == &iid) {
+                                if let Some(t) = title_opt {
+                                    it.1 = t;
+                                }
+                                if let Some(b) = body_opt {
+                                    it.2 = b;
+                                }
+                            }
+                            BuiltinOutcome { stdout: format!("Edited item {iid}\n"), stderr: String::new(), exit_code: 0 }
+                        }
+                        "item-archive" => {
+                            let iid = id_opt.unwrap_or_else(|| "PVTI_1".into());
+                            BuiltinOutcome { stdout: format!("Archived item {iid}\n"), stderr: String::new(), exit_code: 0 }
                         }
                         "item-delete" => {
                             let iid = id_opt.unwrap_or_default();
@@ -6405,6 +6895,66 @@ mod tests {
         let cs_create = cmd_gh(&args(&["codespace", "create", "-R", "octocat/Hello-World", "-b", "main"]), "", &mut cwd, &mut env, &vfs);
         assert_eq!(cs_create.exit_code, 0);
         assert_eq!(cs_create.stdout, "codespace-1\n");
+    }
+
+    #[test]
+    fn unit_op_environment_snapshot_plugin_and_completion_parity() {
+        let vfs = MemoryVfs::new();
+        let mut cwd = "/workspace".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("API_TOKEN".to_string(), "super-secret-token".to_string());
+        let mut noop = |words: &[String], _stdin: &str, _cwd: &mut String, child_env: &mut BTreeMap<String, String>| BuiltinOutcome {
+            stdout: format!("cmd={} token={}\n", words.join(" "), child_env.get("API_TOKEN").cloned().unwrap_or_default()),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+
+        let snap_create = cmd_op(
+            &args(&["environment", "snapshot", "create", "dev-snap", "--vars=API_TOKEN,MISSING_VAR"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(snap_create.exit_code, 0);
+        assert!(snap_create.stdout.contains("\"name\": \"dev-snap\"") && snap_create.stdout.contains("\"scope\": \"selected\""));
+        assert!(!snap_create.stdout.contains("super-secret-token"));
+
+        let snap_get = cmd_op(&args(&["environment", "snapshot", "get", "dev-snap"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(snap_get.exit_code, 0);
+        assert!(snap_get.stdout.contains("super-secret-token") && snap_get.stdout.contains("\"MISSING_VAR\": null"));
+
+        let snap_restore_sh = cmd_op(
+            &args(&["environment", "snapshot", "restore", "dev-snap", "--shell=bash"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(snap_restore_sh.exit_code, 0);
+        assert_eq!(snap_restore_sh.stdout, "export API_TOKEN='super-secret-token'\nunset MISSING_VAR\n");
+
+        let snap_restore_masked = cmd_op(
+            &args(&["environment", "snapshot", "restore", "dev-snap", "--", "print-tok"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(snap_restore_masked.exit_code, 0);
+        assert_eq!(snap_restore_masked.stdout, "cmd=print-tok token=<concealed by 1Password>\n");
+
+        let plugin_ls = cmd_op(&args(&["plugin", "list"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(plugin_ls.exit_code, 0);
+        assert!(plugin_ls.stdout.starts_with("EXECUTABLE         NAME                  REQUIRED FIELDS\n"));
+        assert!(plugin_ls.stdout.contains("gh                 GitHub                Token\n"));
+
+        let comp_bash = cmd_op(&args(&["completion", "bash"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(comp_bash.exit_code, 0);
+        assert!(comp_bash.stdout.contains("complete -o filenames -F _op op"));
     }
 
 }

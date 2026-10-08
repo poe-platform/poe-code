@@ -109,8 +109,8 @@
     "build": "node scripts/generate-package-program.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "node scripts/generate-package-program.mjs --check && eslint src && npm run typecheck",
-    "test": "node --import tsx --test src/*.test.ts",
-    "test:unit": "node --import tsx --test src/*.test.ts"
+    "test": "node --import tsx --test --test-concurrency=1 src/*.test.ts",
+    "test:unit": "node --import tsx --test --test-concurrency=1 src/*.test.ts"
   },
   "dependencies": {},
   "devDependencies": {

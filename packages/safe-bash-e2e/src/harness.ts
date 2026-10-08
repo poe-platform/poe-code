@@ -337,6 +337,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-jq-yq-xq-xmllint-htmlq-mdq-html-to-markdown-deep-parity-matrix.test.ts",
   "obscure-unrtf-mmdc-pandoc-ssconvert-ast-grep-deep-parity-matrix.test.ts",
   "obscure-graphviz-svgo-rsvg-pdf-qrencode-sox-media-crypto-deep-parity-matrix.test.ts",
+  "obscure-openssl-gpg-ssh-x509-crypt-dgst-archive-parity-matrix.test.ts",
 ];
 
 function isPureRustCaller(): boolean {
@@ -546,7 +547,13 @@ export class SafeBashE2EHarness {
 
     if (process.env.SAFE_BASH_E2E_BACKEND === "rust" && options.fs === undefined) {
       const recorder = options.benchmarkRecorder ?? new BenchmarkRecorder();
-      const hasCustomJsPlugins = (options.plugins ?? []).some((p) => p.name !== "xan-commands");
+      const nativeRustPlugins = new Set([
+        "xan-commands",
+        "html-to-markdown",
+        "html-to-markdown-commands",
+        "pager-commands",
+      ]);
+      const hasCustomJsPlugins = (options.plugins ?? []).some((p) => !nativeRustPlugins.has(p.name));
       const forceNative = isPureRustCaller() && !hasCustomJsPlugins;
       const rustBash = new RustWasmBash({
         cwd: options.cwd ?? "/workspace",

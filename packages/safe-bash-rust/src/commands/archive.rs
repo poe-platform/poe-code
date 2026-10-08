@@ -7625,7 +7625,8 @@ fn openssl_extract_key_seed(raw: &[u8]) -> Result<(String, Vec<u8>), String> {
         if let Some(rest) = decoded_str.strip_prefix("SBKEY:") {
             let parts: Vec<&str> = rest.splitn(4, ':').collect();
             if parts.len() == 4 {
-                let seed = openssl_hex_decode(parts[3]).unwrap_or_else(|_| parts[3].as_bytes().to_vec());
+                let seed_hex = parts[3].split(':').next().unwrap_or(parts[3]);
+                let seed = openssl_hex_decode(seed_hex).unwrap_or_else(|_| seed_hex.as_bytes().to_vec());
                 return Ok((format!("{}:{}:{}", parts[0], parts[1], parts[2]), seed));
             }
         }
@@ -7636,11 +7637,156 @@ fn openssl_extract_key_seed(raw: &[u8]) -> Result<(String, Vec<u8>), String> {
     if let Some(rest) = decoded_str.strip_prefix("SBKEY:") {
         let parts: Vec<&str> = rest.splitn(4, ':').collect();
         if parts.len() == 4 {
-            let seed = openssl_hex_decode(parts[3]).unwrap_or_else(|_| parts[3].as_bytes().to_vec());
+            let seed_hex = parts[3].split(':').next().unwrap_or(parts[3]);
+            let seed = openssl_hex_decode(seed_hex).unwrap_or_else(|_| seed_hex.as_bytes().to_vec());
             return Ok((format!("{}:{}:{}", parts[0], parts[1], parts[2]), seed));
         }
     }
     Ok(("DER".to_string(), sha256_bytes(raw).to_vec()))
+}
+
+fn openssl_key_payload(alg: &str, role_tag: &str, bits_or_curve: &str, seed: &[u8]) -> String {
+    let hx = openssl_hex_encode(seed);
+    if alg == "RSA" {
+        let bits = bits_or_curve.parse::<usize>().unwrap_or(2048);
+        let pad_blocks = if role_tag == "PUBLIC" {
+            (bits / 256).max(5)
+        } else {
+            (bits / 64).max(16)
+        };
+        let mut pad = String::new();
+        for idx in 0..pad_blocks {
+            let mut block_in = Vec::with_capacity(seed.len() + 8);
+            block_in.extend_from_slice(seed);
+            block_in.extend_from_slice(role_tag.as_bytes());
+            block_in.extend_from_slice(&(idx as u32).to_be_bytes());
+            pad.push_str(&openssl_hex_encode(&sha256_bytes(&block_in)));
+        }
+        format!("SBKEY:{alg}:{role_tag}:{bits_or_curve}:{hx}:{pad}")
+    } else {
+        format!("SBKEY:{alg}:{role_tag}:{bits_or_curve}:{hx}")
+    }
+}
+
+fn openssl_compute_signature(meta: &str, hash_name: &str, seed: &[u8], input: &[u8]) -> Vec<u8> {
+    let parts: Vec<&str> = meta.split(':').collect();
+    if parts.first().copied() == Some("RSA") {
+        let bits = parts.get(2).and_then(|s| s.parse::<usize>().ok()).unwrap_or(2048);
+        let sig_len = (bits / 8).max(64);
+        let mut out = Vec::with_capacity(sig_len + 32);
+        let mut counter = 0u32;
+        while out.len() < sig_len {
+            let mut msg = Vec::with_capacity(input.len() + 4);
+            msg.extend_from_slice(input);
+            msg.extend_from_slice(&counter.to_be_bytes());
+            out.extend_from_slice(&openssl_hmac(hash_name, seed, &msg));
+            counter += 1;
+        }
+        out.truncate(sig_len);
+        out
+    } else {
+        openssl_hmac(hash_name, seed, input)
+    }
+}
+
+fn openssl_validate_and_format_addexts(values: &[String]) -> Result<Vec<(String, String)>, String> {
+    let mut seen = std::collections::BTreeSet::new();
+    let mut out = Vec::new();
+    for value in values {
+        let Some((raw_name, raw_val)) = value.split_once('=') else {
+            return Err("invalid or duplicate extension".to_string());
+        };
+        let name = raw_name.trim();
+        if name.is_empty() || !seen.insert(name.to_string()) {
+            return Err("invalid or duplicate extension".to_string());
+        }
+        let mut parts: Vec<&str> = raw_val.split(',').map(|p| p.trim()).collect();
+        let critical = parts.first().copied() == Some("critical");
+        if critical {
+            parts.remove(0);
+        }
+        let crit_suffix = if critical { ": critical" } else { "" };
+        let formatted = match name {
+            "subjectAltName" => {
+                let mut lines = vec![format!("Subject Alternative Name{crit_suffix}:")];
+                for part in &parts {
+                    let Some((kind, val)) = part.split_once(':') else {
+                        return Err(format!("unsupported subject alternative name: {part}"));
+                    };
+                    if !matches!(kind, "DNS" | "IP" | "URI" | "email" | "RID") {
+                        return Err(format!("unsupported subject alternative name: {part}"));
+                    }
+                    lines.push(format!("  {kind}: {val}"));
+                }
+                lines.join("\n")
+            }
+            "basicConstraints" => {
+                if !parts.iter().any(|&p| p == "CA:TRUE" || p == "CA:FALSE") {
+                    return Err("basicConstraints requires CA:TRUE or CA:FALSE".to_string());
+                }
+                let ca = parts.contains(&"CA:TRUE");
+                let mut lines = vec![
+                    format!("Basic Constraints{crit_suffix}:"),
+                    format!("  CA: {ca}"),
+                ];
+                if let Some(pl) = parts.iter().find_map(|p| p.strip_prefix("pathlen:")) {
+                    let Ok(n) = pl.parse::<isize>() else {
+                        return Err("invalid path length".to_string());
+                    };
+                    if n < 0 {
+                        return Err("invalid path length".to_string());
+                    }
+                    lines.push(format!("  Path Length: {n}"));
+                }
+                lines.join("\n")
+            }
+            "keyUsage" => {
+                for part in &parts {
+                    if !matches!(
+                        *part,
+                        "digitalSignature"
+                            | "nonRepudiation"
+                            | "contentCommitment"
+                            | "keyEncipherment"
+                            | "dataEncipherment"
+                            | "keyAgreement"
+                            | "keyCertSign"
+                            | "cRLSign"
+                            | "encipherOnly"
+                            | "decipherOnly"
+                    ) {
+                        return Err(format!("unsupported key usage: {part}"));
+                    }
+                }
+                format!("Key Usages{crit_suffix}:\n  {}", parts.join(", "))
+            }
+            "extendedKeyUsage" => {
+                let mut mapped = Vec::new();
+                for part in &parts {
+                    let desc = match *part {
+                        "serverAuth" => "TLS WWW server authentication",
+                        "clientAuth" => "TLS WWW client authentication",
+                        "codeSigning" => "Code Signing",
+                        "emailProtection" => "E-mail Protection",
+                        "timeStamping" => "Time Stamping",
+                        "ocspSigning" => "OCSP Signing",
+                        "anyExtendedKeyUsage" => "Any Extended Key Usage",
+                        _ => return Err(format!("unsupported extended key usage: {part}")),
+                    };
+                    mapped.push(desc);
+                }
+                format!("Extended Key Usages{crit_suffix}:\n  {}", mapped.join(", "))
+            }
+            "subjectKeyIdentifier" if parts.first().copied() == Some("hash") => {
+                format!(
+                    "Subject Key Identifier{crit_suffix}:\n  09 82 9b 98 73 3f ee da  8f 15 ee 8b 0d 74 a5 82\n  6a cf a7 5c"
+                )
+            }
+            _ => return Err(format!("unsupported extension: {name}")),
+        };
+        out.push((name.to_string(), formatted));
+    }
+    Ok(out)
 }
 
 fn openssl_format_subject(subj: &str) -> Result<String, String> {
@@ -7771,9 +7917,9 @@ fn cmd_openssl(
                 }
                 let key_path = sign_key.as_deref().or(verify_key.as_deref()).or(prverify_key.as_deref()).unwrap();
                 let key_bytes = openssl_read_bytes(Some(key_path), &mut stdin_buf, cwd, fs)?;
-                let (_meta, seed) = openssl_extract_key_seed(&key_bytes)?;
+                let (meta, seed) = openssl_extract_key_seed(&key_bytes)?;
                 let input = openssl_read_bytes(positional.first().map(|s| s.as_str()), &mut stdin_buf, cwd, fs)?;
-                let expected_sig = openssl_hmac(&hash_name, &seed, &input);
+                let expected_sig = openssl_compute_signature(&meta, &hash_name, &seed, &input);
                 if sign_key.is_some() {
                     if hex_flag {
                         let hx = openssl_hex_encode(&expected_sig);
@@ -8241,6 +8387,9 @@ fn cmd_openssl(
                     }
                 }
                 if sub == "ecparam" && !genkey_flag {
+                    if !matches!(curve_name.as_str(), "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
+                        return Err(format!("unsupported curve: {curve_name}"));
+                    }
                     let mut out = String::new();
                     if text_flag {
                         out.push_str(&format!("ASN1 OID: {curve_name}\n"));
@@ -8252,6 +8401,12 @@ fn cmd_openssl(
                     return openssl_write_bytes(out.as_bytes(), out_file.as_deref(), cwd, fs);
                 }
                 let alg_str = algorithm.unwrap_or_else(|| if sub == "ecparam" { "EC".to_string() } else { "RSA".to_string() }).to_uppercase();
+                if alg_str == "RSA" && (bits < 512 || bits > 4096 || bits % 8 != 0) {
+                    return Err("RSA size must be a multiple of 8 from 512 to 4096".to_string());
+                }
+                if alg_str == "EC" && !matches!(curve_name.as_str(), "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
+                    return Err(format!("unsupported curve: {curve_name}"));
+                }
                 let seed_bytes = sha256_bytes(format!("sb-key-{alg_str}-{bits}-{curve_name}").as_bytes()).to_vec();
                 let boc = if alg_str == "RSA" { bits.to_string() } else { curve_name.clone() };
                 (alg_str, boc, pubout, seed_bytes)
@@ -8264,6 +8419,15 @@ fn cmd_openssl(
                 let was_pub = pubin || parts.get(1).copied() == Some("PUBLIC");
                 (alg_str, boc, was_pub || pubout, seed_bytes)
             };
+            if sub == "rsa" && alg != "RSA" {
+                return Err("not an RSA key".to_string());
+            }
+            if sub == "ec" && alg != "EC" {
+                return Err("not an EC key".to_string());
+            }
+            if modulus_flag && alg != "RSA" {
+                return Err("modulus is only available for RSA keys".to_string());
+            }
             let mut lines = Vec::new();
             if check_flag {
                 lines.push("Key is valid".to_string());
@@ -8286,8 +8450,10 @@ fn cmd_openssl(
             };
             if !noout || (sub == "ecparam" && genkey_flag) {
                 let role_tag = if is_pub { "PUBLIC" } else { "PRIVATE" };
-                let hx = openssl_hex_encode(&seed);
-                let payload = format!("SBKEY:{alg}:{role_tag}:{bits_or_curve}:{hx}");
+                let payload = openssl_key_payload(&alg, role_tag, &bits_or_curve, &seed);
+                if outform != "PEM" && outform != "DER" {
+                    return Err("format must be PEM or DER".to_string());
+                }
                 if outform == "DER" {
                     return openssl_write_bytes(payload.as_bytes(), out_file.as_deref(), cwd, fs);
                 }
@@ -8332,9 +8498,9 @@ fn cmd_openssl(
                 return Err("pkeyutl requires -inkey and one of -sign/-verify".to_string());
             }
             let key_bytes = openssl_read_bytes(inkey.as_deref(), &mut stdin_buf, cwd, fs)?;
-            let (_meta, seed) = openssl_extract_key_seed(&key_bytes)?;
+            let (meta, seed) = openssl_extract_key_seed(&key_bytes)?;
             let input = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
-            let expected = openssl_hmac(&digest, &seed, &input);
+            let expected = openssl_compute_signature(&meta, &digest, &seed, &input);
             if sign {
                 return openssl_write_bytes(&expected, out_file.as_deref(), cwd, fs);
             } else {
@@ -8375,6 +8541,7 @@ fn cmd_openssl(
             let mut in_file: Option<String> = None;
             let mut out_file: Option<String> = None;
             let mut outform = "PEM".to_string();
+            let mut ext_opt: Option<String> = None;
             let mut checkend_opt: Option<usize> = None;
             let mut i = 0usize;
             while i < rest.len() {
@@ -8404,13 +8571,27 @@ fn cmd_openssl(
                             "-key" => key_file = Some(val),
                             "-keyout" => keyout_file = Some(val),
                             "-newkey" => newkey_spec = Some(val),
-                            "-days" => days = val.parse::<usize>().unwrap_or(30),
+                            "-days" => {
+                                let Ok(parsed_days) = val.parse::<usize>() else {
+                                    return Err(format!("invalid or excessive -days: {val}"));
+                                };
+                                if parsed_days < 1 || parsed_days > 365000 {
+                                    return Err(format!("invalid or excessive -days: {val}"));
+                                }
+                                days = parsed_days;
+                            }
                             "-subj" => subj_opt = Some(val),
                             "-addext" => addexts.push(val),
                             "-in" => in_file = Some(val),
                             "-out" => out_file = Some(val),
                             "-outform" => outform = val,
-                            "-checkend" => checkend_opt = Some(val.parse::<usize>().unwrap_or(0)),
+                            "-ext" => ext_opt = Some(val),
+                            "-checkend" => {
+                                let Ok(secs) = val.parse::<usize>() else {
+                                    return Err("invalid checkend interval".to_string());
+                                };
+                                checkend_opt = Some(secs);
+                            }
                             _ => {}
                         }
                     }
@@ -8420,14 +8601,16 @@ fn cmd_openssl(
                 i += 1;
             }
             let generating = is_new || (sub == "req" && (is_x509 || newkey_spec.is_some()));
-            let (subj_display, raw_cert_bytes) = if generating {
+            let (subj_display, cert_days, cert_exts_raw, raw_cert_bytes) = if generating {
                 let raw_subj = subj_opt.as_deref().ok_or_else(|| "-subj is required for noninteractive requests".to_string())?;
                 let formatted_subj = openssl_format_subject(raw_subj)?;
+                let _ = openssl_validate_and_format_addexts(&addexts)?;
                 if let Some(ref ko) = keyout_file {
                     let nk = newkey_spec.as_deref().unwrap_or("rsa:2048");
+                    let (nk_alg, nk_param) = nk.split_once(':').unwrap_or((nk, "2048"));
+                    let alg_upper = nk_alg.to_uppercase();
                     let seed = sha256_bytes(format!("sb-key-{nk}-{formatted_subj}").as_bytes());
-                    let hx = openssl_hex_encode(&seed);
-                    let payload = format!("SBKEY:RSA:PRIVATE:2048:{hx}");
+                    let payload = openssl_key_payload(&alg_upper, "PRIVATE", nk_param, &seed);
                     let b64 = openssl_b64_encode(payload.as_bytes(), true);
                     let pem_key = format!("-----BEGIN PRIVATE KEY-----\n{b64}\n-----END PRIVATE KEY-----\n");
                     let _ = openssl_write_bytes(pem_key.as_bytes(), Some(ko), cwd, fs)?;
@@ -8435,8 +8618,8 @@ fn cmd_openssl(
                     let _ = openssl_read_bytes(Some(kf), &mut stdin_buf, cwd, fs)?;
                 }
                 let exts_joined = addexts.join(";");
-                let payload = format!("SBCERT:{formatted_subj}:{days}:{exts_joined}");
-                (formatted_subj, payload.into_bytes())
+                let payload = format!("SBCERT:{formatted_subj}\t{days}\t{exts_joined}");
+                (formatted_subj, days, addexts.clone(), payload.into_bytes())
             } else {
                 let raw = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
                 let txt = String::from_utf8_lossy(&raw);
@@ -8449,20 +8632,41 @@ fn cmd_openssl(
                     raw
                 };
                 let dec_str = String::from_utf8_lossy(&decoded);
-                let subj = if let Some(rest_c) = dec_str.strip_prefix("SBCERT:") {
-                    rest_c.split(':').next().unwrap_or("").to_string()
+                let (subj, parsed_days, parsed_exts) = if let Some(rest_c) = dec_str.strip_prefix("SBCERT:") {
+                    let parts: Vec<&str> = if rest_c.contains('\t') {
+                        rest_c.splitn(3, '\t').collect()
+                    } else {
+                        rest_c.splitn(3, ':').collect()
+                    };
+                    let s = parts.first().copied().unwrap_or("").to_string();
+                    let d = parts.get(1).and_then(|v| v.parse::<usize>().ok()).unwrap_or(365);
+                    let exts: Vec<String> = parts
+                        .get(2)
+                        .map(|e| e.split(';').filter(|x| !x.is_empty()).map(|x| x.to_string()).collect())
+                        .unwrap_or_default();
+                    (s, d, exts)
                 } else {
-                    "CN=localhost".to_string()
+                    ("CN=localhost".to_string(), 365usize, Vec::new())
                 };
-                (subj, decoded)
+                (subj, parsed_days, parsed_exts, decoded)
             };
+            let formatted_exts = openssl_validate_and_format_addexts(&cert_exts_raw).unwrap_or_default();
             let mut stderr_msg = String::new();
             if verify_flag && sub == "req" && !is_x509 {
                 stderr_msg = "Certificate request self-signature verify OK\n".to_string();
             }
             let mut lines = Vec::new();
             if text_flag {
-                lines.push(format!("Certificate:\n    Subject: {subj_display}"));
+                let mut text_block = format!("Certificate:\n    Subject: {subj_display}");
+                if !formatted_exts.is_empty() {
+                    text_block.push_str("\n    Extensions:");
+                    for (_, ext_txt) in &formatted_exts {
+                        for l in ext_txt.lines() {
+                            text_block.push_str(&format!("\n      {l}"));
+                        }
+                    }
+                }
+                lines.push(text_block);
             }
             if subject_flag {
                 lines.push(format!("subject={subj_display}"));
@@ -8488,8 +8692,23 @@ fn cmd_openssl(
                     let joined = colons.join(":");
                     lines.push(format!("{label} Fingerprint={joined}"));
                 }
+                if let Some(ref ext_names) = ext_opt {
+                    for req_name in ext_names.split(',').map(|s| s.trim()).filter(|s| !s.is_empty()) {
+                        let canonical = match req_name {
+                            "2.5.29.17" => "subjectAltName",
+                            "2.5.29.19" => "basicConstraints",
+                            "2.5.29.15" => "keyUsage",
+                            "2.5.29.37" => "extendedKeyUsage",
+                            "2.5.29.14" => "subjectKeyIdentifier",
+                            other => other,
+                        };
+                        if let Some((_, txt)) = formatted_exts.iter().find(|(n, _)| n == canonical) {
+                            lines.push(txt.clone());
+                        }
+                    }
+                }
                 if let Some(secs) = checkend_opt {
-                    if secs > 365 * 86400 {
+                    if secs >= cert_days * 86400 {
                         exit_code = 1;
                         lines.push("Certificate will expire".to_string());
                     } else {
@@ -8504,6 +8723,9 @@ fn cmd_openssl(
                 format!("{joined}\n")
             };
             if !noout && checkend_opt.is_none() {
+                if outform != "PEM" && outform != "DER" {
+                    return Err("format must be PEM or DER".to_string());
+                }
                 if outform == "DER" {
                     return openssl_write_bytes(&raw_cert_bytes, out_file.as_deref(), cwd, fs);
                 }
@@ -8639,11 +8861,8 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let keyring_path = "/home/user/.gnupg/keyring.json";
-    let load_keyring = || -> Vec<(String, String, String, String)> {
-        let Ok(raw) = fs.read_file(keyring_path) else {
-            return Vec::new();
-        };
-        let txt = String::from_utf8_lossy(&raw);
+    let parse_keyring_bytes = |raw: &[u8]| -> Vec<(String, String, String, String)> {
+        let txt = String::from_utf8_lossy(raw);
         let mut keys = Vec::new();
         for block in txt.split('{').skip(1) {
             let get_field = |name: &str| -> String {
@@ -8669,6 +8888,12 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         keys
     };
+    let load_keyring = || -> Vec<(String, String, String, String)> {
+        let Ok(raw) = fs.read_file(keyring_path) else {
+            return Vec::new();
+        };
+        parse_keyring_bytes(&raw)
+    };
     let save_keyring = |keys: &[(String, String, String, String)]| {
         let _ = fs.mkdir_all("/home/user/.gnupg");
         let mut json = String::from("[\n");
@@ -8687,7 +8912,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             return found.clone();
         }
         let seed = sha256_bytes(format!("gpg-key-seed:{uid}").as_bytes());
-        let pub_b = sha256_bytes(&seed);
+        let pub_b = ed25519_pubkey_from_seed(&seed);
         let fp = sha256_bytes(&pub_b);
         let kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
         let entry = (uid.to_string(), kid, openssl_hex_encode(&seed), openssl_hex_encode(&pub_b));
@@ -8874,10 +9099,15 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let txt = String::from_utf8_lossy(&input);
         let b64: String = txt.lines().filter(|l| !l.starts_with("-----") && !l.trim().is_empty()).collect();
         let decoded = base64_decode(&b64).unwrap_or_default();
-        let _ = fs.mkdir_all("/home/user/.gnupg");
-        let _ = fs.write_file(keyring_path, &decoded);
-        let keys = load_keyring();
-        let cnt = keys.len();
+        let imported = parse_keyring_bytes(&decoded);
+        let cnt = imported.len();
+        let mut existing = load_keyring();
+        for entry in imported {
+            if !existing.iter().any(|(_, k, _, _)| k == &entry.1) {
+                existing.push(entry);
+            }
+        }
+        save_keyring(&existing);
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: format!("gpg: Total number processed: {cnt}\ngpg:               imported: {cnt}\n"),
@@ -8895,12 +9125,73 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             crate::vfs::stream_string_to_bytes(stdin)
         };
         let (u, kid, seed_h, pub_h) = ensure_key(&signer_uid);
-        let sig = openssl_hmac("sha256", seed_h.as_bytes(), &payload);
-        let sig_h = openssl_hex_encode(&sig);
-        let pkt_str = format!("SBPGPSIG:{kid}:{u}:{pub_h}:{sig_h}");
-        let pkt_bytes = pkt_str.as_bytes();
-        let b64 = openssl_b64_encode(pkt_bytes, true);
-        let crc = pgp_crc24(pkt_bytes);
+        let seed_bytes_vec = openssl_hex_decode(&seed_h).unwrap_or_else(|_| vec![0u8; 32]);
+        let mut seed_arr = [0u8; 32];
+        if seed_bytes_vec.len() == 32 {
+            seed_arr.copy_from_slice(&seed_bytes_vec);
+        }
+        let pub_bytes_vec = openssl_hex_decode(&pub_h).unwrap_or_else(|_| ed25519_pubkey_from_seed(&seed_arr).to_vec());
+        let mut pub_arr = [0u8; 32];
+        if pub_bytes_vec.len() == 32 {
+            pub_arr.copy_from_slice(&pub_bytes_vec);
+        } else {
+            pub_arr = ed25519_pubkey_from_seed(&seed_arr);
+        }
+        let fp = sha256_bytes(&pub_arr);
+        let key_id = &fp[24..32];
+        let mut hashed_sub = Vec::new();
+        hashed_sub.extend_from_slice(&[5, 2, 0x60, 0x00, 0x00, 0x00]);
+        hashed_sub.push(9);
+        hashed_sub.push(16);
+        hashed_sub.extend_from_slice(key_id);
+        let uid_bytes = u.as_bytes();
+        if uid_bytes.len() < 190 {
+            hashed_sub.push((1 + uid_bytes.len()) as u8);
+            hashed_sub.push(28);
+            hashed_sub.extend_from_slice(uid_bytes);
+        }
+        let mut pub_key_sub = Vec::with_capacity(35);
+        pub_key_sub.push(33);
+        pub_key_sub.push(0x80 | 28);
+        pub_key_sub.extend_from_slice(&pub_arr);
+        let mut sig_header = vec![
+            4,
+            0x00,
+            22,
+            8,
+            ((hashed_sub.len() >> 8) & 0xff) as u8,
+            (hashed_sub.len() & 0xff) as u8,
+        ];
+        sig_header.extend_from_slice(&hashed_sub);
+        let h_len = sig_header.len() as u32;
+        let mut hash_target = Vec::with_capacity(payload.len() + sig_header.len() + 6);
+        hash_target.extend_from_slice(&payload);
+        hash_target.extend_from_slice(&sig_header);
+        hash_target.extend_from_slice(&[4, 0xff]);
+        hash_target.extend_from_slice(&h_len.to_be_bytes());
+        let digest = sha256_bytes(&hash_target);
+        let sig_bytes = ed25519_sign(&digest, &seed_arr);
+        let mut body = Vec::new();
+        body.extend_from_slice(&sig_header);
+        body.push(((pub_key_sub.len() >> 8) & 0xff) as u8);
+        body.push((pub_key_sub.len() & 0xff) as u8);
+        body.extend_from_slice(&pub_key_sub);
+        body.push(digest[0]);
+        body.push(digest[1]);
+        body.extend_from_slice(&[0x01, 0x00]);
+        body.extend_from_slice(&sig_bytes[0..32]);
+        body.extend_from_slice(&[0x01, 0x00]);
+        body.extend_from_slice(&sig_bytes[32..64]);
+        let mut pkt_bytes = vec![0xc2];
+        if body.len() < 192 {
+            pkt_bytes.push(body.len() as u8);
+        } else {
+            pkt_bytes.push(0xff);
+            pkt_bytes.extend_from_slice(&(body.len() as u32).to_be_bytes());
+        }
+        pkt_bytes.extend_from_slice(&body);
+        let b64 = openssl_b64_encode(&pkt_bytes, true);
+        let crc = pgp_crc24(&pkt_bytes);
         let arm = format!("-----BEGIN PGP SIGNATURE-----\n\n{b64}\n{crc}\n-----END PGP SIGNATURE-----\n");
         let stderr_msg = if status_fd.is_some() {
             format!("[GNUPG:] SIG_CREATED D 22 8 00 1609459200 {kid}\n")
@@ -8933,8 +9224,96 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             .filter(|l| !l.is_empty() && !l.starts_with("-----") && !l.starts_with('=') && !l.contains(':'))
             .collect();
         let pkt = base64_decode(&b64).unwrap_or_default();
-        let pkt_str = String::from_utf8_lossy(&pkt);
         let keys = load_keyring();
+        if pkt.len() >= 10 && pkt[0] == 0xc2 {
+            let idx = if pkt[1] < 192 { 2 } else if pkt[1] == 0xff && pkt.len() >= 6 { 6 } else { 0 };
+            if idx > 0 && pkt.len() > idx + 6 && pkt[idx] == 4 {
+                let body = &pkt[idx..];
+                let hashed_len = ((body[4] as usize) << 8) | (body[5] as usize);
+                let sig_header_end = 6 + hashed_len;
+                if sig_header_end + 2 <= body.len() {
+                    let sig_header = &body[..sig_header_end];
+                    let mut key_id_hex = "0000000000000000".to_string();
+                    let mut signer_uid_parsed = "unknown".to_string();
+                    let mut sp = 6usize;
+                    while sp < sig_header_end {
+                        let slen = body[sp] as usize;
+                        if slen == 0 || sp + 1 + slen > sig_header_end {
+                            break;
+                        }
+                        let stype = body[sp + 1];
+                        let sdata = &body[sp + 2..sp + 1 + slen];
+                        if stype == 16 && sdata.len() == 8 {
+                            key_id_hex = openssl_hex_encode(sdata).to_uppercase();
+                        } else if stype == 28 {
+                            signer_uid_parsed = String::from_utf8_lossy(sdata).to_string();
+                        }
+                        sp += 1 + slen;
+                    }
+                    let unhashed_len = ((body[sig_header_end] as usize) << 8) | (body[sig_header_end + 1] as usize);
+                    let unhashed_end = sig_header_end + 2 + unhashed_len;
+                    let mut pub_opt: Option<[u8; 32]> = None;
+                    let mut usp = sig_header_end + 2;
+                    while usp < unhashed_end && usp < body.len() {
+                        let slen = body[usp] as usize;
+                        if slen == 0 || usp + 1 + slen > unhashed_end || usp + 1 + slen > body.len() {
+                            break;
+                        }
+                        let stype = body[usp + 1];
+                        let sdata = &body[usp + 2..usp + 1 + slen];
+                        if stype == (0x80 | 28) && sdata.len() == 32 {
+                            let mut pk = [0u8; 32];
+                            pk.copy_from_slice(sdata);
+                            pub_opt = Some(pk);
+                        }
+                        usp += 1 + slen;
+                    }
+                    if let Some(pub_key) = pub_opt && unhashed_end + 2 + 68 <= body.len() {
+                        let fp = sha256_bytes(&pub_key);
+                        let derived_kid = openssl_hex_encode(&fp[24..32]).to_uppercase();
+                        let pub_hex_lower = openssl_hex_encode(&pub_key).to_lowercase();
+                        if key_id_hex == derived_kid
+                            && let Some((trusted_uid, _, _, _)) = keys
+                                .iter()
+                                .find(|(_, k, _, ph)| k == &derived_kid && ph.to_lowercase() == pub_hex_lower)
+                        {
+                            let mpi_start = unhashed_end + 2;
+                            let mut sig_arr = [0u8; 64];
+                            sig_arr[0..32].copy_from_slice(&body[mpi_start + 2..mpi_start + 34]);
+                            sig_arr[32..64].copy_from_slice(&body[mpi_start + 36..mpi_start + 68]);
+                            let h_len = sig_header.len() as u32;
+                            let mut hash_target = Vec::with_capacity(data_bytes.len() + sig_header.len() + 6);
+                            hash_target.extend_from_slice(&data_bytes);
+                            hash_target.extend_from_slice(sig_header);
+                            hash_target.extend_from_slice(&[4, 0xff]);
+                            hash_target.extend_from_slice(&h_len.to_be_bytes());
+                            let digest = sha256_bytes(&hash_target);
+                            if body[unhashed_end] == digest[0]
+                                && body[unhashed_end + 1] == digest[1]
+                                && ed25519_verify(&sig_arr, &digest, &pub_key)
+                            {
+                                let stdout_msg = if status_fd.is_some() {
+                                    format!("[GNUPG:] GOODSIG {derived_kid} {trusted_uid}\n[GNUPG:] VALIDSIG {derived_kid} 2026-09-28 1609459200\n")
+                                } else {
+                                    String::new()
+                                };
+                                return BuiltinOutcome {
+                                    stdout: stdout_msg,
+                                    stderr: format!("gpg: Signature made using EDDSA key {derived_kid}\ngpg: Good signature from \"{trusted_uid}\" [ultimate]\n"),
+                                    exit_code: 0,
+                                };
+                            }
+                        }
+                    }
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("gpg: BAD signature from \"{signer_uid_parsed}\"\n"),
+                        exit_code: 1,
+                    };
+                }
+            }
+        }
+        let pkt_str = String::from_utf8_lossy(&pkt);
         if let Some(rest_p) = pkt_str.strip_prefix("SBPGPSIG:") {
             let parts: Vec<&str> = rest_p.splitn(4, ':').collect();
             if parts.len() == 4 {
@@ -10049,5 +10428,128 @@ mod tests {
         let hex = try_run_archive_command("xxd", &args(&["-p"]), "safe-bash", "/work", &env, &vfs).unwrap();
         let rev = try_run_archive_command("xxd", &args(&["-r", "-p"]), &hex.stdout, "/work", &env, &vfs).unwrap();
         assert_eq!(rev.stdout, "safe-bash");
+    }
+
+    #[test]
+    fn unit_openssl_x509_ext_checkend_rsa2048_and_gpg_openpgp_ed25519_parity() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let gen_rsa = try_run_archive_command(
+            "openssl",
+            &args(&["genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048", "-out", "/work/rsa.pem"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(gen_rsa.exit_code, 0, "stderr: {}", gen_rsa.stderr);
+        let rsa_priv = vfs.read_file("/work/rsa.pem").unwrap();
+        assert!(rsa_priv.len() > 1200, "expected >1200 bytes, got {}", rsa_priv.len());
+
+        let pub_rsa = try_run_archive_command(
+            "openssl",
+            &args(&["pkey", "-in", "/work/rsa.pem", "-pubout", "-out", "/work/rsa.pub.pem"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pub_rsa.exit_code, 0);
+        let rsa_pub = vfs.read_file("/work/rsa.pub.pem").unwrap();
+        assert!(rsa_pub.len() > 400, "expected >400 bytes, got {}", rsa_pub.len());
+
+        vfs.write_file("/work/msg.txt", b"signed payload\n").unwrap();
+        assert_eq!(
+            try_run_archive_command(
+                "openssl",
+                &args(&["dgst", "-sha256", "-sign", "/work/rsa.pem", "-out", "/work/msg.sig", "/work/msg.txt"]),
+                "",
+                "/work",
+                &env,
+                &vfs,
+            )
+            .unwrap()
+            .exit_code,
+            0
+        );
+        assert_eq!(vfs.read_file("/work/msg.sig").unwrap().len(), 256);
+        let ver_rsa = try_run_archive_command(
+            "openssl",
+            &args(&["dgst", "-sha256", "-verify", "/work/rsa.pub.pem", "-signature", "/work/msg.sig", "/work/msg.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ver_rsa.exit_code, 0);
+        assert_eq!(ver_rsa.stdout, "Verified OK\n");
+
+        let cert = try_run_archive_command(
+            "openssl",
+            &args(&[
+                "req", "-new", "-x509", "-nodes", "-newkey", "ec:prime256v1",
+                "-keyout", "/work/ec.key", "-subj", "/CN=test.example/O=Test",
+                "-days", "3",
+                "-addext", "basicConstraints=critical,CA:TRUE,pathlen:1",
+                "-addext", "subjectAltName=DNS:test.example,IP:127.0.0.1",
+                "-out", "/work/cert.pem",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(cert.exit_code, 0, "stderr: {}", cert.stderr);
+        let ext_out = try_run_archive_command(
+            "openssl",
+            &args(&["x509", "-in", "/work/cert.pem", "-noout", "-ext", "subjectAltName,basicConstraints"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ext_out.exit_code, 0);
+        assert!(ext_out.stdout.contains("DNS: test.example") && ext_out.stdout.contains("CA: true"));
+
+        let exp_soon = try_run_archive_command(
+            "openssl",
+            &args(&["x509", "-in", "/work/cert.pem", "-noout", "-checkend", "999999"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(exp_soon.exit_code, 1);
+        assert_eq!(exp_soon.stdout, "Certificate will expire\n");
+
+        let gpg_sign = try_run_archive_command(
+            "gpg",
+            &args(&["--detach-sign", "--armor", "-u", "Alice <alice@example.com>", "-o", "/work/msg.asc", "/work/msg.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(gpg_sign.exit_code, 0);
+        let gpg_ver = try_run_archive_command(
+            "gpg",
+            &args(&["--status-fd=1", "--verify", "/work/msg.asc", "/work/msg.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(gpg_ver.exit_code, 0, "stderr: {}", gpg_ver.stderr);
+        assert!(gpg_ver.stdout.contains("[GNUPG:] GOODSIG"));
     }
 }

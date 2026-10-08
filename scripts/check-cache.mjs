@@ -446,6 +446,8 @@ export function prepareBuildCache(plan, stages, { cacheStore, cacheFiles, enviro
     "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build && tsc --project tsconfig.build.json",
     "node ../../scripts/guard-package-dist.mjs && node scripts/generate-provider-registry.mjs && tsc",
     "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "node scripts/generate-word-ranges.mjs && node scripts/generate-printable-ranges.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "node scripts/generate-package-program.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
     "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && node scripts/build-python-worker.mjs && tsc",
     "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",
     "node scripts/harfbuzz/verify.mjs && node ../../scripts/guard-package-dist.mjs && tsc",

@@ -399,7 +399,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     assert.ok(svg?.type === "tag");
     assert.equal(svg.attribs.viewBox, "0 0 300 200");
     const glyphs = DomUtils.findAll(node => node.name === "path" && node.attribs["aria-label"] !== undefined, svg.children);
-    assert.equal(glyphs.map(node => node.type === "tag" ? node.attribs["aria-label"] : "").join(""), "Packet Page 1");
+    assert.equal(glyphs.map(node => node.type === "tag" ? node.attribs["aria-label"] : "").join(""), "PacketPage1");
     for (const glyph of glyphs) {
       assert.ok(glyph.type === "tag");
       if (glyph.attribs["aria-label"]?.trim()) {

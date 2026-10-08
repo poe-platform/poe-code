@@ -63,7 +63,7 @@ test("expression file obeys selector byte budget before output publication", asy
   assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), "keep");
 });
 
-for (const expression of ["!name", "name*", "name:n", "upper(name)"]) {
+for (const expression of ["!name", "name*", "name:n", "unknown_fn(name)"]) {
   test(`xan expression refuses unsupported syntax ${expression}`, async () => {
     const result = await run("xan", ["select", "-e", expression, "data"], { fs: await fixture({ data: "name,n\nAda,1\n" }), commands: createXanCommands() });
     assert.equal(result.exitCode, 1);

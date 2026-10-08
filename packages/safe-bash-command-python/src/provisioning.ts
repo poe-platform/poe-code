@@ -272,7 +272,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
   const noCache=context.noCache??options.noCache??false;
   // Keep the implicit environment manifest in its original owner. Artifact
   // payloads default to caller storage instead of an unbounded memory cache.
-  const artifactDirectory=directory??(!options.cache&&!noCache?resolve(context.cwd,'.python-packages','cache',runtimeKey):undefined);
+  const artifactDirectory=directory??(!options.cache&&options.maxCacheBytes===undefined&&!noCache?resolve(context.cwd,'.python-packages','cache',runtimeKey):undefined);
   const cache = options.cache ?? (!artifactDirectory ? defaultCache : {
    async get(key: string) { try { return await context.fs.readFile(resolve(artifactDirectory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },

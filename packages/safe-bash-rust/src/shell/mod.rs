@@ -214,4 +214,14 @@ mod tests {
         assert_eq!(res.stdout, "rc=5 pipe=2 0 5\n");
     }
 
+    #[test]
+    fn unit_shell_persists_cwd_and_env_across_exec_calls() {
+        let (mut shell, vfs) = Shell::with_memory_fs();
+        vfs.mkdir_all("/workspace/proj").unwrap();
+        shell.exec("cd /workspace/proj && export BUILD_ID=42").unwrap();
+        let res = shell.exec("printf '%s:%s' \"$(pwd)\" \"$BUILD_ID\"").unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "/workspace/proj:42");
+    }
+
 }

@@ -850,4 +850,17 @@ mod tests {
         let exported = vfs.export_entries().unwrap();
         assert!(exported.iter().any(|e| e.path == "/a/b/orig.txt"));
     }
+
+    #[test]
+    fn memory_vfs_append_and_replace_entries_roundtrip() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/logs").unwrap();
+        vfs.write_file("/logs/app.log", b"line1\n").unwrap();
+        vfs.append_file("/logs/app.log", b"line2\n").unwrap();
+        assert_eq!(vfs.read_file("/logs/app.log").unwrap(), b"line1\nline2\n");
+        let snap = vfs.export_entries().unwrap();
+        let vfs2 = MemoryVfs::new();
+        vfs2.replace_entries(&snap).unwrap();
+        assert_eq!(vfs2.read_file("/logs/app.log").unwrap(), b"line1\nline2\n");
+    }
 }

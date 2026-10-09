@@ -960,4 +960,10 @@ mod tests {
         let parsed = parse_script(script).unwrap();
         assert_eq!(parsed.lists.len(), 2);
     }
+
+    #[test]
+    fn unit_validate_basic_syntax_rejects_unmatched_quotes_and_keywords() {
+        assert!(validate_basic_syntax("echo \"unterminated").is_err());
+        assert!(validate_basic_syntax("if true; then echo hi").is_err());
+    }
 }

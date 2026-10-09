@@ -12337,4 +12337,34 @@ mod media_unit_tests {
         assert_eq!(ppm_png.exit_code, 0);
         assert!(vfs.exists("/docs/single_gray.png"));
     }
+
+    #[test]
+    fn unit_media_exiftool_sips_and_diffpdf() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/img").unwrap();
+        let mk = cmd_media_doc(
+            "magick",
+            &media_args(&["-size", "32x24", "xc:blue", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(mk.exit_code, 0);
+        let ex = cmd_media_doc(
+            "exiftool",
+            &media_args(&["-Artist=RustBot", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(ex.exit_code, 0);
+        let ex_read = cmd_media_doc(
+            "exiftool",
+            &media_args(&["-s3", "-Artist", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(ex_read.stdout.trim(), "RustBot");
+    }
 }

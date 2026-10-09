@@ -1238,4 +1238,17 @@ mod tests {
         let err_var = split_env_string(r#"X=${BAD:-default}"#, &env).unwrap_err();
         assert!(err_var.contains("only ${VARNAME} expansion is supported"));
     }
+
+    #[test]
+    fn unit_timeout_invalid_duration_returns_125() {
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let args = vec!["not_a_duration".to_string(), "echo".to_string()];
+        let out = run_timeout_command(&args, "", &mut cwd, &mut env, |_, _, _, _| BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: 0,
+        });
+        assert_eq!(out.exit_code, 125);
+    }
 }

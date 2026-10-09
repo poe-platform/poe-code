@@ -1419,4 +1419,17 @@ mod tests {
         let um_get = try_run_builtin("umask", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
         assert_eq!(um_get.stdout, "0027\n");
     }
+
+    #[test]
+    fn unit_builtins_true_false_colon_and_pwd() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+        let mut env = BTreeMap::new();
+        let mut cwd = "/work/dir".to_string();
+        let mut stdin = String::new();
+        assert_eq!(try_run_builtin("true", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 0);
+        assert_eq!(try_run_builtin(":", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 0);
+        assert_eq!(try_run_builtin("false", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 1);
+        assert_eq!(try_run_builtin("pwd", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().stdout, "/work/dir\n");
+    }
 }

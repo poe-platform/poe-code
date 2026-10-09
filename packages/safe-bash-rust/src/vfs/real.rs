@@ -160,4 +160,19 @@ mod tests {
 
         let _ = std::fs::remove_dir_all(&tmp_root);
     }
+
+    #[test]
+    fn unit_real_vfs_append_and_remove_recursive() {
+        let tmp_root = std::env::temp_dir().join(format!("safe_bash_real_vfs_app_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&tmp_root);
+        std::fs::create_dir_all(&tmp_root).unwrap();
+        let vfs = RealVfs::new(&tmp_root).unwrap();
+        vfs.mkdir_all("/sub/tree").unwrap();
+        vfs.write_file("/sub/tree/log.txt", b"a").unwrap();
+        vfs.append_file("/sub/tree/log.txt", b"b").unwrap();
+        assert_eq!(vfs.read_file("/sub/tree/log.txt").unwrap(), b"ab");
+        vfs.remove("/sub", true).unwrap();
+        assert!(!vfs.exists("/sub"));
+        let _ = std::fs::remove_dir_all(&tmp_root);
+    }
 }

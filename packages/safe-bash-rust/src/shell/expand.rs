@@ -2719,4 +2719,14 @@ mod tests {
         let v = eval_arith("10 > 5 ? (1 << 4) : 0", &mut env).unwrap();
         assert_eq!(v, 16);
     }
+
+    #[test]
+    fn unit_parameter_length_default_and_alternate_expansions() {
+        let mut env = BTreeMap::new();
+        env.insert("SET_VAR".to_string(), "value".to_string());
+        env.insert("EMPTY_VAR".to_string(), String::new());
+        assert_eq!(expand_parameter_expr("#SET_VAR", &mut env, 0, &[]).unwrap(), "5");
+        assert_eq!(expand_parameter_expr("EMPTY_VAR:-fallback", &mut env, 0, &[]).unwrap(), "fallback");
+        assert_eq!(expand_parameter_expr("SET_VAR:+alt", &mut env, 0, &[]).unwrap(), "alt");
+    }
 }

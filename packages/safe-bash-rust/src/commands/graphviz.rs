@@ -3787,4 +3787,18 @@ mod graphviz_unit_tests {
         assert_eq!(bad_layout.exit_code, 1);
         assert!(bad_layout.stderr.contains("unsupported layout"));
     }
+
+    #[test]
+    fn unit_graphviz_stdin_and_subgraph_cluster_rendering() {
+        let vfs = MemoryVfs::new();
+        let out = cmd_graphviz(
+            "dot",
+            &gv_args(&["-Tjson"]),
+            "digraph G { subgraph cluster_0 { a -> b; } b -> c; }\n",
+            "/",
+            &vfs,
+        );
+        assert_eq!(out.exit_code, 0);
+        assert!(out.stdout.contains("\"directed\": true") || out.stdout.contains("\"directed\":true"));
+    }
 }

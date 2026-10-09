@@ -844,4 +844,20 @@ mod tests {
         assert!(tokens.contains(&Token::AndIf));
         assert!(tokens.contains(&Token::OrIf));
     }
+
+    #[test]
+    fn unit_tokenize_quoted_heredoc_and_background_semicolon_operators() {
+        let script = "cat <<'RAW'\n$NO_EXPAND\nRAW\necho bg &\n";
+        let tokens = tokenize_shell(script).unwrap();
+        assert!(tokens.iter().any(|t| matches!(
+            t,
+            Token::RedirectHereDoc {
+                fd: 0,
+                delimiter,
+                quoted: true,
+                body
+            } if delimiter == "RAW" && body == "$NO_EXPAND\n"
+        )));
+        assert!(tokens.contains(&Token::Background));
+    }
 }

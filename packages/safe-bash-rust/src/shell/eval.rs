@@ -5682,4 +5682,22 @@ mod tests {
         assert_eq!(res.exit_code, 0);
         assert_eq!(res.stdout, "swapped=err_msg\n");
     }
+
+    #[test]
+    fn unit_eval_return_trap_and_process_substitution() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        let res = state
+            .eval_script_str(
+                "f() { trap 'echo RET' RETURN; echo IN; }; f; cat <(printf 'procsub\\n')",
+                "",
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "IN\nRET\nprocsub\n");
+    }
 }

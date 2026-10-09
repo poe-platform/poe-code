@@ -2145,6 +2145,9 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             i += 1;
             continue;
         }
+        if a.starts_with("--") {
+            return err_out(&format!("xxd: unrecognized option '{a}'\n"), 2);
+        }
         let chars: Vec<char> = a[1..].chars().collect();
         let mut c_idx = 0usize;
         while c_idx < chars.len() {
@@ -2242,6 +2245,12 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     } else {
         2
     });
+    if little_endian && group_bytes != 0 && !group_bytes.is_power_of_two() {
+        return err_out(
+            "xxd: number of octets per group must be a power of 2 with -e\n",
+            2,
+        );
+    }
 
     let infile = operands.first().map(|s| s.as_str()).unwrap_or("-");
     let outfile = operands.get(1).map(|s| s.as_str());
@@ -2250,9 +2259,20 @@ fn cmd_xxd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         crate::vfs::stream_string_to_bytes(stdin)
     } else {
         let full = resolve_posix_path(cwd, infile);
+        if fs.is_dir(&full) {
+            return err_out(
+                &format!("xxd: EISDIR: illegal operation on a directory, readStream '{full}'\n"),
+                1,
+            );
+        }
         match fs.read_file(&full) {
             Ok(b) => b,
-            Err(_) => return err_out(&format!("xxd: {infile}: No such file\n"), 2),
+            Err(_) => {
+                return err_out(
+                    &format!("xxd: ENOENT: no such file or directory, readStream '{full}'\n"),
+                    2,
+                )
+            }
         }
     };
 
@@ -3072,10 +3092,11 @@ fn format_hexdump_block(block: &[u8], used: usize, address: usize, format: &str)
 }
 
 fn parse_hexdump_num(text: &str, is_skip: bool) -> Result<usize, String> {
+    let kind = if is_skip { "skip" } else { "length" };
     let s = text.trim_start();
     let s = s.strip_prefix('+').unwrap_or(s);
     if s.starts_with('-') {
-        return Err(format!("{text}: bad value"));
+        return Err(format!("{text}: bad {kind} value"));
     }
     let (base, digits_and_suffix) = if is_skip && (s.starts_with("0x") || s.starts_with("0X")) {
         (16u32, &s[2..])
@@ -3097,7 +3118,7 @@ fn parse_hexdump_num(text: &str, is_skip: bool) -> Result<usize, String> {
     let mut val = if num_part.is_empty() {
         0usize
     } else {
-        usize::from_str_radix(num_part, base).map_err(|_| format!("{text}: bad value"))?
+        usize::from_str_radix(num_part, base).map_err(|_| format!("{text}: bad {kind} value"))?
     };
     if is_skip {
         let mult = match suffix {
@@ -3168,7 +3189,15 @@ fn cmd_hexdump(
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out(&format!("{name}: option requires an argument -- '{flag}'\n"), 1);
+                        if flag == 'e' {
+                            return err_out(&format!("{name}: -e requires a format\n"), 1);
+                        }
+                        return err_out(
+                            &format!(
+                                "{name}: option requires an argument -- '{flag}'\nusage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n"
+                            ),
+                            1,
+                        );
                     };
                     if flag == 'n' {
                         match parse_hexdump_num(&param, false) {
@@ -3188,6 +3217,7 @@ fn cmd_hexdump(
                     }
                     break;
                 }
+                'f' => return err_out(&format!("{name}: -f: format files are not supported\n"), 1),
                 _ => return err_out(&format!("{name}: unsupported option -- '{flag}'\n"), 1),
             }
             c_idx += 1;
@@ -3482,7 +3512,9 @@ fn parse_od_formats(text: &str) -> Result<Vec<OdFormat>, String> {
         let mut size = 1usize;
         if kind != 'a' && kind != 'c' {
             if !"douxf".contains(kind) {
-                return Err(format!("unsupported type '{text}'"));
+                return Err(format!(
+                    "unsupported type '{text}': use a, c, f4/f8 or d/o/u/x with size 1, 2, 4, or 8"
+                ));
             }
             if let Some(&next) = chars.get(offset) {
                 let mapped = match next {
@@ -3508,7 +3540,9 @@ fn parse_od_formats(text: &str) -> Result<Vec<OdFormat>, String> {
                 matches!(size, 1 | 2 | 4 | 8)
             };
             if !valid {
-                return Err(format!("unsupported type '{text}'"));
+                return Err(format!(
+                    "unsupported type '{text}': use a, c, f4/f8 or d/o/u/x with size 1, 2, 4, or 8"
+                ));
             }
         }
         let mut printable = false;
@@ -3726,33 +3760,61 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
         if a.starts_with("--") {
             match a {
+                "--version" => return ok_out("od (safe-bash virtual implementation)\n"),
+                "--help" => {
+                    return ok_out(
+                        "Usage: od [OPTION]... [FILE]...\nPrint input bytes in selected numeric formats.\n\nCommon supported options (additional behavior is documented in the package):\n  -A, --address-radix=RADIX\n  -j, --skip-bytes=NUM\n  -N, --read-bytes=NUM\n  -t, --format=TYPE, --type=TYPE\n  -w, --width=NUM\n  --endian=ORDER\n  -v, --output-duplicates\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n",
+                    )
+                }
                 "--output-duplicates" => verbose = true,
+                _ if a.starts_with("--output-duplicates=") => {
+                    return err_out(
+                        "od: option '--output-duplicates' does not take an argument\n",
+                        2,
+                    );
+                }
                 "--strings" => strings_min = Some(3),
                 _ if a.starts_with("--strings=") => {
                     match parse_od_numeric(&a["--strings=".len()..], false) {
                         Ok(v) if v >= 1 => strings_min = Some(v),
-                        _ => return err_out("od: invalid strings length\n", 2),
+                        Ok(_) => return err_out("od: minimum string length must be positive\n", 2),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
                     }
                 }
                 "--width" => requested_width = 32,
                 _ if a.starts_with("--width=") => {
                     match parse_od_numeric(&a["--width=".len()..], false) {
                         Ok(v) if v >= 1 => requested_width = v,
-                        _ => return err_out("od: invalid width\n", 2),
+                        Ok(_) => return err_out("od: width must be positive\n", 2),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
                     }
                 }
                 "--endian=big" => big_endian = true,
                 "--endian=little" => big_endian = false,
+                _ if a.starts_with("--endian=") => {
+                    return err_out("od: endian must be little or big\n", 2);
+                }
                 "--endian" if i + 1 < args.len() => {
                     i += 1;
-                    big_endian = args[i] == "big";
+                    match args[i].as_str() {
+                        "big" => big_endian = true,
+                        "little" => big_endian = false,
+                        _ => return err_out("od: endian must be little or big\n", 2),
+                    }
                 }
                 _ if a.starts_with("--address-radix=") => {
-                    addr_radix = a["--address-radix=".len()..].chars().next().unwrap_or('o');
+                    let val = &a["--address-radix=".len()..];
+                    match val {
+                        "d" | "o" | "x" | "n" => addr_radix = val.chars().next().unwrap(),
+                        _ => return err_out("od: address radix must be d, o, x, or n\n", 2),
+                    }
                 }
                 "--address-radix" if i + 1 < args.len() => {
                     i += 1;
-                    addr_radix = args[i].chars().next().unwrap_or('o');
+                    match args[i].as_str() {
+                        "d" | "o" | "x" | "n" => addr_radix = args[i].chars().next().unwrap(),
+                        _ => return err_out("od: address radix must be d, o, x, or n\n", 2),
+                    }
                 }
                 _ if a.starts_with("--skip-bytes=") => {
                     match parse_od_numeric(&a["--skip-bytes=".len()..], true) {
@@ -3788,6 +3850,10 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     i += 1;
                     type_specs.push(args[i].clone());
                 }
+                "--address-radix" | "--skip-bytes" | "--read-bytes" | "--format" | "--type"
+                | "--endian" => {
+                    return err_out(&format!("od: option '{a}' requires an argument\n"), 2);
+                }
                 _ => return err_out(&format!("od: unrecognized option '{a}'\n"), 2),
             }
             i += 1;
@@ -3797,6 +3863,17 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         let mut c_idx = 0usize;
         while c_idx < chars.len() {
             let flag = chars[c_idx];
+            if flag == 'e' {
+                let rest: String = chars[c_idx + 1..].iter().collect();
+                let next_arg = args.get(i + 1).map(|s| s.as_str());
+                if rest == "big"
+                    || rest == "little"
+                    || next_arg == Some("big")
+                    || next_arg == Some("little")
+                {
+                    return err_out("od: use --endian=little or --endian=big; -e is unsupported\n", 2);
+                }
+            }
             if flag == 'v' {
                 verbose = true;
             } else if flag == 'S' {
@@ -3806,7 +3883,8 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 } else {
                     match parse_od_numeric(&rest, false) {
                         Ok(v) if v >= 1 => strings_min = Some(v),
-                        _ => return err_out("od: invalid strings length\n", 2),
+                        Ok(_) => return err_out("od: minimum string length must be positive\n", 2),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
                     }
                 }
                 break;
@@ -3817,7 +3895,8 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 } else {
                     match parse_od_numeric(&rest, false) {
                         Ok(v) if v >= 1 => requested_width = v,
-                        _ => return err_out("od: invalid width\n", 2),
+                        Ok(_) => return err_out("od: width must be positive\n", 2),
+                        Err(e) => return err_out(&format!("od: {e}\n"), 2),
                     }
                 }
                 break;
@@ -3834,7 +3913,10 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     return err_out(&format!("od: option '-{flag}' requires an argument\n"), 2);
                 };
                 match flag {
-                    'A' => addr_radix = param.chars().next().unwrap_or('o'),
+                    'A' => match param.as_str() {
+                        "d" | "o" | "x" | "n" => addr_radix = param.chars().next().unwrap(),
+                        _ => return err_out("od: address radix must be d, o, x, or n\n", 2),
+                    },
                     'j' => match parse_od_numeric(&param, true) {
                         Ok(v) => skip_bytes = v,
                         Err(e) => return err_out(&format!("od: {e}\n"), 2),
@@ -3881,11 +3963,20 @@ fn cmd_od(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 }
             } else {
                 let full = resolve_posix_path(cwd, f);
+                if fs.is_dir(&full) {
+                    exit_code = 1;
+                    err_buf.push_str(&format!(
+                        "od: EISDIR: illegal operation on a directory, readStream '{full}'\n"
+                    ));
+                    continue;
+                }
                 match fs.read_file(&full) {
                     Ok(b) => data.extend_from_slice(&b),
-                    Err(e) => {
+                    Err(_) => {
                         exit_code = 1;
-                        err_buf.push_str(&format!("od: {f}: {e}\n"));
+                        err_buf.push_str(&format!(
+                            "od: ENOENT: no such file or directory, readStream '{full}'\n"
+                        ));
                     }
                 }
             }
@@ -4145,6 +4236,7 @@ fn tar_strip_components(name: &str, strip: usize, is_dir: bool) -> Option<String
 }
 
 fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    const TAR_HELP_TEXT: &str = "Usage: tar [OPTION]... [FILE]...\nCreate, read or modify USTAR/PAX archives in the virtual filesystem.\n\n  -c, --create             Create an archive\n  -t, --list               List archive members\n  -x, --extract, --get      Extract archive members\n  -O, --to-stdout          Extract file contents to standard output\n  -r, --append             Append files to an uncompressed archive\n  -u, --update             Append files newer than archived members\n  -d, --compare, --diff    Compare archive members with filesystem entries\n      --delete            Delete selected archive members\n  -A, --catenate, --concatenate Append archives to an uncompressed archive\n  -f, --file=ARCHIVE        Use ARCHIVE (default - for standard input/output)\n  -z, --gzip               Use gzip compression\n  -j, --bzip2              Use bzip2 compression\n  -J, --xz                 Use xz compression\n  -a, --auto-compress      Select output compression by archive suffix\n  -b, --blocking-factor=N  Use N 512-byte blocks per output record\n      --record-size=SIZE  Set output record bytes (multiple of 512; K/M/G suffixes)\n  -B, --read-full-records  Join short reads (always enabled for VFS streams)\n  -i, --ignore-zeros       Read past zero blocks, including concatenated archives\n  -n, --seek               Accept seekable input; VFS reads remain sequential\n      --no-seek           Read sequentially\n      --force-local       Treat archive names as local VFS paths (always enabled)\n      --utc               Show UTC timestamps; implies verbose listing\n      --quoting-style=STYLE Display literal, escape (default), or c filenames\n      --totals            Report archive bytes read or written to stderr\n  -v, --verbose            List processed members\n  -C, --directory=DIR      Change directory for subsequent operands\n  -T, --files-from=FILE    Read filenames from FILE (- for standard input)\n      --null              Read NUL-delimited filenames; implies verbatim names\n      --no-null           Read newline-delimited filenames\n      --verbatim-files-from Treat file-list entries as literal filenames\n      --no-verbatim-files-from Enable supported file-list directory options\n      --exclude=PATTERN   Exclude paths from subsequent sources\n      --exclude-caches    Keep cache directories and tags, omit other contents\n      --no-recursion      Archive subsequent directories without their contents\n      --recursion         Recurse into subsequent directories (default)\n      --sort=ORDER        Order directory children by name or none (default)\n  -h, --dereference       Archive symbolic-link targets during creation\n  -X, --exclude-from=FILE Read newline-delimited exclusion patterns\n      --wildcards         Select archive members with anchored glob patterns\n      --no-wildcards      Select literal member names (default)\n      --occurrence[=NUM]  Select only occurrence NUM of each operand (default 1)\n      --strip-components=NUM Remove leading components when reading archives\n      --transform=EXPR    Substitute member names (s/old/new/[gix])\n      --show-transformed-names Display transformed names in archive listings\n      --format=FORMAT     Create pax (default), posix or ustar archives\n      --mtime=DATE        Override creation mtime (@seconds or ISO/RFC date)\n      --owner=ID          Override numeric creation owner\n      --group=ID          Override numeric creation group\n      --mode=OCTAL        Override creation permission bits\n      --numeric-owner     Use numeric ownership IDs\n      --full-time         Show full UTC timestamps in verbose listings\n  -m, --touch              Retain current extraction timestamps\n  -p, --same-permissions   Restore ordinary archive permission bits\n      --no-same-permissions Apply virtual 022 mask to ordinary permissions\n      --no-same-owner     Retain filesystem-assigned ownership\n      --atime-preserve[=replace] Restore source access times after creation\n      --delay-directory-restore Restore directory metadata at archive end\n      --no-delay-directory-restore Restore after leaving each directory subtree\n  -k, --keep-old-files     Keep existing files and report conflicts as errors\n      --skip-old-files    Skip existing files without reporting errors\n      --overwrite         Replace existing entries using safe extraction checks\n      --help              Display this help and exit\n      --                  End options; remaining arguments are filenames\n\nExactly one of -c, -t, -x, -r, -u, -d, --delete or -A is required.\nWhen reading, gzip, bzip2 and xz compression is detected from archive bytes.\nExamples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C directory\n";
     let mut create = false;
     let mut extract = false;
     let mut list = false;
@@ -4153,6 +4245,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut delete_mode = false;
     let mut diff_mode = false;
     let mut catenate_mode = false;
+    let mut selected_mode: Option<&str> = None;
+    let mut explicit_compress: Option<&str> = None;
+    let mut has_files_from = false;
     let mut to_stdout = false;
     let mut null_delim = false;
     let mut verbatim_files_from = false;
@@ -4267,6 +4362,44 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         };
 
+    let validate_record_size = |val: &str, is_record_size: bool| -> Result<(), &'static str> {
+        let mut digits = val;
+        let mut mult: u64 = if is_record_size { 1 } else { 512 };
+        if is_record_size
+            && let Some(last) = digits.chars().last()
+        {
+            let s_mult = match last {
+                'c' => Some(1u64),
+                'w' => Some(2),
+                'b' => Some(512),
+                'k' | 'K' => Some(1024),
+                'M' => Some(1024 * 1024),
+                'G' => Some(1024 * 1024 * 1024),
+                _ => None,
+            };
+            if let Some(m) = s_mult {
+                mult = m;
+                digits = &digits[..digits.len() - 1];
+            }
+        }
+        if let Some(stripped) = digits.strip_prefix('+') {
+            digits = stripped;
+        }
+        if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+            return Err("record size must be a positive multiple of 512");
+        }
+        let Ok(n) = digits.parse::<u64>() else {
+            return Err("record size must be a positive multiple of 512");
+        };
+        let Some(sz) = n.checked_mul(mult) else {
+            return Err("record size must be a positive multiple of 512");
+        };
+        if sz == 0 || sz % 512 != 0 {
+            return Err("record size must be a positive multiple of 512");
+        }
+        Ok(())
+    };
+
     let mut i = 0usize;
     let mut end_of_opts = false;
     while i < args.len() {
@@ -4277,6 +4410,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             continue;
         }
         if !end_of_opts {
+            if a == "--help" {
+                return ok_out(TAR_HELP_TEXT);
+            }
             if (a == "-C" || a == "--directory") && i + 1 < args.len() {
                 i += 1;
                 current_dir = resolve_posix_path(&current_dir, &args[i]);
@@ -4290,11 +4426,17 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if (a == "-f" || a == "--file") && i + 1 < args.len() {
                 i += 1;
+                if args[i].is_empty() {
+                    return err_out("tar: empty archive name\n", 2);
+                }
                 archive_file = Some(args[i].clone());
                 i += 1;
                 continue;
             }
             if let Some(f) = a.strip_prefix("--file=") {
+                if f.is_empty() {
+                    return err_out("tar: empty archive name\n", 2);
+                }
                 archive_file = Some(f.to_string());
                 i += 1;
                 continue;
@@ -4323,26 +4465,45 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if a == "--sort" && i + 1 < args.len() {
                 i += 1;
-                if args[i] == "name" {
-                    sort_by_name = true;
+                match args[i].as_str() {
+                    "name" => sort_by_name = true,
+                    "none" => sort_by_name = false,
+                    other => return err_out(&format!("tar: unsupported sort order: {other}\n"), 2),
                 }
                 i += 1;
                 continue;
             }
             if let Some(s) = a.strip_prefix("--sort=") {
-                if s == "name" {
-                    sort_by_name = true;
+                match s {
+                    "name" => sort_by_name = true,
+                    "none" => sort_by_name = false,
+                    other => return err_out(&format!("tar: unsupported sort order: {other}\n"), 2),
                 }
                 i += 1;
                 continue;
             }
             if a == "--quoting-style" && i + 1 < args.len() {
                 i += 1;
+                if !matches!(args[i].as_str(), "literal" | "escape" | "c") {
+                    return err_out(
+                        &format!(
+                            "tar: unsupported quoting style: {}; use literal, escape or c\n",
+                            args[i]
+                        ),
+                        2,
+                    );
+                }
                 quoting_style = args[i].clone();
                 i += 1;
                 continue;
             }
             if let Some(qs) = a.strip_prefix("--quoting-style=") {
+                if !matches!(qs, "literal" | "escape" | "c") {
+                    return err_out(
+                        &format!("tar: unsupported quoting style: {qs}; use literal, escape or c\n"),
+                        2,
+                    );
+                }
                 quoting_style = qs.to_string();
                 i += 1;
                 continue;
@@ -4350,78 +4511,153 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if a == "--mode" && i + 1 < args.len() {
                 i += 1;
                 let m = &args[i];
-                override_mode = u32::from_str_radix(m.trim_start_matches('0'), 8)
-                    .ok()
-                    .or_else(|| u32::from_str_radix(m, 8).ok());
+                if m.is_empty()
+                    || !m.chars().all(|c| ('0'..='7').contains(&c))
+                    || u32::from_str_radix(m, 8).is_err_and(|_| true)
+                    || u32::from_str_radix(m, 8).unwrap_or(0o10000) > 0o7777
+                {
+                    return err_out(&format!("tar: invalid numeric mode: {m}\n"), 2);
+                }
+                override_mode = u32::from_str_radix(m, 8).ok();
                 i += 1;
                 continue;
             }
             if let Some(m) = a.strip_prefix("--mode=") {
-                override_mode = u32::from_str_radix(m.trim_start_matches('0'), 8)
-                    .ok()
-                    .or_else(|| u32::from_str_radix(m, 8).ok());
+                if m.is_empty()
+                    || !m.chars().all(|c| ('0'..='7').contains(&c))
+                    || u32::from_str_radix(m, 8).unwrap_or(0o10000) > 0o7777
+                {
+                    return err_out(&format!("tar: invalid numeric mode: {m}\n"), 2);
+                }
+                override_mode = u32::from_str_radix(m, 8).ok();
                 i += 1;
                 continue;
             }
             if a == "--mtime" && i + 1 < args.len() {
                 i += 1;
-                let clean = args[i].trim_matches(|c| c == '\'' || c == '"');
+                let raw_mt = &args[i];
+                let clean = raw_mt.trim_matches(|c| c == '\'' || c == '"');
+                if clean.is_empty() || clean == "@" {
+                    return err_out(&format!("tar: invalid mtime: {raw_mt}\n"), 2);
+                }
                 if let Some(sec) = clean.strip_prefix('@') {
+                    if sec.parse::<f64>().is_err() {
+                        return err_out(&format!("tar: invalid mtime: {raw_mt}\n"), 2);
+                    }
                     override_mtime = sec.parse::<u64>().ok();
+                } else if !clean.chars().any(|c| c.is_ascii_digit()) {
+                    return err_out(&format!("tar: invalid mtime: {raw_mt}\n"), 2);
                 }
                 i += 1;
                 continue;
             }
             if let Some(mt) = a.strip_prefix("--mtime=") {
                 let clean = mt.trim_matches(|c| c == '\'' || c == '"');
+                if clean.is_empty() || clean == "@" {
+                    return err_out(&format!("tar: invalid mtime: {mt}\n"), 2);
+                }
                 if let Some(sec) = clean.strip_prefix('@') {
+                    if sec.parse::<f64>().is_err() {
+                        return err_out(&format!("tar: invalid mtime: {mt}\n"), 2);
+                    }
                     override_mtime = sec.parse::<u64>().ok();
+                } else if !clean.chars().any(|c| c.is_ascii_digit()) {
+                    return err_out(&format!("tar: invalid mtime: {mt}\n"), 2);
                 }
                 i += 1;
                 continue;
             }
             if a == "--owner" && i + 1 < args.len() {
                 i += 1;
-                override_uid = args[i].trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                let ow = &args[i];
+                if ow.is_empty() || !ow.chars().all(|c| c.is_ascii_digit()) || ow.parse::<u32>().is_err() {
+                    return err_out(&format!("tar: invalid numeric owner: {ow}\n"), 2);
+                }
+                override_uid = ow.parse::<u32>().ok();
                 i += 1;
                 continue;
             }
             if let Some(ow) = a.strip_prefix("--owner=") {
-                override_uid = ow.trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                if ow.is_empty() || !ow.chars().all(|c| c.is_ascii_digit()) || ow.parse::<u32>().is_err() {
+                    return err_out(&format!("tar: invalid numeric owner: {ow}\n"), 2);
+                }
+                override_uid = ow.parse::<u32>().ok();
                 i += 1;
                 continue;
             }
             if a == "--group" && i + 1 < args.len() {
                 i += 1;
-                override_gid = args[i].trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                let gr = &args[i];
+                if gr.is_empty() || !gr.chars().all(|c| c.is_ascii_digit()) || gr.parse::<u32>().is_err() {
+                    return err_out(&format!("tar: invalid numeric group: {gr}\n"), 2);
+                }
+                override_gid = gr.parse::<u32>().ok();
                 i += 1;
                 continue;
             }
             if let Some(gr) = a.strip_prefix("--group=") {
-                override_gid = gr.trim_start_matches(':').parse::<u32>().ok().or(Some(0));
+                if gr.is_empty() || !gr.chars().all(|c| c.is_ascii_digit()) || gr.parse::<u32>().is_err() {
+                    return err_out(&format!("tar: invalid numeric group: {gr}\n"), 2);
+                }
+                override_gid = gr.parse::<u32>().ok();
                 i += 1;
                 continue;
             }
             if a == "--format" && i + 1 < args.len() {
+                if !matches!(args[i + 1].as_str(), "ustar" | "pax" | "posix") {
+                    return err_out(&format!("tar: unsupported archive format: {}\n", args[i + 1]), 2);
+                }
                 i += 2;
                 continue;
             }
-            if a.starts_with("--format=") || a.starts_with("--record-size=") || a.starts_with("--atime-preserve") {
+            if let Some(fmt) = a.strip_prefix("--format=") {
+                if !matches!(fmt, "ustar" | "pax" | "posix") {
+                    return err_out(&format!("tar: unsupported archive format: {fmt}\n"), 2);
+                }
                 i += 1;
                 continue;
             }
+            if let Some(rs) = a.strip_prefix("--record-size=") {
+                if let Err(e) = validate_record_size(rs, true) {
+                    return err_out(&format!("tar: {e}\n"), 2);
+                }
+                i += 1;
+                continue;
+            }
+            if let Some(bf) = a.strip_prefix("--blocking-factor=") {
+                if let Err(e) = validate_record_size(bf, false) {
+                    return err_out(&format!("tar: {e}\n"), 2);
+                }
+                i += 1;
+                continue;
+            }
+            if a == "--atime-preserve" || a == "--atime-preserve=replace" {
+                i += 1;
+                continue;
+            }
+            if a.starts_with("--atime-preserve=") {
+                return err_out(
+                    "tar: only --atime-preserve=replace is supported; filesystem has no no-atime read capability\n",
+                    2,
+                );
+            }
             if (a == "-b" || a == "--blocking-factor" || a == "--record-size") && i + 1 < args.len() {
+                if let Err(e) = validate_record_size(&args[i + 1], a == "--record-size") {
+                    return err_out(&format!("tar: {e}\n"), 2);
+                }
                 i += 2;
                 continue;
             }
             if (a == "-T" || a == "--files-from") && i + 1 < args.len() {
                 i += 1;
                 let ff = args[i].clone();
+                has_files_from = true;
                 pending_files_from.push((ff, null_delim, verbatim_files_from, excludes.len()));
                 i += 1;
                 continue;
             }
             if let Some(ff) = a.strip_prefix("--files-from=") {
+                has_files_from = true;
                 pending_files_from.push((ff.to_string(), null_delim, verbatim_files_from, excludes.len()));
                 i += 1;
                 continue;
@@ -4439,12 +4675,24 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             if a == "--strip-components" && i + 1 < args.len() {
                 i += 1;
-                strip_components = args[i].parse().unwrap_or(0);
+                if args[i].is_empty()
+                    || !args[i].chars().all(|c| c.is_ascii_digit())
+                    || args[i].parse::<usize>().is_err()
+                {
+                    return err_out("tar: invalid strip-components count\n", 2);
+                }
+                strip_components = args[i].parse().unwrap();
                 i += 1;
                 continue;
             }
             if let Some(sc) = a.strip_prefix("--strip-components=") {
-                strip_components = sc.parse().unwrap_or(0);
+                if sc.is_empty()
+                    || !sc.chars().all(|c| c.is_ascii_digit())
+                    || sc.parse::<usize>().is_err()
+                {
+                    return err_out("tar: invalid strip-components count\n", 2);
+                }
+                strip_components = sc.parse().unwrap();
                 i += 1;
                 continue;
             }
@@ -4454,20 +4702,102 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 continue;
             }
             if let Some(occ) = a.strip_prefix("--occurrence=") {
-                occurrence = occ.parse::<usize>().ok().or(Some(1));
+                let Ok(v) = occ.parse::<usize>() else {
+                    return err_out("tar: invalid occurrence count\n", 2);
+                };
+                if v < 1 || !occ.chars().all(|c| c.is_ascii_digit()) {
+                    return err_out("tar: invalid occurrence count\n", 2);
+                }
+                occurrence = Some(v);
                 i += 1;
                 continue;
             }
+            if matches!(
+                a.as_str(),
+                "--directory"
+                    | "--file"
+                    | "--exclude-from"
+                    | "--transform"
+                    | "--xform"
+                    | "--sort"
+                    | "--quoting-style"
+                    | "--mode"
+                    | "--mtime"
+                    | "--owner"
+                    | "--group"
+                    | "--format"
+                    | "--blocking-factor"
+                    | "--record-size"
+                    | "--files-from"
+                    | "--exclude"
+                    | "--strip-components"
+            ) {
+                return err_out(&format!("tar: missing argument for {a}\n"), 2);
+            }
+            if matches!(a.as_str(), "-C" | "-f" | "-X" | "-b" | "-T") {
+                return err_out(&format!("tar: missing argument for {a}\n"), 2);
+            }
             if a.starts_with("--") {
+                if let Some((opt_name, _)) = a[2..].split_once('=') {
+                    return err_out(&format!("tar: option --{opt_name} does not take an argument\n"), 2);
+                }
                 match a.as_str() {
-                    "--create" => create = true,
-                    "--extract" | "--get" => extract = true,
-                    "--list" => list = true,
-                    "--delete" => delete_mode = true,
-                    "--append" => append_mode = true,
-                    "--update" => update_mode = true,
-                    "--diff" | "--compare" => diff_mode = true,
-                    "--catenate" | "--concatenate" => catenate_mode = true,
+                    "--create" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("c");
+                        create = true;
+                    }
+                    "--extract" | "--get" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("x");
+                        extract = true;
+                    }
+                    "--list" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("t");
+                        list = true;
+                    }
+                    "--delete" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("delete");
+                        delete_mode = true;
+                    }
+                    "--append" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("r");
+                        append_mode = true;
+                    }
+                    "--update" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("u");
+                        update_mode = true;
+                    }
+                    "--diff" | "--compare" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("d");
+                        diff_mode = true;
+                    }
+                    "--catenate" | "--concatenate" => {
+                        if selected_mode.is_some() {
+                            return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                        }
+                        selected_mode = Some("A");
+                        catenate_mode = true;
+                    }
                     "--to-stdout" => to_stdout = true,
                     "--null" => {
                         null_delim = true;
@@ -4496,15 +4826,37 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     "--wildcards" => wildcards = true,
                     "--no-wildcards" => wildcards = false,
                     "--verbose" => verbose = true,
+                    "--read-full-records" | "--ignore-zeros" | "--seek" | "--no-seek"
+                    | "--force-local" | "--numeric-owner" | "--no-same-owner" | "--touch"
+                    | "--same-permissions" | "--preserve-permissions" | "--no-same-permissions"
+                    | "--delay-directory-restore" | "--no-delay-directory-restore" => {}
+                    "--same-owner" => {
+                        return err_out(
+                            "tar: filesystem does not support restoring archive ownership\n",
+                            2,
+                        );
+                    }
                     "--gzip" | "--gunzip" | "--ungzip" => {
+                        if explicit_compress.is_some_and(|p| p != "gzip") {
+                            return err_out("tar: conflicting compression options\n", 2);
+                        }
+                        explicit_compress = Some("gzip");
                         use_compress = true;
                         compress_format = Some("gzip");
                     }
                     "--bzip2" | "--bunzip2" => {
+                        if explicit_compress.is_some_and(|p| p != "bzip2") {
+                            return err_out("tar: conflicting compression options\n", 2);
+                        }
+                        explicit_compress = Some("bzip2");
                         use_compress = true;
                         compress_format = Some("bzip2");
                     }
                     "--xz" => {
+                        if explicit_compress.is_some_and(|p| p != "xz") {
+                            return err_out("tar: conflicting compression options\n", 2);
+                        }
+                        explicit_compress = Some("xz");
                         use_compress = true;
                         compress_format = Some("xz");
                     }
@@ -4513,6 +4865,10 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         compress_format = Some("lzma");
                     }
                     "--zstd" => {
+                        if explicit_compress.is_some_and(|p| p != "zstd") {
+                            return err_out("tar: conflicting compression options\n", 2);
+                        }
+                        explicit_compress = Some("zstd");
                         use_compress = true;
                         compress_format = Some("zstd");
                     }
@@ -4520,7 +4876,9 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         use_compress = true;
                         compress_format = Some("auto");
                     }
-                    _ => {}
+                    other => {
+                        return err_out(&format!("tar: unsupported option: {}\n", &other[2..]), 2);
+                    }
                 }
                 i += 1;
                 continue;
@@ -4536,30 +4894,58 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 while ci < chars.len() {
                     match chars[ci] {
                         'c' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("c");
                             create = true;
                             matched_flag = true;
                         }
                         'x' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("x");
                             extract = true;
                             matched_flag = true;
                         }
                         't' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("t");
                             list = true;
                             matched_flag = true;
                         }
                         'r' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("r");
                             append_mode = true;
                             matched_flag = true;
                         }
                         'u' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("u");
                             update_mode = true;
                             matched_flag = true;
                         }
                         'd' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("d");
                             diff_mode = true;
                             matched_flag = true;
                         }
                         'A' => {
+                            if selected_mode.is_some() {
+                                return err_out("tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n", 2);
+                            }
+                            selected_mode = Some("A");
                             catenate_mode = true;
                             matched_flag = true;
                         }
@@ -4580,16 +4966,28 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             matched_flag = true;
                         }
                         'z' => {
+                            if explicit_compress.is_some_and(|p| p != "gzip") {
+                                return err_out("tar: conflicting compression options\n", 2);
+                            }
+                            explicit_compress = Some("gzip");
                             use_compress = true;
                             compress_format = Some("gzip");
                             matched_flag = true;
                         }
                         'j' => {
+                            if explicit_compress.is_some_and(|p| p != "bzip2") {
+                                return err_out("tar: conflicting compression options\n", 2);
+                            }
+                            explicit_compress = Some("bzip2");
                             use_compress = true;
                             compress_format = Some("bzip2");
                             matched_flag = true;
                         }
                         'J' => {
+                            if explicit_compress.is_some_and(|p| p != "xz") {
+                                return err_out("tar: conflicting compression options\n", 2);
+                            }
+                            explicit_compress = Some("xz");
                             use_compress = true;
                             compress_format = Some("xz");
                             matched_flag = true;
@@ -4611,6 +5009,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 archive_file = Some(args[i].clone());
+                            } else {
+                                return err_out("tar: missing argument for -f\n", 2);
                             }
                         }
                         'C' => {
@@ -4622,10 +5022,13 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 current_dir = resolve_posix_path(&current_dir, &args[i]);
+                            } else {
+                                return err_out("tar: missing argument for -C\n", 2);
                             }
                         }
                         'T' => {
                             matched_flag = true;
+                            has_files_from = true;
                             let rest: String = chars[ci + 1..].iter().collect();
                             if !old_style && !rest.is_empty() {
                                 pending_files_from.push((rest, null_delim, verbatim_files_from, excludes.len()));
@@ -4633,6 +5036,8 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 pending_files_from.push((args[i].clone(), null_delim, verbatim_files_from, excludes.len()));
+                            } else {
+                                return err_out("tar: missing argument for -T\n", 2);
                             }
                         }
                         'X' => {
@@ -4644,18 +5049,30 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             } else if i + 1 < args.len() {
                                 i += 1;
                                 read_exclude_file(&args[i], &mut excludes);
+                            } else {
+                                return err_out("tar: missing argument for -X\n", 2);
                             }
                         }
                         'b' => {
                             matched_flag = true;
                             let rest: String = chars[ci + 1..].iter().collect();
                             if !old_style && !rest.is_empty() {
+                                if let Err(e) = validate_record_size(&rest, false) {
+                                    return err_out(&format!("tar: {e}\n"), 2);
+                                }
                                 break;
                             } else if i + 1 < args.len() {
                                 i += 1;
+                                if let Err(e) = validate_record_size(&args[i], false) {
+                                    return err_out(&format!("tar: {e}\n"), 2);
+                                }
+                            } else {
+                                return err_out("tar: missing argument for -b\n", 2);
                             }
                         }
-                        _ => {}
+                        other => {
+                            return err_out(&format!("tar: unsupported option: {other}\n"), 2);
+                        }
                     }
                     ci += 1;
                 }
@@ -4686,6 +5103,30 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             recursion,
             &mut operands,
         );
+    }
+
+    if selected_mode.is_none() {
+        return err_out(
+            "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n",
+            2,
+        );
+    }
+    if occurrence.is_some()
+        && (create || append_mode || update_mode || catenate_mode || operands.is_empty())
+    {
+        return err_out(
+            "tar: --occurrence requires member operands when reading archives\n",
+            2,
+        );
+    }
+    if !list && !extract && strip_components != 0 {
+        return err_out(
+            "tar: --strip-components is only supported when listing or extracting archives\n",
+            2,
+        );
+    }
+    if create && operands.is_empty() && !has_files_from {
+        return err_out("tar: refusing to create an empty archive without -T\n", 2);
     }
 
     if create {
@@ -5720,6 +6161,8 @@ fn cmd_gzip(
 ) -> BuiltinOutcome {
     let is_zstd = matches!(invoked, "zstd" | "unzstd" | "zstdcat");
     let is_gzip = matches!(invoked, "gzip" | "gunzip" | "zcat");
+    let is_bzip2 = matches!(invoked, "bzip2" | "bunzip2" | "bzcat");
+    let is_xz = matches!(invoked, "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat");
     let is_lzma_cmd = matches!(invoked, "lzma" | "unlzma" | "lzcat");
     let mut decompress = matches!(
         invoked,
@@ -5734,6 +6177,15 @@ fn cmd_gzip(
     let mut robot_mode = false;
     let mut test_mode = false;
     let mut recursive = false;
+    let mut help_mode = false;
+    let mut small_mode = false;
+    let mut explicit_xz_check: Option<u8> = None;
+    let mut signed_level: i32 = match invoked {
+        "bzip2" | "bunzip2" | "bzcat" => 9,
+        "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => 1,
+        "zstd" | "unzstd" | "zstdcat" => 3,
+        _ => 6,
+    };
     let mut level: u8 = match invoked {
         "bzip2" | "bunzip2" | "bzcat" => 9,
         "xz" | "unxz" | "xzcat" | "lzma" | "unlzma" | "lzcat" => 1,
@@ -5767,6 +6219,7 @@ fn cmd_gzip(
         }
         if !end_of_opts {
             match a.as_str() {
+                "-h" | "--help" => help_mode = true,
                 "-d" | "--decompress" | "--uncompress" => decompress = true,
                 "-z" | "--compress" => {
                     if is_gzip {
@@ -5783,56 +6236,303 @@ fn cmd_gzip(
                 "-k" | "--keep" => keep = true,
                 "--rm" => keep = false,
                 "-f" | "--force" => force = true,
-                "-q" | "--quiet" | "-v" | "--verbose" | "-n" | "--no-name" | "-s" | "--small"
-                | "-e" | "--extreme" | "--no-progress" | "--single-thread" | "--no-dictID"
+                "-q" | "--quiet" => {
+                    if is_bzip2 {
+                        if a == "-q" {
+                            return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
+                        }
+                        return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
+                    }
+                }
+                "-n" | "--no-name" => {
+                    if !is_gzip {
+                        return err_out(&format!("{invoked}: invalid option -- 'n'\n"), 2);
+                    }
+                }
+                "-s" | "--small" => {
+                    if !is_bzip2 {
+                        return err_out(&format!("{invoked}: invalid option -- 's'\n"), 2);
+                    }
+                    small_mode = true;
+                }
+                "-e" | "--extreme" => {
+                    if !is_xz {
+                        if a == "--extreme" {
+                            return err_out(&format!("{invoked}: unrecognized option '{a}'\n"), 2);
+                        }
+                        return err_out(&format!("{invoked}: invalid option -- 'e'\n"), 2);
+                    }
+                }
+                "-v" | "--verbose" | "--no-progress" | "--single-thread" | "--no-dictID"
                 | "--no-sparse" | "--no-warn" | "--ultra" | "--asyncio" | "--no-asyncio"
                 | "--compress-literals" | "--no-compress-literals" | "--row-match-finder"
                 | "--no-row-match-finder" | "--single-stream" | "--no-adjust"
                 | "--ignore-check" => {}
+                "--adapt" | "--rsyncable" | "--progress" if is_zstd => {
+                    return err_out(
+                        &format!(
+                            "{invoked}: {a} is unsupported by the bounded streaming Zstandard frontend\n"
+                        ),
+                        2,
+                    );
+                }
                 "--pass-through" => passthrough = true,
                 "--no-pass-through" => passthrough = false,
                 "--exclude-compressed" => exclude_compressed = true,
-                "-l" | "--list" => list_mode = true,
-                "--robot" => robot_mode = true,
+                "-l" | "--list" => {
+                    if !is_gzip && !is_xz {
+                        return err_out(&format!("{invoked}: invalid option -- 'l'\n"), 2);
+                    }
+                    list_mode = true;
+                    test_mode = false;
+                }
+                "--robot" => {
+                    if !is_xz {
+                        return err_out(&format!("{invoked}: unrecognized option '{a}'\n"), 2);
+                    }
+                    robot_mode = true;
+                }
                 "-t" | "--test" => test_mode = true,
-                "-r" | "--recursive" => recursive = true,
-                "--fast" => level = 1,
-                "--best" => level = 9,
+                "-r" | "--recursive" => {
+                    if !is_gzip {
+                        return err_out(&format!("{invoked}: invalid option -- 'r'\n"), 2);
+                    }
+                    recursive = true;
+                }
+                "--fast" => {
+                    if is_zstd {
+                        signed_level = -1;
+                    } else {
+                        level = 1;
+                        signed_level = 1;
+                    }
+                }
+                s if is_zstd && s.starts_with("--fast=") => {
+                    let acc = &s["--fast=".len()..];
+                    let Ok(n) = acc.parse::<i32>() else {
+                        return err_out(&format!("{invoked}: invalid fast acceleration '{acc}'\n"), 2);
+                    };
+                    if acc.is_empty() || !acc.chars().all(|c| c.is_ascii_digit()) || n < 1 {
+                        return err_out(&format!("{invoked}: invalid fast acceleration '{acc}'\n"), 2);
+                    }
+                    signed_level = -n;
+                }
+                "--best" => {
+                    level = 9;
+                    signed_level = 9;
+                }
                 "--no-check" => zstd_check = false,
-                "--check" => zstd_check = true,
-                "-C" if is_zstd => zstd_check = true,
+                "--check" if is_zstd => zstd_check = true,
+                "--check" if is_xz => {
+                    let val = if i + 1 < args.len() {
+                        i += 1;
+                        args[i].as_str()
+                    } else {
+                        ""
+                    };
+                    let Some(cid) = parse_xz_check_name(val) else {
+                        return err_out(&format!("{invoked}: unsupported XZ integrity check '{val}'\n"), 2);
+                    };
+                    xz_check = cid;
+                    explicit_xz_check = Some(cid);
+                }
                 "-C" if i + 1 < args.len() => {
+                    if !is_xz {
+                        return err_out(&format!("{invoked}: invalid option -- 'C'\n"), 2);
+                    }
                     i += 1;
                     if let Some(cid) = parse_xz_check_name(&args[i]) {
                         xz_check = cid;
+                        explicit_xz_check = Some(cid);
+                    } else {
+                        return err_out(
+                            &format!("{invoked}: unsupported XZ integrity check '{}'\n", args[i]),
+                            2,
+                        );
                     }
                 }
+                "-C" => {
+                    if !is_xz {
+                        return err_out(&format!("{invoked}: invalid option -- 'C'\n"), 2);
+                    }
+                    return err_out(&format!("{invoked}: unsupported XZ integrity check ''\n"), 2);
+                }
                 s if s.starts_with("--check=") => {
-                    if let Some(cid) = parse_xz_check_name(&s["--check=".len()..]) {
+                    if !is_xz {
+                        return err_out(&format!("{invoked}: unrecognized option '{s}'\n"), 2);
+                    }
+                    let val = &s["--check=".len()..];
+                    if let Some(cid) = parse_xz_check_name(val) {
                         xz_check = cid;
+                        explicit_xz_check = Some(cid);
+                    } else {
+                        return err_out(&format!("{invoked}: unsupported XZ integrity check '{val}'\n"), 2);
                     }
                 }
                 "-F" | "--format" if i + 1 < args.len() => {
                     i += 1;
+                    if is_zstd {
+                        if a == "-F" {
+                            return err_out(&format!("{invoked}: invalid option -- 'F'\n"), 2);
+                        }
+                        if args[i] != "zstd" {
+                            return err_out(&format!("{invoked}: only --format=zstd is supported\n"), 2);
+                        }
+                    } else if is_xz {
+                        if !matches!(args[i].as_str(), "auto" | "xz" | "lzma" | "raw") {
+                            return err_out(&format!("{invoked}: unsupported XZ format\n"), 2);
+                        }
+                    } else {
+                        if a == "-F" {
+                            return err_out(&format!("{invoked}: invalid option -- 'F'\n"), 2);
+                        }
+                        return err_out(&format!("{invoked}: unrecognized option '{a}'\n"), 2);
+                    }
                     xz_format = args[i].clone();
                 }
                 s if s.starts_with("--format=") => {
-                    xz_format = s["--format=".len()..].to_string();
+                    let fmt = &s["--format=".len()..];
+                    if is_zstd {
+                        if fmt != "zstd" {
+                            return err_out(&format!("{invoked}: only --format=zstd is supported\n"), 2);
+                        }
+                    } else if is_xz {
+                        if !matches!(fmt, "auto" | "xz" | "lzma" | "raw") {
+                            return err_out(&format!("{invoked}: unsupported XZ format\n"), 2);
+                        }
+                    } else {
+                        return err_out(&format!("{invoked}: unrecognized option '{s}'\n"), 2);
+                    }
+                    xz_format = fmt.to_string();
                 }
-                "-S" | "--suffix" if i + 1 < args.len() => {
+                "-S" | "--suffix" => {
+                    if !is_gzip && !is_xz {
+                        if a == "-S" {
+                            return err_out(&format!("{invoked}: invalid option -- 'S'\n"), 2);
+                        }
+                        return err_out(&format!("{invoked}: unrecognized option '{a}'\n"), 2);
+                    }
+                    if i + 1 >= args.len() {
+                        let opt_label = if a == "-S" { "'-S'" } else { "'--suffix'" };
+                        return err_out(&format!("{invoked}: option {opt_label} requires an argument\n"), 2);
+                    }
                     i += 1;
+                    if args[i].is_empty() || args[i].contains('/') {
+                        return err_out(&format!("{invoked}: incorrect suffix '{}'\n", args[i]), 2);
+                    }
                     custom_suffix = Some(args[i].clone());
                 }
                 s if s.starts_with("--suffix=") => {
-                    custom_suffix = Some(s["--suffix=".len()..].to_string());
+                    if !is_gzip && !is_xz {
+                        return err_out(&format!("{invoked}: unrecognized option '{s}'\n"), 2);
+                    }
+                    let suf = &s["--suffix=".len()..];
+                    if suf.is_empty() || suf.contains('/') {
+                        return err_out(&format!("{invoked}: incorrect suffix '{suf}'\n"), 2);
+                    }
+                    custom_suffix = Some(suf.to_string());
                 }
                 s if s.starts_with("-S") && s.len() > 2 => {
-                    custom_suffix = Some(s[2..].to_string());
+                    if !is_gzip && !is_xz {
+                        return err_out(&format!("{invoked}: invalid option -- 'S'\n"), 2);
+                    }
+                    let suf = &s[2..];
+                    if suf.is_empty() || suf.contains('/') {
+                        return err_out(&format!("{invoked}: incorrect suffix '{suf}'\n"), 2);
+                    }
+                    custom_suffix = Some(suf.to_string());
                 }
                 "-T" | "--threads" if i + 1 < args.len() => {
+                    if !is_xz && !is_zstd {
+                        if a == "-T" {
+                            return err_out(&format!("{invoked}: invalid option -- 'T'\n"), 2);
+                        }
+                        return err_out(&format!("{invoked}: unrecognized option '{a}'\n"), 2);
+                    }
                     i += 1;
+                    let thr = &args[i];
+                    if is_zstd && a == "--threads" && (thr.is_empty() || !thr.chars().all(|c| c.is_ascii_digit())) {
+                        return err_out(&format!("{invoked}: invalid --threads value\n"), 2);
+                    }
+                    if thr != "0" && thr != "1" {
+                        let label = if a == "-T" {
+                            if is_xz { "xz" } else { "zstd" }
+                        } else if is_xz {
+                            "XZ"
+                        } else {
+                            "Zstandard"
+                        };
+                        return err_out(
+                            &format!(
+                                "{invoked}: only --threads=0 or --threads=1 is supported by the single-threaded {label} codec\n"
+                            ),
+                            2,
+                        );
+                    }
                 }
-                s if s.starts_with("-T") || s.starts_with("--threads=") || s.starts_with("--long")
+                s if s.starts_with("-T") && s.len() > 2 => {
+                    if !is_xz && !is_zstd {
+                        return err_out(&format!("{invoked}: invalid option -- 'T'\n"), 2);
+                    }
+                    let thr = &s[2..];
+                    if thr != "0" && thr != "1" {
+                        let label = if is_xz { "xz" } else { "zstd" };
+                        return err_out(
+                            &format!(
+                                "{invoked}: only --threads=0 or --threads=1 is supported by the single-threaded {label} codec\n"
+                            ),
+                            2,
+                        );
+                    }
+                }
+                s if s.starts_with("--threads=") => {
+                    if !is_xz && !is_zstd {
+                        return err_out(&format!("{invoked}: unrecognized option '{s}'\n"), 2);
+                    }
+                    let thr = &s["--threads=".len()..];
+                    if is_zstd && (thr.is_empty() || !thr.chars().all(|c| c.is_ascii_digit())) {
+                        return err_out(&format!("{invoked}: invalid --threads value\n"), 2);
+                    }
+                    if thr != "0" && thr != "1" {
+                        let label = if is_xz { "XZ" } else { "Zstandard" };
+                        return err_out(
+                            &format!(
+                                "{invoked}: only --threads=0 or --threads=1 is supported by the single-threaded {label} codec\n"
+                            ),
+                            2,
+                        );
+                    }
+                }
+                s if is_zstd && s.starts_with("--long=") => {
+                    let val = &s["--long=".len()..];
+                    if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+                        return err_out(&format!("{invoked}: invalid --long value\n"), 2);
+                    }
+                    let n = val.parse::<u32>().unwrap_or(0);
+                    if !(10..=30).contains(&n) {
+                        return err_out(
+                            &format!("{invoked}: long-distance matching requires a window log from 10 through 30\n"),
+                            2,
+                        );
+                    }
+                }
+                s if is_zstd && s.starts_with("--size-hint=") => {
+                    let val = &s["--size-hint=".len()..];
+                    if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
+                        return err_out(&format!("{invoked}: invalid --size-hint value\n"), 2);
+                    }
+                    let n = val.parse::<u64>().unwrap_or(u64::MAX);
+                    if n > 0x7fffffff {
+                        return err_out(&format!("{invoked}: size hint exceeds the codec parameter limit\n"), 2);
+                    }
+                }
+                s if is_zstd && s.starts_with("--auto-threads=") => {
+                    let val = &s["--auto-threads=".len()..];
+                    if val != "physical" && val != "logical" {
+                        return err_out(&format!("{invoked}: invalid automatic thread selection\n"), 2);
+                    }
+                }
+                s if s.starts_with("--long")
                     || s.starts_with("--stream-size") || s.starts_with("--size-hint")
                     || s.starts_with("--auto-threads") || s.starts_with("--memlimit")
                     || s.starts_with("--block-size") || s.starts_with("--block-list")
@@ -5843,7 +6543,23 @@ fn cmd_gzip(
                     let chars: Vec<char> = s[1..].chars().collect();
                     let mut ci = 0usize;
                     while ci < chars.len() {
+                        if is_zstd && chars[ci].is_ascii_digit() {
+                            let mut end = ci + 1;
+                            while end < chars.len() && chars[end].is_ascii_digit() {
+                                end += 1;
+                            }
+                            let num_str: String = chars[ci..end].iter().collect();
+                            let parsed = num_str.parse::<i32>().unwrap_or(99);
+                            if parsed == 0 {
+                                return err_out(&format!("{invoked}: invalid option -- '0'\n"), 2);
+                            }
+                            signed_level = parsed;
+                            level = parsed.clamp(1, 9) as u8;
+                            ci = end;
+                            continue;
+                        }
                         match chars[ci] {
+                            'h' => help_mode = true,
                             'd' => decompress = true,
                             'z' => {
                                 if is_gzip {
@@ -5856,14 +6572,53 @@ fn cmd_gzip(
                             'c' => to_stdout = true,
                             'k' => keep = true,
                             'f' => force = true,
-                            'l' => list_mode = true,
+                            'l' => {
+                                if !is_gzip && !is_xz {
+                                    return err_out(&format!("{invoked}: invalid option -- 'l'\n"), 2);
+                                }
+                                list_mode = true;
+                                test_mode = false;
+                            }
                             't' => test_mode = true,
-                            'r' => recursive = true,
-                            'q' | 'v' | 'n' | 's' | 'e' => {}
-                            '1'..='9' => level = (chars[ci] as u8) - b'0',
+                            'r' => {
+                                if !is_gzip {
+                                    return err_out(&format!("{invoked}: invalid option -- 'r'\n"), 2);
+                                }
+                                recursive = true;
+                            }
+                            'q' => {
+                                if is_bzip2 {
+                                    return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
+                                }
+                            }
+                            'n' => {
+                                if !is_gzip {
+                                    return err_out(&format!("{invoked}: invalid option -- 'n'\n"), 2);
+                                }
+                            }
+                            's' => {
+                                if !is_bzip2 {
+                                    return err_out(&format!("{invoked}: invalid option -- 's'\n"), 2);
+                                }
+                                small_mode = true;
+                            }
+                            'e' => {
+                                if !is_xz {
+                                    return err_out(&format!("{invoked}: invalid option -- 'e'\n"), 2);
+                                }
+                            }
+                            'v' => {}
+                            '0' if is_xz => {
+                                level = 0;
+                                signed_level = 0;
+                            }
+                            '1'..='9' => {
+                                level = (chars[ci] as u8) - b'0';
+                                signed_level = level as i32;
+                            }
                             'C' => {
-                                if is_zstd {
-                                    zstd_check = true;
+                                if !is_xz {
+                                    return err_out(&format!("{invoked}: invalid option -- 'C'\n"), 2);
                                 } else {
                                     let rest: String = chars[ci + 1..].iter().collect();
                                     let val = if !rest.is_empty() {
@@ -5876,28 +6631,51 @@ fn cmd_gzip(
                                     };
                                     if let Some(cid) = parse_xz_check_name(&val) {
                                         xz_check = cid;
+                                        explicit_xz_check = Some(cid);
+                                    } else {
+                                        return err_out(
+                                            &format!("{invoked}: unsupported XZ integrity check '{val}'\n"),
+                                            2,
+                                        );
                                     }
                                     break;
                                 }
                             }
                             'F' => {
+                                if !is_xz {
+                                    return err_out(&format!("{invoked}: invalid option -- 'F'\n"), 2);
+                                }
                                 let rest: String = chars[ci + 1..].iter().collect();
                                 if !rest.is_empty() {
                                     xz_format = rest;
                                 } else if i + 1 < args.len() {
                                     i += 1;
                                     xz_format = args[i].clone();
+                                } else {
+                                    xz_format = String::new();
+                                }
+                                if !matches!(xz_format.as_str(), "auto" | "xz" | "lzma" | "raw") {
+                                    return err_out(&format!("{invoked}: unsupported XZ format\n"), 2);
                                 }
                                 break;
                             }
                             'S' => {
+                                if !is_gzip && !is_xz {
+                                    return err_out(&format!("{invoked}: invalid option -- 'S'\n"), 2);
+                                }
                                 let rest: String = chars[ci + 1..].iter().collect();
-                                if !rest.is_empty() {
-                                    custom_suffix = Some(rest);
+                                let suf = if !rest.is_empty() {
+                                    rest
                                 } else if i + 1 < args.len() {
                                     i += 1;
-                                    custom_suffix = Some(args[i].clone());
+                                    args[i].clone()
+                                } else {
+                                    return err_out(&format!("{invoked}: option '-S' requires an argument\n"), 2);
+                                };
+                                if suf.is_empty() || suf.contains('/') {
+                                    return err_out(&format!("{invoked}: incorrect suffix '{suf}'\n"), 2);
                                 }
+                                custom_suffix = Some(suf);
                                 break;
                             }
                             ch => {
@@ -5919,6 +6697,56 @@ fn cmd_gzip(
             files.push(a.to_string());
         }
         i += 1;
+    }
+
+    if is_zstd && !(1..=9).contains(&signed_level) {
+        return err_out(
+            &format!(
+                "{invoked}: unsupported compression level {signed_level}; the bounded Zstandard codec supports only levels 1 through 9 (fast mode is unsupported)\n"
+            ),
+            2,
+        );
+    }
+    if small_mode && !decompress {
+        level = level.min(2);
+    }
+    if is_xz
+        && xz_format == "lzma"
+        && !decompress
+        && !test_mode
+        && !list_mode
+        && explicit_xz_check.is_some_and(|c| c != 0)
+    {
+        return err_out(&format!("{invoked}: the LZMA format supports only --check=none\n"), 2);
+    }
+    if is_xz && list_mode && xz_format != "auto" && xz_format != "xz" {
+        return err_out(
+            &format!("{invoked}: --list works only on .xz files (--format=xz or --format=auto)\n"),
+            2,
+        );
+    }
+    if is_xz && robot_mode && !list_mode {
+        return err_out(&format!("{invoked}: robot mode is only supported for --list\n"), 2);
+    }
+    if help_mode {
+        let text = if is_gzip {
+            format!(
+                "Usage: {invoked} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\n-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n"
+            )
+        } else if is_bzip2 {
+            format!(
+                "Usage: {invoked} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-z, --compress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\nDefault compression level: {level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n"
+            )
+        } else if is_zstd {
+            format!(
+                "Usage: {invoked} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n-q, --quiet (repeat to suppress errors)\nDefault compression level: {level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n"
+            )
+        } else {
+            format!(
+                "Usage: {invoked} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n-1..-9, --fast, --best\nDefault compression level: {level}.\n-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n"
+            )
+        };
+        return ok_out(&text);
     }
 
     if list_mode {
@@ -6194,6 +7022,23 @@ fn zip_matches_pattern(pat: &str, name: &str) -> bool {
 }
 
 fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    const ZIP_HELP_TEXT: &str = "safe-bash zip\nUsage: zip [options] archive [file ...]\n       zip [options] - [file ...]       write an archive to stdout\n       zip [options] archive -          read a member from stdin\n\n  -r          recurse into directories\n  -j          store basenames, discarding directory paths\n  -q          suppress progress messages\n  -0          store without compression\n  -1 .. -9    select compression effort\n  -Z METHOD   select store, deflate, bzip2, or lzma compression\n  --encryption PROFILE  select zipcrypto or aes-{128,192,256}-ae{1,2}\n  -n SUFFIXES store matching suffixes (colon-separated)\n  -u / -f     update / freshen existing members\n  -d / -U     delete / copy selected archive members\n  -FS         synchronize selected members with filesystem sources\n  -O FILE     write to a separate output archive\n  -A          adjust validated SFX offsets, retaining the inert prefix\n  -F / -FF    repair from central / local records (requires -O FILE)\n  -s SIZE     split into .z01/.z02/.../.zip volumes (minimum 64k; 0 recombines)\n  -sp         approve volume transitions using an explicit host prompt\n  -sv / -sb   report split volumes / ring before a split-pause prompt\n  -m          remove archived sources after successful publication\n  -D / -y     omit directory entries / store symlinks\n  -i / -x     include / exclude matching names\n  -RE         enable bracket-list glob matching (already enabled on Unix)\n  -k          convert new source names to portable ASCII DOS 8.3 names\n  -FI / -FI-  enable / disable explicit VFS FIFO byte sources\n  -@          read filenames from stdin\n  -t / -tt    select files from / before a date\n  -T          test archive integrity before replacement\n  -P PASSWORD encrypt new members with a supplied password\n  -e          request and confirm a password through a no-echo host capability\n  -z / -c     read archive / entry comments from stdin\n  -o          set archive time to the latest member time\n  -l          convert text LF line endings to CRLF\n  -ll         convert text CRLF line endings to LF (--from-crlf)\n  -X          strip optional metadata\n  -fz / -fz-  force / disable ZIP64 output\n  -fd         force data descriptors\n  -v          verbose operation (a lone -v shows implementation information)\n  --version   show implementation information and exit\n  -L          show this implementation's license\n  -sf / -sf-  list selected files / totals only, without creating an archive\n  -sc         show processed arguments and exit with status 9\n  -so         show implemented options and exit\n  -sd         show virtual archive processing steps\n  -db / -dc   display byte / entry counters\n  -du / -dv   display entry size / single-volume numbers\n  -dd / -dg   display dots per entry / globally for output bytes\n  -ds SIZE    dot interval (kmgt units; default MB; 0 disables dots)\n  -h          show this help\n\nUse -- after the archive name to pass filenames beginning with '-'.\nLong option equivalents are accepted, for example --junk-paths and\n--compression-method=bzip2. All filesystem operations use the virtual filesystem.\n";
+    const ZIP_EXTENDED_HELP_SUFFIX: &str = "\nSelection\n  -RE / --regex means bracket lists, not general regular expressions.\n  -k / --DOS-names converts components after selection and -j; collisions fail.\n  DOS conversion is restricted to printable ASCII. Filters parsed after -k\n  are DOS-converted before matching original case-sensitive source names.\n  -FI / --fifo requires a VFS-reported FIFO and explicit streamingRead capability.\n  FIFO payloads are bounded and cancellation-aware; producer failure aborts output.\n  -r traverses listed directories; -R recursively searches matching names.\n  Do not combine -r and -R. -D omits directory records without stopping traversal.\n  -i patterns and -x patterns accept lists ending at another option or at @.\n  Quote patterns to prevent the shell expanding them before zip receives them.\n  Exclusions take precedence over inclusions. -j flattens selected source names;\n  duplicate basenames fail before the archive is replaced.\n  -nw disables wildcard interpretation; -ws prevents wildcards crossing '/'.\n  -MM makes missing input matches fatal. -t includes files from a date; -tt\n  selects files before a date. Dates accept mmddyyyy or yyyy-mm-dd.\n\nOperations and publication\n  Default add mode updates existing members and appends new selected members.\n  -u updates only older members and appends new ones; -f updates existing\n  members without adding new names. -FS also deletes unselected archive entries.\n  -d deletes selected archive entries without reading filesystem sources.\n  -U copies selected entries; without -O it requires -sf.\n  -DF writes only new or changed filesystem entries to -O.\n  -g grows an existing single-volume archive in place without -u, -f, -d or -U.\n  -b DIR stages temporary archives in DIR before replacing the destination.\n  -J strips a leading self-extracting stub; -A adjusts SFX entry offsets.\n  -F and -FF recover readable entries into a separate -O archive.\n  -s splits output into .z01, .z02, ... and final .zip volumes.\n  -s 0 recombines an existing split archive into a single -O archive.\n  -sp pauses before each split volume through the host volumePrompt capability;\n  -sv reports volume numbers and -sb rings the terminal bell before prompts.\n\nEncryption\n  -P supplies a password on the command line (redacted from diagnostics/logs).\n  -e prompts and confirms through the host password capability without echo.\n  --encryption selects zipcrypto (default) or WinZip AE-1/AE-2 AES profiles:\n  aes-128-ae1, aes-128-ae2, aes-192-ae1, aes-192-ae2, aes-256-ae1, aes-256-ae2.\n  Encryption requires the host entropy capability and never uses fallback RNGs.\n\nIntegrity, comments and metadata\n  -T validates the staged archive before replacing the destination.\n  -TT CMD runs CMD in the virtual shell with {} replaced by the staged archive\n  (or appends the staged archive path when {} is absent). No host process is spawned.\n  With stdout output -T is ignored.\n  -z reads an archive comment; -c reads selected member comments in archive order.\n  -X strips optional metadata; -X- preserves available metadata.\n  -o sets the archive timestamp to the newest resulting member timestamp.\n\nLogging\n  -lf path writes a VFS log (a missing extension becomes .log).\n  -la appends; -li includes progress in addition to warnings/errors.\n  Logs require atomic conditional byte writes and cannot alias selected inputs.\n  Logs are bounded by maxTextBytes; supplied password bytes are redacted.\n  Completed log/publication effects remain if a later write fails.\n\nCompression and format\n  -Z selects store, deflate, bzip2, or lzma; method names accept unique prefixes.\n  -1 through -9 select effort. Store selection remains through later levels.\n  -n .jpg:.png stores matching suffixes; -9 overrides suffix-based storage.\n  Compression may fall back to STORE for regular files when it expands data.\n  -l converts text LF to CRLF, leaving detected binary input unchanged.\n  -fz forces ZIP64; -fz- disables it. -fd forces signed data descriptors.\n  BZIP2 members use extraction version 4.6, including with ZIP64 records.\n  LZMA is a ZIP format extension (not native Info-ZIP Zip 3.0).\n  LZMA uses version 6.3, a bounded 1 MiB encoder dictionary, and EOS.\n  Readers admit dictionaries up to 8 MiB and SDK 9.4 properties only.\n\nStreaming\n  A '-' input filename reads one member from stdin, named '-'.\n  A '-' archive name writes binary archive bytes to stdout and progress to stderr.\n  With no archive or file operands, zip acts as a stdin-to-stdout filter.\n  Streamed members retain compression even if it expands their data.\n  -@ instead reads newline-separated input filenames; it cannot also read a '-'\n  payload from the same stdin. Empty filename lines are ignored.\n  Complete the output stream before using the resulting archive.\n\nArguments and ZIPOPT\n  Long options accept unique abbreviations and --option=value where appropriate.\n  Use -- after the archive name for literal filenames beginning with '-'.\n  ZIPOPT supplies default arguments before the command arguments. Double quotes\n  group words inside ZIPOPT; shell expansion is not performed on these defaults.\n  -h and -h2 print basic and extended help as soon as they are encountered.\n  --version and -L also exit immediately. Only a lone short -v shows information;\n  --verbose and grouped -v perform an archive operation. Later -q or -v wins.\n  -sc and -so validate all arguments before exiting; -sc returns status 9.\n\nDisplays\n  -sf lists selected names and totals without reading source payloads or writing\n  archives. -sf- and -q suppress names; totals remain visible. With no file\n  operands, -sf lists the input archive. -sd reports only virtual processing steps.\n  Command and diagnostic displays redact credential-shaped arguments and URLs.\n  Display counters accept a trailing '-' to negate them. -ds accepts up to eight\n  characters: digits with an optional k, m, g or t suffix (case-insensitive).\n  Values below 1024 imply MB; nonzero intervals from 1 KB to below 32 KB fail.\n  Empty -ds values restore 10 MB; 0 disables dots. Sizes must be safe integers.\n  Dots use byte intervals, so counts can differ from native codec buffer dots.\n  Per-entry progress appears after bounded preparation; global output dots stay\n  visible with -q. Timed scanning dots and split-volume displays are unavailable.\n";
+    const ZIP_VERSION_TEXT: &str = "safe-bash zip (virtual-bash)\nBounded virtual ZIP implementation; not an Info-ZIP native build.\nCompression: store, deflate, bzip2, lzma (format extension). Single-volume ZIP and ZIP64 output.\nFilesystem, signals and byte limits are supplied by the host.\nNative compiler identity and ambient environment are not reported.\n";
+    const ZIP_LICENSE_TEXT: &str = "safe-bash zip (virtual-bash)\nMIT License\nCopyright (c) 2026 Poe Platform\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\nThis is the virtual implementation license, not the native Info-ZIP license.\n";
+    let zip_err = |msg: &str| -> BuiltinOutcome {
+        let shown = if msg.to_ascii_lowercase().contains("password") {
+            "[redacted]"
+        } else {
+            msg
+        };
+        BuiltinOutcome {
+            stdout: format!("\nzip error: Invalid command arguments ({shown})\n"),
+            stderr: String::new(),
+            exit_code: 16,
+        }
+    };
+
     let mut delete_mode = false;
     let mut copy_mode = false;
     let mut freshen_mode = false;
@@ -6202,6 +7047,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut move_mode = false;
     let mut junk_paths = false;
     let mut omit_dirs = false;
+    let mut recursive = false;
     let mut recursive_patterns = false;
     let mut store_symlinks = false;
     let mut lf_to_crlf = false;
@@ -6209,6 +7055,10 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut show_files = false;
     let mut read_comment = false;
     let mut stdin_names = false;
+    let mut has_password_opt = false;
+    let mut has_encrypt_opt = false;
+    let mut selected_action: &str = "add";
+    let mut literal = false;
     let mut split_size: Option<usize> = None;
     let mut output_archive: Option<String> = None;
     let mut excludes = Vec::new();
@@ -6219,35 +7069,114 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
+        if !literal && a == "--" {
+            if positional.is_empty() {
+                return zip_err("can't use -- before archive name");
+            }
+            literal = true;
+            in_exclude = false;
+            in_include = false;
+            i += 1;
+            continue;
+        }
+        if literal {
+            positional.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if a == "-h" || a == "--help" || a == "-?" {
+            return ok_out(ZIP_HELP_TEXT);
+        }
+        if a == "-h2" || a == "--more-help" {
+            return ok_out(&format!("{ZIP_HELP_TEXT}{ZIP_EXTENDED_HELP_SUFFIX}"));
+        }
+        if a == "--version" || (args.len() == 1 && a == "-v") {
+            return ok_out(ZIP_VERSION_TEXT);
+        }
+        if a == "-L" || a == "--license" {
+            return ok_out(ZIP_LICENSE_TEXT);
+        }
         if a == "-x" {
+            if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") || args[i + 1] == "@" {
+                return zip_err("option 'x' requires a value");
+            }
             in_exclude = true;
             in_include = false;
         } else if a == "-i" {
+            if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") || args[i + 1] == "@" {
+                return zip_err("option 'i' requires a value");
+            }
             in_include = true;
             in_exclude = false;
-        } else if (a == "-O" || a == "--out") && i + 1 < args.len() {
+        } else if a == "-O" || a == "--out" || a == "--output-file" {
+            if i + 1 >= args.len() {
+                return zip_err("option O requires a value");
+            }
             in_exclude = false;
             in_include = false;
             i += 1;
             output_archive = Some(args[i].clone());
-        } else if let Some(out) = a.strip_prefix("--out=").or_else(|| a.strip_prefix("-O")) {
+        } else if let Some(out) = a
+            .strip_prefix("--out=")
+            .or_else(|| a.strip_prefix("--output-file="))
+            .or_else(|| a.strip_prefix("-O"))
+        {
             if !out.is_empty() {
                 in_exclude = false;
                 in_include = false;
-                output_archive = Some(out.to_string());
+                output_archive = Some(out.trim_start_matches('=').to_string());
             }
-        } else if (a == "-Z" || a == "-s") && i + 1 < args.len() {
+        } else if a == "-Z" || a == "--compression-method" || a.starts_with("-Z") || a.starts_with("--compression-method=") {
+            let val = if a == "-Z" || a == "--compression-method" {
+                if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") {
+                    return zip_err("option 'Z' requires a value");
+                }
+                i += 1;
+                args[i].trim_start_matches('=').to_string()
+            } else if let Some(rest) = a.strip_prefix("--compression-method=") {
+                rest.to_string()
+            } else {
+                a[2..].trim_start_matches('=').to_string()
+            };
+            let lower = val.to_ascii_lowercase();
+            let matches_cnt = ["store", "deflate", "bzip2", "lzma"]
+                .iter()
+                .filter(|m| m.starts_with(&lower))
+                .count();
+            if lower.is_empty() || matches_cnt != 1 {
+                return zip_err("Option -Z (--compression-method):  unknown method");
+            }
+        } else if a == "-s" || a == "--split-size" {
+            if i + 1 >= args.len() {
+                return zip_err("split size requires a value");
+            }
             if a == "-s" {
                 let sz_str = args[i + 1].trim_end_matches(['k', 'K']);
                 split_size = sz_str.parse::<usize>().ok().map(|n| n * 1024);
             }
             i += 2;
             continue;
+        } else if a == "-P" || a == "--password" || a.starts_with("-P") || a.starts_with("--password=") {
+            let val = if a == "-P" || a == "--password" {
+                if i + 1 >= args.len() {
+                    return zip_err("password option requires a value");
+                }
+                i += 1;
+                args[i].clone()
+            } else if let Some(rest) = a.strip_prefix("--password=") {
+                rest.to_string()
+            } else {
+                a[2..].trim_start_matches('=').to_string()
+            };
+            if val.is_empty() {
+                return zip_err("zero length password not allowed");
+            }
+            has_password_opt = true;
         } else if a == "-sf" || a == "--show-files" {
             show_files = true;
             in_exclude = false;
             in_include = false;
-        } else if a == "-ll" {
+        } else if a == "-ll" || a == "--from-crlf" {
             crlf_to_lf = true;
             in_exclude = false;
             in_include = false;
@@ -6256,31 +7185,114 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             in_exclude = false;
             in_include = false;
         } else if a == "-d" || a == "--delete" {
+            if selected_action != "add" && selected_action != "delete" {
+                return zip_err("specify just one action");
+            }
+            selected_action = "delete";
             delete_mode = true;
             in_exclude = false;
             in_include = false;
-        } else if a == "-U" || a == "--copy" {
+        } else if a == "-U" || a == "--copy" || a == "--copy-entries" {
+            if selected_action != "add" && selected_action != "copy" {
+                return zip_err("specify just one action");
+            }
+            selected_action = "copy";
             copy_mode = true;
             in_exclude = false;
             in_include = false;
+        } else if a == "-u" || a == "--update" {
+            if selected_action != "add" && selected_action != "update" {
+                return zip_err("specify just one action");
+            }
+            selected_action = "update";
+            update_mode = true;
+            in_exclude = false;
+            in_include = false;
+        } else if a == "-f" || a == "--freshen" {
+            if selected_action != "add" && selected_action != "freshen" {
+                return zip_err("specify just one action");
+            }
+            selected_action = "freshen";
+            freshen_mode = true;
+            in_exclude = false;
+            in_include = false;
+        } else if a == "-r" || a == "--recurse-paths" {
+            recursive = true;
+            if recursive && recursive_patterns {
+                return zip_err("do not specify both -r and -R");
+            }
+        } else if a == "-R" || a == "--recurse-patterns" {
+            recursive_patterns = true;
+            if recursive && recursive_patterns {
+                return zip_err("do not specify both -r and -R");
+            }
+        } else if matches!(a.as_str(), "-b" | "-lf" | "-TT" | "-ds") {
+            let opt = &a[1..];
+            if i + 1 >= args.len() {
+                return zip_err(&format!("option {opt} requires a value"));
+            }
+            i += 1;
+        } else if a.starts_with("--") {
+            let raw_name = a[2..].split('=').next().unwrap_or("");
+            return zip_err(&format!("unsupported option: --{raw_name}"));
         } else if a.starts_with('-') && !a.starts_with("--") {
             in_exclude = false;
             in_include = false;
             for ch in a[1..].chars() {
                 match ch {
-                    'd' => delete_mode = true,
-                    'U' => copy_mode = true,
-                    'f' => freshen_mode = true,
-                    'u' => update_mode = true,
+                    'h' => return ok_out(ZIP_HELP_TEXT),
+                    'L' => return ok_out(ZIP_LICENSE_TEXT),
+                    'd' => {
+                        if selected_action != "add" && selected_action != "delete" {
+                            return zip_err("specify just one action");
+                        }
+                        selected_action = "delete";
+                        delete_mode = true;
+                    }
+                    'U' => {
+                        if selected_action != "add" && selected_action != "copy" {
+                            return zip_err("specify just one action");
+                        }
+                        selected_action = "copy";
+                        copy_mode = true;
+                    }
+                    'f' => {
+                        if selected_action != "add" && selected_action != "freshen" {
+                            return zip_err("specify just one action");
+                        }
+                        selected_action = "freshen";
+                        freshen_mode = true;
+                    }
+                    'u' => {
+                        if selected_action != "add" && selected_action != "update" {
+                            return zip_err("specify just one action");
+                        }
+                        selected_action = "update";
+                        update_mode = true;
+                    }
                     'm' => move_mode = true,
                     'j' => junk_paths = true,
                     'D' => omit_dirs = true,
-                    'R' => recursive_patterns = true,
+                    'r' => {
+                        recursive = true;
+                        if recursive && recursive_patterns {
+                            return zip_err("do not specify both -r and -R");
+                        }
+                    }
+                    'R' => {
+                        recursive_patterns = true;
+                        if recursive && recursive_patterns {
+                            return zip_err("do not specify both -r and -R");
+                        }
+                    }
                     'y' => store_symlinks = true,
                     'l' => lf_to_crlf = true,
                     'z' => read_comment = true,
                     '@' => stdin_names = true,
-                    _ => {}
+                    'e' => has_encrypt_opt = true,
+                    'q' | 'v' | '0'..='9' | 'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
+                    | 'F' | 'p' => {}
+                    other => return zip_err(&format!("unsupported option: -{other}")),
                 }
             }
         } else if !a.starts_with('-') {
@@ -6296,7 +7308,25 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         i += 1;
     }
+    if filesync_mode && selected_action != "add" {
+        return zip_err("can't use -d, -f, -u, -U, or -g with filesync -FS\n");
+    }
+    if copy_mode && output_archive.is_none() && !show_files {
+        return zip_err("-U (--copy) requires -O (--out)");
+    }
+    if has_encrypt_opt && !has_password_opt {
+        return err_out("zip: ZIP no-echo password capability is unavailable\n", 2);
+    }
+    if has_password_opt {
+        return err_out("zip: ZIP entropy capability is unavailable\n", 2);
+    }
     if positional.is_empty() {
+        if !includes.is_empty() || !excludes.is_empty() {
+            return zip_err("nothing to select from");
+        }
+        if selected_action != "add" {
+            return zip_err("expected archive name");
+        }
         return err_out("zip: missing arguments\n", 1);
     }
     let arch_name = ensure_zip_suffix(&positional[0]);
@@ -6465,7 +7495,22 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     }
     if read_comment {
-        let comment_bytes = crate::vfs::stream_string_to_bytes(stdin);
+        let mut comment_lines: Vec<&str> = Vec::new();
+        for line in stdin.split('\n') {
+            if line == "." {
+                break;
+            }
+            comment_lines.push(line.trim_end_matches('\r'));
+        }
+        while comment_lines.last() == Some(&"") {
+            comment_lines.pop();
+        }
+        let comment_str = if comment_lines.is_empty() {
+            String::new()
+        } else {
+            format!("{}\n", comment_lines.join("\n"))
+        };
+        let comment_bytes = comment_str.into_bytes();
         entries.retain(|e| e.name != "__ZIP_COMMENT__");
         entries.push(TarEntry {
             name: "__ZIP_COMMENT__".to_string(),
@@ -6500,6 +7545,8 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     let mut pipe_headers = false;
     let mut quiet = false;
     let mut never_overwrite = false;
+    let mut explicit_overwrite = false;
+    let mut has_password = false;
     let mut case_insensitive = false;
     let mut show_comment = false;
     let mut dest_dir: Option<String> = None;
@@ -6507,10 +7554,27 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     let mut members: Vec<String> = Vec::new();
     let mut excludes: Vec<String> = Vec::new();
     let mut in_exclude = false;
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
+        if !ended && args[i] == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if ended {
+            if archive.is_none() {
+                archive = Some(args[i].clone());
+            } else if in_exclude {
+                excludes.push(args[i].clone());
+            } else {
+                members.push(args[i].clone());
+            }
+            i += 1;
+            continue;
+        }
         match args[i].as_str() {
-            "-Z" => {
+            "-Z" if i == 0 => {
                 zipinfo_mode = true;
                 in_exclude = false;
             }
@@ -6518,7 +7582,7 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                 names_only = true;
                 in_exclude = false;
             }
-            "-Z1" => {
+            "-Z1" if i == 0 => {
                 zipinfo_mode = true;
                 names_only = true;
                 in_exclude = false;
@@ -6558,6 +7622,7 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             }
             "-o" => {
                 never_overwrite = false;
+                explicit_overwrite = true;
                 in_exclude = false;
             }
             "-C" => {
@@ -6571,28 +7636,45 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             "-x" => {
                 in_exclude = true;
             }
-            "-d" if i + 1 < args.len() => {
+            "-d" => {
+                if dest_dir.is_some() {
+                    return err_out("unzip: -d may only be specified once\n", 2);
+                }
+                if i + 1 >= args.len() || args[i + 1].is_empty() {
+                    return err_out(
+                        "unzip: must specify directory to which to extract with -d option\n",
+                        2,
+                    );
+                }
                 in_exclude = false;
                 i += 1;
                 dest_dir = Some(args[i].clone());
             }
             s if s.starts_with("-d") && s.len() > 2 => {
+                if dest_dir.is_some() {
+                    return err_out("unzip: -d may only be specified once\n", 2);
+                }
                 in_exclude = false;
                 dest_dir = Some(s[2..].to_string());
             }
-            "-P" if i + 1 < args.len() => {
+            "-P" => {
+                if i + 1 >= args.len() {
+                    return err_out("unzip: password option requires a value\n", 2);
+                }
+                has_password = true;
                 in_exclude = false;
                 i += 1;
             }
             s if s.starts_with("-P") && s.len() > 2 => {
+                has_password = true;
                 in_exclude = false;
             }
             s if s.starts_with('-') && s.len() > 1 => {
                 in_exclude = false;
-                for ch in s[1..].chars() {
+                for (ci, ch) in s[1..].chars().enumerate() {
                     match ch {
-                        'Z' => zipinfo_mode = true,
-                        '1' => names_only = true,
+                        'Z' if i == 0 && ci == 0 => zipinfo_mode = true,
+                        '1' if zipinfo_mode => names_only = true,
                         'l' => list_table = true,
                         'v' => {
                             list_table = true;
@@ -6604,10 +7686,16 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
                         'c' => pipe_headers = true,
                         'q' => quiet = true,
                         'n' => never_overwrite = true,
-                        'o' => never_overwrite = false,
+                        'o' => {
+                            never_overwrite = false;
+                            explicit_overwrite = true;
+                        }
                         'C' => case_insensitive = true,
                         'z' => show_comment = true,
-                        _ => {}
+                        'u' | 'f' => {}
+                        other => {
+                            return err_out(&format!("unzip: unsupported option: -{other}\n"), 2);
+                        }
                     }
                 }
             }
@@ -6624,8 +7712,41 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
         i += 1;
     }
     let Some(raw_arch) = archive else {
-        return err_out("unzip: missing archive\n", 1);
+        return err_out(
+            "unzip: usage: unzip [-l|-v] [-C] [-u|-f] [-p|-c] [-t] [-z] [-Z -1] [-q[q]] [-o] [-n] [-j] [-d DIR] ARCHIVE [FILES...] [-x PATTERNS...]\n",
+            2,
+        );
     };
+    let effective_pipe = pipe_to_stdout || pipe_headers;
+    if zipinfo_mode
+        && (!names_only
+            || list_table
+            || test_only
+            || effective_pipe
+            || show_comment
+            || explicit_overwrite
+            || dest_dir.is_some()
+            || has_password)
+    {
+        return err_out(
+            "unzip: supported zipinfo mode is unzip -Z -1 ARCHIVE [FILES...]\n",
+            2,
+        );
+    }
+    if show_comment
+        && (list_table || test_only || effective_pipe || explicit_overwrite || dest_dir.is_some())
+    {
+        return err_out(
+            "unzip: archive comment mode cannot be combined with extraction, listing or test options\n",
+            2,
+        );
+    }
+    if test_only && (list_table || effective_pipe || dest_dir.is_some()) {
+        return err_out(
+            "unzip: unzip test mode cannot be combined with listing, pipe or destination\n",
+            2,
+        );
+    }
     let mut arch = raw_arch.clone();
     let mut full = resolve_posix_path(cwd, &arch);
     if !fs.exists(&full) {
@@ -6650,19 +7771,47 @@ fn cmd_unzip(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
     }
     if show_comment {
         let mut out = String::new();
+        if !quiet {
+            out.push_str(&format!("Archive:  {arch}\n"));
+        }
         for e in &raw_entries {
             if e.name == "__ZIP_COMMENT__" {
-                out.push_str(&String::from_utf8_lossy(&e.content));
+                let text = String::from_utf8_lossy(&e.content);
+                out.push_str(&text);
+                if !text.is_empty() && !text.ends_with('\n') {
+                    out.push('\n');
+                }
             }
         }
         return ok_out(&out);
+    }
+    let mut comment_text = String::new();
+    for e in &raw_entries {
+        if e.name == "__ZIP_COMMENT__" {
+            let text = String::from_utf8_lossy(&e.content);
+            comment_text.push_str(&text);
+            if !text.is_empty() && !text.ends_with('\n') {
+                comment_text.push('\n');
+            }
+        }
     }
     let entries: Vec<TarEntry> = raw_entries
         .into_iter()
         .filter(|e| e.name != "__ZIP_COMMENT__")
         .collect();
     if test_only {
-        return ok_out(&format!("No errors detected in compressed data of {arch}.\n"));
+        let mut out = String::new();
+        if !quiet {
+            out.push_str(&format!("Archive:  {arch}\n"));
+            out.push_str(&comment_text);
+            for entry in &entries {
+                let pad_len = 22usize.saturating_sub(entry.name.len());
+                let padded = format!("{}{}", entry.name, " ".repeat(pad_len));
+                out.push_str(&format!("    testing: {padded} OK\n"));
+            }
+        }
+        out.push_str(&format!("No errors detected in compressed data of {arch}.\n"));
+        return ok_out(&out);
     }
     let mut matched_patterns = vec![false; members.len()];
     let mut check_member = |entry_name: &str| -> bool {
@@ -7074,14 +8223,18 @@ fn cmd_strings(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         } else {
             let full = resolve_posix_path(cwd, f);
             if fs.is_dir(&full) {
-                err_buf.push_str(&format!("strings: {f}: Is a directory\n"));
+                err_buf.push_str(&format!(
+                    "strings: EISDIR: illegal operation on a directory '{full}'\n"
+                ));
                 exit_code = 1;
                 continue;
             }
             match fs.read_file(&full) {
                 Ok(b) => b,
                 Err(_) => {
-                    err_buf.push_str(&format!("strings: {f}: No such file or directory\n"));
+                    err_buf.push_str(&format!(
+                        "strings: ENOENT: no such file or directory, stat '{full}'\n"
+                    ));
                     exit_code = 1;
                     continue;
                 }
@@ -10806,5 +11959,75 @@ mod tests {
         ])
         .unwrap();
         assert_eq!(exts[0].1, "Basic Constraints: critical");
+    }
+
+    #[test]
+    fn archive_compression_tar_zip_unzip_xxd_hexdump_od_strings_diagnostics_and_help_succeed() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let gz_h = try_run_archive_command("gzip", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(gz_h.exit_code, 0);
+        assert!(gz_h.stdout.contains("Usage: gzip [OPTION]... [FILE]..."));
+
+        let bz_h = try_run_archive_command("bzip2", &args(&["-s", "-h"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(bz_h.exit_code, 0);
+        assert!(bz_h.stdout.contains("Default compression level: 2."));
+
+        let zs_fast = try_run_archive_command("zstd", &args(&["--fast=2"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(zs_fast.exit_code, 2);
+        assert_eq!(
+            zs_fast.stderr,
+            "zstd: unsupported compression level -2; the bounded Zstandard codec supports only levels 1 through 9 (fast mode is unsupported)\n"
+        );
+
+        let lz_chk = try_run_archive_command("lzma", &args(&["--check=crc32"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(lz_chk.exit_code, 2);
+        assert_eq!(lz_chk.stderr, "lzma: the LZMA format supports only --check=none\n");
+
+        let tar_h = try_run_archive_command("tar", &args(&["--help"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(tar_h.exit_code, 0);
+        assert!(tar_h.stdout.contains("Usage: tar [OPTION]... [FILE]..."));
+
+        let tar_dup = try_run_archive_command("tar", &args(&["-ct", "-f", "a.tar"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(tar_dup.exit_code, 2);
+        assert_eq!(
+            tar_dup.stderr,
+            "tar: exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)\n"
+        );
+
+        let zip_v = try_run_archive_command("zip", &args(&["-v"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(zip_v.exit_code, 0);
+        assert!(zip_v.stdout.starts_with("safe-bash zip (virtual-bash)\n"));
+
+        let zip_err = try_run_archive_command("zip", &args(&["-r", "-R", "a.zip", "*.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(zip_err.exit_code, 16);
+        assert_eq!(
+            zip_err.stdout,
+            "\nzip error: Invalid command arguments (do not specify both -r and -R)\n"
+        );
+
+        let unzip_err = try_run_archive_command("unzip", &args(&["-t", "-l", "a.zip"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(unzip_err.exit_code, 2);
+        assert_eq!(
+            unzip_err.stderr,
+            "unzip: unzip test mode cannot be combined with listing, pipe or destination\n"
+        );
+
+        let xxd_err = try_run_archive_command("xxd", &args(&["-e", "-g", "3"]), "abcd", "/work", &env, &vfs).unwrap();
+        assert_eq!(xxd_err.exit_code, 2);
+        assert_eq!(
+            xxd_err.stderr,
+            "xxd: number of octets per group must be a power of 2 with -e\n"
+        );
+
+        let hd_err = try_run_archive_command("hexdump", &args(&["-f", "fmt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(hd_err.exit_code, 1);
+        assert_eq!(hd_err.stderr, "hexdump: -f: format files are not supported\n");
+
+        let od_err = try_run_archive_command("od", &args(&["-ebig"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(od_err.exit_code, 2);
+        assert_eq!(od_err.stderr, "od: use --endian=little or --endian=big; -e is unsupported\n");
     }
 }

@@ -19258,6 +19258,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         if upper.starts_with("CREATE VIRTUAL TABLE") {
             let norm = stmt.replace(['\r', '\n', '\t'], " ");
             let norm_up = norm.to_ascii_uppercase();
+            let if_not_exists = norm_up.contains(" IF NOT EXISTS ");
             if let Some(using_p) = norm_up.find(" USING ") {
                 let tname = norm[..using_p]
                     .split_whitespace()
@@ -19265,28 +19266,55 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .unwrap_or("")
                     .trim_matches('"')
                     .to_string();
+                if tables.contains_key(&tname) {
+                    if if_not_exists {
+                        continue;
+                    }
+                    return err_out(&format!("Error: table {tname} already exists\n"), 1);
+                }
                 let after_using = &norm[using_p + 7..];
                 if let Some(open) = after_using.find('(')
                     && let Some(close) = after_using.rfind(')')
                 {
-                    let mut cols = vec!["rowid".to_string()];
-                    for c in split_top_level_comma(&after_using[open + 1..close]) {
-                        let cname = c
-                            .split_whitespace()
-                            .next()
-                            .unwrap_or("")
-                            .trim_matches('"')
-                            .to_string();
-                        if !cname.is_empty() {
-                            cols.push(cname);
-                        }
+                    let mod_name = after_using[..open].trim();
+                    if !mod_name.eq_ignore_ascii_case("fts5") {
+                        return err_out("Error: unsupported virtual table module; only fts5 is supported\n", 1);
                     }
-                    tables.entry(tname).or_insert(SqlTable {
+                    let inner_cols = after_using[open + 1..close].trim();
+                    if inner_cols.is_empty() || inner_cols.ends_with(',') {
+                        return err_out("Error: unsupported FTS5 table definition\n", 1);
+                    }
+                    let mut cols = vec!["rowid".to_string()];
+                    for c in split_top_level_comma(inner_cols) {
+                        let ct = c.trim();
+                        if ct.is_empty() || ct.contains('=') || ct.split_whitespace().count() != 1 {
+                            return err_out("Error: unsupported FTS5 column or option\n", 1);
+                        }
+                        let cname = ct.trim_matches('"').to_string();
+                        if cname.eq_ignore_ascii_case("rank")
+                            || cname.eq_ignore_ascii_case("rowid")
+                            || cname.eq_ignore_ascii_case(&tname)
+                        {
+                            return err_out("Error: unsupported FTS5 reserved column name\n", 1);
+                        }
+                        if cols[1..].iter().any(|existing| existing.eq_ignore_ascii_case(&cname)) {
+                            return err_out(&format!("Error: duplicate column name: {cname}\n"), 1);
+                        }
+                        cols.push(cname);
+                    }
+                    tables.insert(
+                        tname,
+                        SqlTable {
                         columns: cols,
                         is_fts5: true,
                         ..SqlTable::default()
-                    });
+                        },
+                    );
+                } else {
+                    return err_out("Error: unsupported virtual table module; only fts5 is supported\n", 1);
                 }
+            } else {
+                return err_out("Error: unsupported virtual table module; only fts5 is supported\n", 1);
             }
             continue;
         }
@@ -19668,6 +19696,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 tables.remove(&cname);
             }
         } else if upper.starts_with("SELECT") {
+            if upper.contains(" MATCH ") && !tables.values().any(|t| t.is_fts5) {
+                return err_out("Error: MATCH requires an FTS5 table or column\n", 1);
+            }
             let chunk = exec_sql_select_with_mode(
                 stmt,
                 &tables,
@@ -19685,6 +19716,9 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
 
     if db_path != ":memory:" {
+        if tables.values().any(|t| t.is_fts5) {
+            return err_out("Error: unsupported FTS5 binary persistence; use a SQL dump\n", 1);
+        }
         let full = resolve_posix_path(cwd, &db_path);
         let bytes = serialize_sql_db(&tables, &views, &indexes, &triggers, user_version, application_id);
         let _ = fs.write_file(&full, &bytes);
@@ -34623,5 +34657,63 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         )
         .unwrap();
         assert_ne!(fk.exit_code, 0);
+    }
+
+    #[test]
+    fn unit_sqlite_fts5_validation_rejects_invalid_modules_options_ordinary_match_and_binary_persistence() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let bad_mod = try_run_structured_command(
+            "sqlite3",
+            &args(&[":memory:", "CREATE VIRTUAL TABLE d USING fts4(title);"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_mod.exit_code, 1);
+        assert!(bad_mod.stderr.contains("only fts5 is supported"));
+
+        let bad_opt = try_run_structured_command(
+            "sqlite3",
+            &args(&[":memory:", "CREATE VIRTUAL TABLE d USING fts5(title UNINDEXED);"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_opt.exit_code, 1);
+        assert!(bad_opt.stderr.contains("unsupported FTS5 column or option"));
+
+        let bad_match = try_run_structured_command(
+            "sqlite3",
+            &args(&[
+                ":memory:",
+                "CREATE TABLE t(body TEXT); INSERT INTO t VALUES ('hi'); SELECT * FROM t WHERE body MATCH 'hi';",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_match.exit_code, 1);
+        assert!(bad_match.stderr.contains("MATCH requires an FTS5"));
+
+        let bad_persist = try_run_structured_command(
+            "sqlite3",
+            &args(&["/work/fts.db", "CREATE VIRTUAL TABLE d USING fts5(body);"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_persist.exit_code, 1);
+        assert!(bad_persist.stderr.contains("unsupported FTS5 binary persistence"));
     }
 }

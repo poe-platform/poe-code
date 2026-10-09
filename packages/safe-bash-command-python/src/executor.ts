@@ -25,6 +25,10 @@ import { pythonShellDispatchActive } from './shell-capability.js';
 const encoder = new TextEncoder();
 class PythonInputChunkError extends RangeError {}
 
+function writeDiagnostic(output: Parameters<typeof writeBytes>[0], message: string, signal: AbortSignal): Promise<void> {
+  return writeBytes(output, encoder.encode('python: ' + message + '\n'), signal);
+}
+
 /** A dedicated interpreter worker. The service event loop must never block. */
 export interface PythonWorkerEndpoint {
   postMessage(value: unknown): void;
@@ -110,7 +114,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
   const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
   const execute = async (context: CommandContext) => {
     if (pythonShellDispatchActive(context.executionScope)) {
-      await writeBytes(context.stderr, encoder.encode('python: nested Python execution is unavailable while the parent interpreter is suspended\n'), context.signal);
+      await writeDiagnostic(context.stderr, 'nested Python execution is unavailable while the parent interpreter is suspended', context.signal);
       return { exitCode: 1 };
     }
     let installation;
@@ -119,7 +123,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       installation = invocation.module?.name === 'pip' ? parsePythonInstallation(invocation.module.args) : undefined;
     } catch (error) {
       if (!(error instanceof PythonInvocationError)) throw error;
-      await writeBytes(context.stderr, encoder.encode('python: ' + error.message + '\n'), context.signal);
+      await writeDiagnostic(context.stderr, error.message, context.signal);
       return { exitCode: 2 };
     }
     if (installation?.help) {
@@ -129,7 +133,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
     context.signal.throwIfAborted();
     if (activeWorkers >= maxConcurrentWorkers) {
       const failure = reportPythonFailure('capacity', undefined, options.onDiagnostic);
-      await writeBytes(context.stderr, encoder.encode('python: ' + failure.message + '\n'), context.signal);
+      await writeDiagnostic(context.stderr, failure.message, context.signal);
       return { exitCode: 1 };
     }
     const controller = new AbortController();
@@ -208,7 +212,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         if (!filesystemDiagnostics.has(category)) {
           filesystemDiagnostics.add(category);
           const failure = reportPythonFailure(category, error, options.onDiagnostic);
-          await writeBytes(stderrOperation!.output, encoder.encode('python: ' + failure.message + '\n'), signal);
+          await writeDiagnostic(stderrOperation!.output, failure.message, signal);
         }
       };
       const dispatch = async (request: { op: string; args: unknown[] }): Promise<unknown> => {
@@ -407,7 +411,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       }
     } catch (reason) {
       if (!signal.aborted && (reason instanceof PythonInputChunkError || reason instanceof PythonInstallationError)) {
-        try { await writeBytes(stderrOperation!.output, encoder.encode('python: ' + reason.message + '\n'), signal); }
+        try { await writeDiagnostic(stderrOperation!.output, reason.message, signal); }
         catch (error) { primary = {reason:error}; }
       } else if (!signal.aborted && typeof reason === 'object' && reason !== null && 'code' in reason && reason.code === 'EPACKAGE') {
         primary = { reason: reportPythonFailure('runtime-assets', reason, options.onDiagnostic) };
@@ -422,7 +426,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
     if (primary) {
       if (!(primary.reason instanceof PythonFailure)) throw primary.reason;
       const failure = primary.reason;
-      await writeBytes(context.stderr, encoder.encode('python: ' + failure.message + '\n'), context.signal);
+      await writeDiagnostic(context.stderr, failure.message, context.signal);
       return { exitCode: 1 };
     }
     return { exitCode: result };

@@ -836,7 +836,10 @@ fn cmd_hash(
                     requested_len = Some(val);
                     break;
                 }
-                _ => return err_out(&format!("{cmd_name}: invalid option -- '{ch}'\n"), 2),
+                _ if algo == "blake2b" => {
+                    return err_out(&format!("{cmd_name}: invalid option -- '{ch}'\n"), 2);
+                }
+                _ => return err_out(&format!("{cmd_name}: unrecognized option '{a}'\n"), 2),
             }
             c_idx += 1;
         }
@@ -937,10 +940,18 @@ fn cmd_hash(
                 }
             } else {
                 let full = resolve_posix_path(cwd, manifest);
+                if fs.is_dir(&full) {
+                    let (_, disp_m) = escape_fname(manifest);
+                    err.push_str(&format!("{cmd_name}: {disp_m}: Is a directory\n"));
+                    overall_ok = false;
+                    continue;
+                }
                 match fs.read_file(&full) {
                     Ok(b) => String::from_utf8_lossy(&b).into_owned(),
                     Err(_) => {
-                        err.push_str(&format!("{cmd_name}: {manifest}: No such file or directory\n"));
+                        err.push_str(&format!(
+                            "{cmd_name}: ENOENT: no such file or directory, readStream '{full}'\n"
+                        ));
                         overall_ok = false;
                         continue;
                     }
@@ -1060,7 +1071,18 @@ fn cmd_hash(
                     }
                 } else {
                     let full = resolve_posix_path(cwd, &fname);
-                    fs.read_file(&full)
+                    if fs.is_dir(&full) {
+                        Err((true, format!("{cmd_name}: {disp_fname}: Is a directory\n")))
+                    } else {
+                        fs.read_file(&full).map_err(|_| {
+                            (
+                                false,
+                                format!(
+                                    "{cmd_name}: ENOENT: no such file or directory, readStream '{full}'\n"
+                                ),
+                            )
+                        })
+                    }
                 };
                 match read_res {
                     Ok(bytes) => {
@@ -1077,12 +1099,12 @@ fn cmd_hash(
                             }
                         }
                     }
-                    Err(_) => {
-                        if ignore_missing && fname != "-" {
+                    Err((is_dir_err, diag_msg)) => {
+                        if ignore_missing && fname != "-" && !is_dir_err {
                             continue;
                         }
                         failures += 1;
-                        err.push_str(&format!("{cmd_name}: {fname}: No such file or directory\n"));
+                        err.push_str(&diag_msg);
                         if !status_only {
                             out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
                         }
@@ -1174,13 +1196,21 @@ fn cmd_hash(
             out.push_str(&format_entry(&hex, "-"));
         } else {
             let full = resolve_posix_path(cwd, f);
+            if fs.is_dir(&full) {
+                let (_, disp_f) = escape_fname(f);
+                err.push_str(&format!("{cmd_name}: {disp_f}: Is a directory\n"));
+                code = 1;
+                continue;
+            }
             match fs.read_file(&full) {
                 Ok(b) => {
                     let hex = compute_digest_hex_bits(algo, &b, bits);
                     out.push_str(&format_entry(&hex, f));
                 }
                 Err(_) => {
-                    err.push_str(&format!("{cmd_name}: {f}: No such file or directory\n"));
+                    err.push_str(&format!(
+                        "{cmd_name}: ENOENT: no such file or directory, readStream '{full}'\n"
+                    ));
                     code = 1;
                 }
             }
@@ -1252,61 +1282,101 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             i += 1;
             continue;
         }
-        match a {
-            "--help" => return ok_out("Usage: cksum [OPTION]... [FILE]...\n"),
-            "--version" => return ok_out("cksum (GNU coreutils) 9.5\n"),
-            "-a" | "--algorithm" if i + 1 < args.len() => {
-                i += 1;
-                algo = args[i].to_ascii_lowercase();
-            }
-            _ if a.starts_with("--algorithm=") => {
-                algo = a["--algorithm=".len()..].to_ascii_lowercase();
-            }
-            _ if a.starts_with("-a") && a.len() > 2 => {
-                algo = a[2..].to_ascii_lowercase();
-            }
-            "-l" | "--length" if i + 1 < args.len() => {
-                i += 1;
-                requested_len = Some(args[i].clone());
-            }
-            _ if a.starts_with("--length=") => {
-                requested_len = Some(a["--length=".len()..].to_string());
-            }
-            _ if a.starts_with("-l") && a.len() > 2 => {
-                requested_len = Some(a[2..].to_string());
-            }
-            "--tag" => {
-                last_tag = Some(true);
-                has_tag_flag = true;
-            }
-            "--untagged" => {
-                last_tag = Some(false);
-                has_untagged_flag = true;
-            }
-            "--base64" => base64_mode = true,
-            "--raw" => raw_mode = true,
-            "-z" | "--zero" => zero_delim = true,
-            "-b" | "--binary" => binary_mode = true,
-            "-c" | "--check" => check_mode = true,
-            "--quiet" => quiet = true,
-            "--status" => status_only = true,
-            "-w" | "--warn" => warn_mode = true,
-            "--strict" => strict = true,
-            "--ignore-missing" => ignore_missing = true,
-            _ if a.starts_with("--") => {
-                return err_out(&format!("cksum: unrecognized option '{a}'\n"), 2);
-            }
-            _ => {
-                for ch in a[1..].chars() {
-                    match ch {
-                        'b' => binary_mode = true,
-                        'c' => check_mode = true,
-                        'z' => zero_delim = true,
-                        'w' => warn_mode = true,
-                        _ => return err_out(&format!("cksum: invalid option -- '{ch}'\n"), 2),
+        if a.starts_with("--") {
+            let (opt_name, eq_val) = match a[2..].split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (&a[2..], None),
+            };
+            match opt_name {
+                "algorithm" => {
+                    let val = if let Some(v) = eq_val {
+                        v.to_string()
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("cksum: option '--algorithm' requires an argument\n", 2);
+                    };
+                    algo = val;
+                }
+                "length" => {
+                    let val = if let Some(v) = eq_val {
+                        v.to_string()
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("cksum: option '--length' requires an argument\n", 2);
+                    };
+                    requested_len = Some(val);
+                }
+                "tag" | "untagged" | "base64" | "raw" | "zero" | "binary" | "check" | "quiet"
+                | "status" | "warn" | "strict" | "ignore-missing" => {
+                    if eq_val.is_some() {
+                        return err_out(
+                            &format!("cksum: option '--{opt_name}' does not take an argument\n"),
+                            2,
+                        );
+                    }
+                    match opt_name {
+                        "tag" => {
+                            last_tag = Some(true);
+                            has_tag_flag = true;
+                        }
+                        "untagged" => {
+                            last_tag = Some(false);
+                            has_untagged_flag = true;
+                        }
+                        "base64" => base64_mode = true,
+                        "raw" => raw_mode = true,
+                        "zero" => zero_delim = true,
+                        "binary" => binary_mode = true,
+                        "check" => check_mode = true,
+                        "quiet" => quiet = true,
+                        "status" => status_only = true,
+                        "warn" => warn_mode = true,
+                        "strict" => strict = true,
+                        "ignore-missing" => ignore_missing = true,
+                        _ => {}
                     }
                 }
+                _ => return err_out(&format!("cksum: unrecognized option '{a}'\n"), 2),
             }
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut c_idx = 0usize;
+        while c_idx < chars.len() {
+            let ch = chars[c_idx];
+            match ch {
+                'b' => binary_mode = true,
+                'c' => check_mode = true,
+                'z' => zero_delim = true,
+                'w' => warn_mode = true,
+                'a' | 'l' => {
+                    let rest: String = chars[c_idx + 1..].iter().collect();
+                    let val = if !rest.is_empty() {
+                        rest
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(
+                            &format!("cksum: option requires an argument -- '{ch}'\n"),
+                            2,
+                        );
+                    };
+                    if ch == 'a' {
+                        algo = val;
+                    } else {
+                        requested_len = Some(val);
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("cksum: invalid option -- '{ch}'\n"), 2),
+            }
+            c_idx += 1;
         }
         i += 1;
     }
@@ -1385,9 +1455,6 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     if check_mode && (binary_mode || zero_delim || has_tag_flag || raw_mode || base64_mode) {
         return err_out("cksum: output options are not supported with --check\n", 2);
     }
-    if raw_mode && files.len() > 1 {
-        return err_out("cksum: the --raw option is not supported with multiple files\n", 2);
-    }
 
     let escape_fname = |f: &str| -> (bool, String) {
         if f.contains('\\') || f.contains('\n') || f.contains('\r') {
@@ -1432,15 +1499,29 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         let mut out = String::new();
         let mut err = String::new();
         let mut overall_ok = true;
+        let mut stdin_used = false;
         for manifest in &manifests {
+            let (_, disp_m) = escape_fname(manifest);
             let content = if manifest == "-" {
-                stdin.to_string()
+                if stdin_used {
+                    String::new()
+                } else {
+                    stdin_used = true;
+                    stdin.to_string()
+                }
             } else {
                 let full = resolve_posix_path(cwd, manifest);
+                if fs.is_dir(&full) {
+                    err.push_str(&format!("cksum: {disp_m}: Is a directory\n"));
+                    overall_ok = false;
+                    continue;
+                }
                 match fs.read_file(&full) {
                     Ok(b) => String::from_utf8_lossy(&b).into_owned(),
                     Err(_) => {
-                        err.push_str(&format!("cksum: {manifest}: No such file or directory\n"));
+                        err.push_str(&format!(
+                            "cksum: ENOENT: no such file or directory, readStream '{full}'\n"
+                        ));
                         overall_ok = false;
                         continue;
                     }
@@ -1546,7 +1627,7 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     malformed += 1;
                     if warn_mode {
                         err.push_str(&format!(
-                            "cksum: {manifest}: {line_num}: improperly formatted {algo} checksum line\n"
+                            "cksum: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
                         ));
                     }
                     continue;
@@ -1555,8 +1636,14 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     unescape_fname(&raw_fnm)
                 } else {
                     Some(raw_fnm)
-                }) else {
+                })
+                .filter(|f| !f.is_empty() && !(manifest == "-" && f == "-")) else {
                     malformed += 1;
+                    if warn_mode {
+                        err.push_str(&format!(
+                            "cksum: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
+                        ));
+                    }
                     continue;
                 };
                 let expected_hex = if encoded_digest.len() % 2 == 0
@@ -1573,7 +1660,7 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     malformed += 1;
                     if warn_mode {
                         err.push_str(&format!(
-                            "cksum: {manifest}: {line_num}: improperly formatted {algo} checksum line\n"
+                            "cksum: {disp_m}: {line_num}: improperly formatted {algo} checksum line\n"
                         ));
                     }
                     continue;
@@ -1582,8 +1669,29 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 valid = true;
                 let (needs_esc, disp_fname) = escape_fname(&fname);
                 let disp_prefix = if needs_esc { "\\" } else { "" };
-                let full = resolve_posix_path(cwd, &fname);
-                match fs.read_file(&full) {
+                let read_res = if fname == "-" {
+                    if stdin_used {
+                        Ok(Vec::new())
+                    } else {
+                        stdin_used = true;
+                        Ok(crate::vfs::stream_string_to_bytes(stdin))
+                    }
+                } else {
+                    let full = resolve_posix_path(cwd, &fname);
+                    if fs.is_dir(&full) {
+                        Err((true, format!("cksum: {disp_fname}: Is a directory\n")))
+                    } else {
+                        fs.read_file(&full).map_err(|_| {
+                            (
+                                false,
+                                format!(
+                                    "cksum: ENOENT: no such file or directory, readStream '{full}'\n"
+                                ),
+                            )
+                        })
+                    }
+                };
+                match read_res {
                     Ok(bytes) => {
                         let actual = compute_digest_hex_bits(&line_algo, &bytes, line_bits);
                         if actual.eq_ignore_ascii_case(&expected_hex) {
@@ -1598,12 +1706,12 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             }
                         }
                     }
-                    Err(_) => {
-                        if ignore_missing && fname != "-" {
+                    Err((is_dir_err, diag_msg)) => {
+                        if ignore_missing && fname != "-" && !is_dir_err {
                             continue;
                         }
                         failures += 1;
-                        err.push_str(&format!("cksum: {fname}: No such file or directory\n"));
+                        err.push_str(&diag_msg);
                         if !status_only {
                             out.push_str(&format!("{disp_prefix}{disp_fname}: FAILED open or read\n"));
                         }
@@ -1612,7 +1720,7 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             }
             if !valid {
                 err.push_str(&format!(
-                    "cksum: {manifest}: no properly formatted checksum lines found\n"
+                    "cksum: {disp_m}: no properly formatted checksum lines found\n"
                 ));
                 overall_ok = false;
             } else {
@@ -1633,7 +1741,7 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         ));
                     }
                     if ignore_missing && !matched {
-                        err.push_str(&format!("cksum: {manifest}: no file was verified\n"));
+                        err.push_str(&format!("cksum: {disp_m}: no file was verified\n"));
                     }
                 }
                 if !(matched && failures == 0 && mismatched == 0 && (!strict || malformed == 0)) {
@@ -1759,10 +1867,18 @@ fn cmd_cksum(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             out.push_str(&format_for_bytes(&bytes, Some("-")));
         } else {
             let full = resolve_posix_path(cwd, f);
+            if fs.is_dir(&full) {
+                let (_, disp_f) = escape_fname(f);
+                err.push_str(&format!("cksum: {disp_f}: Is a directory\n"));
+                code = 1;
+                continue;
+            }
             if let Ok(b) = fs.read_file(&full) {
                 out.push_str(&format_for_bytes(&b, Some(f)));
             } else {
-                err.push_str(&format!("cksum: {f}: No such file or directory\n"));
+                err.push_str(&format!(
+                    "cksum: ENOENT: no such file or directory, readStream '{full}'\n"
+                ));
                 code = 1;
             }
         }
@@ -1844,7 +1960,7 @@ fn decode_base_stream(
     a_quantum: usize,
     valid_lengths: &[usize],
     ignore_garbage: bool,
-) -> Result<Vec<u8>, ()> {
+) -> (Vec<u8>, bool) {
     let mut lookup = [-2i16; 256];
     for (idx, &b) in alphabet.iter().enumerate() {
         lookup[b as usize] = idx as i16;
@@ -1869,7 +1985,7 @@ fn decode_base_stream(
             let valid = decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, &mut out);
             q_len = 0;
             if !valid {
-                return Err(());
+                return (out, false);
             }
         }
     }
@@ -1882,14 +1998,15 @@ fn decode_base_stream(
         }
         let valid = decode_base_quantum(&quantum, q_len, a_bits, a_quantum, valid_lengths, &mut out);
         if !valid {
-            return Err(());
+            return (out, false);
         }
     }
-    Ok(out)
+    (out, true)
 }
 
 fn base64_decode_strict(input: &str) -> Result<Vec<u8>, ()> {
-    decode_base_stream(input.as_bytes(), B64_CHARS, 6, 4, &[2, 3, 4], false)
+    let (out, valid) = decode_base_stream(input.as_bytes(), B64_CHARS, 6, 4, &[2, 3, 4], false);
+    if valid { Ok(out) } else { Err(()) }
 }
 
 pub fn base64_decode(input: &str) -> Result<Vec<u8>, String> {
@@ -1935,6 +2052,15 @@ fn run_base_cmd(
     let mut files = Vec::new();
     let mut ended = false;
     let mut i = 0usize;
+    let parse_wrap = |v: &str| -> Result<usize, String> {
+        let digits = v.strip_prefix('+').unwrap_or(v);
+        if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+            return Err(format!("{name}: invalid number '{v}'\n"));
+        }
+        digits
+            .parse::<usize>()
+            .map_err(|_| format!("{name}: invalid number '{v}'\n"))
+    };
     while i < args.len() {
         let a = args[i].as_str();
         if !ended && a == "--" {
@@ -1948,21 +2074,39 @@ fn run_base_cmd(
             continue;
         }
         if a.starts_with("--") {
-            match a {
-                "--decode" => decode = true,
-                "--ignore-garbage" => ignore_garbage = true,
-                "--wrap" if i + 1 < args.len() => {
-                    i += 1;
-                    match args[i].parse::<usize>() {
-                        Ok(w) => wrap_cols = w,
-                        Err(_) => return err_out(&format!("{name}: invalid number '{}'\n", args[i]), 2),
+            let (opt_name, eq_val) = match a[2..].split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (&a[2..], None),
+            };
+            match opt_name {
+                "decode" | "ignore-garbage" => {
+                    if eq_val.is_some() {
+                        return err_out(
+                            &format!("{name}: option '--{opt_name}' does not take an argument\n"),
+                            2,
+                        );
+                    }
+                    if opt_name == "decode" {
+                        decode = true;
+                    } else {
+                        ignore_garbage = true;
                     }
                 }
-                _ if a.starts_with("--wrap=") => {
-                    let v = &a["--wrap=".len()..];
-                    match v.parse::<usize>() {
+                "wrap" => {
+                    let val_str = if let Some(v) = eq_val {
+                        v.to_string()
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(
+                            &format!("{name}: option '--wrap' requires an argument\n"),
+                            2,
+                        );
+                    };
+                    match parse_wrap(&val_str) {
                         Ok(w) => wrap_cols = w,
-                        Err(_) => return err_out(&format!("{name}: invalid number '{v}'\n"), 2),
+                        Err(msg) => return err_out(&msg, 2),
                     }
                 }
                 _ => return err_out(&format!("{name}: unrecognized option '{a}'\n"), 2),
@@ -1974,7 +2118,7 @@ fn run_base_cmd(
         let mut c_idx = 0usize;
         while c_idx < chars.len() {
             match chars[c_idx] {
-                'd' | 'D' => decode = true,
+                'd' => decode = true,
                 'i' => ignore_garbage = true,
                 'w' => {
                     let rest: String = chars[c_idx + 1..].iter().collect();
@@ -1986,9 +2130,9 @@ fn run_base_cmd(
                     } else {
                         return err_out(&format!("{name}: option requires an argument -- 'w'\n"), 2);
                     };
-                    match val_str.parse::<usize>() {
+                    match parse_wrap(&val_str) {
                         Ok(w) => wrap_cols = w,
-                        Err(_) => return err_out(&format!("{name}: invalid number '{val_str}'\n"), 2),
+                        Err(msg) => return err_out(&msg, 2),
                     }
                     break;
                 }
@@ -2006,18 +2150,34 @@ fn run_base_cmd(
     } else {
         let full = resolve_posix_path(cwd, &files[0]);
         if fs.is_dir(&full) {
-            return err_out(&format!("{name}: {}: Is a directory\n", files[0]), 1);
+            return err_out(
+                &format!("{name}: EISDIR: illegal operation on a directory, readStream '{full}'\n"),
+                1,
+            );
         }
         match fs.read_file(&full) {
             Ok(b) => b,
-            Err(_) => return err_out(&format!("{name}: {}: No such file or directory\n", files[0]), 1),
+            Err(_) => {
+                return err_out(
+                    &format!("{name}: ENOENT: no such file or directory, readStream '{full}'\n"),
+                    1,
+                )
+            }
         }
     };
 
     if decode {
-        match decode_base_stream(&data, alphabet, a_bits, a_quantum, valid_lengths, ignore_garbage) {
-            Ok(bytes) => ok_out(&crate::vfs::bytes_to_stream_string(&bytes)),
-            Err(()) => err_out(&format!("{name}: invalid input\n"), 1),
+        let (bytes, valid) =
+            decode_base_stream(&data, alphabet, a_bits, a_quantum, valid_lengths, ignore_garbage);
+        let stdout = crate::vfs::bytes_to_stream_string(&bytes);
+        if valid {
+            ok_out(&stdout)
+        } else {
+            BuiltinOutcome {
+                stdout,
+                stderr: format!("{name}: invalid input\n"),
+                exit_code: 1,
+            }
         }
     } else {
         if data.is_empty() {
@@ -8652,7 +8812,13 @@ fn openssl_read_bytes(
 ) -> Result<Vec<u8>, String> {
     if let Some(f) = file && !f.is_empty() {
         let full = resolve_posix_path(cwd, f);
-        fs.read_file(&full).map_err(|e| format!("{e}"))
+        if fs.is_dir(&full) {
+            return Err(format!(
+                "EISDIR: illegal operation on a directory, readFile '{full}'"
+            ));
+        }
+        fs.read_file(&full)
+            .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
     } else {
         Ok(stdin_buf.take().unwrap_or_default())
     }
@@ -9106,6 +9272,9 @@ fn cmd_openssl(
                 if positional.len() > 1 || (sign_key.is_some() && (verify_key.is_some() || prverify_key.is_some())) {
                     return Err("sign/verify requires one input and one operation".to_string());
                 }
+                if sign_key.is_none() && sig_file.is_none() {
+                    return Err("sign/verify requires a key and verification requires a signature".to_string());
+                }
                 let key_path = sign_key.as_deref().or(verify_key.as_deref()).or(prverify_key.as_deref()).unwrap();
                 let key_bytes = openssl_read_bytes(Some(key_path), &mut stdin_buf, cwd, fs)?;
                 let (meta, seed) = openssl_extract_key_seed(&key_bytes)?;
@@ -9530,6 +9699,7 @@ fn cmd_openssl(
             let mut genkey_flag = false;
             let mut in_file: Option<String> = None;
             let mut out_file: Option<String> = None;
+            let mut inform = "PEM".to_string();
             let mut outform = "PEM".to_string();
             let mut algorithm: Option<String> = None;
             let mut curve_name = "prime256v1".to_string();
@@ -9553,12 +9723,17 @@ fn cmd_openssl(
                         match a {
                             "-in" => in_file = Some(val),
                             "-out" => out_file = Some(val),
+                            "-inform" => inform = val,
                             "-outform" => outform = val,
                             "-algorithm" => algorithm = Some(val),
                             "-pkeyopt" => pkeyopts.push(val),
                             "-name" => curve_name = val,
                             _ => {}
                         }
+                    }
+                    "--" => {
+                        positional.extend(rest[i + 1..].iter().cloned());
+                        break;
                     }
                     _ if a.starts_with('-') => return Err(format!("unknown option: {a}")),
                     _ => positional.push(a.to_string()),
@@ -9567,10 +9742,13 @@ fn cmd_openssl(
             }
             let generating = matches!(sub, "genrsa" | "genpkey" | "ecparam");
             let (alg, bits_or_curve, is_pub, seed) = if generating {
-                let mut bits = positional.first().and_then(|s| s.parse::<usize>().ok()).unwrap_or(2048);
+                let mut bits: isize = match positional.first() {
+                    Some(s) => s.parse::<isize>().unwrap_or(-1),
+                    None => 2048,
+                };
                 for opt in &pkeyopts {
                     if let Some(b) = opt.strip_prefix("rsa_keygen_bits:") {
-                        bits = b.parse::<usize>().unwrap_or(2048);
+                        bits = b.parse::<isize>().unwrap_or(-1);
                     } else if let Some(c) = opt.strip_prefix("ec_paramgen_curve:") {
                         curve_name = c.to_string();
                     } else {
@@ -9578,31 +9756,63 @@ fn cmd_openssl(
                     }
                 }
                 if sub == "ecparam" && !genkey_flag {
-                    if !matches!(curve_name.as_str(), "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
-                        return Err(format!("unsupported curve: {curve_name}"));
-                    }
+                    let oid_hex = match curve_name.as_str() {
+                        "prime256v1" | "P-256" => "06082a8648ce3d030107",
+                        "secp384r1" | "P-384" => "06052b81040022",
+                        "secp521r1" | "P-521" => "06052b81040023",
+                        _ => return Err(format!("unsupported curve: {curve_name}")),
+                    };
+                    let oid_bytes = openssl_hex_decode(oid_hex)?;
                     let mut out = String::new();
                     if text_flag {
                         out.push_str(&format!("ASN1 OID: {curve_name}\n"));
                     }
                     if !noout {
-                        let b64 = base64_encode(curve_name.as_bytes());
+                        if outform == "DER" {
+                            let mut combined = out.into_bytes();
+                            combined.extend_from_slice(&oid_bytes);
+                            return openssl_write_bytes(&combined, out_file.as_deref(), cwd, fs);
+                        }
+                        let b64 = openssl_b64_encode(&oid_bytes, true);
                         out.push_str(&format!("-----BEGIN EC PARAMETERS-----\n{b64}\n-----END EC PARAMETERS-----\n"));
                     }
                     return openssl_write_bytes(out.as_bytes(), out_file.as_deref(), cwd, fs);
                 }
                 let alg_str = algorithm.unwrap_or_else(|| if sub == "ecparam" { "EC".to_string() } else { "RSA".to_string() }).to_uppercase();
-                if alg_str == "RSA" && (bits < 512 || bits > 4096 || bits % 8 != 0) {
-                    return Err("RSA size must be a multiple of 8 from 512 to 4096".to_string());
-                }
-                if alg_str == "EC" && !matches!(curve_name.as_str(), "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
-                    return Err(format!("unsupported curve: {curve_name}"));
+                match alg_str.as_str() {
+                    "RSA" => {
+                        if bits < 512 || bits > 4096 || bits % 8 != 0 {
+                            return Err("RSA size must be a multiple of 8 from 512 to 4096".to_string());
+                        }
+                    }
+                    "EC" => {
+                        if !matches!(curve_name.as_str(), "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
+                            return Err(format!("unsupported curve: {curve_name}"));
+                        }
+                    }
+                    "ED25519" => {}
+                    _ => return Err(format!("unsupported key algorithm: {alg_str}")),
                 }
                 let seed_bytes = sha256_bytes(format!("sb-key-{alg_str}-{bits}-{curve_name}").as_bytes()).to_vec();
                 let boc = if alg_str == "RSA" { bits.to_string() } else { curve_name.clone() };
                 (alg_str, boc, pubout, seed_bytes)
             } else {
+                if !positional.is_empty() {
+                    return Err("unexpected key argument".to_string());
+                }
+                if inform != "PEM" && inform != "DER" {
+                    return Err("format must be PEM or DER".to_string());
+                }
                 let raw = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
+                if inform == "PEM" {
+                    let txt = String::from_utf8_lossy(&raw);
+                    let lines: Vec<&str> = txt.trim().lines().collect();
+                    if !lines.first().map(|l| l.starts_with("-----BEGIN ")).unwrap_or(false)
+                        || !lines.last().map(|l| l.starts_with("-----END ")).unwrap_or(false)
+                    {
+                        return Err("invalid PEM input".to_string());
+                    }
+                }
                 let (meta, seed_bytes) = openssl_extract_key_seed(&raw)?;
                 let parts: Vec<&str> = meta.split(':').collect();
                 let alg_str = parts.first().copied().unwrap_or("RSA").to_string();
@@ -9626,8 +9836,22 @@ fn cmd_openssl(
             if text_flag {
                 let role = if is_pub { "Public" } else { "Private" };
                 let hx = openssl_hex_encode(&seed);
-                lines.push(format!("{role}-Key: ({bits_or_curve} bit)"));
-                lines.push(format!("modulus: {hx}"));
+                if alg == "RSA" {
+                    lines.push(format!("{role}-Key: ({bits_or_curve} bit)"));
+                    lines.push(format!("modulus: {hx}"));
+                } else if alg == "EC" {
+                    let crv = match bits_or_curve.as_str() {
+                        "prime256v1" | "P-256" => "P-256",
+                        "secp384r1" | "P-384" => "P-384",
+                        "secp521r1" | "P-521" => "P-521",
+                        other => other,
+                    };
+                    lines.push(format!("{role}-Key: ({crv})"));
+                    lines.push(format!("x: {hx}"));
+                } else {
+                    lines.push(format!("{role}-Key: (Ed25519)"));
+                    lines.push(format!("x: {hx}"));
+                }
             }
             if modulus_flag {
                 let hx = openssl_hex_encode(&seed).to_uppercase();
@@ -9685,10 +9909,16 @@ fn cmd_openssl(
                 }
                 i += 1;
             }
-            if inkey.is_none() || (sign == verify) {
-                return Err("pkeyutl requires -inkey and one of -sign/-verify".to_string());
-            }
-            let key_bytes = openssl_read_bytes(inkey.as_deref(), &mut stdin_buf, cwd, fs)?;
+                if inkey.is_none() || (sign == verify) {
+                    return Err("pkeyutl requires -inkey and one of -sign/-verify".to_string());
+                }
+                if !matches!(digest.as_str(), "sha1" | "sha256" | "sha384" | "sha512") {
+                    return Err("unsupported signing digest".to_string());
+                }
+                if !sign && sig_file.is_none() {
+                    return Err("sign/verify requires a key and verification requires a signature".to_string());
+                }
+                let key_bytes = openssl_read_bytes(inkey.as_deref(), &mut stdin_buf, cwd, fs)?;
             let (meta, seed) = openssl_extract_key_seed(&key_bytes)?;
             let input = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
             let expected = openssl_compute_signature(&meta, &digest, &seed, &input);
@@ -9731,6 +9961,7 @@ fn cmd_openssl(
             let mut addexts = Vec::new();
             let mut in_file: Option<String> = None;
             let mut out_file: Option<String> = None;
+            let mut inform = "PEM".to_string();
             let mut outform = "PEM".to_string();
             let mut ext_opt: Option<String> = None;
             let mut checkend_opt: Option<usize> = None;
@@ -9775,6 +10006,7 @@ fn cmd_openssl(
                             "-addext" => addexts.push(val),
                             "-in" => in_file = Some(val),
                             "-out" => out_file = Some(val),
+                            "-inform" => inform = val,
                             "-outform" => outform = val,
                             "-ext" => ext_opt = Some(val),
                             "-checkend" => {
@@ -9793,6 +10025,27 @@ fn cmd_openssl(
             }
             let generating = is_new || (sub == "req" && (is_x509 || newkey_spec.is_some()));
             let (subj_display, cert_days, cert_exts_raw, raw_cert_bytes) = if generating {
+                if key_file.is_none() {
+                    let nk = newkey_spec.as_deref().unwrap_or("rsa:2048");
+                    let (nk_alg, nk_param) = nk.split_once(':').unwrap_or((nk, "2048"));
+                    let alg_upper = nk_alg.to_uppercase();
+                    match alg_upper.as_str() {
+                        "RSA" => {
+                            let bits = nk_param.parse::<isize>().unwrap_or(-1);
+                            if bits < 512 || bits > 4096 || bits % 8 != 0 {
+                                return Err("RSA size must be a multiple of 8 from 512 to 4096".to_string());
+                            }
+                        }
+                        "EC" => {
+                            let curve = if nk.contains(':') { nk_param } else { "prime256v1" };
+                            if !matches!(curve, "prime256v1" | "P-256" | "secp384r1" | "P-384" | "secp521r1" | "P-521") {
+                                return Err(format!("unsupported curve: {curve}"));
+                            }
+                        }
+                        "ED25519" => {}
+                        _ => return Err(format!("unsupported key algorithm: {alg_upper}")),
+                    }
+                }
                 let raw_subj = subj_opt.as_deref().ok_or_else(|| "-subj is required for noninteractive requests".to_string())?;
                 let formatted_subj = openssl_format_subject(raw_subj)?;
                 let _ = openssl_validate_and_format_addexts(&addexts)?;
@@ -9812,9 +10065,20 @@ fn cmd_openssl(
                 let payload = format!("SBCERT:{formatted_subj}\t{days}\t{exts_joined}");
                 (formatted_subj, days, addexts.clone(), payload.into_bytes())
             } else {
+                if inform != "PEM" && inform != "DER" {
+                    return Err("format must be PEM or DER".to_string());
+                }
                 let raw = openssl_read_bytes(in_file.as_deref(), &mut stdin_buf, cwd, fs)?;
                 let txt = String::from_utf8_lossy(&raw);
                 let trimmed = txt.trim();
+                if inform == "PEM" {
+                    let lines: Vec<&str> = trimmed.lines().collect();
+                    if !lines.first().map(|l| l.starts_with("-----BEGIN ")).unwrap_or(false)
+                        || !lines.last().map(|l| l.starts_with("-----END ")).unwrap_or(false)
+                    {
+                        return Err("invalid PEM input".to_string());
+                    }
+                }
                 let decoded = if trimmed.starts_with("-----BEGIN ") {
                     let lines: Vec<&str> = trimmed.lines().collect();
                     let body = if lines.len() >= 2 { lines[1..lines.len() - 1].join("") } else { String::new() };
@@ -10112,9 +10376,20 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         entry
     };
 
+    let read_gpg_file = |p: &str| -> Result<Vec<u8>, String> {
+        let full = resolve_ssh_path(cwd, p);
+        if fs.is_dir(&full) {
+            return Err(format!(
+                "EISDIR: illegal operation on a directory, readFile '{full}'"
+            ));
+        }
+        fs.read_file(&full)
+            .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
+    };
+
     let resolve_passphrase = || -> Result<String, String> {
         if let Some(ref pf) = passphrase_file {
-            let raw = fs.read_file(&resolve_posix_path(cwd, pf)).map_err(|e| format!("{e}"))?;
+            let raw = read_gpg_file(pf)?;
             let s = String::from_utf8_lossy(&raw);
             return Ok(s.lines().next().unwrap_or("").trim_end_matches('\r').to_string());
         }
@@ -10133,7 +10408,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
         let payload = if let Some(p0) = positionals.first() && p0 != "-" {
-            match fs.read_file(&resolve_posix_path(cwd, p0)) {
+            match read_gpg_file(p0) {
                 Ok(b) => b,
                 Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
             }
@@ -10190,7 +10465,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
         let raw_in = if let Some(p0) = positionals.first() && p0 != "-" {
-            match fs.read_file(&resolve_posix_path(cwd, p0)) {
+            match read_gpg_file(p0) {
                 Ok(b) => b,
                 Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
             }
@@ -10283,7 +10558,10 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if import_keys {
         let input = if let Some(p0) = positionals.first() {
-            fs.read_file(&resolve_posix_path(cwd, p0)).unwrap_or_default()
+            match read_gpg_file(p0) {
+                Ok(b) => b,
+                Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+            }
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
@@ -10308,7 +10586,7 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     if detach_sign {
         let payload = if let Some(p0) = positionals.first() {
-            match fs.read_file(&resolve_posix_path(cwd, p0)) {
+            match read_gpg_file(p0) {
                 Ok(b) => b,
                 Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
             }
@@ -10400,11 +10678,15 @@ fn cmd_gpg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let Some(sig_path) = positionals.first() else {
             return err_out("gpg: missing signature file for --verify\n", 2);
         };
-        let Ok(sig_raw) = fs.read_file(&resolve_posix_path(cwd, sig_path)) else {
-            return err_out(&format!("gpg: can't open '{sig_path}'\n"), 2);
+        let sig_raw = match read_gpg_file(sig_path) {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
         };
         let data_bytes = if let Some(p1) = positionals.get(1) {
-            fs.read_file(&resolve_posix_path(cwd, p1)).unwrap_or_default()
+            match read_gpg_file(p1) {
+                Ok(b) => b,
+                Err(e) => return err_out(&format!("gpg: {e}\n"), 2),
+            }
         } else {
             crate::vfs::stream_string_to_bytes(stdin)
         };
@@ -11236,6 +11518,16 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         i += 1;
     }
 
+    let read_ssh_file = |full: &str| -> Result<Vec<u8>, String> {
+        if fs.is_dir(full) {
+            return Err(format!(
+                "EISDIR: illegal operation on a directory, readFile '{full}'"
+            ));
+        }
+        fs.read_file(full)
+            .map_err(|_| format!("ENOENT: no such file or directory, readFile '{full}'"))
+    };
+
     if let Some(host) = find_host {
         let kh_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/known_hosts"));
         let kh_text = fs
@@ -11287,8 +11579,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     if let Some(action) = y_action {
         if action == "sign" {
             let key_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"));
-            let Ok(key_bytes) = fs.read_file(&key_path) else {
-                return err_out(&format!("ssh-keygen: cannot read {key_path}\n"), 1);
+            let key_bytes = match read_ssh_file(&key_path) {
+                Ok(b) => b,
+                Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
             };
             let Some((seed, pub_key, _)) = parse_openssh_ed25519_privkey(&String::from_utf8_lossy(&key_bytes)) else {
                 return err_out(&format!("ssh-keygen: invalid OpenSSH Ed25519 key: {key_path}\n"), 1);
@@ -11296,10 +11589,10 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             let target_file = positional.first();
             let payload = if let Some(tf) = target_file {
                 let p = resolve_ssh_path(cwd, tf);
-                let Ok(b) = fs.read_file(&p) else {
-                    return err_out(&format!("ssh-keygen: cannot read {tf}\n"), 1);
-                };
-                b
+                match read_ssh_file(&p) {
+                    Ok(b) => b,
+                    Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
+                }
             } else {
                 crate::vfs::stream_string_to_bytes(stdin)
             };
@@ -11340,8 +11633,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         if action == "verify" || action == "check-novalidate" || action == "find-principals" {
             let sig_rel = signature_file.as_deref().or_else(|| positional.first().map(|s| s.as_str())).unwrap_or("");
             let sig_path = resolve_ssh_path(cwd, sig_rel);
-            let Ok(sig_bytes) = fs.read_file(&sig_path) else {
-                return err_out(&format!("ssh-keygen: cannot read {sig_path}\n"), 1);
+            let sig_bytes = match read_ssh_file(&sig_path) {
+                Ok(b) => b,
+                Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
             };
             let b64: String = String::from_utf8_lossy(&sig_bytes)
                 .lines()
@@ -11388,8 +11682,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                     return err_out("ssh-keygen: allowed signers file and signer identity are required for verification\n", 1);
                 }
                 let as_path = resolve_ssh_path(cwd, as_file);
-                let Ok(as_bytes) = fs.read_file(&as_path) else {
-                    return err_out(&format!("ssh-keygen: cannot read {as_path}\n"), 1);
+                let as_bytes = match read_ssh_file(&as_path) {
+                    Ok(b) => b,
+                    Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
                 };
                 let as_text = String::from_utf8_lossy(&as_bytes);
                 let entries: Vec<(String, Option<String>, [u8; 32])> =
@@ -11437,8 +11732,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
 
     if derive_pub {
         let key_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519"));
-        let Ok(key_bytes) = fs.read_file(&key_path) else {
-            return err_out(&format!("ssh-keygen: cannot read {key_path}\n"), 1);
+        let key_bytes = match read_ssh_file(&key_path) {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
         };
         let Some((_, pub_key, cmt)) = parse_openssh_ed25519_privkey(&String::from_utf8_lossy(&key_bytes)) else {
             return err_out(&format!("ssh-keygen: invalid OpenSSH private key: {key_path}\n"), 1);
@@ -11449,8 +11745,9 @@ fn cmd_ssh_keygen(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
 
     if show_fp {
         let key_path = resolve_ssh_path(cwd, file_arg.as_deref().unwrap_or("/home/user/.ssh/id_ed25519.pub"));
-        let Ok(key_bytes) = fs.read_file(&key_path) else {
-            return err_out(&format!("ssh-keygen: cannot read {key_path}\n"), 1);
+        let key_bytes = match read_ssh_file(&key_path) {
+            Ok(b) => b,
+            Err(e) => return err_out(&format!("ssh-keygen: {e}\n"), 1),
         };
         let content = String::from_utf8_lossy(&key_bytes);
         let parsed = parse_openssh_ed25519_privkey(&content)
@@ -12029,5 +12326,85 @@ mod tests {
         let od_err = try_run_archive_command("od", &args(&["-ebig"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(od_err.exit_code, 2);
         assert_eq!(od_err.stderr, "od: use --endian=little or --endian=big; -e is unsupported\n");
+    }
+
+    #[test]
+    fn crypto_checksum_base_openssl_gpg_ssh_diagnostics_and_parity_succeed() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+        vfs.write_file("/work/f.txt", b"hello\n").unwrap();
+        let env = BTreeMap::new();
+
+        let sha_z = try_run_archive_command("sha256sum", &args(&["-Z"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sha_z.exit_code, 2);
+        assert_eq!(sha_z.stderr, "sha256sum: unrecognized option '-Z'\n");
+
+        let sha_dir = try_run_archive_command("sha256sum", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sha_dir.exit_code, 1);
+        assert_eq!(sha_dir.stderr, "sha256sum: /work/dir: Is a directory\n");
+
+        let sha_miss = try_run_archive_command("sha256sum", &args(&["/work/missing"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sha_miss.exit_code, 1);
+        assert_eq!(
+            sha_miss.stderr,
+            "sha256sum: ENOENT: no such file or directory, readStream '/work/missing'\n"
+        );
+
+        let ck_alg = try_run_archive_command("cksum", &args(&["-a", "SHA256"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ck_alg.exit_code, 2);
+        assert_eq!(ck_alg.stderr, "cksum: unsupported checksum algorithm 'SHA256'\n");
+
+        let ck_eq = try_run_archive_command("cksum", &args(&["--tag=1"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ck_eq.exit_code, 2);
+        assert_eq!(ck_eq.stderr, "cksum: option '--tag' does not take an argument\n");
+
+        let b64_wrap = try_run_archive_command("base64", &args(&["--wrap"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(b64_wrap.exit_code, 2);
+        assert_eq!(b64_wrap.stderr, "base64: option '--wrap' requires an argument\n");
+
+        let b64_dir = try_run_archive_command("base64", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(b64_dir.exit_code, 1);
+        assert_eq!(
+            b64_dir.stderr,
+            "base64: EISDIR: illegal operation on a directory, readStream '/work/dir'\n"
+        );
+
+        let ossl_utl = try_run_archive_command(
+            "openssl",
+            &args(&["pkeyutl", "-inkey", "/work/f.txt", "-sign", "-digest", "md5"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ossl_utl.exit_code, 1);
+        assert_eq!(ossl_utl.stderr, "openssl: unsupported signing digest\n");
+
+        let ossl_ecp = try_run_archive_command(
+            "openssl",
+            &args(&["ecparam", "-name", "prime256v1", "-text"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ossl_ecp.exit_code, 0);
+        assert!(ossl_ecp.stdout.contains("BggqhkjOPQMBBw=="));
+
+        let gpg_ver = try_run_archive_command("gpg", &args(&["--verify", "/work/missing"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(gpg_ver.exit_code, 2);
+        assert_eq!(
+            gpg_ver.stderr,
+            "gpg: ENOENT: no such file or directory, readFile '/work/missing'\n"
+        );
+
+        let ssh_kg = try_run_archive_command("ssh-keygen", &args(&["-y", "-f", "/work/missing"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ssh_kg.exit_code, 1);
+        assert_eq!(
+            ssh_kg.stderr,
+            "ssh-keygen: ENOENT: no such file or directory, readFile '/work/missing'\n"
+        );
     }
 }

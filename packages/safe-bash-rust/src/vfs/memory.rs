@@ -441,7 +441,12 @@ impl SafeBashFs for MemoryVfs {
             return true;
         }
         match Self::resolve_symlinks_locked(&guard, &norm, true) {
-            Ok(resolved) => guard.nodes.contains_key(&resolved),
+            Ok(resolved) => {
+                matches!(
+                    resolved.as_str(),
+                    "/dev" | "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
+                ) || guard.nodes.contains_key(&resolved)
+            }
             Err(_) => false,
         }
     }
@@ -549,6 +554,25 @@ impl SafeBashFs for MemoryVfs {
         }
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
+        if resolved == "/dev" {
+            return Ok(FileStat {
+                kind: VfsEntryKind::Directory,
+                size: 0,
+                mode: 0o40755,
+                mtime_ms: 1_700_000_000_000,
+            });
+        }
+        if matches!(
+            resolved.as_str(),
+            "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
+        ) {
+            return Ok(FileStat {
+                kind: VfsEntryKind::File,
+                size: 0,
+                mode: 0o20666,
+                mtime_ms: 1_700_000_000_000,
+            });
+        }
         match guard.nodes.get(&resolved) {
             Some(MemoryNode::File { data, mode, mtime_ms }) => Ok(FileStat {
                 kind: VfsEntryKind::File,

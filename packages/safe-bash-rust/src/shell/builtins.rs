@@ -1252,8 +1252,30 @@ fn eval_test_primary(
             "-z" => val.is_empty(),
             "-n" => !val.is_empty(),
             "-e" | "-a" => fs.stat(&path).is_ok(),
-            "-f" => fs.exists(&path) && !fs.is_dir(&path),
+            "-f" => fs
+                .stat(&path)
+                .map(|s| s.kind == crate::vfs::VfsEntryKind::File && (s.mode & 0o170000) != 0o020000)
+                .unwrap_or(false),
             "-d" => fs.is_dir(&path),
+            "-c" => fs
+                .stat(&path)
+                .map(|s| (s.mode & 0o170000) == 0o020000)
+                .unwrap_or(false),
+            "-b" => fs
+                .stat(&path)
+                .map(|s| (s.mode & 0o170000) == 0o060000)
+                .unwrap_or(false),
+            "-p" => fs
+                .stat(&path)
+                .map(|s| (s.mode & 0o170000) == 0o010000)
+                .unwrap_or(false),
+            "-S" => fs
+                .stat(&path)
+                .map(|s| (s.mode & 0o170000) == 0o140000)
+                .unwrap_or(false),
+            "-u" => fs.stat(&path).map(|s| (s.mode & 0o4000) != 0).unwrap_or(false),
+            "-g" => fs.stat(&path).map(|s| (s.mode & 0o2000) != 0).unwrap_or(false),
+            "-k" => fs.stat(&path).map(|s| (s.mode & 0o1000) != 0).unwrap_or(false),
             "-s" => fs.read_file(&path).map(|b| !b.is_empty()).unwrap_or(false),
             "-L" | "-h" => fs.readlink(&path).is_ok(),
             "-r" => fs.stat(&path).map(|s| s.mode & 0o444 != 0).unwrap_or(false),

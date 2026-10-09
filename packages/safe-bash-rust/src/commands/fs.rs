@@ -3496,9 +3496,12 @@ fn cmd_stat(
         match st_res {
             Ok(st) => {
                 let perm = st.mode & 0o7777;
+                let is_char_dev = st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000;
                 let ftype = match st.kind {
                     VfsEntryKind::File => {
-                        if st.size == 0 {
+                        if is_char_dev {
+                            "character special file"
+                        } else if st.size == 0 {
                             "regular empty file"
                         } else {
                             "regular file"
@@ -3510,13 +3513,25 @@ fn cmd_stat(
                 let type_ch = match st.kind {
                     VfsEntryKind::Directory => 'd',
                     VfsEntryKind::Symlink => 'l',
-                    VfsEntryKind::File => '-',
+                    VfsEntryKind::File => {
+                        if is_char_dev {
+                            'c'
+                        } else {
+                            '-'
+                        }
+                    }
                 };
                 let sym_perm = format!("{type_ch}{}", format_perm_9(perm));
                 let raw_mode = match st.kind {
                     VfsEntryKind::Directory => 0o040000 | perm,
                     VfsEntryKind::Symlink => 0o120000 | perm,
-                    VfsEntryKind::File => 0o100000 | perm,
+                    VfsEntryKind::File => {
+                        if is_char_dev {
+                            0o020000 | perm
+                        } else {
+                            0o100000 | perm
+                        }
+                    }
                 };
                 let atime_ms = atime_store()
                     .lock()
@@ -6027,6 +6042,25 @@ fn classify_file_bytes(bytes: &[u8]) -> (String, &'static str, &'static str) {
     if bytes.starts_with(b"II*\x00") || bytes.starts_with(b"MM\x00*") {
         return ("TIFF image data".to_string(), "image/tiff", "binary");
     }
+    if bytes.len() >= 26
+        && &bytes[0..2] == b"BM"
+        && matches!(
+            u32::from_le_bytes([bytes[14], bytes[15], bytes[16], bytes[17]]),
+            12 | 40 | 52 | 56 | 108 | 124
+        )
+    {
+        return ("PC bitmap image data".to_string(), "image/bmp", "binary");
+    }
+    if bytes.len() >= 22
+        && &bytes[0..4] == b"\x00\x00\x01\x00"
+        && u16::from_le_bytes([bytes[4], bytes[5]]) > 0
+    {
+        return (
+            "MS Windows icon resource".to_string(),
+            "image/vnd.microsoft.icon",
+            "binary",
+        );
+    }
     if bytes.starts_with(b"%PDF-") {
         return ("PDF document".to_string(), "application/pdf", "binary");
     }
@@ -6048,14 +6082,66 @@ fn classify_file_bytes(bytes: &[u8]) -> (String, &'static str, &'static str) {
     if bytes.starts_with(b"7z\xbc\xaf\x27\x1c") {
         return ("7-zip archive data".to_string(), "application/x-7z-compressed", "binary");
     }
+    if (bytes.len() >= 14 && bytes.starts_with(b"Rar!\x1a\x07\x00"))
+        || (bytes.len() >= 16 && bytes.starts_with(b"Rar!\x1a\x07\x01\x00"))
+    {
+        return ("RAR archive data".to_string(), "application/x-rar", "binary");
+    }
     if bytes.len() >= 262 && &bytes[257..262] == b"ustar" {
         return ("POSIX tar archive".to_string(), "application/x-tar", "binary");
+    }
+    if bytes.len() >= 52
+        && bytes.starts_with(b"\x7fELF")
+        && matches!(bytes[4], 1 | 2)
+        && matches!(bytes[5], 1 | 2)
+        && bytes[6] == 1
+        && (bytes[4] == 1 || bytes.len() >= 64)
+    {
+        let elf_type = if bytes[5] == 1 {
+            u16::from_le_bytes([bytes[16], bytes[17]])
+        } else {
+            u16::from_be_bytes([bytes[16], bytes[17]])
+        };
+        let mime = match elf_type {
+            1 => "application/x-object",
+            2 => "application/x-executable",
+            3 => "application/x-sharedlib",
+            _ => "application/octet-stream",
+        };
+        let bits = if bytes[4] == 1 { "32" } else { "64" };
+        let kind = match elf_type {
+            2 => "executable",
+            3 => "shared object",
+            _ => "object",
+        };
+        return (format!("ELF {bits}-bit {kind}"), mime, "binary");
+    }
+    if bytes.len() >= 64 && &bytes[0..2] == b"MZ" {
+        let offset = u32::from_le_bytes([bytes[60], bytes[61], bytes[62], bytes[63]]) as usize;
+        if offset >= 64 && offset + 24 <= bytes.len() && &bytes[offset..offset + 4] == b"PE\x00\x00" {
+            return (
+                "PE executable".to_string(),
+                "application/vnd.microsoft.portable-executable",
+                "binary",
+            );
+        }
+        return ("DOS executable".to_string(), "application/x-dosexec", "binary");
     }
     if bytes.starts_with(b"\x00asm") {
         return ("WebAssembly binary module".to_string(), "application/wasm", "binary");
     }
     if bytes.starts_with(b"SQLite format 3\x00") {
         return ("SQLite 3.x database".to_string(), "application/vnd.sqlite3", "binary");
+    }
+    if bytes.len() >= 512
+        && bytes.starts_with(&[0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1])
+        && bytes[28..30] == [0xfe, 0xff]
+    {
+        return (
+            "OLE Compound Document".to_string(),
+            "application/x-ole-storage",
+            "binary",
+        );
     }
     if bytes.starts_with(&[0xff, 0xfe, 0x00, 0x00]) || bytes.starts_with(&[0x00, 0x00, 0xfe, 0xff]) {
         return ("data".to_string(), "application/octet-stream", "binary");
@@ -6162,6 +6248,8 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut listed: Vec<(String, FileFormatOpts)> = Vec::new();
     let mut names: Vec<String> = Vec::new();
     let mut stdin_used = false;
+    let mut has_list = false;
+    let mut action: Option<&'static str> = None;
     let mut options = true;
     let mut i = 0usize;
     while i < args.len() {
@@ -6201,11 +6289,12 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         i += 1;
                         args[i].clone()
                     }
-                    None => return err_out(&format!("file: option '{flag}' requires an argument\n"), 1),
+                    None => return err_out(&format!("file: option '{flag}' requires an argument\n"), 2),
                 };
                 if flag == "-F" || flag == "--separator" {
                     fmt.separator = val;
                 } else {
+                    has_list = true;
                     let list_text = if val == "-" {
                         if stdin_used {
                             String::new()
@@ -6227,6 +6316,9 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 }
                 break;
             }
+            if long && eq.is_some() {
+                return err_out(&format!("file: unsupported option '{a}'\n"), 2);
+            }
             match flag.as_str() {
                 "-b" | "--brief" => fmt.brief = true,
                 "-L" | "--dereference" => fmt.follow = true,
@@ -6238,18 +6330,27 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 "--mime-type" => fmt.mime_type = true,
                 "--mime-encoding" => fmt.mime_encoding = true,
                 "-0" | "--print0" => fmt.print0 = (fmt.print0 + 1).min(2),
-                _ => {}
+                "--help" => action = Some("help"),
+                "--version" => action = Some("version"),
+                _ => return err_out(&format!("file: unsupported option '{flag}'\n"), 2),
             }
         }
         i += 1;
+    }
+
+    if let Some(act) = action {
+        if act == "help" {
+            return ok_out("Usage: file [-bihL0] [-F SEPARATOR] [-f NAMEFILE] [--mime-type] [--mime-encoding] [--] FILE...\nClassify bounded VFS content; '-' reads stdin. -h is the default.\nOptions: --brief, --mime, --dereference, --no-dereference, --separator, --print0, --files-from, --help, --version\nNo decompression, external magic database, or complete format validation.\n");
+        }
+        return ok_out("file (virtual-bash-file-v1)\n");
     }
 
     let mut all_items: Vec<(String, FileFormatOpts)> = listed;
     for n in names {
         all_items.push((n, fmt.clone()));
     }
-    if all_items.is_empty() {
-        return err_out("file: missing file operand\n", 1);
+    if all_items.is_empty() && !has_list {
+        return err_out("file: missing file operand (use '-' for stdin)\n", 2);
     }
 
     let mut out = String::new();
@@ -6294,8 +6395,16 @@ fn cmd_file(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                             (d, "inode/symlink", "binary")
                         }
                         VfsEntryKind::File => {
-                            let bytes = fs.read_file(&p).unwrap_or_default();
-                            classify_file_bytes(&bytes)
+                            if (st.mode & 0o170000) == 0o020000 {
+                                (
+                                    "character special".to_string(),
+                                    "inode/chardevice",
+                                    "binary",
+                                )
+                            } else {
+                                let bytes = fs.read_file(&p).unwrap_or_default();
+                                classify_file_bytes(&bytes)
+                            }
                         }
                     };
                     if fopts.mime_type && fopts.mime_encoding {
@@ -6501,5 +6610,112 @@ mod tests {
         assert_eq!(ch.exit_code, 0);
         let st = try_run_fs_command("stat", &args(&["-c", "%a:%A", "/work/opt/bin/run"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(st.stdout, "740:-rwxr-----\n");
+    }
+
+    #[test]
+    fn unit_file_binary_signatures_and_char_device_classification() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        // BMP (header size 40 at offset 14)
+        let mut bmp = vec![0u8; 26];
+        bmp[0..2].copy_from_slice(b"BM");
+        bmp[14..18].copy_from_slice(&40u32.to_le_bytes());
+        vfs.write_file("/work/pic.bmp", &bmp).unwrap();
+
+        // ICO (00 00 01 00, count 1 at offset 4)
+        let mut ico = vec![0u8; 22];
+        ico[0..6].copy_from_slice(&[0, 0, 1, 0, 1, 0]);
+        vfs.write_file("/work/app.ico", &ico).unwrap();
+
+        // RAR v5 (Rar!\x1a\x07\x01\x00 + 8 bytes)
+        let mut rar = vec![0u8; 16];
+        rar[0..8].copy_from_slice(b"Rar!\x1a\x07\x01\x00");
+        vfs.write_file("/work/arch.rar", &rar).unwrap();
+
+        // ELF 64-bit shared object (class=2, data=1, version=1, type=3 at offset 16)
+        let mut elf = vec![0u8; 64];
+        elf[0..7].copy_from_slice(b"\x7fELF\x02\x01\x01");
+        elf[16..18].copy_from_slice(&3u16.to_le_bytes());
+        vfs.write_file("/work/lib.so", &elf).unwrap();
+
+        // PE executable (MZ, PE offset 64 at 60..64, PE\0\0 at 64..68, total >= 88 bytes)
+        let mut pe = vec![0u8; 88];
+        pe[0..2].copy_from_slice(b"MZ");
+        pe[60..64].copy_from_slice(&64u32.to_le_bytes());
+        pe[64..68].copy_from_slice(b"PE\x00\x00");
+        vfs.write_file("/work/app.exe", &pe).unwrap();
+
+        // OLE Compound Document (512 bytes, magic at 0..8, FE FF at 28..30)
+        let mut ole = vec![0u8; 512];
+        ole[0..8].copy_from_slice(&[0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+        ole[28..30].copy_from_slice(&[0xfe, 0xff]);
+        vfs.write_file("/work/legacy.doc", &ole).unwrap();
+
+        let desc = try_run_fs_command(
+            "file",
+            &args(&[
+                "-b",
+                "/work/pic.bmp",
+                "/work/app.ico",
+                "/work/arch.rar",
+                "/work/lib.so",
+                "/work/app.exe",
+                "/work/legacy.doc",
+                "/dev/null",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(desc.exit_code, 0);
+        assert_eq!(
+            desc.stdout,
+            concat!(
+                "PC bitmap image data\n",
+                "MS Windows icon resource\n",
+                "RAR archive data\n",
+                "ELF 64-bit shared object\n",
+                "PE executable\n",
+                "OLE Compound Document\n",
+                "character special\n",
+            )
+        );
+
+        let mime = try_run_fs_command(
+            "file",
+            &args(&[
+                "-b",
+                "--mime-type",
+                "/work/pic.bmp",
+                "/work/app.ico",
+                "/work/arch.rar",
+                "/work/lib.so",
+                "/work/app.exe",
+                "/work/legacy.doc",
+                "/dev/null",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(mime.exit_code, 0);
+        assert_eq!(
+            mime.stdout,
+            concat!(
+                "image/bmp\n",
+                "image/vnd.microsoft.icon\n",
+                "application/x-rar\n",
+                "application/x-sharedlib\n",
+                "application/vnd.microsoft.portable-executable\n",
+                "application/x-ole-storage\n",
+                "inode/chardevice\n",
+            )
+        );
     }
 }

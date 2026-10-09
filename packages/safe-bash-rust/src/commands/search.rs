@@ -4545,7 +4545,13 @@ fn render_find_printf(
     let sz = st_opt.map(|st| st.size).unwrap_or(0);
     let type_ch = st_opt
         .map(|st| match st.kind {
-            VfsEntryKind::File => "f",
+            VfsEntryKind::File => {
+                if (st.mode & 0o170000) == 0o020000 {
+                    "c"
+                } else {
+                    "f"
+                }
+            }
             VfsEntryKind::Directory => "d",
             VfsEntryKind::Symlink => "l",
         })
@@ -5120,7 +5126,8 @@ where
         }
         FindPred::Type(types) => match st_opt {
             Some(st) => types.iter().any(|t| match t {
-                'f' => st.kind == VfsEntryKind::File,
+                'f' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) != 0o020000,
+                'c' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000,
                 'd' => st.kind == VfsEntryKind::Directory,
                 'l' => st.kind == VfsEntryKind::Symlink,
                 _ => false,
@@ -6731,7 +6738,8 @@ fn walk_fd(
 
                 if !ordinary.is_empty() || wants_exec {
                     let ord_ok = ordinary.iter().any(|&t| match t {
-                        'f' => st.kind == VfsEntryKind::File,
+                        'f' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) != 0o020000,
+                        'c' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000,
                         'd' => st.kind == VfsEntryKind::Directory,
                         'l' => st.kind == VfsEntryKind::Symlink,
                         _ => false,

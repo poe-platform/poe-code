@@ -258,6 +258,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             indicator = "classify";
         } else if a == "--file-type" {
             indicator = "file-type";
+        } else if matches!(a.as_str(), "--inode" | "--dereference" | "--human-readable") {
         } else if a.starts_with('-') && !a.starts_with("--") && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
@@ -268,6 +269,11 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'A' => {
                         show_all = true;
                         show_dots = false;
+                    }
+                    'f' => {
+                        show_all = true;
+                        show_dots = true;
+                        sort_mode = "none";
                     }
                     'B' => ignore_backups = true,
                     'd' => dir_only = true,
@@ -281,9 +287,13 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'F' => indicator = "classify",
                     'p' => indicator = "slash",
                     'Q' => quote_name = true,
-                    _ => {}
+                    '1' | 'l' | 'h' | 'i' | 's' | 'g' | 'o' | 'n' | 'C' | 'x' | 'm' | 'k'
+                    | 'q' | 'N' | 'b' | 'u' | 'c' | 'L' | 'H' => {}
+                    other => return err_out(&format!("ls: invalid option -- '{other}'\n"), 2),
                 }
             }
+        } else if a.starts_with("--") {
+            return err_out(&format!("ls: unrecognized option '{a}'\n"), 2);
         } else if !a.starts_with("--") {
             targets.push(a.clone());
         }
@@ -382,7 +392,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     for t in &targets {
         let p = resolve_posix_path(cwd, t);
         if !fs.exists(&p) && fs.lstat(&p).is_err() {
-            stderr.push_str(&format!("ls: cannot access '{t}': No such file or directory\n"));
+            stderr.push_str(&format!("ls: ENOENT: no such file or directory, lstat '{p}'\n"));
             code = 1;
             continue;
         }
@@ -595,7 +605,7 @@ fn cmd_mkdir(
     let explicit_mode = match mode_spec {
         Some(ref spec) => match eval_chmod_mode_checked(spec, default_mode, true, umask_val) {
             Ok(m) => Some(m),
-            Err(msg) => return err_out(&format!("mkdir: {msg}\n"), 1),
+            Err(msg) => return err_out(&format!("mkdir: {msg}\n"), 2),
         },
         None => None,
     };
@@ -607,16 +617,22 @@ fn cmd_mkdir(
             if recursive && fs.is_dir(&p) {
                 continue;
             }
-            stderr.push_str(&format!("mkdir: cannot create directory '{a}': File exists\n"));
+            stderr.push_str(&format!("mkdir: EEXIST: file already exists, mkdir '{p}'\n"));
             code = 1;
             continue;
         }
         if !recursive {
             let parent = crate::vfs::dirname_posix_path(&p);
             if !fs.exists(&parent) || !fs.is_dir(&parent) {
-                stderr.push_str(&format!(
-                    "mkdir: cannot create directory '{a}': No such file or directory\n"
-                ));
+                if !fs.exists(&parent) && fs.lstat(&parent).is_err() {
+                    stderr.push_str(&format!(
+                        "mkdir: ENOENT: no such file or directory, mkdir '{p}'\n"
+                    ));
+                } else {
+                    stderr.push_str(&format!(
+                        "mkdir: ENOTDIR: not a directory, mkdir '{p}'\n"
+                    ));
+                }
                 code = 1;
                 continue;
             }
@@ -629,7 +645,7 @@ fn cmd_mkdir(
                 anc.push_str(seg);
                 if (fs.exists(&anc) || fs.lstat(&anc).is_ok()) && !fs.is_dir(&anc) {
                     stderr.push_str(&format!(
-                        "mkdir: cannot create directory '{a}': File exists\n"
+                        "mkdir: ENOTDIR: not a directory, mkdir '{p}'\n"
                     ));
                     code = 1;
                     blocked = true;
@@ -742,14 +758,14 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             }
             if !fs.exists(&cur_p) && fs.lstat(&cur_p).is_err() {
                 stderr.push_str(&format!(
-                    "rmdir: failed to remove '{cur_disp}': No such file or directory\n"
+                    "rmdir: ENOENT: no such file or directory, rmdir '{cur_p}'\n"
                 ));
                 code = 1;
                 break;
             }
             if !fs.is_dir(&cur_p) || fs.readlink(&cur_p).is_ok() {
                 stderr.push_str(&format!(
-                    "rmdir: failed to remove '{cur_disp}': Not a directory\n"
+                    "rmdir: ENOTDIR: not a directory, rmdir '{cur_p}'\n"
                 ));
                 code = 1;
                 break;
@@ -759,7 +775,7 @@ fn cmd_rmdir(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome 
             {
                 if !ignore_non_empty {
                     stderr.push_str(&format!(
-                        "rmdir: failed to remove '{cur_disp}': Directory not empty\n"
+                        "rmdir: ENOTEMPTY: directory not empty, rmdir '{cur_p}'\n"
                     ));
                     code = 1;
                 }
@@ -943,7 +959,7 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         if !exists {
             if !force {
                 stderr.push_str(&format!(
-                    "rm: cannot remove '{operand}': No such file or directory\n"
+                    "rm: ENOENT: no such file or directory, rm '{p}'\n"
                 ));
                 *code = 1;
             }
@@ -956,14 +972,14 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
         let is_real_dir = fs.is_dir(&p) && !is_sym;
         if is_real_dir && !recursive && !dir_mode {
-            stderr.push_str(&format!("rm: cannot remove '{operand}': Is a directory\n"));
+            stderr.push_str(&format!("rm: EISDIR: illegal operation on a directory, rm '{p}'\n"));
             *code = 1;
             return false;
         }
         if is_real_dir && !recursive && dir_mode {
             if fs.list_dir(&p).map(|e| !e.is_empty()).unwrap_or(false) {
                 stderr.push_str(&format!(
-                    "rm: cannot remove '{operand}': Directory not empty\n"
+                    "rm: ENOTEMPTY: directory not empty, rmdir '{p}'\n"
                 ));
                 *code = 1;
                 return false;
@@ -1347,7 +1363,7 @@ fn cmd_cp(
         operands
     };
     if eff_operands.len() < 2 {
-        return err_out("cp: missing file operand\n", 2);
+        return err_out("cp: missing operand\n", 2);
     }
     let backup_mode = if let Some(ref ctrl) = backup_control {
         parse_backup_control(ctrl)
@@ -1380,7 +1396,7 @@ fn cmd_cp(
         let src = resolve_posix_path(cwd, src_raw);
         if !fs.exists(&src) && fs.lstat(&src).is_err() {
             stderr.push_str(&format!(
-                "cp: cannot stat '{src_raw}': No such file or directory\n"
+                "cp: ENOENT: no such file or directory, lstat '{src}'\n"
             ));
             code = 1;
             continue;
@@ -1396,7 +1412,7 @@ fn cmd_cp(
             fs.is_dir(&src)
         };
         if src_is_dir && !recursive && !sym_link {
-            stderr.push_str(&format!("cp: -r not specified; omitting directory '{src_raw}'\n"));
+            stderr.push_str(&format!("cp: EISDIR: omitting directory (use -R) '{src}'\n"));
             code = 1;
             continue;
         }
@@ -1412,6 +1428,13 @@ fn cmd_cp(
             dst_raw.clone()
         };
         let target_exists = fs.exists(&target) || fs.lstat(&target).is_ok();
+        if no_target_dir && target_exists && fs.is_dir(&target) && !src_is_dir {
+            stderr.push_str(&format!(
+                "cp: EISDIR: illegal operation on a directory '{target}'\n"
+            ));
+            code = 1;
+            continue;
+        }
         if target_exists {
             if no_clobber {
                 continue;
@@ -1673,7 +1696,7 @@ fn cmd_mv(
         operands
     };
     if eff_operands.len() < 2 {
-        return err_out("mv: missing file operand\n", 2);
+        return err_out("mv: missing operand\n", 2);
     }
     let dst_raw = eff_operands.last().unwrap();
     let dst_base = resolve_posix_path(cwd, dst_raw);
@@ -1698,13 +1721,6 @@ fn cmd_mv(
 
     for src_raw in &eff_operands[..eff_operands.len() - 1] {
         let src = resolve_posix_path(cwd, src_raw);
-        if !fs.exists(&src) && fs.lstat(&src).is_err() {
-            stderr.push_str(&format!(
-                "mv: cannot stat '{src_raw}': No such file or directory\n"
-            ));
-            code = 1;
-            continue;
-        }
         let name = basename_posix_path(&src);
         let target = if dst_is_dir {
             child_disp_path(&dst_base, &name)
@@ -1716,6 +1732,13 @@ fn cmd_mv(
         } else {
             dst_raw.clone()
         };
+        if !fs.exists(&src) && fs.lstat(&src).is_err() {
+            stderr.push_str(&format!(
+                "mv: ENOENT: no such file or directory, rename '{src}' -> '{target}'\n"
+            ));
+            code = 1;
+            continue;
+        }
         if target.starts_with(&format!("{}/", src.trim_end_matches('/'))) {
             stderr.push_str(&format!(
                 "mv: cannot move '{src_raw}' to a subdirectory of itself, '{disp_target}'\n"
@@ -1724,6 +1747,21 @@ fn cmd_mv(
             continue;
         }
         let target_exists = fs.exists(&target) || fs.lstat(&target).is_ok();
+        let src_is_sym = fs
+            .readlink(&src)
+            .map(|t| !t.starts_with("__hardlink__:"))
+            .unwrap_or(false);
+        if no_target_dir
+            && target_exists
+            && fs.is_dir(&target)
+            && (src_is_sym || !fs.is_dir(&src))
+        {
+            stderr.push_str(&format!(
+                "mv: EISDIR: illegal operation on a directory, rename '{src}' -> '{target}'\n"
+            ));
+            code = 1;
+            continue;
+        }
         if src == target {
             if no_clobber {
                 continue;
@@ -1824,7 +1862,12 @@ fn cmd_touch(
         }
         if (a == "-d" || a == "--date") && i + 1 < args.len() {
             has_d = true;
-            let ts = parse_touch_timestamp_ms(&args[i + 1]);
+            let Some(ts) = parse_touch_date_checked(&args[i + 1]) else {
+                return err_out(
+                    &format!("touch: unsupported or invalid date: {}\n", args[i + 1]),
+                    1,
+                );
+            };
             ref_mtime = Some(ts);
             ref_atime = Some(ts);
             i += 2;
@@ -1832,7 +1875,9 @@ fn cmd_touch(
         }
         if let Some(ds) = a.strip_prefix("--date=") {
             has_d = true;
-            let ts = parse_touch_timestamp_ms(ds);
+            let Some(ts) = parse_touch_date_checked(ds) else {
+                return err_out(&format!("touch: unsupported or invalid date: {ds}\n"), 1);
+            };
             ref_mtime = Some(ts);
             ref_atime = Some(ts);
             i += 1;
@@ -1840,7 +1885,12 @@ fn cmd_touch(
         }
         if a == "-t" && i + 1 < args.len() {
             has_t = true;
-            let ts = parse_touch_timestamp_ms(&args[i + 1]);
+            let Some(ts) = parse_touch_stamp_checked(&args[i + 1]) else {
+                return err_out(
+                    &format!("touch: invalid date format '{}'\n", args[i + 1]),
+                    1,
+                );
+            };
             ref_mtime = Some(ts);
             ref_atime = Some(ts);
             i += 2;
@@ -1914,7 +1964,12 @@ fn cmd_touch(
                         } else {
                             return err_out("touch: option requires an argument -- 'd'\n", 2);
                         };
-                        let ts = parse_touch_timestamp_ms(&val);
+                        let Some(ts) = parse_touch_date_checked(&val) else {
+                            return err_out(
+                                &format!("touch: unsupported or invalid date: {val}\n"),
+                                1,
+                            );
+                        };
                         ref_mtime = Some(ts);
                         ref_atime = Some(ts);
                         break;
@@ -1930,7 +1985,12 @@ fn cmd_touch(
                         } else {
                             return err_out("touch: option requires an argument -- 't'\n", 2);
                         };
-                        let ts = parse_touch_timestamp_ms(&val);
+                        let Some(ts) = parse_touch_stamp_checked(&val) else {
+                            return err_out(
+                                &format!("touch: invalid date format '{val}'\n"),
+                                1,
+                            );
+                        };
                         ref_mtime = Some(ts);
                         ref_atime = Some(ts);
                         break;
@@ -1946,7 +2006,7 @@ fn cmd_touch(
         i += 1;
     }
     if operands.is_empty() {
-        return err_out("touch: missing file operand\n", 2);
+        return err_out("touch: missing operand\n", 2);
     }
     if has_t && (has_d || has_r) {
         return err_out("touch: cannot specify times from more than one source\n", 1);
@@ -1967,7 +2027,7 @@ fn cmd_touch(
             }
             Err(e) => {
                 return err_out(
-                    &format!("touch: failed to get attributes of '{rf}': {e}\n"),
+                    &format!("touch: {e}\n"),
                     1,
                 );
             }
@@ -2022,34 +2082,61 @@ fn civil_to_epoch_days(year: i64, month: i64, day: i64) -> i64 {
     era * 146097 + doe - 719468
 }
 
-fn parse_touch_timestamp_ms(s: &str) -> u64 {
+fn parse_touch_stamp_checked(s: &str) -> Option<u64> {
+    let trimmed = s.trim();
+    let (main_part, sec_frac) = match trimmed.split_once('.') {
+        Some((m, f)) => {
+            if f.len() != 2 || !f.chars().all(|c| c.is_ascii_digit()) {
+                return None;
+            }
+            (m, f)
+        }
+        None => (trimmed, ""),
+    };
+    if !main_part.chars().all(|c| c.is_ascii_digit())
+        || (main_part.len() != 12 && main_part.len() != 10 && main_part.len() != 8)
+    {
+        return None;
+    }
+    let (y, rest) = if main_part.len() == 12 {
+        (main_part[0..4].parse::<i64>().ok()?, &main_part[4..])
+    } else if main_part.len() == 10 {
+        let yy = main_part[0..2].parse::<i64>().ok()?;
+        let year = if yy >= 69 { 1900 + yy } else { 2000 + yy };
+        (year, &main_part[2..])
+    } else {
+        (1970, main_part)
+    };
+    let m = rest[0..2].parse::<i64>().ok()?;
+    let d = rest[2..4].parse::<i64>().ok()?;
+    let hh = rest[4..6].parse::<i64>().ok()?;
+    let mm = rest[6..8].parse::<i64>().ok()?;
+    let ss = if sec_frac.is_empty() {
+        0
+    } else {
+        sec_frac.parse::<i64>().ok()?
+    };
+    if !(1..=12).contains(&m)
+        || !(1..=31).contains(&d)
+        || !(0..=23).contains(&hh)
+        || !(0..=59).contains(&mm)
+        || !(0..=60).contains(&ss)
+    {
+        return None;
+    }
+    let days = civil_to_epoch_days(y, m, d);
+    let secs = days * 86400 + hh * 3600 + mm * 60 + ss;
+    Some(secs.max(0) as u64 * 1000)
+}
+
+fn parse_touch_date_checked(s: &str) -> Option<u64> {
     let trimmed = s.trim();
     if let Some(epoch) = trimmed.strip_prefix('@') {
-        return epoch.parse::<u64>().unwrap_or(1_700_000_000) * 1000;
+        let secs = epoch.parse::<i64>().ok()?;
+        return Some(secs.max(0) as u64 * 1000);
     }
-    let (main_part, sec_frac) = trimmed.split_once('.').unwrap_or((trimmed, ""));
-    if main_part.chars().all(|c| c.is_ascii_digit()) && (main_part.len() == 12 || main_part.len() == 10) {
-        let (y, rest) = if main_part.len() == 12 {
-            (main_part[0..4].parse::<i64>().unwrap_or(1970), &main_part[4..])
-        } else {
-            let yy = main_part[0..2].parse::<i64>().unwrap_or(70);
-            let year = if yy >= 69 { 1900 + yy } else { 2000 + yy };
-            (year, &main_part[2..])
-        };
-        let m = rest[0..2].parse::<i64>().unwrap_or(1).clamp(1, 12);
-        let d = rest[2..4].parse::<i64>().unwrap_or(1).clamp(1, 31);
-        let hh = rest[4..6].parse::<i64>().unwrap_or(0).clamp(0, 23);
-        let mm = rest[6..8].parse::<i64>().unwrap_or(0).clamp(0, 59);
-        let ss = sec_frac
-            .chars()
-            .take(2)
-            .collect::<String>()
-            .parse::<i64>()
-            .unwrap_or(0)
-            .clamp(0, 59);
-        let days = civil_to_epoch_days(y, m, d);
-        let secs = days * 86400 + hh * 3600 + mm * 60 + ss;
-        return secs.max(0) as u64 * 1000;
+    if let Some(st) = parse_touch_stamp_checked(trimmed) {
+        return Some(st);
     }
     let digits: Vec<u64> = trimmed
         .split(|c: char| !c.is_ascii_digit())
@@ -2065,9 +2152,9 @@ fn parse_touch_timestamp_ms(s: &str) -> u64 {
         let ss = digits.get(5).copied().unwrap_or(0).clamp(0, 59) as i64;
         let days = civil_to_epoch_days(y, m, d);
         let secs = days * 86400 + hh * 3600 + mm * 60 + ss;
-        return secs.max(0) as u64 * 1000;
+        return Some(secs.max(0) as u64 * 1000);
     }
-    1_700_000_000_000
+    None
 }
 
 fn resolve_hardlink_root_path(
@@ -2226,7 +2313,7 @@ fn cmd_ln(
         return err_out("ln: cannot combine --target-directory and --no-target-directory\n", 2);
     }
     if operands.is_empty() {
-        return err_out("ln: missing file operand\n", 2);
+        return err_out("ln: missing operand\n", 2);
     }
     if no_target_dir && operands.len() != 2 {
         return err_out("ln: missing destination file operand\n", 2);
@@ -2280,17 +2367,44 @@ fn cmd_ln(
             last_op.clone()
         };
         let src_full = resolve_posix_path(cwd, src_op);
+        if !symbolic {
+            let src_exists = fs.exists(&src_full) || fs.lstat(&src_full).is_ok();
+            if !src_exists {
+                stderr.push_str(&format!(
+                    "ln: ENOENT: no such file or directory, link '{src_full}'\n"
+                ));
+                code = 1;
+                continue;
+            }
+            let src_is_sym = fs
+                .readlink(&src_full)
+                .map(|t| !t.starts_with("__hardlink__:"))
+                .unwrap_or(false);
+            if fs.is_dir(&src_full) && !src_is_sym {
+                stderr.push_str(&format!(
+                    "ln: EPERM: operation not permitted, link '{src_full}' -> '{link_path}'\n"
+                ));
+                code = 1;
+                continue;
+            }
+        }
         if !symbolic && src_full == link_path {
-            stderr.push_str(&format!(
-                "ln: '{src_op}' and '{disp_target}' are the same file\n"
-            ));
+            if force || interactive || backup_mode != BackupMode::None {
+                stderr.push_str(&format!(
+                    "ln: '{src_op}' and '{disp_target}' are the same file\n"
+                ));
+            } else {
+                stderr.push_str(&format!(
+                    "ln: EEXIST: file already exists '{link_path}'\n"
+                ));
+            }
             code = 1;
             continue;
         }
         if fs.exists(&link_path) || fs.lstat(&link_path).is_ok() {
             let src_entry = canonical_entry_identity(&src_full, false, fs);
             let dst_entry = canonical_entry_identity(&link_path, false, fs);
-            if src_entry == dst_entry {
+            if !symbolic && src_entry == dst_entry && (force || interactive || backup_mode != BackupMode::None) {
                 stderr.push_str(&format!(
                     "ln: '{src_op}' and '{disp_target}' are the same file\n"
                 ));
@@ -2298,9 +2412,15 @@ fn cmd_ln(
                 continue;
             }
             if !force && !interactive && backup_mode == BackupMode::None {
-                stderr.push_str(&format!(
-                    "ln: failed to create link '{disp_target}': File exists\n"
-                ));
+                if symbolic {
+                    stderr.push_str(&format!(
+                        "ln: EEXIST: file already exists, symlink '{link_path}'\n"
+                    ));
+                } else {
+                    stderr.push_str(&format!(
+                        "ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"
+                    ));
+                }
                 code = 1;
                 continue;
             }
@@ -2401,19 +2521,19 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                         'v' => verbose_mode = "verbose",
                         'q' | 's' => verbose_mode = "quiet",
                         _ => {
-                            return err_out(&format!("readlink: invalid option -- '{ch}'\n"), 1);
+                            return err_out(&format!("readlink: invalid option -- '{ch}'\n"), 2);
                         }
                     }
                 }
             }
             s if s.starts_with("--") => {
-                return err_out(&format!("readlink: unrecognized option '{s}'\n"), 1);
+                return err_out(&format!("readlink: unrecognized option '{s}'\n"), 2);
             }
             _ => targets.push(a.clone()),
         }
     }
     if targets.is_empty() {
-        return err_out("readlink: missing operand\n", 1);
+        return err_out("readlink: missing operand\n", 2);
     }
     let mut out = String::new();
     let mut err_buf = String::new();
@@ -2438,7 +2558,15 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                 }
                 _ => {
                     if verbose_mode == "verbose" {
-                        err_buf.push_str(&format!("readlink: {target}: Invalid argument\n"));
+                        if fs.exists(&p) || fs.lstat(&p).is_ok() {
+                            err_buf.push_str(&format!(
+                                "readlink: EINVAL: invalid argument, readlink '{p}'\n"
+                            ));
+                        } else {
+                            err_buf.push_str(&format!(
+                                "readlink: ENOENT: no such file or directory, readlink '{p}'\n"
+                            ));
+                        }
                     }
                     exit_code = 1;
                 }
@@ -2456,7 +2584,7 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                 }
                 Err(msg) => {
                     if verbose_mode == "verbose" {
-                        err_buf.push_str(&format!("readlink: {target}: {msg}\n"));
+                        err_buf.push_str(&format!("readlink: {msg}\n"));
                     }
                     exit_code = 1;
                 }
@@ -2480,7 +2608,7 @@ fn canonicalize_posix_path(
         let lexical = normalize_posix_path(raw);
         if mode == 'e' {
             if !fs.exists(&lexical) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, stat '{lexical}'"));
             }
             let segs: Vec<&str> = lexical.split('/').filter(|s| !s.is_empty()).collect();
             let mut prefix = String::new();
@@ -2488,16 +2616,16 @@ fn canonicalize_posix_path(
                 prefix.push('/');
                 prefix.push_str(seg);
                 if !fs.is_dir(&prefix) {
-                    return Err("Not a directory".to_string());
+                    return Err(format!("ENOTDIR: not a directory, stat '{lexical}'"));
                 }
             }
         } else if mode != 'm' {
             let parent = crate::vfs::dirname_posix_path(&lexical);
             if !fs.exists(&parent) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, stat '{parent}'"));
             }
             if !fs.is_dir(&parent) {
-                return Err("Not a directory".to_string());
+                return Err(format!("ENOTDIR: not a directory, stat '{parent}'"));
             }
         }
         return Ok(lexical);
@@ -2513,23 +2641,23 @@ fn canonicalize_posix_path(
     while let Some(part) = queue.pop_front() {
         if part == "." {
             if mode != 'm' && (!fs.exists(&cur) || !fs.is_dir(&cur)) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
             }
             continue;
         }
         if part == ".." {
             if mode != 'm' && (!fs.exists(&cur) || !fs.is_dir(&cur)) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
             }
             cur = crate::vfs::dirname_posix_path(&cur);
             continue;
         }
         if mode != 'm' {
             if !fs.exists(&cur) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
             }
             if !fs.is_dir(&cur) {
-                return Err("Not a directory".to_string());
+                return Err(format!("ENOTDIR: not a directory, realpath '{raw}'"));
             }
         }
         let next = if cur == "/" {
@@ -2542,7 +2670,7 @@ fn canonicalize_posix_path(
         {
             hops += 1;
             if hops > 40 {
-                return Err("Too many levels of symbolic links".to_string());
+                return Err(format!("ELOOP: too many symbolic links encountered '{raw}'"));
             }
             if link_t.starts_with('/') {
                 cur = "/".to_string();
@@ -2555,27 +2683,27 @@ fn canonicalize_posix_path(
         if !queue.is_empty() {
             if mode != 'm' {
                 if !fs.exists(&next) {
-                    return Err("No such file or directory".to_string());
+                    return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
                 }
                 if !fs.is_dir(&next) {
-                    return Err("Not a directory".to_string());
+                    return Err(format!("ENOTDIR: not a directory, realpath '{raw}'"));
                 }
             }
         } else if mode == 'e' && !fs.exists(&next) {
-            return Err("No such file or directory".to_string());
+            return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
         }
         cur = next;
     }
     if raw != "/" && raw.ends_with('/') && mode != 'm' {
         if mode == 'e' {
             if !fs.exists(&cur) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
             }
             if !fs.is_dir(&cur) {
-                return Err("Not a directory".to_string());
+                return Err(format!("ENOTDIR: not a directory, realpath '{raw}'"));
             }
         } else if fs.exists(&cur) && !fs.is_dir(&cur) {
-            return Err("Not a directory".to_string());
+            return Err(format!("ENOTDIR: not a directory, realpath '{raw}'"));
         }
     }
     Ok(cur)
@@ -2618,13 +2746,13 @@ fn canonicalize_realpath_operand(
                 if comp.is_empty() || *comp == "." || *comp == ".." {
                     if !comp.is_empty() || mode == 'e' {
                         if !fs.exists(&prefix) {
-                            return Err("No such file or directory".to_string());
+                            return Err(format!("ENOENT: no such file or directory, stat '{prefix}'"));
                         }
                         if !fs.is_dir(&prefix) {
-                            return Err("Not a directory".to_string());
+                            return Err(format!("ENOTDIR: not a directory, stat '{prefix}'"));
                         }
                     } else if fs.exists(&prefix) && !fs.is_dir(&prefix) {
-                        return Err("Not a directory".to_string());
+                        return Err(format!("ENOTDIR: not a directory, stat '{prefix}'"));
                     }
                     if comp.is_empty() || *comp == "." {
                         continue;
@@ -2639,25 +2767,25 @@ fn canonicalize_realpath_operand(
                 };
                 if mode == 'e' || idx + 1 < comps.len() {
                     if mode == 'e' && !fs.exists(&prefix) {
-                        return Err("No such file or directory".to_string());
+                        return Err(format!("ENOENT: no such file or directory, stat '{prefix}'"));
                     }
                     if idx + 1 < comps.len() && fs.exists(&prefix) && !fs.is_dir(&prefix) {
-                        return Err("Not a directory".to_string());
+                        return Err(format!("ENOTDIR: not a directory, stat '{prefix}'"));
                     }
                 }
             }
             if mode == 'e' && !fs.exists(&lexical) {
-                return Err("No such file or directory".to_string());
+                return Err(format!("ENOENT: no such file or directory, stat '{lexical}'"));
             }
         }
         if no_symlinks {
             if mode != 'm' && mode != 'e' {
                 let parent = crate::vfs::dirname_posix_path(&lexical);
                 if !fs.exists(&parent) {
-                    return Err("No such file or directory".to_string());
+                    return Err(format!("ENOENT: no such file or directory, stat '{parent}'"));
                 }
                 if !fs.is_dir(&parent) {
-                    return Err("Not a directory".to_string());
+                    return Err(format!("ENOTDIR: not a directory, stat '{parent}'"));
                 }
             }
             return Ok(lexical);
@@ -2750,19 +2878,19 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     'L' => logical = true,
                     'q' => quiet = true,
                     'z' => zero = true,
-                    _ => return err_out(&format!("realpath: invalid option -- '{ch}'\n"), 1),
+                    _ => return err_out(&format!("realpath: invalid option -- '{ch}'\n"), 2),
                 }
             }
             i += 1;
         } else if a.starts_with("--") {
-            return err_out(&format!("realpath: unrecognized option '{a}'\n"), 1);
+            return err_out(&format!("realpath: unrecognized option '{a}'\n"), 2);
         } else {
             targets.push(a.clone());
             i += 1;
         }
     }
     if targets.is_empty() {
-        return err_out("realpath: missing operand\n", 1);
+        return err_out("realpath: missing operand\n", 2);
     }
     let raw_for = |op: &str| {
         if op.starts_with('/') {
@@ -2782,7 +2910,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     stderr: if quiet {
                         String::new()
                     } else {
-                        format!("realpath: {b}: {msg}\n")
+                        format!("realpath: {msg}\n")
                     },
                     exit_code: 1,
                 };
@@ -2799,7 +2927,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
                     stderr: if quiet {
                         String::new()
                     } else {
-                        format!("realpath: {t}: {msg}\n")
+                        format!("realpath: {msg}\n")
                     },
                     exit_code: 1,
                 };
@@ -2827,7 +2955,7 @@ fn cmd_realpath(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             Ok(r) => r,
             Err(msg) => {
                 if !quiet {
-                    err_buf.push_str(&format!("realpath: {a}: {msg}\n"));
+                    err_buf.push_str(&format!("realpath: {msg}\n"));
                 }
                 exit_code = 1;
                 continue;
@@ -3037,7 +3165,7 @@ fn apply_chmod_recursive(
     fs: &dyn SafeBashFs,
     stdout: &mut String,
 ) -> Result<(), String> {
-    let st = fs.stat(path)?;
+    let st = fs.lstat(path)?;
     let old_mode = st.mode & 0o7777;
     let is_dir = fs.is_dir(path);
     let new_mode = match ref_mode {
@@ -3225,7 +3353,7 @@ fn cmd_chmod(
             &mut stdout,
         ) {
             if !silent {
-                stderr.push_str(&format!("chmod: {t}: {e}\n"));
+                stderr.push_str(&format!("chmod: {e}\n"));
             }
             code = 1;
         }
@@ -3797,7 +3925,7 @@ fn cmd_stat(
                 }
             }
             Err(e) => {
-                stderr.push_str(&format!("stat: cannot statx '{t}': {e}\n"));
+                stderr.push_str(&format!("stat: {e}\n"));
                 code = 1;
             }
         }
@@ -3976,6 +4104,36 @@ fn cmd_du(
             i += 1;
             continue;
         }
+        if a == "--help" {
+            return ok_out(concat!(
+                "Usage: du [OPTION]... [--] [FILE]...\n",
+                "Report provider allocation; unknown allocation is an error, never logical size.\n",
+                "  -a, --all                 report files as well as directories\n",
+                "  -s, --summarize           report each operand only\n",
+                "  -c, --total               report a complete grand total\n",
+                "  -h, --human-readable      upward-rounded base-1024 units\n",
+                "      --si                 upward-rounded base-1000 units\n",
+                "  -k / -m                  report 1024 / 1048576 byte units\n",
+                "  -B, --block-size=SIZE     positive integer with optional K/M/G/T/P suffix\n",
+                "  -b, --bytes               apparent size in bytes\n",
+                "      --apparent-size      file/link lengths, zero directory contribution\n",
+                "  -d, --max-depth=N         reporting depth only; traversal still bounded\n",
+                "  -l, --count-links         count every file and directory alias\n",
+                "  -0, --null                terminate records with NUL instead of newline\n",
+                "      --inodes             count entries instead of bytes\n",
+                "      --exclude=PATTERN    exclude matching paths\n",
+                "  -X, --exclude-from=FILE   read newline-separated exclusion patterns\n",
+                "  -D, -H, --dereference-args follow operand symlinks\n",
+                "  -L, --dereference         follow all symlinks\n",
+                "  -P, --no-dereference      count symlinks themselves (default)\n",
+                "  -S, --separate-dirs       omit subdirectory usage from directory rows\n",
+                "  -t, --threshold=SIZE      report sizes >= SIZE, or <= abs(negative SIZE)\n",
+                "  -x, --one-file-system     skip directories on other devices\n",
+                "No mutation calls by this command; content reads only for exclusion files.\n",
+                "Incomplete totals are suppressed. Unknown identities count independently.\n",
+                "Traversal and output limits apply; adapters may have their own side effects.\n",
+            ));
+        }
         if a == "--" {
             ended = true;
             i += 1;
@@ -3994,10 +4152,17 @@ fn cmd_du(
             exclude_files.push(args[i + 1].clone());
             i += 2;
         } else if let Some(d) = a.strip_prefix("--max-depth=") {
-            max_depth = d.parse().ok();
+            match d.parse::<usize>() {
+                Ok(n) => max_depth = Some(n),
+                Err(_) => return err_out(&format!("du: invalid maximum depth '{d}'\n"), 1),
+            }
             i += 1;
         } else if (a == "-d" || a == "--max-depth") && i + 1 < args.len() {
-            max_depth = args[i + 1].parse().ok();
+            let d = &args[i + 1];
+            match d.parse::<usize>() {
+                Ok(n) => max_depth = Some(n),
+                Err(_) => return err_out(&format!("du: invalid maximum depth '{d}'\n"), 1),
+            }
             i += 2;
         } else if let Some(bs) = a.strip_prefix("--block-size=") {
             if let Some((u, sfx)) = parse_du_size(bs, false) {
@@ -4092,10 +4257,29 @@ fn cmd_du(
                     'd' => {
                         let rest: String = chars[j + 1..].iter().collect();
                         if !rest.is_empty() {
-                            max_depth = rest.parse().ok();
+                            match rest.parse::<usize>() {
+                                Ok(n) => max_depth = Some(n),
+                                Err(_) => {
+                                    return err_out(
+                                        &format!("du: invalid maximum depth '{rest}'\n"),
+                                        1,
+                                    );
+                                }
+                            }
                         } else if i + 1 < args.len() {
                             i += 1;
-                            max_depth = args[i].parse().ok();
+                            let d = &args[i];
+                            match d.parse::<usize>() {
+                                Ok(n) => max_depth = Some(n),
+                                Err(_) => {
+                                    return err_out(
+                                        &format!("du: invalid maximum depth '{d}'\n"),
+                                        1,
+                                    );
+                                }
+                            }
+                        } else {
+                            return err_out("du: option requires an argument -- 'd'\n", 1);
                         }
                         break;
                     }
@@ -4325,9 +4509,18 @@ fn cmd_du(
     }
 
     let mut out = String::new();
+    let mut stderr = String::new();
+    let mut code = 0;
     let mut grand_total = 0usize;
     for t in targets {
         let p = resolve_posix_path(cwd, &t);
+        if !fs.exists(&p) && fs.lstat(&p).is_err() {
+            stderr.push_str(&format!(
+                "du: \"{t}\": no such file or directory, lstat '{p}'\n"
+            ));
+            code = 1;
+            continue;
+        }
         let (amt, _) = walk_du_node(
             &t,
             &p,
@@ -4347,10 +4540,14 @@ fn cmd_du(
         );
         grand_total += amt;
     }
-    if show_total {
+    if show_total && code == 0 {
         emit_line(grand_total, "total", &mut out);
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr,
+        exit_code: code,
+    }
 }
 fn parse_df_block_size(spec: &str) -> Option<(u64, String)> {
     let cleaned = spec.trim().strip_prefix('\'').unwrap_or(spec.trim());
@@ -4530,10 +4727,35 @@ fn cmd_df(
             continue;
         }
         if !end_of_options && arg == "--help" {
-            return ok_out("Usage: df [OPTION]... [FILE]...\n");
+            return ok_out(concat!(
+                "Usage: df [OPTION]... [FILE]...\n",
+                "Show information about the file system on which each FILE resides,\n",
+                "or all file systems by default (Sandbox VFS-ish/GNU).\n\n",
+                "  -a, --all             include pseudo, duplicate, inaccessible file systems\n",
+                "  -B, --block-size=SIZE  scale sizes by SIZE before printing them\n",
+                "  -h, --human-readable  print sizes in powers of 1024 (e.g., 1023M)\n",
+                "  -H, --si              print sizes in powers of 1000 (e.g., 1.1G)\n",
+                "  -i, --inodes          list inode information instead of block usage\n",
+                "  -k                    like --block-size=1K\n",
+                "  -l, --local           limit listing to local file systems\n",
+                "  -m                    like --block-size=1M\n",
+                "      --no-sync         do not invoke sync before getting usage info (default)\n",
+                "      --output[=FIELD_LIST]  use the output format defined by FIELD_LIST\n",
+                "  -P, --portability     use the POSIX output format\n",
+                "      --sync            invoke sync before getting usage info\n",
+                "      --total           elide all entries insignificant to available space,\n",
+                "                          and produce a grand total\n",
+                "  -t, --type=TYPE       limit listing to file systems of type TYPE\n",
+                "  -T, --print-type      print file system type\n",
+                "  -x, --exclude-type=TYPE   limit listing to file systems not of type TYPE\n",
+                "      --help            display this help and exit\n",
+                "      --version         output version information and exit\n",
+            ));
         }
         if !end_of_options && arg == "--version" {
-            return ok_out("df (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+            return ok_out(
+                "df (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n",
+            );
         }
         if !end_of_options && arg.starts_with("--") && arg.len() > 2 {
             if arg == "--all" {
@@ -5202,7 +5424,10 @@ fn cmd_mktemp(
     }
     let x_count = end - start;
     if x_count < 3 {
-        return err_out(&format!("mktemp: too few X's in template '{tpl}'\n"), 1);
+        return err_out(
+            "mktemp: template must contain at least three consecutive X characters in its last component\n",
+            1,
+        );
     }
     if use_tmpdir && tpl.starts_with('/') {
         return err_out(
@@ -5272,8 +5497,8 @@ fn cmd_mktemp(
                     String::new()
                 } else {
                     format!(
-                        "mktemp: failed to create {}: No such file or directory\n",
-                        if is_dir { "directory" } else { "file" }
+                        "mktemp: ENOENT: no such file or directory, {} '{resolved_path}'\n",
+                        if is_dir { "mkdir" } else { "writeFile" }
                     )
                 },
                 exit_code: 1,
@@ -5773,6 +5998,24 @@ fn cmd_tree(
             i += 1;
             continue;
         }
+        if a == "--help" {
+            return ok_out(concat!(
+                "Usage: tree [-adlfirnJvU] [-L depth] [-P pattern] [-I pattern] [--dirsfirst]\n",
+                "            [--sort=name|version|none] [--filelimit=number]\n",
+                "            [--charset=ASCII|US-ASCII|UTF-8|UTF8] [--noreport] [--] [path ...]\n",
+                "Virtual filesystem tree; no native processes or implicit host access.\n",
+                "Default: visible entries, no symlink traversal, C/UTF-8-byte name order,\n",
+                "escaped filenames. Branch charset: --charset, TREE_CHARSET, virtual locale,\n",
+                "then ASCII; UTF-8 changes branches only. -l follows directory links; ancestor\n",
+                "cycles are skipped. -P includes files; -I excludes files and directories.\n",
+                "Basename patterns: *, ?, bracket ranges, | alternatives, backslash literals.\n",
+                "-J emits JSON; -i removes text branches or JSON formatting whitespace.\n",
+                "Unsupported options and path/globstar patterns are rejected before VFS I/O.\n",
+            ));
+        }
+        if a == "--version" {
+            return ok_out("tree (virtual-bash bounded profile) 1\n");
+        }
         if a == "--noreport" {
             report = false;
             i += 1;
@@ -5821,23 +6064,36 @@ fn cmd_tree(
                             i += 1;
                             args[i].clone()
                         } else {
-                            String::new()
+                            return err_out(
+                                &format!("tree: option requires an argument -- '{flag}'\n"),
+                                2,
+                            );
                         };
                         match flag {
-                            'L' => max_depth = val.parse().ok(),
+                            'L' => match val.parse::<isize>() {
+                                Ok(n) if n >= 1 => max_depth = Some(n as usize),
+                                _ => {
+                                    return err_out(
+                                        "tree: -L must be between 1 and Infinity\n",
+                                        2,
+                                    );
+                                }
+                            },
                             'P' => include_pats.push(val),
                             'I' => exclude_pats.push(val),
                             _ => {}
                         }
                         break;
                     }
-                    _ => {}
+                    other => {
+                        return err_out(&format!("tree: unsupported option: -{other}\n"), 2);
+                    }
                 }
                 j += 1;
             }
             i += 1;
         } else {
-            i += 1;
+            return err_out(&format!("tree: unsupported option: {a}\n"), 2);
         }
     }
     if operands.is_empty() {
@@ -5847,6 +6103,8 @@ fn cmd_tree(
     let nl = if indent { "\n" } else { "" };
     let pad1 = if indent { "  " } else { "" };
     let mut out = String::new();
+    let mut err_buf = String::new();
+    let mut exit_code = 0;
     if json_mode {
         out.push_str(&format!("[{nl}"));
     }
@@ -5857,6 +6115,21 @@ fn cmd_tree(
             out.push_str(&format!(",{nl}"));
         }
         let root_path = resolve_posix_path(cwd, op);
+        if !fs.exists(&root_path) && fs.lstat(&root_path).is_err() {
+            let msg = format!("no such file or directory, lstat '{root_path}'");
+            if json_mode {
+                out.push_str(&format!(
+                    "{pad1}{{\"type\":\"unknown\",\"name\":{},\"error\":{}}}",
+                    tree_json_escape(op),
+                    tree_json_escape(&msg)
+                ));
+            } else {
+                out.push_str(&format!("{op}  [{msg}]\n"));
+            }
+            err_buf.push_str(&format!("tree: {op}: {msg}\n"));
+            exit_code = 1;
+            continue;
+        }
         let entry = inspect_tree_entry(root_path, op.clone(), op.clone(), fs);
         let mut observed_dirs = Vec::new();
         visit_tree_entry(
@@ -5912,7 +6185,11 @@ fn cmd_tree(
     if json_mode {
         out.push_str(&format!("{nl}]\n"));
     }
-    ok_out(&out)
+    BuiltinOutcome {
+        stdout: out,
+        stderr: err_buf,
+        exit_code,
+    }
 }
 
 fn is_csv_text(text: &str) -> bool {
@@ -6722,5 +6999,89 @@ mod tests {
                 "inode/chardevice\n",
             )
         );
+    }
+
+    #[test]
+    fn unit_fs_diagnostics_help_version_and_validation_match_typescript() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+        vfs.write_file("/work/dir/inside.txt", b"hi\n").unwrap();
+        vfs.write_file("/work/f.txt", b"hello\n").unwrap();
+        let env = BTreeMap::new();
+
+        // ls invalid option & missing path
+        let ls_opt = try_run_fs_command("ls", &args(&["--bogus"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ls_opt.exit_code, 2);
+        assert_eq!(ls_opt.stderr, "ls: unrecognized option '--bogus'\n");
+        let ls_miss = try_run_fs_command("ls", &args(&["/nope"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ls_miss.exit_code, 1);
+        assert_eq!(ls_miss.stderr, "ls: ENOENT: no such file or directory, lstat '/nope'\n");
+
+        // mkdir invalid mode, EEXIST, ENOENT parent
+        let mkdir_mode = try_run_fs_command("mkdir", &args(&["-m", "999", "/work/m"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mkdir_mode.exit_code, 2);
+        assert_eq!(mkdir_mode.stderr, "mkdir: invalid mode: '999'\n");
+        let mkdir_exist = try_run_fs_command("mkdir", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mkdir_exist.exit_code, 1);
+        assert_eq!(mkdir_exist.stderr, "mkdir: EEXIST: file already exists, mkdir '/work/dir'\n");
+        let mkdir_parent = try_run_fs_command("mkdir", &args(&["/work/no/sub"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mkdir_parent.exit_code, 1);
+        assert_eq!(mkdir_parent.stderr, "mkdir: ENOENT: no such file or directory, mkdir '/work/no/sub'\n");
+
+        // rmdir ENOENT, ENOTDIR, ENOTEMPTY
+        let rmdir_miss = try_run_fs_command("rmdir", &args(&["/work/nope"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rmdir_miss.stderr, "rmdir: ENOENT: no such file or directory, rmdir '/work/nope'\n");
+        let rmdir_file = try_run_fs_command("rmdir", &args(&["/work/f.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rmdir_file.stderr, "rmdir: ENOTDIR: not a directory, rmdir '/work/f.txt'\n");
+        let rmdir_nonempty = try_run_fs_command("rmdir", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rmdir_nonempty.stderr, "rmdir: ENOTEMPTY: directory not empty, rmdir '/work/dir'\n");
+
+        // rm ENOENT, EISDIR, ENOTEMPTY (-d)
+        let rm_miss = try_run_fs_command("rm", &args(&["/work/nope"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rm_miss.stderr, "rm: ENOENT: no such file or directory, rm '/work/nope'\n");
+        let rm_dir = try_run_fs_command("rm", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rm_dir.stderr, "rm: EISDIR: illegal operation on a directory, rm '/work/dir'\n");
+        let rm_d = try_run_fs_command("rm", &args(&["-d", "/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rm_d.stderr, "rm: ENOTEMPTY: directory not empty, rmdir '/work/dir'\n");
+
+        // cp & mv diagnostics
+        let cp_op = try_run_fs_command("cp", &args(&[]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cp_op.exit_code, 2);
+        assert_eq!(cp_op.stderr, "cp: missing operand\n");
+        let cp_dir = try_run_fs_command("cp", &args(&["/work/dir", "/work/dir2"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cp_dir.stderr, "cp: EISDIR: omitting directory (use -R) '/work/dir'\n");
+        let mv_miss = try_run_fs_command("mv", &args(&["/work/nope", "/work/dst"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mv_miss.stderr, "mv: ENOENT: no such file or directory, rename '/work/nope' -> '/work/dst'\n");
+
+        // ln hardlink directory EPERM & EEXIST
+        let ln_dir = try_run_fs_command("ln", &args(&["/work/dir", "/work/dir_hl"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ln_dir.exit_code, 1);
+        assert_eq!(ln_dir.stderr, "ln: EPERM: operation not permitted, link '/work/dir' -> '/work/dir_hl'\n");
+
+        // touch invalid date & stamp
+        let touch_d = try_run_fs_command("touch", &args(&["-d", "not-a-date", "/work/f.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(touch_d.exit_code, 1);
+        assert_eq!(touch_d.stderr, "touch: unsupported or invalid date: not-a-date\n");
+        let touch_t = try_run_fs_command("touch", &args(&["-t", "bad", "/work/f.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(touch_t.exit_code, 1);
+        assert_eq!(touch_t.stderr, "touch: invalid date format 'bad'\n");
+
+        // du invalid max-depth & missing operand
+        let du_bad = try_run_fs_command("du", &args(&["-d", "abc"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(du_bad.exit_code, 1);
+        assert_eq!(du_bad.stderr, "du: invalid maximum depth 'abc'\n");
+        let du_miss = try_run_fs_command("du", &args(&["-c", "/nope"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(du_miss.exit_code, 1);
+        assert_eq!(du_miss.stdout, "");
+        assert_eq!(du_miss.stderr, "du: \"/nope\": no such file or directory, lstat '/nope'\n");
+
+        // tree invalid -L and missing operand
+        let tree_l = try_run_fs_command("tree", &args(&["-L", "0"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(tree_l.exit_code, 2);
+        assert_eq!(tree_l.stderr, "tree: -L must be between 1 and Infinity\n");
+        let tree_miss = try_run_fs_command("tree", &args(&["/nope"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(tree_miss.exit_code, 1);
+        assert!(tree_miss.stdout.starts_with("/nope  [no such file or directory, lstat '/nope']\n"));
+        assert_eq!(tree_miss.stderr, "tree: /nope: no such file or directory, lstat '/nope'\n");
     }
 }

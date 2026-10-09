@@ -6442,4 +6442,64 @@ mod tests {
         assert_eq!(f_wasm.stdout, "WebAssembly binary module\n");
     }
 
+    #[test]
+    fn unit_install_symbolic_chmod_chained_symlinks_and_realpath_relative() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/a/b").unwrap();
+        vfs.mkdir_all("/work/c/d").unwrap();
+        vfs.write_file("/work/a/b/file.txt", b"hello\n").unwrap();
+        let env = BTreeMap::new();
+
+        let ln1 = try_run_fs_command(
+            "ln",
+            &args(&["-s", "../../a/b/file.txt", "/work/c/d/rel.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ln1.exit_code, 0);
+
+        let rl = try_run_fs_command("readlink", &args(&["-f", "/work/c/d/rel.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(rl.exit_code, 0);
+        assert_eq!(rl.stdout, "/work/a/b/file.txt\n");
+
+        let rp = try_run_fs_command(
+            "realpath",
+            &args(&["--relative-to=/work/c/d", "/work/a/b/file.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(rp.exit_code, 0);
+        assert_eq!(rp.stdout, "../../a/b/file.txt\n");
+
+        vfs.mkdir_all("/work/opt/bin").unwrap();
+        let cp = try_run_fs_command(
+            "cp",
+            &args(&["/work/a/b/file.txt", "/work/opt/bin/run"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(cp.exit_code, 0);
+
+        let ch = try_run_fs_command(
+            "chmod",
+            &args(&["u+rwx,g+r-wx,o-rwx", "/work/opt/bin/run"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ch.exit_code, 0);
+        let st = try_run_fs_command("stat", &args(&["-c", "%a:%A", "/work/opt/bin/run"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(st.stdout, "740:-rwxr-----\n");
+    }
 }

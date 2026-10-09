@@ -20663,4 +20663,77 @@ mod tests {
         );
     }
 
+    #[test]
+    fn unit_dd_truncate_split_csplit_join_cut_nl_expand_fold_and_sponge() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        vfs.write_file("/work/in.bin", b"0123456789abcdef").unwrap();
+        vfs.write_file("/work/out.bin", b"________________").unwrap();
+        let dd = try_run_coreutil(
+            "dd",
+            &args(&[
+                "if=/work/in.bin",
+                "of=/work/out.bin",
+                "bs=4",
+                "skip=1",
+                "seek=2",
+                "count=2",
+                "conv=ucase,notrunc",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(dd.exit_code, 0);
+        assert_eq!(vfs.read_file("/work/out.bin").unwrap(), b"________456789AB");
+
+        let trunc = try_run_coreutil("truncate", &args(&["-s", "8", "/work/out.bin"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(trunc.exit_code, 0);
+        assert_eq!(vfs.read_file("/work/out.bin").unwrap().len(), 8);
+
+        vfs.write_file("/work/u.csv", b"1,alice\n2,bob\n").unwrap();
+        vfs.write_file("/work/r.csv", b"1,admin\n3,guest\n").unwrap();
+        let jn = try_run_coreutil(
+            "join",
+            &args(&["-t,", "-a1", "-a2", "-e", "NA", "-o", "0,1.2,2.2", "/work/u.csv", "/work/r.csv"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(jn.exit_code, 0);
+        assert_eq!(jn.stdout, "1,alice,admin\n2,bob,NA\n3,NA,guest\n");
+
+        let nl = try_run_coreutil(
+            "nl",
+            &args(&["-bt", "-n", "rz", "-w", "3", "-s", ": ", "-v", "10", "-i", "5"]),
+            "first\n\nsecond\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(nl.stdout, "010: first\n     \n015: second\n");
+
+        let sp = try_run_coreutil("sponge", &args(&["/work/sp.txt"]), "soaked\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(sp.exit_code, 0);
+        assert_eq!(vfs.read_file("/work/sp.txt").unwrap(), b"soaked\n");
+
+        let inst = try_run_coreutil(
+            "install",
+            &args(&["-D", "-m", "755", "/work/sp.txt", "/work/opt/bin/sp"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(inst.exit_code, 0);
+        assert_eq!(vfs.stat("/work/opt/bin/sp").unwrap().mode & 0o777, 0o755);
+    }
 }

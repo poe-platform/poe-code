@@ -376,6 +376,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-archive-tar-zip-unzip-gzip-bzip2-xz-zstd-xxd-hexdump-strings-od-diagnostics-parity-matrix.test.ts",
   "obscure-crypto-checksum-base64-base32-openssl-gpg-ssh-diagnostics-parity-matrix.test.ts",
   "obscure-media-graphviz-qr-pdf-image-audio-video-office-diagnostics-parity-matrix.test.ts",
+  "obscure-pdftk-pdftoppm-pdftocairo-pdftotext-pdftohtml-magick-exiftool-diagnostics-parity-matrix.test.ts",
   "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
   "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
   "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",

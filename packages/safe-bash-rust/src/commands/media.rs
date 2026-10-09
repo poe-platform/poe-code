@@ -7515,11 +7515,11 @@ fn cmd_media_doc(
             }
         }
         "pdftk" => {
-            if args.iter().any(|a| a == "--version" || a == "-version") {
-                return ok_out("pdftk port to safe-bash 3.3.3 a Handy Tool for Manipulating PDF Documents\n");
-            }
             if args.is_empty() || args.iter().any(|a| a == "--help" || a == "-h" || a == "-help") {
-                return ok_out("SYNOPSIS\n       pdftk <input PDF files | - | PROMPT>\n            [ input_pw <input PDF owner/user passwords | PROMPT> ]\n            [ <operation> <operation arguments> ]\n            [ output <output filename | - | PROMPT> ]\n");
+                return ok_out("Usage: pdftk <input PDF files | [handle]=filename ...> [<operation> <operation arguments>] [output <output filename>] [flatten]\n");
+            }
+            if args.iter().any(|a| a == "--version" || a == "-v" || a == "-version") {
+                return ok_out("pdftk port to Java 3.3.3 (safe-bash @poe-code/pdf-ast)\n");
             }
             let ops = [
                 "cat",
@@ -7530,6 +7530,7 @@ fn cmd_media_doc(
                 "dump_data_fields",
                 "dump_data_fields_utf8",
                 "dump_data_annots",
+                "dump_data_annots_utf8",
                 "update_info",
                 "update_info_utf8",
                 "attach_files",
@@ -7540,6 +7541,8 @@ fn cmd_media_doc(
                 "multistamp",
                 "fill_form",
                 "generate_fdf",
+                "flatten",
+                "rotate",
             ];
             let mut handles: BTreeMap<String, PdfDoc> = BTreeMap::new();
             let mut input_docs: Vec<PdfDoc> = Vec::new();
@@ -7570,24 +7573,44 @@ fn cmd_media_doc(
                     && h.chars().all(|c| c.is_ascii_uppercase())
                 {
                     let d = if path == "-" {
-                        PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
+                        let b = crate::vfs::stream_string_to_bytes(stdin);
+                        if !b.starts_with(b"%PDF-") {
+                            return err_out("Error: Failed to open PDF '-': Invalid PDF header: missing %PDF- signature\n", 1);
+                        }
+                        PdfDoc::parse(&b)
                     } else {
                         let full = resolve_posix_path(cwd, path);
+                        if fs.is_dir(&full) {
+                            return err_out(&format!("Error: Unable to find file '{path}'\n"), 1);
+                        }
                         let Ok(b) = fs.read_file(&full) else {
-                            return err_out(&format!("Error: Unable to find file.\nError: Failed to open PDF file: \n   {path}\n"), 1);
+                            return err_out(&format!("Error: Unable to find file '{path}'\n"), 1);
                         };
+                        if !b.starts_with(b"%PDF-") {
+                            return err_out(&format!("Error: Failed to open PDF '{path}': Invalid PDF header: missing %PDF- signature\n"), 1);
+                        }
                         PdfDoc::parse(&b)
                     };
                     handles.insert(h.to_string(), d.clone());
                     input_docs.push(d);
                 } else if !a.starts_with('-') || a == "-" {
                     let d = if a == "-" {
-                        PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
+                        let b = crate::vfs::stream_string_to_bytes(stdin);
+                        if !b.starts_with(b"%PDF-") {
+                            return err_out("Error: Failed to open PDF '-': Invalid PDF header: missing %PDF- signature\n", 1);
+                        }
+                        PdfDoc::parse(&b)
                     } else {
                         let full = resolve_posix_path(cwd, a);
+                        if fs.is_dir(&full) {
+                            return err_out(&format!("Error: Unable to find file '{a}'\n"), 1);
+                        }
                         let Ok(b) = fs.read_file(&full) else {
-                            return err_out(&format!("Error: Unable to find file.\nError: Failed to open PDF file: \n   {a}\n"), 1);
+                            return err_out(&format!("Error: Unable to find file '{a}'\n"), 1);
                         };
+                        if !b.starts_with(b"%PDF-") {
+                            return err_out(&format!("Error: Failed to open PDF '{a}': Invalid PDF header: missing %PDF- signature\n"), 1);
+                        }
                         PdfDoc::parse(&b)
                     };
                     let auto_handle = ((b'A' + (input_docs.len() as u8)) as char).to_string();
@@ -7595,6 +7618,9 @@ fn cmd_media_doc(
                     input_docs.push(d);
                 }
                 i += 1;
+            }
+            if input_docs.is_empty() {
+                return err_out("Error: No input PDF files specified.\n", 1);
             }
             if op.is_empty() {
                 op = "cat".to_string();
@@ -7724,8 +7750,11 @@ fn cmd_media_doc(
                         stdin.to_string()
                     } else {
                         let info_full = resolve_posix_path(cwd, info_src);
+                        if fs.is_dir(&info_full) {
+                            return err_out(&format!("Error: Unable to open info file '{info_src}'\n"), 1);
+                        }
                         let Ok(ib) = fs.read_file(&info_full) else {
-                            return err_out(&format!("Error: Unable to open data file {info_src}\n"), 1);
+                            return err_out(&format!("Error: Unable to open info file '{info_src}'\n"), 1);
                         };
                         String::from_utf8_lossy(&ib).to_string()
                     };
@@ -7986,9 +8015,15 @@ fn cmd_media_doc(
                             PdfDoc::parse(&crate::vfs::stream_string_to_bytes(stdin))
                         } else {
                             let sfull = resolve_posix_path(cwd, &rest[0]);
+                            if fs.is_dir(&sfull) {
+                                return err_out(&format!("Error: Unable to open '{}'\n", rest[0]), 1);
+                            }
                             let Ok(sb) = fs.read_file(&sfull) else {
-                                return err_out(&format!("Error: Unable to open stamp/background file {}\n", rest[0]), 1);
+                                return err_out(&format!("Error: Unable to open '{}'\n", rest[0]), 1);
                             };
+                            if !sb.starts_with(b"%PDF-") {
+                                return err_out(&format!("Error: Failed to open PDF '{}': Invalid PDF header: missing %PDF- signature\n", rest[0]), 1);
+                            }
                             PdfDoc::parse(&sb)
                         };
                         if !sdoc.pages.is_empty() {
@@ -8920,6 +8955,14 @@ fn cmd_media_doc(
                 };
                 return err_out(&msg, 1);
             }
+            if !raw_bytes.starts_with(b"%PDF-") {
+                let msg = if quiet {
+                    String::new()
+                } else {
+                    format!("{warn_prefix}Syntax Error: Invalid PDF header: missing %PDF- signature\n")
+                };
+                return err_out(&msg, 1);
+            }
             let doc = PdfDoc::parse(&raw_bytes);
             let page_count = doc.pages.len().max(1);
             let end_p = if !last_p_explicit || last_p == 0 || last_p > page_count {
@@ -9203,11 +9246,17 @@ fn cmd_media_doc(
                 b
             } else {
                 let full = resolve_posix_path(cwd, input_path);
+                if fs.is_dir(&full) {
+                    return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1);
+                }
                 match fs.read_file(&full) {
                     Ok(b) => b,
                     Err(_) => return err_out(&format!("I/O Error: Couldn't open file '{input_path}'\n"), 1),
                 }
             };
+            if !raw_bytes.starts_with(b"%PDF-") {
+                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
+            }
             let doc = PdfDoc::parse(&raw_bytes);
             let total_pages = doc.pages.len().max(1);
             let end_p = if last_p > 0 { total_pages.min(last_p) } else { total_pages };
@@ -9364,27 +9413,16 @@ fn cmd_media_doc(
             }
         }
         "pdftoppm" | "pdftocairo" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{cmd} version 24.02.0\n"),
-                    exit_code: 0,
-                };
-            }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("Usage: {cmd} [options] [PDF-file [PPM-file-prefix]]\n"),
-                    exit_code: 0,
-                };
-            }
-            let mut ext = "ppm";
-            let mut fmt = "PPM";
+            let is_cairo = cmd == "pdftocairo";
+            let mut ext = if is_cairo { "png" } else { "ppm" };
+            let mut fmt = if is_cairo { "PNG" } else { "PPM" };
+            let mut explicit_container = is_cairo;
             let mut singlefile = false;
             let mut first_p = 1usize;
             let mut last_p: Option<usize> = None;
             let mut odd_only = false;
             let mut even_only = false;
+            let mut quiet = false;
             let mut sep = "-".to_string();
             let mut force_num = false;
             let mut set_pageno: Option<usize> = None;
@@ -9400,27 +9438,115 @@ fn cmd_media_doc(
             let mut pos: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
-                match args[i].as_str() {
+                let arg = args[i].as_str();
+                if arg == "--" {
+                    for rest_arg in &args[i + 1..] {
+                        pos.push(rest_arg.clone());
+                    }
+                    break;
+                }
+                let is_val_flag = matches!(
+                    arg,
+                    "-r" | "-rx"
+                        | "-ry"
+                        | "-scale-to"
+                        | "-scale-to-x"
+                        | "-scale-to-y"
+                        | "-f"
+                        | "-l"
+                        | "-x"
+                        | "-y"
+                        | "-W"
+                        | "-H"
+                        | "-sz"
+                        | "-sep"
+                        | "-setpageno"
+                        | "-defaultgray"
+                        | "-defaultrgb"
+                        | "-defaultcmyk"
+                        | "-upw"
+                        | "-opw"
+                        | "-tiffcompression"
+                        | "-aa"
+                        | "-aaVector"
+                        | "-thinlinemode"
+                        | "-freetype"
+                        | "-jpegopt"
+                ) || (is_cairo
+                    && matches!(arg, "-icc" | "-paper" | "-paperw" | "-paperh"));
+                if is_val_flag {
+                    let Some(val) = args.get(i + 1) else {
+                        return err_out(&format!("Missing value for '{arg}'\n"), 99);
+                    };
+                    let is_int_flag = matches!(
+                        arg,
+                        "-scale-to"
+                            | "-scale-to-x"
+                            | "-scale-to-y"
+                            | "-f"
+                            | "-l"
+                            | "-x"
+                            | "-y"
+                            | "-W"
+                            | "-H"
+                            | "-sz"
+                            | "-setpageno"
+                    );
+                    let is_res_flag = matches!(arg, "-r" | "-rx" | "-ry");
+                    if is_int_flag {
+                        let unsigned = val.strip_prefix(['+', '-']).unwrap_or(val.as_str());
+                        if unsigned.is_empty() || !unsigned.chars().all(|c| c.is_ascii_digit()) {
+                            return err_out(&format!("Bad '{arg}' value on command line\n"), 99);
+                        }
+                    } else if is_res_flag {
+                        let unsigned = val.strip_prefix(['+', '-']).unwrap_or(val.as_str());
+                        let valid_res = !unsigned.is_empty()
+                            && unsigned
+                                .chars()
+                                .all(|c| "0123456789.eE+-".contains(c))
+                            && val.parse::<f64>().map(|v| v.is_finite()).unwrap_or(false);
+                        if !valid_res {
+                            return err_out(&format!("Bad '{arg}' value on command line\n"), 99);
+                        }
+                    }
+                }
+                if arg == "-v" || arg == "--version" {
+                    return ok_out(&format!("{cmd} version 24.08.0\n"));
+                }
+                if arg == "-h" || arg == "-help" || arg == "--help" || arg == "-?" {
+                    if is_cairo {
+                        return ok_out("Usage: pdftocairo [options] <PDF-file> [<output-file>]\n  -png / -jpeg / -tiff / -ps / -eps / -pdf / -svg\n");
+                    }
+                    return ok_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n  -png / -gray / -mono / -svg / -r <fp> / -rx <fp> / -ry <fp> / -f <int> / -l <int> / -singlefile / -x <int> / -y <int> / -W <int> / -H <int> / -cropbox\n");
+                }
+                match arg {
                     "-png" => {
                         ext = "png";
                         fmt = "PNG";
+                        explicit_container = true;
                     }
-                    "-jpeg" | "-jpg" => {
+                    "-jpeg" | "-jpg" | "-jpegcmyk" => {
                         ext = "jpg";
                         fmt = "JPEG";
+                        explicit_container = true;
                     }
                     "-tiff" => {
                         ext = "tif";
                         fmt = "TIFF";
+                        explicit_container = true;
+                    }
+                    "-ppm" => {
+                        ext = "ppm";
+                        fmt = "PPM";
                     }
                     "-gray" => {
-                        if ext == "ppm" {
+                        if !explicit_container && ext == "ppm" {
                             ext = "pgm";
                             fmt = "PGM";
                         }
                     }
                     "-mono" => {
-                        if ext == "ppm" {
+                        if !explicit_container && ext == "ppm" {
                             ext = "pbm";
                             fmt = "PBM";
                         }
@@ -9428,134 +9554,158 @@ fn cmd_media_doc(
                     "-svg" => {
                         ext = "svg";
                         fmt = "SVG";
+                        explicit_container = true;
                     }
                     "-eps" => {
                         ext = "eps";
                         fmt = "EPS";
+                        explicit_container = true;
                     }
                     "-ps" => {
                         ext = "ps";
                         fmt = "PS";
+                        explicit_container = true;
                     }
                     "-pdf" => {
                         ext = "pdf";
                         fmt = "PDF";
+                        explicit_container = true;
                     }
                     "-singlefile" => singlefile = true,
                     "-odd" | "-o" => odd_only = true,
                     "-even" | "-e" => even_only = true,
                     "-forcenum" => force_num = true,
                     "-progress" => progress = true,
+                    "-q" => quiet = true,
                     "-f" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out(&format!("{cmd}: invalid -f argument\n"), 99);
-                        };
-                        if v == 0 {
-                            return err_out(&format!("{cmd}: invalid -f argument\n"), 99);
-                        }
-                        first_p = v;
+                        let v = args[i + 1].parse::<isize>().unwrap_or(1);
+                        first_p = v.max(1) as usize;
                         i += 1;
                     }
                     "-l" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out(&format!("{cmd}: invalid -l argument\n"), 99);
-                        };
-                        if v == 0 {
-                            return err_out(&format!("{cmd}: invalid -l argument\n"), 99);
+                        let v = args[i + 1].parse::<isize>().unwrap_or(0).max(0) as usize;
+                        if v > 0 {
+                            last_p = Some(v);
                         }
-                        last_p = Some(v);
                         i += 1;
                     }
                     "-r" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) else {
-                            return err_out(&format!("{cmd}: invalid -r argument\n"), 99);
-                        };
-                        if v <= 0.0 {
-                            return err_out(&format!("{cmd}: invalid -r argument\n"), 99);
-                        }
+                        let v = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
                         dpi_x = v;
                         dpi_y = v;
                         i += 1;
                     }
                     "-rx" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
-                            dpi_x = v;
-                            i += 1;
-                        }
+                        dpi_x = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                        i += 1;
                     }
                     "-ry" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
-                            dpi_y = v;
-                            i += 1;
-                        }
+                        dpi_y = args[i + 1].parse::<f64>().unwrap_or(150.0).max(1.0);
+                        i += 1;
                     }
                     "-scale-to" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<i64>().ok()) {
-                            scale_to = Some(v);
-                            i += 1;
-                        }
+                        scale_to = args[i + 1].parse::<i64>().ok();
+                        i += 1;
                     }
                     "-scale-to-x" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<i64>().ok()) {
-                            scale_to_x = Some(v);
-                            i += 1;
-                        }
+                        scale_to_x = args[i + 1].parse::<i64>().ok();
+                        i += 1;
                     }
                     "-scale-to-y" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<i64>().ok()) {
-                            scale_to_y = Some(v);
-                            i += 1;
-                        }
+                        scale_to_y = args[i + 1].parse::<i64>().ok();
+                        i += 1;
                     }
                     "-W" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
-                            crop_w = Some(v);
-                            i += 1;
-                        }
+                        crop_w = args[i + 1].parse::<f64>().ok();
+                        i += 1;
                     }
                     "-H" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
-                            crop_h = Some(v);
-                            i += 1;
-                        }
+                        crop_h = args[i + 1].parse::<f64>().ok();
+                        i += 1;
                     }
                     "-sz" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()) {
+                        if let Ok(v) = args[i + 1].parse::<f64>() {
                             crop_w = Some(v);
                             crop_h = Some(v);
-                            i += 1;
                         }
+                        i += 1;
                     }
-                    "-x" | "-y" | "-jpegopt" | "-tiffcompression" | "-paper" | "-paperw" | "-paperh" => {
+                    "-tiffcompression" => {
+                        let comp = args[i + 1].to_ascii_lowercase();
+                        if !matches!(comp.as_str(), "none" | "packbits" | "deflate" | "lzw" | "jpeg") {
+                            return err_out(
+                                if quiet { "" } else { "Bad '-tiffcompression' value on command line\n" },
+                                99,
+                            );
+                        }
+                        i += 1;
+                    }
+                    "-aa" | "-aaVector" => {
+                        let v = args[i + 1].to_ascii_lowercase();
+                        if v != "yes" && v != "no" {
+                            let msg = if quiet {
+                                String::new()
+                            } else {
+                                format!("Bad '{arg}' value on command line\n")
+                            };
+                            return err_out(&msg, 99);
+                        }
+                        i += 1;
+                    }
+                    "-thinlinemode" => {
+                        let v = args[i + 1].to_ascii_lowercase();
+                        if !matches!(v.as_str(), "none" | "solid" | "shape") {
+                            return err_out(
+                                if quiet { "" } else { "Bad '-thinlinemode' value on command line\n" },
+                                99,
+                            );
+                        }
+                        i += 1;
+                    }
+                    "-antialias" if is_cairo => {
+                        let v = args
+                            .get(i + 1)
+                            .map(|s| s.to_ascii_lowercase())
+                            .unwrap_or_default();
+                        if !matches!(
+                            v.as_str(),
+                            "default" | "none" | "gray" | "subpixel" | "fast" | "good" | "best"
+                        ) {
+                            return err_out(
+                                if quiet { "" } else { "Bad '-antialias' value on command line\n" },
+                                99,
+                            );
+                        }
+                        i += 1;
+                    }
+                    "-x" | "-y" | "-jpegopt" | "-paper" | "-paperw" | "-paperh" | "-icc"
+                    | "-freetype" | "-defaultgray" | "-defaultrgb" | "-defaultcmyk" => {
                         i += 1;
                     }
                     "-sep" => {
-                        let Some(s) = args.get(i + 1) else {
-                            return err_out(&format!("{cmd}: -sep requires a single character\n"), 99);
-                        };
-                        if s.len() != 1 {
-                            return err_out(&format!("{cmd}: -sep requires a single character\n"), 99);
-                        }
-                        sep = s.clone();
+                        sep = args[i + 1].clone();
                         i += 1;
                     }
                     "-setpageno" => {
-                        if let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) {
-                            set_pageno = Some(v);
-                            i += 1;
-                        }
+                        set_pageno = args[i + 1].parse::<usize>().ok();
+                        i += 1;
                     }
                     "-upw" | "-opw" => {
-                        if let Some(v) = args.get(i + 1) {
-                            pw_opt = Some(v.clone());
-                            i += 1;
-                        }
+                        pw_opt = Some(args[i + 1].clone());
+                        i += 1;
                     }
-                    "-cropbox" | "-aa" | "-aaVector" | "-thinlinemode" | "-transp" | "-level2" | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink" | "-nocenter" | "-duplex" | "-q" => {}
+                    "-cropbox" | "-hide-annotations" | "-overprint" | "-transp" | "-level2"
+                    | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink"
+                    | "-nocenter" | "-duplex" => {}
                     a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
-                    _ => {}
+                    a => {
+                        return err_out(&format!("Unknown option '{a}'\n"), 99);
+                    }
                 }
                 i += 1;
+            }
+            if !is_cairo && pos.len() > 2 {
+                return err_out("Usage: pdftoppm [options] [PDF-file [PPM-root]]\n", 99);
             }
             let src_arg = pos.first().map(|s| s.as_str()).unwrap_or("-");
             let prefix_arg = pos.get(1).map(|s| s.as_str());
@@ -9563,25 +9713,51 @@ fn cmd_media_doc(
                 crate::vfs::stream_string_to_bytes(stdin)
             } else {
                 let full = resolve_posix_path(cwd, src_arg);
+                if fs.is_dir(&full) {
+                    return err_out(
+                        if quiet { String::new() } else { format!("I/O Error: Couldn't open file '{src_arg}'\n") }.as_str(),
+                        1,
+                    );
+                }
                 let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(&format!("I/O Error: Couldn't open file '{src_arg}'\n"), 1);
+                    return err_out(
+                        if quiet { String::new() } else { format!("I/O Error: Couldn't open file '{src_arg}'\n") }.as_str(),
+                        1,
+                    );
                 };
                 bytes
             };
+            if b.is_empty() && !(is_cairo && matches!(fmt, "PDF" | "PS" | "EPS")) {
+                return err_out(
+                    if quiet { "" } else { "Syntax Error: Document stream is empty\n" },
+                    1,
+                );
+            }
             if !b.starts_with(b"%PDF-") {
-                return err_out(&format!("Syntax Error: '{src_arg}' is not a valid PDF\n"), 2);
+                return err_out(
+                    if quiet { "" } else { "PDF Error: Invalid PDF header: missing %PDF- signature\n" },
+                    1,
+                );
             }
             let doc = PdfDoc::parse(&b);
             if let Some(ref enc_pw) = doc.encrypted {
                 let supplied = pw_opt.as_deref().unwrap_or("");
                 if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("Command Line Error: Incorrect password\n", 3);
+                    return err_out(
+                        if quiet { "" } else { "PDF Error: Invalid PDF password\n" },
+                        1,
+                    );
                 }
             }
             let total = doc.pages.len().max(1);
             let end_p = last_p.unwrap_or(total).min(total);
-            if first_p > end_p {
-                return err_out("Wrong page range given: the first page can not be after the last page.\n", 99);
+            if first_p > total || first_p > end_p {
+                let msg = if quiet {
+                    String::new()
+                } else {
+                    format!("Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n")
+                };
+                return err_out(&msg, 99);
             }
             if matches!(fmt, "SVG" | "EPS" | "PS" | "PDF") {
                 let pfx = prefix_arg.unwrap_or("out");
@@ -9939,6 +10115,10 @@ fn cmd_media_doc(
             if let Some(list_out) = try_magick_list_option(args) {
                 return list_out;
             }
+            let is_mogrify = cmd == "mogrify";
+            if !is_mogrify && args.is_empty() {
+                return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
+            }
             for a in args {
                 if a == "--" {
                     break;
@@ -9947,10 +10127,12 @@ fn cmd_media_doc(
                     return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
                 }
                 if a == "-help" || a == "--help" || a == "-h" {
+                    if !is_mogrify {
+                        return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
+                    }
                     return ok_out(&format!("Usage: {cmd} [options] input... output\n"));
                 }
             }
-            let is_mogrify = cmd == "mogrify";
             let mut size_opt: Option<(u32, u32)> = None;
             let mut resize_spec: Option<String> = None;
             let mut crop_opt: Option<(u32, u32)> = None;
@@ -9964,6 +10146,7 @@ fn cmd_media_doc(
             let mut mogrify_format: Option<String> = None;
             let mut mogrify_path: Option<String> = None;
             let mut pseudo_color: Option<(u8, u8, u8)> = None;
+            let mut has_pseudo_input = false;
             let mut pos_files: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -10048,12 +10231,22 @@ fn cmd_media_doc(
                     a if a.starts_with("xc:") || a.starts_with("canvas:") => {
                         let c_str = a.split_once(':').map(|(_, r)| r).unwrap_or("white");
                         pseudo_color = Some(normalize_magick_rgb(c_str));
+                        has_pseudo_input = true;
                         i += 1;
                     }
                     a if a == "rose:" || a == "logo:" || a == "wizard:" || a == "granite:" => {
                         if size_opt.is_none() {
                             size_opt = Some((70, 46));
                         }
+                        has_pseudo_input = true;
+                        i += 1;
+                    }
+                    a if a.starts_with("gradient:")
+                        || a.starts_with("radial-gradient:")
+                        || a.starts_with("pattern:")
+                        || a.starts_with("plasma:") =>
+                    {
+                        has_pseudo_input = true;
                         i += 1;
                     }
                     a if !a.starts_with('-')
@@ -10160,6 +10353,25 @@ fn cmd_media_doc(
                     let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
                 }
                 return ok_out("");
+            }
+            if pos_files.is_empty() && !has_pseudo_input {
+                let last_arg = args.last().map(|s| s.as_str()).unwrap_or("");
+                return err_out(&format!("magick: no images defined '{last_arg}'\n"), 1);
+            }
+            if pos_files.len() == 1 && !has_pseudo_input {
+                return err_out(&format!("magick: no images defined '{}'\n", pos_files[0]), 1);
+            }
+            if pos_files.len() >= 2 {
+                let out_rel = pos_files.last().unwrap();
+                for in_rel in &pos_files[..pos_files.len() - 1] {
+                    if in_rel != "-" && !in_rel.contains(':') {
+                        let clean_in = in_rel.split('[').next().unwrap_or(in_rel.as_str());
+                        let in_full = resolve_posix_path(cwd, clean_in);
+                        if fs.is_dir(&in_full) || fs.read_file(&in_full).is_err() {
+                            return err_out(&format!("magick: no images defined '{out_rel}'\n"), 1);
+                        }
+                    }
+                }
             }
             if let Some(out_rel) = pos_files.last() {
                 let out_full = resolve_posix_path(cwd, out_rel);
@@ -11200,9 +11412,22 @@ fn cmd_media_doc(
             if args.len() == 1 && (args[0] == "-ver" || args[0] == "--version") {
                 return ok_out("13.59\n");
             }
+            if args.len() == 1 && matches!(args[0].as_str(), "--help" | "-help" | "-?") {
+                return ok_out("Usage: exiftool [OPTIONS] [-TAG...] FILE...\n       exiftool --help | -help | -?\n");
+            }
             let mut expanded_args: Vec<String> = Vec::new();
             let mut ai = 0usize;
             while ai < args.len() {
+                let raw_a = &args[ai];
+                let low_a = raw_a.to_ascii_lowercase();
+                if matches!(low_a.as_str(), "-if" | "-stay_open" | "-common_args")
+                    || low_a.starts_with("-execute")
+                {
+                    return err_out(
+                        &format!("Error: ExifTool option not yet supported (no code evaluation or ambient polling): {raw_a}\n"),
+                        1,
+                    );
+                }
                 if args[ai] == "-@" && ai + 1 < args.len() {
                     let af_full = resolve_posix_path(cwd, &args[ai + 1]);
                     if let Ok(af_bytes) = fs.read_file(&af_full) {
@@ -11229,7 +11454,7 @@ fn cmd_media_doc(
                 .any(|a| a == "-G" || a == "-G0" || a == "-G1");
             let tab_mode = expanded_args.iter().any(|a| a == "-T");
             let csv_mode = expanded_args.iter().any(|a| a == "-csv");
-            let xml_mode = expanded_args.iter().any(|a| a == "-X");
+            let xml_mode = expanded_args.iter().any(|a| a == "-X" || a == "-x");
             let overwrite_orig = expanded_args.iter().any(|a| a == "-overwrite_original");
             let mut print_fmt: Option<String> = None;
             let mut updates: Vec<(String, String)> = Vec::new();
@@ -11237,9 +11462,25 @@ fn cmd_media_doc(
             let mut files: Vec<String> = Vec::new();
             let mut out_path: Option<String> = None;
             let mut tags_from_file: Option<String> = None;
+            let mut literal = false;
             let mut i = 0usize;
             while i < expanded_args.len() {
                 let a = &expanded_args[i];
+                if !literal && a == "--" {
+                    literal = true;
+                    i += 1;
+                    continue;
+                }
+                if literal || !a.starts_with('-') || a == "-" {
+                    files.push(a.clone());
+                    i += 1;
+                    continue;
+                }
+                if matches!(a.as_str(), "-o" | "-p" | "-tagsFromFile" | "-TagsFromFile" | "-config" | "-charset" | "-api")
+                    && i + 1 >= expanded_args.len()
+                {
+                    return err_out(&format!("Error: Missing argument for {a}\n"), 1);
+                }
                 if a == "-o" && i + 1 < expanded_args.len() {
                     out_path = Some(expanded_args[i + 1].clone());
                     i += 2;
@@ -11251,6 +11492,9 @@ fn cmd_media_doc(
                     continue;
                 }
                 if (a == "-tagsFromFile" || a == "-TagsFromFile") && i + 1 < expanded_args.len() {
+                    if tags_from_file.is_some() {
+                        return err_out("Error: Multiple tagsFromFile sources are not yet supported\n", 1);
+                    }
                     tags_from_file = Some(expanded_args[i + 1].clone());
                     i += 2;
                     continue;
@@ -11270,25 +11514,69 @@ fn cmd_media_doc(
                             | "G"
                             | "G0"
                             | "G1"
+                            | "G4"
                             | "T"
                             | "csv"
                             | "X"
+                            | "x"
                             | "overwrite_original"
+                            | "overwrite_original_in_place"
                             | "q"
                             | "n"
                             | "a"
                             | "u"
+                            | "b"
+                            | "f"
                     ) {
                         requested_tags.push(rest.to_string());
                     }
-                } else {
-                    files.push(a.clone());
                 }
                 i += 1;
             }
-            if let Some(src_tag_file) = tags_from_file {
+            if tags_from_file.is_some() && !updates.is_empty() {
+                return err_out("Error: Combining tagsFromFile with assignments is not yet supported\n", 1);
+            }
+            let writing_mode = !updates.is_empty() || tags_from_file.is_some();
+            if files.is_empty() {
+                return err_out("Error: No file specified\n", 1);
+            }
+            if files.iter().filter(|f| f.as_str() == "-").count() > 1 {
+                return err_out("Error: Repeated stdin operands are not supported\n", 1);
+            }
+            if files.iter().any(|f| f == "-") && writing_mode {
+                return err_out("Error: Writing stdin metadata is not yet supported\n", 1);
+            }
+            if out_path.is_some() && (files.len() != 1 || !writing_mode) {
+                return err_out("Error: -o requires a single file with tag assignments in this profile\n", 1);
+            }
+            let bin_mode = expanded_args.iter().any(|a| a.eq_ignore_ascii_case("-b"));
+            if json_mode && bin_mode {
+                return err_out("Error: JSON binary policy not yet supported\n", 1);
+            }
+            if csv_mode && (json_mode || bin_mode || writing_mode) {
+                return err_out("Error: CSV combined output/import policy not yet supported\n", 1);
+            }
+            let mode_count = [json_mode, csv_mode, xml_mode, tab_mode, print_fmt.is_some()]
+                .into_iter()
+                .filter(|x| *x)
+                .count();
+            if mode_count > 1 {
+                return err_out("Error: Conflicting ExifTool output modes\n", 1);
+            }
+            if (xml_mode || tab_mode || print_fmt.is_some()) && writing_mode {
+                return err_out("Error: Presentation modes require extraction\n", 1);
+            }
+            let mut tags_from_file_err: Option<&'static str> = None;
+            if let Some(ref src_tag_file) = tags_from_file {
                 let src_full = resolve_posix_path(cwd, &src_tag_file);
-                if let Ok(src_bytes) = fs.read_file(&src_full) {
+                if !fs.exists(&src_full) {
+                    tags_from_file_err = Some("File not found");
+                } else if fs.is_dir(&src_full) {
+                    tags_from_file_err = Some("Only regular VFS files are admitted");
+                } else if let Ok(src_bytes) = fs.read_file(&src_full) {
+                    if src_bytes.is_empty() {
+                        tags_from_file_err = Some("Not a PNG file");
+                    } else {
                     let mut src_tags: BTreeMap<String, String> = BTreeMap::new();
                     if src_full.to_ascii_lowercase().ends_with(".pdf")
                         || src_bytes.starts_with(b"%PDF-")
@@ -11322,9 +11610,10 @@ fn cmd_media_doc(
                             updates.push((k, v));
                         }
                     }
+                    }
                 }
             }
-            if !updates.is_empty() {
+            if writing_mode {
                 let mut updated = 0usize;
                 let mut err_out = String::new();
                 for f in &files {
@@ -11333,7 +11622,19 @@ fn cmd_media_doc(
                         err_out.push_str(&format!("Error: File not found - {f}\n"));
                         continue;
                     }
+                    if fs.is_dir(&full) {
+                        err_out.push_str(&format!("Error: Only regular VFS files are admitted - {f}\n"));
+                        continue;
+                    }
                     let mut data = fs.read_file(&full).unwrap_or_default();
+                    if data.is_empty() {
+                        err_out.push_str(&format!("Error: File is empty - {f}\n"));
+                        continue;
+                    }
+                    if let Some(src_err) = tags_from_file_err {
+                        err_out.push_str(&format!("Error: {src_err} - {f}\n"));
+                        continue;
+                    }
                     let is_pdf = full.to_ascii_lowercase().ends_with(".pdf")
                         || data.starts_with(b"%PDF-");
                     if is_pdf && updates.iter().any(|(k, _)| k.eq_ignore_ascii_case("all")) {
@@ -11369,6 +11670,39 @@ fn cmd_media_doc(
                     exit_code: if err_out.is_empty() { 0 } else { 1 },
                 };
             }
+            let mut valid_files: Vec<String> = Vec::new();
+            let mut read_err_buf = String::new();
+            for f in &files {
+                if f == "-" {
+                    if stdin.is_empty() {
+                        read_err_buf.push_str("Error: File is empty - -\n");
+                    } else {
+                        valid_files.push(f.clone());
+                    }
+                } else {
+                    let full = resolve_posix_path(cwd, f);
+                    if !fs.exists(&full) {
+                        read_err_buf.push_str(&format!("Error: File not found - {f}\n"));
+                    } else if fs.is_dir(&full) {
+                        read_err_buf.push_str(&format!("Error: Only regular VFS files are admitted - {f}\n"));
+                    } else {
+                        let data = fs.read_file(&full).unwrap_or_default();
+                        if data.is_empty() {
+                            read_err_buf.push_str(&format!("Error: File is empty - {f}\n"));
+                        } else {
+                            valid_files.push(f.clone());
+                        }
+                    }
+                }
+            }
+            let files = valid_files;
+            let finalize_exif_out = |stdout_s: String| -> BuiltinOutcome {
+                BuiltinOutcome {
+                    stdout: stdout_s,
+                    stderr: read_err_buf.clone(),
+                    exit_code: if read_err_buf.is_empty() { 0 } else { 1 },
+                }
+            };
             let read_all_tags = |f: &str| -> BTreeMap<String, String> {
                 let full = resolve_posix_path(cwd, f);
                 let data = fs.read_file(&full).unwrap_or_default();
@@ -11441,7 +11775,7 @@ fn cmd_media_doc(
                     out.push_str(&line);
                     out.push('\n');
                 }
-                return ok_out(&out);
+                return finalize_exif_out(out);
             }
             if json_mode {
                 let mut items = Vec::new();
@@ -11457,7 +11791,10 @@ fn cmd_media_doc(
                     }
                     items.push(format!("  {{\n    {}\n  }}", fields.join(",\n    ")));
                 }
-                return ok_out(&format!("[\n{}\n]\n", items.join(",\n")));
+                if items.is_empty() && !read_err_buf.is_empty() {
+                    return finalize_exif_out("[]\n".to_string());
+                }
+                return finalize_exif_out(format!("[\n{}\n]\n", items.join(",\n")));
             }
             if csv_mode {
                 let mut hdr = vec!["SourceFile".to_string()];
@@ -11473,7 +11810,7 @@ fn cmd_media_doc(
                     }
                     out.push_str(&format!("{}\n", row.join(",")));
                 }
-                return ok_out(&out);
+                return finalize_exif_out(if files.is_empty() && !read_err_buf.is_empty() { String::new() } else { out });
             }
             if xml_mode {
                 let mut out = String::from("<?xml version='1.0' encoding='UTF-8'?>\n<rdf:RDF>\n");
@@ -11484,7 +11821,7 @@ fn cmd_media_doc(
                     }
                 }
                 out.push_str("</rdf:RDF>\n");
-                return ok_out(&out);
+                return finalize_exif_out(out);
             }
             if tab_mode {
                 let mut lines = Vec::new();
@@ -11496,7 +11833,7 @@ fn cmd_media_doc(
                     }
                     lines.push(vals.join("\t"));
                 }
-                return ok_out(&format!("{}\n", lines.join("\n")));
+                return finalize_exif_out(if lines.is_empty() { String::new() } else { format!("{}\n", lines.join("\n")) });
             }
             if s3_mode {
                 let mut lines = Vec::new();
@@ -11509,9 +11846,9 @@ fn cmd_media_doc(
                     }
                 }
                 if lines.is_empty() {
-                    return ok_out("");
+                    return finalize_exif_out(String::new());
                 }
-                return ok_out(&format!("{}\n", lines.join("\n")));
+                return finalize_exif_out(format!("{}\n", lines.join("\n")));
             }
             let mut out = String::new();
             for f in &files {
@@ -11535,7 +11872,7 @@ fn cmd_media_doc(
                     }
                 }
             }
-            ok_out(&out)
+            finalize_exif_out(out)
         }
         "diffpdf" | "pdfdiff" => {
             let mut mode = "text";
@@ -12957,5 +13294,140 @@ mod media_unit_tests {
         );
         assert_eq!(rsvg_err.exit_code, 1);
         assert_eq!(rsvg_err.stderr, "rsvg-convert: unsupported format webp\n");
+    }
+
+    #[test]
+    fn unit_pdftk_pdftoppm_pdftocairo_pdftotext_pdftohtml_magick_and_exiftool_diagnostics() {
+        let vfs = MemoryVfs::new();
+        let _ = vfs.mkdir_all("/work");
+        let _ = vfs.write_file("/work/bad.pdf", b"not a pdf");
+
+        let pdftk_help = cmd_media_doc("pdftk", &media_args(&["--help"]), "", "/work", &vfs);
+        assert_eq!(pdftk_help.exit_code, 0);
+        assert_eq!(
+            pdftk_help.stdout,
+            "Usage: pdftk <input PDF files | [handle]=filename ...> [<operation> <operation arguments>] [output <output filename>] [flatten]\n"
+        );
+
+        let pdftk_ver = cmd_media_doc("pdftk", &media_args(&["--version"]), "", "/work", &vfs);
+        assert_eq!(pdftk_ver.exit_code, 0);
+        assert_eq!(
+            pdftk_ver.stdout,
+            "pdftk port to Java 3.3.3 (safe-bash @poe-code/pdf-ast)\n"
+        );
+
+        let pdftk_missing = cmd_media_doc(
+            "pdftk",
+            &media_args(&["missing.pdf", "cat", "output", "out.pdf"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(pdftk_missing.exit_code, 1);
+        assert_eq!(
+            pdftk_missing.stderr,
+            "Error: Unable to find file 'missing.pdf'\n"
+        );
+
+        let pdftk_bad = cmd_media_doc(
+            "pdftk",
+            &media_args(&["bad.pdf", "cat", "output", "out.pdf"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(pdftk_bad.exit_code, 1);
+        assert_eq!(
+            pdftk_bad.stderr,
+            "Error: Failed to open PDF 'bad.pdf': Invalid PDF header: missing %PDF- signature\n"
+        );
+
+        let pdftotext_bad = cmd_media_doc(
+            "pdftotext",
+            &media_args(&["bad.pdf", "-"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(pdftotext_bad.exit_code, 1);
+        assert_eq!(
+            pdftotext_bad.stderr,
+            "Syntax Error: Invalid PDF header: missing %PDF- signature\n"
+        );
+
+        let pdftohtml_bad = cmd_media_doc(
+            "pdftohtml",
+            &media_args(&["-stdout", "bad.pdf"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(pdftohtml_bad.exit_code, 1);
+        assert_eq!(
+            pdftohtml_bad.stderr,
+            "PDF Error: Invalid PDF header: missing %PDF- signature\n"
+        );
+
+        let ppm_ver = cmd_media_doc("pdftoppm", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(ppm_ver.exit_code, 0);
+        assert_eq!(ppm_ver.stdout, "pdftoppm version 24.08.0\n");
+
+        let ppm_unknown = cmd_media_doc(
+            "pdftoppm",
+            &media_args(&["-bogus", "bad.pdf"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(ppm_unknown.exit_code, 99);
+        assert_eq!(ppm_unknown.stderr, "Unknown option '-bogus'\n");
+
+        let ppm_missing_val = cmd_media_doc("pdftoppm", &media_args(&["-r"]), "", "/work", &vfs);
+        assert_eq!(ppm_missing_val.exit_code, 99);
+        assert_eq!(ppm_missing_val.stderr, "Missing value for '-r'\n");
+
+        let cairo_bad_aa = cmd_media_doc(
+            "pdftocairo",
+            &media_args(&["-png", "-antialias", "bogus", "bad.pdf"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(cairo_bad_aa.exit_code, 99);
+        assert_eq!(cairo_bad_aa.stderr, "Bad '-antialias' value on command line\n");
+
+        let magick_help = cmd_media_doc("magick", &media_args(&["-help"]), "", "/work", &vfs);
+        assert_eq!(magick_help.exit_code, 0);
+        assert_eq!(
+            magick_help.stdout,
+            "Usage: magick [input-options] input-file [operators] output-file\n"
+        );
+
+        let magick_no_img = cmd_media_doc("magick", &media_args(&["only_out.png"]), "", "/work", &vfs);
+        assert_eq!(magick_no_img.exit_code, 1);
+        assert_eq!(magick_no_img.stderr, "magick: no images defined 'only_out.png'\n");
+
+        let exif_if = cmd_media_doc(
+            "exiftool",
+            &media_args(&["-if", "$ImageWidth > 10", "a.png"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(exif_if.exit_code, 1);
+        assert_eq!(
+            exif_if.stderr,
+            "Error: ExifTool option not yet supported (no code evaluation or ambient polling): -if\n"
+        );
+
+        let exif_conflict = cmd_media_doc(
+            "exiftool",
+            &media_args(&["-X", "-T", "a.png"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(exif_conflict.exit_code, 1);
+        assert_eq!(exif_conflict.stderr, "Error: Conflicting ExifTool output modes\n");
     }
 }

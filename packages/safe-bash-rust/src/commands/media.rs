@@ -6152,13 +6152,6 @@ fn cmd_media_doc(
             ok_out("")
         }
         "pdfunite" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "pdfunite version 24.02.0\n".to_string(),
-                    exit_code: 0,
-                };
-            }
             let mut pos: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -6208,11 +6201,17 @@ fn cmd_media_doc(
                     );
                 };
                 if !b.starts_with(b"%PDF-") {
-                    return err_out(&format!("Syntax Error: '{src}' is not a valid PDF\n"), 255);
+                    return err_out(
+                        &format!("Syntax Error: Could not merge damaged documents ('{src}')\n"),
+                        255,
+                    );
                 }
                 let sub = PdfDoc::parse(&b);
                 if sub.encrypted.is_some() {
-                    return err_out(&format!("Command Line Error: Could not merge encrypted files ('{src}')\n"), 255);
+                    return err_out(
+                        &format!("Unimplemented Feature: Could not merge encrypted files ('{src}')\n"),
+                        255,
+                    );
                 }
                 let page_offset = out_doc.pages.len();
                 if idx == 0 {
@@ -6247,13 +6246,6 @@ fn cmd_media_doc(
             ok_out("")
         }
         "pdfseparate" => {
-            if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "pdfseparate version 24.02.0\n".to_string(),
-                    exit_code: 0,
-                };
-            }
             let mut first_p = 1usize;
             let mut last_p: Option<usize> = None;
             let mut pos: Vec<String> = Vec::new();
@@ -6333,9 +6325,14 @@ fn cmd_media_doc(
             }
             let doc = PdfDoc::parse(&b);
             let total = doc.pages.len().max(1);
-            let end_p = last_p.unwrap_or(total);
-            if first_p > end_p || end_p > total {
-                return err_out("Wrong page range given: the first page can not be after the last page.\n", 99);
+            let end_p = last_p.map(|lp| total.min(lp)).unwrap_or(total);
+            if first_p > total || last_p.is_some_and(|lp| lp > total || first_p > lp) {
+                return err_out(
+                    &format!(
+                        "Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"
+                    ),
+                    99,
+                );
             }
             let count = end_p - first_p + 1;
             let has_spec = has_pdfseparate_spec(pat);
@@ -8212,18 +8209,13 @@ fn cmd_media_doc(
         }
         "pdfdetach" => {
             if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "pdfdetach version 24.02.0\n".to_string(),
-                    exit_code: 0,
-                };
+                return ok_out("pdfdetach version 24.08.0\n");
             }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "Usage: pdfdetach [options] <PDF-file>\n".to_string(),
-                    exit_code: 0,
-                };
+            if args
+                .iter()
+                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+            {
+                return ok_out("Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n");
             }
             let mut list_mode = false;
             let mut save_all = false;
@@ -8284,13 +8276,13 @@ fn cmd_media_doc(
                 return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
             };
             if !b.starts_with(b"%PDF-") {
-                return err_out(&format!("Syntax Error: '{f}' is not a valid PDF\n"), 2);
+                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
             let doc = PdfDoc::parse(&b);
             if let Some(ref enc_pw) = doc.encrypted {
                 let supplied = pw_opt.as_deref().unwrap_or("");
                 if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("Command Line Error: Incorrect password\n", 1);
+                    return err_out("PDF Error: Invalid PDF password\n", 1);
                 }
             }
             if list_mode || (!save_all && save_idx.is_none() && save_file.is_none()) {
@@ -8344,21 +8336,16 @@ fn cmd_media_doc(
         }
         "pdfinfo" => {
             if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "pdfinfo version 24.02.0\n".to_string(),
-                    exit_code: 0,
-                };
+                return ok_out("pdfinfo version 26.09.90 (@poe-code/pdf-ast)\n");
             }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "Usage: pdfinfo [options] <PDF-file>\n".to_string(),
-                    exit_code: 0,
-                };
+            if args
+                .iter()
+                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+            {
+                return ok_out("Usage: pdfinfo [options] [PDF-file]\n  -f <int>       : first page to examine\n  -l <int>       : last page to examine\n  -box           : print the page bounding boxes\n  -meta          : print the document metadata (XML)\n  -custom        : print custom and standard metadata\n  -js            : print all JavaScript in the PDF\n  -struct        : print the logical document structure\n  -struct-text   : print logical structure and text\n  -isodates      : print the dates in ISO-8601 format\n  -rawdates      : print the undecoded date strings\n  -dests         : print all named destinations in the PDF\n  -url           : print all URLs in the PDF\n  -upw <string>  : user password\n  -opw <string>  : owner password\n");
             }
             if args.iter().any(|a| a == "-listenc") {
-                return ok_out("Available encodings are:\nASCII7\nLatin1\nSymbol\nUCS-2\nUTF-8\nZapfDingbats\n");
+                return ok_out("Available encodings are:\nASCII7\nLatin1\nUTF-8\nUCS-2\nSymbol\nZapfDingbats\n");
             }
             let mut show_box = false;
             let mut show_url = false;
@@ -8421,30 +8408,45 @@ fn cmd_media_doc(
                 }
                 i += 1;
             }
-            if files.len() != 1 {
-                return err_out("Usage: pdfinfo [options] <PDF-file>\n", 99);
+            if files.len() > 1 {
+                return err_out("Usage: pdfinfo [options] [PDF-file]\n", 99);
             }
-            let b = if files[0] == "-" {
+            let target_file = files.first().map(|s| s.as_str()).unwrap_or("-");
+            let b = if target_file == "-" {
                 crate::vfs::stream_string_to_bytes(stdin)
             } else {
-                let full = resolve_posix_path(cwd, &files[0]);
+                let full = resolve_posix_path(cwd, target_file);
                 let Ok(bytes) = fs.read_file(&full) else {
                     return err_out(
-                        &format!("I/O Error: Couldn't open file '{}': No such file or directory.\n", files[0]),
+                        &format!("I/O Error: Couldn't open file '{target_file}': No such file or directory.\n"),
                         1,
                     );
                 };
                 bytes
             };
+            if b.is_empty() {
+                return err_out("Syntax Error: Document stream is empty\n", 1);
+            }
             if !b.starts_with(b"%PDF-") {
-                return err_out(&format!("Syntax Error: '{}' is not a valid PDF\n", files[0]), 2);
+                return err_out("Syntax Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
             let doc = PdfDoc::parse(&b);
             if let Some(ref enc_pw) = doc.encrypted {
                 let supplied = pw_opt.as_deref().unwrap_or("");
                 if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("Command Line Error: Incorrect password\n", 3);
+                    return err_out("Command Line Error: Incorrect password\n", 1);
                 }
+            }
+            let page_count = doc.pages.len().max(1);
+            let fp = first_p.unwrap_or(1).max(1);
+            let lp = last_p.map(|v| if v == 0 { page_count } else { page_count.min(v) }).unwrap_or(1);
+            if fp > page_count || (last_p.is_some() && fp > lp) {
+                return err_out(
+                    &format!(
+                        "Command Line Error: Wrong page range given: the first page ({fp}) can not be after the last page ({lp}).\n"
+                    ),
+                    99,
+                );
             }
             if show_url {
                 let mut u_out = String::from("Page  Type          URL\n");
@@ -8628,18 +8630,13 @@ fn cmd_media_doc(
         }
         "pdffonts" => {
             if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "pdffonts version 24.02.0\n".to_string(),
-                    exit_code: 0,
-                };
+                return ok_out("pdffonts version 24.08.0\n");
             }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "Usage: pdffonts [options] <PDF-file>\n".to_string(),
-                    exit_code: 0,
-                };
+            if args
+                .iter()
+                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+            {
+                return ok_out("Usage: pdffonts [options] <PDF-file>\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n");
             }
             let mut show_subst = false;
             let mut show_loc = false;
@@ -8693,13 +8690,13 @@ fn cmd_media_doc(
                 bytes
             };
             if !b.starts_with(b"%PDF-") {
-                return err_out(&format!("Syntax Error: '{}' is not a valid PDF\n", files[0]), 2);
+                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
             let doc = PdfDoc::parse(&b);
             if let Some(ref enc_pw) = doc.encrypted {
                 let supplied = pw_opt.as_deref().unwrap_or("");
                 if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("Command Line Error: Incorrect password\n", 3);
+                    return err_out("PDF Error: Invalid PDF password\n", 1);
                 }
             }
             let page_count = doc.pages.len().max(1);
@@ -9926,18 +9923,13 @@ fn cmd_media_doc(
         }
         "pdfimages" => {
             if args.iter().any(|a| a == "-v" || a == "--version") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "pdfimages version 24.02.0\n".to_string(),
-                    exit_code: 0,
-                };
+                return ok_out("pdfimages version 24.08.0\n");
             }
-            if args.iter().any(|a| a == "-h" || a == "--help" || a == "-?") {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n".to_string(),
-                    exit_code: 0,
-                };
+            if args
+                .iter()
+                .any(|a| matches!(a.as_str(), "-h" | "-help" | "--help" | "-?"))
+            {
+                return ok_out("Usage: pdfimages [options] <PDF-file> <image-root>\n       pdfimages -list [options] <PDF-file>\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n");
             }
             let mut list_mode = false;
             let mut page_nums = false;
@@ -10008,7 +10000,7 @@ fn cmd_media_doc(
                 }
                 i += 1;
             }
-            if pos.is_empty() || (!list_mode && pos.len() < 2) {
+            if pos.is_empty() || pos.len() != (if list_mode { 1 } else { 2 }) {
                 return err_out(
                     if list_mode {
                         "Usage: pdfimages -list [options] <PDF-file>\n"
@@ -10027,19 +10019,30 @@ fn cmd_media_doc(
                 };
                 bytes
             };
+            if b.is_empty() {
+                return err_out("Syntax Error: Document stream is empty\n", 1);
+            }
             if !b.starts_with(b"%PDF-") {
-                return err_out(&format!("Syntax Error: '{}' is not a valid PDF\n", pos[0]), 2);
+                return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
             let doc = PdfDoc::parse(&b);
             if let Some(ref enc_pw) = doc.encrypted {
                 let supplied = pw_opt.as_deref().unwrap_or("");
                 if !enc_pw.is_empty() && supplied != enc_pw {
-                    return err_out("Command Line Error: Incorrect password\n", 3);
+                    return err_out("PDF Error: Invalid PDF password\n", 1);
                 }
             }
             let total_pages = doc.pages.len().max(1);
             let start_p = first_p.unwrap_or(1);
             let end_p = last_p.unwrap_or(total_pages).min(total_pages);
+            if start_p > end_p {
+                return err_out(
+                    &format!(
+                        "Command Line Error: Wrong page range given: the first page ({start_p}) can not be after the last page ({end_p}).\n"
+                    ),
+                    99,
+                );
+            }
             let mut all_imgs: Vec<(usize, u32, u32, String)> = Vec::new();
             for (pidx, pg) in doc.pages.iter().enumerate() {
                 let pno = pidx + 1;
@@ -10647,7 +10650,7 @@ fn cmd_media_doc(
                         return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
                     }
                     "-help" | "--help" | "-h" => {
-                        return ok_out("Usage: compare [-metric METRIC] image1 image2 output\n");
+                        return ok_out("Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n");
                     }
                     "-metric" if i + 1 < args.len() => {
                         metric = args[i + 1].to_ascii_lowercase();
@@ -10673,7 +10676,7 @@ fn cmd_media_doc(
                     }
                 }
             }
-            if operands.len() < 3 {
+            if operands.len() < 2 {
                 return err_out("compare: missing an image filename\n", 2);
             }
             let load_cmp_img = |spec: &str| -> Result<(ImageMeta, Vec<u8>), String> {
@@ -10714,7 +10717,8 @@ fn cmd_media_doc(
                 Ok(v) => v,
                 Err(e) => return err_out(&e, 2),
             };
-            let out_spec = &operands[2];
+            let default_null = "null:".to_string();
+            let out_spec = operands.get(2).unwrap_or(&default_null);
             let width = meta_a.w.max(meta_b.w);
             let height = meta_a.h.max(meta_b.h);
             let color_a = meta_a.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
@@ -13429,5 +13433,36 @@ mod media_unit_tests {
         );
         assert_eq!(exif_conflict.exit_code, 1);
         assert_eq!(exif_conflict.stderr, "Error: Conflicting ExifTool output modes\n");
+
+        let unite_ver = cmd_media_doc("pdfunite", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(unite_ver.exit_code, 0);
+        assert_eq!(unite_ver.stderr, "pdfunite version 24.08.0\n");
+
+        let sep_ver = cmd_media_doc("pdfseparate", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(sep_ver.exit_code, 0);
+        assert_eq!(sep_ver.stderr, "pdfseparate version 24.08.0\n");
+
+        let detach_ver = cmd_media_doc("pdfdetach", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(detach_ver.exit_code, 0);
+        assert_eq!(detach_ver.stdout, "pdfdetach version 24.08.0\n");
+
+        let info_ver = cmd_media_doc("pdfinfo", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(info_ver.exit_code, 0);
+        assert_eq!(info_ver.stdout, "pdfinfo version 26.09.90 (@poe-code/pdf-ast)\n");
+
+        let fonts_ver = cmd_media_doc("pdffonts", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(fonts_ver.exit_code, 0);
+        assert_eq!(fonts_ver.stdout, "pdffonts version 24.08.0\n");
+
+        let imgs_ver = cmd_media_doc("pdfimages", &media_args(&["-v"]), "", "/work", &vfs);
+        assert_eq!(imgs_ver.exit_code, 0);
+        assert_eq!(imgs_ver.stdout, "pdfimages version 24.08.0\n");
+
+        let cmp_help = cmd_media_doc("compare", &media_args(&["-help"]), "", "/work", &vfs);
+        assert_eq!(cmp_help.exit_code, 0);
+        assert_eq!(
+            cmp_help.stdout,
+            "Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n"
+        );
     }
 }

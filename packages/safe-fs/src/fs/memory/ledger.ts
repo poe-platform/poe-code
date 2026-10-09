@@ -13,9 +13,9 @@ export class MemoryLedger {
   declare readonly hasInfiniteFileBytes: boolean;
 
   constructor(readonly limits: Readonly<MemoryFileSystemLimits>) {
-    this.maxFileBytesSmi = limits.maxFileBytes >= MAX_SMI ? MAX_SMI : (limits.maxFileBytes | 0);
-    this.maxRetainedBytesSmi = limits.maxRetainedBytes >= MAX_SMI ? MAX_SMI : (limits.maxRetainedBytes | 0);
-    this.maxMetadataUnitsSmi = limits.maxMetadataUnits >= MAX_SMI ? MAX_SMI : (limits.maxMetadataUnits | 0);
+    this.maxFileBytesSmi = Math.min(limits.maxFileBytes, MAX_SMI) | 0;
+    this.maxRetainedBytesSmi = Math.min(limits.maxRetainedBytes, MAX_SMI) | 0;
+    this.maxMetadataUnitsSmi = Math.min(limits.maxMetadataUnits, MAX_SMI) | 0;
     this.hasInfiniteRetained = limits.maxRetainedBytes === Infinity;
     if (limits.maxFileBytes !== Infinity) (this as { hasInfiniteFileBytes: boolean }).hasInfiniteFileBytes = false;
   }
@@ -36,32 +36,27 @@ export class MemoryLedger {
     }
   }
 
-  check(bytes: number, units: number, syscall: string, path: string): void {
-    if (
+  private canReserve(bytes: number, units: number): boolean {
+    return (
       (bytes | 0) === bytes && bytes >= 0 &&
       (units | 0) === units && units >= 0 &&
       this.retainedBytes <= this.maxRetainedBytesSmi - bytes &&
       this.metadataUnits <= this.maxMetadataUnitsSmi - units
-    ) {
-      return;
-    }
-    const maxRetained = this.limits.maxRetainedBytes;
-    const maxUnits = this.limits.maxMetadataUnits;
+    );
+  }
+
+  check(bytes: number, units: number, syscall: string, path: string): void {
+    if (this.canReserve(bytes, units)) return;
     if (!Number.isSafeInteger(bytes) || bytes < 0 ||
-      (maxRetained !== Infinity && bytes > maxRetained - this.retainedBytes) ||
+      bytes > this.limits.maxRetainedBytes - this.retainedBytes ||
       !Number.isSafeInteger(units) || units < 0 ||
-      (maxUnits !== Infinity && units > maxUnits - this.metadataUnits)) {
+      units > this.limits.maxMetadataUnits - this.metadataUnits) {
       throw new FsError("ENOSPC", { syscall, path });
     }
   }
 
   reserve(bytes: number, units: number, syscall: string, path: string): void {
-    if (
-      (bytes | 0) === bytes && bytes >= 0 &&
-      (units | 0) === units && units >= 0 &&
-      this.retainedBytes <= this.maxRetainedBytesSmi - bytes &&
-      this.metadataUnits <= this.maxMetadataUnitsSmi - units
-    ) {
+    if (this.canReserve(bytes, units)) {
       this.retainedBytes = (this.retainedBytes + bytes) | 0;
       this.metadataUnits = (this.metadataUnits + units) | 0;
       return;
@@ -105,8 +100,4 @@ export class MemoryAllocation {
     }
   }
 }
-Object.assign(MemoryAllocation.prototype, {
-  references: 1,
-});
-
 Object.assign(MemoryLedger.prototype, { hasInfiniteFileBytes: true });

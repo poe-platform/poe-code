@@ -34573,4 +34573,55 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(xn.exit_code, 0);
         assert_eq!(xn.stdout, "metric,rev\nq1,10\nq2,20\n");
     }
+
+    #[test]
+    fn unit_sqlite_fts5_returning_generated_columns_views_and_foreign_keys() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let fts = try_run_structured_command(
+            "sqlite3",
+            &args(&[
+                ":memory:",
+                "CREATE VIRTUAL TABLE docs USING fts5(title, body); INSERT INTO docs VALUES ('Rust', 'sandbox shell'), ('TS', 'plugin'); SELECT title FROM docs WHERE docs MATCH 'sandbox';",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(fts.exit_code, 0);
+        assert_eq!(fts.stdout, "Rust\n");
+
+        let adv = try_run_structured_command(
+            "sqlite3",
+            &args(&[
+                "/work/adv.db",
+                "CREATE TABLE items (id INT PRIMARY KEY, qty INT, price INT, total INT GENERATED ALWAYS AS (qty * price)); INSERT INTO items(id, qty, price) VALUES (1, 3, 20) RETURNING id, total;",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(adv.exit_code, 0);
+        assert_eq!(adv.stdout, "1|60\n");
+
+        let fk = try_run_structured_command(
+            "sqlite3",
+            &args(&[
+                "/work/fk.db",
+                "PRAGMA foreign_keys = ON; CREATE TABLE p(id INT PRIMARY KEY); CREATE TABLE c(id INT, pid INT REFERENCES p(id)); INSERT INTO c VALUES (1, 999);",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_ne!(fk.exit_code, 0);
+    }
 }

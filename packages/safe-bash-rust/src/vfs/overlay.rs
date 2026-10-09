@@ -282,4 +282,21 @@ mod tests {
         assert_eq!(overlay.read_file("/cfg/item.conf").unwrap(), b"v2");
         assert_eq!(lower.read_file("/cfg/item.conf").unwrap(), b"v1");
     }
+
+    #[test]
+    fn overlay_vfs_merges_directory_listings_and_hides_whiteouts() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.mkdir_all("/dir").unwrap();
+        lower.write_file("/dir/a.txt", b"a").unwrap();
+        lower.write_file("/dir/b.txt", b"b").unwrap();
+
+        let upper = Arc::new(MemoryVfs::new());
+        let overlay = OverlayVfs::new(lower, upper);
+        overlay.write_file("/dir/c.txt", b"c").unwrap();
+        overlay.remove_path("/dir/a.txt").unwrap();
+
+        let mut entries = overlay.list_dir("/dir").unwrap();
+        entries.sort();
+        assert_eq!(entries, vec!["b.txt".to_string(), "c.txt".to_string()]);
+    }
 }

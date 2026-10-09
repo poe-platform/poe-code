@@ -2200,6 +2200,9 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             state.set_var("FILENAME", fname);
             state.fnr = 0;
             state.nextfile_requested = false;
+            if state.rs.len() > 1 {
+                return err_out("awk: RS must be one byte or empty for paragraph records\n", 2);
+            }
             state.stream_lines = if state.rs.is_empty() {
                 let mut recs = Vec::new();
                 let mut cur_par = Vec::new();
@@ -9386,5 +9389,44 @@ mod tests {
         .unwrap();
         assert_eq!(d3.exit_code, 1);
         assert!(d3.stdout.contains("<<<<<<< M\nmine\n||||||| O\nbase\n=======\ntheirs\n>>>>>>> T\n"));
+    }
+
+    #[test]
+    fn unit_sed_hold_space_branching_and_awk_functions_getline_subsep() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let sed_rev = try_run_text_command("sed", &args(&["1!G;h;$!d"]), "one\ntwo\nthree\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(sed_rev.exit_code, 0);
+        assert_eq!(sed_rev.stdout, "three\ntwo\none\n");
+
+        let sed_branch = try_run_text_command("sed", &args(&[":loop; s/^0\\([0-9]\\)/\\1/; t loop"]), "00042\n000\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(sed_branch.exit_code, 0);
+        assert_eq!(sed_branch.stdout, "42\n0\n");
+
+        let awk_fn = try_run_text_command(
+            "awk",
+            &args(&["function f(n) { return n <= 1 ? 1 : n * f(n - 1) } BEGIN { g[\"a\", \"b\"] = f(5); print ((\"a\", \"b\") in g), g[\"a\", \"b\"] }"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(awk_fn.exit_code, 0);
+        assert_eq!(awk_fn.stdout, "1 120\n");
+
+        let awk_rs_err = try_run_text_command(
+            "awk",
+            &args(&["BEGIN { RS = \"::\" } { print $0 }"]),
+            "a::b::",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(awk_rs_err.exit_code, 2);
+        assert!(awk_rs_err.stderr.contains("RS must be one byte or empty"));
     }
 }

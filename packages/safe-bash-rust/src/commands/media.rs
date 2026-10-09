@@ -5023,6 +5023,7 @@ fn cmd_media_doc(
                     "duration" => Some(format!("{dur_val:.6}")),
                     "size" => Some(raw_bytes.len().to_string()),
                     "title" | "tag:title" => Some(doc.title.clone()),
+                    s if s.starts_with("tag:") => doc.tags.get(&s[4..]).cloned(),
                     _ => None,
                 }
             };
@@ -5289,10 +5290,22 @@ fn cmd_media_doc(
                 ));
             }
             let stream_json = stream_objs.join(",");
+            let esc_json = |s: &str| -> String {
+                s.replace('\\', "\\\\").replace('"', "\\\"")
+            };
+            let mut tags_map = BTreeMap::new();
+            tags_map.insert("title".to_string(), doc.title.clone());
+            for (k, v) in &doc.tags {
+                tags_map.insert(k.clone(), v.clone());
+            }
+            let tags_entries: Vec<String> = tags_map
+                .iter()
+                .map(|(k, v)| format!("\"{}\":\"{}\"", esc_json(k), esc_json(v)))
+                .collect();
+            let tags_json = format!("{{{}}}", tags_entries.join(","));
             ok_out(&format!(
-                "{{\"streams\":[{stream_json}],\"format\":{{\"format_name\":\"{}\",\"duration\":\"{dur_val:.6}\",\"tags\":{{\"title\":\"{}\"}}}},\"chapters\":[{}]}}\n",
+                "{{\"streams\":[{stream_json}],\"format\":{{\"format_name\":\"{}\",\"duration\":\"{dur_val:.6}\",\"tags\":{tags_json}}},\"chapters\":[{}]}}\n",
                 doc.format_name,
-                doc.title,
                 chaps_json.join(",")
             ))
         }
@@ -8257,26 +8270,38 @@ fn cmd_media_doc(
             {
                 out.push_str(&format!("{:<17}{}\n", "ModDate:", format_pdf_date(&v, date_mode)));
             }
+            let std_keys = [
+                "title",
+                "author",
+                "subject",
+                "keywords",
+                "creator",
+                "producer",
+                "creationdate",
+                "moddate",
+                "trapped",
+            ];
+            let mut custom_map: BTreeMap<String, String> = BTreeMap::new();
+            for (k, v) in &doc.info {
+                if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
+                    custom_map.insert(k.clone(), v.clone());
+                }
+            }
+            for (k, v) in &doc.exif {
+                if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
+                    custom_map.insert(k.clone(), v.clone());
+                }
+            }
             if show_custom {
-                let std_keys = ["title", "author", "subject", "keywords", "creator", "producer", "creationdate", "moddate", "trapped"];
-                let mut custom_map: BTreeMap<String, String> = BTreeMap::new();
-                for (k, v) in &doc.info {
-                    if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
-                        custom_map.insert(k.clone(), v.clone());
-                    }
-                }
-                for (k, v) in &doc.exif {
-                    if !std_keys.contains(&k.to_ascii_lowercase().as_str()) {
-                        custom_map.insert(k.clone(), v.clone());
-                    }
-                }
-                out.push_str(&format!("{:<17}{}\n", "Custom Metadata:", if custom_map.is_empty() { "no" } else { "yes" }));
                 for (k, v) in &custom_map {
                     out.push_str(&format!("{:<17}{v}\n", format!("{k}:")));
                 }
-            } else {
-                out.push_str(&format!("{:<17}no\n", "Custom Metadata:"));
             }
+            out.push_str(&format!(
+                "{:<17}{}\n",
+                "Custom Metadata:",
+                if custom_map.is_empty() { "no" } else { "yes" }
+            ));
             out.push_str(&format!("{:<17}no\n", "Metadata Stream:"));
             out.push_str(&format!("{:<17}no\n", "Tagged:"));
             out.push_str(&format!("{:<17}no\n", "UserProperties:"));
@@ -8386,6 +8411,8 @@ fn cmd_media_doc(
             let mut show_subst = false;
             let mut show_loc = false;
             let mut show_loc_ps = false;
+            let mut first_p = 1usize;
+            let mut last_p = 0usize;
             let mut pw_opt: Option<String> = None;
             let mut files: Vec<String> = Vec::new();
             let mut i = 0usize;
@@ -8395,11 +8422,17 @@ fn cmd_media_doc(
                     "-loc" => show_loc = true,
                     "-locPS" => show_loc_ps = true,
                     "-f" | "-l" => {
+                        let is_first = args[i] == "-f";
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
                             return err_out("pdffonts: invalid page number\n", 99);
                         };
                         if v == 0 {
                             return err_out("pdffonts: invalid page number\n", 99);
+                        }
+                        if is_first {
+                            first_p = v;
+                        } else {
+                            last_p = v;
                         }
                         i += 1;
                     }
@@ -8436,6 +8469,16 @@ fn cmd_media_doc(
                     return err_out("Command Line Error: Incorrect password\n", 3);
                 }
             }
+            let page_count = doc.pages.len().max(1);
+            let end_p = if last_p > 0 { page_count.min(last_p) } else { page_count };
+            if first_p > page_count || (last_p > 0 && first_p > end_p) {
+                return err_out(
+                    &format!(
+                        "Command Line Error: Wrong page range given: the first page ({first_p}) can not be after the last page ({end_p}).\n"
+                    ),
+                    99,
+                );
+            }
             let has_text = doc.pages.iter().any(|p| !p.text.trim().is_empty());
             if show_subst {
                 let mut out = String::from(
@@ -8454,7 +8497,7 @@ fn cmd_media_doc(
                     let loc = if show_loc_ps {
                         "Substitute (Helvetica)"
                     } else {
-                        "/usr/share/fonts/type1/urw-base35/NimbusSans.t1"
+                        "Substitute"
                     };
                     out.push_str(&format!(
                         "Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"

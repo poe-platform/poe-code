@@ -10695,5 +10695,61 @@ mod tests {
         assert_eq!(sx.exit_code, 0);
         let sxi = try_run_archive_command("soxi", &args(&["-s", "/work/tone.wav"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(sxi.stdout.trim(), "400");
+
+        let pf_loc = try_run_archive_command(
+            "pdffonts",
+            &args(&["-loc", "/work/lin.pdf"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pf_loc.exit_code, 0);
+        assert!(pf_loc.stdout.contains("Substitute"));
+
+        let pf_err = try_run_archive_command(
+            "pdffonts",
+            &args(&["-f", "5", "/work/lin.pdf"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pf_err.exit_code, 99);
+        assert!(pf_err.stderr.contains("Command Line Error: Wrong page range given"));
+
+        let ff = try_run_archive_command(
+            "ffmpeg",
+            &args(&[
+                "-f",
+                "lavfi",
+                "-i",
+                "testsrc=size=160x120:rate=10:duration=1",
+                "-vf",
+                "scale=80:60",
+                "-metadata",
+                "comment=RustParity",
+                "/work/out.mp4",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ff.exit_code, 0);
+        let fp = try_run_archive_command(
+            "ffprobe",
+            &args(&["-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", "/work/out.mp4"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(fp.exit_code, 0);
+        assert!(fp.stdout.contains("\"comment\":\"RustParity\""));
     }
 }

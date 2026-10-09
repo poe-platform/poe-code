@@ -122,11 +122,9 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             continue;
         }
         if !end_opts && a.starts_with('-') && a.len() > 1 {
-            if a == "-h" || a == "--help" {
-                return ok_out("Usage: sed [OPTION]... {script-only-if-no-other-script} [input-file]...\n");
-            } else if a == "-n" || a == "--quiet" || a == "--silent" {
+            if a == "-n" || a == "--quiet" || a == "--silent" {
                 quiet = true;
-            } else if a == "-u" || a == "--unbuffered" {
+            } else if a == "-u" || a == "--unbuffered" || a == "--posix" {
             } else if a == "-E" || a == "-r" || a == "--regexp-extended" {
                 extended = true;
             } else if a == "-s" || a == "--separate" {
@@ -146,24 +144,30 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 in_place_suffix = suf.to_string();
             } else if a == "-l" || a == "--line-length" {
                 if i + 1 >= args.len() {
-                    return err_out("sed: option requires an argument -- 'l'\n", 2);
+                    return err_out("sed: line length must be a nonnegative safe integer\n", 2);
                 }
                 i += 1;
-                match args[i].parse::<usize>() {
-                    Ok(v) => line_length = v,
-                    Err(_) => return err_out("sed: invalid line length\n", 2),
+                if args[i].is_empty() || !args[i].bytes().all(|b| b.is_ascii_digit()) {
+                    return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                }
+                match args[i].parse::<u64>() {
+                    Ok(v) if v <= 9_007_199_254_740_991 => line_length = v.min(usize::MAX as u64) as usize,
+                    _ => return err_out("sed: line length must be a nonnegative safe integer\n", 2),
                 }
             } else if let Some(rest) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--line-length=")) {
-                match rest.parse::<usize>() {
-                    Ok(v) => line_length = v,
-                    Err(_) => return err_out("sed: invalid line length\n", 2),
+                if rest.is_empty() || !rest.bytes().all(|b| b.is_ascii_digit()) {
+                    return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                }
+                match rest.parse::<u64>() {
+                    Ok(v) if v <= 9_007_199_254_740_991 => line_length = v.min(usize::MAX as u64) as usize,
+                    _ => return err_out("sed: line length must be a nonnegative safe integer\n", 2),
                 }
             } else if a == "-e" || a == "--expression" {
                 if i + 1 < args.len() {
                     i += 1;
                     scripts.push(args[i].clone());
                 } else {
-                    return err_out("sed: -e requires an argument\n", 2);
+                    return err_out(&format!("sed: {a} requires an argument\n"), 2);
                 }
             } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--expression=")) {
                 scripts.push(rest.to_string());
@@ -174,17 +178,17 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     if let Ok(b) = fs.read_file(&p) {
                         scripts.push(String::from_utf8_lossy(&b).into_owned());
                     } else {
-                        return err_out(&format!("sed: couldn't open file {}: No such file or directory\n", args[i]), 2);
+                        return err_out(&format!("sed: ENOENT: no such file or directory, readFile '{p}'\n"), 1);
                     }
                 } else {
-                    return err_out("sed: -f requires an argument\n", 2);
+                    return err_out(&format!("sed: {a} requires an argument\n"), 2);
                 }
             } else if let Some(rest) = a.strip_prefix("-f").or_else(|| a.strip_prefix("--file=")) {
                 let p = resolve_posix_path(cwd, rest);
                 if let Ok(b) = fs.read_file(&p) {
                     scripts.push(String::from_utf8_lossy(&b).into_owned());
                 } else {
-                    return err_out(&format!("sed: couldn't open file {rest}: No such file or directory\n"), 2);
+                    return err_out(&format!("sed: ENOENT: no such file or directory, readFile '{p}'\n"), 1);
                 }
             } else if a.starts_with("--") {
                 return err_out(&format!("sed: unsupported option '{a}'\n"), 2);
@@ -230,7 +234,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             if let Ok(b) = fs.read_file(&path) {
                                 scripts.push(String::from_utf8_lossy(&b).into_owned());
                             } else {
-                                return err_out(&format!("sed: couldn't open file {fname}: No such file or directory\n"), 2);
+                                return err_out(&format!("sed: ENOENT: no such file or directory, readFile '{path}'\n"), 1);
                             }
                             break;
                         }
@@ -242,11 +246,14 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                                 i += 1;
                                 args[i].clone()
                             } else {
-                                return err_out("sed: -l requires an argument\n", 2);
+                                return err_out("sed: line length must be a nonnegative safe integer\n", 2);
                             };
-                            match val_str.parse::<usize>() {
-                                Ok(v) => line_length = v,
-                                Err(_) => return err_out("sed: invalid line length\n", 2),
+                            if val_str.is_empty() || !val_str.bytes().all(|b| b.is_ascii_digit()) {
+                                return err_out("sed: line length must be a nonnegative safe integer\n", 2);
+                            }
+                            match val_str.parse::<u64>() {
+                                Ok(v) if v <= 9_007_199_254_740_991 => line_length = v.min(usize::MAX as u64) as usize,
+                                _ => return err_out("sed: line length must be a nonnegative safe integer\n", 2),
                             }
                             break;
                         }
@@ -258,16 +265,15 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             i += 1;
             continue;
         }
-        if scripts.is_empty() {
-            scripts.push(a.clone());
-        } else {
-            files.push(a.clone());
-        }
+        files.push(a.clone());
         i += 1;
     }
 
     if scripts.is_empty() {
-        return err_out("sed: missing program\n", 2);
+        if files.is_empty() {
+            return err_out("sed: missing program\n", 2);
+        }
+        scripts.push(files.remove(0));
     }
     if scripts.first().is_some_and(|s| s.starts_with("#n")) {
         quiet = true;
@@ -315,7 +321,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 }
                 let _ = fs.write_file(&full, res.as_bytes());
             } else {
-                return err_out(&format!("sed: {f}: No such file or directory\n"), 1);
+                return err_out(&format!("sed: ENOENT: no such file or directory, lstat '{full}'\n"), 1);
             }
         }
         for (wf, data) in write_files {
@@ -333,7 +339,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 let full = resolve_posix_path(cwd, f);
                 match fs.read_file(&full) {
                     Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                    Err(_) => return err_out(&format!("sed: {f}: No such file or directory\n"), 1),
+                    Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
                 }
             };
             let mut cmds_copy = parsed_cmds.clone();
@@ -367,7 +373,7 @@ fn cmd_sed(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let full = resolve_posix_path(cwd, f);
             match fs.read_file(&full) {
                 Ok(b) => combined_in.push_str(&String::from_utf8_lossy(&b)),
-                Err(_) => return err_out(&format!("sed: {f}: No such file or directory\n"), 1),
+                Err(_) => return err_out(&format!("sed: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
             }
         }
     }
@@ -2003,6 +2009,9 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     let mut vars = BTreeMap::new();
     let mut program_parts: Vec<String> = Vec::new();
     let mut saw_explicit_prog = false;
+    let mut saw_prog_file = false;
+    let mut debug_file: Option<String> = None;
+    let mut operand_assignments = true;
     let mut positionals: Vec<String> = Vec::new();
     let mut end_of_opts = false;
 
@@ -2014,9 +2023,50 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             i += 1;
             continue;
         }
+        if !end_of_opts && (a == "-" || !a.starts_with('-')) {
+            end_of_opts = true;
+            positionals.push(a.clone());
+            i += 1;
+            continue;
+        }
+        if !end_of_opts && (a == "--help" || a == "-h") {
+            return ok_out("Usage: awk [options] 'program' [file ...]\n  -F, --field-separator FS  Set the field separator\n  -v NAME=value            Assign a variable\n  -f, --file FILE           Read the program from a file\n  -e, --source PROGRAM      Add program text\n  -h, --help                Show this help\n");
+        }
+        if !end_of_opts && (a == "--characters-as-bytes" || a == "-b" || a == "--gen-pot" || a == "-g" || a == "-I" || a == "--trace") {
+            i += 1;
+            continue;
+        }
+        if !end_of_opts && (a == "-D" || a == "--debug") {
+            return err_out("awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n", 2);
+        }
+        if !end_of_opts && let Some(rest) = a.strip_prefix("-D").or_else(|| a.strip_prefix("--debug=")) {
+            if rest.is_empty() {
+                return err_out("awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n", 2);
+            }
+            debug_file = Some(rest.to_string());
+            i += 1;
+            continue;
+        }
+        if !end_of_opts
+            && (a == "-d"
+                || a == "--dump-variables"
+                || a.starts_with("-d")
+                || a.starts_with("--dump-variables=")
+                || a == "-p"
+                || a == "--profile"
+                || a.starts_with("-p")
+                || a.starts_with("--profile=")
+                || a == "-o"
+                || a == "--pretty-print"
+                || a.starts_with("-o")
+                || a.starts_with("--pretty-print="))
+        {
+            i += 1;
+            continue;
+        }
         if !end_of_opts && a == "-F" {
             if i + 1 >= args.len() {
-                return err_out("awk: option requires an argument -- 'F'\n", 2);
+                return err_out("awk: -F requires an argument\n", 2);
             }
             i += 1;
             field_sep = unescape_sed_text(&args[i]);
@@ -2024,35 +2074,35 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
             field_sep = unescape_sed_text(rest);
         } else if !end_of_opts && a == "--field-separator" {
             if i + 1 >= args.len() {
-                return err_out("awk: option requires an argument -- 'field-separator'\n", 2);
+                return err_out("awk: --field-separator requires an argument\n", 2);
             }
             i += 1;
             field_sep = unescape_sed_text(&args[i]);
         } else if !end_of_opts && (a == "-v" || a == "--assign") {
             if i + 1 >= args.len() {
-                return err_out("awk: option requires an argument -- 'v'\n", 2);
+                return err_out(&format!("awk: {a} requires an argument\n"), 2);
             }
             i += 1;
             if let Some((k, v)) = args[i].split_once('=') {
                 if !is_valid_awk_ident(k) {
-                    return err_out(&format!("awk: `{k}' is not a legal variable name\n"), 2);
+                    return err_out("awk: -v requires a NAME=value assignment\n", 2);
                 }
                 vars.insert(k.to_string(), unescape_sed_text(v));
             } else {
-                return err_out(&format!("awk: `{}' is not a legal variable name\n", args[i]), 2);
+                return err_out("awk: -v requires a NAME=value assignment\n", 2);
             }
         } else if !end_of_opts && let Some(rest) = a.strip_prefix("-v").or_else(|| a.strip_prefix("--assign=")) {
             if let Some((k, v)) = rest.split_once('=') {
                 if !is_valid_awk_ident(k) {
-                    return err_out(&format!("awk: `{k}' is not a legal variable name\n"), 2);
+                    return err_out("awk: -v requires a NAME=value assignment\n", 2);
                 }
                 vars.insert(k.to_string(), unescape_sed_text(v));
             } else {
-                return err_out(&format!("awk: `{rest}' is not a legal variable name\n"), 2);
+                return err_out("awk: -v requires a NAME=value assignment\n", 2);
             }
         } else if !end_of_opts && (a == "-e" || a == "--source") {
             if i + 1 >= args.len() {
-                return err_out("awk: option requires an argument -- 'e'\n", 2);
+                return err_out(&format!("awk: {a} requires an argument\n"), 2);
             }
             i += 1;
             saw_explicit_prog = true;
@@ -2060,10 +2110,11 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
         } else if !end_of_opts && let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--source=")) {
             saw_explicit_prog = true;
             program_parts.push(rest.to_string());
-        } else if !end_of_opts && (a == "-f" || a == "--file" || a == "-i" || a == "--include") {
-            let is_prog_file = a == "-f" || a == "--file";
+        } else if !end_of_opts && (a == "-f" || a == "--file" || a == "-i" || a == "--include" || a == "-E" || a == "--exec") {
+            let is_prog_file = a == "-f" || a == "--file" || a == "-E" || a == "--exec";
+            let is_exec = a == "-E" || a == "--exec";
             if i + 1 >= args.len() {
-                return err_out("awk: option requires an argument -- 'f'\n", 2);
+                return err_out(&format!("awk: {a} requires an argument\n"), 2);
             }
             i += 1;
             let p = resolve_posix_path(cwd, &args[i]);
@@ -2071,19 +2122,30 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 Ok(b) => {
                     if is_prog_file {
                         saw_explicit_prog = true;
+                        saw_prog_file = true;
                     }
                     program_parts.push(String::from_utf8_lossy(&b).into_owned());
                 }
-                Err(_) => return err_out(&format!("awk: can't open file {}\n", args[i]), 2),
+                Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
             }
-        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-f").or_else(|| a.strip_prefix("--file=")) {
+            if is_exec {
+                operand_assignments = false;
+                end_of_opts = true;
+            }
+        } else if !end_of_opts && let Some(rest) = a.strip_prefix("-f").or_else(|| a.strip_prefix("--file=")).or_else(|| a.strip_prefix("-E")).or_else(|| a.strip_prefix("--exec=")) {
+            let is_exec = a.starts_with("-E") || a.starts_with("--exec=");
             let p = resolve_posix_path(cwd, rest);
             match fs.read_file(&p) {
                 Ok(b) => {
                     saw_explicit_prog = true;
+                    saw_prog_file = true;
                     program_parts.push(String::from_utf8_lossy(&b).into_owned());
                 }
-                Err(_) => return err_out(&format!("awk: can't open file {rest}\n"), 2),
+                Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
+            }
+            if is_exec {
+                operand_assignments = false;
+                end_of_opts = true;
             }
         } else if !end_of_opts && let Some(rest) = a.strip_prefix("-i").or_else(|| a.strip_prefix("--include=")) {
             let p = resolve_posix_path(cwd, rest);
@@ -2091,20 +2153,25 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 Ok(b) => {
                     program_parts.push(String::from_utf8_lossy(&b).into_owned());
                 }
-                Err(_) => return err_out(&format!("awk: can't open file {rest}\n"), 2),
+                Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{p}'\n"), 1),
             }
         } else if !end_of_opts && (a == "-l" || a == "--load") {
-            if i + 1 < args.len() {
-                i += 1;
+            if i + 1 >= args.len() {
+                return err_out(&format!("awk: {a} requires an argument\n"), 2);
             }
-        } else if !end_of_opts && (a.starts_with("-l") || a.starts_with("--load=")) {
-            // loaded extension
-        } else if !end_of_opts && (a == "-W" || a == "--posix" || a == "--traditional" || a == "--re-interval") {
-            if a == "-W" && i + 1 < args.len() {
-                i += 1;
+            i += 1;
+            let ext = &args[i];
+            let base = ext.rsplit('/').next().unwrap_or(ext.as_str());
+            if base != "ordchr" && base != "ordchr.so" {
+                return err_out(&format!("awk: unsupported awk extension '{ext}'\n"), 2);
+            }
+        } else if !end_of_opts && let Some(ext) = a.strip_prefix("-l").or_else(|| a.strip_prefix("--load=")) {
+            let base = ext.rsplit('/').next().unwrap_or(ext);
+            if base != "ordchr" && base != "ordchr.so" {
+                return err_out(&format!("awk: unsupported awk extension '{ext}'\n"), 2);
             }
         } else if !end_of_opts && a.starts_with('-') && a != "-" {
-            return err_out(&format!("awk: invalid option -- '{a}'\n"), 2);
+            return err_out(&format!("awk: unsupported awk option '{a}'\n"), 2);
         } else {
             positionals.push(a.clone());
         }
@@ -2121,7 +2188,39 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
     };
 
     if program_parts.is_empty() {
-        return err_out("awk: missing program\n", 2);
+        return err_out("awk: missing awk program\n", 2);
+    }
+    if let Some(ref dbg) = debug_file {
+        if !saw_prog_file {
+            return err_out("awk: debugging requires a program supplied with -f\n", 2);
+        }
+        let dbg_path = resolve_posix_path(cwd, dbg);
+        let dbg_bytes = match fs.read_file(&dbg_path) {
+            Ok(b) => b,
+            Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readFile '{dbg_path}'\n"), 1),
+        };
+        let dbg_text = String::from_utf8_lossy(&dbg_bytes);
+        let mut should_run = false;
+        for line in dbg_text.split('\n') {
+            let action = line.trim();
+            if action.is_empty() || action.starts_with('#') {
+                continue;
+            }
+            if action == "quit" || action == "q" {
+                break;
+            }
+            if action == "run" || action == "r" {
+                if should_run {
+                    return err_out("awk: batch debugging supports a single run\n", 2);
+                }
+                should_run = true;
+            } else {
+                return err_out(&format!("awk: unsupported batch debugger command '{action}'; supported commands are run and quit\n"), 2);
+            }
+        }
+        if !should_run {
+            return ok_out("");
+        }
     }
     let prog_str = program_parts.join("\n");
 
@@ -2181,7 +2280,8 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                 }
                 if f == "-" {
                     ("-".to_string(), stdin.to_string())
-                } else if let Some((k, v)) = f.split_once('=')
+                } else if operand_assignments
+                    && let Some((k, v)) = f.split_once('=')
                     && is_valid_awk_ident(k)
                     && !f.contains('/')
                     && !fs.exists(&resolve_posix_path(cwd, &f))
@@ -2192,7 +2292,7 @@ fn cmd_awk(args: &[String], stdin: &str, cwd: &str, env: &BTreeMap<String, Strin
                     let full = resolve_posix_path(cwd, &f);
                     match fs.read_file(&full) {
                         Ok(b) => (f, String::from_utf8_lossy(&b).into_owned()),
-                        Err(_) => return err_out(&format!("awk: can't open file {f}\n"), 2),
+                        Err(_) => return err_out(&format!("awk: ENOENT: no such file or directory, readStream '{full}'\n"), 1),
                     }
                 }
             };
@@ -5691,22 +5791,26 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         };
 
     let parse_ctx_len = |val: &str| -> Result<usize, String> {
-        let trimmed = val.trim();
+        let trimmed = val.trim_start_matches([' ', '\t', '\n', '\x0b', '\x0c', '\r']);
         if trimmed.is_empty() {
-            return Ok(3);
+            return Ok(0);
         }
-        match trimmed.parse::<isize>() {
-            Ok(n) if n >= 0 => Ok(n as usize),
-            _ => Err(format!("diff: invalid context length '{val}'\n")),
+        let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
+        if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(format!("diff: invalid context length: {val}\n"));
+        }
+        match digits.parse::<u64>() {
+            Ok(n) => Ok(n.min(9_007_199_254_740_991).min(usize::MAX as u64) as usize),
+            Err(_) => Ok(usize::MAX),
         }
     };
 
     let parse_width = |val: &str| -> Result<usize, String> {
-        let trimmed = val.trim();
-        match trimmed.parse::<usize>() {
-            Ok(n) if n > 0 => Ok(n),
-            _ => Err(format!("diff: invalid width '{val}'\n")),
+        let w = parse_ctx_len(val)?;
+        if w < 1 {
+            return Err(format!("diff: invalid width: {val}\n"));
         }
+        Ok(w)
     };
 
     let mut i = 0usize;
@@ -5765,10 +5869,8 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             "--no-ignore-file-name-case" => opts.ignore_file_name_case = false,
             "-d" | "--minimal" | "-l" | "--paginate" | "--color" | "--color=always" | "--color=auto" | "--color=never" => {}
             other if other.starts_with("--color=") => {
-                return err_out(&format!("diff: invalid color mode in {other}\n"), 2);
-            }
-            "--help" | "-v" | "--version" => {
-                return ok_out("diff (GNU diffutils) 3.10\n");
+                let mode = &other["--color=".len()..];
+                return err_out(&format!("diff: invalid color: {mode}\n"), 2);
             }
             "-p" | "--show-c-function" => {
                 opts.show_c_func = true;
@@ -5789,7 +5891,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             "-r" | "--recursive" => opts.recursive = true,
             "-U" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'U'\n", 2);
+                    return err_out("diff: -U requires an argument\n", 2);
                 }
                 if let Err(e) = select_format(DiffFormat::Unified, &mut selected_format, &mut opts) {
                     return err_out(&e, 2);
@@ -5809,7 +5911,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             "-C" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'C'\n", 2);
+                    return err_out("diff: -C requires an argument\n", 2);
                 }
                 if let Err(e) = select_format(DiffFormat::Context, &mut selected_format, &mut opts) {
                     return err_out(&e, 2);
@@ -5829,7 +5931,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             "-W" | "--width" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'W'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 opts.width = match parse_width(&args[i]) {
@@ -5839,28 +5941,28 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             "-F" | "--show-function-line" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'F'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 opts.show_func_regexes.push(args[i].clone());
             }
             "-S" | "--starting-file" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'S'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 opts.starting_file = Some(args[i].clone());
             }
             "-X" | "--exclude-from" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'X'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 exclude_files.push(args[i].clone());
             }
             "-D" | "--ifdef" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'D'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 if let Err(e) = select_format(DiffFormat::Ifdef, &mut selected_format, &mut opts) {
                     return err_out(&e, 2);
@@ -5870,35 +5972,35 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             "-L" | "--label" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'L'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 opts.labels.push(args[i].clone());
             }
             "-I" | "--ignore-matching-lines" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'I'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 opts.ignore_regexes.push(args[i].clone());
             }
             "-x" | "--exclude" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option requires an argument -- 'x'\n", 2);
+                    return err_out(&format!("diff: {a} requires an argument\n"), 2);
                 }
                 i += 1;
                 opts.excludes.push(args[i].clone());
             }
             "--from-file" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option '--from-file' requires an argument\n", 2);
+                    return err_out("diff: --from-file requires an argument\n", 2);
                 }
                 i += 1;
                 from_file = Some(args[i].clone());
             }
             "--to-file" => {
                 if i + 1 >= args.len() {
-                    return err_out("diff: option '--to-file' requires an argument\n", 2);
+                    return err_out("diff: --to-file requires an argument\n", 2);
                 }
                 i += 1;
                 to_file = Some(args[i].clone());
@@ -5974,7 +6076,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 opts.ctx_lines = Some(w);
             }
             _ if a.starts_with("--") => {
-                return err_out(&format!("diff: unrecognized option '{a}'\n"), 2);
+                return err_out(&format!("diff: unsupported option: {a}\n"), 2);
             }
             _ if a.starts_with('-') && a != "-" => {
                 let mut prev_digit = false;
@@ -6045,7 +6147,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                 i += 1;
                                 args[i].clone()
                             } else {
-                                return err_out(&format!("diff: option requires an argument -- '{ch}'\n"), 2);
+                                return err_out(&format!("diff: -{ch} requires an argument\n"), 2);
                             };
                             match ch {
                                 'U' => {
@@ -6103,7 +6205,7 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                             break;
                         }
                         other => {
-                            return err_out(&format!("diff: invalid option -- '{other}'\n"), 2);
+                            return err_out(&format!("diff: unsupported option: -{other}\n"), 2);
                         }
                     }
                 }
@@ -6125,9 +6227,29 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     if from_file.is_some() && to_file.is_some() {
         return err_out("diff: --from-file and --to-file may not both be specified\n", 2);
     }
+    if from_file.is_some() || to_file.is_some() {
+        if files.is_empty() {
+            return err_out("diff: expected at least one file or directory\n", 2);
+        }
+    } else if files.len() != 2 {
+        return err_out("diff: expected two files or directories\n", 2);
+    }
+
+    let has_bad_name = |s: &str| s.is_empty() || s.chars().any(|c| matches!(c, '\0' | '\r' | '\n' | '\t'));
+    let has_ctrl_char = |s: &str| s.chars().any(|c| matches!(c, '\0' | '\r' | '\n' | '\t'));
+    if files.iter().any(|s| has_bad_name(s))
+        || from_file.as_deref().is_some_and(has_bad_name)
+        || to_file.as_deref().is_some_and(has_bad_name)
+        || opts.labels.iter().any(|s| has_ctrl_char(s))
+    {
+        return err_out("diff: empty names or control characters in filenames/labels are unsupported\n", 2);
+    }
 
     for exf in exclude_files {
         let full = resolve_posix_path(cwd, &exf);
+        if fs.is_dir(&full) {
+            return err_out("diff: diff input requires identity-checked retained reads\n", 2);
+        }
         if let Ok(bytes) = fs.read_file(&full) {
             let txt = String::from_utf8_lossy(&bytes);
             for line in txt.lines() {
@@ -6135,13 +6257,12 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     opts.excludes.push(line.to_string());
                 }
             }
+        } else {
+            return err_out("diff: diff input requires identity-checked retained reads\n", 2);
         }
     }
 
     if from_file.is_some() || to_file.is_some() {
-        if files.is_empty() {
-            return err_out("diff: missing operand\n", 2);
-        }
         let mut pairs = Vec::new();
         if let Some(ref ff) = from_file {
             for f in &files {
@@ -6200,17 +6321,18 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         };
     }
 
-    if files.len() < 2 {
-        return err_out("diff: missing operand\n", 2);
-    }
-    if files.len() > 2 {
-        return err_out(&format!("diff: extra operand '{}'\n", files[2]), 2);
-    }
-
     let mut full_a = resolve_posix_path(cwd, &files[0]);
     let mut full_b = resolve_posix_path(cwd, &files[1]);
+    let is_dir_a = files[0] != "-" && fs.is_dir(&full_a);
+    let is_dir_b = files[1] != "-" && fs.is_dir(&full_b);
+    if matches!(opts.format, Some(DiffFormat::Ifdef)) && (is_dir_a || is_dir_b) {
+        return err_out("diff: -D option not supported with directories\n", 2);
+    }
+    if (files[0] == "-" && is_dir_b) || (files[1] == "-" && is_dir_a) {
+        return err_out("diff: cannot compare stdin with a directory\n", 2);
+    }
     if files[0] != "-" && files[1] != "-" {
-        if fs.is_dir(&full_a) && fs.is_dir(&full_b) {
+        if is_dir_a && is_dir_b {
             let mut out = String::new();
             let mut stderr = String::new();
             let mut any_diff = false;
@@ -6232,42 +6354,66 @@ fn cmd_diff(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 stderr,
                 exit_code: if any_trouble { 2 } else if any_diff { 1 } else { 0 },
             };
-        } else if !fs.is_dir(&full_a) && fs.is_dir(&full_b) {
+        } else if !is_dir_a && is_dir_b {
             let base = files[0].rsplit('/').next().unwrap_or(&files[0]).to_string();
             files[1] = format!("{}/{base}", files[1].trim_end_matches('/'));
             full_b = resolve_posix_path(cwd, &files[1]);
-        } else if fs.is_dir(&full_a) && !fs.is_dir(&full_b) {
+        } else if is_dir_a && !is_dir_b {
             let base = files[1].rsplit('/').next().unwrap_or(&files[1]).to_string();
             files[0] = format!("{}/{base}", files[0].trim_end_matches('/'));
             full_a = resolve_posix_path(cwd, &files[0]);
         }
     }
-    let _ = (full_a, full_b);
-
-    let read_side_bytes = |name: &str| -> Result<Vec<u8>, String> {
-        if name == "-" {
-            return Ok(crate::vfs::stream_string_to_bytes(stdin));
+    let raw_a = if files[0] == "-" {
+        Some(crate::vfs::stream_string_to_bytes(stdin))
+    } else {
+        fs.read_file(&full_a).ok()
+    };
+    let raw_b = if files[1] == "-" {
+        Some(crate::vfs::stream_string_to_bytes(stdin))
+    } else {
+        fs.read_file(&full_b).ok()
+    };
+    if raw_a.is_none() && raw_b.is_none() {
+        return err_out(
+            &format!(
+                "diff: {}: No such file or directory\ndiff: {}: No such file or directory\n",
+                files[0], files[1]
+            ),
+            2,
+        );
+    }
+    let treat_missing_a = raw_a.is_none() && (opts.new_file || opts.unidir_new_file);
+    let treat_missing_b = raw_b.is_none() && opts.new_file;
+    if (raw_a.is_none() && !treat_missing_a) || (raw_b.is_none() && !treat_missing_b) {
+        let mut missing_err = String::new();
+        if raw_a.is_none() && !treat_missing_a {
+            missing_err.push_str(&format!("diff: {}: No such file or directory\n", files[0]));
         }
-        let full = resolve_posix_path(cwd, name);
-        fs.read_file(&full)
-            .map_err(|_| format!("diff: {name}: No such file or directory\n"))
+        if raw_b.is_none() && !treat_missing_b {
+            missing_err.push_str(&format!("diff: {}: No such file or directory\n", files[1]));
+        }
+        return err_out(&missing_err, 2);
+    }
+    let default_label_a = if raw_a.is_none() {
+        "/dev/null"
+    } else {
+        files[0].as_str()
     };
-
-    let bytes_a = match read_side_bytes(&files[0]) {
-        Ok(t) => t,
-        Err(e) => return err_out(&e, 2),
+    let default_label_b = if raw_b.is_none() {
+        "/dev/null"
+    } else {
+        files[1].as_str()
     };
-    let bytes_b = match read_side_bytes(&files[1]) {
-        Ok(t) => t,
-        Err(e) => return err_out(&e, 2),
-    };
+    let bytes_a = raw_a.unwrap_or_default();
+    let bytes_b = raw_b.unwrap_or_default();
 
     let mut stderr = String::new();
     let (out, differed, trouble) = diff_two_byte_inputs(
         &files[0],
         &files[1],
-        opts.labels.first().unwrap_or(&files[0]),
-        opts.labels.get(1).unwrap_or(&files[1]),
+        opts.labels.first().map_or(default_label_a, |s| s.as_str()),
+        opts.labels.get(1).map_or(default_label_b, |s| s.as_str()),
         &bytes_a,
         &bytes_b,
         false,
@@ -6543,21 +6689,36 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut backup_explicit = false;
     let mut fuzz_explicit = false;
     let mut silent = false;
-    let mut input_file: Option<String> = None;
+    let mut input_file: Option<String> = Some("-".to_string());
     let mut output_file: Option<String> = None;
     let mut reject_file: Option<String> = None;
-    let mut target_file: Option<String> = None;
+    let mut directory_opt: Option<String> = None;
+    let mut operands: Vec<String> = Vec::new();
+
+    let parse_patch_int = |val: &str, label: &str| -> Result<usize, String> {
+        if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
+            return Err(format!("patch: invalid {label}: {val}\n"));
+        }
+        match val.parse::<u64>() {
+            Ok(n) if n <= 9_007_199_254_740_991 => Ok(n.min(usize::MAX as u64) as usize),
+            _ => Err(format!("patch: invalid {label}: {val}\n")),
+        }
+    };
+    let parse_version_control = |val: &str| -> Result<String, String> {
+        match val {
+            "simple" | "never" => Ok("simple".to_string()),
+            "numbered" | "t" => Ok("numbered".to_string()),
+            "existing" | "nil" => Ok("existing".to_string()),
+            _ => Err(format!("patch: invalid version control: {val}\n")),
+        }
+    };
 
     let mut i = 0usize;
     let mut literal = false;
     while i < args.len() {
         let a = &args[i];
-        if literal {
-            if target_file.is_none() {
-                target_file = Some(a.clone());
-            } else if input_file.is_none() {
-                input_file = Some(a.clone());
-            }
+        if literal || a == "-" || !a.starts_with('-') {
+            operands.push(a.clone());
             i += 1;
             continue;
         }
@@ -6566,13 +6727,15 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             i += 1;
             continue;
         }
-        if a == "-R" || a == "--reverse" {
+        if a == "--reverse" {
             opts.reverse = true;
-        } else if a == "-s" || a == "--silent" || a == "--quiet" {
+        } else if a == "--silent" || a == "--quiet" {
             silent = true;
+        } else if a == "--verbose" {
+            silent = false;
         } else if a == "--dry-run" {
             opts.dry_run = true;
-        } else if a == "-b" || a == "--backup" {
+        } else if a == "--backup" {
             opts.always_backup = true;
         } else if a == "--backup-if-mismatch" {
             opts.backup_if_mismatch = true;
@@ -6582,96 +6745,223 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             backup_explicit = true;
         } else if a == "--posix" {
             opts.posix = true;
-        } else if a == "-E" || a == "--remove-empty-files" {
+        } else if a == "--remove-empty-files" {
             opts.remove_empty = true;
-        } else if a == "-l" || a == "--ignore-whitespace" || a == "--ignore-white-space" {
+        } else if a == "--ignore-whitespace" || a == "--ignore-white-space" {
             opts.ignore_ws = true;
-        } else if a == "-N" || a == "--forward" {
+        } else if a == "--forward" {
             opts.forward_only = true;
-        } else if a == "-f" || a == "--force" || a == "-t" || a == "--batch" {
+        } else if a == "--force" {
             opts.force = true;
+        } else if a == "--batch" || a == "--binary" || a == "--set-time" || a == "--set-utc" || a == "--unified" || a == "--context" || a == "--normal" {
         } else if a == "--atomic" {
             opts.atomic = true;
-        } else if a == "--merge" || a == "--merge=diff3" || a == "--merge=merge" {
-            opts.merge_mode = true;
-            opts.merge_diff3 = a.ends_with("diff3");
-        } else if let Some(m) = a.strip_prefix("--ifdef=") {
-            opts.ifdef_guard = Some(m.to_string());
-        } else if a == "-D" && i + 1 < args.len() {
-            i += 1;
-            opts.ifdef_guard = Some(args[i].clone());
-        } else if let Some(m) = a.strip_prefix("-D") {
-            opts.ifdef_guard = Some(m.to_string());
-        } else if (a == "-d" || a == "--directory") && i + 1 < args.len() {
-            i += 1;
-            opts.work_cwd = resolve_posix_path(cwd, &args[i]);
-        } else if let Some(dir) = a.strip_prefix("--directory=") {
-            opts.work_cwd = resolve_posix_path(cwd, dir);
-        } else if (a == "-z" || a == "--suffix") && i + 1 < args.len() {
-            i += 1;
-            opts.backup_suffix = args[i].clone();
-        } else if let Some(s) = a.strip_prefix("--suffix=") {
-            opts.backup_suffix = s.to_string();
-        } else if (a == "-B" || a == "--prefix") && i + 1 < args.len() {
-            i += 1;
-            opts.backup_prefix = Some(args[i].clone());
-        } else if let Some(p) = a.strip_prefix("--prefix=") {
-            opts.backup_prefix = Some(p.to_string());
-        } else if (a == "-Y" || a == "--basename-prefix") && i + 1 < args.len() {
-            i += 1;
-            opts.backup_basename_prefix = Some(args[i].clone());
-        } else if let Some(p) = a.strip_prefix("--basename-prefix=") {
-            opts.backup_basename_prefix = Some(p.to_string());
-        } else if (a == "-V" || a == "--version-control") && i + 1 < args.len() {
-            i += 1;
-            opts.version_control = Some(args[i].clone());
-        } else if let Some(vc) = a.strip_prefix("--version-control=") {
-            opts.version_control = Some(vc.to_string());
-        } else if (a == "-F" || a == "--fuzz") && i + 1 < args.len() {
-            i += 1;
-            opts.fuzz = args[i].parse().unwrap_or(0);
-            fuzz_explicit = true;
-        } else if let Some(f) = a.strip_prefix("--fuzz=") {
-            opts.fuzz = f.parse().unwrap_or(0);
-            fuzz_explicit = true;
-        } else if let Some(f) = a.strip_prefix("-F") {
-            opts.fuzz = f.parse().unwrap_or(0);
-            fuzz_explicit = true;
-        } else if let Some(rf) = a.strip_prefix("--reject-format=") {
-            opts.reject_format = Some(rf.to_string());
-        } else if a == "--reject-format" && i + 1 < args.len() {
-            i += 1;
-            opts.reject_format = Some(args[i].clone());
-        } else if let Some(p) = a.strip_prefix("-p") {
-            if !p.is_empty() {
-                opts.strip = Some(p.parse().unwrap_or(0));
-            } else if i + 1 < args.len() {
-                i += 1;
-                opts.strip = Some(args[i].parse().unwrap_or(0));
+        } else if a == "--merge" || a.starts_with("--merge=") {
+            let style = a.split_once('=').map_or("merge", |(_, v)| v);
+            if style != "merge" && style != "diff3" {
+                return err_out(&format!("patch: invalid merge style: {style}\n"), 2);
             }
-        } else if let Some(p) = a.strip_prefix("--strip=") {
-            opts.strip = Some(p.parse().unwrap_or(0));
-        } else if a == "-i" && i + 1 < args.len() {
-            i += 1;
-            input_file = Some(args[i].clone());
-        } else if let Some(inf) = a.strip_prefix("--input=") {
-            input_file = Some(inf.to_string());
-        } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
-            i += 1;
-            output_file = Some(args[i].clone());
-        } else if let Some(out) = a.strip_prefix("--output=") {
-            output_file = Some(out.to_string());
-        } else if (a == "-r" || a == "--reject-file") && i + 1 < args.len() {
-            i += 1;
-            reject_file = Some(args[i].clone());
-        } else if let Some(rej) = a.strip_prefix("--reject-file=") {
-            reject_file = Some(rej.to_string());
-        } else if !a.starts_with('-') && target_file.is_none() {
-            target_file = Some(a.clone());
-        } else if !a.starts_with('-') && input_file.is_none() {
-            input_file = Some(a.clone());
+            opts.merge_mode = true;
+            opts.merge_diff3 = style == "diff3";
+        } else if a.starts_with("--") {
+            let (name, eq_val) = match a.split_once('=') {
+                Some((n, v)) => (n, Some(v.to_string())),
+                None => (a.as_str(), None),
+            };
+            if matches!(
+                name,
+                "--strip"
+                    | "--input"
+                    | "--fuzz"
+                    | "--reject-file"
+                    | "--output"
+                    | "--directory"
+                    | "--get"
+                    | "--suffix"
+                    | "--prefix"
+                    | "--basename-prefix"
+                    | "--version-control"
+                    | "--ifdef"
+                    | "--quoting-style"
+                    | "--reject-format"
+                    | "--read-only"
+            ) {
+                let param = if let Some(v) = eq_val {
+                    v
+                } else if i + 1 < args.len() {
+                    i += 1;
+                    args[i].clone()
+                } else {
+                    return err_out(&format!("patch: {name} requires an argument\n"), 2);
+                };
+                match name {
+                    "--ifdef" => opts.ifdef_guard = Some(param),
+                    "--quoting-style" => {
+                        if !matches!(
+                            param.as_str(),
+                            "literal"
+                                | "shell"
+                                | "shell-always"
+                                | "shell-escape"
+                                | "shell-escape-always"
+                                | "c"
+                                | "escape"
+                                | "locale"
+                                | "clocale"
+                        ) {
+                            return err_out(&format!("patch: invalid quoting style: {param}\n"), 2);
+                        }
+                    }
+                    "--reject-format" => {
+                        if param != "unified" && param != "context" {
+                            return err_out(&format!("patch: invalid reject format: {param}\n"), 2);
+                        }
+                        opts.reject_format = Some(param);
+                    }
+                    "--read-only" => {
+                        if !matches!(param.as_str(), "ignore" | "warn" | "fail") {
+                            return err_out(&format!("patch: invalid read-only behavior: {param}\n"), 2);
+                        }
+                    }
+                    "--strip" => match parse_patch_int(&param, "strip count") {
+                        Ok(n) => opts.strip = Some(n),
+                        Err(e) => return err_out(&e, 2),
+                    },
+                    "--fuzz" => match parse_patch_int(&param, "fuzz") {
+                        Ok(n) => {
+                            opts.fuzz = n;
+                            fuzz_explicit = true;
+                        }
+                        Err(e) => return err_out(&e, 2),
+                    },
+                    "--reject-file" => reject_file = Some(param),
+                    "--output" => output_file = Some(param),
+                    "--directory" => directory_opt = Some(param),
+                    "--suffix" => opts.backup_suffix = param,
+                    "--prefix" => opts.backup_prefix = Some(param),
+                    "--basename-prefix" => opts.backup_basename_prefix = Some(param),
+                    "--version-control" => match parse_version_control(&param) {
+                        Ok(vc) => opts.version_control = Some(vc),
+                        Err(e) => return err_out(&e, 2),
+                    },
+                    "--get" => {
+                        if param != "0" {
+                            return err_out("patch: version-control acquisition is unsupported; use --get=0\n", 2);
+                        }
+                    }
+                    "--input" => input_file = Some(param),
+                    _ => {}
+                }
+            } else {
+                return err_out(&format!("patch: unsupported option: {a}\n"), 2);
+            }
+        } else {
+            for (byte_off, ch) in a[1..].char_indices() {
+                match ch {
+                    'R' => opts.reverse = true,
+                    's' => silent = true,
+                    'f' => opts.force = true,
+                    't' | 'T' | 'Z' | 'u' | 'c' | 'n' => {}
+                    'b' => opts.always_backup = true,
+                    'N' => opts.forward_only = true,
+                    'E' => opts.remove_empty = true,
+                    'l' => opts.ignore_ws = true,
+                    'p' | 'i' | 'F' | 'r' | 'o' | 'd' | 'g' | 'z' | 'B' | 'Y' | 'V' | 'D' => {
+                        let rest = &a[1 + byte_off + ch.len_utf8()..];
+                        let param = if !rest.is_empty() {
+                            rest.to_string()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return err_out(&format!("patch: -{ch} requires an argument\n"), 2);
+                        };
+                        match ch {
+                            'D' => opts.ifdef_guard = Some(param),
+                            'p' => match parse_patch_int(&param, "strip count") {
+                                Ok(n) => opts.strip = Some(n),
+                                Err(e) => return err_out(&e, 2),
+                            },
+                            'F' => match parse_patch_int(&param, "fuzz") {
+                                Ok(n) => {
+                                    opts.fuzz = n;
+                                    fuzz_explicit = true;
+                                }
+                                Err(e) => return err_out(&e, 2),
+                            },
+                            'r' => reject_file = Some(param),
+                            'o' => output_file = Some(param),
+                            'd' => directory_opt = Some(param),
+                            'z' => opts.backup_suffix = param,
+                            'B' => opts.backup_prefix = Some(param),
+                            'Y' => opts.backup_basename_prefix = Some(param),
+                            'V' => match parse_version_control(&param) {
+                                Ok(vc) => opts.version_control = Some(vc),
+                                Err(e) => return err_out(&e, 2),
+                            },
+                            'g' => {
+                                if param != "0" {
+                                    return err_out("patch: version-control acquisition is unsupported; use -g0\n", 2);
+                                }
+                            }
+                            'i' => input_file = Some(param),
+                            _ => {}
+                        }
+                        break;
+                    }
+                    other => return err_out(&format!("patch: unsupported option: -{other}\n"), 2),
+                }
+            }
         }
         i += 1;
+    }
+
+    if operands.len() > 2 {
+        return err_out("patch: expected at most a target file and a patch input file\n", 2);
+    }
+    let target_file = operands.first().cloned();
+    if operands.len() == 2 {
+        input_file = Some(operands[1].clone());
+    }
+    let inf_val = input_file.clone().unwrap_or_default();
+    if inf_val.is_empty() || inf_val.contains('\0') {
+        return err_out("patch: invalid patch input path\n", 2);
+    }
+    for opt_path in [&output_file, &directory_opt] {
+        if let Some(p) = opt_path
+            && (p.is_empty() || p.contains('\0'))
+        {
+            return err_out("patch: invalid patch option path\n", 2);
+        }
+    }
+    if let Some(ref sym) = opts.ifdef_guard
+        && (sym.is_empty() || !sym.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_'))
+    {
+        return err_out("patch: invalid ifdef symbol\n", 2);
+    }
+    if let Some(ref dir) = directory_opt {
+        let resolved_dir = resolve_posix_path(cwd, dir);
+        if !fs.is_dir(&resolved_dir) {
+            return err_out(&format!("patch: not a directory: {dir}\n"), 2);
+        }
+        opts.work_cwd = resolved_dir;
+    }
+    if let Some(ref out_p) = output_file
+        && out_p != "-"
+        && resolve_posix_path(&opts.work_cwd, out_p) == "/dev/null"
+    {
+        return err_out("patch: /dev/null is not an output file\n", 2);
+    }
+    if let Some(ref tgt_p) = target_file
+        && resolve_posix_path(&opts.work_cwd, tgt_p) == "/dev/null"
+    {
+        return err_out("patch: /dev/null is not an explicit target\n", 2);
+    }
+    if let Some(ref rej_p) = reject_file
+        && rej_p != "-"
+        && resolve_posix_path(&opts.work_cwd, rej_p) == "/dev/null"
+    {
+        return err_out("patch: /dev/null is not a reject file; use -r -\n", 2);
     }
 
     if opts.posix && !backup_explicit {
@@ -6681,11 +6971,14 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         opts.fuzz = 0;
     }
 
-    let patch_text = if let Some(inf) = input_file {
-        let full = resolve_posix_path(cwd, &inf);
+    let patch_text = if let Some(inf) = input_file.filter(|s| s != "-") {
+        let full = resolve_posix_path(&opts.work_cwd, &inf);
+        if fs.is_dir(&full) {
+            return err_out("patch: patch input must be a regular file\n", 2);
+        }
         match fs.read_file(&full) {
             Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-            Err(_) => return err_out(&format!("patch: {inf}: No such file or directory\n"), 1),
+            Err(_) => return err_out("patch: patch input must be a regular file\n", 2),
         }
     } else {
         stdin.to_string()
@@ -8236,36 +8529,48 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     }
     ok_out(&out)
 }
-fn parse_cmp_byte_count(raw: &str) -> Result<usize, String> {
-    let s = raw.trim();
-    if s.is_empty() {
-        return Err(format!("invalid byte count '{raw}'"));
+fn parse_cmp_byte_count(raw: &str, opt_name: &str, max_val: u128) -> Result<usize, String> {
+    let err = || format!("invalid {opt_name} value '{raw}'");
+    if raw.is_empty() {
+        return Err(err());
     }
-    let s = s.strip_prefix('+').unwrap_or(s);
-    let (base, rest) = if let Some(h) = s.strip_prefix("0x").or_else(|| s.strip_prefix("0X")) {
-        (16u32, h)
-    } else if s.starts_with('0') && s.len() > 1 && s[1..].chars().next().is_some_and(|c| c.is_ascii_digit()) {
-        (8u32, &s[1..])
+    let mut pos = usize::from(raw.starts_with('+'));
+    let bytes = raw.as_bytes();
+    let base = if pos + 2 <= bytes.len()
+        && bytes[pos] == b'0'
+        && (bytes[pos + 1] == b'x' || bytes[pos + 1] == b'X')
+    {
+        pos += 2;
+        16u32
+    } else if pos + 1 < bytes.len() && bytes[pos] == b'0' && bytes[pos + 1].is_ascii_digit() {
+        pos += 1;
+        8u32
     } else {
-        (10u32, s)
+        10u32
     };
-    let mut split_idx = 0usize;
-    for (idx, ch) in rest.char_indices() {
+    let start = pos;
+    while pos < raw.len() {
+        let ch = raw[pos..].chars().next().unwrap();
         if ch.to_digit(base).is_some() {
-            split_idx = idx + ch.len_utf8();
+            pos += ch.len_utf8();
         } else {
             break;
         }
     }
-    let num_part = &rest[..split_idx];
-    let suf_part = &rest[split_idx..];
+    let num_part = &raw[start..pos];
+    let suf_part = &raw[pos..];
+    if num_part.is_empty() && !(start == 0 && !suf_part.is_empty()) {
+        return Err(err());
+    }
     let mut val: u128 = if num_part.is_empty() {
-        if base != 10 || suf_part.is_empty() {
-            return Err(format!("invalid byte count '{raw}'"));
-        }
         1
     } else {
-        u128::from_str_radix(num_part, base).map_err(|_| format!("invalid byte count '{raw}'"))?
+        let mut acc = 0u128;
+        for ch in num_part.chars() {
+            let d = ch.to_digit(base).ok_or_else(err)? as u128;
+            acc = acc.checked_mul(base as u128).and_then(|v| v.checked_add(d)).ok_or_else(err)?;
+        }
+        acc
     };
     if !suf_part.is_empty() {
         let first = suf_part.chars().next().unwrap();
@@ -8276,15 +8581,20 @@ fn parse_cmp_byte_count(raw: &str) -> Result<usize, String> {
             'T' => 4,
             'P' => 5,
             'E' => 6,
-            _ => return Err(format!("invalid byte count '{raw}'")),
+            'Z' => 7,
+            'Y' => 8,
+            _ => return Err(err()),
         };
         let tail = &suf_part[first.len_utf8()..];
         let mult: u128 = match tail {
             "" | "iB" => 1024u128.pow(power),
             "B" | "D" => 1000u128.pow(power),
-            _ => return Err(format!("invalid byte count '{raw}'")),
+            _ => return Err(err()),
         };
-        val = val.saturating_mul(mult);
+        val = val.checked_mul(mult).ok_or_else(err)?;
+    }
+    if val > max_val {
+        return Err(err());
     }
     Ok(val.min(usize::MAX as u128) as usize)
 }
@@ -8321,16 +8631,21 @@ fn cmd_cmp(
 
     let apply_skip = |v: &str, sk: &mut (usize, usize)| -> Result<(), String> {
         if let Some((s1, s2)) = v.split_once(':') {
-            let n1 = parse_cmp_byte_count(s1)?;
-            let n2 = parse_cmp_byte_count(s2)?;
+            let n1 = parse_cmp_byte_count(s1, "--ignore-initial", i64::MAX as u128)
+                .map_err(|_| format!("invalid --ignore-initial value '{v}'"))?;
+            let n2 = parse_cmp_byte_count(s2, "--ignore-initial", i64::MAX as u128)?;
             sk.0 = sk.0.max(n1);
             sk.1 = sk.1.max(n2);
         } else {
-            let n = parse_cmp_byte_count(v)?;
-            sk.0 = sk.0.max(n);
-            sk.1 = sk.1.max(n);
+            let n1 = parse_cmp_byte_count(v, "--ignore-initial", i64::MAX as u128)
+                .map_err(|_| format!("invalid --ignore-initial value '{v}'"))?;
+            sk.0 = sk.0.max(n1);
+            sk.1 = sk.1.max(n1);
         }
         Ok(())
+    };
+    let cmp_usage_err = |msg: &str| -> BuiltinOutcome {
+        err_out(&format!("cmp: {msg}\ncmp: Try 'cmp --help' for more information.\n"), 2)
     };
 
     let long_opts: &[(&str, char)] = &[
@@ -8375,15 +8690,15 @@ fn cmd_cmp(
                     .filter(|&(k, _)| k.starts_with(name))
                     .collect();
                 if matches.is_empty() {
-                    return err_out(&format!("cmp: unrecognized option '{a}'\n"), 2);
+                    return cmp_usage_err(&format!("unrecognized option '{a}'"));
                 }
                 let first_key = matches[0].1;
                 if matches.iter().any(|&(_, ch)| ch != first_key) {
                     let poss: Vec<String> = matches.iter().map(|&(k, _)| format!("'--{k}'")).collect();
-                    return err_out(
-                        &format!("cmp: option '{a}' is ambiguous; possibilities: {}\n", poss.join(" ")),
-                        2,
-                    );
+                    return cmp_usage_err(&format!(
+                        "option '{a}' is ambiguous; possibilities: {}",
+                        poss.join(" ")
+                    ));
                 }
                 matches[0]
             };
@@ -8391,58 +8706,42 @@ fn cmd_cmp(
             match key {
                 's' => {
                     if eq_val.is_some() {
-                        return err_out(
-                            &format!(
-                                "cmp: option '--{sel_name}' doesn't allow an argument\ncmp: Try 'cmp --help' for more information.\n"
-                            ),
-                            2,
-                        );
+                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
                     }
                     if verbose_list {
-                        return err_out(
-                            "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
-                            2,
-                        );
+                        return cmp_usage_err("options -l and -s are incompatible");
                     }
                     silent = true;
                     i += 1;
                 }
                 'l' => {
                     if eq_val.is_some() {
-                        return err_out(
-                            &format!(
-                                "cmp: option '--{sel_name}' doesn't allow an argument\ncmp: Try 'cmp --help' for more information.\n"
-                            ),
-                            2,
-                        );
+                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
                     }
                     if silent {
-                        return err_out(
-                            "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
-                            2,
-                        );
+                        return cmp_usage_err("options -l and -s are incompatible");
                     }
                     verbose_list = true;
                     i += 1;
                 }
                 'b' | 'c' => {
                     if eq_val.is_some() {
-                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
                     }
                     print_bytes = true;
                     i += 1;
                 }
                 'v' => {
                     if eq_val.is_some() {
-                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
                     }
-                    return ok_out("cmp (GNU diffutils) 3.10\n");
+                    return ok_out("cmp (virtual-bash)\n");
                 }
                 'h' => {
                     if eq_val.is_some() {
-                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                        return cmp_usage_err(&format!("option '--{sel_name}' doesn't allow an argument"));
                     }
-                    return ok_out("Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\n");
+                    return ok_out("Usage: cmp [OPTION]... FILE1 [FILE2 [SKIP1 [SKIP2]]]\nCompare bytes in the virtual filesystem; omitted FILE2 or '-' reads stdin.\n  -s, --silent, --quiet  report status only\n  -l, --verbose         list differing bytes in octal\n  -b, -c, --print-bytes  also display byte characters\n  -i, --ignore-initial=SKIP[:SKIP2]  skip initial bytes\n  -n, --bytes=LIMIT     compare at most LIMIT bytes\n  --help, -v, --version show virtual-bash command information\n");
                 }
                 'i' => {
                     let val = if let Some(v) = eq_val {
@@ -8453,10 +8752,10 @@ fn cmd_cmp(
                         i += 2;
                         v
                     } else {
-                        return err_out(&format!("cmp: option '--{sel_name}' requires an argument\n"), 2);
+                        return cmp_usage_err(&format!("option '--{sel_name}' requires an argument"));
                     };
                     if let Err(e) = apply_skip(&val, &mut skips) {
-                        return err_out(&format!("cmp: {e}\n"), 2);
+                        return cmp_usage_err(&e);
                     }
                 }
                 'n' => {
@@ -8468,11 +8767,11 @@ fn cmd_cmp(
                         i += 2;
                         v
                     } else {
-                        return err_out(&format!("cmp: option '--{sel_name}' requires an argument\n"), 2);
+                        return cmp_usage_err(&format!("option '--{sel_name}' requires an argument"));
                     };
-                    match parse_cmp_byte_count(&val) {
+                    match parse_cmp_byte_count(&val, "--bytes", u64::MAX as u128) {
                         Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
-                        Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+                        Err(e) => return cmp_usage_err(&e),
                     }
                 }
                 _ => unreachable!(),
@@ -8484,24 +8783,18 @@ fn cmd_cmp(
                 match chars[ci] {
                     's' => {
                         if verbose_list {
-                            return err_out(
-                                "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
-                                2,
-                            );
+                            return cmp_usage_err("options -l and -s are incompatible");
                         }
                         silent = true;
                     }
                     'l' => {
                         if silent {
-                            return err_out(
-                                "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
-                                2,
-                            );
+                            return cmp_usage_err("options -l and -s are incompatible");
                         }
                         verbose_list = true;
                     }
                     'b' | 'c' => print_bytes = true,
-                    'v' => return ok_out("cmp (GNU diffutils) 3.10\n"),
+                    'v' => return ok_out("cmp (virtual-bash)\n"),
                     'i' => {
                         let rest: String = chars[ci + 1..].iter().collect();
                         let val = if !rest.is_empty() {
@@ -8510,10 +8803,10 @@ fn cmd_cmp(
                             i += 1;
                             args[i].clone()
                         } else {
-                            return err_out("cmp: option requires an argument -- 'i'\n", 2);
+                            return cmp_usage_err("option requires an argument -- 'i'");
                         };
                         if let Err(e) = apply_skip(&val, &mut skips) {
-                            return err_out(&format!("cmp: {e}\n"), 2);
+                            return cmp_usage_err(&e);
                         }
                         break;
                     }
@@ -8525,15 +8818,15 @@ fn cmd_cmp(
                             i += 1;
                             args[i].clone()
                         } else {
-                            return err_out("cmp: option requires an argument -- 'n'\n", 2);
+                            return cmp_usage_err("option requires an argument -- 'n'");
                         };
-                        match parse_cmp_byte_count(&val) {
+                        match parse_cmp_byte_count(&val, "--bytes", u64::MAX as u128) {
                             Ok(n) => max_bytes = Some(max_bytes.map_or(n, |p| p.min(n))),
-                            Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+                            Err(e) => return cmp_usage_err(&e),
                         }
                         break;
                     }
-                    other => return err_out(&format!("cmp: invalid option -- '{other}'\n"), 2),
+                    other => return cmp_usage_err(&format!("invalid option -- '{other}'")),
                 }
                 ci += 1;
             }
@@ -8542,23 +8835,24 @@ fn cmd_cmp(
     }
 
     if files.is_empty() {
-        return err_out("cmp: missing operand\n", 2);
+        let last_arg = args.last().map_or("cmp", |s| s.as_str());
+        return cmp_usage_err(&format!("missing operand after '{last_arg}'"));
     }
     if files.len() > 4 {
-        return err_out(&format!("cmp: extra operand '{}'\n", files[4]), 2);
+        return cmp_usage_err(&format!("extra operand '{}'", files[4]));
     }
     let name1 = files[0].clone();
     let name2 = files.get(1).cloned().unwrap_or_else(|| "-".to_string());
     if let Some(pos_s1) = files.get(2) {
-        match parse_cmp_byte_count(pos_s1) {
+        match parse_cmp_byte_count(pos_s1, "--ignore-initial", i64::MAX as u128) {
             Ok(n) => skips.0 = skips.0.max(n),
-            Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+            Err(e) => return cmp_usage_err(&e),
         }
     }
     if let Some(pos_s2) = files.get(3) {
-        match parse_cmp_byte_count(pos_s2) {
+        match parse_cmp_byte_count(pos_s2, "--ignore-initial", i64::MAX as u128) {
             Ok(n) => skips.1 = skips.1.max(n),
-            Err(e) => return err_out(&format!("cmp: {e}\n"), 2),
+            Err(e) => return cmp_usage_err(&e),
         }
     }
     if name1 == "-" && name2 == "-" {
@@ -8894,6 +9188,8 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut write_quit = false;
     let mut initial_tab = false;
     let mut strip_trailing_cr = false;
+    let mut text_mode = false;
+    let mut information: Option<&str> = None;
     let mut labels: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
     let mut ended = false;
@@ -8907,6 +9203,21 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         *sel = Some(ch);
         Ok(())
     };
+    let long_opts = [
+        "diff-program",
+        "easy-only",
+        "ed",
+        "help",
+        "initial-tab",
+        "label",
+        "merge",
+        "overlap-only",
+        "show-all",
+        "show-overlap",
+        "strip-trailing-cr",
+        "text",
+        "version",
+    ];
     while i < args.len() {
         let a = &args[i];
         if !ended && a == "--" {
@@ -8919,64 +9230,76 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             i += 1;
             continue;
         }
-        if a == "--help" {
-            return ok_out("Usage: diff3 [OPTION]... OURS BASE THEIRS\n");
-        }
-        if a == "-v" || a == "--version" {
-            return ok_out("diff3 (safe-bash; GNU diffutils 3.12 qualified profile)\n");
-        }
-        if a == "-m" || a == "--merge" {
-            merge = true;
-            i += 1;
-        } else if a == "-A" || a == "--show-all" {
-            if let Err(e) = set_selector(&mut selector, 'A') {
-                return err_out(&e, 2);
+        if a.starts_with("--") {
+            let (raw_name, eq_val) = match a[2..].split_once('=') {
+                Some((n, v)) => (n, Some(v)),
+                None => (&a[2..], None),
+            };
+            let matches: Vec<&str> = long_opts
+                .iter()
+                .copied()
+                .filter(|k| k.starts_with(raw_name))
+                .collect();
+            if matches.len() != 1 {
+                return err_out("diff3: Unknown or ambiguous long option\n", 2);
+            }
+            let key = matches[0];
+            if key == "diff-program" {
+                return err_out("diff3: External diff programs are unavailable\n", 2);
+            }
+            if key != "label" && eq_val.is_some() {
+                return err_out("diff3: Option does not accept a value\n", 2);
+            }
+            match key {
+                "help" => information = Some("help"),
+                "version" => {
+                    if information.is_none() {
+                        information = Some("version");
+                    }
+                }
+                "merge" => merge = true,
+                "show-all" => {
+                    if let Err(e) = set_selector(&mut selector, 'A') {
+                        return err_out(&e, 2);
+                    }
+                }
+                "ed" => {
+                    if let Err(e) = set_selector(&mut selector, 'e') {
+                        return err_out(&e, 2);
+                    }
+                }
+                "show-overlap" => {
+                    if let Err(e) = set_selector(&mut selector, 'E') {
+                        return err_out(&e, 2);
+                    }
+                }
+                "overlap-only" => {
+                    if let Err(e) = set_selector(&mut selector, 'x') {
+                        return err_out(&e, 2);
+                    }
+                }
+                "easy-only" => {
+                    if let Err(e) = set_selector(&mut selector, '3') {
+                        return err_out(&e, 2);
+                    }
+                }
+                "initial-tab" => initial_tab = true,
+                "strip-trailing-cr" => strip_trailing_cr = true,
+                "text" => text_mode = true,
+                "label" => {
+                    let lbl = if let Some(v) = eq_val {
+                        v.to_string()
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("diff3: Label requires a value\n", 2);
+                    };
+                    labels.push(lbl);
+                }
+                _ => unreachable!(),
             }
             i += 1;
-        } else if a == "-e" || a == "--ed" {
-            if let Err(e) = set_selector(&mut selector, 'e') {
-                return err_out(&e, 2);
-            }
-            i += 1;
-        } else if a == "-E" || a == "--show-overlap" {
-            if let Err(e) = set_selector(&mut selector, 'E') {
-                return err_out(&e, 2);
-            }
-            i += 1;
-        } else if a == "-x" || a == "--overlap-only" {
-            if let Err(e) = set_selector(&mut selector, 'x') {
-                return err_out(&e, 2);
-            }
-            i += 1;
-        } else if a == "-X" {
-            if let Err(e) = set_selector(&mut selector, 'X') {
-                return err_out(&e, 2);
-            }
-            i += 1;
-        } else if a == "-3" || a == "--easy-only" {
-            if let Err(e) = set_selector(&mut selector, '3') {
-                return err_out(&e, 2);
-            }
-            i += 1;
-        } else if a == "-i" {
-            write_quit = true;
-            i += 1;
-        } else if a == "-T" || a == "--initial-tab" {
-            initial_tab = true;
-            i += 1;
-        } else if a == "--strip-trailing-cr" {
-            strip_trailing_cr = true;
-            i += 1;
-        } else if a == "-a" || a == "--text" {
-            i += 1;
-        } else if (a == "-L" || a == "--label") && i + 1 < args.len() {
-            labels.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(lbl) = a.strip_prefix("--label=") {
-            labels.push(lbl.to_string());
-            i += 1;
-        } else if a.starts_with("--") {
-            return err_out(&format!("diff3: unrecognized option '{a}'\n"), 2);
         } else {
             for (byte_off, ch) in a[1..].char_indices() {
                 match ch {
@@ -8988,8 +9311,12 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     }
                     'i' => write_quit = true,
                     'T' => initial_tab = true,
-                    'a' => {}
-                    'v' => return ok_out("diff3 (safe-bash; GNU diffutils 3.12 qualified profile)\n"),
+                    'a' => text_mode = true,
+                    'v' => {
+                        if information.is_none() {
+                            information = Some("version");
+                        }
+                    }
                     'L' => {
                         let rest = &a[1 + byte_off + ch.len_utf8()..];
                         let val = if !rest.is_empty() {
@@ -8998,12 +9325,12 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                             i += 1;
                             args[i].clone()
                         } else {
-                            return err_out("diff3: option requires an argument -- 'L'\n", 2);
+                            return err_out("diff3: Label requires a value\n", 2);
                         };
                         labels.push(val);
                         break;
                     }
-                    other => return err_out(&format!("diff3: invalid option -- '{other}'\n"), 2),
+                    _ => return err_out("diff3: Unsupported option\n", 2),
                 }
             }
             i += 1;
@@ -9019,48 +9346,70 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     if !labels.is_empty() && !matches!(eff_sel, Some('A' | 'E' | 'X')) {
         return err_out("diff3: Labels require a flagging mode\n", 2);
     }
+    if let Some(info) = information {
+        return if info == "help" {
+            ok_out("Usage: diff3 [OPTION]... OURS BASE THEIRS\nReports, -m merge, -A/-e/-E/-3/-x/-X ed scripts; -a -T -L -i --strip-trailing-cr.\nNo external diff/ed programs. One stdin operand in any position. Ed labels must be single-line.\n")
+        } else {
+            ok_out("diff3 (safe-bash; GNU diffutils 3.12 qualified profile)\n")
+        };
+    }
     if files.len() != 3 {
         return err_out("diff3: Exactly three operands are required\n", 2);
     }
     if files.iter().filter(|f| f.as_str() == "-").count() > 1 {
         return err_out("diff3: Multiple stdin operands are unavailable\n", 2);
     }
-    let read_lines = |p: &str| -> Result<Vec<Diff3Line>, String> {
-        let text = if p == "-" {
-            stdin.to_string()
-        } else {
-            let full = resolve_posix_path(cwd, p);
-            let bytes = fs
-                .read_file(&full)
-                .map_err(|_| format!("diff3: {p}: No such file or directory\n"))?;
-            String::from_utf8_lossy(&bytes).into_owned()
-        };
-        Ok(split_diff_lines(&text)
-            .into_iter()
-            .map(|(l, term)| Diff3Line {
-                text: l.to_string(),
-                terminated: term,
-            })
-            .collect())
-    };
-    let f0 = match read_lines(&files[0]) {
-        Ok(v) => v,
-        Err(e) => return err_out(&e, 2),
-    };
-    let f1 = match read_lines(&files[1]) {
-        Ok(v) => v,
-        Err(e) => return err_out(&e, 2),
-    };
-    let f2 = match read_lines(&files[2]) {
-        Ok(v) => v,
-        Err(e) => return err_out(&e, 2),
-    };
-    let all_files = [f0, f1, f2];
     let lbls = [
         labels.first().unwrap_or(&files[0]).clone(),
         labels.get(1).unwrap_or(&files[1]).clone(),
         labels.get(2).unwrap_or(&files[2]).clone(),
     ];
+    if !merge
+        && matches!(eff_sel, Some('A' | 'E' | 'X'))
+        && lbls.iter().any(|l| l.contains('\n') || l.contains('\r'))
+    {
+        return err_out("diff3: Ed labels must be single-line\n", 2);
+    }
+    let read_raw = |p: &str| -> Result<Vec<u8>, String> {
+        if p == "-" {
+            return Ok(crate::vfs::stream_string_to_bytes(stdin));
+        }
+        let full = resolve_posix_path(cwd, p);
+        if fs.is_dir(&full) {
+            return Err("diff3: VFS read failed\n".to_string());
+        }
+        fs.read_file(&full)
+            .map_err(|_| "diff3: VFS read failed\n".to_string())
+    };
+    let raw0 = match read_raw(&files[0]) {
+        Ok(b) => b,
+        Err(e) => return err_out(&e, 2),
+    };
+    let raw1 = match read_raw(&files[1]) {
+        Ok(b) => b,
+        Err(e) => return err_out(&e, 2),
+    };
+    let raw2 = match read_raw(&files[2]) {
+        Ok(b) => b,
+        Err(e) => return err_out(&e, 2),
+    };
+    if !text_mode
+        && (raw0 != raw1 || raw1 != raw2)
+        && (raw0.contains(&0) || raw1.contains(&0) || raw2.contains(&0))
+    {
+        return err_out("diff3: Binary input requires text comparison\n", 2);
+    }
+    let to_lines = |bytes: &[u8]| -> Vec<Diff3Line> {
+        let text = String::from_utf8_lossy(bytes);
+        split_diff_lines(&text)
+            .into_iter()
+            .map(|(l, term)| Diff3Line {
+                text: l.to_string(),
+                terminated: term,
+            })
+            .collect()
+    };
+    let all_files = [to_lines(&raw0), to_lines(&raw1), to_lines(&raw2)];
 
     let report = selector.is_none() && !merge;
     let sel = selector.unwrap_or('A');
@@ -9753,5 +10102,64 @@ mod tests {
         .unwrap();
         assert_eq!(eof_after.exit_code, 2);
         assert_eq!(eof_after.stderr, "apply_patch: EOF must terminate the file's last hunk\n");
+    }
+
+    #[test]
+    fn unit_sed_awk_diff_patch_cmp_diff3_diagnostics_and_option_parity() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/sub").unwrap();
+        let env = BTreeMap::new();
+
+        let sed_help = try_run_text_command("sed", &args(&["-h"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sed_help.exit_code, 2);
+        assert_eq!(sed_help.stderr, "sed: unsupported option '-h'\n");
+
+        let sed_ll = try_run_text_command("sed", &args(&["-l", "abc", "p"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sed_ll.exit_code, 2);
+        assert_eq!(sed_ll.stderr, "sed: line length must be a nonnegative safe integer\n");
+
+        let sed_f_missing = try_run_text_command("sed", &args(&["-f", "missing.sed"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sed_f_missing.exit_code, 1);
+        assert_eq!(sed_f_missing.stderr, "sed: ENOENT: no such file or directory, readFile '/work/missing.sed'\n");
+
+        let sed_in_missing = try_run_text_command("sed", &args(&["p", "missing.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sed_in_missing.exit_code, 1);
+        assert_eq!(sed_in_missing.stderr, "sed: ENOENT: no such file or directory, readStream '/work/missing.txt'\n");
+
+        let awk_missing = try_run_text_command("awk", &[], "", "/work", &env, &vfs).unwrap();
+        assert_eq!(awk_missing.exit_code, 2);
+        assert_eq!(awk_missing.stderr, "awk: missing awk program\n");
+
+        let awk_bad_v = try_run_text_command("awk", &args(&["-v", "123=1", "BEGIN{}"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(awk_bad_v.exit_code, 2);
+        assert_eq!(awk_bad_v.stderr, "awk: -v requires a NAME=value assignment\n");
+
+        let awk_dbg = try_run_text_command("awk", &args(&["-D"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(awk_dbg.exit_code, 2);
+        assert_eq!(awk_dbg.stderr, "awk: debugging requires an explicit VFS command file; interactive debugging is unavailable\n");
+
+        let diff_color = try_run_text_command("diff", &args(&["--color=rainbow", "a", "b"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(diff_color.exit_code, 2);
+        assert_eq!(diff_color.stderr, "diff: invalid color: rainbow\n");
+
+        let diff_ifdef_dir = try_run_text_command("diff", &args(&["-D", "M", "/work/sub", "/work/sub"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(diff_ifdef_dir.exit_code, 2);
+        assert_eq!(diff_ifdef_dir.stderr, "diff: -D option not supported with directories\n");
+
+        let patch_merge = try_run_text_command("patch", &args(&["--merge=bad"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(patch_merge.exit_code, 2);
+        assert_eq!(patch_merge.stderr, "patch: invalid merge style: bad\n");
+
+        let cmp_ver = try_run_text_command("cmp", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cmp_ver.exit_code, 0);
+        assert_eq!(cmp_ver.stdout, "cmp (virtual-bash)\n");
+
+        let cmp_bad_skip = try_run_text_command("cmp", &args(&["-i", "bad:2", "a", "b"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cmp_bad_skip.exit_code, 2);
+        assert_eq!(cmp_bad_skip.stderr, "cmp: invalid --ignore-initial value 'bad:2'\ncmp: Try 'cmp --help' for more information.\n");
+
+        let d3_help_err = try_run_text_command("diff3", &args(&["--help", "-m", "-i"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(d3_help_err.exit_code, 2);
+        assert_eq!(d3_help_err.stderr, "diff3: Incompatible options: merge and write/quit\n");
     }
 }

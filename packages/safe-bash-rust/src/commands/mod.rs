@@ -628,128 +628,8 @@ pub fn try_run_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    if cmd == "env" && !args.is_empty() {
-        let mut work_args: Vec<String> = args.to_vec();
-        let mut idx = 0usize;
-        let mut ignore_env = false;
-        let mut null_sep = false;
-        let mut chdir_target: Option<String> = None;
-        let mut unsets = Vec::new();
-        let mut overrides = Vec::new();
-        while idx < work_args.len() {
-            let a = work_args[idx].clone();
-            if a == "--help" {
-                return Some(BuiltinOutcome {
-                    stdout: "Usage: env [OPTION]... [NAME=VALUE]... [COMMAND [ARG]...]\nPrint the environment or run a registered command with a modified environment.\n\nCommon supported options (additional behavior is documented in the package):\n  -i, --ignore-environment\n  -u, --unset=NAME\n  -C, --chdir=DIR\n  -S, --split-string=STR\n  -0, --null\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n".to_string(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                });
-            } else if a == "--version" {
-                return Some(BuiltinOutcome {
-                    stdout: "env (safe-bash virtual implementation)\n".to_string(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                });
-            } else if a == "--" {
-                idx += 1;
-                break;
-            } else if a == "-i" || a == "--ignore-environment" || a == "-" {
-                ignore_env = true;
-                idx += 1;
-            } else if a == "-0" || a == "--null" {
-                null_sep = true;
-                idx += 1;
-            } else if (a == "-u" || a == "--unset") && idx + 1 < work_args.len() {
-                unsets.push(work_args[idx + 1].clone());
-                idx += 2;
-            } else if let Some(rest) = a.strip_prefix("--unset=") {
-                unsets.push(rest.to_string());
-                idx += 1;
-            } else if let Some(rest) = a.strip_prefix("-u") && !rest.is_empty() {
-                unsets.push(rest.to_string());
-                idx += 1;
-            } else if (a == "-C" || a == "--chdir") && idx + 1 < work_args.len() {
-                chdir_target = Some(work_args[idx + 1].clone());
-                idx += 2;
-            } else if let Some(rest) = a.strip_prefix("--chdir=") {
-                chdir_target = Some(rest.to_string());
-                idx += 1;
-            } else if let Some(rest) = a.strip_prefix("-C") && !rest.is_empty() {
-                chdir_target = Some(rest.to_string());
-                idx += 1;
-            } else if a == "-S" || a == "--split-string" || a.starts_with("--split-string=") || (a.starts_with("-S") && a.len() > 2) {
-                let (raw_split, remove_count) = if let Some(rest) = a.strip_prefix("--split-string=") {
-                    (rest.to_string(), 1usize)
-                } else if a.starts_with("-S") && a.len() > 2 {
-                    (a[2..].to_string(), 1usize)
-                } else if idx + 1 < work_args.len() {
-                    (work_args[idx + 1].clone(), 2usize)
-                } else {
-                    return Some(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: "env: option requires an argument -- 'S'\n".to_string(),
-                        exit_code: 125,
-                    });
-                };
-                match split_env_string(&raw_split, env) {
-                    Ok(tokens) => {
-                        work_args.splice(idx..idx + remove_count, tokens);
-                    }
-                    Err(msg) => {
-                        return Some(BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("env: {msg}\n"),
-                            exit_code: 125,
-                        });
-                    }
-                }
-            } else {
-                break;
-            }
-        }
-        while idx < work_args.len() {
-            if let Some((k, v)) = work_args[idx].split_once('=')
-                && !k.is_empty()
-                && !k.starts_with('-')
-            {
-                overrides.push((k.to_string(), v.to_string()));
-                idx += 1;
-            } else {
-                break;
-            }
-        }
-        let mut sub_env = if ignore_env {
-            BTreeMap::new()
-        } else {
-            env.clone()
-        };
-        for u in unsets {
-            sub_env.remove(&u);
-            if u == "PATH" {
-                sub_env.insert("__path_unset__".to_string(), "1".to_string());
-            }
-        }
-        for (k, v) in overrides {
-            sub_env.remove(&format!("__unexported__{k}"));
-            sub_env.insert(k, v);
-        }
-        let mut exec_cwd = cwd.clone();
-        if let Some(dir) = chdir_target {
-            let resolved = crate::vfs::resolve_posix_path(cwd, &dir);
-            if !fs.is_dir(&resolved) {
-                return Some(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("env: cannot change directory to '{dir}': No such file or directory\n"),
-                    exit_code: 125,
-                });
-            }
-            exec_cwd = resolved;
-        }
-        if idx < work_args.len() {
-            return Some(exec_sub(&work_args[idx..], stdin, &mut exec_cwd, &mut sub_env));
-        }
-        let print_args = if null_sep { vec!["-0".to_string()] } else { Vec::new() };
-        return coreutils::try_run_coreutil("printenv", &print_args, stdin, &exec_cwd, &sub_env, fs);
+    if cmd == "env" {
+        return Some(run_env_command(args, stdin, cwd, env, fs, exec_sub));
     }
 
     if cmd == "timeout" {
@@ -788,6 +668,355 @@ fn timeout_err(msg: &str) -> BuiltinOutcome {
     }
 }
 
+enum EnvError {
+    Split(String),
+    Usage(String),
+    Fs(String),
+}
+
+struct ParsedEnvOptions {
+    ignore_env: bool,
+    null_sep: bool,
+    debug: bool,
+    unsets: Vec<String>,
+    chdir_target: Option<String>,
+    argv0: Option<String>,
+    operands: Vec<String>,
+}
+
+fn parse_env_options(
+    args: &[String],
+    env: &BTreeMap<String, String>,
+) -> Result<ParsedEnvOptions, EnvError> {
+    let mut frames: Vec<(Vec<String>, usize)> = vec![(args.to_vec(), 0usize)];
+    let next_arg = |frames: &mut Vec<(Vec<String>, usize)>| -> Option<String> {
+        while let Some(frame) = frames.last_mut() {
+            if frame.1 < frame.0.len() {
+                let v = frame.0[frame.1].clone();
+                frame.1 += 1;
+                return Some(v);
+            }
+            frames.pop();
+        }
+        None
+    };
+    let mut ignore_env = false;
+    let mut null_sep = false;
+    let mut debug = false;
+    let mut unsets = Vec::new();
+    let mut chdir_target: Option<String> = None;
+    let mut argv0: Option<String> = None;
+    let mut operands = Vec::new();
+
+    let mut accept = |key: char,
+                      content: Option<String>,
+                      frames: &mut Vec<(Vec<String>, usize)>|
+     -> Result<(), EnvError> {
+        match key {
+            'S' => {
+                let raw = content.unwrap_or_default();
+                let expanded = split_env_string(&raw, env).map_err(EnvError::Split)?;
+                frames.push((expanded, 0));
+            }
+            'i' => ignore_env = true,
+            '0' => null_sep = true,
+            'v' => debug = true,
+            'u' => {
+                if let Some(c) = content {
+                    unsets.push(c);
+                }
+            }
+            'C' => chdir_target = content,
+            'a' => argv0 = content,
+            _ => {}
+        }
+        Ok(())
+    };
+
+    while let Some(argument) = next_arg(&mut frames) {
+        if argument == "--" {
+            break;
+        }
+        if argument == "-" || !argument.starts_with('-') {
+            operands.push(argument);
+            break;
+        }
+        if let Some(after_dd) = argument.strip_prefix("--") {
+            let (name, eq_val) = match after_dd.split_once('=') {
+                Some((n, v)) => (n, Some(v.to_string())),
+                None => (after_dd, None),
+            };
+            let key = match name {
+                "argv0" => 'a',
+                "ignore-environment" => 'i',
+                "unset" => 'u',
+                "null" => '0',
+                "chdir" => 'C',
+                "split-string" => 'S',
+                "debug" => 'v',
+                _ => {
+                    return Err(EnvError::Usage(format!(
+                        "unrecognized option '{argument}'"
+                    )));
+                }
+            };
+            let required = matches!(key, 'a' | 'u' | 'C' | 'S');
+            if !required && eq_val.is_some() {
+                return Err(EnvError::Usage(format!(
+                    "option '--{name}' does not take an argument"
+                )));
+            }
+            let content = if required {
+                match eq_val {
+                    Some(v) => Some(v),
+                    None => next_arg(&mut frames),
+                }
+            } else {
+                None
+            };
+            if required && content.is_none() {
+                return Err(EnvError::Usage(format!(
+                    "option '--{name}' requires an argument"
+                )));
+            }
+            accept(key, content, &mut frames)?;
+            continue;
+        }
+        let chars: Vec<char> = argument.chars().collect();
+        let mut index = 1usize;
+        while index < chars.len() {
+            let key = chars[index];
+            if !matches!(key, 'a' | 'i' | 'u' | '0' | 'C' | 'S' | 'v') {
+                return Err(EnvError::Usage(format!("invalid option -- '{key}'")));
+            }
+            let required = matches!(key, 'a' | 'u' | 'C' | 'S');
+            let attached: String = chars[index + 1..].iter().collect();
+            let content = if required {
+                if !attached.is_empty() {
+                    Some(attached)
+                } else {
+                    next_arg(&mut frames)
+                }
+            } else {
+                None
+            };
+            if required && content.is_none() {
+                return Err(EnvError::Usage(format!(
+                    "option requires an argument -- '{key}'"
+                )));
+            }
+            accept(key, content, &mut frames)?;
+            if required {
+                break;
+            }
+            index += 1;
+        }
+    }
+    while let Some(argument) = next_arg(&mut frames) {
+        operands.push(argument);
+    }
+    if operands.first().map(|s| s.as_str()) == Some("-") {
+        ignore_env = true;
+        operands.remove(0);
+    }
+    Ok(ParsedEnvOptions {
+        ignore_env,
+        null_sep,
+        debug,
+        unsets,
+        chdir_target,
+        argv0,
+        operands,
+    })
+}
+
+fn run_env_command<F>(
+    args: &[String],
+    stdin: &str,
+    cwd: &mut String,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    mut exec_sub: F,
+) -> BuiltinOutcome
+where
+    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
+    if args.first().map(|s| s.as_str()) == Some("--help") {
+        return BuiltinOutcome {
+            stdout: "Usage: env [OPTION]... [NAME=VALUE]... [COMMAND [ARG]...]\nPrint the environment or run a registered command with a modified environment.\n\nCommon supported options (additional behavior is documented in the package):\n  -i, --ignore-environment\n  -u, --unset=NAME\n  -C, --chdir=DIR\n  -S, --split-string=STR\n  -0, --null\n  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n".to_string(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+    }
+    if args.first().map(|s| s.as_str()) == Some("--version") {
+        return BuiltinOutcome {
+            stdout: "env (safe-bash virtual implementation)\n".to_string(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+    }
+
+    let preserve_legacy = args
+        .iter()
+        .any(|a| a.starts_with("-S") || a.starts_with("--split-string"))
+        || (args.len() == 1 && (args[0] == "-a" || args[0] == "--argv0"));
+
+    let mut debug_stderr = String::new();
+    let finish_err = |err: EnvError, debug_stderr: String| -> BuiltinOutcome {
+        let (msg, code) = match err {
+            EnvError::Split(m) => (m, 125),
+            EnvError::Usage(m) => (m, if preserve_legacy { 2 } else { 125 }),
+            EnvError::Fs(m) => (m, if preserve_legacy { 1 } else { 125 }),
+        };
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{debug_stderr}env: {msg}\n"),
+            exit_code: code,
+        }
+    };
+
+    let parsed = match parse_env_options(args, env) {
+        Ok(p) => p,
+        Err(e) => return finish_err(e, debug_stderr),
+    };
+
+    if parsed.debug && parsed.ignore_env {
+        debug_stderr.push_str("cleaning environ\n");
+    }
+
+    let mut sub_env = if parsed.ignore_env {
+        BTreeMap::new()
+    } else {
+        env.clone()
+    };
+
+    for name in &parsed.unsets {
+        if name.is_empty() || name.contains('=') || name.contains('\0') {
+            return finish_err(
+                EnvError::Usage(format!("cannot unset '{name}': Invalid argument")),
+                debug_stderr,
+            );
+        }
+        if parsed.debug {
+            debug_stderr.push_str(&format!("unset:    {name}\n"));
+        }
+        sub_env.remove(name);
+        if name == "PATH" {
+            sub_env.insert("__path_unset__".to_string(), "1".to_string());
+        }
+    }
+
+    let inherited_names: Vec<String> = sub_env
+        .keys()
+        .filter(|k| {
+            !k.starts_with("__")
+                && !k.contains('[')
+                && !sub_env.contains_key(&format!("__unexported__{k}"))
+        })
+        .cloned()
+        .collect();
+    let mut added_names: Vec<String> = Vec::new();
+    let mut offset = 0usize;
+    while offset < parsed.operands.len() && parsed.operands[offset].contains('=') {
+        let assignment = &parsed.operands[offset];
+        offset += 1;
+        let (name, content) = assignment.split_once('=').unwrap();
+        if name.contains('\0') {
+            return finish_err(
+                EnvError::Usage("invalid environment variable name".to_string()),
+                debug_stderr,
+            );
+        }
+        if content.contains('\0') {
+            return finish_err(
+                EnvError::Usage("environment values cannot contain NUL".to_string()),
+                debug_stderr,
+            );
+        }
+        if parsed.debug {
+            debug_stderr.push_str(&format!("setenv:   {assignment}\n"));
+        }
+        let existed = inherited_names.iter().any(|k| k == name)
+            || added_names.iter().any(|k| k == name);
+        if !existed {
+            added_names.push(name.to_string());
+        }
+        sub_env.remove(&format!("__unexported__{name}"));
+        sub_env.insert(name.to_string(), content.to_string());
+    }
+
+    let mut names = Vec::with_capacity(added_names.len() + inherited_names.len());
+    for n in added_names.into_iter().rev() {
+        names.push(n);
+    }
+    names.extend(inherited_names);
+
+    if offset < parsed.operands.len() && parsed.null_sep {
+        return finish_err(
+            EnvError::Usage("cannot specify --null with a command".to_string()),
+            debug_stderr,
+        );
+    }
+
+    let mut exec_cwd = cwd.clone();
+    if let Some(directory) = parsed.chdir_target {
+        if parsed.debug {
+            debug_stderr.push_str(&format!("chdir:    '{directory}'\n"));
+        }
+        let resolved = crate::vfs::resolve_posix_path(cwd, &directory);
+        if !fs.exists(&resolved) {
+            return finish_err(
+                EnvError::Fs(format!(
+                    "ENOENT: no such file or directory, stat '{resolved}'"
+                )),
+                debug_stderr,
+            );
+        }
+        if !fs.is_dir(&resolved) {
+            return finish_err(
+                EnvError::Fs(format!("ENOTDIR: not a directory '{resolved}'")),
+                debug_stderr,
+            );
+        }
+        exec_cwd = crate::shell::builtins::resolve_physical_path(cwd, &resolved, fs);
+    }
+
+    if let Some(a0) = &parsed.argv0
+        && a0.contains('\0')
+    {
+        return finish_err(
+            EnvError::Usage("argv0 cannot contain NUL".to_string()),
+            debug_stderr,
+        );
+    }
+
+    if offset < parsed.operands.len() {
+        if parsed.debug {
+            debug_stderr.push_str(&format!("executing: {}\n", parsed.operands[offset]));
+            for (idx, op) in parsed.operands[offset..].iter().enumerate() {
+                debug_stderr.push_str(&format!("   arg[{idx}]= '{op}'\n"));
+            }
+        }
+        let mut out = exec_sub(&parsed.operands[offset..], stdin, &mut exec_cwd, &mut sub_env);
+        if !debug_stderr.is_empty() {
+            out.stderr = format!("{debug_stderr}{}", out.stderr);
+        }
+        return out;
+    }
+
+    let sep = if parsed.null_sep { "\0" } else { "\n" };
+    let mut stdout = String::new();
+    for name in names {
+        if let Some(val) = sub_env.get(&name) {
+            stdout.push_str(&format!("{name}={val}{sep}"));
+        }
+    }
+    BuiltinOutcome {
+        stdout,
+        stderr: debug_stderr,
+        exit_code: 0,
+    }
+}
 
 fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<String>, String> {
     let chars: Vec<char> = raw.chars().collect();
@@ -877,7 +1106,10 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
                 return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
             }
             let vname: String = chars[i + 2..end].iter().collect();
-            if let Some(val) = env.get(&vname) {
+            if !vname.starts_with("__")
+                && !env.contains_key(&format!("__unexported__{vname}"))
+                && let Some(val) = env.get(&vname)
+            {
                 cur.push_str(val);
                 active = true;
             }
@@ -1250,5 +1482,84 @@ mod tests {
             exit_code: 0,
         });
         assert_eq!(out.exit_code, 125);
+    }
+
+    #[test]
+    fn unit_env_command_diagnostics_debug_chdir_unset_and_null() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/work/sub").unwrap();
+        vfs.write_file("/work/file.txt", b"x").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("KEEP".into(), "1".into());
+
+        let bad_unset = run_env_command(
+            &["-u".into(), "A=B".into()],
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        );
+        assert_eq!(bad_unset.exit_code, 125);
+        assert_eq!(
+            bad_unset.stderr,
+            "env: cannot unset 'A=B': Invalid argument\n"
+        );
+
+        let null_cmd = run_env_command(
+            &["-0".into(), "echo".into(), "hi".into()],
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        );
+        assert_eq!(null_cmd.exit_code, 125);
+        assert_eq!(
+            null_cmd.stderr,
+            "env: cannot specify --null with a command\n"
+        );
+
+        let enotdir = run_env_command(
+            &["-C".into(), "/work/file.txt".into(), "pwd".into()],
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        );
+        assert_eq!(enotdir.exit_code, 125);
+        assert_eq!(
+            enotdir.stderr,
+            "env: ENOTDIR: not a directory '/work/file.txt'\n"
+        );
+
+        let debug_run = run_env_command(
+            &[
+                "-v".into(),
+                "-i".into(),
+                "-C".into(),
+                "/work/sub".into(),
+                "FOO=bar".into(),
+                "echo".into(),
+                "ok".into(),
+            ],
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |words, _, c, e| BuiltinOutcome {
+                stdout: format!("{}:{}:{}\n", words.join(" "), c, e.get("FOO").unwrap()),
+                stderr: String::new(),
+                exit_code: 0,
+            },
+        );
+        assert_eq!(debug_run.exit_code, 0);
+        assert_eq!(debug_run.stdout, "echo ok:/work/sub:bar\n");
+        assert!(debug_run.stderr.contains("cleaning environ\n"));
+        assert!(debug_run.stderr.contains("setenv:   FOO=bar\n"));
+        assert!(debug_run.stderr.contains("chdir:    '/work/sub'\n"));
+        assert!(debug_run.stderr.contains("executing: echo\n"));
     }
 }

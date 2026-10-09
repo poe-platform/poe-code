@@ -1623,6 +1623,7 @@ impl<'a> EvalState<'a> {
                                 exit_code: 1,
                             };
                             self.last_exit = 1;
+                            self.exit_requested = Some(1);
                             self.route_outcome(&mut err_out);
                             self.restore_redirects(saved_fds, saved_in);
                             return Ok(err_out);
@@ -1933,6 +1934,13 @@ impl<'a> EvalState<'a> {
                         exit_code: 0,
                     });
                 }
+                if !Self::is_shell_builtin_name(&args[0]) {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("builtin: {}: not a shell builtin\n", args[0]),
+                        exit_code: 1,
+                    });
+                }
                 if let Some(b_out) =
                     try_run_builtin(&args[0], &args[1..], stdin, self.cwd, self.env, self.fs)
                 {
@@ -1970,9 +1978,11 @@ impl<'a> EvalState<'a> {
                 }
                 if v_flag || big_v_flag {
                     let mut out = String::new();
-                    let mut all_ok = true;
+                    let mut stderr = String::new();
+                    let mut found_any = args[idx..].is_empty();
                     for target in &args[idx..] {
                         if let Some(kind) = self.classify_command(target) {
+                            found_any = true;
                             if big_v_flag {
                                 match kind {
                                     "function" => out.push_str(&format!("{target} is a function\n")),
@@ -1993,14 +2003,14 @@ impl<'a> EvalState<'a> {
                                     }
                                 }
                             }
-                        } else {
-                            all_ok = false;
+                        } else if big_v_flag {
+                            stderr.push_str(&format!("command: {target}: not found\n"));
                         }
                     }
                     return Ok(BuiltinOutcome {
                         stdout: out,
-                        stderr: String::new(),
-                        exit_code: if all_ok { 0 } else { 1 },
+                        stderr,
+                        exit_code: if found_any { 0 } else { 1 },
                     });
                 }
                 return self.dispatch_words(&args[idx..], stdin, true);
@@ -2397,11 +2407,8 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn classify_command(&self, target: &str) -> Option<&'static str> {
-        if self.functions.contains_key(target) {
-            return Some("function");
-        }
-        if matches!(
+    fn is_shell_builtin_name(target: &str) -> bool {
+        matches!(
             target,
             ":" | "true"
                 | "false"
@@ -2438,17 +2445,26 @@ impl<'a> EvalState<'a> {
                 | "type"
                 | "hash"
                 | "umask"
+                | "ulimit"
                 | "let"
                 | "exit"
                 | "return"
                 | "break"
                 | "continue"
                 | "wait"
+                | "kill"
                 | "jobs"
                 | "alias"
                 | "unalias"
                 | "caller"
-        ) {
+        )
+    }
+
+    fn classify_command(&self, target: &str) -> Option<&'static str> {
+        if self.functions.contains_key(target) {
+            return Some("function");
+        }
+        if Self::is_shell_builtin_name(target) {
             return Some("builtin");
         }
         if crate::commands::search::is_known_command(target)
@@ -3049,19 +3065,17 @@ impl<'a> EvalState<'a> {
             "allexport",
             "braceexpand",
             "errexit",
-            "errtrace",
-            "functrace",
             "noclobber",
             "noexec",
             "noglob",
             "nounset",
             "pipefail",
-            "xtrace",
+            "errtrace",
+            "functrace",
         ];
         const SHOPT_OPTIONS: &[&str] = &[
             "dotglob",
             "expand_aliases",
-            "extdebug",
             "extglob",
             "failglob",
             "globstar",
@@ -3071,6 +3085,7 @@ impl<'a> EvalState<'a> {
             "nocasematch",
             "nullglob",
             "xpg_echo",
+            "extdebug",
         ];
         let known = if opt_mode { SET_OPTIONS } else { SHOPT_OPTIONS };
 
@@ -3109,9 +3124,11 @@ impl<'a> EvalState<'a> {
 
         let mut status = 0;
         for name in &args[index..] {
-            if !known.contains(&name.as_str()) {
+            let valid = known.contains(&name.as_str()) || (opt_mode && name == "xtrace");
+            if !valid {
                 stderr.push_str(&format!(
-                    "shopt: {name}: invalid shell option name\n"
+                    "shopt: {name}: unsupported shell option name (supported: {})\n",
+                    known.join(", ")
                 ));
                 status = 1;
             } else if set_flag || unset_flag {
@@ -5814,5 +5831,32 @@ mod tests {
             res.stdout,
             "rw=hello|world\nin:inner1 inner2 inner3\nout:outer1 outer2\nu:0 1 3:a b d\n"
         );
+    }
+
+    #[test]
+    fn unit_builtin_command_v_shopt_and_readonly_abort_semantics() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let b_err = state.eval_script_str("builtin cat", "").unwrap();
+        assert_eq!(b_err.exit_code, 1);
+        assert_eq!(b_err.stderr, "builtin: cat: not a shell builtin\n");
+
+        let cv = state.eval_script_str("command -v echo nonexistent_xyz", "").unwrap();
+        assert_eq!(cv.exit_code, 0);
+        assert_eq!(cv.stdout, "echo\n");
+
+        let shopt_err = state.eval_script_str("shopt bogus_opt", "").unwrap();
+        assert_eq!(shopt_err.exit_code, 1);
+        assert!(shopt_err.stderr.contains("shopt: bogus_opt: unsupported shell option name"));
+
+        let ro_abort = state.eval_script_str("readonly R=1; R=2; echo unreachable", "").unwrap();
+        assert_eq!(ro_abort.exit_code, 1);
+        assert_eq!(ro_abort.stdout, "");
+        assert!(ro_abort.stderr.contains("R: readonly variable"));
     }
 }

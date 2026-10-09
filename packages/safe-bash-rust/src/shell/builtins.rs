@@ -140,6 +140,12 @@ pub fn try_run_builtin(
                     stderr: String::new(),
                     exit_code: 0,
                 })
+            } else if fs.exists(&resolved) {
+                Some(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("cd: {target}: Not a directory\n"),
+                    exit_code: 1,
+                })
             } else {
                 Some(BuiltinOutcome {
                     stdout: String::new(),
@@ -378,98 +384,169 @@ pub fn try_run_builtin(
     }
 }
 
+fn parse_umask_mode(value: &str, previous: u32) -> Option<u32> {
+    let bytes = value.as_bytes();
+    if !bytes.is_empty() && bytes[0].is_ascii_digit() {
+        let mut mode = 0u32;
+        for &b in bytes {
+            if !(b'0'..=b'7').contains(&b) {
+                return None;
+            }
+            mode = mode * 8 + (b - b'0') as u32;
+            if mode > 0o777 {
+                return None;
+            }
+        }
+        return Some(mode);
+    }
+    let mut allowed = (!previous) & 0o777;
+    for clause in value.split(',') {
+        let cbytes = clause.as_bytes();
+        let mut index = 0usize;
+        let mut who = 0u32;
+        while index < cbytes.len() {
+            match cbytes[index] {
+                b'u' => who |= 0o700,
+                b'g' => who |= 0o070,
+                b'o' => who |= 0o007,
+                b'a' => who |= 0o777,
+                _ => break,
+            }
+            index += 1;
+        }
+        if who == 0 {
+            who = 0o777;
+        }
+        let mut operations = 0usize;
+        while index < cbytes.len() {
+            let operator = cbytes[index];
+            index += 1;
+            if !matches!(operator, b'+' | b'-' | b'=') {
+                return None;
+            }
+            operations += 1;
+            let mut bits = 0u32;
+            while index < cbytes.len() && !matches!(cbytes[index], b'+' | b'-' | b'=') {
+                match cbytes[index] {
+                    b'r' => bits |= 0o444,
+                    b'w' => bits |= 0o222,
+                    b'x' => bits |= 0o111,
+                    b'u' | b'g' | b'o' => {
+                        let shift = match cbytes[index] {
+                            b'u' => 6,
+                            b'g' => 3,
+                            _ => 0,
+                        };
+                        let triad = (allowed >> shift) & 7;
+                        bits |= triad | (triad << 3) | (triad << 6);
+                    }
+                    _ => return None,
+                }
+                index += 1;
+            }
+            bits &= who;
+            allowed = match operator {
+                b'=' => (allowed & !who) | bits,
+                b'+' => allowed | bits,
+                _ => allowed & !bits,
+            };
+        }
+        if operations == 0 {
+            return None;
+        }
+    }
+    Some((!allowed) & 0o777)
+}
+
+fn format_symbolic_umask(mask: u32) -> String {
+    let allowed = (!mask) & 0o777;
+    let fmt_bits = |bits: u32| -> String {
+        let mut s = String::new();
+        if bits & 4 != 0 {
+            s.push('r');
+        }
+        if bits & 2 != 0 {
+            s.push('w');
+        }
+        if bits & 1 != 0 {
+            s.push('x');
+        }
+        s
+    };
+    let u = fmt_bits((allowed >> 6) & 7);
+    let g = fmt_bits((allowed >> 3) & 7);
+    let o = fmt_bits(allowed & 7);
+    format!("u={u},g={g},o={o}")
+}
+
 fn builtin_umask(args: &[String], env: &mut BTreeMap<String, String>) -> BuiltinOutcome {
     let cur_str = env
         .get("__umask")
         .cloned()
         .unwrap_or_else(|| "0022".to_string());
-    let cur_val = u32::from_str_radix(&cur_str, 8).unwrap_or(0o022);
+    let mut cur_val = u32::from_str_radix(&cur_str, 8).unwrap_or(0o022);
 
     let mut symbolic = false;
-    let mut print_cmd = false;
-    let mut mode_arg: Option<&str> = None;
-    for a in args {
-        if a == "-S" {
-            symbolic = true;
-        } else if a == "-p" {
-            print_cmd = true;
-        } else if !a.starts_with('-') {
-            mode_arg = Some(a.as_str());
+    let mut printable = false;
+    let mut index = 0usize;
+    while index < args.len() && args[index].starts_with('-') && args[index] != "-" {
+        let option = &args[index];
+        index += 1;
+        if option == "--" {
+            break;
+        }
+        for flag in option[1..].chars() {
+            if flag == 'S' {
+                symbolic = true;
+            } else if flag == 'p' {
+                printable = true;
+            } else {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("umask: {option}: invalid option\n"),
+                    exit_code: 2,
+                };
+            }
         }
     }
 
-    if let Some(m) = mode_arg {
-        let new_mask = if m.chars().all(|c| ('0'..='7').contains(&c)) {
-            u32::from_str_radix(m, 8).unwrap_or(cur_val) & 0o777
-        } else {
-            let mut allowed = !cur_val & 0o777;
-            for clause in m.split(',') {
-                if let Some((who, perms)) = clause.split_once('=') {
-                    let mut pbits = 0u32;
-                    for pc in perms.chars() {
-                        match pc {
-                            'r' => pbits |= 4,
-                            'w' => pbits |= 2,
-                            'x' => pbits |= 1,
-                            _ => {}
-                        }
-                    }
-                    let who_s = if who.is_empty() { "ugo" } else { who };
-                    for wc in who_s.chars() {
-                        match wc {
-                            'u' => allowed = (allowed & !0o700) | (pbits << 6),
-                            'g' => allowed = (allowed & !0o070) | (pbits << 3),
-                            'o' => allowed = (allowed & !0o007) | pbits,
-                            'a' => {
-                                allowed = (pbits << 6) | (pbits << 3) | pbits;
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-            (!allowed) & 0o777
+    if let Some(operand) = args.get(index) {
+        let Some(new_mask) = parse_umask_mode(operand, cur_val) else {
+            let reason = if operand.as_bytes().first().is_some_and(|b| b.is_ascii_digit()) {
+                "octal number out of range"
+            } else {
+                "invalid mode"
+            };
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("umask: {operand}: {reason}\n"),
+                exit_code: 1,
+            };
         };
+        cur_val = new_mask;
         env.insert("__umask".to_string(), format!("{new_mask:04o}"));
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        };
+        if !symbolic {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        }
+        printable = false;
     }
 
-    if symbolic {
-        let allowed = (!cur_val) & 0o777;
-        let fmt_bits = |bits: u32| -> String {
-            let mut s = String::new();
-            if bits & 4 != 0 {
-                s.push('r');
-            }
-            if bits & 2 != 0 {
-                s.push('w');
-            }
-            if bits & 1 != 0 {
-                s.push('x');
-            }
-            s
-        };
-        let u = fmt_bits((allowed >> 6) & 7);
-        let g = fmt_bits((allowed >> 3) & 7);
-        let o = fmt_bits(allowed & 7);
-        return BuiltinOutcome {
-            stdout: format!("u={u},g={g},o={o}\n"),
-            stderr: String::new(),
-            exit_code: 0,
-        };
-    }
-
-    let out = if print_cmd {
-        format!("umask {cur_val:04o}\n")
+    let value = if symbolic {
+        format_symbolic_umask(cur_val)
     } else {
-        format!("{cur_val:04o}\n")
+        format!("{cur_val:04o}")
+    };
+    let prefix = if printable {
+        if symbolic { "umask -S " } else { "umask " }
+    } else {
+        ""
     };
     BuiltinOutcome {
-        stdout: out,
+        stdout: format!("{prefix}{value}\n"),
         stderr: String::new(),
         exit_code: 0,
     }
@@ -1453,5 +1530,47 @@ mod tests {
         assert_eq!(try_run_builtin(":", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 0);
         assert_eq!(try_run_builtin("false", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().exit_code, 1);
         assert_eq!(try_run_builtin("pwd", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap().stdout, "/work/dir\n");
+    }
+
+    #[test]
+    fn unit_builtins_umask_symbolic_octal_diagnostics_and_cd_not_a_dir() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/regular.txt", b"data").unwrap();
+        let mut env = BTreeMap::new();
+        let mut cwd = "/work".to_string();
+        let mut stdin = String::new();
+
+        let cd_file = try_run_builtin(
+            "cd",
+            &args(&["regular.txt"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(cd_file.exit_code, 1);
+        assert_eq!(cd_file.stderr, "cd: regular.txt: Not a directory\n");
+
+        let bad_opt = builtin_umask(&args(&["-z"]), &mut env);
+        assert_eq!(bad_opt.exit_code, 2);
+        assert_eq!(bad_opt.stderr, "umask: -z: invalid option\n");
+
+        let bad_oct = builtin_umask(&args(&["0999"]), &mut env);
+        assert_eq!(bad_oct.exit_code, 1);
+        assert_eq!(bad_oct.stderr, "umask: 0999: octal number out of range\n");
+
+        let bad_sym = builtin_umask(&args(&["u=z"]), &mut env);
+        assert_eq!(bad_sym.exit_code, 1);
+        assert_eq!(bad_sym.stderr, "umask: u=z: invalid mode\n");
+
+        let set_sym = builtin_umask(&args(&["-S", "u=rwx,g=rx,o="]), &mut env);
+        assert_eq!(set_sym.exit_code, 0);
+        assert_eq!(set_sym.stdout, "u=rwx,g=rx,o=\n");
+
+        let print_ps = builtin_umask(&args(&["-p", "-S"]), &mut env);
+        assert_eq!(print_ps.exit_code, 0);
+        assert_eq!(print_ps.stdout, "umask -S u=rwx,g=rx,o=\n");
     }
 }

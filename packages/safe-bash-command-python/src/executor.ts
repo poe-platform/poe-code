@@ -112,6 +112,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
   const runtimeMount = options.runtimeMount ?? '/.pyodide-runtime';
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
   const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
+  const diagnose = (category: PythonFailureCategory, reason?: unknown): PythonFailure => reportPythonFailure(category, reason, options.onDiagnostic);
   const execute = async (context: CommandContext) => {
     if (pythonShellDispatchActive(context.executionScope)) {
       await writeDiagnostic(context.stderr, 'nested Python execution is unavailable while the parent interpreter is suspended', context.signal);
@@ -132,7 +133,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
     }
     context.signal.throwIfAborted();
     if (activeWorkers >= maxConcurrentWorkers) {
-      const failure = reportPythonFailure('capacity', undefined, options.onDiagnostic);
+      const failure = diagnose('capacity', undefined);
       await writeDiagnostic(context.stderr, failure.message, context.signal);
       return { exitCode: 1 };
     }
@@ -186,7 +187,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         finish();
       }, reason => {
         // A failed termination cannot establish retirement: retain its capacity slot.
-        fail(reportPythonFailure('cleanup', reason, options.onDiagnostic));
+        fail(diagnose('cleanup', reason));
       });
       return closing;
     };
@@ -211,7 +212,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
               : operation === 'readdir' || operation.startsWith('directory') ? 'filesystem-directory' : 'filesystem-operation';
         if (!filesystemDiagnostics.has(category)) {
           filesystemDiagnostics.add(category);
-          const failure = reportPythonFailure(category, error, options.onDiagnostic);
+          const failure = diagnose(category, error);
           await writeDiagnostic(stderrOperation!.output, failure.message, signal);
         }
       };
@@ -272,8 +273,8 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       signal.throwIfAborted();
       if (options.createExecutor) {
         try { executor = options.createExecutor(); }
-        catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
-        if (!executor || typeof executor.run !== 'function' || typeof executor.terminate !== 'function') throw reportPythonFailure('executor-unavailable', undefined, options.onDiagnostic);
+        catch (reason) { throw diagnose(reason instanceof PythonFailure ? reason.category : 'startup', reason); }
+        if (!executor || typeof executor.run !== 'function' || typeof executor.terminate !== 'function') throw diagnose('executor-unavailable', undefined);
         let requesting = false;
         let running = true;
         const start: PythonExecutorStart = {
@@ -287,16 +288,16 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
             catch (reason) { running = false; rejectRun?.(reason); throw reason; }
           },
           async dispatch(request) {
-            if (!request || typeof request.op !== 'string' || !Array.isArray(request.args)) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            if (!request || typeof request.op !== 'string' || !Array.isArray(request.args)) throw diagnose('transport-unavailable', undefined);
             const releasing = request.op === 'close';
             if (!releasing) signal.throwIfAborted();
-            if (closed && !releasing || !running || requesting) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+            if (closed && !releasing || !running || requesting) throw diagnose('transport-unavailable', undefined);
             requesting = true;
             const operation = Promise.resolve().then(() => dispatch(request)).catch(async error => {
               if (releasing) throw error;
               signal.throwIfAborted();
               if (error instanceof PythonInputChunkError) rejectRun?.(error);
-              if (request.op.startsWith('package-')) throw Object.assign(reportPythonFailure('runtime-assets', error, options.onDiagnostic), { code: 'EPACKAGE' });
+              if (request.op.startsWith('package-')) throw Object.assign(diagnose('runtime-assets', error), { code: 'EPACKAGE' });
               await diagnoseFilesystemFailure(request.op, error);
               throw error;
             });
@@ -312,12 +313,12 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         }).catch(reason => {
           running = false;
           if (signal.aborted) throw signal.reason;
-          throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : ready ? 'runtime' : 'startup', reason, options.onDiagnostic);
+          throw diagnose(reason instanceof PythonFailure ? reason.category : ready ? 'runtime' : 'startup', reason);
         }).then(status => {
           running = false;
-          if (requesting) throw reportPythonFailure('transport-unavailable', undefined, options.onDiagnostic);
+          if (requesting) throw diagnose('transport-unavailable', undefined);
           try { return validateExitCode(status); }
-          catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+          catch (reason) { throw diagnose('transport-unavailable', reason); }
         });
         const tracked = execution.then(() => {}, () => {});
         pending.add(tracked);
@@ -331,7 +332,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
       } else {
       let shared: SharedArrayBuffer;
       try { shared = new SharedArrayBuffer(8 + transferChunkBytes * 6 + 65536); }
-      catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+      catch (reason) { throw diagnose('transport-unavailable', reason); }
       const control = new Int32Array(shared, 0, 2);
       const payload = new Uint8Array(shared, 8);
       const reply = (value: unknown, status: number): void => {
@@ -347,17 +348,17 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
           Atomics.store(control, 1, bytes.length);
           Atomics.store(control, 0, status);
           Atomics.notify(control, 0);
-        } catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
+        } catch (reason) { throw diagnose('transport-unavailable', reason); }
       };
       try { endpoint = options.createWorker!(); }
-      catch (reason) { throw reportPythonFailure(reason instanceof PythonFailure ? reason.category : 'startup', reason, options.onDiagnostic); }
+      catch (reason) { throw diagnose(reason instanceof PythonFailure ? reason.category : 'startup', reason); }
       signal.throwIfAborted();
       result = await new Promise<number>((resolve, reject) => {
         let settled = false;
         const fail = (reason: unknown): void => { settled = true; reject(reason); };
         rejectRun = fail;
         signal.addEventListener('abort', aborted, { once: true });
-        const transportFailure = (reason: unknown): void => { fail(reportPythonFailure('transport-unavailable', reason, options.onDiagnostic)); };
+        const transportFailure = (reason: unknown): void => { fail(diagnose('transport-unavailable', reason)); };
         try { unsubscribe = endpoint!.subscribe(value => {
           if (closed || settled) return;
           if (typeof value !== 'object' || value === null) { transportFailure(new TypeError('Invalid Python worker message')); return; }
@@ -378,7 +379,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
             return;
           }
           if (message.type === 'error') {
-            fail(reportPythonFailure(isPythonFailureCategory(message.category) ? message.category : ready ? 'runtime' : 'startup', message.message, options.onDiagnostic));
+            fail(diagnose(isPythonFailureCategory(message.category) ? message.category : ready ? 'runtime' : 'startup', message.message));
             return;
           }
           if (typeof message.op !== 'string' || !Array.isArray(message.args) || pending.size) { transportFailure(new TypeError('Invalid concurrent Python worker request')); return; }
@@ -387,7 +388,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
             async error => {
               if (signal.aborted) { pending.delete(work); fail(signal.reason); return; }
               if (typeof message.op === 'string' && message.op.startsWith('package-')) {
-                const failure = reportPythonFailure('runtime-assets', error, options.onDiagnostic);
+                const failure = diagnose('runtime-assets', error);
                 pending.delete(work);
                 reply({code:'EPACKAGE', message:failure.message}, 2);
                 return;
@@ -414,7 +415,7 @@ export function createPythonExecutorCommands(options: PythonCommandsOptions): re
         try { await writeDiagnostic(stderrOperation!.output, reason.message, signal); }
         catch (error) { primary = {reason:error}; }
       } else if (!signal.aborted && typeof reason === 'object' && reason !== null && 'code' in reason && reason.code === 'EPACKAGE') {
-        primary = { reason: reportPythonFailure('runtime-assets', reason, options.onDiagnostic) };
+        primary = { reason: diagnose('runtime-assets', reason) };
       } else primary = { reason };
     }
     try { await close(); } catch (reason) {

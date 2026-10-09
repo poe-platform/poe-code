@@ -400,6 +400,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-shell-declare-read-mapfile-arith-control-flow-set-parity-matrix.test.ts",
   "obscure-type-command-unset-declare-local-functions-print-parity-matrix.test.ts",
   "obscure-dirstack-cdpath-eval-source-exec-trap-jobs-wait-kill-parity-matrix.test.ts",
+  "obscure-printf-test-brackets-getopts-set-echo-hash-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

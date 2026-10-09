@@ -1,6 +1,6 @@
 use crate::commands::search::regex_captures;
 use crate::shell::expand::{
-    bash_quote_value, decode_ansi_c_escapes, decode_echo_b_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
+    decode_ansi_c_escapes, decode_echo_b_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
     sync_array_metadata,
 };
 use crate::vfs::{SafeBashFs, resolve_posix_path};
@@ -101,7 +101,7 @@ pub fn try_run_builtin(
         "pushd" | "popd" | "dirs" => Some(builtin_directory_stack(cmd, args, cwd, env, fs)),
         "echo" => {
             let mut newline = true;
-            let mut interpret_escapes = false;
+            let mut interpret_escapes = env.get("__shopt_xpg_echo").is_some_and(|v| v == "1");
             let mut idx = 0usize;
             while idx < args.len() {
                 let arg = &args[idx];
@@ -1094,6 +1094,64 @@ fn builtin_hash(
         }
         if let Some(resolved) = resolve_hash_command(name, cwd, env, fs) {
             env.insert(format!("__hash__{name}"), resolved);
+        } else if matches!(
+            name.as_str(),
+            ":" | "true"
+                | "false"
+                | "cd"
+                | "pwd"
+                | "pushd"
+                | "popd"
+                | "dirs"
+                | "echo"
+                | "printf"
+                | "test"
+                | "["
+                | "read"
+                | "mapfile"
+                | "readarray"
+                | "getopts"
+                | "set"
+                | "shopt"
+                | "shift"
+                | "export"
+                | "local"
+                | "readonly"
+                | "declare"
+                | "typeset"
+                | "unset"
+                | "trap"
+                | "eval"
+                | "source"
+                | "."
+                | "exec"
+                | "command"
+                | "builtin"
+                | "type"
+                | "hash"
+                | "umask"
+                | "ulimit"
+                | "let"
+                | "exit"
+                | "return"
+                | "break"
+                | "continue"
+                | "wait"
+                | "kill"
+                | "jobs"
+                | "disown"
+                | "alias"
+                | "unalias"
+                | "caller"
+                | "print"
+                | "functions"
+                | "setopt"
+                | "unsetopt"
+                | "bash"
+                | "sh"
+                | "zsh"
+        ) {
+            // Builtins and subshells are recognized by hash without error.
         } else {
             stderr.push_str(&format!("hash: {name}: not found\n"));
             status = 1;
@@ -1107,250 +1165,607 @@ fn builtin_hash(
     }
 }
 
-fn parse_printf_int(s: &str) -> i64 {
-    let trimmed = s.trim();
-    if let Some(rest) = trimmed.strip_prefix('\'').or_else(|| trimmed.strip_prefix('"')) {
-        return rest.chars().next().map(|c| c as i64).unwrap_or(0);
+fn parse_printf_integer_checked(token: &str, unsigned: bool) -> (i128, Option<&'static str>) {
+    if let Some(rest) = token.strip_prefix('\'').or_else(|| token.strip_prefix('"')) {
+        return (rest.chars().next().map(|c| c as i128).unwrap_or(0), None);
     }
-    if let Some(hex) = trimmed.strip_prefix("0x").or_else(|| trimmed.strip_prefix("0X")) {
-        return i64::from_str_radix(hex, 16).unwrap_or(0);
+    let bytes = token.as_bytes();
+    let mut offset = 0usize;
+    while offset < bytes.len() && b" \t\n\r\x0b\x0c".contains(&bytes[offset]) {
+        offset += 1;
     }
-    if let Some(hex) = trimmed.strip_prefix("-0x").or_else(|| trimmed.strip_prefix("-0X")) {
-        return -i64::from_str_radix(hex, 16).unwrap_or(0);
+    let negative = bytes.get(offset) == Some(&b'-');
+    if negative || bytes.get(offset) == Some(&b'+') {
+        offset += 1;
     }
-    if trimmed.starts_with('0') && trimmed.len() > 1 && trimmed.chars().all(|c| ('0'..='7').contains(&c)) {
-        return i64::from_str_radix(trimmed, 8).unwrap_or(0);
+    let mut radix: u128 = 10;
+    let hex_digit = |b: u8| -> Option<u128> {
+        match b {
+            b'0'..=b'9' => Some((b - b'0') as u128),
+            b'a'..=b'f' => Some((b - b'a' + 10) as u128),
+            b'A'..=b'F' => Some((b - b'A' + 10) as u128),
+            _ => None,
+        }
+    };
+    if bytes.get(offset) == Some(&b'0') {
+        radix = 8;
+        if matches!(bytes.get(offset + 1), Some(b'x' | b'X'))
+            && bytes.get(offset + 2).and_then(|&b| hex_digit(b)).is_some()
+        {
+            radix = 16;
+            offset += 2;
+        }
     }
-    trimmed.parse::<i64>().unwrap_or(0)
+    let start = offset;
+    let limit: u128 = if unsigned {
+        u64::MAX as u128
+    } else if negative {
+        1u128 << 63
+    } else {
+        (1u128 << 63) - 1
+    };
+    let mut magnitude: u128 = 0;
+    let mut overflow = false;
+    while offset < bytes.len() {
+        let Some(d) = hex_digit(bytes[offset]).filter(|&d| d < radix) else {
+            break;
+        };
+        if !overflow {
+            if let Some(cand) = magnitude.checked_mul(radix).and_then(|m| m.checked_add(d)) {
+                if cand > limit {
+                    overflow = true;
+                    magnitude = limit;
+                } else {
+                    magnitude = cand;
+                }
+            } else {
+                overflow = true;
+                magnitude = limit;
+            }
+        }
+        offset += 1;
+    }
+    let val: i128 = if unsigned {
+        let u = if overflow {
+            u64::MAX
+        } else if negative {
+            (magnitude as u64).wrapping_neg()
+        } else {
+            magnitude as u64
+        };
+        u as i128
+    } else if negative {
+        -(magnitude as i128)
+    } else {
+        magnitude as i128
+    };
+    let err = if overflow {
+        Some("Numerical result out of range")
+    } else if offset == start {
+        Some("invalid number")
+    } else if offset < bytes.len() {
+        Some("value not completely converted")
+    } else {
+        None
+    };
+    (val, err)
 }
 
-fn parse_printf_uint(s: &str) -> u64 {
-    parse_printf_int(s) as u64
+fn printf_quote_value(s: &str, alternate: bool) -> String {
+    if s.is_empty() {
+        return "''".to_string();
+    }
+    let ansi = s
+        .chars()
+        .any(|c| (c as u32) < 0x20 || (c as u32) == 0x7f || c.is_control());
+    if ansi {
+        let mut out = String::from("$'");
+        for c in s.chars() {
+            match c {
+                '\x07' => out.push_str("\\a"),
+                '\x08' => out.push_str("\\b"),
+                '\t' => out.push_str("\\t"),
+                '\n' => out.push_str("\\n"),
+                '\x0b' => out.push_str("\\v"),
+                '\x0c' => out.push_str("\\f"),
+                '\r' => out.push_str("\\r"),
+                '\x1b' => out.push_str("\\E"),
+                '\'' => out.push_str("\\'"),
+                '\\' => out.push_str("\\\\"),
+                _ if (c as u32) < 0x20 || (c as u32) == 0x7f || c.is_control() => {
+                    let mut buf = [0u8; 4];
+                    for &b in c.encode_utf8(&mut buf).as_bytes() {
+                        out.push_str(&format!("\\{b:03o}"));
+                    }
+                }
+                _ => out.push(c),
+            }
+        }
+        out.push('\'');
+        return out;
+    }
+    if alternate {
+        return format!("'{}'", s.replace('\'', "'\\''"));
+    }
+    let mut out = String::new();
+    let chars: Vec<char> = s.chars().collect();
+    for (idx, &ch) in chars.iter().enumerate() {
+        let safe = (ch as u32) >= 128
+            || ch.is_ascii_alphanumeric()
+            || "_./@%+=:-".contains(ch)
+            || (ch == '#' && idx > 0)
+            || (ch == '~' && idx > 0 && !matches!(chars[idx - 1], ':' | '='));
+        if safe {
+            out.push(ch);
+        } else {
+            out.push('\\');
+            out.push(ch);
+        }
+    }
+    out
 }
 
 pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> BuiltinOutcome {
     let mut idx = 0usize;
     let mut assign_var: Option<String> = None;
-    while idx < args.len() {
-        if args[idx] == "-v" && idx + 1 < args.len() {
-            assign_var = Some(args[idx + 1].clone());
-            idx += 2;
-        } else if args[idx] == "--" {
-            idx += 1;
-            break;
-        } else {
+    while let Some(arg) = args.get(idx) {
+        if !arg.starts_with("-v") {
             break;
         }
+        idx += 1;
+        let target = if arg.len() > 2 {
+            Some(arg[2..].to_string())
+        } else {
+            let t = args.get(idx).cloned();
+            if t.is_some() {
+                idx += 1;
+            }
+            t
+        };
+        let Some(target) = target else {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "printf: -v: option requires an argument\n".to_string(),
+                exit_code: 2,
+            };
+        };
+        let (base, has_bracket) = match target.split_once('[') {
+            Some((b, _)) => (b, true),
+            None => (target.as_str(), false),
+        };
+        let valid_ident = !base.is_empty()
+            && base
+                .chars()
+                .next()
+                .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+            && base.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')
+            && (!has_bracket || (target.ends_with(']') && !target.ends_with("[]")));
+        if !valid_ident {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("printf: '{target}': not a valid identifier\n"),
+                exit_code: 2,
+            };
+        }
+        assign_var = Some(target);
+    }
+    let mut dash_dash = false;
+    if args.get(idx).map(|s| s.as_str()) == Some("--") {
+        dash_dash = true;
+        idx += 1;
     }
     let Some(raw_fmt) = args.get(idx) else {
+        if assign_var.is_some() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "printf: usage: printf [-v var] format [arguments]\n".to_string(),
+                exit_code: 2,
+            };
+        }
         return BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stderr: "printf: missing operand\n".to_string(),
+            exit_code: 1,
         };
     };
-    let fmt = decode_ansi_c_escapes(raw_fmt);
+    if !dash_dash && raw_fmt.starts_with('-') {
+        if assign_var.is_some() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "printf: usage: printf [-v var] format [arguments]\n".to_string(),
+                exit_code: 2,
+            };
+        }
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("printf: invalid option '{raw_fmt}'\n"),
+            exit_code: 1,
+        };
+    }
     let val_args = &args[idx + 1..];
     let mut out = String::new();
+    let mut stderr = String::new();
+    let mut exit_code = 0;
     let mut arg_i = 0usize;
     let mut stop_all = false;
 
     loop {
         let start_arg_i = arg_i;
-        let mut chars = fmt.chars().peekable();
-        while let Some(c) = chars.next() {
-            if c == '%' {
-                if chars.peek() == Some(&'%') {
-                    chars.next();
-                    out.push('%');
-                    continue;
+        let mut offset = 0usize;
+        while offset < raw_fmt.len() && !stop_all {
+            if !raw_fmt[offset..].starts_with('%') {
+                let next_pct = raw_fmt[offset..]
+                    .find('%')
+                    .map(|p| offset + p)
+                    .unwrap_or(raw_fmt.len());
+                let literal = &raw_fmt[offset..next_pct];
+                out.push_str(&decode_ansi_c_escapes(literal));
+                offset = next_pct;
+                continue;
+            }
+            if raw_fmt[offset..].starts_with("%%") {
+                out.push('%');
+                offset += 2;
+                continue;
+            }
+            let dir_start = offset;
+            offset += 1;
+            let mut flags = String::new();
+            while let Some(fc) = raw_fmt[offset..].chars().next() {
+                if "-+ #0'".contains(fc) {
+                    if !flags.contains(fc) {
+                        flags.push(fc);
+                    }
+                    offset += fc.len_utf8();
+                } else {
+                    break;
                 }
-                let mut flags = String::new();
-                while let Some(&fc) = chars.peek() {
-                    if matches!(fc, '-' | '+' | ' ' | '0' | '#') {
-                        flags.push(chars.next().unwrap());
+            }
+            let width: Option<isize> = if raw_fmt[offset..].starts_with('*') {
+                offset += 1;
+                let tok = val_args.get(arg_i).map(|s| s.as_str()).unwrap_or("0");
+                arg_i += 1;
+                let (v, err) = parse_printf_integer_checked(tok, false);
+                if let Some(msg) = err {
+                    stderr.push_str(&format!("printf: '{tok}': {msg}\n"));
+                    exit_code = 1;
+                }
+                Some(v as isize)
+            } else {
+                let mut ws = String::new();
+                while let Some(wc) = raw_fmt[offset..].chars().next() {
+                    if wc.is_ascii_digit() {
+                        ws.push(wc);
+                        offset += 1;
                     } else {
                         break;
                     }
                 }
-                let width: Option<isize> = if chars.peek() == Some(&'*') {
-                    chars.next();
-                    let w = val_args
-                        .get(arg_i)
-                        .map(|s| parse_printf_int(s) as isize)
-                        .unwrap_or(0);
-                    arg_i += 1;
-                    Some(w)
+                if ws.is_empty() {
+                    None
                 } else {
-                    let mut ws = String::new();
-                    while let Some(&wc) = chars.peek() {
-                        if wc.is_ascii_digit() {
-                            ws.push(chars.next().unwrap());
-                        } else {
-                            break;
-                        }
+                    ws.parse::<isize>().ok()
+                }
+            };
+            let precision: Option<usize> = if raw_fmt[offset..].starts_with('.') {
+                offset += 1;
+                if raw_fmt[offset..].starts_with('*') {
+                    offset += 1;
+                    let tok = val_args.get(arg_i).map(|s| s.as_str()).unwrap_or("0");
+                    arg_i += 1;
+                    let (v, err) = parse_printf_integer_checked(tok, false);
+                    if let Some(msg) = err {
+                        stderr.push_str(&format!("printf: '{tok}': {msg}\n"));
+                        exit_code = 1;
                     }
-                    if ws.is_empty() {
+                    if v < 0 {
                         None
                     } else {
-                        ws.parse::<isize>().ok()
-                    }
-                };
-                let precision: Option<usize> = if chars.peek() == Some(&'.') {
-                    chars.next();
-                    if chars.peek() == Some(&'*') {
-                        chars.next();
-                        let p = val_args
-                            .get(arg_i)
-                            .map(|s| parse_printf_int(s).max(0) as usize)
-                            .unwrap_or(0);
-                        arg_i += 1;
-                        Some(p)
-                    } else {
-                        let mut ps = String::new();
-                        while let Some(&pc) = chars.peek() {
-                            if pc.is_ascii_digit() {
-                                ps.push(chars.next().unwrap());
-                            } else {
-                                break;
-                            }
-                        }
-                        Some(ps.parse::<usize>().unwrap_or(0))
+                        Some(v as usize)
                     }
                 } else {
-                    None
-                };
-
-                let Some(conv) = chars.next() else {
-                    break;
-                };
-                let raw_arg = val_args.get(arg_i).map(|s| s.as_str()).unwrap_or("");
-                arg_i += 1;
-
-                let mut left_align = flags.contains('-');
-                let mut abs_width = width.unwrap_or(0);
-                if abs_width < 0 {
-                    left_align = true;
-                    abs_width = -abs_width;
-                }
-                let w_usize = abs_width as usize;
-                let zero_pad = flags.contains('0') && !left_align;
-                let plus_sign = flags.contains('+');
-                let space_sign = flags.contains(' ');
-                let alt_form = flags.contains('#');
-
-                let formatted = match conv {
-                    's' => {
-                        let s = if let Some(p) = precision {
-                            raw_arg.chars().take(p).collect::<String>()
+                    let mut ps = String::new();
+                    while let Some(pc) = raw_fmt[offset..].chars().next() {
+                        if pc.is_ascii_digit() {
+                            ps.push(pc);
+                            offset += 1;
                         } else {
-                            raw_arg.to_string()
-                        };
-                        pad_string(&s, w_usize, left_align, false)
-                    }
-                    'b' => {
-                        if let Some((before_c, _)) = raw_arg.split_once("\\c") {
-                            let s = decode_echo_b_escapes(before_c);
-                            out.push_str(&pad_string(&s, w_usize, left_align, false));
-                            stop_all = true;
                             break;
                         }
-                        let s = decode_echo_b_escapes(raw_arg);
-                        pad_string(&s, w_usize, left_align, false)
                     }
-                    'q' => {
-                        if raw_arg.is_empty() {
-                            "''".to_string()
-                        } else if raw_arg.chars().any(|c| c == '\n' || c == '\t' || c == '\r' || (c as u32) < 0x20 || (c as u32) == 0x7f) {
-                            bash_quote_value(raw_arg)
-                        } else if raw_arg
-                            .chars()
-                            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.' | '/' | ':' | '@'))
-                        {
-                            raw_arg.to_string()
-                        } else {
-                            let mut q = String::new();
-                            for ch in raw_arg.chars() {
-                                if ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.' | '/') {
-                                    q.push(ch);
-                                } else {
-                                    q.push('\\');
-                                    q.push(ch);
-                                }
-                            }
-                            q
-                        }
+                    Some(ps.parse::<usize>().unwrap_or(0))
+                }
+            } else {
+                None
+            };
+            let mut time_format: Option<String> = None;
+            if raw_fmt[offset..].starts_with('(') {
+                offset += 1;
+                let Some(close_rel) = raw_fmt[offset..].find(')') else {
+                    return BuiltinOutcome {
+                        stdout: out,
+                        stderr: format!("{stderr}printf: invalid time format\n"),
+                        exit_code: 1,
+                    };
+                };
+                let tf = raw_fmt[offset..offset + close_rel].to_string();
+                offset += close_rel + 1;
+                if !raw_fmt[offset..].starts_with('T') {
+                    return BuiltinOutcome {
+                        stdout: out,
+                        stderr: format!("{stderr}printf: invalid time format\n"),
+                        exit_code: 1,
+                    };
+                }
+                time_format = Some(tf);
+            } else {
+                while let Some(mc) = raw_fmt[offset..].chars().next() {
+                    if "hlLjzt".contains(mc) {
+                        offset += mc.len_utf8();
+                    } else {
+                        break;
                     }
-                    'c' => raw_arg
+                }
+            }
+
+            let Some(conv) = raw_fmt[offset..].chars().next() else {
+                let preview = &raw_fmt[dir_start..];
+                return BuiltinOutcome {
+                    stdout: out,
+                    stderr: format!("{stderr}printf: invalid format near '{preview}'\n"),
+                    exit_code: 1,
+                };
+            };
+            offset += conv.len_utf8();
+            if !"sbqQcCSdiouxXfFeEgGaAT".contains(conv) {
+                let preview = &raw_fmt[dir_start..];
+                return BuiltinOutcome {
+                    stdout: out,
+                    stderr: format!("{stderr}printf: invalid format near '{preview}'\n"),
+                    exit_code: 1,
+                };
+            }
+            let supplied_idx = arg_i;
+            let raw_arg = val_args.get(arg_i).map(|s| s.as_str()).unwrap_or("");
+            arg_i += 1;
+
+            let mut left_align = flags.contains('-');
+            let mut abs_width = width.unwrap_or(0);
+            if abs_width < 0 {
+                left_align = true;
+                abs_width = -abs_width;
+            }
+            let w_usize = abs_width as usize;
+            let zero_pad = flags.contains('0') && !left_align;
+            let plus_sign = flags.contains('+');
+            let space_sign = flags.contains(' ');
+            let alt_form = flags.contains('#');
+
+            let formatted = match conv {
+                's' | 'S' => {
+                    let s = if let Some(p) = precision {
+                        raw_arg.chars().take(p).collect::<String>()
+                    } else {
+                        raw_arg.to_string()
+                    };
+                    pad_string(&s, w_usize, left_align, false)
+                }
+                'b' => {
+                    if let Some((before_c, _)) = raw_arg.split_once("\\c") {
+                        let s = decode_echo_b_escapes(before_c);
+                        out.push_str(&pad_string(&s, w_usize, left_align, false));
+                        stop_all = true;
+                        break;
+                    }
+                    let s = decode_echo_b_escapes(raw_arg);
+                    pad_string(&s, w_usize, left_align, false)
+                }
+                'q' | 'Q' => {
+                    let src = if conv == 'Q'
+                        && let Some(p) = precision
+                    {
+                        raw_arg.chars().take(p).collect::<String>()
+                    } else {
+                        raw_arg.to_string()
+                    };
+                    let mut quoted = printf_quote_value(&src, alt_form);
+                    if conv == 'q'
+                        && let Some(p) = precision
+                    {
+                        quoted = quoted.chars().take(p).collect::<String>();
+                    }
+                    pad_string(&quoted, w_usize, left_align, false)
+                }
+                'c' | 'C' => {
+                    let ch_str = raw_arg
                         .chars()
                         .next()
                         .map(|ch| ch.to_string())
-                        .unwrap_or_default(),
-                    'd' | 'i' => {
-                        let n = parse_printf_int(raw_arg);
-                        let sign = if n < 0 {
-                            "-"
-                        } else if plus_sign {
-                            "+"
-                        } else if space_sign {
-                            " "
-                        } else {
-                            ""
-                        };
-                        let mut digits = n.unsigned_abs().to_string();
-                        if let Some(p) = precision {
-                            if p == 0 && n == 0 {
-                                digits.clear();
-                            } else if digits.len() < p {
-                                digits = format!("{}{digits}", "0".repeat(p - digits.len()));
+                        .unwrap_or_else(|| "\0".to_string());
+                    pad_string(&ch_str, w_usize, left_align, false)
+                }
+                'T' => {
+                    let operand = if supplied_idx < val_args.len() {
+                        raw_arg
+                    } else {
+                        "-1"
+                    };
+                    let (parsed_val, err) = parse_printf_integer_checked(operand, false);
+                    if let Some(msg) = err {
+                        stderr.push_str(&format!("printf: '{raw_arg}': {msg}\n"));
+                        exit_code = 1;
+                    }
+                    let secs = if parsed_val == -1 || parsed_val == -2 {
+                        1_700_000_000i64
+                    } else {
+                        parsed_val as i64
+                    };
+                    let tf = time_format
+                        .as_deref()
+                        .filter(|s| !s.is_empty())
+                        .unwrap_or("%X");
+                    let mut rendered = crate::commands::coreutils::format_strftime_for_printf(
+                        tf,
+                        secs,
+                        env.get("TZ").map(|s| s.as_str()),
+                    )
+                    .unwrap_or_default();
+                    if let Some(p) = precision {
+                        rendered = rendered.chars().take(p).collect::<String>();
+                    }
+                    pad_string(&rendered, w_usize, left_align, false)
+                }
+                'd' | 'i' => {
+                    let (n_128, err) = if supplied_idx < val_args.len() {
+                        parse_printf_integer_checked(raw_arg, false)
+                    } else {
+                        (0, None)
+                    };
+                    if let Some(msg) = err {
+                        stderr.push_str(&format!("printf: '{raw_arg}': {msg}\n"));
+                        exit_code = 1;
+                    }
+                    let n = n_128 as i64;
+                    let sign = if n < 0 {
+                        "-"
+                    } else if plus_sign {
+                        "+"
+                    } else if space_sign {
+                        " "
+                    } else {
+                        ""
+                    };
+                    let mut digits = n.unsigned_abs().to_string();
+                    if let Some(p) = precision {
+                        if p == 0 && n == 0 {
+                            digits.clear();
+                        } else if digits.len() < p {
+                            digits = format!("{}{digits}", "0".repeat(p - digits.len()));
+                        }
+                    }
+                    format_signed_num(
+                        sign,
+                        &digits,
+                        w_usize,
+                        left_align,
+                        zero_pad && precision.is_none(),
+                    )
+                }
+                'u' => {
+                    let (n_128, err) = if supplied_idx < val_args.len() {
+                        parse_printf_integer_checked(raw_arg, true)
+                    } else {
+                        (0, None)
+                    };
+                    if let Some(msg) = err {
+                        stderr.push_str(&format!("printf: '{raw_arg}': {msg}\n"));
+                        exit_code = 1;
+                    }
+                    let n = n_128 as u64;
+                    let mut digits = if precision == Some(0) && n == 0 {
+                        String::new()
+                    } else {
+                        n.to_string()
+                    };
+                    if let Some(p) = precision
+                        && digits.len() < p
+                    {
+                        digits = format!("{}{digits}", "0".repeat(p - digits.len()));
+                    }
+                    format_signed_num(
+                        "",
+                        &digits,
+                        w_usize,
+                        left_align,
+                        zero_pad && precision.is_none(),
+                    )
+                }
+                'o' => {
+                    let (n_128, err) = if supplied_idx < val_args.len() {
+                        parse_printf_integer_checked(raw_arg, true)
+                    } else {
+                        (0, None)
+                    };
+                    if let Some(msg) = err {
+                        stderr.push_str(&format!("printf: '{raw_arg}': {msg}\n"));
+                        exit_code = 1;
+                    }
+                    let n = n_128 as u64;
+                    let mut digits = if precision == Some(0) && n == 0 {
+                        String::new()
+                    } else {
+                        format!("{n:o}")
+                    };
+                    if let Some(p) = precision
+                        && digits.len() < p
+                    {
+                        digits = format!("{}{digits}", "0".repeat(p - digits.len()));
+                    }
+                    if alt_form && !digits.starts_with('0') {
+                        digits = format!("0{digits}");
+                    }
+                    format_signed_num(
+                        "",
+                        &digits,
+                        w_usize,
+                        left_align,
+                        zero_pad && precision.is_none(),
+                    )
+                }
+                'x' | 'X' => {
+                    let (n_128, err) = if supplied_idx < val_args.len() {
+                        parse_printf_integer_checked(raw_arg, true)
+                    } else {
+                        (0, None)
+                    };
+                    if let Some(msg) = err {
+                        stderr.push_str(&format!("printf: '{raw_arg}': {msg}\n"));
+                        exit_code = 1;
+                    }
+                    let n = n_128 as u64;
+                    let mut digits = if precision == Some(0) && n == 0 {
+                        String::new()
+                    } else if conv == 'X' {
+                        format!("{n:X}")
+                    } else {
+                        format!("{n:x}")
+                    };
+                    if let Some(p) = precision
+                        && digits.len() < p
+                    {
+                        digits = format!("{}{digits}", "0".repeat(p - digits.len()));
+                    }
+                    let prefix = if alt_form && n != 0 {
+                        if conv == 'X' { "0X" } else { "0x" }
+                    } else {
+                        ""
+                    };
+                    format_signed_num(
+                        prefix,
+                        &digits,
+                        w_usize,
+                        left_align,
+                        zero_pad && precision.is_none(),
+                    )
+                }
+                'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
+                    let f = if supplied_idx >= val_args.len() {
+                        0.0
+                    } else if let Some(rest) =
+                        raw_arg.strip_prefix('\'').or_else(|| raw_arg.strip_prefix('"'))
+                    {
+                        rest.chars().next().map(|c| c as u32 as f64).unwrap_or(0.0)
+                    } else {
+                        match raw_arg.trim().parse::<f64>() {
+                            Ok(v) if !raw_arg.is_empty() && v.is_finite() => v,
+                            _ => {
+                                stderr.push_str(&format!("printf: '{raw_arg}': invalid number\n"));
+                                exit_code = 1;
+                                0.0
                             }
                         }
-                        format_signed_num(sign, &digits, w_usize, left_align, zero_pad && precision.is_none())
-                    }
-                    'u' => {
-                        let n = parse_printf_uint(raw_arg);
-                        let mut digits = n.to_string();
-                        if let Some(p) = precision
-                            && digits.len() < p
-                        {
-                            digits = format!("{}{digits}", "0".repeat(p - digits.len()));
-                        }
-                        format_signed_num("", &digits, w_usize, left_align, zero_pad && precision.is_none())
-                    }
-                    'o' => {
-                        let n = parse_printf_uint(raw_arg);
-                        let mut digits = format!("{n:o}");
-                        if alt_form && !digits.starts_with('0') {
-                            digits = format!("0{digits}");
-                        }
-                        if let Some(p) = precision
-                            && digits.len() < p
-                        {
-                            digits = format!("{}{digits}", "0".repeat(p - digits.len()));
-                        }
-                        format_signed_num("", &digits, w_usize, left_align, zero_pad && precision.is_none())
-                    }
-                    'x' | 'X' => {
-                        let n = parse_printf_uint(raw_arg);
-                        let mut digits = if conv == 'X' {
-                            format!("{n:X}")
-                        } else {
-                            format!("{n:x}")
-                        };
-                        if let Some(p) = precision
-                            && digits.len() < p
-                        {
-                            digits = format!("{}{digits}", "0".repeat(p - digits.len()));
-                        }
-                        let prefix = if alt_form && n != 0 {
-                            if conv == 'X' { "0X" } else { "0x" }
-                        } else {
-                            ""
-                        };
-                        format_signed_num(prefix, &digits, w_usize, left_align, zero_pad && precision.is_none())
-                    }
-                    'f' | 'F' => {
-                        let f = raw_arg.trim().parse::<f64>().unwrap_or(0.0);
+                    };
+                    if matches!(conv, 'f' | 'F') {
                         let prec = precision.unwrap_or(6);
                         let sign = if f.is_sign_negative() {
                             "-"
@@ -1364,25 +1779,19 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
                         let abs_f = f.abs();
                         let body = format!("{abs_f:.prec$}");
                         format_signed_num(sign, &body, w_usize, left_align, zero_pad)
-                    }
-                    'e' | 'E' => {
-                        let f = raw_arg.trim().parse::<f64>().unwrap_or(0.0);
+                    } else if matches!(conv, 'e' | 'E') {
                         let prec = precision.unwrap_or(6);
                         let s = format_scientific(f, prec, conv == 'E');
                         pad_string(&s, w_usize, left_align, zero_pad)
-                    }
-                    'g' | 'G' => {
-                        let f = raw_arg.trim().parse::<f64>().unwrap_or(0.0);
+                    } else {
                         let prec = precision.unwrap_or(6).max(1);
                         let s = format_general_float(f, prec, conv == 'G');
                         pad_string(&s, w_usize, left_align, zero_pad)
                     }
-                    _ => raw_arg.to_string(),
-                };
-                out.push_str(&formatted);
-            } else {
-                out.push(c);
-            }
+                }
+                _ => raw_arg.to_string(),
+            };
+            out.push_str(&formatted);
         }
         if stop_all || arg_i >= val_args.len() || arg_i == start_arg_i {
             break;
@@ -1401,24 +1810,27 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
         {
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!("printf: {base}: readonly variable\n"),
+                stderr: format!("{stderr}printf: {base}: readonly variable\n"),
                 exit_code: 1,
             };
         }
-        env.insert(resolved.clone(), out);
-        if let Some((base, _)) = resolved.split_once('[') {
-            sync_array_metadata(base, env);
+        if base != "FUNCNAME" {
+            let truncated = out.split('\0').next().unwrap_or("").to_string();
+            env.insert(resolved.clone(), truncated);
+            if let Some((base, _)) = resolved.split_once('[') {
+                sync_array_metadata(base, env);
+            }
         }
         BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stderr,
+            exit_code,
         }
     } else {
         BuiltinOutcome {
             stdout: out,
-            stderr: String::new(),
-            exit_code: 0,
+            stderr,
+            exit_code,
         }
     }
 }
@@ -1515,7 +1927,7 @@ pub fn builtin_test(
         if args.last().map(|s| s.as_str()) != Some("]") {
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: "[: missing `]`\n".to_string(),
+                stderr: "[: missing ']'\n".to_string(),
                 exit_code: 2,
             };
         }
@@ -1524,14 +1936,474 @@ pub fn builtin_test(
         if args.last().map(|s| s.as_str()) == Some("]]") {
             args = &args[..args.len() - 1];
         }
+        let mut pos = 0usize;
+        let ok = eval_test_or(args, &mut pos, cwd, env, fs, true);
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: if ok { 0 } else { 1 },
+        };
     }
-    let mut pos = 0usize;
-    let ok = eval_test_or(args, &mut pos, cwd, env, fs, cmd == "[[");
-    BuiltinOutcome {
-        stdout: String::new(),
-        stderr: String::new(),
-        exit_code: if ok { 0 } else { 1 },
+
+    match eval_posix_test(args, cwd, env, fs) {
+        Ok(ok) => BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: if ok { 0 } else { 1 },
+        },
+        Err(msg) => BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{cmd}: {msg}\n"),
+            exit_code: 2,
+        },
     }
+}
+
+fn is_test_unary_op(op: &str) -> bool {
+    matches!(
+        op,
+        "-n"
+            | "-z"
+            | "-e"
+            | "-a"
+            | "-f"
+            | "-d"
+            | "-c"
+            | "-L"
+            | "-h"
+            | "-s"
+            | "-r"
+            | "-w"
+            | "-x"
+            | "-b"
+            | "-p"
+            | "-S"
+            | "-u"
+            | "-g"
+            | "-k"
+            | "-O"
+            | "-G"
+            | "-t"
+            | "-v"
+            | "-o"
+            | "-R"
+            | "-N"
+    )
+}
+
+fn is_test_binary_op(op: &str) -> bool {
+    matches!(
+        op,
+        "="
+            | "=="
+            | "!="
+            | "<"
+            | ">"
+            | "-eq"
+            | "-ne"
+            | "-lt"
+            | "-le"
+            | "-gt"
+            | "-ge"
+            | "-nt"
+            | "-ot"
+            | "-ef"
+    )
+}
+
+fn is_test_numeric_op(op: &str) -> bool {
+    matches!(op, "-eq" | "-ne" | "-lt" | "-le" | "-gt" | "-ge")
+}
+
+fn parse_test_integer(text: &str) -> Result<i64, String> {
+    let trimmed = text.trim_matches(|c| c == ' ' || c == '\t');
+    let rest = trimmed
+        .strip_prefix('+')
+        .or_else(|| trimmed.strip_prefix('-'))
+        .unwrap_or(trimmed);
+    if rest.is_empty() || !rest.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(format!("integer expression expected: '{text}'"));
+    }
+    trimmed
+        .parse::<i64>()
+        .map_err(|_| format!("integer expression expected: '{text}'"))
+}
+
+fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
+    if let Some((base, sub_with_bracket)) = val.split_once('[')
+        && let Some(sub) = sub_with_bracket.strip_suffix(']')
+    {
+        let resolved_base = resolve_nameref_base(base, env);
+        if sub == "@" || sub == "*" {
+            if env.contains_key(resolved_base) {
+                return true;
+            }
+            let prefix = format!("{resolved_base}[");
+            return env.keys().any(|k| {
+                k.strip_prefix(&prefix)
+                    .and_then(|s| s.strip_suffix(']'))
+                    .is_some_and(|sub_k| !matches!(sub_k, "#" | "@" | "*"))
+            });
+        }
+        let is_assoc = env.get(&format!("__assoc__{resolved_base}")).is_some_and(|v| v == "1");
+        let key = if is_assoc {
+            format!("{resolved_base}[{sub}]")
+        } else {
+            let idx = eval_arith(sub, &mut env.clone()).unwrap_or(0);
+            if idx < 0 {
+                let prefix = format!("{resolved_base}[");
+                let max_idx = env
+                    .keys()
+                    .filter_map(|k| k.strip_prefix(&prefix)?.strip_suffix(']')?.parse::<i64>().ok())
+                    .max()
+                    .unwrap_or(-1);
+                let eff = max_idx + 1 + idx;
+                if eff < 0 {
+                    return false;
+                }
+                format!("{resolved_base}[{eff}]")
+            } else {
+                format!("{resolved_base}[{idx}]")
+            }
+        };
+        return env.contains_key(&key) || (key.ends_with("[0]") && env.contains_key(resolved_base));
+    }
+    let resolved = resolve_nameref_base(val, env);
+    if env.contains_key(resolved) || env.contains_key(val) {
+        return true;
+    }
+    let prefix = format!("{resolved}[");
+    env.keys().any(|k| {
+        k.strip_prefix(&prefix)
+            .and_then(|s| s.strip_suffix(']'))
+            .is_some_and(|sub_k| !matches!(sub_k, "#" | "@" | "*"))
+    })
+}
+
+fn eval_test_unary_predicate(
+    op: &str,
+    val: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> bool {
+    let path = resolve_posix_path(cwd, val);
+    match op {
+        "-z" => val.is_empty(),
+        "-n" => !val.is_empty(),
+        "-e" | "-a" => fs.stat(&path).is_ok(),
+        "-f" => fs
+            .stat(&path)
+            .map(|s| s.kind == crate::vfs::VfsEntryKind::File && (s.mode & 0o170000) != 0o020000)
+            .unwrap_or(false),
+        "-d" => fs.is_dir(&path),
+        "-c" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o170000) == 0o020000)
+            .unwrap_or(false),
+        "-b" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o170000) == 0o060000)
+            .unwrap_or(false),
+        "-p" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o170000) == 0o010000)
+            .unwrap_or(false),
+        "-S" => fs
+            .stat(&path)
+            .map(|s| (s.mode & 0o170000) == 0o140000)
+            .unwrap_or(false),
+        "-u" => fs.stat(&path).map(|s| (s.mode & 0o4000) != 0).unwrap_or(false),
+        "-g" => fs.stat(&path).map(|s| (s.mode & 0o2000) != 0).unwrap_or(false),
+        "-k" => fs.stat(&path).map(|s| (s.mode & 0o1000) != 0).unwrap_or(false),
+        "-s" => fs.read_file(&path).map(|b| !b.is_empty()).unwrap_or(false),
+        "-L" | "-h" => fs.readlink(&path).is_ok(),
+        "-r" => fs.stat(&path).map(|s| s.mode & 0o444 != 0).unwrap_or(false),
+        "-w" => fs.stat(&path).map(|s| s.mode & 0o222 != 0).unwrap_or(false),
+        "-x" => fs
+            .stat(&path)
+            .map(|s| fs.is_dir(&path) || (s.mode & 0o111 != 0))
+            .unwrap_or(false),
+        "-t" => false,
+        "-v" => eval_test_var_present(val, env),
+        "-R" => {
+            env.contains_key(&format!("__nameref__{val}"))
+                || env
+                    .get(&format!("__attr__{val}"))
+                    .is_some_and(|a| a.contains('n'))
+        }
+        "-o" => {
+            if val == "braceexpand" {
+                env.get("__set_braceexpand").map(|v| v != "0").unwrap_or(true)
+            } else {
+                env.get(&format!("__set_{val}")).is_some_and(|v| v == "1")
+            }
+        }
+        "-O" => {
+            let euid = env
+                .get("__euid")
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(0);
+            fs.exists(&path) && euid == 0
+        }
+        "-G" => {
+            let egid = env
+                .get("__egid")
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(0);
+            fs.exists(&path) && egid == 0
+        }
+        "-N" => fs.stat(&path).map(|s| s.mtime_ms > 0).unwrap_or(false),
+        _ => fs.exists(&path),
+    }
+}
+
+fn eval_posix_test(
+    raw_args: &[String],
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> Result<bool, String> {
+    let mut args: Vec<String> = raw_args.to_vec();
+    let mut negate = false;
+    if args.len() == 4 {
+        if args[0] == "!" {
+            negate = true;
+            args.remove(0);
+        } else if args[0] == "(" && args[3] == ")" {
+            args.pop();
+            args.remove(0);
+        }
+    }
+    if args.len() == 3 && !is_test_binary_op(&args[1]) {
+        if args[1] == "-a" || args[1] == "-o" {
+            let val = if args[1] == "-a" {
+                !args[0].is_empty() && !args[2].is_empty()
+            } else {
+                !args[0].is_empty() || !args[2].is_empty()
+            };
+            return Ok(val != negate);
+        }
+        if args[0] == "!" {
+            negate = !negate;
+            args.remove(0);
+        } else if args[0] == "(" && args[2] == ")" {
+            args.pop();
+            args.remove(0);
+        }
+    }
+    if args.len() == 2 && args[0] == "!" {
+        negate = !negate;
+        args.remove(0);
+    }
+    if args.len() < 2 {
+        let val = args.first().is_some_and(|s| !s.is_empty());
+        return Ok(val != negate);
+    }
+
+    enum TestExpr {
+        Atom(bool),
+        Not(Box<TestExpr>),
+        Or(Vec<Vec<TestExpr>>),
+    }
+    struct TestFrame {
+        groups: Vec<Vec<TestExpr>>,
+        negate: bool,
+        pending_not: bool,
+    }
+
+    let mut offset = 0usize;
+    let parse_primary = |offset: &mut usize| -> Result<bool, String> {
+        let Some(token) = args.get(*offset).cloned() else {
+            return Err("argument expected".to_string());
+        };
+        *offset += 1;
+        if args.len() > 3 && token == "(" && args.get(*offset + 1).map(|s| s.as_str()) == Some(")")
+        {
+            let val = args.get(*offset).is_some_and(|s| !s.is_empty());
+            *offset += 2;
+            return Ok(val);
+        }
+        if token == "("
+            && args.get(*offset).map(|s| s.as_str()) == Some("!")
+            && args.get(*offset + 2).map(|s| s.as_str()) == Some(")")
+        {
+            let val = !args.get(*offset + 1).is_some_and(|s| !s.is_empty());
+            *offset += 3;
+            return Ok(val);
+        }
+        let left_length = token == "-l"
+            && args
+                .get(*offset + 1)
+                .is_some_and(|op| is_test_numeric_op(op));
+        let left = if left_length {
+            let l = args[*offset].clone();
+            *offset += 1;
+            l
+        } else {
+            token.clone()
+        };
+        if *offset + 1 < args.len()
+            && let Some(operator) = args.get(*offset).cloned()
+            && is_test_binary_op(&operator)
+        {
+            *offset += 1;
+            let right_length = is_test_numeric_op(&operator)
+                && args.get(*offset).map(|s| s.as_str()) == Some("-l");
+            if right_length {
+                *offset += 1;
+            }
+            let Some(right) = args.get(*offset).cloned() else {
+                return Err("binary operator requires two operands".to_string());
+            };
+            *offset += 1;
+            if is_test_numeric_op(&operator) {
+                let l_num = if left_length {
+                    left.len() as i64
+                } else {
+                    parse_test_integer(&left)?
+                };
+                let r_num = if right_length {
+                    right.len() as i64
+                } else {
+                    parse_test_integer(&right)?
+                };
+                return Ok(match operator.as_str() {
+                    "-eq" => l_num == r_num,
+                    "-ne" => l_num != r_num,
+                    "-lt" => l_num < r_num,
+                    "-le" => l_num <= r_num,
+                    "-gt" => l_num > r_num,
+                    _ => l_num >= r_num,
+                });
+            }
+            return Ok(match operator.as_str() {
+                "=" | "==" => token == right,
+                "!=" => token != right,
+                "<" => token < right,
+                ">" => token > right,
+                "-nt" => {
+                    let lp = resolve_posix_path(cwd, &token);
+                    let rp = resolve_posix_path(cwd, &right);
+                    match (fs.stat(&lp), fs.stat(&rp)) {
+                        (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
+                        (Ok(_), Err(_)) => true,
+                        _ => false,
+                    }
+                }
+                "-ot" => {
+                    let lp = resolve_posix_path(cwd, &token);
+                    let rp = resolve_posix_path(cwd, &right);
+                    match (fs.stat(&lp), fs.stat(&rp)) {
+                        (Ok(ls), Ok(rs)) => ls.mtime_ms < rs.mtime_ms,
+                        (Err(_), Ok(_)) => true,
+                        _ => false,
+                    }
+                }
+                "-ef" => {
+                    let lp = resolve_posix_path(cwd, &token);
+                    let rp = resolve_posix_path(cwd, &right);
+                    fs.stat(&lp).is_ok()
+                        && fs.stat(&rp).is_ok()
+                        && resolve_physical_path(cwd, &token, fs)
+                            == resolve_physical_path(cwd, &right, fs)
+                }
+                _ => false,
+            });
+        }
+        if is_test_unary_op(&token) {
+            let Some(operand) = args.get(*offset).cloned() else {
+                return Err("unary operator requires an operand".to_string());
+            };
+            *offset += 1;
+            return Ok(eval_test_unary_predicate(&token, &operand, cwd, env, fs));
+        }
+        Ok(!token.is_empty())
+    };
+
+    let mut frames = vec![TestFrame {
+        groups: vec![Vec::new()],
+        negate: false,
+        pending_not: false,
+    }];
+    let mut expecting = true;
+    loop {
+        let tok = args.get(offset).map(|s| s.as_str());
+        if expecting {
+            let short_group = tok == Some("(")
+                && ((args.len() > 3 && args.get(offset + 2).map(|s| s.as_str()) == Some(")"))
+                    || (args.get(offset + 1).map(|s| s.as_str()) == Some("!")
+                        && args.get(offset + 3).map(|s| s.as_str()) == Some(")")));
+            if !short_group
+                && matches!(tok, Some("!" | "("))
+                && !(args.len() == 3 && offset == 0 && is_test_binary_op(&args[1]))
+            {
+                offset += 1;
+                let frame = frames.last_mut().unwrap();
+                if tok == Some("!") {
+                    frame.pending_not = !frame.pending_not;
+                } else {
+                    let neg = frame.pending_not;
+                    frame.pending_not = false;
+                    frames.push(TestFrame {
+                        groups: vec![Vec::new()],
+                        negate: neg,
+                        pending_not: false,
+                    });
+                }
+                continue;
+            }
+            let atom_val = parse_primary(&mut offset)?;
+            let frame = frames.last_mut().unwrap();
+            let mut expr = TestExpr::Atom(atom_val);
+            if frame.pending_not {
+                expr = TestExpr::Not(Box::new(expr));
+            }
+            frame.pending_not = false;
+            frame.groups.last_mut().unwrap().push(expr);
+            expecting = false;
+        } else if matches!(tok, Some("-a" | "-o")) {
+            offset += 1;
+            if tok == Some("-o") {
+                frames.last_mut().unwrap().groups.push(Vec::new());
+            }
+            expecting = true;
+        } else if frames.len() > 1 {
+            if args.get(offset).map(|s| s.as_str()) != Some(")") {
+                return Err("missing ')'".to_string());
+            }
+            offset += 1;
+            let frame = frames.pop().unwrap();
+            let mut expr = TestExpr::Or(frame.groups);
+            if frame.negate {
+                expr = TestExpr::Not(Box::new(expr));
+            }
+            frames
+                .last_mut()
+                .unwrap()
+                .groups
+                .last_mut()
+                .unwrap()
+                .push(expr);
+        } else {
+            break;
+        }
+    }
+    if offset != args.len() {
+        return Err(format!("unexpected argument '{}'", args[offset]));
+    }
+
+    fn eval_expr(expr: &TestExpr) -> bool {
+        match expr {
+            TestExpr::Atom(v) => *v,
+            TestExpr::Not(inner) => !eval_expr(inner),
+            TestExpr::Or(groups) => groups
+                .iter()
+                .any(|and_group| and_group.iter().all(eval_expr)),
+        }
+    }
+    let root = TestExpr::Or(frames.pop().unwrap().groups);
+    Ok(eval_expr(&root) != negate)
 }
 
 fn eval_test_or(
@@ -1704,7 +2576,11 @@ fn eval_test_primary(
                 }
             }
             "-ef" => {
-                resolve_physical_path(cwd, left, fs) == resolve_physical_path(cwd, right, fs)
+                let lp = resolve_posix_path(cwd, left);
+                let rp = resolve_posix_path(cwd, right);
+                fs.stat(&lp).is_ok()
+                    && fs.stat(&rp).is_ok()
+                    && resolve_physical_path(cwd, left, fs) == resolve_physical_path(cwd, right, fs)
             }
             _ => false,
         };
@@ -1712,75 +2588,12 @@ fn eval_test_primary(
 
     // Unary expression: -op arg
     if *pos + 1 < args.len()
-        && matches!(
-            args[*pos].as_str(),
-            "-z" | "-n" | "-e" | "-a" | "-f" | "-d" | "-s" | "-L" | "-h" | "-r" | "-w" | "-x" | "-p" | "-S" | "-b" | "-c" | "-g" | "-u" | "-k" | "-O" | "-G" | "-N" | "-t" | "-v" | "-o"
-        )
+        && is_test_unary_op(args[*pos].as_str())
     {
         let op = args[*pos].as_str();
         let val = &args[*pos + 1];
         *pos += 2;
-        let path = resolve_posix_path(cwd, val);
-        return match op {
-            "-z" => val.is_empty(),
-            "-n" => !val.is_empty(),
-            "-e" | "-a" => fs.stat(&path).is_ok(),
-            "-f" => fs
-                .stat(&path)
-                .map(|s| s.kind == crate::vfs::VfsEntryKind::File && (s.mode & 0o170000) != 0o020000)
-                .unwrap_or(false),
-            "-d" => fs.is_dir(&path),
-            "-c" => fs
-                .stat(&path)
-                .map(|s| (s.mode & 0o170000) == 0o020000)
-                .unwrap_or(false),
-            "-b" => fs
-                .stat(&path)
-                .map(|s| (s.mode & 0o170000) == 0o060000)
-                .unwrap_or(false),
-            "-p" => fs
-                .stat(&path)
-                .map(|s| (s.mode & 0o170000) == 0o010000)
-                .unwrap_or(false),
-            "-S" => fs
-                .stat(&path)
-                .map(|s| (s.mode & 0o170000) == 0o140000)
-                .unwrap_or(false),
-            "-u" => fs.stat(&path).map(|s| (s.mode & 0o4000) != 0).unwrap_or(false),
-            "-g" => fs.stat(&path).map(|s| (s.mode & 0o2000) != 0).unwrap_or(false),
-            "-k" => fs.stat(&path).map(|s| (s.mode & 0o1000) != 0).unwrap_or(false),
-            "-s" => fs.read_file(&path).map(|b| !b.is_empty()).unwrap_or(false),
-            "-L" | "-h" => fs.readlink(&path).is_ok(),
-            "-r" => fs.stat(&path).map(|s| s.mode & 0o444 != 0).unwrap_or(false),
-            "-w" => fs.stat(&path).map(|s| s.mode & 0o222 != 0).unwrap_or(false),
-            "-x" => fs
-                .stat(&path)
-                .map(|s| fs.is_dir(&path) || (s.mode & 0o111 != 0))
-                .unwrap_or(false),
-            "-v" => {
-                let resolved = resolve_nameref_base(val, env);
-                env.contains_key(resolved) || env.contains_key(val)
-            }
-            "-o" => env
-                .get(&format!("__set_{val}"))
-                .map(|v| v == "1")
-                .unwrap_or(false),
-            "-O" => {
-                let euid = env
-                    .get("__euid")
-                    .and_then(|v| v.parse::<u32>().ok())
-                    .unwrap_or(0);
-                fs.exists(&path) && euid == 0
-            }
-            "-G" => {
-                let egid = env
-                    .get("__egid")
-                    .and_then(|v| v.parse::<u32>().ok())
-                    .unwrap_or(0);
-                fs.exists(&path) && egid == 0
-            }
-            _ => fs.exists(&path),
-        };
+        return eval_test_unary_predicate(op, val, cwd, env, fs);
     }
 
     let single = &args[*pos];
@@ -2032,5 +2845,54 @@ mod tests {
         let let_help = try_run_builtin("let", &args(&["--help"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
         assert_eq!(let_help.exit_code, 2);
         assert_eq!(let_help.stderr, "let: --help: unsupported option\n");
+    }
+
+    #[test]
+    fn unit_builtins_printf_test_echo_xpg_and_hash_parity() {
+        let vfs = MemoryVfs::new();
+        let mut env = BTreeMap::new();
+        let mut cwd = "/".to_string();
+        let mut stdin = String::new();
+
+        env.insert("__shopt_xpg_echo".to_string(), "1".to_string());
+        let echo_xpg =
+            try_run_builtin("echo", &args(&["a\\tb\\c", "ignored"]), &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap();
+        assert_eq!(echo_xpg.exit_code, 0);
+        assert_eq!(echo_xpg.stdout, "a\tb");
+
+        let echo_no_esc =
+            try_run_builtin("echo", &args(&["-E", "a\\tb"]), &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap();
+        assert_eq!(echo_no_esc.stdout, "a\\tb\n");
+
+        let pf_v = builtin_printf(&args(&["-vout_var", "%#q|%Q|%(%Y-%m-%d)T", "a b", "x\ny", "0"]), &mut env);
+        assert_eq!(pf_v.exit_code, 0);
+        assert_eq!(
+            env.get("out_var").map(String::as_str),
+            Some("'a b'|$'x\\ny'|1970-01-01")
+        );
+
+        let pf_bad_num = builtin_printf(&args(&["%d", "12abc"]), &mut env);
+        assert_eq!(pf_bad_num.exit_code, 1);
+        assert_eq!(pf_bad_num.stdout, "12");
+        assert_eq!(
+            pf_bad_num.stderr,
+            "printf: '12abc': value not completely converted\n"
+        );
+
+        let test_len =
+            try_run_builtin("test", &args(&["-l", "hello", "-eq", "5"]), &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap();
+        assert_eq!(test_len.exit_code, 0);
+
+        let test_bad_int =
+            try_run_builtin("[", &args(&["1+2", "-eq", "3", "]"]), &mut stdin, &mut cwd, &mut env, &vfs)
+                .unwrap();
+        assert_eq!(test_bad_int.exit_code, 2);
+        assert_eq!(
+            test_bad_int.stderr,
+            "[: integer expression expected: '1+2'\n"
+        );
     }
 }

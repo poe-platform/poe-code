@@ -1225,8 +1225,11 @@ impl<'a> EvalState<'a> {
             return Err(EvalError::Syntax(format!("{resolved}: readonly variable")));
         }
 
-        if raw_val.starts_with('(') && raw_val.ends_with(')') {
-            let inner = &raw_val[1..raw_val.len() - 1];
+        if let Some(arr_lit) = raw_val.strip_prefix("\x00__ARRAY_LITERAL__")
+            && arr_lit.starts_with('(')
+            && arr_lit.ends_with(')')
+        {
+            let inner = &arr_lit[1..arr_lit.len() - 1];
             let items = self.expand_array_literal_items(inner)?;
             if !append {
                 let prefix = format!("{resolved}[");
@@ -1337,6 +1340,16 @@ impl<'a> EvalState<'a> {
         } else if !already_existed || was_unexported {
             self.env
                 .insert(format!("__unexported__{resolved}"), "1".to_string());
+        }
+        if resolved == "OPTIND"
+            && final_val
+                .trim()
+                .parse::<i64>()
+                .map(|v| v <= 1)
+                .unwrap_or(false)
+        {
+            self.env.remove("__getopts_sub");
+            self.env.remove("__getopts_ind");
         }
         self.env.insert(resolved, final_val);
         Ok(())
@@ -1578,7 +1591,7 @@ impl<'a> EvalState<'a> {
                     if let Some((lhs, rhs, append)) = parse_assignment_lhs_rhs(w) {
                         if rhs.starts_with('(') && rhs.ends_with(')') {
                             expanded_words.push(format!(
-                                "{lhs}{}{rhs}",
+                                "{lhs}{}\x00__ARRAY_LITERAL__{rhs}",
                                 if append { "+=" } else { "=" }
                             ));
                         } else {
@@ -1655,7 +1668,7 @@ impl<'a> EvalState<'a> {
             for (k, v, append) in &simple.assignments {
                 let before = self.last_exit;
                 let val = if v.starts_with('(') && v.ends_with(')') {
-                    v.clone()
+                    format!("\x00__ARRAY_LITERAL__{v}")
                 } else {
                     self.expand_assignment_rhs(v)?
                 };
@@ -3342,6 +3355,66 @@ impl<'a> EvalState<'a> {
             "vi",
         ];
         let mut stdout = String::new();
+        if args.is_empty() {
+            let mut candidate_names: BTreeSet<String> = BTreeSet::new();
+            for k in self.env.keys() {
+                if let Some(n) = k.strip_prefix("__attr__") {
+                    if is_valid_shell_ident(n) && !n.starts_with("__") {
+                        candidate_names.insert(n.to_string());
+                    }
+                } else if let Some(n) = k.strip_prefix("__declared__") {
+                    if is_valid_shell_ident(n) && !n.starts_with("__") {
+                        candidate_names.insert(n.to_string());
+                    }
+                } else if let Some(n) = k.strip_prefix("__assoc__") {
+                    if is_valid_shell_ident(n) && !n.starts_with("__") {
+                        candidate_names.insert(n.to_string());
+                    }
+                } else if let Some((b, _)) = k.split_once('[') {
+                    if is_valid_shell_ident(b) && !b.starts_with("__") {
+                        candidate_names.insert(b.to_string());
+                    }
+                } else if is_valid_shell_ident(k) && !k.starts_with("__") {
+                    candidate_names.insert(k.clone());
+                }
+            }
+            for name in candidate_names {
+                let (has_var, is_arr_assoc, is_arr, entries, _) =
+                    get_var_meta_info(&name, self.env);
+                if !has_var {
+                    continue;
+                }
+                if is_arr {
+                    let mut pairs = Vec::new();
+                    for (k, v) in entries {
+                        let qk = if is_arr_assoc {
+                            bash_quote_double(&k)
+                        } else {
+                            k
+                        };
+                        pairs.push(format!("[{qk}]={}", bash_quote_double(&v)));
+                    }
+                    stdout.push_str(&format!("{name}=({})\n", pairs.join(" ")));
+                } else if let Some(val) = self.env.get(&name) {
+                    if val
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || "_./:@%+=,-".contains(c))
+                    {
+                        stdout.push_str(&format!("{name}={val}\n"));
+                    } else {
+                        stdout.push_str(&format!("{name}={}\n", bash_quote_double(val)));
+                    }
+                }
+            }
+            for (fn_name, fn_body) in &self.functions {
+                stdout.push_str(&format_function_display(fn_name, fn_body));
+            }
+            return BuiltinOutcome {
+                stdout,
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        }
         let mut i = 0usize;
         while i < args.len() {
             let a = &args[i];
@@ -4984,23 +5057,54 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_getopts(&mut self, args: &[String]) -> BuiltinOutcome {
-        if args.len() < 2 {
+        let offset = if args.first().map(|s| s.as_str()) == Some("--") {
+            1
+        } else {
+            0
+        };
+        if offset == 0
+            && let Some(first) = args.first()
+            && first.starts_with('-')
+            && first != "-"
+        {
+            let ch = first.chars().nth(1).unwrap_or('-');
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 1,
+                stderr: format!(
+                    "getopts: -{ch}: invalid option\ngetopts: usage: getopts optstring name [arg ...]\n"
+                ),
+                exit_code: 2,
             };
         }
-        let optstring = args[0].clone();
-        let var_name = args[1].clone();
-        let opt_args: Vec<String> = if args.len() > 2 {
-            args[2..].to_vec()
+        if args.len() - offset < 2 {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "getopts: usage: getopts optstring name [arg ...]\n".to_string(),
+                exit_code: 2,
+            };
+        }
+        let optstring = args[offset].clone();
+        let var_name = args[offset + 1].clone();
+        let opt_args: Vec<String> = if args.len() > offset + 2 {
+            args[offset + 2..].to_vec()
         } else {
             self.pos_args.clone()
         };
 
         let silent = optstring.starts_with(':');
         let clean_opts = optstring.strip_prefix(':').unwrap_or(&optstring);
+        let report_errors = !silent
+            && self
+                .env
+                .get("OPTERR")
+                .map(|v| v.is_empty() || v.trim().parse::<i64>() != Ok(0))
+                .unwrap_or(true);
+        let prog_name = self
+            .env
+            .get("0")
+            .cloned()
+            .or_else(|| self.script_name.clone())
+            .unwrap_or_else(|| "shell".to_string());
 
         let optind = self
             .env
@@ -5017,32 +5121,48 @@ impl<'a> EvalState<'a> {
             1
         };
 
-        let idx = optind - 1;
-        if idx >= opt_args.len() {
-            self.env.remove("__getopts_sub");
-            return BuiltinOutcome {
+        let resolved_var = resolve_nameref_base(&var_name, self.env).to_string();
+        let var_is_readonly = self
+            .env
+            .get(&format!("__attr__{resolved_var}"))
+            .is_some_and(|a| a.contains('r'));
+
+        let finish_end = |this: &mut Self, next_optind: usize| -> BuiltinOutcome {
+            this.env.insert("OPTIND".to_string(), next_optind.to_string());
+            this.env.remove("OPTARG");
+            this.env.remove("__getopts_sub");
+            if !is_valid_shell_ident(&var_name) {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
+                    exit_code: 1,
+                };
+            }
+            if var_is_readonly {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{resolved_var}: readonly variable\n"),
+                    exit_code: 1,
+                };
+            }
+            this.env.insert(resolved_var.clone(), "?".to_string());
+            BuiltinOutcome {
                 stdout: String::new(),
                 stderr: String::new(),
                 exit_code: 1,
-            };
+            }
+        };
+
+        let idx = optind - 1;
+        if idx >= opt_args.len() {
+            return finish_end(self, opt_args.len() + 1);
         }
         let cur = &opt_args[idx];
         if !cur.starts_with('-') || cur == "-" {
-            self.env.remove("__getopts_sub");
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 1,
-            };
+            return finish_end(self, optind);
         }
         if cur == "--" {
-            self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
-            self.env.remove("__getopts_sub");
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 1,
-            };
+            return finish_end(self, optind + 1);
         }
 
         let cur_chars: Vec<char> = cur.chars().collect();
@@ -5050,14 +5170,21 @@ impl<'a> EvalState<'a> {
             sub_idx = 1;
         }
         let flag_ch = cur_chars[sub_idx];
-        let resolved_var = resolve_nameref_base(&var_name, self.env).to_string();
-        let var_is_readonly = self
-            .env
-            .get(&format!("__attr__{resolved_var}"))
-            .is_some_and(|a| a.contains('r'));
 
-        let Some(pos) = clean_opts.find(flag_ch) else {
+        let opt_match = if flag_ch == ':' || flag_ch == '?' {
+            None
+        } else {
+            clean_opts.find(flag_ch)
+        };
+
+        let Some(pos) = opt_match else {
+            let mut stderr = if report_errors {
+                format!("{prog_name}: illegal option -- {flag_ch}\n")
+            } else {
+                String::new()
+            };
             if sub_idx + 1 < cur_chars.len() {
+                self.env.insert("OPTIND".to_string(), optind.to_string());
                 self.env.insert("__getopts_ind".to_string(), optind.to_string());
                 self.env.insert("__getopts_sub".to_string(), (sub_idx + 1).to_string());
             } else {
@@ -5069,21 +5196,26 @@ impl<'a> EvalState<'a> {
             } else {
                 self.env.remove("OPTARG");
             }
-            if var_is_readonly {
+            if !is_valid_shell_ident(&var_name) {
+                stderr.push_str(&format!("getopts: `{var_name}': not a valid identifier\n"));
                 return BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("{resolved_var}: readonly variable\n"),
+                    stderr,
                     exit_code: 1,
                 };
             }
-            self.env.insert(var_name, "?".to_string());
+            if var_is_readonly {
+                stderr.push_str(&format!("{resolved_var}: readonly variable\n"));
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr,
+                    exit_code: 1,
+                };
+            }
+            self.env.insert(resolved_var, "?".to_string());
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: if silent {
-                    String::new()
-                } else {
-                    format!("getopts: illegal option -- {flag_ch}\n")
-                },
+                stderr,
                 exit_code: 0,
             };
         };
@@ -5095,6 +5227,13 @@ impl<'a> EvalState<'a> {
             if !rest.is_empty() {
                 self.env.insert("OPTARG".to_string(), rest);
                 self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
+                if !is_valid_shell_ident(&var_name) {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
+                        exit_code: 1,
+                    };
+                }
                 if var_is_readonly {
                     return BuiltinOutcome {
                         stdout: String::new(),
@@ -5102,10 +5241,17 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     };
                 }
-                self.env.insert(var_name, flag_ch.to_string());
+                self.env.insert(resolved_var, flag_ch.to_string());
             } else if idx + 1 < opt_args.len() {
                 self.env.insert("OPTARG".to_string(), opt_args[idx + 1].clone());
                 self.env.insert("OPTIND".to_string(), (optind + 2).to_string());
+                if !is_valid_shell_ident(&var_name) {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
+                        exit_code: 1,
+                    };
+                }
                 if var_is_readonly {
                     return BuiltinOutcome {
                         stdout: String::new(),
@@ -5113,39 +5259,61 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     };
                 }
-                self.env.insert(var_name, flag_ch.to_string());
+                self.env.insert(resolved_var, flag_ch.to_string());
             } else {
+                let mut stderr = if report_errors {
+                    format!("{prog_name}: option requires an argument -- {flag_ch}\n")
+                } else {
+                    String::new()
+                };
                 self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
                 if silent {
                     self.env.insert("OPTARG".to_string(), flag_ch.to_string());
-                    if var_is_readonly {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{resolved_var}: readonly variable\n"),
-                            exit_code: 1,
-                        };
-                    }
-                    self.env.insert(var_name, ":".to_string());
                 } else {
                     self.env.remove("OPTARG");
-                    if var_is_readonly {
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{resolved_var}: readonly variable\n"),
-                            exit_code: 1,
-                        };
-                    }
-                    self.env.insert(var_name, "?".to_string());
                 }
+                if !is_valid_shell_ident(&var_name) {
+                    stderr.push_str(&format!("getopts: `{var_name}': not a valid identifier\n"));
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr,
+                        exit_code: 1,
+                    };
+                }
+                if var_is_readonly {
+                    stderr.push_str(&format!("{resolved_var}: readonly variable\n"));
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr,
+                        exit_code: 1,
+                    };
+                }
+                self.env.insert(
+                    resolved_var,
+                    if silent { ":" } else { "?" }.to_string(),
+                );
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr,
+                    exit_code: 0,
+                };
             }
         } else {
             self.env.remove("OPTARG");
             if sub_idx + 1 < cur_chars.len() {
+                self.env.insert("OPTIND".to_string(), optind.to_string());
                 self.env.insert("__getopts_ind".to_string(), optind.to_string());
                 self.env.insert("__getopts_sub".to_string(), (sub_idx + 1).to_string());
             } else {
                 self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
                 self.env.remove("__getopts_sub");
+            }
+            if !is_valid_shell_ident(&var_name) {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
+                    exit_code: 1,
+                };
             }
             if var_is_readonly {
                 return BuiltinOutcome {
@@ -5154,7 +5322,7 @@ impl<'a> EvalState<'a> {
                     exit_code: 1,
                 };
             }
-            self.env.insert(var_name, flag_ch.to_string());
+            self.env.insert(resolved_var, flag_ch.to_string());
         }
 
         BuiltinOutcome {
@@ -7523,5 +7691,43 @@ mod tests {
         let kill_l_err = state.eval_script_str("kill -l BOGUS", "").unwrap();
         assert_eq!(kill_l_err.exit_code, 1);
         assert_eq!(kill_l_err.stderr, "kill: BOGUS: invalid signal specification\n");
+    }
+
+    #[test]
+    fn unit_eval_set_dump_and_getopts_parity() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let set_out = state
+            .eval_script_str(
+                "SCALAR='a b'; SIMPLE=ok; ARR=(one 'two three'); myfn() { echo hi; }; set",
+                "",
+            )
+            .unwrap();
+        assert_eq!(set_out.exit_code, 0);
+        assert!(set_out.stdout.contains("ARR=([0]=\"one\" [1]=\"two three\")\n"));
+        assert!(set_out.stdout.contains("SCALAR=\"a b\"\n"));
+        assert!(set_out.stdout.contains("SIMPLE=ok\n"));
+        assert!(set_out.stdout.contains("myfn () \n{ \n    echo hi\n}\n"));
+
+        let getopts_bad = state.eval_script_str("getopts -z ab opt", "").unwrap();
+        assert_eq!(getopts_bad.exit_code, 2);
+        assert_eq!(
+            getopts_bad.stderr,
+            "getopts: -z: invalid option\ngetopts: usage: getopts optstring name [arg ...]\n"
+        );
+
+        let getopts_end = state
+            .eval_script_str(
+                "OPTARG=stale; getopts -- 'a:b' opt -a val -- rest; r1=\"$opt:$OPTARG:$OPTIND\"; getopts 'a:b' opt -a val -- rest; r2=\"$?:$opt:${OPTARG:-unset}:$OPTIND\"; echo \"$r1|$r2\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(getopts_end.exit_code, 0);
+        assert_eq!(getopts_end.stdout, "a:val:3|1:?:unset:4\n");
     }
 }

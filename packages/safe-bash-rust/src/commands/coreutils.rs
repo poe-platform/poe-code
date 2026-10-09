@@ -9001,6 +9001,22 @@ fn render_date_format(
     Ok(out)
 }
 
+pub(crate) fn format_strftime_for_printf(
+    fmt: &str,
+    epoch_sec: i64,
+    tz_env: Option<&str>,
+) -> Result<String, String> {
+    let expanded = fmt
+        .replace("%+", "%a %b %e %H:%M:%S %Z %Y")
+        .replace("%v", "%e-%b-%Y");
+    let (tz_offset, tz_label) = parse_tz_spec(tz_env, false);
+    let rendered = render_date_format(&expanded, epoch_sec, 0, tz_offset, &tz_label)?;
+    Ok(rendered
+        .strip_suffix('\n')
+        .unwrap_or(&rendered)
+        .to_string())
+}
+
 fn cmd_date(
     args: &[String],
     stdin: &str,

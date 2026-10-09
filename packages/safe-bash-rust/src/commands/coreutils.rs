@@ -5795,7 +5795,7 @@ fn cmd_expr(args: &[String]) -> BuiltinOutcome {
         return err_out("expr: missing operand\n", 2);
     }
     if args.len() == 1 && args[0] == "--help" {
-        return ok_out("Usage: expr EXPRESSION\n");
+        return ok_out("Usage: expr EXPRESSION\nTokens: | & < <= = == != >= > + - * / % :\nPrefixes: + TOKEN, length STRING, index STRING CHARS, substr STRING POS LENGTH, match STRING REGEXP\nGroup with ( EXPRESSION ). Each token is a separate argument.\nMatching uses bounded provider-driven BRE.\nProfiles depend on the provider: built-in portable non-NUL ASCII; Node C/POSIX byte or C.UTF-8 scalar.\n");
     }
     if args.len() == 1 && args[0] == "--version" {
         return ok_out("expr (virtual-bash)\n");
@@ -5846,6 +5846,9 @@ fn eval_expr_or(args: &[String], pos: &mut usize, active: bool) -> Result<String
     let mut left = eval_expr_and(args, pos, active)?;
     while *pos < args.len() && args[*pos] == "|" {
         *pos += 1;
+        if *pos >= args.len() {
+            return Err(("expr: syntax error: missing argument after '|'\n".to_string(), 2));
+        }
         let left_truth = active && is_expr_truthy(&left);
         let right = eval_expr_and(args, pos, active && !left_truth)?;
         if active && !left_truth {
@@ -5863,6 +5866,9 @@ fn eval_expr_and(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     let mut left = eval_expr_cmp(args, pos, active)?;
     while *pos < args.len() && args[*pos] == "&" {
         *pos += 1;
+        if *pos >= args.len() {
+            return Err(("expr: syntax error: missing argument after '&'\n".to_string(), 2));
+        }
         let left_truth = active && is_expr_truthy(&left);
         let right = eval_expr_cmp(args, pos, active && left_truth)?;
         if active && !(left_truth && is_expr_truthy(&right)) {
@@ -5877,6 +5883,9 @@ fn eval_expr_cmp(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     while *pos < args.len() && matches!(args[*pos].as_str(), "=" | "==" | "!=" | "<" | "<=" | ">" | ">=") {
         let op = args[*pos].clone();
         *pos += 1;
+        if *pos >= args.len() {
+            return Err((format!("expr: syntax error: missing argument after '{op}'\n"), 2));
+        }
         let right = eval_expr_add(args, pos, active)?;
         if active {
             let res = if let (Some(a), Some(b)) = (parse_expr_int(&left), parse_expr_int(&right)) {
@@ -5911,6 +5920,9 @@ fn eval_expr_add(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     while *pos < args.len() && matches!(args[*pos].as_str(), "+" | "-") {
         let op = args[*pos].clone();
         *pos += 1;
+        if *pos >= args.len() {
+            return Err((format!("expr: syntax error: missing argument after '{op}'\n"), 2));
+        }
         let right = eval_expr_mul(args, pos, active)?;
         if active {
             let Some(a) = parse_expr_int(&left) else {
@@ -5930,6 +5942,9 @@ fn eval_expr_mul(args: &[String], pos: &mut usize, active: bool) -> Result<Strin
     while *pos < args.len() && matches!(args[*pos].as_str(), "*" | "/" | "%") {
         let op = args[*pos].clone();
         *pos += 1;
+        if *pos >= args.len() {
+            return Err((format!("expr: syntax error: missing argument after '{op}'\n"), 2));
+        }
         let right = eval_expr_match(args, pos, active)?;
         if active {
             let Some(a) = parse_expr_int(&left) else {
@@ -5979,6 +5994,9 @@ fn eval_expr_match(args: &[String], pos: &mut usize, active: bool) -> Result<Str
     let mut left = eval_expr_primary(args, pos, active)?;
     while *pos < args.len() && args[*pos] == ":" {
         *pos += 1;
+        if *pos >= args.len() {
+            return Err(("expr: syntax error: missing argument after ':'\n".to_string(), 2));
+        }
         let right = eval_expr_primary(args, pos, active)?;
         if active {
             left = eval_expr_colon(&left, &right);
@@ -7454,34 +7472,53 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
     let parse_fields = |spec: &str, out_f: &mut Vec<(usize, usize)>| -> Result<(), String> {
         for part in spec.split(|c: char| c == ',' || c == ' ' || c == '\t') {
             if part.is_empty() {
-                continue;
+                return Err("numfmt: fields are numbered from 1\nTry 'numfmt --help' for more information.\n".to_string());
             }
             if part == "-" {
                 out_f.push((1, usize::MAX));
             } else if let Some((a, b)) = part.split_once('-') {
+                if b.contains('-') {
+                    return Err("numfmt: invalid field range\nTry 'numfmt --help' for more information.\n".to_string());
+                }
                 let st = if a.is_empty() {
                     1
                 } else {
+                    if !a.bytes().all(|ch| ch.is_ascii_digit()) {
+                        return Err(format!("numfmt: invalid field value '{a}'\nTry 'numfmt --help' for more information.\n"));
+                    }
                     a.parse::<usize>()
                         .ok()
                         .filter(|&v| v >= 1)
-                        .ok_or_else(|| "numfmt: invalid field range\n".to_string())?
+                        .ok_or_else(|| "numfmt: fields are numbered from 1\nTry 'numfmt --help' for more information.\n".to_string())?
                 };
                 let en = if b.is_empty() {
                     usize::MAX
                 } else {
-                    b.parse::<usize>()
+                    if !b.bytes().all(|ch| ch.is_ascii_digit()) {
+                        return Err(format!("numfmt: invalid field value '{b}'\nTry 'numfmt --help' for more information.\n"));
+                    }
+                    let parsed_b = b
+                        .parse::<usize>()
                         .ok()
-                        .filter(|&v| v >= st)
-                        .ok_or_else(|| "numfmt: invalid field range\n".to_string())?
+                        .filter(|&v| v >= 1)
+                        .ok_or_else(|| "numfmt: invalid decreasing range\nTry 'numfmt --help' for more information.\n".to_string())?;
+                    if parsed_b < st {
+                        return Err("numfmt: invalid decreasing range\nTry 'numfmt --help' for more information.\n".to_string());
+                    }
+                    parsed_b
                 };
                 out_f.push((st, en));
             } else {
+                if !part.bytes().all(|ch| ch.is_ascii_digit()) {
+                    return Err(format!(
+                        "numfmt: invalid field value '{part}'\nTry 'numfmt --help' for more information.\n"
+                    ));
+                }
                 let idx = part
                     .parse::<usize>()
                     .ok()
                     .filter(|&v| v >= 1)
-                    .ok_or_else(|| "numfmt: invalid field value\n".to_string())?;
+                    .ok_or_else(|| "numfmt: fields are numbered from 1\nTry 'numfmt --help' for more information.\n".to_string())?;
                 out_f.push((idx, idx));
             }
         }
@@ -7502,10 +7539,10 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
             continue;
         }
         if a == "--help" {
-            return ok_out("Usage: numfmt [OPTION]... [NUMBER]...\n");
+            return ok_out("Usage: numfmt [OPTION]... [NUMBER]...\nReformat NUMBER(s), or the numbers from standard input if none are specified.\n\nMandatory arguments to long options are mandatory for short options too.\n      --debug          print warnings about invalid input\n  -d, --delimiter=X    use X instead of whitespace for field delimiter\n      --field=FIELDS   replace the numbers in these input fields (default=1)\n                         see FIELDS below\n      --format=FORMAT  use printf style floating-point FORMAT;\n                         see FORMAT below for details\n      --from=UNIT      auto-scale input numbers to UNITs; default is 'none';\n                         see UNIT below\n      --from-unit=N    specify the input unit size (instead of the default 1)\n      --grouping       use locale-defined grouping of digits, e.g. 1,000,000\n                         (which means it has no effect in the C/POSIX locale)\n      --header[=N]     print (without converting) the first N header lines;\n                         N defaults to 1 if not specified\n      --invalid=MODE   failure mode for invalid numbers: MODE can be:\n                         abort (default), fail, warn, ignore\n      --padding=N      pad the output to N characters; positive N will\n                         right-align; negative N will left-align;\n                         padding is ignored if the output is wider than N;\n                         the default is to automatically pad if a whitespace\n                         is found\n      --round=METHOD   use METHOD for rounding when scaling; METHOD can be:\n                         up, down, from-zero (default), towards-zero, nearest\n      --suffix=SUFFIX  add SUFFIX to output numbers, and accept optional\n                         SUFFIX in input numbers\n      --unit-separator=SEP  insert SEP between number and unit on output,\n                         and accept optional SEP in input numbers\n      --to=UNIT        auto-scale output numbers to UNITs; see UNIT below\n      --to-unit=N      the output unit size (instead of the default 1)\n  -z, --zero-terminated    line delimiter is NUL, not newline\n      --help     display this help and exit\n      --version  output version information and exit\n\nUNIT options:\n  none       no auto-scaling is done; suffixes will trigger an error\n  auto       accept optional single/two letter suffix:\n               1K = 1000,\n               1Ki = 1024,\n               1M = 1000000,\n               1Mi = 1048576,\n  si         accept optional single letter suffix:\n               1K = 1000,\n               1M = 1000000,\n               ...\n  iec        accept optional single letter suffix:\n               1K = 1024,\n               1M = 1048576,\n               ...\n  iec-i      accept optional two-letter suffix:\n               1Ki = 1024,\n               1Mi = 1048576,\n               ...\n\nFIELDS supports cut(1) style field ranges:\n  N    N'th field, counted from 1\n  N-   from N'th field, to end of line\n  N-M  from N'th to M'th field (inclusive)\n  -M   from first to M'th field (inclusive)\n  -    all fields\nMultiple fields/ranges can be separated with commas\n\nFORMAT must be suitable for printing one floating-point argument '%f'.\nOptional quote (%'f) will enable --grouping (if supported by current locale).\nOptional width value (%10f) will pad output. Optional zero (%010f) width\nwill zero pad the number. Optional negative values (%-10f) will left align.\nOptional precision (%.1f) will override the input determined precision.\n\nExit status is 0 if all input numbers were successfully converted.\nBy default, numfmt will stop at the first conversion error with exit status 2.\nWith --invalid='fail' a warning is printed for each conversion error\nand the exit status is 2.  With --invalid='warn' each conversion error is\ndiagnosed, but the exit status is 0.  With --invalid='ignore' conversion\nerrors are not diagnosed and the exit status is 0.\n\nExamples:\n  $ numfmt --to=si 1000\n            -> \"1.0K\"\n  $ numfmt --to=iec 2048\n           -> \"2.0K\"\n  $ numfmt --to=iec-i 4096\n           -> \"4.0Ki\"\n  $ echo 1K | numfmt --from=si\n           -> \"1000\"\n  $ echo 1K | numfmt --from=iec\n           -> \"1024\"\n  $ df -B1 | numfmt --header --field 2-4 --to=si\n  $ ls -l  | numfmt --header --field 5 --to=iec\n  $ ls -lh | numfmt --header --field 5 --from=iec --padding=10\n  $ ls -lh | numfmt --header --field 5 --from=iec --format %10f\n\nGNU coreutils online help: <https://www.gnu.org/software/coreutils/>\nReport numfmt translation bugs to <https://translationproject.org/team/>\nFull documentation at: <https://www.gnu.org/software/coreutils/numfmt>\nor available locally via: info '(coreutils) numfmt invocation'\n");
         }
         if a == "--version" {
-            return ok_out("numfmt (GNU coreutils) 9.4\n");
+            return ok_out("numfmt (virtual-bash)\n");
         }
         if a == "-z" || a == "--zero-terminated" {
             zero_terminated = true;
@@ -7615,9 +7652,52 @@ fn cmd_numfmt(args: &[String], stdin: &str) -> BuiltinOutcome {
         } else if let Some(v) = a.strip_prefix("-d") {
             delimiter = Some(v.to_string());
         } else {
-            return err_out(&format!("numfmt: unrecognized option '{a}'\n"), 1);
+            if a.starts_with("--") {
+                return err_out(
+                    &format!("numfmt: unrecognized option '{a}'\nTry 'numfmt --help' for more information.\n"),
+                    1,
+                );
+            }
+            let ch = a.chars().nth(1).unwrap_or('?');
+            return err_out(
+                &format!("numfmt: invalid option -- '{ch}'\nTry 'numfmt --help' for more information.\n"),
+                1,
+            );
         }
         i += 1;
+    }
+
+    if !matches!(from_mode.as_str(), "none" | "auto" | "si" | "iec" | "iec-i") {
+        return err_out(
+            &format!(
+                "numfmt: invalid argument '{from_mode}' for '--from'\nValid arguments are:\n  - 'none'\n  - 'auto'\n  - 'si'\n  - 'iec'\n  - 'iec-i'\nTry 'numfmt --help' for more information.\n"
+            ),
+            1,
+        );
+    }
+    if !matches!(to_mode.as_str(), "none" | "si" | "iec" | "iec-i") {
+        return err_out(
+            &format!(
+                "numfmt: invalid argument '{to_mode}' for '--to'\nValid arguments are:\n  - 'none'\n  - 'si'\n  - 'iec'\n  - 'iec-i'\nTry 'numfmt --help' for more information.\n"
+            ),
+            1,
+        );
+    }
+    if !matches!(round_mode.as_str(), "up" | "down" | "from-zero" | "towards-zero" | "nearest") {
+        return err_out(
+            &format!(
+                "numfmt: invalid argument '{round_mode}' for '--round'\nValid arguments are:\n  - 'up'\n  - 'down'\n  - 'from-zero'\n  - 'towards-zero'\n  - 'nearest'\nTry 'numfmt --help' for more information.\n"
+            ),
+            1,
+        );
+    }
+    if !matches!(invalid_mode.as_str(), "abort" | "fail" | "warn" | "ignore") {
+        return err_out(
+            &format!(
+                "numfmt: invalid argument '{invalid_mode}' for '--invalid'\nValid arguments are:\n  - 'abort'\n  - 'fail'\n  - 'warn'\n  - 'ignore'\nTry 'numfmt --help' for more information.\n"
+            ),
+            1,
+        );
     }
     if field_ranges.is_empty() {
         field_ranges.push((1, 1));
@@ -8276,7 +8356,7 @@ fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, 
                     } else if let Some(off) = parse_signed_offset(toks[4], false) {
                         off
                     } else {
-                        return Err(format!("date: invalid date '{spec}'\n"));
+                        return Err(format!("date: unsupported or invalid date: {spec}\n"));
                     };
                     let days = days_from_civil(y, (m_idx + 1) as i64, d);
                     return Ok((days * 86400 + h * 3600 + min * 60 + sec - tz_off, 0, tz_off));
@@ -8314,13 +8394,13 @@ fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, 
         && let Some((ms, ds)) = rest_m.split_once('-')
     {
         let Ok(y) = ys.parse::<i64>() else {
-            return Err(format!("date: invalid date '{spec}'\n"));
+            return Err(format!("date: unsupported or invalid date: {spec}\n"));
         };
         let Ok(m) = ms.parse::<u32>() else {
-            return Err(format!("date: invalid date '{spec}'\n"));
+            return Err(format!("date: unsupported or invalid date: {spec}\n"));
         };
         let Ok(d) = ds.parse::<u32>() else {
-            return Err(format!("date: invalid date '{spec}'\n"));
+            return Err(format!("date: unsupported or invalid date: {spec}\n"));
         };
         (y, m, d)
     } else if date_part.len() == 8 && date_part.bytes().all(|b| b.is_ascii_digit()) {
@@ -8329,21 +8409,21 @@ fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, 
         let d = date_part[6..8].parse::<u32>().unwrap_or(0);
         (y, m, d)
     } else {
-        return Err(format!("date: invalid date '{spec}'\n"));
+        return Err(format!("date: unsupported or invalid date: {spec}\n"));
     };
     if !(1..=12).contains(&m) || d < 1 || d > gregorian_days_in_month(y, m) {
-        return Err(format!("date: invalid date '{spec}'\n"));
+        return Err(format!("date: unsupported or invalid date: {spec}\n"));
     }
     let tparts: Vec<&str> = time_part.trim().split(':').collect();
     if tparts.is_empty() || tparts.len() > 3 {
-        return Err(format!("date: invalid date '{spec}'\n"));
+        return Err(format!("date: unsupported or invalid date: {spec}\n"));
     }
     let Ok(h) = tparts[0].parse::<u32>() else {
-        return Err(format!("date: invalid date '{spec}'\n"));
+        return Err(format!("date: unsupported or invalid date: {spec}\n"));
     };
     let min = if tparts.len() >= 2 {
         let Ok(v) = tparts[1].parse::<u32>() else {
-            return Err(format!("date: invalid date '{spec}'\n"));
+            return Err(format!("date: unsupported or invalid date: {spec}\n"));
         };
         v
     } else {
@@ -8355,10 +8435,10 @@ fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, 
             .or_else(|| tparts[2].split_once(','))
             .unwrap_or((tparts[2], ""));
         let Ok(sv) = s_str.parse::<u32>() else {
-            return Err(format!("date: invalid date '{spec}'\n"));
+            return Err(format!("date: unsupported or invalid date: {spec}\n"));
         };
         if !f_str.bytes().all(|b| b.is_ascii_digit()) {
-            return Err(format!("date: invalid date '{spec}'\n"));
+            return Err(format!("date: unsupported or invalid date: {spec}\n"));
         }
         let mut fp = String::with_capacity(9);
         for ch in f_str.chars().take(9) {
@@ -8372,7 +8452,7 @@ fn parse_absolute_date_spec(spec: &str, default_tz_offset: i64) -> Result<(i64, 
         (0, 0)
     };
     if h > 23 || min > 59 || sec > 59 {
-        return Err(format!("date: invalid date '{spec}'\n"));
+        return Err(format!("date: unsupported or invalid date: {spec}\n"));
     }
     let days = days_from_civil(y, m as i64, d as i64);
     let wall_sec = days * 86400 + (h as i64) * 3600 + (min as i64) * 60 + (sec as i64);
@@ -8972,8 +9052,8 @@ fn cmd_date(
                 None => (a.as_str(), None),
             };
             match name {
-                "--help" => return ok_out("Usage: date [OPTION]... [+FORMAT]\n"),
-                "--version" => return ok_out("date (GNU coreutils) 9.4\n"),
+                "--help" => return ok_out("Usage: date [-uj] [-d DATE | -r FILE_OR_SECONDS | -f FILE] [-v[+|-]VALUE[ymwdHMS]] [+FORMAT]\n-f, --file=FILE reads one date per line; FILE - reads stdin.\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n"),
+                "--version" => return ok_out("date (safe-bash virtual command)\n"),
                 "--utc" | "--universal" => utc = true,
                 "--date" => {
                     let val = if let Some(v) = attached {
@@ -9128,12 +9208,26 @@ fn cmd_date(
             stdin.to_string()
         } else {
             let resolved = resolve_posix_path(cwd, fpath);
-            let Ok(bytes) = fs.read_file(&resolved) else {
-                return err_out(&format!("date: {fpath}: No such file or directory\n"), 1);
+            if fs.is_dir(&resolved) {
+                return err_out(
+                    &format!("date: EISDIR: illegal operation on a directory, readStream '{resolved}'\n"),
+                    1,
+                );
+            }
+            let bytes = match fs.read_file(&resolved) {
+                Ok(b) => b,
+                Err(e) => {
+                    return err_out(
+                        &format!("date: {}\n", e.replace(", open '", ", readStream '")),
+                        1,
+                    );
+                }
             };
             String::from_utf8_lossy(&bytes).into_owned()
         };
         let mut out = String::new();
+        let mut err_buf = String::new();
+        let mut exit_code = 0;
         let mut raw_lines: Vec<&str> = content.split('\n').collect();
         if content.ends_with('\n') {
             raw_lines.pop();
@@ -9142,7 +9236,11 @@ fn cmd_date(
             let clean = line.strip_suffix('\r').unwrap_or(line);
             let (mut sec, ns) = match parse_date_spec_full(clean, tz_offset, now_sec) {
                 Ok(v) => v,
-                Err(msg) => return err_out(&msg, 1),
+                Err(msg) => {
+                    err_buf.push_str(&msg);
+                    exit_code = 1;
+                    continue;
+                }
             };
             if !adjustments.is_empty() {
                 sec = match apply_bsd_adjustments(sec, &adjustments, tz_offset) {
@@ -9155,7 +9253,11 @@ fn cmd_date(
                 Err(msg) => return err_out(&msg, 1),
             }
         }
-        return ok_out(&out);
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err_buf,
+            exit_code,
+        };
     }
 
     let (mut epoch_sec, ns) = if let Some(ref spec) = input_spec {
@@ -9170,8 +9272,9 @@ fn cmd_date(
             (sec, ns)
         } else {
             let resolved = resolve_posix_path(cwd, rval);
-            let Ok(st) = fs.stat(&resolved) else {
-                return err_out(&format!("date: {rval}: No such file or directory\n"), 1);
+            let st = match fs.stat(&resolved) {
+                Ok(s) => s,
+                Err(e) => return err_out(&format!("date: {e}\n"), 1),
             };
             let mtime_ms = st.mtime_ms as i64;
             let sec = mtime_ms.div_euclid(1000);
@@ -9515,7 +9618,7 @@ fn cmd_cal(cmd: &str, args: &[String], env: &BTreeMap<String, String>) -> Builti
             break;
         }
         if a == "--help" {
-            return ok_out("Usage: cal [options] [[[day] month] year]\n");
+            return ok_out("Usage:\n cal [options] [[[day] month] year]\n\nDisplay a calendar, or some part of it.\n\nOptions:\n -1, --one             show only a single month (default)\n -3, --three           show three months spanning the date\n -n, --months <num>    show num months starting with date's month\n -S, --span            span the date when displaying multiple months\n -s, --sunday          Sunday as first day of week (default)\n -M, --monday          Monday as first day of week\n -b                    use oldstyle cal output for ncal\n -C                    switch to cal mode\n -N                    switch to ncal mode\n -j, --julian          use day-of-year (Julian) numbering\n -y, --year            show whole current year\n -m, --month <month>   show specified month\n -w, --week[=<num>]    show US or ISO-8601 week numbers\n -h, --no-highlight    turn off highlighting of today\n     --help            display this help\n     --version         display version\n");
         }
         if a == "--version" {
             return ok_out("cal (Sandbox VFS-ish/GNU util-linux) 2.40\n");
@@ -10037,7 +10140,7 @@ fn cmd_getconf(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             i += 1;
         } else if !ended && a == "--help" {
             return ok_out(
-                "Usage: getconf [-v specification] variable_name [pathname]\n       getconf -a [pathname]\n",
+                "Usage: getconf [-v specification] variable_name [pathname]\n       getconf -a [pathname]\n\nQuery system configuration variables in the Sandbox VFS-ish/GNU environment.\n",
             );
         } else if !ended && a == "--version" {
             return ok_out("getconf (Sandbox VFS-ish/GNU libc) 2.39\n");
@@ -10156,7 +10259,7 @@ fn cmd_getconf(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
 
     if pos.is_empty() || pos.len() > 2 {
         return err_out(
-            "Usage: getconf [-v specification] variable_name [pathname]\n       getconf -a [pathname]\n",
+            "Usage: getconf [-v specification] variable_name [pathname]\n       getconf -a [pathname]\n\nQuery system configuration variables in the Sandbox VFS-ish/GNU environment.\n",
             1,
         );
     }
@@ -10263,7 +10366,7 @@ fn cmd_locale(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome
             continue;
         }
         if a == "--help" || a == "-?" {
-            return ok_out("Usage: locale [OPTION...] [NAME...]\n");
+            return ok_out("Usage: locale [OPTION...] [NAME...]\nGet locale-specific information for the Sandbox VFS-ish/GNU environment.\n\n System information:\n  -a, --all-locales          Write names of available locales\n  -m, --charmaps             Write names of available charmaps\n\n Modify output format:\n  -c, --category-name        Write names of selected categories\n  -k, --keyword-name         Write names of selected keywords\n  -v, --verbose              Print more information\n  -?, --help                 Give this help list\n  -V, --version              Print program version\n");
         }
         if a == "--version" || a == "-V" {
             return ok_out("locale (Sandbox VFS-ish/GNU libc) 2.39\n");
@@ -10477,7 +10580,7 @@ fn cmd_pathchk(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
         } else if a == "--" {
             ended = true;
         } else if a == "--help" {
-            return ok_out("Usage: pathchk [OPTION]... NAME...\n");
+            return ok_out("Usage: pathchk [OPTION]... NAME...\nDiagnose invalid or unportable file names.\n\n  -p                  check for most POSIX systems\n  -P                  check for empty names and leading \"-\"\n      --portability   check for all POSIX systems (equivalent to -p -P)\n      --help          display this help and exit\n      --version       output version information and exit\n");
         } else if a == "--version" {
             return ok_out("pathchk (Sandbox VFS-ish/GNU coreutils) 9.7\n");
         } else if a == "-p" {
@@ -10606,10 +10709,10 @@ fn cmd_whoami(
             continue;
         }
         if !end_of_options && arg == "--help" {
-            return ok_out("Usage: whoami [OPTION]...\n");
+            return ok_out("Usage: whoami [OPTION]...\nPrint the user name associated with the current effective user ID\nin the Sandbox VFS-ish/GNU environment.\nSame as id -un.\n\n      --help        display this help and exit\n      --version     output version information and exit\n");
         }
         if !end_of_options && arg == "--version" {
-            return ok_out("whoami (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+            return ok_out("whoami (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n");
         }
         if !end_of_options && arg.starts_with('-') {
             if arg.starts_with("--") {
@@ -10695,10 +10798,10 @@ fn cmd_hostname(
             continue;
         }
         if !end_of_options && (arg == "--help" || arg == "-h" || arg == "-?") {
-            return ok_out("Usage: hostname [OPTION...] [NAME]\n");
+            return ok_out("Usage: hostname [OPTION...] [NAME]\nShow or set the system's host name in the Sandbox VFS-ish/GNU environment.\n\n  -a, --alias             alias names\n  -A, --all-fqdns         all long host names (FQDNs)\n  -d, --domain            DNS domain name\n  -f, --fqdn, --long      long host name (FQDN)\n  -F, --file=FILE         read host name or NIS domain name from FILE\n  -i, --ip-address        addresses for the host name\n  -I, --all-ip-addresses  all addresses for the host\n  -s, --short             short host name\n  -y, --yp, --nis         NIS/YP domain name\n      --help              give this help list\n      --version           print program version\n");
         }
         if !end_of_options && (arg == "--version" || arg == "-V") {
-            return ok_out("hostname (Sandbox VFS-ish/GNU inetutils) 2.5\n");
+            return ok_out("hostname (Sandbox VFS-ish/GNU inetutils) 2.5\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n");
         }
         if !end_of_options && let Some(v) = arg.strip_prefix("--file=") {
             file_source = Some(v.to_string());
@@ -10833,9 +10936,9 @@ fn cmd_nproc(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome 
             ended = true;
             i += 1;
         } else if !ended && a == "--help" {
-            return ok_out("Usage: nproc [OPTION]...\n");
+            return ok_out("Usage: nproc [OPTION]...\nPrint the number of processing units available to the current process,\nwhich may be less than the number of online processors (Sandbox VFS-ish/GNU).\n\n      --all      print the number of installed processors\n      --ignore=N  if possible, exclude N processing units\n      --help     display this help and exit\n      --version  output version information and exit\n");
         } else if !ended && a == "--version" {
-            return ok_out("nproc (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+            return ok_out("nproc (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n");
         } else if !ended && a == "--all" {
             all_mode = true;
             i += 1;
@@ -10910,10 +11013,10 @@ fn cmd_uname(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashF
             continue;
         }
         if !ended && a == "--help" {
-            return ok_out("Usage: uname [OPTION]...\n");
+            return ok_out("Usage: uname [OPTION]...\nPrint certain system information.  With no OPTION, same as -s.\nReports the Sandbox VFS-ish/GNU virtual platform identity.\n\n  -a, --all                print all information, in the following order,\n                             except omit -p and -i if unknown:\n  -s, --kernel-name        print the kernel name\n  -n, --nodename           print the network node hostname\n  -r, --kernel-release     print the kernel release\n  -v, --kernel-version     print the kernel version\n  -m, --machine            print the machine hardware name\n  -p, --processor          print the processor type (non-portable)\n  -i, --hardware-platform  print the hardware platform (non-portable)\n  -o, --operating-system   print the operating system\n      --help               display this help and exit\n      --version            output version information and exit\n");
         }
         if !ended && a == "--version" {
-            return ok_out("uname (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+            return ok_out("uname (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n");
         }
         if !ended && a.starts_with("--") && a.len() > 2 {
             match a.as_str() {
@@ -11037,10 +11140,10 @@ fn cmd_id(args: &[String], env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) 
             continue;
         }
         if a == "--help" {
-            return ok_out("Usage: id [OPTION]... [USER]...\n");
+            return ok_out("Usage: id [OPTION]... [USER]...\nPrint user and group information for each specified USER,\nor (when USER omitted) for the current process in the Sandbox VFS-ish/GNU environment.\n\n  -a             ignore, for compatibility with other versions\n  -Z, --context  print only the security context of the process\n  -g, --group    print only the effective group ID\n  -G, --groups   print all group IDs\n  -n, --name     print a name instead of a number, for -ugG\n  -r, --real     print the real ID instead of the effective ID, with -ugG\n  -u, --user     print only the effective user ID\n  -z, --zero     delimit entries with NUL characters, not whitespace;\n                   not permitted in default format\n      --help     display this help and exit\n      --version  output version information and exit\n\nWithout any OPTION, print some useful set of identified information (Sandbox VFS-ish/GNU).\n");
         }
         if a == "--version" {
-            return ok_out("id (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+            return ok_out("id (Sandbox VFS-ish/GNU coreutils) 9.7\nPackaged by Safe-Bash (Sandbox VFS-ish/GNU runtime)\n");
         }
         if a.starts_with("--") && a.len() > 2 {
             match a.as_str() {
@@ -11541,7 +11644,10 @@ fn cmd_less_more(
                     }
                 }
                 Err(e) => {
-                    err_buf.push_str(&format!("{cmd}: {file}: {e}\n"));
+                    err_buf.push_str(&format!(
+                        "{cmd}: {file}: {}\n",
+                        e.replace(", open '", ", readFile '")
+                    ));
                     exit_code = 1;
                 }
             }
@@ -11761,7 +11867,7 @@ fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
         }
         if !options_ended && arg.starts_with("--") {
             if arg == "--help" {
-                return ok_out("Usage: factor [OPTION]... [NUMBER]...\n");
+                return ok_out("Usage: factor [NUMBER]...\nPrint prime factors; with no numbers, read standard input.\nOptions: --exponents (print repeated factors as powers) --help --version\nMaximum supported value: Infinity\n");
             }
             if arg == "--version" {
                 return ok_out("factor (virtual-bash)\n");
@@ -11783,13 +11889,11 @@ fn cmd_factor(args: &[String], stdin: &str) -> BuiltinOutcome {
                 exponents = true;
                 continue;
             }
-            if arg[1..].chars().next().is_some_and(|c| !c.is_ascii_digit()) {
-                let ch = arg[1..].chars().next().unwrap_or('?');
-                return err_out(
-                    &format!("factor: invalid option -- '{ch}'\nTry 'factor --help' for more information.\n"),
-                    1,
-                );
-            }
+            let ch = arg[1..].chars().next().unwrap_or('?');
+            return err_out(
+                &format!("factor: invalid option -- '{ch}'\nTry 'factor --help' for more information.\n"),
+                1,
+            );
         }
         operands.push(arg.clone());
     }
@@ -13038,7 +13142,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             } else if matches.len() == 1 {
                 *matches[0]
             } else {
-                return err_out(&format!("csplit: unrecognized option '{a}'\n"), 1);
+                return err_out(
+                    &format!("csplit: unrecognized option '{a}'\nTry 'csplit --help' for more information.\n"),
+                    1,
+                );
             };
             let val = if matches!(key, "f" | "b" | "n") {
                 if let Some(v) = eq_val {
@@ -13048,14 +13155,14 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     Some(args[i].clone())
                 } else {
                     return err_out(
-                        &format!("csplit: option '--{sel_name}' requires an argument\n"),
+                        &format!("csplit: option '--{sel_name}' requires an argument\nTry 'csplit --help' for more information.\n"),
                         1,
                     );
                 }
             } else {
                 if eq_val.is_some() {
                     return err_out(
-                        &format!("csplit: option '--{sel_name}' doesn't allow an argument\n"),
+                        &format!("csplit: option '--{sel_name}' doesn't allow an argument\nTry 'csplit --help' for more information.\n"),
                         1,
                     );
                 }
@@ -13075,7 +13182,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     };
                     digits = cnt as usize;
                 }
-                "help" => return ok_out("Usage: csplit [OPTION]... FILE PATTERN...\n"),
+                "help" => return ok_out("Usage: csplit [OPTION]... FILE PATTERN...\nOptions: -f PREFIX, -b SUFFIX, -k, -z, -n DIGITS, -s, --suppress-matched\nPatterns: INTEGER, /REGEXP/[OFFSET], %REGEXP%[OFFSET], {INTEGER}, {*}\n"),
                 "version" => return ok_out("csplit (virtual-bash)\n"),
                 _ => {}
             }
@@ -13086,7 +13193,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             while ci < chars.len() {
                 let ch = chars[ci];
                 if !"fbknsqz".contains(ch) {
-                    return err_out(&format!("csplit: invalid option -- '{ch}'\n"), 1);
+                    return err_out(
+                        &format!("csplit: invalid option -- '{ch}'\nTry 'csplit --help' for more information.\n"),
+                        1,
+                    );
                 }
                 if "fbn".contains(ch) {
                     let inline: String = chars[ci + 1..].iter().collect();
@@ -13096,7 +13206,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out(&format!("csplit: option requires an argument -- '{ch}'\n"), 1);
+                        return err_out(
+                            &format!("csplit: option requires an argument -- '{ch}'\nTry 'csplit --help' for more information.\n"),
+                            1,
+                        );
                     };
                     match ch {
                         'f' => prefix = val,
@@ -13124,8 +13237,14 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         }
     }
 
-    if operands.len() < 2 {
-        return err_out("csplit: missing operand\n", 1);
+    if operands.is_empty() {
+        return err_out("csplit: missing operand\nTry 'csplit --help' for more information.\n", 1);
+    }
+    if operands.len() == 1 {
+        return err_out(
+            &format!("csplit: missing operand after '{}'\nTry 'csplit --help' for more information.\n", operands[0]),
+            1,
+        );
     }
     let suffix_fn = match build_csplit_suffix_formatter(suffix_fmt.as_deref(), digits) {
         Ok(f) => f,
@@ -13238,10 +13357,22 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     let input_file = &operands[0];
-    let text = match read_inputs_or_stdin(std::slice::from_ref(input_file), stdin, cwd, fs, "csplit")
-    {
-        Ok(t) => t,
-        Err(e) => return e,
+    let text = if input_file == "-" {
+        stdin.to_string()
+    } else {
+        let path = resolve_posix_path(cwd, input_file);
+        if fs.is_dir(&path) {
+            return err_out("csplit: read error: Is a directory\n", 1);
+        }
+        match fs.read_file(&path) {
+            Ok(bytes) => crate::vfs::bytes_to_stream_string(&bytes),
+            Err(_) => {
+                return err_out(
+                    &format!("csplit: cannot open '{input_file}' for reading: No such file or directory\n"),
+                    1,
+                );
+            }
+        }
     };
     let lines: Vec<&str> = text.split_inclusive('\n').collect();
 
@@ -17495,10 +17626,22 @@ fn cmd_split(
         Ok(p) => p,
         Err(msg) => return err_out(&msg, 1),
     };
-    let input_files = vec![parsed.input.clone()];
-    let text = match read_inputs_or_stdin(&input_files, stdin, cwd, fs, "split") {
-        Ok(t) => t,
-        Err(e) => return e,
+    let text = if parsed.input == "-" {
+        stdin.to_string()
+    } else {
+        let path = resolve_posix_path(cwd, &parsed.input);
+        if fs.is_dir(&path) {
+            return err_out(
+                &format!("split: illegal operation on a directory '{path}'\n"),
+                1,
+            );
+        }
+        match fs.read_file(&path) {
+            Ok(bytes) => crate::vfs::bytes_to_stream_string(&bytes),
+            Err(_) => {
+                return err_out(&format!("split: no such file or directory, stat '{path}'\n"), 1);
+            }
+        }
     };
     let raw_bytes = stream_string_to_bytes(&text);
 
@@ -21368,25 +21511,34 @@ fn cmd_truncate(
             } else if matches.len() == 1 {
                 matches[0]
             } else {
-                return err_out(&format!("truncate: unrecognized option '{a}'\n"), 1);
+                return err_out(
+                    &format!("truncate: unrecognized option '{a}'\nTry 'truncate --help' for more information.\n"),
+                    1,
+                );
             };
             let (full_name, key) = *selected;
             if key == "help" {
                 if eq_val.is_some() {
-                    return err_out("truncate: option '--help' doesn't allow an argument\n", 1);
+                    return err_out(
+                        "truncate: option '--help' doesn't allow an argument\nTry 'truncate --help' for more information.\n",
+                        1,
+                    );
                 }
-                return ok_out("Usage: truncate OPTION... FILE...\n");
+                return ok_out("Usage: truncate OPTION... FILE...\nShrink or extend the size of each FILE to the specified size\n\nA FILE argument that does not exist is created.\n\nIf a FILE is larger than the specified size, the extra data is lost.\nIf a FILE is shorter, it is extended and the extended part (hole)\nreads as zero bytes.\n\nMandatory arguments to long options are mandatory for short options too.\n  -c, --no-create        do not create any files\n  -o, --io-blocks        treat SIZE as number of IO blocks instead of bytes\n  -r, --reference=RFILE  base size on RFILE\n  -s, --size=SIZE        set or adjust the file size by SIZE bytes\n      --help     display this help and exit\n      --version  output version information and exit\n\nThe SIZE argument is an integer and optional unit (example: 10K is 10*1024).\nUnits are K,M,G,T,P,E,Z,Y (powers of 1024) or KB,MB,... (powers of 1000).\n\nSIZE may also be prefixed by one of the following modifying characters:\n'+' extend by, '-' reduce by, '<' at most, '>' at least,\n'/' round down to multiple of, '%' round up to multiple of.\n\nGNU coreutils online help: <https://www.gnu.org/software/coreutils/>\nReport truncate translation bugs to <https://translationproject.org/team/>\nFull documentation at: <https://www.gnu.org/software/coreutils/truncate>\nor available locally via: info '(coreutils) truncate invocation'\n");
             }
             if key == "version" {
                 if eq_val.is_some() {
-                    return err_out("truncate: option '--version' doesn't allow an argument\n", 1);
+                    return err_out(
+                        "truncate: option '--version' doesn't allow an argument\nTry 'truncate --help' for more information.\n",
+                        1,
+                    );
                 }
-                return ok_out("truncate (GNU coreutils) 9.5\n");
+                return ok_out("truncate (virtual-bash)\n");
             }
             if key == "c" || key == "o" {
                 if eq_val.is_some() {
                     return err_out(
-                        &format!("truncate: option '--{full_name}' doesn't allow an argument\n"),
+                        &format!("truncate: option '--{full_name}' doesn't allow an argument\nTry 'truncate --help' for more information.\n"),
                         1,
                     );
                 }
@@ -21405,7 +21557,7 @@ fn cmd_truncate(
                 args[i].clone()
             } else {
                 return err_out(
-                    &format!("truncate: option '--{full_name}' requires an argument\n"),
+                    &format!("truncate: option '--{full_name}' requires an argument\nTry 'truncate --help' for more information.\n"),
                     1,
                 );
             };
@@ -21440,7 +21592,7 @@ fn cmd_truncate(
                         args[i].clone()
                     } else {
                         return err_out(
-                            &format!("truncate: option requires an argument -- '{key}'\n"),
+                            &format!("truncate: option requires an argument -- '{key}'\nTry 'truncate --help' for more information.\n"),
                             1,
                         );
                     };
@@ -21458,7 +21610,10 @@ fn cmd_truncate(
                     }
                     break;
                 }
-                ch => return err_out(&format!("truncate: invalid option -- '{ch}'\n"), 1),
+                ch => return err_out(
+                    &format!("truncate: invalid option -- '{ch}'\nTry 'truncate --help' for more information.\n"),
+                    1,
+                ),
             }
             j += 1;
         }
@@ -21467,34 +21622,34 @@ fn cmd_truncate(
 
     if !has_size && ref_file.is_none() {
         return err_out(
-            "truncate: you must specify either '--size' or '--reference'\n",
+            "truncate: you must specify either '--size' or '--reference'\nTry 'truncate --help' for more information.\n",
             1,
         );
     }
     if ref_file.is_some() && has_size && op == '=' {
         return err_out(
-            "truncate: you must specify a relative '--size' with '--reference'\n",
+            "truncate: you must specify a relative '--size' with '--reference'\nTry 'truncate --help' for more information.\n",
             1,
         );
     }
     if io_blocks && !has_size {
         return err_out(
-            "truncate: '--io-blocks' was specified but '--size' was not\n",
+            "truncate: '--io-blocks' was specified but '--size' was not\nTry 'truncate --help' for more information.\n",
             1,
         );
     }
     if files.is_empty() {
-        return err_out("truncate: missing file operand\n", 1);
+        return err_out("truncate: missing file operand\nTry 'truncate --help' for more information.\n", 1);
     }
 
     let ref_len = if let Some(rf) = &ref_file {
         let rp = resolve_posix_path(cwd, rf);
         match fs.stat(&rp) {
             Ok(st) => Some(st.size),
-            Err(e) => {
+            Err(_) => {
                 return BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("truncate: cannot stat '{rf}': {e}\n"),
+                    stderr: format!("truncate: cannot stat '{rf}': No such file or directory\n"),
                     exit_code: 1,
                 };
             }
@@ -22036,5 +22191,71 @@ mod tests {
         assert_eq!(rev_dash.exit_code, 1);
         assert_eq!(rev_dash.stdout, "b\na\n");
         assert_eq!(rev_dash.stderr, "rev: ENOENT: no such file or directory, stat '/work/-'\n");
+    }
+
+    #[test]
+    fn numfmt_factor_truncate_csplit_split_expr_date_and_sysinfo_match_typescript() {
+        use crate::vfs::{MemoryVfs, SafeBashFs};
+
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+        let env: BTreeMap<String, String> = BTreeMap::new();
+        let args = |items: &[&str]| -> Vec<String> { items.iter().map(|s| s.to_string()).collect() };
+
+        let numfmt_to = try_run_coreutil("numfmt", &args(&["--to=auto", "1000"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(numfmt_to.exit_code, 1);
+        assert!(numfmt_to.stderr.starts_with("numfmt: invalid argument 'auto' for '--to'\n"));
+
+        let numfmt_field = try_run_coreutil("numfmt", &args(&["--field=0", "1000"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(numfmt_field.exit_code, 1);
+        assert_eq!(
+            numfmt_field.stderr,
+            "numfmt: fields are numbered from 1\nTry 'numfmt --help' for more information.\n"
+        );
+
+        let factor_opt = try_run_coreutil("factor", &args(&["-1"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(factor_opt.exit_code, 1);
+        assert_eq!(
+            factor_opt.stderr,
+            "factor: invalid option -- '1'\nTry 'factor --help' for more information.\n"
+        );
+
+        let trunc_ref = try_run_coreutil("truncate", &args(&["-r", "/nope", "/work/out"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(trunc_ref.exit_code, 1);
+        assert_eq!(
+            trunc_ref.stderr,
+            "truncate: cannot stat '/nope': No such file or directory\n"
+        );
+
+        let csplit_one = try_run_coreutil("csplit", &args(&["/nope"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(csplit_one.exit_code, 1);
+        assert_eq!(
+            csplit_one.stderr,
+            "csplit: missing operand after '/nope'\nTry 'csplit --help' for more information.\n"
+        );
+
+        let split_dir = try_run_coreutil("split", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(split_dir.exit_code, 1);
+        assert_eq!(
+            split_dir.stderr,
+            "split: illegal operation on a directory '/work/dir'\n"
+        );
+
+        let expr_missing = try_run_coreutil("expr", &args(&["1", "+"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(expr_missing.exit_code, 2);
+        assert_eq!(expr_missing.stderr, "expr: syntax error: missing argument after '+'\n");
+
+        let date_batch = try_run_coreutil(
+            "date",
+            &args(&["-u", "-f", "-", "+%F"]),
+            "@0\ninvalid\n@86400\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(date_batch.exit_code, 1);
+        assert_eq!(date_batch.stdout, "1970-01-01\n1970-01-02\n");
+        assert_eq!(date_batch.stderr, "date: unsupported or invalid date: invalid\n");
     }
 }

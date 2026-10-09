@@ -10543,11 +10543,17 @@ fn cmd_media_doc(
                         one_line = true;
                         i += 1;
                     }
-                    "-g" | "--getProperty" if i + 1 < args.len() => {
+                    "-g" | "--getProperty" => {
+                        if i + 1 >= args.len() {
+                            return err_out("sips: missing argument for -g\n", 1);
+                        }
                         get_props.push(args[i + 1].clone());
                         i += 2;
                     }
-                    "-d" | "--deleteProperty" if i + 1 < args.len() => {
+                    "-d" | "--deleteProperty" => {
+                        if i + 1 >= args.len() {
+                            return err_out("sips: missing argument for -d\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("d", args[i + 1].clone(), String::new()));
                         i += 2;
@@ -10572,16 +10578,39 @@ fn cmd_media_doc(
                         ops.push(("rh", args[i + 1].clone(), String::new()));
                         i += 2;
                     }
-                    "-r" | "--rotate" if i + 1 < args.len() => {
+                    "-r" | "--rotate" => {
+                        if i + 1 >= args.len()
+                            || args[i + 1]
+                                .parse::<f64>()
+                                .map(|v| !v.is_finite())
+                                .unwrap_or(true)
+                        {
+                            return err_out("sips: invalid degrees for -r\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("r", args[i + 1].clone(), String::new()));
                         i += 2;
                     }
-                    "-f" | "--flip" if i + 1 < args.len() => {
+                    "-f" | "--flip" => {
+                        let dir = args
+                            .get(i + 1)
+                            .map(|s| s.to_ascii_lowercase())
+                            .unwrap_or_default();
+                        if dir != "horizontal" && dir != "vertical" {
+                            return err_out(
+                                "sips: flip direction must be 'horizontal' or 'vertical'\n",
+                                1,
+                            );
+                        }
                         has_mod = true;
                         i += 2;
                     }
-                    "-c" | "--cropToHeightWidth" if i + 2 < args.len() => {
+                    "-c" | "--cropToHeightWidth" => {
+                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
+                            return err_out("sips: invalid dimensions for -c\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("c", args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
@@ -10589,7 +10618,12 @@ fn cmd_media_doc(
                     "--cropOffset" if i + 2 < args.len() => {
                         i += 3;
                     }
-                    "-p" | "--padToHeightWidth" if i + 2 < args.len() => {
+                    "-p" | "--padToHeightWidth" => {
+                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
+                            return err_out("sips: invalid dimensions for -p\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("p", args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
@@ -10597,12 +10631,18 @@ fn cmd_media_doc(
                     "--padColor" if i + 1 < args.len() => {
                         i += 2;
                     }
-                    "-s" | "--setProperty" if i + 2 < args.len() => {
+                    "-s" | "--setProperty" => {
+                        if i + 2 >= args.len() {
+                            return err_out("sips: missing argument for -s\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("s", args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
                     }
-                    "--out" | "-o" if i + 1 < args.len() => {
+                    "--out" | "-o" => {
+                        if i + 1 >= args.len() {
+                            return err_out("sips: missing argument for --out\n", 1);
+                        }
                         out_path = Some(args[i + 1].clone());
                         i += 2;
                     }
@@ -10615,9 +10655,9 @@ fn cmd_media_doc(
                     }
                 }
             }
-            if !get_props.is_empty() && has_mod {
+            if !get_props.is_empty() && (has_mod || out_path.is_some()) {
                 return err_out(
-                    "Error 6: cannot get properties and modify file in the same invocation\n",
+                    "Error 6: cannot get properties and modify file in the same invocation\nTry 'sips --help' for help using this tool\n",
                     6,
                 );
             }
@@ -10715,7 +10755,7 @@ fn cmd_media_doc(
                         }
                         out.push('\n');
                     } else {
-                        out.push_str(&format!("{f}:\n"));
+                        out.push_str(&format!("{f}\n"));
                         for (k, v) in kvs {
                             out.push_str(&format!("  {k}: {v}\n"));
                         }
@@ -12366,5 +12406,44 @@ mod media_unit_tests {
             &vfs,
         );
         assert_eq!(ex_read.stdout.trim(), "RustBot");
+
+        let sips_get = cmd_media_doc(
+            "sips",
+            &media_args(&["-g", "pixelWidth", "-g", "pixelHeight", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(sips_get.exit_code, 0);
+        assert_eq!(
+            sips_get.stdout,
+            "/img/a.png\n  pixelWidth: 32\n  pixelHeight: 24\n"
+        );
+
+        let sips_err6 = cmd_media_doc(
+            "sips",
+            &media_args(&["-g", "pixelWidth", "-z", "16", "16", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(sips_err6.exit_code, 6);
+        assert_eq!(
+            sips_err6.stderr,
+            "Error 6: cannot get properties and modify file in the same invocation\nTry 'sips --help' for help using this tool\n"
+        );
+
+        let sips_flip_err = cmd_media_doc(
+            "sips",
+            &media_args(&["-f", "diagonal", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(sips_flip_err.exit_code, 1);
+        assert_eq!(
+            sips_flip_err.stderr,
+            "sips: flip direction must be 'horizontal' or 'vertical'\n"
+        );
     }
 }

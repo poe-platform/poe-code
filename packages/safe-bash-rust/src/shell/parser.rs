@@ -950,4 +950,14 @@ mod tests {
         assert!(parsed.lists.len() >= 4);
     }
 
+    #[test]
+    fn unit_parse_subshell_redirects_coproc_select_and_arith_for() {
+        let script = r#"
+            (echo out; echo err >&2) 2>&1 >/dev/null
+            for ((i=0; i<2; i++)); do echo "$i"; done
+        "#;
+        validate_basic_syntax(script).unwrap();
+        let parsed = parse_script(script).unwrap();
+        assert_eq!(parsed.lists.len(), 2);
+    }
 }

@@ -1379,4 +1379,44 @@ mod tests {
         assert_eq!(t_num.exit_code, 0);
     }
 
+    #[test]
+    fn unit_builtins_printf_var_assign_regex_test_let_umask_and_dirs() {
+        let vfs = MemoryVfs::new();
+        let mut env = BTreeMap::new();
+        let mut cwd = "/".to_string();
+        let mut stdin = String::new();
+
+        let pf = builtin_printf(&args(&["-v", "OUT_VAR", "%-6s:%03d", "tag", "9"]), &mut env);
+        assert_eq!(pf.exit_code, 0);
+        assert_eq!(env.get("OUT_VAR").map(String::as_str), Some("tag   :009"));
+
+        let re_test = builtin_test(
+            "[[",
+            &args(&["v2.4.1", "=~", "^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$", "]]"]),
+            "/",
+            &mut env,
+            &vfs,
+        );
+        assert_eq!(re_test.exit_code, 0);
+        assert_eq!(env.get("BASH_REMATCH[1]").map(String::as_str), Some("2"));
+        assert_eq!(env.get("BASH_REMATCH[2]").map(String::as_str), Some("4"));
+
+        let lt = try_run_builtin(
+            "let",
+            &args(&["A = 6 * 7", "B = A + 8"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(lt.exit_code, 0);
+        assert_eq!(env.get("A").map(String::as_str), Some("42"));
+        assert_eq!(env.get("B").map(String::as_str), Some("50"));
+
+        let um = try_run_builtin("umask", &args(&["0027"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        assert_eq!(um.exit_code, 0);
+        let um_get = try_run_builtin("umask", &[], &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        assert_eq!(um_get.stdout, "0027\n");
+    }
 }

@@ -195,8 +195,23 @@ mod tests {
             )
             .unwrap();
         assert_eq!(res.exit_code, 0);
-        assert_eq!(res.stdout, "v1:v2:2
-");
+        assert_eq!(res.stdout, "v1:v2:2\n");
+    }
+
+    #[test]
+    fn unit_shell_pipefail_pipestatus_and_getopts() {
+        let (mut shell, _vfs) = Shell::with_memory_fs();
+        let res = shell
+            .exec(
+                r#"
+                set -o pipefail
+                sh -c 'exit 2' | sh -c 'exit 0' | sh -c 'exit 5'
+                echo "rc=$? pipe=${PIPESTATUS[*]}"
+                "#,
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "rc=5 pipe=2 0 5\n");
     }
 
 }

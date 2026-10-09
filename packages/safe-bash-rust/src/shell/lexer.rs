@@ -828,4 +828,20 @@ mod tests {
         assert!(tokens.contains(&Token::RParen));
     }
 
+    #[test]
+    fn unit_tokenize_heredoc_tab_strip_and_compound_operators() {
+        let script = "cat <<-EOF && echo ok || echo fail\n\tindented\n\t\tdeep\n\tEOF\n";
+        let tokens = tokenize_shell(script).unwrap();
+        assert!(tokens.iter().any(|t| matches!(
+            t,
+            Token::RedirectHereDoc {
+                fd: 0,
+                delimiter,
+                quoted: false,
+                body
+            } if delimiter == "EOF" && body == "indented\ndeep\n"
+        )));
+        assert!(tokens.contains(&Token::AndIf));
+        assert!(tokens.contains(&Token::OrIf));
+    }
 }

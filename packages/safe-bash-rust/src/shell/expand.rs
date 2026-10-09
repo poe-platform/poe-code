@@ -2700,4 +2700,23 @@ mod tests {
         assert_eq!(a, 15);
     }
 
+    #[test]
+    fn unit_parameter_transforms_substrings_and_ternary_arithmetic() {
+        let mut env = BTreeMap::new();
+        env.insert("STR".to_string(), "archive.tar.gz".to_string());
+        assert_eq!(
+            expand_parameter_expr("STR:8:3", &mut env, 0, &[]).unwrap(),
+            "tar"
+        );
+        assert_eq!(
+            expand_parameter_expr("STR: -6:3", &mut env, 0, &[]).unwrap(),
+            "tar"
+        );
+        assert_eq!(
+            expand_parameter_expr("STR@U", &mut env, 0, &[]).unwrap(),
+            "ARCHIVE.TAR.GZ"
+        );
+        let v = eval_arith("10 > 5 ? (1 << 4) : 0", &mut env).unwrap();
+        assert_eq!(v, 16);
+    }
 }

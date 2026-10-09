@@ -565,6 +565,8 @@ impl<'a> EvalState<'a> {
                 let mut sub_cwd = self.cwd.clone();
                 let mut sub_env = self.env.clone();
                 let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+                sub.fd_table.insert(1, FdTarget::Stdout);
+                sub.fd_table.insert(2, FdTarget::Stderr);
                 let res = sub.eval_script(body, eff_stdin);
                 self.budget.leave_recursion();
                 let mut out = match res {
@@ -5663,4 +5665,21 @@ mod tests {
         );
     }
 
+    #[test]
+    fn unit_subshell_outer_redirection_does_not_double_route() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        let res = state
+            .eval_script_str(
+            "swapped=$( (echo out_msg; echo err_msg >&2) 2>&1 >/dev/null ); echo \"swapped=$swapped\"",
+            "",
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(res.stdout, "swapped=err_msg\n");
+    }
 }

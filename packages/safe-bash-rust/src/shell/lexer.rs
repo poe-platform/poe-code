@@ -35,6 +35,9 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
     let mut pending_heredocs: Vec<(usize, u32, String, bool, bool)> = Vec::new();
     let mut in_double_bracket = false;
     let mut after_regex_op = false;
+    let mut after_pat_op = false;
+    let mut regex_paren_depth = 0usize;
+    let mut db_group_depth = 0usize;
 
     while i < chars.len() {
         let ch = chars[i];
@@ -45,11 +48,19 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     if w == "[[" {
                         in_double_bracket = true;
                         after_regex_op = false;
+                        after_pat_op = false;
+                        regex_paren_depth = 0;
+                        db_group_depth = 0;
                     } else if w == "]]" {
                         in_double_bracket = false;
                         after_regex_op = false;
+                        after_pat_op = false;
+                        regex_paren_depth = 0;
+                        db_group_depth = 0;
                     } else {
                         after_regex_op = in_double_bracket && w == "=~";
+                        after_pat_op = in_double_bracket && matches!(w.as_str(), "=" | "==" | "!=");
+                        regex_paren_depth = 0;
                     }
                     tokens.push(Token::Word(w));
                 }
@@ -205,16 +216,29 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 }
             }
             ' ' | '\t' | '\r' => {
+                if in_double_bracket && after_regex_op && regex_paren_depth > 0 && ch != '\r' {
+                    current.push(ch);
+                    i += 1;
+                    continue;
+                }
                 if !current.is_empty() {
                     let w = std::mem::take(&mut current);
                     if w == "[[" {
                         in_double_bracket = true;
                         after_regex_op = false;
+                        after_pat_op = false;
+                        regex_paren_depth = 0;
+                        db_group_depth = 0;
                     } else if w == "]]" {
                         in_double_bracket = false;
                         after_regex_op = false;
+                        after_pat_op = false;
+                        regex_paren_depth = 0;
+                        db_group_depth = 0;
                     } else {
                         after_regex_op = in_double_bracket && w == "=~";
+                        after_pat_op = in_double_bracket && matches!(w.as_str(), "=" | "==" | "!=");
+                        regex_paren_depth = 0;
                     }
                     tokens.push(Token::Word(w));
                 }
@@ -225,20 +249,47 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     let w = std::mem::take(&mut current);
                     if w == "]]" {
                         in_double_bracket = false;
+                        db_group_depth = 0;
                     }
                     after_regex_op = false;
+                    after_pat_op = false;
+                    regex_paren_depth = 0;
                     tokens.push(Token::Word(w));
                 }
                 tokens.push(Token::Semi);
                 i += 1;
             }
             '(' | ')' if in_double_bracket && after_regex_op => {
-                current.push(ch);
+                if ch == '(' {
+                    regex_paren_depth += 1;
+                    current.push(ch);
+                } else if regex_paren_depth > 0 {
+                    regex_paren_depth -= 1;
+                    current.push(ch);
+                } else if db_group_depth > 0 {
+                    if !current.is_empty() {
+                        tokens.push(Token::Word(std::mem::take(&mut current)));
+                    }
+                    after_regex_op = false;
+                    after_pat_op = false;
+                    db_group_depth -= 1;
+                    tokens.push(Token::Word(")".to_string()));
+                } else {
+                    current.push(ch);
+                }
                 i += 1;
             }
-            '(' | ')' if in_double_bracket && !(ch == '(' && current.ends_with(['?', '*', '+', '@', '!'])) => {
+            '(' | ')' if in_double_bracket && !(ch == '(' && after_pat_op && current.ends_with(['?', '*', '+', '@', '!'])) => {
                 if !current.is_empty() {
                     tokens.push(Token::Word(std::mem::take(&mut current)));
+                }
+                after_regex_op = false;
+                after_pat_op = false;
+                regex_paren_depth = 0;
+                if ch == '(' {
+                    db_group_depth += 1;
+                } else {
+                    db_group_depth = db_group_depth.saturating_sub(1);
                 }
                 tokens.push(Token::Word(ch.to_string()));
                 i += 1;
@@ -311,6 +362,8 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
             }
             '|' => {
                 after_regex_op = false;
+                after_pat_op = false;
+                regex_paren_depth = 0;
                 if !current.is_empty() {
                     tokens.push(Token::Word(std::mem::take(&mut current)));
                 }
@@ -333,6 +386,8 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
             }
             '&' => {
                 after_regex_op = false;
+                after_pat_op = false;
+                regex_paren_depth = 0;
                 if !current.is_empty() {
                     tokens.push(Token::Word(std::mem::take(&mut current)));
                 }

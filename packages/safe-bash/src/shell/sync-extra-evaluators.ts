@@ -4195,6 +4195,7 @@ const syncExtraRuntimeMethods = {
     const entries = this.presenceArrayEntries(state, resolved);
     if (bracket < 0) return entries ? entries[0] !== undefined : this.variable(state, base) !== undefined;
     const selector = name.slice(bracket + 1, -1);
+    if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
     if (binding?.associative) {
       if (!suppliedSubscript || selector.length > 4096) return undefined;
       if (selector.length === 0) return false;

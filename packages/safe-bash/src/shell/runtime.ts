@@ -3142,6 +3142,7 @@ export class Runtime {
     const binding = arrayStore(state)?.get(resolved);
     const selector = name.slice(bracket + 1, -1);
     const entries = this.presenceArrayEntries(state, resolved);
+    if (selector === "@" || selector === "*") return entries ? entries.length > 0 : binding ? binding.values.size > 0 : this.variable(state, base) !== undefined;
     const store = requireArrays(state);
     try {
       // Supplied associative selectors have already undergone word expansion.

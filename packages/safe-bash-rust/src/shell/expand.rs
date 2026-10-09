@@ -155,11 +155,19 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool) -> bool {
                 ti += 1;
                 continue;
             } else if pi < p.len() && p[pi] == '[' {
-                if let Some((matched, next_pi)) = match_bracket(&p[pi..], t[ti], nocase) {
-                    if matched {
+                match match_bracket(&p[pi..], t[ti], nocase) {
+                    Some((true, next_pi)) => {
                         pi += next_pi;
                         ti += 1;
                         continue;
+                    }
+                    Some((false, _)) => {}
+                    None => {
+                        if chars_eq('[', t[ti], nocase) {
+                            pi += 1;
+                            ti += 1;
+                            continue;
+                        }
                     }
                 }
             }
@@ -193,7 +201,9 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
     }
     let mut matched = false;
     let ch_cmp = if nocase { ch.to_ascii_lowercase() } else { ch };
-    while idx < p.len() && p[idx] != ']' {
+    let mut first = true;
+    while idx < p.len() && (first || p[idx] != ']') {
+        first = false;
         if idx + 1 < p.len() && p[idx] == '[' && p[idx + 1] == ':' {
             let mut end_col = idx + 2;
             while end_col + 1 < p.len() && !(p[end_col] == ':' && p[end_col + 1] == ']') {
@@ -223,18 +233,28 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
                 continue;
             }
         }
-        if idx + 2 < p.len() && p[idx + 1] == '-' && p[idx + 2] != ']' {
-            let start = if nocase { p[idx].to_ascii_lowercase() } else { p[idx] };
-            let end = if nocase { p[idx + 2].to_ascii_lowercase() } else { p[idx + 2] };
+        let (cur_ch, next_idx) = if p[idx] == '\\' && idx + 1 < p.len() {
+            (p[idx + 1], idx + 2)
+        } else {
+            (p[idx], idx + 1)
+        };
+        if next_idx + 1 < p.len() && p[next_idx] == '-' && p[next_idx + 1] != ']' {
+            let (end_raw, after_end) = if p[next_idx + 1] == '\\' && next_idx + 2 < p.len() {
+                (p[next_idx + 2], next_idx + 3)
+            } else {
+                (p[next_idx + 1], next_idx + 2)
+            };
+            let start = if nocase { cur_ch.to_ascii_lowercase() } else { cur_ch };
+            let end = if nocase { end_raw.to_ascii_lowercase() } else { end_raw };
             if ch_cmp >= start && ch_cmp <= end {
                 matched = true;
             }
-            idx += 3;
+            idx = after_end;
         } else {
-            if chars_eq(p[idx], ch, nocase) {
+            if chars_eq(cur_ch, ch, nocase) {
                 matched = true;
             }
-            idx += 1;
+            idx = next_idx;
         }
     }
     if idx < p.len() && p[idx] == ']' {

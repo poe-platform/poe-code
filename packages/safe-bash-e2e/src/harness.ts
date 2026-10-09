@@ -402,6 +402,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-dirstack-cdpath-eval-source-exec-trap-jobs-wait-kill-parity-matrix.test.ts",
   "obscure-printf-test-brackets-getopts-set-echo-hash-parity-matrix.test.ts",
   "obscure-dynamic-vars-random-seconds-lineno-dirstack-indirect-param-parity-matrix.test.ts",
+  "obscure-conditional-double-bracket-ere-shortcircuit-rematch-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

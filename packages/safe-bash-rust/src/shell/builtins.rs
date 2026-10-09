@@ -1959,7 +1959,7 @@ pub fn builtin_test(
     }
 }
 
-fn is_test_unary_op(op: &str) -> bool {
+pub fn is_test_unary_op(op: &str) -> bool {
     matches!(
         op,
         "-n"
@@ -2029,11 +2029,16 @@ fn parse_test_integer(text: &str) -> Result<i64, String> {
         .map_err(|_| format!("integer expression expected: '{text}'"))
 }
 
-fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
-    if let Some((base, sub_with_bracket)) = val.split_once('[')
+fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool {
+    let eff_val = if val.contains('[') {
+        val.to_string()
+    } else {
+        resolve_nameref_base(val, env).to_string()
+    };
+    if let Some((base, sub_with_bracket)) = eff_val.split_once('[')
         && let Some(sub) = sub_with_bracket.strip_suffix(']')
     {
-        let resolved_base = resolve_nameref_base(base, env);
+        let resolved_base = resolve_nameref_base(base, env).to_string();
         if resolved_base == "DIRSTACK" {
             if sub == "@" || sub == "*" {
                 return true;
@@ -2043,12 +2048,12 @@ fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
                 .filter(|s| !s.is_empty())
                 .map(|s| s.split('\x1f').count() as i64)
                 .unwrap_or(0);
-            let idx = eval_arith(sub, &mut env.clone()).unwrap_or(0);
+            let idx = eval_arith(sub, env).unwrap_or(0);
             let eff = if idx < 0 { tail_len + 1 + idx } else { idx };
             return eff >= 0 && eff <= tail_len;
         }
         if sub == "@" || sub == "*" {
-            if env.contains_key(resolved_base) {
+            if env.contains_key(&resolved_base) {
                 return true;
             }
             let prefix = format!("{resolved_base}[");
@@ -2062,7 +2067,7 @@ fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
         let key = if is_assoc {
             format!("{resolved_base}[{sub}]")
         } else {
-            let idx = eval_arith(sub, &mut env.clone()).unwrap_or(0);
+            let idx = eval_arith(sub, env).unwrap_or(0);
             if idx < 0 {
                 let prefix = format!("{resolved_base}[");
                 let max_idx = env
@@ -2079,9 +2084,9 @@ fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
                 format!("{resolved_base}[{idx}]")
             }
         };
-        return env.contains_key(&key) || (key.ends_with("[0]") && env.contains_key(resolved_base));
+        return env.contains_key(&key) || (key.ends_with("[0]") && env.contains_key(&resolved_base));
     }
-    let resolved = resolve_nameref_base(val, env);
+    let resolved = eff_val.as_str();
     if matches!(resolved, "DIRSTACK" | "BASHPID" | "BASH_SUBSHELL" | "LINENO" | "$") {
         return true;
     }
@@ -2096,22 +2101,17 @@ fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
     if resolved == "_" {
         return env.contains_key("_") || env.contains_key("__last_arg");
     }
-    if env.contains_key(resolved) || env.contains_key(val) {
+    if env.contains_key(resolved) || env.contains_key(val) || env.contains_key(&format!("{resolved}[0]")) {
         return true;
     }
-    let prefix = format!("{resolved}[");
-    env.keys().any(|k| {
-        k.strip_prefix(&prefix)
-            .and_then(|s| s.strip_suffix(']'))
-            .is_some_and(|sub_k| !matches!(sub_k, "#" | "@" | "*"))
-    })
+    false
 }
 
-fn eval_test_unary_predicate(
+pub fn eval_test_unary_predicate(
     op: &str,
     val: &str,
     cwd: &str,
-    env: &BTreeMap<String, String>,
+    env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> bool {
     let path = resolve_posix_path(cwd, val);
@@ -2188,7 +2188,7 @@ fn eval_test_unary_predicate(
 fn eval_posix_test(
     raw_args: &[String],
     cwd: &str,
-    env: &BTreeMap<String, String>,
+    env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Result<bool, String> {
     let mut args: Vec<String> = raw_args.to_vec();
@@ -2240,7 +2240,7 @@ fn eval_posix_test(
     }
 
     let mut offset = 0usize;
-    let parse_primary = |offset: &mut usize| -> Result<bool, String> {
+    let parse_primary = |offset: &mut usize, env: &mut BTreeMap<String, String>| -> Result<bool, String> {
         let Some(token) = args.get(*offset).cloned() else {
             return Err("argument expected".to_string());
         };
@@ -2380,7 +2380,7 @@ fn eval_posix_test(
                 }
                 continue;
             }
-            let atom_val = parse_primary(&mut offset)?;
+            let atom_val = parse_primary(&mut offset, env)?;
             let frame = frames.last_mut().unwrap();
             let mut expr = TestExpr::Atom(atom_val);
             if frame.pending_not {
@@ -2626,6 +2626,817 @@ fn eval_test_primary(
     let single = &args[*pos];
     *pos += 1;
     !single.is_empty()
+}
+
+#[derive(Clone, Debug)]
+enum EreNode {
+    Empty,
+    Start,
+    End,
+    Dot,
+    Literal { code: u8, insensitive: bool },
+    Set { members: [bool; 128], non_ascii: bool },
+    Sequence(Vec<EreNode>),
+    Alternative(Vec<EreNode>),
+    Group { index: usize, child: Box<EreNode> },
+    Repeat { child: Box<EreNode>, min: usize, max: Option<usize> },
+}
+
+impl EreNode {
+    fn is_nullable(&self) -> bool {
+        match self {
+            EreNode::Empty | EreNode::Start | EreNode::End => true,
+            EreNode::Dot | EreNode::Literal { .. } | EreNode::Set { .. } => false,
+            EreNode::Sequence(children) => children.iter().all(EreNode::is_nullable),
+            EreNode::Alternative(children) => children.iter().any(EreNode::is_nullable),
+            EreNode::Group { child, .. } => child.is_nullable(),
+            EreNode::Repeat { child, min, .. } => *min == 0 || child.is_nullable(),
+        }
+    }
+
+    fn is_captured(&self) -> bool {
+        match self {
+            EreNode::Group { .. } => true,
+            EreNode::Sequence(children) | EreNode::Alternative(children) => {
+                children.iter().any(EreNode::is_captured)
+            }
+            EreNode::Repeat { child, .. } => child.is_captured(),
+            _ => false,
+        }
+    }
+
+    fn reset_descendants(&self, captures: &mut [Option<(usize, usize)>]) {
+        match self {
+            EreNode::Group { index, child } => {
+                if *index < captures.len() {
+                    captures[*index] = None;
+                }
+                if child.is_captured() {
+                    child.reset_descendants(captures);
+                }
+            }
+            EreNode::Repeat { child, .. } => {
+                if child.is_captured() {
+                    child.reset_descendants(captures);
+                }
+            }
+            EreNode::Sequence(children) | EreNode::Alternative(children) => {
+                for c in children {
+                    if c.is_captured() {
+                        c.reset_descendants(captures);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+fn ere_class_member(name: &str, code: u8) -> Option<bool> {
+    let upper = (65..=90).contains(&code);
+    let lower = (97..=122).contains(&code);
+    let digit = (48..=57).contains(&code);
+    Some(match name {
+        "alnum" => upper || lower || digit,
+        "alpha" => upper || lower,
+        "blank" => code == 9 || code == 32,
+        "cntrl" => code < 32 || code == 127,
+        "digit" => digit,
+        "graph" => (33..=126).contains(&code),
+        "lower" => lower,
+        "print" => (32..=126).contains(&code),
+        "punct" => (33..=126).contains(&code) && !upper && !lower && !digit,
+        "space" => code == 32 || (9..=13).contains(&code),
+        "upper" => upper,
+        "xdigit" => digit || (65..=70).contains(&code) || (97..=102).contains(&code),
+        _ => return None,
+    })
+}
+
+struct EreParser<'a> {
+    pattern: &'a [char],
+    quoted: &'a [bool],
+    offset: usize,
+    groups: usize,
+    insensitive: bool,
+    locale_ranges: bool,
+    locale_classes: bool,
+}
+
+impl<'a> EreParser<'a> {
+    fn at(&self, ch: char, offset: usize) -> bool {
+        offset < self.pattern.len() && !self.quoted[offset] && self.pattern[offset] == ch
+    }
+
+    fn parse_expression(&mut self) -> Result<EreNode, String> {
+        let mut alts = Vec::new();
+        loop {
+            alts.push(self.parse_sequence()?);
+            if !self.at('|', self.offset) {
+                break;
+            }
+            self.offset += 1;
+        }
+        if alts.len() == 1 {
+            Ok(alts.pop().unwrap())
+        } else {
+            Ok(EreNode::Alternative(alts))
+        }
+    }
+
+    fn parse_sequence(&mut self) -> Result<EreNode, String> {
+        let mut children = Vec::new();
+        while self.offset < self.pattern.len()
+            && !self.at('|', self.offset)
+            && !self.at(')', self.offset)
+        {
+            let mut child = self.parse_atom()?;
+            let op = if self.offset < self.pattern.len() && !self.quoted[self.offset] {
+                Some(self.pattern[self.offset])
+            } else {
+                None
+            };
+            if let Some(operator @ ('*' | '+' | '?' | '{')) = op {
+                let begin = self.offset;
+                self.offset += 1;
+                let mut min = if operator == '+' { 1 } else { 0 };
+                let mut max = if operator == '?' { Some(1) } else { None };
+                if operator == '{' {
+                    min = self.parse_count()?;
+                    max = Some(min);
+                    if self.at(',', self.offset) {
+                        self.offset += 1;
+                        max = if self.at('}', self.offset) {
+                            None
+                        } else {
+                            Some(self.parse_count()?)
+                        };
+                    }
+                    if !self.at('}', self.offset) || max.is_some_and(|m| m < min) {
+                        return Err(format!("invalid ERE at {begin}: invalid interval"));
+                    }
+                    self.offset += 1;
+                }
+                if matches!(child, EreNode::Start | EreNode::End) {
+                    return Err(format!("unsupported ERE profile at {begin}: repeated anchor"));
+                }
+                if child.is_nullable() && child.is_captured() && max.is_none_or(|m| m > 1) {
+                    return Err(format!(
+                        "unsupported ERE profile at {begin}: nullable captured repetition"
+                    ));
+                }
+                child = EreNode::Repeat {
+                    child: Box::new(child),
+                    min,
+                    max,
+                };
+                if self.offset < self.pattern.len()
+                    && !self.quoted[self.offset]
+                    && matches!(self.pattern[self.offset], '*' | '+' | '?' | '{')
+                {
+                    return Err(format!(
+                        "unsupported ERE profile at {}: stacked repetition",
+                        self.offset
+                    ));
+                }
+            }
+            children.push(child);
+        }
+        if children.is_empty() {
+            Ok(EreNode::Empty)
+        } else if children.len() == 1 {
+            Ok(children.pop().unwrap())
+        } else {
+            Ok(EreNode::Sequence(children))
+        }
+    }
+
+    fn parse_count(&mut self) -> Result<usize, String> {
+        let begin = self.offset;
+        let mut value: u64 = 0;
+        while self.offset < self.pattern.len()
+            && !self.quoted[self.offset]
+            && self.pattern[self.offset].is_ascii_digit()
+        {
+            value = value
+                .saturating_mul(10)
+                .saturating_add((self.pattern[self.offset] as u8 - b'0') as u64);
+            self.offset += 1;
+            if value > 9_007_199_254_740_991 {
+                return Err(format!(
+                    "unsupported ERE profile at {begin}: interval count is not a safe integer"
+                ));
+            }
+        }
+        if begin == self.offset {
+            return Err(format!("invalid ERE at {begin}: missing interval count"));
+        }
+        Ok(value as usize)
+    }
+
+    fn parse_atom(&mut self) -> Result<EreNode, String> {
+        let begin = self.offset;
+        let ch = self.pattern[self.offset];
+        self.offset += 1;
+        if self.quoted[begin] {
+            return Ok(EreNode::Literal {
+                code: ch as u8,
+                insensitive: self.insensitive,
+            });
+        }
+        if ch == '(' {
+            if self.at('?', self.offset) {
+                return Err(format!(
+                    "unsupported ERE profile at {begin}: extended group syntax"
+                ));
+            }
+            self.groups += 1;
+            let index = self.groups;
+            let child = self.parse_expression()?;
+            if !self.at(')', self.offset) {
+                return Err(format!("invalid ERE at {begin}: unclosed group"));
+            }
+            self.offset += 1;
+            return Ok(EreNode::Group {
+                index,
+                child: Box::new(child),
+            });
+        }
+        if ch == '[' {
+            return self.parse_set(begin);
+        }
+        if ch == '\\' {
+            let Some(&escaped) = self.pattern.get(self.offset) else {
+                return Err(format!("invalid ERE at {begin}: trailing escape"));
+            };
+            self.offset += 1;
+            if !"\\.^$[]()|*+?{}".contains(escaped) {
+                return Err(format!(
+                    "unsupported ERE profile at {begin}: backreference or escape extension"
+                ));
+            }
+            return Ok(EreNode::Literal {
+                code: escaped as u8,
+                insensitive: self.insensitive,
+            });
+        }
+        if matches!(ch, '*' | '+' | '?' | '{') {
+            return Err(format!(
+                "invalid ERE at {begin}: repetition without operand"
+            ));
+        }
+        if ch == '.' {
+            return Ok(EreNode::Dot);
+        }
+        if ch == '^' {
+            return Ok(EreNode::Start);
+        }
+        if ch == '$' {
+            return Ok(EreNode::End);
+        }
+        Ok(EreNode::Literal {
+            code: ch as u8,
+            insensitive: self.insensitive,
+        })
+    }
+
+    fn parse_set(&mut self, begin: usize) -> Result<EreNode, String> {
+        let mut members = [false; 128];
+        let negate = self.at('^', self.offset);
+        if negate {
+            self.offset += 1;
+        }
+        let mut first = true;
+        while self.offset < self.pattern.len() {
+            if self.at(']', self.offset) && !first {
+                self.offset += 1;
+                if self.insensitive {
+                    for upper in 65..=90usize {
+                        if members[upper] || members[upper + 32] {
+                            members[upper] = true;
+                            members[upper + 32] = true;
+                        }
+                    }
+                }
+                if negate {
+                    for code in 1..128usize {
+                        members[code] = !members[code];
+                    }
+                }
+                return Ok(EreNode::Set {
+                    members,
+                    non_ascii: negate,
+                });
+            }
+            first = false;
+            if self.at('[', self.offset)
+                && (self.at('.', self.offset + 1) || self.at('=', self.offset + 1))
+            {
+                return Err(format!(
+                    "unsupported ERE profile at {}: collating or equivalence element",
+                    self.offset
+                ));
+            }
+            if self.at('[', self.offset) && self.at(':', self.offset + 1) {
+                if !self.locale_classes {
+                    return Err(format!(
+                        "unsupported ERE profile at {}: locale character class",
+                        self.offset
+                    ));
+                }
+                let class_begin = self.offset;
+                self.offset += 2;
+                let mut name = String::new();
+                while self.offset < self.pattern.len() && !self.at(':', self.offset) {
+                    if name.len() >= 6 {
+                        return Err(format!(
+                            "invalid ERE at {class_begin}: unknown character class"
+                        ));
+                    }
+                    name.push(self.pattern[self.offset]);
+                    self.offset += 1;
+                }
+                if !self.at(':', self.offset)
+                    || !self.at(']', self.offset + 1)
+                    || ere_class_member(&name, b'a').is_none()
+                {
+                    return Err(format!(
+                        "invalid ERE at {class_begin}: unknown character class"
+                    ));
+                }
+                self.offset += 2;
+                for code in 1..128u8 {
+                    if ere_class_member(&name, code) == Some(true) {
+                        members[code as usize] = true;
+                    }
+                }
+                if self.at('-', self.offset) && !self.at(']', self.offset + 1) {
+                    return Err(format!(
+                        "invalid ERE at {}: class cannot be a range endpoint",
+                        self.offset
+                    ));
+                }
+            } else {
+                let lower = self.pattern[self.offset] as u32;
+                self.offset += 1;
+                if lower > 127 {
+                    return Err(format!(
+                        "unsupported ERE profile at {}: non-ASCII bracket member",
+                        self.offset - 1
+                    ));
+                }
+                if self.at('-', self.offset)
+                    && !self.at(']', self.offset + 1)
+                    && self.offset + 1 < self.pattern.len()
+                {
+                    if !self.locale_ranges {
+                        return Err(format!(
+                            "unsupported ERE profile at {}: collation locale range",
+                            self.offset
+                        ));
+                    }
+                    self.offset += 1;
+                    if self.at('[', self.offset) {
+                        return Err(format!(
+                            "invalid ERE at {}: nonliteral range endpoint",
+                            self.offset
+                        ));
+                    }
+                    let upper = self.pattern[self.offset] as u32;
+                    self.offset += 1;
+                    if upper > 127 {
+                        return Err(format!(
+                            "unsupported ERE profile at {}: non-ASCII bracket member",
+                            self.offset - 1
+                        ));
+                    }
+                    if lower > upper {
+                        return Err(format!(
+                            "invalid ERE at {}: descending range",
+                            self.offset - 3
+                        ));
+                    }
+                    for code in lower..=upper {
+                        members[code as usize] = true;
+                    }
+                } else {
+                    members[lower as usize] = true;
+                }
+            }
+        }
+        Err(format!("invalid ERE at {begin}: unclosed bracket expression"))
+    }
+}
+
+#[derive(Clone)]
+enum EreTask<'a> {
+    Node {
+        node: &'a EreNode,
+        next: Option<Box<EreTask<'a>>>,
+    },
+    Close {
+        group: usize,
+        start: usize,
+        next: Option<Box<EreTask<'a>>>,
+    },
+    Repeat {
+        node: &'a EreNode,
+        child: &'a EreNode,
+        min: usize,
+        max: Option<usize>,
+        count: usize,
+        previous: isize,
+        next: Option<Box<EreTask<'a>>>,
+    },
+}
+
+#[derive(Clone)]
+struct EreState<'a> {
+    position: usize,
+    task: Option<Box<EreTask<'a>>>,
+    captures: Vec<Option<(usize, usize)>>,
+    histories: Vec<Vec<(usize, usize)>>,
+}
+
+fn span_order(left: (usize, usize), right: (usize, usize)) -> i32 {
+    let l_len = (left.1 - left.0) as i32;
+    let r_len = (right.1 - right.0) as i32;
+    if l_len != r_len {
+        l_len - r_len
+    } else {
+        (right.0 as i32) - (left.0 as i32)
+    }
+}
+
+fn history_order(left: &[(usize, usize)], right: &[(usize, usize)]) -> i32 {
+    if left.is_empty() || right.is_empty() {
+        return (left.len() as i32) - (right.len() as i32);
+    }
+    for (l, r) in left.iter().zip(right.iter()) {
+        let cmp = span_order(*l, *r);
+        if cmp != 0 {
+            return cmp;
+        }
+    }
+    (left.len() as i32) - (right.len() as i32)
+}
+
+fn ere_state_preferred(candidate: &EreState<'_>, incumbent: &EreState<'_>) -> bool {
+    if candidate.position != incumbent.position {
+        return candidate.position > incumbent.position;
+    }
+    for group in 1..candidate.captures.len() {
+        let cmp = history_order(&candidate.histories[group], &incumbent.histories[group]);
+        if cmp != 0 {
+            return cmp > 0;
+        }
+    }
+    false
+}
+
+fn match_ere_ast(root: &EreNode, groups: usize, subject: &[u8]) -> Option<Vec<Option<String>>> {
+    let width = groups + 1;
+    for start in 0..=subject.len() {
+        let mut pending: Vec<EreState<'_>> = vec![EreState {
+            position: start,
+            task: Some(Box::new(EreTask::Node {
+                node: root,
+                next: None,
+            })),
+            captures: vec![None; width],
+            histories: vec![Vec::new(); width],
+        }];
+        let mut best: Option<EreState<'_>> = None;
+        while let Some(state) = pending.pop() {
+            let Some(current) = state.task.clone() else {
+                if best
+                    .as_ref()
+                    .is_none_or(|inc| ere_state_preferred(&state, inc))
+                {
+                    best = Some(state);
+                }
+                continue;
+            };
+            match *current {
+                EreTask::Close { group, start: g_start, next } => {
+                    let span = (g_start, state.position);
+                    let mut captures = state.captures.clone();
+                    captures[group] = Some(span);
+                    let mut histories = state.histories.clone();
+                    histories[group].push(span);
+                    pending.push(EreState {
+                        position: state.position,
+                        task: next,
+                        captures,
+                        histories,
+                    });
+                }
+                EreTask::Repeat {
+                    node,
+                    child,
+                    min,
+                    max,
+                    count,
+                    previous,
+                    next,
+                } => {
+                    if count >= min {
+                        pending.push(EreState {
+                            position: state.position,
+                            task: next.clone(),
+                            captures: state.captures.clone(),
+                            histories: state.histories.clone(),
+                        });
+                    }
+                    let no_progress = count > 0 && (state.position as isize) == previous;
+                    if max.is_none_or(|m| count < m) && (!no_progress || count < min) {
+                        let rep_task = Box::new(EreTask::Repeat {
+                            node,
+                            child,
+                            min,
+                            max,
+                            count: count + 1,
+                            previous: state.position as isize,
+                            next,
+                        });
+                        pending.push(EreState {
+                            position: state.position,
+                            task: Some(Box::new(EreTask::Node {
+                                node: child,
+                                next: Some(rep_task),
+                            })),
+                            captures: state.captures,
+                            histories: state.histories,
+                        });
+                    }
+                }
+                EreTask::Node { node, next } => match node {
+                    EreNode::Empty => {
+                        pending.push(EreState {
+                            position: state.position,
+                            task: next,
+                            captures: state.captures,
+                            histories: state.histories,
+                        });
+                    }
+                    EreNode::Start => {
+                        if state.position == 0 {
+                            pending.push(EreState {
+                                position: state.position,
+                                task: next,
+                                captures: state.captures,
+                                histories: state.histories,
+                            });
+                        }
+                    }
+                    EreNode::End => {
+                        if state.position == subject.len() {
+                            pending.push(EreState {
+                                position: state.position,
+                                task: next,
+                                captures: state.captures,
+                                histories: state.histories,
+                            });
+                        }
+                    }
+                    EreNode::Dot => {
+                        if state.position < subject.len() {
+                            pending.push(EreState {
+                                position: state.position + 1,
+                                task: next,
+                                captures: state.captures,
+                                histories: state.histories,
+                            });
+                        }
+                    }
+                    EreNode::Literal { code, insensitive } => {
+                        if let Some(&b) = subject.get(state.position) {
+                            let ok = if *insensitive {
+                                b.eq_ignore_ascii_case(code)
+                            } else {
+                                b == *code
+                            };
+                            if ok {
+                                pending.push(EreState {
+                                    position: state.position + 1,
+                                    task: next,
+                                    captures: state.captures,
+                                    histories: state.histories,
+                                });
+                            }
+                        }
+                    }
+                    EreNode::Set { members, non_ascii } => {
+                        if let Some(&b) = subject.get(state.position) {
+                            let ok = if b < 128 {
+                                members[b as usize]
+                            } else {
+                                *non_ascii
+                            };
+                            if ok {
+                                pending.push(EreState {
+                                    position: state.position + 1,
+                                    task: next,
+                                    captures: state.captures,
+                                    histories: state.histories,
+                                });
+                            }
+                        }
+                    }
+                    EreNode::Sequence(children) => {
+                        let mut seq_next = next;
+                        for child in children.iter().rev() {
+                            seq_next = Some(Box::new(EreTask::Node {
+                                node: child,
+                                next: seq_next,
+                            }));
+                        }
+                        pending.push(EreState {
+                            position: state.position,
+                            task: seq_next,
+                            captures: state.captures,
+                            histories: state.histories,
+                        });
+                    }
+                    EreNode::Alternative(children) => {
+                        for child in children.iter().rev() {
+                            pending.push(EreState {
+                                position: state.position,
+                                task: Some(Box::new(EreTask::Node {
+                                    node: child,
+                                    next: next.clone(),
+                                })),
+                                captures: state.captures.clone(),
+                                histories: state.histories.clone(),
+                            });
+                        }
+                    }
+                    EreNode::Group { index, child } => {
+                        let mut captures = state.captures;
+                        if child.is_captured() {
+                            child.reset_descendants(&mut captures);
+                        }
+                        let close_task = Box::new(EreTask::Close {
+                            group: *index,
+                            start: state.position,
+                            next,
+                        });
+                        pending.push(EreState {
+                            position: state.position,
+                            task: Some(Box::new(EreTask::Node {
+                                node: child,
+                                next: Some(close_task),
+                            })),
+                            captures,
+                            histories: state.histories,
+                        });
+                    }
+                    EreNode::Repeat { child, min, max } => {
+                        pending.push(EreState {
+                            position: state.position,
+                            task: Some(Box::new(EreTask::Repeat {
+                                node,
+                                child,
+                                min: *min,
+                                max: *max,
+                                count: 0,
+                                previous: -1,
+                                next,
+                            })),
+                            captures: state.captures,
+                            histories: state.histories,
+                        });
+                    }
+                },
+            }
+        }
+        if let Some(best_state) = best {
+            let mut out = Vec::with_capacity(width);
+            out.push(Some(
+                String::from_utf8_lossy(&subject[start..best_state.position]).to_string(),
+            ));
+            for group in 1..width {
+                let val = best_state.captures[group].map(|(s, e)| {
+                    String::from_utf8_lossy(&subject[s..e]).to_string()
+                });
+                out.push(val);
+            }
+            return Some(out);
+        }
+    }
+    None
+}
+
+pub fn eval_ere_match(
+    subject: &str,
+    fragments: &[(String, bool)],
+    env: &mut BTreeMap<String, String>,
+    stderr: &mut String,
+) -> i32 {
+    let get_non_empty = |key: &str| env.get(key).filter(|s| !s.is_empty()).map(|s| s.as_str());
+    let collation = get_non_empty("LC_ALL")
+        .or_else(|| get_non_empty("LC_COLLATE"))
+        .or_else(|| get_non_empty("LANG"))
+        .unwrap_or("C");
+    let characters = get_non_empty("LC_ALL")
+        .or_else(|| get_non_empty("LC_CTYPE"))
+        .or_else(|| get_non_empty("LANG"))
+        .unwrap_or("C");
+    let is_c = |loc: &str| matches!(loc, "C" | "POSIX" | "C.UTF-8" | "C.utf8");
+    let is_utf8 = |loc: &str| {
+        loc.split('.')
+            .nth(1)
+            .and_then(|s| s.split('@').next())
+            .is_some_and(|enc| enc.eq_ignore_ascii_case("utf-8") || enc.eq_ignore_ascii_case("utf8"))
+    };
+    if !((is_c(collation) || is_utf8(collation)) && (is_c(characters) || is_utf8(characters))) {
+        stderr.push_str("[[ unsupported ERE profile: locale must be C, POSIX or UTF-8\n");
+        return 2;
+    }
+    let locale_ranges = is_c(collation);
+    let locale_classes = !is_utf8(characters);
+
+    let mut pattern = Vec::new();
+    let mut quoted = Vec::new();
+    for (frag_text, lit) in fragments {
+        for (offset, ch) in frag_text.chars().enumerate() {
+            let code = ch as u32;
+            if code == 0 || code > 127 {
+                stderr.push_str(&format!(
+                    "[[ unsupported ERE profile at {offset}: only non-NUL ASCII in the C/POSIX profile\n"
+                ));
+                return 2;
+            }
+            pattern.push(ch);
+            quoted.push(*lit);
+        }
+    }
+
+    let nocase = env
+        .get("__shopt_nocasematch")
+        .is_some_and(|v| v == "1");
+    let mut parser = EreParser {
+        pattern: &pattern,
+        quoted: &quoted,
+        offset: 0,
+        groups: 0,
+        insensitive: nocase,
+        locale_ranges,
+        locale_classes,
+    };
+    let root = match parser.parse_expression() {
+        Ok(node) => {
+            if parser.offset != pattern.len() {
+                stderr.push_str(&format!(
+                    "[[ invalid ERE at {}: unmatched closing group\n",
+                    parser.offset
+                ));
+                return 2;
+            }
+            node
+        }
+        Err(err) => {
+            stderr.push_str(&format!("[[ {err}\n"));
+            return 2;
+        }
+    };
+
+    for (offset, ch) in subject.chars().enumerate() {
+        let code = ch as u32;
+        if code == 0 || code > 127 {
+            stderr.push_str(&format!(
+                "[[ unsupported ERE profile at {offset}: only non-NUL ASCII in the C/POSIX profile\n"
+            ));
+            return 2;
+        }
+    }
+
+    let matched = match_ere_ast(&root, parser.groups, subject.as_bytes());
+    let status = if matched.is_some() { 0 } else { 1 };
+
+    if env
+        .get("__attr__BASH_REMATCH")
+        .is_some_and(|a| a.contains('r'))
+    {
+        stderr.push_str("BASH_REMATCH: readonly variable\n");
+        return status;
+    }
+
+    let old_keys: Vec<String> = env
+        .keys()
+        .filter(|k| k.as_str() == "BASH_REMATCH" || k.starts_with("BASH_REMATCH["))
+        .cloned()
+        .collect();
+    for k in old_keys {
+        env.remove(&k);
+    }
+    if let Some(caps) = matched {
+        for (i, cap) in caps.into_iter().enumerate() {
+            env.insert(format!("BASH_REMATCH[{i}]"), cap.unwrap_or_default());
+        }
+    }
+    sync_array_metadata("BASH_REMATCH", env);
+    status
 }
 
 fn sync_dirstack_env(cwd: &str, stack: &[String], env: &mut BTreeMap<String, String>) {
@@ -2921,5 +3732,55 @@ mod tests {
             test_bad_int.stderr,
             "[: integer expression expected: '1+2'\n"
         );
+    }
+
+    #[test]
+    fn unit_builtins_eval_ere_match_rematch_and_syntax_diagnostics() {
+        let mut env = BTreeMap::new();
+        let mut stderr = String::new();
+
+        let status = eval_ere_match(
+            "ab",
+            &[("(a(b)|a)".to_string(), false), ("(b)?".to_string(), false)],
+            &mut env,
+            &mut stderr,
+        );
+        assert_eq!(status, 0);
+        assert_eq!(stderr, "");
+        assert_eq!(env.get("BASH_REMATCH[0]").map(String::as_str), Some("ab"));
+        assert_eq!(env.get("BASH_REMATCH[1]").map(String::as_str), Some("ab"));
+        assert_eq!(env.get("BASH_REMATCH[2]").map(String::as_str), Some("b"));
+        assert_eq!(env.get("BASH_REMATCH[3]").map(String::as_str), Some(""));
+
+        let lit_status = eval_ere_match(
+            "a+b",
+            &[("a+b".to_string(), true)],
+            &mut env,
+            &mut stderr,
+        );
+        assert_eq!(lit_status, 0);
+        assert_eq!(env.get("BASH_REMATCH[0]").map(String::as_str), Some("a+b"));
+
+        let mut err = String::new();
+        let bad_syntax = eval_ere_match(
+            "abc",
+            &[("[a-z".to_string(), false)],
+            &mut env,
+            &mut err,
+        );
+        assert_eq!(bad_syntax, 2);
+        assert_eq!(err, "[[ invalid ERE at 0: unclosed bracket expression\n");
+
+        let mut ro_err = String::new();
+        env.insert("__attr__BASH_REMATCH".to_string(), "r".to_string());
+        let ro_status = eval_ere_match(
+            "xyz",
+            &[("(x)(yz)".to_string(), false)],
+            &mut env,
+            &mut ro_err,
+        );
+        assert_eq!(ro_status, 0);
+        assert_eq!(ro_err, "BASH_REMATCH: readonly variable\n");
+        assert_eq!(env.get("BASH_REMATCH[0]").map(String::as_str), Some("a+b"));
     }
 }

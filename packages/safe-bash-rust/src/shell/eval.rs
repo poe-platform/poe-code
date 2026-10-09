@@ -1,7 +1,10 @@
 use crate::backend::{CommandContext, CommandResult, RustCommand};
 use crate::budget::ExecutionBudget;
 use crate::commands::try_run_command;
-use crate::shell::builtins::{BuiltinOutcome, try_run_builtin};
+use crate::shell::builtins::{
+    BuiltinOutcome, eval_ere_match, eval_test_unary_predicate, is_test_unary_op,
+    resolve_physical_path, try_run_builtin,
+};
 use crate::shell::expand::{
     bash_quote_double, decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr,
     expand_globs_in_word, expand_parameter_expr, get_var_meta_info, glob_match_ext,
@@ -1580,18 +1583,73 @@ impl<'a> EvalState<'a> {
         };
         let mut expanded_words = Vec::new();
         if is_double_bracket {
-            for (i, w) in simple.words.iter().enumerate() {
-                let prev = if i > 0 {
-                    expanded_words.last().map(|s: &String| s.as_str())
-                } else {
-                    None
+            let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
+                match self.setup_redirects(&simple.redirects, stdin) {
+                    Ok(r) => r,
+                    Err(e) => {
+                        if synced_fd0 {
+                            *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                        }
+                        return Err(e);
+                    }
                 };
-                if matches!(prev, Some("==" | "=" | "!=" | "=~")) {
-                    expanded_words.push(self.expand_word_for_pattern(w)?);
-                } else {
-                    expanded_words.push(self.expand_word_to_string(w)?);
+            if let Some(err_out) = redir_err {
+                if synced_fd0 {
+                    *stdin = self.in_fds.remove(&0).unwrap_or_default();
                 }
+                self.restore_redirects(saved_fds, saved_in);
+                return Ok(err_out);
             }
+            let cmd_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
+            let cmd_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+            let db_res = self.eval_double_bracket_words(&simple.words);
+            self.fd_table.insert(1, cmd_fd1);
+            self.fd_table.insert(2, cmd_fd2);
+            if synced_fd0 {
+                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+            }
+            let mut out = match db_res {
+                Ok((exit_code, db_stderr)) => {
+                    let mut sub_out = std::mem::take(&mut self.pending_stdout);
+                    let mut sub_err = std::mem::take(&mut self.pending_stderr);
+                    sub_err.push_str(&db_stderr);
+                    if !debug_out.stdout.is_empty() {
+                        sub_out = format!("{}{sub_out}", debug_out.stdout);
+                    }
+                    if !debug_out.stderr.is_empty() {
+                        sub_err = format!("{}{sub_err}", debug_out.stderr);
+                    }
+                    BuiltinOutcome {
+                        stdout: sub_out,
+                        stderr: sub_err,
+                        exit_code,
+                    }
+                }
+                Err(EvalError::Syntax(msg)) if msg.starts_with("__param_ro__") => {
+                    let clean_msg = msg.strip_prefix("__param_ro__").unwrap_or(&msg);
+                    let mut out = BuiltinOutcome {
+                        stdout: debug_out.stdout,
+                        stderr: format!("{}{clean_msg}\n", debug_out.stderr),
+                        exit_code: 1,
+                    };
+                    self.route_outcome(&mut out);
+                    self.restore_redirects(saved_fds, saved_in);
+                    if self.errexit && !self.in_condition {
+                        self.exit_requested = Some(1);
+                    }
+                    return Ok(out);
+                }
+                Err(e) => {
+                    self.restore_redirects(saved_fds, saved_in);
+                    return Err(e);
+                }
+            };
+            if let Some(dfd) = dup_fd {
+                self.in_fds.insert(dfd, local_stdin);
+            }
+            self.route_outcome(&mut out);
+            self.restore_redirects(saved_fds, saved_in);
+            return Ok(out);
         } else {
             let is_decl = simple.words.first().is_some_and(|w| {
                 matches!(
@@ -5799,6 +5857,362 @@ impl<'a> EvalState<'a> {
         Ok(fields.join(" "))
     }
 
+    fn eval_double_bracket_words(&mut self, words: &[String]) -> Result<(i32, String), EvalError> {
+        if words.last().map(|s| s.as_str()) != Some("]]") {
+            return Ok((2, "test: missing closing bracket\n".to_string()));
+        }
+        let args = &words[1..words.len() - 1];
+        if args.is_empty() {
+            return Ok((2, "[[: syntax error\n".to_string()));
+        }
+        let mut pos = 0usize;
+        let mut stderr = String::new();
+        let status = self.eval_db_or(args, &mut pos, true, &mut stderr)?;
+        Ok((status, stderr))
+    }
+
+    fn eval_db_or(
+        &mut self,
+        args: &[String],
+        pos: &mut usize,
+        active: bool,
+        stderr: &mut String,
+    ) -> Result<i32, EvalError> {
+        let mut res = self.eval_db_and(args, pos, active, stderr)?;
+        while args.get(*pos).map(|s| s.as_str()) == Some("||") {
+            *pos += 1;
+            let rhs_active = active && res != 0;
+            let rhs = self.eval_db_and(args, pos, rhs_active, stderr)?;
+            if rhs_active {
+                res = rhs;
+            }
+        }
+        Ok(res)
+    }
+
+    fn eval_db_and(
+        &mut self,
+        args: &[String],
+        pos: &mut usize,
+        active: bool,
+        stderr: &mut String,
+    ) -> Result<i32, EvalError> {
+        let mut res = self.eval_db_not(args, pos, active, stderr)?;
+        while args.get(*pos).map(|s| s.as_str()) == Some("&&") {
+            *pos += 1;
+            let rhs_active = active && res == 0;
+            let rhs = self.eval_db_not(args, pos, rhs_active, stderr)?;
+            if rhs_active {
+                res = rhs;
+            }
+        }
+        Ok(res)
+    }
+
+    fn eval_db_not(
+        &mut self,
+        args: &[String],
+        pos: &mut usize,
+        active: bool,
+        stderr: &mut String,
+    ) -> Result<i32, EvalError> {
+        if args.get(*pos).map(|s| s.as_str()) == Some("!") {
+            *pos += 1;
+            let inner = self.eval_db_not(args, pos, active, stderr)?;
+            return Ok(if !active {
+                inner
+            } else if inner == 0 {
+                1
+            } else {
+                0
+            });
+        }
+        if args.get(*pos).map(|s| s.as_str()) == Some("(") {
+            *pos += 1;
+            let val = self.eval_db_or(args, pos, active, stderr)?;
+            if args.get(*pos).map(|s| s.as_str()) == Some(")") {
+                *pos += 1;
+            }
+            return Ok(val);
+        }
+        self.eval_db_primary(args, pos, active, stderr)
+    }
+
+    fn eval_db_primary(
+        &mut self,
+        args: &[String],
+        pos: &mut usize,
+        active: bool,
+        stderr: &mut String,
+    ) -> Result<i32, EvalError> {
+        if *pos >= args.len() {
+            return Ok(1);
+        }
+        if *pos + 2 < args.len()
+            && let Some(op) = args.get(*pos + 1).map(|s| s.as_str())
+            && matches!(
+                op,
+                "="
+                    | "=="
+                    | "!="
+                    | "=~"
+                    | "<"
+                    | ">"
+                    | "-eq"
+                    | "-ne"
+                    | "-lt"
+                    | "-le"
+                    | "-gt"
+                    | "-ge"
+                    | "-nt"
+                    | "-ot"
+                    | "-ef"
+            )
+        {
+            let raw_left = &args[*pos];
+            let raw_right = &args[*pos + 2];
+            *pos += 3;
+            if !active {
+                return Ok(1);
+            }
+            let left = self.expand_word_to_string(raw_left)?;
+            if op == "=~" {
+                let fragments = self.expand_word_for_ere(raw_right)?;
+                return Ok(eval_ere_match(&left, &fragments, self.env, stderr));
+            }
+            let nocase = self
+                .env
+                .get("__shopt_nocasematch")
+                .is_some_and(|v| v == "1");
+            if matches!(op, "=" | "==" | "!=") {
+                let right = self.expand_word_for_pattern(raw_right)?;
+                let matched = glob_match_ext(&right, &left, nocase);
+                let ok = if op == "!=" { !matched } else { matched };
+                return Ok(if ok { 0 } else { 1 });
+            }
+            let right = self.expand_word_to_string(raw_right)?;
+            let ok = match op {
+                "<" => left < right,
+                ">" => left > right,
+                "-eq" => {
+                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
+                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
+                    l == r
+                }
+                "-ne" => {
+                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
+                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
+                    l != r
+                }
+                "-lt" => {
+                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
+                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
+                    l < r
+                }
+                "-le" => {
+                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
+                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
+                    l <= r
+                }
+                "-gt" => {
+                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
+                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
+                    l > r
+                }
+                "-ge" => {
+                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
+                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
+                    l >= r
+                }
+                "-nt" => {
+                    let lp = resolve_posix_path(self.cwd, &left);
+                    let rp = resolve_posix_path(self.cwd, &right);
+                    match (self.fs.stat(&lp), self.fs.stat(&rp)) {
+                        (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
+                        (Ok(_), Err(_)) => true,
+                        _ => false,
+                    }
+                }
+                "-ot" => {
+                    let lp = resolve_posix_path(self.cwd, &left);
+                    let rp = resolve_posix_path(self.cwd, &right);
+                    match (self.fs.stat(&lp), self.fs.stat(&rp)) {
+                        (Ok(ls), Ok(rs)) => ls.mtime_ms < rs.mtime_ms,
+                        (Err(_), Ok(_)) => true,
+                        _ => false,
+                    }
+                }
+                "-ef" => {
+                    let lp = resolve_posix_path(self.cwd, &left);
+                    let rp = resolve_posix_path(self.cwd, &right);
+                    self.fs.stat(&lp).is_ok()
+                        && self.fs.stat(&rp).is_ok()
+                        && resolve_physical_path(self.cwd, &left, self.fs)
+                            == resolve_physical_path(self.cwd, &right, self.fs)
+                }
+                _ => false,
+            };
+            return Ok(if ok { 0 } else { 1 });
+        }
+        if *pos + 1 < args.len()
+            && !args[*pos].contains(['\'', '"', '\\', '$', '`'])
+            && is_test_unary_op(args[*pos].as_str())
+            && !matches!(args[*pos + 1].as_str(), ")" | "&&" | "||")
+        {
+            let op = args[*pos].as_str();
+            let raw_val = &args[*pos + 1];
+            *pos += 2;
+            if !active {
+                return Ok(1);
+            }
+            let val = self.expand_word_to_string(raw_val)?;
+            let ok = eval_test_unary_predicate(op, &val, self.cwd, self.env, self.fs);
+            return Ok(if ok { 0 } else { 1 });
+        }
+        let raw_single = &args[*pos];
+        *pos += 1;
+        if !active {
+            return Ok(1);
+        }
+        let single = self.expand_word_to_string(raw_single)?;
+        Ok(if !single.is_empty() { 0 } else { 1 })
+    }
+
+    pub fn expand_word_for_ere(&mut self, word: &str) -> Result<Vec<(String, bool)>, EvalError> {
+        let chars: Vec<char> = word.chars().collect();
+        let mut idx = 0usize;
+        let mut fragments: Vec<(String, bool)> = Vec::new();
+        if chars.first() == Some(&'~') {
+            if chars.get(1).copied() == Some('+')
+                && matches!(chars.get(2).copied(), None | Some('/'))
+            {
+                fragments.push((self.cwd.clone(), true));
+                idx = 2;
+            } else if chars.get(1).copied() == Some('-')
+                && matches!(chars.get(2).copied(), None | Some('/'))
+            {
+                if let Some(old) = self.env.get("OLDPWD").cloned() {
+                    fragments.push((old, true));
+                    idx = 2;
+                }
+            } else if matches!(chars.get(1).copied(), None | Some('/')) {
+                if let Some(home) = self.env.get("HOME").cloned() {
+                    fragments.push((home, true));
+                    idx = 1;
+                }
+            }
+        }
+        while idx < chars.len() {
+            let c = chars[idx];
+            if c == '\'' {
+                idx += 1;
+                let mut lit = String::new();
+                while idx < chars.len() && chars[idx] != '\'' {
+                    lit.push(chars[idx]);
+                    idx += 1;
+                }
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                fragments.push((lit, true));
+                continue;
+            }
+            if c == '$' && idx + 1 < chars.len() && chars[idx + 1] == '\'' {
+                idx += 2;
+                let mut raw = String::new();
+                while idx < chars.len() && chars[idx] != '\'' {
+                    if chars[idx] == '\\' && idx + 1 < chars.len() {
+                        raw.push(chars[idx]);
+                        raw.push(chars[idx + 1]);
+                        idx += 2;
+                        continue;
+                    }
+                    raw.push(chars[idx]);
+                    idx += 1;
+                }
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                fragments.push((decode_ansi_c_escapes(&raw), true));
+                continue;
+            }
+            if c == '"' {
+                idx += 1;
+                let mut dq = String::new();
+                while idx < chars.len() && chars[idx] != '"' {
+                    if chars[idx] == '\\' && idx + 1 < chars.len() {
+                        let nc = chars[idx + 1];
+                        if matches!(nc, '"' | '\\' | '$' | '`') {
+                            dq.push(nc);
+                            idx += 2;
+                            continue;
+                        }
+                    }
+                    if chars[idx] == '$' {
+                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let exp = self.expand_dollar(&chars, &mut idx)?;
+                        match prev_dq {
+                            Some(v) => {
+                                self.env.insert("__in_dquote".to_string(), v);
+                            }
+                            None => {
+                                self.env.remove("__in_dquote");
+                            }
+                        }
+                        dq.push_str(&exp);
+                        continue;
+                    }
+                    if chars[idx] == '`' {
+                        let exp = self.expand_backticks(&chars, &mut idx)?;
+                        dq.push_str(&exp);
+                        continue;
+                    }
+                    dq.push(chars[idx]);
+                    idx += 1;
+                }
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                fragments.push((dq, true));
+                continue;
+            }
+            if c == '\\' {
+                if idx + 1 < chars.len() {
+                    fragments.push((chars[idx + 1].to_string(), true));
+                    idx += 2;
+                } else {
+                    fragments.push(("\\".to_string(), true));
+                    idx += 1;
+                }
+                continue;
+            }
+            if c == '$' {
+                let exp = self.expand_dollar(&chars, &mut idx)?;
+                fragments.push((exp, false));
+                continue;
+            }
+            if c == '`' {
+                let exp = self.expand_backticks(&chars, &mut idx)?;
+                fragments.push((exp, false));
+                continue;
+            }
+            let mut plain = String::new();
+            while idx < chars.len() && !matches!(chars[idx], '\'' | '"' | '\\' | '$' | '`') {
+                plain.push(chars[idx]);
+                idx += 1;
+            }
+            fragments.push((plain, false));
+        }
+        let total_exp_bytes: usize = fragments.iter().map(|(s, _)| s.len()).sum();
+        if total_exp_bytes > self.budget.limits.max_expansion_bytes {
+            return Err(EvalError::Budget(format!(
+                "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                self.budget.limits.max_expansion_bytes
+            )));
+        }
+        Ok(fragments)
+    }
+
     pub fn expand_word_to_fields(&mut self, word: &str) -> Result<Vec<String>, EvalError> {
         let brace_expanded = expand_braces(word);
         let mut final_fields = Vec::new();
@@ -5851,13 +6265,21 @@ impl<'a> EvalState<'a> {
                     {
                         if chars[i + 1] == '+' {
                             out.push_str(self.cwd);
-                        } else {
-                            let old = self.env.get("OLDPWD").map(|s| s.as_str()).unwrap_or(self.cwd);
+                            i += 2;
+                            at_tilde_pos = false;
+                            continue;
+                        } else if let Some(old) = self.env.get("OLDPWD") {
                             out.push_str(old);
+                            i += 2;
+                            at_tilde_pos = false;
+                            continue;
+                        } else {
+                            out.push('~');
+                            out.push('-');
+                            i += 2;
+                            at_tilde_pos = false;
+                            continue;
                         }
-                        i += 2;
-                        at_tilde_pos = false;
-                        continue;
                     }
                 }
                 let next_after = chars.get(i + 1).copied();
@@ -5865,12 +6287,11 @@ impl<'a> EvalState<'a> {
                     || next_after == Some('/')
                     || (allow_after_colon && next_after == Some(':'))
                 {
-                    let home = self
-                        .env
-                        .get("HOME")
-                        .map(|s| s.as_str())
-                        .unwrap_or("/root");
-                    out.push_str(home);
+                    if let Some(home) = self.env.get("HOME") {
+                        out.push_str(home);
+                    } else {
+                        out.push('~');
+                    }
                     i += 1;
                     at_tilde_pos = false;
                     continue;
@@ -5951,7 +6372,12 @@ impl<'a> EvalState<'a> {
                 idx += 1;
                 let mut lit = String::new();
                 while idx < chars.len() && chars[idx] != '\'' {
-                    if escape_quoted_glob && matches!(chars[idx], '*' | '?' | '[' | '\\') {
+                    if escape_quoted_glob
+                        && matches!(
+                            chars[idx],
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                        )
+                    {
                         lit.push('\\');
                     }
                     lit.push(chars[idx]);
@@ -5980,7 +6406,23 @@ impl<'a> EvalState<'a> {
                 if idx < chars.len() {
                     idx += 1;
                 }
-                segments.push((decode_ansi_c_escapes(&raw), true));
+                let decoded = decode_ansi_c_escapes(&raw);
+                let seg = if escape_quoted_glob {
+                    let mut esc = String::new();
+                    for dc in decoded.chars() {
+                        if matches!(
+                            dc,
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                        ) {
+                            esc.push('\\');
+                        }
+                        esc.push(dc);
+                    }
+                    esc
+                } else {
+                    decoded
+                };
+                segments.push((seg, true));
                 continue;
             }
             if c == '"' {
@@ -5991,7 +6433,12 @@ impl<'a> EvalState<'a> {
                     if chars[idx] == '\\' && idx + 1 < chars.len() {
                         let nc = chars[idx + 1];
                         if matches!(nc, '"' | '\\' | '$' | '`') {
-                            if escape_quoted_glob && matches!(nc, '*' | '?' | '[' | '\\') {
+                            if escape_quoted_glob
+                                && matches!(
+                                    nc,
+                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                )
+                            {
                                 dq.push('\\');
                             }
                             dq.push(nc);
@@ -6012,7 +6459,10 @@ impl<'a> EvalState<'a> {
                         }
                         if escape_quoted_glob {
                             for ec in exp.chars() {
-                                if matches!(ec, '*' | '?' | '[' | '\\') {
+                                if matches!(
+                                    ec,
+                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                ) {
                                     dq.push('\\');
                                 }
                                 dq.push(ec);
@@ -6024,10 +6474,27 @@ impl<'a> EvalState<'a> {
                     }
                     if chars[idx] == '`' {
                         let exp = self.expand_backticks(&chars, &mut idx)?;
-                        dq.push_str(&exp);
+                        if escape_quoted_glob {
+                            for ec in exp.chars() {
+                                if matches!(
+                                    ec,
+                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                ) {
+                                    dq.push('\\');
+                                }
+                                dq.push(ec);
+                            }
+                        } else {
+                            dq.push_str(&exp);
+                        }
                         continue;
                     }
-                    if escape_quoted_glob && matches!(chars[idx], '*' | '?' | '[' | '\\') {
+                    if escape_quoted_glob
+                        && matches!(
+                            chars[idx],
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                        )
+                    {
                         dq.push('\\');
                     }
                     dq.push(chars[idx]);
@@ -6075,7 +6542,12 @@ impl<'a> EvalState<'a> {
             if c == '\\' {
                 if idx + 1 < chars.len() {
                     let nc = chars[idx + 1];
-                    if escape_quoted_glob && matches!(nc, '*' | '?' | '[' | ']' | '(' | ')' | '.' | '^' | '$' | '+' | '{' | '}' | '|' | '\\') {
+                    if escape_quoted_glob
+                        && matches!(
+                            nc,
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':' | '.' | '$' | '{' | '}'
+                        )
+                    {
                         segments.push((format!("\\{nc}"), true));
                     } else {
                         segments.push((nc.to_string(), true));
@@ -7791,5 +8263,24 @@ mod tests {
             out.stdout,
             "in:before-fn\n19344:26956:19344|third-arg||fn-arg|1:1|virtual-bash|/|13\n"
         );
+    }
+
+    #[test]
+    fn unit_eval_double_bracket_short_circuit_ere_and_var_present() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let out = state
+            .eval_script_str(
+                "x=0\n[[ 1 -eq 2 && $((x++)) -eq 0 ]]\ns1=\"$?:$x\"\n[[ 1 -eq 1 || $((x++)) -eq 0 ]]\ns2=\"$?:$x\"\n[[ 'a+b' =~ 'a+'([a-z]) ]]\ns3=\"$?:${BASH_REMATCH[0]}:${BASH_REMATCH[1]}\"\narr=([2]=val)\ni=2\ndeclare -n ref='arr[2]'\n[[ -v arr ]]; v_base=$?\n[[ -v arr[i++] ]]; v_sub=$?\n[[ -v ref ]]; v_ref=$?\n: keep-last\n[[ 1 -eq 1 ]]\nlast=$_\necho \"$s1|$s2|$s3|$v_base:$v_sub:$v_ref:$i|$last\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(out.stdout, "1:0|0:0|0:a+b:b|1:0:0:3|keep-last\n");
     }
 }

@@ -1,7 +1,7 @@
 import { EncodedSnapshots } from "./encoded-snapshots.js";
 import { decodeFileImage } from "./image-raster.js";
 import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, decodeImage, encodeStoredImage, tryImageFile, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource, type OutputEncodeOptions } from "@poe-code/image-ast/portable";
-import { PagedStorage } from "@poe-code/safe-fs/storage";
+import { PagedStorage, PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
 import { resolvePath } from "safe-bash-contracts/path";
 import { writeBytes, type ByteSink } from "safe-bash-contracts/io";
@@ -28,7 +28,8 @@ export class CompareInputFailure extends Error {
 }
 export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (session: CompareFileSession) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd, stdout, registerCleanup } = input, context = { signal, ...(registerCleanup ? { registerCleanup } : {}) }, io = { signal };
-    const storage = new PagedStorage({ fs, cwd, env: {}, signal });
+    // Coalesce scratch writes into object-sized pages without increasing the 1 MiB working set.
+    const storage = new PagedStorage({ fs, cwd, env: {}, signal }, 16, new PagedStorageCache(16, 65536));
     const snapshots = new EncodedSnapshots(storage, signal);
     let failed = true;
     const materialize = async (source: ImageByteSource) => { const bytes = new Uint8Array(source.size); for (let offset = 0; offset < source.size; offset += 16384) {

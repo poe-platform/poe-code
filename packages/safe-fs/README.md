@@ -14,7 +14,10 @@ To bound aggregate pages across multiple live stores, pass the same
 `new PagedStorageCache(16)` as the third argument to each `PagedStorage` constructor.
 This shares a 256 KiB resident-page budget; `cache.residentBytes` reports current
 page retention. Eviction uses each store's filesystem, and each store still owns
-its `close()` cleanup. The budget excludes caller buffers and backend storage.
+its `close()` cleanup. Use `new PagedStorageCache(16, 65536)` to coalesce scratch
+I/O into 64 KiB pages within a 1 MiB budget, for example with object-backed files.
+Page sizes must be multiples of 16 KiB, up to 1 MiB; individual `read()` calls
+remain limited to 16 KiB. The budget excludes caller buffers and backend storage.
 Call `await storage.prepare()` before opening a directory iterator when its
 snapshot includes the scratch directory. It acquires and unlinks the backing
 handle up front, so later spills do not mutate that directory's namespace.

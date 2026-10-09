@@ -407,3 +407,36 @@ it("coalesces dirty index eviction when callers alternate with other stored data
   } finally { await storage.close(); }
   expect(await fs.readdir("/")).toEqual([]);
 });
+
+it.each([16384, 65536, 1024 * 1024])("batches shared scratch pages of %i bytes with bounded retention and short I/O", async pageBytes => {
+  const fs = new MemoryFileSystem(), cache = new PagedStorageCache(1, pageBytes);
+  const context = { fs, cwd: "/", env: {}, signal: new AbortController().signal };
+  const left = new PagedStorage(context, 1, cache), right = new PagedStorage(context, 1, cache);
+  const open = fs.open.bind(fs), writes: number[] = [];
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args);
+    return new Proxy(handle, { get(target, key) {
+      if (key === "write") return async (...values: Parameters<typeof handle.write>) => { writes.push(values[0].length); return handle.write(values[0].subarray(0, 8192), values[1], values[2]); };
+      if (key === "read") return (...values: Parameters<typeof handle.read>) => handle.read(values[0].subarray(0, 8192), values[1], values[2]);
+      const value = Reflect.get(target, key, target); return typeof value === "function" ? value.bind(target) : value;
+    } });
+  });
+  try {
+    const position = left.allocate(pageBytes * 2), marker = Uint8Array.of(37, 42);
+    await left.write(position + pageBytes - 9, marker);
+    await right.append(Uint8Array.of(99));
+    expect(cache.residentBytes).toBe(pageBytes);
+    expect(await left.read(position + pageBytes - 9, 2)).toEqual(marker);
+    expect(await left.read(position + pageBytes, 128)).toEqual(new Uint8Array(128));
+    expect(await right.read(8, 1)).toEqual(Uint8Array.of(99));
+    expect(writes[0]).toBe(pageBytes);
+    expect(cache.residentBytes).toBe(pageBytes);
+    expect(() => left.read(position, 16385)).toThrow(RangeError);
+  } finally { await left.close(); await right.close(); }
+  expect(cache.residentBytes).toBe(0);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each([0, 1, 16385, Infinity, NaN, 2 * 1024 * 1024])("rejects invalid scratch page size %s", size => {
+  expect(() => new PagedStorageCache(1, size)).toThrow("Invalid storage page size");
+});

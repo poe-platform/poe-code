@@ -8,7 +8,7 @@ export interface PagedStorageContext {
   readonly signal: AbortSignal;
 }
 
-const pageBytes = 16 * 1024;
+const defaultPageBytes = 16 * 1024;
 let serial = 0;
 type Page = { bytes: Uint8Array; dirty: boolean };
 
@@ -18,11 +18,12 @@ export class PagedStorageCache {
   private readonly pages = new Map<Page, () => Promise<void>>();
   private active: Promise<unknown> = Promise.resolve();
 
-  constructor(private readonly maxPages: number) {
+  constructor(private readonly maxPages: number, readonly pageBytes = defaultPageBytes) {
+    if (!Number.isSafeInteger(pageBytes) || pageBytes < defaultPageBytes || pageBytes > 1024 * 1024 || pageBytes % defaultPageBytes !== 0) throw new RangeError("Invalid storage page size");
     if (!Number.isSafeInteger(maxPages) || maxPages < 1) throw new RangeError("Invalid storage page cache size");
   }
 
-  get residentBytes(): number { return this.pages.size * pageBytes; }
+  get residentBytes(): number { return this.pages.size * this.pageBytes; }
 
   run<T>(action: () => Promise<T>): Promise<T> {
     const work = this.active.then(action);
@@ -31,7 +32,7 @@ export class PagedStorageCache {
   }
 
   async acquire(): Promise<Page> {
-    if (this.pages.size < this.maxPages) return { bytes: new Uint8Array(pageBytes), dirty: false };
+    if (this.pages.size < this.maxPages) return { bytes: new Uint8Array(this.pageBytes), dirty: false };
     const [page, release] = this.pages.entries().next().value!;
     await release();
     this.pages.delete(page);
@@ -58,6 +59,7 @@ export class PagedStorageCache {
  * spilled data in RAM, so large workloads require an external backing provider. */
 export class PagedStorage {
   private readonly pages = new Map<number, Page>();
+  private readonly pageBytes: number;
   private readonly controller = new AbortController();
   private readonly signal: AbortSignal;
   private descriptor: FileDescriptor | undefined;
@@ -72,6 +74,7 @@ export class PagedStorage {
 
   constructor(private readonly context: PagedStorageContext, private readonly maxPages = 64, private readonly cache?: PagedStorageCache) {
     if (!Number.isSafeInteger(maxPages) || maxPages < 1) throw new RangeError("Invalid storage page cache size");
+    this.pageBytes = cache?.pageBytes ?? defaultPageBytes;
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
   }
 
@@ -133,14 +136,14 @@ export class PagedStorage {
   private async flush(number: number, page: Page): Promise<void> {
     if (!page.dirty) return;
     let offset = 0;
-    while (offset < pageBytes) {
+    while (offset < this.pageBytes) {
       this.signal.throwIfAborted();
-      const count = await this.descriptor!.write(page.bytes.subarray(offset), number * pageBytes + offset, { signal: this.signal });
+      const count = await this.descriptor!.write(page.bytes.subarray(offset), number * this.pageBytes + offset, { signal: this.signal });
       this.signal.throwIfAborted();
-      if (!Number.isSafeInteger(count) || count <= 0 || count > pageBytes - offset) throw new FsError("EIO");
+      if (!Number.isSafeInteger(count) || count <= 0 || count > this.pageBytes - offset) throw new FsError("EIO");
       offset += count;
     }
-    this.diskLength = Math.max(this.diskLength, (number + 1) * pageBytes);
+    this.diskLength = Math.max(this.diskLength, (number + 1) * this.pageBytes);
     page.dirty = false;
   }
 
@@ -164,16 +167,16 @@ export class PagedStorage {
     }
     // Flush owns the bytes until its awaited write completes. Reuse only then;
     // zero new/unwritten ranges so the previous page cannot leak into them.
-    const page: Page = reusable ?? (this.cache ? await this.cache.acquire() : { bytes: new Uint8Array(pageBytes), dirty: false });
+    const page: Page = reusable ?? (this.cache ? await this.cache.acquire() : { bytes: new Uint8Array(this.pageBytes), dirty: false });
     // Shared eviction may await IO owned by a different, still-live signal.
     this.signal.throwIfAborted();
     if (reusable) page.bytes.fill(0);
-    if (number * pageBytes < this.diskLength) {
+    if (number * this.pageBytes < this.diskLength) {
       let offset = 0;
-      while (offset < pageBytes) {
-        const count = await this.descriptor!.read(page.bytes.subarray(offset), number * pageBytes + offset, { signal: this.signal });
+      while (offset < this.pageBytes) {
+        const count = await this.descriptor!.read(page.bytes.subarray(offset), number * this.pageBytes + offset, { signal: this.signal });
         this.signal.throwIfAborted();
-        if (!Number.isSafeInteger(count) || count <= 0 || count > pageBytes - offset) throw new FsError("EIO");
+        if (!Number.isSafeInteger(count) || count <= 0 || count > this.pageBytes - offset) throw new FsError("EIO");
         offset += count;
       }
     }
@@ -191,9 +194,9 @@ export class PagedStorage {
     return this.operation(async () => {
       for (let offset = 0; offset < bytes.length;) {
         const target = position + offset;
-        const page = await this.page(Math.floor(target / pageBytes));
-        const count = Math.min(bytes.length - offset, pageBytes - target % pageBytes);
-        page.bytes.set(bytes.subarray(offset, offset + count), target % pageBytes);
+        const page = await this.page(Math.floor(target / this.pageBytes));
+        const count = Math.min(bytes.length - offset, this.pageBytes - target % this.pageBytes);
+        page.bytes.set(bytes.subarray(offset, offset + count), target % this.pageBytes);
         page.dirty = true;
         offset += count;
       }
@@ -207,14 +210,14 @@ export class PagedStorage {
   }
 
   read(position: number, length: number): Promise<Uint8Array> {
-    if (!Number.isSafeInteger(position) || position < 8 || !Number.isSafeInteger(length) || length < 0 || length > pageBytes || position + length > this.end) throw new RangeError("Invalid paged storage range");
+    if (!Number.isSafeInteger(position) || position < 8 || !Number.isSafeInteger(length) || length < 0 || length > defaultPageBytes || position + length > this.end) throw new RangeError("Invalid paged storage range");
     return this.operation(async () => {
       const bytes = new Uint8Array(length);
       for (let offset = 0; offset < length;) {
         const source = position + offset;
-        const page = await this.page(Math.floor(source / pageBytes));
-        const count = Math.min(length - offset, pageBytes - source % pageBytes);
-        bytes.set(page.bytes.subarray(source % pageBytes, source % pageBytes + count), offset);
+        const page = await this.page(Math.floor(source / this.pageBytes));
+        const count = Math.min(length - offset, this.pageBytes - source % this.pageBytes);
+        bytes.set(page.bytes.subarray(source % this.pageBytes, source % this.pageBytes + count), offset);
         offset += count;
       }
       return bytes;

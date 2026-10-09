@@ -644,11 +644,26 @@ fn resolve_arith_var_resolved(resolved: &str, env: &BTreeMap<String, String>, de
     eval_arith(trimmed, &mut tmp).unwrap_or(0)
 }
 
-fn set_arith_var_resolved(resolved: String, val: i64, env: &mut BTreeMap<String, String>) {
+fn set_arith_var_resolved(
+    resolved: String,
+    val: i64,
+    env: &mut BTreeMap<String, String>,
+) -> Result<(), String> {
+    let base = resolved
+        .split_once('[')
+        .map(|(b, _)| b)
+        .unwrap_or(&resolved);
+    if env
+        .get(&format!("__attr__{base}"))
+        .is_some_and(|a| a.contains('r'))
+    {
+        return Err(format!("{base}: readonly variable"));
+    }
     env.insert(resolved.clone(), val.to_string());
     if let Some((base, _)) = resolved.split_once('[') {
         sync_array_metadata(base, env);
     }
+    Ok(())
 }
 
 fn eval_arith_comma(
@@ -706,7 +721,7 @@ fn eval_arith_assign(
             ">>=" => cur.wrapping_shr(rhs as u32),
             _ => rhs,
         };
-        set_arith_var_resolved(resolved_key, next, env);
+        set_arith_var_resolved(resolved_key, next, env)?;
         return Ok(next);
     }
     eval_arith_ternary(tokens, pos, env)
@@ -994,7 +1009,7 @@ fn eval_arith_unary(
                     let resolved_key = resolve_var_key_mut(&var, env);
                     let cur = resolve_arith_var_resolved(&resolved_key, env, 0);
                     let next = if is_inc { cur + 1 } else { cur - 1 };
-                    set_arith_var_resolved(resolved_key, next, env);
+                    set_arith_var_resolved(resolved_key, next, env)?;
                     return Ok(next);
                 }
             }
@@ -1023,7 +1038,7 @@ fn eval_arith_primary(
             {
                 let next = if op == "++" { cur + 1 } else { cur - 1 };
                 *pos += 1;
-                set_arith_var_resolved(resolved_key, next, env);
+                set_arith_var_resolved(resolved_key, next, env)?;
                 return Ok(cur);
             }
             Ok(cur)
@@ -1316,6 +1331,16 @@ pub fn expand_parameter_expr(
             if !is_set || val.is_empty() {
                 let def = expand_nested_operand(def_raw, env, last_exit, pos_args)?;
                 let resolved = resolve_var_key(var, env);
+                let base = resolved
+                    .split_once('[')
+                    .map(|(b, _)| b)
+                    .unwrap_or(&resolved);
+                if env
+                    .get(&format!("__attr__{base}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
+                    return Err(format!("__param_ro__{base}: readonly variable"));
+                }
                 env.insert(resolved, def.clone());
                 return Ok(def);
             }
@@ -1325,6 +1350,16 @@ pub fn expand_parameter_expr(
             if !is_var_set(var, env, pos_args) {
                 let def = expand_nested_operand(def_raw, env, last_exit, pos_args)?;
                 let resolved = resolve_var_key(var, env);
+                let base = resolved
+                    .split_once('[')
+                    .map(|(b, _)| b)
+                    .unwrap_or(&resolved);
+                if env
+                    .get(&format!("__attr__{base}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
+                    return Err(format!("__param_ro__{base}: readonly variable"));
+                }
                 env.insert(resolved, def.clone());
                 return Ok(def);
             }
@@ -2816,5 +2851,20 @@ mod tests {
         assert_eq!(env.get("arr[0]").map(String::as_str), Some("10"));
         assert_eq!(env.get("arr[1]").map(String::as_str), Some("25"));
         assert_eq!(env.get("arr[2]").map(String::as_str), Some("60"));
+    }
+
+    #[test]
+    fn unit_arith_and_parameter_default_reject_readonly_variables() {
+        let mut env = BTreeMap::new();
+        env.insert("RO".to_string(), String::new());
+        env.insert("__attr__RO".to_string(), "r".to_string());
+
+        let err = eval_arith("RO = 5", &mut env).unwrap_err();
+        assert_eq!(err, "RO: readonly variable");
+        let err_inc = eval_arith("++RO", &mut env).unwrap_err();
+        assert_eq!(err_inc, "RO: readonly variable");
+
+        let err_param = expand_parameter_expr("RO:=fallback", &mut env, 0, &[]).unwrap_err();
+        assert_eq!(err_param, "__param_ro__RO: readonly variable");
     }
 }

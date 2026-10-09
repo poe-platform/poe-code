@@ -1009,6 +1009,20 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
 
     if let Some(var) = assign_var {
         let resolved = resolve_nameref_base(&var, env).to_string();
+        let base = resolved
+            .split_once('[')
+            .map(|(b, _)| b)
+            .unwrap_or(&resolved);
+        if env
+            .get(&format!("__attr__{base}"))
+            .is_some_and(|a| a.contains('r'))
+        {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("printf: {base}: readonly variable\n"),
+                exit_code: 1,
+            };
+        }
         env.insert(resolved.clone(), out);
         if let Some((base, _)) = resolved.split_once('[') {
             sync_array_metadata(base, env);
@@ -1572,5 +1586,12 @@ mod tests {
         let print_ps = builtin_umask(&args(&["-p", "-S"]), &mut env);
         assert_eq!(print_ps.exit_code, 0);
         assert_eq!(print_ps.stdout, "umask -S u=rwx,g=rx,o=\n");
+
+        env.insert("RO_VAR".to_string(), "initial".to_string());
+        env.insert("__attr__RO_VAR".to_string(), "r".to_string());
+        let printf_ro = builtin_printf(&args(&["-v", "RO_VAR", "%s", "changed"]), &mut env);
+        assert_eq!(printf_ro.exit_code, 1);
+        assert_eq!(printf_ro.stderr, "printf: RO_VAR: readonly variable\n");
+        assert_eq!(env.get("RO_VAR").map(String::as_str), Some("initial"));
     }
 }

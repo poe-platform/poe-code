@@ -74,6 +74,7 @@ pub struct EvalState<'a> {
     pub return_requested: Option<i32>,
     pub break_count: usize,
     pub continue_count: usize,
+    pub loop_depth: usize,
     pub active_aliases: BTreeSet<String>,
     pub allow_unported_fallback: bool,
 }
@@ -138,6 +139,7 @@ impl<'a> EvalState<'a> {
             return_requested: None,
             break_count: 0,
             continue_count: 0,
+            loop_depth: 0,
             active_aliases: BTreeSet::new(),
             allow_unported_fallback,
         }
@@ -203,6 +205,7 @@ impl<'a> EvalState<'a> {
             return_requested: None,
             break_count: 0,
             continue_count: 0,
+            loop_depth: 0,
             active_aliases: self.active_aliases.clone(),
             allow_unported_fallback: self.allow_unported_fallback,
         }
@@ -721,13 +724,26 @@ impl<'a> EvalState<'a> {
                 let mut stderr = String::new();
                 let mut code = 0;
 
+                self.loop_depth += 1;
                 for val in expanded_items {
                     crate::commands::tick_virtual_loop(self.env);
                     if crate::commands::is_timeout_expired() {
                         break;
                     }
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
-                    self.assign_variable(var, &val, false)?;
+                    if let Err(e) = self.assign_variable(var, &val, false) {
+                        match e {
+                            EvalError::Syntax(msg) if msg.contains("readonly variable") => {
+                                stderr.push_str(&format!("{msg}\n"));
+                                code = 1;
+                                break;
+                            }
+                            other => {
+                                self.loop_depth -= 1;
+                                return Err(other);
+                            }
+                        }
+                    }
                     let step = self.eval_script(body, eff_stdin)?;
                     stdout.push_str(&step.stdout);
                     stderr.push_str(&step.stderr);
@@ -749,6 +765,7 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                 }
+                self.loop_depth -= 1;
 
                 self.fd_table.insert(1, body_fd1);
                 self.fd_table.insert(2, body_fd2);
@@ -791,6 +808,7 @@ impl<'a> EvalState<'a> {
                     stderr.push_str(&format!("{}) {item}\n", idx + 1));
                 }
 
+                self.loop_depth += 1;
                 loop {
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
                     let ps3 = self
@@ -836,6 +854,7 @@ impl<'a> EvalState<'a> {
                         }
                     }
                 }
+                self.loop_depth -= 1;
 
                 self.fd_table.insert(1, body_fd1);
                 self.fd_table.insert(2, body_fd2);
@@ -876,6 +895,7 @@ impl<'a> EvalState<'a> {
                     let _ = eval_arith(&exp_init, self.env);
                 }
 
+                self.loop_depth += 1;
                 loop {
                     crate::commands::tick_virtual_loop(self.env);
                     if crate::commands::is_timeout_expired() {
@@ -915,6 +935,7 @@ impl<'a> EvalState<'a> {
                         let _ = eval_arith(&exp_step, self.env);
                     }
                 }
+                self.loop_depth -= 1;
 
                 self.fd_table.insert(1, body_fd1);
                 self.fd_table.insert(2, body_fd2);
@@ -950,6 +971,7 @@ impl<'a> EvalState<'a> {
                 let mut code = 0;
                 let mut iter_count = 0usize;
 
+                self.loop_depth += 1;
                 loop {
                     crate::commands::tick_virtual_loop(self.env);
                     if crate::commands::is_timeout_expired() {
@@ -1001,6 +1023,7 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                 }
+                self.loop_depth -= 1;
 
                 self.fd_table.insert(1, body_fd1);
                 self.fd_table.insert(2, body_fd2);
@@ -1092,7 +1115,7 @@ impl<'a> EvalState<'a> {
                     }),
                     Err(e) => Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("arith: {e}\n"),
+                        stderr: format!("((: {e}\n"),
                         exit_code: 1,
                     }),
                 }
@@ -1550,13 +1573,17 @@ impl<'a> EvalState<'a> {
                 } else {
                     match self.expand_word_to_fields(w) {
                         Ok(fields) => expanded_words.extend(fields),
-                        Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
+                        Err(EvalError::Syntax(msg))
+                            if msg.starts_with("bash: no match:")
+                                || msg.starts_with("__param_ro__") =>
+                        {
                             if synced_fd0 {
                                 *stdin = self.in_fds.remove(&0).unwrap_or_default();
                             }
+                            let clean_msg = msg.strip_prefix("__param_ro__").unwrap_or(&msg);
                             let mut out = BuiltinOutcome {
                                 stdout: debug_out.stdout,
-                                stderr: format!("{}{msg}\n", debug_out.stderr),
+                                stderr: format!("{}{clean_msg}\n", debug_out.stderr),
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut out);
@@ -1654,9 +1681,19 @@ impl<'a> EvalState<'a> {
         self.in_prefix_assignment = true;
         for (k, v, append) in &simple.assignments {
             let was_unexp = self.env.contains_key(&format!("__unexported__{k}"));
-            temp_saved.push((k.clone(), self.env.get(k).cloned(), was_unexp));
             let val = self.expand_assignment_rhs(v)?;
-            self.assign_variable(k, &val, *append)?;
+            match self.assign_variable(k, &val, *append) {
+                Ok(()) => {
+                    temp_saved.push((k.clone(), self.env.get(k).cloned(), was_unexp));
+                }
+                Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
+                    debug_out.stderr.push_str(&format!("{msg}\n"));
+                }
+                Err(e) => {
+                    self.in_prefix_assignment = false;
+                    return Err(e);
+                }
+            }
         }
         self.in_prefix_assignment = false;
 
@@ -1735,10 +1772,32 @@ impl<'a> EvalState<'a> {
 
         match cmd.as_str() {
             "exit" => {
-                let code = args
-                    .first()
-                    .and_then(|s| s.trim().parse::<i32>().ok())
-                    .unwrap_or(self.last_exit);
+                let offset = if args.first().map(String::as_str) == Some("--") {
+                    1
+                } else {
+                    0
+                };
+                if args.len() - offset > 1 {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "exit: too many arguments\n".to_string(),
+                        exit_code: 1,
+                    });
+                }
+                let code = if let Some(s) = args.get(offset) {
+                    match s.trim().parse::<i64>() {
+                        Ok(v) => ((v % 256 + 256) % 256) as i32,
+                        Err(_) => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("exit: {s}: numeric argument required\n"),
+                                exit_code: 2,
+                            });
+                        }
+                    }
+                } else {
+                    self.last_exit
+                };
                 self.exit_requested = Some(code);
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
@@ -1747,38 +1806,91 @@ impl<'a> EvalState<'a> {
                 });
             }
             "return" => {
-                let code = args
-                    .first()
-                    .and_then(|s| s.trim().parse::<i32>().ok())
-                    .unwrap_or(self.last_exit);
+                if self.func_stack.is_empty() && self.caller_frames.is_empty() {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "return: can only `return' from a function or sourced script\n"
+                            .to_string(),
+                        exit_code: 2,
+                    });
+                }
+                let offset = if args.first().map(String::as_str) == Some("--") {
+                    1
+                } else {
+                    0
+                };
+                if args.len() - offset > 1 {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "return: too many arguments\n".to_string(),
+                        exit_code: 1,
+                    });
+                }
+                let (code, err_msg) = if let Some(s) = args.get(offset) {
+                    match s.trim().parse::<i64>() {
+                        Ok(v) => (((v % 256 + 256) % 256) as i32, String::new()),
+                        Err(_) => (2, format!("return: {s}: numeric argument required\n")),
+                    }
+                } else {
+                    (self.last_exit, String::new())
+                };
                 let prev_exit = self.last_exit;
                 self.return_requested = Some(code);
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: String::new(),
+                    stderr: err_msg,
                     exit_code: prev_exit,
                 });
             }
-            "break" => {
-                let n = args
-                    .first()
-                    .and_then(|s| s.parse::<usize>().ok())
-                    .unwrap_or(1)
-                    .max(1);
-                self.break_count = n;
-                return Ok(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                });
-            }
-            "continue" => {
-                let n = args
-                    .first()
-                    .and_then(|s| s.parse::<usize>().ok())
-                    .unwrap_or(1)
-                    .max(1);
-                self.continue_count = n;
+            "break" | "continue" => {
+                if self.loop_depth == 0 {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{cmd}: only meaningful in a loop\n"),
+                        exit_code: 0,
+                    });
+                }
+                let offset = if args.first().map(String::as_str) == Some("--") {
+                    1
+                } else {
+                    0
+                };
+                let count = if let Some(s) = args.get(offset) {
+                    match s.trim().parse::<i64>() {
+                        Ok(v) => v,
+                        Err(_) => {
+                            self.exit_requested = Some(2);
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{cmd}: {s}: numeric argument required\n"),
+                                exit_code: 2,
+                            });
+                        }
+                    }
+                } else {
+                    1
+                };
+                if args.len() - offset > 1 {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{cmd}: invalid loop count\n"),
+                        exit_code: 1,
+                    });
+                }
+                if count < 1 {
+                    self.break_count = self.loop_depth;
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{cmd}: invalid loop count\n"),
+                        exit_code: 1,
+                    });
+                }
+                let levels = (count as usize).min(self.loop_depth);
+                if cmd == "break" {
+                    self.break_count = levels;
+                } else {
+                    self.continue_count = levels;
+                }
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: String::new(),
@@ -1786,10 +1898,33 @@ impl<'a> EvalState<'a> {
                 });
             }
             "shift" => {
-                let n = args
-                    .first()
-                    .and_then(|s| s.parse::<usize>().ok())
-                    .unwrap_or(1);
+                let offset = if args.first().map(String::as_str) == Some("--") {
+                    1
+                } else {
+                    0
+                };
+                let n_signed = if let Some(s) = args.get(offset) {
+                    match s.trim().parse::<i64>() {
+                        Ok(v) => v,
+                        Err(_) => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("shift: {s}: numeric argument required\n"),
+                                exit_code: 2,
+                            });
+                        }
+                    }
+                } else {
+                    1
+                };
+                if args.len() - offset > 1 || n_signed < 0 {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 1,
+                    });
+                }
+                let n = n_signed as usize;
                 if n <= self.pos_args.len() {
                     self.pos_args.drain(0..n);
                     return Ok(BuiltinOutcome {
@@ -2212,6 +2347,7 @@ impl<'a> EvalState<'a> {
                     return_requested: None,
                     break_count: 0,
                     continue_count: 0,
+                    loop_depth: 0,
                     active_aliases: BTreeSet::new(),
                     allow_unported_fallback: allow_fallback,
                 };
@@ -2771,21 +2907,52 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_set(&mut self, args: &[String]) -> BuiltinOutcome {
+        const SET_OPTIONS: &[&str] = &[
+            "allexport",
+            "braceexpand",
+            "errexit",
+            "noclobber",
+            "noexec",
+            "noglob",
+            "nounset",
+            "pipefail",
+            "errtrace",
+            "functrace",
+        ];
+        const UNSUPPORTED_SET_OPTIONS: &[&str] = &[
+            "emacs",
+            "hashall",
+            "histexpand",
+            "history",
+            "ignoreeof",
+            "interactive-comments",
+            "keyword",
+            "monitor",
+            "nolog",
+            "notify",
+            "onecmd",
+            "physical",
+            "posix",
+            "privileged",
+            "verbose",
+            "vi",
+        ];
+        let mut stdout = String::new();
         let mut i = 0usize;
         while i < args.len() {
             let a = &args[i];
             if a == "--" {
                 self.pos_args = args[i + 1..].to_vec();
                 break;
-            } else if (a == "-o" || a == "+o") && i + 1 < args.len() {
-                let enable = a == "-o";
-                let opt = &args[i + 1];
-                self.apply_set_option(opt, enable);
-                i += 2;
-                continue;
+            } else if a == "-" {
+                if i + 1 < args.len() {
+                    self.pos_args = args[i + 1..].to_vec();
+                }
+                break;
             } else if (a.starts_with('-') || a.starts_with('+')) && a.len() > 1 {
                 let enable = a.starts_with('-');
-                for ch in a[1..].chars() {
+                let chars: Vec<char> = a[1..].chars().collect();
+                for (pos, &ch) in chars.iter().enumerate() {
                     match ch {
                         'e' => self.apply_set_option("errexit", enable),
                         'u' => self.apply_set_option("nounset", enable),
@@ -2797,14 +2964,52 @@ impl<'a> EvalState<'a> {
                         'T' => self.apply_set_option("functrace", enable),
                         'E' => self.apply_set_option("errtrace", enable),
                         'B' => self.apply_set_option("braceexpand", enable),
-                        'o' => {
-                            if i + 1 < args.len() && !args[i + 1].starts_with('-') {
+                        'o' if pos + 1 == chars.len() => {
+                            if i + 1 < args.len() {
                                 i += 1;
                                 let opt_name = args[i].clone();
-                                self.apply_set_option(&opt_name, enable);
+                                if SET_OPTIONS.contains(&opt_name.as_str()) || opt_name == "xtrace"
+                                {
+                                    self.apply_set_option(&opt_name, enable);
+                                } else if UNSUPPORTED_SET_OPTIONS.contains(&opt_name.as_str()) {
+                                    return BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!(
+                                            "set: {opt_name}: unsupported shell option\n"
+                                        ),
+                                        exit_code: 1,
+                                    };
+                                } else {
+                                    return BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!("set: {opt_name}: invalid option name\n"),
+                                        exit_code: 2,
+                                    };
+                                }
+                            } else {
+                                for &name in SET_OPTIONS {
+                                    let active = self.get_shopt_enabled(name, true);
+                                    if enable {
+                                        stdout.push_str(&format!(
+                                            "{name}\t{}\n",
+                                            if active { "on" } else { "off" }
+                                        ));
+                                    } else {
+                                        stdout.push_str(&format!(
+                                            "set {}o {name}\n",
+                                            if active { "-" } else { "+" }
+                                        ));
+                                    }
+                                }
                             }
                         }
-                        _ => {}
+                        _ => {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "set: unsupported shell option; supported forms are +/- a/e/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noexec, noglob, pipefail, errexit or nounset\n".to_string(),
+                                exit_code: 1,
+                            };
+                        }
                     }
                 }
             } else {
@@ -2814,7 +3019,7 @@ impl<'a> EvalState<'a> {
             i += 1;
         }
         BuiltinOutcome {
-            stdout: String::new(),
+            stdout,
             stderr: String::new(),
             exit_code: 0,
         }
@@ -3306,11 +3511,17 @@ impl<'a> EvalState<'a> {
         if func_names_only {
             let mut out = String::new();
             let mut all_ok = true;
-            for name in &operands {
-                if self.functions.contains_key(name) {
+            if operands.is_empty() {
+                for name in self.functions.keys() {
                     out.push_str(&format!("{name}\n"));
-                } else {
-                    all_ok = false;
+                }
+            } else {
+                for name in &operands {
+                    if self.functions.contains_key(name) {
+                        out.push_str(&format!("{name}\n"));
+                    } else {
+                        all_ok = false;
+                    }
                 }
             }
             return Ok(BuiltinOutcome {
@@ -3686,6 +3897,7 @@ impl<'a> EvalState<'a> {
         let mut raw_mode = false;
         let mut delim = '\n';
         let mut nchars: Option<usize> = None;
+        let mut exact_chars = false;
         let mut array_name: Option<String> = None;
         let mut fd_num: u32 = 0;
         let mut vars = Vec::new();
@@ -3702,6 +3914,7 @@ impl<'a> EvalState<'a> {
                 delim = args[idx + 1].chars().next().unwrap_or('\0');
                 idx += 2;
             } else if (a == "-n" || a == "-N") && idx + 1 < args.len() {
+                exact_chars = a == "-N";
                 nchars = args[idx + 1].parse::<usize>().ok();
                 idx += 2;
             } else if a == "-a" && idx + 1 < args.len() {
@@ -3738,6 +3951,46 @@ impl<'a> EvalState<'a> {
         let stream: &mut String = if fd_num >= 3 { &mut fd_buf } else { stdin };
 
         if stream.is_empty() {
+            if let Some(ref arr) = array_name {
+                let resolved = resolve_nameref_base(arr, self.env).to_string();
+                if self
+                    .env
+                    .get(&format!("__attr__{resolved}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
+                    if fd_num >= 3 {
+                        self.in_fds.insert(fd_num, fd_buf);
+                    }
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{resolved}: readonly variable\n"),
+                        exit_code: 1,
+                    };
+                }
+            } else {
+                for (i, v) in vars.iter().enumerate() {
+                    let resolved = resolve_nameref_base(v, self.env).to_string();
+                    let base = resolved.split_once('[').map(|(b, _)| b).unwrap_or(&resolved);
+                    if self
+                        .env
+                        .get(&format!("__attr__{base}"))
+                        .is_some_and(|a| a.contains('r'))
+                    {
+                        if fd_num >= 3 {
+                            self.in_fds.insert(fd_num, fd_buf);
+                        }
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{base}: readonly variable\n"),
+                            exit_code: if default_reply || i + 1 < vars.len() {
+                                2
+                            } else {
+                                1
+                            },
+                        };
+                    }
+                }
+            }
             for v in vars {
                 self.env.insert(v, String::new());
             }
@@ -3767,15 +4020,29 @@ impl<'a> EvalState<'a> {
         let mut hit_delim = false;
         let line_owned = if let Some(limit) = nchars {
             let mut taken = String::new();
-            let mut rest = String::new();
-            for (i, ch) in stream.chars().enumerate() {
-                if i < limit {
+            let mut consumed_bytes = 0usize;
+            let mut count = 0usize;
+            let mut stopped_at_delim = false;
+            for (byte_idx, ch) in stream.char_indices() {
+                if !exact_chars && ch == delim {
+                    consumed_bytes = byte_idx + ch.len_utf8();
+                    stopped_at_delim = true;
+                    break;
+                }
+                if count < limit {
                     taken.push(ch);
-                } else {
-                    rest.push(ch);
+                    count += 1;
+                    consumed_bytes = byte_idx + ch.len_utf8();
+                    if count == limit {
+                        break;
+                    }
                 }
             }
-            hit_delim = taken.chars().count() == limit;
+            if stopped_at_delim && delim == '\n' {
+                taken = taken.trim_end_matches('\r').to_string();
+            }
+            hit_delim = stopped_at_delim || count == limit;
+            let rest = stream[consumed_bytes..].to_string();
             *stream = rest;
             taken
         } else if raw_mode {
@@ -3845,13 +4112,28 @@ impl<'a> EvalState<'a> {
             self.in_fds.insert(fd_num, fd_buf);
         }
 
-        let ifs = self
-            .env
-            .get("IFS")
-            .cloned()
-            .unwrap_or_else(|| " \t\n".to_string());
+        let ifs = if exact_chars {
+            String::new()
+        } else {
+            self.env
+                .get("IFS")
+                .cloned()
+                .unwrap_or_else(|| " \t\n".to_string())
+        };
 
         if let Some(arr) = array_name {
+            let resolved = resolve_nameref_base(&arr, self.env).to_string();
+            if self
+                .env
+                .get(&format!("__attr__{resolved}"))
+                .is_some_and(|a| a.contains('r'))
+            {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{resolved}: readonly variable\n"),
+                    exit_code: 1,
+                };
+            }
             let prefix = format!("{arr}[");
             let old: Vec<String> = self
                 .env
@@ -3868,6 +4150,19 @@ impl<'a> EvalState<'a> {
             }
             sync_array_metadata(&arr, self.env);
         } else if vars.len() == 1 {
+            let resolved = resolve_nameref_base(&vars[0], self.env).to_string();
+            let base = resolved.split_once('[').map(|(b, _)| b).unwrap_or(&resolved);
+            if self
+                .env
+                .get(&format!("__attr__{base}"))
+                .is_some_and(|a| a.contains('r'))
+            {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{base}: readonly variable\n"),
+                    exit_code: if default_reply { 2 } else { 1 },
+                };
+            }
             let trimmed = if default_reply || ifs.is_empty() {
                 line_owned.clone()
             } else {
@@ -3879,6 +4174,19 @@ impl<'a> EvalState<'a> {
         } else {
             let fields = split_ifs_fields(&line_owned, &ifs, Some(vars.len()));
             for (i, v) in vars.iter().enumerate() {
+                let resolved = resolve_nameref_base(v, self.env).to_string();
+                let base = resolved.split_once('[').map(|(b, _)| b).unwrap_or(&resolved);
+                if self
+                    .env
+                    .get(&format!("__attr__{base}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{base}: readonly variable\n"),
+                        exit_code: if i + 1 == vars.len() { 1 } else { 2 },
+                    };
+                }
                 let val = fields.get(i).cloned().unwrap_or_default();
                 self.env.insert(v.clone(), val);
             }
@@ -3938,6 +4246,19 @@ impl<'a> EvalState<'a> {
             } else {
                 i += 1;
             }
+        }
+
+        let resolved_arr = resolve_nameref_base(&arr_name, self.env).to_string();
+        if self
+            .env
+            .get(&format!("__attr__{resolved_arr}"))
+            .is_some_and(|a| a.contains('r'))
+        {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{resolved_arr}: readonly variable\n"),
+                exit_code: 1,
+            };
         }
 
         if origin == 0 {
@@ -4073,6 +4394,11 @@ impl<'a> EvalState<'a> {
             sub_idx = 1;
         }
         let flag_ch = cur_chars[sub_idx];
+        let resolved_var = resolve_nameref_base(&var_name, self.env).to_string();
+        let var_is_readonly = self
+            .env
+            .get(&format!("__attr__{resolved_var}"))
+            .is_some_and(|a| a.contains('r'));
 
         let Some(pos) = clean_opts.find(flag_ch) else {
             if sub_idx + 1 < cur_chars.len() {
@@ -4086,6 +4412,13 @@ impl<'a> EvalState<'a> {
                 self.env.insert("OPTARG".to_string(), flag_ch.to_string());
             } else {
                 self.env.remove("OPTARG");
+            }
+            if var_is_readonly {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{resolved_var}: readonly variable\n"),
+                    exit_code: 1,
+                };
             }
             self.env.insert(var_name, "?".to_string());
             return BuiltinOutcome {
@@ -4106,18 +4439,46 @@ impl<'a> EvalState<'a> {
             if !rest.is_empty() {
                 self.env.insert("OPTARG".to_string(), rest);
                 self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
+                if var_is_readonly {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{resolved_var}: readonly variable\n"),
+                        exit_code: 1,
+                    };
+                }
                 self.env.insert(var_name, flag_ch.to_string());
             } else if idx + 1 < opt_args.len() {
                 self.env.insert("OPTARG".to_string(), opt_args[idx + 1].clone());
                 self.env.insert("OPTIND".to_string(), (optind + 2).to_string());
+                if var_is_readonly {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{resolved_var}: readonly variable\n"),
+                        exit_code: 1,
+                    };
+                }
                 self.env.insert(var_name, flag_ch.to_string());
             } else {
                 self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
                 if silent {
                     self.env.insert("OPTARG".to_string(), flag_ch.to_string());
+                    if var_is_readonly {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{resolved_var}: readonly variable\n"),
+                            exit_code: 1,
+                        };
+                    }
                     self.env.insert(var_name, ":".to_string());
                 } else {
                     self.env.remove("OPTARG");
+                    if var_is_readonly {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{resolved_var}: readonly variable\n"),
+                            exit_code: 1,
+                        };
+                    }
                     self.env.insert(var_name, "?".to_string());
                 }
             }
@@ -4129,6 +4490,13 @@ impl<'a> EvalState<'a> {
             } else {
                 self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
                 self.env.remove("__getopts_sub");
+            }
+            if var_is_readonly {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{resolved_var}: readonly variable\n"),
+                    exit_code: 1,
+                };
             }
             self.env.insert(var_name, flag_ch.to_string());
         }
@@ -5858,5 +6226,40 @@ mod tests {
         assert_eq!(ro_abort.exit_code, 1);
         assert_eq!(ro_abort.stdout, "");
         assert!(ro_abort.stderr.contains("R: readonly variable"));
+    }
+
+    #[test]
+    fn unit_declare_f_set_o_control_flow_and_readonly_builtins() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let decl_f = state
+            .eval_script_str("b_fn() { :; }; a_fn() { :; }; declare -F", "")
+            .unwrap();
+        assert_eq!(decl_f.exit_code, 0);
+        assert_eq!(decl_f.stdout, "a_fn\nb_fn\n");
+
+        let set_o = state.eval_script_str("set -o", "").unwrap();
+        assert_eq!(set_o.exit_code, 0);
+        assert!(set_o.stdout.contains("braceexpand\ton\n"));
+        assert!(set_o.stdout.contains("errexit\toff\n"));
+
+        let ret_outside = state.eval_script_str("return 1; echo after:$?", "").unwrap();
+        assert_eq!(ret_outside.exit_code, 0);
+        assert_eq!(ret_outside.stdout, "after:2\n");
+        assert_eq!(
+            ret_outside.stderr,
+            "return: can only `return' from a function or sourced script\n"
+        );
+
+        let read_ro = state
+            .eval_script_str("readonly RO_R=1; echo hi | { read RO_R; echo rc:$?; }", "")
+            .unwrap();
+        assert_eq!(read_ro.stdout, "rc:1\n");
+        assert!(read_ro.stderr.contains("RO_R: readonly variable"));
     }
 }

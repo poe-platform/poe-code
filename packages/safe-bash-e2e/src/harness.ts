@@ -397,6 +397,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-xan-yq-xmllint-openssl-gpg-ssh-sqlite-codecs-parity-matrix.test.ts",
   "obscure-op-gh-cli-diagnostics-flags-auth-aliases-biometric-parity-matrix.test.ts",
   "obscure-env-umask-builtin-command-shopt-readonly-cd-timeout-parity-matrix.test.ts",
+  "obscure-shell-declare-read-mapfile-arith-control-flow-set-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

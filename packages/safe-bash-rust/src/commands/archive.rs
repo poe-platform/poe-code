@@ -5764,6 +5764,12 @@ fn cmd_gzip(
             match a.as_str() {
                 "-d" | "--decompress" | "--uncompress" => decompress = true,
                 "-z" | "--compress" => {
+                    if is_gzip {
+                        if a == "-z" {
+                            return err_out(&format!("{invoked}: invalid option -- 'z'\n"), 2);
+                        }
+                        return err_out(&format!("{invoked}: unrecognized option '{a}'\n"), 2);
+                    }
                     decompress = false;
                     test_mode = false;
                     list_mode = false;
@@ -5772,6 +5778,12 @@ fn cmd_gzip(
                 "-k" | "--keep" => keep = true,
                 "--rm" => keep = false,
                 "-f" | "--force" => force = true,
+                "-q" | "--quiet" | "-v" | "--verbose" | "-n" | "--no-name" | "-s" | "--small"
+                | "-e" | "--extreme" | "--no-progress" | "--single-thread" | "--no-dictID"
+                | "--no-sparse" | "--no-warn" | "--ultra" | "--asyncio" | "--no-asyncio"
+                | "--compress-literals" | "--no-compress-literals" | "--row-match-finder"
+                | "--no-row-match-finder" | "--single-stream" | "--no-adjust"
+                | "--ignore-check" => {}
                 "--pass-through" => passthrough = true,
                 "--no-pass-through" => passthrough = false,
                 "--exclude-compressed" => exclude_compressed = true,
@@ -5812,6 +5824,16 @@ fn cmd_gzip(
                 s if s.starts_with("-S") && s.len() > 2 => {
                     custom_suffix = Some(s[2..].to_string());
                 }
+                "-T" | "--threads" if i + 1 < args.len() => {
+                    i += 1;
+                }
+                s if s.starts_with("-T") || s.starts_with("--threads=") || s.starts_with("--long")
+                    || s.starts_with("--stream-size") || s.starts_with("--size-hint")
+                    || s.starts_with("--auto-threads") || s.starts_with("--memlimit")
+                    || s.starts_with("--block-size") || s.starts_with("--block-list")
+                    || s.starts_with("--flush-timeout") || s.starts_with("--lzma")
+                    || s.starts_with("--delta") || s.starts_with("--x86")
+                    || s.starts_with("--arm64") => {}
                 s if s.starts_with('-') && !s.starts_with("--") && s.len() > 1 => {
                     let chars: Vec<char> = s[1..].chars().collect();
                     let mut ci = 0usize;
@@ -5819,6 +5841,9 @@ fn cmd_gzip(
                         match chars[ci] {
                             'd' => decompress = true,
                             'z' => {
+                                if is_gzip {
+                                    return err_out(&format!("{invoked}: invalid option -- 'z'\n"), 2);
+                                }
                                 decompress = false;
                                 test_mode = false;
                                 list_mode = false;
@@ -5829,6 +5854,7 @@ fn cmd_gzip(
                             'l' => list_mode = true,
                             't' => test_mode = true,
                             'r' => recursive = true,
+                            'q' | 'v' | 'n' | 's' | 'e' => {}
                             '1'..='9' => level = (chars[ci] as u8) - b'0',
                             'C' => {
                                 if is_zstd {
@@ -5869,13 +5895,20 @@ fn cmd_gzip(
                                 }
                                 break;
                             }
-                            _ => {}
+                            ch => {
+                                return err_out(
+                                    &format!("{invoked}: invalid option -- '{ch}'\n"),
+                                    2,
+                                );
+                            }
                         }
                         ci += 1;
                     }
                 }
                 a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-                _ => {}
+                other => {
+                    return err_out(&format!("{invoked}: unrecognized option '{other}'\n"), 2);
+                }
             }
         } else {
             files.push(a.to_string());
@@ -10551,5 +10584,49 @@ mod tests {
         .unwrap();
         assert_eq!(gpg_ver.exit_code, 0, "stderr: {}", gpg_ver.stderr);
         assert!(gpg_ver.stdout.contains("[GNUPG:] GOODSIG"));
+    }
+
+    #[test]
+    fn unit_codec_invalid_options_od_hexdump_base32_strings_and_ssh_keygen_sign() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let bad_zstd = try_run_archive_command("zstd", &args(&["-o", "out.zst"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(bad_zstd.exit_code, 2);
+        assert!(bad_zstd.stderr.contains("invalid option -- 'o'"));
+
+        let bad_gz = try_run_archive_command("gzip", &args(&["-z"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(bad_gz.exit_code, 2);
+        assert!(bad_gz.stderr.contains("invalid option -- 'z'"));
+
+        let b32_enc = try_run_archive_command("base32", &args(&["-w", "0"]), "hello_base32", "/work", &env, &vfs).unwrap();
+        assert_eq!(b32_enc.exit_code, 0);
+        assert_eq!(b32_enc.stdout, "NBSWY3DPL5RGC43FGMZA====");
+        let b32_dec = try_run_archive_command("base32", &args(&["-d"]), &b32_enc.stdout, "/work", &env, &vfs).unwrap();
+        assert_eq!(b32_dec.stdout, "hello_base32");
+
+        let kg = try_run_archive_command(
+            "ssh-keygen",
+            &args(&["-t", "ed25519", "-f", "/work/id_ed", "-C", "u@h", "-N", ""]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(kg.exit_code, 0);
+        vfs.write_file("/work/msg.txt", b"payload\n").unwrap();
+        let sg = try_run_archive_command(
+            "ssh-keygen",
+            &args(&["-Y", "sign", "-f", "/work/id_ed", "-n", "git", "/work/msg.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(sg.exit_code, 0);
+        assert!(vfs.exists("/work/msg.txt.sig"));
     }
 }

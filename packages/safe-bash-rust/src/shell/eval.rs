@@ -2,14 +2,15 @@ use crate::backend::{CommandContext, CommandResult, RustCommand};
 use crate::budget::ExecutionBudget;
 use crate::commands::try_run_command;
 use crate::shell::builtins::{
-    BuiltinOutcome, eval_ere_match, eval_test_unary_predicate, is_test_unary_op,
-    resolve_physical_path, try_run_builtin,
+    BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
+    is_test_unary_op, path_targets, resolve_physical_path, try_run_builtin,
 };
 use crate::shell::expand::{
-    bash_quote_double, decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr,
-    expand_globs_in_word_with_projection, expand_parameter_expr, expand_tilde_prefix,
-    get_var_meta_info, glob_match_ext, has_glob_meta, resolve_nameref_base, resolve_var_key_mut,
-    sync_array_metadata, try_resolve_unquoted_alternate_operand, write_dynamic_variable,
+    bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
+    expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
+    expand_tilde_prefix, get_var_meta_info, glob_match_ext, has_glob_meta, resolve_nameref_base,
+    resolve_var_key_mut, sync_array_metadata, sync_getopts_env,
+    try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
@@ -113,6 +114,14 @@ impl<'a> EvalState<'a> {
         fd_table.insert(2, FdTarget::Stderr);
         if !env.contains_key("PWD") {
             env.insert("PWD".to_string(), cwd.clone());
+        }
+        if !env.contains_key("OPTIND") && !env.contains_key("__getopts_int") {
+            env.insert("OPTIND".to_string(), "1".to_string());
+            env.insert("__unexported__OPTIND".to_string(), "1".to_string());
+        }
+        if !env.contains_key("OPTERR") && !env.contains_key("__opterr_unset__") {
+            env.insert("OPTERR".to_string(), "1".to_string());
+            env.insert("__unexported__OPTERR".to_string(), "1".to_string());
         }
         let errexit = env.get("__set_errexit").map(|v| v == "1").unwrap_or(false);
         let nounset = env.get("__set_nounset").map(|v| v == "1").unwrap_or(false);
@@ -891,6 +900,27 @@ impl<'a> EvalState<'a> {
     }
 
     fn set_pipestatus(&mut self, codes: &[i32]) {
+        let is_indexed = self.env.contains_key("__keys__PIPESTATUS")
+            || self.env.keys().any(|k| k.starts_with("PIPESTATUS["));
+        let pipestatus_attr = self
+            .env
+            .get("__attr__PIPESTATUS")
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let is_readonly = pipestatus_attr.contains('r');
+        let is_exported = pipestatus_attr.contains('x');
+        let in_local_scope = self
+            .local_scopes
+            .iter()
+            .any(|f| f.contains_key("PIPESTATUS"));
+        if !is_indexed
+            && (self.env.contains_key("PIPESTATUS")
+                || is_readonly
+                || is_exported
+                || in_local_scope)
+        {
+            return;
+        }
         let old_keys: Vec<String> = self
             .env
             .keys()
@@ -955,7 +985,25 @@ impl<'a> EvalState<'a> {
             self.in_condition = prev_cond;
             let mut out = res?;
             let raw_code = out.exit_code;
-            self.set_pipestatus(&[raw_code]);
+            let publishes = matches!(
+                pipe.commands[0],
+                CommandNode::Simple(_)
+                    | CommandNode::Subshell { .. }
+                    | CommandNode::ArithCommand(_)
+            );
+            if publishes {
+                let is_cond_or_arith = match &pipe.commands[0] {
+                    CommandNode::ArithCommand(_) => true,
+                    CommandNode::Simple(s) => s.words.first().is_some_and(|w| w == "[["),
+                    _ => false,
+                };
+                let reported = if pipe.negated && is_cond_or_arith {
+                    if raw_code == 0 { 1 } else { 0 }
+                } else {
+                    raw_code
+                };
+                self.set_pipestatus(&[reported]);
+            }
             if pipe.negated {
                 out.exit_code = if out.exit_code == 0 { 1 } else { 0 };
             }
@@ -1937,6 +1985,14 @@ impl<'a> EvalState<'a> {
             } else if attr.contains('u') {
                 s = s.to_uppercase();
             }
+            if resolved == "OPTIND"
+                && self.env.get("__getopts_int").map(|v| v.as_str()) != Some("0")
+            {
+                let expr = if s.is_empty() { "0" } else { s.as_str() };
+                s = eval_arith(expr, self.env)
+                    .map_err(EvalError::Syntax)?
+                    .to_string();
+            }
             s
         };
 
@@ -1960,16 +2016,6 @@ impl<'a> EvalState<'a> {
             self.env
                 .insert(format!("__unexported__{resolved}"), "1".to_string());
         }
-        if resolved == "OPTIND"
-            && final_val
-                .trim()
-                .parse::<i64>()
-                .map(|v| v <= 1)
-                .unwrap_or(false)
-        {
-            self.env.remove("__getopts_sub");
-            self.env.remove("__getopts_ind");
-        }
         if write_dynamic_variable(&resolved, &final_val, self.env) {
             return Ok(());
         }
@@ -1977,7 +2023,17 @@ impl<'a> EvalState<'a> {
             self.env.insert(format!("{resolved}[0]"), final_val.clone());
             sync_array_metadata(&resolved, self.env);
         }
+        let is_optind = resolved == "OPTIND";
+        if resolved == "OPTERR" {
+            self.env.remove("__opterr_unset__");
+        }
+        if resolved == "PATH" {
+            self.env.remove("__path_unset__");
+        }
         self.env.insert(resolved, final_val);
+        if is_optind {
+            sync_getopts_env(self.env);
+        }
         Ok(())
     }
 
@@ -2644,6 +2700,7 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
+            sync_getopts_env(self.env);
             let mut out = res;
             if let Ok(ref mut o) = out
                 && self.exit_requested.is_some()
@@ -3114,7 +3171,8 @@ impl<'a> EvalState<'a> {
                 if login || argv0.is_some() {
                     let base = argv0.unwrap_or_else(|| exec_cmd.clone());
                     let a0 = if login { format!("-{base}") } else { base };
-                    self.env.insert("0".to_string(), a0);
+                    self.env.insert("0".to_string(), a0.clone());
+                    self.env.insert("__argv0".to_string(), a0);
                 }
                 let out = self.dispatch_words(&args[exec_idx..], stdin, bypass_functions)?;
                 self.exit_requested = Some(out.exit_code);
@@ -3210,7 +3268,13 @@ impl<'a> EvalState<'a> {
                         exit_code: 0,
                     });
                 }
-                return self.dispatch_words(&args[idx..], stdin, true);
+                if default_path {
+                    self.env
+                        .insert("__command_default_path__".to_string(), "1".to_string());
+                }
+                let res = self.dispatch_words(&args[idx..], stdin, true);
+                self.env.remove("__command_default_path__");
+                return res;
             }
             "caller" => {
                 return Ok(self.builtin_caller(args));
@@ -3277,13 +3341,51 @@ impl<'a> EvalState<'a> {
             "disown" => {
                 return Ok(self.builtin_disown(args));
             }
-            "bash" | "sh" => {
-                return self.run_sub_shell_command(cmd, args, stdin);
-            }
             _ => {}
         }
 
-        if let Some(custom) = self.custom_commands.get(cmd) {
+        let default_path = self.env.remove("__command_default_path__").is_some();
+        let custom_argv0 = self.env.remove("__argv0");
+        let virtual_name = if cmd.contains('/') {
+            self.virtual_executable_name(&resolve_posix_path(self.cwd, cmd))
+        } else {
+            None
+        };
+        let effective_cmd = virtual_name.as_deref().unwrap_or(cmd.as_str());
+
+        if virtual_name.is_some() {
+            match effective_cmd {
+                "true" => {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    });
+                }
+                "false" => {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 1,
+                    });
+                }
+                "pwd" => {
+                    return self.dispatch_words(
+                        &std::iter::once("pwd".to_string())
+                            .chain(args.iter().cloned())
+                            .collect::<Vec<_>>(),
+                        stdin,
+                        true,
+                    );
+                }
+                "kill" => {
+                    return Ok(self.builtin_kill(args));
+                }
+                _ => {}
+            }
+        }
+
+        if let Some(custom) = self.custom_commands.get(effective_cmd) {
             let mut ctx = CommandContext {
                 args,
                 stdin,
@@ -3309,8 +3411,21 @@ impl<'a> EvalState<'a> {
             };
         }
 
-        if let Some(b_out) = try_run_builtin(cmd, args, stdin, self.cwd, self.env, self.fs) {
+        if let Some(b_out) =
+            try_run_builtin(effective_cmd, args, stdin, self.cwd, self.env, self.fs)
+        {
             return Ok(b_out);
+        }
+
+        if matches!(effective_cmd, "bash" | "sh" | "zsh") {
+            let argv0_override = custom_argv0.or_else(|| {
+                if virtual_name.is_some() {
+                    Some(cmd.clone())
+                } else {
+                    None
+                }
+            });
+            return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
         let fs_ref = self.fs;
@@ -3321,7 +3436,7 @@ impl<'a> EvalState<'a> {
         let allow_fallback = self.allow_unported_fallback;
 
         if let Some(c_out) = try_run_command(
-            cmd,
+            effective_cmd,
             args,
             stdin,
             self.cwd,
@@ -3397,46 +3512,50 @@ impl<'a> EvalState<'a> {
             return Ok(c_out);
         }
 
-        // Check hashed or executable script in VFS (e.g. /usr/local/bin/custom_tool or ./script.sh)
-        if let Some(script_path) = self.resolve_vfs_executable(cmd)
-            && let Ok(bytes) = self.fs.read_file(&script_path)
+        if cmd.contains('/')
+            || (!default_path
+                && !self.env.contains_key("PATH")
+                && self.env.contains_key("__path_unset__"))
         {
-            let script_str = String::from_utf8_lossy(&bytes);
-            let mut sub_cwd = self.cwd.clone();
-            let mut sub_env = self.env.clone();
-            sub_env.insert("0".to_string(), cmd.clone());
-            sub_env.remove("__set_errtrace");
-            sub_env.remove("__set_functrace");
-            sub_env.remove("__shopt_extdebug");
-            for (k, v) in &self.traps {
-                if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
-                    sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
-                }
+            return self.run_vfs_script(
+                cmd,
+                args,
+                stdin,
+                true,
+                false,
+                None,
+                false,
+                false,
+                false,
+                false,
+                false,
+                false,
+                cmd,
+                None,
+            );
+        }
+
+        match self.search_command_path(cmd, default_path) {
+            Err(denied) => return Ok(denied),
+            Ok(Some(target)) => {
+                return self.run_vfs_script(
+                    &target,
+                    args,
+                    stdin,
+                    true,
+                    false,
+                    None,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    cmd,
+                    None,
+                );
             }
-            let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-            sub.traps
-                .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
-            sub.inactive_traps.clear();
-            sub.func_trap_snapshots.clear();
-            sub.source_debug_snapshots.clear();
-            sub.source_depth = 0;
-            sub.pos_args = args.to_vec();
-            sub.caller_frames.clear();
-            sub.caller_top_level = true;
-            sub.script_name = Some(cmd.clone());
-            sub.current_line = 1;
-            sub.func_stack.clear();
-            sub.sync_funcname();
-            sub.env.remove("BASH_SUBSHELL");
-            sub.env.remove("__unexported__BASH_SUBSHELL");
-            sub.env.remove("__set_braceexpand");
-            let res = sub.eval_script_str(&script_str, stdin)?;
-            *stdin = String::new();
-            return Ok(BuiltinOutcome {
-                stdout: res.stdout,
-                stderr: res.stderr,
-                exit_code: res.exit_code,
-            });
+            Ok(None) => {}
         }
 
         if self.allow_unported_fallback {
@@ -3450,35 +3569,58 @@ impl<'a> EvalState<'a> {
         })
     }
 
+    fn search_command_path(
+        &self,
+        name: &str,
+        default_path: bool,
+    ) -> Result<Option<String>, BuiltinOutcome> {
+        if name.is_empty() {
+            return Ok(None);
+        }
+        let path_opt = if default_path {
+            Some("/bin:/usr/bin")
+        } else {
+            effective_path_env(self.env)
+        };
+        let mut denied: Option<BuiltinOutcome> = None;
+        for target in path_targets(path_opt, name) {
+            let resolved = resolve_posix_path(self.cwd, &target);
+            if self.is_virtual_executable_path(&resolved) {
+                return Ok(Some(target));
+            }
+            if let Ok(st) = self.fs.stat(&resolved) {
+                if st.kind != crate::vfs::VfsEntryKind::File {
+                    continue;
+                }
+                if (st.mode & 0o111) != 0 {
+                    return Ok(Some(target));
+                }
+                if denied.is_none() {
+                    denied = Some(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{target}: Permission denied\n"),
+                        exit_code: 126,
+                    });
+                }
+            }
+        }
+        if let Some(d) = denied {
+            return Err(d);
+        }
+        Ok(None)
+    }
+
     fn resolve_vfs_executable(&self, cmd: &str) -> Option<String> {
-        if let Some(hashed) = self.env.get(&format!("__hash__{cmd}"))
-            && self.fs.exists(hashed)
-            && !self.fs.is_dir(hashed)
-        {
-            return Some(hashed.clone());
-        }
-        if cmd.contains('/') {
-            let full = resolve_posix_path(self.cwd, cmd);
-            if self.fs.exists(&full) && !self.fs.is_dir(&full) {
-                return Some(full);
-            }
-            return None;
-        }
-        let path_env = self
-            .env
-            .get("PATH")
-            .cloned()
-            .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
-        for dir in path_env.split(':') {
-            if dir.is_empty() {
-                continue;
-            }
-            let cand = resolve_posix_path(self.cwd, &format!("{dir}/{cmd}"));
-            if self.fs.exists(&cand) && !self.fs.is_dir(&cand) {
-                return Some(cand);
+        if let Some(hashed) = self.env.get(&format!("__hash__{cmd}")) {
+            let resolved = resolve_posix_path(self.cwd, hashed);
+            if let Ok(st) = self.fs.stat(&resolved)
+                && st.kind == crate::vfs::VfsEntryKind::File
+                && (st.mode & 0o111) != 0
+            {
+                return Some(hashed.clone());
             }
         }
-        None
+        self.search_command_path(cmd, false).ok().flatten()
     }
 
 
@@ -3686,27 +3828,36 @@ impl<'a> EvalState<'a> {
             || self.custom_commands.contains_key(target)
     }
 
-    fn is_virtual_executable_path(&self, resolved_path: &str) -> bool {
+    fn virtual_executable_name(&self, resolved_path: &str) -> Option<String> {
         if resolved_path.ends_with('/')
             || resolved_path.ends_with("/.")
             || resolved_path.ends_with("/..")
         {
-            return false;
+            return None;
         }
         let norm = resolve_posix_path("/", resolved_path);
         let Some(slash) = norm.rfind('/') else {
-            return false;
+            return None;
         };
         let dir = &norm[..slash];
         let name = &norm[slash + 1..];
         if matches!(name, "zsh" | "bash" | "sh") && matches!(dir, "/bin" | "/usr/bin" | "/tmp") {
-            return true;
+            return Some(name.to_string());
         }
         if dir != "/bin" && dir != "/usr/bin" {
-            return false;
+            return None;
         }
-        self.is_registered_command_name(name)
+        if self.is_registered_command_name(name)
             || matches!(name, "true" | "false" | "pwd" | "kill" | "bash" | "sh" | "zsh")
+        {
+            Some(name.to_string())
+        } else {
+            None
+        }
+    }
+
+    fn is_virtual_executable_path(&self, resolved_path: &str) -> bool {
+        self.virtual_executable_name(resolved_path).is_some()
     }
 
     fn search_discovery_paths(
@@ -3719,40 +3870,23 @@ impl<'a> EvalState<'a> {
             return Vec::new();
         }
         let mut matches = Vec::new();
-        if name.contains('/') {
-            let resolved = resolve_posix_path(self.cwd, name);
-            if self.is_virtual_executable_path(&resolved)
-                || (self.fs.exists(&resolved) && !self.fs.is_dir(&resolved))
-            {
-                matches.push(name.to_string());
-            }
-            return matches;
-        }
-        let path_val = if default_path {
-            Some("/bin:/usr/bin".to_string())
-        } else if let Some(p) = self.env.get("PATH") {
-            Some(p.clone())
-        } else if self.env.contains_key("__path_unset__") {
-            None
+        let path_opt = if default_path {
+            Some("/bin:/usr/bin")
         } else {
-            Some("/bin:/usr/bin".to_string())
+            effective_path_env(self.env)
         };
-        let Some(path_str) = path_val else {
-            return matches;
-        };
-        if path_str.is_empty() {
-            return matches;
-        }
-        for seg in path_str.split(':') {
-            let dir = if seg.is_empty() { "." } else { seg };
-            let target = if dir == "/" {
-                format!("/{name}")
-            } else {
-                format!("{}/{name}", dir.trim_end_matches('/'))
-            };
+        for target in path_targets(path_opt, name) {
             let resolved = resolve_posix_path(self.cwd, &target);
-            if self.is_virtual_executable_path(&resolved)
-                || (self.fs.exists(&resolved) && !self.fs.is_dir(&resolved))
+            if self.is_virtual_executable_path(&resolved) {
+                matches.push(target);
+                if !show_all {
+                    break;
+                }
+                continue;
+            }
+            if let Ok(st) = self.fs.stat(&resolved)
+                && st.kind == crate::vfs::VfsEntryKind::File
+                && (st.mode & 0o111) != 0
             {
                 matches.push(target);
                 if !show_all {
@@ -3977,78 +4111,198 @@ impl<'a> EvalState<'a> {
         )
     }
 
+    fn build_child_process_env(&self, sub_cwd: &str, arg0: &str) -> BTreeMap<String, String> {
+        let mut sub_env = BTreeMap::new();
+        for (k, v) in self.env.iter() {
+            if k == "__umask"
+                || k.starts_with("__trap_inherited_ignored__")
+                || k == "__epoch_realtime_sec"
+            {
+                sub_env.insert(k.clone(), v.clone());
+            } else if !k.starts_with("__")
+                && !k.contains('[')
+                && k != "0"
+                && !self.env.contains_key(&format!("__unexported__{k}"))
+                && !self.env.contains_key(&format!("__keys__{k}"))
+                && !self.env.contains_key(&format!("__assoc__{k}"))
+                && !matches!(
+                    k.as_str(),
+                    "PIPESTATUS"
+                        | "BASH_REMATCH"
+                        | "DIRSTACK"
+                        | "FUNCNAME"
+                        | "BASH_SOURCE"
+                        | "BASH_LINENO"
+                        | "BASH_SUBSHELL"
+                        | "BASH_COMMAND"
+                )
+            {
+                sub_env.insert(k.clone(), v.clone());
+                sub_env.insert(format!("__attr__{k}"), "x".to_string());
+            }
+        }
+        for (k, v) in &self.traps {
+            if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
+                sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
+            }
+        }
+        sub_env.insert("PWD".to_string(), sub_cwd.to_string());
+        sub_env.insert("__attr__PWD".to_string(), "x".to_string());
+        sub_env.insert("OPTIND".to_string(), "1".to_string());
+        sub_env.insert("__unexported__OPTIND".to_string(), "1".to_string());
+        sub_env.remove("__attr__OPTIND");
+        sub_env.insert("__getopts_index".to_string(), "0".to_string());
+        sub_env.insert("OPTERR".to_string(), "1".to_string());
+        sub_env.insert("__unexported__OPTERR".to_string(), "1".to_string());
+        sub_env.remove("__attr__OPTERR");
+        sub_env.insert("0".to_string(), arg0.to_string());
+        sub_env
+    }
+
     fn run_sub_shell_command(
         &mut self,
         invoked_cmd: &str,
+        argv0_override: Option<&str>,
         args: &[String],
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
         let mut idx = 0usize;
+        let mut allexport = false;
         let mut errexit = false;
+        let mut noclobber = false;
         let mut nounset = false;
         let mut pipefail = false;
         let mut noexec = false;
+        let mut noglob = false;
         let mut braceexpand: Option<bool> = None;
-        let mut cmd_str: Option<String> = None;
+        let mut command_string = false;
+        let mut standard_input = false;
+
+        let loaded_source = self
+            .env
+            .remove("__shebang_loaded_path")
+            .and_then(|p| self.env.remove("__shebang_loaded_source").map(|s| (p, s)));
 
         while idx < args.len() {
             let a = &args[idx];
-            if a == "-c" {
-                cmd_str = args.get(idx + 1).cloned();
-                idx += 2;
+            if !a.starts_with('-') && !a.starts_with('+') {
                 break;
-            } else if (a == "-o" || a == "+o") && idx + 1 < args.len() {
-                let on = a.starts_with('-');
-                match args[idx + 1].as_str() {
+            }
+            idx += 1;
+            if a == "--" || a == "-" {
+                break;
+            }
+            if a == "--version" {
+                return Ok(BuiltinOutcome {
+                    stdout: "safe-bash (poe-code)\n".to_string(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
+            }
+            if matches!(a.as_str(), "--login" | "--norc" | "--noprofile" | "--posix") {
+                continue;
+            }
+            let on = a.starts_with('-');
+            if (a == "-o" || a == "+o")
+                && let Some(opt_name) = args.get(idx)
+                && matches!(
+                    opt_name.as_str(),
+                    "allexport"
+                        | "braceexpand"
+                        | "errexit"
+                        | "noclobber"
+                        | "noexec"
+                        | "noglob"
+                        | "nounset"
+                        | "pipefail"
+                )
+            {
+                match opt_name.as_str() {
+                    "allexport" => allexport = on,
+                    "braceexpand" => braceexpand = Some(on),
                     "errexit" => errexit = on,
+                    "noclobber" => noclobber = on,
+                    "noexec" => noexec = on,
+                    "noglob" => noglob = on,
                     "nounset" => nounset = on,
                     "pipefail" => pipefail = on,
-                    "noexec" => noexec = on,
-                    "braceexpand" => braceexpand = Some(on),
                     _ => {}
                 }
-                idx += 2;
-            } else if (a.starts_with('-') || a.starts_with('+')) && a.len() > 1 && a != "--" {
-                let on = a.starts_with('-');
-                let mut saw_c = false;
-                for ch in a[1..].chars() {
-                    match ch {
-                        'e' => errexit = on,
-                        'u' => nounset = on,
-                        'n' => noexec = on,
-                        'B' => braceexpand = Some(on),
-                        'c' if on => saw_c = true,
-                        _ => {}
-                    }
-                }
                 idx += 1;
-                if saw_c {
-                    cmd_str = args.get(idx).cloned();
-                    idx += 1;
-                    break;
+                continue;
+            }
+            let flags = &a[1..];
+            let valid_flags = !flags.is_empty()
+                && flags.chars().all(|ch| {
+                    matches!(ch, 'a' | 'B' | 'e' | 'C' | 'n' | 'f' | 'u')
+                        || (on && matches!(ch, 'c' | 's' | 'l' | 'i'))
+                });
+            if !valid_flags {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!(
+                        "{invoked_cmd}: {a}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C and +/-o allexport, braceexpand, errexit, noclobber, noexec, noglob, nounset, pipefail\n"
+                    ),
+                    exit_code: 2,
+                });
+            }
+            for ch in flags.chars() {
+                match ch {
+                    'c' => command_string = true,
+                    's' => standard_input = true,
+                    'a' => allexport = on,
+                    'B' => braceexpand = Some(on),
+                    'e' => errexit = on,
+                    'C' => noclobber = on,
+                    'n' => noexec = on,
+                    'f' => noglob = on,
+                    'u' => nounset = on,
+                    _ => {}
                 }
-            } else {
-                break;
             }
         }
 
-        let script_source = if let Some(cs) = cmd_str {
-            cs
-        } else if let Some(file_arg) = args.get(idx) {
+        if !command_string && !standard_input && idx < args.len() {
+            let file_arg = &args[idx];
+            let file_args = &args[idx + 1..];
+            return self.run_vfs_script(
+                file_arg,
+                file_args,
+                stdin,
+                false,
+                errexit,
+                braceexpand,
+                noexec,
+                nounset,
+                pipefail,
+                allexport,
+                noclobber,
+                noglob,
+                invoked_cmd,
+                loaded_source,
+            );
+        }
+
+        let script_source = if command_string {
+            let Some(cs) = args.get(idx).cloned() else {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{invoked_cmd}: -c: option requires an argument\n"),
+                    exit_code: 2,
+                });
+            };
             idx += 1;
-            let full = resolve_posix_path(self.cwd, file_arg);
-            match self.fs.read_file(&full) {
-                Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                Err(_) => {
-                    return Ok(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("bash: {file_arg}: No such file or directory\n"),
-                        exit_code: 127,
-                    });
-                }
-            }
+            cs
         } else {
             std::mem::take(stdin)
+        };
+
+        let arg0 = if command_string && idx < args.len() {
+            let a0 = args[idx].clone();
+            idx += 1;
+            a0
+        } else {
+            argv0_override.unwrap_or(invoked_cmd).to_string()
         };
 
         if noexec {
@@ -4060,46 +4314,25 @@ impl<'a> EvalState<'a> {
                 }),
                 Err(e) => Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("bash: {e}\n"),
+                    stderr: format!("{arg0}: {e}\n"),
                     exit_code: 2,
                 }),
             };
         }
 
         let mut sub_cwd = self.cwd.clone();
-        let mut sub_env = self.env.clone();
+        let mut sub_env = self.build_child_process_env(&sub_cwd, &arg0);
         if invoked_cmd == "sh" {
             sub_env.insert("__set_posix".to_string(), "1".to_string());
-        } else {
-            sub_env.remove("__set_posix");
         }
-        sub_env.remove("__set_errtrace");
-        sub_env.remove("__set_functrace");
-        sub_env.remove("__shopt_extdebug");
-        match braceexpand {
-            Some(false) => {
-                sub_env.insert("__set_braceexpand".to_string(), "0".to_string());
-            }
-            _ => {
-                sub_env.remove("__set_braceexpand");
-            }
+        if allexport {
+            sub_env.insert("__set_allexport".to_string(), "1".to_string());
         }
-        for (k, v) in &self.traps {
-            if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
-                sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
-            }
+        if noglob {
+            sub_env.insert("__set_noglob".to_string(), "1".to_string());
         }
-        let unexp_vars: Vec<String> = sub_env
-            .keys()
-            .filter_map(|k| k.strip_prefix("__unexported__").map(|v| v.to_string()))
-            .collect();
-        for v in unexp_vars {
-            sub_env.remove(&v);
-            sub_env.remove(&format!("__unexported__{v}"));
-        }
-        if let Some(arg0) = args.get(idx) {
-            sub_env.insert("0".to_string(), arg0.clone());
-            idx += 1;
+        if braceexpand == Some(false) {
+            sub_env.insert("__set_braceexpand".to_string(), "0".to_string());
         }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.traps
@@ -4115,6 +4348,8 @@ impl<'a> EvalState<'a> {
         sub.errexit = errexit;
         sub.nounset = nounset;
         sub.pipefail = pipefail;
+        sub.noclobber = noclobber;
+        sub.script_name = Some(arg0.clone());
         sub.pos_args = args[idx..].to_vec();
         sub.functions = self
             .functions
@@ -4131,7 +4366,337 @@ impl<'a> EvalState<'a> {
             }),
             Err(EvalError::Syntax(msg)) => Ok(BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!("bash: {msg}\n"),
+                stderr: format!("{arg0}: {msg}\n"),
+                exit_code: 2,
+            }),
+            Err(other) => Err(other),
+        }
+    }
+
+    fn decode_script_bytes(bytes: &[u8], name: &str) -> Result<String, BuiltinOutcome> {
+        if bytes
+            .iter()
+            .any(|&b| b < 9 || (b > 10 && b < 13) || (b > 13 && b < 32) || b == 127)
+        {
+            return Err(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{name}: cannot execute binary script\n"),
+                exit_code: 126,
+            });
+        }
+        let stripped = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
+        match std::str::from_utf8(stripped) {
+            Ok(s) => Ok(s.to_string()),
+            Err(_) => Err(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{name}: cannot execute binary or non-UTF-8 script\n"),
+                exit_code: 126,
+            }),
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn run_vfs_script(
+        &mut self,
+        target: &str,
+        args: &[String],
+        stdin: &mut String,
+        direct: bool,
+        mut errexit: bool,
+        braceexpand: Option<bool>,
+        noexec: bool,
+        nounset: bool,
+        pipefail: bool,
+        allexport: bool,
+        noclobber: bool,
+        noglob: bool,
+        invoked_cmd: &str,
+        loaded_source: Option<(String, String)>,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        if target.is_empty() {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{invoked_cmd}: : No such file or directory\n"),
+                exit_code: 127,
+            });
+        }
+        let path = resolve_posix_path(self.cwd, target);
+        let mut source_bytes: Option<Vec<u8>> = None;
+        let first_or_full_source: String;
+        let mut interpreter_profile: Option<&'static str> = None;
+
+        if let Some((ref lp, ref ls)) = loaded_source
+            && lp == &path
+        {
+            first_or_full_source = ls.clone();
+        } else {
+            let st = match self.fs.stat(&path) {
+                Ok(s) => s,
+                Err(_) => {
+                    let mut cur = String::new();
+                    for comp in path.split('/').filter(|c| !c.is_empty()) {
+                        cur.push('/');
+                        cur.push_str(comp);
+                        if cur != path
+                            && let Ok(pst) = self.fs.stat(&cur)
+                            && pst.kind != crate::vfs::VfsEntryKind::Directory
+                        {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{target}: Not a directory\n"),
+                                exit_code: 126,
+                            });
+                        }
+                    }
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{target}: No such file or directory\n"),
+                        exit_code: 127,
+                    });
+                }
+            };
+            if st.kind == crate::vfs::VfsEntryKind::Directory {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{target}: Is a directory\n"),
+                    exit_code: 126,
+                });
+            }
+            if st.kind != crate::vfs::VfsEntryKind::File {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{target}: not a regular file\n"),
+                    exit_code: 126,
+                });
+            }
+            if (st.mode & 0o444) == 0 || (direct && (st.mode & 0o111) == 0) {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{target}: Permission denied\n"),
+                    exit_code: 126,
+                });
+            }
+            let bytes = match self.fs.read_file(&path) {
+                Ok(b) => b,
+                Err(_) => {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{target}: No such file or directory\n"),
+                        exit_code: 127,
+                    });
+                }
+            };
+            first_or_full_source = if direct && bytes.starts_with(b"#!") {
+                let nl = bytes.iter().position(|&b| b == b'\n').unwrap_or(bytes.len());
+                match Self::decode_script_bytes(&bytes[..nl], target) {
+                    Ok(s) => s,
+                    Err(out) => return Ok(out),
+                }
+            } else {
+                match Self::decode_script_bytes(&bytes, target) {
+                    Ok(s) => s,
+                    Err(out) => return Ok(out),
+                }
+            };
+            source_bytes = Some(bytes);
+        }
+
+        if direct && first_or_full_source.starts_with("#!") {
+            let first_line = first_or_full_source.lines().next().unwrap_or("");
+            let interpreter = first_line[2..].trim_matches(|c| c == ' ' || c == '\t');
+            if interpreter == "/usr/bin/env"
+                || interpreter.starts_with("/usr/bin/env ")
+                || interpreter.starts_with("/usr/bin/env\t")
+            {
+                let opt_arg = if interpreter.len() > "/usr/bin/env".len() {
+                    Some(
+                        interpreter["/usr/bin/env".len()..]
+                            .trim_start_matches(|c| c == ' ' || c == '\t')
+                            .to_string(),
+                    )
+                } else {
+                    None
+                };
+                let full_src = if let Some(ref b) = source_bytes {
+                    match Self::decode_script_bytes(b, target) {
+                        Ok(s) => s,
+                        Err(out) => return Ok(out),
+                    }
+                } else {
+                    first_or_full_source.clone()
+                };
+                let mut words = vec!["env".to_string()];
+                if let Some(a) = opt_arg {
+                    words.push(a);
+                }
+                words.push(target.to_string());
+                words.extend(args.iter().cloned());
+                self.env
+                    .insert("__shebang_loaded_path".to_string(), path.clone());
+                self.env
+                    .insert("__shebang_loaded_source".to_string(), full_src);
+                let res = self.dispatch_words(&words, stdin, true);
+                self.env.remove("__shebang_loaded_path");
+                self.env.remove("__shebang_loaded_source");
+                return match res {
+                    Ok(mut o) => {
+                        if o.exit_code == 127
+                            && !o.stderr.starts_with("env: ")
+                            && o.stderr.ends_with(": command not found\n")
+                        {
+                            o.stderr = format!("env: {}", o.stderr);
+                        }
+                        Ok(o)
+                    }
+                    Err(e) => Err(e),
+                };
+            }
+
+            let shell_match = interpreter
+                .strip_prefix("/bin/")
+                .or_else(|| interpreter.strip_prefix("/usr/bin/"))
+                .and_then(|rest| {
+                    for sh_name in ["bash", "sh", "zsh"] {
+                        if let Some(after) = rest.strip_prefix(sh_name) {
+                            if after.is_empty() {
+                                return Some((sh_name, None));
+                            }
+                            if after.starts_with(' ') || after.starts_with('\t') {
+                                let flag_s = after.trim_start_matches(|c| c == ' ' || c == '\t');
+                                if (flag_s.starts_with('-') || flag_s.starts_with('+'))
+                                    && flag_s.len() > 1
+                                    && flag_s[1..].chars().all(|c| c == 'e')
+                                {
+                                    return Some((sh_name, Some(flag_s.starts_with('-'))));
+                                }
+                            }
+                        }
+                    }
+                    None
+                });
+
+            if let Some((sh_name, err_flag)) = shell_match {
+                interpreter_profile = Some(if sh_name == "sh" { "sh" } else { "bash" });
+                if let Some(ef) = err_flag {
+                    errexit = ef;
+                }
+            } else {
+                let split_idx = interpreter.find([' ', '\t']);
+                let executable = match split_idx {
+                    Some(i) => &interpreter[..i],
+                    None => interpreter,
+                };
+                let (directory, name) = match executable.rfind('/') {
+                    Some(slash) => (&executable[..slash], &executable[slash + 1..]),
+                    None => ("", executable),
+                };
+                if (directory != "/bin" && directory != "/usr/bin")
+                    || matches!(name, "sh" | "bash" | "zsh")
+                    || !self.is_registered_command_name(name)
+                {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{target}: unsupported interpreter: {interpreter}\n"),
+                        exit_code: 126,
+                    });
+                }
+                let argument = split_idx
+                    .map(|i| interpreter[i..].trim_start_matches(|c| c == ' ' || c == '\t'))
+                    .filter(|s| !s.is_empty());
+                let mut words = vec![name.to_string()];
+                if let Some(arg) = argument {
+                    words.push(arg.to_string());
+                }
+                words.push(target.to_string());
+                words.extend(args.iter().cloned());
+                return self.dispatch_words(&words, stdin, true);
+            }
+        }
+
+        let full_source = if let Some(ref b) = source_bytes {
+            match Self::decode_script_bytes(b, target) {
+                Ok(s) => s,
+                Err(out) => return Ok(out),
+            }
+        } else {
+            first_or_full_source
+        };
+
+        if noexec {
+            return match validate_basic_syntax(&full_source) {
+                Ok(()) => Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                }),
+                Err(e) => Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{target}: {e}\n"),
+                    exit_code: 2,
+                }),
+            };
+        }
+
+        let mut sub_cwd = self.cwd.clone();
+        let use_posix = if direct {
+            match interpreter_profile {
+                Some("sh") => true,
+                Some(_) => false,
+                None => self.env.get("__set_posix").is_some_and(|v| v == "1"),
+            }
+        } else {
+            invoked_cmd == "sh"
+        };
+        let mut sub_env = self.build_child_process_env(&sub_cwd, target);
+        if use_posix {
+            sub_env.insert("__set_posix".to_string(), "1".to_string());
+        }
+        if allexport {
+            sub_env.insert("__set_allexport".to_string(), "1".to_string());
+        }
+        if noglob {
+            sub_env.insert("__set_noglob".to_string(), "1".to_string());
+        }
+        if braceexpand == Some(false) {
+            sub_env.insert("__set_braceexpand".to_string(), "0".to_string());
+        }
+
+        let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+        sub.traps
+            .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
+        sub.inactive_traps.clear();
+        sub.func_trap_snapshots.clear();
+        sub.source_debug_snapshots.clear();
+        sub.source_depth = 0;
+        sub.pos_args = args.to_vec();
+        sub.caller_frames.clear();
+        sub.caller_top_level = true;
+        sub.script_name = Some(target.to_string());
+        sub.current_line = 1;
+        sub.func_stack.clear();
+        sub.sync_funcname();
+        sub.env.remove("BASH_SUBSHELL");
+        sub.env.remove("__unexported__BASH_SUBSHELL");
+        sub.errexit = errexit;
+        sub.nounset = nounset;
+        sub.pipefail = pipefail;
+        sub.noclobber = noclobber;
+        sub.functions = self
+            .functions
+            .iter()
+            .filter(|(k, _)| self.exported_functions.contains(*k))
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect();
+
+        match sub.eval_script_str(&full_source, stdin) {
+            Ok(res) => Ok(BuiltinOutcome {
+                stdout: res.stdout,
+                stderr: res.stderr,
+                exit_code: res.exit_code,
+            }),
+            Err(EvalError::Syntax(msg)) => Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{target}: {msg}\n"),
                 exit_code: 2,
             }),
             Err(other) => Err(other),
@@ -5004,7 +5569,7 @@ impl<'a> EvalState<'a> {
                         continue;
                     }
                     match ch {
-                        'n' | 'A' | 'a' | 'i' | 'l' | 'u' | 'r' | 'x' => {
+                        'n' | 'A' | 'a' | 'i' | 'l' | 'u' | 'r' | 'x' | 'I' => {
                             if is_plus {
                                 enabled.remove(&ch);
                                 disabled.insert(ch);
@@ -5037,6 +5602,7 @@ impl<'a> EvalState<'a> {
         let is_indexed = enabled.contains(&'a');
         let is_readonly = enabled.contains(&'r');
         let is_export = enabled.contains(&'x');
+        let inherit_prev = enabled.contains(&'I');
         let is_local = cmd == "local"
             || ((cmd == "declare" || cmd == "typeset") && !is_global && !self.local_scopes.is_empty());
 
@@ -5302,9 +5868,26 @@ impl<'a> EvalState<'a> {
                 && !frame.contains_key(&base_name)
             {
                 frame.insert(base_name.clone(), self.env.get(&base_name).cloned());
-                for meta_prefix in ["__attr__", "__assoc__", "__nameref__", "__declared__", "__keys__"] {
+                for meta_prefix in [
+                    "__attr__",
+                    "__assoc__",
+                    "__nameref__",
+                    "__declared__",
+                    "__keys__",
+                    "__unexported__",
+                ] {
                     let mk = format!("{meta_prefix}{base_name}");
                     frame.insert(mk.clone(), self.env.get(&mk).cloned());
+                }
+                if base_name == "OPTIND" {
+                    for gk in [
+                        "__getopts_index",
+                        "__getopts_active_arg",
+                        "__getopts_active_off",
+                        "__getopts_int",
+                    ] {
+                        frame.insert(gk.to_string(), self.env.get(gk).cloned());
+                    }
                 }
                 let arr_prefix = format!("{base_name}[");
                 let existing_arr_keys: Vec<(String, String)> = self
@@ -5315,17 +5898,22 @@ impl<'a> EvalState<'a> {
                     .collect();
                 for (ak, av) in existing_arr_keys {
                     frame.insert(ak.clone(), Some(av));
-                    if val_opt.is_none() || !append {
+                    if !inherit_prev && (val_opt.is_none() || !append) {
                         self.env.remove(&ak);
                     }
                 }
-                self.env.remove(&format!("__attr__{base_name}"));
-                self.env.remove(&format!("__assoc__{base_name}"));
-                self.env.remove(&format!("__nameref__{base_name}"));
-                self.env.remove(&format!("__declared__{base_name}"));
-                self.env.remove(&format!("__keys__{base_name}"));
-                if val_opt.is_none() || !append {
-                    self.env.remove(&base_name);
+                if !inherit_prev {
+                    self.env.remove(&format!("__attr__{base_name}"));
+                    self.env.remove(&format!("__assoc__{base_name}"));
+                    self.env.remove(&format!("__nameref__{base_name}"));
+                    self.env.remove(&format!("__declared__{base_name}"));
+                    self.env.remove(&format!("__keys__{base_name}"));
+                    if val_opt.is_none() || !append {
+                        self.env.remove(&base_name);
+                    }
+                }
+                if base_name == "OPTIND" {
+                    self.env.insert("__getopts_int".to_string(), "0".to_string());
                 }
             }
 
@@ -5386,11 +5974,18 @@ impl<'a> EvalState<'a> {
                 self.assign_variable(&var_name, &v, append)?;
             } else if is_indexed || is_assoc {
                 sync_array_metadata(&base_name, self.env);
-            } else if is_local && !self.env.contains_key(&base_name) && enabled.is_empty() && disabled.is_empty() {
+            } else if is_local
+                && base_name == "PIPESTATUS"
+                && !inherit_prev
+                && !self.env.contains_key(&base_name)
+            {
                 self.env.insert(base_name.clone(), String::new());
             } else if !self.env.contains_key(&base_name) {
                 self.env
                     .insert(format!("__declared__{base_name}"), "1".to_string());
+            }
+            if cmd == "local" && base_name == "OPTIND" {
+                sync_getopts_env(self.env);
             }
 
             if cur_attr.is_empty() {
@@ -5520,8 +6115,10 @@ impl<'a> EvalState<'a> {
                 self.env.insert("__seconds_disabled".to_string(), "1".to_string());
             }
             if resolved == "OPTIND" {
-                self.env.remove("__getopts_sub");
-                self.env.remove("__getopts_ind");
+                sync_getopts_env(self.env);
+            }
+            if resolved == "OPTERR" {
+                self.env.insert("__opterr_unset__".to_string(), "1".to_string());
             }
             self.env.remove(&format!("__attr__{resolved}"));
             self.env.remove(&format!("__declared__{resolved}"));
@@ -6412,6 +7009,13 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_getopts(&mut self, args: &[String]) -> BuiltinOutcome {
+        if args.iter().any(|a| a.contains('\0')) {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "getopts: arguments must be strings without NUL\n".to_string(),
+                exit_code: 2,
+            };
+        }
         let offset = if args.first().map(|s| s.as_str()) == Some("--") {
             1
         } else {
@@ -6445,15 +7049,38 @@ impl<'a> EvalState<'a> {
         } else {
             self.pos_args.clone()
         };
+        if opt_args.iter().any(|a| a.contains('\0')) {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "getopts: arguments must be strings without NUL\n".to_string(),
+                exit_code: 2,
+            };
+        }
+        if !optstring.is_ascii() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "getopts: Non-ASCII getopts option specifications are unsupported\n"
+                    .to_string(),
+                exit_code: 2,
+            };
+        }
+        let opt_bytes = optstring.as_bytes();
+        let silent = opt_bytes.first() == Some(&b':');
+        let mut spec = [-1i8; 128];
+        let mut pos = if silent { 1usize } else { 0usize };
+        while pos < opt_bytes.len() {
+            let code = opt_bytes[pos] as usize;
+            if code != b':' as usize && code != b'?' as usize && spec[code] == -1 {
+                spec[code] = i8::from(opt_bytes.get(pos + 1) == Some(&b':'));
+            }
+            pos += 1;
+        }
 
-        let silent = optstring.starts_with(':');
-        let clean_opts = optstring.strip_prefix(':').unwrap_or(&optstring);
-        let report_errors = !silent
-            && self
-                .env
-                .get("OPTERR")
-                .map(|v| v.is_empty() || v.trim().parse::<i64>() != Ok(0))
-                .unwrap_or(true);
+        let report_errors = self
+            .env
+            .get("OPTERR")
+            .map(|v| v.is_empty() || decimal_index(v) != 0)
+            .unwrap_or(true);
         let prog_name = self
             .env
             .get("0")
@@ -6461,96 +7088,113 @@ impl<'a> EvalState<'a> {
             .or_else(|| self.script_name.clone())
             .unwrap_or_else(|| "shell".to_string());
 
-        let optind = self
+        let state_index = self
             .env
-            .get("OPTIND")
+            .get("__getopts_index")
             .and_then(|s| s.parse::<usize>().ok())
-            .unwrap_or(1)
-            .max(1);
-        let mut sub_idx = if self.env.get("__getopts_ind").and_then(|s| s.parse::<usize>().ok()) == Some(optind) {
-            self.env
-                .get("__getopts_sub")
-                .and_then(|s| s.parse::<usize>().ok())
-                .unwrap_or(1)
-        } else {
-            1
-        };
-
-        let resolved_var = resolve_nameref_base(&var_name, self.env).to_string();
-        let var_is_readonly = self
-            .env
-            .get(&format!("__attr__{resolved_var}"))
-            .is_some_and(|a| a.contains('r'));
-
-        let finish_end = |this: &mut Self, next_optind: usize| -> BuiltinOutcome {
-            this.env.insert("OPTIND".to_string(), next_optind.to_string());
-            this.env.remove("OPTARG");
-            this.env.remove("__getopts_sub");
-            if !is_valid_shell_ident(&var_name) {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
-                    exit_code: 1,
-                };
-            }
-            if var_is_readonly {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{resolved_var}: readonly variable\n"),
-                    exit_code: 1,
-                };
-            }
-            this.env.insert(resolved_var.clone(), "?".to_string());
-            BuiltinOutcome {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 1,
-            }
-        };
-
-        let idx = optind - 1;
-        if idx >= opt_args.len() {
-            return finish_end(self, opt_args.len() + 1);
-        }
-        let cur = &opt_args[idx];
-        if !cur.starts_with('-') || cur == "-" {
-            return finish_end(self, optind);
-        }
-        if cur == "--" {
-            return finish_end(self, optind + 1);
-        }
-
-        let cur_chars: Vec<char> = cur.chars().collect();
-        if sub_idx >= cur_chars.len() {
-            sub_idx = 1;
-        }
-        let flag_ch = cur_chars[sub_idx];
-
-        let opt_match = if flag_ch == ':' || flag_ch == '?' {
+            .unwrap_or(0);
+        let mut index = if state_index == 0 { 1usize } else { state_index };
+        let mut active: Option<(usize, usize)> = if state_index == 0 {
             None
         } else {
-            clean_opts.find(flag_ch)
+            self.env
+                .get("__getopts_active_arg")
+                .and_then(|a| a.parse::<usize>().ok())
+                .zip(
+                    self.env
+                        .get("__getopts_active_off")
+                        .and_then(|o| o.parse::<usize>().ok()),
+                )
         };
 
-        let Some(pos) = opt_match else {
-            let mut stderr = if report_errors {
-                format!("{prog_name}: illegal option -- {flag_ch}\n")
+        if let Some((arg_i, off_i)) = active
+            && opt_args.get(arg_i).is_none_or(|s| off_i >= s.len())
+        {
+            active = None;
+        }
+
+        let apply_result = |this: &mut Self,
+                            next_index: usize,
+                            next_active: Option<(usize, usize)>,
+                            next_optind: usize,
+                            opt_val: &str,
+                            optarg_val: Option<String>,
+                            diag: Option<String>,
+                            status: i32|
+         -> BuiltinOutcome {
+            this.env
+                .insert("__getopts_index".to_string(), next_index.to_string());
+            if let Some((aa, ao)) = next_active {
+                this.env
+                    .insert("__getopts_active_arg".to_string(), aa.to_string());
+                this.env
+                    .insert("__getopts_active_off".to_string(), ao.to_string());
             } else {
-                String::new()
-            };
-            if sub_idx + 1 < cur_chars.len() {
-                self.env.insert("OPTIND".to_string(), optind.to_string());
-                self.env.insert("__getopts_ind".to_string(), optind.to_string());
-                self.env.insert("__getopts_sub".to_string(), (sub_idx + 1).to_string());
-            } else {
-                self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
-                self.env.remove("__getopts_sub");
+                this.env.remove("__getopts_active_arg");
+                this.env.remove("__getopts_active_off");
             }
-            if silent {
-                self.env.insert("OPTARG".to_string(), flag_ch.to_string());
-            } else {
-                self.env.remove("OPTARG");
+            let mut stderr = diag.unwrap_or_default();
+            let resolved_optind = resolve_nameref_base("OPTIND", this.env).to_string();
+            if this
+                .env
+                .get(&format!("__attr__{resolved_optind}"))
+                .is_some_and(|a| a.contains('r'))
+            {
+                stderr.push_str(&format!("{resolved_optind}: readonly variable\n"));
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr,
+                    exit_code: 1,
+                };
             }
+            this.env.insert("OPTIND".to_string(), next_optind.to_string());
+            if this
+                .env
+                .get("__set_allexport")
+                .is_some_and(|v| v == "1")
+            {
+                this.env.remove("__unexported__OPTIND");
+            }
+
+            let resolved_optarg = resolve_nameref_base("OPTARG", this.env).to_string();
+            if this
+                .env
+                .get(&format!("__attr__{resolved_optarg}"))
+                .is_some_and(|a| a.contains('r'))
+            {
+                stderr.push_str(&format!("{resolved_optarg}: readonly variable\n"));
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr,
+                    exit_code: 1,
+                };
+            }
+            if let Some(arg_s) = optarg_val {
+                let already_existed = this.env.contains_key(&resolved_optarg);
+                let was_unexported = this
+                    .env
+                    .contains_key(&format!("__unexported__{resolved_optarg}"));
+                let allexport = this
+                    .env
+                    .get("__set_allexport")
+                    .is_some_and(|v| v == "1");
+                let attr_x = this
+                    .env
+                    .get(&format!("__attr__{resolved_optarg}"))
+                    .is_some_and(|a| a.contains('x'));
+                if allexport || attr_x {
+                    this.env.remove(&format!("__unexported__{resolved_optarg}"));
+                } else if !already_existed || was_unexported {
+                    this.env
+                        .insert(format!("__unexported__{resolved_optarg}"), "1".to_string());
+                }
+                this.env.insert(resolved_optarg, arg_s);
+            } else {
+                this.env.remove(&resolved_optarg);
+                this.env.remove(&format!("__attr__{resolved_optarg}"));
+                this.env.remove(&format!("__declared__{resolved_optarg}"));
+            }
+
             if !is_valid_shell_ident(&var_name) {
                 stderr.push_str(&format!("getopts: `{var_name}': not a valid identifier\n"));
                 return BuiltinOutcome {
@@ -6559,132 +7203,136 @@ impl<'a> EvalState<'a> {
                     exit_code: 1,
                 };
             }
-            if var_is_readonly {
-                stderr.push_str(&format!("{resolved_var}: readonly variable\n"));
+            if let Err(err_msg) = this.assign_variable(&var_name, opt_val, false) {
+                let err_msg = match err_msg {
+                    EvalError::Syntax(m) | EvalError::Budget(m) | EvalError::UnportedCommand(m) => m,
+                };
+                stderr.push_str(&format!("{err_msg}\n"));
                 return BuiltinOutcome {
                     stdout: String::new(),
                     stderr,
                     exit_code: 1,
                 };
             }
-            self.env.insert(resolved_var, "?".to_string());
-            return BuiltinOutcome {
+            BuiltinOutcome {
                 stdout: String::new(),
                 stderr,
-                exit_code: 0,
-            };
+                exit_code: status,
+            }
         };
 
-        let takes_arg = clean_opts[pos + flag_ch.len_utf8()..].starts_with(':');
-        if takes_arg {
-            let rest: String = cur_chars[sub_idx + 1..].iter().collect();
-            self.env.remove("__getopts_sub");
-            if !rest.is_empty() {
-                self.env.insert("OPTARG".to_string(), rest);
-                self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
-                if !is_valid_shell_ident(&var_name) {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
-                        exit_code: 1,
-                    };
-                }
-                if var_is_readonly {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("{resolved_var}: readonly variable\n"),
-                        exit_code: 1,
-                    };
-                }
-                self.env.insert(resolved_var, flag_ch.to_string());
-            } else if idx + 1 < opt_args.len() {
-                self.env.insert("OPTARG".to_string(), opt_args[idx + 1].clone());
-                self.env.insert("OPTIND".to_string(), (optind + 2).to_string());
-                if !is_valid_shell_ident(&var_name) {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
-                        exit_code: 1,
-                    };
-                }
-                if var_is_readonly {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("{resolved_var}: readonly variable\n"),
-                        exit_code: 1,
-                    };
-                }
-                self.env.insert(resolved_var, flag_ch.to_string());
-            } else {
-                let mut stderr = if report_errors {
-                    format!("{prog_name}: option requires an argument -- {flag_ch}\n")
-                } else {
-                    String::new()
-                };
-                self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
-                if silent {
-                    self.env.insert("OPTARG".to_string(), flag_ch.to_string());
-                } else {
-                    self.env.remove("OPTARG");
-                }
-                if !is_valid_shell_ident(&var_name) {
-                    stderr.push_str(&format!("getopts: `{var_name}': not a valid identifier\n"));
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr,
-                        exit_code: 1,
-                    };
-                }
-                if var_is_readonly {
-                    stderr.push_str(&format!("{resolved_var}: readonly variable\n"));
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr,
-                        exit_code: 1,
-                    };
-                }
-                self.env.insert(
-                    resolved_var,
-                    if silent { ":" } else { "?" }.to_string(),
-                );
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr,
-                    exit_code: 0,
-                };
+        if index > opt_args.len() {
+            let end_idx = opt_args.len() + 1;
+            return apply_result(self, end_idx, None, end_idx, "?", None, None, 1);
+        }
+        if active.is_none() {
+            let token = &opt_args[index - 1];
+            if token.len() < 2 || !token.starts_with('-') {
+                return apply_result(self, index, None, index, "?", None, None, 1);
             }
-        } else {
-            self.env.remove("OPTARG");
-            if sub_idx + 1 < cur_chars.len() {
-                self.env.insert("OPTIND".to_string(), optind.to_string());
-                self.env.insert("__getopts_ind".to_string(), optind.to_string());
-                self.env.insert("__getopts_sub".to_string(), (sub_idx + 1).to_string());
-            } else {
-                self.env.insert("OPTIND".to_string(), (optind + 1).to_string());
-                self.env.remove("__getopts_sub");
+            if token == "--" {
+                let next_i = index + 1;
+                return apply_result(self, next_i, None, next_i, "?", None, None, 1);
             }
-            if !is_valid_shell_ident(&var_name) {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("getopts: `{var_name}': not a valid identifier\n"),
-                    exit_code: 1,
-                };
-            }
-            if var_is_readonly {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{resolved_var}: readonly variable\n"),
-                    exit_code: 1,
-                };
-            }
-            self.env.insert(resolved_var, flag_ch.to_string());
+            active = Some((index - 1, 1));
         }
 
-        BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+        let (act_arg, act_off) = active.unwrap();
+        let token = &opt_args[act_arg];
+        let rest_str = &token[act_off..];
+        let Some(flag_ch) = rest_str.chars().next() else {
+            return apply_result(self, index, None, index, "?", None, None, 1);
+        };
+        if !flag_ch.is_ascii() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "getopts: Non-ASCII getopts option characters are unsupported\n"
+                    .to_string(),
+                exit_code: 2,
+            };
         }
+        let code = flag_ch as usize;
+        let next_off = act_off + 1;
+        let attached = next_off < token.len();
+        let mut next_active = if attached {
+            Some((act_arg, next_off))
+        } else {
+            None
+        };
+        if !attached {
+            index += 1;
+        }
+
+        if spec[code] == -1 {
+            let diag = if !silent && report_errors {
+                Some(format!("{prog_name}: illegal option -- {flag_ch}\n"))
+            } else {
+                None
+            };
+            let optarg_v = if silent {
+                Some(flag_ch.to_string())
+            } else {
+                None
+            };
+            return apply_result(self, index, next_active, index, "?", optarg_v, diag, 0);
+        }
+
+        if spec[code] == 1 {
+            if attached {
+                next_active = None;
+                index += 1;
+                let val = token[next_off..].to_string();
+                return apply_result(
+                    self,
+                    index,
+                    next_active,
+                    index,
+                    &flag_ch.to_string(),
+                    Some(val),
+                    None,
+                    0,
+                );
+            }
+            if index <= opt_args.len() {
+                let val = opt_args[index - 1].clone();
+                index += 1;
+                return apply_result(
+                    self,
+                    index,
+                    next_active,
+                    index,
+                    &flag_ch.to_string(),
+                    Some(val),
+                    None,
+                    0,
+                );
+            }
+            let diag = if !silent && report_errors {
+                Some(format!(
+                    "{prog_name}: option requires an argument -- {flag_ch}\n"
+                ))
+            } else {
+                None
+            };
+            let opt_out = if silent { ":" } else { "?" };
+            let optarg_v = if silent {
+                Some(flag_ch.to_string())
+            } else {
+                None
+            };
+            return apply_result(self, index, next_active, index, opt_out, optarg_v, diag, 0);
+        }
+
+        apply_result(
+            self,
+            index,
+            next_active,
+            index,
+            &flag_ch.to_string(),
+            None,
+            None,
+            0,
+        )
     }
 
     fn apply_umask_to_new_file(&self, full_path: &str) {
@@ -11279,5 +11927,57 @@ mod tests {
             .unwrap();
         assert_eq!(r4.exit_code, 0);
         assert_eq!(r4.stdout, "direct|D=,\n");
+    }
+
+    #[test]
+    fn unit_eval_getopts_pipestatus_path_hash_shebang_parity() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        // 1. OPTIND integer arithmetic before unset, mid-cluster OPTIND advance, and local OPTIND scope restoration
+        let g1 = state
+            .eval_script_str(
+                r#"OPTIND=1+1; r_int="$OPTIND"; OPTIND=1; getopts ab opt -ab -c; OPTIND=2; getopts abc opt -ab -c; r_mid="$opt:$OPTIND"; fn() { local OPTIND; getopts x opt -x; printf 'in=%s:%s|' "$opt" "$OPTIND"; }; fn; printf 'int=%s|mid=%s|out=%s\n' "$r_int" "$r_mid" "$OPTIND""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(g1.exit_code, 0);
+        assert_eq!(g1.stdout, "in=x:2|int=2|mid=b:3|out=3\n");
+
+        // 2. PIPESTATUS protection for scalar, local, and readonly
+        let p1 = state
+            .eval_script_str(
+                r#"bash -c 'PIPESTATUS=keep; false | true; printf "scalar=%s|" "${PIPESTATUS[@]}"'; fn_p() { local PIPESTATUS; false | true; printf 'local=%s|' "${PIPESTATUS-unset}"; }; fn_p; bash -c 'readonly PIPESTATUS; false | true; printf "ro=%s\n" "${PIPESTATUS-unset}"'"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(p1.exit_code, 0);
+        assert_eq!(p1.stdout, "scalar=keep|local=|ro=unset\n");
+
+        // 3. PATH lookup, hash insertion order, VFS script permissions, and shebang execution
+        let s1 = state
+            .eval_script_str(
+                r#"mkdir -p /tmp/bin
+printf '#!/bin/sh -e\necho "sh:$0:$1"\nfalse\necho never\n' > /tmp/bin/fail_sh
+chmod +x /tmp/bin/fail_sh
+/tmp/bin/fail_sh arg1
+printf 'rc=%d\n' "$?"
+hash -r
+hash -p /tmp/bin/fail_sh z_cmd
+hash -p /bin/echo a_cmd
+hash -l
+"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(s1.exit_code, 0);
+        assert_eq!(
+            s1.stdout,
+            "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
+        );
     }
 }

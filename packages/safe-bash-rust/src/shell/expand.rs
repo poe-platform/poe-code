@@ -778,18 +778,60 @@ fn set_arith_var_resolved(
         return Err(format!("{base}: readonly variable"));
     }
     let val_s = val.to_string();
-    if resolved == "OPTIND" && val <= 1 {
-        env.remove("__getopts_sub");
-        env.remove("__getopts_ind");
-    }
     if write_dynamic_variable(&resolved, &val_s, env) {
         return Ok(());
     }
-    env.insert(resolved.clone(), val.to_string());
+    env.insert(resolved.clone(), val_s);
+    if resolved == "OPTIND" {
+        sync_getopts_env(env);
+    }
     if let Some((base, _)) = resolved.split_once('[') {
         sync_array_metadata(base, env);
     }
     Ok(())
+}
+
+pub fn decimal_index(value: &str) -> i32 {
+    let bytes = value.as_bytes();
+    let mut cursor = 0usize;
+    while cursor < bytes.len()
+        && matches!(bytes[cursor], b'\t' | b'\n' | 0x0b | 0x0c | b'\r' | b' ')
+    {
+        cursor += 1;
+    }
+    let mut sign = 1i32;
+    if cursor < bytes.len() && (bytes[cursor] == b'+' || bytes[cursor] == b'-') {
+        if bytes[cursor] == b'-' {
+            sign = -1;
+        }
+        cursor += 1;
+    }
+    let mut parsed = 0i32;
+    while cursor < bytes.len() && bytes[cursor].is_ascii_digit() {
+        parsed = parsed
+            .wrapping_mul(10)
+            .wrapping_add((bytes[cursor] - b'0') as i32);
+        cursor += 1;
+    }
+    parsed.wrapping_mul(sign)
+}
+
+pub fn sync_getopts_env(env: &mut BTreeMap<String, String>) {
+    if let Some(val) = env.get("OPTIND").cloned() {
+        let idx = decimal_index(&val);
+        if idx <= 1 {
+            env.insert("__getopts_index".to_string(), "0".to_string());
+            env.remove("__getopts_active_arg");
+            env.remove("__getopts_active_off");
+        } else {
+            env.insert("__getopts_index".to_string(), idx.to_string());
+        }
+    } else {
+        env.insert("__getopts_int".to_string(), "0".to_string());
+        env.insert("__getopts_index".to_string(), "0".to_string());
+        env.remove("__getopts_active_arg");
+        env.remove("__getopts_active_off");
+    }
 }
 
 fn eval_arith_comma(
@@ -2027,6 +2069,14 @@ pub fn expand_double_quoted_at_expr(
             if !is_assoc {
                 entries.sort_by_key(|(k, _)| k.parse::<i64>().unwrap_or(0));
             }
+            if entries.is_empty()
+                && !is_assoc
+                && !env.contains_key(&format!("{resolved}[#]"))
+                && is_var_set(&resolved, env, pos_args)
+            {
+                let single = lookup_var(&resolved, env, 0, pos_args);
+                return Some(vec![single]);
+            }
             return Some(entries.into_iter().map(|(_, v)| v).collect());
         }
         if let Some((var_part, slice_spec)) = expr.split_once(':')
@@ -2057,6 +2107,13 @@ pub fn expand_double_quoted_at_expr(
                         .map(|idx| (idx, v.clone()))
                 })
                 .collect();
+            if entries.is_empty()
+                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__assoc__{resolved}"))
+                && is_var_set(&resolved, env, pos_args)
+            {
+                entries.push((0, lookup_var(&resolved, env, 0, pos_args)));
+            }
             entries.sort_by_key(|(idx, _)| *idx);
             let start_idx = if off < 0 {
                 let max_idx = entries.last().map(|(i, _)| *i + 1).unwrap_or(0);
@@ -3022,6 +3079,12 @@ pub fn lookup_var(
             entries.sort_by_key(|(k, _)| k.parse::<i64>().unwrap_or(0));
         }
         if entries.is_empty() {
+            if !is_assoc
+                && !env.contains_key(&format!("{resolved}[#]"))
+                && is_var_set(&resolved, env, pos_args)
+            {
+                return lookup_var(&resolved, env, last_exit, pos_args);
+            }
             return env.get(&format!("{resolved}[*]")).cloned().unwrap_or_default();
         }
         let vals: Vec<String> = entries.into_iter().map(|(_, v)| v).collect();
@@ -3064,6 +3127,14 @@ pub fn lookup_var(
     }
     if key.starts_with("DIRSTACK") {
         ensure_dirstack_populated(env);
+    }
+    if let Some(base) = key.strip_suffix("[0]")
+        && !env.contains_key(&key)
+        && !env.contains_key(&format!("{base}[#]"))
+        && !env.contains_key(&format!("__assoc__{base}"))
+        && let Some(sv) = env.get(base)
+    {
+        return sv.clone();
     }
     env.get(&key)
         .or_else(|| env.get(&format!("{key}[0]")))

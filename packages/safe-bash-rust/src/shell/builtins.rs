@@ -934,28 +934,141 @@ fn builtin_umask(args: &[String], env: &mut BTreeMap<String, String>) -> Builtin
     }
 }
 
-fn resolve_hash_command(name: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> Option<String> {
+pub fn path_targets(path_env: Option<&str>, name: &str) -> Vec<String> {
     if name.contains('/') {
-        let full = resolve_posix_path(cwd, name);
-        if fs.exists(&full) && !fs.is_dir(&full) {
-            return Some(full);
+        return vec![name.to_string()];
+    }
+    match path_env {
+        None => vec![name.to_string()],
+        Some("") => vec![format!("./{name}")],
+        Some(p) => p
+            .split(':')
+            .map(|entry| {
+                let dir = if entry.is_empty() { "." } else { entry };
+                if dir.ends_with('/') {
+                    format!("{dir}{name}")
+                } else {
+                    format!("{dir}/{name}")
+                }
+            })
+            .collect(),
+    }
+}
+
+pub fn effective_path_env<'a>(env: &'a BTreeMap<String, String>) -> Option<&'a str> {
+    if let Some(p) = env.get("PATH") {
+        Some(p.as_str())
+    } else if env.contains_key("__path_unset__") {
+        None
+    } else {
+        Some("/bin:/usr/bin")
+    }
+}
+
+pub fn is_virtual_executable_path(target: &str, cwd: &str) -> bool {
+    if target.ends_with('/') || target.ends_with("/.") || target.ends_with("/..") {
+        return false;
+    }
+    let resolved = resolve_posix_path(cwd, target);
+    if resolved.ends_with('/') || resolved.ends_with("/.") || resolved.ends_with("/..") {
+        return false;
+    }
+    if let Some(cmd) = resolved
+        .strip_prefix("/bin/")
+        .or_else(|| resolved.strip_prefix("/usr/bin/"))
+    {
+        if !cmd.contains('/')
+            && (crate::commands::search::is_known_command(cmd)
+                || matches!(
+                    cmd,
+                    "echo" | "printf" | "test" | "[" | "true" | "false" | "pwd" | "kill" | "bash" | "sh" | "zsh"
+                ))
+        {
+            return true;
         }
+    }
+    if let Some(cmd) = resolved.strip_prefix("/tmp/") {
+        if matches!(cmd, "bash" | "sh" | "zsh") {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn resolve_hash_command(
+    name: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> Option<String> {
+    if name.is_empty() {
         return None;
     }
-    let path_env = env
-        .get("PATH")
-        .cloned()
-        .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
-    for dir in path_env.split(':').filter(|d| !d.is_empty()) {
-        let cand = resolve_posix_path(cwd, &format!("{dir}/{name}"));
-        if fs.exists(&cand) && !fs.is_dir(&cand) {
-            return Some(cand);
+    let path_opt = effective_path_env(env);
+    for candidate in path_targets(path_opt, name) {
+        if is_virtual_executable_path(&candidate, cwd) {
+            return Some(candidate);
+        }
+        let resolved = resolve_posix_path(cwd, &candidate);
+        if let Ok(st) = fs.stat(&resolved) {
+            if st.kind == crate::vfs::VfsEntryKind::File && (st.mode & 0o111) != 0 {
+                return Some(candidate);
+            }
         }
     }
-    if crate::commands::search::is_known_command(name) {
-        return Some(format!("/usr/bin/{name}"));
-    }
     None
+}
+
+fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: String) {
+    let mut order: Vec<String> = env
+        .get("__hash_order")
+        .map(|s| {
+            s.split('\n')
+                .filter(|x| !x.is_empty() && *x != name)
+                .map(|x| x.to_string())
+                .collect()
+        })
+        .unwrap_or_default();
+    order.push(name.to_string());
+    env.insert("__hash_order".to_string(), order.join("\n"));
+    env.insert(format!("__hash__{name}"), target);
+}
+
+fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<String> {
+    let removed = env.remove(&format!("__hash__{name}"));
+    if let Some(s) = env.get("__hash_order").cloned() {
+        let order: Vec<&str> = s
+            .split('\n')
+            .filter(|x| !x.is_empty() && *x != name)
+            .collect();
+        if order.is_empty() {
+            env.remove("__hash_order");
+        } else {
+            env.insert("__hash_order".to_string(), order.join("\n"));
+        }
+    }
+    removed
+}
+
+fn hash_ordered_entries(env: &BTreeMap<String, String>) -> Vec<(String, String)> {
+    let mut result = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+    if let Some(order_str) = env.get("__hash_order") {
+        for name in order_str.split('\n').filter(|x| !x.is_empty()) {
+            if let Some(target) = env.get(&format!("__hash__{name}")) {
+                seen.insert(name.to_string());
+                result.push((name.to_string(), target.clone()));
+            }
+        }
+    }
+    for (k, target) in env.iter() {
+        if let Some(name) = k.strip_prefix("__hash__") {
+            if !seen.contains(name) {
+                result.push((name.to_string(), target.clone()));
+            }
+        }
+    }
+    result
 }
 
 fn builtin_hash(
@@ -1030,6 +1143,7 @@ fn builtin_hash(
         for k in keys {
             env.remove(&k);
         }
+        env.remove("__hash_order");
     }
 
     if print_target && hash_args.is_empty() {
@@ -1043,13 +1157,11 @@ fn builtin_hash(
     if hash_args.is_empty() {
         let mut stdout = String::new();
         if !reset {
-            for (k, target) in env.iter() {
-                if let Some(name) = k.strip_prefix("__hash__") {
-                    if list_mode {
-                        stdout.push_str(&format!("builtin hash -p {target} {name}\n"));
-                    } else {
-                        stdout.push_str(&format!("0\t{target}\n"));
-                    }
+            for (name, target) in hash_ordered_entries(env) {
+                if list_mode {
+                    stdout.push_str(&format!("builtin hash -p {target} {name}\n"));
+                } else {
+                    stdout.push_str(&format!("0\t{target}\n"));
                 }
             }
         }
@@ -1065,14 +1177,14 @@ fn builtin_hash(
     let mut stderr = String::new();
     for name in &hash_args {
         if delete_mode {
-            if env.remove(&format!("__hash__{name}")).is_none() {
+            if hash_order_remove(env, name).is_none() {
                 stderr.push_str(&format!("hash: {name}: not found\n"));
                 status = 1;
             }
             continue;
         }
         if let Some(ref cp) = custom_path {
-            env.insert(format!("__hash__{name}"), cp.clone());
+            hash_order_insert(env, name, cp.clone());
             continue;
         }
         if print_target {
@@ -1093,8 +1205,9 @@ fn builtin_hash(
             continue;
         }
         if let Some(resolved) = resolve_hash_command(name, cwd, env, fs) {
-            env.insert(format!("__hash__{name}"), resolved);
-        } else if matches!(
+            hash_order_insert(env, name, resolved);
+        } else if crate::commands::search::is_known_command(name)
+            || matches!(
             name.as_str(),
             ":" | "true"
                 | "false"

@@ -43,19 +43,22 @@ export class WasmFileSystem {
     return this.bash.readFile(filePath);
   }
 
-  async writeFile(filePath, data) {
+  async writeFile(filePath, data, options) {
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
-      return this.bash._companion.fs.writeFile(filePath, data);
+      return this.bash._companion.fs.writeFile(filePath, data, options);
     }
     if (this.bash.companionFactory && !this.bash.forceNative) {
       const copy = typeof data === "string" ? encoder.encode(data) : new Uint8Array(data);
       this.bash._history.push({
         type: "fs",
-        run: (fs) => fs.writeFile(filePath, copy),
+        run: (fs) => fs.writeFile(filePath, copy, options),
       });
     }
     this.bash.writeFile(filePath, data);
+    if (options && typeof options === "object" && typeof options.mode === "number") {
+      this.bash.chmod(filePath, options.mode);
+    }
   }
 
   async mkdir(dirPath, options) {
@@ -70,6 +73,9 @@ export class WasmFileSystem {
       });
     }
     this.bash.mkdirAll(dirPath);
+    if (options && typeof options === "object" && typeof options.mode === "number") {
+      this.bash.chmod(dirPath, options.mode);
+    }
   }
 
   async readdir(dirPath, options) {

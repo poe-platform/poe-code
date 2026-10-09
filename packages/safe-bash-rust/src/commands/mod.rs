@@ -942,6 +942,9 @@ where
             added_names.push(name.to_string());
         }
         sub_env.remove(&format!("__unexported__{name}"));
+        if name == "PATH" {
+            sub_env.remove("__path_unset__");
+        }
         sub_env.insert(name.to_string(), content.to_string());
     }
 
@@ -988,6 +991,11 @@ where
             EnvError::Usage("argv0 cannot contain NUL".to_string()),
             debug_stderr,
         );
+    }
+    if let Some(a0) = &parsed.argv0 {
+        sub_env.insert("__argv0".to_string(), a0.clone());
+    } else {
+        sub_env.remove("__argv0");
     }
 
     if offset < parsed.operands.len() {

@@ -26,7 +26,10 @@ pub enum EvalError {
     UnportedCommand(String),
 }
 
-#[derive(Debug, Clone)]
+const STDIN_STREAM_FD: u32 = u32::MAX;
+type SavedFds = (BTreeMap<u32, FdTarget>, BTreeMap<u32, u32>);
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
     Stderr,
@@ -58,6 +61,8 @@ pub struct EvalState<'a> {
     pub local_scopes: Vec<BTreeMap<String, Option<String>>>,
     pub fd_table: BTreeMap<u32, FdTarget>,
     pub in_fds: BTreeMap<u32, String>,
+    pub in_fd_aliases: BTreeMap<u32, u32>,
+    pub mapfile_callback_depth: usize,
     pub traps: BTreeMap<String, String>,
     pub inactive_traps: BTreeMap<String, String>,
     pub trap_versions: BTreeMap<String, u64>,
@@ -141,6 +146,8 @@ impl<'a> EvalState<'a> {
             local_scopes: Vec::new(),
             fd_table,
             in_fds: BTreeMap::new(),
+            in_fd_aliases: BTreeMap::new(),
+            mapfile_callback_depth: 0,
             traps,
             inactive_traps: BTreeMap::new(),
             trap_versions: BTreeMap::new(),
@@ -239,6 +246,8 @@ impl<'a> EvalState<'a> {
             local_scopes: Vec::new(),
             fd_table: self.fd_table.clone(),
             in_fds: self.in_fds.clone(),
+            in_fd_aliases: self.in_fd_aliases.clone(),
+            mapfile_callback_depth: 0,
             traps: child_traps,
             inactive_traps: child_inactive,
             trap_versions: self.trap_versions.clone(),
@@ -273,6 +282,116 @@ impl<'a> EvalState<'a> {
             loop_depth: 0,
             active_aliases: self.active_aliases.clone(),
             allow_unported_fallback: self.allow_unported_fallback,
+        }
+    }
+
+    fn resolve_in_fd(&self, mut fd: u32) -> u32 {
+        for _ in 0..16 {
+            if let Some(&target) = self.in_fd_aliases.get(&fd) {
+                if target == fd {
+                    break;
+                }
+                fd = target;
+            } else {
+                break;
+            }
+        }
+        if fd == 0 {
+            STDIN_STREAM_FD
+        } else {
+            fd
+        }
+    }
+
+    fn is_fd_open(&self, fd: u32) -> bool {
+        if matches!(self.fd_table.get(&fd), Some(FdTarget::Closed)) {
+            return false;
+        }
+        if self.in_fds.contains_key(&fd)
+            || self.in_fd_aliases.contains_key(&fd)
+            || self.fd_table.contains_key(&fd)
+        {
+            return true;
+        }
+        fd == 0
+    }
+
+    fn is_fd_readable(&self, fd: u32) -> bool {
+        if matches!(self.fd_table.get(&fd), Some(FdTarget::Closed)) {
+            return false;
+        }
+        if self.in_fds.contains_key(&fd) {
+            return true;
+        }
+        if self.in_fd_aliases.contains_key(&fd) {
+            let canon = self.resolve_in_fd(fd);
+            return canon == STDIN_STREAM_FD || self.in_fds.contains_key(&canon);
+        }
+        if fd == 0 {
+            return !self.fd_table.contains_key(&0);
+        }
+        false
+    }
+
+    fn evacuate_in_fd_owner(
+        &mut self,
+        fd: u32,
+        saved_aliases: &mut BTreeMap<u32, u32>,
+    ) {
+        let new_owner = self
+            .in_fd_aliases
+            .iter()
+            .find_map(|(&k, &v)| if k != fd && v == fd { Some(k) } else { None });
+        if let Some(owner) = new_owner {
+            if let Some(buf) = self.in_fds.remove(&fd) {
+                self.in_fds.insert(owner, buf);
+            }
+            self.in_fd_aliases.remove(&owner);
+            for v in self.in_fd_aliases.values_mut() {
+                if *v == fd {
+                    *v = owner;
+                }
+            }
+            if saved_aliases.get(&owner) == Some(&fd) {
+                saved_aliases.remove(&owner);
+                for v in saved_aliases.values_mut() {
+                    if *v == fd {
+                        *v = owner;
+                    }
+                }
+                saved_aliases.insert(fd, owner);
+            }
+        }
+    }
+
+    fn materialize_stdin_aliases(
+        &mut self,
+        default_stdin: &str,
+        saved_in: &mut Vec<(u32, Option<String>)>,
+    ) {
+        let new_owner = self.in_fd_aliases.iter().find_map(|(&k, &v)| {
+            if k != 0 && (v == STDIN_STREAM_FD || v == 0) {
+                Some(k)
+            } else {
+                None
+            }
+        });
+        if let Some(owner) = new_owner {
+            if !saved_in.iter().any(|(f, _)| *f == owner) {
+                saved_in.push((owner, self.in_fds.get(&owner).cloned()));
+            }
+            let buf = self
+                .in_fds
+                .get(&STDIN_STREAM_FD)
+                .cloned()
+                .unwrap_or_else(|| default_stdin.to_string());
+            self.in_fds.insert(owner, buf);
+            self.in_fd_aliases.remove(&owner);
+            for v in self.in_fd_aliases.values_mut() {
+                if *v == STDIN_STREAM_FD || *v == 0 {
+                    *v = owner;
+                }
+            }
         }
     }
 
@@ -1773,6 +1892,9 @@ impl<'a> EvalState<'a> {
             return Ok(());
         }
 
+        let arr_prefix = format!("{resolved}[");
+        let is_existing_array = self.env.contains_key(&format!("__assoc__{resolved}"))
+            || self.env.keys().any(|k| k.starts_with(&arr_prefix));
         let attr = self
             .env
             .get(&format!("__attr__{resolved}"))
@@ -1781,11 +1903,15 @@ impl<'a> EvalState<'a> {
         let final_val = if attr.contains('i') {
             let rhs_num = eval_arith(raw_val, self.env).unwrap_or(0);
             let num = if append {
-                let cur = self
-                    .env
-                    .get(&resolved)
-                    .and_then(|s| s.parse::<i64>().ok())
-                    .unwrap_or(0);
+                let cur = if is_existing_array {
+                    self.env
+                        .get(&format!("{resolved}[0]"))
+                        .or_else(|| self.env.get(&resolved))
+                } else {
+                    self.env.get(&resolved)
+                }
+                .and_then(|s| s.parse::<i64>().ok())
+                .unwrap_or(0);
                 cur + rhs_num
             } else {
                 rhs_num
@@ -1793,7 +1919,15 @@ impl<'a> EvalState<'a> {
             num.to_string()
         } else {
             let mut s = if append {
-                let cur = self.env.get(&resolved).cloned().unwrap_or_default();
+                let cur = if is_existing_array {
+                    self.env
+                        .get(&format!("{resolved}[0]"))
+                        .or_else(|| self.env.get(&resolved))
+                        .cloned()
+                        .unwrap_or_default()
+                } else {
+                    self.env.get(&resolved).cloned().unwrap_or_default()
+                };
                 format!("{cur}{raw_val}")
             } else {
                 raw_val.to_string()
@@ -1838,6 +1972,10 @@ impl<'a> EvalState<'a> {
         }
         if write_dynamic_variable(&resolved, &final_val, self.env) {
             return Ok(());
+        }
+        if is_existing_array {
+            self.env.insert(format!("{resolved}[0]"), final_val.clone());
+            sync_array_metadata(&resolved, self.env);
         }
         self.env.insert(resolved, final_val);
         Ok(())
@@ -2203,10 +2341,16 @@ impl<'a> EvalState<'a> {
 
         // Handle permanent FD changes via `exec` with no command words
         if expanded_words.len() == 1 && expanded_words[0] == "exec" {
-            let (_saved_fds, _saved_in, _local_stdin, _use_local, _dup_fd, redir_err) =
+            let (saved_fds, saved_in, local_stdin, use_local, _dup_fd, redir_err) =
                 self.setup_redirects(&simple.redirects, stdin)?;
             if let Some(err_out) = redir_err {
+                self.restore_redirects(saved_fds, saved_in);
                 return Ok(err_out);
+            }
+            if use_local {
+                let mut exec_saved_in = Vec::new();
+                self.materialize_stdin_aliases(stdin, &mut exec_saved_in);
+                *stdin = local_stdin;
             }
             return Ok(BuiltinOutcome {
                 stdout: debug_out.stdout,
@@ -2221,8 +2365,6 @@ impl<'a> EvalState<'a> {
             self.restore_redirects(saved_fds, saved_in);
             return Ok(err_out);
         }
-        let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-
         if expanded_words.is_empty() {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
@@ -2300,15 +2442,32 @@ impl<'a> EvalState<'a> {
             );
         }
 
+        let stashed_outer_stdin = if use_local
+            && !self.in_fds.contains_key(&STDIN_STREAM_FD)
+            && self
+                .in_fd_aliases
+                .values()
+                .any(|&v| v == STDIN_STREAM_FD)
+        {
+            self.in_fds.insert(STDIN_STREAM_FD, std::mem::take(stdin));
+            true
+        } else {
+            false
+        };
+        let eff_stdin = if use_local { &mut local_stdin } else { &mut *stdin };
         let cmd_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
         let cmd_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
-        let mut out = self.dispatch_words(&expanded_words, eff_stdin, false)?;
+        let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, false);
+        self.fd_table.insert(1, cmd_fd1);
+        self.fd_table.insert(2, cmd_fd2);
+        if stashed_outer_stdin {
+            *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default();
+        }
+        let mut out = dispatch_res?;
         if !debug_out.stdout.is_empty() || !debug_out.stderr.is_empty() {
             out.stdout = format!("{}{}", debug_out.stdout, out.stdout);
             out.stderr = format!("{}{}", debug_out.stderr, out.stderr);
         }
-        self.fd_table.insert(1, cmd_fd1);
-        self.fd_table.insert(2, cmd_fd2);
 
         let is_posix = self
             .env
@@ -2395,6 +2554,7 @@ impl<'a> EvalState<'a> {
 
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
+            let prev_loop_depth = self.loop_depth;
             let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
             let caller_frame = self.capture_caller_frame(cmd);
             self.caller_frames.insert(0, caller_frame);
@@ -2491,6 +2651,7 @@ impl<'a> EvalState<'a> {
             {
                 self.run_exit_trap_if_needed(o);
             }
+            self.loop_depth = prev_loop_depth;
             self.pos_args = prev_args;
             if !self.caller_frames.is_empty() {
                 self.caller_frames.remove(0);
@@ -2701,10 +2862,10 @@ impl<'a> EvalState<'a> {
                 return Ok(self.builtin_unset(args));
             }
             "read" => {
-                return Ok(self.builtin_read(args, stdin));
+                return self.builtin_read(args, stdin);
             }
             "mapfile" | "readarray" => {
-                return Ok(self.builtin_mapfile(args, stdin));
+                return self.builtin_mapfile(cmd, args, stdin);
             }
             "getopts" => {
                 return Ok(self.builtin_getopts(args));
@@ -3186,6 +3347,8 @@ impl<'a> EvalState<'a> {
                     local_scopes: Vec::new(),
                     fd_table,
                     in_fds: BTreeMap::new(),
+                    in_fd_aliases: BTreeMap::new(),
+                    mapfile_callback_depth: 0,
                     traps: BTreeMap::new(),
                     inactive_traps: BTreeMap::new(),
                     trap_versions: BTreeMap::new(),
@@ -5364,6 +5527,7 @@ impl<'a> EvalState<'a> {
             self.env.remove(&format!("__declared__{resolved}"));
             self.env.remove(&format!("__assoc__{resolved}"));
             self.env.remove(&format!("__keys__{resolved}"));
+            self.env.remove(&format!("__mapfile_active__{resolved}"));
             let prefix = format!("{resolved}[");
             let arr_keys: Vec<String> = self
                 .env
@@ -5382,438 +5546,869 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn builtin_read(&mut self, args: &[String], stdin: &mut String) -> BuiltinOutcome {
+    fn diag_prefix(&self) -> String {
+        let name = self.script_name.as_deref().unwrap_or("shell");
+        let line = self.current_line.max(1);
+        format!("{name}: line {line}: ")
+    }
+
+    fn sync_shared_stdin(&mut self, canon: u32, stdin: &mut String, from_stdin: bool) {
+        if canon >= 3 && canon != STDIN_STREAM_FD && self.resolve_in_fd(0) == canon {
+            if from_stdin {
+                self.in_fds.insert(canon, stdin.clone());
+            } else if let Some(buf) = self.in_fds.get(&canon) {
+                *stdin = buf.clone();
+            }
+        }
+    }
+
+    fn builtin_read(
+        &mut self,
+        args: &[String],
+        stdin: &mut String,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        const READ_USAGE: &str = "read: usage: read [-Eers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]\n";
+        let prefix = self.diag_prefix();
+
         let mut raw_mode = false;
-        let mut delim = '\n';
+        let mut delim_byte: Option<u8> = None;
         let mut nchars: Option<usize> = None;
         let mut exact_chars = false;
         let mut array_name: Option<String> = None;
         let mut fd_num: u32 = 0;
-        let mut vars = Vec::new();
+        let mut timeout_secs: Option<f64> = None;
+        let mut vars: Vec<String> = Vec::new();
 
         let mut idx = 0usize;
         while idx < args.len() {
-            let a = &args[idx];
-            if a == "-r" {
-                raw_mode = true;
+            let arg = &args[idx];
+            if !arg.starts_with('-') || arg == "-" {
+                break;
+            }
+            if arg == "--" {
                 idx += 1;
-            } else if a == "-s" {
-                idx += 1;
-            } else if a == "-d" && idx + 1 < args.len() {
-                delim = args[idx + 1].chars().next().unwrap_or('\0');
-                idx += 2;
-            } else if (a == "-n" || a == "-N") && idx + 1 < args.len() {
-                exact_chars = a == "-N";
-                nchars = args[idx + 1].parse::<usize>().ok();
-                idx += 2;
-            } else if a == "-a" && idx + 1 < args.len() {
-                array_name = Some(args[idx + 1].clone());
-                idx += 2;
-            } else if a == "-u" && idx + 1 < args.len() {
-                fd_num = args[idx + 1].parse::<u32>().unwrap_or(0);
-                idx += 2;
-            } else if (a == "-p" || a == "-t") && idx + 1 < args.len() {
-                idx += 2;
-            } else if a.starts_with('-') && a.len() > 1 {
-                for ch in a[1..].chars() {
-                    if ch == 'r' {
+                break;
+            }
+            idx += 1;
+            let chars: Vec<char> = arg[1..].chars().collect();
+            let mut c_idx = 0usize;
+            while c_idx < chars.len() {
+                let flag = chars[c_idx];
+                c_idx += 1;
+                match flag {
+                    'r' => {
                         raw_mode = true;
                     }
-                }
-                idx += 1;
-            } else {
-                vars.push(a.clone());
-                idx += 1;
-            }
-        }
-
-        let default_reply = vars.is_empty() && array_name.is_none();
-        if default_reply {
-            vars.push("REPLY".to_string());
-        }
-
-        let mut fd_buf = if fd_num >= 3 {
-            self.in_fds.remove(&fd_num).unwrap_or_default()
-        } else {
-            String::new()
-        };
-        let stream: &mut String = if fd_num >= 3 { &mut fd_buf } else { stdin };
-
-        if stream.is_empty() {
-            if let Some(ref arr) = array_name {
-                let resolved = resolve_nameref_base(arr, self.env).to_string();
-                if self
-                    .env
-                    .get(&format!("__attr__{resolved}"))
-                    .is_some_and(|a| a.contains('r'))
-                {
-                    if fd_num >= 3 {
-                        self.in_fds.insert(fd_num, fd_buf);
-                    }
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("{resolved}: readonly variable\n"),
-                        exit_code: 1,
-                    };
-                }
-            } else {
-                for (i, v) in vars.iter().enumerate() {
-                    let resolved = resolve_nameref_base(v, self.env).to_string();
-                    let base = resolved.split_once('[').map(|(b, _)| b).unwrap_or(&resolved);
-                    if self
-                        .env
-                        .get(&format!("__attr__{base}"))
-                        .is_some_and(|a| a.contains('r'))
-                    {
-                        if fd_num >= 3 {
-                            self.in_fds.insert(fd_num, fd_buf);
-                        }
-                        return BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("{base}: readonly variable\n"),
-                            exit_code: if default_reply || i + 1 < vars.len() {
-                                2
-                            } else {
-                                1
-                            },
+                    's' | 'e' | 'E' => {}
+                    'a' | 'd' | 'i' | 'n' | 'N' | 'p' | 't' | 'u' => {
+                        let rest: String = chars[c_idx..].iter().collect();
+                        let val = if !rest.is_empty() {
+                            c_idx = chars.len();
+                            rest
+                        } else if idx < args.len() {
+                            let v = args[idx].clone();
+                            idx += 1;
+                            v
+                        } else {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!(
+                                    "{prefix}read: -{flag}: option requires an argument\n{READ_USAGE}"
+                                ),
+                                exit_code: 2,
+                            });
                         };
+                        match flag {
+                            'a' => {
+                                array_name = Some(val);
+                            }
+                            'd' => {
+                                let raw_delim = stream_string_to_bytes(&val);
+                                delim_byte = Some(raw_delim.first().copied().unwrap_or(0));
+                            }
+                            'p' | 'i' => {}
+                            't' => match parse_read_timeout(&val) {
+                                Some(t) => {
+                                    timeout_secs = Some(t);
+                                }
+                                None => {
+                                    return Ok(BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!(
+                                            "{prefix}read: {val}: invalid timeout specification\n"
+                                        ),
+                                        exit_code: 1,
+                                    });
+                                }
+                            },
+                            'u' => match parse_read_fd(&val) {
+                                Some(fd) => {
+                                    if !self.is_fd_open(fd) {
+                                        return Ok(BuiltinOutcome {
+                                            stdout: String::new(),
+                                            stderr: format!(
+                                                "{prefix}read: {fd}: invalid file descriptor: Bad file descriptor\n"
+                                            ),
+                                            exit_code: 1,
+                                        });
+                                    }
+                                    fd_num = fd;
+                                }
+                                None => {
+                                    return Ok(BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!(
+                                            "{prefix}read: {val}: invalid file descriptor specification\n"
+                                        ),
+                                        exit_code: 1,
+                                    });
+                                }
+                            },
+                            'n' | 'N' => {
+                                exact_chars = flag == 'N';
+                                match parse_read_count(&val) {
+                                    Ok(c) => {
+                                        nchars = Some(c);
+                                    }
+                                    Err(is_overflow) => {
+                                        let is_hex = {
+                                            let s = val
+                                                .strip_prefix('+')
+                                                .or_else(|| val.strip_prefix('-'))
+                                                .unwrap_or(&val);
+                                            s.starts_with("0x") || s.starts_with("0X")
+                                        };
+                                        let hex_label = if (exact_chars || is_overflow) && is_hex {
+                                            "hex "
+                                        } else {
+                                            ""
+                                        };
+                                        return Ok(BuiltinOutcome {
+                                            stdout: String::new(),
+                                            stderr: format!(
+                                                "{prefix}read: {val}: invalid {hex_label}number\n"
+                                            ),
+                                            exit_code: 1,
+                                        });
+                                    }
+                                }
+                            }
+                            _ => unreachable!(),
+                        }
+                    }
+                    _ => {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{prefix}read: -{flag}: invalid option\n{READ_USAGE}"),
+                            exit_code: 2,
+                        });
                     }
                 }
             }
-            for v in vars {
-                self.env.insert(v, String::new());
+        }
+        while idx < args.len() {
+            vars.push(args[idx].clone());
+            idx += 1;
+        }
+
+        if timeout_secs == Some(0.0) {
+            if !self.is_fd_open(fd_num) {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 1,
+                });
             }
-            if let Some(arr) = array_name {
-                let prefix = format!("{arr}[");
-                let old: Vec<String> = self
-                    .env
-                    .keys()
-                    .filter(|k| k.starts_with(&prefix))
-                    .cloned()
-                    .collect();
-                for k in old {
-                    self.env.remove(&k);
-                }
-                sync_array_metadata(&arr, self.env);
+            if !self.is_fd_readable(fd_num) {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!(
+                        "{prefix}read: descriptor readiness unavailable through this extension API\n"
+                    ),
+                    exit_code: 1,
+                });
             }
-            if fd_num >= 3 {
-                self.in_fds.insert(fd_num, fd_buf);
-            }
-            return BuiltinOutcome {
+            return Ok(BuiltinOutcome {
                 stdout: String::new(),
                 stderr: String::new(),
-                exit_code: 1,
-            };
+                exit_code: 0,
+            });
         }
 
-        let mut hit_delim = false;
-        let line_owned = if let Some(limit) = nchars {
-            let mut taken = String::new();
-            let mut consumed_bytes = 0usize;
-            let mut count = 0usize;
-            let mut stopped_at_delim = false;
-            for (byte_idx, ch) in stream.char_indices() {
-                if !exact_chars && ch == delim {
-                    consumed_bytes = byte_idx + ch.len_utf8();
-                    stopped_at_delim = true;
-                    break;
-                }
-                if count < limit {
-                    taken.push(ch);
-                    count += 1;
-                    consumed_bytes = byte_idx + ch.len_utf8();
-                    if count == limit {
-                        break;
-                    }
-                }
-            }
-            if stopped_at_delim && delim == '\n' {
-                taken = taken.trim_end_matches('\r').to_string();
-            }
-            hit_delim = stopped_at_delim || count == limit;
-            let rest = stream[consumed_bytes..].to_string();
-            *stream = rest;
-            taken
-        } else if raw_mode {
-            match stream.split_once(delim) {
-                Some((l, r)) => {
-                    hit_delim = true;
-                    let clean = if delim == '\n' {
-                        l.trim_end_matches('\r').to_string()
-                    } else {
-                        l.to_string()
-                    };
-                    *stream = r.to_string();
-                    clean
-                }
-                None => {
-                    let clean = if delim == '\n' {
-                        stream.trim_end_matches('\r').to_string()
-                    } else {
-                        stream.clone()
-                    };
-                    stream.clear();
-                    clean
-                }
-            }
+        if let Some(first_var) = vars.first()
+            && !is_valid_shell_ident(first_var)
+        {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{prefix}read: `{first_var}': not a valid identifier\n"),
+                exit_code: 1,
+            });
+        }
+
+        if !self.is_fd_readable(fd_num) && nchars != Some(0) {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{prefix}read: {fd_num}: read error: Bad file descriptor\n"),
+                exit_code: 1,
+            });
+        }
+
+        let byte_locale = is_select_byte_locale(self.env);
+        let effective_delim: Option<u8> = if exact_chars {
+            None
         } else {
-            let mut acc = String::new();
-            loop {
-                match stream.split_once(delim) {
-                    Some((l, r)) => {
-                        hit_delim = true;
-                        let seg = if delim == '\n' {
-                            l.trim_end_matches('\r').to_string()
-                        } else {
-                            l.to_string()
-                        };
-                        let r_owned = r.to_string();
-                        *stream = r_owned;
-                        if delim == '\n' && seg.ends_with('\\') {
-                            acc.push_str(&seg[..seg.len() - 1]);
-                            continue;
-                        }
-                        acc.push_str(&seg);
-                        break;
-                    }
-                    None => {
-                        acc.push_str(stream);
-                        stream.clear();
-                        break;
-                    }
-                }
-            }
-            let mut unescaped = String::new();
-            let mut chars = acc.chars().peekable();
-            while let Some(c) = chars.next() {
-                if c == '\\' {
-                    if let Some(nc) = chars.next() {
-                        unescaped.push(nc);
-                    }
-                } else {
-                    unescaped.push(c);
-                }
-            }
-            unescaped
+            Some(delim_byte.unwrap_or(b'\n'))
         };
 
-        if fd_num >= 3 {
-            self.in_fds.insert(fd_num, fd_buf);
-        }
+        let (record_bytes, escaped_offsets, terminated) = if nchars == Some(0) {
+            (Vec::new(), Vec::new(), self.is_fd_readable(fd_num))
+        } else {
+            let canon = self.resolve_in_fd(fd_num);
+            let use_direct_stdin = (fd_num == 0 && !self.in_fd_aliases.contains_key(&0))
+                || (canon == STDIN_STREAM_FD && !self.in_fds.contains_key(&STDIN_STREAM_FD));
+            if use_direct_stdin {
+                let raw_in = stream_string_to_bytes(stdin);
+                let (rec, esc, term, consumed) = scan_read_stream(
+                    &raw_in,
+                    raw_mode,
+                    effective_delim,
+                    nchars,
+                    byte_locale,
+                    self.budget,
+                )?;
+                *stdin = bytes_to_stream_string(&raw_in[consumed..]);
+                (rec, esc, term)
+            } else {
+                if fd_num == 0 && canon != STDIN_STREAM_FD {
+                    self.sync_shared_stdin(canon, stdin, true);
+                }
+                let raw_in = self
+                    .in_fds
+                    .get(&canon)
+                    .map(|s| stream_string_to_bytes(s))
+                    .unwrap_or_default();
+                let (rec, esc, term, consumed) = scan_read_stream(
+                    &raw_in,
+                    raw_mode,
+                    effective_delim,
+                    nchars,
+                    byte_locale,
+                    self.budget,
+                )?;
+                let remaining = bytes_to_stream_string(&raw_in[consumed..]);
+                self.in_fds.insert(canon, remaining);
+                self.sync_shared_stdin(canon, stdin, false);
+                (rec, esc, term)
+            }
+        };
 
-        let ifs = if exact_chars {
-            String::new()
+        let ifs_bytes: Vec<u8> = if exact_chars {
+            Vec::new()
         } else {
             self.env
                 .get("IFS")
-                .cloned()
-                .unwrap_or_else(|| " \t\n".to_string())
+                .map(|s| stream_string_to_bytes(s))
+                .unwrap_or_else(|| b" \t\n".to_vec())
         };
 
+        let status = if terminated { 0 } else { 1 };
+
         if let Some(arr) = array_name {
-            let resolved = resolve_nameref_base(&arr, self.env).to_string();
+            if !is_valid_shell_ident(&arr) {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{prefix}read: `{arr}': not a valid identifier\n"),
+                    exit_code: 1,
+                });
+            }
+            let resolved = arr;
             if self
                 .env
                 .get(&format!("__attr__{resolved}"))
                 .is_some_and(|a| a.contains('r'))
             {
-                return BuiltinOutcome {
+                return Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("{resolved}: readonly variable\n"),
+                    stderr: format!("{prefix}{resolved}: readonly variable\n"),
                     exit_code: 1,
-                };
+                });
             }
-            let prefix = format!("{arr}[");
-            let old: Vec<String> = self
+            let fields = split_read_fields(
+                &record_bytes,
+                &escaped_offsets,
+                &ifs_bytes,
+                None,
+                byte_locale,
+            );
+            if fields.len() > self.budget.limits.max_expansion_fields {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{prefix}indexed array: private Map slot limit exceeded\n"),
+                    exit_code: 1,
+                });
+            }
+            for f in &fields {
+                if f.len() > self.budget.limits.max_expansion_bytes {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                        self.budget.limits.max_expansion_bytes
+                    )));
+                }
+            }
+            let arr_prefix = format!("{resolved}[");
+            let old_keys: Vec<String> = self
                 .env
                 .keys()
-                .filter(|k| k.starts_with(&prefix))
+                .filter(|k| k.starts_with(&arr_prefix))
                 .cloned()
                 .collect();
-            for k in old {
+            for k in old_keys {
                 self.env.remove(&k);
             }
-            let fields = split_ifs_fields(&line_owned, &ifs, None);
+            self.env.remove(&resolved);
+            self.env.remove(&format!("__nameref__{resolved}"));
+            self.env.remove(&format!("__assoc__{resolved}"));
+            self.env
+                .insert(format!("__declared__{resolved}"), "1".to_string());
             for (i, f) in fields.into_iter().enumerate() {
-                self.env.insert(format!("{arr}[{i}]"), f);
+                self.env
+                    .insert(format!("{resolved}[{i}]"), bytes_to_stream_string(&f));
             }
-            sync_array_metadata(&arr, self.env);
-        } else if vars.len() == 1 {
-            let resolved = resolve_nameref_base(&vars[0], self.env).to_string();
-            let base = resolved.split_once('[').map(|(b, _)| b).unwrap_or(&resolved);
-            if self
-                .env
-                .get(&format!("__attr__{base}"))
-                .is_some_and(|a| a.contains('r'))
-            {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{base}: readonly variable\n"),
-                    exit_code: if default_reply { 2 } else { 1 },
-                };
-            }
-            let trimmed = if default_reply || ifs.is_empty() {
-                line_owned.clone()
-            } else {
-                line_owned
-                    .trim_matches(|c: char| ifs.contains(c) && c.is_whitespace())
-                    .to_string()
-            };
-            self.env.insert(vars[0].clone(), trimmed);
+            sync_array_metadata(&resolved, self.env);
         } else {
-            let fields = split_ifs_fields(&line_owned, &ifs, Some(vars.len()));
-            for (i, v) in vars.iter().enumerate() {
-                let resolved = resolve_nameref_base(v, self.env).to_string();
-                let base = resolved.split_once('[').map(|(b, _)| b).unwrap_or(&resolved);
+            let default_reply = vars.is_empty();
+            let target_names: Vec<String> = if default_reply {
+                vec!["REPLY".to_string()]
+            } else {
+                vars.clone()
+            };
+            let fields = if default_reply {
+                None
+            } else {
+                Some(split_read_fields(
+                    &record_bytes,
+                    &escaped_offsets,
+                    &ifs_bytes,
+                    Some(target_names.len()),
+                    byte_locale,
+                ))
+            };
+            for (i, orig_name) in target_names.iter().enumerate() {
+                if !is_valid_shell_ident(orig_name) {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{prefix}read: `{orig_name}': not a valid identifier\n"),
+                        exit_code: 1,
+                    });
+                }
+                let resolved = resolve_nameref_base(orig_name, self.env).to_string();
+                let base = resolved
+                    .split_once('[')
+                    .map(|(b, _)| b)
+                    .unwrap_or(&resolved);
                 if self
                     .env
                     .get(&format!("__attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
-                    return BuiltinOutcome {
+                    return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{base}: readonly variable\n"),
-                        exit_code: if i + 1 == vars.len() { 1 } else { 2 },
-                    };
+                        stderr: format!("{prefix}{orig_name}: readonly variable\n"),
+                        exit_code: if default_reply || i + 1 < target_names.len() {
+                            2
+                        } else {
+                            1
+                        },
+                    });
                 }
-                let val = fields.get(i).cloned().unwrap_or_default();
-                self.env.insert(v.clone(), val);
+                let val_bytes: &[u8] = match &fields {
+                    Some(f_list) => f_list.get(i).map(|v| v.as_slice()).unwrap_or(&[]),
+                    None => &record_bytes,
+                };
+                if val_bytes.len() > self.budget.limits.max_expansion_bytes {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                        self.budget.limits.max_expansion_bytes
+                    )));
+                }
+                let val_str = bytes_to_stream_string(val_bytes);
+                self.assign_variable(orig_name, &val_str, false)?;
             }
         }
 
-        BuiltinOutcome {
+        Ok(BuiltinOutcome {
             stdout: String::new(),
             stderr: String::new(),
-            exit_code: if hit_delim || nchars.is_some() { 0 } else { 1 },
-        }
+            exit_code: status,
+        })
     }
 
-    fn builtin_mapfile(&mut self, args: &[String], stdin: &mut String) -> BuiltinOutcome {
-        let mut strip_delim = false;
-        let mut delim = '\n';
-        let mut skip_count = 0usize;
-        let mut max_count: Option<usize> = None;
-        let mut origin = 0usize;
-        let mut callback: Option<String> = None;
-        let mut quantum = 5000usize;
-        let mut fd_num: u32 = 0;
-        let mut arr_name = "MAPFILE".to_string();
+    fn builtin_mapfile(
+        &mut self,
+        cmd: &str,
+        args: &[String],
+        stdin: &mut String,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        let prefix = self.diag_prefix();
+        let usage = format!(
+            "{cmd}: usage: {cmd} [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]\n"
+        );
 
-        let mut i = 0usize;
-        while i < args.len() {
-            let a = &args[i];
-            if a == "-t" {
-                strip_delim = true;
-                i += 1;
-            } else if a == "-d" && i + 1 < args.len() {
-                delim = args[i + 1].chars().next().unwrap_or('\0');
-                i += 2;
-            } else if a == "-s" && i + 1 < args.len() {
-                skip_count = args[i + 1].parse::<usize>().unwrap_or(0);
-                i += 2;
-            } else if a == "-n" && i + 1 < args.len() {
-                let n = args[i + 1].parse::<usize>().unwrap_or(0);
-                if n > 0 {
-                    max_count = Some(n);
+        let mut strip_delim = false;
+        let mut delim_byte: u8 = b'\n';
+        let mut skip_count: u64 = 0;
+        let mut max_count: u64 = 0;
+        let mut origin: u32 = 0;
+        let mut clear = true;
+        let mut callback: Option<String> = None;
+        let mut quantum: u64 = 5000;
+        let mut fd_num: u32 = 0;
+        let mut operands: Vec<String> = Vec::new();
+
+        let mut idx = 0usize;
+        while idx < args.len() {
+            let arg = &args[idx];
+            if arg == "--" {
+                operands.extend_from_slice(&args[idx + 1..]);
+                break;
+            }
+            if arg == "--help" {
+                return Ok(BuiltinOutcome {
+                    stdout: mapfile_help_header(cmd),
+                    stderr: String::new(),
+                    exit_code: 2,
+                });
+            }
+            if !arg.starts_with('-') || arg == "-" {
+                operands.extend_from_slice(&args[idx..]);
+                break;
+            }
+            if arg.starts_with("--") {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{prefix}{cmd}: --: invalid option\n{usage}"),
+                    exit_code: 2,
+                });
+            }
+            idx += 1;
+            let chars: Vec<char> = arg[1..].chars().collect();
+            let mut c_idx = 0usize;
+            while c_idx < chars.len() {
+                let flag = chars[c_idx];
+                c_idx += 1;
+                if flag == 't' {
+                    strip_delim = true;
+                    continue;
                 }
-                i += 2;
-            } else if a == "-O" && i + 1 < args.len() {
-                origin = args[i + 1].parse::<usize>().unwrap_or(0);
-                i += 2;
-            } else if a == "-C" && i + 1 < args.len() {
-                callback = Some(args[i + 1].clone());
-                i += 2;
-            } else if a == "-c" && i + 1 < args.len() {
-                quantum = args[i + 1].parse::<usize>().unwrap_or(5000).max(1);
-                i += 2;
-            } else if a == "-u" && i + 1 < args.len() {
-                fd_num = args[i + 1].parse::<u32>().unwrap_or(0);
-                i += 2;
-            } else if !a.starts_with('-') {
-                arr_name = a.clone();
-                i += 1;
-            } else {
-                i += 1;
+                if !matches!(flag, 'd' | 'n' | 'O' | 's' | 'u' | 'C' | 'c') {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{prefix}{cmd}: -{flag}: invalid option\n{usage}"),
+                        exit_code: 2,
+                    });
+                }
+                let rest: String = chars[c_idx..].iter().collect();
+                let val = if !rest.is_empty() {
+                    c_idx = chars.len();
+                    rest
+                } else if idx < args.len() {
+                    let v = args[idx].clone();
+                    idx += 1;
+                    v
+                } else {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!(
+                            "{prefix}{cmd}: -{flag}: option requires an argument\n{usage}"
+                        ),
+                        exit_code: 2,
+                    });
+                };
+                match flag {
+                    'd' => {
+                        let raw_delim = stream_string_to_bytes(&val);
+                        delim_byte = raw_delim.first().copied().unwrap_or(0);
+                    }
+                    'C' => {
+                        callback = Some(val);
+                    }
+                    'u' => match parse_mapfile_signed_long(&val) {
+                        Ok(n) if (0..=2_147_483_647).contains(&n) => {
+                            let fd = n as u32;
+                            if !self.is_fd_open(fd) {
+                                return Ok(BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!(
+                                        "{prefix}{cmd}: {fd}: invalid file descriptor: Bad file descriptor\n"
+                                    ),
+                                    exit_code: 1,
+                                });
+                            }
+                            fd_num = fd;
+                        }
+                        _ => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!(
+                                    "{prefix}{cmd}: {val}: invalid file descriptor specification\n"
+                                ),
+                                exit_code: 1,
+                            });
+                        }
+                    },
+                    'n' => match parse_mapfile_signed_long(&val) {
+                        Ok(n) if n >= 0 => {
+                            max_count = (n as u64) & 0xffff_ffff;
+                        }
+                        _ => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{cmd}: {val}: invalid line count\n"),
+                                exit_code: 1,
+                            });
+                        }
+                    },
+                    'O' => match parse_mapfile_signed_long(&val) {
+                        Ok(n) if n >= 0 => {
+                            origin = ((n as u64) & 0xffff_ffff) as u32;
+                            clear = false;
+                        }
+                        _ => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{cmd}: {val}: invalid array origin\n"),
+                                exit_code: 1,
+                            });
+                        }
+                    },
+                    's' => match parse_mapfile_signed_long(&val) {
+                        Ok(n) if n >= 0 => {
+                            skip_count = (n as u64) & 0xffff_ffff;
+                        }
+                        _ => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{cmd}: {val}: invalid line count\n"),
+                                exit_code: 1,
+                            });
+                        }
+                    },
+                    'c' => match parse_mapfile_signed_long(&val) {
+                        Ok(n) if n >= 1 => {
+                            let low32 = (n as u64) & 0xffff_ffff;
+                            if low32 == 0 {
+                                return Ok(BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!(
+                                        "{prefix}{cmd}: {val}: invalid callback quantum\n"
+                                    ),
+                                    exit_code: 1,
+                                });
+                            }
+                            quantum = low32;
+                        }
+                        _ => {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{cmd}: {val}: invalid callback quantum\n"),
+                                exit_code: 1,
+                            });
+                        }
+                    },
+                    _ => unreachable!(),
+                }
             }
         }
 
-        let resolved_arr = resolve_nameref_base(&arr_name, self.env).to_string();
+        let arr_name = operands
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "MAPFILE".to_string());
+        if arr_name.is_empty() {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{prefix}{cmd}: empty array variable name\n"),
+                exit_code: 2,
+            });
+        }
+        if !is_valid_shell_ident(&arr_name) {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{prefix}{cmd}: `{arr_name}': not a valid identifier\n"),
+                exit_code: 1,
+            });
+        }
+
+        let resolved_arr = arr_name;
         if self
             .env
             .get(&format!("__attr__{resolved_arr}"))
             .is_some_and(|a| a.contains('r'))
         {
-            return BuiltinOutcome {
+            return Ok(BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!("{resolved_arr}: readonly variable\n"),
+                stderr: format!("{prefix}{resolved_arr}: readonly variable\n"),
                 exit_code: 1,
-            };
+            });
         }
 
-        if origin == 0 {
-            let prefix = format!("{arr_name}[");
-            let old: Vec<String> = self
+        let active_key = format!("__mapfile_active__{resolved_arr}");
+        let active_token = self
+            .env
+            .get(&active_key)
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap_or(0)
+            .wrapping_add(1)
+            .to_string();
+        self.env.insert(active_key.clone(), active_token.clone());
+
+        let arr_prefix = format!("{resolved_arr}[");
+        if clear {
+            let old_keys: Vec<String> = self
                 .env
                 .keys()
-                .filter(|k| k.starts_with(&prefix))
+                .filter(|k| k.starts_with(&arr_prefix))
                 .cloned()
                 .collect();
-            for k in old {
+            for k in old_keys {
                 self.env.remove(&k);
+            }
+            self.env.remove(&resolved_arr);
+            self.env.remove(&format!("__nameref__{resolved_arr}"));
+            self.env.remove(&format!("__assoc__{resolved_arr}"));
+            self.env
+                .insert(format!("__declared__{resolved_arr}"), "1".to_string());
+            sync_array_metadata(&resolved_arr, self.env);
+        } else {
+            let has_arr_elems = self.env.keys().any(|k| k.starts_with(&arr_prefix));
+            if !has_arr_elems {
+                if let Some(scalar_val) = self.env.remove(&resolved_arr) {
+                    self.env.insert(format!("{resolved_arr}[0]"), scalar_val);
+                }
+                self.env
+                    .insert(format!("__declared__{resolved_arr}"), "1".to_string());
+                sync_array_metadata(&resolved_arr, self.env);
             }
         }
 
-        let raw = if fd_num >= 3 {
-            self.in_fds.remove(&fd_num).unwrap_or_default()
-        } else {
-            std::mem::take(stdin)
-        };
+        if !self.is_fd_readable(fd_num) {
+            self.env.remove(&active_key);
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            });
+        }
+
         let mut cb_stdout = String::new();
         let mut cb_stderr = String::new();
-        if !raw.is_empty() {
-            let mut records = Vec::new();
-            let mut start = 0usize;
-            for (idx, ch) in raw.char_indices() {
-                if ch == delim {
-                    let end = if strip_delim {
-                        idx
-                    } else {
-                        idx + ch.len_utf8()
-                    };
-                    records.push(raw[start..end].to_string());
-                    start = idx + ch.len_utf8();
+        let mut total_input_bytes = 0usize;
+
+        let take_next_record = |this: &mut Self,
+                                stdin_ref: &mut String,
+                                total_bytes: &mut usize|
+         -> Result<Option<Vec<u8>>, EvalError> {
+            this.budget.tick_loop().map_err(EvalError::Budget)?;
+            let canon = this.resolve_in_fd(fd_num);
+            let use_direct_stdin = (fd_num == 0 && !this.in_fd_aliases.contains_key(&0))
+                || (canon == STDIN_STREAM_FD && !this.in_fds.contains_key(&STDIN_STREAM_FD));
+            let raw_in = if use_direct_stdin {
+                stream_string_to_bytes(stdin_ref)
+            } else {
+                if fd_num == 0 && canon != STDIN_STREAM_FD {
+                    this.sync_shared_stdin(canon, stdin_ref, true);
+                }
+                this.in_fds
+                    .get(&canon)
+                    .map(|s| stream_string_to_bytes(s))
+                    .unwrap_or_default()
+            };
+            if raw_in.is_empty() {
+                return Ok(None);
+            }
+            let mut end = raw_in.len();
+            for (pos, &b) in raw_in.iter().enumerate() {
+                if b == delim_byte {
+                    end = pos + 1;
+                    break;
                 }
             }
-            if start < raw.len() {
-                records.push(raw[start..].to_string());
+            *total_bytes = total_bytes.saturating_add(end);
+            if *total_bytes > this.budget.limits.max_input_bytes {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxInputBytes ({})",
+                    this.budget.limits.max_input_bytes
+                )));
             }
+            if end > this.budget.limits.max_output_bytes {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                    this.budget.limits.max_output_bytes
+                )));
+            }
+            let rec = raw_in[..end].to_vec();
+            let rest = bytes_to_stream_string(&raw_in[end..]);
+            if use_direct_stdin {
+                *stdin_ref = rest;
+            } else {
+                this.in_fds.insert(canon, rest);
+                this.sync_shared_stdin(canon, stdin_ref, false);
+            }
+            Ok(Some(rec))
+        };
 
-            let iter = records.into_iter().skip(skip_count);
-            let taken: Vec<String> = match max_count {
-                Some(m) => iter.take(m).collect(),
-                None => iter.collect(),
+        for _ in 0..skip_count {
+            match take_next_record(self, stdin, &mut total_input_bytes)? {
+                Some(_) => {}
+                None => {
+                    self.env.remove(&active_key);
+                    return Ok(BuiltinOutcome {
+                        stdout: cb_stdout,
+                        stderr: cb_stderr,
+                        exit_code: 0,
+                    });
+                }
+            }
+        }
+
+        let mut index: u32 = origin;
+        let mut count: u64 = 1;
+        let mut stored_elems: usize = self
+            .env
+            .keys()
+            .filter(|k| {
+                k.strip_prefix(&arr_prefix)
+                    .and_then(|s| s.strip_suffix(']'))
+                    .is_some_and(|sub| !matches!(sub, "@" | "*" | "#"))
+            })
+            .count();
+
+        loop {
+            if max_count != 0 && count > max_count {
+                break;
+            }
+            let Some(rec_bytes) = take_next_record(self, stdin, &mut total_input_bytes)? else {
+                break;
             };
-            for (offset, item) in taken.into_iter().enumerate() {
-                let idx = origin + offset;
-                if let Some(ref cb) = callback
-                    && (offset + 1) % quantum == 0
-                {
-                    let cb_words = vec![cb.clone(), idx.to_string(), item.clone()];
-                    let mut empty_in = String::new();
-                    if let Ok(cb_out) = self.dispatch_words(&cb_words, &mut empty_in, false) {
+            let nul_pos = rec_bytes.iter().position(|&b| b == 0);
+            let mut length = nul_pos.unwrap_or(rec_bytes.len());
+            if strip_delim && length > 0 && rec_bytes[length - 1] == delim_byte {
+                length -= 1;
+            }
+            let line_slice = &rec_bytes[..length];
+
+            if let Some(ref cb) = callback
+                && count != 0
+                && count % quantum == 0
+            {
+                let cb_source = format_mapfile_callback_command(cb, index, line_slice);
+                if cb_source.len() > self.budget.limits.max_source_bytes {
+                    self.env.remove(&active_key);
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxSourceBytes ({})",
+                        self.budget.limits.max_source_bytes
+                    )));
+                }
+                let outer_script = self
+                    .script_name
+                    .clone()
+                    .unwrap_or_else(|| "shell".to_string());
+                let prev_script = self.script_name.replace(format!("{outer_script}: stdin"));
+                let prev_line = self.current_line;
+                self.current_line = 1;
+                self.mapfile_callback_depth += 1;
+                let cb_res = self.eval_script_units(&cb_source, stdin);
+                self.mapfile_callback_depth -= 1;
+                self.current_line = prev_line;
+                self.script_name = prev_script;
+                match cb_res {
+                    Ok(cb_out) => {
                         cb_stdout.push_str(&cb_out.stdout);
                         cb_stderr.push_str(&cb_out.stderr);
                     }
+                    Err(EvalError::Syntax(syn_msg)) => {
+                        let clean = syn_msg
+                            .strip_prefix("bash: ")
+                            .unwrap_or(&syn_msg);
+                        cb_stderr.push_str(&format!("{outer_script}: stdin: line 1: {clean}\n"));
+                    }
+                    Err(other) => {
+                        self.env.remove(&active_key);
+                        return Err(other);
+                    }
                 }
-                self.env.insert(format!("{arr_name}[{idx}]"), item);
+                if let Some(exit_code) = self.exit_requested {
+                    self.env.remove(&active_key);
+                    return Ok(BuiltinOutcome {
+                        stdout: cb_stdout,
+                        stderr: cb_stderr,
+                        exit_code,
+                    });
+                }
+                if let Some(ret_code) = self.return_requested {
+                    self.env.remove(&active_key);
+                    return Ok(BuiltinOutcome {
+                        stdout: cb_stdout,
+                        stderr: cb_stderr,
+                        exit_code: ret_code,
+                    });
+                }
+                if self.break_count > 0 || self.continue_count > 0 {
+                    self.env.remove(&active_key);
+                    return Ok(BuiltinOutcome {
+                        stdout: cb_stdout,
+                        stderr: cb_stderr,
+                        exit_code: 0,
+                    });
+                }
             }
+
+            if self.env.get(&active_key) != Some(&active_token) {
+                self.env.remove(&active_key);
+                return Ok(BuiltinOutcome {
+                    stdout: cb_stdout,
+                    stderr: format!(
+                        "{cb_stderr}{prefix}indexed array: incremental target identity changed\n"
+                    ),
+                    exit_code: 1,
+                });
+            }
+            if line_slice.len() > self.budget.limits.max_expansion_bytes {
+                self.env.remove(&active_key);
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                    self.budget.limits.max_expansion_bytes
+                )));
+            }
+            let elem_key = format!("{resolved_arr}[{index}]");
+            if !self.env.contains_key(&elem_key) {
+                stored_elems += 1;
+                if stored_elems > self.budget.limits.max_expansion_fields {
+                    self.env.remove(&active_key);
+                    return Ok(BuiltinOutcome {
+                        stdout: cb_stdout,
+                        stderr: format!(
+                            "{cb_stderr}{prefix}indexed array: private Map slot limit exceeded\n"
+                        ),
+                        exit_code: 1,
+                    });
+                }
+            }
+            self.env
+                .insert(elem_key, bytes_to_stream_string(line_slice));
+            sync_array_metadata(&resolved_arr, self.env);
+
+            index = index.wrapping_add(1);
+            count = (count.wrapping_add(1)) & 0xffff_ffff;
         }
-        sync_array_metadata(&arr_name, self.env);
-        BuiltinOutcome {
+
+        self.env.remove(&active_key);
+
+        Ok(BuiltinOutcome {
             stdout: cb_stdout,
             stderr: cb_stderr,
             exit_code: 0,
-        }
+        })
     }
 
     fn builtin_getopts(&mut self, args: &[String]) -> BuiltinOutcome {
@@ -6108,7 +6703,7 @@ impl<'a> EvalState<'a> {
         default_stdin: &str,
     ) -> Result<
         (
-            BTreeMap<u32, FdTarget>,
+            SavedFds,
             Vec<(u32, Option<String>)>,
             String,
             bool,
@@ -6123,38 +6718,49 @@ impl<'a> EvalState<'a> {
                 self.budget.limits.max_redirects
             )));
         }
-        let saved_fds = self.fd_table.clone();
+        let saved_fd_table = self.fd_table.clone();
+        let mut saved_aliases = self.in_fd_aliases.clone();
         let mut saved_in: Vec<(u32, Option<String>)> = Vec::new();
         let mut local_stdin = default_stdin.to_string();
         let mut use_local = false;
         let mut dup_fd: Option<u32> = None;
 
         for r in redirects {
-            let expand_redir_target = |this: &mut Self, raw: &str| -> Result<Result<String, BuiltinOutcome>, EvalError> {
-                let fields = this.expand_word_to_fields(raw)?;
-                if fields.len() != 1 {
-                    let mut err_out = BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("{raw}: ambiguous redirect\n"),
-                        exit_code: 1,
-                    };
-                    this.route_outcome(&mut err_out);
-                    return Ok(Err(err_out));
-                }
-                Ok(Ok(fields.into_iter().next().unwrap()))
-            };
+            let expand_redir_target =
+                |this: &mut Self, raw: &str| -> Result<Result<String, BuiltinOutcome>, EvalError> {
+                    let fields = this.expand_word_to_fields(raw)?;
+                    if fields.len() != 1 {
+                        let mut err_out = BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{raw}: ambiguous redirect\n"),
+                            exit_code: 1,
+                        };
+                        this.route_outcome(&mut err_out);
+                        return Ok(Err(err_out));
+                    }
+                    Ok(Ok(fields.into_iter().next().unwrap()))
+                };
             match &r.kind {
                 RedirectKind::In(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     let content = match self.fs.read_file(&full) {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_input_bytes {
                                 return Ok((
-                                    saved_fds,
+                                    (saved_fd_table, saved_aliases),
                                     saved_in,
                                     local_stdin,
                                     true,
@@ -6170,7 +6776,7 @@ impl<'a> EvalState<'a> {
                         }
                         Err(e) => {
                             return Ok((
-                                saved_fds,
+                                (saved_fd_table, saved_aliases),
                                 saved_in,
                                 local_stdin,
                                 true,
@@ -6183,6 +6789,9 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    self.fd_table.remove(fd);
+                    self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
@@ -6197,7 +6806,16 @@ impl<'a> EvalState<'a> {
                 RedirectKind::ReadWrite(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
@@ -6208,7 +6826,14 @@ impl<'a> EvalState<'a> {
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut err_out);
-                            return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
                         }
                         self.apply_umask_to_new_file(&full);
                     }
@@ -6216,7 +6841,7 @@ impl<'a> EvalState<'a> {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_input_bytes {
                                 return Ok((
-                                    saved_fds,
+                                    (saved_fd_table, saved_aliases),
                                     saved_in,
                                     local_stdin,
                                     true,
@@ -6232,7 +6857,7 @@ impl<'a> EvalState<'a> {
                         }
                         Err(e) => {
                             return Ok((
-                                saved_fds,
+                                (saved_fd_table, saved_aliases),
                                 saved_in,
                                 local_stdin,
                                 true,
@@ -6245,10 +6870,13 @@ impl<'a> EvalState<'a> {
                             ));
                         }
                     };
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
                         dup_fd = None;
+                        self.in_fd_aliases.insert(0, STDIN_STREAM_FD);
                     } else {
                         if !saved_in.iter().any(|(f, _)| f == fd) {
                             saved_in.push((*fd, self.in_fds.get(fd).cloned()));
@@ -6260,6 +6888,9 @@ impl<'a> EvalState<'a> {
                 RedirectKind::HereString(fd) => {
                     let val = self.expand_word_to_string(&r.target)?;
                     let content = format!("{val}\n");
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    self.fd_table.remove(fd);
+                    self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
@@ -6277,6 +6908,9 @@ impl<'a> EvalState<'a> {
                     } else {
                         self.expand_heredoc_text(&r.target)?
                     };
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    self.fd_table.remove(fd);
+                    self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
@@ -6291,37 +6925,177 @@ impl<'a> EvalState<'a> {
                 RedirectKind::DupIn(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     if target == "-" {
-                        self.fd_table.insert(*fd, FdTarget::Closed);
+                        self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                         if *fd == 0 {
                             local_stdin.clear();
                             use_local = true;
+                            dup_fd = None;
                         } else {
                             if !saved_in.iter().any(|(f, _)| f == fd) {
                                 saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                             }
                             self.in_fds.remove(fd);
                         }
-                    } else if let Ok(src_fd) = target.parse::<u32>() {
-                        let content = self.in_fds.get(&src_fd).cloned().unwrap_or_default();
-                        if *fd == 0 {
-                            local_stdin = content;
-                            use_local = true;
-                            dup_fd = Some(src_fd);
-                        } else {
-                            if !saved_in.iter().any(|(f, _)| f == fd) {
-                                saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                        self.in_fd_aliases.remove(fd);
+                        self.fd_table.insert(*fd, FdTarget::Closed);
+                    } else {
+                        let (src_str, move_fd) = match target.strip_suffix('-') {
+                            Some(s) if !s.is_empty() => (s, true),
+                            _ => (target.as_str(), false),
+                        };
+                        if let Ok(src_fd) = src_str.parse::<u32>() {
+                            if !self.is_fd_open(src_fd) {
+                                let prefix = self.diag_prefix();
+                                let mut err_out = BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{prefix}{src_fd}: Bad file descriptor\n"),
+                                    exit_code: 1,
+                                };
+                                self.route_outcome(&mut err_out);
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
                             }
-                            self.in_fds.insert(*fd, content);
+                            if self.is_fd_readable(src_fd) {
+                                if move_fd && src_fd != *fd {
+                                    self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
+                                }
+                                let canon = if src_fd == 0 {
+                                    if use_local {
+                                        dup_fd.unwrap_or(0)
+                                    } else {
+                                        self.resolve_in_fd(0)
+                                    }
+                                } else {
+                                    self.resolve_in_fd(src_fd)
+                                };
+                                if *fd == 0 {
+                                    self.evacuate_in_fd_owner(0, &mut saved_aliases);
+                                    self.fd_table.remove(&0);
+                                    self.in_fd_aliases.remove(&0);
+                                    if canon == STDIN_STREAM_FD {
+                                        local_stdin = default_stdin.to_string();
+                                        use_local = false;
+                                        dup_fd = None;
+                                    } else if canon != 0 {
+                                        local_stdin = self
+                                            .in_fds
+                                            .get(&canon)
+                                            .cloned()
+                                            .unwrap_or_default();
+                                        use_local = true;
+                                        if move_fd && canon == src_fd {
+                                            dup_fd = None;
+                                        } else {
+                                            dup_fd = Some(canon);
+                                            self.in_fd_aliases.insert(0, canon);
+                                        }
+                                    }
+                                } else {
+                                    if !saved_in.iter().any(|(f, _)| f == fd) {
+                                        saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                                    }
+                                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                                    self.fd_table.remove(fd);
+                                    if src_fd == 0 && use_local && dup_fd.is_none() {
+                                        self.in_fds.insert(*fd, local_stdin.clone());
+                                        self.in_fd_aliases.remove(fd);
+                                        self.in_fd_aliases.insert(0, *fd);
+                                        dup_fd = Some(*fd);
+                                    } else if move_fd
+                                        && src_fd != *fd
+                                        && canon == src_fd
+                                        && src_fd != 0
+                                    {
+                                        if !saved_in.iter().any(|(f, _)| *f == src_fd) {
+                                            saved_in
+                                                .push((src_fd, self.in_fds.get(&src_fd).cloned()));
+                                        }
+                                        if let Some(content) = self.in_fds.remove(&src_fd) {
+                                            self.in_fds.insert(*fd, content);
+                                        }
+                                        self.in_fd_aliases.remove(fd);
+                                    } else if canon != *fd {
+                                        self.in_fds.remove(fd);
+                                        self.in_fd_aliases.insert(*fd, canon);
+                                    }
+                                }
+                            } else {
+                                self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                                if !saved_in.iter().any(|(f, _)| f == fd) {
+                                    saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                                }
+                                self.in_fds.remove(fd);
+                                self.in_fd_aliases.remove(fd);
+                                if let Some(inherited) = self.fd_table.get(&src_fd).cloned() {
+                                    self.fd_table.insert(*fd, inherited);
+                                }
+                            }
+                            if move_fd && src_fd != *fd {
+                                if src_fd == 0 {
+                                    self.fd_table.insert(0, FdTarget::Closed);
+                                    self.in_fd_aliases.remove(&0);
+                                    local_stdin.clear();
+                                    use_local = true;
+                                    dup_fd = None;
+                                } else {
+                                    if !saved_in.iter().any(|(f, _)| *f == src_fd) {
+                                        saved_in.push((src_fd, self.in_fds.get(&src_fd).cloned()));
+                                    }
+                                    self.fd_table.insert(src_fd, FdTarget::Closed);
+                                    self.in_fds.remove(&src_fd);
+                                    self.in_fd_aliases.remove(&src_fd);
+                                }
+                            }
+                        } else {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: ambiguous redirect\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
                         }
                     }
                 }
                 RedirectKind::Out(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if self.noclobber
@@ -6335,7 +7109,14 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         };
                         self.route_outcome(&mut err_out);
-                        return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
                     }
                     if full != "/dev/null" {
                         let existed = self.fs.exists(&full);
@@ -6346,18 +7127,46 @@ impl<'a> EvalState<'a> {
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut err_out);
-                            return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
                         }
                         if !existed {
                             self.apply_umask_to_new_file(&full);
                         }
                     }
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    if *fd == 0 {
+                        local_stdin.clear();
+                        use_local = true;
+                        dup_fd = None;
+                    } else {
+                        if !saved_in.iter().any(|(f, _)| f == fd) {
+                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                        }
+                        self.in_fds.remove(fd);
+                    }
+                    self.in_fd_aliases.remove(fd);
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
                 RedirectKind::Clobber(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" {
@@ -6369,18 +7178,46 @@ impl<'a> EvalState<'a> {
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut err_out);
-                            return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
                         }
                         if !existed {
                             self.apply_umask_to_new_file(&full);
                         }
                     }
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    if *fd == 0 {
+                        local_stdin.clear();
+                        use_local = true;
+                        dup_fd = None;
+                    } else {
+                        if !saved_in.iter().any(|(f, _)| f == fd) {
+                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                        }
+                        self.in_fds.remove(fd);
+                    }
+                    self.in_fd_aliases.remove(fd);
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
                 RedirectKind::Append(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
@@ -6391,32 +7228,97 @@ impl<'a> EvalState<'a> {
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut err_out);
-                            return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
                         }
                         self.apply_umask_to_new_file(&full);
                     }
+                    self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    if *fd == 0 {
+                        self.materialize_stdin_aliases(default_stdin, &mut saved_in);
+                        local_stdin.clear();
+                        use_local = true;
+                        dup_fd = None;
+                    } else {
+                        if !saved_in.iter().any(|(f, _)| f == fd) {
+                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                        }
+                        self.in_fds.remove(fd);
+                    }
+                    self.in_fd_aliases.remove(fd);
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
                 RedirectKind::DupOut(fd) => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     if target == "-" {
+                        self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                        if *fd == 0 {
+                            local_stdin.clear();
+                            use_local = true;
+                            dup_fd = None;
+                        } else {
+                            if !saved_in.iter().any(|(f, _)| f == fd) {
+                                saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                            }
+                            self.in_fds.remove(fd);
+                        }
+                        self.in_fd_aliases.remove(fd);
                         self.fd_table.insert(*fd, FdTarget::Closed);
-                    } else if let Ok(src_fd) = target.parse::<u32>() {
-                        let inherited = self
-                            .fd_table
-                            .get(&src_fd)
-                            .cloned()
-                            .unwrap_or(FdTarget::Closed);
-                        self.fd_table.insert(*fd, inherited);
+                    } else {
+                        let (src_str, move_fd) = match target.strip_suffix('-') {
+                            Some(s) if !s.is_empty() => (s, true),
+                            _ => (target.as_str(), false),
+                        };
+                        if let Ok(src_fd) = src_str.parse::<u32>() {
+                            self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                            if !saved_in.iter().any(|(f, _)| f == fd) {
+                                saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                            }
+                            self.in_fds.remove(fd);
+                            self.in_fd_aliases.remove(fd);
+                            let inherited = self
+                                .fd_table
+                                .get(&src_fd)
+                                .cloned()
+                                .unwrap_or(FdTarget::Closed);
+                            self.fd_table.insert(*fd, inherited);
+                            if move_fd && src_fd != *fd {
+                                self.fd_table.insert(src_fd, FdTarget::Closed);
+                            }
+                        }
                     }
                 }
                 RedirectKind::BothOut => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" {
@@ -6433,7 +7335,16 @@ impl<'a> EvalState<'a> {
                 RedirectKind::BothAppend => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
-                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                        Err(err_out) => {
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
@@ -6447,15 +7358,23 @@ impl<'a> EvalState<'a> {
             }
         }
 
-        Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, None))
+        Ok((
+            (saved_fd_table, saved_aliases),
+            saved_in,
+            local_stdin,
+            use_local,
+            dup_fd,
+            None,
+        ))
     }
 
     fn restore_redirects(
         &mut self,
-        saved_fds: BTreeMap<u32, FdTarget>,
+        saved_fds: SavedFds,
         saved_in: Vec<(u32, Option<String>)>,
     ) {
-        self.fd_table = saved_fds;
+        self.fd_table = saved_fds.0;
+        self.in_fd_aliases = saved_fds.1;
         for (fd, prev) in saved_in {
             if let Some(val) = prev {
                 self.in_fds.insert(fd, val);
@@ -9266,6 +10185,433 @@ fn expand_braces_with_limits(
     Ok((out, true))
 }
 
+
+fn trim_bash_ascii_ws(raw: &str) -> &str {
+    raw.trim_matches(|c: char| matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0b' | '\x0c'))
+}
+
+fn parse_read_fd(raw: &str) -> Option<u32> {
+    let trimmed = trim_bash_ascii_ws(raw);
+    let (negative, digits) = if let Some(rest) = trimmed.strip_prefix('-') {
+        (true, rest)
+    } else if let Some(rest) = trimmed.strip_prefix('+') {
+        (false, rest)
+    } else {
+        (false, trimmed)
+    };
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    if negative {
+        return if digits.bytes().all(|b| b == b'0') {
+            Some(0)
+        } else {
+            None
+        };
+    }
+    let val = digits.parse::<u128>().ok()?;
+    if val <= 2_147_483_647 {
+        Some(val as u32)
+    } else {
+        None
+    }
+}
+
+fn parse_read_count(raw: &str) -> Result<usize, bool> {
+    let trimmed = trim_bash_ascii_ws(raw);
+    let (negative, digits) = if let Some(rest) = trimmed.strip_prefix('-') {
+        (true, rest)
+    } else if let Some(rest) = trimmed.strip_prefix('+') {
+        (false, rest)
+    } else {
+        (false, trimmed)
+    };
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(false);
+    }
+    if negative {
+        return if digits.bytes().all(|b| b == b'0') {
+            Ok(0)
+        } else {
+            Err(false)
+        };
+    }
+    match digits.parse::<u128>() {
+        Ok(v) if v <= 2_147_483_647 => Ok(v as usize),
+        _ => Err(true),
+    }
+}
+
+fn parse_read_timeout(raw: &str) -> Option<f64> {
+    let trimmed = trim_bash_ascii_ws(raw);
+    let (negative, body) = if let Some(rest) = trimmed.strip_prefix('-') {
+        (true, rest)
+    } else if let Some(rest) = trimmed.strip_prefix('+') {
+        (false, rest)
+    } else {
+        (false, trimmed)
+    };
+    let (whole, fraction) = match body.split_once('.') {
+        Some((w, f)) => {
+            if f.contains('.') {
+                return None;
+            }
+            (w, f)
+        }
+        None => (body, ""),
+    };
+    if whole.is_empty() && fraction.is_empty() {
+        return None;
+    }
+    if !whole.bytes().all(|b| b.is_ascii_digit())
+        || !fraction.bytes().all(|b| b.is_ascii_digit())
+    {
+        return None;
+    }
+    let parsed = trimmed.parse::<f64>().ok()?;
+    if !parsed.is_finite() {
+        return None;
+    }
+    if negative && parsed != 0.0 {
+        return None;
+    }
+    if parsed == 0.0 {
+        Some(0.0)
+    } else {
+        Some(parsed)
+    }
+}
+
+fn parse_mapfile_signed_long(raw: &str) -> Result<i64, bool> {
+    let trimmed = trim_bash_ascii_ws(raw);
+    let (negative, digits) = if let Some(rest) = trimmed.strip_prefix('-') {
+        (true, rest)
+    } else if let Some(rest) = trimmed.strip_prefix('+') {
+        (false, rest)
+    } else {
+        (false, trimmed)
+    };
+    if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+        return Err(false);
+    }
+    let signed_str = if negative {
+        format!("-{digits}")
+    } else {
+        digits.to_string()
+    };
+    match signed_str.parse::<i128>() {
+        Ok(v) if v >= i64::MIN as i128 && v <= i64::MAX as i128 => Ok(v as i64),
+        _ => Err(true),
+    }
+}
+
+fn mapfile_help_header(cmd: &str) -> String {
+    if cmd == "readarray" {
+        "readarray: readarray [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]\n    Read lines from a file into an array variable.\n    \n    A synonym for `mapfile'.\n".to_string()
+    } else {
+        concat!(
+            "mapfile: mapfile [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]\n",
+            "    Read lines from the standard input into an indexed array variable.\n",
+            "    \n",
+            "    Read lines from the standard input into the indexed array variable ARRAY, or\n",
+            "    from file descriptor FD if the -u option is supplied.  The variable MAPFILE\n",
+            "    is the default ARRAY.\n",
+            "    \n",
+            "    Options:\n",
+            "      -d delim\tUse DELIM to terminate lines, instead of newline\n",
+            "      -n count\tCopy at most COUNT lines.  If COUNT is 0, all lines are copied\n",
+            "      -O origin\tBegin assigning to ARRAY at index ORIGIN.  The default index is 0\n",
+            "      -s count\tDiscard the first COUNT lines read\n",
+            "      -t\tRemove a trailing DELIM from each line read (default newline)\n",
+            "      -u fd\tRead lines from file descriptor FD instead of the standard input\n",
+            "      -C callback\tEvaluate CALLBACK each time QUANTUM lines are read\n",
+            "      -c quantum\tSpecify the number of lines read between each call to\n",
+            "    \t\t\tCALLBACK\n",
+            "    \n",
+            "    Arguments:\n",
+            "      ARRAY\tArray variable name to use for file data\n",
+            "    \n",
+            "    If -C is supplied without -c, the default quantum is 5000.  When\n",
+            "    CALLBACK is evaluated, it is supplied the index of the next array\n",
+            "    element to be assigned and the line to be assigned to that element\n",
+            "    as additional arguments.\n",
+            "    \n",
+            "    If not supplied with an explicit origin, mapfile will clear ARRAY before\n",
+            "    assigning to it.\n",
+            "    \n",
+            "    Exit Status:\n",
+            "    Returns success unless an invalid option is given or ARRAY is readonly or\n",
+            "    not an indexed array.\n"
+        )
+        .to_string()
+    }
+}
+
+fn format_mapfile_callback_command(callback: &str, index: u32, line: &[u8]) -> String {
+    let quotes = line.iter().filter(|&&b| b == b'\'').count();
+    let mut quoted = Vec::with_capacity(line.len() + quotes * 3 + 2);
+    quoted.push(b'\'');
+    for &b in line {
+        if b == b'\'' {
+            quoted.extend_from_slice(b"'\\''");
+        } else {
+            quoted.push(b);
+        }
+    }
+    quoted.push(b'\'');
+    let separator = format!(" {} ", index as i32);
+    let cb_bytes = stream_string_to_bytes(callback);
+    let capacity = cb_bytes.len() + quoted.len() + 13;
+    let remaining = capacity
+        .saturating_sub(1)
+        .saturating_sub(cb_bytes.len())
+        .saturating_sub(separator.len());
+    let clipped = &quoted[..remaining.min(quoted.len())];
+    format!("{callback}{separator}{}", bytes_to_stream_string(clipped))
+}
+
+fn utf8_seq_length(first: u8) -> usize {
+    if (0xc2..=0xdf).contains(&first) {
+        2
+    } else if (0xe0..=0xef).contains(&first) {
+        3
+    } else if (0xf0..=0xf4).contains(&first) {
+        4
+    } else {
+        1
+    }
+}
+
+fn is_valid_utf8_continuation(first: u8, index: usize, byte: u8) -> bool {
+    if !(0x80..=0xbf).contains(&byte) {
+        return false;
+    }
+    if index == 1 {
+        if (first == 0xe0 && byte < 0xa0)
+            || (first == 0xed && byte > 0x9f)
+            || (first == 0xf0 && byte < 0x90)
+            || (first == 0xf4 && byte > 0x8f)
+        {
+            return false;
+        }
+    }
+    true
+}
+
+fn read_display_width(bytes: &[u8], offset: usize) -> usize {
+    if offset >= bytes.len() {
+        return 0;
+    }
+    let first = bytes[offset];
+    let length = utf8_seq_length(first);
+    let limit = (offset + length).min(bytes.len());
+    let mut index = offset + 1;
+    while index < limit {
+        if !is_valid_utf8_continuation(first, index - offset, bytes[index]) {
+            break;
+        }
+        index += 1;
+    }
+    index - offset
+}
+
+fn scan_read_stream(
+    raw_in: &[u8],
+    raw_mode: bool,
+    delimiter: Option<u8>,
+    count: Option<usize>,
+    byte_count: bool,
+    budget: &ExecutionBudget,
+) -> Result<(Vec<u8>, Vec<usize>, bool, usize), EvalError> {
+    let mut out: Vec<u8> = Vec::new();
+    let mut escaped_offsets: Vec<usize> = Vec::new();
+    let mut escaped = false;
+    let mut units = 0usize;
+    let mut visible = true;
+    let mut input_bytes = 0usize;
+    let mut terminated = false;
+    let mut pos = 0usize;
+
+    while !terminated && pos < raw_in.len() {
+        let first = raw_in[pos];
+        pos += 1;
+        input_bytes += 1;
+        if input_bytes > budget.limits.max_input_bytes {
+            return Err(EvalError::Budget(format!(
+                "Execution aborted: Shell limit exceeded: maxInputBytes ({})",
+                budget.limits.max_input_bytes
+            )));
+        }
+
+        if !raw_mode && !escaped && first == b'\\' && delimiter != Some(b'\\') {
+            escaped = true;
+            continue;
+        }
+        let quoted = escaped;
+        escaped = false;
+        if quoted && first == b'\n' {
+            continue;
+        }
+        if !quoted && delimiter == Some(first) {
+            terminated = true;
+            break;
+        }
+        if !quoted && first == 0 {
+            continue;
+        }
+        if quoted && first == 0 {
+            if out.is_empty() && visible {
+                if out.len() >= budget.limits.max_output_bytes {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                        budget.limits.max_output_bytes
+                    )));
+                }
+                out.push(1);
+            }
+            visible = false;
+        } else if visible {
+            if quoted {
+                escaped_offsets.push(out.len());
+            }
+            if out.len() >= budget.limits.max_output_bytes {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                    budget.limits.max_output_bytes
+                )));
+            }
+            out.push(first);
+        }
+
+        let width = if byte_count { 1 } else { utf8_seq_length(first) };
+        for position in 1..width {
+            if pos >= raw_in.len() {
+                break;
+            }
+            let next = raw_in[pos];
+            if !is_valid_utf8_continuation(first, position, next) {
+                break;
+            }
+            pos += 1;
+            input_bytes += 1;
+            if input_bytes > budget.limits.max_input_bytes {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxInputBytes ({})",
+                    budget.limits.max_input_bytes
+                )));
+            }
+            if visible {
+                if out.len() >= budget.limits.max_output_bytes {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                        budget.limits.max_output_bytes
+                    )));
+                }
+                out.push(next);
+            }
+        }
+
+        units += 1;
+        if Some(units) == count {
+            terminated = true;
+        }
+    }
+
+    Ok((out, escaped_offsets, terminated, pos))
+}
+
+fn split_read_fields(
+    bytes: &[u8],
+    escaped_byte_offsets: &[usize],
+    separators: &[u8],
+    maximum: Option<usize>,
+    byte_count: bool,
+) -> Vec<Vec<u8>> {
+    if maximum == Some(0) || bytes.is_empty() {
+        return Vec::new();
+    }
+    let escaped_start = |start: usize| -> bool { escaped_byte_offsets.binary_search(&start).is_ok() };
+    let unit_width = |input: &[u8], start: usize, is_record: bool| -> usize {
+        if byte_count || (is_record && escaped_start(start)) {
+            return 1;
+        }
+        let len = read_display_width(input, start);
+        if len == utf8_seq_length(input[start]) {
+            len
+        } else {
+            1
+        }
+    };
+    let unit_key = |input: &[u8], start: usize, is_record: bool| -> u64 {
+        let mut val = 1u64;
+        let w = unit_width(input, start, is_record);
+        for &b in &input[start..(start + w).min(input.len())] {
+            val = val.wrapping_mul(257).wrapping_add(b as u64);
+        }
+        val
+    };
+
+    let mut keys = BTreeSet::new();
+    let mut sep_pos = 0usize;
+    while sep_pos < separators.len() {
+        let w = unit_width(separators, sep_pos, false);
+        keys.insert(unit_key(separators, sep_pos, false));
+        for &b in &separators[sep_pos..(sep_pos + w).min(separators.len())] {
+            keys.insert(257 + b as u64);
+        }
+        sep_pos += w;
+    }
+
+    let is_separator = |start: usize| -> bool {
+        !escaped_start(start) && keys.contains(&unit_key(bytes, start, true))
+    };
+    let is_whitespace = |start: usize| -> bool {
+        matches!(bytes[start], b' ' | b'\t' | b'\n') && is_separator(start)
+    };
+
+    let mut end = 0usize;
+    let mut scan = 0usize;
+    while scan < bytes.len() {
+        let w = unit_width(bytes, scan, true);
+        if !is_whitespace(scan) {
+            end = scan + w;
+        }
+        scan += w;
+    }
+
+    let mut position = 0usize;
+    let mut fields: Vec<Vec<u8>> = Vec::new();
+    let max_fields = maximum.unwrap_or(usize::MAX);
+
+    while position < end && is_whitespace(position) {
+        position += unit_width(bytes, position, true);
+    }
+    while position < end && fields.len() < max_fields {
+        let start = position;
+        while position < end && !is_separator(position) {
+            position += unit_width(bytes, position, true);
+        }
+        let mut field_end = position;
+        while position < end && is_whitespace(position) {
+            position += unit_width(bytes, position, true);
+        }
+        if position < end && is_separator(position) {
+            position += unit_width(bytes, position, true);
+        }
+        while position < end && is_whitespace(position) {
+            position += unit_width(bytes, position, true);
+        }
+        if let Some(max) = maximum
+            && fields.len() + 1 == max
+            && position < end
+        {
+            field_end = end;
+        }
+        fields.push(bytes[start..field_end].to_vec());
+    }
+    fields
+}
+
 #[cfg(test)]
 fn expand_braces(word: &str) -> Vec<String> {
     expand_braces_with_limits(word, usize::MAX, usize::MAX)
@@ -9883,5 +11229,55 @@ mod tests {
         let pre_z_to_a_post = state.eval_script_str("(printf '<%s>' pre{Z..a}post) 2>/dev/null; printf '%s' \"$?\"", "").unwrap();
         assert_eq!(pre_z_to_a_post.exit_code, 0);
         assert_eq!(pre_z_to_a_post.stdout, "1");
+    }
+
+    #[test]
+    fn unit_eval_read_mapfile_readarray_fd_aliasing_and_callbacks() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        // 1. read escaping, line continuation, IFS single vs double trailing delimiter, and array element 0 preservation
+        let r1 = state
+            .eval_script_str(
+                r#"IFS=: read a b <<< 'x\:y:z:'; IFS=: read c d <<< 'x:y::'; A=(old keep); read A <<< 'new'; printf '<%s>|<%s>|<%s>|<%s>|<%s:%s>\n' "$a" "$b" "$c" "$d" "${A[0]}" "${A[1]}""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r1.exit_code, 0);
+        assert_eq!(r1.stdout, "<x:y>|<z>|<x>|<y::>|<new:keep>\n");
+
+        // 2. read -u with fd aliasing (4<&3, 3<&-) and move (4<&3-)
+        let r2 = state
+            .eval_script_str(
+                r#"{ read -r u1 <&3; read -r -u 4 u2; } 3<<<$'first\nsecond' 4<&3; { read -r -u 4 u3; } 3<<<$'moved' 4<&3-; { read -r -u 4 u4; } 3<<<$'kept' 4<&3 3<&-; printf '%s|%s|%s|%s\n' "$u1" "$u2" "$u3" "$u4""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r2.exit_code, 0);
+        assert_eq!(r2.stdout, "first|second|moved|kept\n");
+
+        // 3. mapfile / readarray options, NUL truncation, NUL delimiter, origin -O 0 preserving elements, and callbacks
+        let r3 = state
+            .eval_script_str(
+                r#"M=(keep0 keep1 keep2); mapfile -t -O 0 -n 1 M <<< $'rep0\nrep1'; cb() { printf 'cb:%s:%s\n' "$1" "$2"; }; readarray -t -C cb -c 2 R <<< $'one\ntwo\nthree'; printf 'M=%s,%s,%s|R=%s,%s,%s\n' "${M[0]}" "${M[1]}" "${M[2]}" "${R[0]}" "${R[1]}" "${R[2]}""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r3.exit_code, 0);
+        assert_eq!(r3.stdout, "cb:1:two\nM=rep0,keep1,keep2|R=one,two,three\n");
+
+        // 4. mapfile callback immediate break termination before current element write
+        let r4 = state
+            .eval_script_str(
+                r#"for x in 1 2; do mapfile -t -C 'printf direct; break; printf never' -c 1 D <<< $'a\nb'; printf wrong; done; printf '|D=%s,%s\n' "${D[0]}" "${D[1]}""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r4.exit_code, 0);
+        assert_eq!(r4.stdout, "direct|D=,\n");
     }
 }

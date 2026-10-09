@@ -716,6 +716,13 @@ pub fn sync_array_metadata(base: &str, env: &mut BTreeMap<String, String>) {
     env.insert(format!("{base}[*]"), joined.clone());
     env.insert(format!("{base}[@]"), joined);
     env.insert(format!("__keys__{base}"), keys.join("\x1f"));
+    if !is_assoc {
+        if let Some(zero) = env.get(&format!("{base}[0]")).cloned() {
+            env.insert(base.to_string(), zero);
+        } else {
+            env.remove(base);
+        }
+    }
 }
 
 fn resolve_arith_var_resolved(resolved: &str, env: &mut BTreeMap<String, String>, depth: usize) -> i64 {

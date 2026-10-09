@@ -7985,4 +7985,87 @@ mod tests {
 ");
     }
 
+    #[test]
+    fn unit_grep_context_rg_replace_find_prune_printf_fd_placeholders_and_xargs_eof() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/keep").unwrap();
+        vfs.mkdir_all("/work/skip").unwrap();
+        vfs.write_file("/work/keep/mod.ts", b"id=42 name=alice\n").unwrap();
+        vfs.write_file("/work/skip/ign.ts", b"id=99 name=bob\n").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+
+        let grep_ctx = try_run_search_command(
+            "grep",
+            &args(&["-C", "1", "HIT"]),
+            "L1\nHIT1\nL3\nL4\nL5\nHIT2\nL7\n",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(grep_ctx.exit_code, 0);
+        assert_eq!(grep_ctx.stdout, "L1\nHIT1\nL3\n--\nL5\nHIT2\nL7\n");
+
+        let rg_repl = try_run_search_command(
+            "rg",
+            &args(&["-N", "id=([0-9]+) name=([a-z]+)", "-r", "$2:$1", "/work/keep/mod.ts"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(rg_repl.exit_code, 0);
+        assert_eq!(rg_repl.stdout, "alice:42\n");
+
+        let find_pf = try_run_search_command(
+            "find",
+            &args(&["/work", "-name", "skip", "-prune", "-o", "-type", "f", "-printf", "%f:%y\\n"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(find_pf.exit_code, 0);
+        assert_eq!(find_pf.stdout, "mod.ts:f\n");
+
+        let fd_exec = try_run_search_command(
+            "fd",
+            &args(&["-e", "ts", ".", "/work/keep", "-x", "echo", "{/}|{/.}"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |sub_words, _, _, _| BuiltinOutcome {
+                stdout: format!("{}\n", sub_words[1..].join(" ")),
+                stderr: String::new(),
+                exit_code: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(fd_exec.exit_code, 0);
+        assert_eq!(fd_exec.stdout, "mod.ts|mod\n");
+
+        let xargs_eof = try_run_search_command(
+            "xargs",
+            &args(&["-E", "STOP", "echo"]),
+            "alpha beta STOP gamma\n",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |sub_words, _, _, _| BuiltinOutcome {
+                stdout: format!("{}\n", sub_words[1..].join(" ")),
+                stderr: String::new(),
+                exit_code: 0,
+            },
+        )
+        .unwrap();
+        assert_eq!(xargs_eof.exit_code, 0);
+        assert_eq!(xargs_eof.stdout, "alpha beta\n");
+    }
 }

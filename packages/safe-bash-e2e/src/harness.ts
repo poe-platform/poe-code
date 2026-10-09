@@ -344,6 +344,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-column-file-pdftoppm-pdftohtml-coreutils-media-parity-matrix.test.ts",
   "obscure-diff-patch-apply-patch-cmp-diff3-wdiff-parity-matrix.test.ts",
   "obscure-sed-awk-regex-holdspace-branching-getline-printf-parity-matrix.test.ts",
+  "obscure-grep-rg-find-fd-xargs-which-search-parity-matrix.test.ts",
   "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
   "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
   "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",

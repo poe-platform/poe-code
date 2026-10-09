@@ -6947,6 +6947,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         word: &str,
         escape_quoted_glob: bool,
+        split_plain_text: bool,
         segments: &mut Vec<WordSeg>,
     ) -> Result<(), EvalError> {
         let chars: Vec<char> = word.chars().collect();
@@ -7157,7 +7158,7 @@ impl<'a> EvalState<'a> {
                         let alt_owned = alt_raw.to_string();
                         idx = probe_idx;
                         let tilded_alt = self.expand_tilde_in_word(&alt_owned, false);
-                        self.collect_word_segments(&tilded_alt, escape_quoted_glob, segments)?;
+                        self.collect_word_segments(&tilded_alt, escape_quoted_glob, true, segments)?;
                         continue;
                     }
                 }
@@ -7180,7 +7181,11 @@ impl<'a> EvalState<'a> {
                 plain.push(chars[idx]);
                 idx += 1;
             }
-            segments.push(WordSeg::Literal(plain));
+            if split_plain_text {
+                segments.push(WordSeg::Split(plain));
+            } else {
+                segments.push(WordSeg::Literal(plain));
+            }
         }
         Ok(())
     }
@@ -7242,7 +7247,7 @@ impl<'a> EvalState<'a> {
         }
 
         let mut segments: Vec<WordSeg> = Vec::new();
-        self.collect_word_segments(word, escape_quoted_glob, &mut segments)?;
+        self.collect_word_segments(word, escape_quoted_glob, false, &mut segments)?;
 
         let total_exp_bytes: usize = segments
             .iter()
@@ -9228,13 +9233,22 @@ fn expand_braces_with_limits(
         }
         let mut word_out = String::new();
         let mut after_gen_syn = false;
-        for (part, is_gen) in materialized_parts {
-            if is_gen {
+        for (idx, (part, is_gen)) in materialized_parts.iter().enumerate() {
+            if *is_gen {
                 after_gen_syn = true;
             }
+            let at_word_end = materialized_parts[idx + 1..].iter().all(|(p, _)| match p {
+                BracePart::Text { raw, .. }
+                | BracePart::Atom { raw, .. }
+                | BracePart::AnsiQuote { raw, .. } => raw.is_empty(),
+            });
             match part {
                 BracePart::Text { raw, .. } | BracePart::Atom { raw, .. } => {
-                    word_out.push_str(&raw);
+                    if *is_gen && raw == "`" && at_word_end {
+                        word_out.push_str("\\`");
+                    } else {
+                        word_out.push_str(raw);
+                    }
                 }
                 BracePart::AnsiQuote { raw, decoded, .. } => {
                     if after_gen_syn {
@@ -9242,7 +9256,7 @@ fn expand_braces_with_limits(
                         word_out.push_str(&decoded.replace('\'', "'\\''"));
                         word_out.push('\'');
                     } else {
-                        word_out.push_str(&raw);
+                        word_out.push_str(raw);
                     }
                 }
             }
@@ -9252,6 +9266,7 @@ fn expand_braces_with_limits(
     Ok((out, true))
 }
 
+#[cfg(test)]
 fn expand_braces(word: &str) -> Vec<String> {
     expand_braces_with_limits(word, usize::MAX, usize::MAX)
         .map(|(v, _)| v)
@@ -9834,6 +9849,10 @@ mod tests {
             res.stdout,
             "<a>\n<b>\n<c>\n<a>\n<>\n<c>\n</home/a b:*>\n</home/a b:*/dir>\n</work/sub>\n</var/log/sub>\n</home/a b:*/a:/home/a b:*/b>\n</home/a b:*/a:~/b>\n"
         );
+
+        let alt_split = state.eval_script_str("IFS=' '; unset u; printf '[%s]' ${u:-a b} ${u:-\"a b\"}", "").unwrap();
+        assert_eq!(alt_split.exit_code, 0);
+        assert_eq!(alt_split.stdout, "[a][b][a b]");
     }
 
     #[test]
@@ -9856,5 +9875,13 @@ mod tests {
             res.stdout,
             "<Ytail>\n<$value>\n<_tail>\n<btail>\n<Ypost>\n<\"post>\n<_post>\n<bpost>\n<-03>\n<-01>\n<001>\n<003>\nex=b|arr=[2]=x [2]=y last|mk={a,b}|mv={c,d}|rc=1\n"
         );
+
+        let z_to_a = state.eval_script_str("printf '<%s>' {Z..a}", "").unwrap();
+        assert_eq!(z_to_a.exit_code, 0);
+        assert_eq!(z_to_a.stdout, "<Z><[><><]><^><_><`><a>");
+
+        let pre_z_to_a_post = state.eval_script_str("(printf '<%s>' pre{Z..a}post) 2>/dev/null; printf '%s' \"$?\"", "").unwrap();
+        assert_eq!(pre_z_to_a_post.exit_code, 0);
+        assert_eq!(pre_z_to_a_post.stdout, "1");
     }
 }

@@ -404,6 +404,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-dynamic-vars-random-seconds-lineno-dirstack-indirect-param-parity-matrix.test.ts",
   "obscure-conditional-double-bracket-ere-shortcircuit-rematch-parity-matrix.test.ts",
   "obscure-traps-extdebug-errtrace-functrace-aliases-errexit-parity-matrix.test.ts",
+  "obscure-select-tilde-ifs-brace-expansion-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

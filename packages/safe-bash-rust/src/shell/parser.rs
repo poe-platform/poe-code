@@ -6,6 +6,7 @@ pub enum RedirectKind {
     Append(u32),
     Clobber(u32),
     In(u32),
+    ReadWrite(u32),
     HereString(u32),
     HereDoc { fd: u32, quoted: bool },
     DupOut(u32),
@@ -368,6 +369,12 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
                 Redirect { kind: RedirectKind::In(f), target }
+            }
+            Token::RedirectReadWrite(fd) => {
+                let f = *fd;
+                *pos += 1;
+                let target = expect_word(tokens, pos)?;
+                Redirect { kind: RedirectKind::ReadWrite(f), target }
             }
             Token::RedirectHereString(fd) => {
                 let f = *fd;
@@ -809,6 +816,7 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 | Token::RedirectAppend(_)
                 | Token::RedirectClobber(_)
                 | Token::RedirectIn(_)
+                | Token::RedirectReadWrite(_)
                 | Token::RedirectHereString(_)
                 | Token::RedirectHereDoc { .. }
                 | Token::RedirectDupOut(_)

@@ -622,8 +622,29 @@ pub fn sync_array_metadata(base: &str, env: &mut BTreeMap<String, String>) {
     env.insert(format!("__keys__{base}"), keys.join("\x1f"));
 }
 
-fn set_arith_var(name: &str, val: i64, env: &mut BTreeMap<String, String>) {
-    let resolved = resolve_var_key(name, env);
+fn resolve_arith_var_resolved(resolved: &str, env: &BTreeMap<String, String>, depth: usize) -> i64 {
+    if depth > 16 {
+        return 0;
+    }
+    let Some(raw) = env.get(resolved) else {
+        return 0;
+    };
+    let trimmed = raw.trim();
+    if let Ok(n) = trimmed.parse::<i64>() {
+        return n;
+    }
+    if !trimmed.is_empty()
+        && trimmed
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_')
+    {
+        return resolve_arith_var(trimmed, env, depth + 1);
+    }
+    let mut tmp = env.clone();
+    eval_arith(trimmed, &mut tmp).unwrap_or(0)
+}
+
+fn set_arith_var_resolved(resolved: String, val: i64, env: &mut BTreeMap<String, String>) {
     env.insert(resolved.clone(), val.to_string());
     if let Some((base, _)) = resolved.split_once('[') {
         sync_array_metadata(base, env);
@@ -658,8 +679,9 @@ fn eval_arith_assign(
         let var = name.clone();
         let assign_op = op.clone();
         *pos += 2;
+        let resolved_key = resolve_var_key_mut(&var, env);
         let rhs = eval_arith_assign(tokens, pos, env)?;
-        let cur = resolve_arith_var(&var, env, 0);
+        let cur = resolve_arith_var_resolved(&resolved_key, env, 0);
         let next = match assign_op.as_str() {
             "=" => rhs,
             "+=" => cur.wrapping_add(rhs),
@@ -684,7 +706,7 @@ fn eval_arith_assign(
             ">>=" => cur.wrapping_shr(rhs as u32),
             _ => rhs,
         };
-        set_arith_var(&var, next, env);
+        set_arith_var_resolved(resolved_key, next, env);
         return Ok(next);
     }
     eval_arith_ternary(tokens, pos, env)
@@ -969,9 +991,10 @@ fn eval_arith_unary(
                 *pos += 1;
                 if let Some(ArithTok::Ident(var)) = tokens.get(*pos).cloned() {
                     *pos += 1;
-                    let cur = resolve_arith_var(&var, env, 0);
+                    let resolved_key = resolve_var_key_mut(&var, env);
+                    let cur = resolve_arith_var_resolved(&resolved_key, env, 0);
                     let next = if is_inc { cur + 1 } else { cur - 1 };
-                    set_arith_var(&var, next, env);
+                    set_arith_var_resolved(resolved_key, next, env);
                     return Ok(next);
                 }
             }
@@ -993,13 +1016,14 @@ fn eval_arith_primary(
         }
         Some(ArithTok::Ident(var)) => {
             *pos += 1;
-            let cur = resolve_arith_var(&var, env, 0);
+            let resolved_key = resolve_var_key_mut(&var, env);
+            let cur = resolve_arith_var_resolved(&resolved_key, env, 0);
             if let Some(ArithTok::Op(op)) = tokens.get(*pos)
                 && (op == "++" || op == "--")
             {
                 let next = if op == "++" { cur + 1 } else { cur - 1 };
                 *pos += 1;
-                set_arith_var(&var, next, env);
+                set_arith_var_resolved(resolved_key, next, env);
                 return Ok(cur);
             }
             Ok(cur)
@@ -2255,6 +2279,53 @@ fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>) -> Str
     resolve_nameref_base(name, env).to_string()
 }
 
+pub fn resolve_var_key_mut(name: &str, env: &mut BTreeMap<String, String>) -> String {
+    if let Some((base, sub_rest)) = name.split_once('[')
+        && let Some(raw_sub) = sub_rest.strip_suffix(']')
+    {
+        let resolved_base = resolve_nameref_base(base, env).to_string();
+        let unq = raw_sub.trim_matches('"').trim_matches('\'');
+        let clean_sub = if let Some(var_name) = unq.strip_prefix('$') {
+            let vn = var_name
+                .strip_prefix('{')
+                .and_then(|s| s.strip_suffix('}'))
+                .unwrap_or(var_name);
+            env.get(vn).cloned().unwrap_or_default()
+        } else {
+            unq.to_string()
+        };
+        let is_assoc = env
+            .get(&format!("__assoc__{resolved_base}"))
+            .map(|v| v == "1")
+            .unwrap_or(false);
+        if !is_assoc && !matches!(clean_sub.as_str(), "@" | "*" | "#") && !clean_sub.is_empty() {
+            let idx = if let Ok(n) = clean_sub.parse::<i64>() {
+                n
+            } else {
+                eval_arith(&clean_sub, env).unwrap_or(0)
+            };
+            let final_idx = if idx < 0 {
+                let prefix = format!("{resolved_base}[");
+                let max_idx = env
+                    .keys()
+                    .filter_map(|k| {
+                        k.strip_prefix(&prefix)
+                            .and_then(|s| s.strip_suffix(']'))
+                            .and_then(|sub| sub.parse::<i64>().ok())
+                    })
+                    .max()
+                    .unwrap_or(-1);
+                max_idx + 1 + idx
+            } else {
+                idx
+            };
+            return format!("{resolved_base}[{final_idx}]");
+        }
+        return format!("{resolved_base}[{clean_sub}]");
+    }
+    resolve_nameref_base(name, env).to_string()
+}
+
 
 pub fn lookup_var(
     name: &str,
@@ -2728,5 +2799,22 @@ mod tests {
         assert_eq!(expand_parameter_expr("#SET_VAR", &mut env, 0, &[]).unwrap(), "5");
         assert_eq!(expand_parameter_expr("EMPTY_VAR:-fallback", &mut env, 0, &[]).unwrap(), "fallback");
         assert_eq!(expand_parameter_expr("SET_VAR:+alt", &mut env, 0, &[]).unwrap(), "alt");
+    }
+
+    #[test]
+    fn unit_arith_array_subscript_side_effects_persist_in_order() {
+        let mut env = BTreeMap::new();
+        env.insert("arr[0]".to_string(), "10".to_string());
+        env.insert("arr[1]".to_string(), "20".to_string());
+        env.insert("arr[2]".to_string(), "30".to_string());
+        sync_array_metadata("arr", &mut env);
+        env.insert("i".to_string(), "1".to_string());
+
+        let v = eval_arith("arr[i++] += 5, arr[i] *= 2", &mut env).unwrap();
+        assert_eq!(v, 60);
+        assert_eq!(env.get("i").map(String::as_str), Some("2"));
+        assert_eq!(env.get("arr[0]").map(String::as_str), Some("10"));
+        assert_eq!(env.get("arr[1]").map(String::as_str), Some("25"));
+        assert_eq!(env.get("arr[2]").map(String::as_str), Some("60"));
     }
 }

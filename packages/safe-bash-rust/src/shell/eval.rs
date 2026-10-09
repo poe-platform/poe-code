@@ -5,7 +5,7 @@ use crate::shell::builtins::{BuiltinOutcome, try_run_builtin};
 use crate::shell::expand::{
     bash_quote_double, decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr,
     expand_globs_in_word, expand_parameter_expr, get_var_meta_info, glob_match_ext,
-    resolve_nameref_base, sync_array_metadata,
+    resolve_nameref_base, resolve_var_key_mut, sync_array_metadata,
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
@@ -2082,7 +2082,7 @@ impl<'a> EvalState<'a> {
             };
             let local_frame = self.local_scopes.pop().unwrap_or_default();
             for (k, orig) in &local_frame {
-                if k.starts_with("__") {
+                if k.starts_with("__") || k.contains('[') {
                     continue;
                 }
                 let prefix = format!("{k}[");
@@ -2099,6 +2099,7 @@ impl<'a> EvalState<'a> {
                 self.env.remove(&format!("__assoc__{k}"));
                 self.env.remove(&format!("__nameref__{k}"));
                 self.env.remove(&format!("__declared__{k}"));
+                self.env.remove(&format!("__keys__{k}"));
                 match orig {
                     Some(v) => {
                         self.env.insert(k.clone(), v.clone());
@@ -2109,7 +2110,7 @@ impl<'a> EvalState<'a> {
                 }
             }
             for (k, orig) in local_frame {
-                if !k.starts_with("__") {
+                if !k.starts_with("__") && !k.contains('[') {
                     continue;
                 }
                 match orig {
@@ -3452,14 +3453,28 @@ impl<'a> EvalState<'a> {
                 && !frame.contains_key(&base_name)
             {
                 frame.insert(base_name.clone(), self.env.get(&base_name).cloned());
-                for meta_prefix in ["__attr__", "__assoc__", "__nameref__", "__declared__"] {
+                for meta_prefix in ["__attr__", "__assoc__", "__nameref__", "__declared__", "__keys__"] {
                     let mk = format!("{meta_prefix}{base_name}");
                     frame.insert(mk.clone(), self.env.get(&mk).cloned());
+                }
+                let arr_prefix = format!("{base_name}[");
+                let existing_arr_keys: Vec<(String, String)> = self
+                    .env
+                    .iter()
+                    .filter(|(ek, _)| ek.starts_with(&arr_prefix))
+                    .map(|(ek, ev)| (ek.clone(), ev.clone()))
+                    .collect();
+                for (ak, av) in existing_arr_keys {
+                    frame.insert(ak.clone(), Some(av));
+                    if val_opt.is_none() || !append {
+                        self.env.remove(&ak);
+                    }
                 }
                 self.env.remove(&format!("__attr__{base_name}"));
                 self.env.remove(&format!("__assoc__{base_name}"));
                 self.env.remove(&format!("__nameref__{base_name}"));
                 self.env.remove(&format!("__declared__{base_name}"));
+                self.env.remove(&format!("__keys__{base_name}"));
                 if val_opt.is_none() || !append {
                     self.env.remove(&base_name);
                 }
@@ -3592,12 +3607,27 @@ impl<'a> EvalState<'a> {
                 && let Some(raw_sub) = sub_rest.strip_suffix(']')
             {
                 let resolved = resolve_nameref_base(base, self.env).to_string();
+                if self
+                    .env
+                    .get(&format!("__attr__{resolved}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("unset: {resolved}: cannot unset: readonly variable\n"),
+                        exit_code: 1,
+                    };
+                }
                 let clean_sub = raw_sub.trim_matches('"').trim_matches('\'');
-                self.env.remove(&format!("{resolved}[{clean_sub}]"));
-                sync_array_metadata(&resolved, self.env);
-                continue;
+                if clean_sub != "@" && clean_sub != "*" {
+                    let elem_key = resolve_var_key_mut(&format!("{resolved}[{clean_sub}]"), self.env);
+                    self.env.remove(&elem_key);
+                    sync_array_metadata(&resolved, self.env);
+                    continue;
+                }
             }
-            let resolved = resolve_nameref_base(arg, self.env).to_string();
+            let base_arg = arg.split_once('[').map(|(b, _)| b).unwrap_or(arg);
+            let resolved = resolve_nameref_base(base_arg, self.env).to_string();
             if self
                 .env
                 .get(&format!("__attr__{resolved}"))
@@ -3616,6 +3646,7 @@ impl<'a> EvalState<'a> {
             self.env.remove(&format!("__attr__{resolved}"));
             self.env.remove(&format!("__declared__{resolved}"));
             self.env.remove(&format!("__assoc__{resolved}"));
+            self.env.remove(&format!("__keys__{resolved}"));
             let prefix = format!("{resolved}[");
             let arr_keys: Vec<String> = self
                 .env
@@ -4178,6 +4209,66 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, content);
                     }
                 }
+                RedirectKind::ReadWrite(fd) => {
+                    let target = self.expand_word_to_string(&r.target)?;
+                    let full = resolve_posix_path(self.cwd, &target);
+                    if full != "/dev/null" && !self.fs.exists(&full) {
+                        if let Err(e) = self.fs.write_file(&full, b"") {
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{target}: {e}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out)));
+                        }
+                        self.apply_umask_to_new_file(&full);
+                    }
+                    let content = match self.fs.read_file(&full) {
+                        Ok(bytes) => {
+                            if bytes.len() > self.budget.limits.max_input_bytes {
+                                return Ok((
+                                    saved_fds,
+                                    saved_in,
+                                    local_stdin,
+                                    true,
+                                    None,
+                                    Some(BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!("{target}: EFBIG: File too large\n"),
+                                        exit_code: 1,
+                                    }),
+                                ));
+                            }
+                            bytes_to_stream_string(&bytes)
+                        }
+                        Err(e) => {
+                            return Ok((
+                                saved_fds,
+                                saved_in,
+                                local_stdin,
+                                true,
+                                None,
+                                Some(BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{target}: {e}\n"),
+                                    exit_code: 1,
+                                }),
+                            ));
+                        }
+                    };
+                    if *fd == 0 {
+                        local_stdin = content;
+                        use_local = true;
+                        dup_fd = None;
+                    } else {
+                        if !saved_in.iter().any(|(f, _)| f == fd) {
+                            saved_in.push((*fd, self.in_fds.get(fd).cloned()));
+                        }
+                        self.in_fds.insert(*fd, content);
+                    }
+                    self.fd_table.insert(*fd, FdTarget::File { path: full });
+                }
                 RedirectKind::HereString(fd) => {
                     let val = self.expand_word_to_string(&r.target)?;
                     let content = format!("{val}\n");
@@ -4212,6 +4303,7 @@ impl<'a> EvalState<'a> {
                 RedirectKind::DupIn(fd) => {
                     let target = self.expand_word_to_string(&r.target)?;
                     if target == "-" {
+                        self.fd_table.insert(*fd, FdTarget::Closed);
                         if *fd == 0 {
                             local_stdin.clear();
                             use_local = true;
@@ -5699,5 +5791,28 @@ mod tests {
             .unwrap();
         assert_eq!(res.exit_code, 0);
         assert_eq!(res.stdout, "IN\nRET\nprocsub\n");
+    }
+
+    #[test]
+    fn unit_readwrite_redirect_local_array_shadowing_and_unset_subscripts() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        let res = state
+            .eval_script_str(
+                "exec 3<> /tmp/rw.txt; printf 'hello\\nworld\\n' >&3; exec 3<&-; exec 3< /tmp/rw.txt; read -r l1 <&3; read -r l2 <&3; exec 3<&-; echo \"rw=$l1|$l2\"; \
+                 arr=(outer1 outer2); f() { local arr=(inner1 inner2 inner3); echo \"in:${arr[*]}\"; }; f; echo \"out:${arr[*]}\"; \
+                 u=(a b c d); unset 'u[-2]'; echo \"u:${!u[*]}:${u[*]}\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(
+            res.stdout,
+            "rw=hello|world\nin:inner1 inner2 inner3\nout:outer1 outer2\nu:0 1 3:a b d\n"
+        );
     }
 }

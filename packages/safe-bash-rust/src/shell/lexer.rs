@@ -13,6 +13,7 @@ pub enum Token {
     RedirectAppend(u32),
     RedirectClobber(u32),
     RedirectIn(u32),
+    RedirectReadWrite(u32),
     RedirectHereString(u32),
     RedirectHereDoc {
         fd: u32,
@@ -493,7 +494,7 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     tokens.push(Token::RedirectDupIn(fd));
                 } else if i < chars.len() && chars[i] == '>' {
                     i += 1;
-                    tokens.push(Token::RedirectIn(fd));
+                    tokens.push(Token::RedirectReadWrite(fd));
                 } else {
                     tokens.push(Token::RedirectIn(fd));
                 }

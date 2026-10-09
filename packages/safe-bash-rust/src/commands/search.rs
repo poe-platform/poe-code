@@ -26,7 +26,7 @@ where
             fs,
             cmd == "fgrep",
         )),
-        "rg" => Some(cmd_rg(args, stdin, cwd, fs)),
+        "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
         "find" => Some(cmd_find(args, cwd, env, fs, &mut exec_sub)),
         "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
         "xargs" => Some(cmd_xargs(args, stdin, cwd, env, fs, &mut exec_sub)),
@@ -97,13 +97,6 @@ fn cmd_which(
     } else {
         "/bin:/usr/bin".to_string()
     };
-    if path_str.is_empty() {
-        return BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 1,
-        };
-    }
     let path_dirs: Vec<&str> = path_str.split(':').collect();
 
     let mut out = String::new();
@@ -115,18 +108,19 @@ fn cmd_which(
         }
         let mut found = Vec::new();
         if name.contains('/') {
-            let full = resolve_posix_path(cwd, name);
-            if is_which_executable(fs, &full) {
-                found.push(name.clone());
+            if !(name.ends_with('/') || name.ends_with("/.") || name.ends_with("/..")) {
+                let full = resolve_posix_path(cwd, name);
+                if is_which_executable(fs, &full) {
+                    found.push(name.clone());
+                }
             }
         } else {
             for dir in &path_dirs {
                 let search_dir = if dir.is_empty() { "." } else { *dir };
-                let candidate = if search_dir == "/" {
-                    format!("/{name}")
-                } else {
-                    format!("{}/{name}", search_dir.trim_end_matches('/'))
-                };
+                let candidate = format!("{search_dir}/{name}");
+                if candidate.ends_with('/') || candidate.ends_with("/.") || candidate.ends_with("/..") {
+                    continue;
+                }
                 let lookup = resolve_posix_path(cwd, &candidate);
                 if is_which_executable(fs, &lookup) {
                     found.push(candidate);
@@ -2109,6 +2103,7 @@ fn cmd_grep(
     let mut dereference_recursive = false;
     let mut dir_action: Option<String> = None;
     let mut quiet = false;
+    let mut no_messages = false;
     let mut no_filename = false;
     let mut ignore_binary = false;
     let mut with_filename = false;
@@ -2123,6 +2118,7 @@ fn cmd_grep(
     let mut patterns: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
     let mut has_explicit_pattern = false;
+    let mut read_patterns_from_stdin = false;
     let mut help_requested = false;
 
     let push_grep_pattern = |patterns: &mut Vec<String>, pat: &str| {
@@ -2190,7 +2186,8 @@ fn cmd_grep(
                     recursive = true;
                     dereference_recursive = true;
                 }
-                "--quiet" | "--silent" | "--no-messages" => quiet = true,
+                "--quiet" | "--silent" => quiet = true,
+                "--no-messages" => no_messages = true,
                 "--text" | "--binary" | "--line-buffered" => {
                     if a == "--text" {
                         ignore_binary = false;
@@ -2216,6 +2213,13 @@ fn cmd_grep(
                 }
                 "--directories" if i + 1 < args.len() => {
                     i += 1;
+                    if !matches!(args[i].as_str(), "read" | "skip" | "recurse") {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: invalid argument '{}' for 'directories'\n", args[i]),
+                            exit_code: 2,
+                        };
+                    }
                     if args[i] == "recurse" {
                         recursive = true;
                         dereference_recursive = false;
@@ -2223,15 +2227,30 @@ fn cmd_grep(
                         dir_action = Some(args[i].clone());
                     }
                 }
+                "--devices" if i + 1 < args.len() => {
+                    i += 1;
+                    if !matches!(args[i].as_str(), "read" | "skip") {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: invalid argument '{}' for 'devices'\n", args[i]),
+                            exit_code: 2,
+                        };
+                    }
+                }
                 "--exclude-from" if i + 1 < args.len() => {
                     i += 1;
                     let resolved = resolve_posix_path(cwd, &args[i]);
-                    if let Ok(bytes) = fs.read_file(&resolved) {
-                        for line in String::from_utf8_lossy(&bytes).lines() {
-                            let trimmed = line.trim();
-                            if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                                globs.push(format!("!{trimmed}"));
-                            }
+                    let Ok(bytes) = fs.read_file(&resolved) else {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
+                            exit_code: 2,
+                        };
+                    };
+                    for line in String::from_utf8_lossy(&bytes).lines() {
+                        let trimmed = line.trim();
+                        if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                            globs.push(format!("!{trimmed}"));
                         }
                     }
                 }
@@ -2246,8 +2265,20 @@ fn cmd_grep(
                 "--file" if i + 1 < args.len() => {
                     i += 1;
                     has_explicit_pattern = true;
-                    let resolved = resolve_posix_path(cwd, &args[i]);
-                    if let Ok(bytes) = fs.read_file(&resolved) {
+                    if args[i] == "-" {
+                        read_patterns_from_stdin = true;
+                        for line in stdin.lines() {
+                            patterns.push(line.to_string());
+                        }
+                    } else {
+                        let resolved = resolve_posix_path(cwd, &args[i]);
+                        let Ok(bytes) = fs.read_file(&resolved) else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
+                                exit_code: 2,
+                            };
+                        };
                         for line in String::from_utf8_lossy(&bytes).lines() {
                             patterns.push(line.to_string());
                         }
@@ -2263,7 +2294,7 @@ fn cmd_grep(
                     if args[i].is_empty() || !args[i].chars().all(|c| c.is_ascii_digit()) {
                         return BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{invoked_as}: invalid max count\n"),
+                            stderr: format!("{invoked_as}: invalid number '{}'\n", args[i]),
                             exit_code: 2,
                         };
                     }
@@ -2292,7 +2323,7 @@ fn cmd_grep(
                     if args[i] != "never" && args[i] != "auto" {
                         return BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{invoked_as}: unsupported color mode '{}'\n", args[i]),
+                            stderr: format!("{invoked_as}: unsupported color mode '{}'; use never or auto (non-terminal output)\n", args[i]),
                             exit_code: 2,
                         };
                     }
@@ -2316,7 +2347,7 @@ fn cmd_grep(
                         if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{invoked_as}: invalid max count\n"),
+                                stderr: format!("{invoked_as}: invalid number '{val}'\n"),
                                 exit_code: 2,
                             };
                         }
@@ -2351,29 +2382,61 @@ fn cmd_grep(
                         globs.push(format!("!{val}"));
                     } else if let Some(val) = a.strip_prefix("--exclude-from=") {
                         let resolved = resolve_posix_path(cwd, val);
-                        if let Ok(bytes) = fs.read_file(&resolved) {
-                            for line in String::from_utf8_lossy(&bytes).lines() {
-                                let trimmed = line.trim();
-                                if !trimmed.is_empty() && !trimmed.starts_with('#') {
-                                    globs.push(format!("!{trimmed}"));
-                                }
+                        let Ok(bytes) = fs.read_file(&resolved) else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
+                                exit_code: 2,
+                            };
+                        };
+                        for line in String::from_utf8_lossy(&bytes).lines() {
+                            let trimmed = line.trim();
+                            if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                                globs.push(format!("!{trimmed}"));
                             }
                         }
                     } else if let Some(val) = a.strip_prefix("--label=") {
                         stdin_label = Some(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--directories=") {
+                        if !matches!(val, "read" | "skip" | "recurse") {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: invalid argument '{val}' for 'directories'\n"),
+                                exit_code: 2,
+                            };
+                        }
                         if val == "recurse" {
                             recursive = true;
                             dereference_recursive = false;
                         } else {
                             dir_action = Some(val.to_string());
                         }
+                    } else if let Some(val) = a.strip_prefix("--devices=") {
+                        if !matches!(val, "read" | "skip") {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: invalid argument '{val}' for 'devices'\n"),
+                                exit_code: 2,
+                            };
+                        }
                     } else if let Some(val) = a.strip_prefix("--group-separator=") {
                         context_separator = Some(val.to_string());
                     } else if let Some(val) = a.strip_prefix("--file=") {
                         has_explicit_pattern = true;
-                        let resolved = resolve_posix_path(cwd, val);
-                        if let Ok(bytes) = fs.read_file(&resolved) {
+                        if val == "-" {
+                            read_patterns_from_stdin = true;
+                            for line in stdin.lines() {
+                                patterns.push(line.to_string());
+                            }
+                        } else {
+                            let resolved = resolve_posix_path(cwd, val);
+                            let Ok(bytes) = fs.read_file(&resolved) else {
+                                return BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
+                                    exit_code: 2,
+                                };
+                            };
                             for line in String::from_utf8_lossy(&bytes).lines() {
                                 patterns.push(line.to_string());
                             }
@@ -2394,7 +2457,7 @@ fn cmd_grep(
                         if val != "never" && val != "auto" {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{invoked_as}: unsupported color mode '{val}'\n"),
+                                stderr: format!("{invoked_as}: unsupported color mode '{val}'; use never or auto (non-terminal output)\n"),
                                 exit_code: 2,
                             };
                         }
@@ -2454,7 +2517,8 @@ fn cmd_grep(
                         recursive = true;
                         dereference_recursive = true;
                     }
-                    'q' | 's' => quiet = true,
+                    'q' => quiet = true,
+                    's' => no_messages = true,
                     'h' => {
                         no_filename = true;
                         with_filename = false;
@@ -2474,13 +2538,46 @@ fn cmd_grep(
                             i += 1;
                             args[i].clone()
                         } else {
-                            String::new()
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: option requires an argument -- 'd'\n"),
+                                exit_code: 2,
+                            };
                         };
+                        if !matches!(act.as_str(), "read" | "skip" | "recurse") {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: invalid argument '{act}' for 'directories'\n"),
+                                exit_code: 2,
+                            };
+                        }
                         if act == "recurse" {
                             recursive = true;
                             dereference_recursive = false;
                         } else {
                             dir_action = Some(act);
+                        }
+                        break;
+                    }
+                    'D' => {
+                        let act = if ci + 1 < chars.len() {
+                            chars[ci + 1..].iter().collect::<String>()
+                        } else if i + 1 < args.len() {
+                            i += 1;
+                            args[i].clone()
+                        } else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: option requires an argument -- 'D'\n"),
+                                exit_code: 2,
+                            };
+                        };
+                        if !matches!(act.as_str(), "read" | "skip") {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: invalid argument '{act}' for 'devices'\n"),
+                                exit_code: 2,
+                            };
                         }
                         break;
                     }
@@ -2509,14 +2606,28 @@ fn cmd_grep(
                             i += 1;
                             args[i].clone()
                         } else {
-                            String::new()
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{invoked_as}: option requires an argument -- 'f'\n"),
+                                exit_code: 2,
+                            };
                         };
-                        let resolved = resolve_posix_path(cwd, &file_arg);
-                        if let Ok(bytes) = fs.read_file(&resolved) {
+                        if file_arg == "-" {
+                            read_patterns_from_stdin = true;
+                            for line in stdin.lines() {
+                                patterns.push(line.to_string());
+                            }
+                        } else {
+                            let resolved = resolve_posix_path(cwd, &file_arg);
+                            let Ok(bytes) = fs.read_file(&resolved) else {
+                                return BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{invoked_as}: ENOENT: no such file or directory, readStream '{resolved}'\n"),
+                                    exit_code: 2,
+                                };
+                            };
                             for line in String::from_utf8_lossy(&bytes).lines() {
-                                if !line.is_empty() {
-                                    patterns.push(line.to_string());
-                                }
+                                patterns.push(line.to_string());
                             }
                         }
                         break;
@@ -2534,7 +2645,11 @@ fn cmd_grep(
                         if val_str.is_empty() || !val_str.chars().all(|c| c.is_ascii_digit()) {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{invoked_as}: {val_str}: invalid context length argument\n"),
+                                stderr: if flag == 'm' {
+                                    format!("{invoked_as}: invalid number '{val_str}'\n")
+                                } else {
+                                    format!("{invoked_as}: {val_str}: invalid context length argument\n")
+                                },
                                 exit_code: 2,
                             };
                         }
@@ -2587,7 +2702,7 @@ fn cmd_grep(
     }
 
     if help_requested {
-        return ok_out("Usage: grep [OPTION]... PATTERN [FILE]...\n");
+        return ok_out("Usage: grep [OPTION]... PATTERN [FILE]...\nPrint lines matching PATTERN. With no FILE, or FILE -, read standard input.\n\n  -G, --basic-regexp       Use basic regular expressions (default)\n  -E, --extended-regexp    Use extended regular expressions\n  -F, --fixed-strings      Use fixed strings\n  -e, --regexp=PATTERN     Add a pattern (repeatable)\n  -f, --file=FILE          Read patterns from FILE\n  -i, --ignore-case        Ignore case distinctions\n  -v, --invert-match       Select nonmatching lines\n  -w, --word-regexp        Match whole words\n  -x, --line-regexp        Match whole lines\n  -n, --line-number        Print line numbers\n  -H, --with-filename      Print filenames\n  -h, --no-filename        Suppress filenames\n  -o, --only-matching      Print only matching parts\n  -c, --count              Print matching line counts\n  -l, --files-with-matches Print filenames with matches\n  -L, --files-without-match Print filenames without matches\n  -q, --quiet, --silent    Suppress normal output\n  -m, --max-count=NUM      Stop after NUM selected lines per file\n  -A, --after-context=NUM  Print NUM lines after selected lines\n  -B, --before-context=NUM Print NUM lines before selected lines\n  -C, --context=NUM        Print NUM lines before and after selected lines\n  -s, --no-messages        Suppress file error messages\n  -a, --text               Process input as text\n  -z, --null-data          Use NUL-delimited records\n  -b, --byte-offset        Print byte offsets (match offsets with -o)\n  -Z, --null               Follow printed filenames with NUL\n  -r, --recursive          Search directories recursively\n  -R, --dereference-recursive Follow links during recursive search\n  -d, --directories=ACTION Read, skip or recurse into directories\n  -D, --devices=ACTION     Read or skip special files\n      --include=GLOB      Search matching basenames\n      --exclude=GLOB      Skip matching basenames\n      --exclude-dir=GLOB  Skip matching directories\n      --exclude-from=FILE Read exclusion globs from FILE\n      --no-group-separator Suppress separators between context groups\n      --no-ignore-case    Use case-sensitive matching\n      --line-buffered     Accepted; output writes are already awaited\n      --color=WHEN, --colour=WHEN Accept never or auto for non-terminal output\n      --binary-files=text Treat input as text within regex executor limits\n      --binary            Preserve bytes (no Windows text-mode translation)\n      --label=LABEL       Name standard input in filename prefixes\n      --initial-tab       Insert a tab after line prefixes\n      --group-separator=SEP Use SEP between context groups\n      --help              Display this help and exit\n      --                  End options\n\nExit status: 0 when a line is selected, 1 when none is selected, 2 on error.\nRegular expression support depends on the configured regex executor.\nThe default bounded matcher rejects BRE groups, intervals, backreferences and escape extensions.\nUse extended alternation: grep -E 'Remove upvote|Upvoted'\nFor literal alternatives: grep -F -e 'Remove upvote' -e 'Upvoted'\nIf an action succeeded but filtering failed, retry only the read-only verification;\ninspect the resulting state before repeating the action.\n");
     }
     if !has_explicit_pattern {
         return BuiltinOutcome {
@@ -2596,11 +2711,73 @@ fn cmd_grep(
             exit_code: 2,
         };
     }
+    if patterns.is_empty() {
+        let effective_stdin = if read_patterns_from_stdin { "" } else { stdin };
+        return run_grep_engine(
+            patterns,
+            targets,
+            effective_stdin,
+            cwd,
+            fs,
+            GrepConfig {
+                is_rg: false,
+                ignore_case,
+                invert,
+                count_only,
+                line_number,
+                files_with_matches,
+                files_without_match,
+                only_matching,
+                word_regexp,
+                line_regexp,
+                fixed_strings,
+                recursive,
+                quiet,
+                no_messages,
+                no_filename,
+                with_filename,
+                max_count,
+                before_ctx,
+                after_ctx,
+                globs,
+                types_include: Vec::new(),
+                types_exclude: Vec::new(),
+                show_hidden: true,
+                unrestricted_level: 3,
+                byte_offset,
+                null_delim,
+                null_data,
+                json_output: false,
+                replace: None,
+                multiline,
+                show_column: false,
+                ignore_binary,
+                max_depth: None,
+                max_filesize: None,
+                count_matches: false,
+                include_zero: true,
+                trim: false,
+                heading: false,
+                crlf: false,
+                context_separator,
+                initial_tab,
+                stdin_label,
+                dir_action,
+                dereference_recursive,
+                max_columns: None,
+                no_ignore_vcs: false,
+                no_ignore_dot: false,
+                custom_ignore_files: Vec::new(),
+                sort_by_path: false,
+                stats: false,
+            },
+        );
+    }
 
     if !fixed_strings && patterns.iter().any(|p| has_unsupported_regex_features(p)) {
         return BuiltinOutcome {
             stdout: String::new(),
-            stderr: "grep: invalid or unsupported regular expression\n".to_string(),
+            stderr: format!("{invoked_as}: invalid or unsupported regular expression\n"),
             exit_code: 2,
         };
     }
@@ -2649,7 +2826,7 @@ fn cmd_grep(
     run_grep_engine(
         patterns,
         targets,
-        stdin,
+        if read_patterns_from_stdin { "" } else { stdin },
         cwd,
         fs,
         GrepConfig {
@@ -2666,6 +2843,7 @@ fn cmd_grep(
             fixed_strings,
             recursive,
             quiet,
+            no_messages,
             no_filename,
             with_filename,
             max_count,
@@ -2706,7 +2884,45 @@ fn cmd_grep(
     )
 }
 
-fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_rg(
+    raw_args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut has_no_config = false;
+    for a in raw_args {
+        if a == "--" {
+            break;
+        }
+        if a == "--no-config" {
+            has_no_config = true;
+            break;
+        }
+    }
+    let mut combined_args: Vec<String> = Vec::new();
+    if !has_no_config
+        && let Some(cfg_path) = env.get("RIPGREP_CONFIG_PATH")
+        && !cfg_path.is_empty()
+    {
+        let resolved = resolve_posix_path(cwd, cfg_path);
+        let Ok(bytes) = fs.read_file(&resolved) else {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("rg: ENOENT: no such file or directory, readStream '{resolved}'\n"),
+                exit_code: 2,
+            };
+        };
+        for line in String::from_utf8_lossy(&bytes).lines() {
+            let trimmed = line.trim();
+            if !trimmed.is_empty() && !trimmed.starts_with('#') {
+                combined_args.push(trimmed.to_string());
+            }
+        }
+    }
+    combined_args.extend_from_slice(raw_args);
+    let args = &combined_args;
     let mut ignore_case = false;
     let mut smart_case = false;
     let mut invert = false;
@@ -2727,6 +2943,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut line_regexp = false;
     let mut fixed_strings = false;
     let mut quiet = false;
+    let mut no_messages = false;
     let mut no_filename = false;
     let mut with_filename = false;
     let mut list_files_only = false;
@@ -2743,6 +2960,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut max_columns: Option<usize> = None;
     let mut no_ignore_vcs = false;
     let mut no_ignore_dot = false;
+    let mut use_ignore_files = true;
     let mut custom_ignore_files: Vec<String> = Vec::new();
     let mut sort_by_path = false;
     let mut before_ctx = 0usize;
@@ -2752,9 +2970,11 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut types_include: Vec<String> = Vec::new();
     let mut types_exclude: Vec<String> = Vec::new();
     let mut patterns: Vec<String> = Vec::new();
+    let mut pattern_files: Vec<String> = Vec::new();
     let mut targets: Vec<String> = Vec::new();
     let mut has_explicit_pattern = false;
-    let mut help_or_version = false;
+    let mut help_requested = false;
+    let mut version_mode: Option<&'static str> = None;
 
     let mut i = 0usize;
     let mut end_of_opts = false;
@@ -2767,10 +2987,13 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
         if !end_of_opts && a.starts_with("--") {
             match a.as_str() {
-                "--help" | "--version" => {
-                    help_or_version = true;
-                }
+                "--help" => help_requested = true,
+                "--version" => version_mode = Some("long"),
                 "--no-config" | "--pcre2" | "--no-pcre2" => {}
+                "--no-messages" => no_messages = true,
+                "--messages" => no_messages = false,
+                "--no-ignore-files" => use_ignore_files = false,
+                "--ignore-files" => use_ignore_files = true,
                 "--files" => {
                     list_files_only = true;
                     count_only = false;
@@ -2896,14 +3119,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 "--file" if i + 1 < args.len() => {
                     i += 1;
                     has_explicit_pattern = true;
-                    let resolved = resolve_posix_path(cwd, &args[i]);
-                    if let Ok(bytes) = fs.read_file(&resolved) {
-                        for line in String::from_utf8_lossy(&bytes).lines() {
-                            if !line.is_empty() {
-                                patterns.push(line.to_string());
-                            }
-                        }
-                    }
+                    pattern_files.push(args[i].clone());
                 }
                 "--files-with-matches" => {
                     files_with_matches = true;
@@ -3082,6 +3298,9 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     } else if let Some(p) = a.strip_prefix("--regexp=") {
                         has_explicit_pattern = true;
                         patterns.push(p.to_string());
+                    } else if let Some(f) = a.strip_prefix("--file=") {
+                        has_explicit_pattern = true;
+                        pattern_files.push(f.to_string());
                     } else if let Some(t) = a.strip_prefix("--type=") {
                         if !is_valid_rg_type(t) {
                             return BuiltinOutcome {
@@ -3117,9 +3336,8 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             let mut ci = 0usize;
             while ci < chars.len() {
                 match chars[ci] {
-                    'h' | 'V' => {
-                        help_or_version = true;
-                    }
+                    'h' => help_requested = true,
+                    'V' => version_mode = Some("short"),
                     'P' => {}
                     'i' => {
                         ignore_case = true;
@@ -3242,16 +3460,13 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                             i += 1;
                             args[i].clone()
                         } else {
-                            String::new()
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "rg: -f requires a value\n".to_string(),
+                                exit_code: 2,
+                            };
                         };
-                        let resolved = resolve_posix_path(cwd, &file_arg);
-                        if let Ok(bytes) = fs.read_file(&resolved) {
-                            for line in String::from_utf8_lossy(&bytes).lines() {
-                                if !line.is_empty() {
-                                    patterns.push(line.to_string());
-                                }
-                            }
-                        }
+                        pattern_files.push(file_arg);
                         break;
                     }
                     'e' => {
@@ -3330,8 +3545,14 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         i += 1;
     }
 
-    if help_or_version {
-        return ok_out("ripgrep (safe-bash)\n");
+    if help_requested {
+        return ok_out("Usage: rg [OPTIONS] PATTERN [PATH ...]\nSearch files for PATTERN. PATH - reads standard input.\nDefault input depends on shell configuration.\n\n  -e, --regexp=PATTERN     Add a pattern (repeatable)\n  -f, --file=FILE          Read patterns from FILE\n  -r, --replace=TEXT       Replace matches with text and capture references\n      --trim              Trim leading ASCII whitespace\n  -F, --fixed-strings      Use fixed strings\n      --max-filesize=SIZE  Filter discovered files (bytes or K/M/G)\n      --ignore-file=FILE   Read an explicit virtual ignore file\n      --no-ignore-files   Disable explicit ignore files\n      --ignore-files      Enable explicit ignore files\n      --maxdepth=NUM      Alias for --max-depth\n  -j, --threads=NUM        Accept a count (virtual execution stays serial)\n  -U, --multiline          Admit line-compatible searches only\n  -i, --ignore-case        Ignore case distinctions\n  -s, --case-sensitive     Match case sensitively\n  -S, --smart-case         Infer case sensitivity from the pattern\n  -v, --invert-match       Select nonmatching lines\n  -w, --word-regexp        Match whole words\n  -x, --line-regexp        Match whole lines\n  -n, --line-number        Print line numbers\n  -N, --no-line-number     Suppress line numbers\n  -H, --with-filename      Print filenames\n  -I, --no-filename        Suppress filenames\n  -o, --only-matching      Print matching parts\n  -l, --files-with-matches Print filenames with matches\n      --files-without-match Print filenames without matches\n      --files             List files without searching\n  -c, --count              Print matching line counts\n      --count-matches     Print match counts\n      --json              Emit JSON events\n      --stats             Report aggregate search statistics\n  -q, --quiet              Suppress normal output\n  -g, --glob=GLOB          Include or exclude paths (repeatable)\n      --iglob=GLOB        Case-insensitive glob\n  -t, --type=TYPE          Include a file type\n  -T, --type-not=TYPE      Exclude a file type\n  -., --hidden             Search hidden files\n  -L, --follow             Follow symbolic links\n      --no-ignore         Disable ignore-file filtering\n  -u, --unrestricted       Relax ignore, hidden and binary filtering (repeatable)\n  -a, --text               Search binary files as text\n  -A, --after-context=NUM  Print NUM lines after matches\n  -B, --before-context=NUM Print NUM lines before matches\n  -C, --context=NUM        Print NUM lines before and after matches\n  -M, --max-columns=NUM   Omit output lines longer than NUM bytes (0 disables)\n  -m, --max-count=NUM      Limit matching lines per file\n  -d, --max-depth=NUM     Limit directory traversal depth\n      --column            Print columns\n  -b, --byte-offset        Print byte offsets\n  -0, --null               NUL-terminate filenames\n      --null-data         Use NUL-delimited records\n      --crlf              Handle CRLF line endings\n      --heading           Group output by filename\n      --sort=path         Sort paths\n      --color=never       Disable color\n  -h, --help              Display this help and exit\n  -V, --version           Display implementation information and exit\n      --                  End options\n\nExit status: 0 when a match is found, 1 when none is found, 2 on error.\nRegular expression support depends on the configured regex executor.\nThe default supports UTF-8 literals and bounded ASCII regular expressions.\nRegex operators: . ^ $ [...] (...) | * + ? {n,m}; -F treats patterns literally.\nCase and word selection support ASCII patterns and subjects.\nUnicode selection and extended regex syntax require a configured executor.\n");
+    }
+    if let Some(vmode) = version_mode {
+        if vmode == "long" {
+            return ok_out("rg (safe-bash bounded implementation)\nRegex engine: bounded ASCII regular expressions and UTF-8 literals\nNative ripgrep revision, PCRE2 and SIMD capabilities are not reported by this implementation.\n");
+        }
+        return ok_out("rg (safe-bash bounded implementation)\n");
     }
     if !list_files_only && !has_explicit_pattern {
         return BuiltinOutcome {
@@ -3339,6 +3560,58 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             stderr: "rg: a search pattern is required\n".to_string(),
             exit_code: 2,
         };
+    }
+    if !list_files_only && pattern_files.iter().any(|f| f == "-") && targets.iter().any(|t| t == "-") {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "rg: cannot search stdin while also reading patterns from stdin\n".to_string(),
+            exit_code: 2,
+        };
+    }
+    let mut read_patterns_from_stdin = false;
+    if !list_files_only {
+        for pf in &pattern_files {
+            if pf == "-" {
+                read_patterns_from_stdin = true;
+                for line in stdin.lines() {
+                    if !line.is_empty() {
+                        patterns.push(line.to_string());
+                    }
+                }
+            } else {
+                let resolved = resolve_posix_path(cwd, pf);
+                let Ok(bytes) = fs.read_file(&resolved) else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("rg: ENOENT: no such file or directory, readFile '{resolved}'\n"),
+                        exit_code: if no_messages { 2 } else { 2 },
+                    };
+                };
+                for line in String::from_utf8_lossy(&bytes).lines() {
+                    if !line.is_empty() {
+                        patterns.push(line.to_string());
+                    }
+                }
+            }
+        }
+    }
+    if !use_ignore_files {
+        custom_ignore_files.clear();
+    } else if unrestricted_level == 0 {
+        for igf in &custom_ignore_files {
+            let p = resolve_posix_path(cwd, igf);
+            if fs.read_file(&p).is_err() {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: if no_messages {
+                        String::new()
+                    } else {
+                        format!("rg: ENOENT: no such file or directory, readFile '{p}'\n")
+                    },
+                    exit_code: 2,
+                };
+            }
+        }
     }
 
     if unrestricted_level >= 2 {
@@ -3426,7 +3699,8 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             .iter()
             .any(|t| fs.is_dir(&resolve_posix_path(cwd, t)));
 
-    let effective_targets = if targets.is_empty() && stdin.is_empty() {
+    let effective_stdin = if read_patterns_from_stdin { "" } else { stdin };
+    let effective_targets = if targets.is_empty() && effective_stdin.is_empty() {
         vec![".".to_string()]
     } else {
         targets
@@ -3435,7 +3709,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     run_grep_engine(
         patterns,
         effective_targets,
-        stdin,
+        effective_stdin,
         cwd,
         fs,
         GrepConfig {
@@ -3452,6 +3726,7 @@ fn cmd_rg(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             fixed_strings,
             recursive,
             quiet,
+            no_messages,
             no_filename,
             with_filename,
             max_count,
@@ -3506,6 +3781,7 @@ struct GrepConfig {
     fixed_strings: bool,
     recursive: bool,
     quiet: bool,
+    no_messages: bool,
     no_filename: bool,
     with_filename: bool,
     max_count: Option<usize>,
@@ -3891,13 +4167,21 @@ fn run_grep_engine(
             }
             let resolved = resolve_posix_path(cwd, t);
             if !fs.exists(&resolved) {
-                if !cfg.quiet {
-                    err.push_str(&format!("grep: {t}: No such file or directory\n"));
+                if !cfg.no_messages {
+                    let prefix = if cfg.is_rg { "rg" } else { "grep" };
+                    err.push_str(&format!("{prefix}: ENOENT: no such file or directory, readFile '{resolved}'\n"));
                 }
                 had_error = true;
                 continue;
             }
-            if fs.is_dir(&resolved) && !cfg.recursive && cfg.dir_action.as_deref() == Some("skip") {
+            if fs.is_dir(&resolved) && !cfg.is_rg && !cfg.recursive {
+                if cfg.dir_action.as_deref() == Some("skip") {
+                    continue;
+                }
+                if !cfg.no_messages {
+                    err.push_str(&format!("grep: EISDIR: illegal operation on a directory, readFile '{resolved}'\n"));
+                }
+                had_error = true;
                 continue;
             }
             collect_search_files(
@@ -3993,7 +4277,11 @@ fn run_grep_engine(
                     if s < l_end && e > l_start {
                         any_match = true;
                         if cfg.quiet && !cfg.stats && !cfg.json_output {
-                            return ok_out("");
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: err,
+                                exit_code: 0,
+                            };
                         }
                         span_matched = true;
                         if first_line.is_none() {
@@ -4031,7 +4319,11 @@ fn run_grep_engine(
                 if is_matched {
                     any_match = true;
                     if cfg.quiet && !cfg.stats && !cfg.json_output {
-                        return ok_out("");
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: err,
+                            exit_code: 0,
+                        };
                     }
                     file_submatch_count += line_matches.len().max(1);
                     match_indices.push((idx, line_matches));
@@ -4490,8 +4782,8 @@ fn validate_find_printf(fmt: &str) -> Result<(), String> {
                         count += 1;
                     }
                 }
-                other => {
-                    return Err(format!("unsupported escape '\\{other}' in -printf"));
+                _ => {
+                    return Err("unsupported printf escape".to_string());
                 }
             }
         } else if chars[i] == '%' {
@@ -4502,8 +4794,8 @@ fn validate_find_printf(fmt: &str) -> Result<(), String> {
                 '%' | 'p' | 'f' | 'h' | 'P' | 'H' | 's' | 'd' | 'y' => {
                     i += 2;
                 }
-                other => {
-                    return Err(format!("unsupported directive '%{other}' in -printf"));
+                _ => {
+                    return Err("unsupported printf format directive or modifier".to_string());
                 }
             }
         } else {
@@ -4639,7 +4931,7 @@ fn render_find_printf(
 
 fn parse_size_arg_strict(s: &str) -> Result<(i8, usize, usize), String> {
     if s.is_empty() {
-        return Err("find: invalid -size argument".to_string());
+        return Err(format!("find: invalid size '{s}'"));
     }
     let (op, rest) = if let Some(r) = s.strip_prefix('+') {
         (1, r)
@@ -4664,11 +4956,11 @@ fn parse_size_arg_strict(s: &str) -> Result<(i8, usize, usize), String> {
         (rest, 512usize)
     };
     if num_str.is_empty() || !num_str.chars().all(|c| c.is_ascii_digit()) {
-        return Err("find: invalid -size argument".to_string());
+        return Err(format!("find: invalid size '{s}'"));
     }
     let n = num_str
         .parse::<usize>()
-        .map_err(|_| "find: invalid -size argument".to_string())?;
+        .map_err(|_| format!("find: invalid size '{s}'"))?;
     Ok((op, n, mult))
 }
 
@@ -4681,19 +4973,19 @@ fn parse_perm_arg_strict(s: &str) -> Result<(char, u32), String> {
         ('=', s)
     };
     if rest.is_empty() {
-        return Err("find: invalid -perm mode".to_string());
+        return Err(format!("find: invalid mode: '{rest}'"));
     }
     if rest.chars().all(|c| ('0'..='7').contains(&c)) && rest.len() <= 4 {
         let mask = u32::from_str_radix(rest, 8).unwrap_or(0) & 0o7777;
         return Ok((kind, mask));
     }
     if rest.chars().any(|c| c.is_ascii_digit()) {
-        return Err("find: invalid -perm mode".to_string());
+        return Err(format!("find: invalid mode: '{rest}'"));
     }
     let mut mode = 0u32;
     for clause in rest.split(',') {
         if clause.is_empty() {
-            return Err("find: invalid -perm mode".to_string());
+            return Err(format!("find: invalid mode: '{rest}'"));
         }
         let bytes = clause.as_bytes();
         let mut i = 0usize;
@@ -4720,12 +5012,12 @@ fn parse_perm_arg_strict(s: &str) -> Result<(char, u32), String> {
             who_o = true;
         }
         if i >= bytes.len() {
-            return Err("find: invalid -perm mode".to_string());
+            return Err(format!("find: invalid mode: '{rest}'"));
         }
         while i < bytes.len() {
             let op = bytes[i];
             if !matches!(op, b'+' | b'-' | b'=') {
-                return Err("find: invalid -perm mode".to_string());
+                return Err(format!("find: invalid mode: '{rest}'"));
             }
             i += 1;
             let mut r = false;
@@ -4740,7 +5032,7 @@ fn parse_perm_arg_strict(s: &str) -> Result<(char, u32), String> {
                     b'x' | b'X' => x = true,
                     b's' => s_bit = true,
                     b't' => t_bit = true,
-                    _ => return Err("find: invalid -perm mode".to_string()),
+                    _ => return Err(format!("find: invalid mode: '{rest}'")),
                 }
                 i += 1;
             }
@@ -4846,7 +5138,7 @@ impl<'a> FindParseContext<'a> {
 
     fn parse_primary(&mut self) -> Result<(FindPred, String), (i32, String)> {
         let Some(tok) = self.peek() else {
-            return Err((2, "find: expected expression\n".to_string()));
+            return Err((2, "find: missing expression\n".to_string()));
         };
         if matches!(tok, "!" | "-not") {
             self.idx += 1;
@@ -4856,11 +5148,11 @@ impl<'a> FindParseContext<'a> {
         if tok == "(" {
             self.idx += 1;
             if self.peek() == Some(")") {
-                return Err((2, "find: empty parentheses are not allowed\n".to_string()));
+                return Err((2, "find: unsupported expression ')'\n".to_string()));
             }
             let (inner, in_tree) = self.parse_list()?;
             if self.peek() != Some(")") {
-                return Err((2, "find: missing closing ')'\n".to_string()));
+                return Err((2, "find: missing ')'\n".to_string()));
             }
             self.idx += 1;
             return Ok((FindPred::Group(Box::new(inner)), in_tree));
@@ -4876,7 +5168,7 @@ impl<'a> FindParseContext<'a> {
                 this.idx += 1;
                 Ok(v.as_str())
             } else {
-                Err((2, format!("find: missing argument to '{opt}'\n")))
+                Err((2, format!("find: {opt} requires an argument\n")))
             }
         };
 
@@ -4889,13 +5181,16 @@ impl<'a> FindParseContext<'a> {
                 FindPred::Depth
             }
             "-maxdepth" | "-mindepth" => {
-                let raw = take_arg(self, tok)?;
+                let Some(raw) = self.args.get(self.idx).map(|s| s.as_str()) else {
+                    return Err((2, format!("find: {tok} requires a number\n")));
+                };
+                self.idx += 1;
                 if raw.is_empty() || !raw.chars().all(|c| c.is_ascii_digit()) {
-                    return Err((2, format!("find: invalid argument '{raw}' to '{tok}'\n")));
+                    return Err((2, format!("find: invalid number '{raw}'\n")));
                 }
                 let val = raw
                     .parse::<usize>()
-                    .map_err(|_| (2, format!("find: invalid argument '{raw}' to '{tok}'\n")))?;
+                    .map_err(|_| (2, format!("find: invalid number '{raw}'\n")))?;
                 if tok == "-maxdepth" {
                     self.max_depth = Some(val);
                     FindPred::MaxDepth
@@ -4921,7 +5216,7 @@ impl<'a> FindParseContext<'a> {
             "-regex" | "-iregex" => {
                 let pat = take_arg(self, tok)?.to_string();
                 if has_unsupported_regex_features(&pat) {
-                    return Err((2, format!("find: invalid regex '{pat}'\n")));
+                    return Err((2, format!("find: invalid regular expression '{pat}'\n")));
                 }
                 FindPred::Regex {
                     pat,
@@ -4933,16 +5228,16 @@ impl<'a> FindParseContext<'a> {
                 let mut types = Vec::new();
                 for part in raw.split(',') {
                     if part.len() != 1 {
-                        return Err((2, format!("find: Unknown argument to -type: {raw}\n")));
+                        return Err((2, format!("find: unsupported file type '{raw}'\n")));
                     }
                     let ch = part.chars().next().unwrap();
                     if !matches!(ch, 'f' | 'd' | 'l' | 'c') {
-                        return Err((2, format!("find: Unknown argument to -type: {raw}\n")));
+                        return Err((2, format!("find: unsupported file type '{raw}'\n")));
                     }
                     types.push(ch);
                 }
                 if types.is_empty() {
-                    return Err((2, "find: Unknown argument to -type\n".to_string()));
+                    return Err((2, format!("find: unsupported file type '{raw}'\n")));
                 }
                 FindPred::Type(types)
             }
@@ -4962,14 +5257,14 @@ impl<'a> FindParseContext<'a> {
             "-links" => {
                 let raw = take_arg(self, tok)?;
                 let (op, count) =
-                    parse_signed_count_strict(raw, "find: invalid -links count")
+                    parse_signed_count_strict(raw, &format!("find: invalid link count '{raw}'"))
                         .map_err(|m| (2, format!("{m}\n")))?;
                 FindPred::Links { op, count }
             }
             "-mtime" | "-atime" | "-ctime" | "-mmin" | "-amin" | "-cmin" => {
                 let raw = take_arg(self, tok)?;
                 let (op, count) =
-                    parse_signed_count_strict(raw, &format!("find: invalid {tok} argument"))
+                    parse_signed_count_strict(raw, &format!("find: invalid time '{raw}'"))
                         .map_err(|m| (2, format!("{m}\n")))?;
                 let unit_ms = if tok.ends_with("min") {
                     60_000i64
@@ -4988,8 +5283,8 @@ impl<'a> FindParseContext<'a> {
                 let ref_full = resolve_posix_path(self.cwd, raw);
                 let st = self
                     .fs
-                    .stat(&ref_full)
-                    .map_err(|e| (1, format!("find: '{raw}': {e}\n")))?;
+                    .lstat(&ref_full)
+                    .map_err(|_| (1, format!("find: ENOENT: no such file or directory, lstat '{ref_full}'\n")))?;
                 FindPred::Newer(st.mtime_ms)
             }
             "-prune" => {
@@ -5015,7 +5310,10 @@ impl<'a> FindParseContext<'a> {
                 FindPred::Print { null_delim: true }
             }
             "-printf" => {
-                let fmt = take_arg(self, tok)?.to_string();
+                let Some(fmt) = self.args.get(self.idx).cloned() else {
+                    return Err((2, "find: -printf requires a format\n".to_string()));
+                };
+                self.idx += 1;
                 validate_find_printf(&fmt).map_err(|m| (2, format!("find: {m}\n")))?;
                 self.explicit_action = true;
                 FindPred::Printf(fmt)
@@ -5032,10 +5330,10 @@ impl<'a> FindParseContext<'a> {
                     cmd_words.push(w.to_string());
                 }
                 let Some(t) = term else {
-                    return Err((2, "find: missing argument to '-exec'\n".to_string()));
+                    return Err((2, "find: -exec requires a command terminated by ';' or '+'\n".to_string()));
                 };
                 if cmd_words.is_empty() {
-                    return Err((2, "find: missing command for '-exec'\n".to_string()));
+                    return Err((2, "find: -exec requires a command terminated by ';' or '+'\n".to_string()));
                 }
                 self.explicit_action = true;
                 if t == "+" {
@@ -5046,7 +5344,7 @@ impl<'a> FindParseContext<'a> {
                     {
                         return Err((
                             2,
-                            "find: -exec ... + requires '{}' immediately before '+'\n".to_string(),
+                            "find: -exec requires a command terminated by ';' or '+'\n".to_string(),
                         ));
                     }
                     let b_idx = self.exec_batches.len();
@@ -5064,7 +5362,7 @@ impl<'a> FindParseContext<'a> {
                 }
             }
             other => {
-                return Err((2, format!("find: unknown predicate '{other}'\n")));
+                return Err((2, format!("find: unsupported expression '{other}'\n")));
             }
         };
 
@@ -5404,10 +5702,17 @@ where
             }
             "-D" => {
                 idx += 1;
-                if idx >= args.len() || args[idx] != "tree" {
+                if idx >= args.len() {
                     return BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: "find: invalid -D debug option\n".to_string(),
+                        stderr: "find: -D requires a debug option\n".to_string(),
+                        exit_code: 2,
+                    };
+                }
+                if args[idx] != "tree" {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("find: unsupported debug option '{}' (supported: tree)\n", args[idx]),
                         exit_code: 2,
                     };
                 }
@@ -5456,7 +5761,7 @@ where
                 if pctx.idx < args.len() {
                     return BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("find: unexpected argument '{}'\n", args[pctx.idx]),
+                        stderr: format!("find: unexpected expression '{}'\n", args[pctx.idx]),
                         exit_code: 2,
                     };
                 }
@@ -5477,7 +5782,7 @@ where
     if pctx.deletes && pctx.prunes && !pctx.explicit_depth {
         return BuiltinOutcome {
             stdout: String::new(),
-            stderr: "find: -delete implies -depth; -prune is ineffective without explicit -depth\n"
+            stderr: "find: -delete implies -depth; -prune is ineffective unless -depth is explicitly supplied\n"
                 .to_string(),
             exit_code: 1,
         };
@@ -5981,7 +6286,7 @@ where
         }
         if !end_of_opts && (a == "-x" || a == "--exec" || a == "-X" || a == "--exec-batch") {
             if has_exec {
-                return usage_err("cannot combine --exec and --exec-batch");
+                return usage_err("execution modes cannot be combined");
             }
             has_exec = true;
             exec_batch = a == "-X" || a == "--exec-batch";
@@ -5991,7 +6296,7 @@ where
                 i += 1;
             }
             if exec_cmd.is_empty() {
-                return usage_err("missing command for --exec");
+                return usage_err("execution command is required");
             }
             if i < args.len() && args[i] == ";" {
                 i += 1;
@@ -6005,15 +6310,32 @@ where
             };
             let take_val = |inline: Option<&str>, idx: &mut usize| -> Option<String> {
                 if let Some(v) = inline {
-                    Some(v.to_string())
+                    if v.is_empty() {
+                        None
+                    } else {
+                        Some(v.to_string())
+                    }
                 } else if *idx + 1 < args.len() {
                     *idx += 1;
-                    Some(args[*idx].clone())
+                    if args[*idx].is_empty() {
+                        None
+                    } else {
+                        Some(args[*idx].clone())
+                    }
                 } else {
                     None
                 }
             };
             match opt_name {
+                "--help" | "--version" => {
+                    if inline_val.is_some() {
+                        return usage_err(&format!("option {opt_name} does not take a value"));
+                    }
+                    if opt_name == "--version" {
+                        return ok_out("fd (safe-bash)\n");
+                    }
+                    return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n");
+                }
                 "--hidden"
                 | "--no-ignore"
                 | "--no-ignore-vcs"
@@ -6033,7 +6355,7 @@ where
                 | "--prune"
                 | "--list-details" => {
                     if inline_val.is_some() {
-                        return usage_err(&format!("option '{opt_name}' does not take a value"));
+                        return usage_err(&format!("option {opt_name} does not take a value"));
                     }
                     match opt_name {
                         "--hidden" => show_hidden = true,
@@ -6064,34 +6386,34 @@ where
                 }
                 "--extension" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --extension");
+                        return usage_err("option --extension requires a value");
                     };
                     extensions.push(v.trim_start_matches('.').to_ascii_lowercase());
                 }
                 "--type" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --type");
+                        return usage_err("option --type requires a value");
                     };
                     let Some(c) = parse_fd_type_char(&v) else {
-                        return usage_err(&format!("unknown file type '{v}'"));
+                        return usage_err(&format!("invalid file type '{v}'"));
                     };
                     types.push(c);
                 }
                 "--ignore-file" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --ignore-file");
+                        return usage_err("option --ignore-file requires a value");
                     };
                     custom_ignore_files.push(v);
                 }
                 "--path-separator" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --path-separator");
+                        return usage_err("option --path-separator requires a value");
                     };
                     path_separator = Some(v);
                 }
                 "--changed-within" | "--change-newer-than" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --changed-within");
+                        return usage_err("option --changed-within requires a value");
                     };
                     let Some(ms) = parse_fd_time_ms(&v) else {
                         return usage_err(&format!("invalid time '{v}'"));
@@ -6100,7 +6422,7 @@ where
                 }
                 "--changed-before" | "--change-older-than" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --changed-before");
+                        return usage_err("option --changed-before requires a value");
                     };
                     let Some(ms) = parse_fd_time_ms(&v) else {
                         return usage_err(&format!("invalid time '{v}'"));
@@ -6109,38 +6431,38 @@ where
                 }
                 "--max-depth" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --max-depth");
+                        return usage_err("option --max-depth requires a value");
                     };
                     let Some(d) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid --max-depth '{v}'"));
+                        return usage_err(&format!("invalid count '{v}'"));
                     };
                     max_depth = Some(d);
                 }
                 "--min-depth" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --min-depth");
+                        return usage_err("option --min-depth requires a value");
                     };
                     let Some(d) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid --min-depth '{v}'"));
+                        return usage_err(&format!("invalid count '{v}'"));
                     };
                     min_depth = d;
                 }
                 "--exact-depth" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --exact-depth");
+                        return usage_err("option --exact-depth requires a value");
                     };
                     let Some(d) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid --exact-depth '{v}'"));
+                        return usage_err(&format!("invalid count '{v}'"));
                     };
                     min_depth = d;
                     max_depth = Some(d);
                 }
                 "--max-results" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --max-results");
+                        return usage_err("option --max-results requires a value");
                     };
                     let Some(n) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid --max-results '{v}'"));
+                        return usage_err(&format!("invalid count '{v}'"));
                     };
                     if n == 0 {
                         return usage_err("--max-results must be greater than zero");
@@ -6149,63 +6471,63 @@ where
                 }
                 "--exclude" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --exclude");
+                        return usage_err("option --exclude requires a value");
                     };
                     excludes.push(v);
                 }
                 "--size" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --size");
+                        return usage_err("option --size requires a value");
                     };
                     let Some(sz) = parse_fd_size_spec(&v) else {
-                        return usage_err(&format!("invalid --size '{v}'"));
+                        return usage_err(&format!("invalid size '{v}'"));
                     };
                     sizes.push(sz);
                 }
                 "--format" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --format");
+                        return usage_err("option --format requires a value");
                     };
                     format_tpl = Some(v);
                 }
                 "--search-path" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --search-path");
+                        return usage_err("option --search-path requires a value");
                     };
                     search_paths.push(v);
                 }
                 "--base-directory" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --base-directory");
+                        return usage_err("option --base-directory requires a value");
                     };
                     base_dir = Some(v);
                 }
                 "--and" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --and");
+                        return usage_err("option --and requires a value");
                     };
                     and_patterns.push(v);
                 }
                 "--color" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --color");
+                        return usage_err("option --color requires a value");
                     };
                     if !matches!(v.as_str(), "never" | "auto" | "always") {
-                        return usage_err(&format!("invalid --color '{v}'"));
+                        return usage_err("invalid color mode");
                     }
                 }
                 "--threads" => {
                     let Some(v) = take_val(inline_val, &mut i) else {
-                        return usage_err("missing value for --threads");
+                        return usage_err("option --threads requires a value");
                     };
                     let Some(n) = parse_non_neg(&v) else {
-                        return usage_err(&format!("invalid --threads '{v}'"));
+                        return usage_err(&format!("invalid count '{v}'"));
                     };
                     if n == 0 {
                         return usage_err("--threads must be greater than zero");
                     }
                 }
-                _ => return usage_err(&format!("unknown option '{opt_name}'")),
+                _ => return usage_err(&format!("unrecognized option '{opt_name}'")),
             }
             i += 1;
             continue;
@@ -6215,6 +6537,12 @@ where
             let mut ci = 0usize;
             while ci < chars.len() {
                 match chars[ci] {
+                    'h' => {
+                        return ok_out("Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n");
+                    }
+                    'V' => {
+                        return ok_out("fd (safe-bash)\n");
+                    }
                     'H' => show_hidden = true,
                     'I' => respect_ignore = false,
                     'u' => {
@@ -6250,13 +6578,13 @@ where
                             'e' => extensions.push(val.trim_start_matches('.').to_ascii_lowercase()),
                             't' => {
                                 let Some(c) = parse_fd_type_char(&val) else {
-                                    return usage_err(&format!("unknown file type '{val}'"));
+                                    return usage_err(&format!("invalid file type '{val}'"));
                                 };
                                 types.push(c);
                             }
                             'd' => {
                                 let Some(d) = parse_non_neg(&val) else {
-                                    return usage_err(&format!("invalid depth '{val}'"));
+                                    return usage_err(&format!("invalid count '{val}'"));
                                 };
                                 max_depth = Some(d);
                             }
@@ -6270,12 +6598,12 @@ where
                             'C' => base_dir = Some(val),
                             'c' => {
                                 if !matches!(val.as_str(), "never" | "auto" | "always") {
-                                    return usage_err(&format!("invalid color '{val}'"));
+                                    return usage_err("invalid color mode");
                                 }
                             }
                             'j' => {
                                 let Some(n) = parse_non_neg(&val) else {
-                                    return usage_err(&format!("invalid threads '{val}'"));
+                                    return usage_err(&format!("invalid count '{val}'"));
                                 };
                                 if n == 0 {
                                     return usage_err("threads must be greater than zero");
@@ -6285,7 +6613,7 @@ where
                         }
                         break;
                     }
-                    other => return usage_err(&format!("unknown option '-{other}'")),
+                    other => return usage_err(&format!("unrecognized option '--{other}'")),
                 }
                 ci += 1;
             }
@@ -6297,16 +6625,16 @@ where
     }
 
     if has_exec && (format_tpl.is_some() || list_details) {
-        return usage_err("cannot combine --exec/--exec-batch with --format or --list-details");
+        return usage_err("execution cannot be combined with formatting");
     }
     if exec_batch {
         let total_ph: usize = exec_cmd.iter().map(|w| count_fd_placeholders(w)).sum();
         if total_ph > 1 {
-            return usage_err("--exec-batch permits at most one placeholder");
+            return usage_err("batch execution accepts only one placeholder");
         }
     }
     if !search_paths.is_empty() && operands.len() > 1 {
-        return usage_err("cannot combine --search-path with positional path arguments");
+        return usage_err("search-path cannot be combined with positional roots");
     }
 
     let raw_pattern = if !operands.is_empty() {
@@ -7082,7 +7410,7 @@ where
                     let repl = match inline_val {
                         None => "{}".to_string(),
                         Some(v) if !v.is_empty() => v.to_string(),
-                        Some(_) => return usage_err("empty replacement string"),
+                        Some(_) => return usage_err("replacement string cannot be empty"),
                     };
                     replace_str = Some(repl);
                     batch_mode = XargsBatchMode::Replace;
@@ -7092,7 +7420,7 @@ where
                         None => 1usize,
                         Some(v) => {
                             let Some(parsed) = parse_pos_int(v) else {
-                                return usage_err("invalid --max-lines value");
+                                return usage_err(&format!("invalid number '{v}'"));
                             };
                             parsed
                         }
@@ -7113,7 +7441,7 @@ where
                         return usage_err("missing value for --max-args");
                     };
                     let Some(n) = parse_pos_int(&v) else {
-                        return usage_err("invalid --max-args value");
+                        return usage_err(&format!("invalid number '{v}'"));
                     };
                     max_args = Some(n);
                     if !(batch_mode == XargsBatchMode::Replace && n == 1) {
@@ -7125,7 +7453,7 @@ where
                         return usage_err("missing value for --max-chars");
                     };
                     let Some(n) = parse_pos_int(&v) else {
-                        return usage_err("invalid --max-chars value");
+                        return usage_err(&format!("invalid number '{v}'"));
                     };
                     max_chars = Some(n);
                 }
@@ -7134,7 +7462,7 @@ where
                         return usage_err("missing value for --max-procs");
                     };
                     if v.is_empty() || !v.chars().all(|c| c.is_ascii_digit()) {
-                        return usage_err("invalid --max-procs value");
+                        return usage_err(&format!("invalid number '{v}'"));
                     }
                 }
                 "--delimiter" => {
@@ -7142,7 +7470,7 @@ where
                         return usage_err("missing value for --delimiter");
                     };
                     let Ok(ch) = parse_xargs_delim_strict(&v) else {
-                        return usage_err("invalid --delimiter value");
+                        return usage_err("delimiter must be one ASCII byte");
                     };
                     delim_mode = XargsDelimMode::Custom(ch);
                 }
@@ -7160,11 +7488,11 @@ where
                         return usage_err("missing value for --process-slot-var");
                     };
                     if !is_valid_ident(&v) {
-                        return usage_err("invalid --process-slot-var value");
+                        return usage_err("invalid environment variable name");
                     }
                     slot_var = Some(v);
                 }
-                _ => return usage_err(&format!("unknown option '{opt_name}'")),
+                _ => return usage_err(&format!("unrecognized option '{opt_name}'")),
             }
             i += 1;
             continue;
@@ -7192,7 +7520,7 @@ where
                         let n = if ci + 1 < chars.len() {
                             let rest: String = chars[ci + 1..].iter().collect();
                             let Some(parsed) = parse_pos_int(&rest) else {
-                                return usage_err("invalid -l value");
+                                return usage_err(&format!("invalid number '{rest}'"));
                             };
                             parsed
                         } else {
@@ -7224,7 +7552,7 @@ where
                         match flag {
                             'n' => {
                                 let Some(n) = parse_pos_int(&val) else {
-                                    return usage_err("invalid -n value");
+                                    return usage_err(&format!("invalid number '{val}'"));
                                 };
                                 max_args = Some(n);
                                 if !(batch_mode == XargsBatchMode::Replace && n == 1) {
@@ -7233,20 +7561,20 @@ where
                             }
                             'L' => {
                                 let Some(n) = parse_pos_int(&val) else {
-                                    return usage_err("invalid -L value");
+                                    return usage_err(&format!("invalid number '{val}'"));
                                 };
                                 max_lines = Some(n);
                                 batch_mode = XargsBatchMode::MaxLines;
                             }
                             's' => {
                                 let Some(n) = parse_pos_int(&val) else {
-                                    return usage_err("invalid -s value");
+                                    return usage_err(&format!("invalid number '{val}'"));
                                 };
                                 max_chars = Some(n);
                             }
                             'P' => {
                                 if val.is_empty() || !val.chars().all(|c| c.is_ascii_digit()) {
-                                    return usage_err("invalid -P value");
+                                    return usage_err(&format!("invalid number '{val}'"));
                                 }
                             }
                             'E' => {
@@ -7264,14 +7592,14 @@ where
                             }
                             'I' => {
                                 if val.is_empty() {
-                                    return usage_err("empty replacement string");
+                                    return usage_err("replacement string cannot be empty");
                                 }
                                 replace_str = Some(val);
                                 batch_mode = XargsBatchMode::Replace;
                             }
                             'd' => {
                                 let Ok(ch) = parse_xargs_delim_strict(&val) else {
-                                    return usage_err("invalid -d delimiter");
+                                    return usage_err("delimiter must be one ASCII byte");
                                 };
                                 delim_mode = XargsDelimMode::Custom(ch);
                             }
@@ -7279,7 +7607,7 @@ where
                         }
                         break;
                     }
-                    other => return usage_err(&format!("unknown option '-{other}'")),
+                    other => return usage_err(&format!("invalid option -- '{other}'")),
                 }
                 ci += 1;
             }
@@ -7311,10 +7639,10 @@ where
                 input_buf = String::from_utf8_lossy(&b).into_owned();
                 &input_buf
             }
-            Err(e) => {
+            Err(_) => {
                 return BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("xargs: {af}: {e}\n"),
+                    stderr: format!("xargs: ENOENT: no such file or directory, readStream '{p}'\n"),
                     exit_code: 1,
                 }
             }
@@ -8115,5 +8443,41 @@ mod tests {
         .unwrap();
         assert_eq!(find_res.exit_code, 0);
         assert_eq!(find_res.stdout, "run.sh|6\n");
+    }
+
+    #[test]
+    fn unit_search_diagnostics_help_version_and_ripgrep_config_match_typescript() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/rg.conf", b"# comment\n--ignore-case\n").unwrap();
+        vfs.write_file("/work/data.txt", b"HELLO\nworld\n").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+
+        let rg_v = try_run_search_command("rg", &args(&["-V"]), "", &mut cwd, &mut env, &vfs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(rg_v.exit_code, 0);
+        assert_eq!(rg_v.stdout, "rg (safe-bash bounded implementation)\n");
+
+        let rg_ver = try_run_search_command("rg", &args(&["--version"]), "", &mut cwd, &mut env, &vfs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(rg_ver.exit_code, 0);
+        assert!(rg_ver.stdout.starts_with("rg (safe-bash bounded implementation)\nRegex engine:"));
+
+        env.insert("RIPGREP_CONFIG_PATH".to_string(), "/work/rg.conf".to_string());
+        let rg_cfg = try_run_search_command("rg", &args(&["hello", "/work/data.txt"]), "", &mut cwd, &mut env, &vfs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(rg_cfg.exit_code, 0);
+        assert_eq!(rg_cfg.stdout, "HELLO\n");
+
+        let rg_nocfg = try_run_search_command("rg", &args(&["--no-config", "hello", "/work/data.txt"]), "", &mut cwd, &mut env, &vfs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(rg_nocfg.exit_code, 1);
+        env.remove("RIPGREP_CONFIG_PATH");
+
+        let fd_v = try_run_search_command("fd", &args(&["-V"]), "", &mut cwd, &mut env, &vfs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(fd_v.exit_code, 0);
+        assert_eq!(fd_v.stdout, "fd (safe-bash)\n");
+
+        let grep_s = try_run_search_command("grep", &args(&["-s", "HELLO", "/work/data.txt", "/work/missing.txt"]), "", &mut cwd, &mut env, &vfs, |_, _, _, _| unreachable!()).unwrap();
+        assert_eq!(grep_s.exit_code, 2);
+        assert_eq!(grep_s.stdout, "/work/data.txt:HELLO\n");
+        assert_eq!(grep_s.stderr, "");
     }
 }

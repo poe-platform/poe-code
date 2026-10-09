@@ -9429,4 +9429,41 @@ mod tests {
         assert_eq!(awk_rs_err.exit_code, 2);
         assert!(awk_rs_err.stderr.contains("RS must be one byte or empty"));
     }
+
+    #[test]
+    fn unit_awk_paragraph_nextfile_sed_range_negation_write_file_and_patch_reverse() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        vfs.write_file("/work/p1.txt", b"a=1\nb=2\n\na=3\nb=4\n").unwrap();
+        vfs.write_file("/work/p2.txt", b"a=5\nb=6\n").unwrap();
+        let awk_nf = try_run_text_command(
+            "awk",
+            &args(&[
+                "BEGIN { RS=\"\"; FS=\"\\n\"; OFS=\"|\" } { print FNR, NR, $1, $2; if (FNR == 1) nextfile }",
+                "/work/p1.txt",
+                "/work/p2.txt",
+            ]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(awk_nf.exit_code, 0);
+        assert_eq!(awk_nf.stdout, "1|1|a=1|b=2\n1|2|a=5|b=6\n");
+
+        let sed_w = try_run_text_command(
+            "sed",
+            &args(&["2,3!s#/bin#/sbin#g; /sbin/w /work/out.txt"]),
+            "/usr/bin\n/opt/bin\n/var/bin\n/home/bin\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(sed_w.exit_code, 0);
+        assert_eq!(vfs.read_file("/work/out.txt").unwrap(), b"/usr/sbin\n/home/sbin\n");
+    }
 }

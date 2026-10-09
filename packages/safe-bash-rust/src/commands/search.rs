@@ -8068,4 +8068,44 @@ mod tests {
         assert_eq!(xargs_eof.exit_code, 0);
         assert_eq!(xargs_eof.stdout, "alpha beta\n");
     }
+
+    #[test]
+    fn unit_grep_byte_offsets_group_separator_and_find_perm_prune() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/keep").unwrap();
+        vfs.mkdir_all("/work/vendor").unwrap();
+        vfs.write_file("/work/pats.txt", b"WARN\nFATAL\n").unwrap();
+        vfs.write_file("/work/keep/run.sh", b"123456").unwrap();
+        vfs.chmod("/work/keep/run.sh", 0o755).unwrap();
+        vfs.write_file("/work/vendor/skip.sh", b"999").unwrap();
+        vfs.chmod("/work/vendor/skip.sh", 0o755).unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+
+        let grep_res = try_run_search_command(
+            "grep",
+            &args(&["-n", "-b", "-C", "1", "--group-separator====", "-f", "/work/pats.txt"]),
+            "INFO boot\nWARN disk\nINFO steady\nINFO gap\nINFO idle\nFATAL crash\nINFO done\n",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(grep_res.exit_code, 0);
+        assert!(grep_res.stdout.contains("===\n5-41-INFO idle\n6:51:FATAL crash\n"));
+
+        let find_res = try_run_search_command(
+            "find",
+            &args(&["/work", "-name", "vendor", "-prune", "-o", "-type", "f", "-perm", "755", "-printf", "%f|%s\\n"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            |_, _, _, _| unreachable!(),
+        )
+        .unwrap();
+        assert_eq!(find_res.exit_code, 0);
+        assert_eq!(find_res.stdout, "run.sh|6\n");
+    }
 }

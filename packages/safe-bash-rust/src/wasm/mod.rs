@@ -641,4 +641,14 @@ mod tests {
         safe_bash_destroy_session(id);
     }
 
+    #[test]
+    fn unit_wasm_ffi_invalid_session_handles_return_negative_codes() {
+        unsafe {
+            assert_eq!(safe_bash_exec(999_999, std::ptr::null(), 0, std::ptr::null(), 0), -1);
+            assert_eq!(safe_bash_output_len(999_999), 0);
+            assert!(safe_bash_output_ptr(999_999).is_null());
+            assert_eq!(safe_bash_stat(999_999, std::ptr::null(), 0, 0), -1);
+        }
+    }
+
 }

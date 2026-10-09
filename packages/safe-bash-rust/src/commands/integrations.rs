@@ -919,6 +919,10 @@ fn generate_recipe_password(spec: Option<&str>, seq: u64) -> String {
 }
 
 fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, String> {
+    resolve_op_reference_with_kind(st, uri).map(|(v, _)| v)
+}
+
+fn resolve_op_reference_with_kind(st: &IntegrationState, uri: &str) -> Result<(String, bool), String> {
     if uri.len() < 5 || !uri[..5].eq_ignore_ascii_case("op://") {
         return Err("Invalid secret reference scheme".to_string());
     }
@@ -971,25 +975,26 @@ fn resolve_op_reference(st: &IntegrationState, uri: &str) -> Result<String, Stri
             return Err("Conflicting attribute parameters".to_string());
         }
     }
-    let eval_field_attr = |f: &OpField| -> Result<String, String> {
+    let eval_field_attr = |f: &OpField| -> Result<(String, bool), String> {
         match query_attr.as_deref().unwrap_or("value") {
-            "value" => Ok(f.value.clone()),
-            "type" => Ok(f.field_type.clone()),
-            "id" => Ok(f.id.clone()),
+            "value" => Ok((f.value.clone(), false)),
+            "type" => Ok((f.field_type.clone(), false)),
+            "id" => Ok((f.id.clone(), false)),
             "purpose" => f
                 .purpose
                 .clone()
+                .map(|p| (p, false))
                 .ok_or_else(|| "Secret attribute is unavailable".to_string()),
             _ => Err("Secret attribute is unavailable".to_string()),
         }
     };
-    let eval_file_attr = |fa: &OpFileAttachment| -> Result<String, String> {
+    let eval_file_attr = |fa: &OpFileAttachment| -> Result<(String, bool), String> {
         match query_attr.as_deref().unwrap_or("content") {
-            "content" => Ok(String::from_utf8_lossy(&fa.content).to_string()),
-            "type" => Ok("FILE".to_string()),
-            "size" => Ok(fa.size.to_string()),
-            "id" => Ok(fa.id.clone()),
-            "name" => Ok(fa.name.clone()),
+            "content" => Ok((String::from_utf8_lossy(&fa.content).to_string(), true)),
+            "type" => Ok(("FILE".to_string(), false)),
+            "size" => Ok((fa.size.to_string(), false)),
+            "id" => Ok((fa.id.clone(), false)),
+            "name" => Ok((fa.name.clone(), false)),
             _ => Err("Secret attribute is unavailable".to_string()),
         }
     };
@@ -2684,11 +2689,11 @@ where
             let map = states().lock().unwrap();
             let st = map.get(&fs_id).cloned().unwrap_or_default();
             drop(map);
-            let val = match resolve_op_reference(&st, &uri) {
+            let (val, is_raw_file_bytes) = match resolve_op_reference_with_kind(&st, &uri) {
                 Ok(v) => v,
                 Err(e) => return op_err(&e),
             };
-            let output = if no_newline || out_file.is_some() {
+            let output = if is_raw_file_bytes || no_newline || out_file.is_some() {
                 val
             } else {
                 format!("{val}\n")
@@ -8542,7 +8547,7 @@ mod tests {
             &mut exec,
         );
         assert_eq!(r1.exit_code, 0);
-        assert_eq!(r1.stdout, "CERT-DATA\n");
+        assert_eq!(r1.stdout, "CERT-DATA");
 
         let r2 = cmd_op(
             &args(&["read", "op://Certs/TLS/tls/leaf"]),
@@ -8553,7 +8558,7 @@ mod tests {
             &mut exec,
         );
         assert_eq!(r2.exit_code, 0);
-        assert_eq!(r2.stdout, "CERT-DATA\n");
+        assert_eq!(r2.stdout, "CERT-DATA");
 
         let tpl_err = cmd_op(
             &args(&["item", "template", "get", "InvalidCategory"]),
@@ -8948,6 +8953,60 @@ mod tests {
         assert!(log_out.stdout.contains("Completed workflow_dispatch"));
         let rerun = cmd_gh(&args(&["run", "rerun", "-R", "acme/ops"]), "", "/work", &mut env, &vfs);
         assert!(rerun.stdout.contains("✓ Requested rerun of run "));
+    }
+
+    #[test]
+    fn unit_op_read_file_attachment_preserves_exact_bytes_without_extra_newline() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/tls.pem", b"CERT-RAW-NO-NEWLINE").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        let mut noop = |_: &[String], _: &str, _: &mut String, _: &mut BTreeMap<String, String>| {
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        };
+        cmd_op(&args(&["vault", "create", "Keys"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        cmd_op(
+            &args(&[
+                "item",
+                "create",
+                "--category",
+                "login",
+                "--title",
+                "GatewayTLS",
+                "--vault",
+                "Keys",
+                "username=admin",
+                "cert[file]=tls.pem",
+            ]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        let read_user = cmd_op(
+            &args(&["read", "op://Keys/GatewayTLS/username"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(read_user.stdout, "admin\n");
+        let read_cert = cmd_op(
+            &args(&["read", "op://Keys/GatewayTLS/cert"]),
+            "",
+            &mut cwd,
+            &mut env,
+            &vfs,
+            &mut noop,
+        );
+        assert_eq!(read_cert.stdout, "CERT-RAW-NO-NEWLINE");
     }
 
 }

@@ -105,4 +105,12 @@ mod tests {
         assert!(is_path_within("/workspace", "/workspace"));
         assert!(!is_path_within("/workspace", "/workspace2/file"));
     }
+
+    #[test]
+    fn resolve_posix_path_handles_nested_parent_references_and_trailing_slashes() {
+        assert_eq!(resolve_posix_path("/a/b/c/", "../../d/./e/"), "/a/d/e");
+        assert_eq!(basename_posix_path("///"), "/");
+        assert_eq!(dirname_posix_path("relative_only.txt"), ".");
+        assert!(is_path_within("/", "/any/path"));
+    }
 }

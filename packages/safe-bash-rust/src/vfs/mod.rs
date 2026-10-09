@@ -207,4 +207,12 @@ mod tests {
         let roundtrip = stream_string_to_bytes(&s);
         assert_eq!(roundtrip, mixed);
     }
+
+    #[test]
+    fn unit_fs_error_display_and_codes() {
+        let e1 = FsError::new(FsErrorCode::PermissionDenied, "Permission denied");
+        assert!(format!("{e1:?}").contains("Permission denied"));
+        let e2 = FsError::new(FsErrorCode::AlreadyExists, "File exists");
+        assert_eq!(e2.code, FsErrorCode::AlreadyExists);
+    }
 }

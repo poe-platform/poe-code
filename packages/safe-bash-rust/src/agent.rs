@@ -307,4 +307,12 @@ mod tests {
         assert!(host.read_background(&h1).unwrap().stdout.contains("agent-doc"));
         assert!(host.read_background(&h2).unwrap().stdout.contains("second-bg"));
     }
+
+    #[test]
+    fn unit_poe_agent_shell_host_rejects_unknown_background_handle() {
+        let vfs = Arc::new(MemoryVfs::new());
+        let mut host = PoeAgentShellHost::new(vfs, PoeAgentShellOptions::default());
+        assert!(host.read_background("background-999").is_err());
+        assert!(host.kill_background("background-999").is_err());
+    }
 }

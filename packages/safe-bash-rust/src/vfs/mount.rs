@@ -172,4 +172,16 @@ mod tests {
         assert!(exported.iter().any(|e| e.path == "/mnt/a/f1.txt"));
         assert!(exported.iter().any(|e| e.path == "/mnt/a/b/f2.txt"));
     }
+
+    #[test]
+    fn mount_vfs_stat_and_remove_route_to_mounted_fs() {
+        let root = Arc::new(MemoryVfs::new());
+        let mnt = Arc::new(MemoryVfs::new());
+        root.mkdir_all("/mnt").unwrap();
+        let fs = MountVfs::new(root).with_mount("/mnt", mnt.clone());
+        fs.write_file("/mnt/temp.txt", b"1234").unwrap();
+        assert_eq!(fs.stat("/mnt/temp.txt").unwrap().size, 4);
+        fs.remove("/mnt/temp.txt", false).unwrap();
+        assert!(!mnt.exists("/temp.txt"));
+    }
 }

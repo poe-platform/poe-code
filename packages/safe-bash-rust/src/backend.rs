@@ -585,4 +585,20 @@ mod tests {
             assert_eq!(base64_decode(&enc).unwrap(), input);
         }
     }
+
+    #[test]
+    fn unit_hybrid_backend_modes_and_vfs_sync() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let backend = HybridBackend::new(BackendMode::NativeOnly);
+        assert_eq!(backend.mode, BackendMode::NativeOnly);
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        let out = backend
+            .try_execute_native("printf 'ok' > /work/f.txt && cat /work/f.txt", &mut cwd, &mut env, "", &vfs)
+            .unwrap()
+            .unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(out.stdout, "ok");
+    }
 }

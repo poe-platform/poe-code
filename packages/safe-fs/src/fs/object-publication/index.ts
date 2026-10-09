@@ -92,16 +92,12 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
     while (stagedBytes + chunkBytes > maxStagedBytes || stagedBytes / chunkBytes >= maxStagedPages) {
       forwarded.signal?.throwIfAborted();
       await new Promise<void>((resolve, reject) => {
-        const wake = (): void => {
+        const cleanup = (): void => {
           stagingWaiters.delete(wake);
           forwarded.signal?.removeEventListener("abort", abort);
-          resolve();
         };
-        const abort = (): void => {
-          stagingWaiters.delete(wake);
-          forwarded.signal?.removeEventListener("abort", abort);
-          reject(forwarded.signal?.reason);
-        };
+        const wake = (): void => { cleanup(); resolve(); };
+        const abort = (): void => { cleanup(); reject(forwarded.signal?.reason); };
         stagingWaiters.add(wake);
         forwarded.signal?.addEventListener("abort", abort, { once: true });
         if (forwarded.signal?.aborted) abort();
@@ -144,9 +140,12 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       forwarded.signal?.throwIfAborted();
       if (state.failure) throw state.failure.reason;
     };
+    const requirePublication = (writable = true): void => {
+      if (!store.publish || !writable) throw new FsError("ENOTSUP", { path, message: "Object writes require authoritative conditional publication" });
+    };
     const perform = async <Value>(forwarded: FsOptions, action: (options: FsOptions) => Promise<Value>): Promise<Value> => {
       check(forwarded);
-      const scope = composeAbortSignals([...(acquiring && admitted.signal ? [admitted.signal] : []), ...(forwarded.signal ? [forwarded.signal] : [])]);
+      const scope = composeAbortSignals([acquiring && admitted.signal, forwarded.signal].filter((signal): signal is AbortSignal => !!signal));
       try {
         const result = await action({ signal: scope.signal });
         scope.signal.throwIfAborted();
@@ -203,7 +202,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
     const flush = async (forwarded: FsOptions): Promise<void> => {
       check(forwarded);
       if (!state.dirty) return;
-      if (!store.publish) throw new FsError("ENOTSUP", { path, message: "Object writes require authoritative conditional publication" });
+      requirePublication();
       const expected = state.head?.revision ?? null;
       let emitted = 0;
       let active = true;
@@ -213,7 +212,8 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       let streamScope: ReturnType<typeof composeAbortSignals> | undefined;
       try {
         await perform(forwarded, async selected => {
-          streamScope = composeAbortSignals([...(selected.signal ? [selected.signal] : []), streamAbort.signal]);
+          // perform always supplies its composed signal.
+          streamScope = composeAbortSignals([selected.signal!, streamAbort.signal]);
           const bodyOptions = { signal: streamScope.signal };
           source = (async function* () {
             for (let position = 0; position < state.size; position += chunkBytes) {
@@ -254,7 +254,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       check(admitted);
       const mutating = admitted.access !== "read" || admitted.creation !== "never" || admitted.truncate;
       if (mutating && capabilities.readOnly === true) throw new FsError("EROFS", { path });
-      if (mutating && (!store.publish || capabilities.write === false)) throw new FsError("ENOTSUP", { path, message: "Object writes require authoritative conditional publication" });
+      if (mutating) requirePublication(capabilities.write !== false);
       if (admitted.access !== "write" && capabilities.read === false) throw new FsError("EACCES", { path });
       const acquired = await store.acquire(path, { access: admitted.access, ...(admitted.noFollow ? { noFollow: true } : {}), ...(admitted.signal ? { signal: admitted.signal } : {}) });
       if (acquired) {
@@ -308,15 +308,18 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
                   const page = Math.floor(offset / chunkBytes);
                   const within = offset % chunkBytes;
                   const length = Math.min(buffer.byteLength - copied, chunkBytes - within);
-                  const complete = within === 0 && length === chunkBytes;
-                  // Staging owns acknowledged bytes. Borrow the caller's complete
-                  // page until writePage settles instead of allocating another copy.
-                  let bytes = complete ? buffer.subarray(copied, copied + length) : await readStagedPage(page, forwarded);
-                  if (!bytes) {
-                    bytes = new Uint8Array(chunkBytes);
-                    bytes.set(await readBase(page * chunkBytes, chunkBytes, forwarded));
+                  // Staging owns acknowledged bytes. Borrow complete pages until
+                  // settlement; only partial writes need read/modify/write storage.
+                  let bytes = buffer.subarray(copied, copied + length);
+                  if (within || length !== chunkBytes) {
+                    let previous = await readStagedPage(page, forwarded);
+                    if (!previous) {
+                      previous = new Uint8Array(chunkBytes);
+                      previous.set(await readBase(page * chunkBytes, chunkBytes, forwarded));
+                    }
+                    previous.set(bytes, within);
+                    bytes = previous;
                   }
-                  if (!complete) bytes.set(buffer.subarray(copied, copied + length), within);
                   await perform(forwarded, selected => state.staging!.writePage(page, bytes!, selected));
                   copied += length;
                 } finally { releasePage(); }

@@ -29,6 +29,7 @@ export interface ObjectFileAcquireOptions extends FsOptions {
 
 export interface ObjectFileStaging {
   readPage(index: number, options?: FsOptions): Promise<Uint8Array | undefined>;
+  /** Own acknowledged bytes; the caller may reuse its buffer after settlement. */
   writePage(index: number, bytes: Uint8Array, options?: FsOptions): Promise<void>;
   truncate(size: number, options?: FsOptions): Promise<void>;
   close(): Promise<void>;
@@ -307,12 +308,15 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
                   const page = Math.floor(offset / chunkBytes);
                   const within = offset % chunkBytes;
                   const length = Math.min(buffer.byteLength - copied, chunkBytes - within);
-                  let bytes = within === 0 && length === chunkBytes ? undefined : await readStagedPage(page, forwarded);
+                  const complete = within === 0 && length === chunkBytes;
+                  // Staging owns acknowledged bytes. Borrow the caller's complete
+                  // page until writePage settles instead of allocating another copy.
+                  let bytes = complete ? buffer.subarray(copied, copied + length) : await readStagedPage(page, forwarded);
                   if (!bytes) {
                     bytes = new Uint8Array(chunkBytes);
-                    if (within !== 0 || length !== chunkBytes) bytes.set(await readBase(page * chunkBytes, chunkBytes, forwarded));
+                    bytes.set(await readBase(page * chunkBytes, chunkBytes, forwarded));
                   }
-                  bytes.set(buffer.subarray(copied, copied + length), within);
+                  if (!complete) bytes.set(buffer.subarray(copied, copied + length), within);
                   await perform(forwarded, selected => state.staging!.writePage(page, bytes!, selected));
                   copied += length;
                 } finally { releasePage(); }

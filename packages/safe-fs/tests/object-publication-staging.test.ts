@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { MemoryFileSystem } from "../src/fs/memory/index.js";
 import { FsError } from "../src/contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions } from "../src/contracts/filesystem.js";
@@ -543,5 +543,33 @@ it("qualifies conformance against a staging provider that requires finite maxFil
     },
   })) {
     await conformance.run();
+  }
+});
+
+
+it("does not allocate redundant full-page buffers for aligned private writes", async () => {
+  const host = fixture();
+  const fs = withObjectFileDescriptors(host.namespace, host.store, { maxStagedBytes: 65536, maxStagedPages: 1 });
+  const descriptor = await fs.open!("/aligned", { access: "readwrite", creation: "exclusive" });
+  const bytes = new Uint8Array(2 * 65536 + 7).fill(173);
+  const NativeArray = Uint8Array;
+  let pageAllocations = 0;
+  vi.stubGlobal("Uint8Array", new Proxy(NativeArray, { construct(target, args) {
+    if (args[0] === 65536) pageAllocations++;
+    return Reflect.construct(target, args);
+  } }));
+  try {
+    try {
+      expect(await descriptor.write(bytes.subarray(7), 0)).toBe(2 * 65536);
+      expect(pageAllocations).toBe(0);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    bytes.fill(0);
+    const result = new Uint8Array(2 * 65536);
+    expect(await descriptor.read(result, 0)).toBe(result.length);
+    expect(result.every(byte => byte === 173)).toBe(true);
+  } finally {
+    await descriptor.close();
   }
 });

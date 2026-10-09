@@ -1431,6 +1431,418 @@ fn apply_field_assignment(item: &mut OpItem, spec: &str, fs: &dyn SafeBashFs, cw
     Ok(())
 }
 
+fn is_op_bool(val: &str) -> bool {
+    matches!(
+        val,
+        "true" | "1" | "t" | "TRUE" | "True" | "T" | "false" | "0" | "f" | "FALSE" | "False" | "F"
+    )
+}
+
+fn parse_op_file_mode_str(val: &str) -> Option<u32> {
+    if val.len() < 3 {
+        return None;
+    }
+    let mut mode: u64 = 0;
+    for ch in val.chars() {
+        if !('0'..='7').contains(&ch) {
+            return None;
+        }
+        mode = mode * 8 + ((ch as u8 - b'0') as u64);
+        if mode > u32::MAX as u64 {
+            return None;
+        }
+    }
+    Some(mode as u32)
+}
+
+fn is_op_password_recipe(val: &str) -> bool {
+    let mut length_seen = false;
+    for part in val.split(',') {
+        if matches!(part.to_ascii_lowercase().as_str(), "letters" | "digits" | "symbols") {
+            continue;
+        }
+        let digits = part.strip_prefix('+').unwrap_or(part);
+        if digits.is_empty() || !digits.chars().all(|c| c.is_ascii_digit()) {
+            return false;
+        }
+        let Ok(len) = digits.parse::<u32>() else {
+            return false;
+        };
+        if length_seen || !(1..=64).contains(&len) {
+            return false;
+        }
+        length_seen = true;
+    }
+    true
+}
+
+fn is_op_go_duration(val: &str) -> bool {
+    if val == "0" || val == "+0" || val == "-0" {
+        return true;
+    }
+    if val.is_empty() {
+        return false;
+    }
+    let mut s = val;
+    if let Some(rest) = s.strip_prefix('+').or_else(|| s.strip_prefix('-')) {
+        s = rest;
+    }
+    if s.is_empty() {
+        return false;
+    }
+    while !s.is_empty() {
+        let mut num_end = 0usize;
+        let mut dot_seen = false;
+        let mut digit_seen = false;
+        for (idx, ch) in s.char_indices() {
+            if ch.is_ascii_digit() {
+                digit_seen = true;
+                num_end = idx + ch.len_utf8();
+            } else if ch == '.' && !dot_seen {
+                dot_seen = true;
+                num_end = idx + 1;
+            } else {
+                break;
+            }
+        }
+        if !digit_seen || num_end == s.len() {
+            return false;
+        }
+        s = &s[num_end..];
+        let unit_len = if s.starts_with("ns") || s.starts_with("us") || s.starts_with("ms") {
+            2
+        } else if s.starts_with("µs") || s.starts_with("μs") {
+            "µs".len()
+        } else if s.starts_with('s') || s.starts_with('m') || s.starts_with('h') {
+            1
+        } else {
+            return false;
+        };
+        s = &s[unit_len..];
+    }
+    true
+}
+
+fn is_valid_op_vault_permission(val: &str) -> bool {
+    for entry in val.split(',') {
+        let norm = entry.trim().to_ascii_lowercase();
+        if !matches!(
+            norm.as_str(),
+            "allow_viewing"
+                | "allow_editing"
+                | "allow_managing"
+                | "view_items"
+                | "create_items"
+                | "view_and_copy_passwords"
+                | "edit_items"
+                | "archive_items"
+                | "delete_items"
+                | "view_item_history"
+                | "import_items"
+                | "export_items"
+                | "copy_and_share_items"
+                | "print_items"
+                | "manage_vault"
+                | "read_items"
+                | "write_items"
+                | "share_items"
+        ) {
+            return false;
+        }
+    }
+    true
+}
+
+fn validate_op_cli_flags(args: &[String], env: &BTreeMap<String, String>) -> Result<(), String> {
+    let is_help = args.iter().take_while(|a| *a != "--").any(|a| a == "--help" || a == "-h" || a == "help");
+    let mut has_path = false;
+    let mut seen_version: Option<&str> = None;
+    let mut seen_format = false;
+    let mut i = 0usize;
+    let pre_dd_len = args.iter().position(|a| a == "--").unwrap_or(args.len());
+    while i < pre_dd_len {
+        let tok = args[i].as_str();
+        if tok == "--version" || tok == "-v" {
+            seen_version = Some(tok);
+            i += 1;
+            continue;
+        }
+        if let Some((flag, val)) = tok.split_once('=')
+            && flag.starts_with('-')
+        {
+            match flag {
+                "--format" => {
+                    seen_format = true;
+                    if val != "json" && val != "human-readable" {
+                        return Err("format must be json or human-readable".into());
+                    }
+                }
+                "--encoding" if !is_help => {
+                    if !matches!(
+                        val.to_ascii_lowercase().as_str(),
+                        "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk"
+                    ) {
+                        return Err("unsupported character-encoding".into());
+                    }
+                }
+                "--cache" | "--debug" | "--iso-timestamps" => {
+                    if !is_op_bool(val) {
+                        return Err(format!("invalid boolean value for {flag}"));
+                    }
+                }
+                "--file-mode" => {
+                    if parse_op_file_mode_str(val).is_none() {
+                        return Err("invalid value for --file-mode".into());
+                    }
+                }
+                "--allow-admins-to-manage" => {
+                    if !is_op_bool(val) {
+                        return Err("invalid value for --allow-admins-to-manage".into());
+                    }
+                }
+                "--travel-mode" => {
+                    if val != "on" && val != "off" {
+                        return Err("invalid value for --travel-mode".into());
+                    }
+                }
+                "--ssh-generate-key" => {
+                    if !matches!(
+                        val.to_ascii_lowercase().as_str(),
+                        "ed25519" | "rsa" | "rsa2048" | "rsa3072" | "rsa4096" | "rsa-2048" | "rsa-3072" | "rsa-4096"
+                    ) {
+                        return Err("invalid value for --ssh-generate-key".into());
+                    }
+                }
+                "--deauthorize-devices-after" => {
+                    if !is_op_go_duration(val) {
+                        return Err("invalid value for --deauthorize-devices-after".into());
+                    }
+                }
+                "--generate-password" => {
+                    if !is_op_password_recipe(val) {
+                        return Err("invalid value for --generate-password".into());
+                    }
+                }
+                "--role" => {
+                    if !matches!(val.to_ascii_lowercase().as_str(), "manager" | "member") {
+                        return Err("invalid value for --role".into());
+                    }
+                }
+                "--permission" | "--permissions" => {
+                    if !is_valid_op_vault_permission(val) {
+                        return Err(format!("invalid value for {flag}"));
+                    }
+                }
+                _ => {}
+            }
+            i += 1;
+            continue;
+        }
+        if matches!(
+            tok,
+            "--format"
+                | "--encoding"
+                | "--account"
+                | "--config"
+                | "--session"
+                | "--file-mode"
+                | "--allow-admins-to-manage"
+                | "--travel-mode"
+                | "--ssh-generate-key"
+                | "--deauthorize-devices-after"
+                | "--role"
+                | "--permission"
+                | "--permissions"
+                | "--vault"
+                | "--title"
+                | "--category"
+                | "--url"
+                | "--tags"
+                | "--template"
+                | "--fields"
+                | "--field"
+                | "--categories"
+                | "--current-vault"
+                | "--destination-vault"
+                | "--description"
+                | "--name"
+                | "--icon"
+                | "--group"
+                | "--user"
+                | "--server"
+                | "--shell"
+                | "--vars"
+                | "--in-file"
+                | "-i"
+                | "--out-file"
+                | "-o"
+                | "--env-file"
+                | "--file-name"
+        ) {
+            let flag_name = match tok {
+                "-i" => "--in-file",
+                "-o" => "--out-file",
+                other => other,
+            };
+            let Some(val) = args.get(i + 1).filter(|_| i + 1 < pre_dd_len) else {
+                return Err(format!("flag needs a value: {flag_name}"));
+            };
+            match flag_name {
+                "--format" => {
+                    seen_format = true;
+                    if val != "json" && val != "human-readable" {
+                        return Err("format must be json or human-readable".into());
+                    }
+                }
+                "--encoding" if !is_help => {
+                    if !matches!(
+                        val.to_ascii_lowercase().as_str(),
+                        "" | "shift_jis" | "shift-jis" | "shiftjis" | "sjis" | "gbk"
+                    ) {
+                        return Err("unsupported character-encoding".into());
+                    }
+                }
+                "--file-mode" => {
+                    if parse_op_file_mode_str(val).is_none() {
+                        return Err("invalid value for --file-mode".into());
+                    }
+                }
+                "--allow-admins-to-manage" => {
+                    if !is_op_bool(val) {
+                        return Err("invalid value for --allow-admins-to-manage".into());
+                    }
+                }
+                "--travel-mode" => {
+                    if val != "on" && val != "off" {
+                        return Err("invalid value for --travel-mode".into());
+                    }
+                }
+                "--ssh-generate-key" => {
+                    if !matches!(
+                        val.to_ascii_lowercase().as_str(),
+                        "ed25519" | "rsa" | "rsa2048" | "rsa3072" | "rsa4096" | "rsa-2048" | "rsa-3072" | "rsa-4096"
+                    ) {
+                        return Err("invalid value for --ssh-generate-key".into());
+                    }
+                }
+                "--deauthorize-devices-after" => {
+                    if !is_op_go_duration(val) {
+                        return Err("invalid value for --deauthorize-devices-after".into());
+                    }
+                }
+                "--role" => {
+                    if !matches!(val.to_ascii_lowercase().as_str(), "manager" | "member") {
+                        return Err("invalid value for --role".into());
+                    }
+                }
+                "--permission" | "--permissions" => {
+                    if !is_valid_op_vault_permission(val) {
+                        return Err(format!("invalid value for {flag_name}"));
+                    }
+                }
+                _ => {}
+            }
+            i += 2;
+            continue;
+        }
+        if !tok.starts_with('-') {
+            has_path = true;
+        }
+        i += 1;
+    }
+    if has_path
+        && let Some(vf) = seen_version
+    {
+        return Err(format!("unknown flag: {vf}"));
+    }
+    if let Some(c) = env.get("OP_CACHE")
+        && !c.is_empty()
+        && !is_op_bool(c)
+    {
+        return Err("invalid boolean value for --cache".into());
+    }
+    if let Some(d) = env.get("OP_DEBUG")
+        && !d.is_empty()
+        && !is_op_bool(d)
+    {
+        return Err("invalid boolean value for --debug".into());
+    }
+    if !seen_format
+        && let Some(fmt) = env.get("OP_FORMAT")
+        && !fmt.is_empty()
+        && fmt != "json"
+        && fmt != "human-readable"
+    {
+        return Err("format must be json or human-readable".into());
+    }
+    Ok(())
+}
+
+fn op_positional_args(args: &[String], skip: usize) -> Vec<&str> {
+    let mut out = Vec::new();
+    let mut i = skip;
+    while i < args.len() {
+        let tok = args[i].as_str();
+        if tok == "--" {
+            for rest in &args[i + 1..] {
+                out.push(rest.as_str());
+            }
+            break;
+        }
+        if matches!(
+            tok,
+            "--format"
+                | "--account"
+                | "--session"
+                | "--config"
+                | "--encoding"
+                | "--file-mode"
+                | "--allow-admins-to-manage"
+                | "--travel-mode"
+                | "--ssh-generate-key"
+                | "--deauthorize-devices-after"
+                | "--role"
+                | "--permission"
+                | "--permissions"
+                | "--vault"
+                | "--title"
+                | "--category"
+                | "--url"
+                | "--tags"
+                | "--template"
+                | "--fields"
+                | "--field"
+                | "--categories"
+                | "--current-vault"
+                | "--destination-vault"
+                | "--description"
+                | "--name"
+                | "--icon"
+                | "--group"
+                | "--user"
+                | "--server"
+                | "--shell"
+                | "--vars"
+                | "--in-file"
+                | "-i"
+                | "--out-file"
+                | "-o"
+                | "--env-file"
+                | "--file-name"
+        ) {
+            i += 2;
+            continue;
+        }
+        if tok.starts_with('-') {
+            i += 1;
+            continue;
+        }
+        out.push(tok);
+        i += 1;
+    }
+    out
+}
+
 fn cmd_op<F>(
     args: &[String],
     stdin: &str,
@@ -1442,12 +1854,23 @@ fn cmd_op<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
+    if let Some(bio) = env.get("OP_BIOMETRIC_UNLOCK_ENABLED")
+        && bio != "true"
+        && bio != "false"
+    {
+        return op_err("OP_BIOMETRIC_UNLOCK_ENABLED must be true or false.");
+    }
+
     if args.is_empty() {
         return BuiltinOutcome {
             stdout: OP_ROOT_HELP.to_string(),
             stderr: String::new(),
             exit_code: 0,
         };
+    }
+
+    if let Err(msg) = validate_op_cli_flags(args, env) {
+        return op_err(&msg);
     }
 
     if args.len() == 1 && (args[0] == "--version" || args[0] == "-v") {
@@ -1513,7 +1936,27 @@ where
         || env.get("OP_FORMAT").map(|v| v == "json").unwrap_or(false);
 
     match first {
-        "whoami" => op_err("No authenticated session"),
+        "whoami" => {
+            let pos_cnt = op_positional_args(args, 1).len();
+            if pos_cnt > 0 {
+                return op_err(&format!("expected at most 0 arguments but got {pos_cnt} instead"));
+            }
+            op_err("No authenticated session")
+        }
+        "signin" | "update" => op_err("Admin command requires an injected hook"),
+        "signout" => {
+            let all_flag = args.iter().skip(1).any(|a| a == "--all" || a == "--all=true");
+            let has_account = args.iter().skip(1).any(|a| a == "--account" || a.starts_with("--account="))
+                || env.get("OP_ACCOUNT").is_some_and(|v| !v.is_empty());
+            let pos_cnt = op_positional_args(args, 1).len();
+            if pos_cnt > 0 || (all_flag && has_account) {
+                return op_err("Conflicting account selection");
+            }
+            if all_flag {
+                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+            }
+            op_err("Account selection is required")
+        }
         "account" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
             if sub == "list" || sub == "ls" {
@@ -1523,8 +1966,24 @@ where
                     stderr: String::new(),
                     exit_code: 0,
                 }
-            } else {
+            } else if sub == "add" {
+                op_err("Admin command requires an injected hook")
+            } else if sub == "get" {
                 op_err("Account selection is required")
+            } else if sub == "forget" {
+                let all_flag = args.iter().skip(2).any(|a| a == "--all" || a == "--all=true");
+                let has_account = args.iter().skip(2).any(|a| a == "--account" || a.starts_with("--account="))
+                    || env.get("OP_ACCOUNT").is_some_and(|v| !v.is_empty());
+                let pos_cnt = op_positional_args(args, 2).len();
+                if all_flag && (has_account || pos_cnt > 0) {
+                    return op_err("Conflicting account selection");
+                }
+                if all_flag {
+                    return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                }
+                op_err("Account selection is required")
+            } else {
+                op_err(&format!("unknown command: account {sub}"))
             }
         }
         "vault" => {
@@ -1533,6 +1992,21 @@ where
             let st = map.entry(fs_id).or_default();
             match sub {
                 "list" | "ls" => {
+                    let mut pos_cnt = 0usize;
+                    let mut li = 2usize;
+                    while li < args.len() {
+                        match args[li].as_str() {
+                            "--user" | "--group" | "--permission" | "--format" | "--account" | "--config" | "--session" | "--encoding" => li += 2,
+                            a if a.starts_with('-') => li += 1,
+                            _ => {
+                                pos_cnt += 1;
+                                li += 1;
+                            }
+                        }
+                    }
+                    if pos_cnt > 0 {
+                        return op_err(&format!("expected at most 0 arguments but got {pos_cnt} instead"));
+                    }
                     let arr: Vec<Value> = st.op_vaults.iter().map(vault_json).collect();
                     let stdout = if format_json {
                         format!("{}\n", to_pretty_json(&JVal::Array(arr)))
@@ -1591,8 +2065,11 @@ where
                 }
                 "get" => {
                     let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).map(|s| s.as_str());
-                    let Some(v) = find_vault(st, sel) else {
-                        return op_err("vault not found");
+                    let Some(sel_str) = sel else {
+                        return op_err("One object selector is required");
+                    };
+                    let Some(v) = find_vault(st, Some(sel_str)) else {
+                        return op_err("Object not found");
                     };
                     let out = to_pretty_json(&vault_json(v));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
@@ -1628,10 +2105,10 @@ where
                         }
                     }
                     let Some(sel) = sel else {
-                        return op_err("vault selector is required");
+                        return op_err("One object selector is required");
                     };
                     let Some(v) = st.op_vaults.iter_mut().find(|v| v.id == sel || v.name.eq_ignore_ascii_case(&sel)) else {
-                        return op_err("vault not found");
+                        return op_err("Object not found");
                     };
                     if let Some(n) = new_name {
                         v.name = n;
@@ -1648,15 +2125,15 @@ where
                     let out = to_pretty_json(&vault_json(v));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
-                "delete" | "rm" => {
+                "delete" | "remove" | "rm" => {
                     let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
                     let Some(sel) = sel else {
-                        return op_err("vault selector is required");
+                        return op_err("One object selector is required");
                     };
                     let before = st.op_vaults.len();
                     st.op_vaults.retain(|v| !(v.id == sel || v.name.eq_ignore_ascii_case(&sel)));
                     if st.op_vaults.len() == before {
-                        return op_err("vault not found");
+                        return op_err("Object not found");
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
@@ -1771,7 +2248,7 @@ where
                         _ => op_err("Unsupported admin action"),
                     }
                 }
-                _ => op_err(&format!("unknown vault subcommand \"{sub}\"")),
+                _ => op_err(&format!("unknown command: vault {sub}")),
             }
         }
         "item" => {
@@ -1782,12 +2259,19 @@ where
                 "template" => {
                     let tsub = args.get(2).map(|s| s.as_str()).unwrap_or("list");
                     if tsub == "list" || tsub == "ls" {
+                        let pos_cnt = op_positional_args(args, 3).len();
+                        if pos_cnt > 0 {
+                            return op_err(&format!("expected at most 0 arguments but got {pos_cnt} instead"));
+                        }
                         let out = if format_json {
                             to_pretty_json(&jval!(["Login"]))
                         } else {
                             "[\"Login\"]".to_string()
                         };
                         return BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 };
+                    }
+                    if tsub != "get" {
+                        return op_err(&format!("unknown command: item template {tsub}"));
                     }
                     let cat = args.get(3).map(|s| s.as_str()).unwrap_or("Login");
                     if !cat.eq_ignore_ascii_case("login") {
@@ -2092,6 +2576,7 @@ where
                 }
                 "get" => {
                     let mut sel: Option<String> = None;
+                    let mut pos_cnt = 0usize;
                     let mut vault_sel: Option<String> = None;
                     let mut otp_mode = false;
                     let mut fields_spec: Vec<String> = Vec::new();
@@ -2106,7 +2591,7 @@ where
                                 otp_mode = true;
                                 i += 1;
                             }
-                            "--fields" => {
+                            "--fields" | "--field" => {
                                 if let Some(v) = args.get(i + 1) {
                                     for part in v.split(',') {
                                         let p = part.trim();
@@ -2129,6 +2614,7 @@ where
                             }
                             a if a.starts_with("--") => i += 1,
                             a => {
+                                pos_cnt += 1;
                                 if sel.is_none() {
                                     sel = Some(a.to_string());
                                 }
@@ -2136,8 +2622,17 @@ where
                             }
                         }
                     }
+                    if pos_cnt > 1 {
+                        return op_err(&format!("expected at most 1 arguments but got {pos_cnt} instead"));
+                    }
+                    if sel.is_none() && !stdin.is_empty() {
+                        let trimmed = stdin.trim();
+                        if !trimmed.is_empty() {
+                            sel = Some(trimmed.to_string());
+                        }
+                    }
                     let Some(sel) = sel else {
-                        return op_err("item selector is required");
+                        return op_err("An object selector or piped input is required");
                     };
                     if sel == "-" {
                         let Ok(parsed) = from_json_str(stdin) else {
@@ -2166,7 +2661,7 @@ where
                         let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
                         v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
                     }) else {
-                        return op_err("item not found");
+                        return op_err("Object not found");
                     };
                     if otp_mode {
                         return BuiltinOutcome { stdout: "287082\n".to_string(), stderr: String::new(), exit_code: 0 };
@@ -2272,7 +2767,7 @@ where
                         }
                     }
                     let Some(sel) = sel else {
-                        return op_err("item selector is required");
+                        return op_err("item edit requires an item selector");
                     };
                     let vault_id = vault_sel.as_deref().and_then(|vs| {
                         st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
@@ -2282,7 +2777,7 @@ where
                         let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
                         v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
                     }) else {
-                        return op_err("item not found");
+                        return op_err("Object not found");
                     };
                     if let Some(t) = new_title {
                         st.op_items[idx].title = t;
@@ -2364,7 +2859,7 @@ where
                     let out = to_pretty_json(&item_json(it, &dst.name));
                     BuiltinOutcome { stdout: format!("{out}\n"), stderr: String::new(), exit_code: 0 }
                 }
-                "delete" | "rm" => {
+                "delete" | "remove" | "rm" => {
                     let mut sel: Option<String> = None;
                     let mut vault_sel: Option<String> = None;
                     let mut archive = false;
@@ -2389,7 +2884,7 @@ where
                         }
                     }
                     let Some(sel) = sel else {
-                        return op_err("item selector is required");
+                        return op_err("One object selector is required");
                     };
                     let vault_id = vault_sel.as_deref().and_then(|vs| {
                         st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
@@ -2399,7 +2894,7 @@ where
                             let v_ok = vault_id.as_ref().map(|vid| &it.vault_id == vid).unwrap_or(true);
                             v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel))
                         }) else {
-                            return op_err("item not found");
+                            return op_err("Object not found");
                         };
                         it.state = "ARCHIVED".into();
                     } else {
@@ -2409,12 +2904,13 @@ where
                             !(v_ok && (it.id == sel || it.title.eq_ignore_ascii_case(&sel)))
                         });
                         if st.op_items.len() == before {
-                            return op_err("item not found");
+                            return op_err("Object not found");
                         }
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
-                _ => op_err(&format!("unknown item subcommand \"{sub}\"")),
+                "share" => op_err("Admin command requires an injected hook"),
+                _ => op_err(&format!("unknown command: item {sub}")),
             }
         }
         "document" => {
@@ -2528,6 +3024,7 @@ where
                 }
                 "get" => {
                     let mut sel: Option<String> = None;
+                    let mut pos_cnt = 0usize;
                     let mut vault_sel: Option<String> = None;
                     let mut out_file: Option<String> = None;
                     let mut file_mode: Option<u32> = None;
@@ -2545,7 +3042,7 @@ where
                             }
                             "--file-mode" => {
                                 if let Some(m) = args.get(i + 1) {
-                                    file_mode = u32::from_str_radix(m.trim_start_matches("0o"), 8).ok();
+                                    file_mode = parse_op_file_mode_str(m);
                                 }
                                 i += 2;
                             }
@@ -2553,8 +3050,17 @@ where
                                 force = true;
                                 i += 1;
                             }
+                            a if a.starts_with("--out-file=") => {
+                                out_file = Some(a["--out-file=".len()..].to_string());
+                                i += 1;
+                            }
+                            a if a.starts_with("--file-mode=") => {
+                                file_mode = parse_op_file_mode_str(&a["--file-mode=".len()..]);
+                                i += 1;
+                            }
                             a if a.starts_with('-') => i += 1,
                             a => {
+                                pos_cnt += 1;
                                 if sel.is_none() {
                                     sel = Some(a.to_string());
                                 }
@@ -2562,8 +3068,11 @@ where
                             }
                         }
                     }
+                    if pos_cnt > 1 {
+                        return op_err(&format!("expected at most 1 arguments but got {pos_cnt} instead"));
+                    }
                     let Some(sel) = sel else {
-                        return op_err("document selector is required");
+                        return op_err("expected at least 1 arguments but got 0 instead");
                     };
                     let vault_id = vault_sel.as_deref().and_then(|vs| {
                         st.op_vaults.iter().find(|v| v.id == vs || v.name.eq_ignore_ascii_case(vs)).map(|v| v.id.clone())
@@ -2572,7 +3081,7 @@ where
                         let v_ok = vault_id.as_ref().map(|vid| &d.vault_id == vid).unwrap_or(true);
                         v_ok && (d.id == sel || d.title.eq_ignore_ascii_case(&sel))
                     }) else {
-                        return op_err("document not found");
+                        return op_err("Object not found");
                     };
                     if let Some(of) = out_file {
                         let resolved = resolve_posix_path(cwd, &of);
@@ -2595,6 +3104,7 @@ where
                     let mut sel: Option<String> = None;
                     let mut src_file: Option<String> = None;
                     let mut new_title: Option<String> = None;
+                    let mut pos_cnt = 0usize;
                     let mut i = 2usize;
                     while i < args.len() {
                         match args[i].as_str() {
@@ -2605,6 +3115,7 @@ where
                             "--vault" | "--file-name" | "--format" => i += 2,
                             a if a.starts_with("--") => i += 1,
                             a => {
+                                pos_cnt += 1;
                                 if sel.is_none() {
                                     sel = Some(a.to_string());
                                 } else if src_file.is_none() {
@@ -2614,11 +3125,14 @@ where
                             }
                         }
                     }
+                    if pos_cnt == 0 || pos_cnt > 2 {
+                        return op_err("invalid arguments for document edit");
+                    }
                     let Some(sel) = sel else {
-                        return op_err("document selector is required");
+                        return op_err("invalid arguments for document edit");
                     };
                     let Some(doc) = st.op_docs.iter_mut().find(|d| d.id == sel || d.title.eq_ignore_ascii_case(&sel)) else {
-                        return op_err("document not found");
+                        return op_err("Object not found");
                     };
                     if let Some(t) = new_title {
                         doc.title = t;
@@ -2636,15 +3150,15 @@ where
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
-                "delete" | "rm" => {
+                "delete" | "remove" | "rm" => {
                     let sel = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned();
                     let Some(sel) = sel else {
-                        return op_err("document selector is required");
+                        return op_err("One object selector is required");
                     };
                     st.op_docs.retain(|d| !(d.id == sel || d.title.eq_ignore_ascii_case(&sel)));
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
-                _ => op_err(&format!("unknown document subcommand \"{sub}\"")),
+                _ => op_err(&format!("unknown command: document {sub}")),
             }
         }
         "read" => {
@@ -2653,6 +3167,7 @@ where
             let mut file_mode: Option<u32> = None;
             let mut force = false;
             let mut uri: Option<String> = None;
+            let mut pos_cnt = 0usize;
             let mut i = 1usize;
             while i < args.len() {
                 match args[i].as_str() {
@@ -2666,7 +3181,7 @@ where
                     }
                     "--file-mode" => {
                         if let Some(m) = args.get(i + 1) {
-                            file_mode = u32::from_str_radix(m.trim_start_matches("0o"), 8).ok();
+                            file_mode = parse_op_file_mode_str(m);
                         }
                         i += 2;
                     }
@@ -2674,8 +3189,17 @@ where
                         force = true;
                         i += 1;
                     }
+                    a if a.starts_with("--out-file=") => {
+                        out_file = Some(a["--out-file=".len()..].to_string());
+                        i += 1;
+                    }
+                    a if a.starts_with("--file-mode=") => {
+                        file_mode = parse_op_file_mode_str(&a["--file-mode=".len()..]);
+                        i += 1;
+                    }
                     a if a.starts_with('-') => i += 1,
                     a => {
+                        pos_cnt += 1;
                         if uri.is_none() {
                             uri = Some(a.to_string());
                         }
@@ -2683,8 +3207,11 @@ where
                     }
                 }
             }
+            if pos_cnt > 1 {
+                return op_err(&format!("expected at most 1 arguments but got {pos_cnt} instead"));
+            }
             let Some(uri) = uri else {
-                return op_err("secret reference is required");
+                return op_err("expected at least 1 arguments but got 0 instead");
             };
             let map = states().lock().unwrap();
             let st = map.get(&fs_id).cloned().unwrap_or_default();
@@ -2805,10 +3332,10 @@ where
                 }
             }
             let Some(start) = cmd_start else {
-                return op_err("no command specified for op run");
+                return op_err("expected at least 1 arguments but got 0 instead");
             };
             if start >= args.len() {
-                return op_err("no command specified for op run");
+                return op_err("expected at least 1 arguments but got 0 instead");
             }
             let sub_words = &args[start..];
             let map = states().lock().unwrap();
@@ -3303,6 +3830,9 @@ where
                         .find(|a| !a.starts_with('-'))
                         .cloned()
                         .unwrap_or_default();
+                    if sel.is_empty() {
+                        return op_err("One object selector is required");
+                    }
                     let Some(g) = st.op_groups.iter().find(|g| g.id.eq_ignore_ascii_case(&sel) || g.name.eq_ignore_ascii_case(&sel)) else {
                         return op_err("Object not found");
                     };
@@ -3328,6 +3858,9 @@ where
                         .find(|a| !a.starts_with('-'))
                         .cloned()
                         .unwrap_or_default();
+                    if sel.is_empty() {
+                        return op_err("One object selector is required");
+                    }
                     let Some(g) = st.op_groups.iter_mut().find(|g| g.id.eq_ignore_ascii_case(&sel) || g.name.eq_ignore_ascii_case(&sel)) else {
                         return op_err("Object not found");
                     };
@@ -3353,13 +3886,16 @@ where
                     }
                     BuiltinOutcome { stdout: out, stderr: String::new(), exit_code: 0 }
                 }
-                "delete" => {
+                "delete" | "remove" | "rm" => {
                     let sel = args
                         .iter()
                         .skip(2)
                         .find(|a| !a.starts_with('-'))
                         .cloned()
                         .unwrap_or_default();
+                    if sel.is_empty() {
+                        return op_err("One object selector is required");
+                    }
                     let before = st.op_groups.len();
                     st.op_groups.retain(|g| !g.id.eq_ignore_ascii_case(&sel) && !g.name.eq_ignore_ascii_case(&sel));
                     if st.op_groups.len() == before {
@@ -3367,7 +3903,7 @@ where
                     }
                     BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
                 }
-                _ => op_err("Unsupported admin action"),
+                _ => op_err(&format!("unknown command: group {sub}")),
             }
         }
         "plugin" => {
@@ -3504,19 +4040,29 @@ where
                     }
                     op_err("Object not found")
                 }
-                _ => op_err("Unsupported admin action"),
+                _ => op_err(&format!("unknown command: plugin {sub}")),
             }
         }
         "user" | "connect" | "service-account" | "events-api" => {
+            let sub = args.get(1).map(|s| s.as_str()).unwrap_or("list");
+            if (first == "service-account" && (sub == "create" || sub == "ratelimit" || sub == "ratelimits"))
+                || (first == "events-api" && sub == "create")
+                || (first == "user" && sub == "provision")
+                || (first == "connect" && matches!(sub, "server" | "token") && args.get(2).map(|s| s.as_str()) == Some("create"))
+            {
+                return op_err("Admin command requires an injected hook");
+            }
+            if (first == "user" && !matches!(sub, "list" | "ls" | "get" | "edit" | "delete" | "remove" | "rm" | "confirm" | "suspend" | "reactivate" | "recovery"))
+                || (first == "connect" && !matches!(sub, "list" | "ls" | "server" | "token" | "vault" | "group"))
+                || (first == "service-account" && !matches!(sub, "list" | "ls" | "create" | "ratelimit" | "ratelimits"))
+                || (first == "events-api" && !matches!(sub, "list" | "ls" | "create"))
+            {
+                return op_err(&format!("unknown command: {first} {sub}"));
+            }
             BuiltinOutcome { stdout: if format_json { "[]\n".into() } else { String::new() }, stderr: String::new(), exit_code: 0 }
         }
         "completion" => {
-            let pos: Vec<&str> = args
-                .iter()
-                .skip(1)
-                .filter(|a| !a.starts_with('-'))
-                .map(|s| s.as_str())
-                .collect();
+            let pos = op_positional_args(args, 1);
             if pos.len() != 1 {
                 return op_err("completion requires one shell: bash, zsh, fish, or powershell");
             }
@@ -3533,7 +4079,7 @@ where
                 exit_code: 0,
             }
         },
-        _ => op_err(&format!("unknown command \"{first}\" for \"op\"")),
+        _ => op_err(&format!("unknown command: {first}")),
     }
 }
 
@@ -3616,6 +4162,10 @@ fn parse_gh_common_flags(args: &[String]) -> (Option<String>, Option<Vec<String>
             }
             a if a.starts_with("--repo=") => {
                 repo = Some(a["--repo=".len()..].to_string());
+                i += 1;
+            }
+            a if a.starts_with("-R=") => {
+                repo = Some(a["-R=".len()..].to_string());
                 i += 1;
             }
             a if a.starts_with("--json=") => {
@@ -3722,12 +4272,52 @@ fn find_git_root_in_vfs(cwd: &str, fs: &dyn SafeBashFs) -> Option<String> {
     }
 }
 
+fn split_gh_alias_expansion(expansion: &str) -> Vec<String> {
+    let mut tokens = Vec::new();
+    let mut current = String::new();
+    let mut quote: Option<char> = None;
+    for ch in expansion.chars() {
+        if let Some(q) = quote {
+            if ch == q {
+                quote = None;
+            } else {
+                current.push(ch);
+            }
+        } else if ch == '"' || ch == '\'' {
+            quote = Some(ch);
+        } else if ch.is_whitespace() {
+            if !current.is_empty() {
+                tokens.push(std::mem::take(&mut current));
+            }
+        } else {
+            current.push(ch);
+        }
+    }
+    if !current.is_empty() {
+        tokens.push(current);
+    }
+    tokens
+}
+
 fn cmd_gh(
     args: &[String],
     stdin: &str,
     cwd: &str,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut visited = std::collections::BTreeSet::new();
+    cmd_gh_inner(args, stdin, cwd, env, fs, &mut visited, 0)
+}
+
+fn cmd_gh_inner(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    visited_aliases: &mut std::collections::BTreeSet<String>,
+    depth: usize,
 ) -> BuiltinOutcome {
     if args.is_empty() {
         return BuiltinOutcome {
@@ -3737,7 +4327,16 @@ fn cmd_gh(
         };
     }
 
-    let first = args[0].as_str();
+    let fs_id = fs.fs_id();
+    let (repo_flag, json_fields, jq_expr, filtered_args) = parse_gh_common_flags(args);
+    if filtered_args.is_empty() {
+        return BuiltinOutcome {
+            stdout: GH_ROOT_HELP.to_string(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+    }
+    let first = filtered_args[0].as_str();
     if first == "--version" || first == "version" || first == "-v" {
         return BuiltinOutcome {
             stdout: "gh version 2.67.0 (2026-09-28)\nhttps://github.com/cli/cli/releases/tag/v2.67.0\n".to_string(),
@@ -3754,20 +4353,20 @@ fn cmd_gh(
         };
     }
 
-    let sub_first = args.get(1).map(|s| s.as_str()).unwrap_or("");
+    let sub_first = filtered_args.get(1).map(|s| s.as_str()).unwrap_or("");
     let h_takes_value = first == "auth"
         || first == "config"
         || (first == "repo" && matches!(sub_first, "create" | "new" | "edit"));
     let mut is_help = false;
     let mut hi = 0usize;
-    while hi < args.len() {
-        let a = args[hi].as_str();
+    while hi < filtered_args.len() {
+        let a = filtered_args[hi].as_str();
         if a == "--help" {
             is_help = true;
             break;
         }
         if a == "-h" {
-            if h_takes_value && hi + 1 < args.len() && !args[hi + 1].starts_with('-') {
+            if h_takes_value && hi + 1 < filtered_args.len() && !filtered_args[hi + 1].starts_with('-') {
                 hi += 2;
                 continue;
             }
@@ -3777,7 +4376,7 @@ fn cmd_gh(
         hi += 1;
     }
     if is_help {
-        let topic = args
+        let topic = filtered_args
             .iter()
             .filter(|a| !a.starts_with('-'))
             .cloned()
@@ -3790,9 +4389,57 @@ fn cmd_gh(
         };
     }
 
-    let fs_id = fs.fs_id();
-    let (repo_flag, json_fields, jq_expr, filtered_args) = parse_gh_common_flags(args);
     let args = &filtered_args;
+
+    // Check alias expansion before dispatching built-in commands
+    let alias_exp = {
+        let mut map = states().lock().unwrap();
+        let st = map.entry(fs_id).or_default();
+        st.gh_aliases
+            .iter()
+            .find(|(k, _)| k == first)
+            .map(|(_, v)| v.clone())
+    };
+    if let Some(expansion) = alias_exp {
+        if !visited_aliases.insert(first.to_string()) {
+            return gh_err("alias expansion loop detected");
+        }
+        if depth >= 64 {
+            return gh_err("alias expansion depth limit exceeded");
+        }
+        let clean = if let Some(stripped) = expansion.strip_prefix('!') {
+            stripped.trim_start().strip_prefix("gh ").unwrap_or(stripped).trim_start()
+        } else {
+            expansion.as_str()
+        };
+        let sub_args = &args[1..];
+        let mut expanded_text = clean.to_string();
+        let mut used_placeholder = false;
+        for (idx, val) in sub_args.iter().enumerate() {
+            let placeholder = format!("${}", idx + 1);
+            if expanded_text.contains(&placeholder) {
+                expanded_text = expanded_text.replace(&placeholder, val);
+                used_placeholder = true;
+            }
+        }
+        let mut next_args = split_gh_alias_expansion(&expanded_text);
+        if !used_placeholder {
+            next_args.extend_from_slice(sub_args);
+        }
+        if let Some(ref rf) = repo_flag {
+            next_args.push("-R".to_string());
+            next_args.push(rf.clone());
+        }
+        if let Some(ref jf) = json_fields {
+            next_args.push("--json".to_string());
+            next_args.push(jf.join(","));
+        }
+        if let Some(ref jq) = jq_expr {
+            next_args.push("--jq".to_string());
+            next_args.push(jq.clone());
+        }
+        return cmd_gh_inner(&next_args, stdin, cwd, env, fs, visited_aliases, depth + 1);
+    }
 
     match first {
         "auth" => {
@@ -4128,7 +4775,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => gh_err(&format!("unknown auth subcommand \"{sub}\"")),
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh auth\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "config" => {
@@ -4171,10 +4822,31 @@ fn cmd_gh(
                 }
                 "get" => {
                     let key = pos.first().copied().unwrap_or("");
+                    if !matches!(
+                        key,
+                        "git_protocol" | "editor" | "prompt" | "pager" | "http_unix_socket" | "browser"
+                    ) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("unknown config key \"{key}\"\n"),
+                            exit_code: 1,
+                        };
+                    }
                     let val = st.gh_config.get(key).cloned().unwrap_or_default();
                     BuiltinOutcome { stdout: format!("{val}\n"), stderr: String::new(), exit_code: 0 }
                 }
                 "set" => {
+                    let key = pos.first().copied().unwrap_or("");
+                    if !matches!(
+                        key,
+                        "git_protocol" | "editor" | "prompt" | "pager" | "http_unix_socket" | "browser"
+                    ) {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("unknown config key \"{key}\"\n"),
+                            exit_code: 1,
+                        };
+                    }
                     if let (Some(k), Some(v)) = (pos.first().copied(), pos.get(1).copied()) {
                         st.gh_config.insert(k.to_string(), v.to_string());
                         if k == "git_protocol" {
@@ -4188,7 +4860,11 @@ fn cmd_gh(
                     stderr: String::new(),
                     exit_code: 0,
                 },
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh config\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "alias" => {
@@ -4196,7 +4872,7 @@ fn cmd_gh(
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
             match sub {
-                "list" => {
+                "list" | "ls" => {
                     let mut out = String::new();
                     for (k, v) in &st.gh_aliases {
                         out.push_str(&format!("{k}: {v}\n"));
@@ -4219,7 +4895,11 @@ fn cmd_gh(
                             exit_code: 0,
                         };
                     }
-                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                    BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "alias name and expansion required\n".into(),
+                        exit_code: 1,
+                    }
                 }
                 "delete" => {
                     if args.iter().skip(2).any(|a| a == "--all") {
@@ -4241,7 +4921,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh alias\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "repo" => {
@@ -4917,7 +5601,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh repo\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "issue" => {
@@ -5349,7 +6037,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh issue\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "pr" => {
@@ -5921,7 +6613,55 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                "checkout" | "co" => {
+                    let mut target_branch_opt: Option<String> = None;
+                    let mut sel_opt: Option<String> = None;
+                    let mut i = 2usize;
+                    while i < args.len() {
+                        match args[i].as_str() {
+                            "-b" | "--branch" if i + 1 < args.len() => {
+                                target_branch_opt = Some(args[i + 1].clone());
+                                i += 2;
+                            }
+                            "-R" | "--repo" => i += 2,
+                            a if !a.starts_with('-') => {
+                                if sel_opt.is_none() {
+                                    sel_opt = Some(a.to_string());
+                                }
+                                i += 1;
+                            }
+                            _ => i += 1,
+                        }
+                    }
+                    let Some(sel) = sel_opt else {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "pull request number, URL, or branch required\n".into(),
+                            exit_code: 1,
+                        };
+                    };
+                    let pr_opt = if let Ok(num) = sel.parse::<u64>() {
+                        repo.prs.iter().find(|p| p.number == num).cloned()
+                    } else {
+                        repo.prs.iter().find(|p| p.head == sel).cloned()
+                    };
+                    let Some(pr) = pr_opt else {
+                        return gh_err(&format!(
+                            "GraphQL: Could not resolve to a PullRequest with the number of {sel}."
+                        ));
+                    };
+                    let target_branch = target_branch_opt.unwrap_or(pr.head);
+                    BuiltinOutcome {
+                        stdout: format!("Switched to branch '{target_branch}'\n"),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    }
+                }
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh pr\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "release" => {
@@ -6234,7 +6974,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh release\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "api" => {
@@ -6318,9 +7062,47 @@ fn cmd_gh(
             let st = map.entry(fs_id).or_default();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
             let repo = st.gh_repos.get_mut(&full).unwrap();
+            let mut pos_arg: Option<String> = None;
+            let mut color_opt: Option<String> = None;
+            let mut desc_opt: Option<String> = None;
+            let mut new_name_opt: Option<String> = None;
+            let mut force = false;
+            let mut li = 2usize;
+            while li < args.len() {
+                match args[li].as_str() {
+                    "-c" | "--color" if li + 1 < args.len() => {
+                        color_opt = Some(args[li + 1].trim_start_matches('#').to_string());
+                        li += 2;
+                    }
+                    "-d" | "--description" if li + 1 < args.len() => {
+                        desc_opt = Some(args[li + 1].clone());
+                        li += 2;
+                    }
+                    "-n" | "--name" if li + 1 < args.len() => {
+                        new_name_opt = Some(args[li + 1].clone());
+                        li += 2;
+                    }
+                    "-f" | "--force" => {
+                        force = true;
+                        li += 1;
+                    }
+                    a if a.starts_with('-') => li += 1,
+                    a => {
+                        if pos_arg.is_none() {
+                            pos_arg = Some(a.to_string());
+                        }
+                        li += 1;
+                    }
+                }
+            }
             if sub == "create" {
-                let name = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned().unwrap_or_else(|| "label".into());
-                let force = args.iter().skip(2).any(|a| a == "-f" || a == "--force");
+                let Some(name) = pos_arg else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "label name required\n".into(),
+                        exit_code: 1,
+                    };
+                };
                 if !force && repo.labels.iter().any(|(n, _, _)| n.eq_ignore_ascii_case(&name)) {
                     return BuiltinOutcome {
                         stdout: String::new(),
@@ -6328,24 +7110,88 @@ fn cmd_gh(
                         exit_code: 1,
                     };
                 }
-                let mut color = "ededed".to_string();
-                let mut desc = String::new();
-                for w in args.windows(2) {
-                    if w[0] == "-c" || w[0] == "--color" {
-                        color = w[1].trim_start_matches('#').to_string();
-                    } else if w[0] == "-d" || w[0] == "--description" {
-                        desc = w[1].clone();
-                    }
-                }
+                let color = color_opt.unwrap_or_else(|| "ededed".to_string());
+                let desc = desc_opt.unwrap_or_default();
                 repo.labels.retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
-                repo.labels.push((name, color, desc));
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                repo.labels.push((name.clone(), color, desc));
+                return BuiltinOutcome {
+                    stdout: format!("✓ Created label \"{name}\" in {full}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            if sub == "edit" {
+                let old_name = pos_arg.unwrap_or_default();
+                let Some(existing) = repo.labels.iter_mut().find(|(n, _, _)| n.eq_ignore_ascii_case(&old_name)) else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("label \"{old_name}\" not found\n"),
+                        exit_code: 1,
+                    };
+                };
+                if let Some(nn) = new_name_opt {
+                    existing.0 = nn;
+                }
+                if let Some(cc) = color_opt {
+                    existing.1 = cc;
+                }
+                if let Some(dd) = desc_opt {
+                    existing.2 = dd;
+                }
+                let updated_name = existing.0.clone();
+                return BuiltinOutcome {
+                    stdout: format!("✓ Updated label \"{updated_name}\" in {full}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
             }
             if sub == "delete" {
-                if let Some(name) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned() {
-                    repo.labels.retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
+                let name = pos_arg.unwrap_or_default();
+                repo.labels.retain(|(n, _, _)| !n.eq_ignore_ascii_case(&name));
+                return BuiltinOutcome {
+                    stdout: format!("✓ Deleted label \"{name}\" from {full}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            if sub == "clone" {
+                let Some(src_spec) = pos_arg else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "source repository required\n".into(),
+                        exit_code: 1,
+                    };
+                };
+                let src_full = resolve_gh_repo_key(st, Some(&src_spec), env);
+                let src_labels = st
+                    .gh_repos
+                    .get(&src_full)
+                    .map(|r| r.labels.clone())
+                    .unwrap_or_default();
+                let repo = st.gh_repos.get_mut(&full).unwrap();
+                for (sn, sc, sd) in src_labels {
+                    if let Some(existing) = repo.labels.iter_mut().find(|(n, _, _)| n.eq_ignore_ascii_case(&sn)) {
+                        if force {
+                            existing.0 = sn;
+                            existing.1 = sc;
+                            existing.2 = sd;
+                        }
+                    } else {
+                        repo.labels.push((sn, sc, sd));
+                    }
                 }
-                return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+                return BuiltinOutcome {
+                    stdout: format!("✓ Cloned labels from {src_full} to {full}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            if sub != "list" && sub != "ls" {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh label\"\n"),
+                    exit_code: 1,
+                };
             }
             let arr: Vec<Value> = repo.labels.iter().map(|(n, c, d)| jval!({ "name": n, "color": c, "description": d })).collect();
             drop(map);
@@ -6360,15 +7206,35 @@ fn cmd_gh(
             let st = map.entry(fs_id).or_default();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
             let repo = st.gh_repos.get_mut(&full).unwrap();
-            if sub == "set"
-                && let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned()
-            {
+            if sub == "set" {
                 let mut body_val: Option<String> = None;
-                for w in args.windows(2) {
-                    if w[0] == "-b" || w[0] == "--body" {
-                        body_val = Some(w[1].clone());
+                let mut pos_key: Option<String> = None;
+                let mut vi = 2usize;
+                while vi < args.len() {
+                    match args[vi].as_str() {
+                        "-b" | "--body" if vi + 1 < args.len() => {
+                            body_val = Some(args[vi + 1].clone());
+                            vi += 2;
+                        }
+                        "-f" | "--env-file" | "-e" | "--env" | "-o" | "--org" if vi + 1 < args.len() => {
+                            vi += 2;
+                        }
+                        a if a.starts_with('-') => vi += 1,
+                        a => {
+                            if pos_key.is_none() {
+                                pos_key = Some(a.to_string());
+                            }
+                            vi += 1;
+                        }
                     }
                 }
+                let Some(k) = pos_key else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "variable name required\n".into(),
+                        exit_code: 1,
+                    };
+                };
                 let val = body_val.unwrap_or_else(|| stdin.trim().to_string());
                 repo.variables.insert(k.clone(), val);
                 return BuiltinOutcome {
@@ -6379,10 +7245,18 @@ fn cmd_gh(
             }
             if sub == "get" {
                 let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned() else {
-                    return gh_err("variable name is required");
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "variable name required\n".into(),
+                        exit_code: 1,
+                    };
                 };
                 let Some(val) = repo.variables.get(&k).cloned() else {
-                    return gh_err(&format!("variable {k} was not found"));
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("variable {k} not found\n"),
+                        exit_code: 1,
+                    };
                 };
                 drop(map);
                 if let Some(fields) = &json_fields {
@@ -6406,6 +7280,13 @@ fn cmd_gh(
                 }
                 return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
             }
+            if sub != "list" && sub != "ls" {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh variable\"\n"),
+                    exit_code: 1,
+                };
+            }
             let arr: Vec<Value> = repo.variables.iter().map(|(k, v)| jval!({ "name": k, "value": v })).collect();
             drop(map);
             if let Some(fields) = &json_fields {
@@ -6419,9 +7300,30 @@ fn cmd_gh(
             let st = map.entry(fs_id).or_default();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
             let repo = st.gh_repos.get_mut(&full).unwrap();
-            if sub == "set"
-                && let Some(k) = args.iter().skip(2).find(|a| !a.starts_with('-')).cloned()
-            {
+            if sub == "set" {
+                let mut pos_key: Option<String> = None;
+                let mut si = 2usize;
+                while si < args.len() {
+                    match args[si].as_str() {
+                        "-b" | "--body" | "-f" | "--env-file" | "-e" | "--env" | "-o" | "--org" if si + 1 < args.len() => {
+                            si += 2;
+                        }
+                        a if a.starts_with('-') => si += 1,
+                        a => {
+                            if pos_key.is_none() {
+                                pos_key = Some(a.to_string());
+                            }
+                            si += 1;
+                        }
+                    }
+                }
+                let Some(k) = pos_key else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "secret name required\n".into(),
+                        exit_code: 1,
+                    };
+                };
                 if !repo.secrets.contains(&k) {
                     repo.secrets.push(k.clone());
                 }
@@ -6441,6 +7343,13 @@ fn cmd_gh(
                     };
                 }
                 return BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
+            }
+            if sub != "list" && sub != "ls" {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh secret\"\n"),
+                    exit_code: 1,
+                };
             }
             let arr: Vec<Value> = repo.secrets.iter().map(|s| jval!({ "name": s })).collect();
             drop(map);
@@ -6595,7 +7504,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => gh_err(&format!("unknown command \"{sub}\" for \"gh workflow\"")),
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh workflow\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "run" => {
@@ -6759,7 +7672,11 @@ fn cmd_gh(
                         _ => unreachable!(),
                     }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh run\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "gist" => {
@@ -7036,7 +7953,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => gh_err(&format!("unknown command \"{sub}\" for \"gh gist\"")),
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh gist\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "search" => {
@@ -7199,7 +8120,17 @@ fn cmd_gh(
                     }
                     BuiltinOutcome { stdout: lines, stderr: String::new(), exit_code: 0 }
                 }
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                "commits" | "code" => {
+                    if let Some(fields) = &json_fields {
+                        return format_gh_json_output(&Value::Array(Vec::new()), fields, jq_expr.as_deref(), cwd, env, fs);
+                    }
+                    BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 }
+                }
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh search\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "cache" => {
@@ -7267,7 +8198,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => gh_err(&format!("unknown command \"{sub}\" for \"gh cache\"")),
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh cache\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "ssh-key" => {
@@ -7392,7 +8327,11 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => gh_err(&format!("unknown command \"{sub}\" for \"gh ssh-key\"")),
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh ssh-key\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "gpg-key" => {
@@ -7496,11 +8435,22 @@ fn cmd_gh(
                         exit_code: 0,
                     }
                 }
-                _ => gh_err(&format!("unknown command \"{sub}\" for \"gh gpg-key\"")),
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh gpg-key\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "org" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
+                return BuiltinOutcome {
+                    stdout: "Work with GitHub organizations.\n\nUSAGE\n  gh org <command> [flags]\n\nCORE COMMANDS\n  list: List organizations for the authenticated user\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
             if sub == "list" {
                 return BuiltinOutcome {
                     stdout: "poe-platform\ngithub\n".into(),
@@ -7509,13 +8459,20 @@ fn cmd_gh(
                 };
             }
             BuiltinOutcome {
-                stdout: "Work with GitHub organizations.\n\nUSAGE\n  gh org <command> [flags]\n\nCORE COMMANDS\n  list: List organizations for the authenticated user\n".into(),
-                stderr: String::new(),
-                exit_code: 0,
+                stdout: String::new(),
+                stderr: format!("unknown command \"{sub}\" for \"gh org\"\n"),
+                exit_code: 1,
             }
         }
         "ruleset" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
+                return BuiltinOutcome {
+                    stdout: "View info about repo rulesets.\n\nUSAGE\n  gh ruleset <command> [flags]\n\nCORE COMMANDS\n  list:  List rulesets for a repository\n  view:  View info about a ruleset\n  check: View rules that would apply to a given branch\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
             let full = resolve_gh_repo_key(st, repo_flag.as_deref(), env);
@@ -7545,14 +8502,21 @@ fn cmd_gh(
                     }
                 }
                 _ => BuiltinOutcome {
-                    stdout: "View info about repo rulesets.\n\nUSAGE\n  gh ruleset <command> [flags]\n\nCORE COMMANDS\n  list:  List rulesets for a repository\n  view:  View info about a ruleset\n  check: View rules that would apply to a given branch\n".into(),
-                    stderr: String::new(),
-                    exit_code: 0,
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh ruleset\"\n"),
+                    exit_code: 1,
                 },
             }
         }
         "extension" | "ext" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("");
+            if sub.is_empty() || sub == "--help" || sub == "-h" || sub == "help" {
+                return BuiltinOutcome {
+                    stdout: "Manage gh extensions.\n\nUSAGE\n  gh extension <command> [flags]\n\nCORE COMMANDS\n  browse\n  create\n  exec\n  install\n  list\n  remove\n  search\n  upgrade\n".into(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
             let mut map = states().lock().unwrap();
             let st = map.entry(fs_id).or_default();
             match sub {
@@ -7603,7 +8567,16 @@ fn cmd_gh(
                     stderr: String::new(),
                     exit_code: 0,
                 },
-                _ => BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 },
+                "create" | "exec" | "browse" => BuiltinOutcome {
+                    stdout: format!("✓ Executed extension {sub}\n"),
+                    stderr: String::new(),
+                    exit_code: 0,
+                },
+                _ => BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh extension\"\n"),
+                    exit_code: 1,
+                },
             }
         }
         "status" => {
@@ -7749,7 +8722,11 @@ fn cmd_gh(
         "attestation" => {
             let sub = args.get(1).map(|s| s.as_str()).unwrap_or("verify");
             if sub != "verify" {
-                return gh_err(&format!("unknown command \"{sub}\" for \"gh attestation\""));
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("unknown command \"{sub}\" for \"gh attestation\"\n"),
+                    exit_code: 1,
+                };
             }
             let mut owner_opt: Option<String> = None;
             let mut bundle_opt: Option<String> = None;
@@ -8006,6 +8983,32 @@ fn cmd_gh(
                             exit_code: 0,
                         };
                     }
+                    if sub == "copy" {
+                        let new_num = (st.gh_projects.len() + 1) as u64;
+                        let src_proj = st.gh_projects.iter().find(|p| p.number == num).cloned();
+                        let src_title = src_proj.as_ref().map(|p| p.title.clone()).unwrap_or_else(|| format!("Project {num}"));
+                        let copy_title = title_opt.unwrap_or_else(|| format!("{src_title} (Copy)"));
+                        let copy_url = format!("https://github.com/orgs/{owner}/projects/{new_num}");
+                        st.gh_projects.push(GhProjectRecord {
+                            number: new_num,
+                            id: format!("PVT_{new_num}"),
+                            title: copy_title,
+                            short_description: src_proj.as_ref().map(|p| p.short_description.clone()).unwrap_or_default(),
+                            readme: src_proj.as_ref().map(|p| p.readme.clone()).unwrap_or_default(),
+                            is_public: src_proj.as_ref().map(|p| p.is_public).unwrap_or(false),
+                            closed: src_proj.as_ref().map(|p| p.closed).unwrap_or(false),
+                            is_template: src_proj.as_ref().map(|p| p.is_template).unwrap_or(false),
+                            owner: owner.clone(),
+                            url: copy_url.clone(),
+                            fields: src_proj.as_ref().map(|p| p.fields.clone()).unwrap_or_else(|| vec![
+                                ("PVTF_1".into(), "Title".into(), "TITLE".into()),
+                                ("PVTF_2".into(), "Status".into(), "SINGLE_SELECT".into()),
+                            ]),
+                            items: src_proj.as_ref().map(|p| p.items.clone()).unwrap_or_default(),
+                            linked_repos: src_proj.as_ref().map(|p| p.linked_repos.clone()).unwrap_or_default(),
+                        });
+                        return BuiltinOutcome { stdout: format!("{copy_url}\n"), stderr: String::new(), exit_code: 0 };
+                    }
                     let p = st.gh_projects.iter_mut().find(|p| p.number == num).unwrap();
                     match sub {
                         "view" => {
@@ -8150,7 +9153,11 @@ fn cmd_gh(
                             p.is_template = !undo;
                             BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 }
                         }
-                        _ => BuiltinOutcome { stdout: format!("{}\n", p.url), stderr: String::new(), exit_code: 0 },
+                        _ => BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("unknown command \"{sub}\" for \"gh project\"\n"),
+                            exit_code: 1,
+                        },
                     }
                 }
             }
@@ -8300,7 +9307,11 @@ fn cmd_gh(
                 },
             }
         }
-        _ => gh_err(&format!("unknown command \"{first}\" for \"gh\"")),
+        _ => BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("unknown command \"{first}\" for \"gh\"\n"),
+            exit_code: 1,
+        },
     }
 }
 
@@ -9007,6 +10018,59 @@ mod tests {
             &mut noop,
         );
         assert_eq!(read_cert.stdout, "CERT-RAW-NO-NEWLINE");
+    }
+
+    #[test]
+    fn unit_op_and_gh_cli_diagnostics_flags_and_alias_expansion() {
+        let vfs = MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let mut noop = |_: &[String], _: &str, _: &mut String, _: &mut BTreeMap<String, String>| {
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            }
+        };
+
+        // OP_BIOMETRIC_UNLOCK_ENABLED validation
+        env.insert("OP_BIOMETRIC_UNLOCK_ENABLED".into(), "invalid".into());
+        let bio_bad = cmd_op(&args(&["vault", "list"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(bio_bad.exit_code, 1);
+        assert_eq!(bio_bad.stderr, "op: OP_BIOMETRIC_UNLOCK_ENABLED must be true or false.\n");
+        env.remove("OP_BIOMETRIC_UNLOCK_ENABLED");
+
+        // op static flag & operand validations
+        let fmt_bad = cmd_op(&args(&["vault", "list", "--format", "xml"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(fmt_bad.exit_code, 1);
+        assert_eq!(fmt_bad.stderr, "op: format must be json or human-readable\n");
+
+        let ver_sub = cmd_op(&args(&["vault", "--version"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(ver_sub.exit_code, 1);
+        assert_eq!(ver_sub.stderr, "op: unknown flag: --version\n");
+
+        let fm_bad = cmd_op(&args(&["read", "op://v/i/f", "--file-mode", "0o600"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(fm_bad.exit_code, 1);
+        assert_eq!(fm_bad.stderr, "op: invalid value for --file-mode\n");
+
+        let unk_op = cmd_op(&args(&["unknowncmd"]), "", &mut cwd, &mut env, &vfs, &mut noop);
+        assert_eq!(unk_op.exit_code, 1);
+        assert_eq!(unk_op.stderr, "op: unknown command: unknowncmd\n");
+
+        // gh unknown command, config validation, and alias expansion + loop detection
+        let unk_gh = cmd_gh(&args(&["unknowncmd"]), "", "/", &mut env, &vfs);
+        assert_eq!(unk_gh.exit_code, 1);
+        assert_eq!(unk_gh.stderr, "unknown command \"unknowncmd\" for \"gh\"\n");
+
+        let cfg_bad = cmd_gh(&args(&["config", "get", "badkey"]), "", "/", &mut env, &vfs);
+        assert_eq!(cfg_bad.exit_code, 1);
+        assert_eq!(cfg_bad.stderr, "unknown config key \"badkey\"\n");
+
+        cmd_gh(&args(&["alias", "set", "loop1", "loop2"]), "", "/", &mut env, &vfs);
+        cmd_gh(&args(&["alias", "set", "loop2", "loop1"]), "", "/", &mut env, &vfs);
+        let loop_res = cmd_gh(&args(&["loop1"]), "", "/", &mut env, &vfs);
+        assert_eq!(loop_res.exit_code, 1);
+        assert_eq!(loop_res.stderr, "gh: alias expansion loop detected\n");
     }
 
 }

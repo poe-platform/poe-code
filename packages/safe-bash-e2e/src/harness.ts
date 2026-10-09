@@ -395,6 +395,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-sqlite-window-triggers-op-gh-codecs-timeout-vfs-parity-matrix.test.ts",
   "obscure-vfs-quotas-env-op-gh-sqlite-archive-deep-parity-matrix.test.ts",
   "obscure-xan-yq-xmllint-openssl-gpg-ssh-sqlite-codecs-parity-matrix.test.ts",
+  "obscure-op-gh-cli-diagnostics-flags-auth-aliases-biometric-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

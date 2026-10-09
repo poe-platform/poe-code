@@ -34505,4 +34505,72 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(out.exit_code, 0);
         assert_eq!(out.stdout, "NULL|null|null|'NULL'|text|'null'|text|''|text\n");
     }
+
+    #[test]
+    fn unit_jq_reduce_foreach_yq_toml_xq_xmllint_htmlq_csvsql_xan_and_sg() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let jq = try_run_structured_command(
+            "jq",
+            &args(&["-c", "{sum: (reduce .[] as $x (0; . + $x)), run: [foreach .[] as $x (0; . + $x; .)]}"]),
+            "[1,2,3,4]\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(jq.exit_code, 0);
+        assert_eq!(jq.stdout, "{\"sum\":10,\"run\":[1,3,6,10]}\n");
+
+        let yq = try_run_structured_command(
+            "yq",
+            &args(&["-p=toml", "-o=json", "-I=0", ".pkg.name"]),
+            "[pkg]\nname = \"safe-bash\"\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(yq.exit_code, 0);
+        assert_eq!(yq.stdout, "\"safe-bash\"\n");
+
+        vfs.write_file("/work/n.xml", b"<root><item id=\"a\">10</item><item id=\"b\">20</item></root>").unwrap();
+        let xl = try_run_structured_command(
+            "xmllint",
+            &args(&["--xpath", "string(//item[@id=\"b\"])", "/work/n.xml"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(xl.exit_code, 0);
+        assert_eq!(xl.stdout.trim(), "20");
+
+        let hq = try_run_structured_command(
+            "htmlq",
+            &args(&["--text", "div > span.hi"]),
+            "<div><span class=\"hi\">hello</span></div>",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(hq.exit_code, 0);
+        assert_eq!(hq.stdout.trim(), "hello");
+
+        let xn = try_run_structured_command(
+            "xan",
+            &args(&["transpose"]),
+            "metric,q1,q2\nrev,10,20\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(xn.exit_code, 0);
+        assert_eq!(xn.stdout, "metric,rev\nq1,10\nq2,20\n");
+    }
 }

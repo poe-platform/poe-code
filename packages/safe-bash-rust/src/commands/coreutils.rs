@@ -31,7 +31,7 @@ pub fn try_run_coreutil(
         "getopt" => Some(cmd_getopt(args, env)),
         "dos2unix" => Some(cmd_dos2unix(args, stdin, cwd, fs, false)),
         "unix2dos" => Some(cmd_dos2unix(args, stdin, cwd, fs, true)),
-        "iconv" => Some(cmd_iconv(args, stdin, cwd, fs)),
+        "iconv" => Some(cmd_iconv(args, stdin, cwd, env, fs)),
         "tee" => Some(cmd_tee(args, stdin, cwd, fs)),
         "sponge" => Some(cmd_sponge(args, stdin, cwd, fs)),
         "seq" => Some(cmd_seq(args)),
@@ -11602,11 +11602,11 @@ fn parse_fold_width(val: &str) -> Result<usize, String> {
     let trimmed = val.trim_start_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']);
     let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
     if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return Err(format!("fold: invalid number of columns: '{val}'\n"));
+        return Err(format!("fold: invalid number '{val}'\n"));
     }
     match digits.parse::<usize>() {
         Ok(n) if n >= 1 => Ok(n),
-        _ => Err(format!("fold: invalid number of columns: '{val}'\n")),
+        _ => Err(format!("fold: invalid number '{val}'\n")),
     }
 }
 
@@ -16314,7 +16314,10 @@ fn cmd_shuf(
             } else if matches.len() == 1 {
                 matches[0]
             } else {
-                return err_out(&format!("shuf: unrecognized option '{a}'\n"), 1);
+                return err_out(
+                    &format!("shuf: unrecognized option '{a}'\nTry 'shuf --help' for more information.\n"),
+                    1,
+                );
             };
             if selected.1 == "help" {
                 return ok_out("Usage: shuf [OPTION]... [FILE]\n");
@@ -16324,7 +16327,10 @@ fn cmd_shuf(
             }
             if !selected.2 && eq_val.is_some() {
                 return err_out(
-                    &format!("shuf: option '--{}' doesn't allow an argument\n", selected.0),
+                    &format!(
+                        "shuf: option '--{}' doesn't allow an argument\nTry 'shuf --help' for more information.\n",
+                        selected.0
+                    ),
                     1,
                 );
             }
@@ -16336,7 +16342,10 @@ fn cmd_shuf(
                     args[i].clone()
                 } else {
                     return err_out(
-                        &format!("shuf: option '--{}' requires an argument\n", selected.0),
+                        &format!(
+                            "shuf: option '--{}' requires an argument\nTry 'shuf --help' for more information.\n",
+                            selected.0
+                        ),
                         1,
                     );
                 }
@@ -16355,7 +16364,10 @@ fn cmd_shuf(
         while pos < chars.len() {
             let ch = chars[pos];
             if !"einorz".contains(ch) {
-                return err_out(&format!("shuf: invalid option -- '{ch}'\n"), 1);
+                return err_out(
+                    &format!("shuf: invalid option -- '{ch}'\nTry 'shuf --help' for more information.\n"),
+                    1,
+                );
             }
             let key = ch.to_string();
             let mut val = String::new();
@@ -16367,7 +16379,12 @@ fn cmd_shuf(
                     i += 1;
                     val = args[i].clone();
                 } else {
-                    return err_out(&format!("shuf: option requires an argument -- '{ch}'\n"), 1);
+                    return err_out(
+                        &format!(
+                            "shuf: option requires an argument -- '{ch}'\nTry 'shuf --help' for more information.\n"
+                        ),
+                        1,
+                    );
                 }
                 pos = chars.len();
             } else {
@@ -16381,7 +16398,10 @@ fn cmd_shuf(
     }
 
     if echo_mode && range.is_some() {
-        return err_out("shuf: cannot combine -e and -i options\n", 1);
+        return err_out(
+            "shuf: cannot combine -e and -i options\nTry 'shuf --help' for more information.\n",
+            1,
+        );
     }
     let max_ops = if range.is_some() {
         0usize
@@ -16391,7 +16411,13 @@ fn cmd_shuf(
         1usize
     };
     if operands.len() > max_ops {
-        return err_out(&format!("shuf: extra operand '{}'\n", operands[max_ops]), 1);
+        return err_out(
+            &format!(
+                "shuf: extra operand '{}'\nTry 'shuf --help' for more information.\n",
+                operands[max_ops]
+            ),
+            1,
+        );
     }
 
     let sep = if zero_terminated { b'\0' } else { b'\n' };
@@ -19522,9 +19548,12 @@ fn cmd_dos2unix(
     fs: &dyn SafeBashFs,
     to_dos: bool,
 ) -> BuiltinOutcome {
+    let direction = if to_dos { "unix2dos" } else { "dos2unix" };
     let mut keep_bom = to_dos;
     let mut add_bom = false;
     let mut force = false;
+    let mut quiet = false;
+    let mut keep_date = false;
     let mut add_eol = false;
     let mut double_nl = false;
     let mut seven_bit = false;
@@ -19539,6 +19568,10 @@ fn cmd_dos2unix(
         if a == "--" {
             files.extend(args[i + 1..].iter().cloned());
             break;
+        } else if a == "-h" || a == "--help" {
+            return ok_out(&format!(
+                "Usage: {direction} [options] [file ...] [-n infile outfile ...]\nVirtual byte/UTF-16 profile:\n  -o -n -O -i[FLAGS] -e -v -b -r -m -f -s -q -k -l -u -ul -ub -7 -ascii --\n  --no-add-eol --allow-chown --no-allow-chown\n"
+            ));
         } else if a == "-n" || a == "--newfile" {
             newfile_mode = true;
             i += 1;
@@ -19566,7 +19599,27 @@ fn cmd_dos2unix(
         } else if a == "-s" || a == "--safe" {
             force = false;
             i += 1;
-        } else if a == "-q" || a == "--quiet" || a == "-v" || a == "--verbose" {
+        } else if a == "-q" || a == "--quiet" {
+            quiet = true;
+            i += 1;
+        } else if a == "-v" || a == "--verbose" {
+            quiet = false;
+            i += 1;
+        } else if a == "-k" || a == "--keepdate" {
+            keep_date = true;
+            i += 1;
+        } else if matches!(
+            a.as_str(),
+            "-u" | "--keep-utf16"
+                | "-ul"
+                | "--assume-utf16le"
+                | "-ub"
+                | "--assume-utf16be"
+                | "-S"
+                | "--skip-symlink"
+                | "--allow-chown"
+                | "--no-allow-chown"
+        ) {
             i += 1;
         } else if a == "-7" {
             seven_bit = true;
@@ -19574,8 +19627,21 @@ fn cmd_dos2unix(
         } else if a == "-ascii" {
             seven_bit = false;
             i += 1;
-        } else if (a == "-c" || a == "--convmode") && i + 1 < args.len() {
-            seven_bit = args[i + 1].eq_ignore_ascii_case("7bit");
+        } else if a == "-c" || a == "--convmode" {
+            if i + 1 >= args.len() {
+                return err_out(&format!("{direction}: option '{a}' requires an argument\n"), 1);
+            }
+            let mode = &args[i + 1];
+            if mode.eq_ignore_ascii_case("ascii") {
+                seven_bit = false;
+            } else if mode.eq_ignore_ascii_case("7bit") {
+                seven_bit = true;
+            } else {
+                return err_out(
+                    &format!("{direction}: invalid {mode} conversion mode specified\n"),
+                    1,
+                );
+            }
             i += 2;
         } else if a == "-e" || a == "--add-eol" {
             add_eol = true;
@@ -19590,9 +19656,25 @@ fn cmd_dos2unix(
             info_flags = Some(String::new());
             i += 1;
         } else if let Some(rest) = a.strip_prefix("--info=") {
+            for ch in rest.chars() {
+                if !"0dumbtechp".contains(ch) {
+                    return err_out(
+                        &format!("{direction}: wrong flag '{ch}' for option -i or --info\n"),
+                        1,
+                    );
+                }
+            }
             info_flags = Some(rest.to_string());
             i += 1;
         } else if let Some(rest) = a.strip_prefix("-i") && !rest.is_empty() {
+            for ch in rest.chars() {
+                if !"0dumbtechp".contains(ch) {
+                    return err_out(
+                        &format!("{direction}: wrong flag '{ch}' for option -i or --info\n"),
+                        1,
+                    );
+                }
+            }
             info_flags = Some(rest.to_string());
             i += 1;
         } else if a.starts_with('-') && a.len() > 1 && !a.starts_with("--") {
@@ -19606,6 +19688,10 @@ fn cmd_dos2unix(
                     'm' => add_bom = true,
                     'f' => force = true,
                     's' => force = false,
+                    'q' => quiet = true,
+                    'v' => quiet = false,
+                    'k' => keep_date = true,
+                    'u' | 'S' => {}
                     'e' => add_eol = true,
                     'l' => double_nl = true,
                     '7' => seven_bit = true,
@@ -19618,10 +19704,20 @@ fn cmd_dos2unix(
                         newfile_mode = false;
                         to_stdout = true;
                     }
-                    _ => {}
+                    _ => {
+                        return err_out(
+                            &format!("{direction}: unsupported option in virtual profile: {a}\n"),
+                            1,
+                        );
+                    }
                 }
             }
             i += 1;
+        } else if a.starts_with("--") {
+            return err_out(
+                &format!("{direction}: unsupported option in virtual profile: {a}\n"),
+                1,
+            );
         } else {
             files.push(a.clone());
             i += 1;
@@ -19820,36 +19916,60 @@ fn cmd_dos2unix(
         return ok_out(&crate::vfs::bytes_to_stream_string(&out_all));
     }
     if newfile_mode {
+        if files.len() % 2 != 0 {
+            let last = files.last().map(|s| s.as_str()).unwrap_or("");
+            return err_out(
+                &format!("{direction}: target of file {last} not specified in new-file mode\n"),
+                1,
+            );
+        }
         for pair in files.chunks(2) {
             if pair.len() == 2 {
                 let in_p = resolve_posix_path(cwd, &pair[0]);
                 let out_p = resolve_posix_path(cwd, &pair[1]);
+                let orig_mtime = fs.stat(&in_p).ok().map(|st| st.mtime_ms);
                 if let Ok(bytes) = fs.read_file(&in_p)
                     && let Some(conv) = convert_bytes(&bytes)
                 {
                     let _ = fs.write_file(&out_p, &conv);
+                    if keep_date && let Some(ms) = orig_mtime {
+                        let _ = fs.set_mtime(&out_p, ms);
+                    }
                 }
             }
         }
         return ok_out("");
     }
+    let mut stderr = String::new();
+    let mut exit_code = 0;
     for f in &files {
         let p = resolve_posix_path(cwd, f);
+        let orig_mtime = match fs.stat(&p) {
+            Ok(st) => Some(st.mtime_ms),
+            Err(_) => {
+                if !quiet {
+                    stderr.push_str(&format!(
+                        "{direction}: {f}: No such file or directory\n{direction}: Skipping {f}, not a regular file.\n"
+                    ));
+                    exit_code = 2;
+                }
+                continue;
+            }
+        };
         if let Ok(bytes) = fs.read_file(&p)
             && let Some(conv) = convert_bytes(&bytes)
         {
             let _ = fs.write_file(&p, &conv);
+            if keep_date && let Some(ms) = orig_mtime {
+                let _ = fs.set_mtime(&p, ms);
+            }
         }
     }
-    ok_out("")
-}
-
-fn normalize_encoding_name(enc: &str) -> String {
-    let base = enc.split("//").next().unwrap_or(enc);
-    base.chars()
-        .filter(|c| c.is_ascii_alphanumeric())
-        .map(|c| c.to_ascii_uppercase())
-        .collect()
+    BuiltinOutcome {
+        stdout: String::new(),
+        stderr,
+        exit_code,
+    }
 }
 
 fn iconv_c_transliterate(cp: u32) -> &'static str {
@@ -19892,237 +20012,467 @@ fn iconv_c_transliterate(cp: u32) -> &'static str {
     }
 }
 
-fn cmd_iconv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut from_enc = "UTF-8".to_string();
-    let mut to_enc = "UTF-8".to_string();
+fn cmd_iconv(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    const USAGE: &str = "Usage: iconv [-lcs?V] [-f NAME] [-t NAME] [-o FILE] [--from-code=NAME]\n             [--to-code=NAME] [--list] [--output=FILE] [--silent] [--verbose]\n             [--help] [--usage] [--version] [FILE...]\n";
+    const LIST_OUT: &str = "ANSI_X3.4-1968//\nASCII//\nISO-8859-1//\nISO8859-1//\nLATIN-1//\nLATIN1//\nUS-ASCII//\nUTF-16//\nUTF-16BE//\nUTF-16LE//\nUTF-8//\nUTF16//\nUTF16BE//\nUTF16LE//\nUTF8//\n";
+    const HELP_OUT: &str = "Usage: iconv [-lcs?V] [-f NAME] [-t NAME] [-o FILE] [--from-code=NAME]\n             [--to-code=NAME] [--list] [--output=FILE] [--silent] [--verbose]\n             [--help] [--usage] [--version] [FILE...]\nConvert text using the safe-bash bounded encoding engine.\n  -f, --from-code=NAME  input encoding\n  -t, --to-code=NAME    output encoding\n  -l, --list            list supported encodings and aliases\n  -c                    omit invalid characters\n  -o, --output=FILE     virtual output file (- for stdout)\n  -s, --silent          suppress warnings\n      --verbose         report input operands\n  -?, --help            show help\n      --usage           show usage\n  -V, --version         show engine identity\n";
+
+    let mut from_opt: Option<String> = None;
+    let mut to_opt: Option<String> = None;
     let mut discard = false;
+    let mut verbose = false;
     let mut out_file: Option<String> = None;
     let mut files = Vec::new();
+    let mut ended = false;
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-c" || a == "-sc" || a == "-cs" {
-            discard = true;
-            i += 1;
-        } else if a == "-s" || a == "--silent" {
-            i += 1;
-        } else if (a == "-f" || a == "--from-code") && i + 1 < args.len() {
-            from_enc = args[i + 1].clone();
-            i += 2;
-        } else if let Some(rest) = a
-            .strip_prefix("--from-code=")
-            .or_else(|| a.strip_prefix("-f"))
-            && !rest.is_empty()
-        {
-            from_enc = rest.to_string();
-            i += 1;
-        } else if (a == "-t" || a == "--to-code") && i + 1 < args.len() {
-            to_enc = args[i + 1].clone();
-            i += 2;
-        } else if let Some(rest) = a
-            .strip_prefix("--to-code=")
-            .or_else(|| a.strip_prefix("-t"))
-            && !rest.is_empty()
-        {
-            to_enc = rest.to_string();
-            i += 1;
-        } else if (a == "-o" || a == "--output") && i + 1 < args.len() {
-            out_file = Some(args[i + 1].clone());
-            i += 2;
-        } else if let Some(rest) = a
-            .strip_prefix("--output=")
-            .or_else(|| a.strip_prefix("-o"))
-            && !rest.is_empty()
-        {
-            out_file = Some(rest.to_string());
-            i += 1;
-        } else if !a.starts_with('-') || a == "-" {
+        if ended || a == "-" || !a.starts_with('-') {
             files.push(a.clone());
             i += 1;
-        } else {
+            continue;
+        }
+        if a == "--" {
+            ended = true;
             i += 1;
+            continue;
         }
+        if a == "--list" {
+            return ok_out(LIST_OUT);
+        }
+        if a == "--help" {
+            return ok_out(HELP_OUT);
+        }
+        if a == "--version" {
+            return ok_out("iconv (safe-bash bounded encoding engine)\n");
+        }
+        if a == "--usage" {
+            return ok_out(USAGE);
+        }
+        if a == "--silent" {
+            i += 1;
+            continue;
+        }
+        if a == "--verbose" {
+            verbose = true;
+            i += 1;
+            continue;
+        }
+        if a.starts_with("--") {
+            let (opt, eq_val) = match a.split_once('=') {
+                Some((o, v)) => (o, Some(v.to_string())),
+                None => (a.as_str(), None),
+            };
+            if !matches!(opt, "--from-code" | "--to-code" | "--output") {
+                return err_out(&format!("iconv: unsupported option: {a}\n"), 64);
+            }
+            let val = match eq_val {
+                Some(v) => v,
+                None if i + 1 < args.len() => {
+                    i += 1;
+                    args[i].clone()
+                }
+                None => return err_out(&format!("iconv: option '{opt}' requires an argument\n"), 64),
+            };
+            match opt {
+                "--from-code" => from_opt = Some(val),
+                "--to-code" => to_opt = Some(val),
+                _ => out_file = Some(val),
+            }
+            i += 1;
+            continue;
+        }
+        let chars: Vec<char> = a[1..].chars().collect();
+        let mut pos = 0usize;
+        while pos < chars.len() {
+            let flag = chars[pos];
+            match flag {
+                'l' => return ok_out(LIST_OUT),
+                '?' => return ok_out(HELP_OUT),
+                'V' => return ok_out("iconv (safe-bash bounded encoding engine)\n"),
+                'c' => {
+                    discard = true;
+                    pos += 1;
+                }
+                's' => {
+                    pos += 1;
+                }
+                'f' | 't' | 'o' => {
+                    let tail: String = chars[pos + 1..].iter().collect();
+                    let val = if !tail.is_empty() {
+                        tail
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out(
+                            &format!("iconv: option requires an argument -- '{flag}'\n"),
+                            64,
+                        );
+                    };
+                    match flag {
+                        'f' => from_opt = Some(val),
+                        't' => to_opt = Some(val),
+                        _ => out_file = Some(val),
+                    }
+                    break;
+                }
+                _ => return err_out(&format!("iconv: invalid option -- '{flag}'\n"), 64),
+            }
+        }
+        i += 1;
     }
-    let to_upper = to_enc.to_uppercase();
-    if to_upper.contains("//IGNORE") {
-        discard = true;
-    }
-    let translit = to_upper.contains("//TRANSLIT");
 
-    let mut raw_in = Vec::new();
-    if files.is_empty() || (files.len() == 1 && files[0] == "-") {
-        raw_in = stream_string_to_bytes(stdin);
-    } else {
-        for f in &files {
-            if f == "-" {
-                raw_in.extend_from_slice(&stream_string_to_bytes(stdin));
+    let mut translit = false;
+    if let Some(ref raw_to) = to_opt.clone() {
+        let parts: Vec<&str> = raw_to.split("//").collect();
+        for &sfx in &parts[1..] {
+            if sfx.eq_ignore_ascii_case("TRANSLIT") {
+                translit = true;
+            } else if sfx.eq_ignore_ascii_case("IGNORE") {
+                discard = true;
             } else {
-                let p = resolve_posix_path(cwd, f);
-                match fs.read_file(&p) {
-                    Ok(b) => raw_in.extend_from_slice(&b),
-                    Err(_) => return err_out(&format!("iconv: cannot open input file '{f}'\n"), 1),
-                }
+                return err_out(&format!("iconv: unsupported encoding suffix: {raw_to}\n"), 1);
+            }
+        }
+        to_opt = Some(parts[0].to_string());
+    }
+
+    if from_opt.is_none() || to_opt.is_none() || translit {
+        let mut locale = String::new();
+        for k in ["LC_ALL", "LC_CTYPE", "LANG"] {
+            if let Some(v) = env.get(k)
+                && !v.is_empty()
+            {
+                locale = v.clone();
+                break;
+            }
+        }
+        if locale.is_empty() {
+            locale = "C".to_string();
+        }
+        if translit && locale != "C" && locale != "POSIX" {
+            return err_out(
+                &format!("iconv: unsupported transliteration locale: {locale}; supported: C, POSIX, or unset\n"),
+                1,
+            );
+        }
+        if from_opt.is_none() || to_opt.is_none() {
+            let fallback = if locale == "C" || locale == "POSIX" {
+                "ASCII"
+            } else if locale == "C.UTF-8" || locale == "C.utf8" {
+                "UTF-8"
+            } else {
+                return err_out(
+                    &format!("iconv: unsupported default encoding locale: {locale}; specify -f and -t\n"),
+                    1,
+                );
+            };
+            if from_opt.is_none() {
+                from_opt = Some(fallback.to_string());
+            }
+            if to_opt.is_none() {
+                to_opt = Some(fallback.to_string());
             }
         }
     }
 
-    let from_norm = normalize_encoding_name(&from_enc);
-    let to_norm = normalize_encoding_name(&to_enc);
-    let mut discarded = false;
-    let mut codepoints: Vec<u32> = Vec::new();
+    let parse_enc = |raw: &str| -> Result<&'static str, BuiltinOutcome> {
+        if raw.contains("//") {
+            return Err(err_out(
+                &format!("iconv: unsupported encoding suffix: {raw}\n"),
+                1,
+            ));
+        }
+        match raw.to_ascii_uppercase().as_str() {
+            "ASCII" | "US-ASCII" | "ANSI_X3.4-1968" => Ok("ASCII"),
+            "LATIN1" | "LATIN-1" | "ISO-8859-1" | "ISO8859-1" => Ok("LATIN1"),
+            "UTF8" | "UTF-8" => Ok("UTF8"),
+            "UTF16" | "UTF-16" => Ok("UTF16"),
+            "UTF16LE" | "UTF-16LE" => Ok("UTF16LE"),
+            "UTF16BE" | "UTF-16BE" => Ok("UTF16BE"),
+            _ => Err(err_out(&format!("iconv: unsupported encoding: {raw}\n"), 1)),
+        }
+    };
 
-    match from_norm.as_str() {
-        "ISO88591" | "LATIN1" => {
-            for &b in &raw_in {
-                codepoints.push(u32::from(b));
-            }
-        }
-        "ASCII" | "USASCII" => {
-            for &b in &raw_in {
-                if b < 128 {
-                    codepoints.push(u32::from(b));
-                } else if discard {
-                    discarded = true;
-                } else {
-                    return err_out("iconv: illegal input sequence\n", 1);
-                }
-            }
-        }
-        "UTF16LE" | "UTF16BE" | "UTF16" => {
-            let mut big = from_norm == "UTF16BE";
-            let mut idx = 0usize;
-            if from_norm == "UTF16" && raw_in.len() >= 2 {
-                if raw_in[0] == 0xfe && raw_in[1] == 0xff {
-                    big = true;
-                    idx = 2;
-                } else if raw_in[0] == 0xff && raw_in[1] == 0xfe {
-                    big = false;
-                    idx = 2;
-                }
-            }
-            let mut u16s = Vec::new();
-            while idx + 1 < raw_in.len() {
-                let w = if big {
-                    u16::from_be_bytes([raw_in[idx], raw_in[idx + 1]])
-                } else {
-                    u16::from_le_bytes([raw_in[idx], raw_in[idx + 1]])
-                };
-                u16s.push(w);
-                idx += 2;
-            }
-            for res in char::decode_utf16(u16s) {
-                match res {
-                    Ok(c) => codepoints.push(c as u32),
-                    Err(_) => {
-                        if discard {
-                            discarded = true;
-                        } else {
-                            return err_out("iconv: illegal input sequence\n", 1);
-                        }
-                    }
-                }
-            }
-        }
-        _ => {
-            let mut idx = 0usize;
-            while idx < raw_in.len() {
-                let rest = &raw_in[idx..];
-                match std::str::from_utf8(rest) {
-                    Ok(valid) => {
-                        for c in valid.chars() {
-                            codepoints.push(c as u32);
-                        }
-                        break;
-                    }
-                    Err(e) => {
-                        let valid_len = e.valid_up_to();
-                        if valid_len > 0 {
-                            if let Ok(valid) = std::str::from_utf8(&rest[..valid_len]) {
-                                for c in valid.chars() {
-                                    codepoints.push(c as u32);
-                                }
-                            }
-                            idx += valid_len;
-                        }
-                        if discard {
-                            discarded = true;
-                            idx += e.error_len().unwrap_or(1).max(1);
-                        } else {
-                            return err_out("iconv: illegal input sequence\n", 1);
-                        }
-                    }
-                }
-            }
-        }
+    let from_norm = match parse_enc(from_opt.as_deref().unwrap_or("ASCII")) {
+        Ok(e) => e,
+        Err(o) => return o,
+    };
+    let to_norm = match parse_enc(to_opt.as_deref().unwrap_or("ASCII")) {
+        Ok(e) => e,
+        Err(o) => return o,
+    };
+
+    if files.is_empty() {
+        files.push("-".to_string());
+    }
+    if out_file.as_deref() == Some("-") {
+        out_file = None;
     }
 
-    let mut out_bytes: Vec<u8> = Vec::new();
-    match to_norm.as_str() {
-        "ISO88591" | "LATIN1" => {
-            for cp in codepoints {
-                if cp <= 0xff {
-                    out_bytes.push(cp as u8);
-                } else if translit {
-                    out_bytes.extend_from_slice(iconv_c_transliterate(cp).as_bytes());
-                } else if discard {
-                    discarded = true;
+    let encode_cp = |cp: u32, to_enc: &str, out: &mut Vec<u8>| -> bool {
+        if cp > 0x10ffff || (0xd800..=0xdfff).contains(&cp) {
+            return false;
+        }
+        match to_enc {
+            "ASCII" => {
+                if cp < 128 {
+                    out.push(cp as u8);
+                    true
                 } else {
-                    return err_out("iconv: illegal input sequence\n", 1);
+                    (0xe0000..=0xe007f).contains(&cp)
                 }
             }
-        }
-        "ASCII" | "USASCII" => {
-            for cp in codepoints {
-                if cp <= 0x7f {
-                    out_bytes.push(cp as u8);
-                } else if translit {
-                    out_bytes.extend_from_slice(iconv_c_transliterate(cp).as_bytes());
-                } else if discard {
-                    discarded = true;
+            "LATIN1" => {
+                if cp < 256 {
+                    out.push(cp as u8);
+                    true
                 } else {
-                    return err_out("iconv: illegal input sequence\n", 1);
+                    (0xe0000..=0xe007f).contains(&cp)
                 }
             }
-        }
-        "UTF16" | "UTF16LE" | "UTF16BE" => {
-            if to_norm == "UTF16" && !codepoints.is_empty() {
-                out_bytes.extend_from_slice(&[0xff, 0xfe]);
-            }
-            let big = to_norm == "UTF16BE";
-            let mut buf = [0u16; 2];
-            for cp in codepoints {
+            "UTF16" | "UTF16LE" | "UTF16BE" => {
+                let big = to_enc == "UTF16BE";
+                let mut buf = [0u16; 2];
                 if let Some(ch) = char::from_u32(cp) {
                     for &w in ch.encode_utf16(&mut buf).iter() {
                         let b = if big { w.to_be_bytes() } else { w.to_le_bytes() };
-                        out_bytes.extend_from_slice(&b);
+                        out.extend_from_slice(&b);
+                    }
+                    true
+                } else {
+                    false
+                }
+            }
+            _ => {
+                let mut buf = [0u8; 4];
+                if let Some(ch) = char::from_u32(cp) {
+                    out.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+    };
+
+    let mut out_bytes: Vec<u8> = Vec::new();
+    let mut stderr = String::new();
+    let mut exit_code = 0;
+    let mut stdin_used = false;
+
+    for f in &files {
+        if verbose && f != "-" {
+            stderr.push_str(&format!("{f}:\n"));
+        }
+        if f == "-" && stdin_used {
+            stderr.push_str("iconv: error while reading the input: Bad file descriptor\n");
+            exit_code = 1;
+            break;
+        }
+        let raw_in = if f == "-" {
+            stdin_used = true;
+            stream_string_to_bytes(stdin)
+        } else {
+            let p = resolve_posix_path(cwd, f);
+            if fs.is_dir(&p) {
+                stderr.push_str("iconv: error while reading the input: Is a directory\n");
+                exit_code = 1;
+                break;
+            }
+            match fs.read_file(&p) {
+                Ok(b) => b,
+                Err(_) => {
+                    stderr.push_str(&format!(
+                        "iconv: cannot open input file `{f}': No such file or directory\n"
+                    ));
+                    exit_code = 1;
+                    continue;
+                }
+            }
+        };
+
+        let mut offset = 0usize;
+        let mut started = false;
+        let mut big = from_norm == "UTF16BE";
+        if from_norm == "UTF16" && raw_in.len() >= 2 {
+            if raw_in[0] == 0xfe && raw_in[1] == 0xff {
+                big = true;
+                offset = 2;
+            } else if raw_in[0] == 0xff && raw_in[1] == 0xfe {
+                big = false;
+                offset = 2;
+            }
+        }
+
+        let mut fatal = false;
+        while offset < raw_in.len() {
+            let first = raw_in[offset];
+            let decoded: Result<(usize, u32), (usize, bool)> = match from_norm {
+                "ASCII" => {
+                    if first < 128 {
+                        Ok((1, u32::from(first)))
+                    } else {
+                        Err((1, false))
+                    }
+                }
+                "LATIN1" => Ok((1, u32::from(first))),
+                "UTF8" => {
+                    if first < 128 {
+                        Ok((1, u32::from(first)))
+                    } else {
+                        let (count, mut val) = if (0xc2..0xe0).contains(&first) {
+                            (2usize, u32::from(first & 0x1f))
+                        } else if (0xe0..0xf0).contains(&first) {
+                            (3usize, u32::from(first & 0x0f))
+                        } else if (0xf0..0xf5).contains(&first) {
+                            (4usize, u32::from(first & 0x07))
+                        } else {
+                            let mut c = 1usize;
+                            while c < 5
+                                && offset + c < raw_in.len()
+                                && (raw_in[offset + c] & 0xc0) == 0x80
+                            {
+                                c += 1;
+                            }
+                            (0usize, c as u32)
+                        };
+                        if count == 0 {
+                            Err((val as usize, false))
+                        } else {
+                            let mut err: Option<(usize, bool)> = None;
+                            for idx in 1..count {
+                                if offset + idx >= raw_in.len() {
+                                    err = Some((0, true));
+                                    break;
+                                }
+                                let b = raw_in[offset + idx];
+                                if (b & 0xc0) != 0x80 {
+                                    err = Some((idx, false));
+                                    break;
+                                }
+                                val = (val << 6) | u32::from(b & 0x3f);
+                            }
+                            if let Some(e) = err {
+                                Err(e)
+                            } else if (count == 3 && val < 0x800)
+                                || (count == 4 && val < 0x10000)
+                                || val > 0x10ffff
+                                || (0xd800..=0xdfff).contains(&val)
+                            {
+                                Err((count, false))
+                            } else {
+                                Ok((count, val))
+                            }
+                        }
+                    }
+                }
+                _ => {
+                    if offset + 1 >= raw_in.len() {
+                        Err((0, true))
+                    } else {
+                        let w = if big {
+                            u16::from_be_bytes([raw_in[offset], raw_in[offset + 1]])
+                        } else {
+                            u16::from_le_bytes([raw_in[offset], raw_in[offset + 1]])
+                        };
+                        if !(0xd800..=0xdfff).contains(&w) {
+                            Ok((2, u32::from(w)))
+                        } else if w >= 0xdc00 {
+                            Err((2, false))
+                        } else if offset + 3 >= raw_in.len() {
+                            Err((0, true))
+                        } else {
+                            let w2 = if big {
+                                u16::from_be_bytes([raw_in[offset + 2], raw_in[offset + 3]])
+                            } else {
+                                u16::from_le_bytes([raw_in[offset + 2], raw_in[offset + 3]])
+                            };
+                            if (0xdc00..=0xdfff).contains(&w2) {
+                                let cp = 0x10000
+                                    + ((u32::from(w) - 0xd800) << 10)
+                                    + (u32::from(w2) - 0xdc00);
+                                Ok((4, cp))
+                            } else {
+                                Err((2, false))
+                            }
+                        }
+                    }
+                }
+            };
+
+            match decoded {
+                Ok((step, cp)) => {
+                    if !started && to_norm == "UTF16" {
+                        out_bytes.extend_from_slice(&[0xff, 0xfe]);
+                    }
+                    started = true;
+                    let mut tmp = Vec::new();
+                    if encode_cp(cp, to_norm, &mut tmp) {
+                        out_bytes.extend_from_slice(&tmp);
+                    } else if translit {
+                        let repl = iconv_c_transliterate(cp);
+                        for rch in repl.chars() {
+                            let _ = encode_cp(rch as u32, to_norm, &mut out_bytes);
+                        }
+                    } else if discard {
+                        exit_code = 1;
+                    } else {
+                        stderr.push_str(&format!(
+                            "iconv: illegal input sequence at position {offset}\n"
+                        ));
+                        exit_code = 1;
+                        fatal = true;
+                        break;
+                    }
+                    offset += step;
+                }
+                Err((step, incomplete)) => {
+                    if !incomplete && discard {
+                        exit_code = 1;
+                        offset += step.max(1);
+                    } else {
+                        if incomplete {
+                            stderr.push_str(
+                                "iconv: incomplete character or shift sequence at end of buffer\n",
+                            );
+                        } else {
+                            stderr.push_str(&format!(
+                                "iconv: illegal input sequence at position {offset}\n"
+                            ));
+                        }
+                        exit_code = 1;
+                        fatal = true;
+                        break;
                     }
                 }
             }
         }
-        _ => {
-            let mut buf = [0u8; 4];
-            for cp in codepoints {
-                if let Some(ch) = char::from_u32(cp) {
-                    out_bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
-                }
-            }
+        if fatal {
+            break;
         }
     }
 
-    let exit_code = if discarded { 1 } else { 0 };
     if let Some(of) = out_file {
         let p = resolve_posix_path(cwd, &of);
         let _ = fs.write_file(&p, &out_bytes);
         BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
+            stderr,
             exit_code,
         }
     } else {
         BuiltinOutcome {
             stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-            stderr: String::new(),
+            stderr,
             exit_code,
         }
     }
@@ -20913,6 +21263,79 @@ mod tests {
         assert_eq!(
             neg_sqrt.stderr,
             "bc: Runtime error: Square root of a negative number\n"
+        );
+    }
+
+    #[test]
+    fn iconv_and_dos2unix_options_locales_and_diagnostics_match_typescript() {
+        let vfs = MemoryVfs::new();
+        let mut env = BTreeMap::new();
+
+        let list_out = try_run_coreutil("iconv", &args(&["-l"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(list_out.exit_code, 0);
+        assert!(list_out.stdout.starts_with("ANSI_X3.4-1968//\nASCII//\n"));
+
+        let bad_opt = try_run_coreutil("iconv", &args(&["--bogus"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(bad_opt.exit_code, 64);
+        assert_eq!(bad_opt.stderr, "iconv: unsupported option: --bogus\n");
+
+        let bad_enc = try_run_coreutil(
+            "iconv",
+            &args(&["-f", "EBCDIC", "-t", "UTF-8"]),
+            "",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_enc.exit_code, 1);
+        assert_eq!(bad_enc.stderr, "iconv: unsupported encoding: EBCDIC\n");
+
+        env.insert("LC_ALL".to_string(), "C.UTF-8".to_string());
+        let bad_translit = try_run_coreutil(
+            "iconv",
+            &args(&["-f", "UTF-8", "-t", "ASCII//TRANSLIT"]),
+            "ok",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_translit.exit_code, 1);
+        assert_eq!(
+            bad_translit.stderr,
+            "iconv: unsupported transliteration locale: C.UTF-8; supported: C, POSIX, or unset\n"
+        );
+
+        let incomplete = try_run_coreutil(
+            "iconv",
+            &args(&["-f", "UTF-8", "-t", "UTF-8", "-c"]),
+            &crate::vfs::bytes_to_stream_string(b"AB\xc3"),
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(incomplete.exit_code, 1);
+        assert_eq!(incomplete.stdout, "AB");
+        assert_eq!(
+            incomplete.stderr,
+            "iconv: incomplete character or shift sequence at end of buffer\n"
+        );
+
+        let bad_d2u = try_run_coreutil(
+            "dos2unix",
+            &args(&["-iZ"]),
+            "",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_d2u.exit_code, 1);
+        assert_eq!(
+            bad_d2u.stderr,
+            "dos2unix: wrong flag 'Z' for option -i or --info\n"
         );
     }
 }

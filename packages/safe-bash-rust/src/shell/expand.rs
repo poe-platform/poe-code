@@ -1497,12 +1497,19 @@ pub fn expand_parameter_expr(
             }
         }
 
+        let in_dquote = env.get("__in_dquote").map(|v| v == "1").unwrap_or(false);
+
         // Error if unset/empty :?, ?
         if let Some(msg_raw) = op_rest.strip_prefix(":?") {
             let is_set = is_var_set(var, env, pos_args);
             let val = lookup_var(var, env, last_exit, pos_args);
             if !is_set || val.is_empty() {
-                let msg = expand_nested_operand(msg_raw, env, last_exit, pos_args)?;
+                let tilded = if in_dquote {
+                    msg_raw.to_string()
+                } else {
+                    expand_tilde_prefix(msg_raw, env, false, false)
+                };
+                let msg = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
                 let err_msg = if msg.is_empty() {
                     "parameter null or not set".to_string()
                 } else {
@@ -1513,8 +1520,13 @@ pub fn expand_parameter_expr(
             return Ok(val);
         }
         if let Some(msg_raw) = op_rest.strip_prefix('?') {
-            if ! is_var_set(var, env, pos_args) {
-                let msg = expand_nested_operand(msg_raw, env, last_exit, pos_args)?;
+            if !is_var_set(var, env, pos_args) {
+                let tilded = if in_dquote {
+                    msg_raw.to_string()
+                } else {
+                    expand_tilde_prefix(msg_raw, env, false, false)
+                };
+                let msg = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
                 let err_msg = if msg.is_empty() {
                     "parameter not set".to_string()
                 } else {
@@ -1530,13 +1542,23 @@ pub fn expand_parameter_expr(
             let is_set = is_var_set(var, env, pos_args);
             let val = lookup_var(var, env, last_exit, pos_args);
             if !is_set || val.is_empty() {
-                return expand_nested_operand(def_raw, env, last_exit, pos_args);
+                let tilded = if in_dquote {
+                    def_raw.to_string()
+                } else {
+                    expand_tilde_prefix(def_raw, env, false, false)
+                };
+                return expand_nested_operand(&tilded, env, last_exit, pos_args);
             }
             return Ok(val);
         }
         if let Some(def_raw) = op_rest.strip_prefix('-') {
             if !is_var_set(var, env, pos_args) {
-                return expand_nested_operand(def_raw, env, last_exit, pos_args);
+                let tilded = if in_dquote {
+                    def_raw.to_string()
+                } else {
+                    expand_tilde_prefix(def_raw, env, false, false)
+                };
+                return expand_nested_operand(&tilded, env, last_exit, pos_args);
             }
             return Ok(lookup_var(var, env, last_exit, pos_args));
         }
@@ -1550,7 +1572,12 @@ pub fn expand_parameter_expr(
             let is_set = is_var_set(var, env, pos_args);
             let val = lookup_var(var, env, last_exit, pos_args);
             if !is_set || val.is_empty() {
-                let def = expand_nested_operand(def_raw, env, last_exit, pos_args)?;
+                let tilded = if in_dquote {
+                    def_raw.to_string()
+                } else {
+                    expand_tilde_prefix(def_raw, env, false, true)
+                };
+                let def = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
                 let resolved = resolve_var_key_mut(var, env);
                 let base = resolved
                     .split_once('[')
@@ -1580,7 +1607,12 @@ pub fn expand_parameter_expr(
                 return Err("Cannot assign special parameter".to_string());
             }
             if !is_var_set(var, env, pos_args) {
-                let def = expand_nested_operand(def_raw, env, last_exit, pos_args)?;
+                let tilded = if in_dquote {
+                    def_raw.to_string()
+                } else {
+                    expand_tilde_prefix(def_raw, env, false, true)
+                };
+                let def = expand_nested_operand(&tilded, env, last_exit, pos_args)?;
                 let resolved = resolve_var_key_mut(var, env);
                 let base = resolved
                     .split_once('[')
@@ -1606,20 +1638,31 @@ pub fn expand_parameter_expr(
             let is_set = is_var_set(var, env, last_exit_or_pos(pos_args));
             let val = lookup_var(var, env, last_exit, pos_args);
             if is_set && !val.is_empty() {
-                return expand_nested_operand(alt_raw, env, last_exit, pos_args);
+                let tilded = if in_dquote {
+                    alt_raw.to_string()
+                } else {
+                    expand_tilde_prefix(alt_raw, env, false, false)
+                };
+                return expand_nested_operand(&tilded, env, last_exit, pos_args);
             }
             return Ok(String::new());
         }
         if let Some(alt_raw) = op_rest.strip_prefix('+') {
             if is_var_set(var, env, pos_args) {
-                return expand_nested_operand(alt_raw, env, last_exit, pos_args);
+                let tilded = if in_dquote {
+                    alt_raw.to_string()
+                } else {
+                    expand_tilde_prefix(alt_raw, env, false, false)
+                };
+                return expand_nested_operand(&tilded, env, last_exit, pos_args);
             }
             return Ok(String::new());
         }
 
         // Prefix / suffix stripping ##, #, %%, %
         if let Some(pat_raw) = op_rest.strip_prefix("##") {
-            let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
+            let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+            let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems.iter().map(|e| strip_prefix_glob(e, &pat, true)).collect();
                 return Ok(items.join(" "));
@@ -1628,7 +1671,8 @@ pub fn expand_parameter_expr(
             return Ok(strip_prefix_glob(&val, &pat, true));
         }
         if let Some(pat_raw) = op_rest.strip_prefix('#') {
-            let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
+            let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+            let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems.iter().map(|e| strip_prefix_glob(e, &pat, false)).collect();
                 return Ok(items.join(" "));
@@ -1637,7 +1681,8 @@ pub fn expand_parameter_expr(
             return Ok(strip_prefix_glob(&val, &pat, false));
         }
         if let Some(pat_raw) = op_rest.strip_prefix("%%") {
-            let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
+            let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+            let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems.iter().map(|e| strip_suffix_glob(e, &pat, true)).collect();
                 return Ok(items.join(" "));
@@ -1646,7 +1691,8 @@ pub fn expand_parameter_expr(
             return Ok(strip_suffix_glob(&val, &pat, true));
         }
         if let Some(pat_raw) = op_rest.strip_prefix('%') {
-            let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
+            let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+            let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems.iter().map(|e| strip_suffix_glob(e, &pat, false)).collect();
                 return Ok(items.join(" "));
@@ -1658,8 +1704,10 @@ pub fn expand_parameter_expr(
         // Pattern replacement //, /
         if let Some(rest) = op_rest.strip_prefix("//") {
             let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
-            let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
-            let rep = expand_replacement_operand(rep_raw, env, last_exit, pos_args)?;
+            let tilded_pat = expand_tilde_prefix(pat_raw, env, false, false);
+            let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
+            let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
+            let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
             let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, true, nocase)).collect();
@@ -1670,8 +1718,14 @@ pub fn expand_parameter_expr(
         }
         if let Some(rest) = op_rest.strip_prefix('/') {
             let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
-            let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
-            let rep = expand_replacement_operand(rep_raw, env, last_exit, pos_args)?;
+            let tilded_pat = if pat_raw.starts_with('#') || pat_raw.starts_with('%') {
+                pat_raw.to_string()
+            } else {
+                expand_tilde_prefix(pat_raw, env, false, false)
+            };
+            let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
+            let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
+            let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
             let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, false, nocase)).collect();
@@ -3050,15 +3104,233 @@ fn strip_suffix_glob(val: &str, pat: &str, longest: bool) -> String {
     val.to_string()
 }
 
+pub fn expand_tilde_prefix(
+    word: &str,
+    env: &BTreeMap<String, String>,
+    allow_after_colon: bool,
+    colon_ends_initial: bool,
+) -> String {
+    let chars: Vec<char> = word.chars().collect();
+    let mut out = String::new();
+    let mut i = 0usize;
+    let mut at_tilde_pos = true;
+    while i < chars.len() {
+        let c = chars[i];
+        if c == '\'' {
+            out.push(c);
+            i += 1;
+            while i < chars.len() {
+                let nc = chars[i];
+                out.push(nc);
+                i += 1;
+                if nc == '\'' {
+                    break;
+                }
+            }
+            at_tilde_pos = false;
+            continue;
+        }
+        if c == '$' && chars.get(i + 1) == Some(&'\'') {
+            out.push('$');
+            out.push('\'');
+            i += 2;
+            while i < chars.len() {
+                let nc = chars[i];
+                out.push(nc);
+                i += 1;
+                if nc == '\\' && i < chars.len() {
+                    out.push(chars[i]);
+                    i += 1;
+                } else if nc == '\'' {
+                    break;
+                }
+            }
+            at_tilde_pos = false;
+            continue;
+        }
+        if c == '"' {
+            out.push(c);
+            i += 1;
+            while i < chars.len() {
+                let nc = chars[i];
+                out.push(nc);
+                i += 1;
+                if nc == '\\' && i < chars.len() {
+                    out.push(chars[i]);
+                    i += 1;
+                } else if nc == '"' {
+                    break;
+                }
+            }
+            at_tilde_pos = false;
+            continue;
+        }
+        if c == '\\' {
+            out.push('\\');
+            i += 1;
+            if i < chars.len() {
+                out.push(chars[i]);
+                i += 1;
+            }
+            at_tilde_pos = false;
+            continue;
+        }
+        if c == '~' && at_tilde_pos {
+            let initial = i == 0;
+            let colon_delim = allow_after_colon || (colon_ends_initial && initial);
+            if i + 1 < chars.len() && (chars[i + 1] == '+' || chars[i + 1] == '-') {
+                let next_after = chars.get(i + 2).copied();
+                if next_after.is_none()
+                    || next_after == Some('/')
+                    || (colon_delim && next_after == Some(':'))
+                {
+                    let replacement = if chars[i + 1] == '+' {
+                        env.get("PWD").cloned()
+                    } else {
+                        env.get("OLDPWD").cloned()
+                    };
+                    if let Some(val) = replacement {
+                        out.push_str(&format!("'{}'", val.replace('\'', "'\\''")));
+                        i += 2;
+                        at_tilde_pos = false;
+                        continue;
+                    }
+                }
+            } else {
+                let next_after = chars.get(i + 1).copied();
+                if next_after.is_none()
+                    || next_after == Some('/')
+                    || (colon_delim && next_after == Some(':'))
+                {
+                    if let Some(home) = env.get("HOME") {
+                        out.push_str(&format!("'{}'", home.replace('\'', "'\\''")));
+                        i += 1;
+                        at_tilde_pos = false;
+                        continue;
+                    }
+                }
+            }
+        }
+        out.push(c);
+        at_tilde_pos = allow_after_colon && c == ':';
+        i += 1;
+    }
+    out
+}
+
+pub fn try_resolve_unquoted_alternate_operand<'a>(
+    expr: &'a str,
+    env: &mut BTreeMap<String, String>,
+    last_exit: i32,
+    pos_args: &[String],
+) -> Option<&'a str> {
+    if expr.starts_with('!') || expr.starts_with('#') {
+        return None;
+    }
+    let var_end = find_var_name_end(expr);
+    if var_end == 0 || var_end >= expr.len() {
+        return None;
+    }
+    let var = &expr[..var_end];
+    let op_rest = &expr[var_end..];
+    if var == "*" || var.ends_with("[@]") || var.ends_with("[*]") {
+        return None;
+    }
+    if let Some(def_raw) = op_rest.strip_prefix(":-") {
+        let is_set = is_var_set(var, env, pos_args);
+        let val = lookup_var(var, env, last_exit, pos_args);
+        if !is_set || val.is_empty() {
+            return Some(def_raw);
+        }
+        return None;
+    }
+    if let Some(def_raw) = op_rest.strip_prefix('-') {
+        if !is_var_set(var, env, pos_args) {
+            return Some(def_raw);
+        }
+        return None;
+    }
+    if let Some(alt_raw) = op_rest.strip_prefix(":+") {
+        let is_set = is_var_set(var, env, pos_args);
+        let val = lookup_var(var, env, last_exit, pos_args);
+        if is_set && !val.is_empty() {
+            return Some(alt_raw);
+        }
+        return None;
+    }
+    if let Some(alt_raw) = op_rest.strip_prefix('+') {
+        if is_var_set(var, env, pos_args) {
+            return Some(alt_raw);
+        }
+        return None;
+    }
+    None
+}
+
+fn expand_pattern_operand(
+    raw: &str,
+    env: &mut BTreeMap<String, String>,
+    last_exit: i32,
+    pos_args: &[String],
+) -> Result<String, String> {
+    let prev = env.remove("__in_dquote");
+    let res = expand_nested_operand(raw, env, last_exit, pos_args);
+    if let Some(v) = prev {
+        env.insert("__in_dquote".to_string(), v);
+    }
+    res
+}
+
+fn expand_replacement_operand_ext(
+    raw: &str,
+    env: &mut BTreeMap<String, String>,
+    last_exit: i32,
+    pos_args: &[String],
+) -> Result<String, String> {
+    let prev = env.remove("__in_dquote");
+    let res = expand_replacement_operand(raw, env, last_exit, pos_args);
+    if let Some(v) = prev {
+        env.insert("__in_dquote".to_string(), v);
+    }
+    res
+}
+
 pub fn has_glob_meta(word: &str) -> bool {
-    word.contains('*')
-        || word.contains('?')
-        || word.contains('[')
-        || word.contains("@(")
-        || word.contains("+(")
-        || word.contains("!(")
-        || word.contains("?(")
-        || word.contains("*(")
+    let chars: Vec<char> = word.chars().collect();
+    let mut i = 0usize;
+    while i < chars.len() {
+        if chars[i] == '\\' {
+            i += 2;
+            continue;
+        }
+        if matches!(chars[i], '*' | '?' | '[') {
+            return true;
+        }
+        if matches!(chars[i], '@' | '+' | '!' | '?' | '*')
+            && chars.get(i + 1) == Some(&'(')
+        {
+            return true;
+        }
+        i += 1;
+    }
+    false
+}
+
+fn unescape_glob_segment(seg: &str) -> String {
+    let mut out = String::with_capacity(seg.len());
+    let mut chars = seg.chars();
+    while let Some(c) = chars.next() {
+        if c == '\\' {
+            if let Some(nc) = chars.next() {
+                out.push(nc);
+            } else {
+                out.push('\\');
+            }
+        } else {
+            out.push(c);
+        }
+    }
+    out
 }
 
 pub fn expand_globs_in_word(
@@ -3067,16 +3339,26 @@ pub fn expand_globs_in_word(
     fs: &dyn SafeBashFs,
     env: &BTreeMap<String, String>,
 ) -> Vec<String> {
-    if !has_glob_meta(word) {
-        return vec![word.to_string()];
+    expand_globs_in_word_with_projection(word, word, cwd, fs, env)
+}
+
+pub fn expand_globs_in_word_with_projection(
+    pattern: &str,
+    projection: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+    env: &BTreeMap<String, String>,
+) -> Vec<String> {
+    if !has_glob_meta(pattern) {
+        return vec![projection.to_string()];
     }
     let dotglob = env.get("__shopt_dotglob").map(|v| v == "1").unwrap_or(false);
     let nullglob = env.get("__shopt_nullglob").map(|v| v == "1").unwrap_or(false);
     let nocaseglob = env.get("__shopt_nocaseglob").map(|v| v == "1").unwrap_or(false);
     let globstar = env.get("__shopt_globstar").map(|v| v == "1").unwrap_or(false);
 
-    let is_abs = word.starts_with('/');
-    let trimmed = if is_abs { &word[1..] } else { word };
+    let is_abs = pattern.starts_with('/');
+    let trimmed = if is_abs { &pattern[1..] } else { pattern };
     let segments: Vec<&str> = trimmed.split('/').collect();
     let root_dir = if is_abs { "/" } else { cwd };
     let root_prefix = if is_abs { "/" } else { "" };
@@ -3100,7 +3382,7 @@ pub fn expand_globs_in_word(
         if nullglob {
             Vec::new()
         } else {
-            vec![word.to_string()]
+            vec![projection.to_string()]
         }
     } else {
         matched
@@ -3175,13 +3457,14 @@ fn expand_glob_segments(
     }
 
     if !has_glob_meta(seg) {
-        let next_dir = resolve_posix_path(cur_dir, seg);
+        let literal_seg = unescape_glob_segment(seg);
+        let next_dir = resolve_posix_path(cur_dir, &literal_seg);
         let next_prefix = if cur_prefix.is_empty() {
-            seg.to_string()
+            literal_seg
         } else if cur_prefix == "/" {
-            format!("/{seg}")
+            format!("/{literal_seg}")
         } else {
-            format!("{cur_prefix}/{seg}")
+            format!("{cur_prefix}/{literal_seg}")
         };
         if is_last {
             if fs.exists(&next_dir) {

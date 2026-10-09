@@ -7,8 +7,9 @@ use crate::shell::builtins::{
 };
 use crate::shell::expand::{
     bash_quote_double, decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr,
-    expand_globs_in_word, expand_parameter_expr, get_var_meta_info, glob_match_ext,
-    resolve_nameref_base, resolve_var_key_mut, sync_array_metadata, write_dynamic_variable,
+    expand_globs_in_word_with_projection, expand_parameter_expr, expand_tilde_prefix,
+    get_var_meta_info, glob_match_ext, has_glob_meta, resolve_nameref_base, resolve_var_key_mut,
+    sync_array_metadata, try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
@@ -925,6 +926,7 @@ impl<'a> EvalState<'a> {
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
         self.budget.check_cancelled().map_err(EvalError::Budget)?;
+        self.budget.tick_command().map_err(EvalError::Budget)?;
         match node {
             CommandNode::Simple(simple) => self.eval_simple_command(simple, stdin),
             CommandNode::Subshell { body, redirects } => {
@@ -946,11 +948,14 @@ impl<'a> EvalState<'a> {
                 self.budget.leave_recursion();
                 let mut out = match res {
                     Ok(o) => o,
-                    Err(EvalError::Syntax(msg)) => BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
-                        exit_code: 1,
-                    },
+                    Err(EvalError::Syntax(msg)) => {
+                        let is_syn = msg.starts_with("Syntax error:");
+                        BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
+                            exit_code: if is_syn { 2 } else { 1 },
+                        }
+                    }
                     Err(e) => return Err(e),
                 };
                 if let Some(code) = sub.exit_requested {
@@ -1064,7 +1069,18 @@ impl<'a> EvalState<'a> {
                 let mut expanded_items = Vec::new();
                 for raw in items {
                     match self.expand_word_to_fields(raw) {
-                        Ok(fields) => expanded_items.extend(fields),
+                        Ok(fields) => {
+                            expanded_items.extend(fields);
+                            if expanded_items.len() > self.budget.limits.max_expansion_fields {
+                                self.fd_table.insert(1, body_fd1);
+                                self.fd_table.insert(2, body_fd2);
+                                self.restore_redirects(saved_fds, saved_in);
+                                return Err(EvalError::Budget(format!(
+                                    "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                                    self.budget.limits.max_expansion_fields
+                                )));
+                            }
+                        }
                         Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
                             self.fd_table.insert(1, body_fd1);
                             self.fd_table.insert(2, body_fd2);
@@ -1169,41 +1185,137 @@ impl<'a> EvalState<'a> {
                 let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
                 let mut expanded_items = Vec::new();
                 for raw in items {
-                    expanded_items.extend(self.expand_word_to_fields(raw)?);
+                    match self.expand_word_to_fields(raw) {
+                        Ok(fields) => {
+                            expanded_items.extend(fields);
+                            if expanded_items.len() > self.budget.limits.max_expansion_fields {
+                                self.fd_table.insert(1, body_fd1);
+                                self.fd_table.insert(2, body_fd2);
+                                self.restore_redirects(saved_fds, saved_in);
+                                return Err(EvalError::Budget(format!(
+                                    "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                                    self.budget.limits.max_expansion_fields
+                                )));
+                            }
+                        }
+                        Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
+                            self.fd_table.insert(1, body_fd1);
+                            self.fd_table.insert(2, body_fd2);
+                            let mut out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{msg}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut out);
+                            self.restore_redirects(saved_fds, saved_in);
+                            return Ok(out);
+                        }
+                        Err(e) => {
+                            self.fd_table.insert(1, body_fd1);
+                            self.fd_table.insert(2, body_fd2);
+                            self.restore_redirects(saved_fds, saved_in);
+                            return Err(e);
+                        }
+                    }
+                }
+                if expanded_items.is_empty() {
+                    self.fd_table.insert(1, body_fd1);
+                    self.fd_table.insert(2, body_fd2);
+                    if let Some(dfd) = dup_fd {
+                        self.in_fds.insert(dfd, local_stdin);
+                    }
+                    self.restore_redirects(saved_fds, saved_in);
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    });
                 }
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut code = 0;
-
-                for (idx, item) in expanded_items.iter().enumerate() {
-                    stderr.push_str(&format!("{}) {item}\n", idx + 1));
-                }
+                let mut show_menu = true;
 
                 self.loop_depth += 1;
                 loop {
+                    crate::commands::tick_virtual_loop(self.env);
+                    if crate::commands::is_timeout_expired() {
+                        break;
+                    }
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
+                    if show_menu {
+                        stderr.push_str(&format_select_menu(&expanded_items, self.env));
+                    }
                     let ps3 = self
                         .env
                         .get("PS3")
                         .cloned()
                         .unwrap_or_else(|| "#? ".to_string());
                     stderr.push_str(&ps3);
-                    if eff_stdin.is_empty() {
+                    if stream_string_to_bytes(&stderr).len() + stream_string_to_bytes(&stdout).len()
+                        > self.budget.limits.max_output_bytes
+                    {
+                        self.loop_depth -= 1;
+                        self.fd_table.insert(1, body_fd1);
+                        self.fd_table.insert(2, body_fd2);
+                        self.restore_redirects(saved_fds, saved_in);
+                        return Err(EvalError::Budget(format!(
+                            "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
+                            self.budget.limits.max_output_bytes
+                        )));
+                    }
+
+                    let (line_bytes, terminated) =
+                        select_read_line(eff_stdin, self.budget.limits.max_output_bytes)?;
+                    let line_str = bytes_to_stream_string(&line_bytes);
+                    if let Err(e) = self.assign_variable("REPLY", &line_str, false) {
+                        match e {
+                            EvalError::Syntax(msg) if msg.contains("readonly variable") => {
+                                stderr.push_str(&format!("{msg}\n"));
+                                stdout.push('\n');
+                                code = 1;
+                                break;
+                            }
+                            other => {
+                                self.loop_depth -= 1;
+                                self.fd_table.insert(1, body_fd1);
+                                self.fd_table.insert(2, body_fd2);
+                                self.restore_redirects(saved_fds, saved_in);
+                                return Err(other);
+                            }
+                        }
+                    }
+                    if !terminated {
+                        stdout.push('\n');
+                        code = 1;
                         break;
                     }
-                    let (line, rest) = match eff_stdin.split_once('\n') {
-                        Some((l, r)) => (l.trim_end_matches('\r').to_string(), r.to_string()),
-                        None => (eff_stdin.trim_end_matches('\r').to_string(), String::new()),
+                    if line_bytes.is_empty() {
+                        show_menu = true;
+                        continue;
+                    }
+
+                    let selected = match parse_select_choice(&line_bytes) {
+                        Some(choice) if choice >= 1 && choice <= expanded_items.len() => {
+                            expanded_items[choice - 1].clone()
+                        }
+                        _ => String::new(),
                     };
-                    *eff_stdin = rest;
-                    self.env.insert("REPLY".to_string(), line.clone());
-                    if let Ok(choice) = line.trim().parse::<usize>()
-                        && choice >= 1
-                        && choice <= expanded_items.len()
-                    {
-                        self.env.insert(var.clone(), expanded_items[choice - 1].clone());
-                    } else {
-                        self.env.insert(var.clone(), String::new());
+                    if let Err(e) = self.assign_variable(var, &selected, false) {
+                        match e {
+                            EvalError::Syntax(msg) if msg.contains("readonly variable") => {
+                                stderr.push_str(&format!("{msg}\n"));
+                                code = 1;
+                                break;
+                            }
+                            other => {
+                                self.loop_depth -= 1;
+                                self.fd_table.insert(1, body_fd1);
+                                self.fd_table.insert(2, body_fd2);
+                                self.restore_redirects(saved_fds, saved_in);
+                                return Err(other);
+                            }
+                        }
                     }
 
                     let step = self.eval_script(body, eff_stdin)?;
@@ -1223,7 +1335,21 @@ impl<'a> EvalState<'a> {
                         if self.continue_count > 0 {
                             break;
                         }
+                        show_menu = self
+                            .env
+                            .get("REPLY")
+                            .map(|v| stream_string_to_bytes(v).is_empty())
+                            .unwrap_or(true);
+                        continue;
                     }
+                    if self.errexit && !self.in_condition && code != 0 {
+                        break;
+                    }
+                    show_menu = self
+                        .env
+                        .get("REPLY")
+                        .map(|v| stream_string_to_bytes(v).is_empty())
+                        .unwrap_or(true);
                 }
                 self.loop_depth -= 1;
 
@@ -1588,8 +1714,13 @@ impl<'a> EvalState<'a> {
             && arr_lit.starts_with('(')
             && arr_lit.ends_with(')')
         {
+            let is_assoc = self
+                .env
+                .get(&format!("__assoc__{resolved}"))
+                .map(|v| v == "1")
+                .unwrap_or(false);
             let inner = &arr_lit[1..arr_lit.len() - 1];
-            let items = self.expand_array_literal_items(inner)?;
+            let items = self.expand_array_literal_items(inner, is_assoc)?;
             if !append {
                 let prefix = format!("{resolved}[");
                 let old_keys: Vec<String> = self
@@ -1602,11 +1733,6 @@ impl<'a> EvalState<'a> {
                     self.env.remove(&k);
                 }
             }
-            let is_assoc = self
-                .env
-                .get(&format!("__assoc__{resolved}"))
-                .map(|v| v == "1")
-                .unwrap_or(false);
             let mut next_idx: i64 = if append {
                 let prefix = format!("{resolved}[");
                 self.env
@@ -1720,6 +1846,7 @@ impl<'a> EvalState<'a> {
     fn expand_array_literal_items(
         &mut self,
         inner: &str,
+        is_assoc: bool,
     ) -> Result<Vec<(Option<String>, String)>, EvalError> {
         let mut raw_tokens = Vec::new();
         let chars: Vec<char> = inner.chars().collect();
@@ -1788,13 +1915,42 @@ impl<'a> EvalState<'a> {
             if let Some(rest) = tok.strip_prefix('[')
                 && let Some((sub_k, sub_v)) = rest.split_once("]=")
             {
+                if !is_assoc && self.is_braceexpand_enabled() {
+                    let (brace_words, changed) = expand_braces_with_limits(
+                        &tok,
+                        self.budget.limits.max_expansion_fields,
+                        self.budget.limits.max_expansion_bytes,
+                    )?;
+                    if changed {
+                        for bw in brace_words {
+                            let tilded = self.expand_tilde_in_word(&bw, false);
+                            let fields = self.expand_word_internal(&tilded, true, false)?;
+                            for f in fields {
+                                out.push((None, f));
+                            }
+                            if out.len() > self.budget.limits.max_expansion_fields {
+                                return Err(EvalError::Budget(format!(
+                                    "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                                    self.budget.limits.max_expansion_fields
+                                )));
+                            }
+                        }
+                        continue;
+                    }
+                }
                 let exp_k = self.expand_word_to_string(sub_k)?;
-                let exp_v = self.expand_word_to_string(sub_v)?;
+                let exp_v = self.expand_assignment_rhs(sub_v)?;
                 out.push((Some(exp_k), exp_v));
             } else {
                 let fields = self.expand_word_to_fields(&tok)?;
                 for f in fields {
                     out.push((None, f));
+                }
+                if out.len() > self.budget.limits.max_expansion_fields {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                        self.budget.limits.max_expansion_fields
+                    )));
                 }
             }
         }
@@ -1805,7 +1961,6 @@ impl<'a> EvalState<'a> {
         simple: &SimpleCommand,
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
-        self.budget.tick_command().map_err(EvalError::Budget)?;
         if simple.line > 0 {
             self.current_line = simple.line;
             self.env.insert("__lineno".to_string(), simple.line.to_string());
@@ -1901,33 +2056,118 @@ impl<'a> EvalState<'a> {
             self.restore_redirects(saved_fds, saved_in);
             return Ok(out);
         } else {
-            let is_decl = simple.words.first().is_some_and(|w| {
-                matches!(
-                    w.as_str(),
-                    "declare" | "typeset" | "local" | "export" | "readonly"
-                )
-            });
+            let decl_idx = {
+                let mut i = 0usize;
+                while i < simple.words.len() {
+                    let sw = simple.words[i].as_str();
+                    if sw == "command" || sw == "builtin" {
+                        i += 1;
+                        if simple.words.get(i).map(|s| s.as_str()) == Some("--") {
+                            i += 1;
+                        }
+                        continue;
+                    }
+                    break;
+                }
+                simple.words.get(i).and_then(|sw| {
+                    if matches!(
+                        sw.as_str(),
+                        "declare" | "typeset" | "local" | "export" | "readonly"
+                    ) {
+                        Some(i)
+                    } else {
+                        None
+                    }
+                })
+            };
             for (idx, w) in simple.words.iter().enumerate() {
-                if is_decl && idx > 0 && (w.contains("=(") || parse_assignment_lhs_rhs(w).is_some()) {
-                    if let Some((lhs, rhs, append)) = parse_assignment_lhs_rhs(w) {
-                        if rhs.starts_with('(') && rhs.ends_with(')') {
-                            expanded_words.push(format!(
-                                "{lhs}{}\x00__ARRAY_LITERAL__{rhs}",
-                                if append { "+=" } else { "=" }
-                            ));
-                        } else {
-                            let exp_rhs = self.expand_assignment_rhs(rhs)?;
-                            expanded_words.push(format!(
-                                "{lhs}{}{exp_rhs}",
-                                if append { "+=" } else { "=" }
-                            ));
+                if decl_idx.is_some_and(|di| idx > di)
+                    && let Some((lhs, rhs, append)) = parse_assignment_lhs_rhs(w)
+                    && rhs.starts_with('(')
+                    && rhs.ends_with(')')
+                {
+                    expanded_words.push(format!(
+                        "{lhs}{}\x00__ARRAY_LITERAL__{rhs}",
+                        if append { "+=" } else { "=" }
+                    ));
+                } else if decl_idx.is_some_and(|di| idx > di)
+                    && (w.contains("=(") || parse_assignment_lhs_rhs(w).is_some())
+                {
+                    let brace_words = if self.is_braceexpand_enabled() {
+                        match expand_braces_with_limits(
+                            w,
+                            self.budget.limits.max_expansion_fields,
+                            self.budget.limits.max_expansion_bytes,
+                        ) {
+                            Ok((bw, _)) => bw,
+                            Err(e) => {
+                                if synced_fd0 {
+                                    *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                }
+                                return Err(e);
+                            }
                         }
                     } else {
-                        expanded_words.push(self.expand_word_to_string(w)?);
+                        vec![w.clone()]
+                    };
+                    for bw in brace_words {
+                        if let Some((lhs, rhs, append)) = parse_assignment_lhs_rhs(&bw) {
+                            if rhs.starts_with('(') && rhs.ends_with(')') {
+                                expanded_words.push(format!(
+                                    "{lhs}{}\x00__ARRAY_LITERAL__{rhs}",
+                                    if append { "+=" } else { "=" }
+                                ));
+                            } else {
+                                let exp_rhs = match self.expand_assignment_rhs(rhs) {
+                                    Ok(v) => v,
+                                    Err(e) => {
+                                        if synced_fd0 {
+                                            *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                        }
+                                        return Err(e);
+                                    }
+                                };
+                                expanded_words.push(format!(
+                                    "{lhs}{}{exp_rhs}",
+                                    if append { "+=" } else { "=" }
+                                ));
+                            }
+                        } else {
+                            let exp_w = match self.expand_word_to_string(&bw) {
+                                Ok(v) => v,
+                                Err(e) => {
+                                    if synced_fd0 {
+                                        *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                    }
+                                    return Err(e);
+                                }
+                            };
+                            expanded_words.push(exp_w);
+                        }
+                        if expanded_words.len() > self.budget.limits.max_expansion_fields {
+                            if synced_fd0 {
+                                *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                            }
+                            return Err(EvalError::Budget(format!(
+                                "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                                self.budget.limits.max_expansion_fields
+                            )));
+                        }
                     }
                 } else {
                     match self.expand_word_to_fields(w) {
-                        Ok(fields) => expanded_words.extend(fields),
+                        Ok(fields) => {
+                            expanded_words.extend(fields);
+                            if expanded_words.len() > self.budget.limits.max_expansion_fields {
+                                if synced_fd0 {
+                                    *stdin = self.in_fds.remove(&0).unwrap_or_default();
+                                }
+                                return Err(EvalError::Budget(format!(
+                                    "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                                    self.budget.limits.max_expansion_fields
+                                )));
+                            }
+                        }
                         Err(EvalError::Syntax(msg))
                             if msg.starts_with("bash: no match:")
                                 || msg.starts_with("__param_ro__") =>
@@ -3026,6 +3266,7 @@ impl<'a> EvalState<'a> {
             sub.sync_funcname();
             sub.env.remove("BASH_SUBSHELL");
             sub.env.remove("__unexported__BASH_SUBSHELL");
+            sub.env.remove("__set_braceexpand");
             let res = sub.eval_script_str(&script_str, stdin)?;
             *stdin = String::new();
             return Ok(BuiltinOutcome {
@@ -3584,6 +3825,7 @@ impl<'a> EvalState<'a> {
         let mut nounset = false;
         let mut pipefail = false;
         let mut noexec = false;
+        let mut braceexpand: Option<bool> = None;
         let mut cmd_str: Option<String> = None;
 
         while idx < args.len() {
@@ -3592,23 +3834,27 @@ impl<'a> EvalState<'a> {
                 cmd_str = args.get(idx + 1).cloned();
                 idx += 2;
                 break;
-            } else if a == "-o" && idx + 1 < args.len() {
+            } else if (a == "-o" || a == "+o") && idx + 1 < args.len() {
+                let on = a.starts_with('-');
                 match args[idx + 1].as_str() {
-                    "errexit" => errexit = true,
-                    "nounset" => nounset = true,
-                    "pipefail" => pipefail = true,
-                    "noexec" => noexec = true,
+                    "errexit" => errexit = on,
+                    "nounset" => nounset = on,
+                    "pipefail" => pipefail = on,
+                    "noexec" => noexec = on,
+                    "braceexpand" => braceexpand = Some(on),
                     _ => {}
                 }
                 idx += 2;
-            } else if a.starts_with('-') && a.len() > 1 {
+            } else if (a.starts_with('-') || a.starts_with('+')) && a.len() > 1 && a != "--" {
+                let on = a.starts_with('-');
                 let mut saw_c = false;
                 for ch in a[1..].chars() {
                     match ch {
-                        'e' => errexit = true,
-                        'u' => nounset = true,
-                        'n' => noexec = true,
-                        'c' => saw_c = true,
+                        'e' => errexit = on,
+                        'u' => nounset = on,
+                        'n' => noexec = on,
+                        'B' => braceexpand = Some(on),
+                        'c' if on => saw_c = true,
                         _ => {}
                     }
                 }
@@ -3667,6 +3913,14 @@ impl<'a> EvalState<'a> {
         sub_env.remove("__set_errtrace");
         sub_env.remove("__set_functrace");
         sub_env.remove("__shopt_extdebug");
+        match braceexpand {
+            Some(false) => {
+                sub_env.insert("__set_braceexpand".to_string(), "0".to_string());
+            }
+            _ => {
+                sub_env.remove("__set_braceexpand");
+            }
+        }
         for (k, v) in &self.traps {
             if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
                 sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
@@ -5876,9 +6130,25 @@ impl<'a> EvalState<'a> {
         let mut dup_fd: Option<u32> = None;
 
         for r in redirects {
+            let expand_redir_target = |this: &mut Self, raw: &str| -> Result<Result<String, BuiltinOutcome>, EvalError> {
+                let fields = this.expand_word_to_fields(raw)?;
+                if fields.len() != 1 {
+                    let mut err_out = BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{raw}: ambiguous redirect\n"),
+                        exit_code: 1,
+                    };
+                    this.route_outcome(&mut err_out);
+                    return Ok(Err(err_out));
+                }
+                Ok(Ok(fields.into_iter().next().unwrap()))
+            };
             match &r.kind {
                 RedirectKind::In(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     let content = match self.fs.read_file(&full) {
                         Ok(bytes) => {
@@ -5925,7 +6195,10 @@ impl<'a> EvalState<'a> {
                     }
                 }
                 RedirectKind::ReadWrite(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
@@ -6016,7 +6289,10 @@ impl<'a> EvalState<'a> {
                     }
                 }
                 RedirectKind::DupIn(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     if target == "-" {
                         self.fd_table.insert(*fd, FdTarget::Closed);
                         if *fd == 0 {
@@ -6043,7 +6319,10 @@ impl<'a> EvalState<'a> {
                     }
                 }
                 RedirectKind::Out(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     if self.noclobber
                         && full != "/dev/null"
@@ -6076,7 +6355,10 @@ impl<'a> EvalState<'a> {
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
                 RedirectKind::Clobber(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" {
                         let existed = self.fs.exists(&full);
@@ -6096,7 +6378,10 @@ impl<'a> EvalState<'a> {
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
                 RedirectKind::Append(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
@@ -6113,7 +6398,10 @@ impl<'a> EvalState<'a> {
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
                 RedirectKind::DupOut(fd) => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     if target == "-" {
                         self.fd_table.insert(*fd, FdTarget::Closed);
                     } else if let Ok(src_fd) = target.parse::<u32>() {
@@ -6126,7 +6414,10 @@ impl<'a> EvalState<'a> {
                     }
                 }
                 RedirectKind::BothOut => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" {
                         let existed = self.fs.exists(&full);
@@ -6140,7 +6431,10 @@ impl<'a> EvalState<'a> {
                     self.fd_table.insert(2, FdTarget::File { path: full });
                 }
                 RedirectKind::BothAppend => {
-                    let target = self.expand_word_to_string(&r.target)?;
+                    let target = match expand_redir_target(self, &r.target)? {
+                        Ok(t) => t,
+                        Err(err_out) => return Ok((saved_fds, saved_in, local_stdin, use_local, dup_fd, Some(err_out))),
+                    };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
                         let _ = self.fs.write_file(&full, b"");
@@ -6239,8 +6533,7 @@ impl<'a> EvalState<'a> {
     }
 
     pub fn expand_word_to_string(&mut self, word: &str) -> Result<String, EvalError> {
-        let has_assign_eq = parse_assignment_lhs_rhs(word).is_some();
-        let tilded = self.expand_tilde_in_word(word, has_assign_eq);
+        let tilded = self.expand_tilde_in_word(word, false);
         let fields = self.expand_word_internal(&tilded, false, false)?;
         Ok(fields.join(" "))
     }
@@ -6607,12 +6900,27 @@ impl<'a> EvalState<'a> {
         Ok(fragments)
     }
 
+    pub fn is_braceexpand_enabled(&self) -> bool {
+        self.env
+            .get("__set_braceexpand")
+            .map(|v| v != "0")
+            .unwrap_or(true)
+    }
+
     pub fn expand_word_to_fields(&mut self, word: &str) -> Result<Vec<String>, EvalError> {
-        let brace_expanded = expand_braces(word);
+        let brace_expanded = if self.is_braceexpand_enabled() {
+            expand_braces_with_limits(
+                word,
+                self.budget.limits.max_expansion_fields,
+                self.budget.limits.max_expansion_bytes,
+            )?
+            .0
+        } else {
+            vec![word.to_string()]
+        };
         let mut final_fields = Vec::new();
         for bw in brace_expanded {
-            let has_assign_eq = parse_assignment_lhs_rhs(&bw).is_some();
-            let tilded = self.expand_tilde_in_word(&bw, has_assign_eq);
+            let tilded = self.expand_tilde_in_word(&bw, false);
             let fields = self.expand_word_internal(&tilded, true, false)?;
             final_fields.extend(fields);
             if final_fields.len() > self.budget.limits.max_expansion_fields {
@@ -6626,76 +6934,255 @@ impl<'a> EvalState<'a> {
     }
 
     fn expand_tilde_in_word(&self, word: &str, allow_after_colon: bool) -> String {
+        if self.env.get("PWD").map(|s| s.as_str()) == Some(self.cwd.as_str()) {
+            expand_tilde_prefix(word, self.env, allow_after_colon, false)
+        } else {
+            let mut env_copy = self.env.clone();
+            env_copy.insert("PWD".to_string(), self.cwd.clone());
+            expand_tilde_prefix(word, &env_copy, allow_after_colon, false)
+        }
+    }
+
+    fn collect_word_segments(
+        &mut self,
+        word: &str,
+        escape_quoted_glob: bool,
+        segments: &mut Vec<WordSeg>,
+    ) -> Result<(), EvalError> {
         let chars: Vec<char> = word.chars().collect();
-        let mut out = String::new();
-        let mut i = 0usize;
-        let mut at_tilde_pos = true;
-        while i < chars.len() {
-            let c = chars[i];
-            if c == '\'' || c == '"' {
-                let q = c;
-                out.push(c);
-                i += 1;
-                while i < chars.len() {
-                    let nc = chars[i];
-                    out.push(nc);
-                    i += 1;
-                    if nc == '\\' && q == '"' && i < chars.len() {
-                        out.push(chars[i]);
-                        i += 1;
-                    } else if nc == q {
-                        break;
+        let mut idx = 0usize;
+
+        while idx < chars.len() {
+            let c = chars[idx];
+            if c == '\'' {
+                idx += 1;
+                let mut lit = String::new();
+                while idx < chars.len() && chars[idx] != '\'' {
+                    if escape_quoted_glob
+                        && matches!(
+                            chars[idx],
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                        )
+                    {
+                        lit.push('\\');
                     }
+                    lit.push(chars[idx]);
+                    idx += 1;
                 }
-                at_tilde_pos = false;
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                segments.push(WordSeg::Quoted(lit));
                 continue;
             }
-            if c == '~' && at_tilde_pos {
-                if i + 1 < chars.len() && (chars[i + 1] == '+' || chars[i + 1] == '-') {
-                    let next_after = chars.get(i + 2).copied();
-                    if next_after.is_none()
-                        || next_after == Some('/')
-                        || (allow_after_colon && next_after == Some(':'))
-                    {
-                        if chars[i + 1] == '+' {
-                            out.push_str(self.cwd);
-                            i += 2;
-                            at_tilde_pos = false;
-                            continue;
-                        } else if let Some(old) = self.env.get("OLDPWD") {
-                            out.push_str(old);
-                            i += 2;
-                            at_tilde_pos = false;
-                            continue;
-                        } else {
-                            out.push('~');
-                            out.push('-');
-                            i += 2;
-                            at_tilde_pos = false;
+            if c == '$' && idx + 1 < chars.len() && chars[idx + 1] == '\'' {
+                idx += 2;
+                let mut raw = String::new();
+                while idx < chars.len() && chars[idx] != '\'' {
+                    if chars[idx] == '\\' && idx + 1 < chars.len() {
+                        raw.push(chars[idx]);
+                        raw.push(chars[idx + 1]);
+                        idx += 2;
+                        continue;
+                    }
+                    raw.push(chars[idx]);
+                    idx += 1;
+                }
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                let decoded = decode_ansi_c_escapes(&raw);
+                let seg = if escape_quoted_glob {
+                    let mut esc = String::new();
+                    for dc in decoded.chars() {
+                        if matches!(
+                            dc,
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                        ) {
+                            esc.push('\\');
+                        }
+                        esc.push(dc);
+                    }
+                    esc
+                } else {
+                    decoded
+                };
+                segments.push(WordSeg::Quoted(seg));
+                continue;
+            }
+            if c == '"' {
+                idx += 1;
+                let mut dq = String::new();
+                while idx < chars.len() && chars[idx] != '"' {
+                    if chars[idx] == '\\' && idx + 1 < chars.len() {
+                        let nc = chars[idx + 1];
+                        if matches!(nc, '"' | '\\' | '$' | '`') {
+                            if escape_quoted_glob
+                                && matches!(
+                                    nc,
+                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                )
+                            {
+                                dq.push('\\');
+                            }
+                            dq.push(nc);
+                            idx += 2;
                             continue;
                         }
                     }
-                }
-                let next_after = chars.get(i + 1).copied();
-                if next_after.is_none()
-                    || next_after == Some('/')
-                    || (allow_after_colon && next_after == Some(':'))
-                {
-                    if let Some(home) = self.env.get("HOME") {
-                        out.push_str(home);
-                    } else {
-                        out.push('~');
+                    if chars[idx] == '$' {
+                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let exp = self.expand_dollar(&chars, &mut idx);
+                        match prev_dq {
+                            Some(v) => {
+                                self.env.insert("__in_dquote".to_string(), v);
+                            }
+                            None => {
+                                self.env.remove("__in_dquote");
+                            }
+                        }
+                        let exp = exp?;
+                        if escape_quoted_glob {
+                            for ec in exp.chars() {
+                                if matches!(
+                                    ec,
+                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                ) {
+                                    dq.push('\\');
+                                }
+                                dq.push(ec);
+                            }
+                        } else {
+                            dq.push_str(&exp);
+                        }
+                        continue;
                     }
-                    i += 1;
-                    at_tilde_pos = false;
-                    continue;
+                    if chars[idx] == '`' {
+                        let exp = self.expand_backticks(&chars, &mut idx)?;
+                        if escape_quoted_glob {
+                            for ec in exp.chars() {
+                                if matches!(
+                                    ec,
+                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                                ) {
+                                    dq.push('\\');
+                                }
+                                dq.push(ec);
+                            }
+                        } else {
+                            dq.push_str(&exp);
+                        }
+                        continue;
+                    }
+                    if escape_quoted_glob
+                        && matches!(
+                            chars[idx],
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+                        )
+                    {
+                        dq.push('\\');
+                    }
+                    dq.push(chars[idx]);
+                    idx += 1;
                 }
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                segments.push(WordSeg::Quoted(dq));
+                continue;
             }
-            out.push(c);
-            at_tilde_pos = allow_after_colon && (c == '=' || c == ':');
-            i += 1;
+            if (c == '<' || c == '>') && idx + 1 < chars.len() && chars[idx + 1] == '(' {
+                let is_out = c == '>';
+                idx += 2;
+                let mut depth = 1usize;
+                let mut sub_cmd = String::new();
+                while idx < chars.len() && depth > 0 {
+                    let sc = chars[idx];
+                    idx += 1;
+                    if sc == '(' {
+                        depth += 1;
+                    } else if sc == ')' {
+                        depth -= 1;
+                        if depth == 0 {
+                            break;
+                        }
+                    }
+                    sub_cmd.push(sc);
+                }
+                self.procsub_seq += 1;
+                let proc_path = format!("/tmp/.procsub_{}", self.procsub_seq);
+                let _ = self.fs.mkdir_all("/tmp");
+                if is_out {
+                    let _ = self.fs.write_file(&proc_path, b"");
+                    self.pending_out_procsubs.push((proc_path.clone(), sub_cmd));
+                } else {
+                    let out_str = self.run_command_substitution_raw(&sub_cmd)?;
+                    let _ = self
+                        .fs
+                        .write_file(&proc_path, &stream_string_to_bytes(&out_str));
+                }
+                segments.push(WordSeg::Literal(proc_path));
+                continue;
+            }
+            if c == '\\' {
+                if idx + 1 < chars.len() {
+                    let nc = chars[idx + 1];
+                    if escape_quoted_glob
+                        && matches!(
+                            nc,
+                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':' | '.' | '$' | '{' | '}'
+                        )
+                    {
+                        segments.push(WordSeg::Quoted(format!("\\{nc}")));
+                    } else {
+                        segments.push(WordSeg::Quoted(nc.to_string()));
+                    }
+                    idx += 2;
+                } else {
+                    segments.push(WordSeg::Quoted(String::new()));
+                    idx += 1;
+                }
+                continue;
+            }
+            if c == '$' {
+                if idx + 1 < chars.len() && chars[idx + 1] == '{' {
+                    let mut probe_idx = idx + 1;
+                    let expr = scan_nested_brace_sub(&chars, &mut probe_idx)?;
+                    if let Some(alt_raw) = try_resolve_unquoted_alternate_operand(
+                        &expr,
+                        self.env,
+                        self.last_exit,
+                        &self.pos_args,
+                    ) {
+                        let alt_owned = alt_raw.to_string();
+                        idx = probe_idx;
+                        let tilded_alt = self.expand_tilde_in_word(&alt_owned, false);
+                        self.collect_word_segments(&tilded_alt, escape_quoted_glob, segments)?;
+                        continue;
+                    }
+                }
+                let exp = self.expand_dollar(&chars, &mut idx)?;
+                segments.push(WordSeg::Split(exp));
+                continue;
+            }
+            if c == '`' {
+                let exp = self.expand_backticks(&chars, &mut idx)?;
+                segments.push(WordSeg::Split(exp));
+                continue;
+            }
+            let mut plain = String::new();
+            while idx < chars.len()
+                && !matches!(chars[idx], '\'' | '"' | '\\' | '$' | '`')
+                && !((chars[idx] == '<' || chars[idx] == '>')
+                    && idx + 1 < chars.len()
+                    && chars[idx + 1] == '(')
+            {
+                plain.push(chars[idx]);
+                idx += 1;
+            }
+            segments.push(WordSeg::Literal(plain));
         }
-        out
+        Ok(())
     }
 
     fn expand_word_internal(
@@ -6754,229 +7241,15 @@ impl<'a> EvalState<'a> {
             return Ok(out);
         }
 
-        let chars: Vec<char> = word.chars().collect();
-        let mut idx = 0usize;
-        let mut segments: Vec<(String, bool)> = Vec::new();
-        let mut saw_quotes = false;
+        let mut segments: Vec<WordSeg> = Vec::new();
+        self.collect_word_segments(word, escape_quoted_glob, &mut segments)?;
 
-        while idx < chars.len() {
-            let c = chars[idx];
-            if c == '\'' {
-                saw_quotes = true;
-                idx += 1;
-                let mut lit = String::new();
-                while idx < chars.len() && chars[idx] != '\'' {
-                    if escape_quoted_glob
-                        && matches!(
-                            chars[idx],
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
-                        )
-                    {
-                        lit.push('\\');
-                    }
-                    lit.push(chars[idx]);
-                    idx += 1;
-                }
-                if idx < chars.len() {
-                    idx += 1;
-                }
-                segments.push((lit, true));
-                continue;
-            }
-            if c == '$' && idx + 1 < chars.len() && chars[idx + 1] == '\'' {
-                saw_quotes = true;
-                idx += 2;
-                let mut raw = String::new();
-                while idx < chars.len() && chars[idx] != '\'' {
-                    if chars[idx] == '\\' && idx + 1 < chars.len() {
-                        raw.push(chars[idx]);
-                        raw.push(chars[idx + 1]);
-                        idx += 2;
-                        continue;
-                    }
-                    raw.push(chars[idx]);
-                    idx += 1;
-                }
-                if idx < chars.len() {
-                    idx += 1;
-                }
-                let decoded = decode_ansi_c_escapes(&raw);
-                let seg = if escape_quoted_glob {
-                    let mut esc = String::new();
-                    for dc in decoded.chars() {
-                        if matches!(
-                            dc,
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
-                        ) {
-                            esc.push('\\');
-                        }
-                        esc.push(dc);
-                    }
-                    esc
-                } else {
-                    decoded
-                };
-                segments.push((seg, true));
-                continue;
-            }
-            if c == '"' {
-                saw_quotes = true;
-                idx += 1;
-                let mut dq = String::new();
-                while idx < chars.len() && chars[idx] != '"' {
-                    if chars[idx] == '\\' && idx + 1 < chars.len() {
-                        let nc = chars[idx + 1];
-                        if matches!(nc, '"' | '\\' | '$' | '`') {
-                            if escape_quoted_glob
-                                && matches!(
-                                    nc,
-                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
-                                )
-                            {
-                                dq.push('\\');
-                            }
-                            dq.push(nc);
-                            idx += 2;
-                            continue;
-                        }
-                    }
-                    if chars[idx] == '$' {
-                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
-                        let exp = self.expand_dollar(&chars, &mut idx)?;
-                        match prev_dq {
-                            Some(v) => {
-                                self.env.insert("__in_dquote".to_string(), v);
-                            }
-                            None => {
-                                self.env.remove("__in_dquote");
-                            }
-                        }
-                        if escape_quoted_glob {
-                            for ec in exp.chars() {
-                                if matches!(
-                                    ec,
-                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
-                                ) {
-                                    dq.push('\\');
-                                }
-                                dq.push(ec);
-                            }
-                        } else {
-                            dq.push_str(&exp);
-                        }
-                        continue;
-                    }
-                    if chars[idx] == '`' {
-                        let exp = self.expand_backticks(&chars, &mut idx)?;
-                        if escape_quoted_glob {
-                            for ec in exp.chars() {
-                                if matches!(
-                                    ec,
-                                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
-                                ) {
-                                    dq.push('\\');
-                                }
-                                dq.push(ec);
-                            }
-                        } else {
-                            dq.push_str(&exp);
-                        }
-                        continue;
-                    }
-                    if escape_quoted_glob
-                        && matches!(
-                            chars[idx],
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
-                        )
-                    {
-                        dq.push('\\');
-                    }
-                    dq.push(chars[idx]);
-                    idx += 1;
-                }
-                if idx < chars.len() {
-                    idx += 1;
-                }
-                segments.push((dq, true));
-                continue;
-            }
-            if (c == '<' || c == '>') && idx + 1 < chars.len() && chars[idx + 1] == '(' {
-                let is_out = c == '>';
-                idx += 2;
-                let mut depth = 1usize;
-                let mut sub_cmd = String::new();
-                while idx < chars.len() && depth > 0 {
-                    let sc = chars[idx];
-                    idx += 1;
-                    if sc == '(' {
-                        depth += 1;
-                    } else if sc == ')' {
-                        depth -= 1;
-                        if depth == 0 {
-                            break;
-                        }
-                    }
-                    sub_cmd.push(sc);
-                }
-                self.procsub_seq += 1;
-                let proc_path = format!("/tmp/.procsub_{}", self.procsub_seq);
-                let _ = self.fs.mkdir_all("/tmp");
-                if is_out {
-                    let _ = self.fs.write_file(&proc_path, b"");
-                    self.pending_out_procsubs.push((proc_path.clone(), sub_cmd));
-                } else {
-                    let out_str = self.run_command_substitution_raw(&sub_cmd)?;
-                    let _ = self
-                        .fs
-                        .write_file(&proc_path, &stream_string_to_bytes(&out_str));
-                }
-                segments.push((proc_path, true));
-                continue;
-            }
-            if c == '\\' {
-                if idx + 1 < chars.len() {
-                    let nc = chars[idx + 1];
-                    if escape_quoted_glob
-                        && matches!(
-                            nc,
-                            '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':' | '.' | '$' | '{' | '}'
-                        )
-                    {
-                        segments.push((format!("\\{nc}"), true));
-                    } else {
-                        segments.push((nc.to_string(), true));
-                    }
-                    idx += 2;
-                } else {
-                    segments.push(("\\".to_string(), true));
-                    idx += 1;
-                }
-                continue;
-            }
-            if c == '$' {
-                let exp = self.expand_dollar(&chars, &mut idx)?;
-                segments.push((exp, false));
-                continue;
-            }
-            if c == '`' {
-                let exp = self.expand_backticks(&chars, &mut idx)?;
-                segments.push((exp, false));
-                continue;
-            }
-            let mut plain = String::new();
-            while idx < chars.len()
-                && !matches!(chars[idx], '\'' | '"' | '\\' | '$' | '`')
-                && !((chars[idx] == '<' || chars[idx] == '>')
-                    && idx + 1 < chars.len()
-                    && chars[idx + 1] == '(')
-            {
-                plain.push(chars[idx]);
-                idx += 1;
-            }
-            segments.push((plain, true));
-        }
-
-        let total_exp_bytes: usize = segments.iter().map(|(s, _)| s.len()).sum();
+        let total_exp_bytes: usize = segments
+            .iter()
+            .map(|seg| match seg {
+                WordSeg::Quoted(s) | WordSeg::Literal(s) | WordSeg::Split(s) => s.len(),
+            })
+            .sum();
         if total_exp_bytes > self.budget.limits.max_expansion_bytes {
             return Err(EvalError::Budget(format!(
                 "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
@@ -6986,8 +7259,12 @@ impl<'a> EvalState<'a> {
 
         if !split_and_glob {
             let mut s = String::new();
-            for (part, _) in segments {
-                s.push_str(&part);
+            for seg in segments {
+                match seg {
+                    WordSeg::Quoted(part) | WordSeg::Literal(part) | WordSeg::Split(part) => {
+                        s.push_str(&part);
+                    }
+                }
             }
             return Ok(vec![s]);
         }
@@ -6997,77 +7274,133 @@ impl<'a> EvalState<'a> {
             .get("IFS")
             .cloned()
             .unwrap_or_else(|| " \t\n".to_string());
-        let mut words: Vec<String> = Vec::new();
-        let mut cur = String::new();
-        let mut has_token = saw_quotes;
+        let is_ifs = |c: char| ifs.contains(c);
+        let is_ifs_ws = |c: char| is_ifs(c) && matches!(c, ' ' | '\t' | '\n');
 
-        for (text, is_quoted) in &segments {
-            if *is_quoted || ifs.is_empty() {
-                cur.push_str(text);
-                if !text.is_empty() {
-                    has_token = true;
+        struct Field {
+            fragments: String,
+            pattern: String,
+            present: bool,
+        }
+        let mut fields: Vec<Field> = vec![Field {
+            fragments: String::new(),
+            pattern: String::new(),
+            present: false,
+        }];
+        let mut split_boundary = false;
+
+        let escape_glob_chars = |s: &str| -> String {
+            let mut out = String::with_capacity(s.len());
+            for ch in s.chars() {
+                if matches!(
+                    ch,
+                    '\\' | '*' | '?' | '[' | ']' | '(' | ')' | '|' | '@' | '+' | '!'
+                ) {
+                    out.push('\\');
                 }
-            } else {
-                let mut chars_it = text.chars().peekable();
-                while let Some(ch) = chars_it.next() {
-                    if ifs.contains(ch) {
-                        if ch.is_whitespace() {
-                            let emitted = !cur.is_empty() || has_token;
-                            if emitted {
-                                words.push(std::mem::take(&mut cur));
-                                has_token = false;
-                            }
-                            while let Some(&nc) = chars_it.peek() {
-                                if ifs.contains(nc) && nc.is_whitespace() {
-                                    chars_it.next();
-                                } else {
-                                    break;
+                out.push(ch);
+            }
+            out
+        };
+
+        let add_field = |fields: &mut Vec<Field>, split_boundary: &mut bool| {
+            *split_boundary = false;
+            fields.push(Field {
+                fragments: String::new(),
+                pattern: String::new(),
+                present: false,
+            });
+        };
+
+        let append_piece = |fields: &mut Vec<Field>,
+                            split_boundary: &mut bool,
+                            text: &str,
+                            glob: bool,
+                            present: bool| {
+            if *split_boundary && present {
+                add_field(fields, split_boundary);
+            }
+            let field = fields.last_mut().unwrap();
+            if !text.is_empty() {
+                field.fragments.push_str(text);
+                if glob {
+                    field.pattern.push_str(text);
+                } else {
+                    field.pattern.push_str(&escape_glob_chars(text));
+                }
+            }
+            field.present |= present;
+        };
+
+        for seg in segments {
+            match seg {
+                WordSeg::Quoted(text) => {
+                    append_piece(&mut fields, &mut split_boundary, &text, false, true);
+                }
+                WordSeg::Literal(text) => {
+                    if !text.is_empty() {
+                        append_piece(&mut fields, &mut split_boundary, &text, true, true);
+                    }
+                }
+                WordSeg::Split(text) => {
+                    if text.is_empty() {
+                        continue;
+                    }
+                    if ifs.is_empty() {
+                        append_piece(&mut fields, &mut split_boundary, &text, true, true);
+                        continue;
+                    }
+                    let mut start = 0usize;
+                    for (idx, ch) in text.char_indices() {
+                        if is_ifs(ch) {
+                            if start < idx {
+                                if split_boundary {
+                                    add_field(&mut fields, &mut split_boundary);
                                 }
+                                split_boundary = false;
+                                append_piece(
+                                    &mut fields,
+                                    &mut split_boundary,
+                                    &text[start..idx],
+                                    true,
+                                    true,
+                                );
                             }
-                            if emitted
-                                && let Some(&nc) = chars_it.peek()
-                                && ifs.contains(nc)
-                                && !nc.is_whitespace()
-                            {
-                                chars_it.next();
-                                while let Some(&nc2) = chars_it.peek() {
-                                    if ifs.contains(nc2) && nc2.is_whitespace() {
-                                        chars_it.next();
-                                    } else {
-                                        break;
-                                    }
-                                }
+                            if !is_ifs_ws(ch) {
+                                split_boundary = false;
+                                fields.last_mut().unwrap().present = true;
+                                add_field(&mut fields, &mut split_boundary);
+                            } else if fields.last().unwrap().present {
+                                split_boundary = true;
                             }
-                        } else {
-                            words.push(std::mem::take(&mut cur));
-                            has_token = false;
-                            while let Some(&nc) = chars_it.peek() {
-                                if ifs.contains(nc) && nc.is_whitespace() {
-                                    chars_it.next();
-                                } else {
-                                    break;
-                                }
-                            }
+                            start = idx + ch.len_utf8();
                         }
-                    } else {
-                        cur.push(ch);
-                        has_token = true;
+                    }
+                    if start < text.len() {
+                        if split_boundary {
+                            add_field(&mut fields, &mut split_boundary);
+                        }
+                        split_boundary = false;
+                        append_piece(
+                            &mut fields,
+                            &mut split_boundary,
+                            &text[start..],
+                            true,
+                            true,
+                        );
                     }
                 }
             }
         }
-        if !cur.is_empty() || has_token {
-            words.push(cur);
-        }
+        fields.retain(|f| f.present);
 
-        if saw_quotes
-            || self
-                .env
-                .get("__set_noglob")
-                .map(|v| v == "1")
-                .unwrap_or(false)
+        if self
+            .env
+            .get("__set_noglob")
+            .map(|v| v == "1")
+            .unwrap_or(false)
         {
-            return Ok(words);
+            return Ok(fields.into_iter().map(|f| f.fragments).collect());
         }
 
         let mut globbed = Vec::new();
@@ -7076,18 +7409,38 @@ impl<'a> EvalState<'a> {
             .get("__shopt_failglob")
             .map(|v| v == "1")
             .unwrap_or(false);
-        for w in words {
-            let expanded = expand_globs_in_word(&w, self.cwd, self.fs, self.env);
+        for field in fields {
+            if !has_glob_meta(&field.pattern) {
+                globbed.push(field.fragments);
+                continue;
+            }
+            let expanded = expand_globs_in_word_with_projection(
+                &field.pattern,
+                &field.fragments,
+                self.cwd,
+                self.fs,
+                self.env,
+            );
             if failglob
-                && crate::shell::expand::has_glob_meta(&w)
                 && (expanded.is_empty()
                     || (expanded.len() == 1
-                        && expanded[0] == w
-                        && !self.fs.exists(&resolve_posix_path(self.cwd, &w))))
+                        && expanded[0] == field.fragments
+                        && !self
+                            .fs
+                            .exists(&resolve_posix_path(self.cwd, &field.fragments))))
             {
-                return Err(EvalError::Syntax(format!("bash: no match: {w}")));
+                return Err(EvalError::Syntax(format!(
+                    "bash: no match: {}",
+                    field.fragments
+                )));
             }
             globbed.extend(expanded);
+            if globbed.len() > self.budget.limits.max_expansion_fields {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                    self.budget.limits.max_expansion_fields
+                )));
+            }
         }
         Ok(globbed)
     }
@@ -7173,9 +7526,12 @@ impl<'a> EvalState<'a> {
             cmd_str.push(chars[*idx]);
             *idx += 1;
         }
-        if *idx < chars.len() {
-            *idx += 1;
+        if *idx >= chars.len() {
+            return Err(EvalError::Syntax(
+                "Syntax error: Unterminated command substitution".to_string(),
+            ));
         }
+        *idx += 1;
         self.run_command_substitution(&cmd_str)
     }
 
@@ -8005,163 +8361,901 @@ fn split_ifs_fields(s: &str, ifs: &str, max_fields: Option<usize>) -> Vec<String
     out
 }
 
-fn expand_braces(word: &str) -> Vec<String> {
-    if word.starts_with('\'') || word.starts_with('"') || word.contains("${") {
-        return vec![word.to_string()];
+#[derive(Debug, Clone)]
+enum WordSeg {
+    Quoted(String),
+    Literal(String),
+    Split(String),
+}
+
+fn is_select_byte_locale(env: &BTreeMap<String, String>) -> bool {
+    let locale = env
+        .get("LC_ALL")
+        .filter(|s| !s.is_empty())
+        .or_else(|| env.get("LC_CTYPE").filter(|s| !s.is_empty()))
+        .or_else(|| env.get("LANG").filter(|s| !s.is_empty()))
+        .map(|s| s.as_str())
+        .unwrap_or("");
+    matches!(locale, "C" | "POSIX")
+}
+
+fn select_char_width(ch: char) -> usize {
+    let point = ch as u32;
+    if matches!(
+        point,
+        0x0300..=0x036F
+            | 0x0483..=0x0489
+            | 0x0591..=0x05BD
+            | 0x05BF
+            | 0x05C1..=0x05C2
+            | 0x05C4..=0x05C5
+            | 0x05C7
+            | 0x0600..=0x0605
+            | 0x0610..=0x061A
+            | 0x064B..=0x065F
+            | 0x0670
+            | 0x06D6..=0x06DD
+            | 0x06DF..=0x06E4
+            | 0x06E7..=0x06E8
+            | 0x06EA..=0x06ED
+            | 0x070F
+            | 0x0711
+            | 0x0730..=0x074A
+            | 0x0E31
+            | 0x0E34..=0x0E3A
+            | 0x0E47..=0x0E4E
+            | 0x1AB0..=0x1AFF
+            | 0x1DC0..=0x1DFF
+            | 0x200B..=0x200F
+            | 0x202A..=0x202E
+            | 0x2060..=0x206F
+            | 0x20D0..=0x20FF
+            | 0xFE00..=0xFE0F
+            | 0xFE20..=0xFE2F
+            | 0xFEFF
+            | 0xFFF9..=0xFFFB
+    ) {
+        return 0;
     }
-    let chars: Vec<char> = word.chars().collect();
-    let mut open = None;
-    let mut close = None;
-    let mut depth = 0i32;
-    let mut in_q: Option<char> = None;
-
-    for (i, &c) in chars.iter().enumerate() {
-        if let Some(q) = in_q {
-            if c == q {
-                in_q = None;
-            }
-            continue;
-        }
-        if c == '\'' || c == '"' {
-            in_q = Some(c);
-            continue;
-        }
-        if c == '{' {
-            if depth == 0 {
-                open = Some(i);
-            }
-            depth += 1;
-        } else if c == '}' && depth > 0 {
-            depth -= 1;
-            if depth == 0 {
-                close = Some(i);
-                break;
-            }
-        }
+    if point >= 0x1100
+        && (point <= 0x115f
+            || point == 0x2329
+            || point == 0x232a
+            || (point >= 0x2e80 && point <= 0xa4cf && point != 0x303f)
+            || (point >= 0xac00 && point <= 0xd7a3)
+            || (point >= 0xf900 && point <= 0xfaff)
+            || (point >= 0xfe10 && point <= 0xfe19)
+            || (point >= 0xfe30 && point <= 0xfe6f)
+            || (point >= 0xff00 && point <= 0xff60)
+            || (point >= 0xffe0 && point <= 0xffe6)
+            || (point >= 0x1f300 && point <= 0x1faff)
+            || (point >= 0x20000 && point <= 0x3fffd))
+    {
+        2
+    } else {
+        1
     }
+}
 
-    let (Some(open_idx), Some(close_idx)) = (open, close) else {
-        return vec![word.to_string()];
-    };
-
-    let prefix: String = chars[..open_idx].iter().collect();
-    let inner: String = chars[open_idx + 1..close_idx].iter().collect();
-    let suffix: String = chars[close_idx + 1..].iter().collect();
-
-    // Check top-level commas first
-    let mut comma_parts = Vec::new();
-    let mut cur = String::new();
-    let mut bdepth = 0i32;
-    for ch in inner.chars() {
-        if ch == '{' {
-            bdepth += 1;
-            cur.push(ch);
-        } else if ch == '}' {
-            bdepth -= 1;
-            cur.push(ch);
-        } else if ch == ',' && bdepth == 0 {
-            comma_parts.push(std::mem::take(&mut cur));
-        } else {
-            cur.push(ch);
-        }
-    }
-    if !comma_parts.is_empty() {
-        comma_parts.push(cur);
-        let mut out = Vec::new();
-        for alt in comma_parts {
-            for exp_alt in expand_braces(&alt) {
-                for tail in expand_braces(&suffix) {
-                    out.push(format!("{prefix}{exp_alt}{tail}"));
-                }
-            }
-        }
-        return out;
-    }
-
-    // Check sequence {start..end[..step]}
-    if let Some((a, rest)) = inner.split_once("..") {
-        let (b, step_opt) = match rest.split_once("..") {
-            Some((end_s, step_s)) => (end_s, Some(step_s)),
-            None => (rest, None),
-        };
-        if let (Ok(start), Ok(end)) = (a.parse::<i64>(), b.parse::<i64>()) {
-            let raw_step = step_opt
-                .and_then(|s| s.parse::<i64>().ok())
-                .unwrap_or(1)
-                .unsigned_abs() as i64;
-            let step = if raw_step == 0 {
-                1
-            } else if start <= end {
-                raw_step
-            } else {
-                -raw_step
-            };
-            let pad_width = if (a.starts_with('0') && a.len() > 1)
-                || (b.starts_with('0') && b.len() > 1)
-                || (a.starts_with("-0") && a.len() > 2)
-                || (b.starts_with("-0") && b.len() > 2)
-            {
-                a.len().max(b.len())
-            } else {
-                0
-            };
-            let mut out = Vec::new();
-            let mut cur_val = start;
-            loop {
-                if (step > 0 && cur_val > end) || (step < 0 && cur_val < end) {
+fn format_select_menu(values: &[String], env: &BTreeMap<String, String>) -> String {
+    let byte_locale = is_select_byte_locale(env);
+    let mut items: Vec<(Vec<u8>, usize)> = Vec::with_capacity(values.len());
+    let mut maximum = 0usize;
+    for val in values {
+        let bytes = stream_string_to_bytes(val);
+        let mut width = 0usize;
+        if let Ok(text) = std::str::from_utf8(&bytes) {
+            for ch in text.chars() {
+                let point = ch as u32;
+                if byte_locale && point >= 128 {
+                    width = 0;
                     break;
                 }
-                let formatted = if pad_width > 0 {
-                    if cur_val < 0 {
-                        format!("-{:0width$}", cur_val.unsigned_abs(), width = pad_width.saturating_sub(1))
-                    } else {
-                        format!("{cur_val:0pad_width$}")
-                    }
-                } else {
-                    cur_val.to_string()
-                };
-                for tail in expand_braces(&suffix) {
-                    out.push(format!("{prefix}{formatted}{tail}"));
+                if point < 32 || point == 127 {
+                    width = bytes.len();
+                    break;
                 }
-                cur_val += step;
+                width += select_char_width(ch);
             }
-            return out;
         }
-        if a.len() == 1 && b.len() == 1 {
-            let ca = a.chars().next().unwrap();
-            let cb = b.chars().next().unwrap();
-            if ca.is_ascii_alphabetic() && cb.is_ascii_alphabetic() {
-                let raw_step = step_opt
-                    .and_then(|s| s.parse::<i16>().ok())
-                    .unwrap_or(1)
-                    .unsigned_abs() as i16;
-                let start = ca as i16;
-                let end = cb as i16;
-                let step = if raw_step == 0 {
-                    1
-                } else if start <= end {
-                    raw_step
-                } else {
-                    -raw_step
-                };
-                let mut out = Vec::new();
-                let mut cur_val = start;
-                loop {
-                    if (step > 0 && cur_val > end) || (step < 0 && cur_val < end) {
-                        break;
+        maximum = maximum.max(if byte_locale { bytes.len() } else { width });
+        items.push((bytes, width));
+    }
+
+    let mut screen = 0usize;
+    if let Some(cols_str) = env.get("COLUMNS") {
+        let mut started = false;
+        for ch in cols_str.chars() {
+            if !started && matches!(ch, ' ' | '\t' | '\r' | '\n' | '\x0b' | '\x0c') {
+                continue;
+            }
+            if !started && ch == '+' {
+                started = true;
+                continue;
+            }
+            if !ch.is_ascii_digit() {
+                break;
+            }
+            started = true;
+            let digit = (ch as u8 - b'0') as usize;
+            screen = (screen.saturating_mul(10).saturating_add(digit)).min(0x7fffffff);
+        }
+    }
+    if screen == 0 {
+        screen = 80;
+    }
+
+    let digits = values.len().to_string().len();
+    let cell = maximum + digits + 4;
+    let cols_per_row = (screen / cell).max(1);
+    let mut rows = values.len().div_ceil(cols_per_row);
+    if rows == 1 {
+        rows = values.len();
+    }
+
+    let mut out_bytes = Vec::new();
+    let rows_digits = rows.to_string().len();
+    for row in 0..rows {
+        let mut position = 0usize;
+        let mut index = row;
+        while index < items.len() {
+            let (ref item_bytes, item_width) = items[index];
+            let index_width = if position > 0 { digits } else { rows_digits };
+            let prefix = format!("{:>width$}) ", index + 1, width = index_width);
+            out_bytes.extend_from_slice(prefix.as_bytes());
+            out_bytes.extend_from_slice(item_bytes);
+            if index + rows < items.len() {
+                let mut from = position + index_width + 2 + item_width;
+                let to = position + cell;
+                while from < to {
+                    let tab = (to / 8) > (from / 8);
+                    if tab {
+                        out_bytes.push(b'\t');
+                        from += 8 - (from % 8);
+                    } else {
+                        out_bytes.push(b' ');
+                        from += 1;
                     }
-                    let ch = (cur_val as u8) as char;
-                    for tail in expand_braces(&suffix) {
-                        out.push(format!("{prefix}{ch}{tail}"));
-                    }
-                    cur_val += step;
                 }
-                return out;
+                position += cell;
+            }
+            index += rows;
+        }
+        out_bytes.push(b'\n');
+    }
+    bytes_to_stream_string(&out_bytes)
+}
+
+fn select_read_line(
+    stdin: &mut String,
+    max_output_bytes: usize,
+) -> Result<(Vec<u8>, bool), EvalError> {
+    let raw = stream_string_to_bytes(stdin);
+    let mut line = Vec::new();
+    let mut escaped = false;
+    let mut terminated = false;
+    let mut idx = 0usize;
+    while idx < raw.len() {
+        let byte = raw[idx];
+        idx += 1;
+        if byte == 0 {
+            continue;
+        }
+        if escaped {
+            escaped = false;
+            if byte != b'\n' {
+                if line.len() >= max_output_bytes {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxOutputBytes ({max_output_bytes})"
+                    )));
+                }
+                line.push(byte);
+            }
+            continue;
+        }
+        if byte == b'\\' {
+            escaped = true;
+            continue;
+        }
+        if byte == b'\n' {
+            terminated = true;
+            break;
+        }
+        if line.len() >= max_output_bytes {
+            return Err(EvalError::Budget(format!(
+                "Execution aborted: Shell limit exceeded: maxOutputBytes ({max_output_bytes})"
+            )));
+        }
+        line.push(byte);
+    }
+    *stdin = bytes_to_stream_string(&raw[idx..]);
+    Ok((line, terminated))
+}
+
+fn parse_select_choice(bytes: &[u8]) -> Option<usize> {
+    let is_ws = |b: u8| b == b' ' || (9..=13).contains(&b);
+    let mut start = 0usize;
+    let mut end = bytes.len();
+    while start < end && is_ws(bytes[start]) {
+        start += 1;
+    }
+    while end > start && is_ws(bytes[end - 1]) {
+        end -= 1;
+    }
+    let mut sign = 1i64;
+    if start < end && (bytes[start] == b'+' || bytes[start] == b'-') {
+        if bytes[start] == b'-' {
+            sign = -1;
+        }
+        start += 1;
+    }
+    if start == end {
+        return None;
+    }
+    let mut value: usize = 0;
+    for &b in &bytes[start..end] {
+        if !b.is_ascii_digit() {
+            return None;
+        }
+        value = value.saturating_mul(10).saturating_add((b - b'0') as usize);
+    }
+    if sign < 0 || value == 0 {
+        None
+    } else {
+        Some(value)
+    }
+}
+
+#[derive(Debug, Clone)]
+enum BracePart {
+    Text { raw: String, byte_len: usize },
+    AnsiQuote { raw: String, decoded: String, byte_len: usize },
+    Atom { raw: String, byte_len: usize },
+}
+
+#[derive(Debug, Clone)]
+enum BraceNodeKind {
+    Part(BracePart),
+    Product(Vec<BraceNode>),
+    Choice(Vec<BraceNode>),
+    Range {
+        start: i64,
+        step: i64,
+        width: usize,
+        numeric: bool,
+    },
+}
+
+#[derive(Debug, Clone)]
+struct BraceNode {
+    count: usize,
+    bytes: usize,
+    kind: BraceNodeKind,
+}
+
+fn brace_limit_err(limit: &str, max_val: usize) -> EvalError {
+    EvalError::Budget(format!(
+        "Execution aborted: Shell limit exceeded: {limit} ({max_val})"
+    ))
+}
+
+fn brace_sum(left: usize, right: usize, max_val: usize, limit: &str) -> Result<usize, EvalError> {
+    if right > max_val.saturating_sub(left) {
+        return Err(brace_limit_err(limit, max_val));
+    }
+    Ok(left + right)
+}
+
+fn brace_mul(left: usize, right: usize, max_val: usize, limit: &str) -> Result<usize, EvalError> {
+    if left != 0 && right > max_val / left {
+        return Err(brace_limit_err(limit, max_val));
+    }
+    Ok(left * right)
+}
+
+fn parse_brace_int(text: &str) -> Option<i64> {
+    let bytes = text.as_bytes();
+    let mut offset = if text.starts_with('-') || text.starts_with('+') {
+        1
+    } else {
+        0
+    };
+    if offset == bytes.len() {
+        return None;
+    }
+    while offset < bytes.len() && bytes[offset] == b'0' {
+        offset += 1;
+    }
+    if bytes.len() - offset > 19 {
+        return None;
+    }
+    for &b in &bytes[offset..] {
+        if !b.is_ascii_digit() {
+            return None;
+        }
+    }
+    let digits = if offset == bytes.len() {
+        "0"
+    } else {
+        &text[offset..]
+    };
+    let unsigned: i128 = digits.parse().ok()?;
+    let signed = if text.starts_with('-') {
+        -unsigned
+    } else {
+        unsigned
+    };
+    if signed < (i64::MIN as i128) || signed > (i64::MAX as i128) {
+        None
+    } else {
+        Some(signed as i64)
+    }
+}
+
+fn scan_brace_atom_sub(chars: &[char], idx: &mut usize, open: char, close: char) {
+    let mut depth = 1usize;
+    *idx += 1;
+    while *idx < chars.len() && depth > 0 {
+        let c = chars[*idx];
+        if c == '\\' && *idx + 1 < chars.len() {
+            *idx += 2;
+            continue;
+        }
+        if c == '\'' {
+            *idx += 1;
+            while *idx < chars.len() && chars[*idx] != '\'' {
+                *idx += 1;
+            }
+            if *idx < chars.len() {
+                *idx += 1;
+            }
+            continue;
+        }
+        if c == '"' {
+            *idx += 1;
+            while *idx < chars.len() && chars[*idx] != '"' {
+                if chars[*idx] == '\\' && *idx + 1 < chars.len() {
+                    *idx += 2;
+                    continue;
+                }
+                *idx += 1;
+            }
+            if *idx < chars.len() {
+                *idx += 1;
+            }
+            continue;
+        }
+        if c == open {
+            depth += 1;
+        } else if c == close {
+            depth -= 1;
+        }
+        *idx += 1;
+    }
+}
+
+fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
+    let chars: Vec<char> = word.chars().collect();
+    let mut parts = Vec::new();
+    let mut idx = 0usize;
+    while idx < chars.len() {
+        let c = chars[idx];
+        if c == '\'' {
+            let start = idx;
+            idx += 1;
+            let mut inner = String::new();
+            while idx < chars.len() && chars[idx] != '\'' {
+                inner.push(chars[idx]);
+                idx += 1;
+            }
+            if idx < chars.len() {
+                idx += 1;
+            }
+            let raw: String = chars[start..idx].iter().collect();
+            let byte_len = stream_string_to_bytes(&inner).len();
+            parts.push(BracePart::Atom { raw, byte_len });
+            continue;
+        }
+        if c == '$' && idx + 1 < chars.len() && chars[idx + 1] == '\'' {
+            let start = idx;
+            idx += 2;
+            let mut inner = String::new();
+            while idx < chars.len() && chars[idx] != '\'' {
+                if chars[idx] == '\\' && idx + 1 < chars.len() {
+                    inner.push(chars[idx]);
+                    inner.push(chars[idx + 1]);
+                    idx += 2;
+                    continue;
+                }
+                inner.push(chars[idx]);
+                idx += 1;
+            }
+            if idx < chars.len() {
+                idx += 1;
+            }
+            let raw: String = chars[start..idx].iter().collect();
+            let decoded = decode_ansi_c_escapes(&inner);
+            let byte_len = stream_string_to_bytes(&decoded).len();
+            parts.push(BracePart::AnsiQuote {
+                raw,
+                decoded,
+                byte_len,
+            });
+            continue;
+        }
+        if c == '"' {
+            let start = idx;
+            idx += 1;
+            let mut has_subst = false;
+            let mut inner = String::new();
+            while idx < chars.len() && chars[idx] != '"' {
+                if chars[idx] == '\\' && idx + 1 < chars.len() {
+                    inner.push(chars[idx + 1]);
+                    idx += 2;
+                    continue;
+                }
+                if chars[idx] == '$' && idx + 1 < chars.len() {
+                    has_subst = true;
+                    if chars[idx + 1] == '(' {
+                        idx += 1;
+                        scan_brace_atom_sub(&chars, &mut idx, '(', ')');
+                        continue;
+                    }
+                    if chars[idx + 1] == '{' {
+                        idx += 1;
+                        scan_brace_atom_sub(&chars, &mut idx, '{', '}');
+                        continue;
+                    }
+                }
+                if chars[idx] == '`' {
+                    has_subst = true;
+                    idx += 1;
+                    while idx < chars.len() && chars[idx] != '`' {
+                        if chars[idx] == '\\' && idx + 1 < chars.len() {
+                            idx += 2;
+                            continue;
+                        }
+                        idx += 1;
+                    }
+                    if idx < chars.len() {
+                        idx += 1;
+                    }
+                    continue;
+                }
+                inner.push(chars[idx]);
+                idx += 1;
+            }
+            if idx < chars.len() {
+                idx += 1;
+            }
+            let raw: String = chars[start..idx].iter().collect();
+            let byte_len = if has_subst {
+                0
+            } else {
+                stream_string_to_bytes(&inner).len()
+            };
+            parts.push(BracePart::Atom { raw, byte_len });
+            continue;
+        }
+        if c == '\\' {
+            if idx + 1 < chars.len() {
+                let raw: String = chars[idx..idx + 2].iter().collect();
+                let byte_len = stream_string_to_bytes(&chars[idx + 1].to_string()).len();
+                parts.push(BracePart::Atom { raw, byte_len });
+                idx += 2;
+            } else {
+                parts.push(BracePart::Atom {
+                    raw: "\\".to_string(),
+                    byte_len: 1,
+                });
+                idx += 1;
+            }
+            continue;
+        }
+        if c == '$' {
+            let start = idx;
+            idx += 1;
+            if idx < chars.len() && chars[idx] == '(' {
+                scan_brace_atom_sub(&chars, &mut idx, '(', ')');
+                let raw: String = chars[start..idx].iter().collect();
+                parts.push(BracePart::Atom { raw, byte_len: 0 });
+                continue;
+            }
+            if idx < chars.len() && chars[idx] == '{' {
+                scan_brace_atom_sub(&chars, &mut idx, '{', '}');
+                let raw: String = chars[start..idx].iter().collect();
+                parts.push(BracePart::Atom { raw, byte_len: 0 });
+                continue;
+            }
+            if idx < chars.len()
+                && (matches!(chars[idx], '?' | '#' | '@' | '*' | '$' | '!' | '-')
+                    || chars[idx].is_ascii_digit())
+            {
+                idx += 1;
+                let raw: String = chars[start..idx].iter().collect();
+                parts.push(BracePart::Atom { raw, byte_len: 0 });
+                continue;
+            }
+            if idx < chars.len() && (chars[idx].is_ascii_alphabetic() || chars[idx] == '_') {
+                while idx < chars.len()
+                    && (chars[idx].is_ascii_alphanumeric() || chars[idx] == '_')
+                {
+                    idx += 1;
+                }
+                let raw: String = chars[start..idx].iter().collect();
+                parts.push(BracePart::Atom { raw, byte_len: 0 });
+                continue;
+            }
+            parts.push(BracePart::Text {
+                raw: "$".to_string(),
+                byte_len: 1,
+            });
+            continue;
+        }
+        if c == '`' {
+            let start = idx;
+            idx += 1;
+            while idx < chars.len() && chars[idx] != '`' {
+                if chars[idx] == '\\' && idx + 1 < chars.len() {
+                    idx += 2;
+                    continue;
+                }
+                idx += 1;
+            }
+            if idx < chars.len() {
+                idx += 1;
+            }
+            let raw: String = chars[start..idx].iter().collect();
+            parts.push(BracePart::Atom { raw, byte_len: 0 });
+            continue;
+        }
+        if (c == '<' || c == '>') && idx + 1 < chars.len() && chars[idx + 1] == '(' {
+            let start = idx;
+            idx += 1;
+            scan_brace_atom_sub(&chars, &mut idx, '(', ')');
+            let raw: String = chars[start..idx].iter().collect();
+            parts.push(BracePart::Atom { raw, byte_len: 0 });
+            continue;
+        }
+        let start = idx;
+        while idx < chars.len()
+            && !matches!(chars[idx], '\'' | '"' | '\\' | '$' | '`')
+            && !((chars[idx] == '<' || chars[idx] == '>')
+                && idx + 1 < chars.len()
+                && chars[idx + 1] == '(')
+        {
+            idx += 1;
+        }
+        let raw: String = chars[start..idx].iter().collect();
+        let byte_len = stream_string_to_bytes(&raw).len();
+        parts.push(BracePart::Text { raw, byte_len });
+    }
+    parts
+}
+
+fn expand_braces_with_limits(
+    word: &str,
+    max_fields: usize,
+    max_bytes: usize,
+) -> Result<(Vec<String>, bool), EvalError> {
+    let parts = tokenize_brace_word(word);
+    let part_node = |part: BracePart| -> BraceNode {
+        let bytes = match &part {
+            BracePart::Text { byte_len, .. }
+            | BracePart::AnsiQuote { byte_len, .. }
+            | BracePart::Atom { byte_len, .. } => *byte_len,
+        };
+        BraceNode {
+            count: 1,
+            bytes,
+            kind: BraceNodeKind::Part(part),
+        }
+    };
+    let text_node = |s: &str| -> BraceNode {
+        part_node(BracePart::Text {
+            raw: s.to_string(),
+            byte_len: stream_string_to_bytes(s).len(),
+        })
+    };
+    let product = |children: Vec<BraceNode>| -> Result<BraceNode, EvalError> {
+        let mut count = 1usize;
+        let mut bytes = 0usize;
+        for child in &children {
+            let t1 = brace_mul(bytes, child.count, max_bytes, "maxExpansionBytes")?;
+            let t2 = brace_mul(child.bytes, count, max_bytes, "maxExpansionBytes")?;
+            bytes = brace_sum(t1, t2, max_bytes, "maxExpansionBytes")?;
+            count = brace_mul(count, child.count, max_fields, "maxExpansionFields")?;
+        }
+        Ok(BraceNode {
+            count,
+            bytes,
+            kind: BraceNodeKind::Product(children),
+        })
+    };
+    let sequence = |children: &[BraceNode]| -> Result<Option<BraceNode>, EvalError> {
+        if children.len() != 1 {
+            return Ok(None);
+        }
+        let BraceNodeKind::Part(BracePart::Text { ref raw, .. }) = children[0].kind else {
+            return Ok(None);
+        };
+        let mut pieces: Vec<&str> = Vec::new();
+        let mut start_offset = 0usize;
+        let bytes = raw.as_bytes();
+        let mut offset = 0usize;
+        while offset + 1 < bytes.len() {
+            if bytes[offset] == b'.' && bytes[offset + 1] == b'.' {
+                if pieces.len() == 2 {
+                    return Ok(None);
+                }
+                pieces.push(&raw[start_offset..offset]);
+                start_offset = offset + 2;
+                offset += 2;
+                continue;
+            }
+            offset += 1;
+        }
+        if pieces.is_empty() {
+            return Ok(None);
+        }
+        pieces.push(&raw[start_offset..]);
+        let first = pieces[0];
+        let last = pieces[1];
+        let mut start = parse_brace_int(first);
+        let mut end = parse_brace_int(last);
+        let numeric = start.is_some() && end.is_some();
+        if !numeric {
+            let is_alpha = |s: &str| s.len() == 1 && s.as_bytes()[0].is_ascii_alphabetic();
+            if !is_alpha(first) || !is_alpha(last) {
+                return Ok(None);
+            }
+            start = Some(first.as_bytes()[0] as i64);
+            end = Some(last.as_bytes()[0] as i64);
+        }
+        let step_raw = if pieces.len() == 3 {
+            parse_brace_int(pieces[2])
+        } else {
+            Some(1)
+        };
+        let Some(step_val) = step_raw else {
+            return Ok(None);
+        };
+        let mut step_abs = (step_val as i128).unsigned_abs();
+        if step_abs == 0 {
+            step_abs = 1;
+        }
+        let start_val = start.unwrap();
+        let end_val = end.unwrap();
+        let distance = (end_val as i128) - (start_val as i128);
+        let cardinality = (distance.unsigned_abs() / step_abs) + 1;
+        if cardinality > (max_fields as u128) {
+            return Err(brace_limit_err("maxExpansionFields", max_fields));
+        }
+        let is_padded = |v: &str| {
+            (v.len() > 1 && v.starts_with('0')) || (v.len() > 2 && v.starts_with("-0"))
+        };
+        let width = if numeric && (is_padded(first) || is_padded(last)) {
+            first.len().max(last.len())
+        } else {
+            0
+        };
+        let count = cardinality as usize;
+        let term_bytes = if numeric {
+            width
+                .max(start_val.to_string().len())
+                .max(end_val.to_string().len())
+        } else {
+            1
+        };
+        let total_bytes = brace_mul(count, term_bytes, max_bytes, "maxExpansionBytes")?;
+        let signed_step = if distance < 0 {
+            -(step_abs as i64)
+        } else {
+            step_abs as i64
+        };
+        Ok(Some(BraceNode {
+            count,
+            bytes: total_bytes,
+            kind: BraceNodeKind::Range {
+                start: start_val,
+                step: signed_step,
+                width,
+                numeric,
+            },
+        }))
+    };
+
+    struct Frame {
+        branches: Vec<Vec<BraceNode>>,
+    }
+    let mut frames: Vec<Frame> = vec![Frame {
+        branches: vec![Vec::new()],
+    }];
+    let mut changed = false;
+
+    let push_node = |frames: &mut Vec<Frame>, node: BraceNode| {
+        frames
+            .last_mut()
+            .unwrap()
+            .branches
+            .last_mut()
+            .unwrap()
+            .push(node);
+    };
+
+    for part in parts {
+        let BracePart::Text { ref raw, .. } = part else {
+            push_node(&mut frames, part_node(part));
+            continue;
+        };
+        let mut start = 0usize;
+        for (offset, ch) in raw.char_indices() {
+            if !matches!(ch, '{' | '}' | ',') {
+                continue;
+            }
+            if start < offset {
+                push_node(&mut frames, text_node(&raw[start..offset]));
+            }
+            start = offset + ch.len_utf8();
+            if ch == '{' {
+                frames.push(Frame {
+                    branches: vec![Vec::new()],
+                });
+            } else if ch == ',' && frames.len() > 1 {
+                frames.last_mut().unwrap().branches.push(Vec::new());
+            } else if ch == '}' && frames.len() > 1 {
+                let frame = frames.pop().unwrap();
+                if frame.branches.len() > 1 {
+                    let mut children = Vec::with_capacity(frame.branches.len());
+                    for branch in frame.branches {
+                        children.push(product(branch)?);
+                    }
+                    let mut count = 0usize;
+                    let mut bytes = 0usize;
+                    for child in &children {
+                        count = brace_sum(count, child.count, max_fields, "maxExpansionFields")?;
+                        bytes = brace_sum(bytes, child.bytes, max_bytes, "maxExpansionBytes")?;
+                    }
+                    push_node(
+                        &mut frames,
+                        BraceNode {
+                            count,
+                            bytes,
+                            kind: BraceNodeKind::Choice(children),
+                        },
+                    );
+                    changed = true;
+                } else {
+                    let children = frame.branches.into_iter().next().unwrap();
+                    if let Some(range_node) = sequence(&children)? {
+                        push_node(&mut frames, range_node);
+                        changed = true;
+                    } else {
+                        push_node(&mut frames, text_node("{"));
+                        push_node(&mut frames, product(children)?);
+                        push_node(&mut frames, text_node("}"));
+                    }
+                }
+            } else {
+                push_node(&mut frames, text_node(&ch.to_string()));
+            }
+        }
+        if start < raw.len() {
+            if start == 0 {
+                push_node(&mut frames, part_node(part));
+            } else {
+                push_node(&mut frames, text_node(&raw[start..]));
             }
         }
     }
 
-    vec![word.to_string()]
+    while frames.len() > 1 {
+        let frame = frames.pop().unwrap();
+        push_node(&mut frames, text_node("{"));
+        for (index, branch) in frame.branches.into_iter().enumerate() {
+            if index > 0 {
+                push_node(&mut frames, text_node(","));
+            }
+            push_node(&mut frames, product(branch)?);
+        }
+    }
+
+    if !changed {
+        return Ok((vec![word.to_string()], false));
+    }
+
+    let root_branch = frames.pop().unwrap().branches.pop().unwrap();
+    let root = product(root_branch)?;
+    let mut out = Vec::with_capacity(root.count);
+    for rank in 0..root.count {
+        let mut materialized_parts: Vec<(BracePart, bool)> = Vec::new();
+        let mut pending: Vec<(&BraceNode, usize)> = vec![(&root, rank)];
+        while let Some((node, cur_rank)) = pending.pop() {
+            match &node.kind {
+                BraceNodeKind::Product(children) => {
+                    let mut divisor = 1usize;
+                    for child in children.iter().rev() {
+                        let child_rank = (cur_rank / divisor) % child.count;
+                        pending.push((child, child_rank));
+                        divisor = divisor.saturating_mul(child.count);
+                    }
+                }
+                BraceNodeKind::Choice(children) => {
+                    let mut choice = cur_rank;
+                    for child in children {
+                        if choice < child.count {
+                            pending.push((child, choice));
+                            break;
+                        }
+                        choice -= child.count;
+                    }
+                }
+                BraceNodeKind::Part(part) => {
+                    materialized_parts.push((part.clone(), false));
+                }
+                BraceNodeKind::Range {
+                    start,
+                    step,
+                    width,
+                    numeric,
+                } => {
+                    let val = (*start as i128) + (cur_rank as i128) * (*step as i128);
+                    let text = if *numeric {
+                        let abs_digits = val.unsigned_abs().to_string();
+                        if *width > 0 {
+                            let pad_len = width.saturating_sub(usize::from(val < 0));
+                            if val < 0 {
+                                format!("-{:0>width$}", abs_digits, width = pad_len)
+                            } else {
+                                format!("{:0>width$}", abs_digits, width = pad_len)
+                            }
+                        } else {
+                            val.to_string()
+                        }
+                    } else {
+                        ((val as u8) as char).to_string()
+                    };
+                    let gen_syn = !*numeric && (text == "\\" || text == "`");
+                    materialized_parts.push((
+                        BracePart::Text {
+                            byte_len: text.len(),
+                            raw: text,
+                        },
+                        gen_syn,
+                    ));
+                }
+            }
+        }
+        let mut word_out = String::new();
+        let mut after_gen_syn = false;
+        for (part, is_gen) in materialized_parts {
+            if is_gen {
+                after_gen_syn = true;
+            }
+            match part {
+                BracePart::Text { raw, .. } | BracePart::Atom { raw, .. } => {
+                    word_out.push_str(&raw);
+                }
+                BracePart::AnsiQuote { raw, decoded, .. } => {
+                    if after_gen_syn {
+                        word_out.push('\'');
+                        word_out.push_str(&decoded.replace('\'', "'\\''"));
+                        word_out.push('\'');
+                    } else {
+                        word_out.push_str(&raw);
+                    }
+                }
+            }
+        }
+        out.push(word_out);
+    }
+    Ok((out, true))
+}
+
+fn expand_braces(word: &str) -> Vec<String> {
+    expand_braces_with_limits(word, usize::MAX, usize::MAX)
+        .map(|(v, _)| v)
+        .unwrap_or_else(|_| vec![word.to_string()])
 }
 
 fn is_valid_shell_ident(s: &str) -> bool {
@@ -8679,5 +9773,88 @@ mod tests {
             .unwrap();
         assert_eq!(out.exit_code, 0);
         assert_eq!(out.stdout, "hi;g:2;h:8");
+    }
+
+    #[test]
+    fn unit_eval_select_menu_reply_continuation_and_eof() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("COLUMNS".to_string(), "20".to_string());
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let menu_res = state
+            .eval_script_str(
+                "PS3='P>'; select x in a b c d e f; do printf '%s:%s' \"$x\" \"$REPLY\"; break; done",
+                "\\2\\\n\n",
+            )
+            .unwrap();
+        assert_eq!(menu_res.exit_code, 0);
+        assert_eq!(menu_res.stdout, "b:2");
+        assert_eq!(menu_res.stderr, "1) a  3) c  5) e\n2) b  4) d  6) f\nP>");
+
+        let empty_res = state
+            .eval_script_str("select x in; do echo bad; done", "1\n")
+            .unwrap();
+        assert_eq!(empty_res.exit_code, 0);
+        assert_eq!(empty_res.stdout, "");
+        assert_eq!(empty_res.stderr, "");
+
+        let eof_res = state
+            .eval_script_str(
+                "x=old; select x in a; do :; done; printf '%s|%s|%s' \"$REPLY\" \"$x\" \"$?\"",
+                "2",
+            )
+            .unwrap();
+        assert_eq!(eof_res.exit_code, 0);
+        assert_eq!(eof_res.stdout, "\n2|old|1");
+    }
+
+    #[test]
+    fn unit_eval_tilde_and_cross_segment_ifs_splitting() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("HOME".to_string(), "/home/a b:*".to_string());
+        env.insert("OLDPWD".to_string(), "/var/log".to_string());
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let res = state
+            .eval_script_str(
+                "IFS=' :'; x='a '; y=' b '; z=': c'; printf '<%s>\\n' $x$y$z $x\"\"$z ~ ${u:-~/dir} ~+/sub ~-/sub; p=~/a:~/b; q=~/a\\:~/b; printf '<%s>\\n' \"$p\" \"$q\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(
+            res.stdout,
+            "<a>\n<b>\n<c>\n<a>\n<>\n<c>\n</home/a b:*>\n</home/a b:*/dir>\n</work/sub>\n</var/log/sub>\n</home/a b:*/a:/home/a b:*/b>\n</home/a b:*/a:~/b>\n"
+        );
+    }
+
+    #[test]
+    fn unit_eval_brace_expansion_ranges_declarations_arrays_and_redirects() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let res = state
+            .eval_script_str(
+                "value=tail; printf '<%s>\\n' {Y..c..3}$value {Y..c..3}\"post\" {-03..03..2}; export ex={a,b}; values=([2]={x,y} [5]=last); declare -A m; m=([{a,b}]={c,d}); ( : > {left,right} ) 2>/dev/null; printf 'ex=%s|arr=%s|mk=%s|mv=%s|rc=%s\\n' \"$ex\" \"${values[*]}\" \"${!m[*]}\" \"${m[*]}\" \"$?\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(res.exit_code, 0);
+        assert_eq!(
+            res.stdout,
+            "<Ytail>\n<$value>\n<_tail>\n<btail>\n<Ypost>\n<\"post>\n<_post>\n<bpost>\n<-03>\n<-01>\n<001>\n<003>\nex=b|arr=[2]=x [2]=y last|mk={a,b}|mv={c,d}|rc=1\n"
+        );
     }
 }

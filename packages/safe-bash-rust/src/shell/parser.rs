@@ -128,12 +128,23 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
     let mut brace_depth = 0i32;
 
     let mut at_cmd_start = true;
+    let mut for_state = 0u8; // 0: none, 1: after for/select, 2: after var, 3: in word list
     for tok in tokens {
         match tok {
-            Token::Semi | Token::Newline | Token::Pipe | Token::AndIf | Token::OrIf | Token::Background => {
+            Token::Newline => {
+                if for_state == 2 {
+                    at_cmd_start = false;
+                } else {
+                    for_state = 0;
+                    at_cmd_start = true;
+                }
+            }
+            Token::Semi | Token::Pipe | Token::AndIf | Token::OrIf | Token::Background => {
+                for_state = 0;
                 at_cmd_start = true;
             }
             Token::LParen => {
+                for_state = 0;
                 paren_depth += 1;
                 at_cmd_start = true;
             }
@@ -151,7 +162,24 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                 }
             }
             Token::Word(w) => {
-                if at_cmd_start {
+                if for_state == 1 {
+                    for_state = 2;
+                    at_cmd_start = false;
+                } else if for_state == 2 {
+                    if w == "in" {
+                        for_state = 3;
+                        at_cmd_start = false;
+                    } else if w == "do" {
+                        for_state = 0;
+                        do_depth += 1;
+                        at_cmd_start = true;
+                    } else {
+                        for_state = 0;
+                        at_cmd_start = false;
+                    }
+                } else if for_state == 3 {
+                    at_cmd_start = false;
+                } else if at_cmd_start {
                     match w.as_str() {
                         "if" => {
                             if_depth += 1;
@@ -171,6 +199,7 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                             at_cmd_start = false;
                         }
                         "for" | "select" => {
+                            for_state = 1;
                             at_cmd_start = false;
                         }
                         "while" | "until" => {
@@ -218,8 +247,6 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                             at_cmd_start = false;
                         }
                     }
-                } else if w == "do" && case_depth == 0 {
-                    // allow `for x in a b; do` where `;` set at_cmd_start
                 }
             }
             _ => {
@@ -521,15 +548,22 @@ pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>)
     let mut pending_do = 0i32;
     let mut in_db = false;
     let mut at_start = true;
+    let mut for_state = 0u8;
     for tok in &tokens {
         match tok {
+            Token::Newline => {
+                if for_state != 2 {
+                    for_state = 0;
+                    at_start = true;
+                }
+            }
             Token::Semi
-            | Token::Newline
             | Token::Pipe
             | Token::AndIf
             | Token::OrIf
             | Token::Background
             | Token::LParen => {
+                for_state = 0;
                 at_start = true;
             }
             Token::Word(w) => {
@@ -538,10 +572,32 @@ pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>)
                 } else if w == "]]" {
                     in_db = false;
                 }
-                if at_start && matches!(w.as_str(), "for" | "select" | "while" | "until") {
+                if for_state == 1 {
+                    for_state = 2;
+                    at_start = false;
+                } else if for_state == 2 {
+                    if w == "in" {
+                        for_state = 3;
+                        at_start = false;
+                    } else if w == "do" && pending_do > 0 {
+                        for_state = 0;
+                        pending_do -= 1;
+                        at_start = true;
+                    } else {
+                        for_state = 0;
+                        at_start = false;
+                    }
+                } else if for_state == 3 {
+                    at_start = false;
+                } else if at_start && matches!(w.as_str(), "for" | "select" | "while" | "until") {
                     pending_do += 1;
-                    at_start = matches!(w.as_str(), "while" | "until");
-                } else if w == "do" && pending_do > 0 {
+                    if matches!(w.as_str(), "for" | "select") {
+                        for_state = 1;
+                        at_start = false;
+                    } else {
+                        at_start = true;
+                    }
+                } else if at_start && w == "do" && pending_do > 0 {
                     pending_do -= 1;
                     at_start = true;
                 } else {
@@ -555,6 +611,16 @@ pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>)
         }
     }
     pending_do > 0 || in_db
+}
+
+
+fn is_valid_loop_ident(s: &str) -> bool {
+    let mut chars = s.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    (first.is_ascii_alphabetic() || first == '_')
+        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
 fn is_stop_word(tok: Option<&Token>, stops: &[&str]) -> bool {
@@ -882,23 +948,34 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                     }));
                 }
 
+                let loop_kw = kw.clone();
                 let var = expect_word(tokens, pos)?;
+                if !is_valid_loop_ident(&var) {
+                    return Err(format!("Syntax error: Invalid {loop_kw} variable"));
+                }
+                while matches!(tokens.get(*pos), Some(Token::Newline)) {
+                    *pos += 1;
+                }
                 let mut items = Vec::new();
-                if is_stop_word(tokens.get(*pos), &["in"]) {
+                let has_in = is_stop_word(tokens.get(*pos), &["in"]);
+                if has_in {
                     *pos += 1;
                     while let Some(Token::Word(w)) = tokens.get(*pos) {
-                        if w == "do" {
-                            break;
-                        }
                         items.push(w.clone());
                         *pos += 1;
                     }
-                } else {
+                }
+                if matches!(tokens.get(*pos), Some(Token::Semi | Token::Newline)) {
+                    *pos += 1;
+                } else if has_in {
+                    return Err(format!("Syntax error: Expected {loop_kw} separator"));
+                }
+                if !has_in {
                     items.push("\"$@\"".to_string());
                 }
                 skip_newlines(tokens, pos);
                 if !is_stop_word(tokens.get(*pos), &["do"]) {
-                    return Err("Syntax error: expected `do` in for loop".to_string());
+                    return Err(format!("Syntax error: expected `do` in {loop_kw} loop"));
                 }
                 *pos += 1;
                 let body = parse_tokens(tokens, pos, &["done"])?;

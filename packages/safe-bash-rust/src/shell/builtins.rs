@@ -61,13 +61,28 @@ pub fn try_run_builtin(
         "pwd" => {
             let mut physical = false;
             for a in args {
-                if let Some(stripped) = a.strip_prefix('-') {
-                    for ch in stripped.chars() {
-                        if ch == 'P' {
-                            physical = true;
-                        } else if ch == 'L' {
-                            physical = false;
-                        }
+                if a == "--" || !a.starts_with('-') || a == "-" {
+                    break;
+                }
+                if a == "--logical" {
+                    physical = false;
+                    continue;
+                }
+                if a == "--physical" {
+                    physical = true;
+                    continue;
+                }
+                for ch in a[1..].chars() {
+                    if ch == 'P' {
+                        physical = true;
+                    } else if ch == 'L' {
+                        physical = false;
+                    } else {
+                        return Some(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: "pwd: invalid option\n".to_string(),
+                            exit_code: 2,
+                        });
                     }
                 }
             }
@@ -82,230 +97,8 @@ pub fn try_run_builtin(
                 exit_code: 0,
             })
         }
-        "cd" => {
-            let mut physical = false;
-            let mut idx = 0usize;
-            while idx < args.len() {
-                let a = &args[idx];
-                if a == "--" {
-                    idx += 1;
-                    break;
-                } else if a.starts_with('-') && a.len() > 1 {
-                    for ch in a[1..].chars() {
-                        if ch == 'P' {
-                            physical = true;
-                        } else if ch == 'L' {
-                            physical = false;
-                        }
-                    }
-                    idx += 1;
-                } else {
-                    break;
-                }
-            }
-            let raw_target = args.get(idx).map(|s| s.as_str());
-            let mut print_new = false;
-            let target = match raw_target {
-                Some("-") => {
-                    print_new = true;
-                    match env.get("OLDPWD") {
-                        Some(old) => old.clone(),
-                        None => {
-                            return Some(BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: "cd: OLDPWD not set\n".to_string(),
-                                exit_code: 1,
-                            });
-                        }
-                    }
-                }
-                Some(t) => t.to_string(),
-                None => env.get("HOME").cloned().unwrap_or_else(|| "/".to_string()),
-            };
-            let resolved = if physical {
-                resolve_physical_path(cwd, &target, fs)
-            } else {
-                resolve_posix_path(cwd, &target)
-            };
-            if fs.is_dir(&resolved) {
-                env.insert("OLDPWD".to_string(), cwd.clone());
-                *cwd = resolved.clone();
-                env.insert("PWD".to_string(), resolved.clone());
-                Some(BuiltinOutcome {
-                    stdout: if print_new {
-                        format!("{resolved}\n")
-                    } else {
-                        String::new()
-                    },
-                    stderr: String::new(),
-                    exit_code: 0,
-                })
-            } else if fs.exists(&resolved) {
-                Some(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("cd: {target}: Not a directory\n"),
-                    exit_code: 1,
-                })
-            } else {
-                Some(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("cd: {target}: No such file or directory\n"),
-                    exit_code: 1,
-                })
-            }
-        }
-        "pushd" => {
-            let stack: Vec<String> = env
-                .get("__dirstack")
-                .filter(|s| !s.is_empty())
-                .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
-                .unwrap_or_default();
-            let pos_arg = args.iter().find(|a| *a != "-n");
-            let mut all = vec![cwd.clone()];
-            all.extend(stack.clone());
-            match pos_arg {
-                None => {
-                    if stack.is_empty() {
-                        return Some(BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: "pushd: no other directory\n".to_string(),
-                            exit_code: 1,
-                        });
-                    }
-                    all.swap(0, 1);
-                }
-                Some(arg) if (arg.starts_with('+') || arg.starts_with('-')) && arg[1..].chars().all(|c| c.is_ascii_digit()) => {
-                    let n = arg[1..].parse::<usize>().unwrap_or(0);
-                    let len = all.len();
-                    if n >= len {
-                        return Some(BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("pushd: {arg}: directory stack index out of range\n"),
-                            exit_code: 1,
-                        });
-                    }
-                    if arg.starts_with('+') {
-                        all.rotate_left(n);
-                    } else {
-                        all.rotate_right(n);
-                    }
-                }
-                Some(target) => {
-                    let resolved = resolve_posix_path(cwd, target);
-                    if !fs.is_dir(&resolved) {
-                        return Some(BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("pushd: {target}: No such file or directory\n"),
-                            exit_code: 1,
-                        });
-                    }
-                    all.insert(0, resolved);
-                }
-            }
-            let new_cwd = all[0].clone();
-            let new_stack = all[1..].to_vec();
-            env.insert("OLDPWD".to_string(), cwd.clone());
-            *cwd = new_cwd.clone();
-            env.insert("PWD".to_string(), new_cwd);
-            sync_dirstack_env(cwd, &new_stack, env);
-            Some(BuiltinOutcome {
-                stdout: format!("{}\n", all.join(" ")),
-                stderr: String::new(),
-                exit_code: 0,
-            })
-        }
-        "popd" => {
-            let stack: Vec<String> = env
-                .get("__dirstack")
-                .filter(|s| !s.is_empty())
-                .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
-                .unwrap_or_default();
-            if stack.is_empty() {
-                return Some(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: "popd: directory stack empty\n".to_string(),
-                    exit_code: 1,
-                });
-            }
-            let mut all = vec![cwd.clone()];
-            all.extend(stack);
-            if let Some(arg) = args.iter().find(|a| (a.starts_with('+') || a.starts_with('-')) && a[1..].chars().all(|c| c.is_ascii_digit())) {
-                let n = arg[1..].parse::<usize>().unwrap_or(0);
-                let idx = if arg.starts_with('+') {
-                    n
-                } else {
-                    all.len().saturating_sub(1 + n)
-                };
-                if idx >= all.len() {
-                    return Some(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("popd: {arg}: directory stack index out of range\n"),
-                        exit_code: 1,
-                    });
-                }
-                all.remove(idx);
-            } else {
-                all.remove(0);
-            }
-            let new_cwd = all[0].clone();
-            let new_stack = all[1..].to_vec();
-            env.insert("OLDPWD".to_string(), cwd.clone());
-            *cwd = new_cwd.clone();
-            env.insert("PWD".to_string(), new_cwd);
-            sync_dirstack_env(cwd, &new_stack, env);
-            Some(BuiltinOutcome {
-                stdout: format!("{}\n", all.join(" ")),
-                stderr: String::new(),
-                exit_code: 0,
-            })
-        }
-        "dirs" => {
-            let mut per_line = false;
-            let mut verbose = false;
-            let mut clear = false;
-            for a in args {
-                if let Some(stripped) = a.strip_prefix('-') {
-                    for ch in stripped.chars() {
-                        match ch {
-                            'p' => per_line = true,
-                            'v' => verbose = true,
-                            'c' => clear = true,
-                            _ => {}
-                        }
-                    }
-                }
-            }
-            if clear {
-                sync_dirstack_env(cwd, &[], env);
-                return Some(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                });
-            }
-            let stack: Vec<String> = env
-                .get("__dirstack")
-                .filter(|s| !s.is_empty())
-                .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
-                .unwrap_or_default();
-            let mut all = vec![cwd.clone()];
-            all.extend(stack);
-            let out = if verbose {
-                all.iter()
-                    .enumerate()
-                    .map(|(i, d)| format!(" {i}  {d}\n"))
-                    .collect()
-            } else if per_line {
-                format!("{}\n", all.join("\n"))
-            } else {
-                format!("{}\n", all.join(" "))
-            };
-            Some(BuiltinOutcome {
-                stdout: out,
-                stderr: String::new(),
-                exit_code: 0,
-            })
-        }
+        "cd" => Some(builtin_cd("cd", args, false, cwd, env, fs)),
+        "pushd" | "popd" | "dirs" => Some(builtin_directory_stack(cmd, args, cwd, env, fs)),
         "echo" => {
             let mut newline = true;
             let mut interpret_escapes = false;
@@ -354,7 +147,19 @@ pub fn try_run_builtin(
         "umask" => Some(builtin_umask(args, env)),
         "hash" => Some(builtin_hash(args, cwd, env, fs)),
         "let" => {
-            if args.is_empty() {
+            if args.first().map(|s| s.as_str()) == Some("--help") {
+                return Some(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "let: --help: unsupported option\n".to_string(),
+                    exit_code: 2,
+                });
+            }
+            let offset = if args.first().map(|s| s.as_str()) == Some("--") {
+                1
+            } else {
+                0
+            };
+            if args.len() == offset {
                 return Some(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: "let: expression expected\n".to_string(),
@@ -362,7 +167,7 @@ pub fn try_run_builtin(
                 });
             }
             let mut last = 0i64;
-            for arg in args {
+            for arg in &args[offset..] {
                 match eval_arith(arg, env) {
                     Ok(v) => last = v,
                     Err(e) => {
@@ -381,6 +186,583 @@ pub fn try_run_builtin(
             })
         }
         _ => None,
+    }
+}
+
+fn builtin_cd(
+    invoked: &str,
+    args: &[String],
+    skip_opts: bool,
+    cwd: &mut String,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let mut physical = false;
+    let mut offset = 0usize;
+    if !skip_opts {
+        while offset < args.len() {
+            let option = &args[offset];
+            if option == "--" {
+                offset += 1;
+                break;
+            }
+            if !option.starts_with('-') || option == "-" {
+                break;
+            }
+            for flag in option[1..].chars() {
+                if flag == 'L' || flag == 'P' {
+                    physical = flag == 'P';
+                } else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("cd: -{flag}: invalid option\n"),
+                        exit_code: 2,
+                    };
+                }
+            }
+            offset += 1;
+        }
+    }
+    if args.len().saturating_sub(offset) > 1 {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{invoked}: too many arguments\n"),
+            exit_code: 1,
+        };
+    }
+    let operand = args.get(offset).map(|s| s.as_str());
+    let target = match operand {
+        Some("-") => match env.get("OLDPWD") {
+            Some(old) => old.clone(),
+            None => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{invoked}: OLDPWD not set\n"),
+                    exit_code: 1,
+                };
+            }
+        },
+        Some(t) => t.to_string(),
+        None => match env.get("HOME") {
+            Some(home) => home.clone(),
+            None => {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{invoked}: HOME not set\n"),
+                    exit_code: 1,
+                };
+            }
+        },
+    };
+
+    let probe_target = if target.is_empty() {
+        "."
+    } else {
+        target.as_str()
+    };
+    let check_logical_parents = |raw_path: &str| -> Result<(), &'static str> {
+        let mut comps: Vec<&str> = Vec::new();
+        for comp in raw_path.split('/') {
+            if comp == ".." {
+                let parent = if comps.is_empty() {
+                    "/".to_string()
+                } else {
+                    format!("/{}", comps.join("/"))
+                };
+                if !fs.is_dir(&parent) {
+                    return Err(if fs.exists(&parent) {
+                        "Not a directory"
+                    } else {
+                        "No such file or directory"
+                    });
+                }
+                comps.pop();
+            } else if !comp.is_empty() && comp != "." {
+                comps.push(comp);
+            }
+        }
+        Ok(())
+    };
+
+    let eligible_cdpath = !probe_target.starts_with('/')
+        && probe_target != "."
+        && probe_target != ".."
+        && !probe_target.starts_with("./")
+        && !probe_target.starts_with("../");
+
+    let mut selected: Option<(String, Option<String>)> = None;
+    if eligible_cdpath
+        && let Some(cdpath) = env.get("CDPATH").cloned()
+        && !cdpath.is_empty()
+    {
+        for comp in cdpath.split(':') {
+            let raw = if comp.is_empty() {
+                if probe_target.starts_with('/') {
+                    probe_target.to_string()
+                } else if cwd == "/" {
+                    format!("/{probe_target}")
+                } else {
+                    format!("{cwd}/{probe_target}")
+                }
+            } else if comp.starts_with('/') {
+                format!("{comp}/{probe_target}")
+            } else if cwd == "/" {
+                format!("/{comp}/{probe_target}")
+            } else {
+                format!("{cwd}/{comp}/{probe_target}")
+            };
+            if !physical && check_logical_parents(&raw).is_err() {
+                continue;
+            }
+            let candidate = if physical {
+                resolve_physical_path(cwd, &raw, fs)
+            } else {
+                resolve_posix_path(cwd, &raw)
+            };
+            if fs.is_dir(&candidate) {
+                let printed = if !comp.is_empty() {
+                    Some(if physical {
+                        format!(
+                            "{comp}{}{probe_target}",
+                            if comp.ends_with('/') { "" } else { "/" }
+                        )
+                    } else {
+                        candidate.clone()
+                    })
+                } else {
+                    None
+                };
+                selected = Some((candidate, printed));
+                break;
+            }
+        }
+    }
+
+    let (resolved, printed_from_cdpath) = if let Some(sel) = selected {
+        sel
+    } else {
+        let raw = if probe_target.starts_with('/') {
+            probe_target.to_string()
+        } else if cwd == "/" {
+            format!("/{probe_target}")
+        } else {
+            format!("{cwd}/{probe_target}")
+        };
+        if !physical && let Err(reason) = check_logical_parents(&raw) {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{invoked}: {target}: {reason}\n"),
+                exit_code: 1,
+            };
+        }
+        let cand = if physical {
+            resolve_physical_path(cwd, probe_target, fs)
+        } else {
+            resolve_posix_path(cwd, probe_target)
+        };
+        if !fs.is_dir(&cand) {
+            let reason = if fs.exists(&cand) {
+                "Not a directory"
+            } else {
+                "No such file or directory"
+            };
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!("{invoked}: {target}: {reason}\n"),
+                exit_code: 1,
+            };
+        }
+        (cand, None)
+    };
+
+    if env
+        .get("__attr__OLDPWD")
+        .is_some_and(|a| a.contains('r'))
+    {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "OLDPWD: readonly variable\n".to_string(),
+            exit_code: 1,
+        };
+    }
+    env.insert("OLDPWD".to_string(), cwd.clone());
+    env.remove("__unexported__OLDPWD");
+    *cwd = resolved.clone();
+    if env.get("__attr__PWD").is_some_and(|a| a.contains('r')) {
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: "PWD: readonly variable\n".to_string(),
+            exit_code: 1,
+        };
+    }
+    env.insert("PWD".to_string(), resolved);
+    env.remove("__unexported__PWD");
+
+    let printed = printed_from_cdpath.or_else(|| {
+        if operand == Some("-") {
+            Some(target)
+        } else {
+            None
+        }
+    });
+    BuiltinOutcome {
+        stdout: printed.map(|p| format!("{p}\n")).unwrap_or_default(),
+        stderr: String::new(),
+        exit_code: 0,
+    }
+}
+
+fn parse_dirstack_index(token: &str) -> Option<i64> {
+    let bytes = token.as_bytes();
+    if bytes.len() < 2 {
+        return None;
+    }
+    let mut phase = 0u8; // 0: leading, 1: sign, 2: digits, 3: trailing
+    let mut negative = false;
+    let mut digits = false;
+    let mut value: u128 = 0;
+    for &b in &bytes[1..] {
+        let ws = b == b' ' || (9..=13).contains(&b);
+        if phase == 0 && ws {
+            continue;
+        }
+        if phase == 0 && (b == b'+' || b == b'-') {
+            negative = b == b'-';
+            phase = 1;
+            continue;
+        }
+        if b.is_ascii_digit() && phase != 3 {
+            phase = 2;
+            digits = true;
+            value = value.saturating_mul(10).saturating_add((b - b'0') as u128);
+            let max = if negative {
+                9_223_372_036_854_775_808u128
+            } else {
+                9_223_372_036_854_775_807u128
+            };
+            if value > max {
+                return None;
+            }
+        } else if (phase == 2 || phase == 3) && ws {
+            phase = 3;
+        } else {
+            return None;
+        }
+    }
+    if !digits {
+        return None;
+    }
+    if negative {
+        if value == 9_223_372_036_854_775_808u128 {
+            Some(i64::MIN)
+        } else {
+            Some(-(value as i64))
+        }
+    } else {
+        Some(value as i64)
+    }
+}
+
+fn format_dirstack_display(
+    cwd: &str,
+    entries: &[String],
+    long: bool,
+    lines: bool,
+    verbose: bool,
+    single_index: Option<usize>,
+    home: Option<&str>,
+) -> String {
+    let start = single_index.unwrap_or(0);
+    let end = single_index.unwrap_or(entries.len());
+    let mut out = String::new();
+    for index in start..=end {
+        let raw_entry = if index == 0 {
+            cwd
+        } else {
+            entries[index - 1].as_str()
+        };
+        let entry = if !long
+            && let Some(h) = home
+            && h.len() > 1
+            && raw_entry.starts_with(h)
+            && (raw_entry.len() == h.len() || raw_entry.as_bytes().get(h.len()) == Some(&b'/'))
+        {
+            format!("~{}", &raw_entry[h.len()..])
+        } else {
+            raw_entry.to_string()
+        };
+        if index != start && !lines && !verbose {
+            out.push(' ');
+        }
+        if verbose {
+            out.push_str(&format!("{index:>2}  "));
+        }
+        out.push_str(&entry);
+        if lines || verbose {
+            out.push('\n');
+        }
+    }
+    if !lines && !verbose {
+        out.push('\n');
+    }
+    out
+}
+
+fn builtin_directory_stack(
+    cmd: &str,
+    args: &[String],
+    cwd: &mut String,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
+    let tail: Vec<String> = env
+        .get("__dirstack")
+        .filter(|s| !s.is_empty())
+        .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
+        .unwrap_or_default();
+    let count = tail.len() as i64;
+    let mut no_cd = false;
+    let mut clear = false;
+    let mut long = false;
+    let mut lines = false;
+    let mut verbose = false;
+    let mut selected: Option<i64> = None;
+    let mut target: Option<String> = None;
+
+    let fail = |msg: &str, code: i32| BuiltinOutcome {
+        stdout: String::new(),
+        stderr: format!("{cmd}: {msg}\n"),
+        exit_code: code,
+    };
+
+    for (offset, token) in args.iter().enumerate() {
+        if token == "--" {
+            if cmd == "pushd" && selected.is_none() && offset + 1 < args.len() {
+                target = Some(args[offset + 1].clone());
+                if !no_cd && offset + 2 < args.len() {
+                    return fail("too many arguments", 1);
+                }
+            }
+            break;
+        }
+        if cmd == "dirs" && matches!(token.as_str(), "-c" | "-l" | "-p" | "-v") {
+            match token.as_str() {
+                "-c" => clear = true,
+                "-l" => long = true,
+                "-p" => lines = true,
+                "-v" => verbose = true,
+                _ => {}
+            }
+            continue;
+        }
+        if cmd != "dirs" && token == "-n" {
+            no_cd = true;
+            continue;
+        }
+        if (token.starts_with('+') || token.starts_with('-')) && !(cmd == "pushd" && token == "-") {
+            let Some(num) = parse_dirstack_index(token) else {
+                return fail("invalid directory stack index", 2);
+            };
+            let sel = if token.starts_with('+') {
+                num
+            } else {
+                count.saturating_sub(num)
+            };
+            if cmd == "pushd" && (sel < 0 || sel > count) {
+                return fail("directory stack index out of range", 1);
+            }
+            selected = Some(sel);
+            continue;
+        }
+        if cmd == "popd" && token.is_empty() {
+            break;
+        }
+        if cmd != "pushd" {
+            return fail("invalid directory stack argument", 2);
+        }
+        if selected.is_none() {
+            target = Some(token.clone());
+            if !no_cd && offset + 1 < args.len() {
+                return fail("too many arguments", 1);
+            }
+        }
+        break;
+    }
+
+    if cmd == "dirs" {
+        if clear {
+            sync_dirstack_env(cwd, &[], env);
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        }
+        let single = if let Some(sel) = selected {
+            if sel < 0 || sel > count {
+                return fail("directory stack index out of range", 1);
+            }
+            Some(sel as usize)
+        } else {
+            None
+        };
+        let home = env.get("HOME").cloned();
+        let out = format_dirstack_display(cwd, &tail, long, lines, verbose, single, home.as_deref());
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: String::new(),
+            exit_code: 0,
+        };
+    }
+
+    if cmd == "pushd" {
+        if let Some(sel) = selected {
+            if sel < 0 || sel > count {
+                return fail("directory stack index out of range", 1);
+            }
+            let index = sel as usize;
+            let mut out = String::new();
+            if !(no_cd && index == 0) {
+                let old_cwd = cwd.clone();
+                let total = tail.len() + 1;
+                let at = |full_idx: usize| -> String {
+                    if full_idx == 0 {
+                        old_cwd.clone()
+                    } else {
+                        tail[full_idx - 1].clone()
+                    }
+                };
+                let next_tail: Vec<String> = (0..tail.len())
+                    .map(|slot| at((index + slot + 1) % total))
+                    .collect();
+                let target_dir = at(index);
+                sync_dirstack_env(cwd, &next_tail, env);
+                if !no_cd {
+                    let cd_res = builtin_cd("pushd", std::slice::from_ref(&target_dir), true, cwd, env, fs);
+                    if cd_res.exit_code != 0 {
+                        return cd_res;
+                    }
+                    out.push_str(&cd_res.stdout);
+                    sync_dirstack_env(cwd, &next_tail, env);
+                    let home = env.get("HOME").cloned();
+                    out.push_str(&format_dirstack_display(
+                        cwd,
+                        &next_tail,
+                        long,
+                        lines,
+                        verbose,
+                        None,
+                        home.as_deref(),
+                    ));
+                }
+            }
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        } else if let Some(tgt) = target {
+            let saved = if no_cd { tgt.clone() } else { cwd.clone() };
+            let mut next_tail = Vec::with_capacity(tail.len() + 1);
+            next_tail.push(saved);
+            next_tail.extend(tail);
+            let mut out = String::new();
+            if !no_cd {
+                let cd_res = builtin_cd("pushd", std::slice::from_ref(&tgt), true, cwd, env, fs);
+                if cd_res.exit_code != 0 {
+                    return cd_res;
+                }
+                out.push_str(&cd_res.stdout);
+            }
+            sync_dirstack_env(cwd, &next_tail, env);
+            let home = env.get("HOME").cloned();
+            out.push_str(&format_dirstack_display(
+                cwd,
+                &next_tail,
+                long,
+                lines,
+                verbose,
+                None,
+                home.as_deref(),
+            ));
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        } else if !no_cd {
+            if tail.is_empty() {
+                return fail("no other directory", 1);
+            }
+            let old_cwd = cwd.clone();
+            let top = tail[0].clone();
+            let mut next_tail = tail;
+            next_tail[0] = old_cwd;
+            sync_dirstack_env(cwd, &next_tail, env);
+            let cd_res = builtin_cd("pushd", std::slice::from_ref(&top), true, cwd, env, fs);
+            if cd_res.exit_code != 0 {
+                return cd_res;
+            }
+            sync_dirstack_env(cwd, &next_tail, env);
+            let mut out = cd_res.stdout;
+            let home = env.get("HOME").cloned();
+            out.push_str(&format_dirstack_display(
+                cwd,
+                &next_tail,
+                long,
+                lines,
+                verbose,
+                None,
+                home.as_deref(),
+            ));
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        }
+        return BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+    }
+
+    let sel = selected.unwrap_or(0);
+    if sel < 0 || sel > count {
+        return fail("directory stack index out of range", 1);
+    }
+    if tail.is_empty() {
+        return fail("directory stack empty", 1);
+    }
+    let index = sel as usize;
+    let removed = index.saturating_sub(1);
+    let top = tail[0].clone();
+    let mut next_tail = tail;
+    next_tail.remove(removed);
+    let mut out = String::new();
+    if index == 0 && !no_cd {
+        let cd_res = builtin_cd("popd", std::slice::from_ref(&top), true, cwd, env, fs);
+        if cd_res.exit_code != 0 {
+            return cd_res;
+        }
+        out.push_str(&cd_res.stdout);
+    }
+    sync_dirstack_env(cwd, &next_tail, env);
+    let home = env.get("HOME").cloned();
+    out.push_str(&format_dirstack_display(
+        cwd,
+        &next_tail,
+        long,
+        lines,
+        verbose,
+        None,
+        home.as_deref(),
+    ));
+    BuiltinOutcome {
+        stdout: out,
+        stderr: String::new(),
+        exit_code: 0,
     }
 }
 
@@ -1593,5 +1975,62 @@ mod tests {
         assert_eq!(printf_ro.exit_code, 1);
         assert_eq!(printf_ro.stderr, "printf: RO_VAR: readonly variable\n");
         assert_eq!(env.get("RO_VAR").map(String::as_str), Some("initial"));
+    }
+
+    #[test]
+    fn unit_builtins_dirstack_tilde_cdpath_pwd_and_let_options() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/home/user/proj/sub").unwrap();
+        vfs.mkdir_all("/opt/libs/target_dir").unwrap();
+        let mut env = BTreeMap::new();
+        env.insert("HOME".to_string(), "/home/user".to_string());
+        env.insert("CDPATH".to_string(), "/opt/libs".to_string());
+        let mut cwd = "/home/user".to_string();
+        let mut stdin = String::new();
+
+        let push = try_run_builtin(
+            "pushd",
+            &args(&["/home/user/proj/sub"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(push.exit_code, 0);
+        assert_eq!(push.stdout, "~/proj/sub ~\n");
+
+        let dirs_l = try_run_builtin(
+            "dirs",
+            &args(&["-l", "-v"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(dirs_l.exit_code, 0);
+        assert_eq!(dirs_l.stdout, " 0  /home/user/proj/sub\n 1  /home/user\n");
+
+        let cdpath_out = try_run_builtin(
+            "cd",
+            &args(&["target_dir"]),
+            &mut stdin,
+            &mut cwd,
+            &mut env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(cdpath_out.exit_code, 0);
+        assert_eq!(cdpath_out.stdout, "/opt/libs/target_dir\n");
+        assert_eq!(cwd, "/opt/libs/target_dir");
+
+        let pwd_err = try_run_builtin("pwd", &args(&["-z"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        assert_eq!(pwd_err.exit_code, 2);
+        assert_eq!(pwd_err.stderr, "pwd: invalid option\n");
+
+        let let_help = try_run_builtin("let", &args(&["--help"]), &mut stdin, &mut cwd, &mut env, &vfs).unwrap();
+        assert_eq!(let_help.exit_code, 2);
+        assert_eq!(let_help.stderr, "let: --help: unsupported option\n");
     }
 }

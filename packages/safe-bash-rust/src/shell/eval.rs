@@ -269,6 +269,13 @@ impl<'a> EvalState<'a> {
                     .unwrap_or(1001);
                 self.env
                     .insert("__job_next_pid".to_string(), (next_pid + 1).to_string());
+                let next_job_id = self
+                    .env
+                    .get("__job_next_id")
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(1);
+                self.env
+                    .insert("__job_next_id".to_string(), (next_job_id + 1).to_string());
                 let pid_str = next_pid.to_string();
                 self.env.insert("!".to_string(), pid_str.clone());
 
@@ -278,6 +285,16 @@ impl<'a> EvalState<'a> {
                 sub.errexit = self.errexit;
                 let mut fg_list = list.clone();
                 fg_list.background = false;
+                let cmd_display = format!(
+                    "{} &",
+                    format_script_node(
+                        &Script {
+                            lists: vec![fg_list.clone()],
+                        },
+                        "",
+                        false
+                    )
+                );
                 let mut empty_in = String::new();
                 let bg_out = match sub.eval_and_or_list(&fg_list, &mut empty_in) {
                     Ok(mut o) => {
@@ -299,6 +316,10 @@ impl<'a> EvalState<'a> {
                     .insert(format!("__job_status__{pid_str}"), bg_out.exit_code.to_string());
                 self.env
                     .insert(format!("__job_active__{pid_str}"), "1".to_string());
+                self.env
+                    .insert(format!("__job_id__{pid_str}"), next_job_id.to_string());
+                self.env
+                    .insert(format!("__job_cmd__{pid_str}"), cmd_display);
                 last_code = 0;
                 self.last_exit = 0;
                 continue;
@@ -1971,7 +1992,38 @@ impl<'a> EvalState<'a> {
                 return Ok(self.builtin_getopts(args));
             }
             "eval" => {
-                let joined = args.join(" ");
+                let eval_args = if args.first().map(|s| s.as_str()) == Some("--") {
+                    &args[1..]
+                } else if let Some(first) = args.first()
+                    && first.starts_with('-')
+                    && first != "-"
+                {
+                    let flag = first.chars().nth(1).unwrap_or('-');
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("eval: -{flag}: invalid option\neval: usage: eval [arg ...]\n"),
+                        exit_code: 2,
+                    });
+                } else {
+                    args
+                };
+                if eval_args.is_empty() {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
+                    });
+                }
+                let joined = eval_args.join(" ");
+                if joined.bytes().any(|b| {
+                    (b <= 0x08) || b == 0x0b || b == 0x0c || (0x0e..=0x1f).contains(&b) || b == 0x7f
+                }) {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "eval: cannot execute binary script\n".to_string(),
+                        exit_code: 126,
+                    });
+                }
                 if let Err(syn_err) = validate_basic_syntax(&joined) {
                     return Err(EvalError::Syntax(syn_err));
                 }
@@ -1979,7 +2031,30 @@ impl<'a> EvalState<'a> {
                 return self.eval_script(&ast, stdin);
             }
             "source" | "." => {
-                if let Some(target) = args.first() {
+                let src_args = if args.first().map(|s| s.as_str()) == Some("--") {
+                    &args[1..]
+                } else if let Some(first) = args.first()
+                    && first.starts_with('-')
+                    && first != "-"
+                {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{cmd}: {first}: unsupported option\n"),
+                        exit_code: 2,
+                    });
+                } else {
+                    args
+                };
+                let Some(target) = src_args.first() else {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!(
+                            "{cmd}: filename argument required\n{cmd}: usage: {cmd} [-p path] filename [arguments]\n"
+                        ),
+                        exit_code: 2,
+                    });
+                };
+                {
                     let full = if !target.contains('/') {
                         let path_env = self
                             .env
@@ -1998,6 +2073,13 @@ impl<'a> EvalState<'a> {
                     } else {
                         resolve_posix_path(self.cwd, target)
                     };
+                    if self.fs.is_dir(&full) {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{cmd}: {target}: is a directory\n"),
+                            exit_code: 1,
+                        });
+                    }
                     match self.fs.read_file(&full) {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_source_bytes {
@@ -2008,8 +2090,8 @@ impl<'a> EvalState<'a> {
                             }
                             let script_str = String::from_utf8_lossy(&bytes);
                             let ast = parse_script(&script_str).map_err(EvalError::Syntax)?;
-                            let saved_args = if args.len() > 1 {
-                                Some(std::mem::replace(&mut self.pos_args, args[1..].to_vec()))
+                            let saved_args = if src_args.len() > 1 {
+                                Some(std::mem::replace(&mut self.pos_args, src_args[1..].to_vec()))
                             } else {
                                 None
                             };
@@ -2045,21 +2127,88 @@ impl<'a> EvalState<'a> {
                         }
                     }
                 }
-                return Ok(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: String::new(),
-                    exit_code: 0,
-                });
             }
             "exec" => {
-                if args.is_empty() {
+                let mut exec_idx = 0usize;
+                let mut clear_env = false;
+                let mut login = false;
+                let mut argv0: Option<String> = None;
+                while exec_idx < args.len() {
+                    let f = &args[exec_idx];
+                    if f == "--" {
+                        exec_idx += 1;
+                        break;
+                    }
+                    if !f.starts_with('-') || f == "-" {
+                        break;
+                    }
+                    exec_idx += 1;
+                    let chars: Vec<char> = f.chars().collect();
+                    let mut i = 1usize;
+                    while i < chars.len() {
+                        let flag = chars[i];
+                        match flag {
+                            'c' => clear_env = true,
+                            'l' => login = true,
+                            'a' => {
+                                let rest: String = chars[i + 1..].iter().collect();
+                                let val = if !rest.is_empty() {
+                                    Some(rest)
+                                } else if exec_idx < args.len() {
+                                    let v = args[exec_idx].clone();
+                                    exec_idx += 1;
+                                    Some(v)
+                                } else {
+                                    None
+                                };
+                                let Some(a0) = val else {
+                                    return Ok(BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: "exec: -a: option requires an argument\n".to_string(),
+                                        exit_code: 2,
+                                    });
+                                };
+                                argv0 = Some(a0);
+                                break;
+                            }
+                            _ => {
+                                return Ok(BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("exec: -{flag}: invalid option\n"),
+                                    exit_code: 2,
+                                });
+                            }
+                        }
+                        i += 1;
+                    }
+                }
+                if exec_idx >= args.len() {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: String::new(),
                         exit_code: 0,
                     });
                 }
-                return self.dispatch_words(args, stdin, bypass_functions);
+                if clear_env {
+                    let keys: Vec<String> = self
+                        .env
+                        .keys()
+                        .filter(|k| !k.starts_with("__"))
+                        .cloned()
+                        .collect();
+                    for k in keys {
+                        self.env.remove(&k);
+                    }
+                }
+                let exec_cmd = &args[exec_idx];
+                if login || argv0.is_some() {
+                    let base = argv0.unwrap_or_else(|| exec_cmd.clone());
+                    let a0 = if login { format!("-{base}") } else { base };
+                    self.env.insert("0".to_string(), a0);
+                }
+                let out = self.dispatch_words(&args[exec_idx..], stdin, bypass_functions)?;
+                self.exit_requested = Some(out.exit_code);
+                return Ok(out);
             }
             "builtin" => {
                 let mut idx = 0usize;
@@ -3616,76 +3765,186 @@ impl<'a> EvalState<'a> {
         }
     }
 
-    fn normalize_signal_name(sig: &str) -> String {
+    fn trap_signal_catalog() -> &'static [(u32, &'static str)] {
+        &[
+            (1, "SIGHUP"),
+            (2, "SIGINT"),
+            (3, "SIGQUIT"),
+            (4, "SIGILL"),
+            (5, "SIGTRAP"),
+            (6, "SIGABRT"),
+            (7, "SIGBUS"),
+            (8, "SIGFPE"),
+            (9, "SIGKILL"),
+            (10, "SIGUSR1"),
+            (11, "SIGSEGV"),
+            (12, "SIGUSR2"),
+            (13, "SIGPIPE"),
+            (14, "SIGALRM"),
+            (15, "SIGTERM"),
+            (16, "SIGSTKFLT"),
+            (17, "SIGCHLD"),
+            (18, "SIGCONT"),
+            (19, "SIGSTOP"),
+            (20, "SIGTSTP"),
+            (21, "SIGTTIN"),
+            (22, "SIGTTOU"),
+            (23, "SIGURG"),
+            (24, "SIGXCPU"),
+            (25, "SIGXFSZ"),
+            (26, "SIGVTALRM"),
+            (27, "SIGPROF"),
+            (28, "SIGWINCH"),
+            (29, "SIGIO"),
+            (30, "SIGPWR"),
+            (31, "SIGSYS"),
+        ]
+    }
+
+    fn resolve_trap_signal(sig: &str) -> Option<(u32, &'static str)> {
         let up = sig.trim().to_uppercase();
         let stripped = up.strip_prefix("SIG").unwrap_or(&up);
         match stripped {
-            "0" | "EXIT" => "EXIT".to_string(),
-            "ERR" => "ERR".to_string(),
-            "RETURN" => "RETURN".to_string(),
-            "DEBUG" => "DEBUG".to_string(),
-            other => format!("SIG{other}"),
+            "0" | "EXIT" => return Some((0, "EXIT")),
+            "DEBUG" => return Some((32, "DEBUG")),
+            "ERR" => return Some((33, "ERR")),
+            "RETURN" => return Some((34, "RETURN")),
+            _ => {}
         }
+        let digits = up.strip_prefix('+').unwrap_or(&up);
+        if !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit()) {
+            let num = digits.parse::<u32>().ok()?;
+            if num == 0 {
+                return Some((0, "EXIT"));
+            }
+            return Self::trap_signal_catalog()
+                .iter()
+                .find(|(n, _)| *n == num)
+                .copied();
+        }
+        Self::trap_signal_catalog()
+            .iter()
+            .find(|(_, name)| name.strip_prefix("SIG").unwrap_or(name) == stripped)
+            .copied()
     }
 
     fn builtin_trap(&mut self, args: &[String]) -> BuiltinOutcome {
-        if args.is_empty() || args.first().map(|s| s.as_str()) == Some("-p") {
-            let filter_sigs: Vec<String> = if args.is_empty() {
-                self.traps.keys().cloned().collect()
-            } else {
-                args[1..]
-                    .iter()
-                    .map(|s| Self::normalize_signal_name(s))
-                    .collect()
-            };
-            let mut out = String::new();
-            for sig in filter_sigs {
-                if let Some(cmd) = self.traps.get(&sig) {
-                    out.push_str(&format!("trap -- '{}' {sig}\n", cmd.replace('\'', "'\\''")));
+        let mut idx = 0usize;
+        let mut print = false;
+        let mut list = false;
+        while idx < args.len() && args[idx].starts_with('-') && args[idx] != "-" {
+            let option = &args[idx];
+            idx += 1;
+            if option == "--" {
+                break;
+            }
+            for flag in option[1..].chars() {
+                if flag == 'p' {
+                    print = true;
+                } else if flag == 'l' {
+                    list = true;
+                } else {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!(
+                            "trap: -{flag}: invalid option\ntrap: usage: trap [-lp] [arg signal_spec ...]\n"
+                        ),
+                        exit_code: 2,
+                    };
                 }
+            }
+        }
+        if list {
+            let mut output = String::new();
+            for (index, (number, name)) in Self::trap_signal_catalog().iter().enumerate() {
+                let sep = if index % 4 == 3 { '\n' } else { '\t' };
+                output.push_str(&format!("{number:>2}) {name}{sep}"));
+            }
+            if !output.ends_with('\n') {
+                output.push('\n');
+            }
+            return BuiltinOutcome {
+                stdout: output,
+                stderr: String::new(),
+                exit_code: 0,
+            };
+        }
+        let rest = &args[idx..];
+        if rest.is_empty() {
+            print = true;
+        }
+        if !print && rest.len() == 1 && rest[0] == "-" {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "trap: usage: trap [-lp] [arg signal_spec ...]\n".to_string(),
+                exit_code: 2,
+            };
+        }
+        let numeric_reset = rest
+            .first()
+            .is_some_and(|f| !f.is_empty() && f.bytes().all(|b| b.is_ascii_digit()));
+        let (action_opt, targets): (Option<&str>, &[String]) =
+            if !print && rest.len() > 1 && !numeric_reset {
+                (Some(rest[0].as_str()), &rest[1..])
+            } else {
+                (None, rest)
+            };
+
+        let mut out = String::new();
+        let mut stderr = String::new();
+        let mut status = 0;
+        if print && targets.is_empty() {
+            let mut entries: Vec<(u32, String, String)> = self
+                .traps
+                .iter()
+                .map(|(k, v)| {
+                    let ord = Self::resolve_trap_signal(k).map(|(n, _)| n).unwrap_or(999);
+                    (ord, k.clone(), v.clone())
+                })
+                .collect();
+            entries.sort_by(|a, b| a.0.cmp(&b.0).then_with(|| a.1.cmp(&b.1)));
+            for (_, sig, cmd) in entries {
+                out.push_str(&format!(
+                    "trap -- '{}' {sig}\n",
+                    cmd.replace('\'', "'\\''")
+                ));
             }
             return BuiltinOutcome {
                 stdout: out,
-                stderr: String::new(),
+                stderr,
                 exit_code: 0,
             };
         }
-
-        let mut idx = 0usize;
-        if args[0] == "--" {
-            idx += 1;
-        }
-        if idx >= args.len() {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
+        for target in targets {
+            let Some((_, norm_name)) = Self::resolve_trap_signal(target) else {
+                stderr.push_str(&format!("trap: {target}: invalid signal specification\n"));
+                status = 1;
+                continue;
             };
-        }
-
-        let action = &args[idx];
-        let sigs = &args[idx + 1..];
-        if action == "-" {
-            for s in sigs {
-                let norm = Self::normalize_signal_name(s);
+            let norm = norm_name.to_string();
+            if print {
+                if let Some(cmd) = self.traps.get(&norm) {
+                    out.push_str(&format!(
+                        "trap -- '{}' {norm}\n",
+                        cmd.replace('\'', "'\\''")
+                    ));
+                }
+            } else if action_opt.is_none() || action_opt == Some("-") {
                 self.env.remove(&format!("__trap_ignored__{norm}"));
                 self.traps.remove(&norm);
-            }
-        } else {
-            for s in sigs {
-                let norm = Self::normalize_signal_name(s);
+            } else if let Some(action) = action_opt {
                 if action.is_empty() {
                     self.env.insert(format!("__trap_ignored__{norm}"), "1".to_string());
                 } else {
                     self.env.remove(&format!("__trap_ignored__{norm}"));
                 }
-                self.traps.insert(norm, action.clone());
+                self.traps.insert(norm, action.to_string());
             }
         }
         BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stdout: out,
+            stderr,
+            exit_code: status,
         }
     }
 
@@ -5920,18 +6179,167 @@ impl<'a> EvalState<'a> {
         Ok(raw.trim_end_matches('\n').to_string())
     }
 
-    fn builtin_wait(&mut self, args: &[String]) -> BuiltinOutcome {
-        let pids: Vec<String> = args
-            .iter()
-            .filter(|a| !a.starts_with('-'))
-            .map(|a| a.trim_start_matches('%').to_string())
+    fn active_job_entries(&self) -> Vec<(u32, u32, String)> {
+        let mut entries: Vec<(u32, u32, String)> = self
+            .env
+            .keys()
+            .filter_map(|k| k.strip_prefix("__job_active__").and_then(|p| p.parse::<u32>().ok()))
+            .map(|pid| {
+                let job_id = self
+                    .env
+                    .get(&format!("__job_id__{pid}"))
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(1);
+                let cmd = self
+                    .env
+                    .get(&format!("__job_cmd__{pid}"))
+                    .cloned()
+                    .unwrap_or_else(|| pid.to_string());
+                (job_id, pid, cmd)
+            })
             .collect();
-        if pids.is_empty() {
+        entries.sort_by_key(|(jid, pid, _)| (*jid, *pid));
+        entries
+    }
+
+    fn resolve_job_operand(&self, operand: &str) -> Option<u32> {
+        let entries = self.active_job_entries();
+        if let Some(spec) = operand.strip_prefix('%') {
+            if spec.is_empty() || spec == "%" || spec == "+" {
+                return entries.last().map(|(_, pid, _)| *pid);
+            }
+            if spec == "-" {
+                return if entries.len() >= 2 {
+                    Some(entries[entries.len() - 2].1)
+                } else {
+                    None
+                };
+            }
+            if let Ok(jid) = spec.parse::<u32>() {
+                return entries
+                    .iter()
+                    .find(|(id, _, _)| *id == jid)
+                    .map(|(_, pid, _)| *pid);
+            }
+            return None;
+        }
+        let pid = operand.trim().parse::<u32>().ok()?;
+        if self.env.contains_key(&format!("__job_status__{pid}"))
+            || self.env.contains_key(&format!("__job_active__{pid}"))
+        {
+            Some(pid)
+        } else {
+            None
+        }
+    }
+
+    fn builtin_wait(&mut self, args: &[String]) -> BuiltinOutcome {
+        let mut offset = 0usize;
+        let mut next_mode = false;
+        let mut dest_var: Option<String> = None;
+        while offset < args.len() {
+            let opt = &args[offset];
+            if !opt.starts_with('-') || opt == "-" {
+                break;
+            }
+            offset += 1;
+            if opt == "--" {
+                break;
+            }
+            let chars: Vec<char> = opt.chars().collect();
+            let mut i = 1usize;
+            while i < chars.len() {
+                match chars[i] {
+                    'f' => {}
+                    'n' => next_mode = true,
+                    'p' => {
+                        let rest: String = chars[i + 1..].iter().collect();
+                        let v = if !rest.is_empty() {
+                            Some(rest)
+                        } else if offset < args.len() {
+                            let val = args[offset].clone();
+                            offset += 1;
+                            Some(val)
+                        } else {
+                            None
+                        };
+                        let Some(var_name) = v else {
+                            return BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: "wait: -p: option requires an argument\nwait: usage: wait [-fn] [-p var] [id ...]\n".to_string(),
+                                exit_code: 2,
+                            };
+                        };
+                        dest_var = Some(var_name);
+                        break;
+                    }
+                    ch => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!(
+                                "wait: -{ch}: invalid option\nwait: usage: wait [-fn] [-p var] [id ...]\n"
+                            ),
+                            exit_code: 2,
+                        };
+                    }
+                }
+                i += 1;
+            }
+        }
+
+        if let Some(ref var_name) = dest_var {
+            let base = var_name.split_once('[').map(|(b, _)| b).unwrap_or(var_name);
+            if !is_valid_shell_ident(base) {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("wait: `{var_name}': not a valid identifier\n"),
+                    exit_code: 1,
+                };
+            }
+            if self
+                .env
+                .get(&format!("__attr__{base}"))
+                .is_some_and(|a| a.contains('r'))
+            {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("wait: {base}: readonly variable\n"),
+                    exit_code: 1,
+                };
+            }
+            self.env.remove(var_name);
+        }
+
+        let operands = &args[offset..];
+        if operands.is_empty() {
             let active: Vec<String> = self
                 .env
                 .keys()
                 .filter_map(|k| k.strip_prefix("__job_active__").map(|p| p.to_string()))
                 .collect();
+            if next_mode {
+                if let Some(first_pid) = active.first() {
+                    self.env.remove(&format!("__job_active__{first_pid}"));
+                    if let Some(ref v) = dest_var {
+                        let _ = self.assign_variable(v, first_pid, false);
+                    }
+                    let code = self
+                        .env
+                        .get(&format!("__job_status__{first_pid}"))
+                        .and_then(|s| s.parse::<i32>().ok())
+                        .unwrap_or(0);
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: code,
+                    };
+                }
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 127,
+                };
+            }
             for p in active {
                 self.env.remove(&format!("__job_active__{p}"));
             }
@@ -5941,165 +6349,361 @@ impl<'a> EvalState<'a> {
                 exit_code: 0,
             };
         }
+
         let mut code = 0;
-        for pid in pids {
+        let mut stderr = String::new();
+        let mut last_waited_pid: Option<u32> = None;
+        for op in operands {
+            if op.starts_with('%') {
+                let Some(pid) = self.resolve_job_operand(op) else {
+                    stderr.push_str(&format!("wait: `{op}': no such job\n"));
+                    code = 127;
+                    continue;
+                };
+                self.env.remove(&format!("__job_active__{pid}"));
+                code = self
+                    .env
+                    .get(&format!("__job_status__{pid}"))
+                    .and_then(|s| s.parse::<i32>().ok())
+                    .unwrap_or(0);
+                last_waited_pid = Some(pid);
+                continue;
+            }
+            let trimmed = op.trim();
+            let parsed_pid = if !trimmed.is_empty() && trimmed.bytes().all(|b| b.is_ascii_digit()) {
+                trimmed.parse::<u32>().ok().filter(|&p| p <= 2_147_483_647)
+            } else {
+                None
+            };
+            let Some(pid) = parsed_pid else {
+                stderr.push_str(&format!("wait: `{op}': not a pid or valid job spec\n"));
+                code = 1;
+                if op.as_bytes().first().is_some_and(|b| b.is_ascii_digit()) {
+                    last_waited_pid = None;
+                    break;
+                }
+                continue;
+            };
+            if !self.env.contains_key(&format!("__job_status__{pid}"))
+                && !self.env.contains_key(&format!("__job_active__{pid}"))
+            {
+                stderr.push_str(&format!("wait: pid {pid} is not a child of this shell\n"));
+                code = 127;
+                last_waited_pid = None;
+                continue;
+            }
             self.env.remove(&format!("__job_active__{pid}"));
             if let Some(st) = self.env.get(&format!("__job_status__{pid}")) {
                 code = st.parse::<i32>().unwrap_or(0);
             } else {
                 code = 127;
             }
+            last_waited_pid = Some(pid);
+        }
+        if let (Some(var_name), Some(pid)) = (dest_var, last_waited_pid) {
+            let _ = self.assign_variable(&var_name, &pid.to_string(), false);
         }
         BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
+            stderr,
             exit_code: code,
         }
     }
 
     fn builtin_jobs(&self, args: &[String]) -> BuiltinOutcome {
-        let pids_only = args.iter().any(|a| a == "-p");
-        let mut active: Vec<u32> = self
-            .env
-            .keys()
-            .filter_map(|k| k.strip_prefix("__job_active__").and_then(|p| p.parse::<u32>().ok()))
-            .collect();
-        active.sort_unstable();
-        let mut out = String::new();
-        for (idx, pid) in active.iter().enumerate() {
-            if pids_only {
-                out.push_str(&format!("{pid}\n"));
+        let mut mode = "";
+        let mut offset = 0usize;
+        while offset < args.len() {
+            let opt = &args[offset];
+            if opt == "--" {
+                offset += 1;
+                break;
+            }
+            if !opt.starts_with('-') {
+                break;
+            }
+            if matches!(opt.as_str(), "-p" | "-l" | "-r" | "-s") {
+                mode = opt.as_str();
+                offset += 1;
             } else {
-                out.push_str(&format!("[{}]   Running                 {pid}\n", idx + 1));
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("jobs: {opt}: invalid option\n"),
+                    exit_code: 2,
+                };
+            }
+        }
+        let entries = self.active_job_entries();
+        let mut out = String::new();
+        let mut stderr = String::new();
+        let mut status = 0;
+        let format_entry = |jid: u32, pid: u32, cmd: &str, marker: char| -> String {
+            if mode == "-p" {
+                format!("{pid}\n")
+            } else if mode == "-l" {
+                format!("[{jid}]{marker} {pid} {:<24}{cmd}\n", "Running")
+            } else {
+                format!("[{jid}]{marker}  {:<24}{cmd}\n", "Running")
+            }
+        };
+        if offset == args.len() {
+            if mode != "-s" {
+                let len = entries.len();
+                for (idx, (jid, pid, cmd)) in entries.iter().enumerate() {
+                    let marker = if idx + 1 == len {
+                        '+'
+                    } else if idx + 2 == len {
+                        '-'
+                    } else {
+                        ' '
+                    };
+                    out.push_str(&format_entry(*jid, *pid, cmd, marker));
+                }
+            }
+            return BuiltinOutcome {
+                stdout: out,
+                stderr,
+                exit_code: 0,
+            };
+        }
+        let len = entries.len();
+        for op in &args[offset..] {
+            let spec = if op.starts_with('%') {
+                op.clone()
+            } else {
+                format!("%{op}")
+            };
+            let resolved = self
+                .resolve_job_operand(&spec)
+                .or_else(|| self.resolve_job_operand(op));
+            let Some(pid) = resolved else {
+                stderr.push_str(&format!("jobs: {op}: no such job\n"));
+                status = 1;
+                continue;
+            };
+            if mode != "-s"
+                && let Some((idx, (jid, _, cmd))) =
+                    entries.iter().enumerate().find(|(_, (_, p, _))| *p == pid)
+            {
+                let marker = if idx + 1 == len {
+                    '+'
+                } else if idx + 2 == len {
+                    '-'
+                } else {
+                    ' '
+                };
+                out.push_str(&format_entry(*jid, pid, cmd, marker));
             }
         }
         BuiltinOutcome {
             stdout: out,
-            stderr: String::new(),
-            exit_code: 0,
+            stderr,
+            exit_code: status,
         }
     }
 
     fn builtin_disown(&mut self, args: &[String]) -> BuiltinOutcome {
-        let targets: Vec<String> = args
-            .iter()
-            .filter(|a| !a.starts_with('-'))
-            .map(|a| a.trim_start_matches('%').to_string())
-            .collect();
-        if targets.is_empty() {
-            let active: Vec<String> = self
-                .env
-                .keys()
-                .filter_map(|k| k.strip_prefix("__job_active__").map(|p| p.to_string()))
-                .collect();
-            for p in active {
-                self.env.remove(&format!("__job_active__{p}"));
+        let mut all = false;
+        let mut running_only = false;
+        let mut nohup_only = false;
+        let mut offset = 0usize;
+        while offset < args.len() {
+            let arg = &args[offset];
+            if arg == "--" {
+                offset += 1;
+                break;
             }
-        } else {
-            for t in targets {
-                self.env.remove(&format!("__job_active__{t}"));
+            if !arg.starts_with('-') || arg == "-" {
+                break;
             }
-        }
-        BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        }
-    }
-
-    fn builtin_kill(&mut self, args: &[String]) -> BuiltinOutcome {
-        let sig_table = [
-            (1, "HUP"),
-            (2, "INT"),
-            (3, "QUIT"),
-            (6, "ABRT"),
-            (9, "KILL"),
-            (13, "PIPE"),
-            (14, "ALRM"),
-            (15, "TERM"),
-        ];
-        if args.first().map(|s| s.as_str()) == Some("-l") {
-            if let Some(q) = args.get(1) {
-                if let Ok(mut num) = q.parse::<i32>() {
-                    if num > 128 {
-                        num -= 128;
+            for ch in arg[1..].chars() {
+                match ch {
+                    'a' => all = true,
+                    'r' => running_only = true,
+                    'h' => nohup_only = true,
+                    _ => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("disown: -{ch}: invalid option\n"),
+                            exit_code: 2,
+                        };
                     }
-                    let name = sig_table
-                        .iter()
-                        .find(|(n, _)| *n == num)
-                        .map(|(_, s)| *s)
-                        .unwrap_or("TERM");
-                    return BuiltinOutcome {
-                        stdout: format!("{name}\n"),
-                        stderr: String::new(),
-                        exit_code: 0,
-                    };
-                } else {
-                    let up = q.trim().to_uppercase();
-                    let clean = up.strip_prefix("SIG").unwrap_or(&up);
-                    let num = sig_table
-                        .iter()
-                        .find(|(_, s)| *s == clean)
-                        .map(|(n, _)| *n)
-                        .unwrap_or(15);
-                    return BuiltinOutcome {
-                        stdout: format!("{num}\n"),
-                        stderr: String::new(),
-                        exit_code: 0,
-                    };
                 }
             }
-            let names: Vec<&str> = sig_table.iter().map(|(_, s)| *s).collect();
+            offset += 1;
+        }
+        let entries = self.active_job_entries();
+        if offset == args.len() {
+            if all || running_only {
+                if !nohup_only {
+                    for (_, pid, _) in entries {
+                        self.env.remove(&format!("__job_active__{pid}"));
+                        self.env.remove(&format!("__job_status__{pid}"));
+                    }
+                }
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            let Some((_, cur_pid, _)) = entries.last() else {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: "disown: current: no such job\n".to_string(),
+                    exit_code: 1,
+                };
+            };
+            if !nohup_only {
+                self.env.remove(&format!("__job_active__{cur_pid}"));
+                self.env.remove(&format!("__job_status__{cur_pid}"));
+            }
             return BuiltinOutcome {
-                stdout: format!("{}\n", names.join(" ")),
+                stdout: String::new(),
                 stderr: String::new(),
                 exit_code: 0,
             };
         }
-
-        let mut sig_num = 15i32;
-        let mut i = 0usize;
-        let mut pids = Vec::new();
-        while i < args.len() {
-            let a = &args[i];
-            if a == "-s" && i + 1 < args.len() {
-                let up = args[i + 1].trim().to_uppercase();
-                let clean = up.strip_prefix("SIG").unwrap_or(&up);
-                sig_num = clean.parse::<i32>().unwrap_or_else(|_| {
-                    sig_table
-                        .iter()
-                        .find(|(_, s)| *s == clean)
-                        .map(|(n, _)| *n)
-                        .unwrap_or(15)
-                });
-                i += 2;
-            } else if let Some(rest) = a.strip_prefix('-')
-                && !rest.is_empty()
-            {
-                let up = rest.to_uppercase();
-                let clean = up.strip_prefix("SIG").unwrap_or(&up);
-                sig_num = clean.parse::<i32>().unwrap_or_else(|_| {
-                    sig_table
-                        .iter()
-                        .find(|(_, s)| *s == clean)
-                        .map(|(n, _)| *n)
-                        .unwrap_or(15)
-                });
-                i += 1;
-            } else {
-                pids.push(a.trim_start_matches('%').to_string());
-                i += 1;
+        let mut stderr = String::new();
+        let mut status = 0;
+        for op in &args[offset..] {
+            let resolved = self.resolve_job_operand(op).or_else(|| {
+                if op.starts_with('%') {
+                    None
+                } else {
+                    self.resolve_job_operand(&format!("%{op}"))
+                }
+            });
+            let Some(pid) = resolved else {
+                stderr.push_str(&format!("disown: {op}: no such job\n"));
+                status = 1;
+                continue;
+            };
+            if !nohup_only {
+                self.env.remove(&format!("__job_active__{pid}"));
+                self.env.remove(&format!("__job_status__{pid}"));
             }
-        }
-
-        for pid in pids {
-            self.env
-                .insert(format!("__job_status__{pid}"), (128 + sig_num).to_string());
         }
         BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stderr,
+            exit_code: status,
+        }
+    }
+
+    fn builtin_kill(&mut self, args: &[String]) -> BuiltinOutcome {
+        let catalog = Self::trap_signal_catalog();
+        let lookup_sig = |spec: &str| -> Option<u32> {
+            if let Ok(num) = spec.parse::<u32>() {
+                if num == 0 || (1..=31).contains(&num) {
+                    return Some(num);
+                }
+                return None;
+            }
+            let up = spec.trim().to_uppercase();
+            let stripped = up.strip_prefix("SIG").unwrap_or(&up);
+            catalog
+                .iter()
+                .find(|(_, name)| name.strip_prefix("SIG").unwrap_or(name) == stripped)
+                .map(|(n, _)| *n)
+        };
+
+        if matches!(args.first().map(|s| s.as_str()), Some("-l" | "-L")) {
+            if args.len() == 1 {
+                let names: Vec<&str> = catalog
+                    .iter()
+                    .map(|(_, n)| n.strip_prefix("SIG").unwrap_or(n))
+                    .collect();
+                return BuiltinOutcome {
+                    stdout: format!("{}\n", names.join(" ")),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+            }
+            let mut out = String::new();
+            let mut stderr = String::new();
+            let mut status = 0;
+            for op in &args[1..] {
+                if let Ok(mut num) = op.parse::<u32>() {
+                    if num > 128 {
+                        num -= 128;
+                    }
+                    if let Some((_, name)) = catalog.iter().find(|(n, _)| *n == num) {
+                        out.push_str(&format!("{}\n", name.strip_prefix("SIG").unwrap_or(name)));
+                    } else {
+                        stderr.push_str(&format!("kill: {op}: invalid signal specification\n"));
+                        status = 1;
+                    }
+                } else if let Some(num) = lookup_sig(op).filter(|&n| n > 0) {
+                    out.push_str(&format!("{num}\n"));
+                } else {
+                    stderr.push_str(&format!("kill: {op}: invalid signal specification\n"));
+                    status = 1;
+                }
+            }
+            return BuiltinOutcome {
+                stdout: out,
+                stderr,
+                exit_code: status,
+            };
+        }
+
+        let mut offset = 0usize;
+        let mut sig_opt: Option<u32> = Some(15);
+        if matches!(args.first().map(|s| s.as_str()), Some("-s" | "-n")) {
+            sig_opt = args.get(1).and_then(|s| lookup_sig(s));
+            offset = 2;
+        } else if let Some(first) = args.first()
+            && first.starts_with('-')
+            && first != "--"
+        {
+            sig_opt = lookup_sig(&first[1..]);
+            offset = 1;
+        }
+        if args.get(offset).map(|s| s.as_str()) == Some("--") {
+            offset += 1;
+        }
+        let Some(sig_num) = sig_opt.filter(|&n| n <= 31) else {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "kill: invalid signal specification\n".to_string(),
+                exit_code: 1,
+            };
+        };
+        if matches!(sig_num, 17 | 18 | 19 | 20 | 21 | 22 | 23 | 28) {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "kill: signal is not supported by virtual job termination\n".to_string(),
+                exit_code: 1,
+            };
+        }
+        if offset >= args.len() {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "kill: usage: kill [-s signal | -n signal | -signal] pid | %job ...\n"
+                    .to_string(),
+                exit_code: 2,
+            };
+        }
+
+        let mut stderr = String::new();
+        let mut status = 0;
+        for op in &args[offset..] {
+            let Some(pid) = self.resolve_job_operand(op) else {
+                let kind = if op.starts_with('%') { "job" } else { "process" };
+                stderr.push_str(&format!("kill: {op}: no such {kind}\n"));
+                status = 1;
+                continue;
+            };
+            if sig_num != 0 {
+                self.env
+                    .insert(format!("__job_status__{pid}"), (128 + sig_num).to_string());
+            }
+        }
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr,
+            exit_code: status,
         }
     }
 }
@@ -6865,5 +7469,59 @@ mod tests {
             .unwrap();
         assert_eq!(print_out.exit_code, 0);
         assert_eq!(print_out.stdout, "hello   world!\n");
+    }
+
+    #[test]
+    fn unit_eval_source_exec_trap_jobs_wait_disown_and_kill_parity() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let eval_err = state.eval_script_str("eval -z", "").unwrap();
+        assert_eq!(eval_err.exit_code, 2);
+        assert_eq!(
+            eval_err.stderr,
+            "eval: -z: invalid option\neval: usage: eval [arg ...]\n"
+        );
+
+        let src_err = state.eval_script_str("source", "").unwrap();
+        assert_eq!(src_err.exit_code, 2);
+        assert_eq!(
+            src_err.stderr,
+            "source: filename argument required\nsource: usage: source [-p path] filename [arguments]\n"
+        );
+
+        let trap_l = state.eval_script_str("trap -l", "").unwrap();
+        assert_eq!(trap_l.exit_code, 0);
+        assert!(trap_l.stdout.contains("1) SIGHUP"));
+        assert!(trap_l.stdout.contains("31) SIGSYS"));
+
+        let trap_sort = state
+            .eval_script_str("trap 'echo term' TERM; trap 'echo ex' EXIT; trap 'echo int' INT; trap -p; trap 0 2 15; trap -p", "")
+            .unwrap();
+        assert_eq!(trap_sort.exit_code, 0);
+        assert_eq!(
+            trap_sort.stdout,
+            "trap -- 'echo ex' EXIT\ntrap -- 'echo int' SIGINT\ntrap -- 'echo term' SIGTERM\n"
+        );
+
+        let wait_err = state.eval_script_str("wait 999", "").unwrap();
+        assert_eq!(wait_err.exit_code, 127);
+        assert_eq!(wait_err.stderr, "wait: pid 999 is not a child of this shell\n");
+
+        let disown_err = state.eval_script_str("disown", "").unwrap();
+        assert_eq!(disown_err.exit_code, 1);
+        assert_eq!(disown_err.stderr, "disown: current: no such job\n");
+
+        let kill_err = state.eval_script_str("kill -s BOGUS 123", "").unwrap();
+        assert_eq!(kill_err.exit_code, 1);
+        assert_eq!(kill_err.stderr, "kill: invalid signal specification\n");
+
+        let kill_l_err = state.eval_script_str("kill -l BOGUS", "").unwrap();
+        assert_eq!(kill_l_err.exit_code, 1);
+        assert_eq!(kill_l_err.stderr, "kill: BOGUS: invalid signal specification\n");
     }
 }

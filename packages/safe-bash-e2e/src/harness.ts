@@ -399,6 +399,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-env-umask-builtin-command-shopt-readonly-cd-timeout-parity-matrix.test.ts",
   "obscure-shell-declare-read-mapfile-arith-control-flow-set-parity-matrix.test.ts",
   "obscure-type-command-unset-declare-local-functions-print-parity-matrix.test.ts",
+  "obscure-dirstack-cdpath-eval-source-exec-trap-jobs-wait-kill-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

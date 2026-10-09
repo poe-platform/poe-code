@@ -1,3 +1,4 @@
+use std::collections::{BTreeMap, BTreeSet};
 use crate::shell::lexer::{Token, tokenize_shell};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -115,6 +116,10 @@ pub struct Script {
 
 pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
     let tokens = tokenize_shell(script)?;
+    validate_tokens_syntax(&tokens)
+}
+
+pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
     let mut if_depth = 0i32;
     let mut do_depth = 0i32;
     let mut case_depth = 0i32;
@@ -123,7 +128,7 @@ pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
     let mut brace_depth = 0i32;
 
     let mut at_cmd_start = true;
-    for tok in &tokens {
+    for tok in tokens {
         match tok {
             Token::Semi | Token::Newline | Token::Pipe | Token::AndIf | Token::OrIf | Token::Background => {
                 at_cmd_start = true;
@@ -241,11 +246,315 @@ pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
     Ok(())
 }
 
+struct AliasTokenState {
+    cmd_pos: bool,
+    check_next: bool,
+    expect_redirect_target: bool,
+    expect_case_word: bool,
+    expect_case_in: bool,
+    in_case_pat: bool,
+    expect_for_var: bool,
+    expect_for_in: bool,
+    prev_was_lparen: bool,
+}
+
+impl AliasTokenState {
+    fn new() -> Self {
+        Self {
+            cmd_pos: true,
+            check_next: false,
+            expect_redirect_target: false,
+            expect_case_word: false,
+            expect_case_in: false,
+            in_case_pat: false,
+            expect_for_var: false,
+            expect_for_in: false,
+            prev_was_lparen: false,
+        }
+    }
+
+    fn can_expand(&self) -> bool {
+        (self.cmd_pos || self.check_next)
+            && !self.expect_redirect_target
+            && !self.expect_case_word
+            && !self.expect_case_in
+            && !self.in_case_pat
+            && !self.expect_for_var
+            && !self.expect_for_in
+    }
+
+    fn feed(&mut self, tok: &Token) {
+        if self.expect_redirect_target {
+            if matches!(tok, Token::Word(_)) {
+                self.expect_redirect_target = false;
+                return;
+            }
+            self.expect_redirect_target = false;
+        }
+        self.check_next = false;
+        match tok {
+            Token::Semi
+            | Token::Newline
+            | Token::Pipe
+            | Token::Background
+            | Token::AndIf
+            | Token::OrIf => {
+                self.cmd_pos = true;
+                self.expect_case_word = false;
+                self.expect_case_in = false;
+                self.in_case_pat = false;
+                self.expect_for_var = false;
+                self.expect_for_in = false;
+                self.prev_was_lparen = false;
+            }
+            Token::LParen => {
+                self.prev_was_lparen = true;
+                if !self.in_case_pat {
+                    self.cmd_pos = true;
+                }
+            }
+            Token::RParen => {
+                if self.in_case_pat {
+                    self.in_case_pat = false;
+                    self.cmd_pos = true;
+                } else {
+                    self.cmd_pos = self.prev_was_lparen;
+                }
+                self.prev_was_lparen = false;
+            }
+            Token::RedirectOut(_)
+            | Token::RedirectAppend(_)
+            | Token::RedirectClobber(_)
+            | Token::RedirectIn(_)
+            | Token::RedirectReadWrite(_)
+            | Token::RedirectHereString(_)
+            | Token::RedirectDupOut(_)
+            | Token::RedirectDupIn(_)
+            | Token::RedirectBothOut
+            | Token::RedirectBothAppend => {
+                self.expect_redirect_target = true;
+                self.prev_was_lparen = false;
+            }
+            Token::RedirectHereDoc { .. } => {
+                self.prev_was_lparen = false;
+            }
+            Token::Word(w) => {
+                self.prev_was_lparen = false;
+                if matches!(w.as_str(), ";;" | ";&" | ";;&") {
+                    self.in_case_pat = true;
+                    self.cmd_pos = false;
+                } else if self.expect_case_word {
+                    self.expect_case_word = false;
+                    self.expect_case_in = true;
+                    self.cmd_pos = false;
+                } else if self.expect_case_in {
+                    if w == "in" {
+                        self.expect_case_in = false;
+                        self.in_case_pat = true;
+                        self.cmd_pos = false;
+                    }
+                } else if self.in_case_pat {
+                    if w == "esac" {
+                        self.in_case_pat = false;
+                        self.cmd_pos = false;
+                    }
+                } else if self.expect_for_var {
+                    self.expect_for_var = false;
+                    self.expect_for_in = true;
+                    self.cmd_pos = false;
+                } else if self.expect_for_in {
+                    if w == "in" {
+                        self.expect_for_in = false;
+                        self.cmd_pos = false;
+                    } else if w == "do" {
+                        self.expect_for_in = false;
+                        self.cmd_pos = true;
+                    }
+                } else if self.cmd_pos {
+                    match w.as_str() {
+                        "if" | "then" | "elif" | "else" | "while" | "until" | "do" | "{" | "!"
+                        | "time" => {
+                            self.cmd_pos = true;
+                        }
+                        "case" => {
+                            self.cmd_pos = false;
+                            self.expect_case_word = true;
+                        }
+                        "for" | "select" => {
+                            self.cmd_pos = false;
+                            self.expect_for_var = true;
+                        }
+                        "function" | "[[" => {
+                            self.cmd_pos = false;
+                        }
+                        _ => {
+                            self.cmd_pos = parse_assignment_word(w).is_some();
+                        }
+                    }
+                } else if w == "{" {
+                    self.cmd_pos = true;
+                }
+            }
+        }
+    }
+}
+
+fn expand_tokens_with_aliases_inner(
+    tokens: &[Token],
+    aliases: &BTreeMap<String, String>,
+    active: &BTreeSet<String>,
+    state: &mut AliasTokenState,
+) -> Result<Vec<Token>, String> {
+    if aliases.is_empty() {
+        return Ok(tokens.to_vec());
+    }
+    let mut out = Vec::with_capacity(tokens.len());
+    let mut idx = 0usize;
+    while idx < tokens.len() {
+        let tok = &tokens[idx];
+        if let Token::Word(w) = tok {
+            let is_func_def = matches!(tokens.get(idx + 1), Some(Token::LParen))
+                && matches!(tokens.get(idx + 2), Some(Token::RParen));
+            if state.can_expand()
+                && !is_func_def
+                && !w.is_empty()
+                && !w.contains(['\'', '"', '\\', '$', '`'])
+                && !active.contains(w.as_str())
+                && let Some(val) = aliases.get(w.as_str())
+            {
+                let has_trailing_ws = val.ends_with(' ') || val.ends_with('\t');
+                let mut sub_tokens = tokenize_shell(val)?;
+                if !val.ends_with('\n') && matches!(sub_tokens.last(), Some(Token::Newline)) {
+                    sub_tokens.pop();
+                }
+                let mut next_active = active.clone();
+                next_active.insert(w.clone());
+                let sub_expanded =
+                    expand_tokens_with_aliases_inner(&sub_tokens, aliases, &next_active, state)?;
+                out.extend(sub_expanded);
+                if has_trailing_ws {
+                    state.check_next = true;
+                }
+                idx += 1;
+                continue;
+            }
+        }
+        state.feed(tok);
+        out.push(tok.clone());
+        idx += 1;
+    }
+    Ok(out)
+}
+
+pub fn expand_tokens_with_aliases(
+    tokens: &[Token],
+    aliases: &BTreeMap<String, String>,
+) -> Result<Vec<Token>, String> {
+    let mut state = AliasTokenState::new();
+    expand_tokens_with_aliases_inner(tokens, aliases, &BTreeSet::new(), &mut state)
+}
+
 pub fn parse_script(input: &str) -> Result<Script, String> {
     validate_basic_syntax(input)?;
     let tokens = tokenize_shell(input)?;
     let mut pos = 0usize;
     parse_tokens(&tokens, &mut pos, &[])
+}
+
+pub fn parse_script_with_aliases(
+    input: &str,
+    aliases: &BTreeMap<String, String>,
+    line_offset: usize,
+) -> Result<Script, String> {
+    let raw_tokens = tokenize_shell(input)?;
+    let expanded = expand_tokens_with_aliases(&raw_tokens, aliases)?;
+    validate_tokens_syntax(&expanded)?;
+    let mut tokens = Vec::with_capacity(line_offset + expanded.len());
+    for _ in 0..line_offset {
+        tokens.push(Token::Newline);
+    }
+    tokens.extend(expanded);
+    let mut pos = 0usize;
+    parse_tokens(&tokens, &mut pos, &[])
+}
+
+pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>) -> bool {
+    let stripped = chunk.strip_suffix('\n').unwrap_or(chunk);
+    let trailing_backslashes = stripped.bytes().rev().take_while(|&b| b == b'\\').count();
+    if trailing_backslashes % 2 == 1 {
+        return true;
+    }
+    let Ok(raw_tokens) = tokenize_shell(chunk) else {
+        return true;
+    };
+    let Ok(tokens) = expand_tokens_with_aliases(&raw_tokens, aliases) else {
+        return true;
+    };
+    if let Err(err) = validate_tokens_syntax(&tokens) {
+        if err.contains("unexpected end of file") || err.contains("unclosed") {
+            return true;
+        }
+    }
+    let non_nl: Vec<&Token> = tokens
+        .iter()
+        .filter(|t| !matches!(t, Token::Newline))
+        .collect();
+    if matches!(
+        non_nl.last(),
+        Some(Token::Pipe | Token::AndIf | Token::OrIf)
+    ) {
+        return true;
+    }
+    if non_nl.len() >= 3
+        && matches!(
+            non_nl[non_nl.len() - 3..],
+            [Token::Word(_), Token::LParen, Token::RParen]
+        )
+    {
+        return true;
+    }
+    if non_nl.len() >= 2
+        && matches!(non_nl[non_nl.len() - 2..], [Token::Word(k), Token::Word(_)] if k == "function")
+    {
+        return true;
+    }
+    let mut pending_do = 0i32;
+    let mut in_db = false;
+    let mut at_start = true;
+    for tok in &tokens {
+        match tok {
+            Token::Semi
+            | Token::Newline
+            | Token::Pipe
+            | Token::AndIf
+            | Token::OrIf
+            | Token::Background
+            | Token::LParen => {
+                at_start = true;
+            }
+            Token::Word(w) => {
+                if w == "[[" && at_start {
+                    in_db = true;
+                } else if w == "]]" {
+                    in_db = false;
+                }
+                if at_start && matches!(w.as_str(), "for" | "select" | "while" | "until") {
+                    pending_do += 1;
+                    at_start = matches!(w.as_str(), "while" | "until");
+                } else if w == "do" && pending_do > 0 {
+                    pending_do -= 1;
+                    at_start = true;
+                } else {
+                    at_start =
+                        at_start && matches!(w.as_str(), "if" | "then" | "elif" | "else" | "{");
+                }
+            }
+            _ => {
+                at_start = false;
+            }
+        }
+    }
+    pending_do > 0 || in_db
 }
 
 fn is_stop_word(tok: Option<&Token>, stops: &[&str]) -> bool {
@@ -973,5 +1282,24 @@ mod tests {
     fn unit_validate_basic_syntax_rejects_unmatched_quotes_and_keywords() {
         assert!(validate_basic_syntax("echo \"unterminated").is_err());
         assert!(validate_basic_syntax("if true; then echo hi").is_err());
+    }
+
+    #[test]
+    fn unit_parse_script_with_aliases_and_incomplete_units() {
+        let mut aliases = BTreeMap::new();
+        aliases.insert("WHEN".to_string(), "if".to_string());
+        aliases.insert("THEN".to_string(), "then".to_string());
+        aliases.insert("END".to_string(), "fi".to_string());
+        aliases.insert("pfx".to_string(), "echo ".to_string());
+        aliases.insert("word".to_string(), "hello".to_string());
+
+        assert!(is_incomplete_shell_unit("WHEN true; THEN\n", &aliases));
+        assert!(!is_incomplete_shell_unit(
+            "WHEN true; THEN pfx word; END\n",
+            &aliases
+        ));
+        let parsed =
+            parse_script_with_aliases("WHEN true; THEN FOO=1 pfx word; END", &aliases, 0).unwrap();
+        assert_eq!(parsed.lists.len(), 1);
     }
 }

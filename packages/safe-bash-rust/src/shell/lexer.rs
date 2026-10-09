@@ -819,11 +819,17 @@ fn read_arith_command_tokens(
     tokens.push(Token::LParen);
     *i += 2;
     let mut depth = 1i32;
+    let mut saw_semi = false;
     let mut buf = String::new();
     while *i < chars.len() {
         if chars[*i] == ')' && *i + 1 < chars.len() && chars[*i + 1] == ')' && depth == 1 {
             if !buf.trim().is_empty() {
-                tokens.push(Token::Word(buf.trim().to_string()));
+                let word = if saw_semi {
+                    buf.trim().to_string()
+                } else {
+                    buf
+                };
+                tokens.push(Token::Word(word));
             }
             tokens.push(Token::RParen);
             tokens.push(Token::RParen);
@@ -840,6 +846,7 @@ fn read_arith_command_tokens(
             buf.push(c);
             *i += 1;
         } else if c == ';' && depth == 1 {
+            saw_semi = true;
             tokens.push(Token::Word(buf.trim().to_string()));
             buf.clear();
             tokens.push(Token::Semi);

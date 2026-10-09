@@ -12,7 +12,8 @@ use crate::shell::expand::{
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
-    SimpleCommand, parse_script, validate_basic_syntax,
+    SimpleCommand, is_incomplete_shell_unit, parse_script, parse_script_with_aliases,
+    validate_basic_syntax,
 };
 use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_string_to_bytes};
 use std::collections::{BTreeMap, BTreeSet};
@@ -57,6 +58,16 @@ pub struct EvalState<'a> {
     pub fd_table: BTreeMap<u32, FdTarget>,
     pub in_fds: BTreeMap<u32, String>,
     pub traps: BTreeMap<String, String>,
+    pub inactive_traps: BTreeMap<String, String>,
+    pub trap_versions: BTreeMap<String, u64>,
+    pub next_trap_version: u64,
+    pub func_trap_snapshots: Vec<BTreeMap<String, u64>>,
+    pub source_debug_snapshots: Vec<(Option<String>, Option<u64>)>,
+    pub source_depth: usize,
+    pub exit_trap_status: Option<i32>,
+    pub exit_trap_ran: bool,
+    pub explicit_exit: bool,
+    pub sub_exit: Option<i32>,
     pub pos_args: Vec<String>,
     pub last_exit: i32,
     pub errexit: bool,
@@ -105,6 +116,14 @@ impl<'a> EvalState<'a> {
             .get("__last_exit")
             .and_then(|v| v.parse::<i32>().ok())
             .unwrap_or(0);
+        let mut traps = BTreeMap::new();
+        for (k, v) in env.iter() {
+            if let Some(sig) = k.strip_prefix("__trap_inherited_ignored__")
+                && v == "1"
+            {
+                traps.insert(sig.to_string(), String::new());
+            }
+        }
         Self {
             cwd,
             env,
@@ -121,7 +140,17 @@ impl<'a> EvalState<'a> {
             local_scopes: Vec::new(),
             fd_table,
             in_fds: BTreeMap::new(),
-            traps: BTreeMap::new(),
+            traps,
+            inactive_traps: BTreeMap::new(),
+            trap_versions: BTreeMap::new(),
+            next_trap_version: 1,
+            func_trap_snapshots: Vec::new(),
+            source_debug_snapshots: Vec::new(),
+            source_depth: 0,
+            exit_trap_status: None,
+            exit_trap_ran: false,
+            explicit_exit: false,
+            sub_exit: None,
             pos_args: Vec::new(),
             last_exit,
             errexit,
@@ -156,14 +185,36 @@ impl<'a> EvalState<'a> {
     where
         'a: 'b,
     {
-        let mut child_traps = self.traps.clone();
-        child_traps.remove("EXIT");
-        if !self.env.get("__set_errtrace").map(|v| v == "1").unwrap_or(false) {
-            child_traps.remove("ERR");
-        }
-        if !self.env.get("__set_functrace").map(|v| v == "1").unwrap_or(false) {
-            child_traps.remove("DEBUG");
-            child_traps.remove("RETURN");
+        let errtrace = self
+            .env
+            .get("__set_errtrace")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            || self
+                .env
+                .get("__shopt_extdebug")
+                .map(|v| v == "1")
+                .unwrap_or(false);
+        let functrace = self
+            .env
+            .get("__set_functrace")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            || self
+                .env
+                .get("__shopt_extdebug")
+                .map(|v| v == "1")
+                .unwrap_or(false);
+        let mut child_traps = BTreeMap::new();
+        let mut child_inactive = self.inactive_traps.clone();
+        for (k, v) in &self.traps {
+            child_inactive.insert(k.clone(), v.clone());
+            let keep_active = v.is_empty()
+                || (k == "ERR" && errtrace)
+                || ((k == "DEBUG" || k == "RETURN") && functrace);
+            if keep_active {
+                child_traps.insert(k.clone(), v.clone());
+            }
         }
         let cur_subshell = env
             .get("BASH_SUBSHELL")
@@ -188,6 +239,16 @@ impl<'a> EvalState<'a> {
             fd_table: self.fd_table.clone(),
             in_fds: self.in_fds.clone(),
             traps: child_traps,
+            inactive_traps: child_inactive,
+            trap_versions: self.trap_versions.clone(),
+            next_trap_version: self.next_trap_version,
+            func_trap_snapshots: self.func_trap_snapshots.clone(),
+            source_debug_snapshots: self.source_debug_snapshots.clone(),
+            source_depth: self.source_depth,
+            exit_trap_status: None,
+            exit_trap_ran: false,
+            explicit_exit: false,
+            sub_exit: None,
             pos_args: self.pos_args.clone(),
             last_exit: self.last_exit,
             errexit: if self.in_condition { false } else { self.errexit },
@@ -215,36 +276,12 @@ impl<'a> EvalState<'a> {
     }
 
     pub fn eval_script_str(&mut self, script: &str, stdin: &str) -> Result<CommandResult, EvalError> {
-        if let Err(syn_err) = validate_basic_syntax(script) {
-            return Err(EvalError::Syntax(syn_err));
-        }
-        let ast = parse_script(script).map_err(EvalError::Syntax)?;
-        let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
-        if parse_units > self.budget.limits.max_parse_units {
-            return Err(EvalError::Budget(format!(
-                "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
-                self.budget.limits.max_parse_units
-            )));
-        }
         let mut stdin_buf = stdin.to_string();
-        let mut out = self.eval_script(&ast, &mut stdin_buf)?;
-        let final_code = self.exit_requested.unwrap_or(out.exit_code);
-        self.last_exit = final_code;
-        if let Some(exit_handler) = self.traps.get("EXIT").cloned()
-            && !exit_handler.is_empty()
-            && !self.in_trap
-        {
-            self.in_trap = true;
-            self.exit_requested = None;
-            if let Ok(trap_ast) = parse_script(&exit_handler) {
-                let mut empty_in = String::new();
-                if let Ok(trap_out) = self.eval_script(&trap_ast, &mut empty_in) {
-                    out.stdout.push_str(&trap_out.stdout);
-                    out.stderr.push_str(&trap_out.stderr);
-                }
-            }
-            self.in_trap = false;
-        }
+        let mut out = self.eval_script_units(script, &mut stdin_buf)?;
+        out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
+        self.last_exit = out.exit_code;
+        self.run_exit_trap_if_needed(&mut out);
+        let final_code = out.exit_code;
         Ok(CommandResult {
             stdout: out.stdout,
             stderr: out.stderr,
@@ -252,6 +289,275 @@ impl<'a> EvalState<'a> {
             cwd: self.cwd.clone(),
             env: self.env.clone(),
         })
+    }
+
+    fn active_alias_map(&self) -> BTreeMap<String, String> {
+        let mut map = BTreeMap::new();
+        if !self
+            .env
+            .get("__shopt_expand_aliases")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+        {
+            return map;
+        }
+        for (k, v) in self.env.iter() {
+            if let Some(name) = k.strip_prefix("__alias__") {
+                map.insert(name.to_string(), v.clone());
+            }
+        }
+        map
+    }
+
+    fn parse_with_current_aliases(&self, text: &str, line_offset: usize) -> Result<Script, String> {
+        let aliases = self.active_alias_map();
+        parse_script_with_aliases(text, &aliases, line_offset)
+    }
+
+    fn eval_script_units(
+        &mut self,
+        script_text: &str,
+        stdin: &mut String,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        let needs_unit_loop = !self.active_alias_map().is_empty()
+            || script_text.contains("alias")
+            || script_text.contains("shopt");
+        if !needs_unit_loop {
+            if let Err(syn_err) = validate_basic_syntax(script_text) {
+                return Err(EvalError::Syntax(syn_err));
+            }
+            let ast = parse_script(script_text).map_err(EvalError::Syntax)?;
+            let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
+            if parse_units > self.budget.limits.max_parse_units {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
+                    self.budget.limits.max_parse_units
+                )));
+            }
+            return self.eval_script(&ast, stdin);
+        }
+
+        let mut stdout = String::new();
+        let mut stderr = String::new();
+        let mut last_code = self.last_exit;
+        let lines: Vec<&str> = script_text.split_inclusive('\n').collect();
+        if lines.is_empty() {
+            return Ok(BuiltinOutcome {
+                stdout,
+                stderr,
+                exit_code: last_code,
+            });
+        }
+        let mut unit_buf = String::new();
+        let mut unit_start_line = 0usize;
+        let mut total_parse_units = 0usize;
+        for (idx, line) in lines.iter().enumerate() {
+            if unit_buf.is_empty() {
+                unit_start_line = idx;
+            }
+            unit_buf.push_str(line);
+            let is_last = idx + 1 == lines.len();
+            let aliases = self.active_alias_map();
+            if !is_last && is_incomplete_shell_unit(&unit_buf, &aliases) {
+                continue;
+            }
+            let ast = self
+                .parse_with_current_aliases(&unit_buf, unit_start_line)
+                .map_err(EvalError::Syntax)?;
+            unit_buf.clear();
+            let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
+            total_parse_units += parse_units;
+            if total_parse_units > self.budget.limits.max_parse_units {
+                return Err(EvalError::Budget(format!(
+                    "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
+                    self.budget.limits.max_parse_units
+                )));
+            }
+            let unit_out = self.eval_script(&ast, stdin)?;
+            stdout.push_str(&unit_out.stdout);
+            stderr.push_str(&unit_out.stderr);
+            last_code = unit_out.exit_code;
+            if self.exit_requested.is_some()
+                || self.return_requested.is_some()
+                || self.break_count > 0
+                || self.continue_count > 0
+                || crate::commands::is_timeout_expired()
+                || (self.errexit && !self.in_condition && last_code != 0)
+            {
+                break;
+            }
+        }
+        if !unit_buf.trim().is_empty() {
+            let ast = self
+                .parse_with_current_aliases(&unit_buf, unit_start_line)
+                .map_err(EvalError::Syntax)?;
+            let unit_out = self.eval_script(&ast, stdin)?;
+            stdout.push_str(&unit_out.stdout);
+            stderr.push_str(&unit_out.stderr);
+            last_code = unit_out.exit_code;
+        }
+        Ok(BuiltinOutcome {
+            stdout,
+            stderr,
+            exit_code: last_code,
+        })
+    }
+
+    fn run_exit_trap_if_needed(&mut self, out: &mut BuiltinOutcome) {
+        if self.exit_trap_ran || self.in_trap {
+            return;
+        }
+        self.exit_trap_ran = true;
+        if let Some(exit_handler) = self.traps.get("EXIT").cloned() {
+            self.traps.remove("EXIT");
+            self.inactive_traps.remove("EXIT");
+            if exit_handler.is_empty() {
+                return;
+            }
+            let orig_status = self.exit_requested.unwrap_or(out.exit_code);
+            out.exit_code = orig_status;
+            self.last_exit = orig_status;
+            self.exit_trap_status = Some(orig_status);
+            let prev_explicit = self.explicit_exit;
+            self.exit_requested = None;
+            self.in_trap = true;
+            let mut empty_in = String::new();
+            if let Ok(trap_out) = self.eval_script_units(&exit_handler, &mut empty_in) {
+                out.stdout.push_str(&trap_out.stdout);
+                out.stderr.push_str(&trap_out.stderr);
+            }
+            self.in_trap = false;
+            self.exit_trap_status = None;
+            if let Some(override_code) = self.exit_requested {
+                out.exit_code = override_code;
+            }
+            self.last_exit = out.exit_code;
+            self.exit_requested = Some(out.exit_code);
+            self.explicit_exit = prev_explicit;
+        }
+    }
+
+    fn fire_debug_trap(&mut self, bash_command: &str) -> (BuiltinOutcome, bool) {
+        let mut debug_out = BuiltinOutcome {
+            stdout: String::new(),
+            stderr: String::new(),
+            exit_code: 0,
+        };
+        if self.in_trap {
+            return (debug_out, false);
+        }
+        self.env
+            .insert("BASH_COMMAND".to_string(), bash_command.to_string());
+        let Some(dbg_handler) = self.traps.get("DEBUG").cloned() else {
+            return (debug_out, false);
+        };
+        if dbg_handler.is_empty() {
+            return (debug_out, false);
+        }
+        let functrace = self
+            .env
+            .get("__set_functrace")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            || self
+                .env
+                .get("__shopt_extdebug")
+                .map(|v| v == "1")
+                .unwrap_or(false);
+        let cur_ver = self.trap_versions.get("DEBUG").copied();
+        if self.source_depth > 0
+            && !functrace
+            && self
+                .source_debug_snapshots
+                .last()
+                .and_then(|(_, v)| *v)
+                == cur_ver
+        {
+            return (debug_out, false);
+        }
+        if !self.func_stack.is_empty()
+            && !functrace
+            && self
+                .func_trap_snapshots
+                .last()
+                .and_then(|m| m.get("DEBUG").copied())
+                == cur_ver
+        {
+            return (debug_out, false);
+        }
+        let saved_exit = self.last_exit;
+        self.in_trap = true;
+        let mut empty_in = String::new();
+        if let Ok(t_out) = self.eval_script_units(&dbg_handler, &mut empty_in) {
+            debug_out.stdout.push_str(&t_out.stdout);
+            debug_out.stderr.push_str(&t_out.stderr);
+            debug_out.exit_code = t_out.exit_code;
+        }
+        self.in_trap = false;
+        self.last_exit = saved_exit;
+        let extdebug = self
+            .env
+            .get("__shopt_extdebug")
+            .map(|v| v == "1")
+            .unwrap_or(false);
+        if extdebug && debug_out.exit_code != 0 {
+            if debug_out.exit_code == 2 && (!self.func_stack.is_empty() || self.source_depth > 0) {
+                self.return_requested = Some(2);
+                debug_out.exit_code = 2;
+                self.last_exit = 2;
+            } else {
+                debug_out.exit_code = self.last_exit;
+            }
+            return (debug_out, true);
+        }
+        (debug_out, false)
+    }
+
+    fn fire_err_trap(&mut self, out: &mut BuiltinOutcome) {
+        if self.in_trap {
+            return;
+        }
+        let Some(err_handler) = self.traps.get("ERR").cloned() else {
+            return;
+        };
+        if err_handler.is_empty() {
+            return;
+        }
+        let errtrace = self
+            .env
+            .get("__set_errtrace")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            || self
+                .env
+                .get("__shopt_extdebug")
+                .map(|v| v == "1")
+                .unwrap_or(false);
+        let cur_ver = self.trap_versions.get("ERR").copied();
+        if !self.func_stack.is_empty()
+            && !errtrace
+            && self
+                .func_trap_snapshots
+                .last()
+                .and_then(|m| m.get("ERR").copied())
+                == cur_ver
+        {
+            return;
+        }
+        let saved_exit = self.last_exit;
+        self.in_trap = true;
+        let mut empty_in = String::new();
+        if let Ok(trap_out) = self.eval_script_units(&err_handler, &mut empty_in) {
+            out.stdout.push_str(&trap_out.stdout);
+            out.stderr.push_str(&trap_out.stderr);
+        }
+        self.in_trap = false;
+        if let Some(code) = self.exit_requested {
+            out.exit_code = code;
+            self.last_exit = code;
+        } else {
+            self.last_exit = saved_exit;
+        }
     }
 
     fn eval_script(&mut self, script: &Script, stdin: &mut String) -> Result<BuiltinOutcome, EvalError> {
@@ -373,6 +679,7 @@ impl<'a> EvalState<'a> {
                 break;
             }
             if self.errexit && !self.in_condition && last_code != 0 {
+                self.exit_requested = Some(last_code);
                 break;
             }
         }
@@ -399,6 +706,15 @@ impl<'a> EvalState<'a> {
         self.last_exit = first_out.exit_code;
         let mut ran_final = list.rest.is_empty();
         let mut last_negated = list.first.negated;
+        let mut final_publishes_err = list.first.commands.len() > 1
+            || list.first.commands.first().is_some_and(|c| {
+                matches!(
+                    c,
+                    CommandNode::Simple(_)
+                        | CommandNode::Subshell { .. }
+                        | CommandNode::ArithCommand(_)
+                )
+            });
 
         for (idx, (op, pipe)) in list.rest.iter().enumerate() {
             if self.exit_requested.is_some()
@@ -417,6 +733,15 @@ impl<'a> EvalState<'a> {
                 let is_last = idx + 1 == list.rest.len();
                 ran_final = is_last;
                 last_negated = pipe.negated;
+                final_publishes_err = pipe.commands.len() > 1
+                    || pipe.commands.first().is_some_and(|c| {
+                        matches!(
+                            c,
+                            CommandNode::Simple(_)
+                                | CommandNode::Subshell { .. }
+                                | CommandNode::ArithCommand(_)
+                        )
+                    });
                 let prev_c = self.in_condition;
                 if !is_last {
                     self.in_condition = true;
@@ -432,24 +757,14 @@ impl<'a> EvalState<'a> {
 
         if first_out.exit_code != 0
             && ran_final
+            && final_publishes_err
             && !self.in_condition
             && !last_negated
             && !self.in_trap
             && self.exit_requested.is_none()
-            && let Some(err_handler) = self.traps.get("ERR").cloned()
-            && !err_handler.is_empty()
+            && self.return_requested.is_none()
         {
-            let saved_exit = self.last_exit;
-            self.in_trap = true;
-            if let Ok(trap_ast) = parse_script(&err_handler) {
-                let mut empty_in = String::new();
-                if let Ok(trap_out) = self.eval_script(&trap_ast, &mut empty_in) {
-                    first_out.stdout.push_str(&trap_out.stdout);
-                    first_out.stderr.push_str(&trap_out.stderr);
-                }
-            }
-            self.in_trap = false;
-            self.last_exit = saved_exit;
+            self.fire_err_trap(&mut first_out);
         }
 
         Ok(first_out)
@@ -532,6 +847,26 @@ impl<'a> EvalState<'a> {
         let mut combined_stderr = String::new();
         let mut stage_codes = Vec::with_capacity(pipe.commands.len());
 
+        if !self.in_trap {
+            for cmd_node in &pipe.commands {
+                match cmd_node {
+                    CommandNode::Simple(s) => {
+                        let mut parts = Vec::new();
+                        for (k, v, app) in &s.assignments {
+                            parts.push(format!("{k}{}{v}", if *app { "+=" } else { "=" }));
+                        }
+                        parts.extend(s.words.iter().cloned());
+                        self.env.insert("BASH_COMMAND".to_string(), parts.join(" "));
+                    }
+                    CommandNode::ArithCommand(expr) => {
+                        self.env
+                            .insert("BASH_COMMAND".to_string(), format!("(({expr}))"));
+                    }
+                    _ => {}
+                }
+            }
+        }
+
         for (idx, cmd_node) in pipe.commands.iter().enumerate() {
             let is_last = idx + 1 == pipe.commands.len();
             let mut sub_cwd = self.cwd.clone();
@@ -542,13 +877,17 @@ impl<'a> EvalState<'a> {
                 sub.in_pipeline_producer = true;
             }
             let stage_res = sub.eval_command_node(cmd_node, &mut cur_stdin);
-            let stage_out = match stage_res {
+            let mut stage_out = match stage_res {
                 Ok(o) => o,
                 Err(e) => {
                     self.in_condition = prev_cond;
                     return Err(e);
                 }
             };
+            if let Some(code) = sub.exit_requested {
+                stage_out.exit_code = code;
+            }
+            sub.run_exit_trap_if_needed(&mut stage_out);
             combined_stderr.push_str(&stage_out.stderr);
             stage_codes.push(stage_out.exit_code);
             cur_stdin = stage_out.stdout;
@@ -617,19 +956,7 @@ impl<'a> EvalState<'a> {
                 if let Some(code) = sub.exit_requested {
                     out.exit_code = code;
                 }
-                if let Some(exit_handler) = sub.traps.get("EXIT").cloned()
-                    && !exit_handler.is_empty()
-                {
-                    sub.in_trap = true;
-                    sub.exit_requested = None;
-                    if let Ok(trap_ast) = parse_script(&exit_handler) {
-                        let mut empty_in = String::new();
-                        if let Ok(trap_out) = sub.eval_script(&trap_ast, &mut empty_in) {
-                            out.stdout.push_str(&trap_out.stdout);
-                            out.stderr.push_str(&trap_out.stderr);
-                        }
-                    }
-                }
+                sub.run_exit_trap_if_needed(&mut out);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -758,6 +1085,7 @@ impl<'a> EvalState<'a> {
                 let mut code = 0;
 
                 self.loop_depth += 1;
+                let for_desc = format!("for {var} in {}", items.join(" "));
                 for val in expanded_items {
                     crate::commands::tick_virtual_loop(self.env);
                     if crate::commands::is_timeout_expired() {
@@ -776,6 +1104,16 @@ impl<'a> EvalState<'a> {
                                 return Err(other);
                             }
                         }
+                    }
+                    let (dbg_out, skip_iter) = self.fire_debug_trap(&for_desc);
+                    stdout.push_str(&dbg_out.stdout);
+                    stderr.push_str(&dbg_out.stderr);
+                    if self.exit_requested.is_some() || self.return_requested.is_some() {
+                        code = dbg_out.exit_code;
+                        break;
+                    }
+                    if skip_iter {
+                        continue;
                     }
                     let step = self.eval_script(body, eff_stdin)?;
                     stdout.push_str(&step.stdout);
@@ -1086,40 +1424,44 @@ impl<'a> EvalState<'a> {
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
                 let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
                 let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
-                let target = self.expand_word_to_string(word)?;
-                let nocase = self
-                    .env
-                    .get("__shopt_nocasematch")
-                    .map(|v| v == "1")
-                    .unwrap_or(false);
-                let mut stdout = String::new();
-                let mut stderr = String::new();
-                let mut code = 0;
-                let mut force_exec = false;
+                let case_desc = format!("case {word} in ");
+                let (dbg_out, skip_case) = self.fire_debug_trap(&case_desc);
+                let mut stdout = dbg_out.stdout;
+                let mut stderr = dbg_out.stderr;
+                let mut code = if skip_case { dbg_out.exit_code } else { 0 };
+                if !skip_case {
+                    let target = self.expand_word_to_string(word)?;
+                    let nocase = self
+                        .env
+                        .get("__shopt_nocasematch")
+                        .map(|v| v == "1")
+                        .unwrap_or(false);
+                    let mut force_exec = false;
 
-                for (pats, body, term) in arms {
-                    let mut matched = force_exec;
-                    force_exec = false;
-                    if !matched {
-                        for p in pats {
-                            let exp_p = self.expand_word_for_pattern(p)?;
-                            if glob_match_ext(&exp_p, &target, nocase) {
-                                matched = true;
-                                break;
+                    for (pats, body, term) in arms {
+                        let mut matched = force_exec;
+                        force_exec = false;
+                        if !matched {
+                            for p in pats {
+                                let exp_p = self.expand_word_for_pattern(p)?;
+                                if glob_match_ext(&exp_p, &target, nocase) {
+                                    matched = true;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    if matched {
-                        let arm_out = self.eval_script(body, eff_stdin)?;
-                        stdout.push_str(&arm_out.stdout);
-                        stderr.push_str(&arm_out.stderr);
-                        code = arm_out.exit_code;
-                        match term {
-                            CaseTerminator::Break => break,
-                            CaseTerminator::Fallthrough => {
-                                force_exec = true;
+                        if matched {
+                            let arm_out = self.eval_script(body, eff_stdin)?;
+                            stdout.push_str(&arm_out.stdout);
+                            stderr.push_str(&arm_out.stderr);
+                            code = arm_out.exit_code;
+                            match term {
+                                CaseTerminator::Break => break,
+                                CaseTerminator::Fallthrough => {
+                                    force_exec = true;
+                                }
+                                CaseTerminator::ContinueTesting => {}
                             }
-                            CaseTerminator::ContinueTesting => {}
                         }
                     }
                 }
@@ -1139,16 +1481,21 @@ impl<'a> EvalState<'a> {
                 Ok(out)
             }
             CommandNode::ArithCommand(expr) => {
+                let arith_desc = format!("(({expr}))");
+                let (dbg_out, skip_cmd) = self.fire_debug_trap(&arith_desc);
+                if skip_cmd {
+                    return Ok(dbg_out);
+                }
                 let exp = self.expand_heredoc_text(expr)?;
                 match eval_arith(&exp, self.env) {
                     Ok(val) => Ok(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: String::new(),
+                        stdout: dbg_out.stdout,
+                        stderr: dbg_out.stderr,
                         exit_code: if val != 0 { 0 } else { 1 },
                     }),
                     Err(e) => Ok(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("((: {e}\n"),
+                        stdout: dbg_out.stdout,
+                        stderr: format!("{}((: {e}\n", dbg_out.stderr),
                         exit_code: 1,
                     }),
                 }
@@ -1463,115 +1810,18 @@ impl<'a> EvalState<'a> {
             self.current_line = simple.line;
             self.env.insert("__lineno".to_string(), simple.line.to_string());
         }
-        let mut debug_out = BuiltinOutcome {
-            stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
-        };
-        if !self.in_trap
-            && let Some(dbg_handler) = self.traps.get("DEBUG").cloned()
-            && !dbg_handler.is_empty()
-        {
-            let mut parts = Vec::new();
-            for (k, v, app) in &simple.assignments {
-                if *app {
-                    parts.push(format!("{k}+={v}"));
-                } else {
-                    parts.push(format!("{k}={v}"));
-                }
-            }
-            parts.extend(simple.words.iter().cloned());
-            self.env.insert("BASH_COMMAND".to_string(), parts.join(" "));
-            self.in_trap = true;
-            if let Ok(trap_ast) = parse_script(&dbg_handler) {
-                let mut empty_in = String::new();
-                if let Ok(t_out) = self.eval_script(&trap_ast, &mut empty_in) {
-                    debug_out.stdout.push_str(&t_out.stdout);
-                    debug_out.stderr.push_str(&t_out.stderr);
-                    debug_out.exit_code = t_out.exit_code;
-                }
-            }
-            self.in_trap = false;
-            if debug_out.exit_code != 0
-                && self
-                    .env
-                    .get("__shopt_extdebug")
-                    .map(|v| v == "1")
-                    .unwrap_or(false)
-            {
-                return Ok(BuiltinOutcome {
-                    stdout: debug_out.stdout,
-                    stderr: debug_out.stderr,
-                    exit_code: 0,
-                });
+        let mut cmd_parts = Vec::new();
+        for (k, v, app) in &simple.assignments {
+            if *app {
+                cmd_parts.push(format!("{k}+={v}"));
+            } else {
+                cmd_parts.push(format!("{k}={v}"));
             }
         }
-
-        if self
-            .env
-            .get("__shopt_expand_aliases")
-            .map(|v| v == "1")
-            .unwrap_or(false)
-            && let Some(first_word) = simple.words.first()
-            && !first_word.is_empty()
-            && !first_word.contains(['\'', '"', '\\', '$', '`'])
-            && !self.active_aliases.contains(first_word)
-            && let Some(first_alias_val) = self.env.get(&format!("__alias__{first_word}")).cloned()
-        {
-            let first_name = first_word.clone();
-            let mut trailing_ws = self.alias_chain_has_trailing_ws(&first_name);
-            let mut pieces: Vec<String> = Vec::new();
-            for (k, v, app) in &simple.assignments {
-                pieces.push(format!("{k}{}{v}", if *app { "+=" } else { "=" }));
-            }
-            pieces.push(first_alias_val);
-            let mut next_seen = self.active_aliases.clone();
-            next_seen.insert(first_name.clone());
-            for w in &simple.words[1..] {
-                if trailing_ws
-                    && !w.is_empty()
-                    && !w.contains(['\'', '"', '\\', '$', '`'])
-                    && !next_seen.contains(w)
-                    && let Some(next_val) = self.env.get(&format!("__alias__{w}")).cloned()
-                {
-                    trailing_ws = self.alias_chain_has_trailing_ws(w);
-                    pieces.push(next_val);
-                } else {
-                    trailing_ws = false;
-                    pieces.push(w.clone());
-                }
-            }
-            let rewritten = pieces.join(" ");
-            let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                self.setup_redirects(&simple.redirects, stdin)?;
-            if let Some(err_out) = redir_err {
-                self.restore_redirects(saved_fds, saved_in);
-                return Ok(err_out);
-            }
-            let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-            self.active_aliases.insert(first_name.clone());
-            let alias_res = match parse_script(&rewritten) {
-                Ok(ast) => self.eval_script(&ast, eff_stdin),
-                Err(msg) => Err(EvalError::Syntax(msg)),
-            };
-            self.active_aliases.remove(&first_name);
-            let mut out = match alias_res {
-                Ok(o) => o,
-                Err(e) => {
-                    self.restore_redirects(saved_fds, saved_in);
-                    return Err(e);
-                }
-            };
-            if !debug_out.stdout.is_empty() || !debug_out.stderr.is_empty() {
-                out.stdout = format!("{}{}", debug_out.stdout, out.stdout);
-                out.stderr = format!("{}{}", debug_out.stderr, out.stderr);
-            }
-            if let Some(dfd) = dup_fd {
-                self.in_fds.insert(dfd, local_stdin);
-            }
-            self.route_outcome(&mut out);
-            self.restore_redirects(saved_fds, saved_in);
-            return Ok(out);
+        cmd_parts.extend(simple.words.iter().cloned());
+        let (mut debug_out, skip_cmd) = self.fire_debug_trap(&cmd_parts.join(" "));
+        if skip_cmd {
+            return Ok(debug_out);
         }
 
         let is_double_bracket = simple.words.first().map(|s| s.as_str()) == Some("[[");
@@ -1734,18 +1984,13 @@ impl<'a> EvalState<'a> {
         let eff_stdin = if use_local { &mut local_stdin } else { stdin };
 
         if expanded_words.is_empty() {
-            let prev_exit = self.last_exit;
-            let mut sub_changed_exit = false;
+            self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                let before = self.last_exit;
                 let val = if v.starts_with('(') && v.ends_with(')') {
                     format!("\x00__ARRAY_LITERAL__{v}")
                 } else {
                     self.expand_assignment_rhs(v)?
                 };
-                if self.last_exit != before {
-                    sub_changed_exit = true;
-                }
                 if let Err(e) = self.assign_variable(k, &val, *append) {
                     match e {
                         EvalError::Syntax(msg) if msg.contains("readonly variable") => {
@@ -1764,11 +2009,7 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
-            if !sub_changed_exit {
-                self.last_exit = 0;
-            } else {
-                let _ = prev_exit;
-            }
+            self.last_exit = self.sub_exit.take().unwrap_or(0);
             if !simple.assignments.iter().any(|(k, _, _)| k == "_") {
                 self.env.remove("_");
             }
@@ -1789,11 +2030,12 @@ impl<'a> EvalState<'a> {
         let mut temp_saved: Vec<(String, Option<String>, bool)> = Vec::new();
         self.in_prefix_assignment = true;
         for (k, v, append) in &simple.assignments {
+            let prev_val = self.env.get(k).cloned();
             let was_unexp = self.env.contains_key(&format!("__unexported__{k}"));
             let val = self.expand_assignment_rhs(v)?;
             match self.assign_variable(k, &val, *append) {
                 Ok(()) => {
-                    temp_saved.push((k.clone(), self.env.get(k).cloned(), was_unexp));
+                    temp_saved.push((k.clone(), prev_val, was_unexp));
                 }
                 Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
                     debug_out.stderr.push_str(&format!("{msg}\n"));
@@ -1828,10 +2070,30 @@ impl<'a> EvalState<'a> {
         self.fd_table.insert(1, cmd_fd1);
         self.fd_table.insert(2, cmd_fd2);
 
+        let is_posix = self
+            .env
+            .get("__set_posix")
+            .map(|v| v == "1")
+            .unwrap_or(false);
         let keep_prefix_assigns = matches!(
             expanded_words[0].as_str(),
             "export" | "readonly" | "declare" | "typeset" | "local" | "eval" | "source" | "."
-        );
+        ) || (is_posix
+            && !self.functions.contains_key(&expanded_words[0])
+            && matches!(
+                expanded_words[0].as_str(),
+                ":"
+                    | "break"
+                    | "continue"
+                    | "exec"
+                    | "exit"
+                    | "return"
+                    | "set"
+                    | "shift"
+                    | "times"
+                    | "trap"
+                    | "unset"
+            ));
         if !keep_prefix_assigns {
             for (k, prev, was_unexp) in temp_saved.into_iter().rev() {
                 if was_unexp {
@@ -1891,6 +2153,121 @@ impl<'a> EvalState<'a> {
         };
         let args = &words[1..];
 
+        if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
+            self.budget.enter_recursion().map_err(EvalError::Budget)?;
+            let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
+            let caller_frame = self.capture_caller_frame(cmd);
+            self.caller_frames.insert(0, caller_frame);
+            self.func_stack.insert(0, cmd.to_string());
+            self.sync_funcname();
+            self.local_scopes.push(BTreeMap::new());
+            let mut snap = BTreeMap::new();
+            if let Some(&v) = self.trap_versions.get("ERR") {
+                snap.insert("ERR".to_string(), v);
+            }
+            if let Some(&v) = self.trap_versions.get("DEBUG") {
+                snap.insert("DEBUG".to_string(), v);
+            }
+            if let Some(&v) = self.trap_versions.get("RETURN") {
+                snap.insert("RETURN".to_string(), v);
+            }
+            self.func_trap_snapshots.push(snap);
+            let cur_cmd = self
+                .env
+                .get("BASH_COMMAND")
+                .cloned()
+                .unwrap_or_else(|| cmd.to_string());
+            let (fn_dbg_out, skip_fn) = self.fire_debug_trap(&cur_cmd);
+            let res = if skip_fn {
+                let _ = self.return_requested.take();
+                Ok(fn_dbg_out)
+            } else {
+                let mut r = self.eval_script(&func_body, stdin);
+                if let Ok(ref mut o) = r {
+                    if !fn_dbg_out.stdout.is_empty() || !fn_dbg_out.stderr.is_empty() {
+                        o.stdout = format!("{}{}", fn_dbg_out.stdout, o.stdout);
+                        o.stderr = format!("{}{}", fn_dbg_out.stderr, o.stderr);
+                    }
+                    self.last_exit = o.exit_code;
+                    if self.exit_requested.is_none() {
+                        self.fire_return_trap(o);
+                        if let Some(ret_code) = self.return_requested.take() {
+                            o.exit_code = ret_code;
+                        }
+                        self.last_exit = o.exit_code;
+                    } else if self.explicit_exit {
+                        self.run_exit_trap_if_needed(o);
+                    }
+                }
+                r
+            };
+            let _ = self.func_trap_snapshots.pop();
+            let local_frame = self.local_scopes.pop().unwrap_or_default();
+            for (k, orig) in &local_frame {
+                if k.starts_with("__") || k.contains('[') {
+                    continue;
+                }
+                let prefix = format!("{k}[");
+                let arr_keys: Vec<String> = self
+                    .env
+                    .keys()
+                    .filter(|ek| ek.starts_with(&prefix))
+                    .cloned()
+                    .collect();
+                for ak in arr_keys {
+                    self.env.remove(&ak);
+                }
+                self.env.remove(&format!("__attr__{k}"));
+                self.env.remove(&format!("__assoc__{k}"));
+                self.env.remove(&format!("__nameref__{k}"));
+                self.env.remove(&format!("__declared__{k}"));
+                self.env.remove(&format!("__keys__{k}"));
+                match orig {
+                    Some(v) => {
+                        self.env.insert(k.clone(), v.clone());
+                    }
+                    None => {
+                        self.env.remove(k);
+                    }
+                }
+            }
+            for (k, orig) in local_frame {
+                if !k.starts_with("__") && !k.contains('[') {
+                    continue;
+                }
+                match orig {
+                    Some(v) => {
+                        self.env.insert(k, v);
+                    }
+                    None => {
+                        self.env.remove(&k);
+                    }
+                }
+            }
+            let mut out = res;
+            if let Ok(ref mut o) = out
+                && self.exit_requested.is_some()
+                && !self.explicit_exit
+            {
+                self.run_exit_trap_if_needed(o);
+            }
+            self.pos_args = prev_args;
+            if !self.caller_frames.is_empty() {
+                self.caller_frames.remove(0);
+            }
+            if !self.func_stack.is_empty() {
+                self.func_stack.remove(0);
+            }
+            self.sync_funcname();
+            self.budget.leave_recursion();
+            let out = out?;
+            self.env.insert(
+                "__last_arg".to_string(),
+                args.last().unwrap_or(cmd).clone(),
+            );
+            return Ok(out);
+        }
+
         match cmd.as_str() {
             "exit" => {
                 let offset = if args.first().map(String::as_str) == Some("--") {
@@ -1917,8 +2294,9 @@ impl<'a> EvalState<'a> {
                         }
                     }
                 } else {
-                    self.last_exit
+                    self.exit_trap_status.unwrap_or(self.last_exit)
                 };
+                self.explicit_exit = true;
                 self.exit_requested = Some(code);
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
@@ -2124,11 +2502,7 @@ impl<'a> EvalState<'a> {
                         exit_code: 126,
                     });
                 }
-                if let Err(syn_err) = validate_basic_syntax(&joined) {
-                    return Err(EvalError::Syntax(syn_err));
-                }
-                let ast = parse_script(&joined).map_err(EvalError::Syntax)?;
-                let out = self.eval_script(&ast, stdin);
+                let out = self.eval_script_units(&joined, stdin);
                 self.env.insert(
                     "__last_arg".to_string(),
                     args.last().unwrap_or(cmd).clone(),
@@ -2194,7 +2568,6 @@ impl<'a> EvalState<'a> {
                                 )));
                             }
                             let script_str = String::from_utf8_lossy(&bytes);
-                            let ast = parse_script(&script_str).map_err(EvalError::Syntax)?;
                             let saved_args = if src_args.len() > 1 {
                                 Some(std::mem::replace(&mut self.pos_args, src_args[1..].to_vec()))
                             } else {
@@ -2206,23 +2579,48 @@ impl<'a> EvalState<'a> {
                             let prev_line = self.current_line;
                             self.current_line = 1;
                             self.env.insert("__lineno".to_string(), "1".to_string());
-                            let eval_res = self.eval_script(&ast, stdin);
+                            self.source_depth += 1;
+                            self.source_debug_snapshots.push((
+                                self.traps.get("DEBUG").cloned(),
+                                self.trap_versions.get("DEBUG").copied(),
+                            ));
+                            let eval_res = self.eval_script_units(&script_str, stdin);
+                            if let Some((prev_dbg, prev_ver)) = self.source_debug_snapshots.pop()
+                                && let Some(handler) = prev_dbg
+                                && !self.traps.contains_key("DEBUG")
+                            {
+                                self.traps.insert("DEBUG".to_string(), handler);
+                                if let Some(v) = prev_ver {
+                                    self.trap_versions.insert("DEBUG".to_string(), v);
+                                }
+                            }
+                            self.source_depth = self.source_depth.saturating_sub(1);
                             self.current_line = prev_line;
                             self.env.insert("__lineno".to_string(), prev_line.to_string());
                             self.script_name = prev_script_name;
                             if !self.caller_frames.is_empty() {
                                 self.caller_frames.remove(0);
                             }
+                            let mut out = match eval_res {
+                                Ok(o) => o,
+                                Err(e) => {
+                                    if let Some(prev) = saved_args {
+                                        self.pos_args = prev;
+                                    }
+                                    return Err(e);
+                                }
+                            };
+                            self.last_exit = out.exit_code;
+                            if self.exit_requested.is_none() {
+                                self.fire_return_trap(&mut out);
+                                if let Some(ret_code) = self.return_requested.take() {
+                                    out.exit_code = ret_code;
+                                }
+                                self.last_exit = out.exit_code;
+                            }
                             if let Some(prev) = saved_args {
                                 self.pos_args = prev;
                             }
-                            let mut out = eval_res?;
-                            self.last_exit = out.exit_code;
-                            self.fire_return_trap(&mut out);
-                            if let Some(ret_code) = self.return_requested.take() {
-                                out.exit_code = ret_code;
-                            }
-                            self.last_exit = out.exit_code;
                             self.env.insert(
                                 "__last_arg".to_string(),
                                 args.last().unwrap_or(cmd).clone(),
@@ -2479,7 +2877,7 @@ impl<'a> EvalState<'a> {
                 return Ok(self.builtin_disown(args));
             }
             "bash" | "sh" => {
-                return self.run_sub_shell_command(args, stdin);
+                return self.run_sub_shell_command(cmd, args, stdin);
             }
             _ => {}
         }
@@ -2508,95 +2906,6 @@ impl<'a> EvalState<'a> {
                     exit_code: 1,
                 }),
             };
-        }
-
-        if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
-            self.budget.enter_recursion().map_err(EvalError::Budget)?;
-            let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
-            let caller_frame = self.capture_caller_frame(cmd);
-            self.caller_frames.insert(0, caller_frame);
-            self.func_stack.insert(0, cmd.to_string());
-            self.sync_funcname();
-            self.local_scopes.push(BTreeMap::new());
-            let prev_return_trap = self.traps.get("RETURN").cloned();
-            let res = self.eval_script(&func_body, stdin);
-            let out = match res {
-                Ok(mut o) => {
-                    self.last_exit = o.exit_code;
-                    self.fire_return_trap(&mut o);
-                    if let Some(ret_code) = self.return_requested.take() {
-                        o.exit_code = ret_code;
-                    }
-                    self.last_exit = o.exit_code;
-                    Ok(o)
-                }
-                Err(e) => Err(e),
-            };
-            let local_frame = self.local_scopes.pop().unwrap_or_default();
-            for (k, orig) in &local_frame {
-                if k.starts_with("__") || k.contains('[') {
-                    continue;
-                }
-                let prefix = format!("{k}[");
-                let arr_keys: Vec<String> = self
-                    .env
-                    .keys()
-                    .filter(|ek| ek.starts_with(&prefix))
-                    .cloned()
-                    .collect();
-                for ak in arr_keys {
-                    self.env.remove(&ak);
-                }
-                self.env.remove(&format!("__attr__{k}"));
-                self.env.remove(&format!("__assoc__{k}"));
-                self.env.remove(&format!("__nameref__{k}"));
-                self.env.remove(&format!("__declared__{k}"));
-                self.env.remove(&format!("__keys__{k}"));
-                match orig {
-                    Some(v) => {
-                        self.env.insert(k.clone(), v.clone());
-                    }
-                    None => {
-                        self.env.remove(k);
-                    }
-                }
-            }
-            for (k, orig) in local_frame {
-                if !k.starts_with("__") && !k.contains('[') {
-                    continue;
-                }
-                match orig {
-                    Some(v) => {
-                        self.env.insert(k, v);
-                    }
-                    None => {
-                        self.env.remove(&k);
-                    }
-                }
-            }
-            self.pos_args = prev_args;
-            if !self.caller_frames.is_empty() {
-                self.caller_frames.remove(0);
-            }
-            if !self.func_stack.is_empty() {
-                self.func_stack.remove(0);
-            }
-            self.sync_funcname();
-            self.budget.leave_recursion();
-            let out = out?;
-            match prev_return_trap {
-                Some(t) => {
-                    self.traps.insert("RETURN".to_string(), t);
-                }
-                None => {
-                    self.traps.remove("RETURN");
-                }
-            }
-            self.env.insert(
-                "__last_arg".to_string(),
-                args.last().unwrap_or(cmd).clone(),
-            );
-            return Ok(out);
         }
 
         if let Some(b_out) = try_run_builtin(cmd, args, stdin, self.cwd, self.env, self.fs) {
@@ -2638,6 +2947,16 @@ impl<'a> EvalState<'a> {
                     fd_table,
                     in_fds: BTreeMap::new(),
                     traps: BTreeMap::new(),
+                    inactive_traps: BTreeMap::new(),
+                    trap_versions: BTreeMap::new(),
+                    next_trap_version: 1,
+                    func_trap_snapshots: Vec::new(),
+                    source_debug_snapshots: Vec::new(),
+                    source_depth: 0,
+                    exit_trap_status: None,
+                    exit_trap_ran: false,
+                    explicit_exit: false,
+                    sub_exit: None,
                     pos_args: Vec::new(),
                     last_exit: 0,
                     errexit: false,
@@ -2683,7 +3002,21 @@ impl<'a> EvalState<'a> {
             let mut sub_cwd = self.cwd.clone();
             let mut sub_env = self.env.clone();
             sub_env.insert("0".to_string(), cmd.clone());
+            sub_env.remove("__set_errtrace");
+            sub_env.remove("__set_functrace");
+            sub_env.remove("__shopt_extdebug");
+            for (k, v) in &self.traps {
+                if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
+                    sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
+                }
+            }
             let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+            sub.traps
+                .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
+            sub.inactive_traps.clear();
+            sub.func_trap_snapshots.clear();
+            sub.source_debug_snapshots.clear();
+            sub.source_depth = 0;
             sub.pos_args = args.to_vec();
             sub.caller_frames.clear();
             sub.caller_top_level = true;
@@ -3242,6 +3575,7 @@ impl<'a> EvalState<'a> {
 
     fn run_sub_shell_command(
         &mut self,
+        invoked_cmd: &str,
         args: &[String],
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
@@ -3325,6 +3659,19 @@ impl<'a> EvalState<'a> {
 
         let mut sub_cwd = self.cwd.clone();
         let mut sub_env = self.env.clone();
+        if invoked_cmd == "sh" {
+            sub_env.insert("__set_posix".to_string(), "1".to_string());
+        } else {
+            sub_env.remove("__set_posix");
+        }
+        sub_env.remove("__set_errtrace");
+        sub_env.remove("__set_functrace");
+        sub_env.remove("__shopt_extdebug");
+        for (k, v) in &self.traps {
+            if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
+                sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
+            }
+        }
         let unexp_vars: Vec<String> = sub_env
             .keys()
             .filter_map(|k| k.strip_prefix("__unexported__").map(|v| v.to_string()))
@@ -3338,6 +3685,12 @@ impl<'a> EvalState<'a> {
             idx += 1;
         }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+        sub.traps
+            .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
+        sub.inactive_traps.clear();
+        sub.func_trap_snapshots.clear();
+        sub.source_debug_snapshots.clear();
+        sub.source_depth = 0;
         sub.func_stack.clear();
         sub.sync_funcname();
         sub.env.remove("BASH_SUBSHELL");
@@ -3369,21 +3722,53 @@ impl<'a> EvalState<'a> {
     }
 
     fn fire_return_trap(&mut self, out: &mut BuiltinOutcome) {
-        if !self.in_trap
-            && let Some(ret_handler) = self.traps.get("RETURN").cloned()
-            && !ret_handler.is_empty()
+        if self.in_trap {
+            return;
+        }
+        let Some(ret_handler) = self.traps.get("RETURN").cloned() else {
+            return;
+        };
+        if ret_handler.is_empty() {
+            return;
+        }
+        let functrace = self
+            .env
+            .get("__set_functrace")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            || self
+                .env
+                .get("__shopt_extdebug")
+                .map(|v| v == "1")
+                .unwrap_or(false);
+        let cur_ver = self.trap_versions.get("RETURN").copied();
+        if !self.func_stack.is_empty()
+            && !functrace
+            && self
+                .func_trap_snapshots
+                .last()
+                .and_then(|m| m.get("RETURN").copied())
+                == cur_ver
         {
-            let saved_exit = out.exit_code;
+            return;
+        }
+        let saved_exit = out.exit_code;
+        let orig_return = self.return_requested.take();
+        self.last_exit = saved_exit;
+        self.in_trap = true;
+        let mut empty_in = String::new();
+        if let Ok(trap_out) = self.eval_script_units(&ret_handler, &mut empty_in) {
+            out.stdout.push_str(&trap_out.stdout);
+            out.stderr.push_str(&trap_out.stderr);
+        }
+        self.in_trap = false;
+        if let Some(exit_code) = self.exit_requested {
+            out.exit_code = exit_code;
+            self.last_exit = exit_code;
+        } else if self.return_requested.is_some() {
             self.last_exit = saved_exit;
-            self.in_trap = true;
-            if let Ok(trap_ast) = parse_script(&ret_handler) {
-                let mut empty_in = String::new();
-                if let Ok(trap_out) = self.eval_script(&trap_ast, &mut empty_in) {
-                    out.stdout.push_str(&trap_out.stdout);
-                    out.stderr.push_str(&trap_out.stderr);
-                }
-            }
-            self.in_trap = false;
+        } else {
+            self.return_requested = orig_return;
             out.exit_code = saved_exit;
             self.last_exit = saved_exit;
         }
@@ -3602,30 +3987,6 @@ impl<'a> EvalState<'a> {
             stderr: String::new(),
             exit_code: 0,
         }
-    }
-
-    fn alias_chain_has_trailing_ws(&self, start_name: &str) -> bool {
-        let mut visited = self.active_aliases.clone();
-        let mut curr = start_name.to_string();
-        let mut trailing = false;
-        while !visited.contains(&curr) {
-            visited.insert(curr.clone());
-            let Some(val) = self.env.get(&format!("__alias__{curr}")) else {
-                break;
-            };
-            if val.ends_with(' ') || val.ends_with('\t') {
-                trailing = true;
-            }
-            let trimmed = val.trim();
-            if !trimmed.is_empty()
-                && !trimmed.contains(|c: char| c.is_whitespace() || "'\"\\$`;|&()<>".contains(c))
-            {
-                curr = trimmed.to_string();
-            } else {
-                break;
-            }
-        }
-        trailing
     }
 
     fn builtin_alias(&mut self, raw_args: &[String]) -> BuiltinOutcome {
@@ -3923,6 +4284,10 @@ impl<'a> EvalState<'a> {
                         format!("__shopt_{name}"),
                         if set_flag { "1" } else { "0" }.to_string(),
                     );
+                    if name == "extdebug" {
+                        self.apply_set_option("errtrace", set_flag);
+                        self.apply_set_option("functrace", set_flag);
+                    }
                 }
             } else {
                 let enabled = self.get_shopt_enabled(name, opt_mode);
@@ -4072,6 +4437,11 @@ impl<'a> EvalState<'a> {
             let mut entries: Vec<(u32, String, String)> = self
                 .traps
                 .iter()
+                .chain(
+                    self.inactive_traps
+                        .iter()
+                        .filter(|(k, _)| !self.traps.contains_key(*k)),
+                )
                 .map(|(k, v)| {
                     let ord = Self::resolve_trap_signal(k).map(|(n, _)| n).unwrap_or(999);
                     (ord, k.clone(), v.clone())
@@ -4098,21 +4468,45 @@ impl<'a> EvalState<'a> {
             };
             let norm = norm_name.to_string();
             if print {
-                if let Some(cmd) = self.traps.get(&norm) {
+                if let Some(cmd) = self
+                    .traps
+                    .get(&norm)
+                    .or_else(|| self.inactive_traps.get(&norm))
+                {
                     out.push_str(&format!(
                         "trap -- '{}' {norm}\n",
                         cmd.replace('\'', "'\\''")
                     ));
                 }
             } else if action_opt.is_none() || action_opt == Some("-") {
+                if self
+                    .env
+                    .get(&format!("__trap_inherited_ignored__{norm}"))
+                    .is_some_and(|v| v == "1")
+                {
+                    continue;
+                }
                 self.env.remove(&format!("__trap_ignored__{norm}"));
                 self.traps.remove(&norm);
+                self.inactive_traps.remove(&norm);
+                self.trap_versions.remove(&norm);
             } else if let Some(action) = action_opt {
+                if self
+                    .env
+                    .get(&format!("__trap_inherited_ignored__{norm}"))
+                    .is_some_and(|v| v == "1")
+                {
+                    continue;
+                }
                 if action.is_empty() {
                     self.env.insert(format!("__trap_ignored__{norm}"), "1".to_string());
                 } else {
                     self.env.remove(&format!("__trap_ignored__{norm}"));
                 }
+                let ver = self.next_trap_version;
+                self.next_trap_version += 1;
+                self.inactive_traps.remove(&norm);
+                self.trap_versions.insert(norm.clone(), ver);
                 self.traps.insert(norm, action.to_string());
             }
         }
@@ -6801,9 +7195,8 @@ impl<'a> EvalState<'a> {
             .unwrap_or(false);
         sub.errexit = inherit_errexit && self.errexit && !self.in_condition;
         sub.fd_table.insert(1, FdTarget::Stdout);
-        let ast = parse_script(cmd_str).map_err(EvalError::Syntax)?;
         let mut sub_in = self.in_fds.remove(&0).unwrap_or_default();
-        let res = sub.eval_script(&ast, &mut sub_in);
+        let res = sub.eval_script_units(cmd_str, &mut sub_in);
         if !sub_in.is_empty() {
             self.in_fds.insert(0, sub_in);
         }
@@ -6821,23 +7214,7 @@ impl<'a> EvalState<'a> {
         if let Some(code) = sub.exit_requested {
             out.exit_code = code;
         }
-        if let Some(exit_handler) = sub.traps.get("EXIT").cloned()
-            && !exit_handler.is_empty()
-        {
-            sub.in_trap = true;
-            sub.exit_requested = None;
-            sub.last_exit = out.exit_code;
-            if let Ok(trap_ast) = parse_script(&exit_handler) {
-                let mut empty_in = String::new();
-                if let Ok(trap_out) = sub.eval_script(&trap_ast, &mut empty_in) {
-                    out.stdout.push_str(&trap_out.stdout);
-                    out.stderr.push_str(&trap_out.stderr);
-                }
-            }
-            if let Some(code) = sub.exit_requested {
-                out.exit_code = code;
-            }
-        }
+        sub.run_exit_trap_if_needed(&mut out);
         if !out.stderr.is_empty() {
             let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
             let mut dummy = BuiltinOutcome {
@@ -6849,6 +7226,7 @@ impl<'a> EvalState<'a> {
             self.pending_stdout.push_str(&dummy.stdout);
             self.pending_stderr.push_str(&dummy.stderr);
         }
+        self.sub_exit = Some(out.exit_code);
         self.last_exit = out.exit_code;
         Ok(out.stdout)
     }
@@ -8282,5 +8660,24 @@ mod tests {
             .unwrap();
         assert_eq!(out.exit_code, 0);
         assert_eq!(out.stdout, "1:0|0:0|0:a+b:b|1:0:0:3|keep-last\n");
+    }
+
+    #[test]
+    fn unit_eval_traps_extdebug_errtrace_functrace_and_parse_time_aliases() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let out = state
+            .eval_script_str(
+                "shopt -s expand_aliases\nalias greet='printf \"hi;\"'\nf() {\n  greet\n}\nunalias greet\nf\nshopt -s extdebug\ng() { trap 'trap - DEBUG; (exit 2)' DEBUG; printf bad; }\ng\nprintf 'g:%s;' \"$?\"\nh() { trap 'trap - RETURN; return 8' RETURN; return 7; }\nh\nprintf 'h:%s' \"$?\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(out.stdout, "hi;g:2;h:8");
     }
 }

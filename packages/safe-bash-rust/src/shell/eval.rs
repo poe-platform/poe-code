@@ -8,7 +8,8 @@ use crate::shell::builtins::{
 use crate::shell::expand::{
     apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
-    expand_tilde_prefix, get_var_meta_info, glob_match_ext, has_glob_meta, resolve_nameref_base,
+    expand_tilde_prefix, get_var_meta_info, glob_match_ext, glob_match_full,
+    has_glob_meta_ext, resolve_nameref_base,
     sync_array_metadata, sync_getopts_env,
     try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
@@ -849,7 +850,7 @@ impl<'a> EvalState<'a> {
                     c,
                     CommandNode::Simple(_)
                         | CommandNode::Subshell { .. }
-                        | CommandNode::ArithCommand(_)
+                        | CommandNode::ArithCommand { .. }
                 )
             });
 
@@ -876,7 +877,7 @@ impl<'a> EvalState<'a> {
                             c,
                             CommandNode::Simple(_)
                                 | CommandNode::Subshell { .. }
-                                | CommandNode::ArithCommand(_)
+                                | CommandNode::ArithCommand { .. }
                         )
                     });
                 let prev_c = self.in_condition;
@@ -997,11 +998,11 @@ impl<'a> EvalState<'a> {
                 pipe.commands[0],
                 CommandNode::Simple(_)
                     | CommandNode::Subshell { .. }
-                    | CommandNode::ArithCommand(_)
+                    | CommandNode::ArithCommand { .. }
             );
             if publishes {
                 let is_cond_or_arith = match &pipe.commands[0] {
-                    CommandNode::ArithCommand(_) => true,
+                    CommandNode::ArithCommand { .. } => true,
                     CommandNode::Simple(s) => s.words.first().is_some_and(|w| w == "[["),
                     _ => false,
                 };
@@ -1034,7 +1035,7 @@ impl<'a> EvalState<'a> {
                         parts.extend(s.words.iter().cloned());
                         self.env.insert("BASH_COMMAND".to_string(), parts.join(" "));
                     }
-                    CommandNode::ArithCommand(expr) => {
+                    CommandNode::ArithCommand { expr, .. } => {
                         self.env
                             .insert("BASH_COMMAND".to_string(), format!("(({expr}))"));
                     }
@@ -1803,6 +1804,11 @@ impl<'a> EvalState<'a> {
                         .get("__shopt_nocasematch")
                         .map(|v| v == "1")
                         .unwrap_or(false);
+                    let extglob = self
+                        .env
+                        .get("__shopt_extglob")
+                        .map(|v| v == "1")
+                        .unwrap_or(false);
                     let mut force_exec = false;
 
                     for (pats, body, term) in arms {
@@ -1811,17 +1817,22 @@ impl<'a> EvalState<'a> {
                         if !matched {
                             for p in pats {
                                 let exp_p = self.expand_word_for_pattern(p)?;
-                                if glob_match_ext(&exp_p, &target, nocase) {
+                                if glob_match_full(&exp_p, &target, nocase, extglob) {
                                     matched = true;
                                     break;
                                 }
                             }
                         }
                         if matched {
-                            let arm_out = self.eval_script(body, eff_stdin)?;
-                            stdout.push_str(&arm_out.stdout);
-                            stderr.push_str(&arm_out.stderr);
-                            code = arm_out.exit_code;
+                            if body.lists.is_empty() {
+                                code = 0;
+                                self.last_exit = 0;
+                            } else {
+                                let arm_out = self.eval_script(body, eff_stdin)?;
+                                stdout.push_str(&arm_out.stdout);
+                                stderr.push_str(&arm_out.stderr);
+                                code = arm_out.exit_code;
+                            }
                             match term {
                                 CaseTerminator::Break => break,
                                 CaseTerminator::Fallthrough => {
@@ -1847,29 +1858,61 @@ impl<'a> EvalState<'a> {
                 self.restore_redirects(saved_fds, saved_in);
                 Ok(out)
             }
-            CommandNode::ArithCommand(expr) => {
+            CommandNode::ArithCommand { expr, redirects } => {
+                let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
+                    self.setup_redirects(redirects, stdin)?;
+                if let Some(err_out) = redir_err {
+                    self.restore_redirects(saved_fds, saved_in);
+                    return Ok(err_out);
+                }
                 let arith_desc = format!("(({expr}))");
                 let (dbg_out, skip_cmd) = self.fire_debug_trap(&arith_desc);
                 if skip_cmd {
-                    return Ok(dbg_out);
+                    let mut out = dbg_out;
+                    if let Some(dfd) = dup_fd {
+                        self.in_fds.insert(dfd, local_stdin);
+                    }
+                    self.route_outcome(&mut out);
+                    self.restore_redirects(saved_fds, saved_in);
+                    return Ok(out);
                 }
-                let exp = self.expand_heredoc_text(expr)?;
+                let exp = match self.expand_heredoc_text(expr) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        self.restore_redirects(saved_fds, saved_in);
+                        return Err(e);
+                    }
+                };
+                let mut out = BuiltinOutcome {
+                    stdout: dbg_out.stdout,
+                    stderr: dbg_out.stderr,
+                    exit_code: 0,
+                };
+                if let Some(dfd) = dup_fd {
+                    self.in_fds.insert(dfd, local_stdin);
+                }
+                self.route_outcome(&mut out);
+                self.restore_redirects(saved_fds, saved_in);
                 match eval_arith(&exp, self.env) {
-                    Ok(val) => Ok(BuiltinOutcome {
-                        stdout: dbg_out.stdout,
-                        stderr: dbg_out.stderr,
-                        exit_code: if val != 0 { 0 } else { 1 },
-                    }),
+                    Ok(val) => {
+                        out.exit_code = if val != 0 { 0 } else { 1 };
+                        Ok(out)
+                    }
                     Err(e) => {
                         if let Some(nu) = e.strip_prefix("__nounset__") {
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
                         self.env.insert("__arith_diag".to_string(), "1".to_string());
-                        Ok(BuiltinOutcome {
-                            stdout: dbg_out.stdout,
-                            stderr: format!("{}((: {e}\n", dbg_out.stderr),
+                        let mut diag_out = BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("((: {e}\n"),
                             exit_code: 1,
-                        })
+                        };
+                        self.route_outcome(&mut diag_out);
+                        out.stdout.push_str(&diag_out.stdout);
+                        out.stderr.push_str(&diag_out.stderr);
+                        out.exit_code = 1;
+                        Ok(out)
                     }
                 }
             }
@@ -9279,7 +9322,7 @@ impl<'a> EvalState<'a> {
             for ch in s.chars() {
                 if matches!(
                     ch,
-                    '\\' | '*' | '?' | '[' | ']' | '(' | ')' | '|' | '@' | '+' | '!'
+                    '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '@' | '+' | '!' | ':'
                 ) {
                     out.push('\\');
                 }
@@ -9394,8 +9437,13 @@ impl<'a> EvalState<'a> {
             .get("__shopt_failglob")
             .map(|v| v == "1")
             .unwrap_or(false);
+        let extglob = self
+            .env
+            .get("__shopt_extglob")
+            .map(|v| v == "1")
+            .unwrap_or(false);
         for field in fields {
-            if !has_glob_meta(&field.pattern) {
+            if !has_glob_meta_ext(&field.pattern, extglob) {
                 globbed.push(field.fragments);
                 continue;
             }
@@ -9406,14 +9454,7 @@ impl<'a> EvalState<'a> {
                 self.fs,
                 self.env,
             );
-            if failglob
-                && (expanded.is_empty()
-                    || (expanded.len() == 1
-                        && expanded[0] == field.fragments
-                        && !self
-                            .fs
-                            .exists(&resolve_posix_path(self.cwd, &field.fragments))))
-            {
+            if failglob && expanded.is_empty() {
                 return Err(EvalError::Syntax(format!(
                     "bash: no match: {}",
                     field.fragments
@@ -11765,7 +11806,7 @@ fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
         CommandNode::Group { body, .. } => {
             format!("{{\n{nested}{}\n{indent}}}", format_script_node(body, &nested, false))
         }
-        CommandNode::ArithCommand(expr) => format!("(( {expr} ))"),
+        CommandNode::ArithCommand { expr, .. } => format!("(( {expr} ))"),
         CommandNode::FuncDef { name, body } => format_function_display(name, body),
         CommandNode::If {
             branches,
@@ -12462,5 +12503,60 @@ printf 'rc=%d:%d|keep_a=%s|keep_len=%d|target=%s\n' "$u_rc" "$f_rc" "${keep@a}" 
             .unwrap();
         assert_eq!(r3.exit_code, 0);
         assert_eq!(r3.stdout, "rc=0:1|keep_a=a|keep_len=0|target=alive\n");
+    }
+
+    #[test]
+    fn unit_eval_globignore_trailing_slash_broken_symlinks_case_and_arith_redirects() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/work".to_string();
+        vfs.mkdir_all("/work").unwrap();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let r1 = state
+            .eval_script_str(
+                r#"mkdir -p sub
+touch a.txt b.log .hidden
+ln -s /nonexistent dangling
+ln -s sub linkdir
+ln -s . sub/loop
+echo "dirs:" */
+echo "all:" *
+GLOBIGNORE='*.log:dangling:linkdir'
+echo "gi:" *
+unset GLOBIGNORE
+shopt -s globstar
+echo "gs:" sub/**"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r1.exit_code, 0);
+        assert_eq!(
+            r1.stdout,
+            "dirs: linkdir/ sub/\nall: a.txt b.log dangling linkdir sub\ngi: .hidden a.txt sub\ngs: sub/ sub/loop\n"
+        );
+
+        let r2 = state
+            .eval_script_str(
+                r#"{ (( 08 )); } 2>/dev/null
+rc_err="$?"
+(( x = $(echo sub_err >&2; echo 42) )) 2>sub.err
+false
+case fi in
+  fi) ;;
+esac
+rc_empty_arm="$?"
+case done in
+  done) out=$(echo case) ;;
+esac
+printf 'rc=%d:%d|x=%s|sub=%s|out=%s\n' "$rc_err" "$rc_empty_arm" "$x" "$(cat sub.err)" "$out""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r2.exit_code, 0);
+        assert_eq!(r2.stderr, "");
+        assert_eq!(r2.stdout, "rc=1:0|x=42|sub=sub_err|out=case\n");
     }
 }

@@ -83,7 +83,10 @@ pub enum CommandNode {
         arms: Vec<(Vec<String>, Script, CaseTerminator)>,
         redirects: Vec<Redirect>,
     },
-    ArithCommand(String),
+    ArithCommand {
+        expr: String,
+        redirects: Vec<Redirect>,
+    },
     FuncDef {
         name: String,
         body: Script,
@@ -123,13 +126,131 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
     let mut if_depth = 0i32;
     let mut do_depth = 0i32;
     let mut case_depth = 0i32;
-    let mut case_paren_stack: Vec<i32> = Vec::new();
+    // (base_paren_depth, state: 0=after case, 1=after word, 2=expecting pat/esac, 3=in pat, 4=in arm body)
+    let mut case_stack: Vec<(i32, u8)> = Vec::new();
     let mut paren_depth = 0i32;
     let mut brace_depth = 0i32;
 
     let mut at_cmd_start = true;
     let mut for_state = 0u8; // 0: none, 1: after for/select, 2: after var, 3: in word list
-    for tok in tokens {
+    let mut idx = 0usize;
+    while idx < tokens.len() {
+        if let Some((base_paren, state)) = case_stack.last_mut()
+            && paren_depth == *base_paren
+        {
+            match *state {
+                0 => {
+                    if matches!(tokens.get(idx), Some(Token::Word(_))) {
+                        *state = 1;
+                        at_cmd_start = false;
+                        idx += 1;
+                        continue;
+                    }
+                }
+                1 => {
+                    match tokens.get(idx) {
+                        Some(Token::Newline) => {
+                            at_cmd_start = false;
+                            idx += 1;
+                            continue;
+                        }
+                        Some(Token::Word(w)) if w == "in" => {
+                            *state = 2;
+                            at_cmd_start = false;
+                            idx += 1;
+                            continue;
+                        }
+                        _ => {}
+                    }
+                }
+                2 => {
+                    match tokens.get(idx) {
+                        Some(Token::Newline) => {
+                            at_cmd_start = false;
+                            idx += 1;
+                            continue;
+                        }
+                        Some(Token::LParen) => {
+                            *state = 3;
+                            paren_depth += 1;
+                            at_cmd_start = false;
+                            idx += 1;
+                            continue;
+                        }
+                        Some(Token::Word(w)) => {
+                            if w == "esac" {
+                                case_depth -= 1;
+                                case_stack.pop();
+                                at_cmd_start = false;
+                            } else {
+                                *state = 3;
+                                at_cmd_start = false;
+                            }
+                            idx += 1;
+                            continue;
+                        }
+                        _ => {}
+                    }
+                }
+                3 => {
+                    match tokens.get(idx) {
+                        Some(Token::RParen) => {
+                            *state = 4;
+                            at_cmd_start = true;
+                            idx += 1;
+                            continue;
+                        }
+                        _ => {
+                            at_cmd_start = false;
+                            idx += 1;
+                            continue;
+                        }
+                    }
+                }
+                4 => {
+                    if matches!(tokens.get(idx), Some(Token::Semi))
+                        && matches!(tokens.get(idx + 1), Some(Token::Semi))
+                    {
+                        *state = 2;
+                        for_state = 0;
+                        at_cmd_start = false;
+                        if matches!(tokens.get(idx + 2), Some(Token::Background)) {
+                            idx += 3;
+                        } else {
+                            idx += 2;
+                        }
+                        continue;
+                    }
+                    if matches!(tokens.get(idx), Some(Token::Semi))
+                        && matches!(tokens.get(idx + 1), Some(Token::Background))
+                    {
+                        *state = 2;
+                        for_state = 0;
+                        at_cmd_start = false;
+                        idx += 2;
+                        continue;
+                    }
+                }
+                _ => {}
+            }
+        } else if let Some((base_paren, state)) = case_stack.last_mut()
+            && *state == 3
+            && paren_depth == *base_paren + 1
+        {
+            if matches!(tokens.get(idx), Some(Token::RParen)) {
+                paren_depth -= 1;
+                *state = 4;
+                at_cmd_start = true;
+                idx += 1;
+                continue;
+            }
+            at_cmd_start = false;
+            idx += 1;
+            continue;
+        }
+
+        let tok = &tokens[idx];
+        idx += 1;
         match tok {
             Token::Newline => {
                 if for_state == 2 {
@@ -149,14 +270,14 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                 at_cmd_start = true;
             }
             Token::RParen => {
-                if case_depth > 0 && case_paren_stack.last().copied() == Some(paren_depth) {
+                if case_depth > 0 && case_stack.last().map(|(bp, _)| *bp) == Some(paren_depth) {
                     at_cmd_start = true;
                 } else {
                     paren_depth -= 1;
                     if paren_depth < 0 {
                         return Err("Syntax error: unexpected `)`".to_string());
                     }
-                    if case_depth > 0 && case_paren_stack.last().copied() == Some(paren_depth) {
+                    if case_depth > 0 && case_stack.last().map(|(bp, _)| *bp) == Some(paren_depth) {
                         at_cmd_start = true;
                     }
                 }
@@ -218,12 +339,12 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                         }
                         "case" => {
                             case_depth += 1;
-                            case_paren_stack.push(paren_depth);
+                            case_stack.push((paren_depth, 0));
                             at_cmd_start = false;
                         }
                         "esac" => {
                             case_depth -= 1;
-                            case_paren_stack.pop();
+                            case_stack.pop();
                             if case_depth < 0 {
                                 return Err("Syntax error: unexpected `esac`".to_string());
                             }
@@ -834,8 +955,11 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 }
                 *pos += 1;
             }
-            let _ = parse_trailing_redirects(tokens, pos)?;
-            return Ok(Some(CommandNode::ArithCommand(expr_parts.join(" "))));
+            let redirects = parse_trailing_redirects(tokens, pos)?;
+            return Ok(Some(CommandNode::ArithCommand {
+                expr: expr_parts.join(" "),
+                redirects,
+            }));
         }
         *pos += 1;
         let body = parse_tokens(tokens, pos, &[])?;
@@ -1051,14 +1175,44 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                     let mut arm_tokens: Vec<Token> = (1..token_line(tokens, *pos)).map(|_| Token::Newline).collect();
                     let mut term = CaseTerminator::Break;
                     let mut nested_case_depth = 0usize;
+                    let mut arm_at_cmd_start = true;
                     while *pos < tokens.len() {
-                        if is_stop_word(tokens.get(*pos), &["case"]) {
+                        if arm_at_cmd_start && is_stop_word(tokens.get(*pos), &["case"]) {
                             nested_case_depth += 1;
+                            arm_at_cmd_start = false;
                         } else if is_stop_word(tokens.get(*pos), &["esac"]) {
                             if nested_case_depth == 0 {
                                 break;
                             }
                             nested_case_depth -= 1;
+                            arm_at_cmd_start = false;
+                        } else {
+                            match tokens.get(*pos) {
+                                Some(
+                                    Token::Newline
+                                    | Token::Semi
+                                    | Token::Pipe
+                                    | Token::AndIf
+                                    | Token::OrIf
+                                    | Token::Background
+                                    | Token::LParen
+                                    | Token::RParen,
+                                ) => {
+                                    arm_at_cmd_start = true;
+                                }
+                                Some(Token::Word(w))
+                                    if arm_at_cmd_start
+                                        && matches!(
+                                            w.as_str(),
+                                            "if" | "then" | "elif" | "else" | "while" | "until" | "do" | "{" | "!"
+                                        ) =>
+                                {
+                                    arm_at_cmd_start = true;
+                                }
+                                _ => {
+                                    arm_at_cmd_start = false;
+                                }
+                            }
                         }
                         if nested_case_depth == 0 {
                             if matches!(tokens.get(*pos), Some(Token::Semi)) && matches!(tokens.get(*pos + 1), Some(Token::Semi)) {
@@ -1378,5 +1532,27 @@ mod tests {
         let parsed =
             parse_script_with_aliases("WHEN true; THEN FOO=1 pfx word; END", &aliases, 0).unwrap();
         assert_eq!(parsed.lists.len(), 1);
+    }
+
+    #[test]
+    fn unit_parse_case_reserved_word_patterns_and_arith_command_redirects() {
+        let script = r#"
+            (( x = 42 )) 2>/dev/null >out.txt
+            case "$kw" in
+                fi) echo case ;;
+                done) echo done_arm ;;
+                (then|else) ;;
+            esac
+        "#;
+        validate_basic_syntax(script).unwrap();
+        let parsed = parse_script(script).unwrap();
+        assert_eq!(parsed.lists.len(), 2);
+        match &parsed.lists[0].first.commands[0] {
+            CommandNode::ArithCommand { expr, redirects } => {
+                assert_eq!(expr.trim(), "x = 42");
+                assert_eq!(redirects.len(), 2);
+            }
+            other => panic!("expected ArithCommand, got {other:?}"),
+        }
     }
 }

@@ -301,7 +301,12 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     let mut depth = 1usize;
                     while i < chars.len() && depth > 0 {
                         let c = chars[i];
-                        if c == '\'' {
+                        if c == '\\' && i + 1 < chars.len() {
+                            current.push(c);
+                            current.push(chars[i + 1]);
+                            i += 2;
+                            continue;
+                        } else if c == '\'' {
                             current.push(c);
                             i += 1;
                             while i < chars.len() {
@@ -326,6 +331,49 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                                 } else if dc == '"' {
                                     break;
                                 }
+                            }
+                            continue;
+                        } else if c == '[' {
+                            current.push(c);
+                            i += 1;
+                            if i < chars.len() && matches!(chars[i], '!' | '^') {
+                                current.push(chars[i]);
+                                i += 1;
+                            }
+                            if i < chars.len() && chars[i] == ']' {
+                                current.push(chars[i]);
+                                i += 1;
+                            }
+                            while i < chars.len() && chars[i] != ']' {
+                                if chars[i] == '\\' && i + 1 < chars.len() {
+                                    current.push(chars[i]);
+                                    current.push(chars[i + 1]);
+                                    i += 2;
+                                    continue;
+                                }
+                                if chars[i] == '[' && chars.get(i + 1) == Some(&':') {
+                                    current.push('[');
+                                    current.push(':');
+                                    i += 2;
+                                    while i + 1 < chars.len()
+                                        && !(chars[i] == ':' && chars[i + 1] == ']')
+                                    {
+                                        current.push(chars[i]);
+                                        i += 1;
+                                    }
+                                    if i + 1 < chars.len() {
+                                        current.push(':');
+                                        current.push(']');
+                                        i += 2;
+                                    }
+                                    continue;
+                                }
+                                current.push(chars[i]);
+                                i += 1;
+                            }
+                            if i < chars.len() && chars[i] == ']' {
+                                current.push(']');
+                                i += 1;
                             }
                             continue;
                         }

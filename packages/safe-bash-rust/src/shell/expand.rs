@@ -2,13 +2,17 @@ use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::{BTreeMap, BTreeSet};
 
 pub fn glob_match(pattern: &str, text: &str) -> bool {
-    glob_match_ext(pattern, text, false)
+    glob_match_full(pattern, text, false, true)
 }
 
 pub fn glob_match_ext(pattern: &str, text: &str, nocase: bool) -> bool {
+    glob_match_full(pattern, text, nocase, true)
+}
+
+pub fn glob_match_full(pattern: &str, text: &str, nocase: bool, extglob: bool) -> bool {
     let p: Vec<char> = pattern.chars().collect();
     let t: Vec<char> = text.chars().collect();
-    glob_match_slice(&p, &t, nocase)
+    glob_match_slice(&p, &t, nocase, extglob)
 }
 
 fn chars_eq(a: char, b: char, nocase: bool) -> bool {
@@ -19,6 +23,37 @@ fn chars_eq(a: char, b: char, nocase: bool) -> bool {
     }
 }
 
+fn skip_bracket_in_pattern(p: &[char], open_bracket_idx: usize) -> Option<usize> {
+    let mut i = open_bracket_idx + 1;
+    if i < p.len() && matches!(p[i], '!' | '^') {
+        i += 1;
+    }
+    if i < p.len() && p[i] == ']' {
+        i += 1;
+    }
+    while i < p.len() {
+        if p[i] == '\\' && i + 1 < p.len() {
+            i += 2;
+            continue;
+        }
+        if p[i] == '[' && p.get(i + 1) == Some(&':') {
+            let mut j = i + 2;
+            while j + 1 < p.len() && !(p[j] == ':' && p[j + 1] == ']') {
+                j += 1;
+            }
+            if j + 1 < p.len() {
+                i = j + 2;
+                continue;
+            }
+        }
+        if p[i] == ']' {
+            return Some(i + 1);
+        }
+        i += 1;
+    }
+    None
+}
+
 fn find_extglob_close(p: &[char], open_paren_idx: usize) -> Option<usize> {
     let mut depth = 0i32;
     let mut i = open_paren_idx;
@@ -26,6 +61,12 @@ fn find_extglob_close(p: &[char], open_paren_idx: usize) -> Option<usize> {
         if p[i] == '\\' && i + 1 < p.len() {
             i += 2;
             continue;
+        }
+        if p[i] == '[' && i > open_paren_idx {
+            if let Some(next_i) = skip_bracket_in_pattern(p, i) {
+                i = next_i;
+                continue;
+            }
         }
         if p[i] == '(' {
             depth += 1;
@@ -53,6 +94,13 @@ fn split_extglob_alts(slice: &[char]) -> Vec<Vec<char>> {
             i += 2;
             continue;
         }
+        if c == '[' {
+            if let Some(next_i) = skip_bracket_in_pattern(slice, i) {
+                cur.extend_from_slice(&slice[i..next_i]);
+                i = next_i;
+                continue;
+            }
+        }
         if c == '(' {
             depth += 1;
         } else if c == ')' {
@@ -69,12 +117,21 @@ fn split_extglob_alts(slice: &[char]) -> Vec<Vec<char>> {
     alts
 }
 
-fn match_extglob_plus(alts: &[Vec<char>], rest_p: &[char], t: &[char], nocase: bool) -> bool {
+fn match_extglob_plus(
+    alts: &[Vec<char>],
+    rest_p: &[char],
+    t: &[char],
+    nocase: bool,
+    extglob: bool,
+) -> bool {
     for split in 1..=t.len() {
         let prefix = &t[..split];
-        if alts.iter().any(|alt| glob_match_slice(alt, prefix, nocase)) {
-            if glob_match_slice(rest_p, &t[split..], nocase)
-                || match_extglob_plus(alts, rest_p, &t[split..], nocase)
+        if alts
+            .iter()
+            .any(|alt| glob_match_slice(alt, prefix, nocase, extglob))
+        {
+            if glob_match_slice(rest_p, &t[split..], nocase, extglob)
+                || match_extglob_plus(alts, rest_p, &t[split..], nocase, extglob)
             {
                 return true;
             }
@@ -83,14 +140,15 @@ fn match_extglob_plus(alts: &[Vec<char>], rest_p: &[char], t: &[char], nocase: b
     false
 }
 
-fn glob_match_slice(p: &[char], t: &[char], nocase: bool) -> bool {
+fn glob_match_slice(p: &[char], t: &[char], nocase: bool, extglob: bool) -> bool {
     let mut pi = 0usize;
     let mut ti = 0usize;
     let mut star_pi: Option<usize> = None;
     let mut star_ti = 0usize;
 
     while ti < t.len() || pi < p.len() {
-        if pi + 1 < p.len()
+        if extglob
+            && pi + 1 < p.len()
             && matches!(p[pi], '?' | '*' | '+' | '@' | '!')
             && p[pi + 1] == '('
             && let Some(close_idx) = find_extglob_close(p, pi + 1)
@@ -101,24 +159,28 @@ fn glob_match_slice(p: &[char], t: &[char], nocase: bool) -> bool {
             let rem_t = &t[ti..];
             let matched = match op {
                 '@' => (0..=rem_t.len()).any(|k| {
-                    alts.iter().any(|a| glob_match_slice(a, &rem_t[..k], nocase))
-                        && glob_match_slice(rest_p, &rem_t[k..], nocase)
+                    alts.iter()
+                        .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob))
+                        && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob)
                 }),
                 '?' => {
-                    glob_match_slice(rest_p, rem_t, nocase)
+                    glob_match_slice(rest_p, rem_t, nocase, extglob)
                         || (0..=rem_t.len()).any(|k| {
-                            alts.iter().any(|a| glob_match_slice(a, &rem_t[..k], nocase))
-                                && glob_match_slice(rest_p, &rem_t[k..], nocase)
+                            alts.iter()
+                                .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob))
+                                && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob)
                         })
                 }
-                '+' => match_extglob_plus(&alts, rest_p, rem_t, nocase),
+                '+' => match_extglob_plus(&alts, rest_p, rem_t, nocase, extglob),
                 '*' => {
-                    glob_match_slice(rest_p, rem_t, nocase)
-                        || match_extglob_plus(&alts, rest_p, rem_t, nocase)
+                    glob_match_slice(rest_p, rem_t, nocase, extglob)
+                        || match_extglob_plus(&alts, rest_p, rem_t, nocase, extglob)
                 }
                 '!' => (0..=rem_t.len()).any(|k| {
-                    !alts.iter().any(|a| glob_match_slice(a, &rem_t[..k], nocase))
-                        && glob_match_slice(rest_p, &rem_t[k..], nocase)
+                    !alts
+                        .iter()
+                        .any(|a| glob_match_slice(a, &rem_t[..k], nocase, extglob))
+                        && glob_match_slice(rest_p, &rem_t[k..], nocase, extglob)
                 }),
                 _ => false,
             };
@@ -200,7 +262,7 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
         idx += 1;
     }
     let mut matched = false;
-    let ch_cmp = if nocase { ch.to_ascii_lowercase() } else { ch };
+    let mut invalid_class = false;
     let mut first = true;
     while idx < p.len() && (first || p[idx] != ']') {
         first = false;
@@ -212,22 +274,26 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
             if end_col + 1 < p.len() {
                 let cls: String = p[idx + 2..end_col].iter().collect();
                 let cls_match = match cls.as_str() {
-                    "space" => ch.is_whitespace(),
-                    "blank" => ch == ' ' || ch == '\t',
-                    "digit" => ch.is_ascii_digit(),
-                    "alpha" => ch.is_ascii_alphabetic(),
-                    "alnum" => ch.is_ascii_alphanumeric(),
-                    "upper" => ch.is_ascii_uppercase() || (nocase && ch.is_ascii_alphabetic()),
-                    "lower" => ch.is_ascii_lowercase() || (nocase && ch.is_ascii_alphabetic()),
-                    "xdigit" => ch.is_ascii_hexdigit(),
-                    "punct" => ch.is_ascii_punctuation(),
-                    "cntrl" => ch.is_ascii_control(),
-                    "graph" => ch.is_ascii_graphic(),
-                    "print" => ch == ' ' || ch.is_ascii_graphic(),
-                    _ => false,
+                    "space" => Some(ch.is_ascii_whitespace()),
+                    "blank" => Some(ch == ' ' || ch == '\t'),
+                    "digit" => Some(ch.is_ascii_digit()),
+                    "alpha" => Some(ch.is_ascii_alphabetic()),
+                    "alnum" => Some(ch.is_ascii_alphanumeric()),
+                    "ascii" => Some(ch.is_ascii()),
+                    "word" => Some(ch.is_ascii_alphanumeric() || ch == '_'),
+                    "upper" => Some(ch.is_ascii_uppercase() || (nocase && ch.is_ascii_alphabetic())),
+                    "lower" => Some(ch.is_ascii_lowercase() || (nocase && ch.is_ascii_alphabetic())),
+                    "xdigit" => Some(ch.is_ascii_hexdigit()),
+                    "punct" => Some(ch.is_ascii_punctuation()),
+                    "cntrl" => Some(ch.is_ascii_control()),
+                    "graph" => Some(ch.is_ascii_graphic()),
+                    "print" => Some(ch == ' ' || ch.is_ascii_graphic()),
+                    _ => None,
                 };
-                if cls_match {
-                    matched = true;
+                match cls_match {
+                    Some(true) => matched = true,
+                    Some(false) => {}
+                    None => invalid_class = true,
                 }
                 idx = end_col + 2;
                 continue;
@@ -238,16 +304,28 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
         } else {
             (p[idx], idx + 1)
         };
-        if next_idx + 1 < p.len() && p[next_idx] == '-' && p[next_idx + 1] != ']' {
+        let next_is_posix_class =
+            p.get(next_idx + 1) == Some(&'[') && p.get(next_idx + 2) == Some(&':');
+        if next_idx + 1 < p.len()
+            && p[next_idx] == '-'
+            && p[next_idx + 1] != ']'
+            && !next_is_posix_class
+        {
             let (end_raw, after_end) = if p[next_idx + 1] == '\\' && next_idx + 2 < p.len() {
                 (p[next_idx + 2], next_idx + 3)
             } else {
                 (p[next_idx + 1], next_idx + 2)
             };
-            let start = if nocase { cur_ch.to_ascii_lowercase() } else { cur_ch };
-            let end = if nocase { end_raw.to_ascii_lowercase() } else { end_raw };
-            if ch_cmp >= start && ch_cmp <= end {
-                matched = true;
+            if cur_ch <= end_raw {
+                let in_range = (ch >= cur_ch && ch <= end_raw)
+                    || (nocase
+                        && ((ch.to_ascii_lowercase() >= cur_ch
+                            && ch.to_ascii_lowercase() <= end_raw)
+                            || (ch.to_ascii_uppercase() >= cur_ch
+                                && ch.to_ascii_uppercase() <= end_raw)));
+                if in_range {
+                    matched = true;
+                }
             }
             idx = after_end;
         } else {
@@ -258,7 +336,11 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
         }
     }
     if idx < p.len() && p[idx] == ']' {
-        Some((if negate { !matched } else { matched }, idx + 1))
+        if invalid_class {
+            Some((false, idx + 1))
+        } else {
+            Some((if negate { !matched } else { matched }, idx + 1))
+        }
     } else {
         None
     }
@@ -1832,45 +1914,61 @@ pub fn expand_parameter_expr(
         }
 
         // Prefix / suffix stripping ##, #, %%, %
+        let extglob = env
+            .get("__shopt_extglob")
+            .map(|v| v == "1")
+            .unwrap_or(false);
         if let Some(pat_raw) = op_rest.strip_prefix("##") {
             let tilded = expand_tilde_prefix(pat_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| strip_prefix_glob(e, &pat, true)).collect();
+                let items: Vec<String> = elems
+                    .iter()
+                    .map(|e| strip_prefix_glob(e, &pat, true, extglob))
+                    .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(strip_prefix_glob(&val, &pat, true));
+            return Ok(strip_prefix_glob(&val, &pat, true, extglob));
         }
         if let Some(pat_raw) = op_rest.strip_prefix('#') {
             let tilded = expand_tilde_prefix(pat_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| strip_prefix_glob(e, &pat, false)).collect();
+                let items: Vec<String> = elems
+                    .iter()
+                    .map(|e| strip_prefix_glob(e, &pat, false, extglob))
+                    .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(strip_prefix_glob(&val, &pat, false));
+            return Ok(strip_prefix_glob(&val, &pat, false, extglob));
         }
         if let Some(pat_raw) = op_rest.strip_prefix("%%") {
             let tilded = expand_tilde_prefix(pat_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| strip_suffix_glob(e, &pat, true)).collect();
+                let items: Vec<String> = elems
+                    .iter()
+                    .map(|e| strip_suffix_glob(e, &pat, true, extglob))
+                    .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(strip_suffix_glob(&val, &pat, true));
+            return Ok(strip_suffix_glob(&val, &pat, true, extglob));
         }
         if let Some(pat_raw) = op_rest.strip_prefix('%') {
             let tilded = expand_tilde_prefix(pat_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded, env, last_exit, pos_args)?;
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| strip_suffix_glob(e, &pat, false)).collect();
+                let items: Vec<String> = elems
+                    .iter()
+                    .map(|e| strip_suffix_glob(e, &pat, false, extglob))
+                    .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(strip_suffix_glob(&val, &pat, false));
+            return Ok(strip_suffix_glob(&val, &pat, false, extglob));
         }
 
         // Pattern replacement //, /
@@ -1882,29 +1980,44 @@ pub fn expand_parameter_expr(
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
             let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, true, nocase)).collect();
+                let items: Vec<String> = elems
+                    .iter()
+                    .map(|e| replace_glob_pattern_full(e, &pat, &rep, true, None, nocase, extglob))
+                    .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(replace_glob_pattern_ext(&val, &pat, &rep, true, nocase));
+            return Ok(replace_glob_pattern_full(
+                &val, &pat, &rep, true, None, nocase, extglob,
+            ));
         }
         if let Some(rest) = op_rest.strip_prefix('/') {
-            let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
-            let tilded_pat = if pat_raw.starts_with('#') || pat_raw.starts_with('%') {
-                pat_raw.to_string()
+            let (anchor, pat_and_rep) = if let Some(after_hash) = rest.strip_prefix('#') {
+                (Some('#'), after_hash)
+            } else if let Some(after_pct) = rest.strip_prefix('%') {
+                (Some('%'), after_pct)
             } else {
-                expand_tilde_prefix(pat_raw, env, false, false)
+                (None, rest)
             };
+            let (pat_raw, rep_raw) = split_first_unescaped_slash(pat_and_rep);
+            let tilded_pat = expand_tilde_prefix(pat_raw, env, false, false);
             let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
             let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, false, nocase)).collect();
+                let items: Vec<String> = elems
+                    .iter()
+                    .map(|e| {
+                        replace_glob_pattern_full(e, &pat, &rep, false, anchor, nocase, extglob)
+                    })
+                    .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(replace_glob_pattern_ext(&val, &pat, &rep, false, nocase));
+            return Ok(replace_glob_pattern_full(
+                &val, &pat, &rep, false, anchor, nocase, extglob,
+            ));
         }
 
         // Case conversion ^^, ^, ,, , (with optional pattern)
@@ -1920,12 +2033,12 @@ pub fn expand_parameter_expr(
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
-                    .map(|w| bash_uppercase_mode(w, p, true, c_mode))
+                    .map(|w| bash_uppercase_mode(w, p, true, c_mode, extglob))
                     .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(bash_uppercase_mode(&val, p, true, c_mode));
+            return Ok(bash_uppercase_mode(&val, p, true, c_mode, extglob));
         }
         if let Some(pat) = op_rest.strip_prefix('^') {
             let pat_exp = if pat.is_empty() {
@@ -1939,12 +2052,12 @@ pub fn expand_parameter_expr(
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
-                    .map(|w| bash_uppercase_mode(w, p, false, c_mode))
+                    .map(|w| bash_uppercase_mode(w, p, false, c_mode, extglob))
                     .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(bash_uppercase_mode(&val, p, false, c_mode));
+            return Ok(bash_uppercase_mode(&val, p, false, c_mode, extglob));
         }
         if let Some(pat) = op_rest.strip_prefix(",,") {
             let pat_exp = if pat.is_empty() {
@@ -1958,12 +2071,12 @@ pub fn expand_parameter_expr(
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
-                    .map(|w| bash_lowercase_mode(w, p, true, c_mode))
+                    .map(|w| bash_lowercase_mode(w, p, true, c_mode, extglob))
                     .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(bash_lowercase_mode(&val, p, true, c_mode));
+            return Ok(bash_lowercase_mode(&val, p, true, c_mode, extglob));
         }
         if let Some(pat) = op_rest.strip_prefix(',') {
             let pat_exp = if pat.is_empty() {
@@ -1977,12 +2090,12 @@ pub fn expand_parameter_expr(
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
-                    .map(|w| bash_lowercase_mode(w, p, false, c_mode))
+                    .map(|w| bash_lowercase_mode(w, p, false, c_mode, extglob))
                     .collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(bash_lowercase_mode(&val, p, false, c_mode));
+            return Ok(bash_lowercase_mode(&val, p, false, c_mode, extglob));
         }
 
         // Substring or array slicing ${var:offset:len}
@@ -2382,35 +2495,96 @@ pub fn expand_double_quoted_at_expr(
             if (var == "@" || var.ends_with("[@]"))
                 && let Some(elems) = lookup_array_elements(var, env, pos_args)
             {
+                let extglob = env
+                    .get("__shopt_extglob")
+                    .map(|v| v == "1")
+                    .unwrap_or(false);
                 if let Some(pat_raw) = op_rest.strip_prefix("##") {
-                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    return Some(elems.iter().map(|e| strip_prefix_glob(e, &pat, true)).collect());
+                    let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+                    let pat = expand_pattern_operand(&tilded, env, 0, pos_args).unwrap_or_default();
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| strip_prefix_glob(e, &pat, true, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(pat_raw) = op_rest.strip_prefix('#') {
-                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    return Some(elems.iter().map(|e| strip_prefix_glob(e, &pat, false)).collect());
+                    let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+                    let pat = expand_pattern_operand(&tilded, env, 0, pos_args).unwrap_or_default();
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| strip_prefix_glob(e, &pat, false, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(pat_raw) = op_rest.strip_prefix("%%") {
-                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    return Some(elems.iter().map(|e| strip_suffix_glob(e, &pat, true)).collect());
+                    let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+                    let pat = expand_pattern_operand(&tilded, env, 0, pos_args).unwrap_or_default();
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| strip_suffix_glob(e, &pat, true, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(pat_raw) = op_rest.strip_prefix('%') {
-                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    return Some(elems.iter().map(|e| strip_suffix_glob(e, &pat, false)).collect());
+                    let tilded = expand_tilde_prefix(pat_raw, env, false, false);
+                    let pat = expand_pattern_operand(&tilded, env, 0, pos_args).unwrap_or_default();
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| strip_suffix_glob(e, &pat, false, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(rest) = op_rest.strip_prefix("//") {
                     let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
-                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    let rep = expand_replacement_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
+                    let tilded_pat = expand_tilde_prefix(pat_raw, env, false, false);
+                    let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
+                    let pat =
+                        expand_pattern_operand(&tilded_pat, env, 0, pos_args).unwrap_or_default();
+                    let rep = expand_replacement_operand_ext(&tilded_rep, env, 0, pos_args)
+                        .unwrap_or_default();
                     let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
-                    return Some(elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, true, nocase)).collect());
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| {
+                                replace_glob_pattern_full(
+                                    e, &pat, &rep, true, None, nocase, extglob,
+                                )
+                            })
+                            .collect(),
+                    );
                 }
                 if let Some(rest) = op_rest.strip_prefix('/') {
-                    let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
-                    let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    let rep = expand_replacement_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
+                    let (anchor, pat_and_rep) = if let Some(after_hash) = rest.strip_prefix('#') {
+                        (Some('#'), after_hash)
+                    } else if let Some(after_pct) = rest.strip_prefix('%') {
+                        (Some('%'), after_pct)
+                    } else {
+                        (None, rest)
+                    };
+                    let (pat_raw, rep_raw) = split_first_unescaped_slash(pat_and_rep);
+                    let tilded_pat = expand_tilde_prefix(pat_raw, env, false, false);
+                    let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
+                    let pat =
+                        expand_pattern_operand(&tilded_pat, env, 0, pos_args).unwrap_or_default();
+                    let rep = expand_replacement_operand_ext(&tilded_rep, env, 0, pos_args)
+                        .unwrap_or_default();
                     let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
-                    return Some(elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, false, nocase)).collect());
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| {
+                                replace_glob_pattern_full(
+                                    e, &pat, &rep, false, anchor, nocase, extglob,
+                                )
+                            })
+                            .collect(),
+                    );
                 }
                 if let Some(pat) = op_rest.strip_prefix("^^") {
                     let pat_exp = if pat.is_empty() {
@@ -2421,7 +2595,12 @@ pub fn expand_double_quoted_at_expr(
                     };
                     let p = pat_exp.as_deref();
                     let c_mode = is_c_locale(env);
-                    return Some(elems.iter().map(|e| bash_uppercase_mode(e, p, true, c_mode)).collect());
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| bash_uppercase_mode(e, p, true, c_mode, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(pat) = op_rest.strip_prefix('^') {
                     let pat_exp = if pat.is_empty() {
@@ -2432,7 +2611,12 @@ pub fn expand_double_quoted_at_expr(
                     };
                     let p = pat_exp.as_deref();
                     let c_mode = is_c_locale(env);
-                    return Some(elems.iter().map(|e| bash_uppercase_mode(e, p, false, c_mode)).collect());
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| bash_uppercase_mode(e, p, false, c_mode, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(pat) = op_rest.strip_prefix(",,") {
                     let pat_exp = if pat.is_empty() {
@@ -2443,7 +2627,12 @@ pub fn expand_double_quoted_at_expr(
                     };
                     let p = pat_exp.as_deref();
                     let c_mode = is_c_locale(env);
-                    return Some(elems.iter().map(|e| bash_lowercase_mode(e, p, true, c_mode)).collect());
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| bash_lowercase_mode(e, p, true, c_mode, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(pat) = op_rest.strip_prefix(',') {
                     let pat_exp = if pat.is_empty() {
@@ -2454,7 +2643,12 @@ pub fn expand_double_quoted_at_expr(
                     };
                     let p = pat_exp.as_deref();
                     let c_mode = is_c_locale(env);
-                    return Some(elems.iter().map(|e| bash_lowercase_mode(e, p, false, c_mode)).collect());
+                    return Some(
+                        elems
+                            .iter()
+                            .map(|e| bash_lowercase_mode(e, p, false, c_mode, extglob))
+                            .collect(),
+                    );
                 }
                 if let Some(op) = op_rest.strip_prefix('@') {
                     let c_mode = is_c_locale(env);
@@ -2469,9 +2663,9 @@ pub fn expand_double_quoted_at_expr(
                                     .collect(),
                             )
                         }
-                        "U" => return Some(elems.iter().map(|e| bash_uppercase_mode(e, None, true, c_mode)).collect()),
-                        "u" => return Some(elems.iter().map(|e| bash_uppercase_mode(e, None, false, c_mode)).collect()),
-                        "L" => return Some(elems.iter().map(|e| bash_lowercase_mode(e, None, true, c_mode)).collect()),
+                        "U" => return Some(elems.iter().map(|e| bash_uppercase_mode(e, None, true, c_mode, extglob)).collect()),
+                        "u" => return Some(elems.iter().map(|e| bash_uppercase_mode(e, None, false, c_mode, extglob)).collect()),
+                        "L" => return Some(elems.iter().map(|e| bash_lowercase_mode(e, None, true, c_mode, extglob)).collect()),
                         "k" if var.ends_with("[@]") => {
                             let arr_base = var.strip_suffix("[@]").unwrap();
                             let resolved = resolve_nameref_base(arr_base, env).to_string();
@@ -2754,6 +2948,24 @@ fn expand_nested_dollar(
     if *i >= chars.len() {
         return Ok("$".to_string());
     }
+    if chars[*i] == '\'' {
+        *i += 1;
+        let mut raw = String::new();
+        while *i < chars.len() && chars[*i] != '\'' {
+            if chars[*i] == '\\' && *i + 1 < chars.len() {
+                raw.push(chars[*i]);
+                raw.push(chars[*i + 1]);
+                *i += 2;
+                continue;
+            }
+            raw.push(chars[*i]);
+            *i += 1;
+        }
+        if *i < chars.len() {
+            *i += 1;
+        }
+        return Ok(decode_ansi_c_escapes(&raw));
+    }
     if chars[*i] == '(' && chars.get(*i + 1) == Some(&'(') {
         *i += 2;
         let mut depth = 1usize;
@@ -2799,10 +3011,18 @@ fn expand_nested_dollar(
         }
         return expand_parameter_expr(&inner, env, last_exit, pos_args);
     }
+    let first = chars[*i];
+    if matches!(first, '?' | '#' | '@' | '*' | '$' | '!' | '-') || first.is_ascii_digit() {
+        *i += 1;
+        return Ok(lookup_var(&first.to_string(), env, last_exit, pos_args));
+    }
     let mut name = String::new();
     while *i < chars.len() && (chars[*i].is_ascii_alphanumeric() || chars[*i] == '_') {
         name.push(chars[*i]);
         *i += 1;
+    }
+    if name.is_empty() {
+        return Ok("$".to_string());
     }
     Ok(lookup_var(&name, env, last_exit, pos_args))
 }
@@ -2852,8 +3072,25 @@ fn expand_replacement_operand(
             let esc = chars[i + 1];
             out.push(if esc == '&' { '\x01' } else { esc });
             i += 2;
+        } else if c == '$' && chars.get(i + 1) == Some(&'\'') && !in_dquote {
+            let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?;
+            out.push_str(&exp.replace('&', "\x01"));
         } else if c == '$' {
-            out.push_str(&expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?);
+            let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?;
+            let exp_chars: Vec<char> = exp.chars().collect();
+            let mut ei = 0usize;
+            while ei < exp_chars.len() {
+                if exp_chars[ei] == '\\'
+                    && ei + 1 < exp_chars.len()
+                    && matches!(exp_chars[ei + 1], '&' | '\\')
+                {
+                    out.push(if exp_chars[ei + 1] == '&' { '\x01' } else { '\\' });
+                    ei += 2;
+                } else {
+                    out.push(exp_chars[ei]);
+                    ei += 1;
+                }
+            }
         } else {
             out.push(c);
             i += 1;
@@ -2876,21 +3113,23 @@ fn render_replacement_with_match(rep: &str, matched: &str) -> String {
     out
 }
 
-fn replace_glob_pattern_ext(
+fn replace_glob_pattern_full(
     val: &str,
     pat: &str,
     rep: &str,
     global: bool,
+    anchor: Option<char>,
     nocase: bool,
+    extglob: bool,
 ) -> String {
     if pat.is_empty() {
         return val.to_string();
     }
-    if let Some(anch) = pat.strip_prefix('#') {
+    if anchor == Some('#') {
         let chars: Vec<char> = val.chars().collect();
         for i in (0..=chars.len()).rev() {
             let prefix: String = chars[..i].iter().collect();
-            if glob_match_ext(anch, &prefix, nocase) {
+            if glob_match_full(pat, &prefix, nocase, extglob) {
                 let rest: String = chars[i..].iter().collect();
                 let rendered = render_replacement_with_match(rep, &prefix);
                 return format!("{rendered}{rest}");
@@ -2898,11 +3137,11 @@ fn replace_glob_pattern_ext(
         }
         return val.to_string();
     }
-    if let Some(anch) = pat.strip_prefix('%') {
+    if anchor == Some('%') {
         let chars: Vec<char> = val.chars().collect();
         for i in 0..=chars.len() {
             let suffix: String = chars[i..].iter().collect();
-            if glob_match_ext(anch, &suffix, nocase) {
+            if glob_match_full(pat, &suffix, nocase, extglob) {
                 let head: String = chars[..i].iter().collect();
                 let rendered = render_replacement_with_match(rep, &suffix);
                 return format!("{head}{rendered}");
@@ -2911,7 +3150,7 @@ fn replace_glob_pattern_ext(
         return val.to_string();
     }
     if val.is_empty() {
-        if pat.starts_with('*') && glob_match_ext(pat, "", nocase) {
+        if glob_match_full(pat, "", nocase, extglob) {
             return render_replacement_with_match(rep, "");
         }
         return String::new();
@@ -2921,9 +3160,9 @@ fn replace_glob_pattern_ext(
     let mut idx = 0usize;
     while idx < chars.len() {
         let mut matched_end = None;
-        for end in (idx + 1..=chars.len()).rev() {
+        for end in (idx..=chars.len()).rev() {
             let sub: String = chars[idx..end].iter().collect();
-            if glob_match_ext(pat, &sub, nocase) {
+            if glob_match_full(pat, &sub, nocase, extglob) {
                 matched_end = Some(end);
                 break;
             }
@@ -2931,11 +3170,16 @@ fn replace_glob_pattern_ext(
         if let Some(end) = matched_end {
             let matched_str: String = chars[idx..end].iter().collect();
             out.push_str(&render_replacement_with_match(rep, &matched_str));
-            idx = end;
             if !global {
-                let tail: String = chars[idx..].iter().collect();
+                let tail: String = chars[end..].iter().collect();
                 out.push_str(&tail);
                 return out;
+            }
+            if end == idx {
+                out.push(chars[idx]);
+                idx += 1;
+            } else {
+                idx = end;
             }
         } else {
             out.push(chars[idx]);
@@ -3081,12 +3325,16 @@ fn apply_value_transform(
     pos_args: &[String],
 ) -> Result<String, String> {
     let c_mode = is_c_locale(env);
+    let extglob = env
+        .get("__shopt_extglob")
+        .map(|v| v == "1")
+        .unwrap_or(false);
     match xform {
         "E" => Ok(decode_ansi_c_escapes(val)),
         "Q" => Ok(bash_quote_value(val)),
-        "U" => Ok(bash_uppercase_mode(val, None, true, c_mode)),
-        "u" => Ok(bash_uppercase_mode(val, None, false, c_mode)),
-        "L" => Ok(bash_lowercase_mode(val, None, true, c_mode)),
+        "U" => Ok(bash_uppercase_mode(val, None, true, c_mode, extglob)),
+        "u" => Ok(bash_uppercase_mode(val, None, false, c_mode, extglob)),
+        "L" => Ok(bash_lowercase_mode(val, None, true, c_mode, extglob)),
         "P" => {
             let chars: Vec<char> = val.chars().collect();
             let mut decoded = String::new();
@@ -3462,19 +3710,19 @@ pub fn lookup_var(
         .unwrap_or_default()
 }
 
-fn strip_prefix_glob(val: &str, pat: &str, longest: bool) -> String {
+fn strip_prefix_glob(val: &str, pat: &str, longest: bool, extglob: bool) -> String {
     let chars: Vec<char> = val.chars().collect();
     if longest {
         for i in (0..=chars.len()).rev() {
             let prefix: String = chars[..i].iter().collect();
-            if glob_match(pat, &prefix) {
+            if glob_match_full(pat, &prefix, false, extglob) {
                 return chars[i..].iter().collect();
             }
         }
     } else {
         for i in 0..=chars.len() {
             let prefix: String = chars[..i].iter().collect();
-            if glob_match(pat, &prefix) {
+            if glob_match_full(pat, &prefix, false, extglob) {
                 return chars[i..].iter().collect();
             }
         }
@@ -3482,19 +3730,19 @@ fn strip_prefix_glob(val: &str, pat: &str, longest: bool) -> String {
     val.to_string()
 }
 
-fn strip_suffix_glob(val: &str, pat: &str, longest: bool) -> String {
+fn strip_suffix_glob(val: &str, pat: &str, longest: bool, extglob: bool) -> String {
     let chars: Vec<char> = val.chars().collect();
     if longest {
         for i in 0..=chars.len() {
             let suffix: String = chars[i..].iter().collect();
-            if glob_match(pat, &suffix) {
+            if glob_match_full(pat, &suffix, false, extglob) {
                 return chars[..i].iter().collect();
             }
         }
     } else {
         for i in (0..=chars.len()).rev() {
             let suffix: String = chars[i..].iter().collect();
-            if glob_match(pat, &suffix) {
+            if glob_match_full(pat, &suffix, false, extglob) {
                 return chars[..i].iter().collect();
             }
         }
@@ -3665,6 +3913,22 @@ pub fn try_resolve_unquoted_alternate_operand<'a>(
     None
 }
 
+fn is_glob_pattern_meta(c: char) -> bool {
+    matches!(
+        c,
+        '\\' | '*' | '?' | '[' | ']' | '-' | '^' | '(' | ')' | '|' | '+' | '!' | '@' | ':'
+    )
+}
+
+fn escape_glob_pattern_str(s: &str, out: &mut String) {
+    for c in s.chars() {
+        if is_glob_pattern_meta(c) {
+            out.push('\\');
+        }
+        out.push(c);
+    }
+}
+
 fn expand_pattern_operand(
     raw: &str,
     env: &mut BTreeMap<String, String>,
@@ -3672,7 +3936,67 @@ fn expand_pattern_operand(
     pos_args: &[String],
 ) -> Result<String, String> {
     let prev = env.remove("__in_dquote");
-    let res = expand_nested_operand(raw, env, last_exit, pos_args);
+    let res = (|| {
+        let chars: Vec<char> = raw.chars().collect();
+        let mut i = 0usize;
+        let mut out = String::new();
+        while i < chars.len() {
+            let c = chars[i];
+            if c == '"' {
+                i += 1;
+                while i < chars.len() && chars[i] != '"' {
+                    if chars[i] == '\\' && i + 1 < chars.len() {
+                        let nc = chars[i + 1];
+                        if matches!(nc, '"' | '\\' | '$' | '`') {
+                            escape_glob_pattern_str(&nc.to_string(), &mut out);
+                            i += 2;
+                            continue;
+                        }
+                    }
+                    if chars[i] == '$' {
+                        let prev_dq = env.insert("__in_dquote".to_string(), "1".to_string());
+                        let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args);
+                        match prev_dq {
+                            Some(v) => {
+                                env.insert("__in_dquote".to_string(), v);
+                            }
+                            None => {
+                                env.remove("__in_dquote");
+                            }
+                        }
+                        escape_glob_pattern_str(&exp?, &mut out);
+                        continue;
+                    }
+                    escape_glob_pattern_str(&chars[i].to_string(), &mut out);
+                    i += 1;
+                }
+                if i < chars.len() {
+                    i += 1;
+                }
+            } else if c == '\'' {
+                i += 1;
+                while i < chars.len() && chars[i] != '\'' {
+                    escape_glob_pattern_str(&chars[i].to_string(), &mut out);
+                    i += 1;
+                }
+                if i < chars.len() {
+                    i += 1;
+                }
+            } else if c == '$' && chars.get(i + 1) == Some(&'\'') {
+                let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?;
+                escape_glob_pattern_str(&exp, &mut out);
+            } else if c == '\\' && i + 1 < chars.len() {
+                escape_glob_pattern_str(&chars[i + 1].to_string(), &mut out);
+                i += 2;
+            } else if c == '$' {
+                out.push_str(&expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?);
+            } else {
+                out.push(c);
+                i += 1;
+            }
+        }
+        Ok(out)
+    })();
     if let Some(v) = prev {
         env.insert("__in_dquote".to_string(), v);
     }
@@ -3694,6 +4018,10 @@ fn expand_replacement_operand_ext(
 }
 
 pub fn has_glob_meta(word: &str) -> bool {
+    has_glob_meta_ext(word, true)
+}
+
+pub fn has_glob_meta_ext(word: &str, extglob: bool) -> bool {
     let chars: Vec<char> = word.chars().collect();
     let mut i = 0usize;
     while i < chars.len() {
@@ -3704,8 +4032,10 @@ pub fn has_glob_meta(word: &str) -> bool {
         if matches!(chars[i], '*' | '?' | '[') {
             return true;
         }
-        if matches!(chars[i], '@' | '+' | '!' | '?' | '*')
+        if extglob
+            && matches!(chars[i], '@' | '+' | '!' | '?' | '*')
             && chars.get(i + 1) == Some(&'(')
+            && find_extglob_close(&chars, i + 1).is_some()
         {
             return true;
         }
@@ -3747,21 +4077,31 @@ pub fn expand_globs_in_word_with_projection(
     fs: &dyn SafeBashFs,
     env: &BTreeMap<String, String>,
 ) -> Vec<String> {
-    if !has_glob_meta(pattern) {
+    let extglob = env
+        .get("__shopt_extglob")
+        .map(|v| v == "1")
+        .unwrap_or(false);
+    if !has_glob_meta_ext(pattern, extglob) {
         return vec![projection.to_string()];
     }
-    let dotglob = env.get("__shopt_dotglob").map(|v| v == "1").unwrap_or(false);
+    let globignore_raw = env.get("GLOBIGNORE").map(|s| s.as_str()).unwrap_or("");
+    let has_globignore = !globignore_raw.is_empty();
+    let raw_dotglob = env.get("__shopt_dotglob").map(|v| v == "1").unwrap_or(false);
+    let dotglob = raw_dotglob || has_globignore;
     let nullglob = env.get("__shopt_nullglob").map(|v| v == "1").unwrap_or(false);
+    let failglob = env.get("__shopt_failglob").map(|v| v == "1").unwrap_or(false);
     let nocaseglob = env.get("__shopt_nocaseglob").map(|v| v == "1").unwrap_or(false);
     let globstar = env.get("__shopt_globstar").map(|v| v == "1").unwrap_or(false);
+    let want_dir = projection.ends_with('/');
 
     let is_abs = pattern.starts_with('/');
-    let trimmed = if is_abs { &pattern[1..] } else { pattern };
-    let segments: Vec<&str> = trimmed.split('/').collect();
+    let trimmed = pattern.trim_start_matches('/').trim_end_matches('/');
+    let segments: Vec<&str> = trimmed.split('/').filter(|s| !s.is_empty()).collect();
     let root_dir = if is_abs { "/" } else { cwd };
     let root_prefix = if is_abs { "/" } else { "" };
 
     let mut matched = Vec::new();
+    let mut visited = BTreeSet::new();
     expand_glob_segments(
         &segments,
         0,
@@ -3769,15 +4109,32 @@ pub fn expand_globs_in_word_with_projection(
         root_prefix,
         fs,
         dotglob,
+        raw_dotglob,
         nocaseglob,
         globstar,
+        extglob,
+        want_dir,
+        &mut visited,
         &mut matched,
     );
+    if has_globignore && !matched.is_empty() {
+        let ignore_pats: Vec<&str> = globignore_raw
+            .split(':')
+            .filter(|p| !p.is_empty())
+            .collect();
+        if !ignore_pats.is_empty() {
+            matched.retain(|cand| {
+                !ignore_pats
+                    .iter()
+                    .any(|ig| glob_match_full(ig, cand, nocaseglob, extglob))
+            });
+        }
+    }
     matched.sort();
     matched.dedup();
 
     if matched.is_empty() {
-        if nullglob {
+        if nullglob || failglob {
             Vec::new()
         } else {
             vec![projection.to_string()]
@@ -3794,8 +4151,12 @@ fn expand_glob_segments(
     cur_prefix: &str,
     fs: &dyn SafeBashFs,
     dotglob: bool,
+    raw_dotglob: bool,
     nocaseglob: bool,
     globstar: bool,
+    extglob: bool,
+    want_dir: bool,
+    visited: &mut BTreeSet<(usize, String)>,
     matched: &mut Vec<String>,
 ) {
     if seg_idx >= segments.len() {
@@ -3805,6 +4166,9 @@ fn expand_glob_segments(
     let is_last = seg_idx + 1 == segments.len();
 
     if globstar && seg == "**" {
+        if !fs.is_dir(cur_dir) {
+            return;
+        }
         if !is_last {
             expand_glob_segments(
                 segments,
@@ -3813,17 +4177,37 @@ fn expand_glob_segments(
                 cur_prefix,
                 fs,
                 dotglob,
+                raw_dotglob,
                 nocaseglob,
                 globstar,
+                extglob,
+                want_dir,
+                visited,
                 matched,
             );
+        } else if !cur_prefix.is_empty() {
+            let has_wildcard_before = segments[..seg_idx].iter().any(|s| {
+                *s == "**"
+                    || has_glob_meta_ext(s, extglob)
+                    || (nocaseglob && *s != "." && *s != "..")
+            });
+            if cur_prefix == "/" {
+                matched.push("/".to_string());
+            } else if !has_wildcard_before || want_dir {
+                matched.push(format!("{cur_prefix}/"));
+            } else {
+                matched.push(cur_prefix.to_string());
+            }
+        }
+        if !visited.insert((seg_idx, cur_dir.to_string())) {
+            return;
         }
         let Ok(mut entries) = fs.list_dir(cur_dir) else {
             return;
         };
         entries.sort();
         for entry in entries {
-            if entry.starts_with('.') && !dotglob {
+            if entry.starts_with('.') && !raw_dotglob {
                 continue;
             }
             let child_dir = resolve_posix_path(cur_dir, &entry);
@@ -3835,9 +4219,18 @@ fn expand_glob_segments(
                 format!("{cur_prefix}/{entry}")
             };
             if is_last {
-                matched.push(child_prefix.clone());
+                if !want_dir || fs.is_dir(&child_dir) {
+                    matched.push(if want_dir {
+                        format!("{child_prefix}/")
+                    } else {
+                        child_prefix.clone()
+                    });
+                }
             }
-            if fs.is_dir(&child_dir) {
+            if fs
+                .lstat(&child_dir)
+                .is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::Directory)
+            {
                 expand_glob_segments(
                     segments,
                     seg_idx,
@@ -3845,8 +4238,12 @@ fn expand_glob_segments(
                     &child_prefix,
                     fs,
                     dotglob,
+                    raw_dotglob,
                     nocaseglob,
                     globstar,
+                    extglob,
+                    want_dir,
+                    visited,
                     matched,
                 );
             }
@@ -3854,7 +4251,7 @@ fn expand_glob_segments(
         return;
     }
 
-    if !has_glob_meta(seg) {
+    if seg == "." || seg == ".." || (!nocaseglob && !has_glob_meta_ext(seg, extglob)) {
         let literal_seg = unescape_glob_segment(seg);
         let next_dir = resolve_posix_path(cur_dir, &literal_seg);
         let next_prefix = if cur_prefix.is_empty() {
@@ -3865,7 +4262,11 @@ fn expand_glob_segments(
             format!("{cur_prefix}/{literal_seg}")
         };
         if is_last {
-            if fs.exists(&next_dir) {
+            if want_dir {
+                if fs.is_dir(&next_dir) {
+                    matched.push(format!("{next_prefix}/"));
+                }
+            } else if fs.lstat(&next_dir).is_ok() {
                 matched.push(next_prefix);
             }
         } else if fs.is_dir(&next_dir) {
@@ -3876,8 +4277,12 @@ fn expand_glob_segments(
                 &next_prefix,
                 fs,
                 dotglob,
+                raw_dotglob,
                 nocaseglob,
                 globstar,
+                extglob,
+                want_dir,
+                visited,
                 matched,
             );
         }
@@ -3892,7 +4297,7 @@ fn expand_glob_segments(
         if entry.starts_with('.') && !seg.starts_with('.') && !dotglob {
             continue;
         }
-        if glob_match_ext(seg, &entry, nocaseglob) {
+        if glob_match_full(seg, &entry, nocaseglob, extglob) {
             let child_dir = resolve_posix_path(cur_dir, &entry);
             let child_prefix = if cur_prefix.is_empty() {
                 entry.clone()
@@ -3902,7 +4307,13 @@ fn expand_glob_segments(
                 format!("{cur_prefix}/{entry}")
             };
             if is_last {
-                matched.push(child_prefix);
+                if want_dir {
+                    if fs.is_dir(&child_dir) {
+                        matched.push(format!("{child_prefix}/"));
+                    }
+                } else if fs.lstat(&child_dir).is_ok() {
+                    matched.push(child_prefix);
+                }
             } else if fs.is_dir(&child_dir) {
                 expand_glob_segments(
                     segments,
@@ -3911,8 +4322,12 @@ fn expand_glob_segments(
                     &child_prefix,
                     fs,
                     dotglob,
+                    raw_dotglob,
                     nocaseglob,
                     globstar,
+                    extglob,
+                    want_dir,
+                    visited,
                     matched,
                 );
             }
@@ -3922,12 +4337,22 @@ fn expand_glob_segments(
 
 fn is_c_locale(env: &BTreeMap<String, String>) -> bool {
     matches!(
-        env.get("LC_ALL").or_else(|| env.get("LANG")).map(|s| s.as_str()),
+        env.get("LC_ALL")
+            .filter(|s| !s.is_empty())
+            .or_else(|| env.get("LC_CTYPE").filter(|s| !s.is_empty()))
+            .or_else(|| env.get("LANG").filter(|s| !s.is_empty()))
+            .map(|s| s.as_str()),
         Some("C") | Some("POSIX")
     )
 }
 
-fn bash_uppercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> String {
+fn bash_uppercase_mode(
+    s: &str,
+    pat: Option<&str>,
+    all: bool,
+    c_mode: bool,
+    extglob: bool,
+) -> String {
     if c_mode {
         let bytes = crate::vfs::stream_string_to_bytes(s);
         let mut out_bytes = Vec::with_capacity(bytes.len());
@@ -3938,7 +4363,7 @@ fn bash_uppercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> S
             }
             let ch_s = crate::vfs::bytes_to_stream_string(&[b]);
             let should = match pat {
-                Some(p) => glob_match(p, &ch_s),
+                Some(p) => glob_match_full(p, &ch_s, false, extglob),
                 None => true,
             };
             if should && b.is_ascii_lowercase() {
@@ -3956,7 +4381,7 @@ fn bash_uppercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> S
             continue;
         }
         let should = match pat {
-            Some(p) => glob_match(p, &ch.to_string()),
+            Some(p) => glob_match_full(p, &ch.to_string(), false, extglob),
             None => true,
         };
         if should {
@@ -3973,7 +4398,13 @@ fn bash_uppercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> S
     out
 }
 
-fn bash_lowercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> String {
+fn bash_lowercase_mode(
+    s: &str,
+    pat: Option<&str>,
+    all: bool,
+    c_mode: bool,
+    extglob: bool,
+) -> String {
     if c_mode {
         let bytes = crate::vfs::stream_string_to_bytes(s);
         let mut out_bytes = Vec::with_capacity(bytes.len());
@@ -3984,7 +4415,7 @@ fn bash_lowercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> S
             }
             let ch_s = crate::vfs::bytes_to_stream_string(&[b]);
             let should = match pat {
-                Some(p) => glob_match(p, &ch_s),
+                Some(p) => glob_match_full(p, &ch_s, false, extglob),
                 None => true,
             };
             if should && b.is_ascii_uppercase() {
@@ -4002,7 +4433,7 @@ fn bash_lowercase_mode(s: &str, pat: Option<&str>, all: bool, c_mode: bool) -> S
             continue;
         }
         let should = match pat {
-            Some(p) => glob_match(p, &ch.to_string()),
+            Some(p) => glob_match_full(p, &ch.to_string(), false, extglob),
             None => true,
         };
         if should {
@@ -4149,6 +4580,7 @@ mod tests {
 
         env.insert("TARGET".to_string(), "hello-123-world".to_string());
         env.insert("PTR".to_string(), "TARGET".to_string());
+        env.insert("__shopt_extglob".to_string(), "1".to_string());
         assert_eq!(
             expand_parameter_expr("!PTR#hello-", &mut env, 0, &[]).unwrap(),
             "123-world"
@@ -4237,5 +4669,86 @@ mod tests {
         assert_eq!(decode_ansi_c_escapes(r"uv\u0000wx"), "uv");
         assert_eq!(decode_ansi_c_escapes(r"ctrl\c@tail"), "ctrl");
         assert_eq!(decode_ansi_c_escapes(r"\u-\U"), r"\u-\U");
+    }
+
+    #[test]
+    fn unit_posix_bracket_classes_extglob_quoting_and_replacement_anchors() {
+        // POSIX classes [:ascii:], [:word:], invalid classes, range-before-class, and nocase ranges
+        assert!(glob_match("[[:ascii:]]", "A"));
+        assert!(!glob_match("[[:ascii:]]", "é"));
+        assert!(glob_match("[[:word:]]", "_"));
+        assert!(glob_match("[[:word:]]", "9"));
+        assert!(!glob_match("[[:word:]]", "-"));
+        assert!(!glob_match("[[:bogus:]]", "a"));
+        assert!(!glob_match("[![:bogus:]]", "a"));
+        assert!(glob_match("[a-[:digit:]]", "a"));
+        assert!(glob_match("[a-[:digit:]]", "-"));
+        assert!(glob_match("[a-[:digit:]]", "7"));
+        assert!(!glob_match("[a-[:digit:]]", "b"));
+        assert!(glob_match_ext("[Z-a]", "z", true));
+        assert!(glob_match_ext("[Z-a]", "A", true));
+        assert!(!glob_match_ext("[Z-a]", "m", true));
+        assert!(!glob_match("[z-a]", "m"));
+        assert!(glob_match("[!z-a]", "m"));
+
+        // Bracket-aware extglob and extglob gating
+        assert!(glob_match_full("@([)|]|foo)", ")", false, true));
+        assert!(glob_match_full("@([)|]|foo)", "|", false, true));
+        assert!(glob_match_full("@([)|]|foo)", "foo", false, true));
+        assert!(!glob_match_full("@(a|b)", "a", false, false));
+        assert!(glob_match_full("@(a|b)", "@(a|b)", false, false));
+
+        let mut env = BTreeMap::new();
+        env.insert("V".to_string(), "a*b*c".to_string());
+        env.insert("PAT".to_string(), "*".to_string());
+        assert_eq!(
+            expand_parameter_expr("V#\"$PAT\"", &mut env, 0, &[]).unwrap(),
+            "a*b*c"
+        );
+        assert_eq!(
+            expand_parameter_expr("V#$PAT", &mut env, 0, &[]).unwrap(),
+            "a*b*c"
+        );
+        env.insert("STAR".to_string(), "*b".to_string());
+        assert_eq!(
+            expand_parameter_expr("V#a\"$STAR\"", &mut env, 0, &[]).unwrap(),
+            "*c"
+        );
+        assert_eq!(
+            expand_parameter_expr("V#a$STAR", &mut env, 0, &[]).unwrap(),
+            "*c"
+        );
+
+        // Quoted #foo vs unquoted /#foo anchor, and zero-length replacement
+        env.insert("HASHED".to_string(), "xx#fooyy#foo".to_string());
+        assert_eq!(
+            expand_parameter_expr("HASHED/#\"#foo\"/BAR", &mut env, 0, &[]).unwrap(),
+            "xx#fooyy#foo"
+        );
+        assert_eq!(
+            expand_parameter_expr("HASHED/\"#foo\"/BAR", &mut env, 0, &[]).unwrap(),
+            "xxBARyy#foo"
+        );
+        env.insert("AB".to_string(), "ab".to_string());
+        env.insert("__shopt_extglob".to_string(), "1".to_string());
+        assert_eq!(
+            expand_parameter_expr("AB/?(z)/X", &mut env, 0, &[]).unwrap(),
+            "Xab"
+        );
+        assert_eq!(
+            expand_parameter_expr("AB//?(z)/X", &mut env, 0, &[]).unwrap(),
+            "XaXb"
+        );
+
+        // Unquoted $rep with \& and \\ vs quoted "$rep"
+        env.insert("REP".to_string(), r"[\&:\\:&]".to_string());
+        assert_eq!(
+            expand_parameter_expr("AB/a/$REP", &mut env, 0, &[]).unwrap(),
+            r"[&:\:a]b"
+        );
+        assert_eq!(
+            expand_parameter_expr("AB/a/\"$REP\"", &mut env, 0, &[]).unwrap(),
+            r"[\&:\\:&]b"
+        );
     }
 }

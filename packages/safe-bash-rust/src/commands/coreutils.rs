@@ -5963,6 +5963,8 @@ struct BcEnv {
     ibase: u32,
     obase: u32,
     last_str_out: Option<String>,
+    last: BcVal,
+    runtime_err: Option<String>,
 }
 
 fn format_bc_base(mut n: u128, obase: u32) -> String {
@@ -6037,24 +6039,57 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut mathlib = false;
     let mut exprs: Vec<String> = Vec::new();
     let mut files = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "-l" || a == "--mathlib" {
-            mathlib = true;
-            i += 1;
-        } else if (a == "-e" || a == "--expression") && i + 1 < args.len() {
-            exprs.push(args[i + 1].clone());
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("-e").or_else(|| a.strip_prefix("--expression="))
-            && !rest.is_empty()
-        {
-            exprs.push(rest.to_string());
-            i += 1;
-        } else if !a.starts_with('-') {
+        if ended {
             files.push(a.clone());
             i += 1;
+            continue;
+        }
+        if a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if a == "--mathlib" {
+            mathlib = true;
+            i += 1;
+        } else if a == "--expression" {
+            exprs.push(args.get(i + 1).cloned().unwrap_or_default());
+            i += 2;
+        } else if let Some(rest) = a.strip_prefix("--expression=") {
+            exprs.push(rest.to_string());
+            i += 1;
+        } else if matches!(a.as_str(), "--quiet" | "--interactive" | "--warn" | "--standard") {
+            i += 1;
+        } else if a.starts_with('-') && a.len() > 1 {
+            let chars: Vec<char> = a.chars().collect();
+            let mut ci = 1usize;
+            while ci < chars.len() {
+                let f = chars[ci];
+                if f == 'l' {
+                    mathlib = true;
+                } else if f == 'e' {
+                    let rest: String = chars[ci + 1..].iter().collect();
+                    if !rest.is_empty() {
+                        exprs.push(rest);
+                    } else {
+                        i += 1;
+                        exprs.push(args.get(i).cloned().unwrap_or_default());
+                    }
+                    break;
+                } else if matches!(f, 'q' | 'i' | 'w' | 's') {
+                    // valid no-op flags
+                } else {
+                    return err_out(&format!("bc: invalid option -- '{f}'\n"), 2);
+                }
+                ci += 1;
+            }
+            i += 1;
         } else {
+            files.push(a.clone());
             i += 1;
         }
     }
@@ -6078,6 +6113,8 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         ibase: 10,
         obase: 10,
         last_str_out: None,
+        last: BcVal::default(),
+        runtime_err: None,
     };
     let mut no_comments = String::new();
     for line in input.lines() {
@@ -6087,7 +6124,17 @@ fn cmd_bc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let body = extract_bc_defines(&no_comments, &mut bc);
     let mut out = String::new();
     for stmt in split_bc_top_stmts(&body) {
-        let _ = exec_bc_stmt(&stmt, &mut bc, &mut out, 0);
+        let flow = exec_bc_stmt(&stmt, &mut bc, &mut out, 0);
+        if matches!(flow, BcFlow::Halt) || bc.runtime_err.is_some() {
+            break;
+        }
+    }
+    if let Some(err_msg) = bc.runtime_err {
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: format!("bc: {err_msg}\n"),
+            exit_code: 1,
+        };
     }
     ok_out(&out)
 }
@@ -6097,6 +6144,7 @@ enum BcFlow {
     None,
     Break,
     Continue,
+    Halt,
     Return(BcVal),
 }
 
@@ -6245,8 +6293,11 @@ fn format_bc_val_line(v: &BcVal, expr_s: &str, bc: &BcEnv) -> String {
 
 fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> BcFlow {
     let s = raw.trim();
-    if s.is_empty() || s == "quit" || s.starts_with("auto ") || s == "auto" {
+    if s.is_empty() || s.starts_with("auto ") || s == "auto" {
         return BcFlow::None;
+    }
+    if s == "halt" || s == "quit" {
+        return BcFlow::Halt;
     }
     if s == "break" {
         return BcFlow::Break;
@@ -6280,6 +6331,10 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             } else {
                 bc.last_str_out = None;
                 let v = eval_bc_val(t, bc, depth + 1);
+                if bc.runtime_err.is_some() {
+                    return BcFlow::Halt;
+                }
+                bc.last = v.clone();
                 out.push_str(&format_bc_val_line(&v, t, bc));
             }
         }
@@ -6301,6 +6356,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                     BcFlow::None => {}
                     BcFlow::Continue => continue,
                     BcFlow::Break => break,
+                    BcFlow::Halt => return BcFlow::Halt,
                     BcFlow::Return(v) => return BcFlow::Return(v),
                 }
             }
@@ -6327,6 +6383,7 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
                     match flow {
                         BcFlow::None | BcFlow::Continue => {}
                         BcFlow::Break => break,
+                        BcFlow::Halt => return BcFlow::Halt,
                         BcFlow::Return(v) => return BcFlow::Return(v),
                     }
                     if !parts[2].trim().is_empty() {
@@ -6428,11 +6485,18 @@ fn exec_bc_stmt(raw: &str, bc: &mut BcEnv, out: &mut String, depth: usize) -> Bc
             };
         }
         let key = resolve_bc_lvalue_key(lhs, bc, depth);
+        if key == "last" {
+            bc.last = v.clone();
+        }
         bc.vars.insert(key, v);
         return BcFlow::None;
     }
     bc.last_str_out = None;
     let val = eval_bc_val(s, bc, depth + 1);
+    if bc.runtime_err.is_some() {
+        return BcFlow::Halt;
+    }
+    bc.last = val.clone();
     let line = format_bc_val_line(&val, s, bc);
     out.push_str(&line);
     out.push('\n');
@@ -6537,7 +6601,15 @@ fn split_bc_args(s: &str) -> Vec<String> {
     out
 }
 
-fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &BcEnv) -> BcVal {
+fn apply_bc_binop(l: &BcVal, r: &BcVal, op: &str, bc: &mut BcEnv) -> BcVal {
+    if matches!(op, "/" | "%")
+        && (r.val == 0.0 || r.exact_int.as_deref() == Some(&[0]))
+    {
+        if bc.runtime_err.is_none() {
+            bc.runtime_err = Some("Runtime error (func=(main), adr=0): Divide by zero".to_string());
+        }
+        return BcVal::from_i64(0);
+    }
     if let (Some(la), Some(ra)) = (&l.exact_int, &r.exact_int)
         && l.scale == 0
         && r.scale == 0
@@ -6730,6 +6802,9 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
     if s.is_empty() {
         return BcVal::default();
     }
+    if s == "last" || s == "." {
+        return bc.last.clone();
+    }
     if let Some(inner) = s.strip_prefix('(').and_then(|r| r.strip_suffix(')'))
         && balanced_parens(inner)
     {
@@ -6773,6 +6848,8 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
             _ => "%",
         };
         if op == '/'
+            && r.val != 0.0
+            && r.exact_int.as_deref() != Some(&[0])
             && bc.scale > 12
             && let (Some(la), Some(ra)) = (&l.exact_int, &r.exact_int)
             && l.scale == 0
@@ -6824,6 +6901,13 @@ fn eval_bc_val(expr: &str, bc: &mut BcEnv, depth: usize) -> BcVal {
                 return BcVal::from_i64(first_val.scale.max(bc_expr_decimal_places(raw_tok)) as i64);
             }
             "sqrt" => {
+                if first_val.val < 0.0 || first_val.neg {
+                    if bc.runtime_err.is_none() {
+                        bc.runtime_err =
+                            Some("Runtime error: Square root of a negative number".to_string());
+                    }
+                    return BcVal::from_i64(0);
+                }
                 if bc.scale > 12
                     && let Some(ref d) = first_val.exact_int
                     && first_val.scale == 0
@@ -20788,6 +20872,47 @@ mod tests {
         assert_eq!(
             bad_op.stderr,
             "dd: unrecognized operand 'foo=bar'\nTry 'dd --help' for more information.\n"
+        );
+    }
+
+    #[test]
+    fn bc_option_diagnostics_halt_last_and_runtime_errors_match_typescript() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+
+        let bad_short = try_run_coreutil("bc", &args(&["-z"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(bad_short.exit_code, 2);
+        assert_eq!(bad_short.stderr, "bc: invalid option -- 'z'\n");
+
+        let bad_long = try_run_coreutil("bc", &args(&["--bogus"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(bad_long.exit_code, 2);
+        assert_eq!(bad_long.stderr, "bc: invalid option -- '-'\n");
+
+        let halt_res = try_run_coreutil(
+            "bc",
+            &[],
+            "10 + 5\nlast * 2\nhalt\n999\n",
+            "/",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(halt_res.exit_code, 0);
+        assert_eq!(halt_res.stdout, "15\n30\n");
+
+        let div0 = try_run_coreutil("bc", &[], "7\n1 / 0\n99\n", "/", &env, &vfs).unwrap();
+        assert_eq!(div0.exit_code, 1);
+        assert_eq!(div0.stdout, "7\n");
+        assert_eq!(
+            div0.stderr,
+            "bc: Runtime error (func=(main), adr=0): Divide by zero\n"
+        );
+
+        let neg_sqrt = try_run_coreutil("bc", &[], "sqrt(-4)\n", "/", &env, &vfs).unwrap();
+        assert_eq!(neg_sqrt.exit_code, 1);
+        assert_eq!(
+            neg_sqrt.stderr,
+            "bc: Runtime error: Square root of a negative number\n"
         );
     }
 }

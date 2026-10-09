@@ -18,6 +18,11 @@ pub fn try_run_fs_command(
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    if let Some(info) =
+        crate::commands::coreutils::gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT"))
+    {
+        return Some(info);
+    }
     match cmd {
         "ls" => Some(cmd_ls(args, cwd, fs)),
         "mkdir" => Some(cmd_mkdir(args, cwd, env, fs)),

@@ -10,6 +10,11 @@ pub fn try_run_archive_command(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    if let Some(info) =
+        crate::commands::coreutils::gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT"))
+    {
+        return Some(info);
+    }
     match cmd {
         "sha256sum" => Some(cmd_hash("sha256", args, stdin, cwd, fs)),
         "sha224sum" => Some(cmd_hash("sha224", args, stdin, cwd, fs)),

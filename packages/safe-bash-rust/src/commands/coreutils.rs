@@ -13,6 +13,9 @@ pub fn try_run_coreutil(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) {
+        return Some(info);
+    }
     match cmd {
         "cat" => Some(cmd_cat(args, stdin, cwd, fs)),
         "head" => Some(cmd_head(args, stdin, cwd, fs)),
@@ -61,9 +64,9 @@ pub fn try_run_coreutil(
         "tsort" => Some(cmd_tsort(args, stdin, cwd, env, fs)),
         "truncate" => Some(cmd_truncate(args, cwd, env, fs)),
         "fold" => Some(cmd_fold(args, stdin, cwd, env, fs)),
-        "fmt" => Some(cmd_fmt(args, stdin, cwd, fs)),
+        "fmt" => Some(cmd_fmt(args, stdin, cwd, env, fs)),
         "csplit" => Some(cmd_csplit(args, stdin, cwd, fs)),
-        "pr" => Some(cmd_pr(args, stdin, cwd, fs)),
+        "pr" => Some(cmd_pr(args, stdin, cwd, env, fs)),
         "column" => Some(cmd_column(args, stdin, cwd, fs)),
         "shuf" => Some(cmd_shuf(args, stdin, cwd, env, fs)),
         "split" => Some(cmd_split(args, stdin, cwd, env, fs)),
@@ -71,6 +74,164 @@ pub fn try_run_coreutil(
         "install" => Some(cmd_install(args, cwd, env, fs)),
         _ => None,
     }
+}
+
+pub fn gnu_information_sync(
+    name: &str,
+    args: &[String],
+    posixly_correct: bool,
+) -> Option<BuiltinOutcome> {
+    if !args.iter().any(|a| a == "--help" || a == "--version") {
+        return None;
+    }
+    let (description, opts_raw, usage_raw, bit_flags): (&str, &str, &str, u8) = match name {
+        "cat" => ("Concatenate input files.", "-n, --number|-b, --number-nonblank|-s, --squeeze-blank|-E, --show-ends|-T, --show-tabs|-v, --show-nonprinting|-A, --show-all", "", 4),
+        "du" => ("Report virtual file allocation.", "-a, --all|-s, --summarize|-c, --total|-h, --human-readable|-B, --block-size=SIZE|-b, --bytes|--apparent-size|-d, --max-depth=NUM|-X, --exclude-from=FILE|--exclude=PATTERN|-t, --threshold=SIZE", "", 4),
+        "base32" => ("Encode or decode Base32 data.", "-d, --decode|-i, --ignore-garbage|-w, --wrap=COLS", "[OPTION]... [FILE]", 0),
+        "base64" => ("Encode or decode Base64 data.", "-d, --decode|-i, --ignore-garbage|-w, --wrap=COLS", "[OPTION]... [FILE]", 0),
+        "basename" => ("Remove directory components and an optional suffix from names.", "-a, --multiple|-s, --suffix=SUFFIX|-z, --zero", "[OPTION]... NAME... [SUFFIX]", 1),
+        "dirname" => ("Print the directory component of each name.", "-z, --zero", "[OPTION]... NAME...", 2),
+        "chmod" => ("Change virtual file permissions, subject to filesystem capabilities.", "-R, --recursive|-v, --verbose|-c, --changes|-f, --silent, --quiet|--reference=FILE", "[OPTION]... MODE FILE...", 0),
+        "cksum" => ("Compute checksums of files or standard input.", "-a, --algorithm=TYPE|-b, --binary|-z, --zero|--tag|--untagged|--raw|--base64", "", 0),
+        "comm" => ("Compare sorted files in the C/POSIX byte locale.", "-1|-2|-3|--output-delimiter=STR|--check-order|--nocheck-order", "[OPTION]... FILE1 FILE2", 0),
+        "cp" => ("Copy virtual files, subject to filesystem capabilities.", "-a, --archive|-r, -R, --recursive|-f, --force|-i, --interactive|-n, --no-clobber|-v, --verbose|-t, --target-directory=DIR|-T, --no-target-directory|-S, --suffix=SUFFIX", "[OPTION]... SOURCE... DEST", 0),
+        "cut" => ("Select bytes, characters or fields from each input line.", "-b, --bytes=LIST|-c, --characters=LIST|-f, --fields=LIST|-d, --delimiter=CHAR|-s, --only-delimited|-z, --zero-terminated|--output-delimiter=STR|--complement", "", 0),
+        "env" => ("Print the environment or run a registered command with a modified environment.", "-i, --ignore-environment|-u, --unset=NAME|-C, --chdir=DIR|-S, --split-string=STR|-0, --null", "[OPTION]... [NAME=VALUE]... [COMMAND [ARG]...]", 1),
+        "expand" => ("Convert tabs to spaces.", "-i, --initial|-t, --tabs=LIST", "", 0),
+        "fold" => ("Wrap input lines to a selected width.", "-b, --bytes|-s, --spaces|-w, --width=COLS", "", 0),
+        "head" => ("Print the first ten lines by default, or a selected line/byte count.", "-n, --lines=NUM|-c, --bytes=NUM|-q, --quiet, --silent|-v, --verbose|-z, --zero-terminated", "", 0),
+        "tail" => ("Print the last ten lines by default, or a selected line/byte count.", "-n, --lines=NUM|-c, --bytes=NUM|-q, --quiet, --silent|-v, --verbose|-z, --zero-terminated", "", 0),
+        "join" => ("Join sorted files on a common field in the C/POSIX byte locale.", "-1=FIELD|-2=FIELD|-j=FIELD|-t=CHAR|-a=FILENUM|-v=FILENUM|-e=STR|-o=FORMAT|-i|--check-order|--nocheck-order", "[OPTION]... FILE1 FILE2", 0),
+        "ln" => ("Create virtual hard or symbolic links when supported by the filesystem.", "-s, --symbolic|-r, --relative|-f, --force|-i, --interactive|-n, --no-dereference|-v, --verbose|-t, --target-directory=DIR|-T, --no-target-directory|-S, --suffix=SUFFIX", "[OPTION]... TARGET... LINK_NAME", 0),
+        "ls" => ("List virtual directory entries.", "-a, --all|-A, --almost-all|-l|-1|-d, --directory|-F, --classify|-r, --reverse|-R, --recursive|-L, --dereference|-h, --human-readable", "", 0),
+        "mkdir" => ("Create virtual directories.", "-p, --parents|-m, --mode=MODE|-v, --verbose", "[OPTION]... DIRECTORY...", 0),
+        "mktemp" => ("Create a temporary virtual file or directory.", "-d, --directory|-q, --quiet|-u, --dry-run|-p=DIR|--tmpdir[=DIR]|--suffix=SUFFIX", "[OPTION]... [TEMPLATE]", 0),
+        "mv" => ("Move virtual files, subject to filesystem capabilities.", "-f, --force|-i, --interactive|-n, --no-clobber|-u, --update|-v, --verbose|-t, --target-directory=DIR|-T, --no-target-directory|-S, --suffix=SUFFIX", "[OPTION]... SOURCE... DEST", 0),
+        "nl" => ("Number input lines by section and numbering style.", "-b, --body-numbering=STYLE|-h, --header-numbering=STYLE|-f, --footer-numbering=STYLE|-v, --starting-line-number=NUM|-i, --line-increment=NUM|-s, --number-separator=STR|-w, --number-width=NUM|-n, --number-format=FORMAT|-d, --section-delimiter=STR|-l, --join-blank-lines=NUM|-p, --no-renumber", "", 0),
+        "od" => ("Print input bytes in selected numeric formats.", "-A, --address-radix=RADIX|-j, --skip-bytes=NUM|-N, --read-bytes=NUM|-t, --format=TYPE, --type=TYPE|-w, --width=NUM|--endian=ORDER|-v, --output-duplicates", "", 0),
+        "paste" => ("Merge corresponding or serial input lines.", "-s, --serial|-d, --delimiters=LIST|-z, --zero-terminated", "", 0),
+        "readlink" => ("Print symbolic link targets or canonical virtual paths.", "-f, --canonicalize|-e, --canonicalize-existing|-m, --canonicalize-missing|-n, --no-newline|-z, --zero", "[OPTION]... FILE...", 0),
+        "realpath" => ("Print canonical virtual paths.", "-e, --canonicalize-existing|-m, --canonicalize-missing|-s, --strip, --no-symlinks|-z, --zero", "[OPTION]... FILE...", 0),
+        "rm" => ("Remove virtual files and directories.", "-r, -R, --recursive|-f, --force|-d, --dir|-v, --verbose|-i|-I", "[OPTION]... FILE...", 0),
+        "rmdir" => ("Remove empty virtual directories.", "-p, --parents|-v, --verbose|--ignore-fail-on-non-empty", "[OPTION]... DIRECTORY...", 0),
+        "seq" => ("Print a numeric sequence.", "-s, --separator=STR|-f, --format=FORMAT|-w, --equal-width", "[OPTION]... [FIRST [INCREMENT]] LAST", 0),
+        "sort" => ("Sort input records using the supported byte-oriented ordering modes.", "-n, --numeric-sort|-g, --general-numeric-sort|-h, --human-numeric-sort|-V, --version-sort|-r, --reverse|-f, --ignore-case|-u, --unique|-s, --stable|-m, --merge|-k, --key=KEY|-t, --field-separator=CHAR|-o, --output=FILE|--sort=MODE|-z, --zero-terminated|-c, --check|-C, --check=quiet|-S, --buffer-size=SIZE|--batch-size=NUM|--max-input-bytes=NUM|--max-records=NUM", "", 0),
+        "split" => ("Split input into virtual output files.", "-l, --lines=NUM|-b, --bytes=SIZE|-C, --line-bytes=SIZE|-a, --suffix-length=NUM|--additional-suffix=SUFFIX", "[OPTION]... [FILE [PREFIX]]", 0),
+        "stat" => ("Display virtual file metadata supplied by the filesystem.", "-L, --dereference|-c, --format=FORMAT|--printf=FORMAT|-t, --terse", "[OPTION]... FILE...", 0),
+        "tac" => ("Print input records in reverse order.", "-b, --before|-r, --regex|-s, --separator=STR", "", 0),
+        "tee" => ("Copy standard input to standard output and virtual files.", "-a, --append|-i, --ignore-interrupts|--output-error=MODE", "", 0),
+        "touch" => ("Update virtual file timestamps, creating missing files by default.", "-a|-m|-c, --no-create|-h, --no-dereference|-r, --reference=FILE|-d, --date=STR|-t=STAMP", "[OPTION]... FILE...", 0),
+        "tr" => ("Translate, delete or squeeze input bytes.", "-d, --delete|-s, --squeeze-repeats|-c, -C, --complement|-t, --truncate-set1", "[OPTION]... STRING1 [STRING2]", 0),
+        "unexpand" => ("Convert spaces to tabs.", "-a, --all|-t, --tabs=LIST|--first-only", "", 0),
+        "uniq" => ("Filter adjacent repeated input records.", "-c, --count|-d, --repeated|-u, --unique|-i, --ignore-case|-f, --skip-fields=NUM|-s, --skip-chars=NUM|-w, --check-chars=NUM|-z, --zero-terminated", "[OPTION]... [INPUT [OUTPUT]]", 0),
+        "wc" => ("Count input lines, words, bytes, characters or display width.", "-l, --lines|-w, --words|-c, --bytes|-m, --chars|-L, --max-line-length", "", 0),
+        "md5sum" | "sha1sum" | "sha224sum" | "sha256sum" | "sha384sum" | "sha512sum" => (
+            "Compute or verify file digests.",
+            "-b, --binary|-c, --check|-t, --text|-z, --zero|--tag|--quiet|--status|--strict|--warn|--ignore-missing",
+            "",
+            0,
+        ),
+        _ => return None,
+    };
+    let usage = if usage_raw.is_empty() {
+        "[OPTION]... [FILE]..."
+    } else {
+        usage_raw
+    };
+    let options: Vec<&str> = if opts_raw.is_empty() {
+        Vec::new()
+    } else {
+        opts_raw.split('|').collect()
+    };
+    let mut flags: BTreeMap<String, &'static str> = BTreeMap::new();
+    for option in &options {
+        let takes_val = if option.contains("[=") {
+            "optional"
+        } else if option.contains('=') {
+            "required"
+        } else {
+            "none"
+        };
+        for spelling in option.split(", ") {
+            let key = spelling
+                .split('=')
+                .next()
+                .unwrap_or("")
+                .split('[')
+                .next()
+                .unwrap_or("");
+            flags.insert(key.to_string(), takes_val);
+        }
+    }
+    let mut idx = 0usize;
+    while idx < args.len() {
+        let arg = &args[idx];
+        if arg == "--" {
+            break;
+        }
+        if arg == "--help" || arg == "--version" {
+            if arg == "--help" && (bit_flags & 4) != 0 {
+                return None;
+            }
+            if arg == "--version" {
+                return Some(ok_out(&format!("{name} (safe-bash virtual implementation)\n")));
+            }
+            let mut opt_lines = String::new();
+            for option in &options {
+                let formatted: Vec<String> = option
+                    .split(", ")
+                    .map(|sp| {
+                        if sp.starts_with("--") {
+                            sp.to_string()
+                        } else {
+                            sp.replace('=', " ")
+                        }
+                    })
+                    .collect();
+                opt_lines.push_str(&format!("  {}\n", formatted.join(", ")));
+            }
+            return Some(ok_out(&format!(
+                "Usage: {name} {usage}\n{description}\n\nCommon supported options (additional behavior is documented in the package):\n{opt_lines}  --help     display this help and exit\n  --version  display implementation information and exit\n\nThis is the safe-bash virtual implementation; filesystem operations require backend capabilities.\n"
+            )));
+        }
+        if !arg.starts_with('-') || arg == "-" {
+            if (bit_flags & 1) != 0 || ((bit_flags & 2) != 0 && posixly_correct) {
+                break;
+            }
+            idx += 1;
+            continue;
+        }
+        if arg.starts_with("--") {
+            let (spelling, has_eq) = match arg.split_once('=') {
+                Some((s, _)) => (s, true),
+                None => (arg.as_str(), false),
+            };
+            let Some(&mode) = flags.get(spelling) else {
+                return None;
+            };
+            if mode == "required" && !has_eq {
+                idx += 1;
+            } else if mode == "none" && has_eq {
+                return None;
+            }
+        } else {
+            let chars: Vec<char> = arg[1..].chars().collect();
+            for (offset, ch) in chars.iter().enumerate() {
+                let spelling = format!("-{ch}");
+                let Some(&mode) = flags.get(&spelling) else {
+                    return None;
+                };
+                if mode == "required" {
+                    if offset + 1 == chars.len() {
+                        idx += 1;
+                    }
+                    break;
+                }
+            }
+        }
+        idx += 1;
+    }
+    None
 }
 
 fn ok_out(stdout: &str) -> BuiltinOutcome {
@@ -2503,7 +2664,7 @@ fn cmd_cut(
 
     let mut set_mode = |m: char, spec: String| -> Result<(), String> {
         if mode.is_some() && mode != Some(m) {
-            return Err("cut: only one type of list may be specified\n".to_string());
+            return Err("cut: exactly one byte, character, or field list is required\n".to_string());
         }
         mode = Some(m);
         list_spec = spec;
@@ -2607,10 +2768,10 @@ fn cmd_cut(
     }
 
     let Some(active_mode) = mode else {
-        return err_out("cut: you must specify a list of bytes, characters, or fields\n", 2);
+        return err_out("cut: exactly one byte, character, or field list is required\n", 2);
     };
     if active_mode != 'f' && (raw_delim.is_some() || only_delimited) {
-        return err_out("cut: an input delimiter may be specified only when operating on fields\n", 2);
+        return err_out("cut: delimiter options require field mode\n", 2);
     }
 
     let ranges = match parse_cut_ranges(&list_spec) {
@@ -2625,7 +2786,7 @@ fn cmd_cut(
         let mut ch_iter = delim_str.chars();
         let first_ch = ch_iter.next().unwrap();
         if ch_iter.next().is_some() {
-            return err_out("cut: the delimiter must be a single character\n", 2);
+            return err_out("cut: delimiter must be a single character\n", 2);
         }
         let code = first_ch as u32;
         if (0xE080..=0xE0FF).contains(&code) {
@@ -3473,10 +3634,16 @@ fn cmd_nl(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut out = String::new();
     let mut stderr = String::new();
     let mut code = 0;
+    let mut stdin_consumed = false;
 
     for f in &targets {
         let raw = if f == "-" {
-            stdin.to_string()
+            if stdin_consumed {
+                String::new()
+            } else {
+                stdin_consumed = true;
+                stdin.to_string()
+            }
         } else {
             let p = resolve_posix_path(cwd, f);
             match fs.read_file(&p) {
@@ -3853,7 +4020,7 @@ fn parse_paste_delimiters(text: &str) -> Result<Vec<Vec<u8>>, String> {
         let ch = chars[i];
         if ch == '\\' {
             if i + 1 >= chars.len() {
-                return Err("paste: delimiter list ends in an unescaped backslash\n".to_string());
+                return Err("paste: EINVAL: delimiter list ends in an unescaped backslash\n".to_string());
             }
             i += 1;
             let esc = chars[i];
@@ -3927,7 +4094,7 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         }
         if token == "--delimiters" {
             if i + 1 >= args.len() {
-                return err_out("paste: option '--delimiters' requires an argument\n", 1);
+                return err_out("paste: EINVAL: option --delimiters requires an argument\n", 1);
             }
             match parse_paste_delimiters(&args[i + 1]) {
                 Ok(d) => delims = d,
@@ -3945,7 +4112,7 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             continue;
         }
         if token.starts_with("--") {
-            return err_out(&format!("paste: unsupported option {token}\n"), 1);
+            return err_out(&format!("paste: EINVAL: unsupported option {token}\n"), 1);
         }
         let chars: Vec<char> = token[1..].chars().collect();
         let mut ci = 0usize;
@@ -3967,7 +4134,7 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out("paste: option '-d' requires an argument\n", 1);
+                        return err_out("paste: EINVAL: option -d requires an argument\n", 1);
                     };
                     match parse_paste_delimiters(&val) {
                         Ok(d) => delims = d,
@@ -3975,7 +4142,7 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     }
                     break;
                 }
-                c => return err_out(&format!("paste: unsupported option -{c}\n"), 1),
+                c => return err_out(&format!("paste: EINVAL: unsupported option -{c}\n"), 1),
             }
         }
         i += 1;
@@ -3998,14 +4165,18 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             } else {
                 let p = resolve_posix_path(cwd, f);
                 if fs.is_dir(&p) {
-                    stderr.push_str(&format!("paste: {f}: Is a directory\n"));
+                    stderr.push_str(&format!(
+                        "paste: EISDIR: illegal operation on a directory, '{p}'\n"
+                    ));
                     status = 1;
                     continue;
                 }
                 match fs.read_file(&p) {
                     Ok(b) => split_records_by_byte(&b, sep_byte),
-                    Err(e) => {
-                        stderr.push_str(&format!("paste: {f}: {e}\n"));
+                    Err(_) => {
+                        stderr.push_str(&format!(
+                            "paste: ENOENT: no such file or directory, stat '{p}'\n"
+                        ));
                         status = 1;
                         continue;
                     }
@@ -4040,13 +4211,21 @@ fn cmd_paste(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
-                return err_out(&format!("paste: {f}: Is a directory\n"), 1);
+                return err_out(
+                    &format!("paste: EISDIR: illegal operation on a directory, '{p}'\n"),
+                    1,
+                );
             }
             match fs.read_file(&p) {
                 Ok(b) => sources.push(PasteSource::File(std::collections::VecDeque::from(
                     split_records_by_byte(&b, sep_byte),
                 ))),
-                Err(e) => return err_out(&format!("paste: {f}: {e}\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("paste: ENOENT: no such file or directory, stat '{p}'\n"),
+                        1,
+                    );
+                }
             }
         }
     }
@@ -4137,7 +4316,7 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 i += 2;
                 args[i - 1].clone()
             } else {
-                return err_out("comm: option --output-delimiter requires an argument\n", 1);
+                return err_out("comm: EINVAL: option --output-delimiter requires an argument\n", 1);
             };
             let candidate = if val.is_empty() {
                 vec![0u8]
@@ -4145,7 +4324,7 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 crate::vfs::stream_string_to_bytes(&val)
             };
             if delim_set && candidate != delim {
-                return err_out("comm: multiple conflicting output delimiters\n", 1);
+                return err_out("comm: EINVAL: multiple conflicting output delimiters\n", 1);
             }
             delim = candidate;
             delim_set = true;
@@ -4163,12 +4342,12 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             i += 1;
         } else {
-            return err_out(&format!("comm: unsupported option {token}\n"), 1);
+            return err_out(&format!("comm: EINVAL: unsupported option {token}\n"), 1);
         }
     }
 
     if files.len() != 2 {
-        return err_out("comm: comm requires exactly two files\n", 1);
+        return err_out("comm: EINVAL: comm requires exactly two files\n", 1);
     }
 
     let stdin_bytes = crate::vfs::stream_string_to_bytes(stdin);
@@ -4186,13 +4365,21 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
-                return err_out(&format!("comm: {f}: Is a directory\n"), 1);
+                return err_out(
+                    &format!("comm: EISDIR: illegal operation on a directory, '{p}'\n"),
+                    1,
+                );
             }
             match fs.read_file(&p) {
                 Ok(b) => sources.push(CommSource::File(std::collections::VecDeque::from(
                     split_records_by_byte(&b, sep_byte),
                 ))),
-                Err(e) => return err_out(&format!("comm: {f}: {e}\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("comm: ENOENT: no such file or directory, stat '{p}'\n"),
+                        1,
+                    );
+                }
             }
         }
     }
@@ -4235,9 +4422,8 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             unpaired = true;
             for f_idx in 0..2 {
                 if pending[f_idx] && !warned[f_idx] {
-                    let msg = format!("comm: file {} is not in sorted order\n", f_idx + 1);
                     if mode == CommOrderMode::Check {
-                        stderr.push_str(&msg);
+                        stderr.push_str(&format!("comm: EINVAL: file {} is not in sorted order\n", f_idx + 1));
                         return BuiltinOutcome {
                             stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
                             stderr,
@@ -4246,7 +4432,7 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     }
                     warned[f_idx] = true;
                     failed = true;
-                    stderr.push_str(&msg);
+                    stderr.push_str(&format!("comm: file {} is not in sorted order\n", f_idx + 1));
                 }
             }
             pending = [false; 2];
@@ -4287,9 +4473,8 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 if mode == CommOrderMode::Default && !unpaired {
                     pending[idx] = disordered;
                 } else if disordered {
-                    let msg = format!("comm: file {} is not in sorted order\n", idx + 1);
                     if mode == CommOrderMode::Check {
-                        stderr.push_str(&msg);
+                        stderr.push_str(&format!("comm: EINVAL: file {} is not in sorted order\n", idx + 1));
                         return BuiltinOutcome {
                             stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
                             stderr,
@@ -4298,7 +4483,7 @@ fn cmd_comm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     }
                     warned[idx] = true;
                     failed = true;
-                    stderr.push_str(&msg);
+                    stderr.push_str(&format!("comm: file {} is not in sorted order\n", idx + 1));
                 }
             }
             previous[idx] = rows[idx].take();
@@ -11848,7 +12033,7 @@ fn cmd_fold(
     }
 }
 
-fn parse_fmt_width_val(text: &str, max_val: usize) -> Result<usize, String> {
+fn parse_fmt_width_val(text: &str, max_val: usize, is_goal: bool) -> Result<usize, String> {
     let trimmed = text.trim_start_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']);
     let digits = trimmed.strip_prefix('+').unwrap_or(trimmed);
     if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
@@ -11856,7 +12041,14 @@ fn parse_fmt_width_val(text: &str, max_val: usize) -> Result<usize, String> {
     }
     match digits.parse::<usize>() {
         Ok(n) if n <= max_val => Ok(n),
-        _ => Err(format!("fmt: invalid width: '{text}'\n")),
+        _ => {
+            let reason = if is_goal {
+                ": Value too large for defined data type"
+            } else {
+                ": Numerical result out of range"
+            };
+            Err(format!("fmt: invalid width: '{text}'{reason}\n"))
+        }
     }
 }
 
@@ -12226,7 +12418,13 @@ impl<'a> FmtFormatter<'a> {
     }
 }
 
-fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_fmt(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut width_opt: Option<String> = None;
     let mut goal_opt: Option<String> = None;
     let mut crown = false;
@@ -12238,6 +12436,7 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut full_prefix = 0usize;
     let mut files: Vec<String> = Vec::new();
     let mut stopped = false;
+    let posixly_correct = env.contains_key("POSIXLY_CORRECT");
     let mut i = 0usize;
 
     if let Some(first) = args.first()
@@ -12269,8 +12468,12 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             "u" => uniform = true,
             "w" => width_opt = Some(val.unwrap_or("").to_string()),
             "g" => goal_opt = Some(val.unwrap_or("").to_string()),
-            "help" => return Ok(Some(ok_out("Usage: fmt [-WIDTH] [OPTION]... [FILE]...\n"))),
-            "version" => return Ok(Some(ok_out("fmt (safe-bash)\n"))),
+            "help" => {
+                return Ok(Some(ok_out(
+                    "Usage: fmt [-WIDTH] [OPTION]... [FILE]...\nReformat paragraphs; omitted FILE or '-' reads standard input.\n  -c, --crown-margin       preserve indentation of first two lines\n  -t, --tagged-paragraph   use distinct first and following margins\n  -p, --prefix=STRING      format only lines with this prefix\n  -s, --split-only         split lines without joining\n  -u, --uniform-spacing    one space between words, two after sentences\n  -w, --width=WIDTH        maximum width (default 75)\n  -g, --goal=WIDTH         preferred width (default 93% of width)\n      --help              display this help\n      --version           display virtual command identity\n",
+                )))
+            }
+            "version" => return Ok(Some(ok_out("fmt (virtual-bash)\n"))),
             "p" => {
                 let raw = crate::vfs::stream_string_to_bytes(val.unwrap_or(""));
                 let mut start = 0usize;
@@ -12294,6 +12497,9 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let a = &args[i];
         if stopped || !a.starts_with('-') || a == "-" {
             files.push(a.clone());
+            if posixly_correct {
+                stopped = true;
+            }
             i += 1;
             continue;
         }
@@ -12312,12 +12518,24 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 .iter()
                 .filter(|&&(k, _)| k.starts_with(name))
                 .collect();
-            let (_, key) = if let Some(&pair) = exact {
+            let (sel_name, key) = if let Some(&pair) = exact {
                 pair
             } else if matches.len() == 1 {
                 *matches[0]
+            } else if matches.len() > 1 {
+                let poss: Vec<String> = matches.iter().map(|&&(k, _)| format!("'--{k}'")).collect();
+                return err_out(
+                    &format!(
+                        "fmt: option '{a}' is ambiguous; possibilities: {}\nTry 'fmt --help' for more information.\n",
+                        poss.join(" ")
+                    ),
+                    1,
+                );
             } else {
-                return err_out(&format!("fmt: unrecognized option '{a}'\n"), 1);
+                return err_out(
+                    &format!("fmt: unrecognized option '{a}'\nTry 'fmt --help' for more information.\n"),
+                    1,
+                );
             };
             let val = if matches!(key, "p" | "w" | "g") {
                 if let Some(v) = eq_val {
@@ -12326,11 +12544,21 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     i += 1;
                     Some(args[i].clone())
                 } else {
-                    return err_out(&format!("fmt: option '{a}' requires an argument\n"), 1);
+                    return err_out(
+                        &format!(
+                            "fmt: option '--{sel_name}' requires an argument\nTry 'fmt --help' for more information.\n"
+                        ),
+                        1,
+                    );
                 }
             } else {
                 if eq_val.is_some() {
-                    return err_out(&format!("fmt: option '{a}' doesn't allow an argument\n"), 1);
+                    return err_out(
+                        &format!(
+                            "fmt: option '--{sel_name}' doesn't allow an argument\nTry 'fmt --help' for more information.\n"
+                        ),
+                        1,
+                    );
                 }
                 None
             };
@@ -12347,12 +12575,15 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 let ch = chars[ci];
                 if ch.is_ascii_digit() {
                     return err_out(
-                        &format!("fmt: invalid option -- {ch}; -WIDTH is recognized only when it is the first\noption; use -w N instead\n"),
+                        &format!("fmt: invalid option -- {ch}; -WIDTH is recognized only when it is the first\noption; use -w N instead\nTry 'fmt --help' for more information.\n"),
                         1,
                     );
                 }
                 if !"cstuwpg".contains(ch) {
-                    return err_out(&format!("fmt: invalid option -- '{ch}'\n"), 1);
+                    return err_out(
+                        &format!("fmt: invalid option -- '{ch}'\nTry 'fmt --help' for more information.\n"),
+                        1,
+                    );
                 }
                 let key_s = ch.to_string();
                 if "pwg".contains(ch) {
@@ -12363,7 +12594,12 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         i += 1;
                         args[i].clone()
                     } else {
-                        return err_out(&format!("fmt: option requires an argument -- '{ch}'\n"), 1);
+                        return err_out(
+                            &format!(
+                                "fmt: option requires an argument -- '{ch}'\nTry 'fmt --help' for more information.\n"
+                            ),
+                            1,
+                        );
                     };
                     match apply_opt(&key_s, Some(&val)) {
                         Ok(Some(out)) => return out,
@@ -12382,13 +12618,13 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
     let mut width = 75usize;
     if let Some(ref w_str) = width_opt {
-        width = match parse_fmt_width_val(w_str, 2500) {
+        width = match parse_fmt_width_val(w_str, 2500, false) {
             Ok(w) => w,
             Err(msg) => return err_out(&msg, 1),
         };
     }
     let goal = if let Some(ref g_str) = goal_opt {
-        let g = match parse_fmt_width_val(g_str, width) {
+        let g = match parse_fmt_width_val(g_str, width, true) {
             Ok(v) => v,
             Err(msg) => return err_out(&msg, 1),
         };
@@ -12405,61 +12641,67 @@ fn cmd_fmt(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     } else {
         files
     };
-    let mut combined: Vec<u8> = Vec::new();
+    let mut out_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
+    let mut stdin_done = false;
     for f in &inputs {
-        if f == "-" {
-            combined.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
+        let file_bytes: Vec<u8> = if f == "-" {
+            if stdin_done {
+                continue;
+            }
+            stdin_done = true;
+            crate::vfs::stream_string_to_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
-                stderr.push_str(&format!("fmt: read error\n"));
+                stderr.push_str(&format!("fmt: error reading '{f}': Is a directory\n"));
                 exit_code = 1;
                 continue;
             }
             match fs.read_file(&p) {
-                Ok(b) => combined.extend_from_slice(&b),
+                Ok(b) => b,
                 Err(_) => {
                     stderr.push_str(&format!("fmt: cannot open '{f}' for reading: No such file or directory\n"));
                     exit_code = 1;
+                    continue;
                 }
             }
-        }
+        };
+        let mut formatter = FmtFormatter {
+            input: &file_bytes,
+            pos: 0,
+            out: Vec::new(),
+            text: vec![0; 5000],
+            used: 0,
+            words: Vec::new(),
+            costs: Vec::new(),
+            breaks: Vec::new(),
+            lengths: Vec::new(),
+            width,
+            goal,
+            crown,
+            tagged,
+            split,
+            uniform,
+            prefix: prefix_bytes.clone(),
+            leading,
+            full_prefix,
+            column: 0,
+            next_prefix: 0,
+            prefix_indent: 0,
+            first_indent: 0,
+            other_indent: 0,
+            last_length: 0,
+            out_column: 0,
+            tabs: false,
+        };
+        formatter.run();
+        out_bytes.extend_from_slice(&formatter.out);
     }
 
-    let mut formatter = FmtFormatter {
-        input: &combined,
-        pos: 0,
-        out: Vec::new(),
-        text: vec![0; 5000],
-        used: 0,
-        words: Vec::new(),
-        costs: Vec::new(),
-        breaks: Vec::new(),
-        lengths: Vec::new(),
-        width,
-        goal,
-        crown,
-        tagged,
-        split,
-        uniform,
-        prefix: prefix_bytes,
-        leading,
-        full_prefix,
-        column: 0,
-        next_prefix: 0,
-        prefix_indent: 0,
-        first_indent: 0,
-        other_indent: 0,
-        last_length: 0,
-        out_column: 0,
-        tabs: false,
-    };
-    formatter.run();
-
     BuiltinOutcome {
-        stdout: crate::vfs::bytes_to_stream_string(&formatter.out),
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
         stderr,
         exit_code,
     }
@@ -13102,6 +13344,7 @@ struct PrOptions {
     last_page: usize,
     width: usize,
     header: Option<String>,
+    date_format: Option<String>,
     extremities: bool,
     keep_ff: bool,
     form_feed: bool,
@@ -13137,7 +13380,7 @@ fn parse_pr_int(val: &str, min_val: i64, label: &str) -> Result<i64, String> {
     }
     match trimmed.parse::<i64>() {
         Ok(n) if n >= min_val && n <= 2_147_483_647 => Ok(n),
-        _ => Err(format!("pr: {label}: '{val}'\n")),
+        _ => Err(format!("pr: {label}: '{val}': Numerical result out of range\n")),
     }
 }
 
@@ -13722,9 +13965,15 @@ impl PrFormatter {
         }
     }
 
-    fn run(&mut self, readers: &mut [PrReader], date: &str, name: &str) {
+    fn run(
+        &mut self,
+        readers: &mut [PrReader],
+        col_reader_indices: &[usize],
+        date: &str,
+        name: &str,
+    ) {
         let count = if self.opts.merge {
-            readers.len()
+            col_reader_indices.len()
         } else {
             self.opts.columns
         };
@@ -13743,7 +13992,11 @@ impl PrFormatter {
                 0
             };
             self.columns.push(PrColumn {
-                reader_idx: if self.opts.merge { idx } else { 0 },
+                reader_idx: if self.opts.merge {
+                    col_reader_indices[idx]
+                } else {
+                    col_reader_indices.first().copied().unwrap_or(0)
+                },
                 status: PrColStatus::Open,
                 full: false,
                 numbered: self.opts.numbered && (!self.opts.merge || idx == 0),
@@ -13889,7 +14142,13 @@ impl PrFormatter {
     }
 }
 
-fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_pr(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> BuiltinOutcome {
     let mut opts = PrOptions {
         files: Vec::new(),
         columns: 1,
@@ -13901,6 +14160,7 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         last_page: 2_147_483_647,
         width: 72,
         header: None,
+        date_format: None,
         extremities: true,
         keep_ff: false,
         form_feed: false,
@@ -13974,7 +14234,7 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
         }
         if argument == "--help" || argument == "--version" {
             return ok_out(if argument == "--help" {
-                "Usage: pr [OPTION]... [FILE]...\n"
+                "Usage: pr [OPTION]... [FILE]...\nPaginate or columnate files for printing.\nOptions: -COLUMNS -h HEADER -l LENGTH -w WIDTH -t -n[SEP[DIGITS]] -m -s[SEP]\n  --date-format=FORMAT  format the header date\n"
             } else {
                 "pr (virtual-bash)\n"
             });
@@ -14013,8 +14273,21 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 switches = sw.to_string();
             } else if matches.len() == 1 {
                 switches = matches[0].1.to_string();
+            } else if matches.len() > 1 {
+                let poss: String = matches.iter().map(|&&(k, _)| format!(" '--{k}'")).collect();
+                return err_out(
+                    &format!(
+                        "pr: option '{argument}' is ambiguous; possibilities:{poss}\nTry 'pr --help' for more information.\n"
+                    ),
+                    1,
+                );
             } else {
-                return err_out(&format!("pr: unrecognized option '{argument}'\n"), 1);
+                return err_out(
+                    &format!(
+                        "pr: unrecognized option '{argument}'\nTry 'pr --help' for more information.\n"
+                    ),
+                    1,
+                );
             }
             attached = eq_val;
         }
@@ -14047,15 +14320,30 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         index += 1;
                         value = Some(args[index].clone());
                     } else {
-                        return err_out(
-                            &format!("pr: option requires an argument -- '{option}'\n"),
-                            1,
-                        );
+                        let msg = if is_long {
+                            format!(
+                                "pr: option '{argument}' requires an argument\nTry 'pr --help' for more information.\n"
+                            )
+                        } else {
+                            format!(
+                                "pr: option requires an argument -- '{option}'\nTry 'pr --help' for more information.\n"
+                            )
+                        };
+                        return err_out(&msg, 1);
                     }
                 }
                 offset = sw_chars.len();
             } else if attached.is_some() {
-                return err_out("pr: option doesn't allow an argument\n", 1);
+                let opt_name = argument
+                    .split_once('=')
+                    .map(|(n, _)| n)
+                    .unwrap_or(argument.as_str());
+                return err_out(
+                    &format!(
+                        "pr: option '{opt_name}' doesn't allow an argument\nTry 'pr --help' for more information.\n"
+                    ),
+                    1,
+                );
             } else {
                 offset += 1;
             }
@@ -14063,13 +14351,16 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             match option {
                 'p' => {
                     if !is_long {
-                        return err_out("pr: invalid option -- 'p'\n", 1);
+                        return err_out(
+                            "pr: invalid option -- 'p'\nTry 'pr --help' for more information.\n",
+                            1,
+                        );
                     }
                     if let Err(msg) = parse_pr_pages(&value.unwrap_or_default(), &mut opts) {
                         return err_out(&msg, 1);
                     }
                 }
-                '\0' => {}
+                '\0' => opts.date_format = value,
                 '#' => {
                     let v = value.unwrap_or_default();
                     match parse_pr_int(&v, 1, "invalid number of columns") {
@@ -14178,7 +14469,24 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         if !v.is_empty() {
                             match parse_pr_int(&v, 1, "invalid number") {
                                 Ok(n) => cnt_opt = Some(n as usize),
-                                Err(msg) => return err_out(&msg, 1),
+                                Err(_) => {
+                                    let v_trim = v.trim();
+                                    let v_dig = v_trim.strip_prefix('+').unwrap_or(v_trim);
+                                    let overflow = !v_dig.is_empty()
+                                        && v_dig.bytes().all(|b| b.is_ascii_digit())
+                                        && v_dig.parse::<i128>().is_ok_and(|num| num > 2_147_483_647);
+                                    let suffix = if overflow {
+                                        ": Value too large for defined data type"
+                                    } else {
+                                        ""
+                                    };
+                                    return err_out(
+                                        &format!(
+                                            "pr: '-{option}' extra characters or invalid number in the argument: '{v}'{suffix}\nTry 'pr --help' for more information.\n"
+                                        ),
+                                        1,
+                                    );
+                                }
                             }
                         }
                         match option {
@@ -14210,7 +14518,14 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         }
                     }
                 }
-                _ => return err_out(&format!("pr: invalid option -- '{option}'\n"), 1),
+                _ => {
+                    return err_out(
+                        &format!(
+                            "pr: invalid option -- '{option}'\nTry 'pr --help' for more information.\n"
+                        ),
+                        1,
+                    )
+                }
             }
         }
         index += 1;
@@ -14273,21 +14588,79 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
-    let date_str = "2026-01-01 00:00";
+
+    let ctype = env
+        .get("LC_ALL")
+        .or_else(|| env.get("LC_CTYPE"))
+        .or_else(|| env.get("LANG"))
+        .filter(|s| !s.is_empty())
+        .map(|s| s.as_str())
+        .unwrap_or("C");
+    let time_locale = env
+        .get("LC_ALL")
+        .or_else(|| env.get("LC_TIME"))
+        .or_else(|| env.get("LANG"))
+        .filter(|s| !s.is_empty())
+        .map(|s| s.as_str())
+        .unwrap_or("C");
+    for loc in [ctype, time_locale] {
+        if !matches!(loc, "C" | "POSIX" | "C.UTF-8" | "C.utf8") {
+            return err_out(&format!("pr: unsupported locale '{loc}'\n"), 1);
+        }
+    }
+
+    let now_ms = env
+        .get("SOURCE_DATE_EPOCH")
+        .and_then(|s| s.trim().parse::<i64>().ok())
+        .map_or(1_700_000_000_000, |sec| sec * 1000);
+    let format_pr_date = |ms: i64| -> Result<String, String> {
+        let epoch_sec = ms.div_euclid(1000);
+        let ns = (ms.rem_euclid(1000) * 1_000_000) as u32;
+        if let Some(ref df) = opts.date_format {
+            match render_date_format(df, epoch_sec, ns, 0, "UTC") {
+                Ok(s) => Ok(s.strip_suffix('\n').unwrap_or(&s).to_string()),
+                Err(msg) => Err(msg.replacen("date: ", "pr: ", 1)),
+            }
+        } else {
+            let days = epoch_sec.div_euclid(86400);
+            let rem = epoch_sec.rem_euclid(86400);
+            let hour = (rem / 3600) as u32;
+            let min = ((rem % 3600) / 60) as u32;
+            let (year, month, day) = civil_from_days(days);
+            if env.contains_key("POSIXLY_CORRECT") && matches!(time_locale, "C" | "POSIX") {
+                let m_name = [
+                    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
+                    "Dec",
+                ][(month.saturating_sub(1) as usize).min(11)];
+                Ok(format!("{m_name} {day:>2} {hour:02}:{min:02} {year:04}"))
+            } else {
+                Ok(format!("{year:04}-{month:02}-{day:02} {hour:02}:{min:02}"))
+            }
+        }
+    };
+
+    let mut shared_readers: Vec<PrReader> = Vec::new();
+    let mut stdin_reader_idx: Option<usize> = None;
 
     for group in groups {
         let mut formatter = match PrFormatter::new(opts.clone(), group.len()) {
             Ok(f) => f,
             Err(msg) => return err_out(&msg, 1),
         };
-        let mut readers: Vec<PrReader> = Vec::new();
+        let mut col_reader_indices: Vec<usize> = Vec::new();
         let mut first_name = String::new();
+        let mut first_mtime_ms: Option<i64> = None;
         for name in &group {
             if name == "-" {
                 if first_name.is_empty() {
                     first_name = "-".to_string();
                 }
-                readers.push(PrReader::new(crate::vfs::stream_string_to_bytes(stdin)));
+                let r_idx = *stdin_reader_idx.get_or_insert_with(|| {
+                    let idx = shared_readers.len();
+                    shared_readers.push(PrReader::new(crate::vfs::stream_string_to_bytes(stdin)));
+                    idx
+                });
+                col_reader_indices.push(r_idx);
             } else {
                 let p = resolve_posix_path(cwd, name);
                 if fs.is_dir(&p) {
@@ -14298,11 +14671,14 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                     continue;
                 }
                 match fs.read_file(&p) {
-                Ok(b) => {
+                    Ok(b) => {
                         if first_name.is_empty() {
                             first_name = name.clone();
+                            first_mtime_ms = fs.stat(&p).ok().map(|st| st.mtime_ms as i64);
                         }
-                        readers.push(PrReader::new(b));
+                        let r_idx = shared_readers.len();
+                        shared_readers.push(PrReader::new(b));
+                        col_reader_indices.push(r_idx);
                     }
                     Err(_) => {
                         exit_code = 1;
@@ -14315,9 +14691,18 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 }
             }
         }
-        if readers.is_empty() {
+        if col_reader_indices.is_empty() {
             continue;
         }
+        let date_ms = if opts.merge {
+            now_ms
+        } else {
+            first_mtime_ms.unwrap_or(now_ms)
+        };
+        let date_str = match format_pr_date(date_ms) {
+            Ok(s) => s,
+            Err(msg) => return err_out(&msg, 1),
+        };
         let title = opts.header.clone().unwrap_or_else(|| {
             if opts.merge || first_name == "-" {
                 String::new()
@@ -14325,7 +14710,7 @@ fn cmd_pr(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                 first_name
             }
         });
-        formatter.run(&mut readers, date_str, &title);
+        formatter.run(&mut shared_readers, &col_reader_indices, &date_str, &title);
         stdout.push_str(&formatter.rendered);
     }
 
@@ -15011,7 +15396,7 @@ fn col_selected(
                 .unwrap_or(-1)
         };
         if idx < 0 || (idx as usize) >= count {
-            return Err(format!("column: undefined column name '{val}'\n"));
+            return Err(format!("column: EINVAL: undefined column name '{val}'\n"));
         }
         Ok(idx as usize)
     };
@@ -15632,7 +16017,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         match option {
             "s" => {
                 if value.is_empty() {
-                    return Err("column: input separator must not be empty\n".to_string());
+                    return Err("column: EINVAL: input separator must not be empty\n".to_string());
                 }
                 opts.separator = Some(value.chars().collect());
             }
@@ -15644,7 +16029,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 let names: Vec<String> = value.split(',').map(String::from).collect();
                 if names.iter().any(|n| n.is_empty() || n.contains('\0')) {
                     return Err(
-                        "column: column names must be nonempty and contain no NUL\n".to_string(),
+                        "column: EINVAL: column names must be nonempty and contain no NUL\n".to_string(),
                     );
                 }
                 opts.names = names;
@@ -15652,7 +16037,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "n" => {
                 if value.is_empty() || value.contains('\0') {
                     return Err(
-                        "column: table name must be nonempty and contain no NUL\n".to_string(),
+                        "column: EINVAL: table name must be nonempty and contain no NUL\n".to_string(),
                     );
                 }
                 opts.table_name = value;
@@ -15707,11 +16092,11 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
             "l" => {
                 if value.is_empty() || !value.chars().all(|c| c.is_ascii_digit()) {
-                    return Err("column: invalid columns limit\n".to_string());
+                    return Err("column: EINVAL: invalid columns limit\n".to_string());
                 }
                 let n = value.parse::<usize>().unwrap_or(0);
                 if n < 1 {
-                    return Err("column: invalid columns limit\n".to_string());
+                    return Err("column: EINVAL: invalid columns limit\n".to_string());
                 }
                 opts.column_limit = n;
             }
@@ -15732,18 +16117,18 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     } else if matches!(prop, "right" | "trunc" | "wrap") {
                         flags.push(prop.to_string());
                     } else {
-                        return Err(format!("column: unsupported column property: {prop}\n"));
+                        return Err(format!("column: EINVAL: unsupported column property: {prop}\n"));
                     }
                 }
                 opts.definitions.push(ColDef { name, named, flags });
             }
             _ => {
                 if value.is_empty() || !value.chars().all(|c| c.is_ascii_digit()) {
-                    return Err("column: invalid output width\n".to_string());
+                    return Err("column: EINVAL: invalid output width\n".to_string());
                 }
                 let w = value.parse::<usize>().unwrap_or(0);
                 if w < 1 {
-                    return Err("column: invalid output width\n".to_string());
+                    return Err("column: EINVAL: invalid output width\n".to_string());
                 }
                 opts.width = w;
             }
@@ -15830,7 +16215,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 _ => None,
             };
             let Some(opt_code) = option else {
-                return err_out(&format!("column: unsupported option: {token}\n"), 1);
+                return err_out(&format!("column: EINVAL: unsupported option: {token}\n"), 1);
             };
             let value = if let Some(v) = attached {
                 v
@@ -15838,7 +16223,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 index += 1;
                 args[index].clone()
             } else {
-                return err_out(&format!("column: option {name} requires an argument\n"), 1);
+                return err_out(&format!("column: EINVAL: option {name} requires an argument\n"), 1);
             };
             if let Err(msg) = set_value(&mut opts, &mut output_set, opt_code, value) {
                 return err_out(&msg, 1);
@@ -15872,7 +16257,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         args[index].clone()
                     } else {
                         return err_out(
-                            &format!("column: option -{ch} requires an argument\n"),
+                            &format!("column: EINVAL: option -{ch} requires an argument\n"),
                             1,
                         );
                     };
@@ -15881,7 +16266,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     }
                     break;
                 }
-                _ => return err_out(&format!("column: unsupported option: -{ch}\n"), 1),
+                _ => return err_out(&format!("column: EINVAL: unsupported option: -{ch}\n"), 1),
             }
             offset += 1;
         }
@@ -15892,11 +16277,11 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         return ok_out("Usage: column [-t] [-s characters] [-o string] [-c width] [-x] [file ...]\n");
     }
     if opts.table && opts.across {
-        return err_out("column: -x/--fillrows cannot be combined with table mode\n", 1);
+        return err_out("column: EINVAL: -x/--fillrows cannot be combined with table mode\n", 1);
     }
     if !opts.definitions.is_empty() && !opts.names.is_empty() {
         return err_out(
-            "column: --table-columns and --table-column are mutually exclusive\n",
+            "column: EINVAL: --table-columns and --table-column are mutually exclusive\n",
             1,
         );
     }
@@ -15913,7 +16298,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             || !opts.wrap_sel.is_empty()
             || !opts.noextreme_sel.is_empty())
     {
-        return err_out("column: table options require -t/--table\n", 1);
+        return err_out("column: EINVAL: table options require -t/--table\n", 1);
     }
     if opts.json
         && (opts.names.is_empty()
@@ -15923,10 +16308,10 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     .iter()
                     .any(|d| d.named && !d.name.is_empty())))
     {
-        return err_out("column: JSON output requires --table-columns\n", 1);
+        return err_out("column: EINVAL: JSON output requires --table-columns\n", 1);
     }
     if !opts.table && (opts.separator.is_some() || output_set) {
-        return err_out("column: input/output separators require -t/--table\n", 1);
+        return err_out("column: EINVAL: input/output separators require -t/--table\n", 1);
     }
     if opts.files.is_empty() {
         opts.files.push("-".to_string());
@@ -15999,21 +16384,31 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut widths: Vec<usize> = Vec::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
+    let mut stdin_consumed = false;
 
     for file in &opts.files {
         let content = if file == "-" {
-            stdin.to_string()
+            if stdin_consumed {
+                String::new()
+            } else {
+                stdin_consumed = true;
+                stdin.to_string()
+            }
         } else {
             let p = resolve_posix_path(cwd, file);
             if fs.is_dir(&p) {
-                stderr.push_str(&format!("column: {file}: Is a directory\n"));
+                stderr.push_str(&format!(
+                    "column: EISDIR: illegal operation on a directory, '{p}'\n"
+                ));
                 exit_code = 1;
                 continue;
             }
             match fs.read_file(&p) {
                 Ok(b) => crate::vfs::bytes_to_stream_string(&b),
                 Err(_) => {
-                    stderr.push_str(&format!("column: {file}: No such file or directory\n"));
+                    stderr.push_str(&format!(
+                        "column: ENOENT: no such file or directory, stat '{p}'\n"
+                    ));
                     exit_code = 1;
                     continue;
                 }
@@ -16061,7 +16456,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     if !is_column_named(idx) && !is_column_hidden(idx, count) {
                         return err_out(
                             &format!(
-                                "column: line {}: for JSON the name of the column {} is required\n",
+                                "column: EINVAL: line {}: for JSON the name of the column {} is required\n",
                                 rows.len() + 1,
                                 idx + 1
                             ),
@@ -21337,5 +21732,86 @@ mod tests {
             bad_d2u.stderr,
             "dos2unix: wrong flag 'Z' for option -i or --info\n"
         );
+    }
+
+    #[test]
+    fn fmt_pr_column_nl_and_gnu_information_match_typescript() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let mut env = BTreeMap::new();
+
+        let fmt_ver = try_run_coreutil("fmt", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(fmt_ver.exit_code, 0);
+        assert_eq!(fmt_ver.stdout, "fmt (virtual-bash)\n");
+
+        let fmt_over_w = try_run_coreutil("fmt", &args(&["-w", "3000"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(fmt_over_w.exit_code, 1);
+        assert_eq!(
+            fmt_over_w.stderr,
+            "fmt: invalid width: '3000': Numerical result out of range\n"
+        );
+
+        let fmt_over_g = try_run_coreutil("fmt", &args(&["-w", "60", "-g", "80"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(fmt_over_g.exit_code, 1);
+        assert_eq!(
+            fmt_over_g.stderr,
+            "fmt: invalid width: '80': Value too large for defined data type\n"
+        );
+
+        let fmt_dir = try_run_coreutil("fmt", &args(&["/work"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(fmt_dir.exit_code, 1);
+        assert_eq!(fmt_dir.stderr, "fmt: error reading '/work': Is a directory\n");
+
+        vfs.write_file("/work/p.txt", b"hello\n").unwrap();
+        vfs.set_mtime("/work/p.txt", 1_742_049_000_000).unwrap();
+        let pr_df = try_run_coreutil(
+            "pr",
+            &args(&["--date-format=%Y/%m/%d", "-l", "12", "/work/p.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pr_df.exit_code, 0);
+        assert!(pr_df.stdout.contains("2025/03/15"));
+
+        let pr_merge_stdin = try_run_coreutil(
+            "pr",
+            &args(&["-m", "-t", "-", "-"]),
+            "1\n2\n3\n4\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pr_merge_stdin.exit_code, 0);
+        assert_eq!(pr_merge_stdin.stdout, "1\t\t\t\t    2\n3\t\t\t\t    4\n");
+
+        env.insert("LC_ALL".to_string(), "fr_FR.UTF-8".to_string());
+        let pr_loc = try_run_coreutil("pr", &args(&[]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(pr_loc.exit_code, 1);
+        assert_eq!(pr_loc.stderr, "pr: unsupported locale 'fr_FR.UTF-8'\n");
+        env.remove("LC_ALL");
+
+        let nl_ver = try_run_coreutil("nl", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(nl_ver.exit_code, 0);
+        assert_eq!(nl_ver.stdout, "nl (safe-bash virtual implementation)\n");
+
+        let col_err = try_run_coreutil("column", &args(&["-N", "a,b"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(col_err.exit_code, 1);
+        assert_eq!(col_err.stderr, "column: EINVAL: table options require -t/--table\n");
+
+        let paste_err = try_run_coreutil("paste", &args(&["-d", "a\\"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(paste_err.exit_code, 1);
+        assert_eq!(paste_err.stderr, "paste: EINVAL: delimiter list ends in an unescaped backslash\n");
+
+        let comm_err = try_run_coreutil("comm", &args(&["/work/p.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(comm_err.exit_code, 1);
+        assert_eq!(comm_err.stderr, "comm: EINVAL: comm requires exactly two files\n");
+
+        let cut_err = try_run_coreutil("cut", &args(&["-b", "1", "-f", "1"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(cut_err.exit_code, 2);
+        assert_eq!(cut_err.stderr, "cut: exactly one byte, character, or field list is required\n");
     }
 }

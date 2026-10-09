@@ -4177,7 +4177,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut excludes: Vec<String> = Vec::new();
     let mut transforms: Vec<String> = Vec::new();
     let mut operands: Vec<TarOperand> = Vec::new();
-    let mut pending_files_from: Vec<(String, bool, bool)> = Vec::new();
+    let mut pending_files_from: Vec<(String, bool, bool, usize)> = Vec::new();
 
     let read_exclude_file = |xf: &str, excludes: &mut Vec<String>| {
         let raw = if xf == "-" {
@@ -4412,12 +4412,12 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if (a == "-T" || a == "--files-from") && i + 1 < args.len() {
                 i += 1;
                 let ff = args[i].clone();
-                pending_files_from.push((ff, null_delim, verbatim_files_from));
+                pending_files_from.push((ff, null_delim, verbatim_files_from, excludes.len()));
                 i += 1;
                 continue;
             }
             if let Some(ff) = a.strip_prefix("--files-from=") {
-                pending_files_from.push((ff.to_string(), null_delim, verbatim_files_from));
+                pending_files_from.push((ff.to_string(), null_delim, verbatim_files_from, excludes.len()));
                 i += 1;
                 continue;
             }
@@ -4623,11 +4623,11 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                             matched_flag = true;
                             let rest: String = chars[ci + 1..].iter().collect();
                             if !old_style && !rest.is_empty() {
-                                pending_files_from.push((rest, null_delim, verbatim_files_from));
+                                pending_files_from.push((rest, null_delim, verbatim_files_from, excludes.len()));
                                 break;
                             } else if i + 1 < args.len() {
                                 i += 1;
-                                pending_files_from.push((args[i].clone(), null_delim, verbatim_files_from));
+                                pending_files_from.push((args[i].clone(), null_delim, verbatim_files_from, excludes.len()));
                             }
                         }
                         'X' => {
@@ -4669,7 +4669,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         i += 1;
     }
 
-    for (ff, list_null, list_verbatim) in pending_files_from {
+    for (ff, list_null, list_verbatim, ff_exclude_count) in pending_files_from {
         let final_null = list_null || null_delim;
         let final_verbatim = list_verbatim || verbatim_files_from || final_null;
         process_files_from(
@@ -4677,7 +4677,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             final_null,
             final_verbatim,
             &mut current_dir,
-            excludes.len(),
+            ff_exclude_count,
             recursion,
             &mut operands,
         );
@@ -7738,10 +7738,10 @@ fn openssl_validate_and_format_addexts(values: &[String]) -> Result<Vec<(String,
         if critical {
             parts.remove(0);
         }
-        let crit_suffix = if critical { ": critical" } else { "" };
+        let crit_suffix = if critical { ": critical" } else { ":" };
         let formatted = match name {
             "subjectAltName" => {
-                let mut lines = vec![format!("Subject Alternative Name{crit_suffix}:")];
+                let mut lines = vec![format!("Subject Alternative Name{crit_suffix}")];
                 for part in &parts {
                     let Some((kind, val)) = part.split_once(':') else {
                         return Err(format!("unsupported subject alternative name: {part}"));
@@ -7758,10 +7758,10 @@ fn openssl_validate_and_format_addexts(values: &[String]) -> Result<Vec<(String,
                     return Err("basicConstraints requires CA:TRUE or CA:FALSE".to_string());
                 }
                 let ca = parts.contains(&"CA:TRUE");
-                let mut lines = vec![
-                    format!("Basic Constraints{crit_suffix}:"),
-                    format!("  CA: {ca}"),
-                ];
+                let mut lines = vec![format!("Basic Constraints{crit_suffix}")];
+                if ca {
+                    lines.push("  CA: true".to_string());
+                }
                 if let Some(pl) = parts.iter().find_map(|p| p.strip_prefix("pathlen:")) {
                     let Ok(n) = pl.parse::<isize>() else {
                         return Err("invalid path length".to_string());
@@ -7791,7 +7791,7 @@ fn openssl_validate_and_format_addexts(values: &[String]) -> Result<Vec<(String,
                         return Err(format!("unsupported key usage: {part}"));
                     }
                 }
-                format!("Key Usages{crit_suffix}:\n  {}", parts.join(", "))
+                format!("Key Usages{crit_suffix}\n  {}", parts.join(", "))
             }
             "extendedKeyUsage" => {
                 let mut mapped = Vec::new();
@@ -7808,11 +7808,11 @@ fn openssl_validate_and_format_addexts(values: &[String]) -> Result<Vec<(String,
                     };
                     mapped.push(desc);
                 }
-                format!("Extended Key Usages{crit_suffix}:\n  {}", mapped.join(", "))
+                format!("Extended Key Usages{crit_suffix}\n  {}", mapped.join(", "))
             }
             "subjectKeyIdentifier" if parts.first().copied() == Some("hash") => {
                 format!(
-                    "Subject Key Identifier{crit_suffix}:\n  09 82 9b 98 73 3f ee da  8f 15 ee 8b 0d 74 a5 82\n  6a cf a7 5c"
+                    "Subject Key Identifier{crit_suffix}\n  09 82 9b 98 73 3f ee da  8f 15 ee 8b 0d 74 a5 82\n  6a cf a7 5c"
                 )
             }
             _ => return Err(format!("unsupported extension: {name}")),
@@ -10751,5 +10751,55 @@ mod tests {
         .unwrap();
         assert_eq!(fp.exit_code, 0);
         assert!(fp.stdout.contains("\"comment\":\"RustParity\""));
+    }
+
+    #[test]
+    fn openssl_gpg_ssh_keygen_and_xxd_deep_workflows_succeed() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        let p5 = try_run_archive_command(
+            "openssl",
+            &args(&["passwd", "-5", "-salt", "saltsalt", "secret123"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(p5.exit_code, 0);
+        assert!(p5.stdout.starts_with("$5$saltsalt$"));
+
+        let kg = try_run_archive_command(
+            "ssh-keygen",
+            &args(&["-t", "ed25519", "-C", "ci@test", "-f", "/work/id_ed25519", "-N", ""]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(kg.exit_code, 0);
+        let derived = try_run_archive_command(
+            "ssh-keygen",
+            &args(&["-y", "-f", "/work/id_ed25519"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(derived.exit_code, 0);
+        assert_eq!(
+            derived.stdout,
+            String::from_utf8_lossy(&vfs.read_file("/work/id_ed25519.pub").unwrap())
+        );
+
+        let exts = openssl_validate_and_format_addexts(&[
+            "basicConstraints=critical,CA:FALSE".to_string(),
+        ])
+        .unwrap();
+        assert_eq!(exts[0].1, "Basic Constraints: critical");
     }
 }

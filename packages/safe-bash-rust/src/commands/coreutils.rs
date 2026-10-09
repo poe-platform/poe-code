@@ -17168,21 +17168,33 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             let opt = a.split('=').next().unwrap_or(a);
             if "--help".starts_with(opt) {
                 if a.contains('=') {
-                    return err_out("dd: option '--help' doesn't allow an argument\n", 1);
+                    return err_out(
+                        "dd: option '--help' doesn't allow an argument\nTry 'dd --help' for more information.\n",
+                        1,
+                    );
                 }
                 return ok_out("Usage: dd [OPERAND]...\n");
             }
             if "--version".starts_with(opt) {
                 if a.contains('=') {
-                    return err_out("dd: option '--version' doesn't allow an argument\n", 1);
+                    return err_out(
+                        "dd: option '--version' doesn't allow an argument\nTry 'dd --help' for more information.\n",
+                        1,
+                    );
                 }
-                return ok_out("dd (coreutils) 9.5\n");
+                return ok_out("dd (virtual-bash GNU-compatible profile)\n");
             }
-            return err_out(&format!("dd: unrecognized option '{a}'\n"), 1);
+            return err_out(
+                &format!("dd: unrecognized option `{a}'\nTry 'dd --help' for more information.\n"),
+                1,
+            );
         }
         if a.starts_with('-') && a != "-" {
             let ch = a.chars().nth(1).unwrap_or('-');
-            return err_out(&format!("dd: invalid option -- '{ch}'\n"), 1);
+            return err_out(
+                &format!("dd: invalid option -- '{ch}'\nTry 'dd --help' for more information.\n"),
+                1,
+            );
         }
     }
 
@@ -17193,7 +17205,14 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             continue;
         }
         let Some((name, value)) = a.split_once('=') else {
-            return err_out(&format!("{}{}", warnings.concat(), format!("dd: unrecognized operand '{a}'\n")), 1);
+            return err_out(
+                &format!(
+                    "{}{}",
+                    warnings.concat(),
+                    format!("dd: unrecognized operand '{a}'\nTry 'dd --help' for more information.\n")
+                ),
+                1,
+            );
         };
         match name {
             "if" => in_file = Some(value.to_string()),
@@ -17291,7 +17310,11 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
             }
             _ => {
                 return err_out(
-                    &format!("{}{}", warnings.concat(), format!("dd: unrecognized operand '{a}'\n")),
+                    &format!(
+                        "{}{}",
+                        warnings.concat(),
+                        format!("dd: unrecognized operand '{a}'\nTry 'dd --help' for more information.\n")
+                    ),
                     1,
                 );
             }
@@ -20735,5 +20758,36 @@ mod tests {
         .unwrap();
         assert_eq!(inst.exit_code, 0);
         assert_eq!(vfs.stat("/work/opt/bin/sp").unwrap().mode & 0o777, 0o755);
+    }
+
+    #[test]
+    fn dd_version_and_option_operand_diagnostics_match_typescript() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+
+        let ver = try_run_coreutil("dd", &args(&["--version"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(ver.exit_code, 0);
+        assert_eq!(ver.stdout, "dd (virtual-bash GNU-compatible profile)\n");
+
+        let bad_long = try_run_coreutil("dd", &args(&["--bogus"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(bad_long.exit_code, 1);
+        assert_eq!(
+            bad_long.stderr,
+            "dd: unrecognized option `--bogus'\nTry 'dd --help' for more information.\n"
+        );
+
+        let bad_short = try_run_coreutil("dd", &args(&["-z"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(bad_short.exit_code, 1);
+        assert_eq!(
+            bad_short.stderr,
+            "dd: invalid option -- 'z'\nTry 'dd --help' for more information.\n"
+        );
+
+        let bad_op = try_run_coreutil("dd", &args(&["foo=bar"]), "", "/", &env, &vfs).unwrap();
+        assert_eq!(bad_op.exit_code, 1);
+        assert_eq!(
+            bad_op.stderr,
+            "dd: unrecognized operand 'foo=bar'\nTry 'dd --help' for more information.\n"
+        );
     }
 }

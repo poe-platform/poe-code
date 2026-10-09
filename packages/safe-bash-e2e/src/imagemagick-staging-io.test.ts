@@ -4,7 +4,7 @@ import sharp, { readImageMetadata } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { PagedStorageCache } from "@poe-code/safe-fs/storage";
 import { withObjectFileDescriptors, type ObjectFilePublicationStore } from "@poe-code/safe-fs/core";
-import { runConvertCli, runMontageCli } from "../../safe-bash-command-imagemagick/src/index.js";
+import { runConvertCli, runMontageCli } from "@poe-platform/safe-bash/commands/imagemagick";
 
 // Synthetic object backend: each write creates a revision and deletes its predecessor.
 // The object map models remote storage, not memory retained by the command.

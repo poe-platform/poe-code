@@ -2062,96 +2062,143 @@ impl<'a> EvalState<'a> {
                 return self.dispatch_words(args, stdin, bypass_functions);
             }
             "builtin" => {
-                if args.is_empty() {
+                let mut idx = 0usize;
+                if idx < args.len() && args[idx].starts_with('-') && args[idx] != "-" {
+                    if args[idx] == "--" {
+                        idx += 1;
+                    } else {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("builtin: {}: invalid option\n", args[idx]),
+                            exit_code: 2,
+                        });
+                    }
+                }
+                if idx >= args.len() {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: String::new(),
                         exit_code: 0,
                     });
                 }
-                if !Self::is_shell_builtin_name(&args[0]) {
+                let target = &args[idx];
+                if !Self::is_shell_builtin_name(target) {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("builtin: {}: not a shell builtin\n", args[0]),
+                        stderr: format!("builtin: {target}: not a shell builtin\n"),
                         exit_code: 1,
                     });
                 }
                 if let Some(b_out) =
-                    try_run_builtin(&args[0], &args[1..], stdin, self.cwd, self.env, self.fs)
+                    try_run_builtin(target, &args[idx + 1..], stdin, self.cwd, self.env, self.fs)
                 {
                     return Ok(b_out);
                 }
-                return self.dispatch_words(args, stdin, true);
+                return self.dispatch_words(&args[idx..], stdin, true);
             }
             "command" => {
-                if args.is_empty() {
-                    return Ok(BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: String::new(),
-                        exit_code: 0,
-                    });
-                }
-                let mut v_flag = false;
-                let mut big_v_flag = false;
+                let mut discover = false;
+                let mut mode = "describe";
+                let mut default_path = false;
                 let mut idx = 0usize;
-                while idx < args.len() {
+                while idx < args.len() && args[idx].starts_with('-') && args[idx] != "-" {
                     let a = &args[idx];
                     if a == "--" {
                         idx += 1;
                         break;
-                    } else if a == "-v" {
-                        v_flag = true;
-                        idx += 1;
-                    } else if a == "-V" {
-                        big_v_flag = true;
-                        idx += 1;
-                    } else if a == "-p" {
-                        idx += 1;
-                    } else {
-                        break;
                     }
-                }
-                if v_flag || big_v_flag {
-                    let mut out = String::new();
-                    let mut stderr = String::new();
-                    let mut found_any = args[idx..].is_empty();
-                    for target in &args[idx..] {
-                        if let Some(kind) = self.classify_command(target) {
-                            found_any = true;
-                            if big_v_flag {
-                                match kind {
-                                    "function" => out.push_str(&format!("{target} is a function\n")),
-                                    "builtin" => {
-                                        out.push_str(&format!("{target} is a shell builtin\n"))
-                                    }
-                                    _ => out.push_str(&format!("{target} is /usr/bin/{target}\n")),
-                                }
-                            } else {
-                                match kind {
-                                    "function" | "builtin" => out.push_str(&format!("{target}\n")),
-                                    _ => {
-                                        if let Some(vfs_p) = self.resolve_vfs_executable(target) {
-                                            out.push_str(&format!("{vfs_p}\n"));
-                                        } else {
-                                            out.push_str(&format!("{target}\n"));
-                                        }
-                                    }
-                                }
+                    for ch in a[1..].chars() {
+                        match ch {
+                            'v' => {
+                                discover = true;
+                                mode = "name";
                             }
-                        } else if big_v_flag {
-                            stderr.push_str(&format!("command: {target}: not found\n"));
+                            'V' => {
+                                discover = true;
+                                mode = "describe";
+                            }
+                            'p' => {
+                                default_path = true;
+                            }
+                            _ => {
+                                return Ok(BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!(
+                                        "command: -{ch}: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n"
+                                    ),
+                                    exit_code: 2,
+                                });
+                            }
                         }
                     }
+                    idx += 1;
+                }
+                if discover {
+                    return Ok(self.run_discovery(
+                        "command",
+                        &args[idx..],
+                        mode,
+                        false,
+                        false,
+                        false,
+                        default_path,
+                    ));
+                }
+                if idx >= args.len() {
                     return Ok(BuiltinOutcome {
-                        stdout: out,
-                        stderr,
-                        exit_code: if found_any { 0 } else { 1 },
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 0,
                     });
                 }
                 return self.dispatch_words(&args[idx..], stdin, true);
             }
             "caller" => {
                 return Ok(self.builtin_caller(args));
+            }
+            "print" => {
+                let mut no_newline = false;
+                let mut i = 0usize;
+                while i < args.len() && args[i].starts_with('-') && args[i] != "-" {
+                    let opt = &args[i];
+                    if opt == "--" {
+                        i += 1;
+                        break;
+                    }
+                    for ch in opt[1..].chars() {
+                        if ch == 'n' {
+                            no_newline = true;
+                        }
+                    }
+                    i += 1;
+                }
+                let mut out = args[i..].join(" ");
+                if !no_newline {
+                    out.push('\n');
+                }
+                return Ok(BuiltinOutcome {
+                    stdout: out,
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
+            }
+            "functions" => {
+                let mut out = String::new();
+                for (fn_name, fn_body) in &self.functions {
+                    out.push_str(&format_function_display(fn_name, fn_body));
+                }
+                return Ok(BuiltinOutcome {
+                    stdout: out,
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
+            }
+            "setopt" | "unsetopt" => {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                });
             }
             "type" => {
                 return Ok(self.builtin_type(cmd, args));
@@ -2557,7 +2604,6 @@ impl<'a> EvalState<'a> {
                 | "printf"
                 | "test"
                 | "["
-                | "[["
                 | "read"
                 | "mapfile"
                 | "readarray"
@@ -2590,75 +2636,273 @@ impl<'a> EvalState<'a> {
                 | "wait"
                 | "kill"
                 | "jobs"
+                | "disown"
                 | "alias"
                 | "unalias"
                 | "caller"
+                | "print"
+                | "functions"
+                | "setopt"
+                | "unsetopt"
         )
     }
 
-    fn classify_command(&self, target: &str) -> Option<&'static str> {
-        if self.functions.contains_key(target) {
-            return Some("function");
-        }
-        if Self::is_shell_builtin_name(target) {
-            return Some("builtin");
-        }
-        if crate::commands::search::is_known_command(target)
+    fn is_shell_keyword(target: &str) -> bool {
+        matches!(
+            target,
+            "if" | "then"
+                | "else"
+                | "elif"
+                | "fi"
+                | "for"
+                | "while"
+                | "until"
+                | "do"
+                | "done"
+                | "case"
+                | "esac"
+                | "in"
+                | "function"
+                | "{"
+                | "}"
+                | "!"
+                | "[["
+                | "]]"
+                | "time"
+                | "select"
+                | "coproc"
+        )
+    }
+
+    fn is_implemented_builtin_name(target: &str) -> bool {
+        Self::is_shell_builtin_name(target)
+            && !matches!(target, "echo" | "printf" | "test" | "[")
+    }
+
+    fn is_registered_command_name(&self, target: &str) -> bool {
+        matches!(target, "echo" | "printf" | "test" | "[")
+            || crate::commands::search::is_known_command(target)
             || self.custom_commands.contains_key(target)
-            || self.resolve_vfs_executable(target).is_some()
+    }
+
+    fn is_virtual_executable_path(&self, resolved_path: &str) -> bool {
+        if resolved_path.ends_with('/')
+            || resolved_path.ends_with("/.")
+            || resolved_path.ends_with("/..")
         {
-            return Some("/usr/bin/file");
+            return false;
         }
-        None
+        let norm = resolve_posix_path("/", resolved_path);
+        let Some(slash) = norm.rfind('/') else {
+            return false;
+        };
+        let dir = &norm[..slash];
+        let name = &norm[slash + 1..];
+        if matches!(name, "zsh" | "bash" | "sh") && matches!(dir, "/bin" | "/usr/bin" | "/tmp") {
+            return true;
+        }
+        if dir != "/bin" && dir != "/usr/bin" {
+            return false;
+        }
+        self.is_registered_command_name(name)
+            || matches!(name, "true" | "false" | "pwd" | "kill" | "bash" | "sh" | "zsh")
+    }
+
+    fn search_discovery_paths(
+        &self,
+        name: &str,
+        show_all: bool,
+        default_path: bool,
+    ) -> Vec<String> {
+        if name.is_empty() {
+            return Vec::new();
+        }
+        let mut matches = Vec::new();
+        if name.contains('/') {
+            let resolved = resolve_posix_path(self.cwd, name);
+            if self.is_virtual_executable_path(&resolved)
+                || (self.fs.exists(&resolved) && !self.fs.is_dir(&resolved))
+            {
+                matches.push(name.to_string());
+            }
+            return matches;
+        }
+        let path_val = if default_path {
+            Some("/bin:/usr/bin".to_string())
+        } else if let Some(p) = self.env.get("PATH") {
+            Some(p.clone())
+        } else if self.env.contains_key("__path_unset__") {
+            None
+        } else {
+            Some("/bin:/usr/bin".to_string())
+        };
+        let Some(path_str) = path_val else {
+            return matches;
+        };
+        if path_str.is_empty() {
+            return matches;
+        }
+        for seg in path_str.split(':') {
+            let dir = if seg.is_empty() { "." } else { seg };
+            let target = if dir == "/" {
+                format!("/{name}")
+            } else {
+                format!("{}/{name}", dir.trim_end_matches('/'))
+            };
+            let resolved = resolve_posix_path(self.cwd, &target);
+            if self.is_virtual_executable_path(&resolved)
+                || (self.fs.exists(&resolved) && !self.fs.is_dir(&resolved))
+            {
+                matches.push(target);
+                if !show_all {
+                    break;
+                }
+            }
+        }
+        matches
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn run_discovery(
+        &self,
+        invoked: &str,
+        targets: &[String],
+        mode: &str,
+        show_all: bool,
+        skip_functions: bool,
+        force_path: bool,
+        default_path: bool,
+    ) -> BuiltinOutcome {
+        let is_command = invoked == "command";
+        let mut found = 0usize;
+        let mut out = String::new();
+        let mut stderr = String::new();
+
+        for name in targets {
+            let mut matches: Vec<(&'static str, String)> = Vec::new();
+            if !force_path && !(show_all && mode == "path") {
+                if Self::is_shell_keyword(name) {
+                    matches.push(("keyword", name.clone()));
+                }
+                if !skip_functions && self.functions.contains_key(name) {
+                    matches.push(("function", name.clone()));
+                }
+                if Self::is_implemented_builtin_name(name) {
+                    matches.push(("builtin", name.clone()));
+                } else if self.is_registered_command_name(name) {
+                    matches.push(("command", name.clone()));
+                } else if matches!(name.as_str(), "bash" | "sh" | "zsh") {
+                    matches.push(("interpreter", name.clone()));
+                }
+            }
+            if !show_all && matches.len() > 1 {
+                matches.truncate(1);
+            }
+            if mode == "path"
+                && matches.first().is_some_and(|(k, _)| {
+                    (*k == "command" && !Self::is_shell_builtin_name(name)) || *k == "interpreter"
+                })
+            {
+                matches.clear();
+            }
+            if show_all || matches.is_empty() {
+                for mut path in self.search_discovery_paths(name, show_all, default_path) {
+                    if is_command
+                        && mode == "describe"
+                        && !name.contains('/')
+                        && !path.starts_with('/')
+                    {
+                        let rel = path.strip_prefix("./").unwrap_or(&path);
+                        path = if self.cwd == "/" {
+                            format!("/{rel}")
+                        } else {
+                            format!("{}/{rel}", self.cwd)
+                        };
+                    }
+                    matches.push(("file", path));
+                }
+            }
+            if matches.is_empty() {
+                if mode == "describe" {
+                    stderr.push_str(&format!("{invoked}: {name}: not found\n"));
+                }
+                continue;
+            }
+            found += 1;
+            for (kind, m_name) in matches {
+                if mode == "path" && kind != "file" {
+                    continue;
+                }
+                if mode == "kind" {
+                    let k = if kind == "command" {
+                        if Self::is_shell_builtin_name(name) {
+                            "builtin"
+                        } else {
+                            "file"
+                        }
+                    } else if kind == "interpreter" {
+                        "file"
+                    } else {
+                        kind
+                    };
+                    out.push_str(&format!("{k}\n"));
+                } else if mode == "name" || mode == "path" {
+                    out.push_str(&format!("{m_name}\n"));
+                } else if kind == "function" {
+                    if let Some(body) = self.functions.get(name) {
+                        out.push_str(&format!(
+                            "{name} is a function\n{}",
+                            format_function_display(name, body)
+                        ));
+                    }
+                } else {
+                    let desc = match kind {
+                        "keyword" => "a shell keyword",
+                        "builtin" => "a shell builtin",
+                        "command" => "a registered command",
+                        "interpreter" => "a virtual shell interpreter",
+                        _ => m_name.as_str(),
+                    };
+                    out.push_str(&format!("{name} is {desc}\n"));
+                }
+            }
+        }
+
+        let ok = if is_command {
+            found > 0 || targets.is_empty()
+        } else {
+            found == targets.len()
+        };
+        BuiltinOutcome {
+            stdout: out,
+            stderr,
+            exit_code: if ok { 0 } else { 1 },
+        }
     }
 
     fn builtin_type(&self, invoked: &str, args: &[String]) -> BuiltinOutcome {
-        let mut type_only = false;
-        let mut path_only = false;
-        let mut silent = false;
-        let mut show_all = false;
-        let mut targets = Vec::new();
-        for a in args {
-            if a.starts_with('-') && a.len() > 1 {
-                for ch in a[1..].chars() {
-                    match ch {
-                        't' => type_only = true,
-                        'P' | 'p' => path_only = true,
-                        's' => silent = true,
-                        'a' => show_all = true,
-                        _ => {}
+        if invoked == "which" {
+            let mut silent = false;
+            let mut show_all = false;
+            let mut targets = Vec::new();
+            for a in args {
+                if a.starts_with('-') && a.len() > 1 {
+                    for ch in a[1..].chars() {
+                        match ch {
+                            's' => silent = true,
+                            'a' => show_all = true,
+                            _ => {}
+                        }
                     }
+                } else {
+                    targets.push(a.as_str());
                 }
-            } else {
-                targets.push(a.as_str());
             }
-        }
-        let mut out = String::new();
-        let mut all_found = !targets.is_empty();
-        for t in targets {
-            if invoked == "which" {
+            let mut out = String::new();
+            let mut all_found = !targets.is_empty();
+            for t in targets {
                 if show_all && !t.contains('/') {
-                    let path_env = self
-                        .env
-                        .get("PATH")
-                        .cloned()
-                        .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
-                    let mut matches = Vec::new();
-                    for dir in path_env.split(':') {
-                        if dir.is_empty() {
-                            continue;
-                        }
-                        let cand = resolve_posix_path(self.cwd, &format!("{dir}/{t}"));
-                        if self.fs.exists(&cand) && !self.fs.is_dir(&cand) {
-                            matches.push(cand);
-                        }
-                    }
-                    if matches.is_empty()
-                        && (crate::commands::search::is_known_command(t)
-                            || self.custom_commands.contains_key(t))
-                    {
-                        matches.push(format!("/usr/bin/{t}"));
-                    }
+                    let matches = self.search_discovery_paths(t, true, false);
                     if matches.is_empty() {
                         all_found = false;
                     } else if !silent {
@@ -2681,44 +2925,55 @@ impl<'a> EvalState<'a> {
                 } else {
                     all_found = false;
                 }
-                continue;
             }
+            return BuiltinOutcome {
+                stdout: out,
+                stderr: String::new(),
+                exit_code: if all_found { 0 } else { 1 },
+            };
+        }
 
-            if let Some(kind) = self.classify_command(t) {
-                if type_only {
-                    let label = match kind {
-                        "function" => "function",
-                        "builtin" => "builtin",
-                        _ => "file",
-                    };
-                    out.push_str(&format!("{label}\n"));
-                } else if path_only {
-                    if let Some(vfs_p) = self.resolve_vfs_executable(t) {
-                        out.push_str(&format!("{vfs_p}\n"));
-                    } else if kind != "function" && kind != "builtin" {
-                        out.push_str(&format!("/usr/bin/{t}\n"));
+        let mut mode = "describe";
+        let mut show_all = false;
+        let mut skip_functions = false;
+        let mut force_path = false;
+        let mut idx = 0usize;
+        while idx < args.len() && args[idx].starts_with('-') && args[idx] != "-" {
+            let opt = &args[idx];
+            if opt == "--" {
+                idx += 1;
+                break;
+            }
+            for ch in opt[1..].chars() {
+                match ch {
+                    'a' => show_all = true,
+                    'f' => skip_functions = true,
+                    't' => mode = "kind",
+                    'p' => mode = "path",
+                    'P' => {
+                        mode = "path";
+                        force_path = true;
                     }
-                } else {
-                    match kind {
-                        "function" => out.push_str(&format!("{t} is a function\n")),
-                        "builtin" => out.push_str(&format!("{t} is a shell builtin\n")),
-                        _ => {
-                            let p = self
-                                .resolve_vfs_executable(t)
-                                .unwrap_or_else(|| format!("/usr/bin/{t}"));
-                            out.push_str(&format!("{t} is {p}\n"));
-                        }
+                    _ => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("type: {opt}: unsupported option\n"),
+                            exit_code: 2,
+                        };
                     }
                 }
-            } else {
-                all_found = false;
             }
+            idx += 1;
         }
-        BuiltinOutcome {
-            stdout: if silent { String::new() } else { out },
-            stderr: String::new(),
-            exit_code: if all_found { 0 } else { 1 },
-        }
+        self.run_discovery(
+            "type",
+            &args[idx..],
+            mode,
+            show_all,
+            skip_functions,
+            force_path,
+            false,
+        )
     }
 
     fn run_sub_shell_command(
@@ -3466,6 +3721,38 @@ impl<'a> EvalState<'a> {
             {
                 let is_plus = arg.starts_with('+');
                 for ch in arg[1..].chars() {
+                    if cmd == "export" {
+                        if is_plus || !"fnp".contains(ch) {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!(
+                                    "export: -{ch}: invalid option\nexport: usage: export [-fn] [name[=value] ...] or export -p\n"
+                                ),
+                                exit_code: 2,
+                            });
+                        }
+                    } else if cmd == "readonly" {
+                        if is_plus || !"afp".contains(ch) {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("readonly: {arg}: unsupported option\n"),
+                                exit_code: 2,
+                            });
+                        }
+                    } else {
+                        let allowed = if cmd == "local" {
+                            "AailunxrIp"
+                        } else {
+                            "AailunxrgIfFtp"
+                        };
+                        if !allowed.contains(ch) {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{cmd}: {arg}: invalid option\n"),
+                                exit_code: 2,
+                            });
+                        }
+                    }
                     if cmd == "export" && ch == 'n' {
                         enabled.remove(&'x');
                         disabled.insert('x');
@@ -3532,28 +3819,98 @@ impl<'a> EvalState<'a> {
         }
 
         if func_mode && (is_export || disabled.contains(&'x')) {
-            for name in &operands {
-                if disabled.contains(&'x') {
-                    self.exported_functions.remove(name);
-                } else {
-                    self.exported_functions.insert(name.clone());
+            let mut out = String::new();
+            let mut stderr = String::new();
+            let mut status = 0;
+            if operands.is_empty() {
+                let mut sorted_exported: Vec<String> =
+                    self.exported_functions.iter().cloned().collect();
+                sorted_exported.sort();
+                for name in sorted_exported {
+                    if let Some(body) = self.functions.get(&name) {
+                        out.push_str(&format_function_display(&name, body));
+                        out.push_str(&format!("declare -fx {name}\n"));
+                    }
+                }
+            } else {
+                for name in &operands {
+                    if !self.functions.contains_key(name) {
+                        stderr.push_str(&format!("{cmd}: {name}: not a function\n"));
+                        status = 1;
+                    } else if disabled.contains(&'x') {
+                        self.exported_functions.remove(name);
+                    } else {
+                        self.exported_functions.insert(name.clone());
+                    }
                 }
             }
             return Ok(BuiltinOutcome {
-                stdout: String::new(),
-                stderr: String::new(),
-                exit_code: 0,
+                stdout: out,
+                stderr,
+                exit_code: status,
             });
         }
         if func_mode && is_readonly {
-            for name in &operands {
-                self.env
-                    .insert(format!("__readonly_fn__{name}"), "1".to_string());
+            let mut out = String::new();
+            let mut stderr = String::new();
+            let mut status = 0;
+            if operands.is_empty() {
+                for (name, body) in &self.functions {
+                    if self
+                        .env
+                        .get(&format!("__readonly_fn__{name}"))
+                        .is_some_and(|v| v == "1")
+                    {
+                        out.push_str(&format_function_display(name, body));
+                        out.push_str(&format!("declare -fr {name}\n"));
+                    }
+                }
+            } else {
+                for name in &operands {
+                    if !self.functions.contains_key(name) {
+                        stderr.push_str(&format!("readonly: {name}: not a function\n"));
+                        status = 1;
+                    } else {
+                        self.env
+                            .insert(format!("__readonly_fn__{name}"), "1".to_string());
+                    }
+                }
             }
             return Ok(BuiltinOutcome {
-                stdout: String::new(),
+                stdout: out,
+                stderr,
+                exit_code: status,
+            });
+        }
+
+        if func_mode {
+            let mut out = String::new();
+            let mut status = 0;
+            if operands.is_empty() {
+                for (name, body) in &self.functions {
+                    out.push_str(&format_function_display(name, body));
+                }
+            } else {
+                for name in &operands {
+                    if let Some(body) = self.functions.get(name) {
+                        out.push_str(&format_function_display(name, body));
+                    } else {
+                        status = 1;
+                    }
+                }
+            }
+            return Ok(BuiltinOutcome {
+                stdout: out,
                 stderr: String::new(),
-                exit_code: 0,
+                exit_code: status,
+            });
+        }
+
+        if cmd == "local" && self.local_scopes.is_empty() {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "local: not in a function\n".to_string(),
+                exit_code: 1,
             });
         }
 
@@ -3665,16 +4022,35 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        let mut decl_stderr = String::new();
+        let mut decl_status = 0;
         for op in operands {
             let (var_name, val_opt, append) = match parse_assignment_lhs_rhs(&op) {
                 Some((k, v, app)) => (k.to_string(), Some(v.to_string()), app),
-                None => (op, None, false),
+                None => (op.clone(), None, false),
             };
             let base_name = var_name
                 .split_once('[')
                 .map(|(b, _)| b)
                 .unwrap_or(&var_name)
                 .to_string();
+
+            if !is_valid_shell_ident(&base_name) {
+                decl_stderr.push_str(&format!("{cmd}: `{op}': not a valid identifier\n"));
+                decl_status = 1;
+                continue;
+            }
+
+            if self
+                .env
+                .get(&format!("__attr__{base_name}"))
+                .is_some_and(|a| a.contains('r'))
+                && (val_opt.is_some() || is_local)
+            {
+                decl_stderr.push_str(&format!("{cmd}: {base_name}: readonly variable\n"));
+                decl_status = 1;
+                continue;
+            }
 
             if is_local
                 && let Some(frame) = self.local_scopes.last_mut()
@@ -3708,18 +4084,6 @@ impl<'a> EvalState<'a> {
                 }
             }
 
-            if self
-                .env
-                .get(&format!("__attr__{base_name}"))
-                .is_some_and(|a| a.contains('r'))
-                && (val_opt.is_some() || is_local)
-            {
-                return Ok(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{cmd}: {base_name}: readonly variable\n"),
-                    exit_code: 1,
-                });
-            }
             if is_assoc {
                 self.env
                     .insert(format!("__assoc__{base_name}"), "1".to_string());
@@ -3737,12 +4101,14 @@ impl<'a> EvalState<'a> {
 
             if is_nameref {
                 if let Some(target) = val_opt {
-                    if target == base_name {
-                        return Ok(BuiltinOutcome {
-                            stdout: String::new(),
-                            stderr: format!("declare: {base_name}: circular name reference\n"),
-                            exit_code: 1,
-                        });
+                    let target_base = target
+                        .split_once('[')
+                        .map(|(b, _)| b)
+                        .unwrap_or(&target);
+                    if target == base_name || !is_valid_shell_ident(target_base) {
+                        decl_stderr.push_str(&format!("{cmd}: {target}: invalid name reference\n"));
+                        decl_status = 1;
+                        continue;
                     }
                     self.env
                         .insert(format!("__nameref__{base_name}"), target);
@@ -3791,37 +4157,68 @@ impl<'a> EvalState<'a> {
 
         Ok(BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stderr: decl_stderr,
+            exit_code: decl_status,
         })
     }
 
     fn builtin_unset(&mut self, args: &[String]) -> BuiltinOutcome {
+        let mut unset_var = false;
         let mut unset_nameref = false;
         let mut unset_func = false;
-        for arg in args {
-            if arg == "-n" {
-                unset_nameref = true;
-                continue;
+        let mut idx = 0usize;
+        while idx < args.len() && args[idx].starts_with('-') && args[idx] != "-" {
+            let opt = &args[idx];
+            if opt == "--" {
+                idx += 1;
+                break;
             }
-            if arg == "-f" {
-                unset_func = true;
-                continue;
+            for ch in opt[1..].chars() {
+                match ch {
+                    'v' => unset_var = true,
+                    'f' => unset_func = true,
+                    'n' => unset_nameref = true,
+                    _ => {
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("unset: -{ch}: invalid option\n"),
+                            exit_code: 2,
+                        };
+                    }
+                }
             }
-            if arg == "-v" {
-                continue;
-            }
-            if unset_func {
+            idx += 1;
+        }
+        if unset_var && unset_func {
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr: "unset: cannot simultaneously unset a function and a variable\n"
+                    .to_string(),
+                exit_code: 1,
+            };
+        }
+
+        let mut stderr = String::new();
+        let mut status = 0;
+        for arg in &args[idx..] {
+            let has_var_binding = self.env.contains_key(arg)
+                || self.env.contains_key(&format!("__attr__{arg}"))
+                || self.env.contains_key(&format!("__declared__{arg}"))
+                || self.env.contains_key(&format!("__assoc__{arg}"))
+                || self.env.contains_key(&format!("__nameref__{arg}"))
+                || self.env.keys().any(|k| k.starts_with(&format!("{arg}[")))
+                || self.local_scopes.iter().any(|f| f.contains_key(arg));
+            let fallback_func =
+                !unset_var && !unset_nameref && !has_var_binding && self.functions.contains_key(arg);
+            if unset_func || fallback_func {
                 if self
                     .env
                     .get(&format!("__readonly_fn__{arg}"))
                     .is_some_and(|v| v == "1")
                 {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("unset: {arg}: cannot unset: readonly function\n"),
-                        exit_code: 1,
-                    };
+                    stderr.push_str(&format!("unset: {arg}: cannot unset: readonly function\n"));
+                    status = 1;
+                    continue;
                 }
                 self.functions.remove(arg);
                 self.exported_functions.remove(arg);
@@ -3840,11 +4237,11 @@ impl<'a> EvalState<'a> {
                     .get(&format!("__attr__{resolved}"))
                     .is_some_and(|a| a.contains('r'))
                 {
-                    return BuiltinOutcome {
-                        stdout: String::new(),
-                        stderr: format!("unset: {resolved}: cannot unset: readonly variable\n"),
-                        exit_code: 1,
-                    };
+                    stderr.push_str(&format!(
+                        "unset: {resolved}: cannot unset: readonly variable\n"
+                    ));
+                    status = 1;
+                    continue;
                 }
                 let clean_sub = raw_sub.trim_matches('"').trim_matches('\'');
                 if clean_sub != "@" && clean_sub != "*" {
@@ -3861,11 +4258,11 @@ impl<'a> EvalState<'a> {
                 .get(&format!("__attr__{resolved}"))
                 .is_some_and(|a| a.contains('r'))
             {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("unset: {resolved}: cannot unset: readonly variable\n"),
-                    exit_code: 1,
-                };
+                stderr.push_str(&format!(
+                    "unset: {resolved}: cannot unset: readonly variable\n"
+                ));
+                status = 1;
+                continue;
             }
             self.env.remove(&resolved);
             if resolved == "PATH" {
@@ -3888,8 +4285,8 @@ impl<'a> EvalState<'a> {
         }
         BuiltinOutcome {
             stdout: String::new(),
-            stderr: String::new(),
-            exit_code: 0,
+            stderr,
+            exit_code: status,
         }
     }
 
@@ -6106,6 +6503,177 @@ fn expand_braces(word: &str) -> Vec<String> {
     vec![word.to_string()]
 }
 
+fn is_valid_shell_ident(s: &str) -> bool {
+    let mut chars = s.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    if !(first.is_ascii_alphabetic() || first == '_') {
+        return false;
+    }
+    chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
+fn format_function_display(name: &str, body: &Script) -> String {
+    if body.lists.len() == 1
+        && body.lists[0].rest.is_empty()
+        && body.lists[0].first.commands.len() == 1
+        && matches!(
+            body.lists[0].first.commands[0],
+            CommandNode::Subshell { .. } | CommandNode::Group { .. }
+        )
+    {
+        format!(
+            "{name} () \n{}\n",
+            format_command_node(&body.lists[0].first.commands[0], "")
+        )
+    } else {
+        format!(
+            "{name} () \n{{ \n    {}\n}}\n",
+            format_script_node(body, "    ", false)
+        )
+    }
+}
+
+fn format_script_node(script: &Script, indent: &str, terminate: bool) -> String {
+    let mut parts = Vec::with_capacity(script.lists.len());
+    for (list_idx, list) in script.lists.iter().enumerate() {
+        let mut line = format_pipeline_node(&list.first, indent);
+        for (op, pipe) in &list.rest {
+            let op_s = match op {
+                ListOp::And => "&&",
+                ListOp::Or => "||",
+            };
+            line.push_str(&format!(" {op_s} {}", format_pipeline_node(pipe, indent)));
+        }
+        if list.background {
+            line.push_str(" &");
+        } else if terminate || list_idx + 1 < script.lists.len() {
+            line.push(';');
+        }
+        parts.push(line);
+    }
+    parts.join(&format!("\n{indent}"))
+}
+
+fn format_pipeline_node(pipe: &Pipeline, indent: &str) -> String {
+    let prefix = if pipe.negated { "! " } else { "" };
+    let cmds: Vec<String> = pipe
+        .commands
+        .iter()
+        .map(|c| format_command_node(c, indent))
+        .collect();
+    format!("{prefix}{}", cmds.join(" | "))
+}
+
+fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
+    let nested = format!("{indent}    ");
+    match cmd {
+        CommandNode::Simple(s) => {
+            let mut tokens = Vec::new();
+            for (k, v, app) in &s.assignments {
+                tokens.push(format!("{k}{}{v}", if *app { "+=" } else { "=" }));
+            }
+            tokens.extend(s.words.iter().cloned());
+            tokens.join(" ")
+        }
+        CommandNode::Subshell { body, .. } => {
+            format!("( {} )", format_script_node(body, indent, false))
+        }
+        CommandNode::Group { body, .. } => {
+            format!("{{\n{nested}{}\n{indent}}}", format_script_node(body, &nested, false))
+        }
+        CommandNode::ArithCommand(expr) => format!("(( {expr} ))"),
+        CommandNode::FuncDef { name, body } => format_function_display(name, body),
+        CommandNode::If {
+            branches,
+            else_branch,
+            ..
+        } => {
+            let mut out = String::new();
+            for (idx, (cond, body)) in branches.iter().enumerate() {
+                if idx > 0 {
+                    out.push_str(&format!("\n{indent}elif "));
+                } else {
+                    out.push_str("if ");
+                }
+                out.push_str(&format!(
+                    "{} then\n{nested}{}",
+                    format_script_node(cond, indent, true),
+                    format_script_node(body, &nested, true)
+                ));
+            }
+            if let Some(eb) = else_branch {
+                out.push_str(&format!(
+                    "\n{indent}else\n{nested}{}",
+                    format_script_node(eb, &nested, true)
+                ));
+            }
+            out.push_str(&format!("\n{indent}fi"));
+            out
+        }
+        CommandNode::While {
+            until, cond, body, ..
+        } => {
+            let kw = if *until { "until" } else { "while" };
+            format!(
+                "{kw} {} do\n{nested}{}\n{indent}done",
+                format_script_node(cond, indent, true),
+                format_script_node(body, &nested, true)
+            )
+        }
+        CommandNode::ForIn {
+            var, items, body, ..
+        } => {
+            let in_part = if items.is_empty() {
+                String::new()
+            } else {
+                format!(" in {}", items.join(" "))
+            };
+            format!(
+                "for {var}{in_part};\ndo\n{nested}{}\n{indent}done",
+                format_script_node(body, &nested, true)
+            )
+        }
+        CommandNode::Select {
+            var, items, body, ..
+        } => {
+            let in_part = if items.is_empty() {
+                String::new()
+            } else {
+                format!(" in {}", items.join(" "))
+            };
+            format!(
+                "select {var}{in_part};\ndo\n{nested}{}\n{indent}done",
+                format_script_node(body, &nested, true)
+            )
+        }
+        CommandNode::ForArith {
+            init,
+            cond,
+            step,
+            body,
+            ..
+        } => format!(
+            "for (( {init}; {cond}; {step} ));\ndo\n{nested}{}\n{indent}done",
+            format_script_node(body, &nested, true)
+        ),
+        CommandNode::Case { word, arms, .. } => {
+            let arm_strs: Vec<String> = arms
+                .iter()
+                .map(|(pats, body, _)| {
+                    format!(
+                        "{nested}{})\n{nested}    {}\n{nested};;",
+                        pats.join(" | "),
+                        format_script_node(body, &format!("{nested}    "), false)
+                    )
+                })
+                .collect();
+            format!("case {word} in\n{}\n{indent}esac", arm_strs.join("\n"))
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -6261,5 +6829,41 @@ mod tests {
             .unwrap();
         assert_eq!(read_ro.stdout, "rc:1\n");
         assert!(read_ro.stderr.contains("RO_R: readonly variable"));
+
+        let type_out = state
+            .eval_script_str("fn_d() { echo d; }; type -t if fn_d echo cat; type fn_d", "")
+            .unwrap();
+        assert_eq!(type_out.exit_code, 0);
+        assert_eq!(
+            type_out.stdout,
+            "keyword\nfunction\nbuiltin\nfile\nfn_d is a function\nfn_d () \n{ \n    echo d\n}\n"
+        );
+    }
+
+    #[test]
+    fn unit_type_command_unset_declare_local_functions_and_print_parity() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let local_err = state.eval_script_str("local x=1", "").unwrap();
+        assert_eq!(local_err.exit_code, 1);
+        assert_eq!(local_err.stderr, "local: not in a function\n");
+
+        let unset_err = state.eval_script_str("unset -v -f x", "").unwrap();
+        assert_eq!(unset_err.exit_code, 1);
+        assert_eq!(
+            unset_err.stderr,
+            "unset: cannot simultaneously unset a function and a variable\n"
+        );
+
+        let print_out = state
+            .eval_script_str("print -n hello ' ' world; print !; setopt a; unsetopt b", "")
+            .unwrap();
+        assert_eq!(print_out.exit_code, 0);
+        assert_eq!(print_out.stdout, "hello   world!\n");
     }
 }

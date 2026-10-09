@@ -10629,4 +10629,71 @@ mod tests {
         assert_eq!(sg.exit_code, 0);
         assert!(vfs.exists("/work/msg.txt.sig"));
     }
+
+    #[test]
+    fn unit_wkhtmltopdf_qpdf_pdftk_svgo_rsvg_qrencode_magick_sips_exiftool_sox_ffmpeg_soffice() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        vfs.write_file("/work/doc.html", b"<h1>Title</h1><p>Body</p>").unwrap();
+        let wk = try_run_archive_command(
+            "wkhtmltopdf",
+            &args(&["--title", "Spec", "/work/doc.html", "/work/doc.pdf"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(wk.exit_code, 0);
+
+        let qp = try_run_archive_command(
+            "qpdf",
+            &args(&["/work/doc.pdf", "/work/lin.pdf", "--linearize", "--rotate=+90:1"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(qp.exit_code, 0);
+
+        let pi = try_run_archive_command(
+            "pdfinfo",
+            &args(&["-f", "1", "-l", "1", "/work/lin.pdf"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pi.exit_code, 0);
+        assert!(pi.stdout.contains("Page    1 rot:   90"));
+
+        let qr = try_run_archive_command(
+            "qrencode",
+            &args(&["-t", "SVG", "-o", "-", "https://poe.com"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(qr.exit_code, 0);
+        assert!(qr.stdout.contains("<svg"));
+
+        let sx = try_run_archive_command(
+            "sox",
+            &args(&["-r", "4000", "-c", "2", "-b", "16", "-n", "/work/tone.wav", "synth", "0.1", "sine", "400"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(sx.exit_code, 0);
+        let sxi = try_run_archive_command("soxi", &args(&["-s", "/work/tone.wav"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sxi.stdout.trim(), "400");
+    }
 }

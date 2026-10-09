@@ -643,6 +643,100 @@ fn parse_json_string(chars: &[char], idx: &mut usize) -> Result<String, String> 
     Err("unterminated string".into())
 }
 
+fn parse_single_json_strict(input: &str) -> Result<JVal, String> {
+    let vals = parse_json_stream(input)?;
+    if vals.len() != 1 {
+        return Err("expected single JSON value".into());
+    }
+    Ok(vals.into_iter().next().unwrap())
+}
+
+fn read_stream_diag(full_path: &str, fs: &dyn SafeBashFs) -> String {
+    if fs.is_dir(full_path) {
+        format!("EISDIR: illegal operation on a directory, readStream '{full_path}'")
+    } else {
+        format!("ENOENT: no such file or directory, readStream '{full_path}'")
+    }
+}
+
+fn parse_js_int_or_zero(s: &str) -> i64 {
+    let trimmed = s.trim_start();
+    if trimmed.is_empty() {
+        return 0;
+    }
+    let (sign, rest) = if let Some(r) = trimmed.strip_prefix('-') {
+        (-1i64, r)
+    } else if let Some(r) = trimmed.strip_prefix('+') {
+        (1i64, r)
+    } else {
+        (1i64, trimmed)
+    };
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        0
+    } else {
+        digits.parse::<i64>().map(|v| v.saturating_mul(sign)).unwrap_or(0)
+    }
+}
+
+fn check_jq_filter_syntax(filter: &str) -> Option<BuiltinOutcome> {
+    let trimmed = filter.trim_start();
+    if let Some(first_ch) = trimmed.chars().next()
+        && matches!(first_ch, '/' | '*' | '%' | ',' | ';' | '|' | ')' | ']' | '}')
+    {
+        let first_line = filter.lines().next().unwrap_or(filter);
+        return Some(err_out(
+            &format!(
+                "jq: error: syntax error, unexpected '{first_ch}', expecting end of file (Unix shell quoting issues?) at <top-level>, line 1:\n{first_line}\njq: 1 compile error\n"
+            ),
+            3,
+        ));
+    }
+    let mut stack: Vec<char> = Vec::new();
+    let mut in_str = false;
+    let mut escaped = false;
+    for ch in filter.chars() {
+        if in_str {
+            if escaped {
+                escaped = false;
+            } else if ch == '\\' {
+                escaped = true;
+            } else if ch == '"' {
+                in_str = false;
+            }
+            continue;
+        }
+        match ch {
+            '"' => in_str = true,
+            '(' => stack.push(')'),
+            '[' => stack.push(']'),
+            '{' => stack.push('}'),
+            ')' | ']' | '}' => {
+                if stack.pop() != Some(ch) {
+                    let first_line = filter.lines().next().unwrap_or(filter);
+                    return Some(err_out(
+                        &format!(
+                            "jq: error: syntax error, unexpected '{ch}' (Unix shell quoting issues?) at <top-level>, line 1:\n{first_line}\njq: 1 compile error\n"
+                        ),
+                        3,
+                    ));
+                }
+            }
+            _ => {}
+        }
+    }
+    if in_str || !stack.is_empty() {
+        let first_line = filter.lines().next().unwrap_or(filter);
+        return Some(err_out(
+            &format!(
+                "jq: error: syntax error, unexpected end of file (Unix shell quoting issues?) at <top-level>, line 1:\n{first_line}\njq: 1 compile error\n"
+            ),
+            3,
+        ));
+    }
+    None
+}
+
 pub(crate) fn cmd_jq_with_env(
     args: &[String],
     stdin: &str,
@@ -650,7 +744,21 @@ pub(crate) fn cmd_jq_with_env(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    cmd_jq_core(args, stdin, cwd, env, fs, false)
+}
+
+fn cmd_jq_core(
+    args: &[String],
+    stdin: &str,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    xml_input: bool,
+) -> BuiltinOutcome {
+    const JQ_HELP: &str = "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
     let mut raw_output = false;
+    let mut raw_output0 = false;
+    let mut ascii_output = false;
     let mut raw_input = false;
     let mut compact_output = false;
     let mut slurp = false;
@@ -669,6 +777,7 @@ pub(crate) fn cmd_jq_with_env(
         vars.insert(k.clone(), JVal::Str(v.clone()));
     }
     let mut filter: Option<String> = None;
+    let mut program_file: Option<String> = None;
     let mut files: Vec<String> = Vec::new();
 
     let mut i = 0usize;
@@ -680,121 +789,148 @@ pub(crate) fn cmd_jq_with_env(
             i += 1;
             continue;
         }
-        if !end_opts && a.starts_with("--") {
-            match a.as_str() {
-                "--version" => return ok_out("jq-1.7.1\n"),
-                "--help" => {
-                    return ok_out(
-                        "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n",
-                    );
+        if !end_opts && (a == "--args" || a == "--jsonargs") {
+            args_mode = Some(a == "--jsonargs");
+            i += 1;
+            continue;
+        }
+        if !end_opts && a.starts_with("-L") {
+            if a == "-L" {
+                if i + 1 >= args.len() {
+                    return err_out("jq: -L requires an operand\n", 2);
                 }
-                "--raw-output" => raw_output = true,
-                "--raw-input" => raw_input = true,
-                "--compact-output" => compact_output = true,
-                "--slurp" => slurp = true,
-                "--null-input" => null_input = true,
-                "--exit-status" => exit_status = true,
-                "--sort-keys" => sort_keys = true,
-                "--stream" => stream_mode = true,
-                "--stream-errors" => stream_mode = true,
-                "--seq" => seq_mode = true,
-                "--from-file" if i + 1 < args.len() => {
-                    let full = resolve_posix_path(cwd, &args[i + 1]);
-                    if let Ok(b) = fs.read_file(&full) {
-                        filter = Some(String::from_utf8_lossy(&b).into_owned());
-                    }
-                    i += 2;
-                    continue;
+                lib_dirs.push(args[i + 1].clone());
+                i += 2;
+            } else {
+                lib_dirs.push(a[2..].to_string());
+                i += 1;
+            }
+            continue;
+        }
+        if !end_opts && (a == "--arg" || a == "--argjson") {
+            if i + 2 >= args.len() {
+                return err_out(&format!("jq: {a} requires an operand\n"), 2);
+            }
+            let name = args[i + 1].clone();
+            let text = &args[i + 2];
+            let v = if a == "--arg" {
+                JVal::Str(text.clone())
+            } else {
+                match parse_single_json_strict(text) {
+                    Ok(parsed) => parsed,
+                    Err(_) => return err_out(&format!("jq: invalid JSON for --argjson {name}\n"), 2),
                 }
-                "--args" => {
-                    args_mode = Some(false);
-                    end_opts = true;
+            };
+            named_args.push((name.clone(), v.clone()));
+            vars.insert(name, v);
+            i += 3;
+            continue;
+        }
+        if !end_opts && (a == "--slurpfile" || a == "--rawfile") {
+            if i + 2 >= args.len() {
+                return err_out(&format!("jq: {a} requires an operand\n"), 2);
+            }
+            let name = args[i + 1].clone();
+            let full = resolve_posix_path(cwd, &args[i + 2]);
+            let bytes = match fs.read_file(&full) {
+                Ok(b) => b,
+                Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
+            };
+            let content = String::from_utf8_lossy(&bytes).into_owned();
+            let v = if a == "--rawfile" {
+                JVal::Str(content)
+            } else {
+                match parse_json_stream(&content) {
+                    Ok(vals) => JVal::Array(vals),
+                    Err(_) => return err_out("jq: bad JSON in --slurpfile\n", 2),
                 }
-                "--jsonargs" => {
-                    args_mode = Some(true);
-                    end_opts = true;
-                }
-                "--join-output" => {
-                    raw_output = true;
-                    join_output = true;
-                }
-                "--arg" if i + 2 < args.len() => {
-                    let v = JVal::Str(args[i + 2].clone());
-                    named_args.push((args[i + 1].clone(), v.clone()));
-                    vars.insert(args[i + 1].clone(), v);
-                    i += 3;
-                    continue;
-                }
-                "--argjson" if i + 2 < args.len() => {
-                    let parsed = parse_json_stream(&args[i + 2])
-                        .ok()
-                        .and_then(|mut v| v.pop())
-                        .unwrap_or(JVal::Null);
-                    named_args.push((args[i + 1].clone(), parsed.clone()));
-                    vars.insert(args[i + 1].clone(), parsed);
-                    i += 3;
-                    continue;
-                }
-                "--slurpfile" if i + 2 < args.len() => {
-                    let full = resolve_posix_path(cwd, &args[i + 2]);
-                    let content = fs
-                        .read_file(&full)
-                        .map(|b| String::from_utf8_lossy(&b).into_owned())
-                        .unwrap_or_default();
-                    let vals = parse_json_stream(&content).unwrap_or_default();
-                    let arr = JVal::Array(vals);
-                    named_args.push((args[i + 1].clone(), arr.clone()));
-                    vars.insert(args[i + 1].clone(), arr);
-                    i += 3;
-                    continue;
-                }
-                "--rawfile" if i + 2 < args.len() => {
-                    let full = resolve_posix_path(cwd, &args[i + 2]);
-                    let content = fs
-                        .read_file(&full)
-                        .map(|b| String::from_utf8_lossy(&b).into_owned())
-                        .unwrap_or_default();
-                    let sv = JVal::Str(content);
-                    named_args.push((args[i + 1].clone(), sv.clone()));
-                    vars.insert(args[i + 1].clone(), sv);
-                    i += 3;
-                    continue;
-                }
-                _ => {}
+            };
+            named_args.push((name.clone(), v.clone()));
+            vars.insert(name, v);
+            i += 3;
+            continue;
+        }
+        if !end_opts && (a == "-f" || a == "--from-file") {
+            if program_file.is_some() || filter.is_some() {
+                return err_out("jq: provide exactly one filter program\n", 2);
+            }
+            if i + 1 >= args.len() {
+                return err_out(&format!("jq: {a} requires an operand\n"), 2);
+            }
+            program_file = Some(args[i + 1].clone());
+            i += 2;
+            continue;
+        }
+        if !end_opts && (a == "--stream" || a == "--stream-errors" || a == "--seq") {
+            if a == "--seq" {
+                seq_mode = true;
+            } else {
+                stream_mode = true;
             }
             i += 1;
             continue;
         }
-        if !end_opts && a == "-L" && i + 1 < args.len() {
-            lib_dirs.push(args[i + 1].clone());
-            i += 2;
-            continue;
-        }
-        if !end_opts && let Some(ld) = a.strip_prefix("-L") && !ld.is_empty() {
-            lib_dirs.push(ld.to_string());
-            i += 1;
-            continue;
-        }
-        if !end_opts && a == "-f" && i + 1 < args.len() {
-            let full = resolve_posix_path(cwd, &args[i + 1]);
-            if let Ok(b) = fs.read_file(&full) {
-                filter = Some(String::from_utf8_lossy(&b).into_owned());
+        if !end_opts && a == "--indent" {
+            if i + 1 >= args.len() {
+                return err_out("jq: --indent requires an operand\n", 2);
+            }
+            let val = parse_js_int_or_zero(&args[i + 1]);
+            if !(-1..=7).contains(&val) {
+                return err_out("jq: --indent takes a number between -1 and 7\n", 2);
+            }
+            if val == 0 {
+                compact_output = true;
             }
             i += 2;
             continue;
         }
-        if !end_opts && a.starts_with('-') && a.len() > 1 {
-            for ch in a[1..].chars() {
+        if !end_opts && a == "--tab" {
+            i += 1;
+            continue;
+        }
+        if !end_opts && a == "--raw-output0" {
+            raw_output0 = true;
+            raw_output = true;
+            i += 1;
+            continue;
+        }
+        if !end_opts && a == "--unbuffered" {
+            i += 1;
+            continue;
+        }
+        let flag_start = a.chars().nth(1).unwrap_or('\0');
+        let positional_operand = (args_mode.is_some() || (filter.is_none() && program_file.is_none()))
+            && flag_start != '-'
+            && !flag_start.is_ascii_alphabetic();
+        if !end_opts && a.starts_with('-') && a != "-" && !positional_operand {
+            let flags: &str = match a.as_str() {
+                "--raw-output" => "r",
+                "--raw-input" => "R",
+                "--join-output" => "j",
+                "--compact-output" => "c",
+                "--sort-keys" => "S",
+                "--slurp" => "s",
+                "--null-input" => "n",
+                "--exit-status" => "e",
+                "--ascii-output" => "a",
+                "--color-output" => "C",
+                "--monochrome-output" => "M",
+                "--version" => "V",
+                "--help" => "h",
+                _ if a.starts_with("--") => "",
+                _ => &a[1..],
+            };
+            if flags.is_empty() || flags.chars().any(|ch| !"rRjcSsneaCMVh".contains(ch)) {
+                return err_out(&format!("jq: unsupported option {a}\n"), 2);
+            }
+            for ch in flags.chars() {
                 match ch {
                     'V' => return ok_out("jq-1.7.1\n"),
-                    'h' => {
-                        return ok_out(
-                            "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n",
-                        );
-                    }
+                    'h' => return ok_out(JQ_HELP),
                     'r' => raw_output = true,
                     'R' => raw_input = true,
                     'c' => compact_output = true,
+                    'a' => ascii_output = true,
                     's' => slurp = true,
                     'n' => null_input = true,
                     'e' => exit_status = true,
@@ -809,15 +945,14 @@ pub(crate) fn cmd_jq_with_env(
             i += 1;
             continue;
         }
-        if filter.is_none() {
+        if filter.is_none() && program_file.is_none() {
             filter = Some(a.clone());
         } else if let Some(is_json_args) = args_mode {
             if is_json_args {
-                let parsed = parse_json_stream(a)
-                    .ok()
-                    .and_then(|mut v| v.pop())
-                    .unwrap_or(JVal::Null);
-                positional_args.push(parsed);
+                match parse_single_json_strict(a) {
+                    Ok(parsed) => positional_args.push(parsed),
+                    Err(_) => return err_out("jq: invalid JSON text passed to --jsonargs\n", 2),
+                }
             } else {
                 positional_args.push(JVal::Str(a.clone()));
             }
@@ -831,15 +966,67 @@ pub(crate) fn cmd_jq_with_env(
         "ARGS".to_string(),
         JVal::Object(vec![
             ("positional".to_string(), JVal::Array(positional_args)),
-            ("named".to_string(), JVal::Object(named_args)),
-        ]),
-    );
+        ("named".to_string(), JVal::Object(named_args)),
+    ]),
+);
 
-    let raw_filter = filter.unwrap_or_else(|| ".".to_string());
+    let raw_filter = if let Some(pf) = program_file {
+        let full = resolve_posix_path(cwd, &pf);
+        match fs.read_file(&full) {
+            Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+            Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
+        }
+    } else {
+        filter.unwrap_or_else(|| ".".to_string())
+    };
+    if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) {
+        return compile_err;
+    }
     let filter_str = preprocess_jq_imports(&raw_filter, &lib_dirs, cwd, fs);
     let mut stream_inputs: Vec<JVal> = Vec::new();
+    let mut deferred_xml_err: Option<(String, i32)> = None;
 
-    if !null_input || !files.is_empty() || !stdin.is_empty() {
+    if xml_input {
+        let mut xml_vals: Vec<JVal> = Vec::new();
+        let sources: Vec<Option<&str>> = if files.is_empty() {
+            vec![None]
+        } else {
+            files.iter().map(|f| if f == "-" { None } else { Some(f.as_str()) }).collect()
+        };
+        for src in sources {
+            let text = match src {
+                None => stdin.to_string(),
+                Some(f) => {
+                    let full = resolve_posix_path(cwd, f);
+                    match fs.read_file(&full) {
+                        Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+                        Err(_) => {
+                            let msg = format!("jq: {}\n", read_stream_diag(&full, fs));
+                            if null_input {
+                                deferred_xml_err = Some((msg, 2));
+                                break;
+                            }
+                            return err_out(&msg, 2);
+                        }
+                    }
+                }
+            };
+            if let Err(e) = parse_xml_strict_dom(&text) {
+                let msg = format!("jq: {e}\n");
+                if null_input {
+                    deferred_xml_err = Some((msg, 1));
+                    break;
+                }
+                return err_out(&msg, 1);
+            }
+            xml_vals.push(parse_xml_to_jval(&text, false));
+        }
+        if slurp && !raw_input {
+            stream_inputs.push(JVal::Array(xml_vals));
+        } else {
+            stream_inputs = xml_vals;
+        }
+    } else if !null_input || !files.is_empty() || !stdin.is_empty() {
         let mut raw_text = String::new();
         if files.is_empty() {
             raw_text.push_str(stdin);
@@ -852,7 +1039,7 @@ pub(crate) fn cmd_jq_with_env(
                     match fs.read_file(&full) {
                         Ok(b) => raw_text.push_str(&String::from_utf8_lossy(&b)),
                         Err(_) => {
-                            return err_out(&format!("jq: {f}: No such file or directory\n"), 2);
+                            return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2);
                         }
                     }
                 }
@@ -897,7 +1084,7 @@ pub(crate) fn cmd_jq_with_env(
     }
 
     let mut out = String::new();
-    let mut last_truthy = false;
+    let mut last_truthy: Option<bool> = None;
     let mut first_null_done = false;
 
     loop {
@@ -915,7 +1102,17 @@ pub(crate) fn cmd_jq_with_env(
         match eval_jq(&filter_str, &input_val, &vars) {
             Ok(results) => {
                 for r in results {
-                    last_truthy = r.is_truthy();
+                    if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
+                        let loc = if null_input { "<unknown>" } else { "<stdin>:1" };
+                        return BuiltinOutcome {
+                            stdout: out,
+                            stderr: format!(
+                                "jq: error (at {loc}): Cannot dump a string containing NUL with --raw-output0 option\n"
+                            ),
+                            exit_code: 5,
+                        };
+                    }
+                    last_truthy = Some(r.is_truthy());
                     let formatted = if raw_output {
                         r.to_raw_string(compact_output, sort_keys)
                     } else {
@@ -925,7 +1122,9 @@ pub(crate) fn cmd_jq_with_env(
                         out.push('\x1e');
                     }
                     out.push_str(&formatted);
-                    if !join_output {
+                    if raw_output0 {
+                        out.push('\0');
+                    } else if !join_output {
                         out.push('\n');
                     }
                 }
@@ -934,7 +1133,23 @@ pub(crate) fn cmd_jq_with_env(
         }
     }
 
-    let code = if exit_status && !last_truthy { 1 } else { 0 };
+    if let Some((err_msg, err_code)) = deferred_xml_err {
+        return BuiltinOutcome {
+            stdout: out,
+            stderr: err_msg,
+            exit_code: err_code,
+        };
+    }
+
+    let code = if exit_status {
+        match last_truthy {
+            None => 4,
+            Some(false) => 1,
+            Some(true) => 0,
+        }
+    } else {
+        0
+    };
     BuiltinOutcome {
         stdout: out,
         stderr: String::new(),
@@ -5584,6 +5799,221 @@ fn format_yq_single_val(
     }
 }
 
+const MIKE_EVAL_HELP: &str = "yq is a portable command-line data file processor (https://github.com/mikefarah/yq/) \nSee https://mikefarah.gitbook.io/yq/ for detailed documentation and examples.\n\n## Evaluate Sequence ##\nThis command iterates over each yaml document from each given file, applies the \nexpression and prints the result in sequence.\n\nUsage:\n  yq eval [expression] [yaml_file1]... [flags]\n\nAliases:\n  eval, e\n\nExamples:\n\n# Reads field under the given path for each file\nyq e '.a.b' f1.yml f2.yml \n\n# Prints out the file\nyq e sample.yaml \n\n# Pipe from STDIN\n## use '-' as a filename to pipe from STDIN\ncat file2.yml | yq e '.a.b' file1.yml - file3.yml\n\n# Creates a new yaml document\n## Note that editing an empty file does not work.\nyq e -n '.a.b.c = \"cat\"' \n\n# Update a file in place\nyq e '.a.b = \"cool\"' -i file.yaml \n\n\nFlags:\n  -h, --help   help for eval\n\nGlobal Flags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n";
+
+const MIKE_ALL_HELP: &str = "yq is a portable command-line data file processor (https://github.com/mikefarah/yq/) \nSee https://mikefarah.gitbook.io/yq/ for detailed documentation and examples.\n\n## Evaluate All ##\nThis command loads _all_ yaml documents of _all_ yaml files and runs expression once\nUseful when you need to run an expression across several yaml documents or files (like merge).\nNote that it consumes more memory than eval.\n\nUsage:\n  yq eval-all [expression] [yaml_file1]... [flags]\n\nAliases:\n  eval-all, ea\n\nExamples:\n\n# Merge f2.yml into f1.yml (in place)\nyq eval-all --inplace 'select(fileIndex == 0) * select(fileIndex == 1)' f1.yml f1.yml\n## the same command and expression using shortened names:\nyq ea -i 'select(fi == 0) * select(fi == 1)' f1.yml f2.yml\n\n\n# Merge all given files\nyq ea '. as $item ireduce ({}; . * $item )' file1.yml file2.yml ...\n\n# Pipe from STDIN\n## use '-' as a filename to pipe from STDIN\ncat file2.yml | yq ea '.a.b' file1.yml - file3.yml\n\n\nFlags:\n  -h, --help   help for eval-all\n\nGlobal Flags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n";
+
+const MIKE_HELP: &str = "yq is a portable command-line data file processor (https://github.com/mikefarah/yq/) \nSee https://mikefarah.gitbook.io/yq/ for detailed documentation and examples.\n\nUsage:\n  yq [flags]\n  yq [command]\n\nExamples:\n\n# yq tries to auto-detect the file format based off the extension, and defaults to YAML if it's unknown (or piping through STDIN)\n# Use the '-p/--input-format' flag to specify a format type.\ncat file.xml | yq -p xml\n\n# read the \"stuff\" node from \"myfile.yml\"\nyq '.stuff' < myfile.yml\n\n# update myfile.yml in place\nyq -i '.stuff = \"foo\"' myfile.yml\n\n# print contents of sample.json as idiomatic YAML\nyq -P -oy sample.json\n\n\nAvailable Commands:\n  completion  Generate the autocompletion script for the specified shell\n  eval        (default) Apply the expression to each document in each yaml file in sequence\n  eval-all    Loads _all_ yaml documents of _all_ yaml files and runs expression once\n  help        Help about any command\n\nFlags:\n  -C, --colors                            force print with colors\n      --csv-auto-parse                    parse CSV YAML/JSON values (default true)\n      --csv-separator char                CSV Separator character (default ,)\n      --debug-node-info                   debug node info\n  -e, --exit-status                       set exit status if there are no matches or null or false is returned\n      --expression string                 forcibly set the expression argument. Useful when yq argument detection thinks your expression is a file.\n      --from-file string                  Load expression from specified file.\n  -f, --front-matter string               (extract|process) first input as yaml front-matter. Extract will pull out the yaml content, process will run the expression against the yaml content, leaving the remaining data intact\n      --header-preprocess                 Slurp any header comments and separators before processing expression. (default true)\n  -h, --help                              help for yq\n  -I, --indent int                        sets indent level for output (default 2)\n      --ini-preserve-quotes               preserve surrounding quotes on INI values during round-trip\n  -i, --inplace                           update the file in place of first file given.\n  -p, --input-format string               [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|lua|l|ini|i] parse format for input. (default \"auto\")\n      --lua-globals                       output keys as top-level global variables\n      --lua-prefix string                 prefix (default \"return \")\n      --lua-suffix string                 suffix (default \";\\n\")\n      --lua-unquoted                      output unquoted string keys (e.g. {foo=\"bar\"})\n  -M, --no-colors                         force print with no colors\n  -N, --no-doc                            Don't print document separators (---)\n  -0, --nul-output                        Use NUL char to separate values. If unwrap scalar is also set, fail if unwrapped scalar contains NUL char.\n  -n, --null-input                        Don't read input, simply evaluate the expression given. Useful for creating docs from scratch.\n  -o, --output-format string              [auto|a|yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i] output format type. (default \"auto\")\n  -P, --prettyPrint                       pretty print, shorthand for '... style = \"\"'\n      --properties-array-brackets         use [x] in array paths (e.g. for SpringBoot)\n      --properties-separator string       separator to use between keys and values (default \" = \")\n      --security-disable-env-ops          Disable env related operations.\n      --security-disable-file-ops         Disable file related operations (e.g. load)\n      --security-enable-system-operator   Enable system operator to allow execution of external commands.\n      --shell-key-separator string        separator for shell variable key paths (default \"_\")\n  -s, --split-exp string                  print each result (or doc) into a file named (exp). [exp] argument must return a string. You can use $index in the expression as the result counter. The necessary directories will be created.\n      --split-exp-file string             Use a file to specify the split-exp expression.\n      --string-interpolation              Toggles strings interpolation of \\(exp) (default true)\n      --tsv-auto-parse                    parse TSV YAML/JSON values (default true)\n  -r, --unwrapScalar                      unwrap scalar, print the value with no quotes, colours or comments. Defaults to true for yaml (default true)\n  -v, --verbose                           verbose mode\n  -V, --version                           Print version information and quit\n      --xml-attribute-prefix string       prefix for xml attributes (default \"+@\")\n      --xml-content-name string           name for xml content (if no attribute name is present). (default \"+content\")\n      --xml-directive-name string         name for xml directives (e.g. <!DOCTYPE thing cat>) (default \"+directive\")\n      --xml-keep-namespace                enables keeping namespace after parsing attributes (default true)\n      --xml-proc-inst-prefix string       prefix for xml processing instructions (e.g. <?xml version=\"1\"?>) (default \"+p_\")\n      --xml-raw-token                     enables using RawToken method instead Token. Commonly disables namespace translations. See https://pkg.go.dev/encoding/xml#Decoder.RawToken for details. (default true)\n      --xml-skip-directives               skip over directives (e.g. <!DOCTYPE thing cat>)\n      --xml-skip-proc-inst                skip over process instructions (e.g. <?xml version=\"1\"?>)\n      --xml-strict-mode                   enables strict parsing of XML. See https://pkg.go.dev/encoding/xml for more details.\n  -c, --yaml-compact-seq-indent           Use compact sequence indentation where '- ' is considered part of the indentation.\n      --yaml-fix-merge-anchor-to-spec     Fix merge anchor to match YAML spec. Will default to true in late 2025\n\nUse \"yq [command] --help\" for more information about a command.\n";
+
+fn is_mike_value_flag(name: &str) -> bool {
+    matches!(
+        name,
+        "from-file" | "f" | "front-matter" | "s" | "split-exp" | "split-exp-file" | "p" | "input-format" | "o" | "output-format" | "I" | "indent" | "expression"
+    )
+}
+
+fn is_mike_bool_flag(name: &str) -> bool {
+    matches!(
+        name,
+        "v" | "verbose"
+            | "debug-node-info"
+            | "header-preprocess"
+            | "n"
+            | "null-input"
+            | "i"
+            | "inplace"
+            | "e"
+            | "exit-status"
+            | "r"
+            | "unwrapScalar"
+            | "raw-output"
+            | "h"
+            | "help"
+            | "V"
+            | "version"
+            | "N"
+            | "no-doc"
+            | "c"
+            | "compact-output"
+            | "yaml-compact-seq-indent"
+            | "yaml-fix-merge-anchor-to-spec"
+            | "0"
+            | "nul-output"
+            | "P"
+            | "prettyPrint"
+            | "security-disable-env-ops"
+            | "security-disable-file-ops"
+            | "M"
+            | "no-colors"
+            | "S"
+            | "sort-keys"
+            | "j"
+            | "join-output"
+            | "tab"
+    )
+}
+
+fn mike_command_mode(args: &[String]) -> &'static str {
+    let mut index = 0usize;
+    while index < args.len() {
+        let argument = &args[index];
+        if argument == "--" {
+            return if index + 1 < args.len() { "eval" } else { "root" };
+        }
+        if !argument.starts_with('-') || argument == "-" {
+            return if argument == "ea" || argument == "eval-all" {
+                "eval-all"
+            } else {
+                "eval"
+            };
+        }
+        let long = argument.starts_with("--");
+        let mut remaining = &argument[if long { 2 } else { 1 }..];
+        while !remaining.is_empty() {
+            let equal = remaining.find('=');
+            let name = if long {
+                match equal {
+                    None => remaining,
+                    Some(eq) => &remaining[..eq],
+                }
+            } else {
+                &remaining[..remaining.chars().next().map(|c| c.len_utf8()).unwrap_or(1)]
+            };
+            if is_mike_value_flag(name) {
+                if if long { equal.is_none() } else { remaining.len() == name.len() } {
+                    index += 1;
+                }
+                break;
+            }
+            if !is_mike_bool_flag(name) {
+                return "root";
+            }
+            if long || remaining[name.len()..].starts_with('=') {
+                break;
+            }
+            remaining = &remaining[name.len()..];
+        }
+        index += 1;
+    }
+    "root"
+}
+
+fn yq_error(msg: &str, with_usage: bool, command_mode: &str) -> BuiltinOutcome {
+    if with_usage {
+        let selected = match command_mode {
+            "eval-all" => MIKE_ALL_HELP,
+            "eval" => MIKE_EVAL_HELP,
+            _ => MIKE_HELP,
+        };
+        let usage_idx = selected.find("Usage:").unwrap_or(0);
+        let usage = format!("{}\n", &selected[usage_idx..]);
+        err_out(&format!("Error: {msg}\n{usage}"), 1)
+    } else {
+        err_out(&format!("Error: {msg}\n"), 1)
+    }
+}
+
+fn validate_mike_format(val: &str, command_mode: &str) -> Result<String, BuiltinOutcome> {
+    match val {
+        "auto" | "a" | "" => Ok("auto".to_string()),
+        "yaml" | "y" => Ok("yaml".to_string()),
+        "json" | "j" => Ok("json".to_string()),
+        "xml" | "x" => Ok("xml".to_string()),
+        "csv" | "c" => Ok("csv".to_string()),
+        "tsv" | "t" => Ok("tsv".to_string()),
+        "props" | "p" => Ok("props".to_string()),
+        "toml" => Ok("toml".to_string()),
+        "ini" | "i" => Ok("ini".to_string()),
+        "lua" | "l" => Ok("lua".to_string()),
+        "base64" => Ok("base64".to_string()),
+        "uri" => Ok("uri".to_string()),
+        "shell" | "s" => Ok("shell".to_string()),
+        "hcl" | "h" | "kyaml" | "ky" => Err(yq_error(
+            &format!("format '{val}' is not supported by this bounded yq profile"),
+            false,
+            command_mode,
+        )),
+        _ => Err(yq_error(
+            &format!(
+                "unknown format '{val}' please use [yaml|y|kyaml|ky|json|j|props|p|csv|c|tsv|t|xml|x|base64|uri|toml|hcl|h|shell|s|lua|l|ini|i]"
+            ),
+            false,
+            command_mode,
+        )),
+    }
+}
+
+fn parse_mike_indent(value: &str, command_mode: &str) -> Result<i64, BuiltinOutcome> {
+    let negative = value.starts_with('-');
+    let mut digits = if value.starts_with('+') || negative {
+        &value[1..]
+    } else {
+        value
+    };
+    let mut base = 10u32;
+    let mut prefixed = false;
+    if digits.len() > 1 && digits.starts_with('0') {
+        prefixed = true;
+        let p = digits.as_bytes()[1].to_ascii_lowercase();
+        base = if p == b'x' {
+            16
+        } else if p == b'b' {
+            2
+        } else {
+            8
+        };
+        digits = &digits[if matches!(p, b'x' | b'b' | b'o') { 2 } else { 1 }..];
+    }
+    if prefixed && let Some(rest) = digits.strip_prefix('_') {
+        digits = rest;
+    }
+    let mut invalid = digits.is_empty();
+    let mut previous_digit = false;
+    let mut integer: u128 = 0;
+    let maximum: u128 = if negative {
+        9223372036854775808
+    } else {
+        9223372036854775807
+    };
+    for ch in digits.chars() {
+        if ch == '_' {
+            if !previous_digit {
+                invalid = true;
+            }
+            previous_digit = false;
+            continue;
+        }
+        match ch.to_digit(base) {
+            Some(d) => {
+                if integer <= maximum {
+                    integer = integer.saturating_mul(base as u128).saturating_add(d as u128);
+                }
+            }
+            None => invalid = true,
+        }
+        previous_digit = true;
+    }
+    if !previous_digit {
+        invalid = true;
+    }
+    if invalid || integer > maximum {
+        let reason = if invalid { "invalid syntax" } else { "value out of range" };
+        return Err(yq_error(
+            &format!(
+                "invalid argument {value:?} for \"-I, --indent\" flag: strconv.ParseInt: parsing {value:?}: {reason}"
+            ),
+            true,
+            command_mode,
+        ));
+    }
+    let signed = if negative {
+        -(integer as i128) as i64
+    } else {
+        integer as i64
+    };
+    Ok(signed)
+}
+
 fn cmd_yq(
     args: &[String],
     stdin: &str,
@@ -5591,6 +6021,7 @@ fn cmd_yq(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    let command_mode = mike_command_mode(args);
     let mut raw_output = false;
     let mut compact_output = false;
     let mut inplace = false;
@@ -5604,254 +6035,281 @@ fn cmd_yq(
     let mut disable_env_ops = false;
     let mut disable_file_ops = false;
     let mut explicit_expr = false;
+    let mut help_flag = false;
+    let mut version_flag = false;
+    let mut from_file_opt: Option<String> = None;
+    let mut split_file_opt: Option<String> = None;
     let mut front_matter: Option<String> = None;
     let mut split_exp: Option<String> = None;
     let mut join_output = false;
     let mut extra_jq_args: Vec<String> = Vec::new();
-    let mut output_format = "yaml".to_string();
-    let mut input_format: Option<String> = None;
+    let mut raw_output_format = "auto".to_string();
+    let mut raw_input_format = "auto".to_string();
     let mut filter: Option<String> = None;
-    let mut files: Vec<String> = Vec::new();
+    let mut operands: Vec<String> = Vec::new();
+    let mut ended = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "--xq-xml" {
+        if !ended && a == "--" {
+            ended = true;
+            i += 1;
+            continue;
+        }
+        if !ended && a == "--xq-xml" {
             xq_xml_mode = true;
             i += 1;
             continue;
         }
-        if a == "-V" || a == "--version" {
-            return ok_out("yq (safe-bash; bounded Mike Farah v4.53.3 profile)\n");
-        }
-        if a == "-h" || a == "--help" {
-            return ok_out("yq is a portable command-line data file processor (https://github.com/mikefarah/yq/) \nSee https://mikefarah.gitbook.io/yq/ for detailed documentation and examples.\n");
-        }
-        if a == "-P" || a == "--prettyPrint" {
-            pretty_print = true;
+        if !ended && matches!(a.as_str(), "eval" | "e" | "eval-all" | "ea") && operands.is_empty() {
+            eval_all = a == "eval-all" || a == "ea";
             i += 1;
             continue;
         }
-        if matches!(a.as_str(), "eval" | "e") {
-            i += 1;
-            continue;
-        }
-        if matches!(a.as_str(), "eval-all" | "ea") {
-            eval_all = true;
-            i += 1;
-            continue;
-        }
-        if a == "-r" || a == "--raw-output" || a == "--unwrapScalar" {
-            raw_output = true;
-            i += 1;
-            continue;
-        }
-        if a == "-c" || a == "--compact-output" {
-            compact_output = true;
-            i += 1;
-            continue;
-        }
-        if a == "-i" || a == "--inplace" {
-            inplace = true;
-            i += 1;
-            continue;
-        }
-        if a == "-N" || a == "--no-doc" {
-            no_doc = true;
-            i += 1;
-            continue;
-        }
-        if a == "-0" || a == "--nul-output" {
-            nul_output = true;
-            i += 1;
-            continue;
-        }
-        if a == "-n" || a == "--null-input" {
-            null_input = true;
-            i += 1;
-            continue;
-        }
-        if a == "-e" || a == "--exit-status" {
-            exit_status = true;
-            i += 1;
-            continue;
-        }
-        if a == "--security-disable-env-ops" {
-            disable_env_ops = true;
-            i += 1;
-            continue;
-        }
-        if a == "--security-disable-file-ops" {
-            disable_file_ops = true;
-            i += 1;
-            continue;
-        }
-        if (a == "-I" || a == "--indent") && i + 1 < args.len() {
-            if args[i + 1] == "0" {
-                compact_output = true;
-            } else {
-                extra_jq_args.push("--indent".to_string());
-                extra_jq_args.push(args[i + 1].clone());
-            }
-            i += 2;
-            continue;
-        }
-        if (a == "--arg" || a == "--argjson") && i + 2 < args.len() {
+        if !ended && (a == "--arg" || a == "--argjson") && i + 2 < args.len() {
             extra_jq_args.push(a.clone());
             extra_jq_args.push(args[i + 1].clone());
             extra_jq_args.push(args[i + 2].clone());
             i += 3;
             continue;
         }
-        if a == "-S" || a == "--sort-keys" {
-            extra_jq_args.push("-S".to_string());
+        if ended || !a.starts_with('-') || a == "-" {
+            operands.push(a.clone());
             i += 1;
             continue;
         }
-        if a == "-j" || a == "--join-output" {
-            join_output = true;
-            extra_jq_args.push("-j".to_string());
-            i += 1;
-            continue;
-        }
-        if a == "--tab" {
-            extra_jq_args.push("--tab".to_string());
-            i += 1;
-            continue;
-        }
-        if let Some(ind) = a.strip_prefix("-I=").or_else(|| a.strip_prefix("--indent=")) {
-            if ind == "0" {
-                compact_output = true;
+        let long = a.starts_with("--");
+        let mut remaining = &a[if long { 2 } else { 1 }..];
+        while !remaining.is_empty() {
+            let equal = remaining.find('=');
+            let name = if long {
+                match equal {
+                    None => remaining,
+                    Some(eq) => &remaining[..eq],
+                }
+            } else {
+                &remaining[..remaining.chars().next().map(|c| c.len_utf8()).unwrap_or(1)]
+            };
+            let mut attached = if long {
+                equal.map(|eq| &remaining[eq + 1..])
+            } else if remaining.len() > name.len() {
+                Some(&remaining[name.len()..])
+            } else {
+                None
+            };
+            if !long && let Some(att) = attached && let Some(stripped) = att.strip_prefix('=') {
+                attached = Some(stripped);
             }
-            i += 1;
-            continue;
-        }
-        if (a == "-o" || a == "--output-format") && i + 1 < args.len() {
-            output_format = args[i + 1].to_ascii_lowercase();
-            i += 2;
-            continue;
-        }
-        if let Some(fmt) = a.strip_prefix("-o=").or_else(|| a.strip_prefix("--output-format=")) {
-            output_format = fmt.to_ascii_lowercase();
-            i += 1;
-            continue;
-        }
-        if (a == "-p" || a == "--input-format") && i + 1 < args.len() {
-            input_format = Some(args[i + 1].to_ascii_lowercase());
-            i += 2;
-            continue;
-        }
-        if let Some(fmt) = a.strip_prefix("-p=").or_else(|| a.strip_prefix("--input-format=")) {
-            input_format = Some(fmt.to_ascii_lowercase());
-            i += 1;
-            continue;
-        }
-        if a == "--from-file" && i + 1 < args.len() {
-            let full = resolve_posix_path(cwd, &args[i + 1]);
-            if let Ok(b) = fs.read_file(&full) {
-                filter = Some(String::from_utf8_lossy(&b).trim().to_string());
-                explicit_expr = true;
-            }
-            i += 2;
-            continue;
-        }
-        if let Some(ff) = a.strip_prefix("--from-file=") {
-            let full = resolve_posix_path(cwd, ff);
-            if let Ok(b) = fs.read_file(&full) {
-                filter = Some(String::from_utf8_lossy(&b).trim().to_string());
-                explicit_expr = true;
-            }
-            i += 1;
-            continue;
-        }
-        if a == "--expression" && i + 1 < args.len() {
-            filter = Some(args[i + 1].clone());
-            explicit_expr = true;
-            i += 2;
-            continue;
-        }
-        if let Some(ex) = a.strip_prefix("--expression=") {
-            filter = Some(ex.to_string());
-            explicit_expr = true;
-            i += 1;
-            continue;
-        }
-        if (a == "-f" || a == "--front-matter") && i + 1 < args.len() {
-            front_matter = Some(args[i + 1].to_ascii_lowercase());
-            i += 2;
-            continue;
-        }
-        if let Some(fm) = a.strip_prefix("-f=").or_else(|| a.strip_prefix("--front-matter=")) {
-            front_matter = Some(fm.to_ascii_lowercase());
-            i += 1;
-            continue;
-        }
-        if (a == "-s" || a == "--split-exp") && i + 1 < args.len() {
-            split_exp = Some(args[i + 1].clone());
-            i += 2;
-            continue;
-        }
-        if let Some(se) = a.strip_prefix("-s=").or_else(|| a.strip_prefix("--split-exp=")) {
-            split_exp = Some(se.to_string());
-            i += 1;
-            continue;
-        }
-        if a.starts_with("--") {
-            if !matches!(
-                a.as_str(),
-                "--null-input" | "--no-doc" | "--no-colors" | "--exit-status" | "--unwrapScalar" | "--yaml-compact-seq-indent"
-            ) {
-                return err_out(&format!("Error: unknown flag: {a}\n"), 1);
-            }
-            i += 1;
-            continue;
-        }
-        if a.starts_with('-') && a != "-" {
-            for ch in a[1..].chars() {
-                match ch {
-                    'r' => raw_output = true,
-                    'c' => compact_output = true,
-                    'n' => null_input = true,
-                    'e' => exit_status = true,
-                    'P' => pretty_print = true,
-                    'i' => inplace = true,
-                    'N' => no_doc = true,
-                    '0' => nul_output = true,
-                    'S' => extra_jq_args.push("-S".to_string()),
-                    'j' => {
+            if is_mike_bool_flag(name) {
+                let explicit = if long {
+                    equal.is_some()
+                } else {
+                    remaining[name.len()..].starts_with('=')
+                };
+                let mut enabled = true;
+                if explicit {
+                    let att = attached.unwrap_or("");
+                    if matches!(att, "true" | "1" | "t" | "TRUE" | "True" | "T") {
+                        enabled = true;
+                    } else if matches!(att, "false" | "0" | "f" | "FALSE" | "False" | "F") {
+                        enabled = false;
+                    } else {
+                        let full_name = if name == "r" || name == "unwrapScalar" {
+                            "-r, --unwrapScalar".to_string()
+                        } else if name == "n" || name == "null-input" {
+                            "-n, --null-input".to_string()
+                        } else {
+                            format!("--{name}")
+                        };
+                        return yq_error(
+                            &format!(
+                                "invalid argument {att:?} for \"{full_name}\" flag: strconv.ParseBool: parsing {att:?}: invalid syntax"
+                            ),
+                            true,
+                            command_mode,
+                        );
+                    }
+                }
+                match name {
+                    "h" | "help" => help_flag = enabled,
+                    "V" | "version" => version_flag = enabled,
+                    "P" | "prettyPrint" => pretty_print = enabled,
+                    "r" | "unwrapScalar" | "raw-output" => raw_output = enabled,
+                    "c" | "compact-output" | "yaml-compact-seq-indent" => compact_output = enabled,
+                    "i" | "inplace" => inplace = enabled,
+                    "N" | "no-doc" => no_doc = enabled,
+                    "0" | "nul-output" => nul_output = enabled,
+                    "n" | "null-input" => null_input = enabled,
+                    "e" | "exit-status" => exit_status = enabled,
+                    "security-disable-env-ops" => disable_env_ops = enabled,
+                    "security-disable-file-ops" => disable_file_ops = enabled,
+                    "S" | "sort-keys" if enabled => extra_jq_args.push("-S".to_string()),
+                    "j" | "join-output" if enabled => {
                         join_output = true;
                         extra_jq_args.push("-j".to_string());
                     }
+                    "tab" if enabled => extra_jq_args.push("--tab".to_string()),
                     _ => {}
                 }
+                remaining = if long || explicit {
+                    ""
+                } else {
+                    &remaining[name.len()..]
+                };
+                continue;
             }
-            i += 1;
-            continue;
-        }
-        if filter.is_none() {
-            filter = Some(a.clone());
-        } else {
-            files.push(a.clone());
+            if !is_mike_value_flag(name) {
+                let msg = if long {
+                    format!("unknown flag: --{name}")
+                } else {
+                    format!("unknown shorthand flag: '{name}' in {a}")
+                };
+                return yq_error(&msg, true, command_mode);
+            }
+            let value = match attached {
+                Some(v) => v.to_string(),
+                None => {
+                    i += 1;
+                    if i >= args.len() {
+                        let msg = if long {
+                            format!("flag needs an argument: --{name}")
+                        } else {
+                            format!("flag needs an argument: '{name}' in {a}")
+                        };
+                        return yq_error(&msg, true, command_mode);
+                    }
+                    args[i].clone()
+                }
+            };
+            match name {
+                "I" | "indent" => {
+                    let ind = match parse_mike_indent(&value, command_mode) {
+                        Ok(v) => v,
+                        Err(out) => return out,
+                    };
+                    if ind == 0 {
+                        compact_output = true;
+                    } else if (1..=7).contains(&ind) {
+                        extra_jq_args.push("--indent".to_string());
+                        extra_jq_args.push(ind.to_string());
+                    }
+                }
+                "o" | "output-format" => raw_output_format = value,
+                "p" | "input-format" => raw_input_format = value,
+                "from-file" => from_file_opt = Some(value),
+                "expression" => {
+                    filter = Some(value);
+                    explicit_expr = true;
+                }
+                "f" | "front-matter" => front_matter = Some(value.to_ascii_lowercase()),
+                "s" | "split-exp" => split_exp = Some(value),
+                "split-exp-file" => split_file_opt = Some(value),
+                _ => {}
+            }
+            remaining = "";
         }
         i += 1;
     }
 
-    if !explicit_expr
-        && files.is_empty()
-        && let Some(ref f) = filter
-        && (f.contains('/')
-            || f.ends_with(".yaml")
-            || f.ends_with(".yml")
-            || f.ends_with(".json")
-            || f.ends_with(".toml")
-            || f.ends_with(".xml"))
-        && fs.read_file(&resolve_posix_path(cwd, f)).is_ok()
-    {
-        files.push(f.clone());
+    if help_flag || version_flag {
+        let text = if help_flag {
+            match command_mode {
+                "eval-all" => MIKE_ALL_HELP,
+                "eval" => MIKE_EVAL_HELP,
+                _ => MIKE_HELP,
+            }
+        } else {
+            "yq (safe-bash; bounded Mike Farah v4.53.3 profile)\n"
+        };
+        return ok_out(text);
+    }
+
+    let read_yq_file = |filename: &str| -> Result<String, BuiltinOutcome> {
+        let full = resolve_posix_path(cwd, filename);
+        if fs.is_dir(&full) {
+            return Err(err_out(&format!("Error: read {filename}: is a directory\n"), 1));
+        }
+        match fs.read_file(&full) {
+            Ok(b) => Ok(String::from_utf8_lossy(&b).into_owned()),
+            Err(_) => Err(err_out(
+                &format!("Error: open {filename}: no such file or directory\n"),
+                1,
+            )),
+        }
+    };
+
+    if let Some(ref ff) = from_file_opt {
+        match read_yq_file(ff) {
+            Ok(s) => {
+                filter = Some(s.trim().to_string());
+                explicit_expr = true;
+            }
+            Err(out) => return out,
+        }
+    }
+    if let Some(ref sf) = split_file_opt {
+        match read_yq_file(sf) {
+            Ok(s) => split_exp = Some(s.trim().to_string()),
+            Err(out) => return out,
+        }
+    }
+    if inplace && split_exp.is_some() {
+        return yq_error("write in place cannot be used with split file", false, command_mode);
+    }
+    let mut files = operands;
+    if !explicit_expr && filter.is_none() && !files.is_empty() && files[0] != "-" {
+        let mut exists = false;
+        if !null_input && !inplace && files.len() == 1 {
+            let full = resolve_posix_path(cwd, &files[0]);
+            exists = !fs.is_dir(&full) && fs.read_file(&full).is_ok();
+        }
+        if !exists {
+            filter = Some(files.remove(0));
+        }
+    }
+    if !explicit_expr && filter.is_none() {
         filter = Some(".".to_string());
     }
-    if !explicit_expr && files.is_empty() && filter.as_deref() == Some("-") {
-        filter = Some(".".to_string());
+    if inplace && (files.is_empty() || files[0] == "-") {
+        return yq_error(
+            "write in place flag only applicable when giving an expression and at least one file",
+            false,
+            command_mode,
+        );
     }
+    if null_input && !files.is_empty() {
+        return yq_error("cannot pass files in when using null-input flag", false, command_mode);
+    }
+    let input_opt = match validate_mike_format(&raw_input_format, command_mode) {
+        Ok(v) => v,
+        Err(out) => return out,
+    };
+    let output_opt = match validate_mike_format(&raw_output_format, command_mode) {
+        Ok(v) => v,
+        Err(out) => return out,
+    };
+    let inferred_json = files
+        .first()
+        .map(|f| f.to_ascii_lowercase().ends_with(".json"))
+        .unwrap_or(false);
+    let input_format: Option<String> = if input_opt == "auto" {
+        if inferred_json {
+            Some("json".to_string())
+        } else {
+            None
+        }
+    } else {
+        Some(input_opt.clone())
+    };
+    let output_format = if output_opt == "auto" {
+        if input_opt == "auto" && inferred_json {
+            "json".to_string()
+        } else {
+            "yaml".to_string()
+        }
+    } else {
+        output_opt
+    };
 
     let mut final_filter = filter.unwrap_or_else(|| ".".to_string());
     if disable_env_ops
@@ -5878,9 +6336,6 @@ fn cmd_yq(
     }
     if compact_output || !is_json_out || split_exp.is_some() || nul_output {
         jq_args.push("-c".to_string());
-    }
-    if exit_status {
-        jq_args.push("-e".to_string());
     }
 
     let mut eval_all_wrap_array = false;
@@ -5947,15 +6402,14 @@ fn cmd_yq(
         }
     } else {
         for (f_idx, f) in files.iter().enumerate() {
-            let s_opt = if f == "-" {
-                Some(stdin.to_string())
+            let s = if f == "-" {
+                stdin.to_string()
             } else {
-                let full = resolve_posix_path(cwd, f);
-                fs.read_file(&full)
-                    .ok()
-                    .map(|b| String::from_utf8_lossy(&b).into_owned())
+                match read_yq_file(f) {
+                    Ok(content) => content,
+                    Err(out) => return out,
+                }
             };
-            if let Some(s) = s_opt {
                 let eff_in = if front_matter.is_some() && f_idx == 0 {
                     let (fm_yaml, fm_body) = split_yq_front_matter(&s);
                     front_matter_body = fm_body;
@@ -5980,7 +6434,6 @@ fn cmd_yq(
                     doc_metas.push(meta);
                 }
                 raw_sources.push(eff_in);
-            }
         }
     }
     for src in &raw_sources {
@@ -6007,6 +6460,18 @@ fn cmd_yq(
     }
 
     if (raw_output || join_output) && is_json_out && !eval_all_wrap_array && split_exp.is_none() && !nul_output {
+        if exit_status {
+            let qualified = parse_json_stream(&outcome.stdout)
+                .map(|vs| vs.iter().any(|v| v.is_truthy()))
+                .unwrap_or(!outcome.stdout.trim().is_empty() && outcome.stdout.trim() != "false" && outcome.stdout.trim() != "null");
+            if !qualified {
+                return BuiltinOutcome {
+                    stdout: if inplace { String::new() } else { outcome.stdout },
+                    stderr: "Error: no matches found\n".to_string(),
+                    exit_code: 1,
+                };
+            }
+        }
         if inplace && let Some(first_file) = files.first() {
             let full = resolve_posix_path(cwd, first_file);
             let _ = fs.write_file(&full, outcome.stdout.as_bytes());
@@ -6095,6 +6560,13 @@ fn cmd_yq(
         buf
     };
 
+    if exit_status && !vals.iter().any(|v| v.is_truthy()) {
+        return BuiltinOutcome {
+            stdout: if inplace { String::new() } else { final_out },
+            stderr: "Error: no matches found\n".to_string(),
+            exit_code: 1,
+        };
+    }
     if inplace && let Some(first_file) = files.first() {
         let full = resolve_posix_path(cwd, first_file);
         let _ = fs.write_file(&full, final_out.as_bytes());
@@ -6110,23 +6582,7 @@ fn cmd_xq(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let mut yq_args = vec!["--xq-xml".to_string(), "-p".to_string(), "xml".to_string()];
-    let mut want_yaml = false;
-    for a in args {
-        if a == "-y" || a == "--yaml-output" {
-            want_yaml = true;
-        } else {
-            yq_args.push(a.clone());
-        }
-    }
-    if want_yaml {
-        yq_args.insert(3, "-o".to_string());
-        yq_args.insert(4, "yaml".to_string());
-    } else if !yq_args.iter().any(|a| a == "-o" || a == "--output-format" || a.starts_with("-o=")) {
-        yq_args.insert(3, "-o".to_string());
-        yq_args.insert(4, "json".to_string());
-    }
-    cmd_yq(&yq_args, stdin, cwd, env, fs)
+    cmd_jq_core(args, stdin, cwd, env, fs, true)
 }
 
 fn unescape_xml_entities(s: &str) -> String {
@@ -12584,9 +13040,555 @@ fn eval_xan_cond(expr: &str, headers: &[String], row: &[String]) -> bool {
     false
 }
 
+fn parse_xan_unsigned(text: &str, flag: &str) -> Result<u64, BuiltinOutcome> {
+    let stripped = text.strip_prefix('+').unwrap_or(text);
+    if stripped.is_empty() || !stripped.chars().all(|c| c.is_ascii_digit()) {
+        return Err(err_out(
+            &format!("Could not deserialize '{text}' to u64 for '{flag}'.\n"),
+            1,
+        ));
+    }
+    stripped.parse::<u64>().map_err(|_| {
+        err_out(
+            &format!("Could not deserialize '{text}' to u64 for '{flag}'.\n"),
+            1,
+        )
+    })
+}
+
+fn is_xan_allowed_option(sub: &str, opt: &str) -> bool {
+    if matches!(opt, "help" | "output" | "delimiter") {
+        return sub != "split" || opt != "output";
+    }
+    match sub {
+        "map" | "agg" | "groupby" | "reverse" | "drop" => opt == "no-headers",
+        "top" => matches!(opt, "no-headers" | "limit" | "reverse"),
+        "table" | "rename" => matches!(opt, "no-headers" | "select"),
+        "dedup" => matches!(opt, "no-headers" | "select" | "keep-last" | "sorted" | "keep-duplicates"),
+        "enum" => matches!(opt, "no-headers" | "column-name" | "start"),
+        "transpose" => false,
+        "to" => matches!(opt, "no-headers" | "nulls" | "omit"),
+        "from" => matches!(opt, "format" | "sort-keys" | "single-object" | "column-name"),
+        "cat" => matches!(opt, "no-headers" | "pad"),
+        "split" => matches!(opt, "no-headers" | "size" | "out-dir" | "filename" | "chunks"),
+        "head" | "tail" => matches!(opt, "no-headers" | "limit"),
+        "sort" => matches!(opt, "no-headers" | "select" | "numeric" | "reverse" | "uniq"),
+        "search" => matches!(
+            opt,
+            "no-headers" | "select" | "exact" | "ignore-case" | "invert-match" | "every-column" | "limit"
+        ),
+        "filter" => matches!(opt, "no-headers" | "invert-match"),
+        "stats" => matches!(opt, "no-headers" | "select" | "nulls"),
+        "freq" => matches!(opt, "no-headers" | "select" | "limit" | "all" | "no-extra"),
+        "join" => matches!(
+            opt,
+            "no-headers"
+                | "inner"
+                | "left"
+                | "right"
+                | "full"
+                | "semi"
+                | "anti"
+                | "cross"
+                | "nulls"
+                | "ignore-case"
+                | "drop-key"
+        ),
+        "headers" => matches!(opt, "just-names" | "csv" | "start" | "color"),
+        "count" => matches!(
+            opt,
+            "no-headers" | "human-readable" | "check-alignment" | "approx" | "parallel" | "threads"
+        ),
+        "select" => matches!(opt, "no-headers" | "evaluate" | "evaluate-file"),
+        "slice" => matches!(
+            opt,
+            "no-headers"
+                | "start"
+                | "skip"
+                | "end"
+                | "len"
+                | "index"
+                | "indices"
+                | "last"
+                | "byte-offset"
+                | "end-byte"
+                | "raw"
+                | "start-condition"
+                | "end-condition"
+        ),
+        _ => false,
+    }
+}
+
+fn is_xan_switch_option(opt: &str) -> bool {
+    matches!(
+        opt,
+        "help"
+            | "no-headers"
+            | "just-names"
+            | "csv"
+            | "human-readable"
+            | "check-alignment"
+            | "approx"
+            | "parallel"
+            | "evaluate"
+            | "raw"
+            | "keep-last"
+            | "sorted"
+            | "keep-duplicates"
+            | "pad"
+            | "sort-keys"
+            | "single-object"
+            | "omit"
+            | "numeric"
+            | "reverse"
+            | "uniq"
+            | "exact"
+            | "ignore-case"
+            | "invert-match"
+            | "every-column"
+            | "all"
+            | "no-extra"
+            | "inner"
+            | "left"
+            | "right"
+            | "full"
+            | "semi"
+            | "anti"
+            | "cross"
+            | "nulls"
+    )
+}
+
+fn map_xan_short_option(sub: &str, ch: char) -> Option<&'static str> {
+    let extra = match (sub, ch) {
+        ("top", 'l') | ("head", 'l') | ("tail", 'l') | ("search", 'l') | ("freq", 'l') => Some("limit"),
+        ("top", 'R') | ("sort", 'R') => Some("reverse"),
+        ("table", 's') | ("dedup", 's') | ("sort", 's') | ("search", 's') | ("rename", 's') | ("stats", 's') | ("freq", 's') => Some("select"),
+        ("dedup", 'S') => Some("sorted"),
+        ("enum", 'c') => Some("column-name"),
+        ("enum", 'S') => Some("start"),
+        ("from", 'f') => Some("format"),
+        ("cat", 'p') => Some("pad"),
+        ("split", 'S') => Some("size"),
+        ("split", 'O') => Some("out-dir"),
+        ("split", 'f') => Some("filename"),
+        ("split", 'c') => Some("chunks"),
+        ("sort", 'N') => Some("numeric"),
+        ("sort", 'u') => Some("uniq"),
+        ("search", 'e') => Some("exact"),
+        ("search", 'i') | ("join", 'i') => Some("ignore-case"),
+        ("search", 'v') | ("filter", 'v') => Some("invert-match"),
+        ("freq", 'A') => Some("all"),
+        ("freq", 'N') => Some("no-extra"),
+        ("select", 'e') => Some("evaluate"),
+        ("select", 'f') => Some("evaluate-file"),
+        _ => None,
+    };
+    if extra.is_some() {
+        return extra;
+    }
+    match ch {
+        'h' => Some("help"),
+        'o' => Some("output"),
+        'd' => Some("delimiter"),
+        'n' => Some("no-headers"),
+        'j' => Some("just-names"),
+        'H' => Some("human-readable"),
+        'c' => Some("check-alignment"),
+        'a' => Some("approx"),
+        'p' => Some("parallel"),
+        't' => Some("threads"),
+        's' => Some("start"),
+        'e' => Some("end"),
+        'l' => Some("len"),
+        'i' => Some("index"),
+        'I' => Some("indices"),
+        'L' => Some("last"),
+        'B' => Some("byte-offset"),
+        'S' => Some("start-condition"),
+        'E' => Some("end-condition"),
+        _ => None,
+    }
+}
+
+fn validate_xan_args(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> Option<BuiltinOutcome> {
+    const HEADERS_USAGE: &str = "Usage:\n    xan headers [options] [<input>...]\n    xan h [options] [<input>...]\n\n";
+    let raw_cmd = if args.first().map(|s| s.as_str()) == Some("h") {
+        "headers"
+    } else {
+        args.first().map(|s| s.as_str()).unwrap_or("")
+    };
+    let first = match args.first().map(|s| s.as_str()) {
+        Some("h") => "headers",
+        Some("frequency") => "freq",
+        Some("view") => "table",
+        Some(other) => other,
+        None => "",
+    };
+    if first == "--help" || first == "-h" {
+        if args.len() != 1 {
+            return Some(err_out(&format!("xan {first}: unexpected argument after help\n"), 1));
+        }
+        return None;
+    }
+    let valid_subs = [
+        "map", "top", "table", "dedup", "enum", "transpose", "agg", "groupby", "to", "from", "cat",
+        "split", "head", "tail", "sort", "search", "filter", "reverse", "rename", "drop", "stats",
+        "freq", "join", "headers", "count", "select", "slice",
+    ];
+    if first.is_empty() || !valid_subs.contains(&first) {
+        let prefix = if raw_cmd.is_empty() {
+            "xan".to_string()
+        } else {
+            format!("xan {raw_cmd}")
+        };
+        return Some(err_out(
+            &format!("{prefix}: expected a CSV subcommand (use xan --help)\n"),
+            1,
+        ));
+    }
+    let command = first;
+    let xan_err = |msg: &str| -> BuiltinOutcome { err_out(&format!("xan {raw_cmd}: {msg}\n"), 1) };
+    let mut values: BTreeMap<String, String> = BTreeMap::new();
+    let mut operands: Vec<String> = Vec::new();
+    let mut positional = false;
+    let mut offset = 1usize;
+    while offset < args.len() {
+        let arg = &args[offset];
+        if !positional && arg == "--" {
+            positional = true;
+            offset += 1;
+            continue;
+        }
+        if !positional && arg.starts_with("--") {
+            let eq = arg.find('=');
+            let name = match eq {
+                Some(idx) => &arg[2..idx],
+                None => &arg[2..],
+            };
+            if command == "headers" && name == "no-headers" {
+                return Some(err_out(
+                    &format!("{HEADERS_USAGE}Unknown flag: '--no-headers' Use the -h/--help flag for more information.\n"),
+                    1,
+                ));
+            }
+            if !is_xan_allowed_option(command, name) {
+                return Some(xan_err(&format!("unsupported in bounded CSV profile: --{name}")));
+            }
+            if is_xan_switch_option(name) {
+                if eq.is_some() {
+                    return Some(xan_err(&format!("option --{name} takes no value")));
+                }
+                if values.contains_key(name) {
+                    return Some(xan_err(&format!("repeated option --{name}")));
+                }
+                values.insert(name.to_string(), "true".to_string());
+            } else {
+                let val = match eq {
+                    Some(idx) => arg[idx + 1..].to_string(),
+                    None => {
+                        offset += 1;
+                        if offset >= args.len() {
+                            return Some(xan_err(&format!("missing value for --{name}")));
+                        }
+                        args[offset].clone()
+                    }
+                };
+                if values.contains_key(name) {
+                    return Some(xan_err(&format!("repeated option --{name}")));
+                }
+                values.insert(name.to_string(), val);
+            }
+        } else if !positional && arg.starts_with('-') && arg != "-" {
+            let chars: Vec<char> = arg[1..].chars().collect();
+            let mut pos = 0usize;
+            while pos < chars.len() {
+                let letter = chars[pos];
+                if command == "headers" && letter == 'n' {
+                    return Some(err_out(
+                        &format!("{HEADERS_USAGE}Unknown flag: '-n' Use the -h/--help flag for more information.\n"),
+                        1,
+                    ));
+                }
+                let Some(name) = map_xan_short_option(command, letter) else {
+                    return Some(xan_err(&format!("unsupported in bounded CSV profile: -{letter}")));
+                };
+                if !is_xan_allowed_option(command, name) {
+                    return Some(xan_err(&format!("unsupported in bounded CSV profile: -{letter}")));
+                }
+                if is_xan_switch_option(name) {
+                    if values.contains_key(name) {
+                        return Some(xan_err(&format!("repeated option --{name}")));
+                    }
+                    values.insert(name.to_string(), "true".to_string());
+                    pos += 1;
+                } else {
+                    let val = if pos + 1 < chars.len() {
+                        chars[pos + 1..].iter().collect()
+                    } else {
+                        offset += 1;
+                        if offset >= args.len() {
+                            return Some(xan_err(&format!("missing value for -{letter}")));
+                        }
+                        args[offset].clone()
+                    };
+                    if values.contains_key(name) {
+                        return Some(xan_err(&format!("repeated option --{name}")));
+                    }
+                    values.insert(name.to_string(), val);
+                    break;
+                }
+            }
+        } else {
+            operands.push(arg.clone());
+        }
+        offset += 1;
+    }
+
+    let parallel = values.contains_key("parallel") || values.contains_key("threads");
+    if let Some(tv) = values.get("threads") {
+        match parse_xan_unsigned(tv, "--threads") {
+            Ok(0) => return Some(xan_err("--threads must be positive")),
+            Ok(_) => {}
+            Err(out) => return Some(out),
+        }
+    }
+    if values.contains_key("approx") && values.contains_key("check-alignment") {
+        return Some(xan_err("-a/--approx does not work with -c/--check-alignment!"));
+    }
+    if parallel && (values.contains_key("approx") || values.contains_key("check-alignment")) {
+        return Some(xan_err(
+            "-p/--parallel or -t/--threads cannot be used with -a/--approx nor -c/--check-alignment!",
+        ));
+    }
+    let help = values.contains_key("help");
+    if help {
+        return None;
+    }
+    if (parallel || values.contains_key("approx")) && (operands.is_empty() || operands[0] == "-") {
+        return Some(xan_err("count execution options require a file path"));
+    }
+    if values.contains_key("evaluate") && values.contains_key("evaluate-file") {
+        return Some(xan_err("conflicting expression modes"));
+    }
+    if command == "map" {
+        let op = operands.first().cloned();
+        if !operands.is_empty() {
+            operands.remove(0);
+        }
+        let has_inline_as = op
+            .as_deref()
+            .map(|s| s.to_ascii_lowercase().contains(" as "))
+            .unwrap_or(false)
+            && (operands.is_empty()
+                || (operands.len() == 1
+                    && (operands[0] == "-"
+                        || operands[0].contains('/')
+                        || operands[0].to_ascii_lowercase().ends_with(".csv")
+                        || operands[0].to_ascii_lowercase().ends_with(".tsv")
+                        || operands[0].to_ascii_lowercase().ends_with(".txt"))));
+        let right_sel = if has_inline_as {
+            Some("inline".to_string())
+        } else if !operands.is_empty() {
+            Some(operands.remove(0))
+        } else {
+            None
+        };
+        if op.unwrap_or_default().is_empty() || right_sel.unwrap_or_default().is_empty() {
+            return Some(xan_err("map requires an expression and a new column name"));
+        }
+    }
+    if command == "groupby" && !operands.is_empty() {
+        operands.remove(0);
+    }
+    if matches!(
+        command,
+        "search" | "filter" | "rename" | "agg" | "groupby" | "to" | "cat"
+    ) {
+        if operands.is_empty() {
+            return Some(xan_err(&format!("{command} requires an argument")));
+        }
+        operands.remove(0);
+    }
+    let mut selection: Option<String> = if command == "select" || command == "drop" {
+        if operands.is_empty() {
+            None
+        } else {
+            Some(operands.remove(0))
+        }
+    } else {
+        Some(values.get("select").cloned().unwrap_or_default())
+    };
+    if command == "top" {
+        selection = if operands.is_empty() {
+            None
+        } else {
+            Some(operands.remove(0))
+        };
+        if selection.as_deref().unwrap_or("").is_empty() {
+            return Some(xan_err("top requires a column selection"));
+        }
+    }
+    if command == "join" {
+        let modes: Vec<&&str> = ["inner", "left", "right", "full", "semi", "anti", "cross"]
+            .iter()
+            .filter(|m| values.contains_key(**m))
+            .collect();
+        if modes.len() > 1 {
+            return Some(xan_err("conflicting join modes"));
+        }
+        if values.contains_key("cross") {
+            if operands.len() != 2 {
+                return Some(xan_err("cross join requires two inputs"));
+            }
+        } else {
+            if operands.len() != 3 && operands.len() != 4 {
+                return Some(xan_err("join requires columns and two inputs"));
+            }
+            selection = Some(operands.remove(0));
+            if operands.len() == 3 {
+                operands.remove(1);
+            }
+        }
+        if let Some(dk) = values.get("drop-key")
+            && !matches!(dk.as_str(), "none" | "left" | "right" | "both")
+        {
+            return Some(xan_err("invalid --drop-key mode"));
+        }
+    }
+    if let Some(lim) = values.get("limit")
+        && let Err(out) = parse_xan_unsigned(lim, "--limit")
+    {
+        return Some(out);
+    }
+    if selection.is_none() {
+        return Some(err_out(
+            "Usage:\n    xan select [options] [--] <selection> [<input>]\n    xan select --help\n\nInvalid subcommand or arguments! Use the -h/--help flag for more information.\n",
+            1,
+        ));
+    }
+    if command != "headers" && command != "join" && command != "cat" && operands.len() > 1 {
+        return Some(xan_err("too many input files"));
+    }
+    if operands.iter().filter(|p| *p == "-").count() > 1 {
+        return Some(xan_err("stdin may appear only once"));
+    }
+    if let Some(delim_str) = values.get("delimiter") {
+        let d = if delim_str == "\\t" {
+            9i32
+        } else if delim_str.len() == 1 {
+            delim_str.as_bytes()[0] as i32
+        } else {
+            -1
+        };
+        if !(1..=127).contains(&d) || matches!(d, 10 | 13 | 34) {
+            return Some(xan_err("unsupported in bounded CSV profile: delimiter"));
+        }
+    }
+    if let Some(col) = values.get("color")
+        && !matches!(col.as_str(), "auto" | "never")
+    {
+        return Some(xan_err("unsupported in bounded CSV profile: color"));
+    }
+    let mut numbers: BTreeMap<&str, u64> = BTreeMap::new();
+    for name in [
+        "start",
+        "skip",
+        "end",
+        "len",
+        "index",
+        "last",
+        "byte-offset",
+        "end-byte",
+    ] {
+        if let Some(v) = values.get(name) {
+            match parse_xan_unsigned(v, &format!("--{name}")) {
+                Ok(n) => {
+                    numbers.insert(name, n);
+                }
+                Err(out) => return Some(out),
+            }
+        }
+    }
+    let byte_offset = numbers.get("byte-offset").copied();
+    let end_byte = numbers.get("end-byte").copied();
+    if let (Some(bo), Some(eb)) = (byte_offset, end_byte)
+        && eb <= bo
+    {
+        return Some(xan_err("-B/--byte-offset must be less than --end-byte!"));
+    }
+    if values.contains_key("raw") && (byte_offset.is_none() || end_byte.is_none()) {
+        return Some(xan_err("--raw requires both -B/--byte-offset & --end-byte!"));
+    }
+    if byte_offset.is_some() && (operands.is_empty() || operands[0] == "-") {
+        return Some(xan_err("byte slicing requires a file path"));
+    }
+    if values.contains_key("indices")
+        && (values.contains_key("start-condition") || values.contains_key("end-condition"))
+    {
+        return Some(xan_err("indices cannot be combined with conditions"));
+    }
+    let range = ["start", "skip", "end", "len", "index"]
+        .iter()
+        .any(|k| values.contains_key(*k));
+    if (values.contains_key("last") && (values.contains_key("indices") || range))
+        || (values.contains_key("indices") && range)
+    {
+        return Some(xan_err("conflicting slice modes"));
+    }
+    if values.contains_key("index")
+        && ["start", "skip", "end", "len"]
+            .iter()
+            .any(|k| values.contains_key(*k))
+    {
+        return Some(xan_err("conflicting index/range options"));
+    }
+    if values.contains_key("end") && values.contains_key("len") {
+        return Some(xan_err("conflicting end/len options"));
+    }
+    let mut start = numbers
+        .get("start")
+        .or_else(|| numbers.get("skip"))
+        .copied()
+        .unwrap_or(0);
+    let mut end = numbers.get("end").copied();
+    if let Some(idx) = numbers.get("index").copied() {
+        start = idx;
+        end = Some(idx.saturating_add(1));
+    }
+    if let Some(len) = numbers.get("len").copied() {
+        end = Some(start.saturating_add(len));
+    }
+    if let Some(e) = end
+        && start > e
+    {
+        return Some(xan_err("start exceeds end"));
+    }
+    let final_cmd = match command {
+        "head" | "tail" => "slice",
+        other => other,
+    };
+    for op in &operands {
+        if op != "-" {
+            let full = resolve_posix_path(cwd, op);
+            if fs.is_dir(&full) || fs.read_file(&full).is_err() {
+                return Some(err_out(
+                    &format!("xan {final_cmd}: {}\n", read_stream_diag(&full, fs)),
+                    1,
+                ));
+            }
+        }
+    }
+    None
+}
+
 fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.is_empty() {
         return err_out("xan: expected a CSV subcommand (use xan --help)\n", 1);
+    }
+    if let Some(err) = validate_xan_args(args, cwd, fs) {
+        return err;
     }
     let sub = args[0].as_str();
     let rest = &args[1..];
@@ -15114,18 +16116,11 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut out_file: Option<String> = None;
     let mut encoding: Option<String> = None;
     let mut files = Vec::new();
-    let mut literal = false;
 
     let mut i = 0usize;
     while i < args.len() {
         let a = args[i].as_str();
-        if literal {
-            files.push(a.to_string());
-            i += 1;
-            continue;
-        }
         match a {
-            "--" => literal = true,
             "--noout" => noout = true,
             "--format" => format_xml = true,
             "--c14n" => c14n = true,
@@ -15136,12 +16131,18 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "--recover" => recover = true,
             "--noblanks" => noblanks = true,
             "--nocdata" => nocdata = true,
-            "--output" | "-o" if i + 1 < args.len() => {
+            "--output" | "-o" => {
                 i += 1;
+                if i >= args.len() {
+                    return err_out(&format!("xmllint: expected value after {a}\n"), 2);
+                }
                 out_file = Some(args[i].clone());
             }
-            "--encode" if i + 1 < args.len() => {
+            "--encode" => {
                 i += 1;
+                if i >= args.len() {
+                    return err_out("xmllint: expected value after --encode\n", 2);
+                }
                 let upper = args[i].to_ascii_uppercase();
                 let norm = match upper.as_str() {
                     "UTF8" => "UTF-8".to_string(),
@@ -15152,22 +16153,62 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 };
                 encoding = Some(norm);
             }
-            "--xpath" if i + 1 < args.len() => {
+            "--xpath" => {
+                if xpath.is_some() {
+                    return err_out("xmllint: expected one --xpath QUERY\n", 2);
+                }
                 i += 1;
-                if args[i] == "--" && i + 1 < args.len() {
+                if i < args.len() && args[i] == "--" {
                     i += 1;
+                }
+                if i >= args.len() {
+                    return err_out("xmllint: expected QUERY [FILE|-]\n", 2);
                 }
                 xpath = Some(args[i].clone());
             }
-            _ if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
-            _ => {}
+            _ => break,
         }
         i += 1;
     }
+    let literal_files = i < args.len() && args[i] == "--";
+    if literal_files {
+        i += 1;
+    }
+    while i < args.len() {
+        let file = &args[i];
+        if !literal_files && file.starts_with('-') && file != "-" {
+            return err_out("xmllint: expected XML input FILE or -\n", 2);
+        }
+        files.push(file.clone());
+        i += 1;
+    }
+    if let Some(ref xp) = xpath
+        && xp.trim().is_empty()
+    {
+        return err_out("xmllint: unsupported XPath syntax at offset 0\n", 10);
+    }
 
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
-        Ok(t) => t,
-        Err(e) => return err_out(&format!("xmllint: {e}"), 1),
+    let text = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+        stdin.to_string()
+    } else {
+        let mut combined = String::new();
+        for f in &files {
+            if f == "-" {
+                combined.push_str(stdin);
+            } else {
+                let full = resolve_posix_path(cwd, f);
+                if fs.is_dir(&full) {
+                    return err_out(&format!("xmllint: {}\n", read_stream_diag(&full, fs)), 1);
+                }
+                match fs.read_file(&full) {
+                    Ok(b) => combined.push_str(&String::from_utf8_lossy(&b)),
+                    Err(_) => {
+                        return err_out(&format!("xmllint: {}\n", read_stream_diag(&full, fs)), 1);
+                    }
+                }
+            }
+        }
+        combined
     };
 
     let mut dom = match parse_xml_strict_dom(&text) {
@@ -15188,7 +16229,7 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 
     apply_xml_transforms(&mut dom, noblanks, nocdata, false);
 
-    if noout {
+    if noout && xpath.is_none() {
         return ok_out("");
     }
     let rendered = if let Some(xp) = xpath {
@@ -15253,8 +16294,22 @@ fn cmd_xmllint(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 fn parse_xml_strict_dom(src: &str) -> Result<Vec<HtmlNode>, String> {
     let mut pos = 0usize;
     let nodes = parse_xml_strict_children(src, &mut pos, None)?;
-    if !nodes.iter().any(|n| matches!(n, HtmlNode::Element(_))) {
-        return Err("Start tag expected, '<' not found".to_string());
+    let mut elem_count = 0usize;
+    for n in &nodes {
+        match n {
+            HtmlNode::Element(_) => elem_count += 1,
+            HtmlNode::Text(t) => {
+                if !t.chars().all(|c| matches!(c, ' ' | '\t' | '\r' | '\n')) {
+                    return Err("Invalid XML: text outside the root".to_string());
+                }
+            }
+        }
+    }
+    if elem_count == 0 {
+        return Err("Invalid XML: incomplete document".to_string());
+    }
+    if elem_count > 1 {
+        return Err("Invalid XML: multiple root elements".to_string());
     }
     Ok(nodes)
 }
@@ -15277,29 +16332,35 @@ fn parse_xml_strict_children(
             let rest = &src[*pos..];
             if rest.starts_with("<!--") {
                 let Some(end) = rest.find("-->") else {
-                    return Err("Unclosed XML comment".to_string());
+                    return Err("Invalid XML: malformed comment".to_string());
                 };
                 *pos += end + 3;
                 continue;
             }
             if let Some(after_cdata) = rest.strip_prefix("<![CDATA[") {
+                if expected_close.is_none() {
+                    return Err("Invalid XML: CDATA outside root".to_string());
+                }
                 let Some(end) = after_cdata.find("]]>") else {
-                    return Err("Unclosed CDATA section".to_string());
+                    return Err("Invalid XML: unterminated CDATA".to_string());
                 };
                 out.push(HtmlNode::Text(after_cdata[..end].to_string()));
                 *pos += 9 + end + 3;
                 continue;
             }
-            if rest.starts_with("<?") || rest.starts_with("<!") {
+            if rest.starts_with("<!") {
+                return Err("Invalid XML: DTD and entity declarations are forbidden".to_string());
+            }
+            if rest.starts_with("<?") {
                 let Some(end) = rest.find('>') else {
-                    return Err("Unclosed XML declaration".to_string());
+                    return Err("Invalid XML: unterminated processing instruction".to_string());
                 };
                 *pos += end + 1;
                 continue;
             }
             if let Some(after_slash) = rest.strip_prefix("</") {
                 let Some(end_gt) = after_slash.find('>') else {
-                    return Err("Unclosed closing tag".to_string());
+                    return Err("Invalid XML: mismatched closing tag".to_string());
                 };
                 let close_name = after_slash[..end_gt].trim();
                 *pos += 2 + end_gt + 1;
@@ -15308,18 +16369,13 @@ fn parse_xml_strict_children(
                         closed = true;
                         break;
                     }
-                    Some(exp) => {
-                        return Err(format!(
-                            "Opening and ending tag mismatch: {exp} and {close_name}"
-                        ));
-                    }
-                    None => {
-                        return Err(format!("Unexpected closing tag </{close_name}>"));
+                    Some(_) | None => {
+                        return Err("Invalid XML: mismatched closing tag".to_string());
                     }
                 }
             }
             let Some(gt) = find_tag_close_gt(rest) else {
-                return Err("Unclosed start tag".to_string());
+                return Err("Invalid XML: unterminated start tag".to_string());
             };
             let inside = &rest[1..gt];
             let self_closing = inside.trim_end().ends_with('/');
@@ -15333,7 +16389,7 @@ fn parse_xml_strict_children(
             }
             let tag_name = clean[..name_end].to_string();
             if tag_name.is_empty() {
-                return Err("Empty tag name".to_string());
+                return Err("Invalid XML: invalid qualified name".to_string());
             }
             let attrs = parse_html_attrs(clean[name_end..].trim());
             *pos += gt + 1;
@@ -15359,10 +16415,10 @@ fn parse_xml_strict_children(
             *pos = bytes.len();
         }
     }
-    if let Some(exp) = expected_close
+    if expected_close.is_some()
         && !closed
     {
-        return Err(format!("Premature end of data in tag {exp}"));
+        return Err("Invalid XML: incomplete document".to_string());
     }
     Ok(out)
 }
@@ -15712,7 +16768,7 @@ fn eval_xmllint_xpath(dom: &[HtmlNode], xp: &str) -> BuiltinOutcome {
     match val {
         XPathVal::NodeSet(items) => {
             if items.is_empty() {
-                return err_out("XPath set is empty\n", 10);
+                return err_out("xmllint: XPath set is empty\n", 11);
             }
             let mut out = Vec::new();
             for item in &items {
@@ -25418,6 +26474,355 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     ok_out(&out)
 }
 
+const HTMLQ_HELP: &str = "Like jq, but for HTML.\n\nUsage: htmlq [OPTIONS] [SELECTOR]...\n\nArguments:\n  [SELECTOR]...  CSS selectors, combined as a union in document order [default: html]\n\nOptions:\n  -f, --filename <INPUT_PATH>        Where to read HTML input from [default: -]\n  -o, --output <OUTPUT_PATH>         Where to write the filtered HTML to [default: -]\n  -b, --base <BASE>                  What URL to prepend to links without an origin, i.e. starting with a slash (/)\n  -B, --detect-base                  Look for the `<base>` tag in input for the base\n  -t, --text                         Output only the contained text of the filtered nodes, not the entire HTML\n  -w, --ignore-whitespace            Skip over text nodes whose text that is solely whitespace\n  -p, --pretty                       If to reformat the HTML to be more nicely user-readable\n  -r, --remove-nodes <REMOVE_NODES>  Do not output the nodes matching any of these selectors\n  -a, --attribute <ATTRIBUTE>        Output only the contents of the given attributes\n  -h, --help                         Print help\n  -V, --version                      Print version\n";
+
+const HTMLQ_VERSION: &str = "htmlq 0.5.0 (safe-bash virtual implementation)\n";
+
+fn validate_htmlq_selector(source: &str) -> bool {
+    struct Parser {
+        chars: Vec<char>,
+        at: usize,
+    }
+    impl Parser {
+        fn css_space(c: char) -> bool {
+            matches!(c, ' ' | '\t' | '\n' | '\r' | '\x0c')
+        }
+        fn peek(&self) -> Option<char> {
+            self.chars.get(self.at).copied()
+        }
+        fn take(&mut self) -> Option<char> {
+            let c = self.peek()?;
+            self.at += 1;
+            Some(c)
+        }
+        fn spaces(&mut self) -> bool {
+            let start = self.at;
+            while let Some(c) = self.peek() {
+                if Self::css_space(c) {
+                    self.at += 1;
+                } else {
+                    break;
+                }
+            }
+            self.at != start
+        }
+        fn escape_ws(&mut self) {
+            if let Some(c) = self.take()
+                && c == '\r'
+                && self.peek() == Some('\n')
+            {
+                self.at += 1;
+            }
+        }
+        fn identifier(&mut self) -> Option<String> {
+            let first = self.peek()?;
+            let second = self.chars.get(self.at + 1).copied();
+            let is_start = |c: char| -> bool {
+                c == '_' || c == '\0' || c == '\\' || c.is_ascii_alphabetic() || (c as u32) >= 128
+            };
+            if !is_start(first) && !(first == '-' && matches!(second, Some(s) if s == '-' || is_start(s))) {
+                return None;
+            }
+            let mut out = String::new();
+            while let Some(c) = self.peek() {
+                if c == '\\' {
+                    self.take();
+                    let mut hex = String::new();
+                    while hex.len() < 6 {
+                        if let Some(hc) = self.peek()
+                            && hc.is_ascii_hexdigit()
+                        {
+                            hex.push(hc);
+                            self.take();
+                        } else {
+                            break;
+                        }
+                    }
+                    if !hex.is_empty() {
+                        out.push('\u{fffd}');
+                        if matches!(self.peek(), Some(sc) if Self::css_space(sc)) {
+                            self.escape_ws();
+                        }
+                    } else {
+                        match self.peek() {
+                            None | Some('\n' | '\r' | '\x0c') => return None,
+                            Some(_) => {
+                                let esc = self.take()?;
+                                out.push(if esc == '\0' { '\u{fffd}' } else { esc });
+                            }
+                        }
+                    }
+                } else if c == '-'
+                    || c == '_'
+                    || c == '\0'
+                    || c.is_ascii_alphanumeric()
+                    || (c as u32) >= 128
+                {
+                    self.take();
+                    out.push(if c == '\0' { '\u{fffd}' } else { c });
+                } else {
+                    break;
+                }
+            }
+            if out.is_empty() { None } else { Some(out) }
+        }
+        fn quoted(&mut self) -> Option<String> {
+            let quote = self.take()?;
+            let mut out = String::new();
+            while let Some(c) = self.peek() {
+                if c == quote {
+                    break;
+                }
+                if c == '\\' {
+                    self.take();
+                    let mut hex = String::new();
+                    while hex.len() < 6 {
+                        if let Some(hc) = self.peek()
+                            && hc.is_ascii_hexdigit()
+                        {
+                            hex.push(hc);
+                            self.take();
+                        } else {
+                            break;
+                        }
+                    }
+                    if !hex.is_empty() {
+                        out.push('\u{fffd}');
+                        if matches!(self.peek(), Some(sc) if Self::css_space(sc)) {
+                            self.escape_ws();
+                        }
+                    } else if matches!(self.peek(), Some('\n' | '\r' | '\x0c')) {
+                        self.escape_ws();
+                    } else if let Some(esc) = self.take() {
+                        out.push(esc);
+                    } else {
+                        return None;
+                    }
+                } else {
+                    if matches!(c, '\n' | '\r' | '\x0c') {
+                        return None;
+                    }
+                    out.push(self.take()?);
+                }
+            }
+            if self.take() != Some(quote) {
+                return None;
+            }
+            Some(out)
+        }
+        fn nth(source: &str) -> bool {
+            let t = source.trim_matches(Self::css_space).to_ascii_lowercase();
+            if t == "odd" || t == "even" {
+                return true;
+            }
+            let bytes = t.as_bytes();
+            let mut at = 0usize;
+            if at < bytes.len() && (bytes[at] == b'+' || bytes[at] == b'-') {
+                at += 1;
+            }
+            let num_start = at;
+            while at < bytes.len() && bytes[at].is_ascii_digit() {
+                at += 1;
+            }
+            let has_num = at > num_start;
+            if at >= bytes.len() || bytes[at] != b'n' {
+                while at < bytes.len() && Self::css_space(bytes[at] as char) {
+                    at += 1;
+                }
+                return has_num && at == bytes.len() && t.parse::<i32>().is_ok();
+            }
+            if has_num && t[..at].parse::<i32>().is_err() {
+                return false;
+            }
+            at += 1;
+            while at < bytes.len() && Self::css_space(bytes[at] as char) {
+                at += 1;
+            }
+            if at == bytes.len() {
+                return true;
+            }
+            if bytes[at] != b'+' && bytes[at] != b'-' {
+                return false;
+            }
+            let sign = bytes[at] as char;
+            at += 1;
+            while at < bytes.len() && Self::css_space(bytes[at] as char) {
+                at += 1;
+            }
+            let off_start = at;
+            while at < bytes.len() && bytes[at].is_ascii_digit() {
+                at += 1;
+            }
+            if at == off_start {
+                return false;
+            }
+            let off_str = format!("{sign}{}", &t[off_start..at]);
+            while at < bytes.len() && Self::css_space(bytes[at] as char) {
+                at += 1;
+            }
+            at == bytes.len() && off_str.parse::<i32>().is_ok()
+        }
+        fn list(&mut self, in_not: bool) -> Option<(usize, usize, usize)> {
+            let mut group_count = 0usize;
+            let mut last_parts;
+            let mut last_tests;
+            loop {
+                self.spaces();
+                let mut parts = 0usize;
+                loop {
+                    let mut tests = 0usize;
+                    if let Some(c) = self.peek()
+                        && (c == '*' || c == '|' || !".#[:>,+~)".contains(c))
+                    {
+                        let value = if c == '*' {
+                            self.take();
+                            "*".to_string()
+                        } else if c == '|' {
+                            "*".to_string()
+                        } else {
+                            self.identifier()?
+                        };
+                        if self.peek() == Some('|') {
+                            self.take();
+                            if value != "*" {
+                                return None;
+                            }
+                            if self.peek() == Some('*') {
+                                self.take();
+                            } else {
+                                self.identifier()?;
+                            }
+                        }
+                        tests += 1;
+                    }
+                    while let Some(c) = self.peek() {
+                        if !".#[:".contains(c) {
+                            break;
+                        }
+                        self.take();
+                        if c == '.' || c == '#' {
+                            self.identifier()?;
+                            tests += 1;
+                        } else if c == '[' {
+                            self.spaces();
+                            self.identifier()?;
+                            self.spaces();
+                            if self.peek() != Some(']') {
+                                let op = self.take()?;
+                                if op != '=' {
+                                    if !"~|^$*".contains(op) || self.take() != Some('=') {
+                                        return None;
+                                    }
+                                }
+                                self.spaces();
+                                if matches!(self.peek(), Some('"' | '\'')) {
+                                    self.quoted()?;
+                                } else {
+                                    self.identifier()?;
+                                }
+                                self.spaces();
+                                if self.peek() != Some(']') {
+                                    let flag = self.identifier()?.to_ascii_lowercase();
+                                    if flag != "i" && flag != "s" {
+                                        return None;
+                                    }
+                                    self.spaces();
+                                }
+                            }
+                            if self.take() != Some(']') {
+                                return None;
+                            }
+                            tests += 1;
+                        } else {
+                            let val = self.identifier()?.to_ascii_lowercase();
+                            if val == "not" {
+                                if in_not || self.take() != Some('(') {
+                                    return None;
+                                }
+                                let (g, p, t) = self.list(true)?;
+                                if g != 1 || p != 1 || t != 1 || self.take() != Some(')') {
+                                    return None;
+                                }
+                            } else if matches!(
+                                val.as_str(),
+                                "nth-child" | "nth-last-child" | "nth-of-type" | "nth-last-of-type"
+                            ) {
+                                if self.take() != Some('(') {
+                                    return None;
+                                }
+                                let mut formula = String::new();
+                                while let Some(fc) = self.peek() {
+                                    if fc == ')' {
+                                        break;
+                                    }
+                                    formula.push(self.take()?);
+                                }
+                                if self.take() != Some(')') || !Self::nth(&formula) {
+                                    return None;
+                                }
+                            } else if !matches!(
+                                val.as_str(),
+                                "root"
+                                    | "scope"
+                                    | "empty"
+                                    | "first-child"
+                                    | "last-child"
+                                    | "only-child"
+                                    | "first-of-type"
+                                    | "last-of-type"
+                                    | "only-of-type"
+                                    | "any-link"
+                                    | "link"
+                                    | "visited"
+                                    | "active"
+                                    | "focus"
+                                    | "hover"
+                                    | "enabled"
+                                    | "disabled"
+                                    | "checked"
+                                    | "indeterminate"
+                            ) {
+                                return None;
+                            }
+                            tests += 1;
+                        }
+                    }
+                    if tests == 0 {
+                        return None;
+                    }
+                    parts += 1;
+                    last_tests = tests;
+                    let space = self.spaces();
+                    match self.peek() {
+                        None | Some(',' | ')') => break,
+                        Some('>' | '+' | '~') => {
+                            self.take();
+                            self.spaces();
+                        }
+                        Some(_) if space => {}
+                        Some(_) => return None,
+                    }
+                }
+                group_count += 1;
+                last_parts = parts;
+                if self.peek() != Some(',') {
+                    break;
+                }
+                self.take();
+            }
+            if !in_not && self.peek().is_some() {
+                return None;
+            }
+            Some((group_count, last_parts, last_tests))
+        }
+    }
+    let mut p = Parser {
+        chars: source.chars().collect(),
+        at: 0,
+    };
+    p.list(false).is_some()
+}
+
 fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut file: Option<String> = None;
     let mut out_file: Option<String> = None;
@@ -25428,93 +26833,126 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     let mut text_only = false;
     let mut ignore_ws = false;
     let mut pretty = false;
+    let mut help = false;
+    let mut version = false;
     let mut selectors: Vec<String> = Vec::new();
     let mut literal = false;
+    let mut seen: std::collections::HashSet<&'static str> = std::collections::HashSet::new();
     let mut i = 0usize;
-    while i < args.len() {
-        let a = args[i].as_str();
+    while i < args.len() && !help && !version {
+        let mut a = args[i].as_str();
         if !literal && a == "--" {
             literal = true;
             i += 1;
             continue;
         }
-        if !literal && (a == "-h" || a == "--help") {
-            return ok_out("Usage: htmlq [OPTIONS] [SELECTOR]...\n");
-        }
-        if !literal && (a == "-V" || a == "--version") {
-            return ok_out("htmlq 0.4.0\n");
-        }
-        if !literal && let Some(v) = a.strip_prefix("--filename=") {
-            file = Some(v.to_string());
-        } else if !literal && let Some(v) = a.strip_prefix("--output=") {
-            out_file = Some(v.to_string());
-        } else if !literal && let Some(v) = a.strip_prefix("--attribute=").or_else(|| a.strip_prefix("--attributes=")) {
-            attrs.push(v.to_string());
-        } else if !literal && let Some(v) = a.strip_prefix("--base=") {
-            base_url = Some(v.to_string());
-        } else if !literal && let Some(v) = a.strip_prefix("--remove-nodes=") {
-            remove_nodes.push(v.to_string());
-        } else if !literal {
-            match a {
-                "-f" | "--filename" if i + 1 < args.len() => {
-                    i += 1;
-                    file = Some(args[i].clone());
-                }
-                "-o" | "--output" if i + 1 < args.len() => {
-                    i += 1;
-                    out_file = Some(args[i].clone());
-                }
-                "-a" | "--attribute" | "--attributes" if i + 1 < args.len() => {
-                    i += 1;
-                    attrs.push(args[i].clone());
-                }
-                "-b" | "--base" if i + 1 < args.len() => {
-                    i += 1;
-                    base_url = Some(args[i].clone());
-                }
-                "-B" | "--detect-base" => {
-                    detect_base = true;
-                }
-                "-r" | "--remove-nodes" if i + 1 < args.len() => {
-                    i += 1;
-                    remove_nodes.push(args[i].clone());
-                }
-                "-t" | "--text" => {
-                    text_only = true;
-                }
-                "-i" | "-w" | "--ignore-whitespace" => {
-                    ignore_ws = true;
-                }
-                "-p" | "--pretty" => {
-                    pretty = true;
-                }
-                _ if !a.starts_with('-') => {
-                    selectors.push(a.to_string());
-                }
-                _ if a.starts_with('-') && a.len() > 2 && !a.starts_with("--") => {
-                    for ch in a[1..].chars() {
-                        match ch {
-                            't' => text_only = true,
-                            'i' | 'w' => ignore_ws = true,
-                            'B' => detect_base = true,
-                            'p' => pretty = true,
-                            _ => {}
-                        }
+        if !literal && a.starts_with('-') && a != "-" {
+            let mut attached: Option<&str> = None;
+            if a.starts_with("--")
+                && let Some(eq) = a.find('=')
+            {
+                attached = Some(&a[eq + 1..]);
+                a = &a[..eq];
+            }
+            let short = !a.starts_with("--");
+            let option_chars: Vec<char> = a.chars().collect();
+            let mut offset = if short { 1usize } else { 0usize };
+            while offset < option_chars.len() {
+                let opt_key = if short {
+                    format!("-{}", option_chars[offset])
+                } else {
+                    a.to_string()
+                };
+                let value_key: Option<&'static str> = match opt_key.as_str() {
+                    "-f" | "--filename" => Some("filename"),
+                    "-o" | "--output" => Some("output"),
+                    "-b" | "--base" => Some("base"),
+                    "-a" | "--attribute" | "--attributes" => Some("attributes"),
+                    "-r" | "--remove-nodes" => Some("removeNodes"),
+                    _ => None,
+                };
+                if let Some(vk) = value_key {
+                    if vk != "attributes" && vk != "removeNodes" && !seen.insert(vk) {
+                        return err_out("htmlq: E_ARGUMENT\n", 2);
+                    }
+                    let remainder: Option<String> = if short && offset + 1 < option_chars.len() {
+                        let start_idx = offset + if option_chars[offset + 1] == '=' { 2 } else { 1 };
+                        Some(option_chars[start_idx..].iter().collect())
+                    } else {
+                        None
+                    };
+                    let value = if let Some(att) = attached {
+                        att.to_string()
+                    } else if let Some(rem) = remainder {
+                        rem
+                    } else if i + 1 < args.len() {
+                        i += 1;
+                        args[i].clone()
+                    } else {
+                        return err_out("htmlq: E_ARGUMENT\n", 2);
+                    };
+                    match vk {
+                        "filename" => file = Some(value),
+                        "output" => out_file = Some(value),
+                        "base" => base_url = Some(value),
+                        "attributes" => attrs.push(value),
+                        "removeNodes" => remove_nodes.push(value),
+                        _ => {}
+                    }
+                    break;
+                } else {
+                    let flag_key: Option<&'static str> = match opt_key.as_str() {
+                        "-B" | "--detect-base" => Some("detectBase"),
+                        "-t" | "--text" => Some("text"),
+                        "-i" | "-w" | "--ignore-whitespace" => Some("ignoreWhitespace"),
+                        "-p" | "--pretty" => Some("pretty"),
+                        "-h" | "--help" => Some("help"),
+                        "-V" | "--version" => Some("version"),
+                        _ => None,
+                    };
+                    let Some(fk) = flag_key else {
+                        return err_out("htmlq: E_ARGUMENT\n", 2);
+                    };
+                    if attached.is_some() || !seen.insert(fk) {
+                        return err_out("htmlq: E_ARGUMENT\n", 2);
+                    }
+                    match fk {
+                        "detectBase" => detect_base = true,
+                        "text" => text_only = true,
+                        "ignoreWhitespace" => ignore_ws = true,
+                        "pretty" => pretty = true,
+                        "help" => help = true,
+                        "version" => version = true,
+                        _ => {}
                     }
                 }
-                _ => {}
+                if !short || help || version {
+                    break;
+                }
+                offset += 1;
             }
         } else {
             selectors.push(a.to_string());
         }
         i += 1;
     }
+    if help {
+        return ok_out(HTMLQ_HELP);
+    }
+    if version {
+        return ok_out(HTMLQ_VERSION);
+    }
     let html = match file.as_deref() {
         Some(f) if f != "-" => {
             let full = resolve_posix_path(cwd, f);
+            if let Ok(st) = fs.stat(&full)
+                && st.kind == crate::vfs::VfsEntryKind::Directory
+            {
+                return err_out("htmlq: E_IO\n", 1);
+            }
             match fs.read_file(&full) {
                 Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                Err(e) => return err_out(&format!("htmlq: {f}: {e}\n"), 1),
+                Err(_) => return err_out("htmlq: E_IO\n", 1),
             }
         }
         _ => stdin.to_string(),
@@ -25526,8 +26964,10 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
     if !remove_nodes.is_empty() {
         let rm_spec = remove_nodes.join(",");
-        let mut path = Vec::new();
-        remove_html_nodes(&mut nodes, &mut path, &rm_spec);
+        if validate_htmlq_selector(&rm_spec) {
+            let mut path = Vec::new();
+            remove_html_nodes(&mut nodes, &mut path, &rm_spec);
+        }
     }
 
     let sel_joined = if selectors.is_empty() {
@@ -25535,6 +26975,9 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     } else {
         selectors.join(", ")
     };
+    if !validate_htmlq_selector(&sel_joined) {
+        return err_out("htmlq: E_SELECTOR\n", 1);
+    }
     let mut matched = Vec::new();
     let mut path = Vec::new();
     collect_html_matches(&nodes, &mut path, &sel_joined, &mut matched);
@@ -25577,7 +27020,22 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         && of != "-"
     {
         let full = resolve_posix_path(cwd, &of);
-        let _ = fs.write_file(&full, out.as_bytes());
+        if let Ok(st) = fs.stat(&full)
+            && st.kind == crate::vfs::VfsEntryKind::Directory
+        {
+            return err_out("htmlq: E_UNSUPPORTED\n", 1);
+        }
+        let parent = match full.rfind('/') {
+            Some(0) | None => "/".to_string(),
+            Some(idx) => full[..idx].to_string(),
+        };
+        match fs.stat(&parent) {
+            Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {}
+            _ => return err_out("htmlq: E_IO\n", 1),
+        }
+        if fs.write_file(&full, out.as_bytes()).is_err() {
+            return err_out("htmlq: E_IO\n", 1);
+        }
         return ok_out("");
     }
     ok_out(&out)
@@ -28759,70 +30217,873 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
     }
 }
 
+const MDQ_HELP: &str = "Select and render specific elements in a Markdown document\n\nUsage: mdq [OPTIONS] [selectors] [MARKDOWN_FILE_PATHS]...\n\nArguments:\n  [selectors]\n          The selectors string\n\n  [MARKDOWN_FILE_PATHS]...\n          An optional list of Markdown files to parse, by path. If not provided, standard input will be used.\n          \n          If these are provided, mdq will act as if they were all concatenated into a single file. For example, if you use --link-pos=doc, the link definitions for all input files will be at the very end of the output.\n          \n          A path of \"-\" represents standard input.\n          \n          If these are provided, standard input will not be used unless one of the arguments is \"-\". Files will be processed in the order you provide them. If you provide the same file twice, mdq will process it twice, unless that file is \"-\"; all but the first \"-\" paths are ignored.\n\nOptions:\n      --link-pos <LINK_POS>\n          Where to put link references.\n          \n          For links and images of style `[description][1]`, this flag controls where to put the `[1]: https://example.com` definition.\n\n          Possible values:\n          - section: Show link definitions in the first section that uses the link\n          - doc:     Show link definitions at the bottom of the document\n          \n          [default: section]\n\n      --footnote-pos <FOOTNOTE_POS>\n          Where to put footnote references. Defaults to be same as --link-pos\n\n          Possible values:\n          - section: Show link definitions in the first section that uses the link\n          - doc:     Show link definitions at the bottom of the document\n\n  -l, --link-format <LINK_FORMAT>\n          Possible values:\n          - keep:         Keep links as they were in the original\n          - inline:       Turn all links into inlined form: `[link text](https://example.com)`\n          - never-inline: Never output `[inline](https://example.com)` links\n          \n          [default: never-inline]\n\n      --renumber-footnotes <RENUMBER_FOOTNOTES>\n          [default: true]\n          [possible values: true, false]\n\n  -o, --output <OUTPUT>\n          Specifies the output format. Defaults to markdown\n\n          Possible values:\n          - markdown: Output results as Markdown\n          - md:       Alias for markdown\n          - json:     Output results as JSON. Spans of inline elements (like within a single paragraph) will be rendered as a single string of Markdown, not as separate JSON elements\n          - plain:    Outputs just the plain text. This retrains the spacing between paragraphs and paragraph-like blocks (code blocks, block quotes, etc.) but removes all other formating, including inline formatting. Links are rendered as just their display text, and footnotes are removed entirely\n          \n          [default: markdown]\n\n      --wrap-width <WRAP_WIDTH>\n          The number of characters to wrap text at. This is only valid when the output format is markdown.\n          \n          Certain elements (like section headings and link definitions) will never be wrapped, and the wrapping will never break a word; it will only ever be along existing whitespace. In particular, this means the wrapping will never add hyphens, and it will never break URLs.\n\n  -q, --quiet\n          Quiet: do not print anything to stdout. The exit code will still be 0 if any elements match, and non-0 if none do\n\n      --[no]-br\n          Include breaks between elements in plain and markdown output mode.\n          \n          For plain, this will add a blank line between elements. For markdown, this will add a thematic break (\"-----\") between elements.\n          \n          This has no effect in JSON output mode.\n          \n          This defaults to true for Markdown output, and false for plain text output.\n\n  -h, --help\n          Print help (see a summary with '-h')\n\n  -V, --version\n          Print version\n";
+
+const MDQ_SHORT_HELP: &str = "Select and render specific elements in a Markdown document\n\nUsage: mdq [OPTIONS] [selectors] [MARKDOWN_FILE_PATHS]...\n\nArguments:\n  [selectors]               The selectors string\n  [MARKDOWN_FILE_PATHS]...  An optional list of Markdown files to parse, by path. If not provided, standard input will be used\n\nOptions:\n      --link-pos <LINK_POS>\n          Where to put link references [default: section] [possible values: section, doc]\n      --footnote-pos <FOOTNOTE_POS>\n          Where to put footnote references. Defaults to be same as --link-pos [possible values: section, doc]\n  -l, --link-format <LINK_FORMAT>\n          [default: never-inline] [possible values: keep, inline, never-inline]\n      --renumber-footnotes <RENUMBER_FOOTNOTES>\n          [default: true] [possible values: true, false]\n  -o, --output <OUTPUT>\n          Specifies the output format. Defaults to markdown [default: markdown] [possible values: markdown, md, json, plain]\n      --wrap-width <WRAP_WIDTH>\n          The number of characters to wrap text at. This is only valid when the output format is markdown\n  -q, --quiet\n          Quiet: do not print anything to stdout. The exit code will still be 0 if any elements match, and non-0 if none do\n      --[no]-br\n          Include breaks between elements in plain and markdown output mode\n  -h, --help\n          Print help (see more with '--help')\n  -V, --version\n          Print version\n";
+
+const MDQ_VERSION: &str = "mdq 0.10.0\n";
+const MDQ_USAGE: &str = "Usage: mdq [OPTIONS] [selectors] [MARKDOWN_FILE_PATHS]...";
+
+fn mdq_argument_error(message: &str, status: i32, usage_line: Option<&str>) -> BuiltinOutcome {
+    let usage_block = match usage_line {
+        Some("") => String::new(),
+        Some(u) => format!("{u}\n\n"),
+        None => format!("{MDQ_USAGE}\n\n"),
+    };
+    err_out(
+        &format!("error: {message}\n\n{usage_block}For more information, try '--help'.\n"),
+        status,
+    )
+}
+
+fn mdq_suggestion<'a>(value: &str, choices: &[&'a str]) -> Option<&'a str> {
+    let v_chars: Vec<char> = value.chars().collect();
+    if v_chars.is_empty() {
+        return None;
+    }
+    let mut best: Option<&'a str> = None;
+    let mut score = 0.7f64;
+    for &candidate in choices {
+        let c_chars: Vec<char> = candidate.chars().collect();
+        if c_chars.is_empty()
+            || v_chars.len() > c_chars.len() * 10
+            || c_chars.len() > v_chars.len() * 10
+        {
+            continue;
+        }
+        let max_len = v_chars.len().max(c_chars.len());
+        let range = (max_len / 2).saturating_sub(1);
+        let mut left: Vec<usize> = Vec::new();
+        let mut right_used = vec![false; c_chars.len()];
+        let mut right: Vec<usize> = Vec::new();
+        for (i, &vc) in v_chars.iter().enumerate() {
+            let j_start = i.saturating_sub(range);
+            let j_end = (i + range + 1).min(c_chars.len());
+            for j in j_start..j_end {
+                if !right_used[j] && vc == c_chars[j] {
+                    left.push(i);
+                    right_used[j] = true;
+                    right.push(j);
+                    break;
+                }
+            }
+        }
+        if left.is_empty() {
+            continue;
+        }
+        left.sort_unstable();
+        right.sort_unstable();
+        let swaps = left
+            .iter()
+            .zip(right.iter())
+            .filter(|&(&li, &ri)| v_chars[li] != c_chars[ri])
+            .count() as f64
+            / 2.0;
+        let m = left.len() as f64;
+        let similarity =
+            (m / v_chars.len() as f64 + m / c_chars.len() as f64 + (m - swaps) / m) / 3.0;
+        if similarity > score {
+            score = similarity;
+            best = Some(candidate);
+        }
+    }
+    best
+}
+
+fn mdq_query_error(query: &str, at: usize, message: &str, end: Option<usize>) -> BuiltinOutcome {
+    let chars: Vec<char> = query.chars().collect();
+    let safe_at = at.min(chars.len());
+    let prefix: String = chars[..safe_at].iter().collect();
+    let row = prefix.split('\n').count();
+    let begin_char = prefix
+        .rfind('\n')
+        .map(|byte_idx| prefix[..byte_idx].chars().count() + 1)
+        .unwrap_or(0);
+    let column = safe_at.saturating_sub(begin_char);
+    let line_end_char = chars[begin_char..]
+        .iter()
+        .position(|&c| c == '\n')
+        .map(|p| begin_char + p)
+        .unwrap_or(chars.len());
+    let line: String = chars[begin_char..line_end_char].iter().collect();
+    let row_str = row.to_string();
+    let gutter = " ".repeat(row_str.len() + 1);
+    let caret = match end {
+        None => "^---".to_string(),
+        Some(e) => {
+            let w = e.saturating_sub(at);
+            if w <= 1 {
+                "^".to_string()
+            } else {
+                format!("^{}^", "-".repeat(w - 2))
+            }
+        }
+    };
+    err_out(
+        &format!(
+            "Syntax error in select specifier:\n{}--> {}:{}\n{}|\n{} | {}\n{}| {}{}\n{}|\n{}= {}\n",
+            " ".repeat(row_str.len()),
+            row,
+            column + 1,
+            gutter,
+            row,
+            line,
+            gutter,
+            " ".repeat(column),
+            caret,
+            gutter,
+            gutter,
+            message
+        ),
+        1,
+    )
+}
+
+fn validate_mdq_query(query: &str) -> Result<(), BuiltinOutcome> {
+    let chars: Vec<char> = query.chars().collect();
+    let mut at = 0usize;
+    let skip = |at: &mut usize| {
+        while *at < chars.len() && matches!(chars[*at], ' ' | '\n' | '\t' | '\r') {
+            *at += 1;
+        }
+    };
+    let parse_string = |at: &mut usize, delimiter: char| -> Result<(bool, String), BuiltinOutcome> {
+        if delimiter != ' ' {
+            skip(at);
+        }
+        let mut omitted = true;
+        let mut start_anchor = false;
+        let mut text = String::new();
+        if chars.get(*at) == Some(&'*') {
+            *at += 1;
+            return Ok((false, String::new()));
+        }
+        if chars.get(*at) == Some(&'/') || chars[*at..].starts_with(&['!', 's', '/']) {
+            let replacement = chars[*at] == '!';
+            *at += if replacement { 3 } else { 1 };
+            let begin = *at;
+            let mut source = String::new();
+            let mut found_slash = false;
+            while *at < chars.len() {
+                if chars[*at] == '/' {
+                    *at += 1;
+                    found_slash = true;
+                    break;
+                }
+                if chars[*at] == '\\' && chars.get(*at + 1) == Some(&'/') {
+                    source.push('/');
+                    *at += 2;
+                } else {
+                    source.push(chars[*at]);
+                    *at += 1;
+                }
+            }
+            if !found_slash {
+                return Err(mdq_query_error(query, *at + 1, "expected regex character", None));
+            }
+            if (source.contains("\\P{") || source.contains("\\p{")) && !source.contains('}') {
+                return Err(mdq_query_error(
+                    query,
+                    begin,
+                    "regex parse error: Unicode escape not closed",
+                    Some(begin + 1),
+                ));
+            }
+            if matches!(source.chars().next(), Some('*' | '+' | '?')) {
+                let span = if replacement { begin - 3 } else { begin - 1 };
+                return Err(mdq_query_error(
+                    query,
+                    span + 1,
+                    "regex parse error: Target of repeat operator is invalid",
+                    Some(span + 2),
+                ));
+            }
+            if replacement {
+                let mut found_end = false;
+                while *at < chars.len() {
+                    if chars[*at] == '/' {
+                        *at += 1;
+                        found_end = true;
+                        break;
+                    }
+                    if chars[*at] == '\\' && chars.get(*at + 1) == Some(&'/') {
+                        *at += 2;
+                    } else {
+                        *at += 1;
+                    }
+                }
+                if !found_end {
+                    return Err(mdq_query_error(query, *at + 1, "expected regex character", None));
+                }
+            }
+            return Ok((false, String::new()));
+        }
+        if chars.get(*at) == Some(&'^') {
+            start_anchor = true;
+            *at += 1;
+            skip(at);
+        }
+        if let Some(&quote @ ('\'' | '"')) = chars.get(*at) {
+            *at += 1;
+            while *at < chars.len() && chars[*at] != quote {
+                if chars[*at] != '\\' {
+                    text.push(chars[*at]);
+                    *at += 1;
+                    continue;
+                }
+                *at += 1;
+                let escape_at = *at;
+                let Some(&ch) = chars.get(*at) else {
+                    return Err(mdq_query_error(
+                        query,
+                        escape_at,
+                        "expected \", ', `, \\, n, r, or t",
+                        None,
+                    ));
+                };
+                *at += 1;
+                if ch == 'u' && chars.get(*at) == Some(&'{') {
+                    *at += 1;
+                    let begin = *at;
+                    while let Some(&hc) = chars.get(*at)
+                        && hc.is_ascii_hexdigit()
+                    {
+                        *at += 1;
+                    }
+                    let raw: String = chars[begin..*at].iter().collect();
+                    if raw.is_empty() {
+                        return Err(mdq_query_error(
+                            query,
+                            begin,
+                            "expected 1 - 6 hex characters",
+                            None,
+                        ));
+                    }
+                    if raw.len() > 6 || chars.get(*at) != Some(&'}') {
+                        return Err(mdq_query_error(
+                            query,
+                            escape_at,
+                            "expected \", ', `, \\, n, r, or t",
+                            None,
+                        ));
+                    }
+                    let code = u32::from_str_radix(&raw, 16).unwrap_or(0x110000);
+                    if code > 0x10ffff || (0xd800..=0xdfff).contains(&code) {
+                        return Err(mdq_query_error(
+                            query,
+                            begin,
+                            &format!("invalid unicode sequence: {raw}"),
+                            Some(*at),
+                        ));
+                    }
+                    text.push(char::from_u32(code).unwrap_or('\u{fffd}'));
+                    *at += 1;
+                } else if matches!(ch, 'n' | 'r' | 't' | '\\' | '\'' | '"' | '`') {
+                    text.push(ch);
+                } else {
+                    return Err(mdq_query_error(
+                        query,
+                        escape_at,
+                        "expected \", ', `, \\, n, r, or t",
+                        None,
+                    ));
+                }
+            }
+            if chars.get(*at) != Some(&quote) {
+                return Err(mdq_query_error(
+                    query,
+                    *at + 1,
+                    "expected character in quoted string",
+                    None,
+                ));
+            }
+            *at += 1;
+            omitted = false;
+        } else if let Some(&c) = chars.get(*at)
+            && c.is_alphabetic()
+        {
+            let begin = *at;
+            while *at < chars.len() && chars[*at] != delimiter && chars[*at] != '$' {
+                *at += 1;
+            }
+            text = chars[begin..*at]
+                .iter()
+                .collect::<String>()
+                .trim_end()
+                .to_string();
+            omitted = false;
+        }
+        if delimiter != ' ' {
+            skip(at);
+        }
+        if chars.get(*at) == Some(&'$') {
+            if !start_anchor && omitted {
+                return Err(mdq_query_error(
+                    query,
+                    *at,
+                    "expected end of input, \"*\", unquoted string, regex, quoted string, or \"^\"",
+                    None,
+                ));
+            }
+            *at += 1;
+        }
+        if omitted
+            && let Some(&c) = chars.get(*at)
+            && c != delimiter
+            && !matches!(c, ' ' | '\t' | '\n' | '\r')
+        {
+            return Err(mdq_query_error(
+                query,
+                *at,
+                "expected end of input, \"*\", unquoted string, regex, quoted string, or \"^\"",
+                None,
+            ));
+        }
+        Ok((omitted, text))
+    };
+
+    let mut count = 0usize;
+    while at < chars.len() {
+        skip(&mut at);
+        while chars.get(at) == Some(&'|') {
+            at += 1;
+            skip(&mut at);
+        }
+        if at >= chars.len() {
+            break;
+        }
+        let begin = at;
+        let invalid_msg = if count > 0 {
+            "expected end of input or selector"
+        } else {
+            "expected valid query"
+        };
+        let require_space = |at: &mut usize, section: bool| -> Result<(), BuiltinOutcome> {
+            if *at < chars.len() && chars[*at] != ' ' {
+                return Err(mdq_query_error(
+                    query,
+                    *at,
+                    if section {
+                        "expected end of input, space, or section options"
+                    } else {
+                        "expected end of input or space"
+                    },
+                    None,
+                ));
+            }
+            skip(at);
+            Ok(())
+        };
+        let kind: &str;
+        if chars[at] == '#' {
+            at += 1;
+            kind = "section";
+            if chars.get(at) == Some(&'{') {
+                at += 1;
+                let Some(rel_close) = chars[at..].iter().position(|&c| c == '}') else {
+                    return Err(mdq_query_error(query, begin, invalid_msg, None));
+                };
+                let close = at + rel_close;
+                let inner: String = chars[at..close].iter().collect();
+                let values: Vec<&str> = inner.split(',').collect();
+                if values.len() > 2
+                    || values.iter().any(|v| {
+                        v.chars().any(|c| !c.is_ascii_digit())
+                            || (!v.is_empty() && v.parse::<u16>().map_or(true, |n| n > 255))
+                    })
+                {
+                    return Err(mdq_query_error(query, begin, invalid_msg, None));
+                }
+                at = close + 1;
+            }
+            require_space(&mut at, true)?;
+            parse_string(&mut at, '|')?;
+        } else if chars[at..].starts_with(&['!', '[']) || chars[at] == '[' {
+            let image = chars[at] == '!';
+            at += if image { 2 } else { 1 };
+            kind = if image { "image" } else { "link" };
+            parse_string(&mut at, ']')?;
+            skip(&mut at);
+            if !chars[at..].starts_with(&[']', '(']) {
+                return Err(mdq_query_error(query, at, "expected \"$\"", None));
+            }
+            at += 2;
+            parse_string(&mut at, ')')?;
+            skip(&mut at);
+            if chars.get(at) != Some(&')') {
+                return Err(mdq_query_error(query, at, "expected \"$\"", None));
+            }
+            at += 1;
+        } else if chars[at..].starts_with(&[':', '-', ':']) {
+            at += 3;
+            kind = "table";
+            require_space(&mut at, false)?;
+            let col_at = at;
+            let (omitted, _) = parse_string(&mut at, ':')?;
+            skip(&mut at);
+            if !chars[at..].starts_with(&[':', '-', ':']) {
+                return Err(mdq_query_error(query, begin, invalid_msg, None));
+            }
+            if omitted {
+                return Err(mdq_query_error(
+                    query,
+                    col_at,
+                    "table column matcher cannot empty; use an explicit \"*\"",
+                    Some(col_at + 1),
+                ));
+            }
+            at += 3;
+            parse_string(&mut at, '|')?;
+        } else if chars[at..].starts_with(&['`', '`', '`'])
+            || chars[at..].starts_with(&['+', '+', '+'])
+        {
+            let front = chars[at] == '+';
+            at += 3;
+            kind = if front { "frontmatter" } else { "code" };
+            let lang_at = at;
+            let (lang_omitted, lang_text) = parse_string(&mut at, ' ')?;
+            require_space(&mut at, false)?;
+            parse_string(&mut at, '|')?;
+            if front && !lang_omitted && lang_text != "yaml" && lang_text != "toml" {
+                let quoted = JVal::Str(lang_text).to_json_string(true, false, 0);
+                return Err(mdq_query_error(
+                    query,
+                    lang_at,
+                    &format!("front matter language must be \"toml\" or \"yaml\". Found {quoted}."),
+                    Some(at),
+                ));
+            }
+        } else {
+            let rest: String = chars[at..].iter().collect();
+            let starts = [
+                ("1.", "item"),
+                ("-", "item"),
+                (">", "quote"),
+                ("P:", "paragraph"),
+                ("</>", "html"),
+            ];
+            let Some(&(prefix_str, k)) = starts.iter().find(|&&(p, _)| rest.starts_with(p)) else {
+                return Err(mdq_query_error(query, begin, invalid_msg, None));
+            };
+            kind = k;
+            at += prefix_str.chars().count();
+            require_space(&mut at, false)?;
+            if kind == "item" && chars.get(at) == Some(&'[') {
+                let ch = chars.get(at + 1).copied().unwrap_or('\0');
+                if chars.get(at + 2) != Some(&']') || !matches!(ch, ' ' | 'x' | '?') {
+                    return Err(mdq_query_error(
+                        query,
+                        at + 1,
+                        "expected \"[x]\", \"[x]\", or \"[?]\"",
+                        None,
+                    ));
+                }
+                at += 3;
+            }
+            parse_string(&mut at, '|')?;
+        }
+        skip(&mut at);
+        if at < chars.len() && chars[at] != '|' {
+            if kind == "code" {
+                return Err(mdq_query_error(query, at, "expected end of input", None));
+            }
+            return Err(mdq_query_error(query, begin, invalid_msg, None));
+        }
+        count += 1;
+    }
+    Ok(())
+}
+
 fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut output_fmt = "markdown".to_string();
     let mut link_format = "never-inline".to_string();
     let mut quiet = false;
     let mut breaks_opt: Option<bool> = None;
-    let mut positionals = Vec::new();
-    let mut end_opts = false;
+    let mut wrap_width: Option<u64> = None;
+    let mut selector_str = String::new();
+    let mut has_selector = false;
+    let mut list_selector = false;
+    let mut files: Vec<String> = Vec::new();
+    let mut positional = false;
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+    const VALUE_FLAGS: &[(&str, Option<&[&str]>)] = &[
+        ("link-pos", Some(&["section", "doc"])),
+        ("footnote-pos", Some(&["section", "doc"])),
+        ("link-format", Some(&["keep", "inline", "never-inline"])),
+        ("renumber-footnotes", Some(&["true", "false"])),
+        ("output", Some(&["markdown", "md", "json", "plain"])),
+        ("wrap-width", None),
+    ];
+    const BOOLEANS: &[&str] = &[
+        "quiet",
+        "br",
+        "no-br",
+        "allow-unknown-markdown",
+        "[no]-br",
+        "help",
+        "version",
+    ];
+    let flag_spec = |f: &str| -> Option<Option<&'static [&'static str]>> {
+        VALUE_FLAGS.iter().find(|&&(k, _)| k == f).map(|&(_, v)| v)
+    };
+    let display = |flag: &str| -> String {
+        if flag == "list-selector" {
+            "-  <selectors starting with list>".to_string()
+        } else if flag_spec(flag).is_some() {
+            format!("--{flag} <{}>", flag.to_ascii_uppercase().replace('-', "_"))
+        } else {
+            format!("--{flag}")
+        }
+    };
+    let unknown = |arg: &str, seen_set: &std::collections::HashSet<String>, sel: bool| -> BuiltinOutcome {
+        let mut all_choices: Vec<&str> = VALUE_FLAGS.iter().map(|&(k, _)| k).collect();
+        all_choices.extend_from_slice(BOOLEANS);
+        let similar = arg
+            .strip_prefix("--")
+            .and_then(|s| mdq_suggestion(s, &all_choices));
+        let tip = match similar {
+            Some(sim) => format!("a similar argument exists: '--{sim}'"),
+            None => format!("to pass '{arg}' as a value, use '-- {arg}'"),
+        };
+        let mut used: Vec<&str> = VALUE_FLAGS
+            .iter()
+            .map(|&(k, _)| k)
+            .chain(std::iter::once("quiet"))
+            .filter(|&f| seen_set.contains(f))
+            .collect();
+        if let Some(sim) = similar
+            && !used.contains(&sim)
+        {
+            used.push(sim);
+        }
+        let prefix = if !used.is_empty() {
+            format!(
+                "{} ",
+                used.iter()
+                    .map(|&f| display(f))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            )
+        } else if sel {
+            String::new()
+        } else {
+            "[OPTIONS] ".to_string()
+        };
+        let usage_line = format!(
+            "Usage: mdq {prefix}{} [MARKDOWN_FILE_PATHS]...",
+            if sel { "<selectors>" } else { "[selectors]" }
+        );
+        mdq_argument_error(
+            &format!("unexpected argument '{arg}' found\n\n  tip: {tip}"),
+            2,
+            Some(&usage_line),
+        )
+    };
+    let known_option = |arg: &str| -> bool {
+        if let Some(rest) = arg.strip_prefix("--") {
+            let name = rest.split('=').next().unwrap_or("");
+            BOOLEANS.contains(&name) || flag_spec(name).is_some()
+        } else {
+            matches!(
+                arg.chars().nth(1),
+                Some('o' | 'l' | 'q' | 'h' | 'V' | ' ')
+            )
+        }
+    };
+    let missing = |flag: &str| -> BuiltinOutcome {
+        let vals_suffix = match flag_spec(flag).flatten() {
+            Some(vals) => format!("\n  [possible values: {}]", vals.join(", ")),
+            None => String::new(),
+        };
+        mdq_argument_error(
+            &format!(
+                "a value is required for '{}' but none was supplied{vals_suffix}",
+                display(flag)
+            ),
+            2,
+            Some(""),
+        )
+    };
     let mut i = 0usize;
     while i < args.len() {
         let a = args[i].as_str();
-        if !end_opts && a == "--" {
-            end_opts = true;
+        if !positional && a == "--" {
+            positional = true;
             i += 1;
             continue;
         }
-        if !end_opts && (a == "-h" || a == "--help") {
-            return ok_out("Usage: mdq [OPTIONS] [selectors] [MARKDOWN_FILE_PATHS]...\n");
+        if !positional && a.starts_with('-') && a != "-" {
+            let long = a.starts_with("--");
+            let eq_idx = a.find('=');
+            let chars: Vec<char> = a.chars().collect();
+            let mut offset = 1usize;
+            while offset < chars.len() {
+                let flag_opt: Option<&str> = if long {
+                    Some(match eq_idx {
+                        Some(eq) => &a[2..eq],
+                        None => &a[2..],
+                    })
+                } else {
+                    match chars[offset] {
+                        'o' => Some("output"),
+                        'l' => Some("link-format"),
+                        'q' => Some("quiet"),
+                        'h' => Some("help"),
+                        'V' => Some("version"),
+                        ' ' => Some("list-selector"),
+                        _ => None,
+                    }
+                };
+                let is_valid = flag_opt.is_some_and(|f| {
+                    flag_spec(f).is_some() || BOOLEANS.contains(&f) || f == "list-selector"
+                });
+                if !is_valid {
+                    let bad = if long {
+                        match eq_idx {
+                            Some(eq) => a[..eq].to_string(),
+                            None => a.to_string(),
+                        }
+                    } else {
+                        format!("-{}", chars[offset])
+                    };
+                    return unknown(&bad, &seen, has_selector);
+                }
+                let flag = flag_opt.unwrap();
+                let spec = flag_spec(flag);
+                let tail: Option<String> = if long {
+                    None
+                } else {
+                    Some(chars[offset + 1..].iter().collect())
+                };
+                let attached: Option<String> = if long {
+                    eq_idx.map(|eq| a[eq + 1..].to_string())
+                } else if spec.is_some() || flag == "list-selector" {
+                    tail.and_then(|t| {
+                        if t.is_empty() {
+                            None
+                        } else if let Some(stripped) = t.strip_prefix('=') {
+                            Some(stripped.to_string())
+                        } else {
+                            Some(t)
+                        }
+                    })
+                } else {
+                    None
+                };
+                if spec.is_none() && flag != "list-selector" {
+                    if let Some(att) = attached {
+                        let mut usage_line =
+                            format!("Usage: mdq --{flag} [selectors] [MARKDOWN_FILE_PATHS]...");
+                        if BOOLEANS.iter().any(|&b| seen.contains(b)) {
+                            let mut group: Vec<String> = VALUE_FLAGS
+                                .iter()
+                                .map(|&(k, _)| k)
+                                .chain([
+                                    "quiet",
+                                    "allow-unknown-markdown",
+                                    "[no]-br",
+                                    "br",
+                                    "no-br",
+                                    "list-selector",
+                                ])
+                                .map(display)
+                                .collect();
+                            group.push("selectors".to_string());
+                            group.push("MARKDOWN_FILE_PATHS".to_string());
+                            let hv = if flag == "help" || flag == "version" {
+                                format!("--{flag} ")
+                            } else {
+                                String::new()
+                            };
+                            usage_line = format!("Usage: mdq {hv}<{}>", group.join("|"));
+                        }
+                        return mdq_argument_error(
+                            &format!(
+                                "unexpected value '{att}' for '--{flag}' found; no more were expected"
+                            ),
+                            2,
+                            Some(&usage_line),
+                        );
+                    }
+                    if flag == "help" {
+                        return ok_out(if long { MDQ_HELP } else { MDQ_SHORT_HELP });
+                    }
+                    if flag == "version" {
+                        return ok_out(MDQ_VERSION);
+                    }
+                    if seen.contains(flag) {
+                        return mdq_argument_error(
+                            &format!("the argument '{}' cannot be used multiple times", display(flag)),
+                            2,
+                            None,
+                        );
+                    }
+                    if (flag == "br" && seen.contains("no-br"))
+                        || (flag == "no-br" && seen.contains("br"))
+                    {
+                        let other = if flag == "br" { "no-br" } else { "br" };
+                        return mdq_argument_error(
+                            &format!("the argument '--{other}' cannot be used with '--{flag}'"),
+                            2,
+                            None,
+                        );
+                    }
+                    seen.insert(flag.to_string());
+                    if flag == "quiet" {
+                        quiet = true;
+                    } else if flag == "br" || flag == "no-br" {
+                        breaks_opt = Some(flag == "br");
+                    }
+                    if long {
+                        break;
+                    }
+                    offset += 1;
+                    continue;
+                }
+                let value = if let Some(att) = attached {
+                    att
+                } else {
+                    let Some(next) = args.get(i + 1) else {
+                        return missing(flag);
+                    };
+                    if next == "--" {
+                        return missing(flag);
+                    }
+                    if next.starts_with('-') && next != "-" {
+                        if known_option(next) {
+                            return missing(flag);
+                        }
+                        let bad = if next.starts_with("--") {
+                            next.split('=').next().unwrap_or(next).to_string()
+                        } else {
+                            next.chars().take(2).collect()
+                        };
+                        return unknown(&bad, &seen, has_selector);
+                    }
+                    i += 1;
+                    next.clone()
+                };
+                if seen.contains(flag) {
+                    return mdq_argument_error(
+                        &format!("the argument '{}' cannot be used multiple times", display(flag)),
+                        2,
+                        None,
+                    );
+                }
+                seen.insert(flag.to_string());
+                if flag == "list-selector" {
+                    if has_selector {
+                        return mdq_argument_error(
+                            "the argument '[selectors]' cannot be used with '-  <selectors starting with list>'",
+                            2,
+                            None,
+                        );
+                    }
+                    list_selector = true;
+                    selector_str = format!("- {value}");
+                    break;
+                }
+                if let Some(Some(possible)) = spec
+                    && !possible.contains(&value.as_str())
+                {
+                    let sim_tip = mdq_suggestion(&value, possible)
+                        .map(|s| format!("\n\n  tip: a similar value exists: '{s}'"))
+                        .unwrap_or_default();
+                    return mdq_argument_error(
+                        &format!(
+                            "invalid value '{value}' for '{}'\n  [possible values: {}]{sim_tip}",
+                            display(flag),
+                            possible.join(", ")
+                        ),
+                        2,
+                        Some(""),
+                    );
+                }
+                if flag == "wrap-width" {
+                    let digits = value.strip_prefix('+').unwrap_or(&value);
+                    let err_msg = if value.is_empty() {
+                        Some("cannot parse integer from empty string")
+                    } else if digits.is_empty() || digits.chars().any(|c| !c.is_ascii_digit()) {
+                        Some("invalid digit found in string")
+                    } else if digits.parse::<u64>().is_err() {
+                        Some("number too large to fit in target type")
+                    } else {
+                        None
+                    };
+                    if let Some(em) = err_msg {
+                        return mdq_argument_error(
+                            &format!("invalid value '{value}' for '{}': {em}", display(flag)),
+                            2,
+                            Some(""),
+                        );
+                    }
+                    wrap_width = digits.parse::<u64>().ok();
+                } else if flag == "output" {
+                    output_fmt = value;
+                } else if flag == "link-format" {
+                    link_format = value;
+                }
+                break;
+            }
+            i += 1;
+            continue;
         }
-        if !end_opts && (a == "-V" || a == "--version") {
-            return ok_out("mdq 0.8.0\n");
-        }
-        if !end_opts && (a == "-q" || a == "--quiet") {
-            quiet = true;
-        } else if !end_opts && a == "--br" {
-            breaks_opt = Some(true);
-        } else if !end_opts && a == "--no-br" {
-            breaks_opt = Some(false);
-        } else if !end_opts && (a == "-o" || a == "--output") && i + 1 < args.len() {
-            i += 1;
-            output_fmt = args[i].clone();
-        } else if !end_opts && let Some(rest) = a.strip_prefix("--output=") {
-            output_fmt = rest.to_string();
-        } else if !end_opts && (a == "-l" || a == "--link-format") && i + 1 < args.len() {
-            i += 1;
-            link_format = args[i].clone();
-        } else if !end_opts && let Some(rest) = a.strip_prefix("--link-format=") {
-            link_format = rest.to_string();
-        } else if !end_opts && matches!(a, "--link-pos" | "--footnote-pos" | "--wrap-width" | "--renumber-footnotes") && i + 1 < args.len() {
-            i += 1;
+        if !has_selector {
+            if list_selector {
+                return mdq_argument_error(
+                    "the argument '-  <selectors starting with list>' cannot be used with '[selectors]'",
+                    2,
+                    None,
+                );
+            }
+            selector_str = a.to_string();
+            has_selector = true;
         } else {
-            positionals.push(a.to_string());
+            files.push(a.to_string());
         }
         i += 1;
     }
-    let selector_str = positionals.first().cloned().unwrap_or_default();
-    let files = if positionals.len() > 1 { &positionals[1..] } else { &[][..] };
+    if output_fmt == "json" && wrap_width.is_some() {
+        return mdq_argument_error("Can't set text width with JSON output format", 1, None);
+    }
+    if seen.contains("[no]-br") {
+        return mdq_argument_error("invalid argument '--[no]-br'; use '--br' or '--no-br'.", 1, None);
+    }
     let mut md_input = String::new();
     if files.is_empty() {
         md_input.push_str(stdin);
     } else {
-        for (idx, f) in files.iter().enumerate() {
-            if idx > 0 && !md_input.ends_with('\n') {
-                md_input.push('\n');
-            }
+        let mut used_stdin = false;
+        for f in &files {
             if f == "-" {
-                md_input.push_str(stdin);
+                if !used_stdin {
+                    used_stdin = true;
+                    md_input.push_str(stdin);
+                }
+                md_input.push('\n');
             } else {
                 let full = resolve_posix_path(cwd, f);
+                if let Ok(st) = fs.stat(&full)
+                    && st.kind == crate::vfs::VfsEntryKind::Directory
+                {
+                    let qf = JVal::Str(f.clone()).to_json_string(true, false, 0);
+                    return err_out(&format!("is a directory while reading file {qf}\n"), 1);
+                }
                 match fs.read_file(&full) {
-                    Ok(b) => md_input.push_str(&String::from_utf8_lossy(&b)),
-                    Err(e) => return err_out(&format!("{f}: {e}\n"), 1),
+                    Ok(b) => {
+                        md_input.push_str(&String::from_utf8_lossy(&b));
+                        md_input.push('\n');
+                    }
+                    Err(_) => {
+                        let qf = JVal::Str(f.clone()).to_json_string(true, false, 0);
+                        return err_out(&format!("entity not found while reading file {qf}\n"), 1);
+                    }
                 }
             }
         }
+    }
+    if let Err(err_outcome) = validate_mdq_query(&selector_str) {
+        return err_outcome;
     }
     let mut current = parse_mdq_markdown(&md_input);
     for stage in split_mdq_stages(&selector_str) {
@@ -34987,5 +37248,59 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         .unwrap();
         assert_eq!(zero_threads.exit_code, 1);
         assert_eq!(zero_threads.stderr, "xan count: --threads must be positive\n");
+    }
+
+    #[test]
+    fn test_structured_jq_xq_yq_xmllint_htmlq_mdq_diagnostics() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/sub").unwrap();
+        let env = BTreeMap::new();
+
+        let jq_bad = try_run_structured_command("jq", &args(&["--bogus"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(jq_bad.exit_code, 2);
+        assert_eq!(jq_bad.stderr, "jq: unsupported option --bogus\n");
+
+        let jq_e_empty = try_run_structured_command("jq", &args(&["-e", "empty"]), "{}", "/work", &env, &vfs).unwrap();
+        assert_eq!(jq_e_empty.exit_code, 4);
+
+        let xq_ver = try_run_structured_command("xq", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(xq_ver.exit_code, 0);
+        assert_eq!(xq_ver.stdout, "jq-1.7.1\n");
+
+        let xq_bad_xml = try_run_structured_command("xq", &args(&["."]), "<a></b>", "/work", &env, &vfs).unwrap();
+        assert_eq!(xq_bad_xml.exit_code, 1);
+        assert!(xq_bad_xml.stderr.starts_with("jq: Invalid XML:"));
+
+        let yq_bad = try_run_structured_command("yq", &args(&["--bogus"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(yq_bad.exit_code, 1);
+        assert!(yq_bad.stderr.contains("Error: unknown flag: --bogus"));
+
+        let xml_empty_xp = try_run_structured_command("xmllint", &args(&["--xpath", "", "-"]), "<r/>", "/work", &env, &vfs).unwrap();
+        assert_eq!(xml_empty_xp.exit_code, 10);
+        assert_eq!(xml_empty_xp.stderr, "xmllint: unsupported XPath syntax at offset 0\n");
+
+        let htmlq_ver = try_run_structured_command("htmlq", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(htmlq_ver.exit_code, 0);
+        assert_eq!(htmlq_ver.stdout, "htmlq 0.5.0 (safe-bash virtual implementation)\n");
+
+        let htmlq_bad = try_run_structured_command("htmlq", &args(&["--bogus"]), "<p/>", "/work", &env, &vfs).unwrap();
+        assert_eq!(htmlq_bad.exit_code, 2);
+        assert_eq!(htmlq_bad.stderr, "htmlq: E_ARGUMENT\n");
+
+        let htmlq_sel = try_run_structured_command("htmlq", &args(&["["]), "<p/>", "/work", &env, &vfs).unwrap();
+        assert_eq!(htmlq_sel.exit_code, 1);
+        assert_eq!(htmlq_sel.stderr, "htmlq: E_SELECTOR\n");
+
+        let mdq_ver = try_run_structured_command("mdq", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mdq_ver.exit_code, 0);
+        assert_eq!(mdq_ver.stdout, "mdq 0.10.0\n");
+
+        let mdq_bad = try_run_structured_command("mdq", &args(&["--output", "yaml"]), "# hi\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(mdq_bad.exit_code, 2);
+        assert!(mdq_bad.stderr.contains("invalid value 'yaml' for '--output <OUTPUT>'"));
+
+        let mdq_dir = try_run_structured_command("mdq", &args(&["#", "/work/sub"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(mdq_dir.exit_code, 1);
+        assert_eq!(mdq_dir.stderr, "is a directory while reading file \"/work/sub\"\n");
     }
 }

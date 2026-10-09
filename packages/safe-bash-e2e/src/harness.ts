@@ -371,6 +371,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-ls-mkdir-rmdir-rm-cp-mv-ln-chmod-touch-stat-readlink-realpath-du-df-mktemp-tree-parity-matrix.test.ts",
   "obscure-search-which-grep-rg-find-fd-xargs-diagnostics-config-parity-matrix.test.ts",
   "obscure-text-sed-awk-diff-patch-cmp-diff3-diagnostics-parity-matrix.test.ts",
+  "obscure-structured-jq-yq-xq-xan-xmllint-htmlq-mdq-diagnostics-parity-matrix.test.ts",
   "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
   "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
   "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",

@@ -4294,3 +4294,23 @@ it("decodes retained images and encodes WebP/raw in Workerd using bounded extern
     await runtime.dispose();
   }
 }, 60000);
+
+
+it("decodes a large baseline JPEG with bounded cooperative scheduling overhead", async () => {
+  const input = jpegInputFixture({ kind: "synthetic", width: 513, height: 513, components: 3, sampling: 2 });
+  const env = harness(input);
+  const checkpoint = vi.spyOn(defaultRuntime, "yieldTurn").mockImplementation(async (signal) => signal.throwIfAborted());
+  try {
+    expect(await env.decode()).toEqual(decodeJpegImage(input));
+    expect(checkpoint.mock.calls.length).toBeLessThanOrEqual(80);
+    expect(checkpoint.mock.calls.length).toBeGreaterThan(0);
+  } finally {
+    checkpoint.mockRestore();
+  }
+});
+
+
+it.each([1, 4])("batches wide baseline planes with borrowed storage and %i components", async (components) => {
+  const input = jpegInputFixture({ kind: "synthetic", width: 1027, height: 259, components, sampling: 3 });
+  expect(await harness(input).decode()).toEqual(decodeJpegImage(input));
+});

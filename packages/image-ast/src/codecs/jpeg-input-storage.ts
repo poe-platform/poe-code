@@ -127,6 +127,29 @@ class Region {
     page.bytes[offset % 4096] = value;
     page.dirty = true;
   }
+  /** Own bounded spans; never retain a borrowed backing page across cache I/O. */
+  async read(offset: number, length: number): Promise<Uint8Array> {
+    const bytes = new Uint8Array(Number.isInteger(offset) && offset >= 0
+      ? Math.max(0, Math.min(length, this.length - offset)) : 0);
+    for (let used = 0; used < bytes.length;) {
+      const page = await this.cache.page(this, offset + used);
+      const local = (offset + used) % 4096;
+      const count = Math.min(bytes.length - used, page.bytes.length - local);
+      bytes.set(page.bytes.subarray(local, local + count), used);
+      used += count;
+    }
+    return bytes;
+  }
+  async write(offset: number, bytes: Uint8Array): Promise<void> {
+    for (let used = 0; used < bytes.length;) {
+      const page = await this.cache.page(this, offset + used);
+      const local = (offset + used) % 4096;
+      const count = Math.min(bytes.length - used, page.bytes.length - local);
+      page.bytes.set(bytes.subarray(used, used + count), local);
+      page.dirty = true;
+      used += count;
+    }
+  }
   async coefficients(offset: number) {
     const block = new Int16Array(Math.max(0, Math.min(64, (this.length - offset) / 2)));
     for (let i = 0; i < block.length; i++)
@@ -369,9 +392,7 @@ export async function decodeJpegToStorage(
         for (let y = 0; y < blockStep; y++) {
           const dstOff = (baseRow + y) * stride + baseCol;
           const srcOff = y * blockStep;
-          for (let x = 0; x < blockStep; x++) {
-            await dst.set(dstOff + x, blockOut[srcOff + x]!);
-          }
+          await dst.write(dstOff, blockOut.subarray(srcOff, srcOff + blockStep));
         }
       };
 
@@ -448,66 +469,42 @@ export async function decodeJpegToStorage(
           if (useStripDecode && outRgba) {
             const yStart = my * mcuRowH;
             const yEnd = Math.min(outHeight, yStart + mcuRowH);
-            const c0 = components[0]!;
-            const s0 = c0.blocksX * blockStep;
-            if (components.length === 1) {
-              const p0 = c0.stripPixels!;
-              for (let y = yStart; y < yEnd; y++) {
-                const ly = y - yStart;
-                const rowIn = ly * s0;
-                let outIdx = y * outWidth * 4;
-                for (let x = 0; x < outWidth; x++) {
-                  const g = await p0.at(rowIn + x);
-                  await outRgba.set(outIdx, g);
-                  await outRgba.set(outIdx + 1, g);
-                  await outRgba.set(outIdx + 2, g);
-                  await outRgba.set(outIdx + 3, 255);
-                  outIdx += 4;
+            // Convert at most 1024 pixels per span. Plane bytes are owned before
+            // another cache read can evict them; no per-pixel Promise allocation.
+            const row = new Uint8Array(4096);
+            const count = components.length === 1 ? 1 : components.length === 4 ? 4 : components.length >= 3 ? 3 : 0;
+            let work = 0;
+            for (let y = yStart; y < yEnd; y++) {
+              const ly = y - yStart;
+              for (let xStart = 0; xStart < outWidth; xStart += 1024) {
+                const xEnd = Math.min(outWidth, xStart + 1024);
+                const planes: { bytes: Uint8Array; start: number; h: number }[] = [];
+                for (let plane = 0; plane < count; plane++) {
+                  const comp = components[plane]!;
+                  const start = comp.h === maxH ? xStart : Math.floor(xStart * comp.h / maxH);
+                  const end = comp.h === maxH ? xEnd - 1 : Math.floor((xEnd - 1) * comp.h / maxH);
+                  const rowIndex = comp.v === maxV ? ly : Math.floor(ly * comp.v / maxV);
+                  planes.push({ bytes: await comp.stripPixels!.read(rowIndex * comp.blocksX * blockStep + start, end - start + 1), start, h: comp.h });
                 }
-              }
-            } else if (components.length >= 3) {
-              const c1 = components[1]!;
-              const c2 = components[2]!;
-              const pY = c0.stripPixels!;
-              const pCb = c1.stripPixels!;
-              const pCr = c2.stripPixels!;
-              const sY = s0;
-              const sCb = c1.blocksX * blockStep;
-              const sCr = c2.blocksX * blockStep;
-              const hY = c0.h,
-                vY = c0.v;
-              const hCb = c1.h,
-                vCb = c1.v;
-              const hCr = c2.h,
-                vCr = c2.v;
-              const hasK = components.length === 4;
-              const c3 = hasK ? components[3]! : undefined;
-              const pK = c3?.stripPixels;
-              const sK = c3 ? c3.blocksX * blockStep : 0;
-              for (let y = yStart; y < yEnd; y++) {
-                const ly = y - yStart;
-                const yRow = (vY === maxV ? ly : Math.floor((ly * vY) / maxV)) * sY;
-                const cbRow = (vCb === maxV ? ly : Math.floor((ly * vCb) / maxV)) * sCb;
-                const crRow = (vCr === maxV ? ly : Math.floor((ly * vCr) / maxV)) * sCr;
-                const kRow = c3 ? (c3.v === maxV ? ly : Math.floor((ly * c3.v) / maxV)) * sK : 0;
-                let outIdx = y * outWidth * 4;
-                for (let x = 0; x < outWidth; x++) {
-                  const yVal = await pY.at(yRow + (hY === maxH ? x : Math.floor((x * hY) / maxH)));
-                  const cbVal =
-                    (await pCb.at(cbRow + (hCb === maxH ? x : Math.floor((x * hCb) / maxH)))) - 128;
-                  const crVal =
-                    (await pCr.at(crRow + (hCr === maxH ? x : Math.floor((x * hCr) / maxH)))) - 128;
-                  const kVal =
-                    hasK && pK && c3
-                      ? await pK.at(kRow + (c3.h === maxH ? x : Math.floor((x * c3.h) / maxH)))
-                      : undefined;
-                  const rgb = jpegColor(yVal, cbVal, crVal, kVal, true);
-                  await outRgba.set(outIdx, rgb & 255);
-                  await outRgba.set(outIdx + 1, (rgb >>> 8) & 255);
-                  await outRgba.set(outIdx + 2, rgb >>> 16);
-                  await outRgba.set(outIdx + 3, 255);
-                  outIdx += 4;
+                const sample = (plane: number, x: number) => {
+                  const entry = planes[plane]!;
+                  return entry.bytes[(entry.h === maxH ? x : Math.floor(x * entry.h / maxH)) - entry.start] ?? NaN;
+                };
+                for (let x = xStart; x < xEnd; x++) {
+                  const at = (x - xStart) * 4;
+                  if (components.length === 1) {
+                    const g = sample(0, x);
+                    row[at] = g; row[at + 1] = g; row[at + 2] = g;
+                  } else if (components.length >= 3) {
+                    const rgb = jpegColor(sample(0, x), sample(1, x) - 128, sample(2, x) - 128, components.length === 4 ? sample(3, x) : undefined, true);
+                    row[at] = rgb & 255; row[at + 1] = (rgb >>> 8) & 255; row[at + 2] = rgb >>> 16;
+                  }
+                  row[at + 3] = 255;
                 }
+                if (components.length === 1 || components.length >= 3)
+                  await outRgba.write((y * outWidth + xStart) * 4, row.subarray(0, (xEnd - xStart) * 4));
+                work += xEnd - xStart;
+                if (work >= 16384) { await defaultRuntime.yieldTurn(signal); work = 0; }
               }
             }
           }

@@ -6,10 +6,10 @@ use crate::shell::builtins::{
     is_test_unary_op, path_targets, resolve_physical_path, try_run_builtin,
 };
 use crate::shell::expand::{
-    bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
+    apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, get_var_meta_info, glob_match_ext, has_glob_meta, resolve_nameref_base,
-    resolve_var_key_mut, sync_array_metadata, sync_getopts_env,
+    sync_array_metadata, sync_getopts_env,
     try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
 use crate::shell::parser::{
@@ -743,7 +743,12 @@ impl<'a> EvalState<'a> {
                     }
                     Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
+                        stderr: format!(
+                            "{}\n",
+                            msg.strip_prefix("__param_err__")
+                                .or_else(|| msg.strip_prefix("__nounset__"))
+                                .unwrap_or(&msg)
+                        ),
                         exit_code: 1,
                     },
                     Err(e) => return Err(e),
@@ -766,7 +771,10 @@ impl<'a> EvalState<'a> {
                 Ok(o) => o,
                 Err(EvalError::Syntax(msg)) => {
                     let is_param_err = msg.starts_with("__param_err__");
-                    let clean_msg = msg.strip_prefix("__param_err__").unwrap_or(&msg);
+                    let clean_msg = msg
+                        .strip_prefix("__param_err__")
+                        .or_else(|| msg.strip_prefix("__nounset__"))
+                        .unwrap_or(&msg);
                     stderr.push_str(&format!("{clean_msg}\n"));
                     let is_subshell = self
                         .env
@@ -1119,7 +1127,12 @@ impl<'a> EvalState<'a> {
                         let is_syn = msg.starts_with("Syntax error:");
                         BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
+                            stderr: format!(
+                                "{}\n",
+                                msg.strip_prefix("__param_err__")
+                                    .or_else(|| msg.strip_prefix("__nounset__"))
+                                    .unwrap_or(&msg)
+                            ),
                             exit_code: if is_syn { 2 } else { 1 },
                         }
                     }
@@ -1555,8 +1568,23 @@ impl<'a> EvalState<'a> {
                 let mut code = 0;
 
                 if !init.trim().is_empty() {
-                    let exp_init = self.expand_word_to_string(init)?;
-                    let _ = eval_arith(&exp_init, self.env);
+                    let exp_init = self.expand_heredoc_text(init)?;
+                    if let Err(e) = eval_arith(&exp_init, self.env) {
+                        self.fd_table.insert(1, body_fd1);
+                        self.fd_table.insert(2, body_fd2);
+                        self.restore_redirects(saved_fds, saved_in);
+                        if let Some(nu) = e.strip_prefix("__nounset__") {
+                            return Err(EvalError::Syntax(nu.to_string()));
+                        }
+                        stderr.push_str(&format!("((: {e}\n"));
+                        let mut out = BuiltinOutcome {
+                            stdout,
+                            stderr,
+                            exit_code: 1,
+                        };
+                        self.route_outcome(&mut out);
+                        return Ok(out);
+                    }
                 }
 
                 self.loop_depth += 1;
@@ -1566,10 +1594,25 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     if !cond.trim().is_empty() {
-                        let exp_cond = self.expand_word_to_string(cond)?;
-                        let cval = eval_arith(&exp_cond, self.env).unwrap_or(0);
-                        if cval == 0 {
-                            break;
+                        let exp_cond = self.expand_heredoc_text(cond)?;
+                        match eval_arith(&exp_cond, self.env) {
+                            Ok(cval) => {
+                                if cval == 0 {
+                                    break;
+                                }
+                            }
+                            Err(e) => {
+                                if let Some(nu) = e.strip_prefix("__nounset__") {
+                                    self.loop_depth -= 1;
+                                    self.fd_table.insert(1, body_fd1);
+                                    self.fd_table.insert(2, body_fd2);
+                                    self.restore_redirects(saved_fds, saved_in);
+                                    return Err(EvalError::Syntax(nu.to_string()));
+                                }
+                                stderr.push_str(&format!("((: {e}\n"));
+                                code = 1;
+                                break;
+                            }
                         }
                     }
                     self.budget.tick_iteration().map_err(EvalError::Budget)?;
@@ -1595,8 +1638,19 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     if !step.trim().is_empty() {
-                        let exp_step = self.expand_word_to_string(step)?;
-                        let _ = eval_arith(&exp_step, self.env);
+                        let exp_step = self.expand_heredoc_text(step)?;
+                        if let Err(e) = eval_arith(&exp_step, self.env) {
+                            if let Some(nu) = e.strip_prefix("__nounset__") {
+                                self.loop_depth -= 1;
+                                self.fd_table.insert(1, body_fd1);
+                                self.fd_table.insert(2, body_fd2);
+                                self.restore_redirects(saved_fds, saved_in);
+                                return Err(EvalError::Syntax(nu.to_string()));
+                            }
+                            stderr.push_str(&format!("((: {e}\n"));
+                            code = 1;
+                            break;
+                        }
                     }
                 }
                 self.loop_depth -= 1;
@@ -1649,11 +1703,31 @@ impl<'a> EvalState<'a> {
                     let prev_cond = self.in_condition;
                     self.errexit = false;
                     self.in_condition = true;
+                    self.env.remove("__arith_diag");
                     let cond_out = self.eval_script(cond, eff_stdin)?;
+                    let arith_diag = self.env.remove("__arith_diag").is_some();
                     self.errexit = prev_errexit;
                     self.in_condition = prev_cond;
                     stdout.push_str(&cond_out.stdout);
                     stderr.push_str(&cond_out.stderr);
+                    if self.exit_requested.is_some() || self.return_requested.is_some() {
+                        code = cond_out.exit_code;
+                        break;
+                    }
+                    if self.break_count > 0 {
+                        self.break_count -= 1;
+                        break;
+                    }
+                    if self.continue_count > 0 {
+                        self.continue_count -= 1;
+                        if self.continue_count > 0 {
+                            break;
+                        }
+                        continue;
+                    }
+                    if arith_diag {
+                        break;
+                    }
 
                     let cond_ok = if *until {
                         cond_out.exit_code != 0
@@ -1786,11 +1860,17 @@ impl<'a> EvalState<'a> {
                         stderr: dbg_out.stderr,
                         exit_code: if val != 0 { 0 } else { 1 },
                     }),
-                    Err(e) => Ok(BuiltinOutcome {
-                        stdout: dbg_out.stdout,
-                        stderr: format!("{}((: {e}\n", dbg_out.stderr),
-                        exit_code: 1,
-                    }),
+                    Err(e) => {
+                        if let Some(nu) = e.strip_prefix("__nounset__") {
+                            return Err(EvalError::Syntax(nu.to_string()));
+                        }
+                        self.env.insert("__arith_diag".to_string(), "1".to_string());
+                        Ok(BuiltinOutcome {
+                            stdout: dbg_out.stdout,
+                            stderr: format!("{}((: {e}\n", dbg_out.stderr),
+                            exit_code: 1,
+                        })
+                    }
                 }
             }
             CommandNode::FuncDef { name, body } => {
@@ -1833,11 +1913,28 @@ impl<'a> EvalState<'a> {
                 .env
                 .get(&format!("__assoc__{resolved_base}"))
                 .map(|v| v == "1")
-                .unwrap_or(false);
+                .unwrap_or(false)
+                || self
+                    .env
+                    .get(&format!("__attr__{resolved_base}"))
+                    .is_some_and(|a| a.contains('A'));
+            if !is_assoc {
+                let prefix = format!("{resolved_base}[");
+                let has_arr_elems = self.env.keys().any(|k| k.starts_with(&prefix));
+                if !has_arr_elems
+                    && let Some(scalar_v) = self.env.get(&resolved_base).cloned()
+                {
+                    self.env.insert(format!("{resolved_base}[0]"), scalar_v);
+                    sync_array_metadata(&resolved_base, self.env);
+                }
+            }
             let final_sub = if is_assoc {
                 clean_sub.to_string()
             } else {
-                let idx = eval_arith(clean_sub, self.env).unwrap_or(0);
+                if clean_sub.trim().is_empty() {
+                    return Err(EvalError::Syntax(format!("{lhs}: bad array subscript")));
+                }
+                let idx = eval_arith(clean_sub, self.env).map_err(EvalError::Syntax)?;
                 if idx < 0 {
                     let prefix = format!("{resolved_base}[");
                     let max_idx = self
@@ -1850,18 +1947,62 @@ impl<'a> EvalState<'a> {
                         })
                         .max()
                         .unwrap_or(-1);
-                    (max_idx + 1 + idx).to_string()
+                    let resolved_idx = max_idx + 1 + idx;
+                    if resolved_idx < 0 {
+                        return Err(EvalError::Syntax(format!("{lhs}: bad array subscript")));
+                    }
+                    resolved_idx.to_string()
                 } else {
                     idx.to_string()
                 }
             };
             let key = format!("{resolved_base}[{final_sub}]");
-            let val = if append {
-                let cur = self.env.get(&key).cloned().unwrap_or_default();
-                format!("{cur}{raw_val}")
+            let attr = self
+                .env
+                .get(&format!("__attr__{resolved_base}"))
+                .cloned()
+                .unwrap_or_default();
+            let val = if attr.contains('i') {
+                let rhs_num = eval_arith(raw_val, self.env).map_err(EvalError::Syntax)?;
+                let num = if append {
+                    let cur = self
+                        .env
+                        .get(&key)
+                        .cloned()
+                        .and_then(|s| eval_arith(&s, self.env).ok())
+                        .unwrap_or(0);
+                    cur.wrapping_add(rhs_num)
+                } else {
+                    rhs_num
+                };
+                num.to_string()
             } else {
-                raw_val.to_string()
+                let mut s = if append {
+                    let cur = self.env.get(&key).cloned().unwrap_or_default();
+                    format!("{cur}{raw_val}")
+                } else {
+                    raw_val.to_string()
+                };
+                if attr.contains('l') {
+                    s = s.to_lowercase();
+                } else if attr.contains('u') {
+                    s = s.to_uppercase();
+                }
+                s
             };
+            if is_assoc {
+                let keys_k = format!("__keys__{resolved_base}");
+                let mut order: Vec<String> = self
+                    .env
+                    .get(&keys_k)
+                    .filter(|s| !s.is_empty())
+                    .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
+                    .unwrap_or_default();
+                if !order.contains(&final_sub) {
+                    order.push(final_sub.clone());
+                    self.env.insert(keys_k, order.join("\x1f"));
+                }
+            }
             self.env.insert(key, val);
             sync_array_metadata(&resolved_base, self.env);
             return Ok(());
@@ -1885,7 +2026,11 @@ impl<'a> EvalState<'a> {
                 .env
                 .get(&format!("__assoc__{resolved}"))
                 .map(|v| v == "1")
-                .unwrap_or(false);
+                .unwrap_or(false)
+                || self
+                    .env
+                    .get(&format!("__attr__{resolved}"))
+                    .is_some_and(|a| a.contains('A'));
             let inner = &arr_lit[1..arr_lit.len() - 1];
             let items = self.expand_array_literal_items(inner, is_assoc)?;
             if !append {
@@ -1898,6 +2043,17 @@ impl<'a> EvalState<'a> {
                     .collect();
                 for k in old_keys {
                     self.env.remove(&k);
+                }
+                self.env.remove(&format!("__keys__{resolved}"));
+                self.env.remove(&resolved);
+            } else if !is_assoc {
+                let prefix = format!("{resolved}[");
+                let has_arr_elems = self.env.keys().any(|k| k.starts_with(&prefix));
+                if !has_arr_elems
+                    && let Some(scalar_v) = self.env.get(&resolved).cloned()
+                {
+                    self.env.insert(format!("{resolved}[0]"), scalar_v);
+                    sync_array_metadata(&resolved, self.env);
                 }
             }
             let mut next_idx: i64 = if append {
@@ -1916,21 +2072,62 @@ impl<'a> EvalState<'a> {
                 0
             };
 
-            for (explicit_sub, item_val) in items {
+            for (explicit_sub, item_val, item_append) in items {
                 if let Some(sub_k) = explicit_sub {
                     let final_k = if is_assoc {
                         sub_k
                     } else {
-                        let idx = eval_arith(&sub_k, self.env).unwrap_or(0);
+                        let idx = eval_arith(&sub_k, self.env).map_err(EvalError::Syntax)?;
                         next_idx = idx + 1;
                         idx.to_string()
                     };
-                    self.env
-                        .insert(format!("{resolved}[{final_k}]"), item_val);
+                    let elem_key = format!("{resolved}[{final_k}]");
+                    let attr = self
+                        .env
+                        .get(&format!("__attr__{resolved}"))
+                        .cloned()
+                        .unwrap_or_default();
+                    let final_item_val = if item_append {
+                        if attr.contains('i') {
+                            let cur = self
+                                .env
+                                .get(&elem_key)
+                                .cloned()
+                                .and_then(|s| eval_arith(&s, self.env).ok())
+                                .unwrap_or(0);
+                            let add = eval_arith(&item_val, self.env).map_err(EvalError::Syntax)?;
+                            cur.wrapping_add(add).to_string()
+                        } else {
+                            let cur = self.env.get(&elem_key).cloned().unwrap_or_default();
+                            apply_var_attributes(&resolved, &format!("{cur}{item_val}"), self.env)
+                                .map_err(EvalError::Syntax)?
+                        }
+                    } else {
+                        apply_var_attributes(&resolved, &item_val, self.env)
+                            .map_err(EvalError::Syntax)?
+                    };
+                    if is_assoc {
+                        let keys_k = format!("__keys__{resolved}");
+                        let mut order: Vec<String> = self
+                            .env
+                            .get(&keys_k)
+                            .filter(|s| !s.is_empty())
+                            .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
+                            .unwrap_or_default();
+                        if !order.contains(&final_k) {
+                            order.push(final_k.clone());
+                            self.env.insert(keys_k, order.join("\x1f"));
+                        }
+                    }
+                    self.env.insert(elem_key, final_item_val);
+                    sync_array_metadata(&resolved, self.env);
                 } else {
+                    let final_item_val = apply_var_attributes(&resolved, &item_val, self.env)
+                        .map_err(EvalError::Syntax)?;
                     self.env
-                        .insert(format!("{resolved}[{next_idx}]"), item_val);
+                        .insert(format!("{resolved}[{next_idx}]"), final_item_val);
                     next_idx += 1;
+                    sync_array_metadata(&resolved, self.env);
                 }
             }
             sync_array_metadata(&resolved, self.env);
@@ -2041,7 +2238,7 @@ impl<'a> EvalState<'a> {
         &mut self,
         inner: &str,
         is_assoc: bool,
-    ) -> Result<Vec<(Option<String>, String)>, EvalError> {
+    ) -> Result<Vec<(Option<String>, String, bool)>, EvalError> {
         let mut raw_tokens = Vec::new();
         let chars: Vec<char> = inner.chars().collect();
         let mut i = 0usize;
@@ -2107,7 +2304,10 @@ impl<'a> EvalState<'a> {
         let mut out = Vec::new();
         for tok in raw_tokens {
             if let Some(rest) = tok.strip_prefix('[')
-                && let Some((sub_k, sub_v)) = rest.split_once("]=")
+                && let Some((sub_k, sub_v, sub_append)) = rest
+                    .split_once("]+=")
+                    .map(|(k, v)| (k, v, true))
+                    .or_else(|| rest.split_once("]=").map(|(k, v)| (k, v, false)))
             {
                 if !is_assoc && self.is_braceexpand_enabled() {
                     let (brace_words, changed) = expand_braces_with_limits(
@@ -2120,7 +2320,7 @@ impl<'a> EvalState<'a> {
                             let tilded = self.expand_tilde_in_word(&bw, false);
                             let fields = self.expand_word_internal(&tilded, true, false)?;
                             for f in fields {
-                                out.push((None, f));
+                                out.push((None, f, false));
                             }
                             if out.len() > self.budget.limits.max_expansion_fields {
                                 return Err(EvalError::Budget(format!(
@@ -2134,11 +2334,11 @@ impl<'a> EvalState<'a> {
                 }
                 let exp_k = self.expand_word_to_string(sub_k)?;
                 let exp_v = self.expand_assignment_rhs(sub_v)?;
-                out.push((Some(exp_k), exp_v));
+                out.push((Some(exp_k), exp_v, sub_append));
             } else {
                 let fields = self.expand_word_to_fields(&tok)?;
                 for f in fields {
-                    out.push((None, f));
+                    out.push((None, f, false));
                 }
                 if out.len() > self.budget.limits.max_expansion_fields {
                     return Err(EvalError::Budget(format!(
@@ -2926,6 +3126,54 @@ impl<'a> EvalState<'a> {
             }
             "getopts" => {
                 return Ok(self.builtin_getopts(args));
+            }
+            "let" => {
+                if args.first().map(|s| s.as_str()) == Some("--help") {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "let: --help: unsupported option\n".to_string(),
+                        exit_code: 2,
+                    });
+                }
+                let offset = if args.first().map(|s| s.as_str()) == Some("--") {
+                    1
+                } else {
+                    0
+                };
+                if args.len() == offset {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: "let: expression expected\n".to_string(),
+                        exit_code: 1,
+                    });
+                }
+                let mut last = 0i64;
+                for arg in &args[offset..] {
+                    let expr_str = if arg.contains('$') || arg.contains('`') {
+                        self.expand_heredoc_text(arg)?
+                    } else {
+                        arg.clone()
+                    };
+                    match eval_arith(&expr_str, self.env) {
+                        Ok(v) => last = v,
+                        Err(e) => {
+                            if let Some(nu) = e.strip_prefix("__nounset__") {
+                                return Err(EvalError::Syntax(nu.to_string()));
+                            }
+                            self.env.insert("__arith_diag".to_string(), "1".to_string());
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("let: {e}\n"),
+                                exit_code: 1,
+                            });
+                        }
+                    }
+                }
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: if last == 0 { 1 } else { 0 },
+                });
             }
             "eval" => {
                 let eval_args = if args.first().map(|s| s.as_str()) == Some("--") {
@@ -5918,8 +6166,36 @@ impl<'a> EvalState<'a> {
             }
 
             if is_assoc {
+                let arr_prefix = format!("{base_name}[");
+                let was_indexed = !self.env.contains_key(&format!("__assoc__{base_name}"))
+                    && (self
+                        .env
+                        .get(&format!("__attr__{base_name}"))
+                        .is_some_and(|a| a.contains('a'))
+                        || self.env.contains_key(&format!("{base_name}[#]"))
+                        || self.env.keys().any(|k| k.starts_with(&arr_prefix)));
+                if was_indexed {
+                    decl_stderr.push_str(&format!(
+                        "{cmd}: {base_name}: cannot convert indexed to associative array\n"
+                    ));
+                    decl_status = 1;
+                    continue;
+                }
                 self.env
                     .insert(format!("__assoc__{base_name}"), "1".to_string());
+            }
+            if is_indexed
+                && (self.env.contains_key(&format!("__assoc__{base_name}"))
+                    || self
+                        .env
+                        .get(&format!("__attr__{base_name}"))
+                        .is_some_and(|a| a.contains('A')))
+            {
+                decl_stderr.push_str(&format!(
+                    "{cmd}: {base_name}: cannot convert associative to indexed array\n"
+                ));
+                decl_status = 1;
+                continue;
             }
             if is_export {
                 self.env.remove(&format!("__unexported__{base_name}"));
@@ -6041,6 +6317,33 @@ impl<'a> EvalState<'a> {
         let mut stderr = String::new();
         let mut status = 0;
         for arg in &args[idx..] {
+            if unset_func {
+                if arg.is_empty() {
+                    stderr.push_str(&format!("unset: `{arg}': not a valid identifier\n"));
+                    status = 1;
+                    continue;
+                }
+                if self
+                    .env
+                    .get(&format!("__readonly_fn__{arg}"))
+                    .is_some_and(|v| v == "1")
+                {
+                    stderr.push_str(&format!("unset: {arg}: cannot unset: readonly function\n"));
+                    status = 1;
+                    continue;
+                }
+                self.functions.remove(arg);
+                self.exported_functions.remove(arg);
+                continue;
+            }
+            let base_ident = arg.split_once('[').map(|(b, _)| b).unwrap_or(arg);
+            if !is_valid_shell_ident(base_ident)
+                || (arg.contains('[') && !arg.ends_with(']'))
+            {
+                stderr.push_str(&format!("unset: `{arg}': not a valid identifier\n"));
+                status = 1;
+                continue;
+            }
             let has_var_binding = self.env.contains_key(arg)
                 || self.env.contains_key(&format!("__attr__{arg}"))
                 || self.env.contains_key(&format!("__declared__{arg}"))
@@ -6050,7 +6353,7 @@ impl<'a> EvalState<'a> {
                 || self.local_scopes.iter().any(|f| f.contains_key(arg));
             let fallback_func =
                 !unset_var && !unset_nameref && !has_var_binding && self.functions.contains_key(arg);
-            if unset_func || fallback_func {
+            if fallback_func {
                 if self
                     .env
                     .get(&format!("__readonly_fn__{arg}"))
@@ -6065,7 +6368,28 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             if unset_nameref {
-                self.env.remove(&format!("__nameref__{arg}"));
+                if self.env.contains_key(&format!("__nameref__{arg}"))
+                    || self
+                        .env
+                        .get(&format!("__attr__{arg}"))
+                        .is_some_and(|a| a.contains('n'))
+                {
+                    if self
+                        .env
+                        .get(&format!("__attr__{arg}"))
+                        .is_some_and(|a| a.contains('r'))
+                    {
+                        stderr.push_str(&format!(
+                            "unset: {arg}: cannot unset: readonly variable\n"
+                        ));
+                        status = 1;
+                        continue;
+                    }
+                    self.env.remove(&format!("__nameref__{arg}"));
+                    self.env.remove(&format!("__attr__{arg}"));
+                    self.env.remove(&format!("__declared__{arg}"));
+                    self.env.remove(arg);
+                }
                 continue;
             }
             if let Some((base, sub_rest)) = arg.split_once('[')
@@ -6084,12 +6408,101 @@ impl<'a> EvalState<'a> {
                     continue;
                 }
                 let clean_sub = raw_sub.trim_matches('"').trim_matches('\'');
-                if clean_sub != "@" && clean_sub != "*" {
-                    let elem_key = resolve_var_key_mut(&format!("{resolved}[{clean_sub}]"), self.env);
+                let is_assoc = self
+                    .env
+                    .get(&format!("__assoc__{resolved}"))
+                    .map(|v| v == "1")
+                    .unwrap_or(false)
+                    || self
+                        .env
+                        .get(&format!("__attr__{resolved}"))
+                        .is_some_and(|a| a.contains('A'));
+                if (clean_sub == "@" || clean_sub == "*") && !is_assoc {
+                    let prefix = format!("{resolved}[");
+                    let arr_keys: Vec<String> = self
+                        .env
+                        .keys()
+                        .filter(|k| k.starts_with(&prefix))
+                        .cloned()
+                        .collect();
+                    let was_arr = !arr_keys.is_empty()
+                        || self
+                            .env
+                            .get(&format!("__attr__{resolved}"))
+                            .is_some_and(|a| a.contains('a'));
+                    for k in arr_keys {
+                        self.env.remove(&k);
+                    }
+                    self.env.remove(&resolved);
+                    self.env.remove(&format!("__keys__{resolved}"));
+                    if was_arr {
+                        self.env.insert(format!("{resolved}[#]"), "0".to_string());
+                        self.env.insert(format!("{resolved}[*]"), String::new());
+                        self.env.insert(format!("{resolved}[@]"), String::new());
+                    }
+                    continue;
+                }
+                if is_assoc {
+                    let elem_key = format!("{resolved}[{clean_sub}]");
                     self.env.remove(&elem_key);
+                    if let Some(order_str) = self.env.get(&format!("__keys__{resolved}")).cloned() {
+                        let filtered: Vec<&str> = order_str
+                            .split('\x1f')
+                            .filter(|&k| !k.is_empty() && k != clean_sub)
+                            .collect();
+                        self.env
+                            .insert(format!("__keys__{resolved}"), filtered.join("\x1f"));
+                    }
                     sync_array_metadata(&resolved, self.env);
                     continue;
                 }
+                if clean_sub.trim().is_empty() {
+                    stderr.push_str(&format!("unset: {arg}: bad array subscript\n"));
+                    status = 1;
+                    continue;
+                }
+                let sub_idx = match eval_arith(clean_sub, self.env) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        stderr.push_str(&format!("unset: {arg}: {e}\n"));
+                        status = 1;
+                        continue;
+                    }
+                };
+                let final_idx = if sub_idx < 0 {
+                    let prefix = format!("{resolved}[");
+                    let max_idx = self
+                        .env
+                        .keys()
+                        .filter_map(|k| {
+                            k.strip_prefix(&prefix)
+                                .and_then(|s| s.strip_suffix(']'))
+                                .and_then(|sub| sub.parse::<i64>().ok())
+                        })
+                        .max()
+                        .unwrap_or(-1);
+                    max_idx + 1 + sub_idx
+                } else {
+                    sub_idx
+                };
+                if final_idx < 0 {
+                    stderr.push_str(&format!("unset: {arg}: bad array subscript\n"));
+                    status = 1;
+                    continue;
+                }
+                if final_idx == 0 {
+                    let prefix = format!("{resolved}[");
+                    let has_arr = self.env.keys().any(|k| k.starts_with(&prefix));
+                    if !has_arr && self.env.contains_key(&resolved) {
+                        self.env.remove(&resolved);
+                        self.env.remove(&format!("__attr__{resolved}"));
+                        self.env.remove(&format!("__declared__{resolved}"));
+                        continue;
+                    }
+                }
+                self.env.remove(&format!("{resolved}[{final_idx}]"));
+                sync_array_metadata(&resolved, self.env);
+                continue;
             }
             let base_arg = arg.split_once('[').map(|(b, _)| b).unwrap_or(arg);
             let resolved = resolve_nameref_base(base_arg, self.env).to_string();
@@ -9134,7 +9547,12 @@ impl<'a> EvalState<'a> {
             Ok(o) => o,
             Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
+                stderr: format!(
+                    "{}\n",
+                    msg.strip_prefix("__param_err__")
+                        .or_else(|| msg.strip_prefix("__nounset__"))
+                        .unwrap_or(&msg)
+                ),
                 exit_code: 1,
             },
             Err(e) => return Err(e),
@@ -11979,5 +12397,70 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn unit_eval_arithmetic_arrays_and_parameter_transforms_parity() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        // 1. Scalar-to-array promotion, compound [k]+=val, and -i/-u/-l array attributes
+        let r1 = state
+            .eval_script_str(
+                r#"s=zero; s[2]=two
+s2=first; s2+=(second third)
+arr=([0]=foo [0]+=bar [2]=baz)
+declare -ia nums=([0]="2+3" [0]+="4*5" "10-3")
+declare -ua up=([0]=hello world)
+printf 's=%s|s2=%s|arr=%s|nums=%s|up=%s\n' "${s[*]}" "${s2[*]}" "${arr[*]}" "${nums[*]}" "${up[*]}""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r1.exit_code, 0);
+        assert_eq!(
+            r1.stdout,
+            "s=zero two|s2=first second third|arr=foobar baz|nums=25 7|up=HELLO WORLD\n"
+        );
+
+        // 2. Associative array insertion order, slicing, @K/@k, and empty array fallback
+        let r2 = state
+            .eval_script_str(
+                r#"declare -A map
+map[z]=last
+map[a]=first
+map[m]=mid
+empty=()
+printf 'keys=%s|slice=%s|k=%s|empty=%s:%s\n' "${!map[*]}" "${map[*]:1:2}" "${map[*]@k}" "${empty[@]-unset_ok}" "${empty[@]+set_bad}""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r2.exit_code, 0);
+        assert_eq!(
+            r2.stdout,
+            "keys=z a m|slice=first mid|k=z last a first m mid|empty=unset_ok:\n"
+        );
+
+        // 3. unset array[@], unset -n, invalid unset, and until (( 1 / 0 )) termination
+        let r3 = state
+            .eval_script_str(
+                r#"declare -a keep=(x y)
+unset 'keep[@]'
+target=alive
+declare -n ref=target
+unset -n ref
+until (( 1 / 0 )); do echo unreachable; done 2>/dev/null
+u_rc="$?"
+for (( 1 / 0; 1; 1 )); do echo unreachable; done 2>/dev/null
+f_rc="$?"
+printf 'rc=%d:%d|keep_a=%s|keep_len=%d|target=%s\n' "$u_rc" "$f_rc" "${keep@a}" "${#keep[@]}" "$target""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r3.exit_code, 0);
+        assert_eq!(r3.stdout, "rc=0:1|keep_a=a|keep_len=0|target=alive\n");
     }
 }

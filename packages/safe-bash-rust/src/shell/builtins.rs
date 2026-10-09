@@ -171,9 +171,10 @@ pub fn try_run_builtin(
                 match eval_arith(arg, env) {
                     Ok(v) => last = v,
                     Err(e) => {
+                        let clean = e.strip_prefix("__nounset__").unwrap_or(&e);
                         return Some(BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("let: {e}\n"),
+                            stderr: format!("let: {clean}\n"),
                             exit_code: 1,
                         });
                     }

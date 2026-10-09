@@ -254,6 +254,26 @@ pub fn try_run_structured_command(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    if matches!(
+        cmd,
+        "csvcut"
+            | "csvgrep"
+            | "csvstat"
+            | "csvsort"
+            | "csvstack"
+            | "csvjoin"
+            | "csvjson"
+            | "in2csv"
+            | "csvformat"
+            | "csvlook"
+            | "csvsql"
+            | "sql2csv"
+            | "csvclean"
+            | "csvpy"
+    ) && let Some(out) = csvkit_precheck(cmd, args)
+    {
+        return Some(out);
+    }
     match cmd {
         "jq" => Some(cmd_jq_with_env(args, stdin, cwd, env, fs)),
         "yq" => Some(cmd_yq(args, stdin, cwd, env, fs)),
@@ -9463,16 +9483,36 @@ fn cmd_unrtf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         None | Some("-") => stdin.as_bytes().to_vec(),
         Some(f) => {
             let path = resolve_posix_path(cwd, f);
+            if let Ok(meta) = fs.stat(&path)
+                && meta.kind == crate::vfs::VfsEntryKind::Directory
+            {
+                return err_out(
+                    &format!(
+                        "unrtf: EISDIR: EISDIR: illegal operation on a directory, readStream '{path}'\n"
+                    ),
+                    1,
+                );
+            }
             match fs.read_file(&path) {
                 Ok(b) => b,
                 Err(_) => {
                     let fallback = format!("{path}.rtf");
+                    if let Ok(meta) = fs.stat(&fallback)
+                        && meta.kind == crate::vfs::VfsEntryKind::Directory
+                    {
+                        return err_out(
+                            &format!(
+                                "unrtf: EISDIR: EISDIR: illegal operation on a directory, readStream '{fallback}'\n"
+                            ),
+                            1,
+                        );
+                    }
                     match fs.read_file(&fallback) {
                         Ok(b) => b,
                         Err(_) => {
                             return err_out(
                                 &format!(
-                                    "unrtf: ENOENT: ENOENT: no such file or directory '{fallback}'\n"
+                                    "unrtf: ENOENT: ENOENT: no such file or directory, readStream '{fallback}'\n"
                                 ),
                                 1,
                             );
@@ -9791,6 +9831,596 @@ fn read_csv_input(files: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     Ok(s.strip_prefix('\u{feff}').unwrap_or(&s).to_string())
 }
 
+fn read_csvkit_bytes_input(
+    files: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> Result<Vec<u8>, String> {
+    if files.is_empty() || files[0] == "-" {
+        return Ok(decompress_gzip_if_needed(stdin.as_bytes()));
+    }
+    let raw_path = &files[0];
+    let full = resolve_posix_path(cwd, raw_path);
+    if let Ok(meta) = fs.stat(&full)
+        && meta.kind == crate::vfs::VfsEntryKind::Directory
+    {
+        return Err(format!(
+            "IsADirectoryError: [Errno 21] Is a directory: '{raw_path}'\n"
+        ));
+    }
+    let bytes = fs.read_file(&full).map_err(|_| {
+        format!(
+            "FileNotFoundError: [Errno 2] No such file or directory: '{raw_path}'\n"
+        )
+    })?;
+    Ok(decompress_gzip_if_needed(&bytes))
+}
+
+fn read_csvkit_input(
+    files: &[String],
+    stdin: &str,
+    cwd: &str,
+    fs: &dyn SafeBashFs,
+) -> Result<String, String> {
+    let bytes = read_csvkit_bytes_input(files, stdin, cwd, fs)?;
+    let s = String::from_utf8_lossy(&bytes).into_owned();
+    Ok(s.strip_prefix('\u{feff}').unwrap_or(&s).to_string())
+}
+
+fn csvkit_usage(cmd: &str) -> &'static str {
+    match cmd {
+        "csvcut" => "usage: csvcut [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n              [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n              [-c COLUMNS] [-C NOT_COLUMNS] [-x]\n              [FILE]\n",
+        "csvgrep" => "usage: csvgrep [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n               [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n               [-c COLUMNS] [-m PATTERN] [-r REGEX] [-f MATCHFILE] [-i] [-a]\n               [FILE]\n",
+        "csvstat" => "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
+        "csvjson" => "usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]\n               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]\n               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
+        "in2csv" => "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\n",
+        "csvformat" => "usage: csvformat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                 [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING]\n                 [-L LOCALE] [-S] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n                 [--zero] [-V] [-E] [-D OUT_DELIMITER] [-T] [-A]\n                 [-Q OUT_QUOTECHAR] [-U {0,1,2,3,4,5}] [-B]\n                 [-P OUT_ESCAPECHAR] [-M OUT_LINETERMINATOR]\n                 [FILE]\n",
+        "csvlook" => "usage: csvlook [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--max-rows MAX_ROWS]\n               [--max-columns MAX_COLUMNS]\n               [--max-column-width MAX_COLUMN_WIDTH]\n               [--max-precision MAX_PRECISION] [--no-number-ellipsis]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
+        "csvsql" => "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\n",
+        "sql2csv" => "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\n",
+        "csvclean" => "usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]\n                [--label LABEL] [--header-normalize-space] [--join-short-rows]\n                [--separator SEPARATOR] [--fill-short-rows]\n                [--fillvalue FILLVALUE]\n                [FILE]\n",
+        "csvstack" => "usage: csvstack [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [-g GROUPS] [-n GROUP_NAME] [--filenames]\n                [FILE ...]\n",
+        "csvjoin" => "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\n",
+        "csvsort" => "usage: csvsort [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-n] [-c COLUMNS] [-r] [-i]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
+        _ => CSVPY_USAGE,
+    }
+}
+
+fn csvkit_option_specs(
+    cmd: &str,
+) -> (
+    &'static [&'static str],
+    &'static [&'static str],
+    &'static [&'static str],
+) {
+    match cmd {
+        "csvclean" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-p", "-H", "--no-header-row", "-v", "--verbose", "-l",
+                "--linenumbers", "--add-bom", "--zero", "-V", "--version", "--length-mismatch",
+                "--empty-columns", "-a", "--enable-all-checks", "--omit-error-rows",
+                "--header-normalize-space", "--join-short-rows", "--fill-short-rows",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "--escapechar", "-z",
+                "--maxfieldsize", "-e", "--encoding", "-K", "--skip-lines", "--label",
+                "--separator", "--fillvalue",
+            ],
+            &[],
+        ),
+        "csvcut" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-H", "--no-header-row", "-v", "--verbose", "-l",
+                "--linenumbers", "--add-bom", "--zero", "-V", "--version", "-n", "--names", "-x",
+                "--delete-empty-rows",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-K", "--skip-lines", "-c",
+                "--columns", "-C", "--not-columns",
+            ],
+            &[],
+        ),
+        "csvformat" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-H", "--no-header-row", "-v", "--verbose", "-l",
+                "--linenumbers", "--add-bom", "--zero", "-V", "--version", "-E", "--skip-header",
+                "-T", "--out-tabs", "-A", "--out-asv", "-B", "--out-no-doublequote",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "-K", "--skip-lines",
+                "-D", "--out-delimiter", "-Q", "--out-quotechar", "-U", "--out-quoting", "-P",
+                "--out-escapechar", "-M", "--out-lineterminator",
+            ],
+            &[],
+        ),
+        "csvgrep" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-H", "--no-header-row", "-v", "--verbose", "-l",
+                "--linenumbers", "--add-bom", "--zero", "-V", "--version", "-n", "--names", "-i",
+                "--invert-match", "-a", "--any-match",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-K", "--skip-lines", "-c",
+                "--columns", "-m", "--match", "-r", "--regex", "-f", "--file",
+            ],
+            &[],
+        ),
+        "csvjoin" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-p", "--blanks", "--no-leading-zeroes", "-H",
+                "--no-header-row", "-v", "--verbose", "-l", "--linenumbers", "--add-bom",
+                "--zero", "-V", "--version", "--outer", "--left", "--right", "-I",
+                "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "--escapechar", "-z",
+                "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-c", "--columns", "-y",
+                "--snifflimit", "--null-value",
+            ],
+            &[],
+        ),
+        "csvjson" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "--blanks", "--no-leading-zeroes", "-H", "--no-header-row",
+                "-v", "--verbose", "-l", "--linenumbers", "--add-bom", "--zero", "-V", "--version",
+                "--no-bbox", "--stream", "-I", "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-i", "--indent", "-k", "--key",
+                "--lat", "--lon", "--type", "--geometry", "--crs", "-y", "--snifflimit",
+                "--null-value",
+            ],
+            &[],
+        ),
+        "csvlook" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-p", "--blanks", "--no-leading-zeroes", "-H",
+                "--no-header-row", "-v", "--verbose", "-l", "--linenumbers", "--add-bom",
+                "--zero", "-V", "--version", "--no-number-ellipsis", "-I", "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "--escapechar", "-z",
+                "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "--max-rows", "--max-columns",
+                "--max-column-width", "--max-precision", "-y", "--snifflimit", "--null-value",
+            ],
+            &[],
+        ),
+        "csvsort" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-p", "--blanks", "--no-leading-zeroes", "-H",
+                "--no-header-row", "-v", "--verbose", "-l", "--linenumbers", "--add-bom",
+                "--zero", "-V", "--version", "-n", "--names", "-r", "--reverse", "-i",
+                "--ignore-case", "-I", "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "--escapechar", "-z",
+                "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-c", "--columns", "-y",
+                "--snifflimit", "--null-value",
+            ],
+            &[],
+        ),
+        "csvsql" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-p", "--blanks", "--no-leading-zeroes", "-H",
+                "--no-header-row", "-v", "--verbose", "-l", "--linenumbers", "--add-bom",
+                "--zero", "-V", "--version", "--insert", "--no-constraints", "--no-create",
+                "--create-if-not-exists", "--overwrite", "-I", "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "--escapechar", "-z",
+                "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-i", "--dialect", "--db", "--query",
+                "--prefix", "--before-insert", "--after-insert", "--sql-delimiter", "--tables",
+                "--unique-constraint", "--db-schema", "-y", "--snifflimit", "--chunk-size",
+                "--min-col-len", "--col-len-multiplier", "--null-value",
+            ],
+            &["--engine-option"],
+        ),
+        "csvstack" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "-p", "-H", "--no-header-row", "-v", "--verbose", "-l",
+                "--linenumbers", "--add-bom", "--zero", "-V", "--version", "--filenames",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "--escapechar", "-z",
+                "--maxfieldsize", "-e", "--encoding", "-K", "--skip-lines", "-g", "--groups", "-n",
+                "--group-name",
+            ],
+            &[],
+        ),
+        "csvstat" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "--blanks", "--no-leading-zeroes", "-H", "--no-header-row",
+                "-v", "--verbose", "-l", "--linenumbers", "--add-bom", "--zero", "-V", "--version",
+                "--csv", "--json", "-n", "--names", "--type", "--nulls", "--non-nulls",
+                "--unique", "--min", "--max", "--sum", "--mean", "--median", "--stdev", "--len",
+                "--max-precision", "--freq", "--count", "-G", "--no-grouping-separator", "-I",
+                "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-i", "--indent", "-c", "--columns",
+                "--freq-count", "--decimal-format", "-y", "--snifflimit", "--null-value",
+            ],
+            &[],
+        ),
+        "in2csv" => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "--blanks", "--no-leading-zeroes", "-H", "--no-header-row",
+                "-v", "--verbose", "-l", "--linenumbers", "--add-bom", "--zero", "-V", "--version",
+                "-n", "--names", "--use-sheet-names", "--reset-dimensions", "-I",
+                "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-f", "--format", "-s", "--schema",
+                "-k", "--key", "--sheet", "--write-sheets", "--encoding-xls", "-y", "--snifflimit",
+                "--null-value",
+            ],
+            &[],
+        ),
+        "sql2csv" => (
+            &[
+                "-h", "--help", "-v", "--verbose", "-l", "--linenumbers", "-V", "--version", "-H",
+                "--no-header-row",
+            ],
+            &["--db", "--query", "-e", "--encoding"],
+            &["--engine-option", "--execution-option"],
+        ),
+        _ => (
+            &[
+                "-h", "--help", "-t", "--tabs", "-b", "--no-doublequote", "-S",
+                "--skipinitialspace", "--blanks", "--no-leading-zeroes", "-H", "--no-header-row",
+                "-v", "--verbose", "-V", "--version", "--dict", "--agate", "--no-number-ellipsis",
+                "-I", "--no-inference",
+            ],
+            &[
+                "-d", "--delimiter", "-q", "--quotechar", "-u", "--quoting", "-p", "--escapechar",
+                "-z", "--maxfieldsize", "-e", "--encoding", "-L", "--locale", "--date-format",
+                "--datetime-format", "-K", "--skip-lines", "-y", "--snifflimit", "--null-value",
+            ],
+            &[],
+        ),
+    }
+}
+
+fn csvkit_precheck(cmd: &str, args: &[String]) -> Option<BuiltinOutcome> {
+    if cmd == "csvpy" {
+        return None;
+    }
+    let usage = csvkit_usage(cmd);
+    let (zero_flags, one_flags, two_flags) = csvkit_option_specs(cmd);
+    let mut extras: Vec<String> = Vec::new();
+    let mut files: Vec<String> = Vec::new();
+    let mut seen_flags: BTreeSet<String> = BTreeSet::new();
+    let mut seen_vals: BTreeMap<String, String> = BTreeMap::new();
+    let mut stat_ops: Vec<&str> = Vec::new();
+    let mut terminated = false;
+    let mut i = 0usize;
+    while i < args.len() {
+        let a = &args[i];
+        if !terminated && a == "--" {
+            terminated = true;
+            i += 1;
+            continue;
+        }
+        if !terminated && (a == "-h" || a == "--help") {
+            return Some(ok_out(usage));
+        }
+        if !terminated && (a == "-V" || a == "--version") {
+            return Some(ok_out(&format!("{cmd} 2.2.0\n")));
+        }
+        if terminated || !a.starts_with('-') || a == "-" {
+            files.push(a.clone());
+            i += 1;
+            continue;
+        }
+        let (flag, inline_val) = if let Some((k, v)) = a.split_once('=') {
+            (k, Some(v))
+        } else {
+            (a.as_str(), None)
+        };
+        if zero_flags.contains(&flag) {
+            if inline_val.is_some() {
+                return Some(err_out(
+                    &format!("{usage}{cmd}: error: argument {flag}: ignored explicit argument\n"),
+                    2,
+                ));
+            }
+            seen_flags.insert(flag.to_string());
+            if cmd == "csvstat"
+                && matches!(
+                    flag,
+                    "--type"
+                        | "--nulls"
+                        | "--non-nulls"
+                        | "--unique"
+                        | "--min"
+                        | "--max"
+                        | "--sum"
+                        | "--mean"
+                        | "--median"
+                        | "--stdev"
+                        | "--len"
+                        | "--max-precision"
+                        | "--freq"
+                )
+            {
+                stat_ops.push(flag);
+            }
+        } else if one_flags.contains(&flag) {
+            let val = if let Some(v) = inline_val {
+                v.to_string()
+            } else if i + 1 < args.len() {
+                i += 1;
+                args[i].clone()
+            } else {
+                return Some(err_out(
+                    &format!("{usage}{cmd}: error: argument {flag}: expected one argument\n"),
+                    2,
+                ));
+            };
+            seen_flags.insert(flag.to_string());
+            seen_vals.insert(flag.to_string(), val);
+        } else if two_flags.contains(&flag) {
+            if inline_val.is_some() || i + 2 >= args.len() {
+                return Some(err_out(
+                    &format!("{usage}{cmd}: error: argument {flag}: expected 2 arguments\n"),
+                    2,
+                ));
+            }
+            i += 2;
+            seen_flags.insert(flag.to_string());
+        } else {
+            extras.push(a.clone());
+        }
+        i += 1;
+    }
+    if !extras.is_empty() {
+        return Some(err_out(
+            &format!(
+                "{usage}{cmd}: error: unrecognized arguments: {}\n",
+                extras.join(" ")
+            ),
+            2,
+        ));
+    }
+
+    let err2 = |msg: &str| Some(err_out(&format!("{usage}{cmd}: error: {msg}\n"), 2));
+    let has_any = |opts: &[&str]| opts.iter().any(|o| seen_flags.contains(*o));
+    let get_val = |opts: &[&str]| -> Option<&str> {
+        opts.iter()
+            .find_map(|o| seen_vals.get(*o).map(|s| s.as_str()))
+    };
+
+    match cmd {
+        "csvgrep" => {
+            if !has_any(&["-n", "--names"]) {
+                if !has_any(&["-c", "--columns"]) {
+                    return err2(
+                        "You must specify at least one column to search using the -c option.",
+                    );
+                }
+                if !has_any(&["-m", "--match", "-r", "--regex", "-f", "--file"]) {
+                    return err2(
+                        "One of -r, -m or -f must be specified, unless using the -n option.",
+                    );
+                }
+            }
+        }
+        "in2csv" => {
+            let fmt = get_val(&["-f", "--format"])
+                .map(|s| s.to_ascii_lowercase())
+                .or_else(|| {
+                    if has_any(&["-s", "--schema"]) {
+                        Some("fixed".to_string())
+                    } else if has_any(&[
+                        "--sheet",
+                        "--write-sheets",
+                        "--use-sheet-names",
+                        "--reset-dimensions",
+                    ]) {
+                        Some("xlsx".to_string())
+                    } else if has_any(&["--encoding-xls"]) {
+                        Some("xls".to_string())
+                    } else if let Some(path) = files.first()
+                        && path != "-"
+                    {
+                        let lower = path.to_ascii_lowercase();
+                        let stem = lower.strip_suffix(".gz").unwrap_or(&lower);
+                        if let Some((_, ext)) = stem.rsplit_once('.') {
+                            if matches!(
+                                ext,
+                                "csv"
+                                    | "tsv"
+                                    | "dbf"
+                                    | "fixed"
+                                    | "geojson"
+                                    | "json"
+                                    | "ndjson"
+                                    | "jsonl"
+                                    | "xls"
+                                    | "xlsx"
+                            ) {
+                                Some(ext.to_string())
+                            } else {
+                                None
+                            }
+                        } else {
+                            Some("fixed".to_string())
+                        }
+                    } else {
+                        None
+                    }
+                });
+            let Some(ref resolved_fmt) = fmt else {
+                if files.is_empty() || files[0] == "-" {
+                    return err2(
+                        "You must specify a format when providing input as piped data via STDIN.",
+                    );
+                }
+                return err2(
+                    "Unable to automatically determine the format of the input file. Try specifying a format with --format.",
+                );
+            };
+            if has_any(&["-n", "--names"]) && !matches!(resolved_fmt.as_str(), "xls" | "xlsx") {
+                return err2("You cannot use the -n or --names options with non-Excel files.");
+            }
+        }
+        "csvstack" => {
+            if let Some(grps) = get_val(&["-g", "--groups"])
+                && !has_any(&["--filenames"])
+            {
+                let n_files = files.len().max(1);
+                let n_grps = grps.split(',').count();
+                if n_grps != n_files {
+                    return err2(
+                        "The number of grouping values must be equal to the number of CSV files being stacked.",
+                    );
+                }
+            }
+        }
+        "csvjoin" => {
+            let n_files = files.len().max(1);
+            if let Some(cols) = get_val(&["-c", "--columns"]) {
+                let n_cols = cols.split(',').count();
+                if n_cols > 1 && n_cols != n_files {
+                    return err2(
+                        "The number of join column names must match the number of files, or be a single column name that exists in all files.",
+                    );
+                }
+            }
+            if has_any(&["--left", "--right", "--outer"]) && !has_any(&["-c", "--columns"]) {
+                return err2("You must provide join column names when performing an outer join.");
+            }
+            if has_any(&["--left"]) && has_any(&["--right"]) {
+                return err2("It is not valid to specify both a left and a right join.");
+            }
+        }
+        "csvclean" => {
+            if has_any(&["--join-short-rows"]) && has_any(&["--fill-short-rows"]) {
+                return err2(
+                    "The --join-short-rows and --fill-short-rows options are mutually exclusive.",
+                );
+            }
+            if !has_any(&[
+                "--length-mismatch",
+                "--empty-columns",
+                "-a",
+                "--enable-all-checks",
+                "--header-normalize-space",
+                "--join-short-rows",
+                "--fill-short-rows",
+            ]) {
+                return err2(
+                    "No checks or fixes were enabled. See available options with: csvclean --help",
+                );
+            }
+        }
+        "csvstat" => {
+            if stat_ops.len() > 1 {
+                return err2("Only one operation argument may be specified (--mean, --median, etc).");
+            }
+            if !stat_ops.is_empty() {
+                for flag in ["csv", "json", "count"] {
+                    let full_flag = format!("--{flag}");
+                    if seen_flags.contains(&full_flag) {
+                        return err2(&format!(
+                            "You may not specify --{flag} and an operation (--mean, --median, etc) at the same time."
+                        ));
+                    }
+                }
+            }
+        }
+        "csvjson" => {
+            let has_lat = has_any(&["--lat"]);
+            let has_lon = has_any(&["--lon"]);
+            if has_lat && !has_lon {
+                return err2("--lon is required whenever --lat is specified.");
+            }
+            if has_lon && !has_lat {
+                return err2("--lat is required whenever --lon is specified.");
+            }
+            for opt in ["crs", "type", "geometry"] {
+                let f = format!("--{opt}");
+                if seen_flags.contains(&f) && !has_lat {
+                    return err2(&format!(
+                        "--{opt} is only allowed when --lat and --lon are also specified."
+                    ));
+                }
+            }
+            if has_any(&["-k", "--key"]) && has_any(&["--stream"]) && !(has_lat && has_lon) {
+                return err2(
+                    "--key is only allowed with --stream when --lat and --lon are also specified.",
+                );
+            }
+        }
+        "csvsql" => {
+            let has_db = has_any(&["--db"]);
+            let has_query = has_any(&["--query"]);
+            let conn = has_db || has_query;
+            let ins = has_any(&["--insert"]) || (has_query && !has_db);
+            if has_any(&["-i", "--dialect"]) && conn {
+                return err2(
+                    "The --dialect option is only valid when neither --db nor --query are specified.",
+                );
+            }
+            if ins && !conn {
+                return err2(
+                    "The --insert option is only valid when either --db or --query is specified.",
+                );
+            }
+            for opt in ["no-create", "create-if-not-exists", "overwrite"] {
+                if seen_flags.contains(&format!("--{opt}")) && !ins {
+                    return err2(&format!(
+                        "The --{opt} option is only valid if --insert is also specified."
+                    ));
+                }
+            }
+            if has_any(&["--overwrite"]) && has_any(&["--no-create"]) {
+                return err2("The --overwrite option is only valid if --no-create is not specified.");
+            }
+            for opt in ["before-insert", "after-insert", "chunk-size"] {
+                if seen_flags.contains(&format!("--{opt}")) && !ins {
+                    return err2(&format!(
+                        "The --{opt} option is only valid if --insert is also specified."
+                    ));
+                }
+            }
+            if has_any(&["--no-create"]) && has_any(&["--create-if-not-exists"]) {
+                return err2(
+                    "The --no-create and --create-if-not-exists options are mutually exclusive.",
+                );
+            }
+        }
+        _ => {}
+    }
+    None
+}
+
 fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut cols_spec: Option<String> = None;
     let mut not_cols_spec: Option<String> = None;
@@ -9855,9 +10485,9 @@ fn cmd_csvcut(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         );
     }
 
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvcut: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -10001,9 +10631,9 @@ fn cmd_csvgrep(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         );
     }
 
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvgrep: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -10252,9 +10882,9 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         );
     }
 
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvstat: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -10712,9 +11342,9 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
 
     let _ = no_leading_zeroes;
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvjson: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -11249,9 +11879,9 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     };
 
     if fmt == "xlsx" {
-        let raw_bytes = match read_csv_bytes_input(&files, stdin, cwd, fs) {
+        let raw_bytes = match read_csvkit_bytes_input(&files, stdin, cwd, fs) {
             Ok(b) => b,
-            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let entries = read_zip_entries_for_xlsx(&raw_bytes);
         let wb_xml = entries
@@ -11489,9 +12119,9 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         let one_based = specs.iter().all(|(_, st, _)| *st >= 1)
             && specs.iter().any(|(_, st, _)| *st == 1);
         let offset = if one_based { 1usize } else { 0usize };
-        let text = match read_csv_input(&files, stdin, cwd, fs) {
+        let text = match read_csvkit_input(&files, stdin, cwd, fs) {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let mut lines_iter = text.lines();
         for _ in 0..skip_lines {
@@ -11521,9 +12151,9 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     if fmt == "geojson" {
-        let text = match read_csv_input(&files, stdin, cwd, fs) {
+        let text = match read_csvkit_input(&files, stdin, cwd, fs) {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let vals = match parse_json_stream(&text) {
             Ok(v) => v,
@@ -11639,9 +12269,9 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     if fmt == "csv" {
-        let text = match read_csv_input(&files, stdin, cwd, fs) {
+        let text = match read_csvkit_input(&files, stdin, cwd, fs) {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
         if rows.is_empty() {
@@ -11656,9 +12286,9 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         return finish_rows(headers, data_rows);
     }
 
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("in2csv: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let vals = match parse_json_stream(&text) {
         Ok(v) => v,
@@ -11794,9 +12424,9 @@ fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         }
         i += 1;
     }
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvformat: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, in_delim, in_quote, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -11921,9 +12551,9 @@ fn cmd_csvlook(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         i += 1;
     }
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvlook: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -12223,7 +12853,7 @@ fn cmd_csvsql(
             }
         } else {
             for (idx, f) in files.iter().enumerate() {
-                let text = read_csv_input(std::slice::from_ref(f), stdin, cwd, fs)?;
+                let text = read_csvkit_input(std::slice::from_ref(f), stdin, cwd, fs)?;
                 let rows =
                     parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
                 if !rows.is_empty() {
@@ -12255,7 +12885,7 @@ fn cmd_csvsql(
         let db_path = sqlite_db_path_from_url(u, cwd);
         let input_tables = match load_input_tables() {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("csvsql: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let mut tables: BTreeMap<String, SqlTable> = BTreeMap::new();
         let mut views: BTreeMap<String, String> = BTreeMap::new();
@@ -12353,7 +12983,7 @@ fn cmd_csvsql(
         let sql = resolve_sql_arg(&raw_q);
         let input_tables = match load_input_tables() {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("csvsql: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let mut tables: BTreeMap<String, SqlTable> = BTreeMap::new();
         for (tname, hdr, data) in input_tables {
@@ -12407,7 +13037,7 @@ fn cmd_csvsql(
 
     let input_tables = match load_input_tables() {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvsql: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     if input_tables.is_empty() {
         return ok_out("");
@@ -12542,9 +13172,9 @@ fn cmd_csvclean(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     if !check_length && !check_empty && !fill_short && !join_short && !norm_header && !omit_err {
         check_length = true;
     }
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvclean: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -17854,9 +18484,9 @@ fn cmd_csvstack(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     let mut parsed_files: Vec<(usize, Vec<String>, Vec<Vec<String>>)> = Vec::new();
     let mut union_headers: Vec<String> = Vec::new();
     for (f_idx, f) in files.iter().enumerate() {
-        let text = match read_csv_input(std::slice::from_ref(f), stdin, cwd, fs) {
+        let text = match read_csvkit_input(std::slice::from_ref(f), stdin, cwd, fs) {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("csvstack: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
         if rows.is_empty() {
@@ -17974,14 +18604,14 @@ fn cmd_csvjoin(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         i += 1;
     }
-    if files.len() < 2 {
-        return ok_out("");
+    if files.is_empty() {
+        files.push("-".to_string());
     }
     let mut tables: Vec<(Vec<String>, Vec<Vec<String>>)> = Vec::new();
     for f in &files {
-        let text = match read_csv_input(std::slice::from_ref(f), stdin, cwd, fs) {
+        let text = match read_csvkit_input(std::slice::from_ref(f), stdin, cwd, fs) {
             Ok(t) => t,
-            Err(e) => return err_out(&format!("csvjoin: {e}"), 1),
+            Err(e) => return err_out(&e, 1),
         };
         let parsed = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
         if parsed.is_empty() {
@@ -26395,9 +27025,9 @@ fn cmd_csvsort(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         i += 1;
     }
-    let text = match read_csv_input(&files, stdin, cwd, fs) {
+    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
-        Err(e) => return err_out(&format!("csvsort: {e}"), 1),
+        Err(e) => return err_out(&e, 1),
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
@@ -27928,6 +28558,9 @@ fn cmd_html_to_markdown(
         if !literal && a == "--version" {
             return ok_out("html-to-markdown (safe-bash bounded HTML profile)\n");
         }
+        if a.contains('\0') {
+            return err_out("html-to-markdown: invalid or oversized argument\n", 2);
+        }
         if !literal && a.starts_with('-') && a != "-" {
             return err_out(&format!("html-to-markdown: unknown option: {a}\n"), 2);
         }
@@ -27955,9 +28588,26 @@ fn cmd_html_to_markdown(
             }
         } else {
             let full = resolve_posix_path(cwd, f);
+            if let Ok(meta) = fs.stat(&full)
+                && meta.kind == crate::vfs::VfsEntryKind::Directory
+            {
+                return err_out(
+                    &format!(
+                        "html-to-markdown: EISDIR: illegal operation on a directory, readStream '{full}'\n"
+                    ),
+                    1,
+                );
+            }
             match fs.read_file(&full) {
                 Ok(b) => String::from_utf8_lossy(&b).into_owned(),
-                Err(e) => return err_out(&format!("html-to-markdown: {f}: {e}\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!(
+                            "html-to-markdown: ENOENT: no such file or directory, readStream '{full}'\n"
+                        ),
+                        1,
+                    );
+                }
             }
         };
         total_in += html.len();
@@ -28354,13 +29004,21 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 
     let parse_pos_f64 = |val: &str, flag: &str| -> Result<f64, String> {
         if val.trim().is_empty() {
-            return Err(format!("mmdc: E_ARGUMENT: Invalid positive number '{val}' for {flag}\n"));
+            return Err(format!(
+                "mmdc: E_ARGUMENT: Option '{flag}' requires a positive number, got '{val}'\n"
+            ));
         }
         let n: f64 = val
             .parse()
-            .map_err(|_| format!("mmdc: E_ARGUMENT: Invalid positive number '{val}' for {flag}\n"))?;
+            .map_err(|_| {
+                format!(
+                    "mmdc: E_ARGUMENT: Option '{flag}' requires a positive number, got '{val}'\n"
+                )
+            })?;
         if !n.is_finite() || n <= 0.0 {
-            return Err(format!("mmdc: E_ARGUMENT: Invalid positive number '{val}' for {flag}\n"));
+            return Err(format!(
+                "mmdc: E_ARGUMENT: Option '{flag}' requires a positive number, got '{val}'\n"
+            ));
         }
         Ok(n)
     };
@@ -28384,7 +29042,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
         if matches!(
             arg.as_str(),
-            "-p" | "--puppeteerConfigFile" | "-C" | "--cssFile"
+            "-p" | "--puppeteerConfigFile" | "-C" | "--cssFile" | "--iconPacks" | "--iconPacksNamesAndUrls"
         ) {
             return err_out(
                 &format!("mmdc: E_ARGUMENT: Option '{arg}' (browser/CSS injection) is not supported\n"),
@@ -28411,7 +29069,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 
         if matches!(
             flag,
-            "-p" | "--puppeteerConfigFile" | "-C" | "--cssFile"
+            "-p" | "--puppeteerConfigFile" | "-C" | "--cssFile" | "--iconPacks" | "--iconPacksNamesAndUrls"
         ) {
             return err_out(
                 &format!("mmdc: E_ARGUMENT: Option '{flag}' (browser/CSS injection) is not supported\n"),
@@ -28779,18 +29437,46 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 1,
             );
         }
+        if let Ok(meta) = fs.stat(&out_full)
+            && meta.kind == crate::vfs::VfsEntryKind::Directory
+        {
+            return err_out("mmdc: E_IO: Output target must be a regular file\n", 1);
+        }
+        if fs.stat(&in_full).is_err() {
+            return err_out(
+                &format!("mmdc: E_IO: ENOENT: no such file or directory, realpath '{in_full}'\n"),
+                1,
+            );
+        }
     }
 
     let src_text = if input == "-" {
         stdin.to_string()
     } else {
         let full = resolve_posix_path(cwd, &input);
+        if let Ok(meta) = fs.stat(&full)
+            && meta.kind == crate::vfs::VfsEntryKind::Directory
+        {
+            return err_out(
+                &format!(
+                    "mmdc: E_IO: EISDIR: illegal operation on a directory, readFile '{full}'\n"
+                ),
+                1,
+            );
+        }
         match fs.read_file(&full) {
             Ok(b) => match String::from_utf8(b) {
                 Ok(s) => s,
                 Err(_) => return err_out("mmdc: E_SYNTAX: Diagram input is not valid UTF-8\n", 1),
             },
-            Err(_) => return err_out(&format!("mmdc: E_IO: input file not found: {input}\n"), 1),
+            Err(_) => {
+                return err_out(
+                    &format!(
+                        "mmdc: E_IO: ENOENT: no such file or directory, readFile '{full}'\n"
+                    ),
+                    1,
+                )
+            }
         }
     };
 
@@ -28888,7 +29574,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     ];
     if !VALID_HEADERS.contains(&first_word) {
         return err_out(
-            &format!("mmdc: E_SYNTAX: Unknown or unsupported diagram type '{first_word}'\n"),
+            &format!(
+                "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family '{first_word}'\n"
+            ),
             1,
         );
     }
@@ -28999,6 +29687,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
     } else {
         let full = resolve_posix_path(cwd, &output);
+        if fs.is_dir(&full) {
+            return err_out("mmdc: E_IO: Output target must be a regular file\n", 1);
+        }
         if fs.write_file(&full, &out_bytes).is_err() {
             return err_out(&format!("mmdc: E_IO: failed to write output '{output}'\n"), 1);
         }
@@ -31894,9 +32585,14 @@ fn recalc_workbook_sheet(sheet: &mut WorkbookSheet) {
 
 fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<Vec<WorkbookSheet>, String> {
     let full = resolve_posix_path(cwd, path);
+    if let Ok(meta) = fs.stat(&full)
+        && meta.kind == crate::vfs::VfsEntryKind::Directory
+    {
+        return Err(format!("E {path}: Is a directory\n"));
+    }
     let bytes = fs
         .read_file(&full)
-        .map_err(|_| format!("ssconvert: {path}: No such file or directory\n"))?;
+        .map_err(|_| format!("E {path}: No such file or directory\n"))?;
     let fname = path.rsplit('/').next().unwrap_or(path);
     let lower = fname.to_ascii_lowercase();
     if lower.ends_with(".xlsx") {
@@ -31972,23 +32668,60 @@ fn write_workbook_to_file(
 }
 
 fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    const SSCONVERT_HELP: &str = "Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n\nHelp Options:\n  -h, --help                         Show help options\n  --help-all                         Show all help options\n  --help-libspreadsheet              Show Gnumeric Options\n  --help-gtk                         Show GTK+ Options\n\nApplication Options:\n  --version                          Display program version\n  -v, --verbose                      Be somewhat more verbose during conversion\n  -E, --import-encoding=ENCODING     Optionally specify an encoding for imported content\n  -I, --import-type=ID               Optionally specify which importer to use\n  --list-importers                   List the available importers\n  -M, --merge-to=file                Merge listed files (all same format) to make this file\n  -T, --export-type=ID               Optionally specify which exporter to use\n  -O, --export-options=string        Detailed instructions for the chosen exporter\n  --list-exporters                   List the available exporters\n  -S, --export-file-per-sheet        Export a file for each sheet if the exporter only supports one sheet at a time\n  --export-graphs                    Export graphs\n  --list-image-formats               List the available image formats\n  --set                              Change the contents of a cell before writing --set A12=2\n  --recalc                           Recalculate all cells before writing the result\n  --display=DISPLAY                  X display to use\n\n";
+    const SSCONVERT_HELP_ALL: &str = "Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n\nHelp Options:\n  -h, --help                         Show help options\n  --help-all                         Show all help options\n  --help-libspreadsheet              Show Gnumeric Options\n  --help-gtk                         Show GTK+ Options\n\nGnumeric Options\n  --libspreadsheet-version           Display Gnumeric's version\n  -L, --lib-dir=DIR                  Set the root library directory\n  -D, --data-dir=DIR                 Adjust the root data directory\n\nGTK+ Options\n  --class=CLASS                      Program class as used by the window manager\n  --name=NAME                        Program name as used by the window manager\n  --gtk-module=MODULES               Load additional GTK+ modules\n  --g-fatal-warnings                 Make all warnings fatal\n\nApplication Options:\n  --version                          Display program version\n  -v, --verbose                      Be somewhat more verbose during conversion\n  -E, --import-encoding=ENCODING     Optionally specify an encoding for imported content\n  -I, --import-type=ID               Optionally specify which importer to use\n  --list-importers                   List the available importers\n  -M, --merge-to=file                Merge listed files (all same format) to make this file\n  -T, --export-type=ID               Optionally specify which exporter to use\n  -O, --export-options=string        Detailed instructions for the chosen exporter\n  --list-exporters                   List the available exporters\n  -S, --export-file-per-sheet        Export a file for each sheet if the exporter only supports one sheet at a time\n  --export-graphs                    Export graphs\n  --list-image-formats               List the available image formats\n  --set                              Change the contents of a cell before writing --set A12=2\n  --recalc                           Recalculate all cells before writing the result\n  --display=DISPLAY                  X display to use\n\n";
+    const SSCONVERT_HELP_LIBSPREADSHEET: &str = "Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n\nGnumeric Options\n  --libspreadsheet-version           Display Gnumeric's version\n  -L, --lib-dir=DIR                  Set the root library directory\n  -D, --data-dir=DIR                 Adjust the root data directory\n\n";
+    const SSCONVERT_HELP_GTK: &str = "Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n\nGTK+ Options\n  --class=CLASS                      Program class as used by the window manager\n  --name=NAME                        Program name as used by the window manager\n  --display=DISPLAY                  X display to use\n  --gtk-module=MODULES               Load additional GTK+ modules\n  --g-fatal-warnings                 Make all warnings fatal\n\n";
+    const SSCONVERT_EXPORT_OPTIONS_HELP: &str = "Export options (-O 'key=value ...'):\n  sheet=<name>             Export named worksheet (repeatable)\n  active-sheet=<name>      Select active worksheet\n  paper=A4|letter|legal|fit Paper size (Gnumeric_pdf:pdf_assistant)\n  orientation=portrait|landscape Page orientation (Gnumeric_pdf:pdf_assistant)\n  fit-width=<pages>        Fit sheet width to N pages (Gnumeric_pdf:pdf_assistant)\n  fit-height=<pages>       Fit sheet height to N pages (Gnumeric_pdf:pdf_assistant)\n  scale=<percent>          Explicit print scale percentage (Gnumeric_pdf:pdf_assistant)\n  object=<name>            Export named sheet object (Gnumeric_pdf:pdf_assistant)\n  separator=<char>         Field separator (Gnumeric_stf:stf_assistant)\n  quoting-mode=auto|always|never Quoting mode (Gnumeric_stf:stf_assistant)\n  format=automatic|raw|preserve Value formatting (Gnumeric_stf:stf_assistant)\n";
+
     let mut recalc = false;
     let mut split_sheets = false;
     let mut merge_to: Option<String> = None;
+    let mut export_type: Option<String> = None;
+    let mut export_options_val: Option<String> = None;
     let mut sep = ',';
     let mut positional: Vec<String> = Vec::new();
+    let mut options_active = true;
 
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
+        if a.contains('\0') {
+            return err_out(
+                "Arguments must not contain NUL\nRun 'ssconvert --help' to see a full list of available command line options.\n",
+                1,
+            );
+        }
+        if options_active && a == "--" {
+            options_active = false;
+            i += 1;
+            continue;
+        }
+        if !options_active || !a.starts_with('-') || a == "-" {
+            positional.push(a.clone());
+            i += 1;
+            continue;
+        }
         if a == "--version" {
             return ok_out(concat!(
                 "ssconvert version '1.12.61'\n",
                 "datadir := '/opt/ssconvert-reference/share/gnumeric/1.12.61'\n",
                 "libdir := '/opt/ssconvert-reference/lib/gnumeric/1.12.61'\n"
             ));
-        } else if a == "--help" || a == "-h" {
-            return ok_out("Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n");
+        } else if a == "--libspreadsheet-version" || a == "--lib-version" {
+            return ok_out(concat!(
+                "gnumeric version '1.12.61'\n",
+                "datadir := '/opt/ssconvert-reference/share/gnumeric/1.12.61'\n",
+                "libdir := '/opt/ssconvert-reference/lib/gnumeric/1.12.61'\n"
+            ));
+        } else if a == "--help" || a == "-h" || a == "-?" {
+            return ok_out(SSCONVERT_HELP);
+        } else if a == "--help-all" {
+            return ok_out(SSCONVERT_HELP_ALL);
+        } else if a == "--help-libspreadsheet" {
+            return ok_out(SSCONVERT_HELP_LIBSPREADSHEET);
+        } else if a == "--help-gtk" {
+            return ok_out(SSCONVERT_HELP_GTK);
         } else if a == "--list-exporters" {
             return BuiltinOutcome {
                 stdout: String::new(),
@@ -32054,20 +32787,63 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 .to_string(),
                 exit_code: 0,
             };
-        } else if a == "--recalc" {
-            recalc = true;
+        } else if a == "--recalc" || a == "--solve" || a == "-v" || a == "--verbose" || a == "--export-graphs" {
+            if a == "--recalc" {
+                recalc = true;
+            }
+            if a == "--export-graphs" {
+                split_sheets = true;
+            }
             i += 1;
         } else if a == "-S" || a == "--export-file-per-sheet" {
             split_sheets = true;
             i += 1;
-        } else if (a == "-M" || a == "--merge-to") && i + 1 < args.len() {
+        } else if a == "--g-fatal-warnings"
+            || a == "--gtk-module"
+            || a.starts_with("--gtk-module=")
+            || a == "--display"
+            || a.starts_with("--display=")
+            || a == "--class"
+            || a.starts_with("--class=")
+            || a == "--name"
+            || a.starts_with("--name=")
+        {
+            let feat = a
+                .trim_start_matches("--")
+                .split('=')
+                .next()
+                .unwrap_or("display");
+            if !a.contains('=') && a != "--g-fatal-warnings" && i + 1 >= args.len() {
+                return err_out(
+                    &format!("Missing argument for {a}\nRun 'ssconvert --help' to see a full list of available command line options.\n"),
+                    1,
+                );
+            }
+            return err_out(
+                &format!("Unsupported ssconvert feature: --{feat} (virtual runtime parity blocker)\n"),
+                1,
+            );
+        } else if a == "-M" || a == "--merge-to" {
+            if i + 1 >= args.len() {
+                return err_out(
+                    &format!("Missing argument for {a}\nRun 'ssconvert --help' to see a full list of available command line options.\n"),
+                    1,
+                );
+            }
             merge_to = Some(args[i + 1].clone());
             i += 2;
         } else if let Some(v) = a.strip_prefix("--merge-to=") {
             merge_to = Some(v.to_string());
             i += 1;
-        } else if (a == "-O" || a == "--export-options") && i + 1 < args.len() {
+        } else if a == "-O" || a == "--export-options" {
+            if i + 1 >= args.len() {
+                return err_out(
+                    &format!("Missing argument for {a}\nRun 'ssconvert --help' to see a full list of available command line options.\n"),
+                    1,
+                );
+            }
             let opts = &args[i + 1];
+            export_options_val = Some(opts.clone());
             for part in opts.split_whitespace() {
                 if let Some(s) = part.strip_prefix("separator=") {
                     if let Some(ch) = s.chars().next() {
@@ -32077,6 +32853,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             }
             i += 2;
         } else if let Some(opts) = a.strip_prefix("--export-options=").or_else(|| a.strip_prefix("-O")) {
+            export_options_val = Some(opts.to_string());
             for part in opts.split_whitespace() {
                 if let Some(s) = part.strip_prefix("separator=") {
                     if let Some(ch) = s.chars().next() {
@@ -32085,17 +32862,65 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 }
             }
             i += 1;
-        } else if (a == "-T" || a == "--export-type" || a == "-I" || a == "--import-type" || a == "-E" || a == "--import-encoding") && i + 1 < args.len() {
+        } else if matches!(
+            a.as_str(),
+            "-T" | "--export-type"
+                | "-I" | "--import-type"
+                | "-E" | "--import-encoding"
+                | "-L" | "--lib-dir"
+                | "-D" | "--data-dir"
+                | "--resize"
+                | "--clipboard"
+                | "--export-range"
+                | "--set"
+                | "--goal-seek"
+                | "--tool-test"
+        ) {
+            if i + 1 >= args.len() {
+                return err_out(
+                    &format!("Missing argument for {a}\nRun 'ssconvert --help' to see a full list of available command line options.\n"),
+                    1,
+                );
+            }
+            if a == "-T" || a == "--export-type" {
+                export_type = Some(args[i + 1].clone());
+            }
             i += 2;
-        } else if a.starts_with('-') && a.len() > 1 {
+        } else if let Some(v) = a.strip_prefix("--export-type=") {
+            export_type = Some(v.to_string());
+            i += 1;
+        } else if a.starts_with("--import-type=")
+            || a.starts_with("--import-encoding=")
+            || a.starts_with("--lib-dir=")
+            || a.starts_with("--data-dir=")
+            || a.starts_with("--resize=")
+            || a.starts_with("--clipboard=")
+            || a.starts_with("--export-range=")
+            || a.starts_with("--set=")
+        {
             i += 1;
         } else {
-            positional.push(a.clone());
-            i += 1;
+            return err_out(
+                &format!("Unknown option {a}\nRun 'ssconvert --help' to see a full list of available command line options.\n"),
+                1,
+            );
+        }
+    }
+
+    if split_sheets && merge_to.is_some() {
+        return err_out("--export-file-per-sheet and --merge-to are incompatible\n", 1);
+    }
+    if let Some(ref eopt) = export_options_val {
+        let q = eopt.trim().to_ascii_lowercase();
+        if q == "help" || q == "?" || q == "list" {
+            return ok_out(SSCONVERT_EXPORT_OPTIONS_HELP);
         }
     }
 
     if let Some(target_out) = merge_to {
+        if positional.len() < 2 {
+            return err_out("Usage: ssconvert [OPTION...] INFILE [OUTFILE]\n", 1);
+        }
         let mut all_sheets = Vec::new();
         for infile in &positional {
             match load_workbook_from_file(infile, cwd, fs) {
@@ -32116,8 +32941,17 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         return ok_out("");
     }
 
+    if positional.is_empty() || positional.len() > 2 {
+        return err_out("Usage: ssconvert [OPTION...] INFILE [OUTFILE]\n", 1);
+    }
     if positional.len() < 2 {
-        return err_out("Usage: ssconvert [OPTION?] INFILE [OUTFILE]\n", 1);
+        if export_type.is_none() {
+            return err_out(
+                "An output file name or an explicit export type is required.\nTry --list-exporters to see a list of possibilities.\n",
+                1,
+            );
+        }
+        return ok_out("");
     }
     let infile = &positional[0];
     let outfile = &positional[1];
@@ -33307,35 +34141,101 @@ fn hex_enc_bytes(bytes: &[u8]) -> String {
 }
 
 fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    const PANDOC_INPUT_FORMATS: &str = concat!(
+        "commonmark\ncommonmark_x\ncsv\ndocx\nepub\ngfm\nhtml\nhtml5\njson\nlatex\n",
+        "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
+        "md\nodt\npdf\npptx\nrst\nrtf\ntsv\nxlsx\n"
+    );
+    const PANDOC_OUTPUT_FORMATS: &str = concat!(
+        "commonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\n",
+        "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
+        "md\nodt\npdf\nplain\npptx\nrst\nrtf\n"
+    );
+    const PANDOC_HELP: &str = concat!(
+        "Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n",
+        "--from/--read/-f/-r --to/--write/-t/-w --output/-o PATH (use - for stdout) --yes --standalone[=true|false]/-s\n",
+        "--wrap=none|auto|preserve (auto/preserve: plain) --columns N (plain)\n",
+        "--number-sections/-N --toc (HTML standalone) --ascii (HTML)\n",
+        "--shift-heading-level-by -6..6 --strip-comments --eol=lf|crlf|native\n",
+        "--metadata/-M KEY[=VALUE] (bare KEY is true) --metadata-file FILE.json --lossy --fail-if-warnings\n",
+        "--defaults/-d FILE.yaml --template FILE --variable/-V KEY=VALUE --variable-json KEY:JSON\n",
+        "--include-in-header/-H FILE --include-before-body/-B FILE --include-after-body/-A FILE\n",
+        "--file-scope --sandbox (uses explicit VFS authority; no native sandbox guarantee)\n",
+        "--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n",
+        "--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n",
+        "--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\n",
+        "PDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n",
+        "--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n",
+        "--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version/-v\n",
+        "--list-highlight-languages --list-highlight-styles --print-highlight-style STYLE\n",
+        "--print-default-template/-D html|html5 --print-default-data-file abbreviations --completion bash --bash-completion\n",
+        "Use -- before literal filenames. No external PDF engines, ambient fonts, filters or network fetching.\n",
+        "Capabilities (available directions):\n",
+        "Input formats:\n",
+        "commonmark\ncommonmark_x\ncsv\ndocx\nepub\ngfm\nhtml\nhtml5\njson\nlatex\n",
+        "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
+        "md\nodt\npdf\npptx\nrst\nrtf\ntsv\nxlsx\n",
+        "Output formats:\n",
+        "commonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\n",
+        "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
+        "md\nodt\npdf\nplain\npptx\nrst\nrtf\n"
+    );
+
+    if args.iter().any(|a| a.contains('\0')) {
+        return err_out("E_OPTION: Arguments must be valid UTF-8 without NUL\n", 2);
+    }
     if let Some(first) = args.first() {
         if first == "--version" || first == "-v" {
+            if args.len() != 1 {
+                return err_out("E_OPTION: Use --version alone\n", 2);
+            }
             return ok_out("pandoc TypeScript converter 0.0.1 (original bounded implementation)\n");
         }
         if first == "--help" || first == "-h" {
-            return ok_out("Usage: pandoc -f FORMAT -t FORMAT [OPTIONS] [FILE|- ...]\n");
-        }
-        if first == "--list-input-formats" {
-            return ok_out(concat!(
-                "commonmark\ncommonmark_x\ncsv\ndocx\nepub\ngfm\nhtml\nhtml5\njson\nlatex\n",
-                "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
-                "md\nodt\npdf\npptx\nrst\nrtf\ntsv\nxlsx\n"
-            ));
-        }
-        if first == "--list-output-formats" {
-            return ok_out(concat!(
-                "commonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\n",
-                "markdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\n",
-                "md\nodt\npdf\nplain\npptx\nrst\nrtf\n"
-            ));
-        }
-        if first == "--list-extensions" || first.starts_with("--list-extensions=") {
-            return ok_out("+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n");
+            if !args.iter().all(|a| a == "--help" || a == "-h") {
+                return err_out("E_OPTION: Use help flags alone\n", 2);
+            }
+            return ok_out(PANDOC_HELP);
         }
         if first == "--list-highlight-languages" {
             return ok_out("abc\nada\nawk\nbash\nc\ncpp\ncss\ndiff\ngo\nhtml\njava\njavascript\njson\nkotlin\nlatex\nlua\nmakefile\nmarkdown\nperl\nphp\npython\nr\nruby\nrust\nscala\nsed\nsql\nswift\ntoml\ntypescript\nxml\nyaml\nzig\nzsh\n");
         }
         if first == "--list-highlight-styles" {
             return ok_out("pygments\ntango\nespresso\nzenburn\nkate\nmonochrome\nbreezedark\nhaddock\n");
+        }
+        if first.starts_with("--list-") {
+            if (args.len() == 2 && first == "--list-extensions")
+                || (args.len() == 1 && first.starts_with("--list-extensions="))
+            {
+                return ok_out("+autolink_bare_uris\n+pipe_tables\n+raw_html\n+strikeout\n+task_lists\n");
+            }
+            let mut want_in = false;
+            let mut want_out = false;
+            for a in args {
+                if a == "--list-input-formats" {
+                    want_in = true;
+                } else if a == "--list-output-formats" {
+                    want_out = true;
+                } else {
+                    return err_out(
+                        "E_OPTION: Use format listing flags alone, or --list-extensions FORMAT\n",
+                        2,
+                    );
+                }
+            }
+            if want_in && want_out {
+                return ok_out(&format!(
+                    "Input formats:\n{PANDOC_INPUT_FORMATS}Output formats:\n{PANDOC_OUTPUT_FORMATS}"
+                ));
+            } else if want_in {
+                return ok_out(PANDOC_INPUT_FORMATS);
+            } else if want_out {
+                return ok_out(PANDOC_OUTPUT_FORMATS);
+            }
+            return err_out(
+                "E_OPTION: Use format listing flags alone, or --list-extensions FORMAT\n",
+                2,
+            );
         }
     }
 
@@ -33376,6 +34276,9 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             out_path = Some(v.to_string());
             i += 1;
         } else if a == "-s" || a == "--standalone" || a == "--standalone=true" {
+            if standalone {
+                return err_out(&format!("E_OPTION: Repeated option: {a}\n"), 2);
+            }
             standalone = true;
             i += 1;
         } else if a == "--toc" || a == "--table-of-contents" {
@@ -33398,16 +34301,38 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             i += 1;
         } else if (a == "-M" || a == "--metadata") && i + 1 < args.len() {
             let kv = &args[i + 1];
+            if kv.is_empty() || kv.starts_with('=') || kv.starts_with(':') {
+                return err_out("E_OPTION: Metadata requires a key\n", 2);
+            }
             if let Some((k, v)) = kv.split_once('=').or_else(|| kv.split_once(':')) {
+                if (v.starts_with('{') || v.starts_with('[') || v.starts_with('"'))
+                    && parse_json_stream(v).is_err()
+                {
+                    return err_out("E_OPTION: Invalid JSON metadata value\n", 2);
+                }
                 meta.insert(k.trim().to_string(), v.trim().to_string());
             }
             i += 2;
         } else if let Some(kv) = a.strip_prefix("--metadata=").or_else(|| a.strip_prefix("-M")) {
+            if kv.is_empty() || kv.starts_with('=') || kv.starts_with(':') {
+                return err_out("E_OPTION: Metadata requires a key\n", 2);
+            }
             if let Some((k, v)) = kv.split_once('=').or_else(|| kv.split_once(':')) {
+                if (v.starts_with('{') || v.starts_with('[') || v.starts_with('"'))
+                    && parse_json_stream(v).is_err()
+                {
+                    return err_out("E_OPTION: Invalid JSON metadata value\n", 2);
+                }
                 meta.insert(k.trim().to_string(), v.trim().to_string());
             }
             i += 1;
         } else if a == "--metadata-file" && i + 1 < args.len() {
+            if !args[i + 1].ends_with(".json") {
+                return err_out(
+                    "E_OPTION: Metadata files must use .json; YAML is unsupported\n",
+                    2,
+                );
+            }
             let mfull = resolve_posix_path(cwd, &args[i + 1]);
             if let Ok(bytes) = fs.read_file(&mfull)
                 && let Some(JVal::Object(obj)) = parse_json_stream(&String::from_utf8_lossy(&bytes)).ok().and_then(|v| v.into_iter().next())
@@ -33420,6 +34345,12 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             }
             i += 2;
         } else if let Some(mf) = a.strip_prefix("--metadata-file=") {
+            if !mf.ends_with(".json") {
+                return err_out(
+                    "E_OPTION: Metadata files must use .json; YAML is unsupported\n",
+                    2,
+                );
+            }
             let mfull = resolve_posix_path(cwd, mf);
             if let Ok(bytes) = fs.read_file(&mfull)
                 && let Some(JVal::Object(obj)) = parse_json_stream(&String::from_utf8_lossy(&bytes)).ok().and_then(|v| v.into_iter().next())
@@ -33458,8 +34389,75 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         } else if a == "--epub-title" && i + 1 < args.len() {
             meta.insert("title".to_string(), args[i + 1].clone());
             i += 2;
-        } else if a.starts_with('-') && a != "-" {
+        } else if let Some(w) = a.strip_prefix("--wrap=") {
+            if !matches!(w, "none" | "auto" | "preserve") {
+                return err_out("E_OPTION: Invalid wrap policy\n", 2);
+            }
             i += 1;
+        } else if a == "--wrap" && i + 1 < args.len() {
+            if !matches!(args[i + 1].as_str(), "none" | "auto" | "preserve") {
+                return err_out("E_OPTION: Invalid wrap policy\n", 2);
+            }
+            i += 2;
+        } else if let Some(rc) = a.strip_prefix("--raw-content=") {
+            if !matches!(rc, "reject" | "escape" | "retain") {
+                return err_out("E_OPTION: Invalid raw-content policy\n", 2);
+            }
+            i += 1;
+        } else if a == "--raw-content" && i + 1 < args.len() {
+            if !matches!(args[i + 1].as_str(), "reject" | "escape" | "retain") {
+                return err_out("E_OPTION: Invalid raw-content policy\n", 2);
+            }
+            i += 2;
+        } else if matches!(
+            a.as_str(),
+            "--lossy"
+                | "--fail-if-warnings"
+                | "--yes"
+                | "--file-scope"
+                | "--sandbox"
+                | "--citeproc"
+                | "-C"
+        ) || a.starts_with("--eol=")
+            || a.starts_with("--columns=")
+            || a.starts_with("--resource-path=")
+            || a.starts_with("--extract-media=")
+            || a.starts_with("--pdf-")
+            || a.starts_with("--epub-")
+            || a.starts_with("--variable=")
+            || a.starts_with("-V")
+        {
+            i += 1;
+        } else if matches!(
+            a.as_str(),
+            "--eol"
+                | "--columns"
+                | "--resource-path"
+                | "--extract-media"
+                | "--filter"
+                | "-F"
+                | "--lua-filter"
+                | "-L"
+                | "--defaults"
+                | "-d"
+                | "--template"
+                | "--variable"
+                | "--variable-json"
+                | "--pdf-page-size"
+                | "--pdf-orientation"
+                | "--pdf-margin"
+                | "--pdf-font"
+                | "--pdf-font-size"
+                | "--pdf-line-height"
+                | "--epub-language"
+                | "--epub-identifier"
+                | "--epub-chapter-level"
+        ) && i + 1 < args.len()
+        {
+            i += 2;
+        } else if a.starts_with('-') && a != "-" {
+            let name = a.split('=').next().unwrap_or(a.as_str());
+            return err_out(&format!("E_OPTION: Unsupported option: {name}\n"), 2);
         } else {
             files.push(a.clone());
             i += 1;
@@ -33505,6 +34503,51 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         s.split(['+', '-']).next().unwrap_or(s).to_ascii_lowercase()
     };
 
+    const VALID_PANDOC_IN: &[&str] = &[
+        "commonmark", "commonmark_x", "csv", "docx", "epub", "gfm", "html", "html5", "json",
+        "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra",
+        "markdown_strict", "md", "odt", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx", "plain",
+    ];
+    const VALID_PANDOC_OUT: &[&str] = &[
+        "commonmark", "commonmark_x", "docx", "epub", "epub3", "gfm", "html", "html5", "json",
+        "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra",
+        "markdown_strict", "md", "odt", "pdf", "plain", "pptx", "rst", "rtf",
+    ];
+
+    if let Some(ref f_raw) = from_fmt {
+        let cleaned = clean_fmt(f_raw);
+        if !VALID_PANDOC_IN.contains(&cleaned.as_str()) {
+            return err_out(&format!("E_FORMAT: Unsupported read format: {cleaned}\n"), 2);
+        }
+    }
+    if let Some(ref t_raw) = to_fmt {
+        let cleaned = clean_fmt(t_raw);
+        if !VALID_PANDOC_OUT.contains(&cleaned.as_str()) {
+            return err_out(&format!("E_FORMAT: Unsupported write format: {cleaned}\n"), 2);
+        }
+    } else if let Some(ref op) = out_path
+        && op != "-"
+    {
+        let inferred = infer_fmt(op);
+        if let Some(ref inf) = inferred {
+            if !VALID_PANDOC_OUT.contains(&inf.as_str()) {
+                return err_out(&format!("E_FORMAT: Unknown or ambiguous suffix: {op}\n"), 2);
+            }
+        } else if op.rsplit('/').next().unwrap_or(op).contains('.') {
+            return err_out(&format!("E_FORMAT: Unknown or ambiguous suffix: {op}\n"), 2);
+        }
+    }
+    if let Some(ref op) = out_path
+        && op != "-"
+    {
+        let out_full = resolve_posix_path(cwd, op);
+        for f in &files {
+            if f != "-" && resolve_posix_path(cwd, f) == out_full {
+                return err_out("E_IO: Input and output alias\n", 9);
+            }
+        }
+    }
+
     let in_fmt = from_fmt
         .as_deref()
         .map(clean_fmt)
@@ -33525,9 +34568,14 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 buf.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
             } else {
                 let full = resolve_posix_path(cwd, f);
+                if let Ok(meta) = fs.stat(&full)
+                    && meta.kind == crate::vfs::VfsEntryKind::Directory
+                {
+                    return err_out("E_IO: Capability failed\n", 9);
+                }
                 match fs.read_file(&full) {
                     Ok(b) => buf.extend_from_slice(&b),
-                    Err(e) => return err_out(&format!("pandoc: {f}: {e}\n"), 1),
+                    Err(_) => return err_out("E_IO: Capability failed\n", 9),
                 }
             }
         }
@@ -33841,7 +34889,7 @@ fn parse_ast_grep_options(args: &[String]) -> Result<AstGrepOptions, String> {
                 "pretty".to_string()
             };
             if !matches!(v.as_str(), "pretty" | "compact" | "stream") {
-                return Err("invalid json mode".to_string());
+                return Err("invalid JSON format".to_string());
             }
             out.json = Some(v);
         } else if key == "--heading" {
@@ -37302,5 +38350,57 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let mdq_dir = try_run_structured_command("mdq", &args(&["#", "/work/sub"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(mdq_dir.exit_code, 1);
         assert_eq!(mdq_dir.stderr, "is a directory while reading file \"/work/sub\"\n");
+    }
+
+    #[test]
+    fn test_structured_html2md_unrtf_mmdc_ssconvert_pandoc_astgrep_csvkit_diagnostics() {
+        let vfs = MemoryVfs::new();
+        let env = BTreeMap::new();
+        vfs.mkdir_all("/work/sub").unwrap();
+        vfs.write_file("/work/a.csv", b"id,name\n1,Ada\n2,Grace\n").unwrap();
+
+        let h2m_missing = try_run_structured_command("html-to-markdown", &args(&["missing.html"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(h2m_missing.exit_code, 1);
+        assert_eq!(h2m_missing.stderr, "html-to-markdown: ENOENT: no such file or directory, readStream '/work/missing.html'\n");
+
+        let unrtf_missing = try_run_structured_command("unrtf", &args(&["missing"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(unrtf_missing.exit_code, 1);
+        assert_eq!(unrtf_missing.stderr, "unrtf: ENOENT: ENOENT: no such file or directory, readStream '/work/missing.rtf'\n");
+
+        let mmdc_width = try_run_structured_command("mmdc", &args(&["-w", "0"]), "graph TD; A-->B;", "/work", &env, &vfs).unwrap();
+        assert_eq!(mmdc_width.exit_code, 2);
+        assert_eq!(mmdc_width.stderr, "mmdc: E_ARGUMENT: Option '-w' requires a positive number, got '0'\n");
+
+        let ss_libver = try_run_structured_command("ssconvert", &args(&["--libspreadsheet-version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ss_libver.exit_code, 0);
+        assert!(ss_libver.stdout.contains("gnumeric version '1.12.61'"));
+
+        let ss_single = try_run_structured_command("ssconvert", &args(&["in.csv"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(ss_single.exit_code, 1);
+        assert!(ss_single.stderr.contains("An output file name or an explicit export type is required."));
+
+        let pandoc_alias = try_run_structured_command("pandoc", &args(&["a.md", "-o", "a.md"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(pandoc_alias.exit_code, 9);
+        assert_eq!(pandoc_alias.stderr, "E_IO: Input and output alias\n");
+
+        let sg_json = try_run_structured_command("ast-grep", &args(&["--pattern", "$A", "--json=bad"]), "x = 1\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(sg_json.exit_code, 2);
+        assert_eq!(sg_json.stderr, "ast-grep: invalid JSON format\n");
+
+        let csv_ver = try_run_structured_command("csvcut", &args(&["--version"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(csv_ver.exit_code, 0);
+        assert_eq!(csv_ver.stdout, "csvcut 2.2.0\n");
+
+        let csv_grep_col = try_run_structured_command("csvgrep", &args(&["/work/a.csv"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(csv_grep_col.exit_code, 2);
+        assert!(csv_grep_col.stderr.contains("You must specify at least one column to search using the -c option."));
+
+        let csv_grep_req = try_run_structured_command("csvgrep", &args(&["-c", "1", "/work/a.csv"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(csv_grep_req.exit_code, 2);
+        assert!(csv_grep_req.stderr.contains("One of -r, -m or -f must be specified"));
+
+        let csv_join_single = try_run_structured_command("csvjoin", &args(&["/work/a.csv"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(csv_join_single.exit_code, 0);
+        assert_eq!(csv_join_single.stdout, "id,name\n1,Ada\n2,Grace\n");
     }
 }

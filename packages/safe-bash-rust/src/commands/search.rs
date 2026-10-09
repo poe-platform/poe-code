@@ -2808,7 +2808,9 @@ fn cmd_grep(
                         in_bracket = false;
                         out.push(']');
                         k += 1;
-                    } else if !in_bracket && (chs[k] == '(' || chs[k] == ')') {
+                    } else if !in_bracket
+                        && matches!(chs[k], '(' | ')' | '+' | '?' | '{' | '}' | '|')
+                    {
                         out.push('[');
                         out.push(chs[k]);
                         out.push(']');

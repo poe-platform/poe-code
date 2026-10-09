@@ -366,6 +366,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-iconv-dos2unix-unix2dos-getopt-shuf-expand-unexpand-fold-parity-matrix.test.ts",
   "obscure-apply-patch-diff-diff3-patch-cmp-wdiff-parity-matrix.test.ts",
   "obscure-fmt-pr-column-nl-paste-comm-cut-tr-parity-matrix.test.ts",
+  "obscure-join-tsort-sponge-envsubst-tac-rev-cat-head-tail-wc-tee-sort-uniq-parity-matrix.test.ts",
   "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
   "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
   "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",

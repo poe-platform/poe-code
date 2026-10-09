@@ -294,6 +294,7 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut flag_e_ends = false;
     let mut flag_t_tabs = false;
     let mut flag_v = false;
+    let mut flag_help = false;
     let mut files = Vec::new();
     let mut opts_done = false;
 
@@ -303,7 +304,8 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             continue;
         }
         if !opts_done && arg == "--help" {
-            return ok_out("Usage: cat [OPTION]... [FILE]...\n");
+            flag_help = true;
+            continue;
         }
         if !opts_done && arg.starts_with("--") {
             match arg.as_str() {
@@ -353,6 +355,12 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
     }
 
+    if flag_help {
+        return ok_out(
+            "Usage: cat [OPTION]... [FILE]...\nConcatenate FILEs to standard output. With no FILE, or FILE -, read standard input.\n\n  -n, --number             Number all output lines\n  -b, --number-nonblank    Number nonempty output lines (overrides -n)\n  -s, --squeeze-blank      Suppress repeated empty output lines\n  -E, --show-ends          Display $ at each line end\n  -T, --show-tabs          Display TAB characters as ^I\n  -v, --show-nonprinting   Display nonprinting characters\n  -A, --show-all           Equivalent to -vET\n  -e                      Equivalent to -vE\n  -t                      Equivalent to -vT\n  -u                      Accepted for compatibility; ignored\n      --help              Display this help and exit\n      --                  End options; remaining arguments are filenames\n",
+        );
+    }
+
     let mut raw_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
@@ -369,14 +377,18 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if let Ok(st) = fs.stat(&p)
                 && st.kind == crate::vfs::VfsEntryKind::Directory
             {
-                stderr.push_str(&format!("cat: {f}: Is a directory\n"));
+                stderr.push_str(&format!(
+                    "cat: EISDIR: illegal operation on a directory, readStream '{p}'\n"
+                ));
                 exit_code = 1;
                 continue;
             }
             match fs.read_file(&p) {
                 Ok(bytes) => raw_bytes.extend_from_slice(&bytes),
-                Err(e) => {
-                    stderr.push_str(&format!("cat: {f}: {e}\n"));
+                Err(_) => {
+                    stderr.push_str(&format!(
+                        "cat: ENOENT: no such file or directory, readStream '{p}'\n"
+                    ));
                     exit_code = 1;
                 }
             }
@@ -757,21 +769,27 @@ fn run_head_or_tail(
             match fs.stat(&p) {
                 Ok(st) => {
                     if st.kind == crate::vfs::VfsEntryKind::Directory {
-                        stderr.push_str(&format!("{name}: {file}: Is a directory\n"));
+                        stderr.push_str(&format!(
+                            "{name}: EISDIR: illegal operation on a directory '{p}'\n"
+                        ));
                         exit_code = 1;
                         continue;
                     }
                 }
-                Err(e) => {
-                    stderr.push_str(&format!("{name}: {file}: {e}\n"));
+                Err(_) => {
+                    stderr.push_str(&format!(
+                        "{name}: ENOENT: no such file or directory, stat '{p}'\n"
+                    ));
                     exit_code = 1;
                     continue;
                 }
             }
             match fs.read_file(&p) {
                 Ok(b) => b,
-                Err(e) => {
-                    stderr.push_str(&format!("{name}: {file}: {e}\n"));
+                Err(_) => {
+                    stderr.push_str(&format!(
+                        "{name}: ENOENT: no such file or directory, stat '{p}'\n"
+                    ));
                     exit_code = 1;
                     continue;
                 }
@@ -979,9 +997,20 @@ fn cmd_wc(
             stream_string_to_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f0);
+            if fs.is_dir(&p) {
+                return err_out(
+                    &format!("wc: EISDIR: illegal operation on a directory, readFile '{p}'\n"),
+                    1,
+                );
+            }
             match fs.read_file(&p) {
                 Ok(b) => b,
-                Err(e) => return err_out(&format!("wc: {f0}: {e}\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("wc: ENOENT: no such file or directory, readFile '{p}'\n"),
+                        1,
+                    );
+                }
             }
         };
         let f_text = String::from_utf8_lossy(&f_bytes);
@@ -1222,7 +1251,9 @@ fn cmd_wc(
             let p = resolve_posix_path(cwd, name);
             match fs.stat(&p) {
                 Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {
-                    stderr.push_str(&format!("wc: {name}: Is a directory\n"));
+                    stderr.push_str(&format!(
+                        "wc: EISDIR: illegal operation on a directory, readStream '{p}'\n"
+                    ));
                     exit_code = 1;
                     if total_mode != "only" {
                         out.push_str(&format_counts(0, 0, 0, 0, 0, label));
@@ -1231,7 +1262,7 @@ fn cmd_wc(
                 }
                 _ => {}
             }
-            fs.read_file(&p)
+            fs.read_file(&p).map_err(|_| p)
         };
         match raw_res {
             Ok(bytes) => {
@@ -1245,8 +1276,10 @@ fn cmd_wc(
                     out.push_str(&format_counts(l, w, m, c, max_l, label));
                 }
             }
-            Err(e) => {
-                stderr.push_str(&format!("wc: {name}: {e}\n"));
+            Err(p) => {
+                stderr.push_str(&format!(
+                    "wc: ENOENT: no such file or directory, readStream '{p}'\n"
+                ));
                 exit_code = 1;
             }
         }
@@ -1667,11 +1700,12 @@ fn parse_sort_key(specification: &str) -> Result<SortKey, String> {
         if *offset == begin {
             return Err(format!("sort: invalid key '{specification}'\n"));
         }
-        let val = specification[begin..*offset]
+        let raw = &specification[begin..*offset];
+        let val = raw
             .parse::<usize>()
-            .map_err(|_| format!("sort: invalid key '{specification}'\n"))?;
+            .map_err(|_| format!("sort: invalid number '{raw}'\n"))?;
         if val < min_val {
-            return Err(format!("sort: invalid key '{specification}'\n"));
+            return Err(format!("sort: invalid number '{raw}'\n"));
         }
         Ok(val)
     };
@@ -1858,7 +1892,7 @@ fn cmd_sort(
                 flags.insert('z');
             } else if a == "--field-separator" {
                 if i + 1 >= args.len() {
-                    return err_out("sort: option requires an argument -- 't'\n", 2);
+                    return err_out("sort: option '--field-separator' requires an argument\n", 2);
                 }
                 raw_sep = Some(args[i + 1].clone());
                 i += 1;
@@ -1866,7 +1900,7 @@ fn cmd_sort(
                 raw_sep = Some(v.to_string());
             } else if a == "--key" {
                 if i + 1 >= args.len() {
-                    return err_out("sort: option requires an argument -- 'k'\n", 2);
+                    return err_out("sort: option '--key' requires an argument\n", 2);
                 }
                 key_specs.push(args[i + 1].clone());
                 i += 1;
@@ -1874,7 +1908,7 @@ fn cmd_sort(
                 key_specs.push(v.to_string());
             } else if a == "--output" {
                 if i + 1 >= args.len() {
-                    return err_out("sort: option requires an argument -- 'o'\n", 2);
+                    return err_out("sort: option '--output' requires an argument\n", 2);
                 }
                 out_file = Some(args[i + 1].clone());
                 i += 1;
@@ -1996,7 +2030,12 @@ fn cmd_sort(
             .count();
         let nontextual = ['g', 'h', 'M', 'n'].iter().any(|f| fset.contains(f));
         if mode_count > 1 || (nontextual && (fset.contains(&'d') || fset.contains(&'i'))) {
-            return Err("sort: incompatible sort options\n".to_string());
+            let mut order = vec!['d', 'g', 'h', 'i', 'M', 'n'];
+            if mode_count > 1 {
+                order.push('V');
+            }
+            let incompatible: String = order.into_iter().filter(|f| fset.contains(f)).collect();
+            return Err(format!("sort: options '-{incompatible}' are incompatible\n"));
         }
         Ok(())
     };
@@ -2028,11 +2067,19 @@ fn cmd_sort(
         } else {
             let path = resolve_posix_path(cwd, name);
             if fs.is_dir(&path) {
-                return err_out(&format!("sort: read failed: {name}: Is a directory\n"), 2);
+                return err_out(
+                    &format!("sort: EISDIR: illegal operation on a directory, readStream '{path}'\n"),
+                    2,
+                );
             }
             match fs.read_file(&path) {
                 Ok(b) => b,
-                Err(e) => return err_out(&format!("sort: cannot read: {name}: {e}\n"), 2),
+                Err(_) => {
+                    return err_out(
+                        &format!("sort: ENOENT: no such file or directory, readStream '{path}'\n"),
+                        2,
+                    );
+                }
             }
         };
         if raw.is_empty() {
@@ -2222,8 +2269,18 @@ fn cmd_sort(
 
     if let Some(ref of) = out_file {
         let dest = resolve_posix_path(cwd, of);
-        if let Err(e) = fs.write_file(&dest, &out_bytes) {
-            return err_out(&format!("sort: open failed: {of}: {e}\n"), 2);
+        if fs.is_dir(&dest) {
+            return err_out(
+                &format!("sort: EISDIR: illegal operation on a directory, writeStream '{dest}'\n"),
+                2,
+            );
+        }
+        let parent = dirname_posix_path(&dest);
+        if !fs.is_dir(&parent) || fs.write_file(&dest, &out_bytes).is_err() {
+            return err_out(
+                &format!("sort: ENOENT: no such file or directory, writeStream '{dest}'\n"),
+                2,
+            );
         }
         return ok_out("");
     }
@@ -2252,12 +2309,12 @@ fn cmd_uniq(
     let mut opts_done = false;
     let mut i = 0usize;
 
-    let parse_nonneg = |val: &str, label: &str| -> Result<usize, String> {
+    let parse_nonneg = |val: &str, _label: &str| -> Result<usize, String> {
         if val.is_empty() || !val.bytes().all(|b| b.is_ascii_digit()) {
-            return Err(format!("uniq: invalid {label}: '{val}'\n"));
+            return Err(format!("uniq: invalid number '{val}'\n"));
         }
         val.parse::<usize>()
-            .map_err(|_| format!("uniq: invalid {label}: '{val}'\n"))
+            .map_err(|_| format!("uniq: invalid number '{val}'\n"))
     };
 
     while i < args.len() {
@@ -2395,10 +2452,16 @@ fn cmd_uniq(
     if operands.len() > 2 {
         return err_out(&format!("uniq: extra operand '{}'\n", operands[2]), 2);
     }
-    if operands.len() == 2 && operands[0] != "-" && operands[1] != "-" {
+    if operands.len() == 2 && operands[0] != "-" {
         let src = resolve_posix_path(cwd, &operands[0]);
+        if !fs.exists(&src) {
+            return err_out(
+                &format!("uniq: ENOENT: no such file or directory, stat '{src}'\n"),
+                1,
+            );
+        }
         let dst = resolve_posix_path(cwd, &operands[1]);
-        if src == dst && fs.exists(&src) {
+        if operands[1] != "-" && src == dst && fs.exists(&src) {
             return err_out("uniq: input and output must be different files\n", 2);
         }
     }
@@ -2409,11 +2472,19 @@ fn cmd_uniq(
     } else {
         let path = resolve_posix_path(cwd, in_name);
         if fs.is_dir(&path) {
-            return err_out(&format!("uniq: {in_name}: Is a directory\n"), 1);
+            return err_out(
+                &format!("uniq: EISDIR: illegal operation on a directory, readStream '{path}'\n"),
+                1,
+            );
         }
         match fs.read_file(&path) {
             Ok(b) => b,
-            Err(e) => return err_out(&format!("uniq: {in_name}: {e}\n"), 1),
+            Err(_) => {
+                return err_out(
+                    &format!("uniq: ENOENT: no such file or directory, readStream '{path}'\n"),
+                    1,
+                );
+            }
         }
     };
 
@@ -2548,8 +2619,18 @@ fn cmd_uniq(
         && out_name != "-"
     {
         let dst = resolve_posix_path(cwd, out_name);
-        if let Err(e) = fs.write_file(&dst, &out_bytes) {
-            return err_out(&format!("uniq: {out_name}: {e}\n"), 1);
+        if fs.is_dir(&dst) {
+            return err_out(
+                &format!("uniq: EISDIR: illegal operation on a directory, writeStream '{dst}'\n"),
+                1,
+            );
+        }
+        let parent = dirname_posix_path(&dst);
+        if !fs.is_dir(&parent) || fs.write_file(&dst, &out_bytes).is_err() {
+            return err_out(
+                &format!("uniq: ENOENT: no such file or directory, writeStream '{dst}'\n"),
+                1,
+            );
         }
         return ok_out("");
     }
@@ -3760,7 +3841,13 @@ fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else if a == "-r" || a == "--regex" {
             regex_mode = true;
             i += 1;
-        } else if (a == "-s" || a == "--separator") && i + 1 < args.len() {
+        } else if a == "-s" || a == "--separator" {
+            if i + 1 >= args.len() {
+                if a == "-s" {
+                    return err_out("tac: option requires an argument -- 's'\n", 1);
+                }
+                return err_out("tac: option '--separator' requires an argument\n", 1);
+            }
             sep = Some(args[i + 1].clone());
             i += 2;
         } else if let Some(rest) = a.strip_prefix("--separator=") {
@@ -3813,19 +3900,28 @@ fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         files
     };
     let mut out_bytes: Vec<u8> = Vec::new();
+    let mut stderr = String::new();
+    let mut exit_code = 0;
     for f in &targets {
         let bytes = if f == "-" {
             crate::vfs::stream_string_to_bytes(stdin)
         } else {
             let full = resolve_posix_path(cwd, f);
+            if fs.is_dir(&full) {
+                stderr.push_str(&format!(
+                    "tac: EISDIR: illegal operation on a directory '{full}'\n"
+                ));
+                exit_code = 1;
+                continue;
+            }
             match fs.read_file(&full) {
                 Ok(b) => b,
-                Err(e) => {
-                    return BuiltinOutcome {
-                        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
-                        stderr: format!("tac: {f}: {e}\n"),
-                        exit_code: 1,
-                    };
+                Err(_) => {
+                    stderr.push_str(&format!(
+                        "tac: ENOENT: no such file or directory, stat '{full}'\n"
+                    ));
+                    exit_code = 1;
+                    continue;
                 }
             }
         };
@@ -3891,7 +3987,11 @@ fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             out_bytes.extend_from_slice(&bytes[0..end]);
         }
     }
-    ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+    BuiltinOutcome {
+        stdout: crate::vfs::bytes_to_stream_string(&out_bytes),
+        stderr,
+        exit_code,
+    }
 }
 
 fn cmd_rev(
@@ -3902,18 +4002,25 @@ fn cmd_rev(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let mut files = Vec::new();
+    let mut opts_done = false;
     let mut i = 0usize;
     while i < args.len() {
         let a = &args[i];
-        if a == "--" {
-            files.extend(args[i + 1..].iter().cloned());
-            break;
-        } else if !a.starts_with('-') || a == "-" {
-            files.push(a.clone());
+        if !opts_done && a == "--" {
+            opts_done = true;
             i += 1;
-        } else {
-            return err_out(&format!("rev: invalid option -- '{}'\n", &a[1..]), 1);
+            continue;
         }
+        if !opts_done && a.starts_with("--") {
+            return err_out(&format!("rev: unrecognized option '{a}'\n"), 1);
+        }
+        if !opts_done && a.starts_with('-') && a.len() > 1 {
+            let ch = a[1..].chars().next().unwrap_or('-');
+            return err_out(&format!("rev: invalid option -- '{ch}'\n"), 1);
+        }
+        opts_done = true;
+        files.push(a.clone());
+        i += 1;
     }
     let locale = env
         .get("LC_ALL")
@@ -3936,19 +4043,29 @@ fn cmd_rev(
     } else {
         files.clone()
     };
+    let literal_dash = !files.is_empty();
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
     let mut code = 0;
 
     for f in &targets {
-        let bytes = if f == "-" {
+        let bytes = if f == "-" && !literal_dash {
             crate::vfs::stream_string_to_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f);
+            if fs.is_dir(&p) {
+                stderr.push_str(&format!(
+                    "rev: EISDIR: illegal operation on a directory '{p}'\n"
+                ));
+                code = 1;
+                continue;
+            }
             match fs.read_file(&p) {
                 Ok(b) => b,
-                Err(e) => {
-                    stderr.push_str(&format!("rev: {f}: {e}\n"));
+                Err(_) => {
+                    stderr.push_str(&format!(
+                        "rev: ENOENT: no such file or directory, stat '{p}'\n"
+                    ));
                     code = 1;
                     continue;
                 }
@@ -4578,7 +4695,9 @@ fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     for f in &files {
         let p = resolve_posix_path(cwd, f);
         if fs.is_dir(&p) {
-            stderr.push_str(&format!("tee: {f}: Is a directory\n"));
+            stderr.push_str(&format!(
+                "tee: EISDIR: illegal operation on a directory, writeStream '{p}'\n"
+            ));
             code = 1;
             if exit_on_error {
                 return BuiltinOutcome {
@@ -4591,7 +4710,9 @@ fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         }
         let parent = dirname_posix_path(&p);
         if !fs.is_dir(&parent) {
-            stderr.push_str(&format!("tee: {f}: No such file or directory\n"));
+            stderr.push_str(&format!(
+                "tee: ENOENT: no such file or directory, writeStream '{p}'\n"
+            ));
             code = 1;
             if exit_on_error {
                 return BuiltinOutcome {
@@ -4606,7 +4727,7 @@ fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 
     let in_bytes = crate::vfs::stream_string_to_bytes(stdin);
-    for (f, p) in valid_paths {
+    for (_f, p) in valid_paths {
         let data = if append && fs.exists(&p) {
             let mut prev = fs.read_file(&p).unwrap_or_default();
             prev.extend_from_slice(&in_bytes);
@@ -4614,8 +4735,10 @@ fn cmd_tee(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         } else {
             in_bytes.clone()
         };
-        if let Err(e) = fs.write_file(&p, &data) {
-            stderr.push_str(&format!("tee: {f}: {e}\n"));
+        if fs.write_file(&p, &data).is_err() {
+            stderr.push_str(&format!(
+                "tee: ENOENT: no such file or directory, writeStream '{p}'\n"
+            ));
             code = 1;
             if exit_on_error {
                 return BuiltinOutcome {
@@ -4673,19 +4796,34 @@ fn cmd_sponge(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
     let f = &files[0];
     let p = resolve_posix_path(cwd, f);
+    if fs.is_dir(&p) {
+        return err_out(
+            &format!("sponge: EISDIR: illegal operation on a directory, writeFile '{p}'\n"),
+            1,
+        );
+    }
     let in_bytes = crate::vfs::stream_string_to_bytes(stdin);
     let data = if append && fs.exists(&p) {
         let mut prev = match fs.read_file(&p) {
             Ok(b) => b,
-            Err(e) => return err_out(&format!("sponge: {f}: {e}\n"), 1),
+            Err(_) => {
+                return err_out(
+                    &format!("sponge: ENOENT: no such file or directory, readFile '{p}'\n"),
+                    1,
+                );
+            }
         };
         prev.extend_from_slice(&in_bytes);
         prev
     } else {
         in_bytes
     };
-    if let Err(e) = fs.write_file(&p, &data) {
-        return err_out(&format!("sponge: {f}: {e}\n"), 1);
+    let parent = dirname_posix_path(&p);
+    if !fs.is_dir(&parent) || fs.write_file(&p, &data).is_err() {
+        return err_out(
+            &format!("sponge: ENOENT: no such file or directory, writeFile '{p}'\n"),
+            1,
+        );
     }
     ok_out("")
 }
@@ -5451,7 +5589,9 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
             break;
         }
         if a == "--help" {
-            return ok_out("Usage: printenv [-0|--null] [--] [NAME ...]\n");
+            return ok_out(
+                "Usage: printenv [-0|--null] [--] [NAME ...]\nPrint only the virtual command environment.\n",
+            );
         }
         if a == "--version" {
             return ok_out("printenv (safe-bash virtual command)\n");
@@ -5561,7 +5701,9 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
             continue;
         }
         if !end_opts && (a == "-h" || a == "--help") {
-            return ok_out("Usage: envsubst [OPTION] [SHELL-FORMAT]\n");
+            return ok_out(
+                "Usage: envsubst [OPTION] [SHELL-FORMAT]\n\nSubstitutes the values of environment variables.\n\nOperation mode:\n  -v, --variables             output the variables occurring in SHELL-FORMAT\n\nInformative output:\n  -h, --help                  display this help and exit\n  -V, --version               output version information and exit\n\nIn normal operation mode, standard input is copied to standard output,\nwith references to environment variables of the form $VARIABLE or ${VARIABLE}\nbeing replaced with the corresponding values.  If a SHELL-FORMAT is given,\nonly those environment variables that are referenced in SHELL-FORMAT are\nsubstituted; otherwise all environment variables references occurring in\nstandard input are substituted.\n",
+            );
         }
         if !end_opts && (a == "-V" || a == "--version") {
             return ok_out("envsubst (Sandbox VFS-ish/GNU gettext-runtime) 0.22.5\n");
@@ -18730,13 +18872,13 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let parse_pos_num = |val: &str, label: &str| -> Result<usize, String> {
         let s = val.strip_prefix('+').unwrap_or(val);
         if s.is_empty() || !s.bytes().all(|b| b.is_ascii_digit()) {
-            return Err(format!("join: invalid {label}: '{val}'\n"));
+            return Err(format!("join: EINVAL: invalid {label}: {val}\n"));
         }
         let n = s
             .parse::<usize>()
-            .map_err(|_| format!("join: invalid {label}: '{val}'\n"))?;
+            .map_err(|_| format!("join: EINVAL: invalid {label}: {val}\n"))?;
         if n < 1 {
-            return Err(format!("join: invalid {label}: '{val}'\n"));
+            return Err(format!("join: EINVAL: invalid {label}: {val}\n"));
         }
         Ok(n)
     };
@@ -18750,7 +18892,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             && existing != field
         {
             return Err(format!(
-                "join: incompatible join fields {}, {}\n",
+                "join: EINVAL: incompatible join fields {}, {}\n",
                 existing, field
             ));
         }
@@ -18776,7 +18918,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
             'a' | 'v' => {
                 if value != "1" && value != "2" {
-                    return Err(format!("join: invalid file number: '{value}'\n"));
+                    return Err(format!("join: EINVAL: invalid file number: {value}\n"));
                 }
                 let f_idx = if value == "1" { 0 } else { 1 };
                 unpaired[f_idx] = true;
@@ -18788,7 +18930,9 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 if let Some(ref ex) = explicit_replacement
                     && ex != value
                 {
-                    return Err("join: conflicting empty-field replacement strings\n".to_string());
+                    return Err(
+                        "join: EINVAL: conflicting empty-field replacement strings\n".to_string(),
+                    );
                 }
                 explicit_replacement = Some(value.to_string());
                 replacement = crate::vfs::stream_string_to_bytes(value);
@@ -18805,7 +18949,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 if let Some(prev_c) = delimiter_choice
                     && prev_c != choice
                 {
-                    return Err("join: incompatible field delimiters\n".to_string());
+                    return Err("join: EINVAL: incompatible field delimiters\n".to_string());
                 }
                 delimiter_choice = Some(choice);
                 if value == "\\0" {
@@ -18815,7 +18959,10 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     whole = true;
                     delimiter = None;
                 } else if bytes.len() != 1 {
-                    return Err("join: multi-character tab\n".to_string());
+                    return Err(
+                        "join: EINVAL: join delimiter must be one byte in the C locale\n"
+                            .to_string(),
+                    );
                 } else {
                     delimiter = Some(bytes[0]);
                     whole = false;
@@ -18824,12 +18971,16 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             'o' => {
                 if value == "auto" {
                     if matches!(format, JoinFormat::Explicit(_)) {
-                        return Err("join: conflicting output format specifications\n".to_string());
+                        return Err(
+                            "join: EINVAL: conflicting output format specifications\n".to_string(),
+                        );
                     }
                     format = JoinFormat::Auto;
                 } else {
                     if matches!(format, JoinFormat::Auto) {
-                        return Err("join: conflicting output format specifications\n".to_string());
+                        return Err(
+                            "join: EINVAL: conflicting output format specifications\n".to_string(),
+                        );
                     }
                     let mut specs: Vec<(usize, usize)> = Vec::new();
                     for part in value
@@ -18845,11 +18996,11 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                             let col = parse_pos_num(idx_s, "output field")? - 1;
                             specs.push((f_num, col));
                         } else {
-                            return Err(format!("join: invalid field specifier: '{part}'\n"));
+                            return Err(format!("join: EINVAL: invalid output field: {part}\n"));
                         }
                     }
                     if specs.is_empty() {
-                        return Err(format!("join: invalid field specifier: '{value}'\n"));
+                        return Err(format!("join: EINVAL: invalid output field: {value}\n"));
                     }
                     match format {
                         JoinFormat::Explicit(ref mut v) => v.extend(specs),
@@ -18869,7 +19020,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         if literal || token == "-" || !token.starts_with('-') {
             if files.len() == 2 {
                 let Some(pos) = field_candidates.iter().position(|c| c.is_some()) else {
-                    return err_out("join: extra operand\n", 1);
+                    return err_out("join: EINVAL: join requires exactly two files\n", 1);
                 };
                 let f_num = field_candidates[pos].unwrap();
                 let flag_ch = if f_num == 1 { '1' } else { '2' };
@@ -18897,7 +19048,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 "--nocheck-order" => order_mode = OrderMode::None,
                 "--ignore-case" => fold = true,
                 "--zero-terminated" => separator = 0u8,
-                _ => return err_out(&format!("join: unrecognized option '{token}'\n"), 1),
+                _ => return err_out(&format!("join: EINVAL: unsupported option {token}\n"), 1),
             }
             index += 1;
             continue;
@@ -18931,7 +19082,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         args[index].clone()
                     } else {
                         return err_out(
-                            &format!("join: option requires an argument -- '{flag}'\n"),
+                            &format!("join: EINVAL: option -{flag} requires an argument\n"),
                             1,
                         );
                     };
@@ -18940,14 +19091,14 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     }
                     break;
                 }
-                _ => return err_out(&format!("join: invalid option -- '{flag}'\n"), 1),
+                _ => return err_out(&format!("join: EINVAL: unsupported option -{flag}\n"), 1),
             }
         }
         index += 1;
     }
 
     if files.len() != 2 {
-        return err_out("join: missing operand\n", 1);
+        return err_out("join: EINVAL: join requires exactly two files\n", 1);
     }
     if pending_fields[0] > 0
         && let Err(msg) = apply_flag('j', "1", &mut explicit_fields, &mut fields)
@@ -18960,7 +19111,7 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out(&msg, 1);
     }
     if files[0] == "-" && files[1] == "-" {
-        return err_out("join: both files cannot be standard input\n", 1);
+        return err_out("join: EINVAL: both files cannot be standard input\n", 1);
     }
 
     let read_file_records = |name: &str| -> Result<Vec<Vec<u8>>, String> {
@@ -18969,10 +19120,12 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         } else {
             let path = resolve_posix_path(cwd, name);
             if fs.is_dir(&path) {
-                return Err(format!("join: {name}: Is a directory\n"));
+                return Err(format!(
+                    "join: EISDIR: illegal operation on a directory '{path}'\n"
+                ));
             }
             fs.read_file(&path)
-                .map_err(|e| format!("join: {name}: {e}\n"))?
+                .map_err(|_| format!("join: ENOENT: no such file or directory, stat '{path}'\n"))?
         };
         if raw.is_empty() {
             return Ok(Vec::new());
@@ -19067,16 +19220,21 @@ fn cmd_join(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                            order_failed: &mut bool,
                            stderr: &mut String|
      -> Result<(), ()> {
-        let msg = format!("join: file {} is not in sorted order\n", file_idx + 1);
         if order_mode == OrderMode::Check {
-            stderr.push_str(&msg);
+            stderr.push_str(&format!(
+                "join: EINVAL: file {} is not in sorted order\n",
+                file_idx + 1
+            ));
             *order_failed = true;
             return Err(());
         }
         if !order_warned[file_idx] {
             order_warned[file_idx] = true;
             *order_failed = true;
-            stderr.push_str(&msg);
+            stderr.push_str(&format!(
+                "join: file {} is not in sorted order\n",
+                file_idx + 1
+            ));
         }
         Ok(())
     };
@@ -20882,7 +21040,9 @@ fn cmd_tsort(
 ) -> BuiltinOutcome {
     if args.len() == 1 && args[0].len() > 2 {
         if "--help".starts_with(&args[0]) {
-            return ok_out("Usage: tsort [OPTION] [FILE]\n");
+            return ok_out(
+                "Usage: tsort [OPTION] [FILE]\nWrite a topological ordering of whitespace-separated node pairs.\nWith no FILE, or FILE -, read standard input.\nOptions: --help --version\n",
+            );
         }
         if "--version".starts_with(&args[0]) {
             return ok_out("tsort (virtual-bash)\n");
@@ -20921,11 +21081,23 @@ fn cmd_tsort(
         );
     }
     let reader_name = files.first().map(|s| s.as_str()).unwrap_or("-");
-    let text = match read_inputs_or_stdin(&files, stdin, cwd, fs, "tsort") {
-        Ok(t) => t,
-        Err(e) => return e,
+    let raw_bytes = if files.is_empty() || files[0] == "-" {
+        crate::vfs::stream_string_to_bytes(stdin)
+    } else {
+        let p = resolve_posix_path(cwd, &files[0]);
+        if fs.is_dir(&p) {
+            return ok_out("");
+        }
+        match fs.read_file(&p) {
+            Ok(b) => b,
+            Err(_) => {
+                return err_out(
+                    &format!("tsort: {}: No such file or directory\n", files[0]),
+                    1,
+                );
+            }
+        }
     };
-    let raw_bytes = crate::vfs::stream_string_to_bytes(&text);
     let mut tokens: Vec<String> = Vec::new();
     let mut cur_tok: Vec<u8> = Vec::new();
     let mut in_tok = false;
@@ -21813,5 +21985,56 @@ mod tests {
         let cut_err = try_run_coreutil("cut", &args(&["-b", "1", "-f", "1"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(cut_err.exit_code, 2);
         assert_eq!(cut_err.stderr, "cut: exactly one byte, character, or field list is required\n");
+    }
+
+    #[test]
+    fn join_tsort_sponge_envsubst_tac_rev_sort_uniq_and_streams_match_typescript() {
+        use crate::vfs::{MemoryVfs, SafeBashFs};
+
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+        vfs.write_file("/work/in.txt", b"b\na\n").unwrap();
+        let env: BTreeMap<String, String> = BTreeMap::new();
+        let args = |items: &[&str]| -> Vec<String> { items.iter().map(|s| s.to_string()).collect() };
+
+        let join_missing = try_run_coreutil("join", &args(&["/work/in.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(join_missing.exit_code, 1);
+        assert_eq!(join_missing.stderr, "join: EINVAL: join requires exactly two files\n");
+
+        let join_order = try_run_coreutil(
+            "join",
+            &args(&["--check-order", "/work/in.txt", "/work/in.txt"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(join_order.exit_code, 1);
+        assert_eq!(join_order.stderr, "join: EINVAL: file 1 is not in sorted order\n");
+
+        let tsort_dir = try_run_coreutil("tsort", &args(&["/work/dir"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(tsort_dir.exit_code, 0);
+        assert_eq!(tsort_dir.stdout, "");
+
+        let sponge_dir = try_run_coreutil("sponge", &args(&["/work/dir"]), "hi\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(sponge_dir.exit_code, 1);
+        assert_eq!(
+            sponge_dir.stderr,
+            "sponge: EISDIR: illegal operation on a directory, writeFile '/work/dir'\n"
+        );
+
+        let sort_incompat = try_run_coreutil("sort", &args(&["-n", "-h", "/work/in.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(sort_incompat.exit_code, 2);
+        assert_eq!(sort_incompat.stderr, "sort: options '-hn' are incompatible\n");
+
+        let uniq_bad = try_run_coreutil("uniq", &args(&["-f", "abc", "/work/in.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(uniq_bad.exit_code, 2);
+        assert_eq!(uniq_bad.stderr, "uniq: invalid number 'abc'\n");
+
+        let rev_dash = try_run_coreutil("rev", &args(&["-", "/work/in.txt"]), "x\n", "/work", &env, &vfs).unwrap();
+        assert_eq!(rev_dash.exit_code, 1);
+        assert_eq!(rev_dash.stdout, "b\na\n");
+        assert_eq!(rev_dash.stderr, "rev: ENOENT: no such file or directory, stat '/work/-'\n");
     }
 }

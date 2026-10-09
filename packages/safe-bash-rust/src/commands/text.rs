@@ -7412,14 +7412,21 @@ fn apply_unified_diff(
             let splice_start = pos + pf;
             let splice_end = pos + hunk_old.len().saturating_sub(sf);
             let old_slice_len = splice_end.saturating_sub(splice_start);
+            let entry_end = hunk_entries.len().saturating_sub(sf);
+            let active_entries = &hunk_entries[pf.min(entry_end)..entry_end];
             let replacement: Vec<String> = if let Some(ref macro_name) = opts.ifdef_guard {
-                let entry_end = hunk_entries.len().saturating_sub(sf);
-                let active_entries = &hunk_entries[pf.min(entry_end)..entry_end];
                 let mut blk = Vec::new();
+                let mut file_cursor = splice_start;
                 let mut ei = 0usize;
                 while ei < active_entries.len() {
                     if active_entries[ei].0 == ' ' {
-                        blk.push(active_entries[ei].1.clone());
+                        blk.push(
+                            file_lines
+                                .get(file_cursor)
+                                .cloned()
+                                .unwrap_or_else(|| active_entries[ei].1.clone()),
+                        );
+                        file_cursor += 1;
                         ei += 1;
                         continue;
                     }
@@ -7429,6 +7436,7 @@ fn apply_unified_diff(
                     while run_end < active_entries.len() && active_entries[run_end].0 != ' ' {
                         if active_entries[run_end].0 == '-' {
                             rem_lines.push(active_entries[run_end].1.clone());
+                            file_cursor += 1;
                         } else if active_entries[run_end].0 == '+' {
                             add_lines.push(active_entries[run_end].1.clone());
                         }
@@ -7453,8 +7461,29 @@ fn apply_unified_diff(
                 }
                 blk
             } else {
-                let new_end = hunk_new.len().saturating_sub(sf);
-                hunk_new[pf.min(new_end)..new_end].to_vec()
+                let mut blk = Vec::new();
+                let mut file_cursor = splice_start;
+                for (kind, text) in active_entries {
+                    match *kind {
+                        ' ' => {
+                            blk.push(
+                                file_lines
+                                    .get(file_cursor)
+                                    .cloned()
+                                    .unwrap_or_else(|| text.clone()),
+                            );
+                            file_cursor += 1;
+                        }
+                        '-' => {
+                            file_cursor += 1;
+                        }
+                        '+' => {
+                            blk.push(text.clone());
+                        }
+                        _ => {}
+                    }
+                }
+                blk
             };
             let new_slice_len = replacement.len();
             file_lines.splice(splice_start..splice_end, replacement);
@@ -7652,7 +7681,10 @@ fn find_apply_patch_slice(
         return None;
     }
     let last = lines.len() - pattern.len();
-    let first = if eof { last } else { start.min(last) };
+    let first = if eof { last } else { start };
+    if first < start || first > last {
+        return None;
+    }
     for pass in 0..4u8 {
         for cand in first..=last {
             let mut matched = true;
@@ -7673,29 +7705,91 @@ fn find_apply_patch_slice(
             }
         }
     }
-    if !eof && first > 0 {
-        for pass in 0..4u8 {
-            for cand in 0..first {
-                let mut matched = true;
-                for (off, pat) in pattern.iter().enumerate() {
-                    let act = &lines[cand + off];
-                    let ok = if pass == 0 {
-                        act == pat
-                    } else {
-                        apply_patch_norm(act, pass) == apply_patch_norm(pat, pass)
-                    };
-                    if !ok {
-                        matched = false;
-                        break;
-                    }
-                }
-                if matched {
-                    return Some(cand);
-                }
-            }
+    None
+}
+
+#[derive(Clone)]
+struct ApplyPatchHunk {
+    anchors: Vec<String>,
+    lines: Vec<(char, String)>,
+    eof: bool,
+}
+
+#[derive(Clone)]
+enum ApplyPatchFileKind {
+    Add,
+    Delete,
+    Update,
+}
+
+#[derive(Clone)]
+struct ApplyPatchFileSpec {
+    kind: ApplyPatchFileKind,
+    path: String,
+    label: String,
+    destination: Option<String>,
+    destination_label: Option<String>,
+    added: Vec<String>,
+    hunks: Vec<ApplyPatchHunk>,
+}
+
+fn validate_apply_patch_target_path(value: &str, cwd: &str) -> Result<String, BuiltinOutcome> {
+    if !cwd.starts_with('/') || cwd.contains('\0') {
+        return Err(err_out("apply_patch: cwd must be an absolute virtual path\n", 2));
+    }
+    for ch in value.chars() {
+        let code = ch as u32;
+        if code < 32 || code == 127 {
+            return Err(err_out("apply_patch: control character in path\n", 2));
         }
     }
-    None
+    for seg in value.split('/') {
+        if seg == ".." {
+            return Err(err_out("apply_patch: parent traversal is unsupported\n", 2));
+        }
+    }
+    if value.is_empty() || value.ends_with('/') || value.split('/').next_back() == Some(".") {
+        return Err(err_out("apply_patch: path names a directory\n", 2));
+    }
+    let absolute = resolve_posix_path(cwd, value);
+    if absolute == "/" {
+        return Err(err_out("apply_patch: root target is unsupported\n", 2));
+    }
+    Ok(absolute)
+}
+
+fn inspect_apply_patch_path(
+    path: &str,
+    fs: &dyn SafeBashFs,
+) -> Result<Option<crate::vfs::FileStat>, BuiltinOutcome> {
+    let parts: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    if let Ok(root_st) = fs.lstat("/")
+        && root_st.kind == crate::vfs::VfsEntryKind::Symlink
+    {
+        return Err(err_out("apply_patch: symlink paths are unsupported: /\n", 1));
+    }
+    let mut cur = String::new();
+    for (idx, seg) in parts.iter().enumerate() {
+        cur.push('/');
+        cur.push_str(seg);
+        let st = match fs.lstat(&cur) {
+            Ok(s) => s,
+            Err(_) => return Ok(None),
+        };
+        if st.kind == crate::vfs::VfsEntryKind::Symlink {
+            return Err(err_out(
+                &format!("apply_patch: symlink paths are unsupported: {cur}\n"),
+                1,
+            ));
+        }
+        if idx + 1 < parts.len() && st.kind != crate::vfs::VfsEntryKind::Directory {
+            return Err(err_out(&format!("apply_patch: not a directory: {cur}\n"), 1));
+        }
+        if idx + 1 == parts.len() {
+            return Ok(Some(st));
+        }
+    }
+    Ok(None)
 }
 
 fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -7703,294 +7797,420 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         return err_out("apply_patch: expected stdin or one literal patch argument\n", 2);
     }
     let patch_input = if args.len() == 1 {
+        if args[0].contains('\0') {
+            return err_out("apply_patch: NUL bytes are unsupported\n", 2);
+        }
         args[0].clone()
     } else {
-        stdin.to_string()
+        let raw_bytes = crate::vfs::stream_string_to_bytes(stdin);
+        if raw_bytes.contains(&0) {
+            return err_out("apply_patch: NUL bytes are unsupported\n", 2);
+        }
+        match String::from_utf8(raw_bytes) {
+            Ok(s) => s,
+            Err(_) => return err_out("apply_patch: invalid UTF-8\n", 2),
+        }
     };
-    if patch_input.contains('\0') {
-        return err_out("apply_patch: NUL bytes are unsupported\n", 2);
-    }
-    let trimmed_patch = patch_input.trim();
+    let without_bom = patch_input.strip_prefix('\u{feff}').unwrap_or(&patch_input);
+    let trimmed_patch = without_bom.trim();
     let lines: Vec<&str> = if trimmed_patch.is_empty() {
         Vec::new()
     } else {
-        trimmed_patch.lines().collect()
+        trimmed_patch
+            .split('\n')
+            .map(|l| l.strip_suffix('\r').unwrap_or(l))
+            .collect()
     };
     if lines.is_empty() || lines[0] != "*** Begin Patch" || *lines.last().unwrap() != "*** End Patch" {
         return err_out("apply_patch: expected Begin Patch and End Patch envelope\n", 2);
     }
-    let reject_unsafe_target = |target: &str, full: &str| -> Option<BuiltinOutcome> {
-        if target.split('/').any(|seg| seg == "..") {
-            return Some(err_out(
-                &format!("apply_patch: {target}: path traversal is not allowed\n"),
-                2,
-            ));
-        }
-        let mut cur = String::new();
-        for seg in full.split('/').filter(|s| !s.is_empty()) {
-            cur.push('/');
-            cur.push_str(seg);
-            if fs.readlink(&cur).is_ok() {
-                return Some(err_out(
-                    &format!("apply_patch: {target}: symlink target is not allowed\n"),
-                    1,
-                ));
-            }
-        }
-        None
-    };
-
-    let check_path_conflict = |full: &str, target: &str, seen: &mut Vec<String>| -> Option<BuiltinOutcome> {
-        for prev in seen.iter() {
-            if full == prev
-                || full.starts_with(&format!("{prev}/"))
-                || prev.starts_with(&format!("{full}/"))
-            {
-                return Some(err_out(
-                    &format!("apply_patch: duplicate or conflicting file target {target}\n"),
-                    2,
-                ));
-            }
-        }
-        seen.push(full.to_string());
-        None
-    };
 
     let mut idx = 1usize;
     let body_end = lines.len() - 1;
-    let mut staged_ops: Vec<StagedPatchOp> = Vec::new();
-    let mut summary_lines: Vec<String> = Vec::new();
-    let mut seen_paths: Vec<String> = Vec::new();
+    let mut parsed_files: Vec<ApplyPatchFileSpec> = Vec::new();
 
     while idx < body_end {
-        let line = lines[idx];
-        if let Some(path) = line.strip_prefix("*** Add File: ") {
-            let target = path.trim();
+        let header = lines[idx];
+        idx += 1;
+        let (kind, label) = if let Some(lbl) = header.strip_prefix("*** Add File: ") {
+            (ApplyPatchFileKind::Add, lbl.to_string())
+        } else if let Some(lbl) = header.strip_prefix("*** Delete File: ") {
+            (ApplyPatchFileKind::Delete, lbl.to_string())
+        } else if let Some(lbl) = header.strip_prefix("*** Update File: ") {
+            (ApplyPatchFileKind::Update, lbl.to_string())
+        } else {
+            return err_out(&format!("apply_patch: invalid file header at patch line {idx}\n"), 2);
+        };
+        let path = match validate_apply_patch_target_path(&label, cwd) {
+            Ok(p) => p,
+            Err(e) => return e,
+        };
+        let mut destination: Option<String> = None;
+        let mut destination_label: Option<String> = None;
+        if matches!(kind, ApplyPatchFileKind::Update)
+            && idx < body_end
+            && let Some(mv) = lines[idx].strip_prefix("*** Move to: ")
+        {
             idx += 1;
-            let mut content_lines = Vec::new();
-            while idx < body_end
-                && !lines[idx].starts_with("*** Add File: ")
-                && !lines[idx].starts_with("*** Delete File: ")
-                && !lines[idx].starts_with("*** Update File: ")
-            {
-                if let Some(added) = lines[idx].strip_prefix('+') {
-                    content_lines.push(added);
-                } else {
-                    return err_out(&format!("apply_patch: invalid Add body at patch line {}\n", idx + 1), 2);
-                }
-                idx += 1;
-            }
-            let full = resolve_posix_path(cwd, target);
-            if let Some(err) = reject_unsafe_target(target, &full) {
-                return err;
-            }
-            if let Some(err) = check_path_conflict(&full, target, &mut seen_paths) {
-                return err;
-            }
-            let payload = if content_lines.is_empty() {
-                String::new()
-            } else {
-                format!("{}\n", content_lines.join("\n"))
+            let dl = mv.to_string();
+            let dp = match validate_apply_patch_target_path(&dl, cwd) {
+                Ok(p) => p,
+                Err(e) => return e,
             };
-            staged_ops.push(StagedPatchOp::Write(full, payload.into_bytes()));
-            summary_lines.push(format!("A {target}"));
-            continue;
+            destination = Some(dp);
+            destination_label = Some(dl);
         }
-        if let Some(path) = line.strip_prefix("*** Delete File: ") {
-            let target = path.trim();
-            idx += 1;
-            if idx < body_end
-                && !lines[idx].starts_with("*** Add File: ")
-                && !lines[idx].starts_with("*** Delete File: ")
-                && !lines[idx].starts_with("*** Update File: ")
+        let mut added: Vec<String> = Vec::new();
+        let mut hunks: Vec<ApplyPatchHunk> = Vec::new();
+        let mut current: Option<ApplyPatchHunk> = None;
+        let mut finished = false;
+        while idx < body_end {
+            let line = lines[idx];
+            if line.starts_with("*** Add File: ")
+                || line.starts_with("*** Delete File: ")
+                || line.starts_with("*** Update File: ")
             {
-                return err_out("apply_patch: Delete cannot have a body\n", 2);
+                break;
             }
-            let full = resolve_posix_path(cwd, target);
-            if let Some(err) = reject_unsafe_target(target, &full) {
-                return err;
-            }
-            if let Some(err) = check_path_conflict(&full, target, &mut seen_paths) {
-                return err;
-            }
-            if !fs.exists(&full) {
-                return err_out(&format!("apply_patch: {target}: No such file\n"), 1);
-            }
-            staged_ops.push(StagedPatchOp::Delete(full));
-            summary_lines.push(format!("D {target}"));
-            continue;
-        }
-        if let Some(path) = line.strip_prefix("*** Update File: ") {
-            let target = path.trim();
-            let full = resolve_posix_path(cwd, target);
-            if let Some(err) = reject_unsafe_target(target, &full) {
-                return err;
-            }
-            if let Some(err) = check_path_conflict(&full, target, &mut seen_paths) {
-                return err;
-            }
-            let orig_bytes = match fs.read_file(&full) {
-                Ok(b) => b,
-                Err(e) => return err_out(&format!("apply_patch: {}\n", e), 1),
-            };
-            let orig = String::from_utf8_lossy(&orig_bytes).into_owned();
-            let terminated = orig.is_empty() || orig.ends_with('\n');
-            let use_crlf = orig.contains("\r\n");
-            let line_sep = if use_crlf { "\r\n" } else { "\n" };
-            let mut file_lines: Vec<String> = orig.lines().map(|s| s.to_string()).collect();
-            idx += 1;
-            let mut move_to: Option<String> = None;
-            if idx < body_end && let Some(mv) = lines[idx].strip_prefix("*** Move to: ") {
-                move_to = Some(mv.trim().to_string());
-                idx += 1;
-            }
-            let mut cursor = 0usize;
-            let mut any_hunk = false;
-            while idx < body_end
-                && !lines[idx].starts_with("*** Add File: ")
-                && !lines[idx].starts_with("*** Delete File: ")
-                && !lines[idx].starts_with("*** Update File: ")
-            {
-                if lines[idx] == "*** End of File" {
-                    idx += 1;
-                    continue;
-                }
-                if lines[idx].starts_with("@@")
-                    || lines[idx].starts_with(' ')
-                    || lines[idx].starts_with('+')
-                    || lines[idx].starts_with('-')
-                    || lines[idx].is_empty()
-                {
-                    any_hunk = true;
-                    let mut anchors = Vec::new();
-                    while idx < body_end && lines[idx].starts_with("@@") {
-                        let anchor = lines[idx].strip_prefix("@@").unwrap_or("").trim();
-                        if !anchor.is_empty() {
-                            anchors.push(anchor.to_string());
-                        }
-                        idx += 1;
+            match kind {
+                ApplyPatchFileKind::Add => {
+                    if let Some(a) = line.strip_prefix('+') {
+                        added.push(a.to_string());
+                    } else {
+                        return err_out(
+                            &format!("apply_patch: invalid Add body at patch line {}\n", idx + 1),
+                            2,
+                        );
                     }
-                    let mut hunk_items: Vec<(char, String)> = Vec::new();
-                    while idx < body_end
-                        && !lines[idx].starts_with("@@")
-                        && !lines[idx].starts_with("*** Add File: ")
-                        && !lines[idx].starts_with("*** Delete File: ")
-                        && !lines[idx].starts_with("*** Update File: ")
-                        && lines[idx] != "*** End of File"
-                    {
-                        let hl = lines[idx];
-                        if let Some(r) = hl.strip_prefix('-') {
-                            hunk_items.push(('-', r.to_string()));
-                        } else if let Some(a) = hl.strip_prefix('+') {
-                            hunk_items.push(('+', a.to_string()));
-                        } else if let Some(c) = hl.strip_prefix(' ') {
-                            hunk_items.push((' ', c.to_string()));
-                        } else if hl.is_empty() {
-                            hunk_items.push((' ', String::new()));
+                }
+                ApplyPatchFileKind::Delete => {
+                    return err_out("apply_patch: Delete cannot have a body\n", 2);
+                }
+                ApplyPatchFileKind::Update => {
+                    if finished {
+                        return err_out("apply_patch: EOF must terminate the file's last hunk\n", 2);
+                    }
+                    if line == "@@" || line.starts_with("@@ ") {
+                        let named = line.starts_with("@@ ");
+                        if let Some(ref cur) = current
+                            && cur.lines.is_empty()
+                        {
+                            if !named || cur.anchors.is_empty() {
+                                return err_out("apply_patch: empty update hunk\n", 2);
+                            }
+                        } else {
+                            if let Some(cur) = current.take() {
+                                hunks.push(cur);
+                            }
+                            current = Some(ApplyPatchHunk {
+                                anchors: Vec::new(),
+                                lines: Vec::new(),
+                                eof: false,
+                            });
+                        }
+                        if named
+                            && let Some(ref mut cur) = current
+                        {
+                            cur.anchors.push(line[3..].to_string());
+                        }
+                    } else if line == "*** End of File" {
+                        let Some(ref mut cur) = current else {
+                            return err_out("apply_patch: EOF requires a nonempty hunk\n", 2);
+                        };
+                        if cur.lines.is_empty() {
+                            return err_out("apply_patch: EOF requires a nonempty hunk\n", 2);
+                        }
+                        cur.eof = true;
+                        finished = true;
+                    } else {
+                        let (prefix, rest) = if line.is_empty() {
+                            (' ', "")
+                        } else if let Some(r) = line.strip_prefix(' ') {
+                            (' ', r)
+                        } else if let Some(r) = line.strip_prefix('+') {
+                            ('+', r)
+                        } else if let Some(r) = line.strip_prefix('-') {
+                            ('-', r)
                         } else {
                             return err_out(&format!("apply_patch: invalid hunk line {}\n", idx + 1), 2);
+                        };
+                        if current.is_none() {
+                            current = Some(ApplyPatchHunk {
+                                anchors: Vec::new(),
+                                lines: Vec::new(),
+                                eof: false,
+                            });
                         }
-                        idx += 1;
+                        if let Some(ref mut cur) = current {
+                            cur.lines.push((prefix, rest.to_string()));
+                        }
                     }
-                    if hunk_items.is_empty() {
-                        return err_out("apply_patch: Update requires a nonempty hunk\n", 2);
+                }
+            }
+            idx += 1;
+        }
+        let last_empty = current.as_ref().is_some_and(|c| c.lines.is_empty());
+        if let Some(cur) = current {
+            hunks.push(cur);
+        }
+        if matches!(kind, ApplyPatchFileKind::Update)
+            && (if hunks.is_empty() {
+                destination.is_none()
+            } else {
+                last_empty
+            })
+        {
+            return err_out("apply_patch: Update requires a nonempty hunk\n", 2);
+        }
+        parsed_files.push(ApplyPatchFileSpec {
+            kind,
+            path,
+            label,
+            destination,
+            destination_label,
+            added,
+            hunks,
+        });
+    }
+    if parsed_files.is_empty() {
+        return err_out("apply_patch: patch contains no file operations\n", 2);
+    }
+
+    let mut seen_paths: Vec<String> = Vec::new();
+    for f in &parsed_files {
+        let mut check_list = vec![f.path.clone()];
+        if let Some(ref dest) = f.destination {
+            check_list.push(dest.clone());
+        }
+        for p in check_list {
+            for prev in &seen_paths {
+                if p == *prev
+                    || p.starts_with(&format!("{prev}/"))
+                    || prev.starts_with(&format!("{p}/"))
+                {
+                    return err_out("apply_patch: duplicate or conflicting patch paths\n", 2);
+                }
+            }
+            seen_paths.push(p);
+        }
+    }
+
+    let mut staged_ops: Vec<StagedPatchOp> = Vec::new();
+    let mut summary_lines: Vec<String> = Vec::new();
+
+    for f in &parsed_files {
+        let stat = match inspect_apply_patch_path(&f.path, fs) {
+            Ok(st) => st,
+            Err(e) => return e,
+        };
+        if let Some(ref st) = stat
+            && (st.kind != crate::vfs::VfsEntryKind::File || (st.mode & 0o170000) == 0o020000)
+        {
+            return err_out(
+                &format!("apply_patch: target is not a regular file: {}\n", f.label),
+                1,
+            );
+        }
+        if stat.is_none() && !matches!(f.kind, ApplyPatchFileKind::Add) {
+            return err_out(&format!("apply_patch: missing target: {}\n", f.label), 1);
+        }
+        if let Some(ref dest) = f.destination {
+            let dest_stat = match inspect_apply_patch_path(dest, fs) {
+                Ok(st) => st,
+                Err(e) => return e,
+            };
+            if dest_stat.is_some() {
+                let dl = f.destination_label.as_deref().unwrap_or("");
+                return err_out(
+                    &format!("apply_patch: Move destination already exists: {dl}\n"),
+                    1,
+                );
+            }
+        }
+    }
+
+    for f in parsed_files {
+        match f.kind {
+            ApplyPatchFileKind::Add => {
+                let payload = if f.added.is_empty() {
+                    String::new()
+                } else {
+                    format!("{}\n", f.added.join("\n"))
+                };
+                staged_ops.push(StagedPatchOp::Write(f.path, payload.into_bytes()));
+                summary_lines.push(format!("A {}", f.label));
+            }
+            ApplyPatchFileKind::Delete => {
+                staged_ops.push(StagedPatchOp::Delete(f.path));
+                summary_lines.push(format!("D {}", f.label));
+            }
+            ApplyPatchFileKind::Update => {
+                let orig_bytes = match fs.read_file(&f.path) {
+                    Ok(b) => b,
+                    Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
+                };
+                let updated_bytes = if f.hunks.is_empty() {
+                    orig_bytes
+                } else {
+                    if orig_bytes.contains(&0) {
+                        return err_out("apply_patch: NUL bytes are unsupported\n", 1);
                     }
-                    let mut hunk_eof = false;
-                    if idx < body_end && lines[idx] == "*** End of File" {
-                        hunk_eof = true;
-                        idx += 1;
+                    let raw_text = match String::from_utf8(orig_bytes.clone()) {
+                        Ok(s) => s,
+                        Err(_) => return err_out("apply_patch: invalid UTF-8\n", 1),
+                    };
+                    let orig = raw_text.strip_prefix('\u{feff}').unwrap_or(&raw_text);
+                    let terminated = orig_bytes.is_empty() || orig_bytes.ends_with(b"\n");
+                    let mut old_records: Vec<(String, String)> = Vec::new();
+                    let mut start_off = 0usize;
+                    let orig_bytes_str = orig.as_bytes();
+                    for (i, &b) in orig_bytes_str.iter().enumerate() {
+                        if b == b'\n' {
+                            let is_crlf = i > start_off && orig_bytes_str[i - 1] == b'\r';
+                            let text_end = if is_crlf { i - 1 } else { i };
+                            let ending = if is_crlf { "\r\n" } else { "\n" };
+                            old_records.push((
+                                orig[start_off..text_end].to_string(),
+                                ending.to_string(),
+                            ));
+                            start_off = i + 1;
+                        }
                     }
-                    let mut anchor_pos: Option<usize> = None;
-                    for anc in &anchors {
-                        if let Some(apos) = find_apply_patch_slice(&file_lines, std::slice::from_ref(anc), cursor, false) {
+                    if start_off < orig.len() {
+                        old_records.push((orig[start_off..].to_string(), String::new()));
+                    }
+                    let default_ending = old_records
+                        .iter()
+                        .find(|(_, e)| !e.is_empty())
+                        .map(|(_, e)| e.as_str())
+                        .unwrap_or("\n")
+                        .to_string();
+                    let old_texts: Vec<String> =
+                        old_records.iter().map(|(t, _)| t.clone()).collect();
+
+                    let mut replacements: Vec<(usize, usize, Vec<(String, String)>)> = Vec::new();
+                    let mut cursor = 0usize;
+                    for hunk in &f.hunks {
+                        let mut anchor_pos: Option<usize> = None;
+                        for anc in &hunk.anchors {
+                            let Some(apos) = find_apply_patch_slice(
+                                &old_texts,
+                                std::slice::from_ref(anc),
+                                cursor,
+                                false,
+                            ) else {
+                                return err_out(
+                                    &format!("apply_patch: context anchor not found: {}\n", f.label),
+                                    1,
+                                );
+                            };
                             cursor = apos + 1;
                             anchor_pos = Some(apos);
                         }
-                    }
-                    let old_block: Vec<String> = hunk_items
-                        .iter()
-                        .filter(|(k, _)| *k != '+')
-                        .map(|(_, s)| s.clone())
-                        .collect();
-                    let search_start = if let Some(ap) = anchor_pos
-                        && !old_block.is_empty()
-                        && apply_patch_norm(&file_lines[ap], 3) == apply_patch_norm(&old_block[0], 3)
-                    {
-                        ap
-                    } else {
-                        cursor
-                    };
-                    let pos_opt = if old_block.is_empty() {
-                        Some(if hunk_eof { file_lines.len() } else { search_start.min(file_lines.len()) })
-                    } else {
-                        find_apply_patch_slice(&file_lines, &old_block, search_start, hunk_eof)
-                    };
-                    if let Some(pos) = pos_opt {
+                        let pattern: Vec<String> = hunk
+                            .lines
+                            .iter()
+                            .filter(|(k, _)| *k != '+')
+                            .map(|(_, s)| s.clone())
+                            .collect();
+                        let search_start = if let Some(ap) = anchor_pos
+                            && !pattern.is_empty()
+                            && apply_patch_norm(&old_texts[ap], 3)
+                                == apply_patch_norm(&pattern[0], 3)
+                        {
+                            ap
+                        } else {
+                            cursor
+                        };
+                        let start_opt = if !pattern.is_empty() {
+                            find_apply_patch_slice(&old_texts, &pattern, search_start, hunk.eof)
+                        } else if hunk.eof {
+                            Some(old_texts.len())
+                        } else {
+                            Some(cursor)
+                        };
+                        let Some(start) = start_opt else {
+                            return err_out(
+                                &format!("apply_patch: expected context not found: {}\n", f.label),
+                                1,
+                            );
+                        };
                         let mut replacement = Vec::new();
-                        let mut matched = pos;
-                        for (kind, text) in hunk_items {
+                        let mut matched = start;
+                        for (kind, text) in &hunk.lines {
                             match kind {
                                 ' ' => {
-                                    replacement.push(file_lines[matched].clone());
+                                    replacement.push(old_records[matched].clone());
                                     matched += 1;
                                 }
                                 '-' => {
                                     matched += 1;
                                 }
                                 '+' => {
-                                    replacement.push(text);
+                                    replacement.push((text.clone(), default_ending.clone()));
                                 }
                                 _ => {}
                             }
                         }
-                        let rep_len = replacement.len();
-                        file_lines.splice(pos..pos + old_block.len(), replacement);
-                        cursor = pos + rep_len;
-                    } else {
-                        return err_out("apply_patch: context mismatch\n", 1);
+                        replacements.push((start, start + pattern.len(), replacement));
+                        cursor = start + pattern.len();
                     }
+
+                    let mut result_records: Vec<(String, String)> = Vec::new();
+                    let mut pos = 0usize;
+                    for (r_start, r_end, rep_lines) in replacements {
+                        if r_start < pos {
+                            return err_out("apply_patch: overlapping update hunks\n", 1);
+                        }
+                        while pos < r_start {
+                            result_records.push(old_records[pos].clone());
+                            pos += 1;
+                        }
+                        result_records.extend(rep_lines);
+                        pos = r_end;
+                    }
+                    while pos < old_records.len() {
+                        result_records.push(old_records[pos].clone());
+                        pos += 1;
+                    }
+                    let res_len = result_records.len();
+                    for (idx, rec) in result_records.iter_mut().enumerate() {
+                        if idx + 1 < res_len && rec.1.is_empty() {
+                            rec.1 = default_ending.clone();
+                        } else if idx + 1 == res_len {
+                            rec.1 = if terminated {
+                                if rec.1.is_empty() {
+                                    default_ending.clone()
+                                } else {
+                                    rec.1.clone()
+                                }
+                            } else {
+                                String::new()
+                            };
+                        }
+                    }
+                    let mut out_str = String::new();
+                    for (t, e) in result_records {
+                        out_str.push_str(&t);
+                        out_str.push_str(&e);
+                    }
+                    out_str.into_bytes()
+                };
+                if let Some(dest) = f.destination {
+                    if dest != f.path {
+                        staged_ops.push(StagedPatchOp::Delete(f.path));
+                    }
+                    staged_ops.push(StagedPatchOp::Write(dest, updated_bytes));
+                    summary_lines.push(format!(
+                        "M {}",
+                        f.destination_label.as_deref().unwrap_or(&f.label)
+                    ));
                 } else {
-                    return err_out(&format!("apply_patch: invalid hunk line {}\n", idx + 1), 2);
+                    staged_ops.push(StagedPatchOp::Write(f.path, updated_bytes));
+                    summary_lines.push(format!("M {}", f.label));
                 }
             }
-            if !any_hunk && move_to.is_none() {
-                return err_out("apply_patch: Update requires a nonempty hunk\n", 2);
-            }
-            let updated_bytes = if !any_hunk {
-                orig_bytes
-            } else if file_lines.is_empty() {
-                Vec::new()
-            } else if terminated {
-                format!("{}{line_sep}", file_lines.join(line_sep)).into_bytes()
-            } else {
-                file_lines.join(line_sep).into_bytes()
-            };
-            if let Some(dest) = move_to {
-                let dest_full = resolve_posix_path(cwd, &dest);
-                if let Some(err) = reject_unsafe_target(&dest, &dest_full) {
-                    return err;
-                }
-                if dest_full != full {
-                    if let Some(err) = check_path_conflict(&dest_full, &dest, &mut seen_paths) {
-                        return err;
-                    }
-                    if fs.exists(&dest_full) {
-                        return err_out(&format!("apply_patch: {dest}: destination already exists\n"), 1);
-                    }
-                    staged_ops.push(StagedPatchOp::Delete(full));
-                }
-                staged_ops.push(StagedPatchOp::Write(dest_full, updated_bytes));
-                summary_lines.push(format!("M {dest}"));
-            } else {
-                staged_ops.push(StagedPatchOp::Write(full, updated_bytes));
-                summary_lines.push(format!("M {target}"));
-            }
-            continue;
         }
-        return err_out(&format!("apply_patch: invalid file header at patch line {}\n", idx + 1), 2);
-    }
-    if staged_ops.is_empty() {
-        return err_out("apply_patch: patch contains no file operations\n", 2);
     }
 
     for op in staged_ops {
@@ -8171,20 +8391,36 @@ fn cmd_cmp(
             match key {
                 's' => {
                     if eq_val.is_some() {
-                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                        return err_out(
+                            &format!(
+                                "cmp: option '--{sel_name}' doesn't allow an argument\ncmp: Try 'cmp --help' for more information.\n"
+                            ),
+                            2,
+                        );
                     }
                     if verbose_list {
-                        return err_out("cmp: options -l and -s are incompatible\n", 2);
+                        return err_out(
+                            "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
+                            2,
+                        );
                     }
                     silent = true;
                     i += 1;
                 }
                 'l' => {
                     if eq_val.is_some() {
-                        return err_out(&format!("cmp: option '--{sel_name}' doesn't allow an argument\n"), 2);
+                        return err_out(
+                            &format!(
+                                "cmp: option '--{sel_name}' doesn't allow an argument\ncmp: Try 'cmp --help' for more information.\n"
+                            ),
+                            2,
+                        );
                     }
                     if silent {
-                        return err_out("cmp: options -l and -s are incompatible\n", 2);
+                        return err_out(
+                            "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
+                            2,
+                        );
                     }
                     verbose_list = true;
                     i += 1;
@@ -8248,13 +8484,19 @@ fn cmd_cmp(
                 match chars[ci] {
                     's' => {
                         if verbose_list {
-                            return err_out("cmp: options -l and -s are incompatible\n", 2);
+                            return err_out(
+                                "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
+                                2,
+                            );
                         }
                         silent = true;
                     }
                     'l' => {
                         if silent {
-                            return err_out("cmp: options -l and -s are incompatible\n", 2);
+                            return err_out(
+                                "cmp: options -l and -s are incompatible\ncmp: Try 'cmp --help' for more information.\n",
+                                2,
+                            );
                         }
                         verbose_list = true;
                     }
@@ -8660,7 +8902,7 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         if let Some(prev) = *sel
             && prev != ch
         {
-            return Err("diff3: incompatible script selectors\n".to_string());
+            return Err("diff3: Incompatible script selectors\n".to_string());
         }
         *sel = Some(ch);
         Ok(())
@@ -8769,19 +9011,19 @@ fn cmd_diff3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     }
     let eff_sel = selector.or(if merge { Some('A') } else { None });
     if merge && write_quit {
-        return err_out("diff3: incompatible options: -m and -i\n", 2);
+        return err_out("diff3: Incompatible options: merge and write/quit\n", 2);
     }
     if labels.len() > 3 {
-        return err_out("diff3: too many file labels\n", 2);
+        return err_out("diff3: Too many file labels\n", 2);
     }
     if !labels.is_empty() && !matches!(eff_sel, Some('A' | 'E' | 'X')) {
-        return err_out("diff3: labels require a flagging mode\n", 2);
+        return err_out("diff3: Labels require a flagging mode\n", 2);
     }
     if files.len() != 3 {
-        return err_out("diff3: expected three operands\n", 2);
+        return err_out("diff3: Exactly three operands are required\n", 2);
     }
     if files.iter().filter(|f| f.as_str() == "-").count() > 1 {
-        return err_out("diff3: '-' specified for more than one input file\n", 2);
+        return err_out("diff3: Multiple stdin operands are unavailable\n", 2);
     }
     let read_lines = |p: &str| -> Result<Vec<Diff3Line>, String> {
         let text = if p == "-" {
@@ -9465,5 +9707,51 @@ mod tests {
         .unwrap();
         assert_eq!(sed_w.exit_code, 0);
         assert_eq!(vfs.read_file("/work/out.txt").unwrap(), b"/usr/sbin\n/home/sbin\n");
+    }
+
+    #[test]
+    fn unit_apply_patch_anchors_binary_move_and_validation_match_typescript() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        vfs.write_file("/work/bin.dat", &[0xff, 0x00, 0x80]).unwrap();
+        let pure_move = try_run_text_command(
+            "apply_patch",
+            &[],
+            "*** Begin Patch\n*** Update File: bin.dat\n*** Move to: sub/moved.dat\n*** End Patch\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pure_move.exit_code, 0);
+        assert_eq!(vfs.read_file("/work/sub/moved.dat").unwrap(), vec![0xff, 0x00, 0x80]);
+        assert!(!vfs.exists("/work/bin.dat"));
+
+        vfs.write_file("/work/file.txt", b"first\nsecond\nthird\n").unwrap();
+        let bad_anchor = try_run_text_command(
+            "apply_patch",
+            &[],
+            "*** Begin Patch\n*** Update File: file.txt\n@@ missing_anchor\n-second\n+changed\n*** End Patch\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(bad_anchor.exit_code, 1);
+        assert_eq!(bad_anchor.stderr, "apply_patch: context anchor not found: file.txt\n");
+
+        let eof_after = try_run_text_command(
+            "apply_patch",
+            &[],
+            "*** Begin Patch\n*** Update File: file.txt\n@@\n-third\n+3rd\n*** End of File\n@@\n-first\n+1st\n*** End Patch\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(eof_after.exit_code, 2);
+        assert_eq!(eof_after.stderr, "apply_patch: EOF must terminate the file's last hunk\n");
     }
 }

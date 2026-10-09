@@ -3250,8 +3250,17 @@ fn run_audio_info(
             crate::vfs::stream_string_to_bytes(stdin)
         } else {
             let full = resolve_posix_path(cwd, file);
+            if fs.is_dir(&full) {
+                return err_out(
+                    &format!("{prefix}: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                    1,
+                );
+            }
             let Ok(b) = fs.read_file(&full) else {
-                return err_out(&format!("{prefix}: {file}: No such file or directory\n"), 1);
+                return err_out(
+                    &format!("{prefix}: ENOENT: no such file or directory, readFile '{full}'\n"),
+                    1,
+                );
             };
             b
         };
@@ -4488,6 +4497,9 @@ fn cmd_media_doc(
 ) -> BuiltinOutcome {
     match cmd {
         "ffmpeg" => {
+            if args.is_empty() {
+                return err_out(&format_ffmpeg_introspection("-h", "ffmpeg").unwrap_or_default(), 1);
+            }
             for arg in args {
                 if let Some(intro) = format_ffmpeg_introspection(arg, "ffmpeg") {
                     return ok_out(&intro);
@@ -4594,9 +4606,20 @@ fn cmd_media_doc(
                     "-af" | "-filter:a" | "-c" | "-codec" | "-c:a" | "-acodec" | "-c:v"
                     | "-vcodec" | "-c:s" | "-scodec" | "-safe" | "-hls_time" | "-b:a" | "-b:v"
                     | "-pix_fmt" | "-v" | "-loglevel" | "-map" | "-movflags" | "-preset"
-                    | "-crf" | "-threads" | "-start_number" | "-stream_loop"
+                    | "-crf" | "-threads" | "-stream_loop"
                         if i + 1 < args.len() =>
                     {
+                        i += 2;
+                    }
+                    "-start_number" => {
+                        let ok = args
+                            .get(i + 1)
+                            .and_then(|s| s.parse::<i64>().ok())
+                            .map(|v| v >= 0)
+                            .unwrap_or(false);
+                        if !ok {
+                            return err_out("ffmpeg: invalid start_number\n", 1);
+                        }
                         i += 2;
                     }
                     a if !a.starts_with('-') => {
@@ -4608,18 +4631,14 @@ fn cmd_media_doc(
                     }
                 }
             }
+            if inputs.is_empty() {
+                return err_out("ffmpeg: must specify at least one input (-i)\n", 1);
+            }
             let out_rel = match out_arg {
                 Some(o) => o,
-                None => return ok_out(""),
+                None => return err_out("ffmpeg: must specify an output file\n", 1),
             };
             let out_lower = out_rel.to_ascii_lowercase();
-            if out_lower.ends_with(".ass")
-                || out_lower.ends_with(".aiff")
-                || out_lower.ends_with(".au")
-                || out_lower.ends_with(".caf")
-            {
-                return err_out("ffmpeg: format AST not registered\n", 1);
-            }
             let out_full = resolve_posix_path(cwd, &out_rel);
             if explicit_no_overwrite && fs.read_file(&out_full).is_ok() {
                 return err_out(&format!("File '{out_rel}' already exists. Exiting.\n"), 1);
@@ -4751,9 +4770,35 @@ fn cmd_media_doc(
                             parsed_input_docs.push(sub);
                         }
                     } else if inp != "-" && inp != "pipe:0" {
-                        return err_out(&format!("{inp}: No such file or directory\n"), 1);
+                        if fs.is_dir(&full_in) {
+                            return err_out(
+                                &format!(
+                                    "ffmpeg: EISDIR: illegal operation on a directory, readFile '{full_in}'\n"
+                                ),
+                                1,
+                            );
+                        }
+                        return err_out(
+                            &format!(
+                                "ffmpeg: ENOENT: no such file or directory, readFile '{full_in}'\n"
+                            ),
+                            1,
+                        );
                     }
                 }
+            }
+            if out_lower.ends_with(".ass")
+                || out_lower.ends_with(".aiff")
+                || out_lower.ends_with(".au")
+                || out_lower.ends_with(".caf")
+            {
+                let fmt_desc = if fmt_flag.is_empty() { &out_rel } else { &fmt_flag };
+                return err_out(
+                    &format!(
+                        "ffmpeg: Unable to find a suitable output format for '{fmt_desc}' (format AST not registered)\n"
+                    ),
+                    1,
+                );
             }
             if !fc_flag.is_empty() {
                 if parsed_input_docs.len() >= 2 {
@@ -4897,12 +4942,28 @@ fn cmd_media_doc(
             ok_out("")
         }
         "ffprobe" => {
+            if args.is_empty() {
+                return err_out(
+                    "Simple multimedia streams analyzer\nusage: ffprobe [OPTIONS] INPUT_FILE\n",
+                    1,
+                );
+            }
             for arg in args {
                 if let Some(intro) = format_ffmpeg_introspection(arg, "ffprobe") {
                     return ok_out(&intro);
                 }
             }
-            let mut of_fmt = "json".to_string();
+            let quiet = args
+                .windows(2)
+                .any(|w| (w[0] == "-v" || w[0] == "-loglevel") && w[1] == "quiet");
+            let ffprobe_err = |msg: &str| -> BuiltinOutcome {
+                if quiet {
+                    err_out("", 1)
+                } else {
+                    err_out(&format!("ffprobe: {msg}\n"), 1)
+                }
+            };
+            let mut of_fmt = "default".to_string();
             let mut in_arg: Option<String> = None;
             let mut show_entries = String::new();
             let mut select_streams: Option<String> = None;
@@ -4911,24 +4972,46 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
-                    "-print_format" | "-of" if i + 1 < args.len() => {
-                        of_fmt = args[i + 1].clone();
+                    "-print_format" | "-of" => {
+                        let Some(v) = args.get(i + 1) else {
+                            return ffprobe_err(&format!("Missing value for {}", args[i]));
+                        };
+                        of_fmt = v.clone();
                         i += 2;
                     }
-                    "-show_entries" if i + 1 < args.len() => {
-                        show_entries = args[i + 1].clone();
+                    "-show_entries" => {
+                        let Some(v) = args.get(i + 1) else {
+                            return ffprobe_err(&format!("Missing value for {}", args[i]));
+                        };
+                        show_entries = v.clone();
                         i += 2;
                     }
-                    "-select_streams" if i + 1 < args.len() => {
-                        select_streams = Some(args[i + 1].to_ascii_lowercase());
+                    "-select_streams" => {
+                        let Some(v) = args.get(i + 1) else {
+                            return ffprobe_err(&format!("Missing value for {}", args[i]));
+                        };
+                        select_streams = Some(v.to_ascii_lowercase());
                         i += 2;
                     }
-                    "-i" if i + 1 < args.len() => {
-                        in_arg = Some(args[i + 1].clone());
+                    "-i" => {
+                        let Some(v) = args.get(i + 1) else {
+                            return ffprobe_err(&format!("Missing value for {}", args[i]));
+                        };
+                        if in_arg.is_some() {
+                            return ffprobe_err("Expected one input");
+                        }
+                        in_arg = Some(v.clone());
                         i += 2;
                     }
-                    "-v" | "-loglevel" | "-f" if i + 1 < args.len() => {
+                    "-v" | "-loglevel" | "-f" => {
+                        if i + 1 >= args.len() {
+                            return ffprobe_err(&format!("Missing value for {}", args[i]));
+                        }
                         i += 2;
+                    }
+                    "-hide_banner" | "-show_format" | "-show_streams" | "-show_packets"
+                    | "-show_frames" | "-show_chapters" | "-show_programs" => {
+                        i += 1;
                     }
                     "-count_frames" => {
                         count_frames = true;
@@ -4938,13 +5021,51 @@ fn cmd_media_doc(
                         count_packets = true;
                         i += 1;
                     }
-                    a if !a.starts_with('-') => {
+                    a if a.starts_with('-') && a != "-" => {
+                        return ffprobe_err(&format!("Unknown option {a}"));
+                    }
+                    a => {
+                        if in_arg.is_some() {
+                            return ffprobe_err("Expected one input");
+                        }
                         in_arg = Some(a.to_string());
                         i += 1;
                     }
-                    _ => {
-                        i += 1;
-                    }
+                }
+            }
+            if in_arg.is_none() {
+                return ffprobe_err("must specify an input file");
+            }
+            let mut fmt_parts = of_fmt.split(':');
+            let head = fmt_parts.next().unwrap_or("default");
+            let mut params: Vec<&str> = fmt_parts.collect();
+            let writer = if let Some((w, rest)) = head.split_once('=') {
+                params.insert(0, rest);
+                w.to_ascii_lowercase()
+            } else {
+                head.to_ascii_lowercase()
+            };
+            if !matches!(writer.as_str(), "json" | "compact" | "csv" | "default" | "flat") {
+                return ffprobe_err(&format!("Unknown output format {writer}"));
+            }
+            for param in params {
+                if param.is_empty() {
+                    continue;
+                }
+                let key = param.split('=').next().unwrap_or("");
+                if !matches!(
+                    key,
+                    "c" | "compact"
+                        | "nokey"
+                        | "nk"
+                        | "noprint_wrappers"
+                        | "nw"
+                        | "print_section"
+                        | "p"
+                        | "item_sep"
+                        | "s"
+                ) {
+                    return ffprobe_err(&format!("Unsupported writer option {key}"));
                 }
             }
             let (raw_bytes, path_str) = match in_arg.as_deref() {
@@ -4953,9 +5074,18 @@ fn cmd_media_doc(
                 }
                 Some(p) => {
                     let full = resolve_posix_path(cwd, p);
+                    if fs.is_dir(&full) {
+                        return ffprobe_err(&format!(
+                            "EISDIR: illegal operation on a directory, openReadFile '{full}'"
+                        ));
+                    }
                     match fs.read_file(&full) {
                         Ok(b) => (b, full),
-                        Err(_) => return err_out(&format!("{p}: No such file or directory\n"), 1),
+                        Err(_) => {
+                            return ffprobe_err(&format!(
+                                "ENOENT: no such file or directory, openReadFile '{full}'"
+                            ));
+                        }
                     }
                 }
             };
@@ -5382,7 +5512,7 @@ fn cmd_media_doc(
                         Ok(b) => b,
                         Err(_) => {
                             return err_out(
-                                &format!("Error: source file '{f}' could not be loaded\n"),
+                                &format!("Error: source file could not be loaded: {f}\n"),
                                 1,
                             )
                         }
@@ -5424,7 +5554,7 @@ fn cmd_media_doc(
                     Ok(b) => b,
                     Err(_) => {
                         return err_out(
-                            &format!("Error: source file '{f}' could not be loaded\n"),
+                            &format!("Error: source file could not be loaded: {f}\n"),
                             1,
                         )
                     }
@@ -5792,9 +5922,24 @@ fn cmd_media_doc(
                         replacements.push((args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
                     }
-                    "-T" | "-B" | "-L" | "-R" | "--margin-top" | "--margin-bottom"
+                    "-q" | "--quiet" | "-g" | "--grayscale" | "-l" | "--lowquality"
+                    | "-n" | "--disable-javascript" | "--no-images" | "--images"
+                    | "--no-background" | "--background" | "--disable-smart-shrinking"
+                    | "--enable-smart-shrinking" | "--print-media-type" | "--no-print-media-type"
+                    | "--disable-internal-links" | "--enable-internal-links"
+                    | "--disable-external-links" | "--enable-external-links"
+                    | "--resolve-relative-links" | "--keep-relative-links"
+                    | "--enable-toc-back-links" | "--disable-toc-back-links"
+                    | "--disable-local-file-access" | "--no-pdf-compression"
+                    | "--disable-plugins" | "--header-line" | "--no-header-line"
+                    | "--footer-line" | "--no-footer-line" | "--default-header" => {
+                        i += 1;
+                    }
+                    "-T" | "-B" | "-L" | "-R" | "-d" | "--margin-top" | "--margin-bottom"
                     | "--margin-left" | "--margin-right" | "--encoding" | "--dpi" | "--zoom"
                     | "--page-width" | "--page-height" | "--outline-depth"
+                    | "--log-level" | "--image-quality" | "--image-dpi"
+                    | "--load-error-handling" | "--load-media-error-handling"
                     | "--user-style-sheet" | "--xsl-style-sheet"
                     | "--header-html" | "--footer-html" | "--header-spacing"
                     | "--footer-spacing" | "--header-font-name" | "--footer-font-name"
@@ -5827,13 +5972,19 @@ fn cmd_media_doc(
                         next_is_cover_obj = false;
                         i += 1;
                     }
-                    _ => {
-                        i += 1;
+                    a => {
+                        return err_out(
+                            &format!("wkhtmltopdf: UNKNOWN_OPTION ({a}): Unknown switch\n"),
+                            1,
+                        );
                     }
                 }
             }
             if pos_args.len() < 2 {
-                return err_out("wkhtmltopdf: You need to specify at least one input file, and exactly one output file\n", 1);
+                return err_out(
+                    "wkhtmltopdf: MISSING_OBJECT: Expected at least one input object and exactly one output\n",
+                    1,
+                );
             }
             let (mut pw, mut ph) = match page_size.to_ascii_lowercase().as_str() {
                 "letter" => (612.0, 792.0),
@@ -5851,10 +6002,8 @@ fn cmd_media_doc(
             doc.page_h = ph;
             let mut all_headings: Vec<(String, String, usize)> = Vec::new();
             let mut page_meta: Vec<(String, bool, bool)> = Vec::new();
+            let out_arg = &pos_args.last().unwrap().0;
             for (src, is_cover, is_cover_obj) in &pos_args[..pos_args.len() - 1] {
-                if src.ends_with(".txt") {
-                    return err_out("wkhtmltopdf: unsupported .txt input\n", 1);
-                }
                 let raw_and_dir = if src == "-" {
                     Some((stdin.to_string(), cwd.to_string()))
                 } else {
@@ -5869,8 +6018,25 @@ fn cmd_media_doc(
                     })
                 };
                 let Some((mut raw_html, base_dir_str)) = raw_and_dir else {
-                    return err_out(&format!("wkhtmltopdf: cannot read {src}\n"), 1);
+                    let full = resolve_posix_path(cwd, src);
+                    if out_arg == "-" {
+                        return err_out(
+                            &format!(
+                                "wkhtmltopdf: ENOENT: ENOENT: no such file or directory, openReadFile '{full}'\n"
+                            ),
+                            1,
+                        );
+                    }
+                    return err_out(
+                        &format!(
+                            "wkhtmltopdf: ENOENT: ENOENT: no such file or directory, realpath '{full}'\n"
+                        ),
+                        1,
+                    );
                 };
+                if src.ends_with(".txt") {
+                    return err_out("wkhtmltopdf: unsupported .txt input\n", 1);
+                }
                 for (rk, rv) in &replacements {
                     if !rk.is_empty() {
                         raw_html = raw_html.replace(rk, rv);
@@ -6016,19 +6182,30 @@ fn cmd_media_doc(
                     break;
                 }
                 if a.starts_with('-') {
-                    return err_out(&format!("pdfunite: unknown option {a}\n"), 99);
+                    return err_out(
+                        "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+                        99,
+                    );
                 }
                 pos.push(a.clone());
                 i += 1;
             }
             if pos.len() < 3 {
-                return err_out("Syntax Warning: pdfunite requires at least two input files and an output file.\n", 99);
+                return err_out(
+                    "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
+                    99,
+                );
             }
             let mut out_doc = PdfDoc::new();
             for (idx, src) in pos[..pos.len() - 1].iter().enumerate() {
                 let full = resolve_posix_path(cwd, src);
                 let Ok(b) = fs.read_file(&full) else {
-                    return err_out(&format!("I/O Error: Couldn't open file '{src}'\n"), 255);
+                    return err_out(
+                        &format!(
+                            "I/O Error: Couldn't open file '{src}': No such file or directory.\nSyntax Error: Could not merge damaged documents ('{src}')\n"
+                        ),
+                        255,
+                    );
                 };
                 if !b.starts_with(b"%PDF-") {
                     return err_out(&format!("Syntax Error: '{src}' is not a valid PDF\n"), 255);
@@ -6103,14 +6280,20 @@ fn cmd_media_doc(
                     }
                     "-f" => {
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfseparate: invalid -f argument\n", 99);
+                            return err_out(
+                                "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
+                                99,
+                            );
                         };
                         first_p = v.max(1);
                         i += 2;
                     }
                     "-l" => {
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfseparate: invalid -l argument\n", 99);
+                            return err_out(
+                                "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
+                                99,
+                            );
                         };
                         if v > 0 {
                             last_p = Some(v);
@@ -6123,8 +6306,11 @@ fn cmd_media_doc(
                         pos.push(a.to_string());
                         i += 1;
                     }
-                    a => {
-                        return err_out(&format!("pdfseparate: unknown option {a}\n"), 99);
+                    _ => {
+                        return err_out(
+                            "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
+                            99,
+                        );
                     }
                 }
             }
@@ -6134,7 +6320,13 @@ fn cmd_media_doc(
             let src = resolve_posix_path(cwd, &pos[0]);
             let pat = &pos[1];
             let Ok(b) = fs.read_file(&src) else {
-                return err_out(&format!("I/O Error: Couldn't open file '{}'\n", pos[0]), 99);
+                return err_out(
+                    &format!(
+                        "I/O Error: Couldn't open file '{}': No such file or directory.\nSyntax Error: Could not extract page(s) from damaged file ('{}')\n",
+                        pos[0], pos[0]
+                    ),
+                    99,
+                );
             };
             if !b.starts_with(b"%PDF-") {
                 return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
@@ -6626,13 +6818,16 @@ fn cmd_media_doc(
                 }
                 let full = resolve_posix_path(cwd, path_arg);
                 let Ok(b) = fs.read_file(&full) else {
-                    return Err(err_out(&format!("qpdf: {path_arg}: No such file or directory\n"), 2));
+                    return Err(err_out(&format!("qpdf: cannot open {path_arg}\n"), 2));
                 };
                 if json_input {
                     return Ok(parse_qpdf_json_doc(&String::from_utf8_lossy(&b)));
                 }
                 if !b.starts_with(b"%PDF-") {
-                    return Err(err_out(&format!("qpdf: {path_arg}: not a PDF file\n"), 2));
+                    return Err(err_out(
+                        &format!("qpdf: {path_arg}: Invalid PDF header: missing %PDF- signature\n"),
+                        2,
+                    ));
                 }
                 Ok(PdfDoc::parse(&b))
             };
@@ -6645,7 +6840,7 @@ fn cmd_media_doc(
 
             if is_enc {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6659,7 +6854,7 @@ fn cmd_media_doc(
             }
             if req_pw {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6676,7 +6871,7 @@ fn cmd_media_doc(
             }
             if show_enc {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6693,7 +6888,7 @@ fn cmd_media_doc(
             }
             if show_lin {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6706,7 +6901,7 @@ fn cmd_media_doc(
             }
             if show_npages {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6716,7 +6911,7 @@ fn cmd_media_doc(
             }
             if check_mode {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6748,7 +6943,7 @@ fn cmd_media_doc(
             }
             if show_xref {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6767,7 +6962,7 @@ fn cmd_media_doc(
             }
             if show_pages {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6792,7 +6987,7 @@ fn cmd_media_doc(
             }
             if let Some(ref obj_spec) = show_object {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6844,7 +7039,7 @@ fn cmd_media_doc(
             }
             if list_att {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6858,7 +7053,7 @@ fn cmd_media_doc(
             }
             if let Some(ref key) = show_att {
                 let Some(f) = primary_arg.as_deref() else {
-                    return err_out("qpdf: input file required\n", 2);
+                    return err_out("qpdf: an input file is required\n", 2);
                 };
                 let doc = match load_input(f) {
                     Ok(d) => d,
@@ -6993,13 +7188,16 @@ fn cmd_media_doc(
             }
 
             if let Some(group_sz) = split_pages_group {
-                if pos_files.len() < 2 {
-                    return err_out("qpdf: --split-pages requires input and output pattern\n", 2);
-                }
-                let doc = match load_input(&pos_files[0]) {
+                let Some(f) = primary_arg.as_deref() else {
+                    return err_out("qpdf: an input file is required\n", 2);
+                };
+                let doc = match load_input(f) {
                     Ok(d) => d,
                     Err(e) => return e,
                 };
+                if pos_files.len() < 2 {
+                    return err_out("qpdf: an output file is required\n", 2);
+                }
                 let pat = &pos_files[1];
                 let total = doc.pages.len();
                 let mut start = 1usize;
@@ -7029,9 +7227,6 @@ fn cmd_media_doc(
             } else {
                 None
             };
-            let Some(dst_arg) = out_arg else {
-                return ok_out("");
-            };
             let mut doc = if empty_input {
                 PdfDoc::new()
             } else if let Some(f) = primary_arg.as_deref() {
@@ -7040,8 +7235,21 @@ fn cmd_media_doc(
                     Err(e) => return e,
                 }
             } else {
-                PdfDoc::new()
+                return err_out("qpdf: an input file is required\n", 2);
             };
+            let Some(dst_arg) = out_arg else {
+                return err_out("qpdf: an output file is required\n", 2);
+            };
+            if !replace_input
+                && !empty_input
+                && dst_arg != "-"
+                && primary_arg.as_deref() == Some(dst_arg.as_str())
+            {
+                return err_out(
+                    "qpdf: output file may not be the same as the input file (use --replace-input)\n",
+                    2,
+                );
+            }
 
             if let Some(ref enc_pw) = doc.encrypted {
                 let supplied = password.as_deref().unwrap_or("");
@@ -8022,10 +8230,8 @@ fn cmd_media_doc(
                         }
                     }
                     "-enc" => {
-                        let Some(enc) = args.get(i + 1) else {
-                            return err_out("pdfdetach: missing -enc argument\n", 99);
-                        };
-                        if !matches!(enc.as_str(), "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                        let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                        if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
                             return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
                         }
                         i += 1;
@@ -8034,9 +8240,6 @@ fn cmd_media_doc(
                     a => return err_out(&format!("pdfdetach: unknown option {a}\n"), 99),
                 }
                 i += 1;
-            }
-            if !list_mode && !save_all && save_idx.is_none() && save_file.is_none() {
-                return err_out("pdfdetach: must specify -list, -save, -savefile, or -saveall\n", 99);
             }
             let Some(f) = pdf_file else {
                 return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
@@ -8055,7 +8258,7 @@ fn cmd_media_doc(
                     return err_out("Command Line Error: Incorrect password\n", 1);
                 }
             }
-            if list_mode {
+            if list_mode || (!save_all && save_idx.is_none() && save_file.is_none()) {
                 let mut out = format!("{} embedded files\n", doc.attachments.len());
                 for (idx, (_, fname, _, _)) in doc.attachments.iter().enumerate() {
                     out.push_str(&format!("{}: {fname}\n", idx + 1));
@@ -8081,7 +8284,7 @@ fn cmd_media_doc(
                     .iter()
                     .find(|(k, fnm, _, _)| fnm == target_name || k == target_name)
                 else {
-                    return err_out(&format!("Error: Embedded file '{target_name}' not found\n"), 2);
+                    return err_out(&format!("Error: Embedded file '{target_name}' not found\n"), 1);
                 };
                 let dst = out_target
                     .as_deref()
@@ -8092,7 +8295,7 @@ fn cmd_media_doc(
             }
             if let Some(idx1) = save_idx {
                 if idx1 == 0 || idx1 > doc.attachments.len() {
-                    return err_out(&format!("Error: Invalid attachment index {idx1}\n"), 2);
+                    return err_out(&format!("Error: Invalid file index {idx1}\n"), 1);
                 }
                 let (_, fname, _, payload) = &doc.attachments[idx1 - 1];
                 let dst = out_target
@@ -8153,21 +8356,15 @@ fn cmd_media_doc(
                     "-rawdates" => date_mode = "raw",
                     "-f" => {
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfinfo: invalid -f argument\n", 99);
+                            return err_out("Invalid -f page number\n", 99);
                         };
-                        if v == 0 {
-                            return err_out("pdfinfo: invalid -f argument\n", 99);
-                        }
                         first_p = Some(v);
                         i += 1;
                     }
                     "-l" => {
                         let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfinfo: invalid -l argument\n", 99);
+                            return err_out("Invalid -l page number\n", 99);
                         };
-                        if v == 0 {
-                            return err_out("pdfinfo: invalid -l argument\n", 99);
-                        }
                         last_p = Some(v);
                         i += 1;
                     }
@@ -8178,16 +8375,14 @@ fn cmd_media_doc(
                         }
                     }
                     "-enc" => {
-                        let Some(enc) = args.get(i + 1) else {
-                            return err_out("pdfinfo: missing -enc argument\n", 99);
-                        };
-                        if !matches!(enc.as_str(), "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
+                        let enc = args.get(i + 1).map(|s| s.as_str()).unwrap_or("");
+                        if !matches!(enc, "UTF-8" | "Latin1" | "ASCII7" | "UCS-2" | "Symbol" | "ZapfDingbats") {
                             return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
                         }
                         i += 1;
                     }
                     a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
-                    a => return err_out(&format!("pdfinfo: unknown option {a}\n"), 99),
+                    a => return err_out(&format!("Command Line Error: Unknown option '{a}'\n"), 99),
                 }
                 i += 1;
             }
@@ -8199,7 +8394,10 @@ fn cmd_media_doc(
             } else {
                 let full = resolve_posix_path(cwd, &files[0]);
                 let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(&format!("I/O Error: Couldn't open file '{}'\n", files[0]), 1);
+                    return err_out(
+                        &format!("I/O Error: Couldn't open file '{}': No such file or directory.\n", files[0]),
+                        1,
+                    );
                 };
                 bytes
             };
@@ -9588,43 +9786,61 @@ fn cmd_media_doc(
                     "-all" => all_mode = true,
                     "-jp2" | "-jbig2" | "-ccitt" | "-u" | "-q" => {}
                     "-f" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfimages: invalid -f argument\n", 99);
+                        let Some(raw) = args.get(i + 1) else {
+                            return err_out("Missing value for '-f'\n", 99);
                         };
-                        if v == 0 {
-                            return err_out("pdfimages: invalid -f argument\n", 99);
-                        }
-                        first_p = Some(v);
+                        let Ok(v) = raw.parse::<isize>() else {
+                            return err_out("Bad '-f' value on command line\n", 99);
+                        };
+                        first_p = Some(v.max(1) as usize);
                         i += 1;
                     }
                     "-l" => {
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdfimages: invalid -l argument\n", 99);
+                        let Some(raw) = args.get(i + 1) else {
+                            return err_out("Missing value for '-l'\n", 99);
                         };
-                        if v == 0 {
-                            return err_out("pdfimages: invalid -l argument\n", 99);
+                        let Ok(v) = raw.parse::<isize>() else {
+                            return err_out("Bad '-l' value on command line\n", 99);
+                        };
+                        if v > 0 {
+                            last_p = Some(v as usize);
+                        } else {
+                            last_p = None;
                         }
-                        last_p = Some(v);
+                        i += 1;
+                    }
+                    "-min-width" | "-min-height" => {
+                        let flag = args[i].as_str();
+                        let Some(raw) = args.get(i + 1) else {
+                            return err_out(&format!("Missing value for '{flag}'\n"), 99);
+                        };
+                        if raw.parse::<isize>().is_err() {
+                            return err_out(&format!("Bad '{flag}' value on command line\n"), 99);
+                        }
                         i += 1;
                     }
                     "-upw" | "-opw" => {
-                        if let Some(v) = args.get(i + 1) {
-                            pw_opt = Some(v.clone());
-                            i += 1;
-                        }
+                        let flag = args[i].as_str();
+                        let Some(v) = args.get(i + 1) else {
+                            return err_out(&format!("Missing value for '{flag}'\n"), 99);
+                        };
+                        pw_opt = Some(v.clone());
+                        i += 1;
                     }
                     a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
-                    a => return err_out(&format!("pdfimages: unknown option {a}\n"), 99),
+                    a => return err_out(&format!("Unknown option '{a}'\n"), 99),
                 }
                 i += 1;
             }
-            if let (Some(f), Some(l)) = (first_p, last_p)
-                && f > l
-            {
-                return err_out("pdfimages: invalid page range\n", 99);
-            }
             if pos.is_empty() || (!list_mode && pos.len() < 2) {
-                return err_out("Usage: pdfimages [options] <PDF-file> <image-root>\n", 99);
+                return err_out(
+                    if list_mode {
+                        "Usage: pdfimages -list [options] <PDF-file>\n"
+                    } else {
+                        "Usage: pdfimages [options] <PDF-file> <image-root>\n"
+                    },
+                    99,
+                );
             }
             let b = if pos[0] == "-" {
                 crate::vfs::stream_string_to_bytes(stdin)
@@ -10047,7 +10263,7 @@ fn cmd_media_doc(
                     let src_full = resolve_posix_path(cwd, src_rel);
                     if fs.read_file(&src_full).is_err() {
                         return err_out(
-                            &format!("composite: unable to open image '{src_rel}': No such file or directory\n"),
+                            &format!("magick: no images defined '{out_rel}'\n"),
                             1,
                         );
                     }
@@ -10519,7 +10735,7 @@ fn cmd_media_doc(
                 match args[i].as_str() {
                     "-h" | "--help" => {
                         return ok_out(
-                            "sips - scriptable image processing system\nUsage: sips [options] file ...\n",
+                            "sips - scriptable image processing system\nUsage: sips [options] file ...\n  -g, --getProperty <key>\n  -s, --setProperty <key> <value>\n  -Z, --resampleHeightWidthMax <size>\n  -z, --resampleHeightWidth <height> <width>\n  --resampleWidth <width>\n  --resampleHeight <height>\n  -c, --cropToHeightWidth <height> <width>\n  --cropOffset <offsetY> <offsetX>\n  -p, --padToHeightWidth <height> <width>\n  --padColor <hexColor>\n  -r, --rotate <degrees>\n  -f, --flip horizontal|vertical\n  -o, --out <file-or-directory>\n",
                         );
                     }
                     "-v" | "--version" => {
@@ -10558,22 +10774,39 @@ fn cmd_media_doc(
                         ops.push(("d", args[i + 1].clone(), String::new()));
                         i += 2;
                     }
-                    "-z" | "--resampleHeightWidth" if i + 2 < args.len() => {
+                    "-z" | "--resampleHeightWidth" => {
+                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        let w = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        if !h.is_finite() || !w.is_finite() || h <= 0.0 || w <= 0.0 {
+                            return err_out("sips: invalid dimensions for -z\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("z", args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
                     }
-                    "-Z" | "--resampleHeightWidthMax" if i + 1 < args.len() => {
+                    "-Z" | "--resampleHeightWidthMax" => {
+                        let max_dim = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        if !max_dim.is_finite() || max_dim <= 0.0 {
+                            return err_out("sips: invalid size for -Z\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("Z", args[i + 1].clone(), String::new()));
                         i += 2;
                     }
-                    "--resampleWidth" if i + 1 < args.len() => {
+                    "--resampleWidth" => {
+                        let w = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        if !w.is_finite() || w <= 0.0 {
+                            return err_out("sips: invalid width for --resampleWidth\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("rw", args[i + 1].clone(), String::new()));
                         i += 2;
                     }
-                    "--resampleHeight" if i + 1 < args.len() => {
+                    "--resampleHeight" => {
+                        let h = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(0.0);
+                        if !h.is_finite() || h <= 0.0 {
+                            return err_out("sips: invalid height for --resampleHeight\n", 1);
+                        }
                         has_mod = true;
                         ops.push(("rh", args[i + 1].clone(), String::new()));
                         i += 2;
@@ -10615,7 +10848,12 @@ fn cmd_media_doc(
                         ops.push(("c", args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
                     }
-                    "--cropOffset" if i + 2 < args.len() => {
+                    "--cropOffset" => {
+                        let oy = args.get(i + 1).and_then(|s| s.parse::<f64>().ok()).unwrap_or(f64::NAN);
+                        let ox = args.get(i + 2).and_then(|s| s.parse::<f64>().ok()).unwrap_or(f64::NAN);
+                        if !oy.is_finite() || !ox.is_finite() {
+                            return err_out("sips: invalid offset for --cropOffset\n", 1);
+                        }
                         i += 3;
                     }
                     "-p" | "--padToHeightWidth" => {
@@ -10635,8 +10873,78 @@ fn cmd_media_doc(
                         if i + 2 >= args.len() {
                             return err_out("sips: missing argument for -s\n", 1);
                         }
+                        if args[i + 1] == "format" {
+                            let lower = args[i + 2].trim().to_ascii_lowercase();
+                            if !matches!(
+                                lower.as_str(),
+                                "png"
+                                    | "public.png"
+                                    | "jpeg"
+                                    | "jpg"
+                                    | "public.jpeg"
+                                    | "webp"
+                                    | "org.webmproject.webp"
+                                    | "heic"
+                                    | "public.heic"
+                                    | "heif"
+                                    | "public.heif"
+                                    | "avif"
+                                    | "public.avif"
+                                    | "gif"
+                                    | "com.compuserve.gif"
+                                    | "ppm"
+                                    | "public.ppm"
+                                    | "pgm"
+                                    | "pbm"
+                                    | "public.pbm"
+                                    | "bmp"
+                                    | "com.microsoft.bmp"
+                                    | "tiff"
+                                    | "tif"
+                                    | "public.tiff"
+                                    | "pdf"
+                                    | "com.adobe.pdf"
+                            ) {
+                                return err_out(
+                                    &format!("Error:Unsupported format: {}\n", args[i + 2]),
+                                    1,
+                                );
+                            }
+                        }
                         has_mod = true;
                         ops.push(("s", args[i + 1].clone(), args[i + 2].clone()));
+                        i += 3;
+                    }
+                    "--deleteColorManagementProperties"
+                    | "--optimizeColorForSharing"
+                    | "-i"
+                    | "--addIcon"
+                    | "--repair"
+                    | "--debug" => {
+                        has_mod = true;
+                        i += 1;
+                    }
+                    "-x" | "--extractProfile" => {
+                        if i + 1 >= args.len() {
+                            return err_out(&format!("sips: missing argument for {}\n", args[i]), 1);
+                        }
+                        verify_mode = true;
+                        i += 2;
+                    }
+                    "-m" | "--matchTo" | "-e" | "--embedProfile" | "-E"
+                    | "--embedProfileIfNone" | "--deleteTag" => {
+                        if i + 1 >= args.len() {
+                            return err_out(&format!("sips: missing argument for {}\n", args[i]), 1);
+                        }
+                        has_mod = true;
+                        i += 2;
+                    }
+                    "-M" | "--matchToWithIntent" | "-X" | "--extractTag" | "--copyTag"
+                    | "--loadTag" => {
+                        if i + 2 >= args.len() {
+                            return err_out(&format!("sips: missing arguments for {}\n", args[i]), 1);
+                        }
+                        has_mod = true;
                         i += 3;
                     }
                     "--out" | "-o" => {
@@ -10650,19 +10958,19 @@ fn cmd_media_doc(
                         files.push(a.to_string());
                         i += 1;
                     }
-                    _ => {
-                        i += 1;
+                    a => {
+                        return err_out(&format!("sips: unknown option: {a}\n"), 1);
                     }
                 }
+            }
+            if files.is_empty() {
+                return err_out("sips: no input files specified\n", 1);
             }
             if !get_props.is_empty() && (has_mod || out_path.is_some()) {
                 return err_out(
                     "Error 6: cannot get properties and modify file in the same invocation\nTry 'sips --help' for help using this tool\n",
                     6,
                 );
-            }
-            if files.is_empty() {
-                return err_out("sips: no input files specified\n", 1);
             }
             let type_id_for_fmt = |fmt_lower: &str| -> String {
                 match fmt_lower {
@@ -11257,10 +11565,22 @@ fn cmd_media_doc(
             for f in &files {
                 let full = resolve_posix_path(cwd, f);
                 let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(&format!("diffpdf: {f}: cannot read file\n"), 2);
+                    if fs.is_dir(&full) {
+                        return err_out(
+                            &format!("{cmd}: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                            1,
+                        );
+                    }
+                    return err_out(
+                        &format!("{cmd}: ENOENT: no such file or directory, readFile '{full}'\n"),
+                        1,
+                    );
                 };
                 if !bytes.starts_with(b"%PDF-") {
-                    return err_out(&format!("diffpdf: {f}: Invalid PDF header\n"), 2);
+                    return err_out(
+                        &format!("diffpdf: {f}: Invalid PDF header: missing %PDF- signature\n"),
+                        2,
+                    );
                 }
                 docs.push(PdfDoc::parse(&bytes));
             }
@@ -11386,8 +11706,17 @@ fn cmd_media_doc(
                 lit.clone()
             } else if let Some(ref inp) = input_opt && inp != "-" {
                 let full = resolve_posix_path(cwd, inp);
+                if fs.is_dir(&full) {
+                    return err_out(
+                        &format!("svgo: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                        1,
+                    );
+                }
                 let Ok(b) = fs.read_file(&full) else {
-                    return err_out(&format!("svgo: {inp}: No such file or directory\n"), 1);
+                    return err_out(
+                        &format!("svgo: ENOENT: no such file or directory, readFile '{full}'\n"),
+                        1,
+                    );
                 };
                 String::from_utf8_lossy(&b).to_string()
             } else {
@@ -11473,7 +11802,16 @@ fn cmd_media_doc(
             let src = if let Some(ref inp) = input_opt && inp != "-" {
                 let full = resolve_posix_path(cwd, inp);
                 let Ok(b) = fs.read_file(&full) else {
-                    return err_out(&format!("rsvg-convert: {inp}: No such file or directory\n"), 1);
+                    if fs.is_dir(&full) {
+                        return err_out(
+                            &format!("rsvg-convert: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                            1,
+                        );
+                    }
+                    return err_out(
+                        &format!("rsvg-convert: ENOENT: no such file or directory, readFile '{full}'\n"),
+                        1,
+                    );
                 };
                 String::from_utf8_lossy(&b).to_string()
             } else {
@@ -11628,8 +11966,17 @@ fn cmd_media_doc(
                     crate::vfs::stream_string_to_bytes(stdin)
                 } else {
                     let full = resolve_posix_path(cwd, inp_name);
+                    if fs.is_dir(&full) {
+                        return err_out(
+                            &format!("sox: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                            1,
+                        );
+                    }
                     let Ok(b) = fs.read_file(&full) else {
-                        return err_out(&format!("sox: {inp_name}: No such file or directory\n"), 1);
+                        return err_out(
+                            &format!("sox: ENOENT: no such file or directory, readFile '{full}'\n"),
+                            1,
+                        );
                     };
                     b
                 };
@@ -12190,8 +12537,19 @@ fn cmd_media_doc(
                 crate::vfs::stream_string_to_bytes(&op)
             } else if let Some(ref inp) = input_opt && inp != "-" {
                 let full = resolve_posix_path(cwd, inp);
+                if fs.is_dir(&full) {
+                    return err_out(
+                        &format!(
+                            "qrencode: EISDIR: illegal operation on a directory, readStream '{full}'\n"
+                        ),
+                        1,
+                    );
+                }
                 let Ok(b) = fs.read_file(&full) else {
-                    return err_out(&format!("qrencode: {inp}: No such file or directory\n"), 1);
+                    return err_out(
+                        &format!("qrencode: ENOENT: no such file or directory, stat '{full}'\n"),
+                        1,
+                    );
                 };
                 b
             } else {
@@ -12445,5 +12803,159 @@ mod media_unit_tests {
             sips_flip_err.stderr,
             "sips: flip direction must be 'horizontal' or 'vertical'\n"
         );
+
+        let sips_bad_fmt = cmd_media_doc(
+            "sips",
+            &media_args(&["-s", "format", "ico", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(sips_bad_fmt.exit_code, 1);
+        assert_eq!(sips_bad_fmt.stderr, "Error:Unsupported format: ico\n");
+
+        let sips_unknown = cmd_media_doc(
+            "sips",
+            &media_args(&["--bogus", "/img/a.png"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(sips_unknown.exit_code, 1);
+        assert_eq!(sips_unknown.stderr, "sips: unknown option: --bogus\n");
+
+        vfs.write_file("/img/notpdf.txt", b"hello").unwrap();
+        let dp_err = cmd_media_doc(
+            "diffpdf",
+            &media_args(&["/img/notpdf.txt", "/img/notpdf.txt"]),
+            "",
+            "/img",
+            &vfs,
+        );
+        assert_eq!(dp_err.exit_code, 2);
+        assert_eq!(
+            dp_err.stderr,
+            "diffpdf: /img/notpdf.txt: Invalid PDF header: missing %PDF- signature\n"
+        );
+    }
+
+    #[test]
+    fn unit_media_ffmpeg_ffprobe_soffice_svgo_sox_qrencode_diagnostics() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work/dir").unwrap();
+
+        let ff_empty = cmd_media_doc("ffmpeg", &[], "", "/work", &vfs);
+        assert_eq!(ff_empty.exit_code, 1);
+        assert!(ff_empty.stderr.contains("usage: ffmpeg"));
+
+        let ff_no_in = cmd_media_doc("ffmpeg", &media_args(&["/work/out.mp4"]), "", "/work", &vfs);
+        assert_eq!(ff_no_in.exit_code, 1);
+        assert_eq!(ff_no_in.stderr, "ffmpeg: must specify at least one input (-i)\n");
+
+        let ff_no_out = cmd_media_doc(
+            "ffmpeg",
+            &media_args(&["-i", "/work/in.mp4"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(ff_no_out.exit_code, 1);
+        assert_eq!(ff_no_out.stderr, "ffmpeg: must specify an output file\n");
+
+        let ff_missing = cmd_media_doc(
+            "ffmpeg",
+            &media_args(&["-i", "missing.mp4", "out.mp4"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(ff_missing.exit_code, 1);
+        assert_eq!(
+            ff_missing.stderr,
+            "ffmpeg: ENOENT: no such file or directory, readFile '/work/missing.mp4'\n"
+        );
+
+        let fp_empty = cmd_media_doc("ffprobe", &[], "", "/work", &vfs);
+        assert_eq!(fp_empty.exit_code, 1);
+        assert_eq!(
+            fp_empty.stderr,
+            "Simple multimedia streams analyzer\nusage: ffprobe [OPTIONS] INPUT_FILE\n"
+        );
+
+        let fp_unknown = cmd_media_doc("ffprobe", &media_args(&["-bogus", "a.mp4"]), "", "/work", &vfs);
+        assert_eq!(fp_unknown.exit_code, 1);
+        assert_eq!(fp_unknown.stderr, "ffprobe: Unknown option -bogus\n");
+
+        let fp_writer = cmd_media_doc("ffprobe", &media_args(&["-of", "xml", "a.mp4"]), "", "/work", &vfs);
+        assert_eq!(fp_writer.exit_code, 1);
+        assert_eq!(fp_writer.stderr, "ffprobe: Unknown output format xml\n");
+
+        let fp_missing = cmd_media_doc("ffprobe", &media_args(&["missing.mp4"]), "", "/work", &vfs);
+        assert_eq!(fp_missing.exit_code, 1);
+        assert_eq!(
+            fp_missing.stderr,
+            "ffprobe: ENOENT: no such file or directory, openReadFile '/work/missing.mp4'\n"
+        );
+
+        let soffice_err = cmd_media_doc(
+            "soffice",
+            &media_args(&["--headless", "--convert-to", "pdf", "missing.docx"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(soffice_err.exit_code, 1);
+        assert_eq!(
+            soffice_err.stderr,
+            "Error: source file could not be loaded: missing.docx\n"
+        );
+
+        let svgo_err = cmd_media_doc("svgo", &media_args(&["missing.svg"]), "", "/work", &vfs);
+        assert_eq!(svgo_err.exit_code, 1);
+        assert_eq!(
+            svgo_err.stderr,
+            "svgo: ENOENT: no such file or directory, readFile '/work/missing.svg'\n"
+        );
+
+        let soxi_err = cmd_media_doc("soxi", &media_args(&["missing.wav"]), "", "/work", &vfs);
+        assert_eq!(soxi_err.exit_code, 1);
+        assert_eq!(
+            soxi_err.stderr,
+            "soxi: ENOENT: no such file or directory, readFile '/work/missing.wav'\n"
+        );
+
+        let qr_err = cmd_media_doc(
+            "qrencode",
+            &media_args(&["-r", "missing.txt", "-o", "-"]),
+            "",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(qr_err.exit_code, 1);
+        assert_eq!(
+            qr_err.stderr,
+            "qrencode: ENOENT: no such file or directory, stat '/work/missing.txt'\n"
+        );
+
+        let wk_err = cmd_media_doc("wkhtmltopdf", &media_args(&["only_one.html"]), "", "/work", &vfs);
+        assert_eq!(wk_err.exit_code, 1);
+        assert_eq!(
+            wk_err.stderr,
+            "wkhtmltopdf: MISSING_OBJECT: Expected at least one input object and exactly one output\n"
+        );
+
+        let qpdf_err = cmd_media_doc("qpdf", &media_args(&["--check"]), "", "/work", &vfs);
+        assert_eq!(qpdf_err.exit_code, 2);
+        assert_eq!(qpdf_err.stderr, "qpdf: an input file is required\n");
+
+        let rsvg_err = cmd_media_doc(
+            "rsvg-convert",
+            &media_args(&["-f", "webp"]),
+            "<svg width=\"10\" height=\"10\"/>",
+            "/work",
+            &vfs,
+        );
+        assert_eq!(rsvg_err.exit_code, 1);
+        assert_eq!(rsvg_err.stderr, "rsvg-convert: unsupported format webp\n");
     }
 }

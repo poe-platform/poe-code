@@ -3700,9 +3700,20 @@ fn cmd_graphviz(
             crate::vfs::stream_string_to_bytes(stdin)
         } else {
             let full = resolve_posix_path(cwd, file);
+            if fs.is_dir(&full) {
+                return err_out(
+                    &format!("{name}: EISDIR: illegal operation on a directory, readFile '{full}'\n"),
+                    1,
+                );
+            }
             match fs.read_file(&full) {
                 Ok(b) => b,
-                Err(_) => return err_out(&format!("{name}: {file}: No such file or directory\n"), 1),
+                Err(_) => {
+                    return err_out(
+                        &format!("{name}: ENOENT: no such file or directory, readFile '{full}'\n"),
+                        1,
+                    );
+                }
             }
         };
         total_in += raw_bytes.len();
@@ -3786,6 +3797,20 @@ mod graphviz_unit_tests {
         let bad_layout = cmd_graphviz("dot", &gv_args(&["-Ktwopi"]), "digraph { a -> b }", "/", &vfs);
         assert_eq!(bad_layout.exit_code, 1);
         assert!(bad_layout.stderr.contains("unsupported layout"));
+
+        vfs.mkdir_all("/dir").unwrap();
+        let missing = cmd_graphviz("dot", &gv_args(&["/dir/missing.dot"]), "", "/dir", &vfs);
+        assert_eq!(missing.exit_code, 1);
+        assert_eq!(
+            missing.stderr,
+            "dot: ENOENT: no such file or directory, readFile '/dir/missing.dot'\n"
+        );
+        let dir_err = cmd_graphviz("neato", &gv_args(&["/dir"]), "", "/", &vfs);
+        assert_eq!(dir_err.exit_code, 1);
+        assert_eq!(
+            dir_err.stderr,
+            "neato: EISDIR: illegal operation on a directory, readFile '/dir'\n"
+        );
     }
 
     #[test]

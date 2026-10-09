@@ -358,6 +358,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-gh-op-project-codespace-attestation-vault-inject-run-masking-parity-matrix.test.ts",
   "obscure-vfs-quotas-budgets-devices-env-split-timeout-sleep-shell-parity-matrix.test.ts",
   "obscure-openssl-gpg-ssh-dd-tar-zip-xxd-od-hexdump-base-parity-matrix.test.ts",
+  "obscure-xan-csvkit-jq-yq-xq-xmllint-htmlq-mdq-sqlite-parity-matrix.test.ts",
   "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
   "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
   "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",

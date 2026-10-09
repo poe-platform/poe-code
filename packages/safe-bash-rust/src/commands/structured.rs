@@ -12586,27 +12586,42 @@ fn eval_xan_cond(expr: &str, headers: &[String], row: &[String]) -> bool {
 
 fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     if args.is_empty() {
-        return err_out("xan: missing subcommand\n", 1);
+        return err_out("xan: expected a CSV subcommand (use xan --help)\n", 1);
     }
     let sub = args[0].as_str();
     let rest = &args[1..];
+    if sub == "--help" || sub == "-h" {
+        if !rest.is_empty() {
+            return err_out(&format!("xan {sub}: unexpected argument after help\n"), 1);
+        }
+        return ok_out("xan: CSV tools for virtual files and byte streams\nCommands: headers (h), count, select, slice, head, tail, sort, search,\n          filter, reverse, rename, drop, stats, freq (frequency), join,\n          dedup, enum, transpose, agg, groupby, to, from, cat, split, table (view), top, map\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\ncount: -H/--human-readable, -c/--check-alignment, -a/--approx, -p/--parallel, -t/--threads N\nselect: literal selection or -e/--evaluate EXPRESSIONS, -f/--evaluate-file PATH;\nslice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nslice bytes: -B/--byte-offset N, --end-byte N, --raw\nslice conditions: -S/--start-condition EXPR, -E/--end-condition EXPR\nConditions: named column comparisons with string/number literals.\nhead/tail: -l/--limit N (default 10)\nsort: -s/--select COLUMNS, -N/--numeric, -R/--reverse, -u/--uniq\nsearch: PATTERN; -s/--select, -e/--exact, -i/--ignore-case, -v/--invert-match\nfilter: COLUMN comparison LITERAL; -v/--invert-match\nrename: NAMES; -s/--select COLUMNS; drop: SELECTION\nstats/freq: -s/--select COLUMNS; freq: -l/--limit N, -A/--all, -N/--no-extra\njoin: COLUMNS LEFT [RIGHT_COLUMNS] RIGHT; --left/--right/--full/--semi/--anti/--cross\n      --drop-key none|left|right|both, --nulls, -i/--ignore-case\nSearch uses literal substrings; filter supports the comparisons above.\nagg/groupby: aggregate calls (count, sum, mean, min, max, first, last) with optional AS names.\nto: json, jsonl, ndjson, txt; from: -f json, jsonl, ndjson, txt, raw.\ncat: rows or cols [--pad]; split: -S SIZE, -O DIRECTORY, -f TEMPLATE.\nselect -e: arithmetic (+ - * / %), parentheses, literals, columns and AS aliases.\nmap: EXPRESSION COLUMN; append one computed column.\ntop: COLUMNS; -l/--limit N (default 10), -R/--reverse (smallest first).\ntable/view: aligned text; -s/--select COLUMNS, -n/--no-headers.\nOther expressions, formats and forced color are unsupported.\nCount execution options use exact sequential counting.\n");
+    }
     match sub {
         "count" => {
             let mut explicit_delim: Option<char> = None;
             let mut no_headers = false;
             let mut check_align = false;
+            let mut approx = false;
             let mut human_readable = false;
             let mut parallel = false;
+            let mut threads_val: Option<String> = None;
             let mut files = Vec::new();
             let mut i = 0usize;
             while i < rest.len() {
                 match rest[i].as_str() {
                     "-n" | "--no-headers" => no_headers = true,
                     "-c" | "--check-alignment" => check_align = true,
+                    "-a" | "--approx" => approx = true,
                     "-H" | "--human-readable" => human_readable = true,
                     "-p" | "--parallel" => parallel = true,
                     "-t" | "--threads" if i + 1 < rest.len() => {
                         i += 1;
+                        parallel = true;
+                        threads_val = Some(rest[i].clone());
+                    }
+                    a if a.starts_with("--threads=") => {
+                        parallel = true;
+                        threads_val = Some(a.trim_start_matches("--threads=").to_string());
                     }
                     "-d" | "--delimiter" if i + 1 < rest.len() => {
                         i += 1;
@@ -12616,6 +12631,40 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     _ => {}
                 }
                 i += 1;
+            }
+            if let Some(ref tv) = threads_val {
+                let stripped = tv.strip_prefix('+').unwrap_or(tv.as_str());
+                if stripped.is_empty() || !stripped.chars().all(|c| c.is_ascii_digit()) {
+                    return err_out(
+                        &format!("Could not deserialize '{tv}' to u64 for '--threads'.\n"),
+                        1,
+                    );
+                }
+                match stripped.parse::<u64>() {
+                    Ok(0) => return err_out("xan count: --threads must be positive\n", 1),
+                    Ok(_) => {}
+                    Err(_) => {
+                        return err_out(
+                            &format!("Could not deserialize '{tv}' to u64 for '--threads'.\n"),
+                            1,
+                        );
+                    }
+                }
+            }
+            if approx && check_align {
+                return err_out(
+                    "xan count: -a/--approx does not work with -c/--check-alignment!\n",
+                    1,
+                );
+            }
+            if parallel && (approx || check_align) {
+                return err_out(
+                    "xan count: -p/--parallel or -t/--threads cannot be used with -a/--approx nor -c/--check-alignment!\n",
+                    1,
+                );
+            }
+            if (parallel || approx) && (files.is_empty() || files[0] == "-") {
+                return err_out("xan count: count execution options require a file path\n", 1);
             }
             let text = match read_csv_input(&files, stdin, cwd, fs) {
                 Ok(t) => t,
@@ -12669,7 +12718,15 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     out_s.push_str(&format!(" ({r_str}{unit})"));
                 }
             }
-            ok_out(&format!("{out_s}\n"))
+            BuiltinOutcome {
+                stdout: format!("{out_s}\n"),
+                stderr: if parallel {
+                    "nothing is actually parallelized!\n".to_string()
+                } else {
+                    String::new()
+                },
+                exit_code: 0,
+            }
         }
         "headers" | "h" => {
             let mut just_names = false;
@@ -12680,6 +12737,15 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             let mut i = 0usize;
             while i < rest.len() {
                 match rest[i].as_str() {
+                    "-n" | "--no-headers" => {
+                        let flag = rest[i].as_str();
+                        return err_out(
+                            &format!(
+                                "Usage:\n    xan headers [options] [<input>...]\n    xan h [options] [<input>...]\n\nUnknown flag: '{flag}' Use the -h/--help flag for more information.\n"
+                            ),
+                            1,
+                        );
+                    }
                     "-j" | "--just-names" => just_names = true,
                     "--csv" => csv_mode = true,
                     "-s" | "--start" if i + 1 < rest.len() => {
@@ -12690,7 +12756,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                         i += 1;
                         explicit_delim = rest[i].chars().next();
                     }
-                    a if !a.starts_with('-') => files.push(a.to_string()),
+                    a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
                     _ => {}
                 }
                 i += 1;
@@ -12720,21 +12786,22 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             let mut out = String::new();
             if csv_mode {
-                if files.len() > 1 {
-                    out.push_str(&format!("{}\n", files.join(",")));
-                    let max_rows = per_file_hdrs.iter().map(|h| h.len()).max().unwrap_or(0);
-                    for r_idx in 0..max_rows {
-                        let row_cells: Vec<&str> = per_file_hdrs
-                            .iter()
-                            .map(|h| h.get(r_idx).map(|s| s.as_str()).unwrap_or(""))
-                            .collect();
-                        out.push_str(&format!("{}\n", row_cells.join(",")));
-                    }
+                let header_paths: Vec<String> = if files.is_empty() {
+                    vec!["<stdin>".to_string()]
                 } else {
-                    out.push_str("column\n");
-                    for h in &all_hdrs {
-                        out.push_str(&format!("{h}\n"));
-                    }
+                    files
+                        .iter()
+                        .map(|p| if p == "-" { "<stdin>".to_string() } else { p.clone() })
+                        .collect()
+                };
+                out.push_str(&format!("{}\n", header_paths.join(",")));
+                let max_rows = per_file_hdrs.iter().map(|h| h.len()).max().unwrap_or(0);
+                for r_idx in 0..max_rows {
+                    let row_cells: Vec<&str> = per_file_hdrs
+                        .iter()
+                        .map(|h| h.get(r_idx).map(|s| s.as_str()).unwrap_or(""))
+                        .collect();
+                    out.push_str(&format!("{}\n", row_cells.join(",")));
                 }
             } else if per_file_hdrs.len() > 1 {
                 let mut counts: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
@@ -14931,7 +14998,10 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
             ok_out(&out)
         }
-        _ => ok_out(""),
+        _ => err_out(
+            &format!("xan {sub}: expected a CSV subcommand (use xan --help)\n"),
+            1,
+        ),
     }
 }
 
@@ -34830,5 +34900,92 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(mmdc_res.exit_code, 0);
         let svg_str = String::from_utf8(vfs.read_file("/work/d.svg").unwrap()).unwrap();
         assert!(svg_str.contains("id=\"test-svg\""));
+    }
+
+    #[test]
+    fn test_xan_diagnostics_and_count_execution_options_unit() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/data.csv", b"a,b\n1,2\n3,4\n").unwrap();
+        let env = BTreeMap::new();
+
+        let empty = try_run_structured_command("xan", &[], "", "/work", &env, &vfs).unwrap();
+        assert_eq!(empty.exit_code, 1);
+        assert_eq!(empty.stderr, "xan: expected a CSV subcommand (use xan --help)\n");
+
+        let unknown =
+            try_run_structured_command("xan", &args(&["bogus"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(unknown.exit_code, 1);
+        assert_eq!(
+            unknown.stderr,
+            "xan bogus: expected a CSV subcommand (use xan --help)\n"
+        );
+
+        let hdr_no = try_run_structured_command(
+            "xan",
+            &args(&["headers", "-n", "/work/data.csv"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(hdr_no.exit_code, 1);
+        assert!(hdr_no.stderr.contains("Unknown flag: '-n'"));
+
+        let par_ok = try_run_structured_command(
+            "xan",
+            &args(&["count", "-p", "/work/data.csv"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(par_ok.exit_code, 0);
+        assert_eq!(par_ok.stdout, "2\n");
+        assert_eq!(par_ok.stderr, "nothing is actually parallelized!\n");
+
+        let par_stdin = try_run_structured_command(
+            "xan",
+            &args(&["count", "-p"]),
+            "a,b\n1,2\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(par_stdin.exit_code, 1);
+        assert_eq!(
+            par_stdin.stderr,
+            "xan count: count execution options require a file path\n"
+        );
+
+        let par_align = try_run_structured_command(
+            "xan",
+            &args(&["count", "-p", "-c", "/work/data.csv"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(par_align.exit_code, 1);
+        assert_eq!(
+            par_align.stderr,
+            "xan count: -p/--parallel or -t/--threads cannot be used with -a/--approx nor -c/--check-alignment!\n"
+        );
+
+        let zero_threads = try_run_structured_command(
+            "xan",
+            &args(&["count", "--threads", "0", "/work/data.csv"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(zero_threads.exit_code, 1);
+        assert_eq!(zero_threads.stderr, "xan count: --threads must be positive\n");
     }
 }

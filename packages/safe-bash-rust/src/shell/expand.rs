@@ -372,6 +372,95 @@ pub fn eval_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64,
     eval_arith_comma(&tokens, &mut pos, env)
 }
 
+fn parse_js_int10(value: &str) -> i64 {
+    let s = value.trim_start();
+    if s.is_empty() {
+        return 0;
+    }
+    let (neg, rest) = if let Some(r) = s.strip_prefix('-') {
+        (true, r)
+    } else if let Some(r) = s.strip_prefix('+') {
+        (false, r)
+    } else {
+        (false, s)
+    };
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() {
+        return 0;
+    }
+    let val = digits.parse::<i64>().unwrap_or(0);
+    if neg { -val } else { val }
+}
+
+pub fn read_dynamic_random(env: &mut BTreeMap<String, String>) -> Option<String> {
+    if env.get("__random_disabled").map(|v| v == "1").unwrap_or(false) {
+        return env.get("RANDOM").cloned();
+    }
+    let cur_seed = env
+        .get("__random_seed")
+        .and_then(|s| s.parse::<u64>().ok())
+        .unwrap_or(1);
+    let seed = (cur_seed.wrapping_mul(16807)) % 2147483647;
+    env.insert("__random_seed".to_string(), seed.to_string());
+    let val = (seed ^ (seed >> 16)) & 0x7fff;
+    Some(val.to_string())
+}
+
+pub fn read_dynamic_seconds(env: &BTreeMap<String, String>) -> Option<String> {
+    if env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false) {
+        return env.get("SECONDS").cloned();
+    }
+    let origin_ms = env
+        .get("__seconds_origin_ms")
+        .and_then(|s| s.parse::<i64>().ok())
+        .unwrap_or(0);
+    let now_ms = crate::commands::virtual_clock_elapsed_ms().floor() as i64;
+    let secs = (now_ms - origin_ms).div_euclid(1000);
+    Some(secs.to_string())
+}
+
+pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String, String>) -> bool {
+    if name == "RANDOM" && !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false) {
+        let parsed = parse_js_int10(value) as i32;
+        let u = parsed as u32 as u64;
+        let seed = (u % 2147483647).max(1);
+        env.insert("__random_seed".to_string(), seed.to_string());
+        env.insert("RANDOM".to_string(), value.to_string());
+        return true;
+    }
+    if name == "SECONDS" && !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false) {
+        let parsed = parse_js_int10(value);
+        let now_ms = crate::commands::virtual_clock_elapsed_ms().floor() as i64;
+        let origin = now_ms - parsed.saturating_mul(1000);
+        env.insert("__seconds_origin_ms".to_string(), origin.to_string());
+        env.insert("SECONDS".to_string(), value.to_string());
+        return true;
+    }
+    false
+}
+
+pub fn ensure_dirstack_populated(env: &mut BTreeMap<String, String>) {
+    let cwd = env.get("PWD").cloned().unwrap_or_else(|| "/".to_string());
+    let tail: Vec<String> = env
+        .get("__dirstack")
+        .filter(|s| !s.is_empty())
+        .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
+        .unwrap_or_default();
+    let old: Vec<String> = env
+        .keys()
+        .filter(|k| k.starts_with("DIRSTACK["))
+        .cloned()
+        .collect();
+    for k in old {
+        env.remove(&k);
+    }
+    env.insert("DIRSTACK[0]".to_string(), cwd);
+    for (idx, d) in tail.iter().enumerate() {
+        env.insert(format!("DIRSTACK[{}]", idx + 1), d.clone());
+    }
+    sync_array_metadata("DIRSTACK", env);
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum ArithTok {
     Num(i64),
@@ -406,7 +495,7 @@ fn parse_radix_literal(base: u32, digits: &str) -> i64 {
     acc
 }
 
-fn tokenize_arith(expr: &str, env: &BTreeMap<String, String>) -> Result<Vec<ArithTok>, String> {
+fn tokenize_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<Vec<ArithTok>, String> {
     let mut expanded = String::new();
     let chars: Vec<char> = expr.chars().collect();
     let mut i = 0usize;
@@ -424,7 +513,8 @@ fn tokenize_arith(expr: &str, env: &BTreeMap<String, String>) -> Result<Vec<Arit
                 if i < chars.len() {
                     i += 1;
                 }
-                let val = env.get(&name).cloned().unwrap_or_else(|| "0".to_string());
+                let val = lookup_var(&name, env, 0, &[]);
+                let val = if val.is_empty() { "0".to_string() } else { val };
                 expanded.push_str(&val);
             } else {
                 let mut name = String::new();
@@ -432,7 +522,8 @@ fn tokenize_arith(expr: &str, env: &BTreeMap<String, String>) -> Result<Vec<Arit
                     name.push(chars[i]);
                     i += 1;
                 }
-                let val = env.get(&name).cloned().unwrap_or_else(|| "0".to_string());
+                let val = lookup_var(&name, env, 0, &[]);
+                let val = if val.is_empty() { "0".to_string() } else { val };
                 expanded.push_str(&val);
             }
         } else {
@@ -566,27 +657,12 @@ fn tokenize_arith(expr: &str, env: &BTreeMap<String, String>) -> Result<Vec<Arit
     Ok(out)
 }
 
-fn resolve_arith_var(name: &str, env: &BTreeMap<String, String>, depth: usize) -> i64 {
+fn resolve_arith_var(name: &str, env: &mut BTreeMap<String, String>, depth: usize) -> i64 {
     if depth > 16 {
         return 0;
     }
     let resolved = resolve_var_key(name, env);
-    let Some(raw) = env.get(&resolved) else {
-        return 0;
-    };
-    let trimmed = raw.trim();
-    if let Ok(n) = trimmed.parse::<i64>() {
-        return n;
-    }
-    if !trimmed.is_empty()
-        && trimmed
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_')
-    {
-        return resolve_arith_var(trimmed, env, depth + 1);
-    }
-    let mut tmp = env.clone();
-    eval_arith(trimmed, &mut tmp).unwrap_or(0)
+    resolve_arith_var_resolved(&resolved, env, depth)
 }
 
 fn resolve_var_key(name: &str, env: &BTreeMap<String, String>) -> String {
@@ -622,11 +698,26 @@ pub fn sync_array_metadata(base: &str, env: &mut BTreeMap<String, String>) {
     env.insert(format!("__keys__{base}"), keys.join("\x1f"));
 }
 
-fn resolve_arith_var_resolved(resolved: &str, env: &BTreeMap<String, String>, depth: usize) -> i64 {
+fn resolve_arith_var_resolved(resolved: &str, env: &mut BTreeMap<String, String>, depth: usize) -> i64 {
     if depth > 16 {
         return 0;
     }
-    let Some(raw) = env.get(resolved) else {
+    let raw_opt = if resolved == "RANDOM" {
+        read_dynamic_random(env)
+    } else if resolved == "SECONDS" {
+        read_dynamic_seconds(env)
+    } else if resolved == "LINENO" {
+        env.get("LINENO").or_else(|| env.get("__lineno")).cloned()
+    } else if resolved == "_" {
+        env.get("_").or_else(|| env.get("__last_arg")).cloned()
+    } else if resolved == "$" || resolved == "BASHPID" {
+        Some(env.get(resolved).cloned().unwrap_or_else(|| "1".to_string()))
+    } else if resolved == "BASH_SUBSHELL" {
+        Some(env.get("BASH_SUBSHELL").cloned().unwrap_or_else(|| "0".to_string()))
+    } else {
+        env.get(resolved).cloned()
+    };
+    let Some(raw) = raw_opt else {
         return 0;
     };
     let trimmed = raw.trim();
@@ -638,7 +729,7 @@ fn resolve_arith_var_resolved(resolved: &str, env: &BTreeMap<String, String>, de
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '_')
     {
-        return resolve_arith_var(trimmed, env, depth + 1);
+        return resolve_arith_var(&trimmed, env, depth + 1);
     }
     let mut tmp = env.clone();
     eval_arith(trimmed, &mut tmp).unwrap_or(0)
@@ -658,6 +749,14 @@ fn set_arith_var_resolved(
         .is_some_and(|a| a.contains('r'))
     {
         return Err(format!("{base}: readonly variable"));
+    }
+    let val_s = val.to_string();
+    if resolved == "OPTIND" && val <= 1 {
+        env.remove("__getopts_sub");
+        env.remove("__getopts_ind");
+    }
+    if write_dynamic_variable(&resolved, &val_s, env) {
+        return Ok(());
     }
     env.insert(resolved.clone(), val.to_string());
     if let Some((base, _)) = resolved.split_once('[') {
@@ -696,6 +795,10 @@ fn eval_arith_assign(
         *pos += 2;
         let resolved_key = resolve_var_key_mut(&var, env);
         let rhs = eval_arith_assign(tokens, pos, env)?;
+        if assign_op == "=" {
+            set_arith_var_resolved(resolved_key, rhs, env)?;
+            return Ok(rhs);
+        }
         let cur = resolve_arith_var_resolved(&resolved_key, env, 0);
         let next = match assign_op.as_str() {
             "=" => rhs,
@@ -1067,8 +1170,8 @@ pub fn expand_parameter_expr(
     if expr == "!" {
         return Ok(env.get("!").cloned().unwrap_or_default());
     }
-    if expr == "$" {
-        return Ok(env.get("$").cloned().unwrap_or_else(|| "1000".to_string()));
+    if expr == "$" || expr == "BASHPID" {
+        return Ok(env.get(expr).cloned().unwrap_or_else(|| "1".to_string()));
     }
     if expr == "#" {
         return Ok(pos_args.len().to_string());
@@ -1210,8 +1313,15 @@ pub fn expand_parameter_expr(
 
     // Indirect / keys / prefix discovery: ${!var}, ${!prefix*}, ${!prefix@}, ${!arr[@]}, ${!arr[*]}
     if let Some(rest) = expr.strip_prefix('!') {
-        if let Some(arr_base) = rest.strip_suffix("[@]").or_else(|| rest.strip_suffix("[*]")) {
-            let resolved = resolve_nameref_base(arr_base, env);
+        let iv_end = find_var_name_end(rest);
+        let iv_var = &rest[..iv_end];
+        let iv_tail = &rest[iv_end..];
+
+        if let Some(arr_base) = iv_var.strip_suffix("[@]").or_else(|| iv_var.strip_suffix("[*]")) {
+            let resolved = resolve_nameref_base(arr_base, env).to_string();
+            if resolved == "DIRSTACK" {
+                ensure_dirstack_populated(env);
+            }
             let prefix = format!("{resolved}[");
             let is_assoc = env
                 .get(&format!("__assoc__{resolved}"))
@@ -1229,34 +1339,101 @@ pub fn expand_parameter_expr(
             if !is_assoc {
                 keys.sort_by_key(|k| k.parse::<i64>().unwrap_or(0));
             }
+            if keys.is_empty()
+                && !is_assoc
+                && !env.contains_key(&format!("{resolved}[#]"))
+                && is_var_set(&resolved, env, pos_args)
+            {
+                keys.push("0".to_string());
+            }
+            if let Some(slice_spec) = iv_tail.strip_prefix(':') {
+                let (off, len_val) = parse_slice_spec(slice_spec, env)?;
+                if let Some(l) = len_val
+                    && l < 0
+                {
+                    return Err("substring expression < 0".to_string());
+                }
+                if !is_assoc {
+                    let entries: Vec<(isize, String)> = keys
+                        .into_iter()
+                        .filter_map(|k| k.parse::<isize>().ok().map(|idx| (idx, k)))
+                        .collect();
+                    let start_idx = if off < 0 {
+                        let max_idx = entries.last().map(|(i, _)| *i + 1).unwrap_or(0);
+                        if max_idx + off < 0 {
+                            isize::MAX
+                        } else {
+                            max_idx + off
+                        }
+                    } else {
+                        off
+                    };
+                    keys = entries
+                        .into_iter()
+                        .filter(|(idx, _)| *idx >= start_idx)
+                        .take(len_val.unwrap_or(isize::MAX).max(0) as usize)
+                        .map(|(_, k)| k)
+                        .collect();
+                } else {
+                    let total = keys.len() as isize;
+                    let start = if off < 0 {
+                        if total + off < 0 {
+                            keys.len()
+                        } else {
+                            (total + off) as usize
+                        }
+                    } else {
+                        (off as usize).min(keys.len())
+                    };
+                    let count = len_val.unwrap_or(total).max(0) as usize;
+                    let end = (start + count).min(keys.len());
+                    keys = keys[start..end].to_vec();
+                }
+            }
             return Ok(keys.join(" "));
         }
-        if let Some(prefix) = rest.strip_suffix('*').or_else(|| rest.strip_suffix('@')) {
-            let mut names: Vec<String> = env
-                .keys()
-                .filter(|k| {
-                    k.starts_with(prefix)
-                        && !k.starts_with("__")
-                        && !k.contains('[')
-                })
-                .cloned()
-                .collect();
-            names.sort();
+        if !iv_var.is_empty() && !iv_var.contains('[') && (iv_tail == "*" || iv_tail == "@") {
+            let names = collect_prefix_var_names(iv_var, env);
+            if iv_tail == "*" && env.get("__in_dquote").map(|v| v == "1").unwrap_or(false) {
+                let sep = env
+                    .get("IFS")
+                    .and_then(|s| s.chars().next())
+                    .map(|c| c.to_string())
+                    .unwrap_or_else(|| {
+                        if env.contains_key("IFS") {
+                            String::new()
+                        } else {
+                            " ".to_string()
+                        }
+                    });
+                return Ok(names.join(&sep));
+            }
             return Ok(names.join(" "));
         }
-        if env.contains_key(&format!("__nameref__{rest}")) {
+        if iv_tail.is_empty() && env.contains_key(&format!("__nameref__{rest}")) {
             return Ok(resolve_nameref_base(rest, env).to_string());
         }
-        let target_name = lookup_var(rest, env, last_exit, pos_args);
-        if target_name.is_empty() {
-            return Ok(String::new());
+        if iv_var.is_empty() {
+            return Err(format!("{expr}: bad substitution"));
         }
-        return Ok(lookup_var(&target_name, env, last_exit, pos_args));
+        let target_name = if env.contains_key(&format!("__nameref__{iv_var}")) {
+            resolve_nameref_base(iv_var, env).to_string()
+        } else {
+            expand_parameter_expr(iv_var, env, last_exit, pos_args)?
+        };
+        if !is_valid_indirect_target(&target_name) {
+            let bad = if target_name.is_empty() { iv_var } else { &target_name };
+            return Err(format!("{bad}: invalid variable name"));
+        }
+        return expand_parameter_expr(&format!("{target_name}{iv_tail}"), env, last_exit, pos_args);
     }
 
     if let Some(rest) = expr.strip_prefix('#') {
         if let Some(arr_base) = rest.strip_suffix("[@]").or_else(|| rest.strip_suffix("[*]")) {
-            let resolved = resolve_nameref_base(arr_base, env);
+            let resolved = resolve_nameref_base(arr_base, env).to_string();
+            if resolved == "DIRSTACK" {
+                ensure_dirstack_populated(env);
+            }
             let prefix = format!("{resolved}[");
             let count = env
                 .keys()
@@ -1266,6 +1443,13 @@ pub fn expand_parameter_expr(
                         .is_some_and(|sub| !matches!(sub, "@" | "*" | "#"))
                 })
                 .count();
+            if count == 0
+                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__assoc__{resolved}"))
+                && is_var_set(&resolved, env, pos_args)
+            {
+                return Ok("1".to_string());
+            }
             return Ok(count.to_string());
         }
         let val = lookup_var(rest, env, last_exit, pos_args);
@@ -1282,6 +1466,17 @@ pub fn expand_parameter_expr(
         let var = &expr[..var_end];
         let op_rest = &expr[var_end..];
 
+        if let Some(base) = var.strip_suffix("[]") {
+            let resolved = resolve_nameref_base(base, env);
+            let is_assoc = env
+                .get(&format!("__assoc__{resolved}"))
+                .map(|v| v == "1")
+                .unwrap_or(false);
+            if !is_assoc {
+                return Err(format!("{var}: bad array subscript"));
+            }
+        }
+
         // Error if unset/empty :?, ?
         if let Some(msg_raw) = op_rest.strip_prefix(":?") {
             let is_set = is_var_set(var, env, pos_args);
@@ -1293,7 +1488,7 @@ pub fn expand_parameter_expr(
                 } else {
                     msg
                 };
-                return Err(format!("{var}: {err_msg}"));
+                return Err(format!("__param_err__{var}: {err_msg}"));
             }
             return Ok(val);
         }
@@ -1305,7 +1500,7 @@ pub fn expand_parameter_expr(
                 } else {
                     msg
                 };
-                return Err(format!("{var}: {err_msg}"));
+                return Err(format!("__param_err__{var}: {err_msg}"));
             }
             return Ok(lookup_var(var, env, last_exit, pos_args));
         }
@@ -1326,11 +1521,17 @@ pub fn expand_parameter_expr(
             return Ok(lookup_var(var, env, last_exit, pos_args));
         }
         if let Some(def_raw) = op_rest.strip_prefix(":=") {
+            if var.ends_with("[@]") || var.ends_with("[*]") {
+                return Err(format!("{var}: bad array subscript"));
+            }
+            if is_special_or_positional_param(var) {
+                return Err("Cannot assign special parameter".to_string());
+            }
             let is_set = is_var_set(var, env, pos_args);
             let val = lookup_var(var, env, last_exit, pos_args);
             if !is_set || val.is_empty() {
                 let def = expand_nested_operand(def_raw, env, last_exit, pos_args)?;
-                let resolved = resolve_var_key(var, env);
+                let resolved = resolve_var_key_mut(var, env);
                 let base = resolved
                     .split_once('[')
                     .map(|(b, _)| b)
@@ -1341,15 +1542,26 @@ pub fn expand_parameter_expr(
                 {
                     return Err(format!("__param_ro__{base}: readonly variable"));
                 }
-                env.insert(resolved, def.clone());
+                if !write_dynamic_variable(&resolved, &def, env) {
+                    env.insert(resolved.clone(), def.clone());
+                    if let Some((arr_b, _)) = resolved.split_once('[') {
+                        sync_array_metadata(arr_b, env);
+                    }
+                }
                 return Ok(def);
             }
             return Ok(val);
         }
         if let Some(def_raw) = op_rest.strip_prefix('=') {
+            if var.ends_with("[@]") || var.ends_with("[*]") {
+                return Err(format!("{var}: bad array subscript"));
+            }
+            if is_special_or_positional_param(var) {
+                return Err("Cannot assign special parameter".to_string());
+            }
             if !is_var_set(var, env, pos_args) {
                 let def = expand_nested_operand(def_raw, env, last_exit, pos_args)?;
-                let resolved = resolve_var_key(var, env);
+                let resolved = resolve_var_key_mut(var, env);
                 let base = resolved
                     .split_once('[')
                     .map(|(b, _)| b)
@@ -1360,7 +1572,12 @@ pub fn expand_parameter_expr(
                 {
                     return Err(format!("__param_ro__{base}: readonly variable"));
                 }
-                env.insert(resolved, def.clone());
+                if !write_dynamic_variable(&resolved, &def, env) {
+                    env.insert(resolved.clone(), def.clone());
+                    if let Some((arr_b, _)) = resolved.split_once('[') {
+                        sync_array_metadata(arr_b, env);
+                    }
+                }
                 return Ok(def);
             }
             return Ok(lookup_var(var, env, last_exit, pos_args));
@@ -1422,24 +1639,26 @@ pub fn expand_parameter_expr(
         if let Some(rest) = op_rest.strip_prefix("//") {
             let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
             let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
-            let rep = expand_nested_operand(rep_raw, env, last_exit, pos_args)?;
+            let rep = expand_replacement_operand(rep_raw, env, last_exit, pos_args)?;
+            let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern(e, &pat, &rep, true)).collect();
+                let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, true, nocase)).collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(replace_glob_pattern(&val, &pat, &rep, true));
+            return Ok(replace_glob_pattern_ext(&val, &pat, &rep, true, nocase));
         }
         if let Some(rest) = op_rest.strip_prefix('/') {
             let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
             let pat = expand_nested_operand(pat_raw, env, last_exit, pos_args)?;
-            let rep = expand_nested_operand(rep_raw, env, last_exit, pos_args)?;
+            let rep = expand_replacement_operand(rep_raw, env, last_exit, pos_args)?;
+            let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
-                let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern(e, &pat, &rep, false)).collect();
+                let items: Vec<String> = elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, false, nocase)).collect();
                 return Ok(items.join(" "));
             }
             let val = lookup_var(var, env, last_exit, pos_args);
-            return Ok(replace_glob_pattern(&val, &pat, &rep, false));
+            return Ok(replace_glob_pattern_ext(&val, &pat, &rep, false, nocase));
         }
 
         // Case conversion ^^, ^, ,, , (with optional pattern)
@@ -1482,16 +1701,19 @@ pub fn expand_parameter_expr(
 
         // Substring or array slicing ${var:offset:len}
         if let Some(slice_spec) = op_rest.strip_prefix(':') {
-            let (off_s, len_opt) = match slice_spec.split_once(':') {
-                Some((o, l)) => (o.trim(), Some(l.trim())),
-                None => (slice_spec.trim(), None),
-            };
-            let off = eval_arith(off_s, env).unwrap_or(0) as isize;
-            let len_val = len_opt.map(|ls| eval_arith(ls, env).unwrap_or(0) as isize);
+            let (off, len_val) = parse_slice_spec(slice_spec, env)?;
 
             // Array slicing ${arr[@]:off:len} or ${arr[*]:off:len}
             if let Some(arr_base) = var.strip_suffix("[@]").or_else(|| var.strip_suffix("[*]")) {
+                if let Some(l) = len_val
+                    && l < 0
+                {
+                    return Err("substring expression < 0".to_string());
+                }
                 let resolved = resolve_nameref_base(arr_base, env).to_string();
+                if resolved == "DIRSTACK" {
+                    ensure_dirstack_populated(env);
+                }
                 let prefix = format!("{resolved}[");
                 let mut entries: Vec<(isize, String)> = env
                     .iter()
@@ -1505,7 +1727,11 @@ pub fn expand_parameter_expr(
                 entries.sort_by_key(|(idx, _)| *idx);
                 let start_idx = if off < 0 {
                     let max_idx = entries.last().map(|(i, _)| *i + 1).unwrap_or(0);
-                    (max_idx + off).max(0)
+                    if max_idx + off < 0 {
+                        isize::MAX
+                    } else {
+                        max_idx + off
+                    }
                 } else {
                     off
                 };
@@ -1520,17 +1746,33 @@ pub fn expand_parameter_expr(
 
             // Positional parameters slicing ${@:off:len} or ${*:off:len}
             if var == "@" || var == "*" {
+                if let Some(l) = len_val
+                    && l < 0
+                {
+                    return Err("substring expression < 0".to_string());
+                }
+                let arg0 = env
+                    .get("0")
+                    .cloned()
+                    .unwrap_or_else(|| "virtual-bash".to_string());
+                let mut all_pos = Vec::with_capacity(pos_args.len() + 1);
+                all_pos.push(arg0);
+                all_pos.extend_from_slice(pos_args);
                 let total = pos_args.len() as isize;
                 let start = if off < 0 {
-                    (total + 1 + off).max(1) as usize - 1
-                } else if off <= 1 {
+                    let idx = total + 1 + off;
+                    if idx <= 0 {
+                        return Ok(String::new());
+                    }
+                    idx as usize
+                } else if off == 0 {
                     0
                 } else {
-                    (off as usize - 1).min(pos_args.len())
+                    (off as usize).min(all_pos.len())
                 };
-                let count = len_val.unwrap_or(total).max(0) as usize;
-                let end = (start + count).min(pos_args.len());
-                return Ok(pos_args[start..end].join(" "));
+                let count = len_val.unwrap_or(all_pos.len() as isize).max(0) as usize;
+                let end = (start + count).min(all_pos.len());
+                return Ok(all_pos[start..end].join(" "));
             }
 
             let val = lookup_var(var, env, last_exit, pos_args);
@@ -1539,13 +1781,20 @@ pub fn expand_parameter_expr(
                 let bytes = crate::vfs::stream_string_to_bytes(&val);
                 let total_len = bytes.len();
                 let start = if off < 0 {
-                    (total_len as isize + off).max(0) as usize
+                    if total_len as isize + off < 0 {
+                        return Ok(String::new());
+                    }
+                    (total_len as isize + off) as usize
                 } else {
                     (off as usize).min(total_len)
                 };
                 let end = if let Some(l) = len_val {
                     if l < 0 {
-                        (total_len as isize + l).max(start as isize) as usize
+                        let e = total_len as isize + l;
+                        if e < start as isize {
+                            return Err(format!("{l}: substring expression < 0"));
+                        }
+                        e as usize
                     } else {
                         (start + l as usize).min(total_len)
                     }
@@ -1557,13 +1806,20 @@ pub fn expand_parameter_expr(
             let chars: Vec<char> = val.chars().collect();
             let total_len = chars.len();
             let start = if off < 0 {
-                (total_len as isize + off).max(0) as usize
+                if total_len as isize + off < 0 {
+                    return Ok(String::new());
+                }
+                (total_len as isize + off) as usize
             } else {
                 (off as usize).min(total_len)
             };
             let end = if let Some(l) = len_val {
                 if l < 0 {
-                    (total_len as isize + l).max(start as isize) as usize
+                    let e = total_len as isize + l;
+                    if e < start as isize {
+                        return Err(format!("{l}: substring expression < 0"));
+                    }
+                    e as usize
                 } else {
                     (start + l as usize).min(total_len)
                 }
@@ -1578,7 +1834,8 @@ pub fn expand_parameter_expr(
         && !is_var_set(expr, env, pos_args)
         && !expr.ends_with("[@]")
         && !expr.ends_with("[*]")
-        && !matches!(expr, "?" | "#" | "@" | "*" | "$" | "!" | "0" | "-")
+        && !matches!(expr, "?" | "#" | "@" | "*" | "$" | "!" | "0" | "-" | "BASHPID" | "LINENO" | "DIRSTACK")
+        && !(expr.chars().all(|c| c == '0') && !expr.is_empty())
     {
         return Err(format!("{expr}: unbound variable"));
     }
@@ -1600,33 +1857,46 @@ pub fn expand_double_quoted_at_expr(
         };
         let off = eval_arith(off_s, env).unwrap_or(0) as isize;
         let len_val = len_opt.map(|ls| eval_arith(ls, env).unwrap_or(0) as isize);
+        if let Some(l) = len_val
+            && l < 0
+        {
+            return None;
+        }
+        let arg0 = env
+            .get("0")
+            .cloned()
+            .unwrap_or_else(|| "virtual-bash".to_string());
+        let mut all_pos = Vec::with_capacity(pos_args.len() + 1);
+        all_pos.push(arg0);
+        all_pos.extend_from_slice(pos_args);
         let total = pos_args.len() as isize;
         let start = if off < 0 {
-            (total + 1 + off).max(1) as usize - 1
-        } else if off <= 1 {
+            let idx = total + 1 + off;
+            if idx <= 0 {
+                return Some(Vec::new());
+            }
+            idx as usize
+        } else if off == 0 {
             0
         } else {
-            (off as usize - 1).min(pos_args.len())
+            (off as usize).min(all_pos.len())
         };
-        let count = len_val.unwrap_or(total).max(0) as usize;
-        let end = (start + count).min(pos_args.len());
-        return Some(pos_args[start..end].to_vec());
+        let count = len_val.unwrap_or(all_pos.len() as isize).max(0) as usize;
+        let end = (start + count).min(all_pos.len());
+        return Some(all_pos[start..end].to_vec());
     }
     if let Some(prefix) = expr
         .strip_prefix('!')
         .and_then(|s| s.strip_suffix('@'))
         .filter(|p| !p.ends_with('['))
     {
-        let mut names: Vec<String> = env
-            .keys()
-            .filter(|k| k.starts_with(prefix) && !k.starts_with("__") && !k.contains('['))
-            .cloned()
-            .collect();
-        names.sort();
-        return Some(names);
+        return Some(collect_prefix_var_names(prefix, env));
     }
     if let Some(arr_base) = expr.strip_prefix('!').and_then(|s| s.strip_suffix("[@]")) {
-        let resolved = resolve_nameref_base(arr_base, env);
+        let resolved = resolve_nameref_base(arr_base, env).to_string();
+        if resolved == "DIRSTACK" {
+            ensure_dirstack_populated(env);
+        }
         let prefix = format!("{resolved}[");
         let is_assoc = env
             .get(&format!("__assoc__{resolved}"))
@@ -1644,11 +1914,21 @@ pub fn expand_double_quoted_at_expr(
         if !is_assoc {
             keys.sort_by_key(|k| k.parse::<i64>().unwrap_or(0));
         }
+        if keys.is_empty()
+            && !is_assoc
+            && !env.contains_key(&format!("{resolved}[#]"))
+            && is_var_set(&resolved, env, pos_args)
+        {
+            keys.push("0".to_string());
+        }
         return Some(keys);
     }
     if !expr.starts_with('#') && !expr.starts_with('!') {
         if let Some(arr_base) = expr.strip_suffix("[@]") {
-            let resolved = resolve_nameref_base(arr_base, env);
+            let resolved = resolve_nameref_base(arr_base, env).to_string();
+            if resolved == "DIRSTACK" {
+                ensure_dirstack_populated(env);
+            }
             let prefix = format!("{resolved}[");
             let is_assoc = env
                 .get(&format!("__assoc__{resolved}"))
@@ -1677,7 +1957,15 @@ pub fn expand_double_quoted_at_expr(
             };
             let off = eval_arith(off_s, env).unwrap_or(0) as isize;
             let len_val = len_opt.map(|ls| eval_arith(ls, env).unwrap_or(0) as isize);
+            if let Some(l) = len_val
+                && l < 0
+            {
+                return None;
+            }
             let resolved = resolve_nameref_base(arr_base, env).to_string();
+            if resolved == "DIRSTACK" {
+                ensure_dirstack_populated(env);
+            }
             let prefix = format!("{resolved}[");
             let mut entries: Vec<(isize, String)> = env
                 .iter()
@@ -1691,7 +1979,11 @@ pub fn expand_double_quoted_at_expr(
             entries.sort_by_key(|(idx, _)| *idx);
             let start_idx = if off < 0 {
                 let max_idx = entries.last().map(|(i, _)| *i + 1).unwrap_or(0);
-                (max_idx + off).max(0)
+                if max_idx + off < 0 {
+                    isize::MAX
+                } else {
+                    max_idx + off
+                }
             } else {
                 off
             };
@@ -1729,14 +2021,16 @@ pub fn expand_double_quoted_at_expr(
                 if let Some(rest) = op_rest.strip_prefix("//") {
                     let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
                     let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    let rep = expand_nested_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
-                    return Some(elems.iter().map(|e| replace_glob_pattern(e, &pat, &rep, true)).collect());
+                    let rep = expand_replacement_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
+                    let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+                    return Some(elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, true, nocase)).collect());
                 }
                 if let Some(rest) = op_rest.strip_prefix('/') {
                     let (pat_raw, rep_raw) = split_first_unescaped_slash(rest);
                     let pat = expand_nested_operand(pat_raw, env, 0, pos_args).unwrap_or_default();
-                    let rep = expand_nested_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
-                    return Some(elems.iter().map(|e| replace_glob_pattern(e, &pat, &rep, false)).collect());
+                    let rep = expand_replacement_operand(rep_raw, env, 0, pos_args).unwrap_or_default();
+                    let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+                    return Some(elems.iter().map(|e| replace_glob_pattern_ext(e, &pat, &rep, false, nocase)).collect());
                 }
                 if let Some(pat) = op_rest.strip_prefix("^^") {
                     let p = if pat.is_empty() { None } else { Some(pat) };
@@ -1800,7 +2094,7 @@ fn find_var_name_end(expr: &str) -> usize {
     if bytes.is_empty() {
         return 0;
     }
-    if matches!(bytes[0], b'@' | b'*' | b'?' | b'#') {
+    if matches!(bytes[0], b'@' | b'*' | b'?' | b'#' | b'$' | b'!' | b'-') {
         return 1;
     }
     let mut i = 0usize;
@@ -1822,8 +2116,90 @@ fn find_var_name_end(expr: &str) -> usize {
     i
 }
 
+fn is_valid_var_ident(s: &str) -> bool {
+    let mut chars = s.chars();
+    let Some(first) = chars.next() else {
+        return false;
+    };
+    (first.is_ascii_alphabetic() || first == '_')
+        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+}
+
+fn is_valid_indirect_target(s: &str) -> bool {
+    if s.is_empty() {
+        return false;
+    }
+    if matches!(s, "?" | "@" | "*" | "#" | "$" | "!" | "_" | "-") {
+        return true;
+    }
+    if s.chars().all(|c| c.is_ascii_digit()) {
+        return true;
+    }
+    if let Some((base, sub_rest)) = s.split_once('[') {
+        return is_valid_var_ident(base)
+            && sub_rest.ends_with(']')
+            && sub_rest.len() > 1;
+    }
+    is_valid_var_ident(s)
+}
+
+fn is_special_or_positional_param(var: &str) -> bool {
+    matches!(var, "?" | "@" | "*" | "#" | "$" | "!" | "-")
+        || (!var.is_empty() && var.chars().all(|c| c.is_ascii_digit()))
+}
+
+fn parse_slice_spec(
+    slice_spec: &str,
+    env: &mut BTreeMap<String, String>,
+) -> Result<(isize, Option<isize>), String> {
+    let (off_s, len_opt) = match slice_spec.split_once(':') {
+        Some((o, l)) => (o.trim(), Some(l.trim())),
+        None => (slice_spec.trim(), None),
+    };
+    if off_s.is_empty() && len_opt.is_none() {
+        return Err(format!("{slice_spec}: bad substitution"));
+    }
+    let off = if off_s.is_empty() {
+        0
+    } else {
+        eval_arith(off_s, env)? as isize
+    };
+    let len_val = match len_opt {
+        Some("") => Some(0),
+        Some(ls) => Some(eval_arith(ls, env)? as isize),
+        None => None,
+    };
+    Ok((off, len_val))
+}
+
+fn collect_prefix_var_names(prefix: &str, env: &BTreeMap<String, String>) -> Vec<String> {
+    let mut names = std::collections::BTreeSet::new();
+    if "DIRSTACK".starts_with(prefix) {
+        names.insert("DIRSTACK".to_string());
+    }
+    if "FUNCNAME".starts_with(prefix) && env.contains_key("FUNCNAME[0]") {
+        names.insert("FUNCNAME".to_string());
+    }
+    for k in env.keys() {
+        if k.starts_with("__") {
+            continue;
+        }
+        let base = k.split_once('[').map(|(b, _)| b).unwrap_or(k.as_str());
+        if base.starts_with(prefix) && is_valid_var_ident(base) {
+            names.insert(base.to_string());
+        }
+    }
+    names.into_iter().collect()
+}
+
 fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -> bool {
-    if name == "BASH_SUBSHELL" {
+    if matches!(
+        name,
+        "BASH_SUBSHELL" | "BASHPID" | "$" | "?" | "#" | "-" | "LINENO" | "DIRSTACK" | "DIRSTACK[0]"
+    ) {
+        return true;
+    }
+    if !name.is_empty() && name.chars().all(|c| c == '0') {
         return true;
     }
     if let Ok(idx) = name.parse::<usize>()
@@ -1835,6 +2211,20 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
         return !pos_args.is_empty();
     }
     let resolved = resolve_var_key_for_lookup(name, env);
+    if resolved == "RANDOM" {
+        return !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false)
+            || env.contains_key("RANDOM");
+    }
+    if resolved == "SECONDS" {
+        return !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false)
+            || env.contains_key("SECONDS");
+    }
+    if resolved == "_" {
+        return env.contains_key("_") || env.contains_key("__last_arg");
+    }
+    if resolved == "DIRSTACK" || resolved == "DIRSTACK[0]" {
+        return true;
+    }
     env.contains_key(&resolved) || env.contains_key(&format!("{resolved}[0]"))
 }
 
@@ -1954,7 +2344,82 @@ fn expand_nested_dollar(
     Ok(lookup_var(&name, env, last_exit, pos_args))
 }
 
-fn replace_glob_pattern(val: &str, pat: &str, rep: &str, global: bool) -> String {
+fn expand_replacement_operand(
+    raw: &str,
+    env: &mut BTreeMap<String, String>,
+    last_exit: i32,
+    pos_args: &[String],
+) -> Result<String, String> {
+    let in_dquote = env.get("__in_dquote").map(|v| v == "1").unwrap_or(false);
+    let chars: Vec<char> = raw.chars().collect();
+    let mut i = 0usize;
+    let mut out = String::new();
+    while i < chars.len() {
+        let c = chars[i];
+        if c == '"' {
+            i += 1;
+            while i < chars.len() && chars[i] != '"' {
+                if chars[i] == '\\' && i + 1 < chars.len() {
+                    let esc = chars[i + 1];
+                    out.push(if esc == '&' { '\x01' } else { esc });
+                    i += 2;
+                    continue;
+                }
+                if chars[i] == '$' {
+                    let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?;
+                    out.push_str(&exp.replace('&', "\x01"));
+                    continue;
+                }
+                out.push(if chars[i] == '&' { '\x01' } else { chars[i] });
+                i += 1;
+            }
+            if i < chars.len() {
+                i += 1;
+            }
+        } else if c == '\'' && !in_dquote {
+            i += 1;
+            while i < chars.len() && chars[i] != '\'' {
+                out.push(if chars[i] == '&' { '\x01' } else { chars[i] });
+                i += 1;
+            }
+            if i < chars.len() {
+                i += 1;
+            }
+        } else if c == '\\' && i + 1 < chars.len() {
+            let esc = chars[i + 1];
+            out.push(if esc == '&' { '\x01' } else { esc });
+            i += 2;
+        } else if c == '$' {
+            out.push_str(&expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args)?);
+        } else {
+            out.push(c);
+            i += 1;
+        }
+    }
+    Ok(out)
+}
+
+fn render_replacement_with_match(rep: &str, matched: &str) -> String {
+    let mut out = String::with_capacity(rep.len() + matched.len());
+    for ch in rep.chars() {
+        if ch == '&' {
+            out.push_str(matched);
+        } else if ch == '\x01' {
+            out.push('&');
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+fn replace_glob_pattern_ext(
+    val: &str,
+    pat: &str,
+    rep: &str,
+    global: bool,
+    nocase: bool,
+) -> String {
     if pat.is_empty() {
         return val.to_string();
     }
@@ -1962,9 +2427,10 @@ fn replace_glob_pattern(val: &str, pat: &str, rep: &str, global: bool) -> String
         let chars: Vec<char> = val.chars().collect();
         for i in (0..=chars.len()).rev() {
             let prefix: String = chars[..i].iter().collect();
-            if glob_match(anch, &prefix) {
+            if glob_match_ext(anch, &prefix, nocase) {
                 let rest: String = chars[i..].iter().collect();
-                return format!("{rep}{rest}");
+                let rendered = render_replacement_with_match(rep, &prefix);
+                return format!("{rendered}{rest}");
             }
         }
         return val.to_string();
@@ -1973,19 +2439,19 @@ fn replace_glob_pattern(val: &str, pat: &str, rep: &str, global: bool) -> String
         let chars: Vec<char> = val.chars().collect();
         for i in 0..=chars.len() {
             let suffix: String = chars[i..].iter().collect();
-            if glob_match(anch, &suffix) {
+            if glob_match_ext(anch, &suffix, nocase) {
                 let head: String = chars[..i].iter().collect();
-                return format!("{head}{rep}");
+                let rendered = render_replacement_with_match(rep, &suffix);
+                return format!("{head}{rendered}");
             }
         }
         return val.to_string();
     }
-    if !has_glob_meta(pat) {
-        return if global {
-            val.replace(pat, rep)
-        } else {
-            val.replacen(pat, rep, 1)
-        };
+    if val.is_empty() {
+        if pat.starts_with('*') && glob_match_ext(pat, "", nocase) {
+            return render_replacement_with_match(rep, "");
+        }
+        return String::new();
     }
     let chars: Vec<char> = val.chars().collect();
     let mut out = String::new();
@@ -1994,13 +2460,14 @@ fn replace_glob_pattern(val: &str, pat: &str, rep: &str, global: bool) -> String
         let mut matched_end = None;
         for end in (idx + 1..=chars.len()).rev() {
             let sub: String = chars[idx..end].iter().collect();
-            if glob_match(pat, &sub) {
+            if glob_match_ext(pat, &sub, nocase) {
                 matched_end = Some(end);
                 break;
             }
         }
         if let Some(end) = matched_end {
-            out.push_str(rep);
+            let matched_str: String = chars[idx..end].iter().collect();
+            out.push_str(&render_replacement_with_match(rep, &matched_str));
             idx = end;
             if !global {
                 let tail: String = chars[idx..].iter().collect();
@@ -2238,14 +2705,17 @@ fn split_first_unescaped_slash(s: &str) -> (&str, &str) {
 
 fn lookup_array_elements(
     var: &str,
-    env: &BTreeMap<String, String>,
+    env: &mut BTreeMap<String, String>,
     pos_args: &[String],
 ) -> Option<Vec<String>> {
     if var == "@" || var == "*" {
         return Some(pos_args.to_vec());
     }
     let arr_base = var.strip_suffix("[@]").or_else(|| var.strip_suffix("[*]"))?;
-    let resolved = resolve_nameref_base(arr_base, env);
+    let resolved = resolve_nameref_base(arr_base, env).to_string();
+    if resolved == "DIRSTACK" {
+        ensure_dirstack_populated(env);
+    }
     let prefix = format!("{resolved}[");
     let is_assoc = env
         .get(&format!("__assoc__{resolved}"))
@@ -2262,6 +2732,14 @@ fn lookup_array_elements(
         .collect();
     if !is_assoc {
         entries.sort_by_key(|(k, _)| k.parse::<i64>().unwrap_or(0));
+    }
+    if entries.is_empty()
+        && !is_assoc
+        && !env.contains_key(&format!("{resolved}[#]"))
+        && is_var_set(&resolved, env, pos_args)
+    {
+        let single = lookup_var(&resolved, env, 0, pos_args);
+        return Some(vec![single]);
     }
     Some(entries.into_iter().map(|(_, v)| v).collect())
 }
@@ -2364,7 +2842,7 @@ pub fn resolve_var_key_mut(name: &str, env: &mut BTreeMap<String, String>) -> St
 
 pub fn lookup_var(
     name: &str,
-    env: &BTreeMap<String, String>,
+    env: &mut BTreeMap<String, String>,
     last_exit: i32,
     pos_args: &[String],
 ) -> String {
@@ -2373,6 +2851,18 @@ pub fn lookup_var(
             .get("BASH_SUBSHELL")
             .cloned()
             .unwrap_or_else(|| "0".to_string());
+    }
+    if name == "$" || name == "BASHPID" {
+        return env
+            .get(name)
+            .cloned()
+            .unwrap_or_else(|| "1".to_string());
+    }
+    if !name.is_empty() && name.chars().all(|c| c == '0') {
+        return env
+            .get("0")
+            .cloned()
+            .unwrap_or_else(|| "virtual-bash".to_string());
     }
     if name == "?" {
         return last_exit.to_string();
@@ -2429,7 +2919,10 @@ pub fn lookup_var(
     }
     if let Some(arr_base) = name.strip_suffix("[@]").or_else(|| name.strip_suffix("[*]")) {
         let is_star = name.ends_with("[*]");
-        let resolved = resolve_nameref_base(arr_base, env);
+        let resolved = resolve_nameref_base(arr_base, env).to_string();
+        if resolved == "DIRSTACK" {
+            ensure_dirstack_populated(env);
+        }
         let prefix = format!("{resolved}[");
         let is_assoc = env
             .get(&format!("__assoc__{resolved}"))
@@ -2468,6 +2961,29 @@ pub fn lookup_var(
         return vals.join(" ");
     }
     let key = resolve_var_key_for_lookup(name, env);
+    if key == "RANDOM" || key == "RANDOM[0]" {
+        return read_dynamic_random(env).unwrap_or_default();
+    }
+    if key == "SECONDS" || key == "SECONDS[0]" {
+        return read_dynamic_seconds(env).unwrap_or_default();
+    }
+    if key == "LINENO" || key == "LINENO[0]" {
+        return env
+            .get("LINENO")
+            .or_else(|| env.get("__lineno"))
+            .cloned()
+            .unwrap_or_else(|| "1".to_string());
+    }
+    if key == "_" || key == "_[0]" {
+        return env
+            .get("_")
+            .or_else(|| env.get("__last_arg"))
+            .cloned()
+            .unwrap_or_default();
+    }
+    if key.starts_with("DIRSTACK") {
+        ensure_dirstack_populated(env);
+    }
     env.get(&key)
         .or_else(|| env.get(&format!("{key}[0]")))
         .cloned()
@@ -2866,5 +3382,49 @@ mod tests {
 
         let err_param = expand_parameter_expr("RO:=fallback", &mut env, 0, &[]).unwrap_err();
         assert_eq!(err_param, "__param_ro__RO: readonly variable");
+    }
+
+    #[test]
+    fn unit_dynamic_random_seconds_and_deep_parameter_expansions() {
+        let mut env = BTreeMap::new();
+        write_dynamic_variable("RANDOM", "42", &mut env);
+        let r1 = expand_parameter_expr("RANDOM", &mut env, 0, &[]).unwrap();
+        let r2 = expand_parameter_expr("RANDOM", &mut env, 0, &[]).unwrap();
+        write_dynamic_variable("RANDOM", "42", &mut env);
+        let r1_again = expand_parameter_expr("RANDOM", &mut env, 0, &[]).unwrap();
+        assert_eq!(r1, r1_again);
+        assert_ne!(r1, r2);
+
+        env.insert("TARGET".to_string(), "hello-123-world".to_string());
+        env.insert("PTR".to_string(), "TARGET".to_string());
+        assert_eq!(
+            expand_parameter_expr("!PTR#hello-", &mut env, 0, &[]).unwrap(),
+            "123-world"
+        );
+        assert_eq!(
+            expand_parameter_expr("TARGET/+([0-9])/[&]", &mut env, 0, &[]).unwrap(),
+            "hello-[123]-world"
+        );
+        assert_eq!(
+            expand_parameter_expr("!TARGET[@]", &mut env, 0, &[]).unwrap(),
+            "0"
+        );
+        assert_eq!(
+            expand_parameter_expr("TARGET: -99", &mut env, 0, &[]).unwrap(),
+            ""
+        );
+        assert!(
+            expand_parameter_expr("TARGET:5:-20", &mut env, 0, &[])
+                .unwrap_err()
+                .contains("substring expression < 0")
+        );
+        assert_eq!(
+            expand_parameter_expr("1:=bad", &mut env, 0, &[]).unwrap_err(),
+            "Cannot assign special parameter"
+        );
+        assert_eq!(
+            expand_parameter_expr("arr[@]:=bad", &mut env, 0, &[]).unwrap_err(),
+            "arr[@]: bad array subscript"
+        );
     }
 }

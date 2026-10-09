@@ -5,7 +5,7 @@ use crate::shell::builtins::{BuiltinOutcome, try_run_builtin};
 use crate::shell::expand::{
     bash_quote_double, decode_ansi_c_escapes, eval_arith, expand_double_quoted_at_expr,
     expand_globs_in_word, expand_parameter_expr, get_var_meta_info, glob_match_ext,
-    resolve_nameref_base, resolve_var_key_mut, sync_array_metadata,
+    resolve_nameref_base, resolve_var_key_mut, sync_array_metadata, write_dynamic_variable,
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
@@ -305,7 +305,7 @@ impl<'a> EvalState<'a> {
                     }
                     Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{msg}\n"),
+                        stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
                         exit_code: 1,
                     },
                     Err(e) => return Err(e),
@@ -327,10 +327,19 @@ impl<'a> EvalState<'a> {
             let out = match self.eval_and_or_list(list, stdin) {
                 Ok(o) => o,
                 Err(EvalError::Syntax(msg)) => {
-                    stderr.push_str(&format!("{msg}\n"));
-                    last_code = 1;
-                    self.last_exit = 1;
-                    self.exit_requested = Some(1);
+                    let is_param_err = msg.starts_with("__param_err__");
+                    let clean_msg = msg.strip_prefix("__param_err__").unwrap_or(&msg);
+                    stderr.push_str(&format!("{clean_msg}\n"));
+                    let is_subshell = self
+                        .env
+                        .get("BASH_SUBSHELL")
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .unwrap_or(0)
+                        > 0;
+                    let code = if is_param_err && !is_subshell { 127 } else { 1 };
+                    last_code = code;
+                    self.last_exit = code;
+                    self.exit_requested = Some(code);
                     break;
                 }
                 Err(e) => return Err(e),
@@ -597,7 +606,7 @@ impl<'a> EvalState<'a> {
                     Ok(o) => o,
                     Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{msg}\n"),
+                        stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
                         exit_code: 1,
                     },
                     Err(e) => return Err(e),
@@ -1351,6 +1360,9 @@ impl<'a> EvalState<'a> {
             self.env.remove("__getopts_sub");
             self.env.remove("__getopts_ind");
         }
+        if write_dynamic_variable(&resolved, &final_val, self.env) {
+            return Ok(());
+        }
         self.env.insert(resolved, final_val);
         Ok(())
     }
@@ -1446,6 +1458,7 @@ impl<'a> EvalState<'a> {
         self.budget.tick_command().map_err(EvalError::Budget)?;
         if simple.line > 0 {
             self.current_line = simple.line;
+            self.env.insert("__lineno".to_string(), simple.line.to_string());
         }
         let mut debug_out = BuiltinOutcome {
             stdout: String::new(),
@@ -1698,6 +1711,10 @@ impl<'a> EvalState<'a> {
             } else {
                 let _ = prev_exit;
             }
+            if !simple.assignments.iter().any(|(k, _, _)| k == "_") {
+                self.env.remove("_");
+            }
+            self.env.insert("__last_arg".to_string(), String::new());
             if let Some(dfd) = dup_fd {
                 self.in_fds.insert(dfd, local_stdin);
             }
@@ -1730,6 +1747,18 @@ impl<'a> EvalState<'a> {
             }
         }
         self.in_prefix_assignment = false;
+
+        if !simple.assignments.iter().any(|(k, _, _)| k == "_") {
+            self.env.remove("_");
+        }
+        if !self.functions.contains_key(&expanded_words[0])
+            && !matches!(expanded_words[0].as_str(), "eval" | "." | "source")
+        {
+            self.env.insert(
+                "__last_arg".to_string(),
+                expanded_words.last().cloned().unwrap_or_default(),
+            );
+        }
 
         let cmd_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
         let cmd_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
@@ -2041,7 +2070,12 @@ impl<'a> EvalState<'a> {
                     return Err(EvalError::Syntax(syn_err));
                 }
                 let ast = parse_script(&joined).map_err(EvalError::Syntax)?;
-                return self.eval_script(&ast, stdin);
+                let out = self.eval_script(&ast, stdin);
+                self.env.insert(
+                    "__last_arg".to_string(),
+                    args.last().unwrap_or(cmd).clone(),
+                );
+                return out;
             }
             "source" | "." => {
                 let src_args = if args.first().map(|s| s.as_str()) == Some("--") {
@@ -2113,8 +2147,10 @@ impl<'a> EvalState<'a> {
                             let prev_script_name = self.script_name.replace(target.clone());
                             let prev_line = self.current_line;
                             self.current_line = 1;
+                            self.env.insert("__lineno".to_string(), "1".to_string());
                             let eval_res = self.eval_script(&ast, stdin);
                             self.current_line = prev_line;
+                            self.env.insert("__lineno".to_string(), prev_line.to_string());
                             self.script_name = prev_script_name;
                             if !self.caller_frames.is_empty() {
                                 self.caller_frames.remove(0);
@@ -2129,6 +2165,10 @@ impl<'a> EvalState<'a> {
                                 out.exit_code = ret_code;
                             }
                             self.last_exit = out.exit_code;
+                            self.env.insert(
+                                "__last_arg".to_string(),
+                                args.last().unwrap_or(cmd).clone(),
+                            );
                             return Ok(out);
                         }
                         Err(_) => {
@@ -2494,6 +2534,10 @@ impl<'a> EvalState<'a> {
                     self.traps.remove("RETURN");
                 }
             }
+            self.env.insert(
+                "__last_arg".to_string(),
+                args.last().unwrap_or(cmd).clone(),
+            );
             return Ok(out);
         }
 
@@ -4600,6 +4644,16 @@ impl<'a> EvalState<'a> {
             if resolved == "PATH" {
                 self.env.insert("__path_unset__".to_string(), "1".to_string());
             }
+            if resolved == "RANDOM" {
+                self.env.insert("__random_disabled".to_string(), "1".to_string());
+            }
+            if resolved == "SECONDS" {
+                self.env.insert("__seconds_disabled".to_string(), "1".to_string());
+            }
+            if resolved == "OPTIND" {
+                self.env.remove("__getopts_sub");
+                self.env.remove("__getopts_ind");
+            }
             self.env.remove(&format!("__attr__{resolved}"));
             self.env.remove(&format!("__declared__{resolved}"));
             self.env.remove(&format!("__assoc__{resolved}"));
@@ -6214,25 +6268,10 @@ impl<'a> EvalState<'a> {
         }
         if chars[*idx] == '{' {
             let expr = scan_nested_brace_sub(chars, idx)?;
-            if expr == "0" {
-                return Ok(self
-                    .env
-                    .get("0")
-                    .cloned()
-                    .unwrap_or_else(|| "bash".to_string()));
-            }
             return expand_parameter_expr(&expr, self.env, self.last_exit, &self.pos_args)
                 .map_err(EvalError::Syntax);
         }
         let first = chars[*idx];
-        if first == '0' {
-            *idx += 1;
-            return Ok(self
-                .env
-                .get("0")
-                .cloned()
-                .unwrap_or_else(|| "bash".to_string()));
-        }
         if matches!(first, '?' | '#' | '@' | '*' | '$' | '!' | '-') || first.is_ascii_digit() {
             *idx += 1;
             let key = first.to_string();
@@ -6302,7 +6341,7 @@ impl<'a> EvalState<'a> {
             Ok(o) => o,
             Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!("{msg}\n"),
+                stderr: format!("{}\n", msg.strip_prefix("__param_err__").unwrap_or(&msg)),
                 exit_code: 1,
             },
             Err(e) => return Err(e),
@@ -7729,5 +7768,28 @@ mod tests {
             .unwrap();
         assert_eq!(getopts_end.exit_code, 0);
         assert_eq!(getopts_end.stdout, "a:val:3|1:?:unset:4\n");
+    }
+
+    #[test]
+    fn unit_eval_dynamic_variables_random_seconds_lineno_last_arg_dirstack() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("PWD".to_string(), "/".to_string());
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let out = state
+            .eval_script_str(
+                "RANDOM=7\nr1=$RANDOM\nr2=$RANDOM\nRANDOM=7\nr3=$RANDOM\n: first second third-arg\nlast1=$_\nlast_after_assign=$_\nf() { echo \"in:$_\"; }\n: before-fn\nf fn-arg\nlast2=$_\necho \"$r1:$r2:$r3|$last1|$last_after_assign|$last2|$$:$BASHPID|$0|${DIRSTACK[0]}|$LINENO\"",
+                "",
+            )
+            .unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(
+            out.stdout,
+            "in:before-fn\n19344:26956:19344|third-arg||fn-arg|1:1|virtual-bash|/|13\n"
+        );
     }
 }

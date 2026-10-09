@@ -2034,6 +2034,19 @@ fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
         && let Some(sub) = sub_with_bracket.strip_suffix(']')
     {
         let resolved_base = resolve_nameref_base(base, env);
+        if resolved_base == "DIRSTACK" {
+            if sub == "@" || sub == "*" {
+                return true;
+            }
+            let tail_len = env
+                .get("__dirstack")
+                .filter(|s| !s.is_empty())
+                .map(|s| s.split('\x1f').count() as i64)
+                .unwrap_or(0);
+            let idx = eval_arith(sub, &mut env.clone()).unwrap_or(0);
+            let eff = if idx < 0 { tail_len + 1 + idx } else { idx };
+            return eff >= 0 && eff <= tail_len;
+        }
         if sub == "@" || sub == "*" {
             if env.contains_key(resolved_base) {
                 return true;
@@ -2069,6 +2082,20 @@ fn eval_test_var_present(val: &str, env: &BTreeMap<String, String>) -> bool {
         return env.contains_key(&key) || (key.ends_with("[0]") && env.contains_key(resolved_base));
     }
     let resolved = resolve_nameref_base(val, env);
+    if matches!(resolved, "DIRSTACK" | "BASHPID" | "BASH_SUBSHELL" | "LINENO" | "$") {
+        return true;
+    }
+    if resolved == "RANDOM" {
+        return !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false)
+            || env.contains_key("RANDOM");
+    }
+    if resolved == "SECONDS" {
+        return !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false)
+            || env.contains_key("SECONDS");
+    }
+    if resolved == "_" {
+        return env.contains_key("_") || env.contains_key("__last_arg");
+    }
     if env.contains_key(resolved) || env.contains_key(val) {
         return true;
     }

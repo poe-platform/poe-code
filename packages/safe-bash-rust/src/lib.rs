@@ -84,4 +84,24 @@ mod tests {
         assert_eq!(out.exit_code, 0);
         assert_eq!(out.stdout, "root-api:/workspace");
     }
+
+    #[test]
+    fn unit_crate_root_limits_and_overlay_execution() {
+        let base = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        base.mkdir_all("/work").unwrap();
+        base.write_file("/work/a.txt", b"initial\n").unwrap();
+        let overlay = Arc::new(OverlayVfs::new(base.clone(), upper));
+        let mut shell = Shell::new(
+            overlay.clone(),
+            ShellOptions {
+                cwd: Some("/work".into()),
+                ..Default::default()
+            },
+        );
+        let out = shell.exec("echo updated > /work/a.txt && cat /work/a.txt").unwrap();
+        assert_eq!(out.exit_code, 0);
+        assert_eq!(out.stdout, "updated\n");
+        assert_eq!(base.read_file("/work/a.txt").unwrap(), b"initial\n");
+    }
 }

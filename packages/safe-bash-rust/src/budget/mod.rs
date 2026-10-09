@@ -304,4 +304,21 @@ mod tests {
         budget.alloc_guard.release(4096);
         assert_eq!(budget.alloc_guard.current_bytes(), 0);
     }
+
+    #[test]
+    fn execution_budget_recursion_and_substitution_depth_recovery() {
+        let mut limits = ShellLimits::default();
+        limits.max_function_depth = 1;
+        limits.max_substitution_depth = 1;
+        let budget = ExecutionBudget::new(limits, None);
+        budget.enter_recursion().unwrap();
+        budget.leave_recursion();
+        budget.enter_recursion().unwrap();
+        budget.leave_recursion();
+
+        budget.enter_substitution().unwrap();
+        budget.leave_substitution();
+        budget.enter_substitution().unwrap();
+        budget.leave_substitution();
+    }
 }

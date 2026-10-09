@@ -86,4 +86,13 @@ mod tests {
         guard.try_reserve(10 * 1024 * 1024).unwrap();
         assert_eq!(guard.current_bytes(), 0);
     }
+
+    #[test]
+    fn allocation_guard_exact_boundary_and_saturating_release() {
+        let guard = AllocationGuard::new(256);
+        assert!(guard.try_reserve(256).is_ok());
+        assert!(guard.try_reserve(1).is_err());
+        guard.release(512);
+        assert_eq!(guard.current_bytes(), 0);
+    }
 }

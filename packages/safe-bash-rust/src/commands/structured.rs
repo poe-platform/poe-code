@@ -34716,4 +34716,119 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(bad_persist.exit_code, 1);
         assert!(bad_persist.stderr.contains("unsupported FTS5 binary persistence"));
     }
+
+    #[test]
+    fn unit_ast_grep_ssconvert_pandoc_mdq_html_to_markdown_unrtf_and_mmdc() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let env = BTreeMap::new();
+
+        vfs.write_file("/work/code.ts", b"check(x + 1, x + 1); check(x, y);\n").unwrap();
+        let sg = try_run_structured_command(
+            "ast-grep",
+            &args(&["-p", "check($A, $A)", "--json=compact", "/work/code.ts"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(sg.exit_code, 0);
+        assert!(sg.stdout.contains("check(x + 1, x + 1)"));
+
+        vfs.write_file(
+            "/work/sheet.csv",
+            b"item,q1,q2,sum\napi,10,20,=B2+C2\n",
+        )
+        .unwrap();
+        let ssc1 = try_run_structured_command(
+            "ssconvert",
+            &args(&["--recalc", "/work/sheet.csv", "/work/sheet.xlsx"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ssc1.exit_code, 0);
+        let ssc2 = try_run_structured_command(
+            "ssconvert",
+            &args(&["/work/sheet.xlsx", "/work/out.csv"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(ssc2.exit_code, 0);
+        let out_csv = String::from_utf8(vfs.read_file("/work/out.csv").unwrap()).unwrap();
+        assert!(out_csv.contains("api,10,20,30"));
+
+        let pd = try_run_structured_command(
+            "pandoc",
+            &args(&["-f", "markdown", "-t", "html"]),
+            "# Title\n\nHello **bold** world.\n",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(pd.exit_code, 0);
+        assert!(pd.stdout.contains("<strong>bold</strong>"));
+
+        let h2m = try_run_structured_command(
+            "html-to-markdown",
+            &[],
+            "<h1>Doc</h1><p>Use <strong>Rust</strong>.</p>",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(h2m.exit_code, 0);
+        assert!(h2m.stdout.contains("**Rust**"));
+
+        vfs.write_file(
+            "/work/guide.md",
+            b"# Guide\n\n## Steps\n\n- Step One\n- Step Two\n",
+        )
+        .unwrap();
+        let mdq_res = try_run_structured_command(
+            "mdq",
+            &args(&["# Steps | - ", "--no-br", "/work/guide.md"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(mdq_res.exit_code, 0);
+        assert!(mdq_res.stdout.contains("- Step One"));
+
+        let urtf = try_run_structured_command(
+            "unrtf",
+            &args(&["--text"]),
+            r"{\rtf1\ansi Hello {\b World}\par}",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(urtf.exit_code, 0);
+        assert_eq!(urtf.stdout.trim(), "Hello World");
+
+        vfs.write_file("/work/d.mmd", b"flowchart LR\n  A --> B\n").unwrap();
+        let mmdc_res = try_run_structured_command(
+            "mmdc",
+            &args(&["-i", "/work/d.mmd", "-o", "/work/d.svg", "--svgId", "test-svg"]),
+            "",
+            "/work",
+            &env,
+            &vfs,
+        )
+        .unwrap();
+        assert_eq!(mmdc_res.exit_code, 0);
+        let svg_str = String::from_utf8(vfs.read_file("/work/d.svg").unwrap()).unwrap();
+        assert!(svg_str.contains("id=\"test-svg\""));
+    }
 }

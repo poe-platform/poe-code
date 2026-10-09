@@ -354,6 +354,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-sqlite3-op-gh-git-curl-timeout-sleep-env-vfs-polyglot-parity-matrix.test.ts",
   "obscure-sqlite3-fts5-validation-savepoints-alter-table-pragmas-triggers-parity-matrix.test.ts",
   "obscure-poppler-pdffonts-pdfinfo-qpdf-pdftk-magick-exiftool-sips-mmdc-unrtf-parity-matrix.test.ts",
+  "obscure-ast-grep-ssconvert-pandoc-mdq-html-to-markdown-unrtf-caller-parity-matrix.test.ts",
   "obscure-ast-grep-sips-soffice-pdftoppm-pdfimages-sqlite-op-gh-shell-parity-matrix.test.ts",
   "obscure-env-split-sqlite-correlated-update-gh-op-tar-parity-matrix.test.ts",
   "obscure-ffmpeg-pandoc-soffice-diff3-patch-sqlite-op-gh-shell-parity-matrix.test.ts",

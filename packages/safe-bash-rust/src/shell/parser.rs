@@ -9,9 +9,20 @@ pub enum RedirectKind {
     In(u32),
     ReadWrite(u32),
     HereString(u32),
-    HereDoc { fd: u32, quoted: bool },
-    DupOut(u32),
-    DupIn(u32),
+    HereDoc {
+        fd: u32,
+        quoted: bool,
+        eof_warning: Option<String>,
+    },
+    DupOut {
+        fd: u32,
+        explicit_fd: bool,
+        raw_move: bool,
+    },
+    DupIn {
+        fd: u32,
+        raw_move: bool,
+    },
     BothOut,
     BothAppend,
 }
@@ -476,7 +487,7 @@ impl AliasTokenState {
             | Token::RedirectIn(_)
             | Token::RedirectReadWrite(_)
             | Token::RedirectHereString(_)
-            | Token::RedirectDupOut(_)
+            | Token::RedirectDupOut(_, _)
             | Token::RedirectDupIn(_)
             | Token::RedirectBothOut
             | Token::RedirectBothAppend => {
@@ -642,6 +653,12 @@ pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>)
         if err.contains("unexpected end of file") || err.contains("unclosed") {
             return true;
         }
+    }
+    if tokens
+        .iter()
+        .any(|t| matches!(t, Token::RedirectHereDoc { eof_warning: Some(_), .. }))
+    {
+        return true;
     }
     let non_nl: Vec<&Token> = tokens
         .iter()
@@ -878,24 +895,51 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                 let target = expect_word(tokens, pos)?;
                 Redirect { kind: RedirectKind::HereString(f), target }
             }
-            Token::RedirectHereDoc { fd, quoted, body, .. } => {
+            Token::RedirectHereDoc {
+                fd,
+                quoted,
+                body,
+                eof_warning,
+                ..
+            } => {
                 let f = *fd;
                 let q = *quoted;
                 let b = body.clone();
+                let w = eof_warning.clone();
                 *pos += 1;
-                Redirect { kind: RedirectKind::HereDoc { fd: f, quoted: q }, target: b }
+                Redirect {
+                    kind: RedirectKind::HereDoc {
+                        fd: f,
+                        quoted: q,
+                        eof_warning: w,
+                    },
+                    target: b,
+                }
             }
-            Token::RedirectDupOut(fd) => {
+            Token::RedirectDupOut(fd, explicit_fd) => {
                 let f = *fd;
+                let exp_fd = *explicit_fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::DupOut(f), target }
+                let raw_move = is_raw_move_word(&target);
+                Redirect {
+                    kind: RedirectKind::DupOut {
+                        fd: f,
+                        explicit_fd: exp_fd,
+                        raw_move,
+                    },
+                    target,
+                }
             }
             Token::RedirectDupIn(fd) => {
                 let f = *fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
-                Redirect { kind: RedirectKind::DupIn(f), target }
+                let raw_move = is_raw_move_word(&target);
+                Redirect {
+                    kind: RedirectKind::DupIn { fd: f, raw_move },
+                    target,
+                }
             }
             Token::RedirectBothOut => {
                 *pos += 1;
@@ -912,6 +956,19 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
         redirects.push(r);
     }
     Ok(redirects)
+}
+
+fn is_raw_move_word(raw: &str) -> bool {
+    if raw == "-" || !raw.ends_with('-') {
+        return false;
+    }
+    let without_dash = &raw[..raw.len() - 1];
+    let backslashes = without_dash
+        .bytes()
+        .rev()
+        .take_while(|&b| b == b'\\')
+        .count();
+    backslashes % 2 == 0
 }
 
 fn expect_word(tokens: &[Token], pos: &mut usize) -> Result<String, String> {
@@ -931,33 +988,17 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
 
     // Subshell (...) or arithmetic ((...))
     if matches!(tokens.get(*pos), Some(Token::LParen)) {
-        if matches!(tokens.get(*pos + 1), Some(Token::LParen)) {
-            *pos += 2;
-            let mut expr_parts = Vec::new();
-            let mut depth = 1i32;
-            while *pos < tokens.len() {
-                if matches!(tokens.get(*pos), Some(Token::RParen)) && matches!(tokens.get(*pos + 1), Some(Token::RParen)) && depth == 1 {
-                    *pos += 2;
-                    break;
-                }
-                match &tokens[*pos] {
-                    Token::LParen => {
-                        depth += 1;
-                        expr_parts.push("(".to_string());
-                    }
-                    Token::RParen => {
-                        depth -= 1;
-                        expr_parts.push(")".to_string());
-                    }
-                    Token::Word(w) => expr_parts.push(w.clone()),
-                    Token::Semi => expr_parts.push(";".to_string()),
-                    _ => {}
-                }
-                *pos += 1;
-            }
+        if matches!(tokens.get(*pos + 1), Some(Token::LParen))
+            && let Some(Token::Word(w)) = tokens.get(*pos + 2)
+            && let Some(raw_expr) = w.strip_prefix("\x00__ARITH_EXPR__")
+            && matches!(tokens.get(*pos + 3), Some(Token::RParen))
+            && matches!(tokens.get(*pos + 4), Some(Token::RParen))
+        {
+            let expr = raw_expr.to_string();
+            *pos += 5;
             let redirects = parse_trailing_redirects(tokens, pos)?;
             return Ok(Some(CommandNode::ArithCommand {
-                expr: expr_parts.join(" "),
+                expr,
                 redirects,
             }));
         }
@@ -1359,7 +1400,7 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 | Token::RedirectReadWrite(_)
                 | Token::RedirectHereString(_)
                 | Token::RedirectHereDoc { .. }
-                | Token::RedirectDupOut(_)
+                | Token::RedirectDupOut(_, _)
                 | Token::RedirectDupIn(_)
                 | Token::RedirectBothOut
                 | Token::RedirectBothAppend,
@@ -1405,6 +1446,15 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
 
     if assignments.is_empty() && words.is_empty() && redirects.is_empty() {
         return Ok(None);
+    }
+    if !words.is_empty()
+        && assignments
+            .iter()
+            .any(|(k, v, _)| k.contains('[') || (v.starts_with('(') && v.ends_with(')')))
+    {
+        return Err(
+            "Syntax error: Indexed-array command prefixes are unsupported at offset 0".to_string(),
+        );
     }
 
     Ok(Some(CommandNode::Simple(SimpleCommand {

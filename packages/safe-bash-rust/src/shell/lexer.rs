@@ -20,11 +20,251 @@ pub enum Token {
         delimiter: String,
         quoted: bool,
         body: String,
+        eof_warning: Option<String>,
     },
-    RedirectDupOut(u32),
+    RedirectDupOut(u32, bool),
     RedirectDupIn(u32),
     RedirectBothOut,
     RedirectBothAppend,
+}
+
+pub fn find_arithmetic_end(
+    chars: &[char],
+    start: usize,
+    allow_subshell: bool,
+) -> Result<Option<(usize, usize)>, String> {
+    let mut depth: i32 = 0;
+    let mut quote: Option<char> = None;
+    let mut ansi_quote = false;
+    let mut quoted_subs: Vec<i32> = Vec::new();
+    let mut pos = start;
+    while pos < chars.len() {
+        let ch = chars[pos];
+        if allow_subshell {
+            if ch == '\\' && (quote != Some('\'') || ansi_quote) {
+                pos += 2;
+                continue;
+            }
+            if quote == Some('"') && ch == '$' && chars.get(pos + 1) == Some(&'(') {
+                quoted_subs.push(depth);
+                depth += 1;
+                pos += 2;
+                quote = None;
+                continue;
+            }
+            if let Some(q) = quote {
+                if ch == q {
+                    quote = None;
+                    ansi_quote = false;
+                }
+                pos += 1;
+                continue;
+            }
+            if ch == '\'' || ch == '"' || ch == '`' {
+                quote = Some(ch);
+                ansi_quote = ch == '\'' && pos > start && chars[pos - 1] == '$';
+                pos += 1;
+                continue;
+            }
+        }
+        if ch == '(' {
+            depth += 1;
+        }
+        if ch == ')' {
+            if depth == 0 {
+                let mut next_close = pos + 1;
+                while next_close + 1 < chars.len()
+                    && chars[next_close] == '\\'
+                    && chars[next_close + 1] == '\n'
+                {
+                    next_close += 2;
+                }
+                if chars.get(next_close) == Some(&')') {
+                    return Ok(Some((pos, next_close + 1)));
+                }
+            }
+            depth -= 1;
+            if depth < 0 {
+                if allow_subshell {
+                    return Ok(None);
+                }
+                break;
+            }
+            if quoted_subs.last() == Some(&depth) {
+                quoted_subs.pop();
+                quote = Some('"');
+            }
+        }
+        pos += 1;
+    }
+    Err("Syntax error: Unterminated arithmetic expression".to_string())
+}
+
+pub fn unquote_heredoc_delimiter(raw_delim: &str) -> (String, bool) {
+    let dchars: Vec<char> = raw_delim.chars().collect();
+    let mut di = 0usize;
+    let mut clean = String::new();
+    let mut quoted = false;
+    while di < dchars.len() {
+        if dchars[di] == '$' && di + 1 < dchars.len() && dchars[di + 1] == '\'' {
+            quoted = true;
+            di += 2;
+            let mut inner = String::new();
+            while di < dchars.len() && dchars[di] != '\'' {
+                if dchars[di] == '\\' && di + 1 < dchars.len() {
+                    inner.push(dchars[di]);
+                    inner.push(dchars[di + 1]);
+                    di += 2;
+                } else {
+                    inner.push(dchars[di]);
+                    di += 1;
+                }
+            }
+            if di < dchars.len() {
+                di += 1;
+            }
+            clean.push_str(&crate::shell::expand::decode_ansi_c_escapes(&inner));
+        } else if (dchars[di] == '$' && di + 1 < dchars.len() && dchars[di + 1] == '"')
+            || dchars[di] == '"'
+        {
+            quoted = true;
+            di += if dchars[di] == '$' { 2 } else { 1 };
+            while di < dchars.len() && dchars[di] != '"' {
+                if dchars[di] == '\\'
+                    && di + 1 < dchars.len()
+                    && matches!(dchars[di + 1], '$' | '`' | '"' | '\\' | '\n')
+                {
+                    if dchars[di + 1] != '\n' {
+                        clean.push(dchars[di + 1]);
+                    }
+                    di += 2;
+                } else {
+                    clean.push(dchars[di]);
+                    di += 1;
+                }
+            }
+            if di < dchars.len() {
+                di += 1;
+            }
+        } else if dchars[di] == '\'' {
+            quoted = true;
+            di += 1;
+            while di < dchars.len() && dchars[di] != '\'' {
+                clean.push(dchars[di]);
+                di += 1;
+            }
+            if di < dchars.len() {
+                di += 1;
+            }
+        } else if dchars[di] == '\\' && di + 1 < dchars.len() {
+            if dchars[di + 1] == '\n' {
+                di += 2;
+            } else {
+                quoted = true;
+                clean.push(dchars[di + 1]);
+                di += 2;
+            }
+        } else {
+            clean.push(dchars[di]);
+            di += 1;
+        }
+    }
+    (clean, quoted)
+}
+
+pub fn read_heredoc_raw_delim(chars: &[char], i: &mut usize) -> Result<String, String> {
+    let mut raw_delim = String::new();
+    while *i < chars.len() {
+        let c = chars[*i];
+        if c == '\\' && *i + 1 < chars.len() && chars[*i + 1] == '\n' {
+            *i += 2;
+            continue;
+        }
+        if c == '\n' || c.is_whitespace() || matches!(c, ';' | '|' | '&' | '>' | '<' | '(' | ')') {
+            break;
+        }
+        if c == '\\' && *i + 1 < chars.len() {
+            raw_delim.push('\\');
+            raw_delim.push(chars[*i + 1]);
+            *i += 2;
+        } else if c == '$' && *i + 1 < chars.len() && (chars[*i + 1] == '\'' || chars[*i + 1] == '"') {
+            let q = chars[*i + 1];
+            raw_delim.push('$');
+            raw_delim.push(q);
+            *i += 2;
+            let mut closed = false;
+            while *i < chars.len() {
+                let ch = chars[*i];
+                if ch == '\\' && *i + 1 < chars.len() {
+                    if q == '"' && chars[*i + 1] == '\n' {
+                        *i += 2;
+                        continue;
+                    }
+                    raw_delim.push('\\');
+                    raw_delim.push(chars[*i + 1]);
+                    *i += 2;
+                } else if ch == q {
+                    raw_delim.push(q);
+                    *i += 1;
+                    closed = true;
+                    break;
+                } else {
+                    raw_delim.push(ch);
+                    *i += 1;
+                }
+            }
+            if !closed {
+                return Err("Syntax error: unclosed quote in here-document delimiter".to_string());
+            }
+        } else if c == '\'' {
+            raw_delim.push('\'');
+            *i += 1;
+            let mut closed = false;
+            while *i < chars.len() {
+                let ch = chars[*i];
+                raw_delim.push(ch);
+                *i += 1;
+                if ch == '\'' {
+                    closed = true;
+                    break;
+                }
+            }
+            if !closed {
+                return Err("Syntax error: unclosed single quote".to_string());
+            }
+        } else if c == '"' {
+            raw_delim.push('"');
+            *i += 1;
+            let mut closed = false;
+            while *i < chars.len() {
+                let ch = chars[*i];
+                if ch == '\\' && *i + 1 < chars.len() {
+                    if chars[*i + 1] == '\n' {
+                        *i += 2;
+                        continue;
+                    }
+                    raw_delim.push('\\');
+                    raw_delim.push(chars[*i + 1]);
+                    *i += 2;
+                } else if ch == '"' {
+                    raw_delim.push('"');
+                    *i += 1;
+                    closed = true;
+                    break;
+                } else {
+                    raw_delim.push(ch);
+                    *i += 1;
+                }
+            }
+            if !closed {
+                return Err("Syntax error: unclosed double quote".to_string());
+            }
+        } else {
+            raw_delim.push(c);
+            *i += 1;
+        }
+    }
+    Ok(raw_delim)
 }
 
 pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
@@ -32,7 +272,7 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0usize;
     let mut current = String::new();
-    let mut pending_heredocs: Vec<(usize, u32, String, bool, bool)> = Vec::new();
+    let mut pending_heredocs: Vec<(usize, u32, String, bool, bool, usize)> = Vec::new();
     let mut in_double_bracket = false;
     let mut after_regex_op = false;
     let mut after_pat_op = false;
@@ -67,17 +307,26 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 i += 1;
                 if !pending_heredocs.is_empty() {
                     let drains = std::mem::take(&mut pending_heredocs);
-                    for (tok_idx, fd, delim, quoted, strip_tabs) in drains {
+                    for (tok_idx, fd, delim, quoted, strip_tabs, delim_offset) in drains {
                         let mut body = String::new();
                         let mut found = false;
                         while i < chars.len() {
-                            let line_start = i;
-                            while i < chars.len() && chars[i] != '\n' {
+                            let mut line = String::new();
+                            while i < chars.len() {
+                                let cur_c = chars[i];
                                 i += 1;
-                            }
-                            let line: String = chars[line_start..i].iter().collect();
-                            if i < chars.len() && chars[i] == '\n' {
-                                i += 1;
+                                if !quoted && cur_c == '\\' && i < chars.len() {
+                                    let next_c = chars[i];
+                                    i += 1;
+                                    if next_c != '\n' {
+                                        line.push(cur_c);
+                                        line.push(next_c);
+                                    }
+                                } else if cur_c == '\n' {
+                                    break;
+                                } else {
+                                    line.push(cur_c);
+                                }
                             }
                             let check = if strip_tabs {
                                 line.trim_start_matches('\t')
@@ -91,14 +340,19 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                             body.push_str(check);
                             body.push('\n');
                         }
-                        if !found {
-                            return Err(format!("Syntax error: unclosed here-document `{delim}`"));
-                        }
+                        let eof_warning = if !found {
+                            Some(format!(
+                                "here-document at offset {delim_offset} delimited by end-of-file (wanted {delim:?})"
+                            ))
+                        } else {
+                            None
+                        };
                         tokens[tok_idx] = Token::RedirectHereDoc {
                             fd,
                             delimiter: delim,
                             quoted,
                             body,
+                            eof_warning,
                         };
                     }
                 }
@@ -390,7 +644,27 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                         tokens.push(Token::Word(std::mem::take(&mut current)));
                     }
                     if i + 1 < chars.len() && chars[i + 1] == '(' {
-                        read_arith_command_tokens(&chars, &mut i, &mut tokens)?;
+                        let is_for_arith = tokens
+                            .iter()
+                            .rev()
+                            .find(|t| !matches!(t, Token::Newline))
+                            .is_some_and(|t| matches!(t, Token::Word(w) if w == "for"));
+                        if is_for_arith {
+                            read_arith_command_tokens(&chars, &mut i, &mut tokens)?;
+                        } else if let Some((expr_end, after_close)) =
+                            find_arithmetic_end(&chars, i + 2, true)?
+                        {
+                            let expr: String = chars[i + 2..expr_end].iter().collect();
+                            tokens.push(Token::LParen);
+                            tokens.push(Token::LParen);
+                            tokens.push(Token::Word(format!("\x00__ARITH_EXPR__{expr}")));
+                            tokens.push(Token::RParen);
+                            tokens.push(Token::RParen);
+                            i = after_close;
+                        } else {
+                            tokens.push(Token::LParen);
+                            i += 1;
+                        }
                     } else {
                         tokens.push(Token::LParen);
                         i += 1;
@@ -424,7 +698,7 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     }
                 } else if i + 1 < chars.len() && chars[i + 1] == '&' {
                     i += 2;
-                    tokens.push(Token::RedirectDupOut(2));
+                    tokens.push(Token::RedirectDupOut(2, true));
                     tokens.push(Token::Word("1".to_string()));
                     tokens.push(Token::Pipe);
                 } else {
@@ -472,47 +746,19 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
             }
             '>' | '<' if i + 1 < chars.len() && chars[i + 1] == '(' => {
                 current.push(ch);
-                current.push('(');
-                i += 2;
-                let mut depth = 1usize;
-                let mut in_sq = false;
-                let mut in_dq = false;
-                while i < chars.len() && depth > 0 {
-                    let c = chars[i];
-                    current.push(c);
-                    i += 1;
-                    if in_sq {
-                        if c == '\'' {
-                            in_sq = false;
-                        }
-                    } else if in_dq {
-                        if c == '\\' && i < chars.len() {
-                            current.push(chars[i]);
-                            i += 1;
-                        } else if c == '"' {
-                            in_dq = false;
-                        }
-                    } else if c == '\'' {
-                        in_sq = true;
-                    } else if c == '"' {
-                        in_dq = true;
-                    } else if c == '(' {
-                        depth += 1;
-                    } else if c == ')' {
-                        depth -= 1;
-                    }
-                }
+                i += 1;
+                read_paren_sub_body(&chars, &mut i, &mut current, "process substitution")?;
             }
             '>' => {
-                let fd = if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
+                let (fd, explicit_fd) = if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
                     let parsed = current.parse::<u32>().unwrap_or(1);
                     current.clear();
-                    parsed
+                    (parsed, true)
                 } else {
                     if !current.is_empty() {
                         tokens.push(Token::Word(std::mem::take(&mut current)));
                     }
-                    1
+                    (1, false)
                 };
                 i += 1;
                 if i < chars.len() && chars[i] == '>' {
@@ -523,7 +769,7 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     tokens.push(Token::RedirectClobber(fd));
                 } else if i < chars.len() && chars[i] == '&' {
                     i += 1;
-                    tokens.push(Token::RedirectDupOut(fd));
+                    tokens.push(Token::RedirectDupOut(fd, explicit_fd));
                 } else {
                     tokens.push(Token::RedirectOut(fd));
                 }
@@ -555,42 +801,28 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                         while i < chars.len() && matches!(chars[i], ' ' | '\t') {
                             i += 1;
                         }
-                        let mut raw_delim = String::new();
-                        while i < chars.len() {
-                            let c = chars[i];
-                            if c == '\n' || c.is_whitespace() || matches!(c, ';' | '|' | '&' | '>' | '<' | ')') {
-                                break;
-                            }
-                            if c == '\'' || c == '"' {
-                                let q = c;
-                                raw_delim.push(c);
-                                i += 1;
-                                while i < chars.len() && chars[i] != q {
-                                    raw_delim.push(chars[i]);
-                                    i += 1;
-                                }
-                                if i < chars.len() {
-                                    raw_delim.push(chars[i]);
-                                    i += 1;
-                                }
-                            } else {
-                                raw_delim.push(c);
-                                i += 1;
-                            }
+                        let delim_offset = i;
+                        let raw_delim = read_heredoc_raw_delim(&chars, &mut i)?;
+                        if raw_delim.is_empty() {
+                            return Err("Syntax error: expected here-document delimiter".to_string());
                         }
-                        let quoted = raw_delim.contains('\'') || raw_delim.contains('"') || raw_delim.contains('\\');
-                        let clean_delim: String = raw_delim
-                            .chars()
-                            .filter(|&c| c != '\'' && c != '"' && c != '\\')
-                            .collect();
+                        let (clean_delim, quoted) = unquote_heredoc_delimiter(&raw_delim);
                         let tok_idx = tokens.len();
                         tokens.push(Token::RedirectHereDoc {
                             fd,
                             delimiter: clean_delim.clone(),
                             quoted,
                             body: String::new(),
+                            eof_warning: None,
                         });
-                        pending_heredocs.push((tok_idx, fd, clean_delim, quoted, strip_tabs));
+                        pending_heredocs.push((
+                            tok_idx,
+                            fd,
+                            clean_delim,
+                            quoted,
+                            strip_tabs,
+                            delim_offset,
+                        ));
                     }
                 } else if i < chars.len() && chars[i] == '&' {
                     i += 1;
@@ -659,10 +891,17 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
     }
 
     if !pending_heredocs.is_empty() {
-        return Err(format!(
-            "Syntax error: unclosed here-document `{}`",
-            pending_heredocs[0].2
-        ));
+        for (tok_idx, fd, delim, quoted, _strip_tabs, delim_offset) in pending_heredocs {
+            tokens[tok_idx] = Token::RedirectHereDoc {
+                fd,
+                delimiter: delim.clone(),
+                quoted,
+                body: String::new(),
+                eof_warning: Some(format!(
+                    "here-document at offset {delim_offset} delimited by end-of-file (wanted {delim:?})"
+                )),
+            };
+        }
     }
 
     tokens.push(Token::Newline);
@@ -671,36 +910,34 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
 
 fn read_dollar_paren(chars: &[char], i: &mut usize, out: &mut String) -> Result<(), String> {
     out.push('$');
-    out.push('(');
-    *i += 2;
-    let is_arith = *i < chars.len() && chars[*i] == '(';
-    if is_arith {
-        out.push('(');
-        *i += 1;
-        let mut depth = 2usize;
-        while *i < chars.len() && depth > 0 {
-            let c = chars[*i];
-            if c == '\\' && *i + 1 < chars.len() && chars[*i + 1] == '\n' {
-                *i += 2;
-                continue;
+    *i += 1;
+    if *i + 1 < chars.len() && chars[*i] == '(' && chars[*i + 1] == '(' {
+        if let Some((expr_end, after_close)) = find_arithmetic_end(chars, *i + 2, true)? {
+            out.push_str("((");
+            for &c in &chars[*i + 2..expr_end] {
+                out.push(c);
             }
-            out.push(c);
-            *i += 1;
-            if c == '(' {
-                depth += 1;
-            } else if c == ')' {
-                depth -= 1;
-            }
+            out.push_str("))");
+            *i = after_close;
+            return Ok(());
         }
-        if depth != 0 {
-            return Err("Syntax error: unclosed arithmetic expansion".to_string());
-        }
-        return Ok(());
     }
+    read_paren_sub_body(chars, i, out, "command substitution")
+}
+
+fn read_paren_sub_body(
+    chars: &[char],
+    i: &mut usize,
+    out: &mut String,
+    construct_name: &str,
+) -> Result<(), String> {
+    out.push('(');
+    *i += 1;
 
     let mut depth = 1usize;
     let mut in_sq = false;
     let mut in_dq = false;
+    let mut sub_heredocs: Vec<(String, bool, bool)> = Vec::new();
     while *i < chars.len() && depth > 0 {
         let c = chars[*i];
         if in_sq {
@@ -756,11 +993,84 @@ fn read_dollar_paren(chars: &[char], i: &mut usize, out: &mut String) -> Result<
                 read_dollar_paren(chars, i, out)?;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '{' {
                 read_dollar_brace(chars, i, out)?;
+            } else if c == '<' && *i + 1 < chars.len() && chars[*i + 1] == '<' {
+                if chars.get(*i + 2) == Some(&'<') {
+                    out.push_str("<<<");
+                    *i += 3;
+                } else {
+                    out.push_str("<<");
+                    *i += 2;
+                    let strip_tabs = if *i < chars.len() && chars[*i] == '-' {
+                        out.push('-');
+                        *i += 1;
+                        true
+                    } else {
+                        false
+                    };
+                    while *i < chars.len() && matches!(chars[*i], ' ' | '\t') {
+                        out.push(chars[*i]);
+                        *i += 1;
+                    }
+                    let raw_delim = read_heredoc_raw_delim(chars, i)?;
+                    if raw_delim.is_empty() {
+                        return Err("Syntax error: expected here-document delimiter".to_string());
+                    }
+                    out.push_str(&raw_delim);
+                    let (clean_delim, quoted) = unquote_heredoc_delimiter(&raw_delim);
+                    sub_heredocs.push((clean_delim, quoted, strip_tabs));
+                }
+            } else if c == '\n' {
+                out.push('\n');
+                *i += 1;
+                if !sub_heredocs.is_empty() {
+                    let drains = std::mem::take(&mut sub_heredocs);
+                    for (delim, quoted, strip_tabs) in drains {
+                        let mut found = false;
+                        while *i < chars.len() {
+                            let mut line = String::new();
+                            while *i < chars.len() {
+                                let cur_c = chars[*i];
+                                out.push(cur_c);
+                                *i += 1;
+                                if !quoted && cur_c == '\\' && *i < chars.len() {
+                                    let next_c = chars[*i];
+                                    out.push(next_c);
+                                    *i += 1;
+                                    if next_c != '\n' {
+                                        line.push(cur_c);
+                                        line.push(next_c);
+                                    }
+                                } else if cur_c == '\n' {
+                                    break;
+                                } else {
+                                    line.push(cur_c);
+                                }
+                            }
+                            let check = if strip_tabs {
+                                line.trim_start_matches('\t')
+                            } else {
+                                line.as_str()
+                            };
+                            if check == delim {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if !found {
+                            return Err(format!("Syntax error: unclosed {construct_name}"));
+                        }
+                    }
+                }
             } else if c == '(' {
                 out.push(c);
                 *i += 1;
                 depth += 1;
             } else if c == ')' {
+                if depth == 1 && !sub_heredocs.is_empty() {
+                    return Err(format!(
+                        "Syntax error: Here-document requires a newline before closing {construct_name}"
+                    ));
+                }
                 out.push(c);
                 *i += 1;
                 depth -= 1;
@@ -771,7 +1081,7 @@ fn read_dollar_paren(chars: &[char], i: &mut usize, out: &mut String) -> Result<
         }
     }
     if depth != 0 {
-        return Err("Syntax error: unclosed command substitution".to_string());
+        return Err(format!("Syntax error: unclosed {construct_name}"));
     }
     Ok(())
 }
@@ -921,19 +1231,20 @@ mod tests {
                 fd: 0,
                 delimiter,
                 quoted: true,
-                body
+                body,
+                ..
             } if delimiter == "EOF" && body == "hello $WORLD\nfoo bar\n"
         )));
         assert!(tokens.contains(&Token::Pipe));
         assert!(tokens.contains(&Token::RedirectAppend(1)));
-        assert!(tokens.contains(&Token::RedirectDupOut(2)));
+        assert!(tokens.contains(&Token::RedirectDupOut(2, true)));
     }
 
     #[test]
     fn unit_tokenize_here_string_arithmetic_for_and_fd_redirections() {
         let tokens = tokenize_shell("for ((i=0; i<3; i++)); do cat <<< \"val=$i\" 3>&2 2>/dev/null; done").unwrap();
         assert!(tokens.iter().any(|t| matches!(t, Token::RedirectHereString(0))));
-        assert!(tokens.contains(&Token::RedirectDupOut(3)));
+        assert!(tokens.contains(&Token::RedirectDupOut(3, true)));
         assert!(tokens.contains(&Token::RedirectOut(2)));
         assert!(tokens.contains(&Token::LParen));
         assert!(tokens.contains(&Token::RParen));
@@ -949,7 +1260,8 @@ mod tests {
                 fd: 0,
                 delimiter,
                 quoted: false,
-                body
+                body,
+                ..
             } if delimiter == "EOF" && body == "indented\ndeep\n"
         )));
         assert!(tokens.contains(&Token::AndIf));
@@ -966,7 +1278,8 @@ mod tests {
                 fd: 0,
                 delimiter,
                 quoted: true,
-                body
+                body,
+                ..
             } if delimiter == "RAW" && body == "$NO_EXPAND\n"
         )));
         assert!(tokens.contains(&Token::Background));

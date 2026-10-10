@@ -347,14 +347,22 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
 }
 
 pub fn decode_ansi_c_escapes(input: &str) -> String {
-    decode_c_escapes_inner(input, false)
+    decode_c_escapes_inner(input, false, true)
 }
 
 pub fn decode_echo_b_escapes(input: &str) -> String {
-    decode_c_escapes_inner(input, true)
+    decode_c_escapes_inner(input, true, false)
 }
 
-fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
+pub fn decode_printf_escapes(input: &str) -> String {
+    decode_c_escapes_inner(input, false, false)
+}
+
+fn decode_c_escapes_inner(
+    input: &str,
+    leading_zero_octal: bool,
+    truncate_on_nul: bool,
+) -> String {
     let mut out_bytes: Vec<u8> = Vec::with_capacity(input.len());
     let mut chars = input.chars().peekable();
     let push_char = |buf: &mut Vec<u8>, ch: char| {
@@ -382,7 +390,7 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                             chars.next();
                         }
                         let b = if ctrl == '?' { 0x7f } else { (ctrl as u8) & 0x1f };
-                        if b == 0 {
+                        if b == 0 && truncate_on_nul {
                             break;
                         }
                         out_bytes.push(b);
@@ -404,7 +412,7 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                         out_bytes.push(b'\\');
                         out_bytes.push(b'x');
                     } else if let Ok(val) = u8::from_str_radix(&hex, 16) {
-                        if val == 0 {
+                        if val == 0 && truncate_on_nul {
                             break;
                         }
                         out_bytes.push(val);
@@ -423,7 +431,7 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                         out_bytes.push(b'\\');
                         out_bytes.push(b'u');
                     } else if let Ok(val) = u32::from_str_radix(&hex, 16) {
-                        if val == 0 {
+                        if val == 0 && truncate_on_nul {
                             break;
                         }
                         if let Some(ch) = char::from_u32(val) {
@@ -444,7 +452,7 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                         out_bytes.push(b'\\');
                         out_bytes.push(b'U');
                     } else if let Ok(val) = u32::from_str_radix(&hex, 16) {
-                        if val == 0 {
+                        if val == 0 && truncate_on_nul {
                             break;
                         }
                         if let Some(ch) = char::from_u32(val) {
@@ -464,7 +472,7 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                     }
                     if let Ok(val) = u16::from_str_radix(&s, 8) {
                         let b = (val & 0xff) as u8;
-                        if b == 0 {
+                        if b == 0 && truncate_on_nul {
                             break;
                         }
                         out_bytes.push(b);
@@ -477,7 +485,7 @@ fn decode_c_escapes_inner(input: &str, leading_zero_octal: bool) -> String {
                 None => out_bytes.push(b'\\'),
             }
         } else {
-            if c == '\0' {
+            if c == '\0' && truncate_on_nul {
                 break;
             }
             push_char(&mut out_bytes, c);
@@ -2720,7 +2728,7 @@ fn last_exit_or_pos(pos_args: &[String]) -> &[String] {
     pos_args
 }
 
-fn find_var_name_end(expr: &str) -> usize {
+pub fn find_var_name_end(expr: &str) -> usize {
     let bytes = expr.as_bytes();
     if bytes.is_empty() {
         return 0;
@@ -2745,6 +2753,40 @@ fn find_var_name_end(expr: &str) -> usize {
         }
     }
     i
+}
+
+pub fn is_param_operand_active(
+    var: &str,
+    op: &str,
+    env: &mut BTreeMap<String, String>,
+    last_exit: i32,
+    pos_args: &[String],
+) -> bool {
+    let is_array_members = var.ends_with("[@]") || var.ends_with("[*]");
+    let is_set = is_var_set(var, env, pos_args);
+    match op {
+        ":-" | ":=" | ":?" => {
+            if is_array_members {
+                !is_set
+            } else if var == "@" || var == "*" {
+                pos_args.is_empty() || (pos_args.len() == 1 && pos_args[0].is_empty())
+            } else {
+                !is_set || lookup_var(var, env, last_exit, pos_args).is_empty()
+            }
+        }
+        "-" | "=" | "?" => !is_set,
+        ":+" => {
+            if is_array_members {
+                is_set
+            } else if var == "@" || var == "*" {
+                !pos_args.is_empty() && !(pos_args.len() == 1 && pos_args[0].is_empty())
+            } else {
+                is_set && !lookup_var(var, env, last_exit, pos_args).is_empty()
+            }
+        }
+        "+" => is_set,
+        _ => true,
+    }
 }
 
 fn is_valid_var_ident(s: &str) -> bool {
@@ -2967,30 +3009,15 @@ fn expand_nested_dollar(
         return Ok(decode_ansi_c_escapes(&raw));
     }
     if chars[*i] == '(' && chars.get(*i + 1) == Some(&'(') {
-        *i += 2;
-        let mut depth = 1usize;
-        let mut inner = String::new();
-        while *i < chars.len() && depth > 0 {
-            if chars[*i] == '(' {
-                depth += 1;
-                inner.push('(');
-                *i += 1;
-            } else if chars[*i] == ')' {
-                if depth == 1 && chars.get(*i + 1) == Some(&')') {
-                    *i += 2;
-                    break;
-                }
-                depth = depth.saturating_sub(1);
-                inner.push(')');
-                *i += 1;
-            } else {
-                inner.push(chars[*i]);
-                *i += 1;
-            }
+        if let Some((expr_end, after_close)) =
+            crate::shell::lexer::find_arithmetic_end(chars, *i + 2, true)?
+        {
+            let inner: String = chars[*i + 2..expr_end].iter().collect();
+            *i = after_close;
+            let expanded = expand_nested_operand(&inner, env, last_exit, pos_args)?;
+            let val = eval_arith(&expanded, env)?;
+            return Ok(val.to_string());
         }
-        let expanded = expand_nested_operand(&inner, env, last_exit, pos_args)?;
-        let val = eval_arith(&expanded, env)?;
-        return Ok(val.to_string());
     }
     if chars[*i] == '{' {
         *i += 1;
@@ -3879,7 +3906,7 @@ pub fn try_resolve_unquoted_alternate_operand<'a>(
     }
     let var = &expr[..var_end];
     let op_rest = &expr[var_end..];
-    if var == "*" || var.ends_with("[@]") || var.ends_with("[*]") {
+    if var == "*" || var.ends_with("[@]") || var.ends_with("[*]") || var.contains("$(") || var.contains('`') {
         return None;
     }
     if let Some(def_raw) = op_rest.strip_prefix(":-") {

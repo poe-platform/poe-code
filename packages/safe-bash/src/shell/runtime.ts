@@ -5074,7 +5074,12 @@ export class Runtime {
         try {
           status = Number(await this.expandedArithmeticValue(command.expression, state, io) === 0n);
         }
-        catch (error) { this.rethrowArithmeticControl(error); if (io.execution) io.execution.arithmeticDiagnostic = true; throw new PublicDiagnostic(`((: ${message(error, this.budget.onInternalError)}`); }
+        catch (error) {
+          this.rethrowArithmeticControl(error);
+          if (io.execution) io.execution.arithmeticDiagnostic = true;
+          await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
+          status = 1;
+        }
       } else if (command.kind === "subshell") {
         const child = tryCloneStateSync(state) ?? await cloneState(state, this.signal);
         child.extensions = undefined;
@@ -9578,13 +9583,21 @@ export class Runtime {
       const captureIO = isolateIO({
         ...io, ...(substitutionDiagnosticLines === undefined ? { substitutionDiagnosticLines: undefined } : { substitutionDiagnosticLines }), diagnosticOffset: (io.diagnosticLine ?? part.line) - (part.sourceLine ?? part.line), functionCommandLines, diagnosticCommandLines: undefined, stdout: this.budget.sink(capture, this.signal), }, references);
       (captureIO.descriptors as Map<number, Descriptor>).set(1, { output: captureIO.stdout, lifetime });
-      try { state.substitutionStatus = fileShortcut ? await this.runCommandIsolated(command, child, captureIO, true) : await this.run(part.script, child, captureIO); }
+      try {
+        state.substitutionStatus = fileShortcut
+          ? await this.finishShell(child, captureIO, await this.runCommandIsolated(command, child, captureIO, true))
+          : await this.run(part.script, child, captureIO);
+      }
       finally {
         try {
-          if (!references.closeSyncIfEmpty()) await references.close();
-          if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          if (!this.releaseExtensionsSyncIfEmpty(child)) await this.releaseExtensions(child);
+        } finally {
+          try {
+            if (!references.closeSyncIfEmpty()) await references.close();
+            if (!lifetime.releaseSyncIfIdle()) await lifetime.release();
+          }
+          finally { stateMonitor(child)?.closeValues(); }
         }
-        finally { stateMonitor(child)?.closeValues(); }
       }
       const pendingCapture = lifetime.settled();
       if (pendingCapture) await pendingCapture;

@@ -1,7 +1,7 @@
 use crate::commands::search::regex_captures;
 use crate::shell::expand::{
-    decode_ansi_c_escapes, decode_echo_b_escapes, eval_arith, glob_match_ext, resolve_nameref_base,
-    sync_array_metadata,
+    decode_echo_b_escapes, decode_printf_escapes, eval_arith, glob_match_ext,
+    resolve_nameref_base, sync_array_metadata,
 };
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::BTreeMap;
@@ -1513,7 +1513,7 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
                     .map(|p| offset + p)
                     .unwrap_or(raw_fmt.len());
                 let literal = &raw_fmt[offset..next_pct];
-                out.push_str(&decode_ansi_c_escapes(literal));
+                out.push_str(&decode_printf_escapes(literal));
                 offset = next_pct;
                 continue;
             }

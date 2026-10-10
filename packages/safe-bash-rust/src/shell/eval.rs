@@ -8,8 +8,8 @@ use crate::shell::builtins::{
 use crate::shell::expand::{
     apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
-    expand_tilde_prefix, get_var_meta_info, glob_match_ext, glob_match_full,
-    has_glob_meta_ext, resolve_nameref_base,
+    expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
+    has_glob_meta_ext, is_param_operand_active, resolve_nameref_base,
     sync_array_metadata, sync_getopts_env,
     try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
@@ -29,13 +29,14 @@ pub enum EvalError {
 }
 
 const STDIN_STREAM_FD: u32 = u32::MAX;
-type SavedFds = (BTreeMap<u32, FdTarget>, BTreeMap<u32, u32>);
+type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
     Stderr,
     File { path: String },
+    ReadWriteFile { path: String, owner_fd: u32 },
     Closed,
 }
 
@@ -64,6 +65,8 @@ pub struct EvalState<'a> {
     pub fd_table: BTreeMap<u32, FdTarget>,
     pub in_fds: BTreeMap<u32, String>,
     pub in_fd_aliases: BTreeMap<u32, u32>,
+    pub rw_offsets: BTreeMap<u32, usize>,
+    pub rw_last_rem: BTreeMap<u32, usize>,
     pub mapfile_callback_depth: usize,
     pub traps: BTreeMap<String, String>,
     pub inactive_traps: BTreeMap<String, String>,
@@ -87,7 +90,10 @@ pub struct EvalState<'a> {
     pub in_condition: bool,
     pub in_trap: bool,
     pub in_pipeline_producer: bool,
+    pub in_cmdsub_file_shortcut: bool,
+    pub redirect_assignments: Vec<(String, String)>,
     pub procsub_seq: usize,
+    pub cmdsub_seq: usize,
     pub in_prefix_assignment: bool,
     pub pending_out_procsubs: Vec<(String, String)>,
     pub pending_stdout: String,
@@ -157,6 +163,8 @@ impl<'a> EvalState<'a> {
             fd_table,
             in_fds: BTreeMap::new(),
             in_fd_aliases: BTreeMap::new(),
+            rw_offsets: BTreeMap::new(),
+            rw_last_rem: BTreeMap::new(),
             mapfile_callback_depth: 0,
             traps,
             inactive_traps: BTreeMap::new(),
@@ -180,7 +188,10 @@ impl<'a> EvalState<'a> {
             in_condition: false,
             in_trap: false,
             in_pipeline_producer: false,
+            in_cmdsub_file_shortcut: false,
+            redirect_assignments: Vec::new(),
             procsub_seq: 0,
+            cmdsub_seq: 0,
             in_prefix_assignment: false,
             pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
@@ -257,6 +268,8 @@ impl<'a> EvalState<'a> {
             fd_table: self.fd_table.clone(),
             in_fds: self.in_fds.clone(),
             in_fd_aliases: self.in_fd_aliases.clone(),
+            rw_offsets: self.rw_offsets.clone(),
+            rw_last_rem: self.rw_last_rem.clone(),
             mapfile_callback_depth: 0,
             traps: child_traps,
             inactive_traps: child_inactive,
@@ -280,7 +293,10 @@ impl<'a> EvalState<'a> {
             in_condition: self.in_condition,
             in_trap: self.in_trap,
             in_pipeline_producer: self.in_pipeline_producer,
+            in_cmdsub_file_shortcut: false,
+            redirect_assignments: Vec::new(),
             procsub_seq: self.procsub_seq,
+            cmdsub_seq: self.cmdsub_seq,
             in_prefix_assignment: false,
             pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
@@ -330,6 +346,9 @@ impl<'a> EvalState<'a> {
         if matches!(self.fd_table.get(&fd), Some(FdTarget::Closed)) {
             return false;
         }
+        if matches!(self.fd_table.get(&fd), Some(FdTarget::ReadWriteFile { .. })) {
+            return true;
+        }
         if self.in_fds.contains_key(&fd) {
             return true;
         }
@@ -343,33 +362,75 @@ impl<'a> EvalState<'a> {
         false
     }
 
+    fn is_fd_writable(&self, fd: u32) -> bool {
+        matches!(
+            self.fd_table.get(&fd),
+            Some(
+                FdTarget::Stdout
+                    | FdTarget::Stderr
+                    | FdTarget::File { .. }
+                    | FdTarget::ReadWriteFile { .. }
+            )
+        )
+    }
+
+    fn enter_body_stdio(&mut self) -> (Option<FdTarget>, Option<FdTarget>) {
+        let saved_fd1 = if matches!(self.fd_table.get(&1), Some(FdTarget::Stderr)) {
+            self.fd_table.insert(1, FdTarget::Stdout)
+        } else {
+            None
+        };
+        let saved_fd2 = if matches!(self.fd_table.get(&2), Some(FdTarget::Stdout)) {
+            self.fd_table.insert(2, FdTarget::Stderr)
+        } else {
+            None
+        };
+        (saved_fd1, saved_fd2)
+    }
+
+    fn leave_body_stdio(&mut self, saved: (Option<FdTarget>, Option<FdTarget>)) {
+        if let Some(fd1) = saved.0 {
+            self.fd_table.insert(1, fd1);
+        }
+        if let Some(fd2) = saved.1 {
+            self.fd_table.insert(2, fd2);
+        }
+    }
+
     fn evacuate_in_fd_owner(
         &mut self,
         fd: u32,
-        saved_aliases: &mut BTreeMap<u32, u32>,
+        saved_aliases: &mut Vec<(u32, Option<u32>)>,
     ) {
         let new_owner = self
             .in_fd_aliases
             .iter()
             .find_map(|(&k, &v)| if k != fd && v == fd { Some(k) } else { None });
         if let Some(owner) = new_owner {
+            if !saved_aliases.iter().any(|(f, _)| *f == fd) {
+                saved_aliases.push((fd, Some(owner)));
+            }
             if let Some(buf) = self.in_fds.remove(&fd) {
                 self.in_fds.insert(owner, buf);
+            }
+            if let Some(off) = self.rw_offsets.remove(&fd) {
+                self.rw_offsets.insert(owner, off);
+            }
+            if let Some(rem) = self.rw_last_rem.remove(&fd) {
+                self.rw_last_rem.insert(owner, rem);
+            }
+            for target in self.fd_table.values_mut() {
+                if let FdTarget::ReadWriteFile { owner_fd, .. } = target
+                    && *owner_fd == fd
+                {
+                    *owner_fd = owner;
+                }
             }
             self.in_fd_aliases.remove(&owner);
             for v in self.in_fd_aliases.values_mut() {
                 if *v == fd {
                     *v = owner;
                 }
-            }
-            if saved_aliases.get(&owner) == Some(&fd) {
-                saved_aliases.remove(&owner);
-                for v in saved_aliases.values_mut() {
-                    if *v == fd {
-                        *v = owner;
-                    }
-                }
-                saved_aliases.insert(fd, owner);
             }
         }
     }
@@ -453,18 +514,22 @@ impl<'a> EvalState<'a> {
             || script_text.contains("alias")
             || script_text.contains("shopt");
         if !needs_unit_loop {
-            if let Err(syn_err) = validate_basic_syntax(script_text) {
-                return Err(EvalError::Syntax(syn_err));
+            match validate_basic_syntax(script_text).and_then(|()| parse_script(script_text)) {
+                Ok(ast) => {
+                    let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
+                    if parse_units > self.budget.limits.max_parse_units {
+                        return Err(EvalError::Budget(format!(
+                            "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
+                            self.budget.limits.max_parse_units
+                        )));
+                    }
+                    return self.eval_script(&ast, stdin);
+                }
+                Err(syn_err) if !script_text.contains('\n') => {
+                    return Err(EvalError::Syntax(syn_err));
+                }
+                Err(_) => {}
             }
-            let ast = parse_script(script_text).map_err(EvalError::Syntax)?;
-            let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
-            if parse_units > self.budget.limits.max_parse_units {
-                return Err(EvalError::Budget(format!(
-                    "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
-                    self.budget.limits.max_parse_units
-                )));
-            }
-            return self.eval_script(&ast, stdin);
         }
 
         let mut stdout = String::new();
@@ -491,9 +556,22 @@ impl<'a> EvalState<'a> {
             if !is_last && is_incomplete_shell_unit(&unit_buf, &aliases) {
                 continue;
             }
-            let ast = self
-                .parse_with_current_aliases(&unit_buf, unit_start_line)
-                .map_err(EvalError::Syntax)?;
+            let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
+                Ok(a) => a,
+                Err(syn_err) => {
+                    if unit_start_line == 0 && stdout.is_empty() && stderr.is_empty() {
+                        return Err(EvalError::Syntax(syn_err));
+                    }
+                    stderr.push_str(&format!("syntax error: {syn_err}\n"));
+                    self.last_exit = 2;
+                    self.exit_requested = Some(2);
+                    return Ok(BuiltinOutcome {
+                        stdout,
+                        stderr,
+                        exit_code: 2,
+                    });
+                }
+            };
             unit_buf.clear();
             let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
             total_parse_units += parse_units;
@@ -518,9 +596,22 @@ impl<'a> EvalState<'a> {
             }
         }
         if !unit_buf.trim().is_empty() {
-            let ast = self
-                .parse_with_current_aliases(&unit_buf, unit_start_line)
-                .map_err(EvalError::Syntax)?;
+            let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
+                Ok(a) => a,
+                Err(syn_err) => {
+                    if unit_start_line == 0 && stdout.is_empty() && stderr.is_empty() {
+                        return Err(EvalError::Syntax(syn_err));
+                    }
+                    stderr.push_str(&format!("syntax error: {syn_err}\n"));
+                    self.last_exit = 2;
+                    self.exit_requested = Some(2);
+                    return Ok(BuiltinOutcome {
+                        stdout,
+                        stderr,
+                        exit_code: 2,
+                    });
+                }
+            };
             let unit_out = self.eval_script(&ast, stdin)?;
             stdout.push_str(&unit_out.stdout);
             stderr.push_str(&unit_out.stderr);
@@ -1158,11 +1249,9 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let mut out = self.eval_script(body, eff_stdin)?;
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1182,8 +1271,7 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut executed = false;
@@ -1218,8 +1306,7 @@ impl<'a> EvalState<'a> {
                     code = eb_out.exit_code;
                 }
 
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1245,16 +1332,14 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let mut expanded_items = Vec::new();
                 for raw in items {
                     match self.expand_word_to_fields(raw) {
                         Ok(fields) => {
                             expanded_items.extend(fields);
                             if expanded_items.len() > self.budget.limits.max_expansion_fields {
-                                self.fd_table.insert(1, body_fd1);
-                                self.fd_table.insert(2, body_fd2);
+                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Budget(format!(
                                     "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
@@ -1263,8 +1348,7 @@ impl<'a> EvalState<'a> {
                             }
                         }
                         Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
-                            self.fd_table.insert(1, body_fd1);
-                            self.fd_table.insert(2, body_fd2);
+                            self.leave_body_stdio(body_stdio);
                             let mut out = BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("{msg}\n"),
@@ -1335,8 +1419,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1362,16 +1445,14 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let mut expanded_items = Vec::new();
                 for raw in items {
                     match self.expand_word_to_fields(raw) {
                         Ok(fields) => {
                             expanded_items.extend(fields);
                             if expanded_items.len() > self.budget.limits.max_expansion_fields {
-                                self.fd_table.insert(1, body_fd1);
-                                self.fd_table.insert(2, body_fd2);
+                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Budget(format!(
                                     "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
@@ -1380,8 +1461,7 @@ impl<'a> EvalState<'a> {
                             }
                         }
                         Err(EvalError::Syntax(msg)) if msg.starts_with("bash: no match:") => {
-                            self.fd_table.insert(1, body_fd1);
-                            self.fd_table.insert(2, body_fd2);
+                            self.leave_body_stdio(body_stdio);
                             let mut out = BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("{msg}\n"),
@@ -1392,16 +1472,14 @@ impl<'a> EvalState<'a> {
                             return Ok(out);
                         }
                         Err(e) => {
-                            self.fd_table.insert(1, body_fd1);
-                            self.fd_table.insert(2, body_fd2);
+                            self.leave_body_stdio(body_stdio);
                             self.restore_redirects(saved_fds, saved_in);
                             return Err(e);
                         }
                     }
                 }
                 if expanded_items.is_empty() {
-                    self.fd_table.insert(1, body_fd1);
-                    self.fd_table.insert(2, body_fd2);
+                    self.leave_body_stdio(body_stdio);
                     if let Some(dfd) = dup_fd {
                         self.in_fds.insert(dfd, local_stdin);
                     }
@@ -1437,8 +1515,7 @@ impl<'a> EvalState<'a> {
                         > self.budget.limits.max_output_bytes
                     {
                         self.loop_depth -= 1;
-                        self.fd_table.insert(1, body_fd1);
-                        self.fd_table.insert(2, body_fd2);
+                        self.leave_body_stdio(body_stdio);
                         self.restore_redirects(saved_fds, saved_in);
                         return Err(EvalError::Budget(format!(
                             "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
@@ -1459,8 +1536,7 @@ impl<'a> EvalState<'a> {
                             }
                             other => {
                                 self.loop_depth -= 1;
-                                self.fd_table.insert(1, body_fd1);
-                                self.fd_table.insert(2, body_fd2);
+                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(other);
                             }
@@ -1491,8 +1567,7 @@ impl<'a> EvalState<'a> {
                             }
                             other => {
                                 self.loop_depth -= 1;
-                                self.fd_table.insert(1, body_fd1);
-                                self.fd_table.insert(2, body_fd2);
+                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(other);
                             }
@@ -1534,8 +1609,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1562,17 +1636,15 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut code = 0;
 
                 if !init.trim().is_empty() {
-                    let exp_init = self.expand_heredoc_text(init)?;
+                    let exp_init = self.expand_arith_text(init)?;
                     if let Err(e) = eval_arith(&exp_init, self.env) {
-                        self.fd_table.insert(1, body_fd1);
-                        self.fd_table.insert(2, body_fd2);
+                        self.leave_body_stdio(body_stdio);
                         self.restore_redirects(saved_fds, saved_in);
                         if let Some(nu) = e.strip_prefix("__nounset__") {
                             return Err(EvalError::Syntax(nu.to_string()));
@@ -1595,7 +1667,7 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     if !cond.trim().is_empty() {
-                        let exp_cond = self.expand_heredoc_text(cond)?;
+                        let exp_cond = self.expand_arith_text(cond)?;
                         match eval_arith(&exp_cond, self.env) {
                             Ok(cval) => {
                                 if cval == 0 {
@@ -1605,8 +1677,7 @@ impl<'a> EvalState<'a> {
                             Err(e) => {
                                 if let Some(nu) = e.strip_prefix("__nounset__") {
                                     self.loop_depth -= 1;
-                                    self.fd_table.insert(1, body_fd1);
-                                    self.fd_table.insert(2, body_fd2);
+                                    self.leave_body_stdio(body_stdio);
                                     self.restore_redirects(saved_fds, saved_in);
                                     return Err(EvalError::Syntax(nu.to_string()));
                                 }
@@ -1639,12 +1710,11 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     if !step.trim().is_empty() {
-                        let exp_step = self.expand_heredoc_text(step)?;
+                        let exp_step = self.expand_arith_text(step)?;
                         if let Err(e) = eval_arith(&exp_step, self.env) {
                             if let Some(nu) = e.strip_prefix("__nounset__") {
                                 self.loop_depth -= 1;
-                                self.fd_table.insert(1, body_fd1);
-                                self.fd_table.insert(2, body_fd2);
+                                self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Syntax(nu.to_string()));
                             }
@@ -1656,8 +1726,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1683,8 +1752,7 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let mut stdout = String::new();
                 let mut stderr = String::new();
                 let mut code = 0;
@@ -1764,8 +1832,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.loop_depth -= 1;
 
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1790,8 +1857,7 @@ impl<'a> EvalState<'a> {
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
-                let body_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-                let body_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+                let body_stdio = self.enter_body_stdio();
                 let case_desc = format!("case {word} in ");
                 let (dbg_out, skip_case) = self.fire_debug_trap(&case_desc);
                 let mut stdout = dbg_out.stdout;
@@ -1844,8 +1910,7 @@ impl<'a> EvalState<'a> {
                     }
                 }
 
-                self.fd_table.insert(1, body_fd1);
-                self.fd_table.insert(2, body_fd2);
+                self.leave_body_stdio(body_stdio);
                 if let Some(dfd) = dup_fd {
                     self.in_fds.insert(dfd, local_stdin);
                 }
@@ -1876,7 +1941,7 @@ impl<'a> EvalState<'a> {
                     self.restore_redirects(saved_fds, saved_in);
                     return Ok(out);
                 }
-                let exp = match self.expand_heredoc_text(expr) {
+                let exp = match self.expand_arith_text(expr) {
                     Ok(v) => v,
                     Err(e) => {
                         self.restore_redirects(saved_fds, saved_in);
@@ -1892,14 +1957,15 @@ impl<'a> EvalState<'a> {
                     self.in_fds.insert(dfd, local_stdin);
                 }
                 self.route_outcome(&mut out);
-                self.restore_redirects(saved_fds, saved_in);
                 match eval_arith(&exp, self.env) {
                     Ok(val) => {
+                        self.restore_redirects(saved_fds, saved_in);
                         out.exit_code = if val != 0 { 0 } else { 1 };
                         Ok(out)
                     }
                     Err(e) => {
                         if let Some(nu) = e.strip_prefix("__nounset__") {
+                            self.restore_redirects(saved_fds, saved_in);
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
                         self.env.insert("__arith_diag".to_string(), "1".to_string());
@@ -1909,6 +1975,7 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         };
                         self.route_outcome(&mut diag_out);
+                        self.restore_redirects(saved_fds, saved_in);
                         out.stdout.push_str(&diag_out.stdout);
                         out.stderr.push_str(&diag_out.stderr);
                         out.exit_code = 1;
@@ -2658,8 +2725,45 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        if !expanded_words.is_empty()
+            && !simple.assignments.is_empty()
+            && simple
+                .redirects
+                .iter()
+                .any(|r| matches!(r.kind, RedirectKind::HereString(_) | RedirectKind::HereDoc { .. }))
+        {
+            self.redirect_assignments.clear();
+            for (k, v, append) in &simple.assignments {
+                if !v.starts_with('(') && !k.contains('[') {
+                    let rhs = self.expand_assignment_rhs(v)?;
+                    let combined = if *append {
+                        let cur = self
+                            .redirect_assignments
+                            .iter()
+                            .rev()
+                            .find_map(|(rk, rv)| if rk == k { Some(rv.clone()) } else { None })
+                            .or_else(|| self.env.get(k).cloned())
+                            .unwrap_or_default();
+                        format!("{cur}{rhs}")
+                    } else {
+                        rhs
+                    };
+                    self.redirect_assignments.push((k.clone(), combined));
+                }
+            }
+        }
+
         let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-            self.setup_redirects(&simple.redirects, stdin)?;
+            match self.setup_redirects(&simple.redirects, stdin) {
+                Ok(res) => {
+                    self.redirect_assignments.clear();
+                    res
+                }
+                Err(e) => {
+                    self.redirect_assignments.clear();
+                    return Err(e);
+                }
+            };
         if let Some(err_out) = redir_err {
             self.restore_redirects(saved_fds, saved_in);
             return Ok(err_out);
@@ -2695,11 +2799,16 @@ impl<'a> EvalState<'a> {
                 self.env.remove("_");
             }
             self.env.insert("__last_arg".to_string(), String::new());
+            let mut shortcut_out = debug_out.stdout;
+            if self.in_cmdsub_file_shortcut && use_local {
+                shortcut_out.push_str(&local_stdin);
+                local_stdin.clear();
+            }
             if let Some(dfd) = dup_fd {
                 self.in_fds.insert(dfd, local_stdin);
             }
             let mut out = BuiltinOutcome {
-                stdout: debug_out.stdout,
+                stdout: shortcut_out,
                 stderr: debug_out.stderr,
                 exit_code: self.last_exit,
             };
@@ -2708,15 +2817,60 @@ impl<'a> EvalState<'a> {
             return Ok(out);
         }
 
-        let mut temp_saved: Vec<(String, Option<String>, bool)> = Vec::new();
+        let mut temp_saved: Vec<(String, Option<String>, bool, Vec<(String, Option<String>)>)> =
+            Vec::new();
         self.in_prefix_assignment = true;
         for (k, v, append) in &simple.assignments {
-            let prev_val = self.env.get(k).cloned();
-            let was_unexp = self.env.contains_key(&format!("__unexported__{k}"));
-            let val = self.expand_assignment_rhs(v)?;
+            let base_k = k.split('[').next().unwrap_or(k);
+            let prev_val = self.env.get(base_k).cloned();
+            let was_unexp = self.env.contains_key(&format!("__unexported__{base_k}"));
+            let is_arr_lit = v.starts_with('(') && v.ends_with(')');
+            let has_existing_arr = self.env.contains_key(&format!("__keys__{base_k}"))
+                || self.env.contains_key(&format!("__assoc__{base_k}"));
+            let extra_prev: Vec<(String, Option<String>)> =
+                if is_arr_lit || k.contains('[') || has_existing_arr {
+                let mut extras = vec![
+                    (
+                        format!("__keys__{base_k}"),
+                        self.env.get(&format!("__keys__{base_k}")).cloned(),
+                    ),
+                    (
+                        format!("__assoc__{base_k}"),
+                        self.env.get(&format!("__assoc__{base_k}")).cloned(),
+                    ),
+                ];
+                let prefix = format!("{base_k}[");
+                for (ek, ev) in self.env.iter() {
+                    if ek.starts_with(&prefix) {
+                        extras.push((ek.clone(), Some(ev.clone())));
+                    }
+                }
+                extras
+            } else {
+                Vec::new()
+            };
+            let val = if is_arr_lit {
+                format!("\x00__ARRAY_LITERAL__{v}")
+            } else {
+                self.expand_assignment_rhs(v)?
+            };
+            if has_existing_arr && !is_arr_lit && !k.contains('[') {
+                self.env.remove(&format!("__keys__{base_k}"));
+                self.env.remove(&format!("__assoc__{base_k}"));
+                let prefix = format!("{base_k}[");
+                let to_remove: Vec<String> = self
+                    .env
+                    .keys()
+                    .filter(|ek| ek.starts_with(&prefix))
+                    .cloned()
+                    .collect();
+                for rk in to_remove {
+                    self.env.remove(&rk);
+                }
+            }
             match self.assign_variable(k, &val, *append) {
                 Ok(()) => {
-                    temp_saved.push((k.clone(), prev_val, was_unexp));
+                    temp_saved.push((base_k.to_string(), prev_val, was_unexp, extra_prev));
                 }
                 Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
                     debug_out.stderr.push_str(&format!("{msg}\n"));
@@ -2754,11 +2908,9 @@ impl<'a> EvalState<'a> {
             false
         };
         let eff_stdin = if use_local { &mut local_stdin } else { &mut *stdin };
-        let cmd_fd1 = self.fd_table.insert(1, FdTarget::Stdout).unwrap_or(FdTarget::Stdout);
-        let cmd_fd2 = self.fd_table.insert(2, FdTarget::Stderr).unwrap_or(FdTarget::Stderr);
+        let body_stdio = self.enter_body_stdio();
         let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, false);
-        self.fd_table.insert(1, cmd_fd1);
-        self.fd_table.insert(2, cmd_fd2);
+        self.leave_body_stdio(body_stdio);
         if stashed_outer_stdin {
             *stdin = self.in_fds.remove(&STDIN_STREAM_FD).unwrap_or_default();
         }
@@ -2793,7 +2945,29 @@ impl<'a> EvalState<'a> {
                     | "unset"
             ));
         if !keep_prefix_assigns {
-            for (k, prev, was_unexp) in temp_saved.into_iter().rev() {
+            for (k, prev, was_unexp, extra_prev) in temp_saved.into_iter().rev() {
+                if !extra_prev.is_empty() {
+                    let prefix = format!("{k}[");
+                    let to_remove: Vec<String> = self
+                        .env
+                        .keys()
+                        .filter(|ek| ek.starts_with(&prefix))
+                        .cloned()
+                        .collect();
+                    for rk in to_remove {
+                        self.env.remove(&rk);
+                    }
+                    for (ek, ev) in extra_prev {
+                        match ev {
+                            Some(v) => {
+                                self.env.insert(ek, v);
+                            }
+                            None => {
+                                self.env.remove(&ek);
+                            }
+                        }
+                    }
+                }
                 if was_unexp {
                     self.env
                         .insert(format!("__unexported__{k}"), "1".to_string());
@@ -3256,7 +3430,23 @@ impl<'a> EvalState<'a> {
                     "__last_arg".to_string(),
                     args.last().unwrap_or(cmd).clone(),
                 );
-                return out;
+                return match out {
+                    Ok(o) => Ok(o),
+                    Err(EvalError::Syntax(msg))
+                        if !msg.starts_with("__nounset__")
+                            && !msg.starts_with("__param_err__") =>
+                    {
+                        if self.env.get("__set_posix").is_some_and(|v| v == "1") {
+                            self.exit_requested = Some(2);
+                        }
+                        Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{msg}\n"),
+                            exit_code: 2,
+                        })
+                    }
+                    Err(e) => Err(e),
+                };
             }
             "source" | "." => {
                 let src_args = if args.first().map(|s| s.as_str()) == Some("--") {
@@ -3754,6 +3944,8 @@ impl<'a> EvalState<'a> {
                     fd_table,
                     in_fds: BTreeMap::new(),
                     in_fd_aliases: BTreeMap::new(),
+                    rw_offsets: BTreeMap::new(),
+                    rw_last_rem: BTreeMap::new(),
                     mapfile_callback_depth: 0,
                     traps: BTreeMap::new(),
                     inactive_traps: BTreeMap::new(),
@@ -3777,7 +3969,10 @@ impl<'a> EvalState<'a> {
                     in_condition: false,
                     in_trap: false,
                     in_pipeline_producer: false,
+                    in_cmdsub_file_shortcut: false,
+                    redirect_assignments: Vec::new(),
                     procsub_seq: 0,
+                    cmdsub_seq: 0,
                     in_prefix_assignment: false,
                     pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
@@ -7800,6 +7995,23 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn is_noclobber_blocked(&self, full_path: &str) -> bool {
+        if !self.noclobber {
+            return false;
+        }
+        let resolved = resolve_physical_path(self.cwd, full_path, self.fs);
+        if matches!(
+            resolved.as_str(),
+            "/dev/null" | "/dev/zero" | "/dev/random" | "/dev/urandom"
+        ) {
+            return false;
+        }
+        if self.fs.exists(full_path) {
+            return !self.fs.is_dir(full_path);
+        }
+        self.fs.lstat(full_path).is_ok()
+    }
+
     #[allow(clippy::type_complexity)]
     fn setup_redirects(
         &mut self,
@@ -7822,12 +8034,44 @@ impl<'a> EvalState<'a> {
                 self.budget.limits.max_redirects
             )));
         }
-        let saved_fd_table = self.fd_table.clone();
-        let mut saved_aliases = self.in_fd_aliases.clone();
+        for r in redirects {
+            if let RedirectKind::HereDoc {
+                eof_warning: Some(w),
+                ..
+            } = &r.kind
+            {
+                let prog = self.script_name.as_deref().unwrap_or("shell");
+                let msg = format!("{prog}: warning: {w}\n");
+                let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
+                let mut dummy = BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: String::new(),
+                    exit_code: 0,
+                };
+                self.write_to_fd_target(&fd2, &msg, &mut dummy);
+                self.pending_stdout.push_str(&dummy.stdout);
+                self.pending_stderr.push_str(&dummy.stderr);
+            }
+        }
+        let mut saved_fd_table: Vec<(u32, Option<FdTarget>)> = Vec::new();
+        let mut saved_aliases: Vec<(u32, Option<u32>)> = Vec::new();
         let mut saved_in: Vec<(u32, Option<String>)> = Vec::new();
         let mut local_stdin = default_stdin.to_string();
         let mut use_local = false;
         let mut dup_fd: Option<u32> = None;
+
+        let record_saved_fd =
+            |fd_table: &BTreeMap<u32, FdTarget>, saved: &mut Vec<(u32, Option<FdTarget>)>, f: u32| {
+                if !saved.iter().any(|(k, _)| *k == f) {
+                    saved.push((f, fd_table.get(&f).cloned()));
+                }
+            };
+        let record_saved_alias =
+            |aliases: &BTreeMap<u32, u32>, saved: &mut Vec<(u32, Option<u32>)>, f: u32| {
+                if !saved.iter().any(|(k, _)| *k == f) {
+                    saved.push((f, aliases.get(&f).copied()));
+                }
+            };
 
         for r in redirects {
             let expand_redir_target =
@@ -7860,7 +8104,28 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
-                    let content = match self.fs.read_file(&full) {
+                    let content = if self.fs.is_dir(&full) {
+                        if self.in_cmdsub_file_shortcut {
+                            String::new()
+                        } else {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: Is a directory\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                true,
+                                None,
+                                Some(err_out),
+                            ));
+                        }
+                    } else {
+                        match self.fs.read_file(&full) {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_input_bytes {
                                 return Ok((
@@ -7879,21 +8144,26 @@ impl<'a> EvalState<'a> {
                             bytes_to_stream_string(&bytes)
                         }
                         Err(e) => {
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{target}: {e}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
                                 saved_in,
                                 local_stdin,
                                 true,
                                 None,
-                                Some(BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{target}: {e}\n"),
-                                    exit_code: 1,
-                                }),
+                                Some(err_out),
                             ));
+                        }
                         }
                     };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.fd_table.remove(fd);
                     self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
@@ -7960,22 +8230,29 @@ impl<'a> EvalState<'a> {
                             bytes_to_stream_string(&bytes)
                         }
                         Err(e) => {
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{target}: {e}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
                                 saved_in,
                                 local_stdin,
                                 true,
                                 None,
-                                Some(BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!("{target}: {e}\n"),
-                                    exit_code: 1,
-                                }),
+                                Some(err_out),
                             ));
                         }
                     };
+                    let content_len = stream_string_to_bytes(&content).len();
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.in_fd_aliases.remove(fd);
+                    self.rw_offsets.insert(*fd, 0);
+                    self.rw_last_rem.insert(*fd, content_len);
                     if *fd == 0 {
                         local_stdin = content;
                         use_local = true;
@@ -7987,12 +8264,60 @@ impl<'a> EvalState<'a> {
                         }
                         self.in_fds.insert(*fd, content);
                     }
-                    self.fd_table.insert(*fd, FdTarget::File { path: full });
+                    self.fd_table.insert(
+                        *fd,
+                        FdTarget::ReadWriteFile {
+                            path: full,
+                            owner_fd: *fd,
+                        },
+                    );
                 }
                 RedirectKind::HereString(fd) => {
-                    let val = self.expand_word_to_string(&r.target)?;
+                    let val = match self.expand_word_to_string(&r.target) {
+                        Ok(v) => v,
+                        Err(EvalError::Syntax(msg)) => {
+                            let is_param_err = msg.starts_with("__param_err__");
+                            let is_nounset = msg.starts_with("__nounset__");
+                            let clean = msg
+                                .strip_prefix("__param_err__")
+                                .or_else(|| msg.strip_prefix("__nounset__"))
+                                .unwrap_or(&msg);
+                            let prefix = self.diag_prefix();
+                            let in_subshell = self
+                                .env
+                                .get("BASH_SUBSHELL")
+                                .and_then(|v| v.parse::<u32>().ok())
+                                .unwrap_or(0)
+                                > 0;
+                            let code = if is_param_err && !in_subshell { 127 } else { 1 };
+                            let mut err_out = BuiltinOutcome {
+                                stdout: std::mem::take(&mut self.pending_stdout),
+                                stderr: format!(
+                                    "{}{prefix}{clean}\n",
+                                    std::mem::take(&mut self.pending_stderr)
+                                ),
+                                exit_code: code,
+                            };
+                            self.route_outcome(&mut err_out);
+                            self.last_exit = code;
+                            if is_nounset || (self.errexit && !self.in_condition) {
+                                self.exit_requested = Some(code);
+                            }
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
+                        Err(e) => return Err(e),
+                    };
                     let content = format!("{val}\n");
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.fd_table.remove(fd);
                     self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
@@ -8006,13 +8331,55 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, content);
                     }
                 }
-                RedirectKind::HereDoc { fd, quoted } => {
+                RedirectKind::HereDoc { fd, quoted, .. } => {
                     let content = if *quoted {
                         r.target.clone()
                     } else {
-                        self.expand_heredoc_text(&r.target)?
+                        match self.expand_heredoc_text(&r.target) {
+                            Ok(v) => v,
+                            Err(EvalError::Syntax(msg)) => {
+                                let is_param_err = msg.starts_with("__param_err__");
+                                let is_nounset = msg.starts_with("__nounset__");
+                                let clean = msg
+                                    .strip_prefix("__param_err__")
+                                    .or_else(|| msg.strip_prefix("__nounset__"))
+                                    .unwrap_or(&msg);
+                                let prefix = self.diag_prefix();
+                                let in_subshell = self
+                                    .env
+                                    .get("BASH_SUBSHELL")
+                                    .and_then(|v| v.parse::<u32>().ok())
+                                    .unwrap_or(0)
+                                    > 0;
+                                let code = if is_param_err && !in_subshell { 127 } else { 1 };
+                                let mut err_out = BuiltinOutcome {
+                                    stdout: std::mem::take(&mut self.pending_stdout),
+                                    stderr: format!(
+                                        "{}{prefix}{clean}\n",
+                                        std::mem::take(&mut self.pending_stderr)
+                                    ),
+                                    exit_code: code,
+                                };
+                                self.route_outcome(&mut err_out);
+                                self.last_exit = code;
+                                if is_nounset || (self.errexit && !self.in_condition) {
+                                    self.exit_requested = Some(code);
+                                }
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+     saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
+                            Err(e) => return Err(e),
+                        }
                     };
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     self.fd_table.remove(fd);
                     self.in_fd_aliases.remove(fd);
                     if *fd == 0 {
@@ -8026,7 +8393,7 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, content);
                     }
                 }
-                RedirectKind::DupIn(fd) => {
+                RedirectKind::DupIn { fd, raw_move } => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
                         Err(err_out) => {
@@ -8042,6 +8409,8 @@ impl<'a> EvalState<'a> {
                     };
                     if target == "-" {
                         self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                        record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                        record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                         if *fd == 0 {
                             local_stdin.clear();
                             use_local = true;
@@ -8059,8 +8428,46 @@ impl<'a> EvalState<'a> {
                             Some(s) if !s.is_empty() => (s, true),
                             _ => (target.as_str(), false),
                         };
+                        let is_digits = !src_str.is_empty()
+                            && src_str.chars().all(|c| c.is_ascii_digit());
+                        if !is_digits {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: Bad file descriptor\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
+                        if move_fd && !*raw_move {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: ambiguous redirect\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                         if let Ok(src_fd) = src_str.parse::<u32>() {
-                            if !self.is_fd_open(src_fd) {
+                            if !self.is_fd_open(src_fd)
+                                || (!move_fd && !self.is_fd_readable(src_fd))
+                            {
                                 let prefix = self.diag_prefix();
                                 let mut err_out = BuiltinOutcome {
                                     stdout: String::new(),
@@ -8078,6 +8485,15 @@ impl<'a> EvalState<'a> {
                                 ));
                             }
                             if self.is_fd_readable(src_fd) {
+                                let rw_target = match self.fd_table.get(&src_fd) {
+                                    Some(FdTarget::ReadWriteFile { path, owner_fd }) => {
+                                        Some(FdTarget::ReadWriteFile {
+                                            path: path.clone(),
+                                            owner_fd: *owner_fd,
+                                        })
+                                    }
+                                    _ => None,
+                                };
                                 if move_fd && src_fd != *fd {
                                     self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
                                 }
@@ -8092,6 +8508,8 @@ impl<'a> EvalState<'a> {
                                 };
                                 if *fd == 0 {
                                     self.evacuate_in_fd_owner(0, &mut saved_aliases);
+                                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 0);
+                                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, 0);
                                     self.fd_table.remove(&0);
                                     self.in_fd_aliases.remove(&0);
                                     if canon == STDIN_STREAM_FD {
@@ -8112,12 +8530,20 @@ impl<'a> EvalState<'a> {
                                             self.in_fd_aliases.insert(0, canon);
                                         }
                                     }
+                                    if let Some(rwt) = rw_target {
+                                        self.fd_table.insert(0, rwt);
+                                    }
                                 } else {
                                     if !saved_in.iter().any(|(f, _)| f == fd) {
                                         saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                     }
                                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                                     self.fd_table.remove(fd);
+                                    if let Some(rwt) = rw_target {
+                                        self.fd_table.insert(*fd, rwt);
+                                    }
                                     if src_fd == 0 && use_local && dup_fd.is_none() {
                                         self.in_fds.insert(*fd, local_stdin.clone());
                                         self.in_fd_aliases.remove(fd);
@@ -8143,6 +8569,8 @@ impl<'a> EvalState<'a> {
                                 }
                             } else {
                                 self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                                record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                                record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                                 if !saved_in.iter().any(|(f, _)| f == fd) {
                                     saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                                 }
@@ -8153,6 +8581,8 @@ impl<'a> EvalState<'a> {
                                 }
                             }
                             if move_fd && src_fd != *fd {
+                                record_saved_fd(&self.fd_table, &mut saved_fd_table, src_fd);
+                                record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, src_fd);
                                 if src_fd == 0 {
                                     self.fd_table.insert(0, FdTarget::Closed);
                                     self.in_fd_aliases.remove(&0);
@@ -8172,7 +8602,7 @@ impl<'a> EvalState<'a> {
                             let prefix = self.diag_prefix();
                             let mut err_out = BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{prefix}{target}: ambiguous redirect\n"),
+                                stderr: format!("{prefix}{target}: Bad file descriptor\n"),
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut err_out);
@@ -8202,11 +8632,7 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
-                    if self.noclobber
-                        && full != "/dev/null"
-                        && self.fs.exists(&full)
-                        && !self.fs.is_dir(&full)
-                    {
+                    if self.is_noclobber_blocked(&full) {
                         let mut err_out = BuiltinOutcome {
                             stdout: String::new(),
                             stderr: format!("{target}: cannot overwrite existing file\n"),
@@ -8245,7 +8671,10 @@ impl<'a> EvalState<'a> {
                         }
                     }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     if *fd == 0 {
+                        self.materialize_stdin_aliases(default_stdin, &mut saved_in);
                         local_stdin.clear();
                         use_local = true;
                         dup_fd = None;
@@ -8296,7 +8725,10 @@ impl<'a> EvalState<'a> {
                         }
                     }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     if *fd == 0 {
+                        self.materialize_stdin_aliases(default_stdin, &mut saved_in);
                         local_stdin.clear();
                         use_local = true;
                         dup_fd = None;
@@ -8344,6 +8776,8 @@ impl<'a> EvalState<'a> {
                         self.apply_umask_to_new_file(&full);
                     }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                    record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                     if *fd == 0 {
                         self.materialize_stdin_aliases(default_stdin, &mut saved_in);
                         local_stdin.clear();
@@ -8358,7 +8792,11 @@ impl<'a> EvalState<'a> {
                     self.in_fd_aliases.remove(fd);
                     self.fd_table.insert(*fd, FdTarget::File { path: full });
                 }
-                RedirectKind::DupOut(fd) => {
+                RedirectKind::DupOut {
+                    fd,
+                    explicit_fd,
+                    raw_move,
+                } => {
                     let target = match expand_redir_target(self, &r.target)? {
                         Ok(t) => t,
                         Err(err_out) => {
@@ -8374,6 +8812,8 @@ impl<'a> EvalState<'a> {
                     };
                     if target == "-" {
                         self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                        record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                        record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                         if *fd == 0 {
                             local_stdin.clear();
                             use_local = true;
@@ -8391,13 +8831,123 @@ impl<'a> EvalState<'a> {
                             Some(s) if !s.is_empty() => (s, true),
                             _ => (target.as_str(), false),
                         };
-                        if let Ok(src_fd) = src_str.parse::<u32>() {
+                        let is_digits = !src_str.is_empty()
+                            && src_str.chars().all(|c| c.is_ascii_digit());
+                        if !is_digits && !*explicit_fd {
+                            let full = resolve_posix_path(self.cwd, &target);
+                            if self.is_noclobber_blocked(&full) {
+                                let mut err_out = BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{target}: cannot overwrite existing file\n"),
+                                    exit_code: 1,
+                                };
+                                self.route_outcome(&mut err_out);
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
+                            if full != "/dev/null" {
+                                let existed = self.fs.exists(&full);
+                                if let Err(e) = self.fs.write_file(&full, b"") {
+                                    let mut err_out = BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format!("{target}: {e}\n"),
+                                        exit_code: 1,
+                                    };
+                                    self.route_outcome(&mut err_out);
+                                    return Ok((
+                                        (saved_fd_table, saved_aliases),
+                                        saved_in,
+                                        local_stdin,
+                                        use_local,
+                                        dup_fd,
+                                        Some(err_out),
+                                    ));
+                                }
+                                if !existed {
+                                    self.apply_umask_to_new_file(&full);
+                                }
+                            }
+                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
+                            record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
+                            self.fd_table
+                                .insert(1, FdTarget::File { path: full.clone() });
+                            self.fd_table.insert(2, FdTarget::File { path: full });
+                            continue;
+                        }
+                        if !is_digits {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: Bad file descriptor\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
+                        if move_fd && !*raw_move {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: ambiguous redirect\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
+                        if is_digits && let Ok(src_fd) = src_str.parse::<u32>() {
+                            if !self.is_fd_open(src_fd)
+                                || (!move_fd && !self.is_fd_writable(src_fd))
+                            {
+                                let prefix = self.diag_prefix();
+                                let mut err_out = BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!("{prefix}{src_fd}: Bad file descriptor\n"),
+                                    exit_code: 1,
+                                };
+                                self.route_outcome(&mut err_out);
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
                             self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
+                            record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
+                            record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
                             if !saved_in.iter().any(|(f, _)| f == fd) {
                                 saved_in.push((*fd, self.in_fds.get(fd).cloned()));
                             }
                             self.in_fds.remove(fd);
                             self.in_fd_aliases.remove(fd);
+                            if *fd == 0 {
+                                self.materialize_stdin_aliases(default_stdin, &mut saved_in);
+                                local_stdin.clear();
+                                use_local = true;
+                                dup_fd = None;
+                            }
                             let inherited = self
                                 .fd_table
                                 .get(&src_fd)
@@ -8405,8 +8955,38 @@ impl<'a> EvalState<'a> {
                                 .unwrap_or(FdTarget::Closed);
                             self.fd_table.insert(*fd, inherited);
                             if move_fd && src_fd != *fd {
+                                self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
+                                record_saved_fd(&self.fd_table, &mut saved_fd_table, src_fd);
+                                record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, src_fd);
+                                if src_fd == 0 {
+                                    local_stdin.clear();
+                                    use_local = true;
+                                    dup_fd = None;
+                                } else {
+                                    if !saved_in.iter().any(|(f, _)| *f == src_fd) {
+                                        saved_in.push((src_fd, self.in_fds.get(&src_fd).cloned()));
+                                    }
+                                    self.in_fds.remove(&src_fd);
+                                }
+                                self.in_fd_aliases.remove(&src_fd);
                                 self.fd_table.insert(src_fd, FdTarget::Closed);
                             }
+                        } else {
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{target}: Bad file descriptor\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
                         }
                     }
                 }
@@ -8425,13 +9005,46 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if self.is_noclobber_blocked(&full) {
+                        let mut err_out = BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{target}: cannot overwrite existing file\n"),
+                            exit_code: 1,
+                        };
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if full != "/dev/null" {
                         let existed = self.fs.exists(&full);
-                        let _ = self.fs.write_file(&full, b"");
+                        if let Err(e) = self.fs.write_file(&full, b"") {
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{target}: {e}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                         if !existed {
                             self.apply_umask_to_new_file(&full);
                         }
                     }
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
                     self.fd_table
                         .insert(1, FdTarget::File { path: full.clone() });
                     self.fd_table.insert(2, FdTarget::File { path: full });
@@ -8452,9 +9065,26 @@ impl<'a> EvalState<'a> {
                     };
                     let full = resolve_posix_path(self.cwd, &target);
                     if full != "/dev/null" && !self.fs.exists(&full) {
-                        let _ = self.fs.write_file(&full, b"");
+                        if let Err(e) = self.fs.write_file(&full, b"") {
+                            let mut err_out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{target}: {e}\n"),
+                                exit_code: 1,
+                            };
+                            self.route_outcome(&mut err_out);
+                            return Ok((
+                                (saved_fd_table, saved_aliases),
+                                saved_in,
+                                local_stdin,
+                                use_local,
+                                dup_fd,
+                                Some(err_out),
+                            ));
+                        }
                         self.apply_umask_to_new_file(&full);
                     }
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 1);
+                    record_saved_fd(&self.fd_table, &mut saved_fd_table, 2);
                     self.fd_table
                         .insert(1, FdTarget::File { path: full.clone() });
                     self.fd_table.insert(2, FdTarget::File { path: full });
@@ -8477,8 +9107,26 @@ impl<'a> EvalState<'a> {
         saved_fds: SavedFds,
         saved_in: Vec<(u32, Option<String>)>,
     ) {
-        self.fd_table = saved_fds.0;
-        self.in_fd_aliases = saved_fds.1;
+        for (fd, prev) in saved_fds.0.into_iter().rev() {
+            match prev {
+                Some(target) => {
+                    self.fd_table.insert(fd, target);
+                }
+                None => {
+                    self.fd_table.remove(&fd);
+                }
+            }
+        }
+        for (fd, prev) in saved_fds.1.into_iter().rev() {
+            match prev {
+                Some(target) => {
+                    self.in_fd_aliases.insert(fd, target);
+                }
+                None => {
+                    self.in_fd_aliases.remove(&fd);
+                }
+            }
+        }
         for (fd, prev) in saved_in {
             if let Some(val) = prev {
                 self.in_fds.insert(fd, val);
@@ -8513,8 +9161,99 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
+            FdTarget::ReadWriteFile { path, owner_fd } => {
+                if path != "/dev/null" {
+                    let cur_rem = if *owner_fd == 0 {
+                        self.in_fds
+                            .get(&0)
+                            .or_else(|| self.in_fds.get(&STDIN_STREAM_FD))
+                            .map(|s| stream_string_to_bytes(s).len())
+                            .unwrap_or(0)
+                    } else {
+                        let canon = self.resolve_in_fd(*owner_fd);
+                        self.in_fds
+                            .get(&canon)
+                            .map(|s| stream_string_to_bytes(s).len())
+                            .unwrap_or(0)
+                    };
+                    let last_rem = self.rw_last_rem.get(owner_fd).copied().unwrap_or(cur_rem);
+                    let had_read = cur_rem < last_rem;
+                    let base_off = self.rw_offsets.get(owner_fd).copied().unwrap_or(0);
+                    let cur_off = if had_read {
+                        base_off + last_rem.min(65536)
+                    } else {
+                        base_off
+                    };
+                    let write_bytes = stream_string_to_bytes(data);
+                    let mut file_bytes = self.fs.read_file(path).unwrap_or_default();
+                    let end_off = cur_off + write_bytes.len();
+                    if file_bytes.len() < end_off {
+                        file_bytes.resize(end_off, 0);
+                    }
+                    file_bytes[cur_off..end_off].copy_from_slice(&write_bytes);
+                    if let Err(e) = self.fs.write_file(path, &file_bytes) {
+                        out.stderr.push_str(&format!("{path}: {e}\n"));
+                        out.exit_code = 1;
+                    } else {
+                        if !had_read {
+                            let new_rem_bytes = &file_bytes[end_off..];
+                            let new_rem_str = bytes_to_stream_string(new_rem_bytes);
+                            if *owner_fd != 0 {
+                                let canon = self.resolve_in_fd(*owner_fd);
+                                if self.in_fds.contains_key(&canon) {
+                                    self.in_fds.insert(canon, new_rem_str);
+                                }
+                            }
+                            self.rw_offsets.insert(*owner_fd, end_off);
+                            self.rw_last_rem.insert(*owner_fd, new_rem_bytes.len());
+                        } else {
+                            self.rw_offsets.insert(*owner_fd, end_off);
+                            self.rw_last_rem.insert(*owner_fd, cur_rem);
+                        }
+                    }
+                }
+            }
             FdTarget::Closed => {}
         }
+    }
+
+    fn expand_arith_text(&mut self, text: &str) -> Result<String, EvalError> {
+        let mut out = String::new();
+        let chars: Vec<char> = text.chars().collect();
+        let mut idx = 0usize;
+        let mut in_dq = false;
+        while idx < chars.len() {
+            let c = chars[idx];
+            if c == '"' {
+                in_dq = !in_dq;
+                idx += 1;
+                continue;
+            }
+            if c == '\\' && idx + 1 < chars.len() {
+                if chars[idx + 1] == '\n' {
+                    idx += 2;
+                    continue;
+                }
+                if matches!(chars[idx + 1], '$' | '`' | '\\' | '"' | '\'') {
+                    out.push(chars[idx + 1]);
+                    idx += 2;
+                    continue;
+                }
+            }
+            if c == '$' {
+                let expanded = self.expand_dollar(&chars, &mut idx)?;
+                out.push_str(&expanded);
+                continue;
+            }
+            if c == '`' {
+                let expanded = self.expand_backticks(&chars, &mut idx)?;
+                out.push_str(&expanded);
+                continue;
+            }
+            out.push(c);
+            idx += 1;
+        }
+        Ok(out)
     }
 
     fn expand_heredoc_text(&mut self, text: &str) -> Result<String, EvalError> {
@@ -8873,7 +9612,17 @@ impl<'a> EvalState<'a> {
                         continue;
                     }
                     if chars[idx] == '`' {
-                        let exp = self.expand_backticks(&chars, &mut idx)?;
+                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let exp = self.expand_backticks(&chars, &mut idx);
+                        match prev_dq {
+                            Some(v) => {
+                                self.env.insert("__in_dquote".to_string(), v);
+                            }
+                            None => {
+                                self.env.remove("__in_dquote");
+                            }
+                        }
+                        let exp = exp?;
                         dq.push_str(&exp);
                         continue;
                     }
@@ -9082,7 +9831,17 @@ impl<'a> EvalState<'a> {
                         continue;
                     }
                     if chars[idx] == '`' {
-                        let exp = self.expand_backticks(&chars, &mut idx)?;
+                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let exp = self.expand_backticks(&chars, &mut idx);
+                        match prev_dq {
+                            Some(v) => {
+                                self.env.insert("__in_dquote".to_string(), v);
+                            }
+                            None => {
+                                self.env.remove("__in_dquote");
+                            }
+                        }
+                        let exp = exp?;
                         if escape_quoted_glob {
                             for ec in exp.chars() {
                                 if matches!(
@@ -9117,22 +9876,8 @@ impl<'a> EvalState<'a> {
             }
             if (c == '<' || c == '>') && idx + 1 < chars.len() && chars[idx + 1] == '(' {
                 let is_out = c == '>';
-                idx += 2;
-                let mut depth = 1usize;
-                let mut sub_cmd = String::new();
-                while idx < chars.len() && depth > 0 {
-                    let sc = chars[idx];
-                    idx += 1;
-                    if sc == '(' {
-                        depth += 1;
-                    } else if sc == ')' {
-                        depth -= 1;
-                        if depth == 0 {
-                            break;
-                        }
-                    }
-                    sub_cmd.push(sc);
-                }
+                idx += 1;
+                let sub_cmd = scan_nested_command_sub(&chars, &mut idx)?;
                 self.procsub_seq += 1;
                 let proc_path = format!("/tmp/.procsub_{}", self.procsub_seq);
                 let _ = self.fs.mkdir_all("/tmp");
@@ -9172,8 +9917,9 @@ impl<'a> EvalState<'a> {
                 if idx + 1 < chars.len() && chars[idx + 1] == '{' {
                     let mut probe_idx = idx + 1;
                     let expr = scan_nested_brace_sub(&chars, &mut probe_idx)?;
+                    let (pre_expr, temp_keys) = self.preprocess_param_expr_cmdsubs(&expr)?;
                     if let Some(alt_raw) = try_resolve_unquoted_alternate_operand(
-                        &expr,
+                        &pre_expr,
                         self.env,
                         self.last_exit,
                         &self.pos_args,
@@ -9181,8 +9927,20 @@ impl<'a> EvalState<'a> {
                         let alt_owned = alt_raw.to_string();
                         idx = probe_idx;
                         let tilded_alt = self.expand_tilde_in_word(&alt_owned, false);
-                        self.collect_word_segments(&tilded_alt, escape_quoted_glob, true, segments)?;
+                        let seg_res = self.collect_word_segments(
+                            &tilded_alt,
+                            escape_quoted_glob,
+                            true,
+                            segments,
+                        );
+                        for tk in temp_keys {
+                            self.env.remove(&tk);
+                        }
+                        seg_res?;
                         continue;
+                    }
+                    for tk in temp_keys {
+                        self.env.remove(&tk);
                     }
                 }
                 let exp = self.expand_dollar(&chars, &mut idx)?;
@@ -9477,35 +10235,17 @@ impl<'a> EvalState<'a> {
             return Ok("$".to_string());
         }
         if chars[*idx] == '(' && *idx + 1 < chars.len() && chars[*idx + 1] == '(' {
-            *idx += 2;
-            let mut depth = 2i32;
-            let mut expr = String::new();
-            while *idx < chars.len() && depth > 0 {
-                let c = chars[*idx];
-                if c == '(' {
-                    depth += 1;
-                    expr.push(c);
-                    *idx += 1;
-                } else if c == ')' {
-                    depth -= 1;
-                    if depth == 0 {
-                        *idx += 1;
-                        break;
-                    }
-                    if depth == 1 && *idx + 1 < chars.len() && chars[*idx + 1] == ')' {
-                        *idx += 2;
-                        break;
-                    }
-                    expr.push(c);
-                    *idx += 1;
-                } else {
-                    expr.push(c);
-                    *idx += 1;
+            match crate::shell::lexer::find_arithmetic_end(chars, *idx + 2, true) {
+                Ok(Some((expr_end, resume_idx))) => {
+                    let expr: String = chars[*idx + 2..expr_end].iter().collect();
+                    *idx = resume_idx;
+                    let expanded_expr = self.expand_arith_text(&expr)?;
+                    let val = eval_arith(&expanded_expr, self.env).map_err(EvalError::Syntax)?;
+                    return Ok(val.to_string());
                 }
+                Ok(None) => {}
+                Err(msg) => return Err(EvalError::Syntax(msg)),
             }
-            let expanded_expr = self.expand_heredoc_text(&expr)?;
-            let val = eval_arith(&expanded_expr, self.env).map_err(EvalError::Syntax)?;
-            return Ok(val.to_string());
         }
         if chars[*idx] == '(' {
             let cmd_str = scan_nested_command_sub(chars, idx)?;
@@ -9513,8 +10253,13 @@ impl<'a> EvalState<'a> {
         }
         if chars[*idx] == '{' {
             let expr = scan_nested_brace_sub(chars, idx)?;
-            return expand_parameter_expr(&expr, self.env, self.last_exit, &self.pos_args)
+            let (pre_expr, temp_keys) = self.preprocess_param_expr_cmdsubs(&expr)?;
+            let res = expand_parameter_expr(&pre_expr, self.env, self.last_exit, &self.pos_args)
                 .map_err(EvalError::Syntax);
+            for tk in temp_keys {
+                self.env.remove(&tk);
+            }
+            return res;
         }
         let first = chars[*idx];
         if matches!(first, '?' | '#' | '@' | '*' | '$' | '!' | '-') || first.is_ascii_digit() {
@@ -9537,13 +10282,137 @@ impl<'a> EvalState<'a> {
         Ok("$".to_string())
     }
 
+    fn preprocess_param_expr_cmdsubs(
+        &mut self,
+        expr: &str,
+    ) -> Result<(String, Vec<String>), EvalError> {
+        if !expr.contains("$(") && !expr.contains('`') {
+            return Ok((expr.to_string(), Vec::new()));
+        }
+        let var_end = find_var_name_end(expr);
+        let var_part = &expr[..var_end];
+        let rest = &expr[var_end..];
+        let mut temp_keys = Vec::new();
+
+        let expand_cmdsubs_in_str =
+            |this: &mut Self, s: &str, keys: &mut Vec<String>| -> Result<String, EvalError> {
+                let chars: Vec<char> = s.chars().collect();
+                let mut idx = 0usize;
+                let mut out = String::new();
+                let mut in_sq = false;
+                let mut in_dq = false;
+                while idx < chars.len() {
+                    let c = chars[idx];
+                    if in_sq {
+                        out.push(c);
+                        idx += 1;
+                        if c == '\'' {
+                            in_sq = false;
+                        }
+                        continue;
+                    }
+                    if c == '\\' && idx + 1 < chars.len() {
+                        out.push(c);
+                        out.push(chars[idx + 1]);
+                        idx += 2;
+                        continue;
+                    }
+                    if c == '\'' && !in_dq {
+                        in_sq = true;
+                        out.push(c);
+                        idx += 1;
+                        continue;
+                    }
+                    if c == '"' {
+                        in_dq = !in_dq;
+                        out.push(c);
+                        idx += 1;
+                        continue;
+                    }
+                    if c == '$' && idx + 1 < chars.len() && chars[idx + 1] == '(' {
+                        if idx + 2 < chars.len() && chars[idx + 2] == '(' {
+                            if let Ok(Some((_e, r_idx))) =
+                                crate::shell::lexer::find_arithmetic_end(&chars, idx + 3, true)
+                            {
+                                let seg: String = chars[idx..r_idx].iter().collect();
+                                out.push_str(&seg);
+                                idx = r_idx;
+                                continue;
+                            }
+                        }
+                        idx += 1;
+                        let cmd_str = scan_nested_command_sub(&chars, &mut idx)?;
+                        let val = this.run_command_substitution(&cmd_str)?;
+                        this.cmdsub_seq += 1;
+                        let key = format!("__cmdsub_{}__", this.cmdsub_seq);
+                        this.env.insert(key.clone(), val);
+                        keys.push(key.clone());
+                        out.push_str(&format!("${{{key}}}"));
+                        continue;
+                    }
+                    if c == '`' {
+                        let val = this.expand_backticks(&chars, &mut idx)?;
+                        this.cmdsub_seq += 1;
+                        let key = format!("__cmdsub_{}__", this.cmdsub_seq);
+                        this.env.insert(key.clone(), val);
+                        keys.push(key.clone());
+                        out.push_str(&format!("${{{key}}}"));
+                        continue;
+                    }
+                    out.push(c);
+                    idx += 1;
+                }
+                Ok(out)
+            };
+
+        let new_var_part = if var_part.contains("$(") || var_part.contains('`') {
+            if let Some(br_open) = var_part.find('[')
+                && var_part.ends_with(']')
+            {
+                let base = &var_part[..br_open];
+                let sub = &var_part[br_open + 1..var_part.len() - 1];
+                let exp_sub = expand_cmdsubs_in_str(self, sub, &mut temp_keys)?;
+                format!("{base}[{exp_sub}]")
+            } else {
+                var_part.to_string()
+            }
+        } else {
+            var_part.to_string()
+        };
+
+        if rest.is_empty() || (!rest.contains("$(") && !rest.contains('`')) {
+            return Ok((format!("{new_var_part}{rest}"), temp_keys));
+        }
+
+        for op in [":-", "-", ":=", "=", ":?", "?", ":+", "+"] {
+            if let Some(operand) = rest.strip_prefix(op) {
+                if is_param_operand_active(
+                    &new_var_part,
+                    op,
+                    self.env,
+                    self.last_exit,
+                    &self.pos_args,
+                ) {
+                    let exp_op = expand_cmdsubs_in_str(self, operand, &mut temp_keys)?;
+                    return Ok((format!("{new_var_part}{op}{exp_op}"), temp_keys));
+                } else {
+                    return Ok((format!("{new_var_part}{rest}"), temp_keys));
+                }
+            }
+        }
+
+        let exp_rest = expand_cmdsubs_in_str(self, rest, &mut temp_keys)?;
+        Ok((format!("{new_var_part}{exp_rest}"), temp_keys))
+    }
+
     fn expand_backticks(&mut self, chars: &[char], idx: &mut usize) -> Result<String, EvalError> {
         *idx += 1;
+        let in_dq = self.env.get("__in_dquote").is_some_and(|v| v == "1");
         let mut cmd_str = String::new();
         while *idx < chars.len() && chars[*idx] != '`' {
             if chars[*idx] == '\\' && *idx + 1 < chars.len() {
                 let nc = chars[*idx + 1];
-                if matches!(nc, '`' | '$' | '\\') {
+                if matches!(nc, '`' | '$' | '\\') || (in_dq && nc == '"') {
                     cmd_str.push(nc);
                     *idx += 2;
                     continue;
@@ -9569,7 +10438,12 @@ impl<'a> EvalState<'a> {
         }
         let mut sub_cwd = self.cwd.clone();
         let mut sub_env = self.env.clone();
+        for (rk, rv) in &self.redirect_assignments {
+            sub_env.insert(rk.clone(), rv.clone());
+            sub_env.remove(&format!("__unexported__{rk}"));
+        }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+        sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
         let inherit_errexit = self
             .env
             .get("__shopt_inherit_errexit")
@@ -9620,7 +10494,25 @@ impl<'a> EvalState<'a> {
 
     fn run_command_substitution(&mut self, cmd_str: &str) -> Result<String, EvalError> {
         let raw = self.run_command_substitution_raw(cmd_str)?;
-        Ok(raw.trim_end_matches('\n').to_string())
+        let cleaned = if raw.contains('\0') {
+            let msg = format!(
+                "{}warning: command substitution: ignored null byte in input\n",
+                self.diag_prefix()
+            );
+            let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
+            let mut dummy = BuiltinOutcome {
+                stdout: String::new(),
+                stderr: String::new(),
+                exit_code: 0,
+            };
+            self.write_to_fd_target(&fd2, &msg, &mut dummy);
+            self.pending_stdout.push_str(&dummy.stdout);
+            self.pending_stderr.push_str(&dummy.stderr);
+            raw.replace('\0', "")
+        } else {
+            raw
+        };
+        Ok(cleaned.trim_end_matches('\n').to_string())
     }
 
     fn active_job_entries(&self) -> Vec<(u32, u32, String)> {
@@ -10158,6 +11050,7 @@ fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, Ev
     let mut depth = 1usize;
     let mut in_sq = false;
     let mut in_dq = false;
+    let mut pending_heredocs: Vec<(String, bool)> = Vec::new();
     while *idx < chars.len() && depth > 0 {
         let c = chars[*idx];
         if in_sq {
@@ -10189,10 +11082,6 @@ fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, Ev
             out.push(c);
             out.push(chars[*idx + 1]);
             *idx += 2;
-        } else if c == '\\' && *idx + 1 < chars.len() {
-            out.push(c);
-            out.push(chars[*idx + 1]);
-            *idx += 2;
         } else if c == '\'' {
             out.push(c);
             *idx += 1;
@@ -10208,11 +11097,183 @@ fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, Ev
             let inner = scan_nested_command_sub(chars, idx)?;
             out.push_str(&inner);
             out.push(')');
+        } else if c == '<' && *idx + 1 < chars.len() && chars[*idx + 1] == '<' {
+            if *idx + 2 < chars.len() && chars[*idx + 2] == '<' {
+                out.push_str("<<<");
+                *idx += 3;
+            } else {
+                let strip_tabs = *idx + 2 < chars.len() && chars[*idx + 2] == '-';
+                if strip_tabs {
+                    out.push_str("<<-");
+                    *idx += 3;
+                } else {
+                    out.push_str("<<");
+                    *idx += 2;
+                }
+                while *idx < chars.len() && matches!(chars[*idx], ' ' | '\t') {
+                    out.push(chars[*idx]);
+                    *idx += 1;
+                }
+                let mut raw_delim = String::new();
+                let mut d_sq = false;
+                let mut d_dq = false;
+                while *idx < chars.len() {
+                    let dc = chars[*idx];
+                    if d_sq {
+                        raw_delim.push(dc);
+                        out.push(dc);
+                        *idx += 1;
+                        if dc == '\'' {
+                            d_sq = false;
+                        }
+                    } else if d_dq {
+                        if dc == '\\' && *idx + 1 < chars.len() {
+                            raw_delim.push(dc);
+                            raw_delim.push(chars[*idx + 1]);
+                            out.push(dc);
+                            out.push(chars[*idx + 1]);
+                            *idx += 2;
+                        } else {
+                            raw_delim.push(dc);
+                            out.push(dc);
+                            *idx += 1;
+                            if dc == '"' {
+                                d_dq = false;
+                            }
+                        }
+                    } else if dc == '\'' {
+                        d_sq = true;
+                        raw_delim.push(dc);
+                        out.push(dc);
+                        *idx += 1;
+                    } else if dc == '"' {
+                        d_dq = true;
+                        raw_delim.push(dc);
+                        out.push(dc);
+                        *idx += 1;
+                    } else if dc == '\\' && *idx + 1 < chars.len() {
+                        if chars[*idx + 1] == '\n' {
+                            out.push('\\');
+                            out.push('\n');
+                            *idx += 2;
+                        } else {
+                            raw_delim.push(dc);
+                            raw_delim.push(chars[*idx + 1]);
+                            out.push(dc);
+                            out.push(chars[*idx + 1]);
+                            *idx += 2;
+                        }
+                    } else if matches!(dc, ' ' | '\t' | '\n' | ';' | '&' | '|' | '<' | '>' | '(' | ')') {
+                        break;
+                    } else {
+                        raw_delim.push(dc);
+                        out.push(dc);
+                        *idx += 1;
+                    }
+                }
+                let mut unquoted = String::new();
+                let dchars: Vec<char> = raw_delim.chars().collect();
+                let mut di = 0usize;
+                while di < dchars.len() {
+                    let dc = dchars[di];
+                    if (dc == '$' && di + 1 < dchars.len() && matches!(dchars[di + 1], '\'' | '"'))
+                        && !unquoted.ends_with('\\')
+                    {
+                        let q = dchars[di + 1];
+                        di += 2;
+                        while di < dchars.len() && dchars[di] != q {
+                            if q == '"'
+                                && dchars[di] == '\\'
+                                && di + 1 < dchars.len()
+                                && matches!(dchars[di + 1], '"' | '\\' | '$' | '`')
+                            {
+                                unquoted.push(dchars[di + 1]);
+                                di += 2;
+                            } else {
+                                unquoted.push(dchars[di]);
+                                di += 1;
+                            }
+                        }
+                        if di < dchars.len() {
+                            di += 1;
+                        }
+                    } else if dc == '\'' || dc == '"' {
+                        let q = dc;
+                        di += 1;
+                        while di < dchars.len() && dchars[di] != q {
+                            if q == '"'
+                                && dchars[di] == '\\'
+                                && di + 1 < dchars.len()
+                                && matches!(dchars[di + 1], '"' | '\\' | '$' | '`')
+                            {
+                                unquoted.push(dchars[di + 1]);
+                                di += 2;
+                            } else {
+                                unquoted.push(dchars[di]);
+                                di += 1;
+                            }
+                        }
+                        if di < dchars.len() {
+                            di += 1;
+                        }
+                    } else if dc == '\\' && di + 1 < dchars.len() {
+                        unquoted.push(dchars[di + 1]);
+                        di += 2;
+                    } else {
+                        unquoted.push(dc);
+                        di += 1;
+                    }
+                }
+                if !unquoted.is_empty() {
+                    pending_heredocs.push((unquoted, strip_tabs));
+                }
+            }
+        } else if c == '\n' {
+            out.push('\n');
+            *idx += 1;
+            if !pending_heredocs.is_empty() {
+                let docs = std::mem::take(&mut pending_heredocs);
+                for (delim, strip_tabs) in docs {
+                    loop {
+                        if *idx >= chars.len() {
+                            break;
+                        }
+                        let line_start = *idx;
+                        while *idx < chars.len() && chars[*idx] != '\n' {
+                            *idx += 1;
+                        }
+                        let has_nl = *idx < chars.len() && chars[*idx] == '\n';
+                        let line_str: String = chars[line_start..*idx].iter().collect();
+                        if has_nl {
+                            *idx += 1;
+                        }
+                        let trimmed_cr = line_str.strip_suffix('\r').unwrap_or(&line_str);
+                        let check_line = if strip_tabs {
+                            trimmed_cr.trim_start_matches('\t')
+                        } else {
+                            trimmed_cr
+                        };
+                        out.push_str(&line_str);
+                        if has_nl {
+                            out.push('\n');
+                        }
+                        if check_line == delim {
+                            break;
+                        }
+                    }
+                }
+            }
         } else if c == '(' {
             depth += 1;
             out.push(c);
             *idx += 1;
         } else if c == ')' {
+            if depth == 1 && !pending_heredocs.is_empty() {
+                return Err(EvalError::Syntax(
+                    "Syntax error: Here-document requires a newline before closing command substitution"
+                        .to_string(),
+                ));
+            }
             depth -= 1;
             *idx += 1;
             if depth > 0 {
@@ -10222,6 +11283,11 @@ fn scan_nested_command_sub(chars: &[char], idx: &mut usize) -> Result<String, Ev
             out.push(c);
             *idx += 1;
         }
+    }
+    if depth > 0 {
+        return Err(EvalError::Syntax(
+            "Syntax error: Unterminated command substitution".to_string(),
+        ));
     }
     Ok(out)
 }
@@ -10252,6 +11318,13 @@ fn scan_nested_brace_sub(chars: &[char], idx: &mut usize) -> Result<String, Eval
                 let inner = scan_nested_brace_sub(chars, idx)?;
                 out.push_str(&inner);
                 out.push('}');
+            } else if c == '$' && *idx + 1 < chars.len() && chars[*idx + 1] == '(' {
+                out.push('$');
+                out.push('(');
+                *idx += 1;
+                let inner = scan_nested_command_sub(chars, idx)?;
+                out.push_str(&inner);
+                out.push(')');
             } else {
                 out.push(c);
                 *idx += 1;
@@ -10271,6 +11344,13 @@ fn scan_nested_brace_sub(chars: &[char], idx: &mut usize) -> Result<String, Eval
             out.push(c);
             *idx += 1;
             in_dq = true;
+        } else if c == '$' && *idx + 1 < chars.len() && chars[*idx + 1] == '(' {
+            out.push('$');
+            out.push('(');
+            *idx += 1;
+            let inner = scan_nested_command_sub(chars, idx)?;
+            out.push_str(&inner);
+            out.push(')');
         } else if c == '{' {
             depth += 1;
             out.push(c);
@@ -10286,7 +11366,38 @@ fn scan_nested_brace_sub(chars: &[char], idx: &mut usize) -> Result<String, Eval
             *idx += 1;
         }
     }
+    if depth > 0 {
+        return Err(EvalError::Syntax(
+            "Syntax error: Unterminated parameter expansion".to_string(),
+        ));
+    }
     Ok(out)
+}
+
+fn is_cmdsub_file_shortcut(cmd_str: &str) -> bool {
+    let s = cmd_str.trim();
+    if !s.starts_with('<') || s.starts_with("<<") || s.starts_with("<>") || s.starts_with("<&") {
+        return false;
+    }
+    let Ok(ast) = parse_script(s) else {
+        return false;
+    };
+    if ast.lists.len() != 1 || !ast.lists[0].rest.is_empty() || ast.lists[0].background {
+        return false;
+    }
+    let pipe = &ast.lists[0].first;
+    if pipe.negated || pipe.commands.len() != 1 {
+        return false;
+    }
+    match &pipe.commands[0] {
+        CommandNode::Simple(simple) => {
+            simple.words.is_empty()
+                && simple.assignments.is_empty()
+                && simple.redirects.len() == 1
+                && matches!(simple.redirects[0].kind, RedirectKind::In(0))
+        }
+        _ => false,
+    }
 }
 
 fn parse_assignment_lhs_rhs(word: &str) -> Option<(&str, &str, bool)> {
@@ -12558,5 +13669,81 @@ printf 'rc=%d:%d|x=%s|sub=%s|out=%s\n' "$rc_err" "$rc_empty_arm" "$x" "$(cat sub
         assert_eq!(r2.exit_code, 0);
         assert_eq!(r2.stderr, "");
         assert_eq!(r2.stdout, "rc=1:0|x=42|sub=sub_err|out=case\n");
+    }
+
+    #[test]
+    fn unit_eval_fd_dup_readwrite_heredoc_cmdsub_and_subshell_disambiguation() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        let mut cwd = "/work".to_string();
+        vfs.mkdir_all("/work").unwrap();
+        let mut env = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let r1 = state
+            .eval_script_str(
+                r#"printf 'abcdef\n' > rw.txt
+exec 3<>rw.txt
+printf 'XY' >&3
+read -u 3 rest_line
+exec 3<&-
+
+mkdir -p sub_dir
+shortcut_file=$(< rw.txt)
+shortcut_dir=$(< sub_dir)
+shortcut_dir_rc="$?"
+
+X=outer
+inline_hs=$(X=inner cat <<< "$X:$(echo "$X")")
+
+nested_hd=$(cat <<EOF
+line1 \
+continued
+literal \\
+next
+EOF
+)
+
+sub_pair=$((echo s1); (echo s2))
+
+printf 'rw=%s|%s\ndir=%s:%d\nhs=%s\nhd=%s\nsub=%s\n' \
+  "$rest_line" "$shortcut_file" \
+  "$shortcut_dir" "$shortcut_dir_rc" \
+  "$inline_hs" \
+  "$(printf '%s' "$nested_hd" | tr '\n' '|')" \
+  "$(printf '%s' "$sub_pair" | tr '\n' '|')""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r1.stderr, "");
+        assert_eq!(r1.exit_code, 0);
+        assert_eq!(
+            r1.stdout,
+            "rw=cdef|XYcdef\ndir=:0\nhs=outer:inner\nhd=line1 continued|literal \\|next\nsub=s1|s2\n"
+        );
+
+        let r2 = state
+            .eval_script_str(
+                r#"echo hi 2>bad_out.err >&0
+rc_bad_out="$?"
+cat 2>bad_in.err <&1
+rc_bad_in="$?"
+mv_target="1-"
+echo hi 2>ambig_mv.err >&$mv_target
+rc_ambig_mv="$?"
+(( 1 / 0 )) 2>arith_div.err
+rc_arith_div="$?"
+printf 'rc=%d:%d:%d:%d|o=%s|i=%s|m=%s|a=%s\n' \
+  "$rc_bad_out" "$rc_bad_in" "$rc_ambig_mv" "$rc_arith_div" \
+  "$(cat bad_out.err)" "$(cat bad_in.err)" "$(cat ambig_mv.err)" "$(cat arith_div.err)""#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r2.exit_code, 0);
+        assert_eq!(
+            r2.stdout,
+            "rc=1:1:1:1|o=shell: line 1: 0: Bad file descriptor|i=shell: line 3: 1: Bad file descriptor|m=shell: line 6: 1-: ambiguous redirect|a=((: Division by zero\n"
+        );
     }
 }

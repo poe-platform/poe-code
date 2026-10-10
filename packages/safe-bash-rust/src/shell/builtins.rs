@@ -2287,10 +2287,19 @@ pub fn eval_test_unary_predicate(
             .stat(&path)
             .map(|s| (s.mode & 0o170000) == 0o060000)
             .unwrap_or(false),
-        "-p" => fs
-            .stat(&path)
-            .map(|s| (s.mode & 0o170000) == 0o010000)
-            .unwrap_or(false),
+        "-p" => {
+            if let Some(fd_str) = path
+                .strip_prefix("/dev/fd/")
+                .or_else(|| path.strip_prefix("/proc/self/fd/"))
+                && let Ok(fd) = fd_str.parse::<u32>()
+                && env.get(&format!("__pipe_fd__{fd}")).is_some_and(|v| v == "1")
+            {
+                return true;
+            }
+            fs.stat(&path)
+                .map(|s| (s.mode & 0o170000) == 0o010000)
+                .unwrap_or(false)
+        }
         "-S" => fs
             .stat(&path)
             .map(|s| (s.mode & 0o170000) == 0o140000)

@@ -34,6 +34,7 @@ type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FdTarget {
     Stdout,
+    PipeStdout { peer_retired: bool },
     Stderr,
     File { path: String },
     ReadWriteFile { path: String, owner_fd: u32 },
@@ -68,6 +69,7 @@ pub struct EvalState<'a> {
     pub rw_offsets: BTreeMap<u32, usize>,
     pub rw_last_rem: BTreeMap<u32, usize>,
     pub mapfile_callback_depth: usize,
+    pub callback_line_offset: usize,
     pub traps: BTreeMap<String, String>,
     pub inactive_traps: BTreeMap<String, String>,
     pub trap_versions: BTreeMap<String, u64>,
@@ -166,6 +168,7 @@ impl<'a> EvalState<'a> {
             rw_offsets: BTreeMap::new(),
             rw_last_rem: BTreeMap::new(),
             mapfile_callback_depth: 0,
+            callback_line_offset: 0,
             traps,
             inactive_traps: BTreeMap::new(),
             trap_versions: BTreeMap::new(),
@@ -271,6 +274,7 @@ impl<'a> EvalState<'a> {
             rw_offsets: self.rw_offsets.clone(),
             rw_last_rem: self.rw_last_rem.clone(),
             mapfile_callback_depth: 0,
+            callback_line_offset: self.callback_line_offset,
             traps: child_traps,
             inactive_traps: child_inactive,
             trap_versions: self.trap_versions.clone(),
@@ -367,6 +371,7 @@ impl<'a> EvalState<'a> {
             self.fd_table.get(&fd),
             Some(
                 FdTarget::Stdout
+                    | FdTarget::PipeStdout { .. }
                     | FdTarget::Stderr
                     | FdTarget::File { .. }
                     | FdTarget::ReadWriteFile { .. }
@@ -380,7 +385,10 @@ impl<'a> EvalState<'a> {
         } else {
             None
         };
-        let saved_fd2 = if matches!(self.fd_table.get(&2), Some(FdTarget::Stdout)) {
+        let saved_fd2 = if matches!(
+            self.fd_table.get(&2),
+            Some(FdTarget::Stdout | FdTarget::PipeStdout { .. })
+        ) {
             self.fd_table.insert(2, FdTarget::Stderr)
         } else {
             None
@@ -559,8 +567,29 @@ impl<'a> EvalState<'a> {
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
                 Ok(a) => a,
                 Err(syn_err) => {
-                    if unit_start_line == 0 && stdout.is_empty() && stderr.is_empty() {
+                    if (unit_start_line == 0 || self.mapfile_callback_depth > 0)
+                        && stdout.is_empty()
+                        && stderr.is_empty()
+                    {
                         return Err(EvalError::Syntax(syn_err));
+                    }
+                    if self.mapfile_callback_depth > 0 {
+                        let outer_script = self
+                            .script_name
+                            .clone()
+                            .unwrap_or_else(|| "shell".to_string());
+                        stderr.push_str(&format_callback_syntax_diagnostic(
+                            &format!("{outer_script}: stdin"),
+                            self.callback_line_offset,
+                            script_text,
+                            &syn_err,
+                        ));
+                        self.last_exit = 2;
+                        return Ok(BuiltinOutcome {
+                            stdout,
+                            stderr,
+                            exit_code: 2,
+                        });
                     }
                     stderr.push_str(&format!("syntax error: {syn_err}\n"));
                     self.last_exit = 2;
@@ -599,8 +628,29 @@ impl<'a> EvalState<'a> {
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
                 Ok(a) => a,
                 Err(syn_err) => {
-                    if unit_start_line == 0 && stdout.is_empty() && stderr.is_empty() {
+                    if (unit_start_line == 0 || self.mapfile_callback_depth > 0)
+                        && stdout.is_empty()
+                        && stderr.is_empty()
+                    {
                         return Err(EvalError::Syntax(syn_err));
+                    }
+                    if self.mapfile_callback_depth > 0 {
+                        let outer_script = self
+                            .script_name
+                            .clone()
+                            .unwrap_or_else(|| "shell".to_string());
+                        stderr.push_str(&format_callback_syntax_diagnostic(
+                            &format!("{outer_script}: stdin"),
+                            self.callback_line_offset,
+                            script_text,
+                            &syn_err,
+                        ));
+                        self.last_exit = 2;
+                        return Ok(BuiltinOutcome {
+                            stdout,
+                            stderr,
+                            exit_code: 2,
+                        });
                     }
                     stderr.push_str(&format!("syntax error: {syn_err}\n"));
                     self.last_exit = 2;
@@ -1140,9 +1190,26 @@ impl<'a> EvalState<'a> {
             let mut sub_cwd = self.cwd.clone();
             let mut sub_env = self.env.clone();
             let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-            sub.fd_table.insert(1, FdTarget::Stdout);
+            if idx > 0 {
+                sub.env.insert("__pipe_fd__0".to_string(), "1".to_string());
+            }
             if !is_last {
+                let peer_retired = pipe.commands.get(idx + 1).is_some_and(|next| {
+                    matches!(
+                        next,
+                        CommandNode::Simple(sc)
+                            if sc
+                                .words
+                                .first()
+                                .is_some_and(|w| matches!(w.as_str(), "true" | "false" | ":"))
+                    )
+                });
+                sub.fd_table.insert(1, FdTarget::PipeStdout { peer_retired });
+                sub.env.insert("__pipe_fd__1".to_string(), "1".to_string());
                 sub.in_pipeline_producer = true;
+            } else {
+                sub.fd_table.insert(1, FdTarget::Stdout);
+                sub.env.remove("__pipe_fd__1");
             }
             let stage_res = sub.eval_command_node(cmd_node, &mut cur_stdin);
             let mut stage_out = match stage_res {
@@ -1990,6 +2057,11 @@ impl<'a> EvalState<'a> {
                     });
                 }
                 self.functions.insert(name.clone(), body.clone());
+                if let Some(ref src) = self.script_name {
+                    self.env.insert(format!("__func_src__{name}"), src.clone());
+                } else {
+                    self.env.remove(&format!("__func_src__{name}"));
+                }
                 Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: String::new(),
@@ -2463,8 +2535,10 @@ impl<'a> EvalState<'a> {
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
         if simple.line > 0 {
-            self.current_line = simple.line;
-            self.env.insert("__lineno".to_string(), simple.line.to_string());
+            let effective_line = simple.line + self.callback_line_offset;
+            self.current_line = effective_line;
+            self.env
+                .insert("__lineno".to_string(), effective_line.to_string());
         }
         let mut cmd_parts = Vec::new();
         for (k, v, app) in &simple.assignments {
@@ -3031,6 +3105,10 @@ impl<'a> EvalState<'a> {
             self.func_stack.insert(0, cmd.to_string());
             self.sync_funcname();
             self.local_scopes.push(BTreeMap::new());
+            let func_src = self.env.get(&format!("__func_src__{cmd}")).cloned();
+            let prev_script_name = std::mem::replace(&mut self.script_name, func_src);
+            let prev_func_line = self.current_line;
+            let prev_cb_offset = std::mem::replace(&mut self.callback_line_offset, 0);
             let mut snap = BTreeMap::new();
             if let Some(&v) = self.trap_versions.get("ERR") {
                 snap.insert("ERR".to_string(), v);
@@ -3130,6 +3208,11 @@ impl<'a> EvalState<'a> {
             if !self.func_stack.is_empty() {
                 self.func_stack.remove(0);
             }
+            self.script_name = prev_script_name;
+            self.current_line = prev_func_line;
+            self.callback_line_offset = prev_cb_offset;
+            self.env
+                .insert("__lineno".to_string(), prev_func_line.to_string());
             self.sync_funcname();
             self.budget.leave_recursion();
             let out = out?;
@@ -3495,7 +3578,20 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         });
                     }
-                    match self.fs.read_file(&full) {
+                    let read_res = self.fs.read_file(&full).or_else(|e| {
+                        if let Some(fd_str) = full
+                            .strip_prefix("/dev/fd/")
+                            .or_else(|| full.strip_prefix("/proc/self/fd/"))
+                            && let Ok(fd) = fd_str.parse::<u32>()
+                        {
+                            let canon = self.resolve_in_fd(fd);
+                            if let Some(buf) = self.in_fds.get(&canon) {
+                                return Ok(stream_string_to_bytes(buf));
+                            }
+                        }
+                        Err(e)
+                    });
+                    match read_res {
                         Ok(bytes) => {
                             if bytes.len() > self.budget.limits.max_source_bytes {
                                 return Err(EvalError::Budget(format!(
@@ -3513,6 +3609,8 @@ impl<'a> EvalState<'a> {
                             self.caller_frames.insert(0, caller_frame);
                             let prev_script_name = self.script_name.replace(target.clone());
                             let prev_line = self.current_line;
+                            let prev_cb_offset =
+                                std::mem::replace(&mut self.callback_line_offset, 0);
                             self.current_line = 1;
                             self.env.insert("__lineno".to_string(), "1".to_string());
                             self.source_depth += 1;
@@ -3532,6 +3630,7 @@ impl<'a> EvalState<'a> {
                             }
                             self.source_depth = self.source_depth.saturating_sub(1);
                             self.current_line = prev_line;
+                            self.callback_line_offset = prev_cb_offset;
                             self.env.insert("__lineno".to_string(), prev_line.to_string());
                             self.script_name = prev_script_name;
                             if !self.caller_frames.is_empty() {
@@ -3944,6 +4043,7 @@ impl<'a> EvalState<'a> {
                     rw_offsets: BTreeMap::new(),
                     rw_last_rem: BTreeMap::new(),
                     mapfile_callback_depth: 0,
+                    callback_line_offset: 0,
                     traps: BTreeMap::new(),
                     inactive_traps: BTreeMap::new(),
                     trap_versions: BTreeMap::new(),
@@ -3983,13 +4083,19 @@ impl<'a> EvalState<'a> {
                     allow_unported_fallback: allow_fallback,
                 };
                 let mut sub_in = sub_stdin.to_string();
-                sub_eval
+                let mut out = sub_eval
                     .dispatch_words(sub_words, &mut sub_in, false)
                     .unwrap_or(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: String::new(),
                         exit_code: 1,
-                    })
+                    });
+                if out.exit_code == 127
+                    && let Some(stripped) = out.stderr.strip_prefix("shell: line 1: ")
+                {
+                    out.stderr = stripped.to_string();
+                }
+                out
             },
         ) {
             return Ok(c_out);
@@ -4045,9 +4151,10 @@ impl<'a> EvalState<'a> {
             return Err(EvalError::UnportedCommand(cmd.clone()));
         }
 
+        let displayed = format_diagnostic_command_name(cmd, is_select_byte_locale(self.env));
         Ok(BuiltinOutcome {
             stdout: String::new(),
-            stderr: format!("{cmd}: command not found\n"),
+            stderr: format!("{}{displayed}: command not found\n", self.diag_prefix()),
             exit_code: 127,
         })
     }
@@ -6569,6 +6676,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.functions.remove(arg);
                 self.exported_functions.remove(arg);
+                self.env.remove(&format!("__func_src__{arg}"));
                 continue;
             }
             let base_ident = arg.split_once('[').map(|(b, _)| b).unwrap_or(arg);
@@ -6600,6 +6708,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.functions.remove(arg);
                 self.exported_functions.remove(arg);
+                self.env.remove(&format!("__func_src__{arg}"));
                 continue;
             }
             if unset_nameref {
@@ -6825,33 +6934,37 @@ impl<'a> EvalState<'a> {
         let mut array_name: Option<String> = None;
         let mut fd_num: u32 = 0;
         let mut timeout_secs: Option<f64> = None;
+        let mut terminal_flag: Option<char> = None;
         let mut vars: Vec<String> = Vec::new();
 
         let mut idx = 0usize;
         while idx < args.len() {
             let arg = &args[idx];
-            if !arg.starts_with('-') || arg == "-" {
-                break;
-            }
             if arg == "--" {
                 idx += 1;
                 break;
             }
+            let raw_arg = stream_string_to_bytes(arg);
+            if raw_arg.first() != Some(&b'-') || raw_arg.len() == 1 {
+                break;
+            }
             idx += 1;
-            let chars: Vec<char> = arg[1..].chars().collect();
-            let mut c_idx = 0usize;
-            while c_idx < chars.len() {
-                let flag = chars[c_idx];
+            let mut c_idx = 1usize;
+            while c_idx < raw_arg.len() {
+                let flag_byte = raw_arg[c_idx];
+                let flag = flag_byte as char;
                 c_idx += 1;
-                match flag {
-                    'r' => {
+                match flag_byte {
+                    b'r' => {
                         raw_mode = true;
                     }
-                    's' | 'e' | 'E' => {}
-                    'a' | 'd' | 'i' | 'n' | 'N' | 'p' | 't' | 'u' => {
-                        let rest: String = chars[c_idx..].iter().collect();
-                        let val = if !rest.is_empty() {
-                            c_idx = chars.len();
+                    b's' | b'e' | b'E' => {
+                        terminal_flag = Some(flag);
+                    }
+                    b'a' | b'd' | b'i' | b'n' | b'N' | b'p' | b't' | b'u' => {
+                        let val = if c_idx < raw_arg.len() {
+                            let rest = bytes_to_stream_string(&raw_arg[c_idx..]);
+                            c_idx = raw_arg.len();
                             rest
                         } else if idx < args.len() {
                             let v = args[idx].clone();
@@ -6866,16 +6979,18 @@ impl<'a> EvalState<'a> {
                                 exit_code: 2,
                             });
                         };
-                        match flag {
-                            'a' => {
+                        match flag_byte {
+                            b'a' => {
                                 array_name = Some(val);
                             }
-                            'd' => {
+                            b'd' => {
                                 let raw_delim = stream_string_to_bytes(&val);
                                 delim_byte = Some(raw_delim.first().copied().unwrap_or(0));
                             }
-                            'p' | 'i' => {}
-                            't' => match parse_read_timeout(&val) {
+                            b'p' | b'i' => {
+                                terminal_flag = Some(flag);
+                            }
+                            b't' => match parse_read_timeout(&val) {
                                 Some(t) => {
                                     timeout_secs = Some(t);
                                 }
@@ -6889,7 +7004,7 @@ impl<'a> EvalState<'a> {
                                     });
                                 }
                             },
-                            'u' => match parse_read_fd(&val) {
+                            b'u' => match parse_read_fd(&val) {
                                 Some(fd) => {
                                     if !self.is_fd_open(fd) {
                                         return Ok(BuiltinOutcome {
@@ -6912,21 +7027,16 @@ impl<'a> EvalState<'a> {
                                     });
                                 }
                             },
-                            'n' | 'N' => {
-                                exact_chars = flag == 'N';
+                            b'n' | b'N' => {
+                                exact_chars |= flag_byte == b'N';
                                 match parse_read_count(&val) {
                                     Ok(c) => {
                                         nchars = Some(c);
                                     }
-                                    Err(is_overflow) => {
-                                        let is_hex = {
-                                            let s = val
-                                                .strip_prefix('+')
-                                                .or_else(|| val.strip_prefix('-'))
-                                                .unwrap_or(&val);
-                                            s.starts_with("0x") || s.starts_with("0X")
-                                        };
-                                        let hex_label = if (exact_chars || is_overflow) && is_hex {
+                                    Err(_is_overflow) => {
+                                        let is_hex =
+                                            val.starts_with("0x") || val.starts_with("0X");
+                                        let hex_label = if is_hex {
                                             "hex "
                                         } else {
                                             ""
@@ -6945,9 +7055,12 @@ impl<'a> EvalState<'a> {
                         }
                     }
                     _ => {
+                        let flag_str = bytes_to_stream_string(&[flag_byte]);
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{prefix}read: -{flag}: invalid option\n{READ_USAGE}"),
+                            stderr: format!(
+                                "{prefix}read: -{flag_str}: invalid option\n{READ_USAGE}"
+                            ),
                             exit_code: 2,
                         });
                     }
@@ -6968,6 +7081,23 @@ impl<'a> EvalState<'a> {
                 });
             }
             if !self.is_fd_readable(fd_num) {
+                match self.fd_table.get(&fd_num) {
+                    Some(FdTarget::File { .. }) => {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        });
+                    }
+                    Some(FdTarget::PipeStdout { peer_retired }) => {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: if *peer_retired { 0 } else { 1 },
+                        });
+                    }
+                    _ => {}
+                }
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: format!(
@@ -6983,6 +7113,16 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        if let Some(tflag) = terminal_flag {
+            return Ok(BuiltinOutcome {
+                stdout: String::new(),
+                stderr: format!(
+                    "{prefix}read: -{tflag}: terminal input capabilities unavailable through this extension API\n"
+                ),
+                exit_code: 1,
+            });
+        }
+
         if let Some(first_var) = vars.first()
             && !is_valid_shell_ident(first_var)
         {
@@ -6993,12 +7133,38 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        let effective_timeout = match timeout_secs {
+            Some(t) => Some(t),
+            None if nchars != Some(0) => self.env.get("TMOUT").and_then(|v| parse_read_timeout(v)),
+            None => None,
+        };
+
+        let mut timed_out = false;
         if !self.is_fd_readable(fd_num) && nchars != Some(0) {
-            return Ok(BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("{prefix}read: {fd_num}: read error: Bad file descriptor\n"),
-                exit_code: 1,
-            });
+            if effective_timeout.is_some_and(|t| t > 0.0) {
+                match self.fd_table.get(&fd_num) {
+                    Some(FdTarget::File { .. }) => {}
+                    Some(FdTarget::PipeStdout { peer_retired }) => {
+                        timed_out = !*peer_retired;
+                    }
+                    _ => {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!(
+                                "{prefix}read: descriptor timeout observation unavailable through this extension API\n"
+                            ),
+                            exit_code: 1,
+                        });
+                    }
+                }
+            }
+            if !timed_out {
+                return Ok(BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{prefix}read: {fd_num}: read error: Bad file descriptor\n"),
+                    exit_code: 1,
+                });
+            }
         }
 
         let byte_locale = is_select_byte_locale(self.env);
@@ -7008,8 +7174,8 @@ impl<'a> EvalState<'a> {
             Some(delim_byte.unwrap_or(b'\n'))
         };
 
-        let (record_bytes, escaped_offsets, terminated) = if nchars == Some(0) {
-            (Vec::new(), Vec::new(), self.is_fd_readable(fd_num))
+        let (record_bytes, escaped_offsets, terminated) = if timed_out || nchars == Some(0) {
+            (Vec::new(), Vec::new(), !timed_out && self.is_fd_readable(fd_num))
         } else {
             let canon = self.resolve_in_fd(fd_num);
             let use_direct_stdin = (fd_num == 0 && !self.in_fd_aliases.contains_key(&0))
@@ -7059,7 +7225,13 @@ impl<'a> EvalState<'a> {
                 .unwrap_or_else(|| b" \t\n".to_vec())
         };
 
-        let status = if terminated { 0 } else { 1 };
+        let status = if timed_out {
+            142
+        } else if terminated {
+            0
+        } else {
+            1
+        };
 
         if let Some(arr) = array_name {
             if !is_valid_shell_ident(&arr) {
@@ -7227,37 +7399,32 @@ impl<'a> EvalState<'a> {
                     exit_code: 2,
                 });
             }
-            if !arg.starts_with('-') || arg == "-" {
+            let raw_arg = stream_string_to_bytes(arg);
+            if raw_arg.first() != Some(&b'-') || raw_arg.len() == 1 {
                 operands.extend_from_slice(&args[idx..]);
                 break;
             }
-            if arg.starts_with("--") {
-                return Ok(BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("{prefix}{cmd}: --: invalid option\n{usage}"),
-                    exit_code: 2,
-                });
-            }
             idx += 1;
-            let chars: Vec<char> = arg[1..].chars().collect();
-            let mut c_idx = 0usize;
-            while c_idx < chars.len() {
-                let flag = chars[c_idx];
+            let mut c_idx = 1usize;
+            while c_idx < raw_arg.len() {
+                let flag_byte = raw_arg[c_idx];
+                let flag = flag_byte as char;
                 c_idx += 1;
-                if flag == 't' {
+                if flag_byte == b't' {
                     strip_delim = true;
                     continue;
                 }
-                if !matches!(flag, 'd' | 'n' | 'O' | 's' | 'u' | 'C' | 'c') {
+                if !matches!(flag_byte, b'd' | b'n' | b'O' | b's' | b'u' | b'C' | b'c') {
+                    let flag_str = bytes_to_stream_string(&[flag_byte]);
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{prefix}{cmd}: -{flag}: invalid option\n{usage}"),
+                        stderr: format!("{prefix}{cmd}: -{flag_str}: invalid option\n{usage}"),
                         exit_code: 2,
                     });
                 }
-                let rest: String = chars[c_idx..].iter().collect();
-                let val = if !rest.is_empty() {
-                    c_idx = chars.len();
+                let val = if c_idx < raw_arg.len() {
+                    let rest = bytes_to_stream_string(&raw_arg[c_idx..]);
+                    c_idx = raw_arg.len();
                     rest
                 } else if idx < args.len() {
                     let v = args[idx].clone();
@@ -7272,16 +7439,16 @@ impl<'a> EvalState<'a> {
                         exit_code: 2,
                     });
                 };
-                match flag {
-                    'd' => {
+                match flag_byte {
+                    b'd' => {
                         let raw_delim = stream_string_to_bytes(&val);
                         delim_byte = raw_delim.first().copied().unwrap_or(0);
                     }
-                    'C' => {
+                    b'C' => {
                         callback = Some(val);
                     }
-                    'u' => match parse_mapfile_signed_long(&val) {
-                        Ok(n) if (0..=2_147_483_647).contains(&n) => {
+                    b'u' => match parse_mapfile_decimal(&val, 2_147_483_647) {
+                        Some(n) => {
                             let fd = n as u32;
                             if !self.is_fd_open(fd) {
                                 return Ok(BuiltinOutcome {
@@ -7304,9 +7471,9 @@ impl<'a> EvalState<'a> {
                             });
                         }
                     },
-                    'n' => match parse_mapfile_signed_long(&val) {
-                        Ok(n) if n >= 0 => {
-                            max_count = (n as u64) & 0xffff_ffff;
+                    b'n' => match parse_mapfile_decimal(&val, 4_294_967_295) {
+                        Some(n) => {
+                            max_count = n;
                         }
                         _ => {
                             return Ok(BuiltinOutcome {
@@ -7316,9 +7483,9 @@ impl<'a> EvalState<'a> {
                             });
                         }
                     },
-                    'O' => match parse_mapfile_signed_long(&val) {
-                        Ok(n) if n >= 0 => {
-                            origin = ((n as u64) & 0xffff_ffff) as u32;
+                    b'O' => match parse_mapfile_decimal(&val, 4_294_967_295) {
+                        Some(n) => {
+                            origin = n as u32;
                             clear = false;
                         }
                         _ => {
@@ -7329,9 +7496,9 @@ impl<'a> EvalState<'a> {
                             });
                         }
                     },
-                    's' => match parse_mapfile_signed_long(&val) {
-                        Ok(n) if n >= 0 => {
-                            skip_count = (n as u64) & 0xffff_ffff;
+                    b's' => match parse_mapfile_decimal(&val, 4_294_967_295) {
+                        Some(n) => {
+                            skip_count = n;
                         }
                         _ => {
                             return Ok(BuiltinOutcome {
@@ -7341,19 +7508,9 @@ impl<'a> EvalState<'a> {
                             });
                         }
                     },
-                    'c' => match parse_mapfile_signed_long(&val) {
-                        Ok(n) if n >= 1 => {
-                            let low32 = (n as u64) & 0xffff_ffff;
-                            if low32 == 0 {
-                                return Ok(BuiltinOutcome {
-                                    stdout: String::new(),
-                                    stderr: format!(
-                                        "{prefix}{cmd}: {val}: invalid callback quantum\n"
-                                    ),
-                                    exit_code: 1,
-                                });
-                            }
-                            quantum = low32;
+                    b'c' => match parse_mapfile_decimal(&val, 4_294_967_295) {
+                        Some(n) if n >= 1 => {
+                            quantum = n;
                         }
                         _ => {
                             return Ok(BuiltinOutcome {
@@ -7561,12 +7718,15 @@ impl<'a> EvalState<'a> {
                     .script_name
                     .clone()
                     .unwrap_or_else(|| "shell".to_string());
-                let prev_script = self.script_name.replace(format!("{outer_script}: stdin"));
+                let prev_script = self.script_name.clone();
                 let prev_line = self.current_line;
-                self.current_line = 1;
+                let diag_offset = prev_line.saturating_sub(1);
+                let prev_cb_offset =
+                    std::mem::replace(&mut self.callback_line_offset, diag_offset);
                 self.mapfile_callback_depth += 1;
                 let cb_res = self.eval_script_units(&cb_source, stdin);
                 self.mapfile_callback_depth -= 1;
+                self.callback_line_offset = prev_cb_offset;
                 self.current_line = prev_line;
                 self.script_name = prev_script;
                 match cb_res {
@@ -7575,10 +7735,13 @@ impl<'a> EvalState<'a> {
                         cb_stderr.push_str(&cb_out.stderr);
                     }
                     Err(EvalError::Syntax(syn_msg)) => {
-                        let clean = syn_msg
-                            .strip_prefix("bash: ")
-                            .unwrap_or(&syn_msg);
-                        cb_stderr.push_str(&format!("{outer_script}: stdin: line 1: {clean}\n"));
+                        cb_stderr.push_str(&format_callback_syntax_diagnostic(
+                            &format!("{outer_script}: stdin"),
+                            diag_offset,
+                            &cb_source,
+                            &syn_msg,
+                        ));
+                        self.last_exit = 2;
                     }
                     Err(other) => {
                         self.env.remove(&active_key);
@@ -8953,6 +9116,11 @@ impl<'a> EvalState<'a> {
                                 .get(&src_fd)
                                 .cloned()
                                 .unwrap_or(FdTarget::Closed);
+                            if matches!(inherited, FdTarget::PipeStdout { .. }) {
+                                self.env.insert(format!("__pipe_fd__{fd}"), "1".to_string());
+                            } else {
+                                self.env.remove(&format!("__pipe_fd__{fd}"));
+                            }
                             self.fd_table.insert(*fd, inherited);
                             if move_fd && src_fd != *fd {
                                 self.evacuate_in_fd_owner(src_fd, &mut saved_aliases);
@@ -9151,7 +9319,7 @@ impl<'a> EvalState<'a> {
             return;
         }
         match target {
-            FdTarget::Stdout => out.stdout.push_str(data),
+            FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
             FdTarget::File { path } => {
                 if path != "/dev/null" {
@@ -12570,7 +12738,11 @@ fn parse_read_fd(raw: &str) -> Option<u32> {
             None
         };
     }
-    let val = digits.parse::<u128>().ok()?;
+    let stripped = digits.trim_start_matches('0');
+    if stripped.is_empty() {
+        return Some(0);
+    }
+    let val = stripped.parse::<u128>().ok()?;
     if val <= 2_147_483_647 {
         Some(val as u32)
     } else {
@@ -12597,53 +12769,62 @@ fn parse_read_count(raw: &str) -> Result<usize, bool> {
             Err(false)
         };
     }
-    match digits.parse::<u128>() {
+    let stripped = digits.trim_start_matches('0');
+    if stripped.is_empty() {
+        return Ok(0);
+    }
+    match stripped.parse::<u128>() {
         Ok(v) if v <= 2_147_483_647 => Ok(v as usize),
         _ => Err(true),
     }
 }
 
 fn parse_read_timeout(raw: &str) -> Option<f64> {
-    let trimmed = trim_bash_ascii_ws(raw);
-    let (negative, body) = if let Some(rest) = trimmed.strip_prefix('-') {
-        (true, rest)
-    } else if let Some(rest) = trimmed.strip_prefix('+') {
-        (false, rest)
+    let bytes = raw.as_bytes();
+    let negative = bytes.first() == Some(&b'-');
+    let mut offset = if matches!(bytes.first(), Some(b'+' | b'-')) {
+        1usize
     } else {
-        (false, trimmed)
+        0usize
     };
-    let (whole, fraction) = match body.split_once('.') {
-        Some((w, f)) => {
-            if f.contains('.') {
-                return None;
-            }
-            (w, f)
+    let mut seconds: u128 = 0;
+    while offset < bytes.len() && bytes[offset] != b'.' {
+        let ch = bytes[offset];
+        offset += 1;
+        if !ch.is_ascii_digit() {
+            return None;
         }
-        None => (body, ""),
-    };
-    if whole.is_empty() && fraction.is_empty() {
+        seconds = seconds * 10 + (ch - b'0') as u128;
+        if seconds > 9_223_372_036_854_775_807 {
+            return None;
+        }
+    }
+    if offset < bytes.len() && bytes[offset] == b'.' {
+        offset += 1;
+    }
+    let mut fraction: u64 = 0;
+    let mut digits: u32 = 0;
+    while offset < bytes.len() && digits < 6 {
+        let ch = bytes[offset];
+        offset += 1;
+        if !ch.is_ascii_digit() {
+            return None;
+        }
+        fraction = fraction * 10 + (ch - b'0') as u64;
+        digits += 1;
+    }
+    fraction *= 10u64.pow(6 - digits);
+    if digits == 6 && bytes.get(offset).is_some_and(|&b| (b'5'..=b'9').contains(&b)) {
+        fraction += 1;
+    }
+    if negative && (seconds > 0 || fraction > 0) {
         return None;
     }
-    if !whole.bytes().all(|b| b.is_ascii_digit())
-        || !fraction.bytes().all(|b| b.is_ascii_digit())
-    {
-        return None;
-    }
-    let parsed = trimmed.parse::<f64>().ok()?;
-    if !parsed.is_finite() {
-        return None;
-    }
-    if negative && parsed != 0.0 {
-        return None;
-    }
-    if parsed == 0.0 {
-        Some(0.0)
-    } else {
-        Some(parsed)
-    }
+    let masked_secs = (seconds & 0xffff_ffff) as f64;
+    Some(masked_secs * 1000.0 + (fraction as f64) / 1000.0)
 }
 
-fn parse_mapfile_signed_long(raw: &str) -> Result<i64, bool> {
+fn parse_mapfile_decimal(raw: &str, maximum: u64) -> Option<u64> {
     let trimmed = trim_bash_ascii_ws(raw);
     let (negative, digits) = if let Some(rest) = trimmed.strip_prefix('-') {
         (true, rest)
@@ -12653,17 +12834,174 @@ fn parse_mapfile_signed_long(raw: &str) -> Result<i64, bool> {
         (false, trimmed)
     };
     if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
-        return Err(false);
+        return None;
     }
-    let signed_str = if negative {
-        format!("-{digits}")
+    if negative {
+        return if digits.bytes().all(|b| b == b'0') {
+            Some(0)
+        } else {
+            None
+        };
+    }
+    let stripped = digits.trim_start_matches('0');
+    if stripped.is_empty() {
+        return Some(0);
+    }
+    let val = stripped.parse::<u128>().ok()?;
+    if val <= maximum as u128 {
+        Some(val as u64)
     } else {
-        digits.to_string()
-    };
-    match signed_str.parse::<i128>() {
-        Ok(v) if v >= i64::MIN as i128 && v <= i64::MAX as i128 => Ok(v as i64),
-        _ => Err(true),
+        None
     }
+}
+
+fn format_callback_syntax_diagnostic(
+    syntax_name: &str,
+    diag_offset: usize,
+    source: &str,
+    syn_msg: &str,
+) -> String {
+    if syn_msg.contains("unclosed single quote")
+        || syn_msg.contains("unclosed double quote")
+        || syn_msg.contains("unclosed backtick")
+    {
+        let quote_char = if syn_msg.contains("single quote") {
+            '\''
+        } else if syn_msg.contains("double quote") {
+            '"'
+        } else {
+            '`'
+        };
+        let mut cur_line = 1usize;
+        let mut open_quote: Option<(char, usize)> = None;
+        let mut escaped = false;
+        for ch in source.chars() {
+            if escaped {
+                escaped = false;
+                if ch == '\n' {
+                    cur_line += 1;
+                }
+                continue;
+            }
+            if ch == '\\' && open_quote.map(|(q, _)| q) != Some('\'') {
+                escaped = true;
+                continue;
+            }
+            if let Some((q, _)) = open_quote {
+                if ch == q {
+                    open_quote = None;
+                }
+            } else if matches!(ch, '\'' | '"' | '`') {
+                open_quote = Some((ch, cur_line));
+            }
+            if ch == '\n' {
+                cur_line += 1;
+            }
+        }
+        let quote_line = open_quote.map(|(_, l)| l).unwrap_or(1);
+        return format!(
+            "{syntax_name}: line {}: unexpected EOF while looking for matching `{quote_char}'\n",
+            diag_offset + quote_line
+        );
+    }
+    if let Some(rest) = syn_msg.strip_prefix("Syntax error: unexpected `")
+        && let Some(tok) = rest.strip_suffix('`')
+    {
+        let lines: Vec<&str> = source.split('\n').collect();
+        let mut line_idx = 0usize;
+        for (idx, l) in lines.iter().enumerate() {
+            if l.contains(tok) {
+                line_idx = idx;
+            }
+        }
+        let err_line = diag_offset + line_idx + 1;
+        let line_text = lines.get(line_idx).copied().unwrap_or("");
+        return format!(
+            "{syntax_name}: line {err_line}: syntax error near unexpected token `{tok}'\n{syntax_name}: line {err_line}: `{line_text}'\n"
+        );
+    }
+    if syn_msg.contains("unexpected end of file") || syn_msg.contains("unclosed") {
+        let eof_line =
+            diag_offset + source.split('\n').count() + usize::from(!source.ends_with('\n'));
+        return format!("{syntax_name}: line {eof_line}: syntax error: unexpected end of file\n");
+    }
+    let clean = syn_msg.strip_prefix("bash: ").unwrap_or(syn_msg);
+    format!("{syntax_name}: line {}: {clean}\n", diag_offset + 1)
+}
+
+fn format_diagnostic_command_name(cmd: &str, byte_locale: bool) -> String {
+    let bytes = stream_string_to_bytes(cmd);
+    let mut needs_quote = false;
+    let mut idx = 0usize;
+    while idx < bytes.len() {
+        let b = bytes[idx];
+        if (32..=126).contains(&b) {
+            idx += 1;
+        } else if !byte_locale && (0xc2..=0xf4).contains(&b) {
+            let len = utf8_seq_length(b);
+            if idx + len <= bytes.len()
+                && let Ok(s) = std::str::from_utf8(&bytes[idx..idx + len])
+                && let Some(ch) = s.chars().next()
+                && !ch.is_control()
+            {
+                idx += len;
+            } else {
+                needs_quote = true;
+                idx += 1;
+            }
+        } else {
+            needs_quote = true;
+            idx += 1;
+        }
+    }
+    if !needs_quote {
+        return cmd.to_string();
+    }
+    let mut out: Vec<u8> = Vec::with_capacity(bytes.len() * 4 + 3);
+    out.extend_from_slice(b"$'");
+    idx = 0;
+    while idx < bytes.len() {
+        let b = bytes[idx];
+        let esc = match b {
+            7 => Some(b'a'),
+            8 => Some(b'b'),
+            9 => Some(b't'),
+            10 => Some(b'n'),
+            11 => Some(b'v'),
+            12 => Some(b'f'),
+            13 => Some(b'r'),
+            27 => Some(b'E'),
+            39 => Some(b'\''),
+            92 => Some(b'\\'),
+            _ => None,
+        };
+        if let Some(e) = esc {
+            out.push(b'\\');
+            out.push(e);
+            idx += 1;
+        } else if (32..=126).contains(&b) {
+            out.push(b);
+            idx += 1;
+        } else if !byte_locale && (0xc2..=0xf4).contains(&b) {
+            let len = utf8_seq_length(b);
+            if idx + len <= bytes.len()
+                && let Ok(s) = std::str::from_utf8(&bytes[idx..idx + len])
+                && let Some(ch) = s.chars().next()
+                && !ch.is_control()
+            {
+                out.extend_from_slice(&bytes[idx..idx + len]);
+                idx += len;
+            } else {
+                out.extend_from_slice(format!("\\{:03o}", b).as_bytes());
+                idx += 1;
+            }
+        } else {
+            out.extend_from_slice(format!("\\{:03o}", b).as_bytes());
+            idx += 1;
+        }
+    }
+    out.push(b'\'');
+    bytes_to_stream_string(&out)
 }
 
 fn mapfile_help_header(cmd: &str) -> String {
@@ -13964,5 +14302,77 @@ fi"#,
         assert!(state.eval_script_str("[[ -z a b ]]", "").is_err());
         assert!(state.eval_script_str("[[ a =~ (b\nc) ]]", "").is_err());
         assert!(state.eval_script_str("[[ -n a ]] extra", "").is_err());
+    }
+
+    #[test]
+    fn unit_eval_read_mapfile_callback_pipe_fd_and_diagnostic_parity() {
+        let mut cwd = "/workspace".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("LC_ALL".to_string(), "C".to_string());
+        let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/workspace").unwrap();
+        let budget = ExecutionBudget::default();
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+
+        let r = state
+            .eval_script_str(
+                r#"read -s val 2>e_term; printf 'term=%d:%s\n' "$?" "$(cat e_term)"
+read -t0 -s val <<< "hi" 2>e_t0s; printf 't0s=%d:%s\n' "$?" "$(cat e_t0s)"
+read -N 4 -n 2 exact_val <<< " a b"; printf 'exact=<%s>\n' "$exact_val"
+read -n ' 0x0 ' v 2>e_hex1; read -n '-0x0' v 2>e_hex2; read -n '0x0' v 2>e_hex3
+printf 'hex=%s|%s|%s\n' "$(cat e_hex1)" "$(cat e_hex2)" "$(cat e_hex3)"
+read -t 4294967296 v <<< "ready"; printf 't_mask0=%d\n' "$?"
+read -t 1.123456junk v <<< "ok\n"; printf 't_junk=%d:<%s>\n' "$?" "$v"
+read -t ' 0' v 2>e_t_ws; printf 't_ws=%d:%s\n' "$?" "$(cat e_t_ws)"
+read -t0 -u1 v 2>e_r1; printf 'r1=%d:%s\n' "$?" "$(cat e_r1)"
+read -t.02 -u1 v 2>e_to1; printf 'to1=%d:%s\n' "$?" "$(cat e_to1)"
+{ read -t0 -u3 v 3>/dev/null; printf 'null_t0=%d\n' "$?"; read -t.02 -u3 v 3>/dev/null 2>e_null_to; printf 'null_to=%d:%s\n' "$?" "$(cat e_null_to)"; }
+{ { [ -p /dev/fd/3 ] && echo "pipe_fd3=yes"; v=OLD; read -t0 -u3 v; printf 'p_t0=%d:<%s>\n' "$?" "$v"; read -t.02 -u3 v; printf 'p_to=%d:<%s>\n' "$?" "$v"; } 3>&1 1>&4 | cat; } 4>&1
+{ v=OLD; read -t1 -u1 v 2>e_peer; printf 'peer=%d:<%s>:%s\n' "$?" "$v" "$(cat e_peer)" >&2; } 2>peer_out | true
+cat peer_out
+mapfile -n 4294967296 a 2>e_mf_n; mapfile -c 4294967296 a 2>e_mf_c
+printf 'mf_lim=%s|%s\n' "$(cat e_mf_n)" "$(cat e_mf_c)"
+mapfile -tn1 -c1 -C $':\n)' a <<< $'one\ntwo\n' 2>e_mf_syn
+printf 'mf_syn=<%s>:%s\n' "${a[*]}" "$(tr '\n' '|' < e_mf_syn)"
+. /dev/fd/3 3<<'EOF'
+cb_src() {
+  missing_cb_cmd
+}
+EOF
+mapfile -tn1 -c1 -C cb_src a <<< $'one\n' 2>e_mf_src
+printf 'mf_src=<%s>:%s\n' "${a[*]}" "$(cat e_mf_src)"
+$'bad\x1b[31m' 2>e_badcmd
+printf 'badcmd=%d:%s\n' "$?" "$(cat e_badcmd)"
+"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r.stderr, "");
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(
+            r.stdout,
+            concat!(
+                "term=1:shell: line 1: read: -s: terminal input capabilities unavailable through this extension API\n",
+                "t0s=0:\n",
+                "exact=< a>\n",
+                "hex=shell: line 4: read:  0x0 : invalid number|shell: line 4: read: -0x0: invalid number|shell: line 4: read: 0x0: invalid hex number\n",
+                "t_mask0=0\n",
+                "t_junk=0:<okn>\n",
+                "t_ws=1:shell: line 8: read:  0: invalid timeout specification\n",
+                "r1=1:shell: line 9: read: descriptor readiness unavailable through this extension API\n",
+                "to1=1:shell: line 10: read: descriptor timeout observation unavailable through this extension API\n",
+                "null_t0=0\n",
+                "null_to=1:shell: line 11: read: 3: read error: Bad file descriptor\n",
+                "pipe_fd3=yes\n",
+                "p_t0=1:<OLD>\n",
+                "p_to=142:<>\n",
+                "peer=1:<OLD>:shell: line 13: read: 1: read error: Bad file descriptor\n",
+                "mf_lim=shell: line 15: mapfile: 4294967296: invalid line count|shell: line 15: mapfile: 4294967296: invalid callback quantum\n",
+                "mf_syn=<one>:shell: stdin: line 18: syntax error near unexpected token `)'|shell: stdin: line 18: `) 0 'one''|\n",
+                "mf_src=<one>:/dev/fd/3: line 2: missing_cb_cmd: command not found\n",
+                "badcmd=127:shell: line 26: $'bad\\E[31m': command not found\n",
+            )
+        );
     }
 }

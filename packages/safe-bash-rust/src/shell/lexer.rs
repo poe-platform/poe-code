@@ -268,6 +268,77 @@ pub fn read_heredoc_raw_delim(chars: &[char], i: &mut usize) -> Result<String, S
 }
 
 pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
+    fn is_lexer_cmd_position(tokens: &[Token]) -> bool {
+        match tokens.last() {
+            None => true,
+            Some(
+                Token::Newline
+                | Token::Semi
+                | Token::Pipe
+                | Token::AndIf
+                | Token::OrIf
+                | Token::Background
+                | Token::LParen,
+            ) => true,
+            Some(Token::Word(prev)) => matches!(
+                prev.as_str(),
+                "if" | "then" | "elif" | "else" | "while" | "until" | "do" | "{" | "!" | "time"
+            ),
+            _ => false,
+        }
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn flush_current_word(
+        current: &mut String,
+        tokens: &mut Vec<Token>,
+        in_double_bracket: &mut bool,
+        after_regex_op: &mut bool,
+        after_pat_op: &mut bool,
+        regex_paren_depth: &mut usize,
+        regex_bracket: &mut bool,
+        regex_bracket_first: &mut bool,
+        regex_bracket_negation: &mut bool,
+        regex_class: &mut Option<char>,
+        db_group_depth: &mut usize,
+    ) -> Result<(), String> {
+        if *in_double_bracket && *after_regex_op && *regex_paren_depth > 0 {
+            return Err(
+                "Syntax error: Unterminated conditional regular expression group".to_string(),
+            );
+        }
+        *regex_paren_depth = 0;
+        *regex_bracket = false;
+        *regex_bracket_first = false;
+        *regex_bracket_negation = false;
+        *regex_class = None;
+        if !current.is_empty() {
+            let w = std::mem::take(current);
+            if !*in_double_bracket && w == "[[" && is_lexer_cmd_position(tokens) {
+                *in_double_bracket = true;
+                *after_regex_op = false;
+                *after_pat_op = false;
+                *db_group_depth = 0;
+            } else if *in_double_bracket && w == "]]" {
+                *in_double_bracket = false;
+                *after_regex_op = false;
+                *after_pat_op = false;
+                *db_group_depth = 0;
+            } else if *in_double_bracket {
+                *after_regex_op = w == "=~";
+                *after_pat_op = matches!(w.as_str(), "=" | "==" | "!=");
+            } else {
+                *after_regex_op = false;
+                *after_pat_op = false;
+            }
+            tokens.push(Token::Word(w));
+        } else {
+            *after_regex_op = false;
+            *after_pat_op = false;
+        }
+        Ok(())
+    }
+
     let mut tokens = Vec::new();
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0usize;
@@ -277,32 +348,78 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
     let mut after_regex_op = false;
     let mut after_pat_op = false;
     let mut regex_paren_depth = 0usize;
+    let mut regex_bracket = false;
+    let mut regex_bracket_first = false;
+    let mut regex_bracket_negation = false;
+    let mut regex_class: Option<char> = None;
     let mut db_group_depth = 0usize;
 
     while i < chars.len() {
         let ch = chars[i];
+        if in_double_bracket
+            && current == "]]"
+            && matches!(ch, ';' | '|' | '&' | '(' | ')' | '<' | '>')
+        {
+            flush_current_word(
+                &mut current,
+                &mut tokens,
+                &mut in_double_bracket,
+                &mut after_regex_op,
+                &mut after_pat_op,
+                &mut regex_paren_depth,
+                &mut regex_bracket,
+                &mut regex_bracket_first,
+                &mut regex_bracket_negation,
+                &mut regex_class,
+                &mut db_group_depth,
+            )?;
+        }
+        if in_double_bracket
+            && after_regex_op
+            && (regex_bracket || ch == '[')
+            && ch != '\n'
+            && !(regex_paren_depth == 0 && matches!(ch, ' ' | '\t' | '\r' | ';'))
+            && !matches!(ch, '\'' | '"' | '\\' | '$' | '`')
+        {
+            if !regex_bracket {
+                regex_bracket = true;
+                regex_bracket_first = true;
+                regex_bracket_negation = true;
+            } else if let Some(cls) = regex_class {
+                if ch == ']' && current.ends_with(cls) {
+                    regex_class = None;
+                }
+            } else if ch == '[' && matches!(chars.get(i + 1), Some(':' | '.' | '=')) {
+                regex_class = chars.get(i + 1).copied();
+                regex_bracket_first = false;
+            } else if ch == ']' && !regex_bracket_first {
+                regex_bracket = false;
+            } else if ch == '^' && regex_bracket_first && regex_bracket_negation {
+                regex_bracket_negation = false;
+            } else {
+                regex_bracket_first = false;
+                regex_bracket_negation = false;
+            }
+            current.push(ch);
+            i += 1;
+            continue;
+        }
         match ch {
             '\n' => {
-                if !current.is_empty() {
-                    let w = std::mem::take(&mut current);
-                    if w == "[[" {
-                        in_double_bracket = true;
-                        after_regex_op = false;
-                        after_pat_op = false;
-                        regex_paren_depth = 0;
-                        db_group_depth = 0;
-                    } else if w == "]]" {
-                        in_double_bracket = false;
-                        after_regex_op = false;
-                        after_pat_op = false;
-                        regex_paren_depth = 0;
-                        db_group_depth = 0;
-                    } else {
-                        after_regex_op = in_double_bracket && w == "=~";
-                        after_pat_op = in_double_bracket && matches!(w.as_str(), "=" | "==" | "!=");
-                        regex_paren_depth = 0;
-                    }
-                    tokens.push(Token::Word(w));
+                if !current.is_empty() || (in_double_bracket && after_regex_op && regex_paren_depth > 0) {
+                    flush_current_word(
+                        &mut current,
+                        &mut tokens,
+                        &mut in_double_bracket,
+                        &mut after_regex_op,
+                        &mut after_pat_op,
+                        &mut regex_paren_depth,
+                        &mut regex_bracket,
+                        &mut regex_bracket_first,
+                        &mut regex_bracket_negation,
+                        &mut regex_class,
+                        &mut db_group_depth,
+                    )?;
                 }
                 i += 1;
                 if !pending_heredocs.is_empty() {
@@ -356,9 +473,15 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                         };
                     }
                 }
-                tokens.push(Token::Newline);
+                if !in_double_bracket {
+                    tokens.push(Token::Newline);
+                }
             }
             '\'' => {
+                if in_double_bracket && after_regex_op && regex_bracket {
+                    regex_bracket_first = false;
+                    regex_bracket_negation = false;
+                }
                 current.push('\'');
                 i += 1;
                 let mut closed = false;
@@ -376,6 +499,10 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 }
             }
             '"' => {
+                if in_double_bracket && after_regex_op && regex_bracket {
+                    regex_bracket_first = false;
+                    regex_bracket_negation = false;
+                }
                 current.push('"');
                 i += 1;
                 let mut closed = false;
@@ -414,21 +541,41 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 if i + 1 < chars.len() && chars[i + 1] == '\n' {
                     i += 2;
                 } else if i + 1 < chars.len() {
+                    if in_double_bracket && after_regex_op && regex_bracket {
+                        regex_bracket_first = false;
+                        regex_bracket_negation = false;
+                    }
                     current.push('\\');
                     current.push(chars[i + 1]);
                     i += 2;
                 } else {
+                    if in_double_bracket && after_regex_op && regex_bracket {
+                        regex_bracket_first = false;
+                        regex_bracket_negation = false;
+                    }
                     current.push('\\');
                     i += 1;
                 }
             }
             '$' if i + 1 < chars.len() && chars[i + 1] == '(' => {
+                if in_double_bracket && after_regex_op && regex_bracket {
+                    regex_bracket_first = false;
+                    regex_bracket_negation = false;
+                }
                 read_dollar_paren(&chars, &mut i, &mut current)?;
             }
             '$' if i + 1 < chars.len() && chars[i + 1] == '{' => {
+                if in_double_bracket && after_regex_op && regex_bracket {
+                    regex_bracket_first = false;
+                    regex_bracket_negation = false;
+                }
                 read_dollar_brace(&chars, &mut i, &mut current)?;
             }
             '$' if i + 1 < chars.len() && chars[i + 1] == '\'' => {
+                if in_double_bracket && after_regex_op && regex_bracket {
+                    regex_bracket_first = false;
+                    regex_bracket_negation = false;
+                }
                 current.push('$');
                 current.push('\'');
                 i += 2;
@@ -445,6 +592,10 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 }
             }
             '`' => {
+                if in_double_bracket && after_regex_op && regex_bracket {
+                    regex_bracket_first = false;
+                    regex_bracket_negation = false;
+                }
                 current.push('`');
                 i += 1;
                 let mut closed = false;
@@ -470,46 +621,51 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 }
             }
             ' ' | '\t' | '\r' => {
-                if in_double_bracket && after_regex_op && regex_paren_depth > 0 && ch != '\r' {
+                if in_double_bracket
+                    && (after_regex_op || after_pat_op)
+                    && regex_paren_depth > 0
+                    && ch != '\r'
+                {
                     current.push(ch);
                     i += 1;
                     continue;
                 }
                 if !current.is_empty() {
-                    let w = std::mem::take(&mut current);
-                    if w == "[[" {
-                        in_double_bracket = true;
-                        after_regex_op = false;
-                        after_pat_op = false;
-                        regex_paren_depth = 0;
-                        db_group_depth = 0;
-                    } else if w == "]]" {
-                        in_double_bracket = false;
-                        after_regex_op = false;
-                        after_pat_op = false;
-                        regex_paren_depth = 0;
-                        db_group_depth = 0;
-                    } else {
-                        after_regex_op = in_double_bracket && w == "=~";
-                        after_pat_op = in_double_bracket && matches!(w.as_str(), "=" | "==" | "!=");
-                        regex_paren_depth = 0;
-                    }
-                    tokens.push(Token::Word(w));
+                    flush_current_word(
+                        &mut current,
+                        &mut tokens,
+                        &mut in_double_bracket,
+                        &mut after_regex_op,
+                        &mut after_pat_op,
+                        &mut regex_paren_depth,
+                        &mut regex_bracket,
+                        &mut regex_bracket_first,
+                        &mut regex_bracket_negation,
+                        &mut regex_class,
+                        &mut db_group_depth,
+                    )?;
                 }
                 i += 1;
             }
             ';' => {
-                if !current.is_empty() {
-                    let w = std::mem::take(&mut current);
-                    if w == "]]" {
-                        in_double_bracket = false;
-                        db_group_depth = 0;
-                    }
-                    after_regex_op = false;
-                    after_pat_op = false;
-                    regex_paren_depth = 0;
-                    tokens.push(Token::Word(w));
+                if in_double_bracket && (after_regex_op || after_pat_op) && regex_paren_depth > 0 {
+                    current.push(';');
+                    i += 1;
+                    continue;
                 }
+                flush_current_word(
+                    &mut current,
+                    &mut tokens,
+                    &mut in_double_bracket,
+                    &mut after_regex_op,
+                    &mut after_pat_op,
+                    &mut regex_paren_depth,
+                    &mut regex_bracket,
+                    &mut regex_bracket_first,
+                    &mut regex_bracket_negation,
+                    &mut regex_class,
+                    &mut db_group_depth,
+                )?;
                 tokens.push(Token::Semi);
                 i += 1;
             }
@@ -520,26 +676,48 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 } else if regex_paren_depth > 0 {
                     regex_paren_depth -= 1;
                     current.push(ch);
-                } else if db_group_depth > 0 {
-                    if !current.is_empty() {
-                        tokens.push(Token::Word(std::mem::take(&mut current)));
-                    }
-                    after_regex_op = false;
-                    after_pat_op = false;
-                    db_group_depth -= 1;
-                    tokens.push(Token::Word(")".to_string()));
                 } else {
-                    current.push(ch);
+                    flush_current_word(
+                        &mut current,
+                        &mut tokens,
+                        &mut in_double_bracket,
+                        &mut after_regex_op,
+                        &mut after_pat_op,
+                        &mut regex_paren_depth,
+                        &mut regex_bracket,
+                        &mut regex_bracket_first,
+                        &mut regex_bracket_negation,
+                        &mut regex_class,
+                        &mut db_group_depth,
+                    )?;
+                    db_group_depth = db_group_depth.saturating_sub(1);
+                    tokens.push(Token::Word(")".to_string()));
                 }
                 i += 1;
             }
-            '(' | ')' if in_double_bracket && !(ch == '(' && after_pat_op && current.ends_with(['?', '*', '+', '@', '!'])) => {
-                if !current.is_empty() {
-                    tokens.push(Token::Word(std::mem::take(&mut current)));
+            '(' | ')' if in_double_bracket && after_pat_op && (regex_paren_depth > 0 || (ch == '(' && current.ends_with(['?', '*', '+', '@', '!']))) => {
+                if ch == '(' {
+                    regex_paren_depth += 1;
+                } else {
+                    regex_paren_depth = regex_paren_depth.saturating_sub(1);
                 }
-                after_regex_op = false;
-                after_pat_op = false;
-                regex_paren_depth = 0;
+                current.push(ch);
+                i += 1;
+            }
+            '(' | ')' if in_double_bracket => {
+                flush_current_word(
+                    &mut current,
+                    &mut tokens,
+                    &mut in_double_bracket,
+                    &mut after_regex_op,
+                    &mut after_pat_op,
+                    &mut regex_paren_depth,
+                    &mut regex_bracket,
+                    &mut regex_bracket_first,
+                    &mut regex_bracket_negation,
+                    &mut regex_class,
+                    &mut db_group_depth,
+                )?;
                 if ch == '(' {
                     db_group_depth += 1;
                 } else {
@@ -678,17 +856,27 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 tokens.push(Token::RParen);
                 i += 1;
             }
-            '|' if in_double_bracket && after_regex_op && !(i + 1 < chars.len() && chars[i + 1] == '|') => {
+            '|' if in_double_bracket
+                && (after_regex_op || after_pat_op)
+                && (regex_paren_depth > 0 || !(i + 1 < chars.len() && chars[i + 1] == '|')) =>
+            {
                 current.push('|');
                 i += 1;
             }
             '|' => {
-                after_regex_op = false;
-                after_pat_op = false;
-                regex_paren_depth = 0;
-                if !current.is_empty() {
-                    tokens.push(Token::Word(std::mem::take(&mut current)));
-                }
+                flush_current_word(
+                    &mut current,
+                    &mut tokens,
+                    &mut in_double_bracket,
+                    &mut after_regex_op,
+                    &mut after_pat_op,
+                    &mut regex_paren_depth,
+                    &mut regex_bracket,
+                    &mut regex_bracket_first,
+                    &mut regex_bracket_negation,
+                    &mut regex_class,
+                    &mut db_group_depth,
+                )?;
                 if i + 1 < chars.len() && chars[i + 1] == '|' {
                     i += 2;
                     if in_double_bracket {
@@ -706,13 +894,27 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     tokens.push(Token::Pipe);
                 }
             }
+            '&' if in_double_bracket
+                && (after_regex_op || after_pat_op)
+                && (regex_paren_depth > 0 || !(i + 1 < chars.len() && chars[i + 1] == '&')) =>
+            {
+                current.push('&');
+                i += 1;
+            }
             '&' => {
-                after_regex_op = false;
-                after_pat_op = false;
-                regex_paren_depth = 0;
-                if !current.is_empty() {
-                    tokens.push(Token::Word(std::mem::take(&mut current)));
-                }
+                flush_current_word(
+                    &mut current,
+                    &mut tokens,
+                    &mut in_double_bracket,
+                    &mut after_regex_op,
+                    &mut after_pat_op,
+                    &mut regex_paren_depth,
+                    &mut regex_bracket,
+                    &mut regex_bracket_first,
+                    &mut regex_bracket_negation,
+                    &mut regex_class,
+                    &mut db_group_depth,
+                )?;
                 if i + 1 < chars.len() && chars[i + 1] == '&' {
                     i += 2;
                     if in_double_bracket {
@@ -733,21 +935,27 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     tokens.push(Token::Background);
                 }
             }
-            '>' | '<' if in_double_bracket && after_regex_op => {
-                current.push(ch);
-                i += 1;
-            }
-            '>' | '<' if in_double_bracket => {
-                if !current.is_empty() {
-                    tokens.push(Token::Word(std::mem::take(&mut current)));
-                }
-                tokens.push(Token::Word(ch.to_string()));
-                i += 1;
-            }
             '>' | '<' if i + 1 < chars.len() && chars[i + 1] == '(' => {
                 current.push(ch);
                 i += 1;
                 read_paren_sub_body(&chars, &mut i, &mut current, "process substitution")?;
+            }
+            '>' | '<' if in_double_bracket => {
+                flush_current_word(
+                    &mut current,
+                    &mut tokens,
+                    &mut in_double_bracket,
+                    &mut after_regex_op,
+                    &mut after_pat_op,
+                    &mut regex_paren_depth,
+                    &mut regex_bracket,
+                    &mut regex_bracket_first,
+                    &mut regex_bracket_negation,
+                    &mut regex_class,
+                    &mut db_group_depth,
+                )?;
+                tokens.push(Token::Word(ch.to_string()));
+                i += 1;
             }
             '>' => {
                 let (fd, explicit_fd) = if !current.is_empty() && current.chars().all(|c| c.is_ascii_digit()) {
@@ -886,8 +1094,20 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
         }
     }
 
-    if !current.is_empty() {
-        tokens.push(Token::Word(current));
+    if !current.is_empty() || (in_double_bracket && after_regex_op && regex_paren_depth > 0) {
+        flush_current_word(
+            &mut current,
+            &mut tokens,
+            &mut in_double_bracket,
+            &mut after_regex_op,
+            &mut after_pat_op,
+            &mut regex_paren_depth,
+            &mut regex_bracket,
+            &mut regex_bracket_first,
+            &mut regex_bracket_negation,
+            &mut regex_class,
+            &mut db_group_depth,
+        )?;
     }
 
     if !pending_heredocs.is_empty() {

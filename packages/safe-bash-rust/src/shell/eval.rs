@@ -3,7 +3,7 @@ use crate::budget::ExecutionBudget;
 use crate::commands::try_run_command;
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
-    is_test_unary_op, path_targets, resolve_physical_path, try_run_builtin,
+    path_targets, resolve_physical_path, try_run_builtin,
 };
 use crate::shell::expand::{
     apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
@@ -119,7 +119,7 @@ impl<'a> EvalState<'a> {
         let mut fd_table = BTreeMap::new();
         fd_table.insert(1, FdTarget::Stdout);
         fd_table.insert(2, FdTarget::Stderr);
-        if !env.contains_key("PWD") {
+        if !env.contains_key("PWD") && !env.contains_key("__pwd_unset__") {
             env.insert("PWD".to_string(), cwd.clone());
         }
         if !env.contains_key("OPTIND") && !env.contains_key("__getopts_int") {
@@ -284,7 +284,7 @@ impl<'a> EvalState<'a> {
             sub_exit: None,
             pos_args: self.pos_args.clone(),
             last_exit: self.last_exit,
-            errexit: if self.in_condition { false } else { self.errexit },
+            errexit: self.errexit,
             nounset: self.nounset,
             pipefail: self.pipefail,
             noclobber: self.noclobber,
@@ -1278,12 +1278,9 @@ impl<'a> EvalState<'a> {
                 let mut code = 0;
 
                 for (cond, body) in branches {
-                    let prev_errexit = self.errexit;
                     let prev_cond = self.in_condition;
-                    self.errexit = false;
                     self.in_condition = true;
                     let cond_out = self.eval_script(cond, eff_stdin)?;
-                    self.errexit = prev_errexit;
                     self.in_condition = prev_cond;
                     stdout.push_str(&cond_out.stdout);
                     stderr.push_str(&cond_out.stderr);
@@ -1768,14 +1765,11 @@ impl<'a> EvalState<'a> {
                     if self.in_pipeline_producer && iter_count > 1024 {
                         break;
                     }
-                    let prev_errexit = self.errexit;
                     let prev_cond = self.in_condition;
-                    self.errexit = false;
                     self.in_condition = true;
                     self.env.remove("__arith_diag");
                     let cond_out = self.eval_script(cond, eff_stdin)?;
                     let arith_diag = self.env.remove("__arith_diag").is_some();
-                    self.errexit = prev_errexit;
                     self.in_condition = prev_cond;
                     stdout.push_str(&cond_out.stdout);
                     stderr.push_str(&cond_out.stderr);
@@ -2333,6 +2327,9 @@ impl<'a> EvalState<'a> {
         let is_optind = resolved == "OPTIND";
         if resolved == "OPTERR" {
             self.env.remove("__opterr_unset__");
+        }
+        if resolved == "PWD" {
+            self.env.remove("__pwd_unset__");
         }
         if resolved == "PATH" {
             self.env.remove("__path_unset__");
@@ -6771,6 +6768,9 @@ impl<'a> EvalState<'a> {
             if resolved == "OPTERR" {
                 self.env.insert("__opterr_unset__".to_string(), "1".to_string());
             }
+            if resolved == "PWD" {
+                self.env.insert("__pwd_unset__".to_string(), "1".to_string());
+            }
             self.env.remove(&format!("__attr__{resolved}"));
             self.env.remove(&format!("__declared__{resolved}"));
             self.env.remove(&format!("__assoc__{resolved}"));
@@ -9316,7 +9316,12 @@ impl<'a> EvalState<'a> {
         }
         let mut pos = 0usize;
         let mut stderr = String::new();
-        let status = self.eval_db_or(args, &mut pos, true, &mut stderr)?;
+        let mut diag_abort: Option<(i32, String)> = None;
+        let status = self.eval_db_or(args, &mut pos, true, &mut stderr, &mut diag_abort)?;
+        if let Some((code, msg)) = diag_abort {
+            stderr.push_str(&msg);
+            return Ok((code, stderr));
+        }
         Ok((status, stderr))
     }
 
@@ -9326,12 +9331,19 @@ impl<'a> EvalState<'a> {
         pos: &mut usize,
         active: bool,
         stderr: &mut String,
+        diag_abort: &mut Option<(i32, String)>,
     ) -> Result<i32, EvalError> {
-        let mut res = self.eval_db_and(args, pos, active, stderr)?;
+        let mut res = self.eval_db_and(args, pos, active, stderr, diag_abort)?;
+        if diag_abort.is_some() {
+            return Ok(res);
+        }
         while args.get(*pos).map(|s| s.as_str()) == Some("||") {
             *pos += 1;
             let rhs_active = active && res != 0;
-            let rhs = self.eval_db_and(args, pos, rhs_active, stderr)?;
+            let rhs = self.eval_db_and(args, pos, rhs_active, stderr, diag_abort)?;
+            if diag_abort.is_some() {
+                return Ok(rhs);
+            }
             if rhs_active {
                 res = rhs;
             }
@@ -9345,12 +9357,19 @@ impl<'a> EvalState<'a> {
         pos: &mut usize,
         active: bool,
         stderr: &mut String,
+        diag_abort: &mut Option<(i32, String)>,
     ) -> Result<i32, EvalError> {
-        let mut res = self.eval_db_not(args, pos, active, stderr)?;
+        let mut res = self.eval_db_not(args, pos, active, stderr, diag_abort)?;
+        if diag_abort.is_some() {
+            return Ok(res);
+        }
         while args.get(*pos).map(|s| s.as_str()) == Some("&&") {
             *pos += 1;
             let rhs_active = active && res == 0;
-            let rhs = self.eval_db_not(args, pos, rhs_active, stderr)?;
+            let rhs = self.eval_db_not(args, pos, rhs_active, stderr, diag_abort)?;
+            if diag_abort.is_some() {
+                return Ok(rhs);
+            }
             if rhs_active {
                 res = rhs;
             }
@@ -9364,10 +9383,14 @@ impl<'a> EvalState<'a> {
         pos: &mut usize,
         active: bool,
         stderr: &mut String,
+        diag_abort: &mut Option<(i32, String)>,
     ) -> Result<i32, EvalError> {
         if args.get(*pos).map(|s| s.as_str()) == Some("!") {
             *pos += 1;
-            let inner = self.eval_db_not(args, pos, active, stderr)?;
+            let inner = self.eval_db_not(args, pos, active, stderr, diag_abort)?;
+            if diag_abort.is_some() {
+                return Ok(inner);
+            }
             return Ok(if !active {
                 inner
             } else if inner == 0 {
@@ -9378,13 +9401,13 @@ impl<'a> EvalState<'a> {
         }
         if args.get(*pos).map(|s| s.as_str()) == Some("(") {
             *pos += 1;
-            let val = self.eval_db_or(args, pos, active, stderr)?;
+            let val = self.eval_db_or(args, pos, active, stderr, diag_abort)?;
             if args.get(*pos).map(|s| s.as_str()) == Some(")") {
                 *pos += 1;
             }
             return Ok(val);
         }
-        self.eval_db_primary(args, pos, active, stderr)
+        self.eval_db_primary(args, pos, active, stderr, diag_abort)
     }
 
     fn eval_db_primary(
@@ -9393,30 +9416,15 @@ impl<'a> EvalState<'a> {
         pos: &mut usize,
         active: bool,
         stderr: &mut String,
+        diag_abort: &mut Option<(i32, String)>,
     ) -> Result<i32, EvalError> {
         if *pos >= args.len() {
             return Ok(1);
         }
         if *pos + 2 < args.len()
             && let Some(op) = args.get(*pos + 1).map(|s| s.as_str())
-            && matches!(
-                op,
-                "="
-                    | "=="
-                    | "!="
-                    | "=~"
-                    | "<"
-                    | ">"
-                    | "-eq"
-                    | "-ne"
-                    | "-lt"
-                    | "-le"
-                    | "-gt"
-                    | "-ge"
-                    | "-nt"
-                    | "-ot"
-                    | "-ef"
-            )
+            && crate::shell::parser::is_conditional_binary_op(op)
+            && crate::shell::parser::is_conditional_operand(&args[*pos + 2])
         {
             let raw_left = &args[*pos];
             let raw_right = &args[*pos + 2];
@@ -9433,69 +9441,194 @@ impl<'a> EvalState<'a> {
                 .env
                 .get("__shopt_nocasematch")
                 .is_some_and(|v| v == "1");
+            fn get_non_empty<'e>(env: &'e BTreeMap<String, String>, key: &str) -> Option<&'e str> {
+                env.get(key).filter(|s| !s.is_empty()).map(|s| s.as_str())
+            }
+            let collation = get_non_empty(self.env, "LC_ALL")
+                .or_else(|| get_non_empty(self.env, "LC_COLLATE"))
+                .or_else(|| get_non_empty(self.env, "LANG"))
+                .unwrap_or("C")
+                .to_string();
+            let char_locale = get_non_empty(self.env, "LC_ALL")
+                .or_else(|| get_non_empty(self.env, "LC_CTYPE"))
+                .or_else(|| get_non_empty(self.env, "LANG"))
+                .unwrap_or("C")
+                .to_string();
+            let is_c_loc = |loc: &str| matches!(loc, "C" | "POSIX" | "C.UTF-8" | "C.utf8");
+            let is_utf8_loc = |loc: &str| {
+                loc.split('.')
+                    .nth(1)
+                    .and_then(|s| s.split('@').next())
+                    .is_some_and(|enc| {
+                        enc.eq_ignore_ascii_case("utf-8") || enc.eq_ignore_ascii_case("utf8")
+                    })
+            };
             if matches!(op, "=" | "==" | "!=") {
                 let right = self.expand_word_for_pattern(raw_right)?;
+                if !is_c_loc(&collation) && !is_utf8_loc(&collation) {
+                    *diag_abort = Some((
+                        2,
+                        "[[ collation locale: unsupported conditional profile\n".to_string(),
+                    ));
+                    return Ok(2);
+                }
+                let pat_chars: Vec<char> = right.chars().collect();
+                let mut bracket = false;
+                let mut bracket_start = 0usize;
+                let mut pi = 0usize;
+                while pi < pat_chars.len() {
+                    let ch = pat_chars[pi];
+                    if ch == '\\' {
+                        pi += 2;
+                        continue;
+                    }
+                    if bracket
+                        && ch == '-'
+                        && pi > bracket_start + 1
+                        && pat_chars.get(pi + 1) != Some(&']')
+                        && !is_c_loc(&collation)
+                    {
+                        *diag_abort = Some((
+                            2,
+                            "[[ collation locale: unsupported conditional profile\n".to_string(),
+                        ));
+                        return Ok(2);
+                    }
+                    if ch == '[' && !bracket {
+                        bracket = true;
+                        bracket_start = pi
+                            + if matches!(pat_chars.get(pi + 1), Some('!' | '^')) {
+                                1
+                            } else {
+                                0
+                            };
+                    } else if ch == '[' && bracket {
+                        match pat_chars.get(pi + 1).copied() {
+                            Some('.' | '=') => {
+                                *diag_abort = Some((
+                                    2,
+                                    "[[ bracket collation: unsupported conditional profile\n"
+                                        .to_string(),
+                                ));
+                                return Ok(2);
+                            }
+                            Some(':') => {
+                                if !matches!(char_locale.as_str(), "C" | "POSIX") {
+                                    *diag_abort = Some((
+                                        2,
+                                        "[[ locale character class: unsupported conditional profile\n"
+                                            .to_string(),
+                                    ));
+                                    return Ok(2);
+                                }
+                                while pi + 1 < pat_chars.len()
+                                    && !(pat_chars[pi] == ':' && pat_chars[pi + 1] == ']')
+                                {
+                                    pi += 1;
+                                }
+                                if pi + 1 < pat_chars.len() {
+                                    pi += 1;
+                                }
+                            }
+                            _ => {}
+                        }
+                    } else if ch == ']' && bracket && pi > bracket_start + 1 {
+                        bracket = false;
+                    }
+                    pi += 1;
+                }
                 let matched = glob_match_ext(&right, &left, nocase);
                 let ok = if op == "!=" { !matched } else { matched };
                 return Ok(if ok { 0 } else { 1 });
             }
             let right = self.expand_word_to_string(raw_right)?;
+            if matches!(op, "<" | ">") && !is_c_loc(&collation) && !is_utf8_loc(&collation) {
+                *diag_abort = Some((
+                    2,
+                    "[[ collation locale: unsupported conditional profile\n".to_string(),
+                ));
+                return Ok(2);
+            }
+            if matches!(op, "-eq" | "-ne" | "-lt" | "-le" | "-gt" | "-ge") {
+                let l_src = if left.trim().is_empty() {
+                    "0".to_string()
+                } else {
+                    self.expand_arith_text(&left)?
+                };
+                let r_src = if right.trim().is_empty() {
+                    "0".to_string()
+                } else {
+                    self.expand_arith_text(&right)?
+                };
+                let eval_db_num = |src: &str,
+                                   env: &mut BTreeMap<String, String>,
+                                   diag_abort: &mut Option<(i32, String)>|
+                 -> Result<Option<i64>, EvalError> {
+                    match eval_arith(src, env) {
+                        Ok(v) => Ok(Some(v)),
+                        Err(e) => {
+                            if e.starts_with("__nounset__")
+                                || e.starts_with("__param_err__")
+                                || e.contains("readonly variable")
+                            {
+                                return Err(EvalError::Syntax(e));
+                            }
+                            let formatted = if e == "Division by zero" {
+                                let trimmed = src.trim_start();
+                                let err_tok = trimmed
+                                    .rsplit_once(['/', '%'])
+                                    .map(|(_, rhs)| rhs.trim_start())
+                                    .unwrap_or("0");
+                                format!(
+                                    "[[: {trimmed}: division by 0 (error token is \"{err_tok}\")\n"
+                                )
+                            } else {
+                                format!("[[: {e}\n")
+                            };
+                            *diag_abort = Some((1, formatted));
+                            Ok(None)
+                        }
+                    }
+                };
+                let Some(l) = eval_db_num(&l_src, self.env, diag_abort)? else {
+                    return Ok(1);
+                };
+                let Some(r) = eval_db_num(&r_src, self.env, diag_abort)? else {
+                    return Ok(1);
+                };
+                let ok = match op {
+                    "-eq" => l == r,
+                    "-ne" => l != r,
+                    "-lt" => l < r,
+                    "-le" => l <= r,
+                    "-gt" => l > r,
+                    _ => l >= r,
+                };
+                return Ok(if ok { 0 } else { 1 });
+            }
+            let stat_nonempty = |raw: &str| {
+                if raw.is_empty() {
+                    Err("empty path".to_string())
+                } else {
+                    self.fs.stat(&resolve_posix_path(self.cwd, raw))
+                }
+            };
             let ok = match op {
                 "<" => left < right,
                 ">" => left > right,
-                "-eq" => {
-                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
-                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
-                    l == r
-                }
-                "-ne" => {
-                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
-                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
-                    l != r
-                }
-                "-lt" => {
-                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
-                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
-                    l < r
-                }
-                "-le" => {
-                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
-                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
-                    l <= r
-                }
-                "-gt" => {
-                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
-                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
-                    l > r
-                }
-                "-ge" => {
-                    let l = eval_arith(&left, self.env).map_err(EvalError::Syntax)?;
-                    let r = eval_arith(&right, self.env).map_err(EvalError::Syntax)?;
-                    l >= r
-                }
-                "-nt" => {
-                    let lp = resolve_posix_path(self.cwd, &left);
-                    let rp = resolve_posix_path(self.cwd, &right);
-                    match (self.fs.stat(&lp), self.fs.stat(&rp)) {
-                        (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
-                        (Ok(_), Err(_)) => true,
-                        _ => false,
-                    }
-                }
-                "-ot" => {
-                    let lp = resolve_posix_path(self.cwd, &left);
-                    let rp = resolve_posix_path(self.cwd, &right);
-                    match (self.fs.stat(&lp), self.fs.stat(&rp)) {
-                        (Ok(ls), Ok(rs)) => ls.mtime_ms < rs.mtime_ms,
-                        (Err(_), Ok(_)) => true,
-                        _ => false,
-                    }
-                }
+                "-nt" => match (stat_nonempty(&left), stat_nonempty(&right)) {
+                    (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
+                    (Ok(_), Err(_)) => true,
+                    _ => false,
+                },
+                "-ot" => match (stat_nonempty(&left), stat_nonempty(&right)) {
+                    (Ok(ls), Ok(rs)) => ls.mtime_ms < rs.mtime_ms,
+                    (Err(_), Ok(_)) => true,
+                    _ => false,
+                },
                 "-ef" => {
-                    let lp = resolve_posix_path(self.cwd, &left);
-                    let rp = resolve_posix_path(self.cwd, &right);
-                    self.fs.stat(&lp).is_ok()
-                        && self.fs.stat(&rp).is_ok()
+                    stat_nonempty(&left).is_ok()
+                        && stat_nonempty(&right).is_ok()
                         && resolve_physical_path(self.cwd, &left, self.fs)
                             == resolve_physical_path(self.cwd, &right, self.fs)
                 }
@@ -9504,9 +9637,8 @@ impl<'a> EvalState<'a> {
             return Ok(if ok { 0 } else { 1 });
         }
         if *pos + 1 < args.len()
-            && !args[*pos].contains(['\'', '"', '\\', '$', '`'])
-            && is_test_unary_op(args[*pos].as_str())
-            && !matches!(args[*pos + 1].as_str(), ")" | "&&" | "||")
+            && crate::shell::parser::is_conditional_unary_op(args[*pos].as_str())
+            && crate::shell::parser::is_conditional_operand(args[*pos + 1].as_str())
         {
             let op = args[*pos].as_str();
             let raw_val = &args[*pos + 1];
@@ -9515,6 +9647,17 @@ impl<'a> EvalState<'a> {
                 return Ok(1);
             }
             let val = self.expand_word_to_string(raw_val)?;
+            if !matches!(op, "-z" | "-n" | "-t" | "-v" | "-R" | "-o")
+                && (val == "/dev/fd"
+                    || val.starts_with("/dev/fd/")
+                    || matches!(val.as_str(), "/dev/stdin" | "/dev/stdout" | "/dev/stderr"))
+            {
+                *diag_abort = Some((
+                    2,
+                    "[[ descriptor predicate: unsupported conditional profile\n".to_string(),
+                ));
+                return Ok(2);
+            }
             let ok = eval_test_unary_predicate(op, &val, self.cwd, self.env, self.fs);
             return Ok(if ok { 0 } else { 1 });
         }
@@ -9535,8 +9678,10 @@ impl<'a> EvalState<'a> {
             if chars.get(1).copied() == Some('+')
                 && matches!(chars.get(2).copied(), None | Some('/'))
             {
-                fragments.push((self.cwd.clone(), true));
-                idx = 2;
+                if let Some(pwd) = self.env.get("PWD").cloned() {
+                    fragments.push((pwd, true));
+                    idx = 2;
+                }
             } else if chars.get(1).copied() == Some('-')
                 && matches!(chars.get(2).copied(), None | Some('/'))
             {
@@ -9706,13 +9851,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn expand_tilde_in_word(&self, word: &str, allow_after_colon: bool) -> String {
-        if self.env.get("PWD").map(|s| s.as_str()) == Some(self.cwd.as_str()) {
-            expand_tilde_prefix(word, self.env, allow_after_colon, false)
-        } else {
-            let mut env_copy = self.env.clone();
-            env_copy.insert("PWD".to_string(), self.cwd.clone());
-            expand_tilde_prefix(word, &env_copy, allow_after_colon, false)
-        }
+        expand_tilde_prefix(word, self.env, allow_after_colon, false)
     }
 
     fn collect_word_segments(
@@ -10449,7 +10588,11 @@ impl<'a> EvalState<'a> {
             .get("__shopt_inherit_errexit")
             .map(|v| v == "1")
             .unwrap_or(false);
-        sub.errexit = inherit_errexit && self.errexit && !self.in_condition;
+        sub.errexit = inherit_errexit && self.errexit;
+        sub.env.insert(
+            "__set_errexit".to_string(),
+            if sub.errexit { "1" } else { "0" }.to_string(),
+        );
         sub.fd_table.insert(1, FdTarget::Stdout);
         let mut sub_in = self.in_fds.remove(&0).unwrap_or_default();
         let res = sub.eval_script_units(cmd_str, &mut sub_in);
@@ -13745,5 +13888,81 @@ printf 'rc=%d:%d:%d:%d|o=%s|i=%s|m=%s|a=%s\n' \
             r2.stdout,
             "rc=1:1:1:1|o=shell: line 1: 0: Bad file descriptor|i=shell: line 3: 1: Bad file descriptor|m=shell: line 6: 1-: ambiguous redirect|a=((: Division by zero\n"
         );
+    }
+
+    #[test]
+    fn unit_eval_conditional_test_tilde_and_errexit_parity() {
+        let mut cwd = "/workspace".to_string();
+        let mut env = BTreeMap::new();
+        let fs = crate::vfs::MemoryVfs::new();
+        fs.mkdir_all("/workspace").unwrap();
+        let budget = ExecutionBudget::default();
+        let cmds = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &cmds, false);
+
+        let r1 = state
+            .eval_script_str(
+                r#"[[
+  # comment inside conditional
+  -n a &&
+  ( "(" =~ [(] && ")" =~ [^]a(b] )
+]]&& echo "multiline:ok"
+
+[[ -e "" || -d "" || -r "" || "" -ef "" ]] && echo "empty:bad" || echo "empty:ok"
+[ -e "" -o -d "" -o "" -ef "" ] && echo "posix_empty:bad" || echo "posix_empty:ok"
+
+[[ ! ( 1/0 -eq 0 ) ]] 2>db_arith.err
+printf 'db_arith=%d:%s\n' "$?" "$(cat db_arith.err)"
+
+LC_CTYPE=en_US.UTF-8
+[[ ! ( a == [[:alpha:]] ) ]] 2>db_loc.err
+printf 'db_loc=%d:%s\n' "$?" "$(cat db_loc.err)"
+unset LC_CTYPE
+
+[[ -e /dev/fd/0 ]] 2>db_fd.err
+printf 'db_fd=%d:%s\n' "$?" "$(cat db_fd.err)"
+
+declare -n ref_unset=missing_var
+scalar="hello"
+declare -n ref_elem='scalar[-1]'
+[[ ! -v ref_unset && -R ref_unset && -v 'scalar[-1]' && -v ref_elem && -v _ && ! -v '123' ]] && echo "var:ok"
+
+side=0
+arr=(10 20)
+[ -z "nonempty" -a -v 'arr[side+=1]' ]
+[ -n "nonempty" -o -v 'arr[side+=1]' ]
+printf 'side=%d\n' "$side"
+
+PWD=/custom/pwd
+printf 'tilde_custom=%s\n' ~+/sub
+unset PWD
+printf 'tilde_unset=%s\n' ~+/sub
+PWD=/workspace
+
+set -e
+if [[ -o errexit ]] && [ -o errexit ] && [[ $- == *e* ]]; then
+  sub_off=$([[ -o errexit ]] && echo on || echo off):$([ -o errexit ] && echo on || echo off):$((-1)):$(echo "$-")
+  shopt -s inherit_errexit
+  sub_on=$([[ -o errexit ]] && echo on || echo off):$([ -o errexit ] && echo on || echo off)
+  shopt -u inherit_errexit
+  printf 'errexit=%s|%s\n' "$sub_off" "$sub_on"
+fi"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r1.stderr, "");
+        assert_eq!(r1.exit_code, 0);
+        assert_eq!(
+            r1.stdout,
+            "multiline:ok\nempty:ok\nposix_empty:ok\ndb_arith=1:[[: 1/0: division by 0 (error token is \"0\")\ndb_loc=2:[[ locale character class: unsupported conditional profile\ndb_fd=2:[[ descriptor predicate: unsupported conditional profile\nvar:ok\nside=0\ntilde_custom=/custom/pwd/sub\ntilde_unset=~+/sub\nerrexit=off:off:-1:B|on:on\n"
+        );
+
+        let r_nonempty_op = state.eval_script_str("[[ -z && -n = -n ]]", "").unwrap();
+        assert_eq!(r_nonempty_op.exit_code, 0);
+        assert!(state.eval_script_str("[[ ]]", "").is_err());
+        assert!(state.eval_script_str("[[ a == ]]", "").is_err());
+        assert!(state.eval_script_str("[[ -z a b ]]", "").is_err());
+        assert!(state.eval_script_str("[[ a =~ (b\nc) ]]", "").is_err());
+        assert!(state.eval_script_str("[[ -n a ]] extra", "").is_err());
     }
 }

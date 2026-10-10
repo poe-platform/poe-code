@@ -2144,15 +2144,32 @@ fn parse_test_integer(text: &str) -> Result<i64, String> {
 }
 
 fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool {
+    fn is_valid_ident(s: &str) -> bool {
+        let mut chars = s.chars();
+        let Some(first) = chars.next() else {
+            return false;
+        };
+        (first.is_ascii_alphabetic() || first == '_')
+            && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+    }
+
     let eff_val = if val.contains('[') {
         val.to_string()
     } else {
         resolve_nameref_base(val, env).to_string()
     };
     if let Some((base, sub_with_bracket)) = eff_val.split_once('[')
-        && let Some(sub) = sub_with_bracket.strip_suffix(']')
     {
+        let Some(sub) = sub_with_bracket.strip_suffix(']') else {
+            return false;
+        };
+        if sub.is_empty() || !is_valid_ident(base) {
+            return false;
+        }
         let resolved_base = resolve_nameref_base(base, env).to_string();
+        if !is_valid_ident(&resolved_base) {
+            return false;
+        }
         if resolved_base == "DIRSTACK" {
             if sub == "@" || sub == "*" {
                 return true;
@@ -2188,7 +2205,7 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
                     .keys()
                     .filter_map(|k| k.strip_prefix(&prefix)?.strip_suffix(']')?.parse::<i64>().ok())
                     .max()
-                    .unwrap_or(-1);
+                    .unwrap_or(if env.contains_key(&resolved_base) { 0 } else { -1 });
                 let eff = max_idx + 1 + idx;
                 if eff < 0 {
                     return false;
@@ -2201,8 +2218,14 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
         return env.contains_key(&key) || (key.ends_with("[0]") && env.contains_key(&resolved_base));
     }
     let resolved = eff_val.as_str();
-    if matches!(resolved, "DIRSTACK" | "BASHPID" | "BASH_SUBSHELL" | "LINENO" | "$") {
+    if !is_valid_ident(resolved) {
+        return false;
+    }
+    if matches!(resolved, "DIRSTACK" | "BASHPID" | "BASH_SUBSHELL" | "LINENO" | "_") {
         return true;
+    }
+    if resolved == "FUNCNAME" {
+        return env.contains_key("FUNCNAME") || env.contains_key("FUNCNAME[0]");
     }
     if resolved == "RANDOM" {
         return !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false)
@@ -2212,10 +2235,7 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
         return !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false)
             || env.contains_key("SECONDS");
     }
-    if resolved == "_" {
-        return env.contains_key("_") || env.contains_key("__last_arg");
-    }
-    if env.contains_key(resolved) || env.contains_key(val) || env.contains_key(&format!("{resolved}[0]")) {
+    if env.contains_key(resolved) || env.contains_key(&format!("{resolved}[0]")) {
         return true;
     }
     false
@@ -2228,10 +2248,31 @@ pub fn eval_test_unary_predicate(
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> bool {
+    match op {
+        "-z" => return val.is_empty(),
+        "-n" => return !val.is_empty(),
+        "-t" => return false,
+        "-v" => return eval_test_var_present(val, env),
+        "-R" => {
+            return env.contains_key(&format!("__nameref__{val}"))
+                || env
+                    .get(&format!("__attr__{val}"))
+                    .is_some_and(|a| a.contains('n'));
+        }
+        "-o" => {
+            return if val == "braceexpand" {
+                env.get("__set_braceexpand").map(|v| v != "0").unwrap_or(true)
+            } else {
+                env.get(&format!("__set_{val}")).is_some_and(|v| v == "1")
+            };
+        }
+        _ => {}
+    }
+    if val.is_empty() {
+        return false;
+    }
     let path = resolve_posix_path(cwd, val);
     match op {
-        "-z" => val.is_empty(),
-        "-n" => !val.is_empty(),
         "-e" | "-a" => fs.stat(&path).is_ok(),
         "-f" => fs
             .stat(&path)
@@ -2265,37 +2306,22 @@ pub fn eval_test_unary_predicate(
             .stat(&path)
             .map(|s| fs.is_dir(&path) || (s.mode & 0o111 != 0))
             .unwrap_or(false),
-        "-t" => false,
-        "-v" => eval_test_var_present(val, env),
-        "-R" => {
-            env.contains_key(&format!("__nameref__{val}"))
-                || env
-                    .get(&format!("__attr__{val}"))
-                    .is_some_and(|a| a.contains('n'))
-        }
-        "-o" => {
-            if val == "braceexpand" {
-                env.get("__set_braceexpand").map(|v| v != "0").unwrap_or(true)
-            } else {
-                env.get(&format!("__set_{val}")).is_some_and(|v| v == "1")
-            }
-        }
         "-O" => {
             let euid = env
                 .get("__euid")
                 .and_then(|v| v.parse::<u32>().ok())
                 .unwrap_or(0);
-            fs.exists(&path) && euid == 0
+            fs.stat(&path).is_ok() && euid == 0
         }
         "-G" => {
             let egid = env
                 .get("__egid")
                 .and_then(|v| v.parse::<u32>().ok())
                 .unwrap_or(0);
-            fs.exists(&path) && egid == 0
+            fs.stat(&path).is_ok() && egid == 0
         }
         "-N" => fs.stat(&path).map(|s| s.mtime_ms > 0).unwrap_or(false),
-        _ => fs.exists(&path),
+        _ => fs.stat(&path).is_ok(),
     }
 }
 
@@ -2342,8 +2368,13 @@ fn eval_posix_test(
         return Ok(val != negate);
     }
 
+    enum TestAtom {
+        Const(bool),
+        Unary(String, String),
+        Binary(String, String, String),
+    }
     enum TestExpr {
-        Atom(bool),
+        Atom(TestAtom),
         Not(Box<TestExpr>),
         Or(Vec<Vec<TestExpr>>),
     }
@@ -2354,7 +2385,7 @@ fn eval_posix_test(
     }
 
     let mut offset = 0usize;
-    let parse_primary = |offset: &mut usize, env: &mut BTreeMap<String, String>| -> Result<bool, String> {
+    let parse_primary = |offset: &mut usize| -> Result<TestAtom, String> {
         let Some(token) = args.get(*offset).cloned() else {
             return Err("argument expected".to_string());
         };
@@ -2363,7 +2394,7 @@ fn eval_posix_test(
         {
             let val = args.get(*offset).is_some_and(|s| !s.is_empty());
             *offset += 2;
-            return Ok(val);
+            return Ok(TestAtom::Const(val));
         }
         if token == "("
             && args.get(*offset).map(|s| s.as_str()) == Some("!")
@@ -2371,7 +2402,7 @@ fn eval_posix_test(
         {
             let val = !args.get(*offset + 1).is_some_and(|s| !s.is_empty());
             *offset += 3;
-            return Ok(val);
+            return Ok(TestAtom::Const(val));
         }
         let left_length = token == "-l"
             && args
@@ -2409,57 +2440,25 @@ fn eval_posix_test(
                 } else {
                     parse_test_integer(&right)?
                 };
-                return Ok(match operator.as_str() {
+                return Ok(TestAtom::Const(match operator.as_str() {
                     "-eq" => l_num == r_num,
                     "-ne" => l_num != r_num,
                     "-lt" => l_num < r_num,
                     "-le" => l_num <= r_num,
                     "-gt" => l_num > r_num,
                     _ => l_num >= r_num,
-                });
+                }));
             }
-            return Ok(match operator.as_str() {
-                "=" | "==" => token == right,
-                "!=" => token != right,
-                "<" => token < right,
-                ">" => token > right,
-                "-nt" => {
-                    let lp = resolve_posix_path(cwd, &token);
-                    let rp = resolve_posix_path(cwd, &right);
-                    match (fs.stat(&lp), fs.stat(&rp)) {
-                        (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
-                        (Ok(_), Err(_)) => true,
-                        _ => false,
-                    }
-                }
-                "-ot" => {
-                    let lp = resolve_posix_path(cwd, &token);
-                    let rp = resolve_posix_path(cwd, &right);
-                    match (fs.stat(&lp), fs.stat(&rp)) {
-                        (Ok(ls), Ok(rs)) => ls.mtime_ms < rs.mtime_ms,
-                        (Err(_), Ok(_)) => true,
-                        _ => false,
-                    }
-                }
-                "-ef" => {
-                    let lp = resolve_posix_path(cwd, &token);
-                    let rp = resolve_posix_path(cwd, &right);
-                    fs.stat(&lp).is_ok()
-                        && fs.stat(&rp).is_ok()
-                        && resolve_physical_path(cwd, &token, fs)
-                            == resolve_physical_path(cwd, &right, fs)
-                }
-                _ => false,
-            });
+            return Ok(TestAtom::Binary(operator, token, right));
         }
         if is_test_unary_op(&token) {
             let Some(operand) = args.get(*offset).cloned() else {
                 return Err("unary operator requires an operand".to_string());
             };
             *offset += 1;
-            return Ok(eval_test_unary_predicate(&token, &operand, cwd, env, fs));
+            return Ok(TestAtom::Unary(token, operand));
         }
-        Ok(!token.is_empty())
+        Ok(TestAtom::Const(!token.is_empty()))
     };
 
     let mut frames = vec![TestFrame {
@@ -2494,7 +2493,7 @@ fn eval_posix_test(
                 }
                 continue;
             }
-            let atom_val = parse_primary(&mut offset, env)?;
+            let atom_val = parse_primary(&mut offset)?;
             let frame = frames.last_mut().unwrap();
             let mut expr = TestExpr::Atom(atom_val);
             if frame.pending_not {
@@ -2534,17 +2533,76 @@ fn eval_posix_test(
         return Err(format!("unexpected argument '{}'", args[offset]));
     }
 
-    fn eval_expr(expr: &TestExpr) -> bool {
+    fn eval_atom(
+        atom: &TestAtom,
+        cwd: &str,
+        env: &mut BTreeMap<String, String>,
+        fs: &dyn SafeBashFs,
+    ) -> bool {
+        let stat_nonempty = |raw: &str| {
+            if raw.is_empty() {
+                Err("empty path".to_string())
+            } else {
+                fs.stat(&resolve_posix_path(cwd, raw))
+            }
+        };
+        match atom {
+            TestAtom::Const(v) => *v,
+            TestAtom::Unary(op, operand) => eval_test_unary_predicate(op, operand, cwd, env, fs),
+            TestAtom::Binary(op, left, right) => match op.as_str() {
+                "=" | "==" => left == right,
+                "!=" => left != right,
+                "<" => left < right,
+                ">" => left > right,
+                "-nt" => match (stat_nonempty(left), stat_nonempty(right)) {
+                    (Ok(ls), Ok(rs)) => ls.mtime_ms > rs.mtime_ms,
+                    (Ok(_), Err(_)) => true,
+                    _ => false,
+                },
+                "-ot" => match (stat_nonempty(left), stat_nonempty(right)) {
+                    (Ok(ls), Ok(rs)) => ls.mtime_ms < rs.mtime_ms,
+                    (Err(_), Ok(_)) => true,
+                    _ => false,
+                },
+                "-ef" => {
+                    stat_nonempty(left).is_ok()
+                        && stat_nonempty(right).is_ok()
+                        && resolve_physical_path(cwd, left, fs)
+                            == resolve_physical_path(cwd, right, fs)
+                }
+                _ => false,
+            },
+        }
+    }
+
+    fn eval_expr(
+        expr: &TestExpr,
+        cwd: &str,
+        env: &mut BTreeMap<String, String>,
+        fs: &dyn SafeBashFs,
+    ) -> bool {
         match expr {
-            TestExpr::Atom(v) => *v,
-            TestExpr::Not(inner) => !eval_expr(inner),
-            TestExpr::Or(groups) => groups
-                .iter()
-                .any(|and_group| and_group.iter().all(eval_expr)),
+            TestExpr::Atom(atom) => eval_atom(atom, cwd, env, fs),
+            TestExpr::Not(inner) => !eval_expr(inner, cwd, env, fs),
+            TestExpr::Or(groups) => {
+                for and_group in groups {
+                    let mut group_ok = true;
+                    for term in and_group {
+                        if !eval_expr(term, cwd, env, fs) {
+                            group_ok = false;
+                            break;
+                        }
+                    }
+                    if group_ok {
+                        return true;
+                    }
+                }
+                false
+            }
         }
     }
     let root = TestExpr::Or(frames.pop().unwrap().groups);
-    Ok(eval_expr(&root) != negate)
+    Ok(eval_expr(&root, cwd, env, fs) != negate)
 }
 
 fn eval_test_or(

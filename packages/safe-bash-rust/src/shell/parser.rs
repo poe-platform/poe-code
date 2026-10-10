@@ -643,8 +643,12 @@ pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>)
     if trailing_backslashes % 2 == 1 {
         return true;
     }
-    let Ok(raw_tokens) = tokenize_shell(chunk) else {
-        return true;
+    let raw_tokens = match tokenize_shell(chunk) {
+        Ok(t) => t,
+        Err(err) => {
+            return !err.contains("Unterminated conditional regular expression group")
+                && !err.contains("expected here-document delimiter");
+        }
     };
     let Ok(tokens) = expand_tokens_with_aliases(&raw_tokens, aliases) else {
         return true;
@@ -739,8 +743,11 @@ pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>)
                     pending_do -= 1;
                     at_start = true;
                 } else {
-                    at_start =
-                        at_start && matches!(w.as_str(), "if" | "then" | "elif" | "else" | "{");
+                    at_start = at_start
+                        && matches!(
+                            w.as_str(),
+                            "if" | "then" | "elif" | "else" | "{" | "!" | "time"
+                        );
                 }
             }
             _ => {
@@ -1409,6 +1416,13 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 redirects.append(&mut more);
             }
             Some(Token::Word(w)) => {
+                if assignments.is_empty()
+                    && words.first().map(|s: &String| s.as_str()) == Some("[[")
+                    && words.len() > 1
+                    && words.last().map(|s: &String| s.as_str()) == Some("]]")
+                {
+                    return Err("Syntax error: Expected command separator".to_string());
+                }
                 if words.is_empty()
                     && let Some((k, v, append)) = parse_assignment_word(w)
                 {
@@ -1446,6 +1460,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
 
     if assignments.is_empty() && words.is_empty() && redirects.is_empty() {
         return Ok(None);
+    }
+    if assignments.is_empty() && words.first().map(|s| s.as_str()) == Some("[[") {
+        validate_conditional_words(&words)?;
     }
     if !words.is_empty()
         && assignments
@@ -1512,6 +1529,144 @@ fn parse_assignment_word(word: &str) -> Option<(String, String, bool)> {
     } else {
         None
     }
+}
+
+pub fn is_conditional_plain_word(s: &str) -> bool {
+    !s.contains(['\'', '"', '\\', '$', '`'])
+}
+
+pub fn is_conditional_unary_op(s: &str) -> bool {
+    is_conditional_plain_word(s)
+        && matches!(
+            s,
+            "-a" | "-b"
+                | "-c"
+                | "-d"
+                | "-e"
+                | "-f"
+                | "-g"
+                | "-h"
+                | "-k"
+                | "-L"
+                | "-n"
+                | "-N"
+                | "-o"
+                | "-O"
+                | "-p"
+                | "-r"
+                | "-R"
+                | "-s"
+                | "-S"
+                | "-t"
+                | "-u"
+                | "-v"
+                | "-w"
+                | "-x"
+                | "-z"
+                | "-G"
+        )
+}
+
+pub fn is_conditional_binary_op(s: &str) -> bool {
+    matches!(s, "<" | ">")
+        || (is_conditional_plain_word(s)
+            && matches!(
+                s,
+                "=" | "=="
+                    | "!="
+                    | "=~"
+                    | "-eq"
+                    | "-ne"
+                    | "-lt"
+                    | "-le"
+                    | "-gt"
+                    | "-ge"
+                    | "-nt"
+                    | "-ot"
+                    | "-ef"
+            ))
+}
+
+pub fn is_conditional_operand(s: &str) -> bool {
+    !matches!(s, "&&" | "||" | "(" | ")" | "<" | ">" | "]]")
+}
+
+fn validate_conditional_words(words: &[String]) -> Result<(), String> {
+    if words.len() < 2 || words.last().map(|s| s.as_str()) != Some("]]") {
+        return Err("Syntax error: Expected ]]".to_string());
+    }
+    let args = &words[1..words.len() - 1];
+    let mut pos = 0usize;
+
+    fn parse_operand<'a>(args: &'a [String], pos: &mut usize) -> Result<&'a str, String> {
+        let Some(tok) = args.get(*pos).map(|s| s.as_str()) else {
+            return Err("Syntax error: Expected conditional operand".to_string());
+        };
+        if !is_conditional_operand(tok) {
+            return Err("Syntax error: Expected conditional operand".to_string());
+        }
+        *pos += 1;
+        Ok(tok)
+    }
+
+    fn parse_primary(args: &[String], pos: &mut usize, depth: usize) -> Result<(), String> {
+        if depth > 64 {
+            return Err("Syntax error: Conditional syntax nesting exceeds 64".to_string());
+        }
+        if args.get(*pos).map(|s| s.as_str()) == Some("!") {
+            *pos += 1;
+            return parse_primary(args, pos, depth + 1);
+        }
+        if args.get(*pos).map(|s| s.as_str()) == Some("(") {
+            *pos += 1;
+            parse_disjunction(args, pos, depth + 1)?;
+            if args.get(*pos).map(|s| s.as_str()) != Some(")") {
+                return Err("Syntax error: Expected )".to_string());
+            }
+            *pos += 1;
+            return Ok(());
+        }
+        let first = parse_operand(args, pos)?;
+        if let Some(op) = args.get(*pos).map(|s| s.as_str())
+            && is_conditional_binary_op(op)
+        {
+            *pos += 1;
+            parse_operand(args, pos)?;
+            return Ok(());
+        }
+        if is_conditional_unary_op(first)
+            && let Some(next) = args.get(*pos).map(|s| s.as_str())
+            && is_conditional_operand(next)
+        {
+            *pos += 1;
+            return Ok(());
+        }
+        Ok(())
+    }
+
+    fn parse_conjunction(args: &[String], pos: &mut usize, depth: usize) -> Result<(), String> {
+        parse_primary(args, pos, depth)?;
+        while args.get(*pos).map(|s| s.as_str()) == Some("&&") {
+            *pos += 1;
+            parse_primary(args, pos, depth)?;
+        }
+        Ok(())
+    }
+
+    fn parse_disjunction(args: &[String], pos: &mut usize, depth: usize) -> Result<(), String> {
+        parse_conjunction(args, pos, depth)?;
+        while args.get(*pos).map(|s| s.as_str()) == Some("||") {
+            *pos += 1;
+            parse_conjunction(args, pos, depth)?;
+        }
+        Ok(())
+    }
+
+    parse_disjunction(args, &mut pos, 1)?;
+    if pos != args.len() {
+        return Err("Syntax error: Expected ]]".to_string());
+    }
+    Ok(())
 }
 
 #[cfg(test)]

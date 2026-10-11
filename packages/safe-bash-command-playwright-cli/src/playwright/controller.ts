@@ -61,7 +61,9 @@ export interface PlaywrightControllerOptions {
   readonly limits?: PlaywrightStructureLimits & { readonly maxSessions?: number; readonly actionTimeoutMs?: number; readonly codeExecutionTimeoutMs?: number;
     /** Optional UTF-8 snapshot output budget; omission means unlimited. */
     readonly maxSnapshotBytes?: number;
-    readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number };
+    readonly maxSnapshotRefs?: number; readonly maxArtifactBytes?: number; readonly maxTabs?: number; readonly maxCommandBytes?: number;
+    /** Aggregate output artifact bytes per command; omission shares maxCommandBytes with text and inputs. */
+    readonly maxOutputArtifactBytes?: number };
   /** Billing declarations are separate; reporting/charging is not implemented. */
   readonly billing?: never;
 }
@@ -152,7 +154,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   if (options.persistence?.close !== undefined && typeof options.persistence.close !== 'function') throw new TypeError('Invalid Playwright persistence close');
   if (options.persistence?.list !== undefined && typeof options.persistence.list !== 'function') throw new TypeError('Invalid Playwright persistence list');
   for (const key of ['inspectRecovery', 'recordOperation'] as const) if (options.persistence?.[key] !== undefined && typeof options.persistence[key] !== 'function') throw new TypeError('Invalid Playwright recovery persistence');
-  if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes', ...Object.keys(playwrightStructureDefaults)].includes(key)))) throw new TypeError('Unsupported Playwright limits');
+  if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes', 'maxOutputArtifactBytes', ...Object.keys(playwrightStructureDefaults)].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? Infinity;
   const actionTimeoutMs = options.limits?.actionTimeoutMs ?? Infinity;
@@ -163,9 +165,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? Infinity;
   const maxTabs = options.limits?.maxTabs ?? Infinity;
   const maxCommandBytes = options.limits?.maxCommandBytes ?? Infinity;
+  const maxOutputArtifactBytes = options.limits?.maxOutputArtifactBytes;
   const abilities = registerPlaywrightAbilities(options.abilities, options.adapter !== undefined);
   let refSequence = 0;
-  for (const value of [options.limits?.maxSessions, options.limits?.maxSnapshotBytes, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotRefs, options.limits?.maxArtifactBytes, options.limits?.maxTabs, options.limits?.maxCommandBytes]) if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const value of [options.limits?.maxSessions, options.limits?.maxSnapshotBytes, actionTimeoutMs, codeExecutionTimeoutMs, options.limits?.maxSnapshotRefs, options.limits?.maxArtifactBytes, options.limits?.maxTabs, options.limits?.maxCommandBytes, maxOutputArtifactBytes]) if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   for (const key of Object.keys(playwrightStructureDefaults) as (keyof PlaywrightStructureLimits)[]) {
     const value = options.limits?.[key];
     if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) throw new RangeError('Invalid Playwright structure limit');
@@ -740,6 +743,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   };
   const run = async (invocation: PlaywrightInvocation): Promise<void> => {
     const commandBudget = createPlaywrightCommandBudget(maxCommandBytes);
+    const artifactBudget = maxOutputArtifactBytes === undefined ? commandBudget : createPlaywrightCommandBudget(maxOutputArtifactBytes);
     let reportedError = false;
     const writtenFiles = new Set<string>();
     const original = invocation;
@@ -830,7 +834,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       check();
       if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
       if (bytes.byteLength > maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
-      commandBudget.admit(bytes.byteLength);
+      artifactBudget.admit(bytes.byteLength);
       await invocation.writeArtifact(bytes, filename);
       check();
     };
@@ -1359,7 +1363,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 },
               });
             }
-            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, structureLimits: options.limits, maxCommandBytes, maxArtifactBytes, commandBudget, actionTimeoutMs: sessionActionTimeout(active), codeExecutionTimeoutMs, navigationTimeoutMs: sessionNavigationTimeout(active), maxPages: maxTabs, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
+            const executeAbility = () => executePlaywrightAbility(ability, parsed, invocation, { signal: local.signal, structureLimits: options.limits, maxCommandBytes, maxArtifactBytes, commandBudget, artifactBudget, actionTimeoutMs: sessionActionTimeout(active), codeExecutionTimeoutMs, navigationTimeoutMs: sessionNavigationTimeout(active), maxPages: maxTabs, ...(browserSession ? { browserSession } : {}), check: () => active ? checkSession(active) : check() });
             let result: void | PlaywrightCommandResult;
             try { result = active ? await active.snapshot.withReferences(executeAbility) : await executeAbility(); }
             catch (error) {

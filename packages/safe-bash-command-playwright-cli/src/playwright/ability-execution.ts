@@ -20,6 +20,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
   readonly maxCommandBytes: number;
   readonly maxArtifactBytes: number;
   readonly commandBudget?: ReturnType<typeof createPlaywrightCommandBudget>;
+  readonly artifactBudget?: ReturnType<typeof createPlaywrightCommandBudget>;
   readonly actionTimeoutMs?: number;
   readonly codeExecutionTimeoutMs?: number;
   readonly navigationTimeoutMs?: number;
@@ -154,7 +155,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
       if (bytes.byteLength > context.maxArtifactBytes) throw new PlaywrightResourceLimitError('Artifact byte limit exceeded');
       if (filename !== undefined) filenameCheck(filename);
       if (!invocation.writeArtifact) throw new Error('Artifact byte destination unsupported');
-      budget.admit(bytes.byteLength);
+      (context.artifactBudget ?? budget).admit(bytes.byteLength);
       const owned = new Uint8Array(bytes);
       return track(async () => { context.check(); await invocation.writeArtifact!(owned, filename); context.check(); });
     },

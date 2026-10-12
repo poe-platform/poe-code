@@ -166,3 +166,20 @@ test("scoped committed receipt survives cancellation and retained conditional cl
   assert.equal(charges, 1);
   await assert.rejects(fs.lstat("/file"), { code: "ENOENT" });
 });
+
+for(const replace of [false,true])test(`retained tree cleanup survives scope cancellation and preserves replacement directories; replacement=${replace}`,async()=>{
+ const fs=new MemoryFileSystem(),controller=new AbortController();let charges=0;
+ const scoped=scopeFileSystem(fs,()=>{},controller.signal,()=>{charges++;});
+ const parent=await scoped.lstat('/');
+ const identity=await scoped.prepareDirectory!('/owned',{parent,expected:null});
+ await scoped.writeFile('/owned/data',Uint8Array.of(42));
+ let escaped:Parameters<Parameters<typeof retainFileSystemCleanup>[1]>[0]|undefined;
+ const cleanup=retainFileSystemCleanup(scoped,async view=>{escaped=view;await view.removeTreeConditional!('/owned',{parent,expected:identity});},{maxOperations:1});
+ const denied=retainFileSystemCleanup(scoped,view=>view.removeTreeConditional!('/owned',{parent,expected:identity}),{maxOperations:0});
+ controller.abort(new Error('invocation retired'));
+ await assert.rejects(denied(),{code:'EFBIG'});
+ if(replace){await fs.rm('/owned',{recursive:true});await fs.mkdir('/owned');await fs.writeFile('/owned/data',Uint8Array.of(7));await assert.rejects(cleanup(),{code:'EAGAIN'});assert.deepEqual(await fs.readFile('/owned/data'),Uint8Array.of(7));}
+ else{await cleanup();await assert.rejects(fs.lstat('/owned'),{code:'ENOENT'});}
+ assert.equal(charges,1);
+ await assert.rejects(escaped!.removeTreeConditional!('/owned',{parent,expected:identity}),{code:'EBADF'});
+});

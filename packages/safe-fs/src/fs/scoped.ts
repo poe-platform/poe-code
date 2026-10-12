@@ -513,6 +513,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
 
 export interface RetainedFileSystemCleanupView {
   readonly removeFileConditional?: NonNullable<FileSystem["removeFileConditional"]>;
+  readonly removeTreeConditional?: NonNullable<FileSystem["removeTreeConditional"]>;
   readonly removeStagedFile?: NonNullable<FileSystem["removeStagedFile"]>;
   readonly lstat: FileSystem["lstat"];
   readonly realpath: FileSystem["realpath"];
@@ -546,7 +547,7 @@ export function retainFileSystemCleanup(
   let operations = 0;
   let active = false;
   let closing: Promise<void> | undefined;
-  const invoke = (method: keyof RetainedFileSystemCleanupView, input: string | FileStaging, settings?: FsOptions): Promise<unknown> => {
+  const invoke = (method: keyof RetainedFileSystemCleanupView, input: string | FileStaging, settings?: FsOptions | Parameters<NonNullable<FileSystem["removeTreeConditional"]>>[1]): Promise<unknown> => {
     const path = typeof input === "string" ? input : input.directory.path;
     if (!active) {
       const rejected = Promise.reject(new FsError("EBADF", { syscall: method, path, message: "cleanup callback is not active" }));
@@ -563,8 +564,8 @@ export function retainFileSystemCleanup(
       const operation = backing[method];
       if (typeof operation !== "function") throw new FsError("ENOTSUP", { syscall: method, path });
       const parameters = method === "rm" ? { ...settings, recursive: false, force: false } : settings;
-      result = method === "removeStagedFile" || method === "removeFileConditional"
-        ? requireOwnedMutation(backing, path, method === "removeFileConditional" ? "atomicFileMutation" : "atomicFileStaging", settings ?? {}).then(() => Reflect.apply(operation, backing, [input, parameters]))
+      result = method === "removeStagedFile" || method === "removeFileConditional" || method === "removeTreeConditional"
+        ? requireOwnedMutation(backing, path, method === "removeFileConditional" ? "atomicFileMutation" : method === "removeTreeConditional" ? "atomicTreeRemoval" : "atomicFileStaging", settings ?? {}).then(() => Reflect.apply(operation, backing, [input, parameters]))
         : Promise.resolve(Reflect.apply(operation, backing, [input, parameters]));
     } catch (error) {
       result = Promise.reject(error);
@@ -581,6 +582,7 @@ export function retainFileSystemCleanup(
   const view: RetainedFileSystemCleanupView = Object.freeze(Object.assign(Object.create(null) as RetainedFileSystemCleanupView, {
     ...(typeof backing.removeFileConditional === "function" ? { removeFileConditional: invoke.bind(undefined, "removeFileConditional") as NonNullable<RetainedFileSystemCleanupView["removeFileConditional"]> } : {}),
     ...(typeof backing.removeStagedFile === "function" ? { removeStagedFile: invoke.bind(undefined, "removeStagedFile") as NonNullable<RetainedFileSystemCleanupView["removeStagedFile"]> } : {}),
+    ...(typeof backing.removeTreeConditional === "function" ? { removeTreeConditional: invoke.bind(undefined, "removeTreeConditional") as NonNullable<RetainedFileSystemCleanupView["removeTreeConditional"]> } : {}),
     lstat: invoke.bind(undefined, "lstat") as RetainedFileSystemCleanupView["lstat"],
     realpath: invoke.bind(undefined, "realpath") as RetainedFileSystemCleanupView["realpath"],
     rm: invoke.bind(undefined, "rm") as RetainedFileSystemCleanupView["rm"],

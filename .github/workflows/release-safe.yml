@@ -289,7 +289,7 @@ jobs:
             await writeFile(resolve(process.env.SAFE_BASH_PYTHON_BUILD_WHEELS_ROOT, entry.file_name), bytes);
           }
           NODE
-          node --test --test-name-pattern='^(?!.*(?:genuine isolated tooling|isolates build dependencies)).*$' packages/safe-bash/tests/integration/python-jspi.test.mjs
+          node --test --test-skip-pattern='genuine isolated tooling|isolates build dependencies' packages/safe-bash/tests/integration/python-jspi.test.mjs
       - name: Verify packed Python source builds in workerd
         if: steps.queue-check.outputs.publish == 'true'
         timeout-minutes: 45

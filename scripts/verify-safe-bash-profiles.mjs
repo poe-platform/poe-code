@@ -129,7 +129,9 @@ export const safeBashProfileBaselines = {
   "core": 1715877,
   "rootCore": 1717280,
   // Tool diagnostics use bounded caller-backed pages without selecting SQLite.
-  "pythonLlm": 2094016,
+  // Scoped manifest ownership and weak-cache migration add ~1.3 KiB;
+  // reserve 1.5 KiB in Python baselines, retaining the 2%/5% growth checks.
+  "pythonLlm": 2095516,
   // Canonical PDF graph includes caller-backed parsing, fonts, editing and output.
   "pdf": 3234703,
   "multiplePdf": 3442346,
@@ -145,9 +147,9 @@ export const safeBashProfileBaselines = {
   "enabledConsumer": 7213453,
   // Full also selects document/media engines, Pandoc and the CSV Python worker.
   "full": 75086998,
-  "rootPythonLlm": 2095122,
+  "rootPythonLlm": 2096622,
   "splitCore": 1711634,
-  "splitPythonLlm": 2090714,
+  "splitPythonLlm": 2092214,
   "splitEnabledConsumer": 7125253,
   "splitFull": 74639465
 };

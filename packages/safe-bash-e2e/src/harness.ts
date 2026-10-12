@@ -409,6 +409,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-getopts-path-hash-umask-pipestatus-shebang-parity-matrix.test.ts",
   "obscure-read-mapfile-callback-pipe-fd-and-diagnostic-parity-matrix.test.ts",
   "obscure-jobs-wait-negation-retirement-destination-parity-matrix.test.ts",
+  "obscure-source-dot-eval-command-syntax-locale-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

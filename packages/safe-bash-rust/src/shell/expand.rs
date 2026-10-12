@@ -347,21 +347,26 @@ fn match_bracket(p: &[char], ch: char, nocase: bool) -> Option<(bool, usize)> {
 }
 
 pub fn decode_ansi_c_escapes(input: &str) -> String {
-    decode_c_escapes_inner(input, false, true)
+    decode_c_escapes_inner(input, false, true, false)
+}
+
+pub fn decode_ansi_c_escapes_with_locale(input: &str, byte_locale: bool) -> String {
+    decode_c_escapes_inner(input, false, true, byte_locale)
 }
 
 pub fn decode_echo_b_escapes(input: &str) -> String {
-    decode_c_escapes_inner(input, true, false)
+    decode_c_escapes_inner(input, true, false, false)
 }
 
 pub fn decode_printf_escapes(input: &str) -> String {
-    decode_c_escapes_inner(input, false, false)
+    decode_c_escapes_inner(input, false, false, false)
 }
 
 fn decode_c_escapes_inner(
     input: &str,
     leading_zero_octal: bool,
     truncate_on_nul: bool,
+    byte_locale: bool,
 ) -> String {
     let mut out_bytes: Vec<u8> = Vec::with_capacity(input.len());
     let mut chars = input.chars().peekable();
@@ -434,7 +439,9 @@ fn decode_c_escapes_inner(
                         if val == 0 && truncate_on_nul {
                             break;
                         }
-                        if let Some(ch) = char::from_u32(val) {
+                        if byte_locale && val > 127 {
+                            out_bytes.extend_from_slice(format!("\\u{val:04X}").as_bytes());
+                        } else if let Some(ch) = char::from_u32(val) {
                             push_char(&mut out_bytes, ch);
                         }
                     }
@@ -455,7 +462,13 @@ fn decode_c_escapes_inner(
                         if val == 0 && truncate_on_nul {
                             break;
                         }
-                        if let Some(ch) = char::from_u32(val) {
+                        if byte_locale && val > 127 {
+                            if val <= 0xffff {
+                                out_bytes.extend_from_slice(format!("\\u{val:04X}").as_bytes());
+                            } else {
+                                out_bytes.extend_from_slice(format!("\\U{val:08X}").as_bytes());
+                            }
+                        } else if let Some(ch) = char::from_u32(val) {
                             push_char(&mut out_bytes, ch);
                         }
                     }

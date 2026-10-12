@@ -6,7 +6,8 @@ use crate::shell::builtins::{
     path_targets, resolve_physical_path, try_run_builtin,
 };
 use crate::shell::expand::{
-    apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes, eval_arith,
+    apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes,
+    decode_ansi_c_escapes_with_locale, eval_arith,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
     has_glob_meta_ext, is_param_operand_active, resolve_nameref_base,
@@ -82,6 +83,8 @@ pub struct EvalState<'a> {
     pub explicit_exit: bool,
     pub sub_exit: Option<i32>,
     pub pos_args: Vec<String>,
+    pub pos_args_version: u64,
+    pub syntax_contexts: Vec<(String, usize, bool)>,
     pub last_exit: i32,
     pub errexit: bool,
     pub nounset: bool,
@@ -182,6 +185,8 @@ impl<'a> EvalState<'a> {
             explicit_exit: false,
             sub_exit: None,
             pos_args: Vec::new(),
+            pos_args_version: 0,
+            syntax_contexts: Vec::new(),
             last_exit,
             errexit,
             nounset,
@@ -327,6 +332,8 @@ impl<'a> EvalState<'a> {
             explicit_exit: false,
             sub_exit: None,
             pos_args: self.pos_args.clone(),
+            pos_args_version: self.pos_args_version,
+            syntax_contexts: self.syntax_contexts.clone(),
             last_exit: self.last_exit,
             errexit: self.errexit,
             nounset: self.nounset,
@@ -516,6 +523,9 @@ impl<'a> EvalState<'a> {
     }
 
     pub fn eval_script_str(&mut self, script: &str, stdin: &str) -> Result<CommandResult, EvalError> {
+        self.budget
+            .add_source_bytes(script.len())
+            .map_err(EvalError::Budget)?;
         let mut stdin_buf = stdin.to_string();
         let mut out = self.eval_script_units(script, &mut stdin_buf)?;
         out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
@@ -561,7 +571,9 @@ impl<'a> EvalState<'a> {
     ) -> Result<BuiltinOutcome, EvalError> {
         let needs_unit_loop = !self.active_alias_map().is_empty()
             || script_text.contains("alias")
-            || script_text.contains("shopt");
+            || script_text.contains("shopt")
+            || (script_text.contains("$'")
+                && (script_text.contains("LC_") || script_text.contains("LANG")));
         if !needs_unit_loop {
             match validate_basic_syntax(script_text).and_then(|()| parse_script(script_text)) {
                 Ok(ast) => {
@@ -571,6 +583,13 @@ impl<'a> EvalState<'a> {
                             "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
                             self.budget.limits.max_parse_units
                         )));
+                    }
+                    if ast.lists.is_empty() {
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        });
                     }
                     return self.eval_script(&ast, stdin);
                 }
@@ -583,7 +602,8 @@ impl<'a> EvalState<'a> {
 
         let mut stdout = String::new();
         let mut stderr = String::new();
-        let mut last_code = self.last_exit;
+        let mut last_code = 0;
+        let mut executed = false;
         let lines: Vec<&str> = script_text.split_inclusive('\n').collect();
         if lines.is_empty() {
             return Ok(BuiltinOutcome {
@@ -608,33 +628,14 @@ impl<'a> EvalState<'a> {
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
                 Ok(a) => a,
                 Err(syn_err) => {
-                    if (unit_start_line == 0 || self.mapfile_callback_depth > 0)
-                        && stdout.is_empty()
-                        && stderr.is_empty()
-                    {
+                    if !executed && self.mapfile_callback_depth == 0 {
                         return Err(EvalError::Syntax(syn_err));
                     }
-                    if self.mapfile_callback_depth > 0 {
-                        let outer_script = self
-                            .script_name
-                            .clone()
-                            .unwrap_or_else(|| "shell".to_string());
-                        stderr.push_str(&format_callback_syntax_diagnostic(
-                            &format!("{outer_script}: stdin"),
-                            self.callback_line_offset,
-                            script_text,
-                            &syn_err,
-                        ));
-                        self.last_exit = 2;
-                        return Ok(BuiltinOutcome {
-                            stdout,
-                            stderr,
-                            exit_code: 2,
-                        });
-                    }
-                    stderr.push_str(&format!("syntax error: {syn_err}\n"));
+                    stderr.push_str(&self.format_active_syntax_diagnostic(script_text, &syn_err));
                     self.last_exit = 2;
-                    self.exit_requested = Some(2);
+                    if self.syntax_contexts.is_empty() && self.mapfile_callback_depth == 0 {
+                        self.exit_requested = Some(2);
+                    }
                     return Ok(BuiltinOutcome {
                         stdout,
                         stderr,
@@ -651,10 +652,13 @@ impl<'a> EvalState<'a> {
                     self.budget.limits.max_parse_units
                 )));
             }
-            let unit_out = self.eval_script(&ast, stdin)?;
-            stdout.push_str(&unit_out.stdout);
-            stderr.push_str(&unit_out.stderr);
-            last_code = unit_out.exit_code;
+            if !ast.lists.is_empty() {
+                let unit_out = self.eval_script(&ast, stdin)?;
+                stdout.push_str(&unit_out.stdout);
+                stderr.push_str(&unit_out.stderr);
+                last_code = unit_out.exit_code;
+                executed = true;
+            }
             if self.exit_requested.is_some()
                 || self.return_requested.is_some()
                 || self.break_count > 0
@@ -669,33 +673,14 @@ impl<'a> EvalState<'a> {
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
                 Ok(a) => a,
                 Err(syn_err) => {
-                    if (unit_start_line == 0 || self.mapfile_callback_depth > 0)
-                        && stdout.is_empty()
-                        && stderr.is_empty()
-                    {
+                    if !executed && self.mapfile_callback_depth == 0 {
                         return Err(EvalError::Syntax(syn_err));
                     }
-                    if self.mapfile_callback_depth > 0 {
-                        let outer_script = self
-                            .script_name
-                            .clone()
-                            .unwrap_or_else(|| "shell".to_string());
-                        stderr.push_str(&format_callback_syntax_diagnostic(
-                            &format!("{outer_script}: stdin"),
-                            self.callback_line_offset,
-                            script_text,
-                            &syn_err,
-                        ));
-                        self.last_exit = 2;
-                        return Ok(BuiltinOutcome {
-                            stdout,
-                            stderr,
-                            exit_code: 2,
-                        });
-                    }
-                    stderr.push_str(&format!("syntax error: {syn_err}\n"));
+                    stderr.push_str(&self.format_active_syntax_diagnostic(script_text, &syn_err));
                     self.last_exit = 2;
-                    self.exit_requested = Some(2);
+                    if self.syntax_contexts.is_empty() && self.mapfile_callback_depth == 0 {
+                        self.exit_requested = Some(2);
+                    }
                     return Ok(BuiltinOutcome {
                         stdout,
                         stderr,
@@ -703,16 +688,39 @@ impl<'a> EvalState<'a> {
                     });
                 }
             };
-            let unit_out = self.eval_script(&ast, stdin)?;
-            stdout.push_str(&unit_out.stdout);
-            stderr.push_str(&unit_out.stderr);
-            last_code = unit_out.exit_code;
+            if !ast.lists.is_empty() {
+                let unit_out = self.eval_script(&ast, stdin)?;
+                stdout.push_str(&unit_out.stdout);
+                stderr.push_str(&unit_out.stderr);
+                last_code = unit_out.exit_code;
+            }
         }
         Ok(BuiltinOutcome {
             stdout,
             stderr,
             exit_code: last_code,
         })
+    }
+
+    fn format_active_syntax_diagnostic(&self, script_text: &str, syn_err: &str) -> String {
+        if self.mapfile_callback_depth > 0 {
+            let outer_script = self
+                .script_name
+                .clone()
+                .unwrap_or_else(|| "shell".to_string());
+            return format_syntax_diagnostic(
+                &format!("{outer_script}: stdin"),
+                self.callback_line_offset,
+                script_text,
+                syn_err,
+                false,
+            );
+        }
+        if let Some((name, offset, include_ctx)) = self.syntax_contexts.last() {
+            return format_syntax_diagnostic(name, *offset, script_text, syn_err, *include_ctx);
+        }
+        let name = self.script_name.as_deref().unwrap_or("shell");
+        format_syntax_diagnostic(name, 0, script_text, syn_err, true)
     }
 
     fn run_exit_trap_if_needed(&mut self, out: &mut BuiltinOutcome) {
@@ -876,6 +884,10 @@ impl<'a> EvalState<'a> {
         let mut stdout = String::new();
         let mut stderr = String::new();
         let mut last_code = self.last_exit;
+        let prev_unit_locale = self.env.insert(
+            "__unit_byte_locale".to_string(),
+            if self.is_current_byte_locale() { "1" } else { "0" }.to_string(),
+        );
 
         for list in &script.lists {
             if self.noexec || crate::commands::is_timeout_expired() {
@@ -1054,12 +1066,40 @@ impl<'a> EvalState<'a> {
                 break;
             }
         }
+        match prev_unit_locale {
+            Some(v) => {
+                self.env.insert("__unit_byte_locale".to_string(), v);
+            }
+            None => {
+                self.env.remove("__unit_byte_locale");
+            }
+        }
 
         Ok(BuiltinOutcome {
             stdout,
             stderr,
             exit_code: last_code,
         })
+    }
+
+    fn is_current_byte_locale(&self) -> bool {
+        let eff = self
+            .env
+            .get("LC_ALL")
+            .filter(|v| !v.is_empty())
+            .or_else(|| self.env.get("LC_CTYPE").filter(|v| !v.is_empty()))
+            .or_else(|| self.env.get("LANG").filter(|v| !v.is_empty()))
+            .map(String::as_str)
+            .unwrap_or("");
+        matches!(eff, "C" | "POSIX")
+    }
+
+    fn is_unit_byte_locale(&self) -> bool {
+        if let Some(v) = self.env.get("__unit_byte_locale") {
+            v == "1"
+        } else {
+            self.is_current_byte_locale()
+        }
     }
 
     fn eval_and_or_list(
@@ -3186,14 +3226,16 @@ impl<'a> EvalState<'a> {
             .unwrap_or(false);
         let keep_prefix_assigns = matches!(
             expanded_words[0].as_str(),
-            "export" | "readonly" | "declare" | "typeset" | "local" | "eval" | "source" | "."
+            "export" | "readonly" | "declare" | "typeset" | "local"
         ) || (is_posix
             && !self.functions.contains_key(&expanded_words[0])
             && matches!(
                 expanded_words[0].as_str(),
                 ":"
+                    | "."
                     | "break"
                     | "continue"
+                    | "eval"
                     | "exec"
                     | "exit"
                     | "return"
@@ -3288,6 +3330,7 @@ impl<'a> EvalState<'a> {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
             let prev_loop_depth = self.loop_depth;
             let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
+            let prev_pos_ver = self.pos_args_version;
             let caller_frame = self.capture_caller_frame(cmd);
             self.caller_frames.insert(0, caller_frame);
             self.func_stack.insert(0, cmd.to_string());
@@ -3390,6 +3433,7 @@ impl<'a> EvalState<'a> {
             }
             self.loop_depth = prev_loop_depth;
             self.pos_args = prev_args;
+            self.pos_args_version = prev_pos_ver;
             if !self.caller_frames.is_empty() {
                 self.caller_frames.remove(0);
             }
@@ -3661,6 +3705,8 @@ impl<'a> EvalState<'a> {
                 });
             }
             "eval" => {
+                let is_special = !bypass_functions
+                    && self.env.get("__set_posix").is_some_and(|v| v == "1");
                 let eval_args = if args.first().map(|s| s.as_str()) == Some("--") {
                     &args[1..]
                 } else if let Some(first) = args.first()
@@ -3668,9 +3714,15 @@ impl<'a> EvalState<'a> {
                     && first != "-"
                 {
                     let flag = first.chars().nth(1).unwrap_or('-');
+                    if is_special {
+                        self.exit_requested = Some(2);
+                    }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("eval: -{flag}: invalid option\neval: usage: eval [arg ...]\n"),
+                        stderr: format!(
+                            "{}eval: -{flag}: invalid option\neval: usage: eval [arg ...]\n",
+                            self.diag_prefix()
+                        ),
                         exit_code: 2,
                     });
                 } else {
@@ -3683,17 +3735,47 @@ impl<'a> EvalState<'a> {
                         exit_code: 0,
                     });
                 }
+                self.budget
+                    .enter_substitution()
+                    .map_err(EvalError::Budget)?;
                 let joined = eval_args.join(" ");
+                if let Err(e) = self.budget.add_source_bytes(joined.len()) {
+                    self.budget.leave_substitution();
+                    return Err(EvalError::Budget(e));
+                }
                 if joined.bytes().any(|b| {
                     (b <= 0x08) || b == 0x0b || b == 0x0c || (0x0e..=0x1f).contains(&b) || b == 0x7f
                 }) {
+                    self.budget.leave_substitution();
+                    let code = if is_special {
+                        self.exit_requested = Some(1);
+                        1
+                    } else {
+                        126
+                    };
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: "eval: cannot execute binary script\n".to_string(),
-                        exit_code: 126,
+                        stderr: format!("{}eval: cannot execute binary script\n", self.diag_prefix()),
+                        exit_code: code,
                     });
                 }
+                let eval_syntax_name = format!(
+                    "{}: eval",
+                    self.script_name.as_deref().unwrap_or("shell")
+                );
+                let prev_line = self.current_line;
+                let eval_diag_offset = prev_line.saturating_sub(1);
+                let prev_cb_offset =
+                    std::mem::replace(&mut self.callback_line_offset, eval_diag_offset);
+                self.syntax_contexts
+                    .push((eval_syntax_name.clone(), eval_diag_offset, true));
                 let out = self.eval_script_units(&joined, stdin);
+                self.syntax_contexts.pop();
+                self.callback_line_offset = prev_cb_offset;
+                self.current_line = prev_line;
+                self.env
+                    .insert("__lineno".to_string(), prev_line.to_string());
+                self.budget.leave_substitution();
                 self.env.insert(
                     "__last_arg".to_string(),
                     args.last().unwrap_or(cmd).clone(),
@@ -3704,12 +3786,18 @@ impl<'a> EvalState<'a> {
                         if !msg.starts_with("__nounset__")
                             && !msg.starts_with("__param_err__") =>
                     {
-                        if self.env.get("__set_posix").is_some_and(|v| v == "1") {
+                        if is_special {
                             self.exit_requested = Some(2);
                         }
                         Ok(BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{msg}\n"),
+                            stderr: format_syntax_diagnostic(
+                                &eval_syntax_name,
+                                eval_diag_offset,
+                                &joined,
+                                &msg,
+                                true,
+                            ),
                             exit_code: 2,
                         })
                     }
@@ -3717,52 +3805,122 @@ impl<'a> EvalState<'a> {
                 };
             }
             "source" | "." => {
+                let is_posix = self.env.get("__set_posix").is_some_and(|v| v == "1");
+                let is_special = !bypass_functions && is_posix && cmd == ".";
                 let src_args = if args.first().map(|s| s.as_str()) == Some("--") {
                     &args[1..]
                 } else if let Some(first) = args.first()
                     && first.starts_with('-')
                     && first != "-"
                 {
+                    if is_special {
+                        self.exit_requested = Some(2);
+                    }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{cmd}: {first}: unsupported option\n"),
+                        stderr: format!("{}{cmd}: {first}: unsupported option\n", self.diag_prefix()),
                         exit_code: 2,
                     });
                 } else {
                     args
                 };
                 let Some(target) = src_args.first() else {
+                    if is_special {
+                        self.exit_requested = Some(2);
+                    }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: format!(
-                            "{cmd}: filename argument required\n{cmd}: usage: {cmd} [-p path] filename [arguments]\n"
+                            "{}{cmd}: filename argument required\n{cmd}: usage: {cmd} [-p path] filename [arguments]\n",
+                            self.diag_prefix()
                         ),
                         exit_code: 2,
                     });
                 };
+                self.budget
+                    .enter_substitution()
+                    .map_err(EvalError::Budget)?;
                 {
-                    let full = if !target.contains('/') {
-                        let path_env = self
+                    if target.is_empty() {
+                        self.budget.leave_substitution();
+                        if is_special {
+                            self.exit_requested = Some(1);
+                        }
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!("{}: No such file or directory\n", self.diag_prefix()),
+                            exit_code: 1,
+                        });
+                    }
+                    let mut effective_target = target.clone();
+                    if !target.contains('/')
+                        && let Some(path_env) = self
                             .env
                             .get("PATH")
+                            .filter(|p| !p.is_empty())
                             .cloned()
-                            .unwrap_or_else(|| "/usr/local/bin:/usr/bin:/bin".to_string());
-                        let mut found = None;
-                        for dir in path_env.split(':').filter(|d| !d.is_empty()) {
-                            let cand = resolve_posix_path(self.cwd, &format!("{dir}/{target}"));
-                            if self.fs.exists(&cand) && !self.fs.is_dir(&cand) {
-                                found = Some(cand);
+                    {
+                        let mut found = false;
+                        for seg in path_env.split(':') {
+                            let dir = if seg.is_empty() { "." } else { seg };
+                            let cand = if dir.ends_with('/') {
+                                format!("{dir}{target}")
+                            } else {
+                                format!("{dir}/{target}")
+                            };
+                            let full_cand = resolve_posix_path(self.cwd, &cand);
+                            if let Ok(meta) = self.fs.stat(&full_cand)
+                                && meta.kind == crate::vfs::VfsEntryKind::File
+                                && (meta.mode & 0o444) != 0
+                            {
+                                effective_target = cand;
+                                found = true;
                                 break;
                             }
                         }
-                        found.unwrap_or_else(|| resolve_posix_path(self.cwd, target))
-                    } else {
-                        resolve_posix_path(self.cwd, target)
-                    };
+                        if !found && is_posix {
+                            self.budget.leave_substitution();
+                            if is_special {
+                                self.exit_requested = Some(1);
+                            }
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!(
+                                    "{}{cmd}: {target}: file not found\n",
+                                    self.diag_prefix()
+                                ),
+                                exit_code: 1,
+                            });
+                        }
+                    }
+                    let full = resolve_posix_path(self.cwd, &effective_target);
                     if self.fs.is_dir(&full) {
+                        self.budget.leave_substitution();
+                        if is_special {
+                            self.exit_requested = Some(1);
+                        }
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{cmd}: {target}: is a directory\n"),
+                            stderr: format!(
+                                "{}{cmd}: {effective_target}: is a directory\n",
+                                self.diag_prefix()
+                            ),
+                            exit_code: 1,
+                        });
+                    }
+                    if let Ok(meta) = self.fs.stat(&full)
+                        && (meta.mode & 0o444) == 0
+                    {
+                        self.budget.leave_substitution();
+                        if is_special {
+                            self.exit_requested = Some(1);
+                        }
+                        return Ok(BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: format!(
+                                "{}{effective_target}: Permission denied\n",
+                                self.diag_prefix()
+                            ),
                             exit_code: 1,
                         });
                     }
@@ -3781,13 +3939,31 @@ impl<'a> EvalState<'a> {
                     });
                     match read_res {
                         Ok(bytes) => {
-                            if bytes.len() > self.budget.limits.max_source_bytes {
-                                return Err(EvalError::Budget(format!(
-                                    "Execution aborted: Shell limit exceeded: maxSourceBytes ({})",
-                                    self.budget.limits.max_source_bytes
-                                )));
+                            if let Err(e) = self.budget.add_source_bytes(bytes.len()) {
+                                self.budget.leave_substitution();
+                                return Err(EvalError::Budget(e));
+                            }
+                            if bytes.iter().any(|&b| {
+                                b < 9 || (b > 10 && b < 13) || (b > 13 && b < 32) || b == 127
+                            }) {
+                                self.budget.leave_substitution();
+                                let code = if is_special {
+                                    self.exit_requested = Some(1);
+                                    1
+                                } else {
+                                    126
+                                };
+                                return Ok(BuiltinOutcome {
+                                    stdout: String::new(),
+                                    stderr: format!(
+                                        "{}{effective_target}: cannot execute binary script\n",
+                                        self.diag_prefix()
+                                    ),
+                                    exit_code: code,
+                                });
                             }
                             let script_str = String::from_utf8_lossy(&bytes);
+                            let saved_pos_ver = self.pos_args_version;
                             let saved_args = if src_args.len() > 1 {
                                 Some(std::mem::replace(&mut self.pos_args, src_args[1..].to_vec()))
                             } else {
@@ -3795,7 +3971,8 @@ impl<'a> EvalState<'a> {
                             };
                             let caller_frame = self.capture_caller_frame("source");
                             self.caller_frames.insert(0, caller_frame);
-                            let prev_script_name = self.script_name.replace(target.clone());
+                            let prev_script_name =
+                                self.script_name.replace(effective_target.clone());
                             let prev_line = self.current_line;
                             let prev_cb_offset =
                                 std::mem::replace(&mut self.callback_line_offset, 0);
@@ -3806,7 +3983,10 @@ impl<'a> EvalState<'a> {
                                 self.traps.get("DEBUG").cloned(),
                                 self.trap_versions.get("DEBUG").copied(),
                             ));
+                            self.syntax_contexts
+                                .push((effective_target.clone(), 0, true));
                             let eval_res = self.eval_script_units(&script_str, stdin);
+                            self.syntax_contexts.pop();
                             if let Some((prev_dbg, prev_ver)) = self.source_debug_snapshots.pop()
                                 && let Some(handler) = prev_dbg
                                 && !self.traps.contains_key("DEBUG")
@@ -3824,11 +4004,46 @@ impl<'a> EvalState<'a> {
                             if !self.caller_frames.is_empty() {
                                 self.caller_frames.remove(0);
                             }
+                            self.budget.leave_substitution();
                             let mut out = match eval_res {
                                 Ok(o) => o,
-                                Err(e) => {
-                                    if let Some(prev) = saved_args {
+                                Err(EvalError::Syntax(msg))
+                                    if !msg.starts_with("__nounset__")
+                                        && !msg.starts_with("__param_err__") =>
+                                {
+                                    if let Some(prev) = saved_args
+                                        && (!self.func_stack.is_empty()
+                                            || self.pos_args_version == saved_pos_ver)
+                                    {
                                         self.pos_args = prev;
+                                        self.pos_args_version = saved_pos_ver;
+                                    }
+                                    if is_special {
+                                        self.exit_requested = Some(2);
+                                    }
+                                    self.env.insert(
+                                        "__last_arg".to_string(),
+                                        args.last().unwrap_or(cmd).clone(),
+                                    );
+                                    return Ok(BuiltinOutcome {
+                                        stdout: String::new(),
+                                        stderr: format_syntax_diagnostic(
+                                            &effective_target,
+                                            0,
+                                            &script_str,
+                                            &msg,
+                                            true,
+                                        ),
+                                        exit_code: 2,
+                                    });
+                                }
+                                Err(e) => {
+                                    if let Some(prev) = saved_args
+                                        && (!self.func_stack.is_empty()
+                                            || self.pos_args_version == saved_pos_ver)
+                                    {
+                                        self.pos_args = prev;
+                                        self.pos_args_version = saved_pos_ver;
                                     }
                                     return Err(e);
                                 }
@@ -3841,8 +4056,12 @@ impl<'a> EvalState<'a> {
                                 }
                                 self.last_exit = out.exit_code;
                             }
-                            if let Some(prev) = saved_args {
+                            if let Some(prev) = saved_args
+                                && (!self.func_stack.is_empty()
+                                    || self.pos_args_version == saved_pos_ver)
+                            {
                                 self.pos_args = prev;
+                                self.pos_args_version = saved_pos_ver;
                             }
                             self.env.insert(
                                 "__last_arg".to_string(),
@@ -3851,9 +4070,16 @@ impl<'a> EvalState<'a> {
                             return Ok(out);
                         }
                         Err(_) => {
+                            self.budget.leave_substitution();
+                            if is_special {
+                                self.exit_requested = Some(1);
+                            }
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{cmd}: {target}: No such file or directory\n"),
+                                stderr: format!(
+                                    "{}{effective_target}: No such file or directory\n",
+                                    self.diag_prefix()
+                                ),
                                 exit_code: 1,
                             });
                         }
@@ -3976,7 +4202,12 @@ impl<'a> EvalState<'a> {
                 {
                     return Ok(b_out);
                 }
-                return self.dispatch_words(&args[idx..], stdin, true);
+                self.budget
+                    .enter_substitution()
+                    .map_err(EvalError::Budget)?;
+                let res = self.dispatch_words(&args[idx..], stdin, true);
+                self.budget.leave_substitution();
+                return res;
             }
             "command" => {
                 let mut discover = false;
@@ -4037,7 +4268,11 @@ impl<'a> EvalState<'a> {
                     self.env
                         .insert("__command_default_path__".to_string(), "1".to_string());
                 }
+                self.budget
+                    .enter_substitution()
+                    .map_err(EvalError::Budget)?;
                 let res = self.dispatch_words(&args[idx..], stdin, true);
+                self.budget.leave_substitution();
                 self.env.remove("__command_default_path__");
                 return res;
             }
@@ -4244,6 +4479,8 @@ impl<'a> EvalState<'a> {
                     explicit_exit: false,
                     sub_exit: None,
                     pos_args: Vec::new(),
+                    pos_args_version: 0,
+                    syntax_contexts: Vec::new(),
                     last_exit: 0,
                     errexit: false,
                     nounset: false,
@@ -5688,10 +5925,12 @@ impl<'a> EvalState<'a> {
             let a = &args[i];
             if a == "--" {
                 self.pos_args = args[i + 1..].to_vec();
+                self.pos_args_version = self.pos_args_version.wrapping_add(1);
                 break;
             } else if a == "-" {
                 if i + 1 < args.len() {
                     self.pos_args = args[i + 1..].to_vec();
+                    self.pos_args_version = self.pos_args_version.wrapping_add(1);
                 }
                 break;
             } else if (a.starts_with('-') || a.starts_with('+')) && a.len() > 1 {
@@ -5759,6 +5998,7 @@ impl<'a> EvalState<'a> {
                 }
             } else {
                 self.pos_args = args[i..].to_vec();
+                self.pos_args_version = self.pos_args_version.wrapping_add(1);
                 break;
             }
             i += 1;
@@ -10104,7 +10344,10 @@ impl<'a> EvalState<'a> {
                 if idx < chars.len() {
                     idx += 1;
                 }
-                fragments.push((decode_ansi_c_escapes(&raw), true));
+                fragments.push((
+                    decode_ansi_c_escapes_with_locale(&raw, self.is_unit_byte_locale()),
+                    true,
+                ));
                 continue;
             }
             if c == '"' {
@@ -10280,7 +10523,8 @@ impl<'a> EvalState<'a> {
                 if idx < chars.len() {
                     idx += 1;
                 }
-                let decoded = decode_ansi_c_escapes(&raw);
+                let decoded =
+                    decode_ansi_c_escapes_with_locale(&raw, self.is_unit_byte_locale());
                 let seg = if escape_quoted_glob {
                     let mut esc = String::new();
                     for dc in decoded.chars() {
@@ -13433,6 +13677,143 @@ fn format_callback_syntax_diagnostic(
     source: &str,
     syn_msg: &str,
 ) -> String {
+    format_syntax_diagnostic(syntax_name, diag_offset, source, syn_msg, false)
+}
+
+fn find_incomplete_command(source: &str) -> Option<(&'static str, usize)> {
+    let Ok(tokens) = crate::shell::lexer::tokenize_shell(source) else {
+        return None;
+    };
+    let mut cur_line = 1usize;
+    let mut at_cmd_start = true;
+    let mut for_state = 0u8;
+    let mut open_cmds: Vec<(&'static str, usize)> = Vec::new();
+    for tok in &tokens {
+        match tok {
+            crate::shell::lexer::Token::Newline => {
+                cur_line += 1;
+                if for_state != 2 {
+                    for_state = 0;
+                    at_cmd_start = true;
+                }
+            }
+            crate::shell::lexer::Token::Semi
+            | crate::shell::lexer::Token::Background
+            | crate::shell::lexer::Token::Pipe
+            | crate::shell::lexer::Token::AndIf
+            | crate::shell::lexer::Token::OrIf
+            | crate::shell::lexer::Token::LParen
+            | crate::shell::lexer::Token::RParen => {
+                for_state = 0;
+                at_cmd_start = true;
+            }
+            crate::shell::lexer::Token::Word(w) => {
+                let word_lines = w.matches('\n').count();
+                if for_state == 1 {
+                    for_state = 2;
+                    at_cmd_start = false;
+                } else if for_state == 2 {
+                    if w == "in" {
+                        for_state = 3;
+                        at_cmd_start = false;
+                    } else if w == "do" {
+                        for_state = 0;
+                        at_cmd_start = true;
+                    } else {
+                        for_state = 0;
+                        at_cmd_start = false;
+                    }
+                } else if for_state == 3 {
+                    at_cmd_start = false;
+                } else if at_cmd_start {
+                    match w.as_str() {
+                        "if" => {
+                            open_cmds.push(("if", cur_line));
+                            at_cmd_start = true;
+                        }
+                        "then" | "elif" | "else" => {
+                            at_cmd_start = true;
+                        }
+                        "fi" => {
+                            if let Some(pos) = open_cmds.iter().rposition(|(n, _)| *n == "if") {
+                                open_cmds.remove(pos);
+                            }
+                            at_cmd_start = false;
+                        }
+                        "for" => {
+                            open_cmds.push(("for", cur_line));
+                            for_state = 1;
+                            at_cmd_start = false;
+                        }
+                        "while" => {
+                            open_cmds.push(("while", cur_line));
+                            at_cmd_start = true;
+                        }
+                        "until" => {
+                            open_cmds.push(("until", cur_line));
+                            at_cmd_start = true;
+                        }
+                        "do" => {
+                            at_cmd_start = true;
+                        }
+                        "done" => {
+                            if let Some(pos) = open_cmds
+                                .iter()
+                                .rposition(|(n, _)| matches!(*n, "for" | "while" | "until"))
+                            {
+                                open_cmds.remove(pos);
+                            }
+                            at_cmd_start = false;
+                        }
+                        "case" => {
+                            open_cmds.push(("case", cur_line));
+                            at_cmd_start = false;
+                        }
+                        "esac" => {
+                            if let Some(pos) = open_cmds.iter().rposition(|(n, _)| *n == "case") {
+                                open_cmds.remove(pos);
+                            }
+                            at_cmd_start = false;
+                        }
+                        "{" => {
+                            open_cmds.push(("{", cur_line));
+                            at_cmd_start = true;
+                        }
+                        "}" => {
+                            if let Some(pos) = open_cmds.iter().rposition(|(n, _)| *n == "{") {
+                                open_cmds.remove(pos);
+                            }
+                            at_cmd_start = false;
+                        }
+                        "!" => {
+                            at_cmd_start = true;
+                        }
+                        _ => {
+                            at_cmd_start = false;
+                        }
+                    }
+                }
+                cur_line += word_lines;
+            }
+            crate::shell::lexer::Token::RedirectHereDoc { body, .. } => {
+                cur_line += body.matches('\n').count();
+                at_cmd_start = false;
+            }
+            _ => {
+                at_cmd_start = false;
+            }
+        }
+    }
+    open_cmds.last().copied()
+}
+
+fn format_syntax_diagnostic(
+    syntax_name: &str,
+    diag_offset: usize,
+    source: &str,
+    syn_msg: &str,
+    include_context: bool,
+) -> String {
     if syn_msg.contains("unclosed single quote")
         || syn_msg.contains("unclosed double quote")
         || syn_msg.contains("unclosed backtick")
@@ -13495,7 +13876,19 @@ fn format_callback_syntax_diagnostic(
     if syn_msg.contains("unexpected end of file") || syn_msg.contains("unclosed") {
         let eof_line =
             diag_offset + source.split('\n').count() + usize::from(!source.ends_with('\n'));
-        return format!("{syntax_name}: line {eof_line}: syntax error: unexpected end of file\n");
+        let ctx = if include_context
+            && let Some((cmd_name, cmd_line)) = find_incomplete_command(source)
+        {
+            format!(
+                " from `{cmd_name}' command on line {}",
+                diag_offset + cmd_line
+            )
+        } else {
+            String::new()
+        };
+        return format!(
+            "{syntax_name}: line {eof_line}: syntax error: unexpected end of file{ctx}\n"
+        );
     }
     let clean = syn_msg.strip_prefix("bash: ").unwrap_or(syn_msg);
     format!("{syntax_name}: line {}: {clean}\n", diag_offset + 1)
@@ -14267,14 +14660,14 @@ mod tests {
         assert_eq!(eval_err.exit_code, 2);
         assert_eq!(
             eval_err.stderr,
-            "eval: -z: invalid option\neval: usage: eval [arg ...]\n"
+            "shell: line 1: eval: -z: invalid option\neval: usage: eval [arg ...]\n"
         );
 
         let src_err = state.eval_script_str("source", "").unwrap();
         assert_eq!(src_err.exit_code, 2);
         assert_eq!(
             src_err.stderr,
-            "source: filename argument required\nsource: usage: source [-p path] filename [arguments]\n"
+            "shell: line 1: source: filename argument required\nsource: usage: source [-p path] filename [arguments]\n"
         );
 
         let trap_l = state.eval_script_str("trap -l", "").unwrap();
@@ -15087,5 +15480,91 @@ printf 'flex=%d:%s|%d:%s\n' "$wf" "$(cat e_flex)" "$wfn" "$fwin"
                 "flex=1:shell: line 89: wait: ` +1015': not a pid or valid job spec|5:1015\n",
             )
         );
+    }
+
+    #[test]
+    fn unit_eval_source_dot_eval_command_syntax_locale_and_bounds_parity() {
+        let mut cwd = "/workspace".to_string();
+        let mut env = BTreeMap::new();
+        let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/workspace").unwrap();
+        let budget = ExecutionBudget::default();
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        let r = state
+            .eval_script_str(
+                r#"
+mkdir -p /workspace/sd
+cd /workspace/sd
+
+printf '%s\n' 'set -- changed' > set_lib.sh
+set -- orig
+. ./set_lib.sh arg1
+printf 'top_set=%s\n' "$1"
+
+fn_set() {
+  set -- fn_orig
+  . ./set_lib.sh arg1
+  printf 'fn_set=%s\n' "$1"
+}
+fn_set
+
+printf '%s\n' 'printf "seen=%s\n" "${P-unset}"' > p_lib.sh
+P=outer
+P=inner . ./p_lib.sh
+printf 'bash_dot_after=%s\n' "$P"
+P=inner eval 'printf "eval_seen=%s\n" "$P"'
+printf 'bash_eval_after=%s\n' "$P"
+
+sh -c '
+  P=outer
+  P=inner . ./p_lib.sh
+  printf "sh_dot_after=%s\n" "$P"
+  P=outer
+  P=inner command . ./p_lib.sh
+  printf "sh_cmd_dot_after=%s\n" "$P"
+'
+
+printf '%s\n' 'LATE=kept' 'if true; then' > late_bad.sh
+( . ./late_bad.sh ) 2>e_dot_eof; d_st=$?
+printf 'dot_eof=%d:%s\n' "$d_st" "$(tr '\n' '|' < e_dot_eof)"
+
+( eval $'EVAL_KEEP=1\n(\necho nope' ) 2>e_eval_eof; e_st=$?
+printf 'eval_eof=%d:%s\n' "$e_st" "$(tr '\n' '|' < e_eval_eof)"
+
+LC_ALL=C eval $'c_val=$\'\\u00e9\\U000003a9\\U0001f600\\u0041\''
+LC_ALL=en_US.UTF-8 eval $'u_val=$\'\\u00e9\''
+printf 'locale=%s|%s\n' "$c_val" "$u_val"
+"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r.stderr, "");
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(
+            r.stdout,
+            concat!(
+                "top_set=changed\n",
+                "fn_set=fn_orig\n",
+                "seen=inner\n",
+                "bash_dot_after=outer\n",
+                "eval_seen=inner\n",
+                "bash_eval_after=outer\n",
+                "seen=inner\n",
+                "sh_dot_after=inner\n",
+                "seen=inner\n",
+                "sh_cmd_dot_after=outer\n",
+                "dot_eof=2:./late_bad.sh: line 3: syntax error: unexpected end of file from `if' command on line 2|\n",
+                "eval_eof=2:shell: eval: line 40: syntax error: unexpected end of file|\n",
+                "locale=\\u00E9\\u03A9\\U0001F600A|\u{00e9}\n",
+            )
+        );
+
+        let mut lim = crate::ShellLimits::default();
+        lim.max_source_bytes = 20;
+        let budget_lim = ExecutionBudget::new(lim, None);
+        let mut state_lim = EvalState::new(&mut cwd, &mut env, &vfs, &budget_lim, &custom, false);
+        let err = state_lim.eval_script_str("eval 'VALUE=12345678901234567890'", "").unwrap_err();
+        assert!(matches!(err, EvalError::Budget(ref msg) if msg.contains("Shell limit exceeded: maxSourceBytes")), "unexpected err: {err:?}");
     }
 }

@@ -75,6 +75,7 @@ pub struct ExecutionBudget {
     loop_iterations: AtomicUsize,
     commands: AtomicUsize,
     output_bytes: AtomicUsize,
+    source_bytes: AtomicUsize,
     fs_ops: AtomicUsize,
     recursion_depth: AtomicUsize,
     substitution_depth: AtomicUsize,
@@ -103,6 +104,7 @@ impl ExecutionBudget {
             loop_iterations: AtomicUsize::new(0),
             commands: AtomicUsize::new(0),
             output_bytes: AtomicUsize::new(0),
+            source_bytes: AtomicUsize::new(0),
             fs_ops: AtomicUsize::new(0),
             recursion_depth: AtomicUsize::new(0),
             substitution_depth: AtomicUsize::new(0),
@@ -223,6 +225,18 @@ impl ExecutionBudget {
             return Err(self.record_exceeded(format!(
                 "Execution aborted: Shell limit exceeded: maxOutputBytes ({})",
                 self.limits.max_output_bytes
+            )));
+        }
+        Ok(())
+    }
+
+    pub fn add_source_bytes(&self, bytes: usize) -> Result<(), String> {
+        self.check_cancelled()?;
+        let prev = self.source_bytes.fetch_add(bytes, Ordering::Relaxed);
+        if prev.saturating_add(bytes) > self.limits.max_source_bytes {
+            return Err(self.record_exceeded(format!(
+                "Execution aborted: Shell limit exceeded: maxSourceBytes ({})",
+                self.limits.max_source_bytes
             )));
         }
         Ok(())

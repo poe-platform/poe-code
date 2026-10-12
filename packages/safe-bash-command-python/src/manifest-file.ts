@@ -55,9 +55,9 @@ export function createPythonPackageFileManifestStore({fs,directory,maxCacheBytes
    signal.throwIfAborted();
    const filename=path(scope),observed=observations.get(scope),settings={signal};
    if(observed?.revision!==expected)return false;
+   await fs.mkdir(root,{recursive:true,signal});
    const caps=await fs.capabilitiesFor?.(root,{signal,create:true})??fs.capabilities;
    if(!caps.atomicFileStaging||!caps.retainedStagingWrite||!caps.retainedStagingCleanup||!caps.guardedStagingPublication||!fs.createStagedFile||!fs.publishStagedFile||!fs.prepareStagingResolution)throw new Error('Python manifests require guarded retained atomic staging');
-   await fs.mkdir(root,{recursive:true,signal});
    const resolution=await fs.prepareStagingResolution(filename,settings);
    if(observed?(!resolution.destination||compareIdentity(observed.stat,resolution.destination)!=='same'||!compareFileVersion(observed.stat,resolution.destination)):resolution.destination!==null)return false;
    let stage:FileStaging|undefined;

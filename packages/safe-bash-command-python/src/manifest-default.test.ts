@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {scopeFileSystem} from '@poe-code/safe-fs/runtime-core';
 import {createPythonPackageEnvironment} from './provisioning.js';
 
 test('implicit manifests use bounded caller storage across invocations and retire with their environment',async()=>{
@@ -85,4 +86,33 @@ test('default manifest cache limits preserve the prior caller-backed snapshot',a
   try{assert.deepEqual(restored.restore,['fixture==2']);}finally{await env.finish(restored);}
  }finally{await env.finish(first);await env.dispose();}
  assert.deepEqual(await backing.readdir('/'),[]);
+});
+
+for(const publishFirst of [false,true])test(`implicit manifests survive closed filesystem scopes; initial publication=${publishFirst}`,async()=>{
+ const backing=new MemoryFileSystem(),env=createPythonPackageEnvironment();
+ const controller=new AbortController();
+ const context={fs:scopeFileSystem(backing,()=>{},controller.signal),cwd:'/',signal:controller.signal};
+ const first=await env.prepare(context);
+ try{
+  if(publishFirst)await env.dispatch('package-commit',[first.session,['fixture==1']],context);
+  await env.finish(first);controller.abort(new Error('first invocation closed'));
+  const nextController=new AbortController(),nextContext={fs:scopeFileSystem(backing,()=>{},nextController.signal),cwd:'/',signal:nextController.signal};
+  const next=await env.prepare(nextContext);
+  try{assert.deepEqual(next.restore,publishFirst?['fixture==1']:[]);await env.dispatch('package-commit',[next.session,['fixture==2']],nextContext);}
+  finally{await env.finish(next);nextController.abort(new Error('second invocation closed'));}
+ }finally{await env.finish(first);await env.dispose();}
+ assert.deepEqual(await backing.readdir('/'),[]);
+});
+
+test('a different caller filesystem cannot replace or retire the environment manifest',async()=>{
+ const backing=new MemoryFileSystem(),other=new MemoryFileSystem(),env=createPythonPackageEnvironment();
+ const context={fs:backing,cwd:'/',signal:new AbortController().signal};
+ const first=await env.prepare(context);
+ try{
+  await env.dispatch('package-commit',[first.session,['fixture==1']],context);await env.finish(first);
+  await assert.rejects(env.prepare({...context,fs:other}),/Cannot read Python package environment manifest/);
+  const next=await env.prepare(context);
+  try{assert.deepEqual(next.restore,['fixture==1']);}finally{await env.finish(next);}
+ }finally{await env.finish(first);await env.dispose();}
+ assert.deepEqual(await backing.readdir('/'),[]);assert.deepEqual(await other.readdir('/'),[]);
 });

@@ -1,4 +1,5 @@
 import {compareIdentity} from '@poe-code/safe-fs/core';
+import {retainFileSystemCleanup} from '@poe-code/safe-fs/runtime-core';
 import type {FileStat} from 'safe-bash-contracts';
 import {resolvePath} from 'safe-bash-contracts/path';
 import type {PythonPackageContext} from './provisioning.js';
@@ -8,13 +9,21 @@ let serial=0;
 export class PythonInstallationRoot {
  private initializing:Promise<string>|undefined;
  private closing:Promise<void>|undefined;
+ private cleanup:(()=>Promise<void>)|undefined;
  private owned:{path:string;parent:FileStat;identity:FileStat}|undefined;
  constructor(private readonly context:PythonPackageContext){}
- path():Promise<string>{
+ path(context?:PythonPackageContext):Promise<string>{
   if(this.closing)return Promise.reject(new Error('Python installation root is closed'));
-  return this.initializing??=(async()=>{
+  const initialized=this.initializing??=(async()=>{
    const {fs,signal,cwd}=this.context;
    signal.throwIfAborted();
+   this.cleanup=retainFileSystemCleanup(fs,async view=>{
+    if(!this.owned)return;
+    const {path,parent,identity}=this.owned,current=await view.lstat(path);
+    if(compareIdentity(identity,current)!=='same')throw new Error('Python installation root identity changed');
+    await view.removeTreeConditional!(path,{parent,expected:current});
+    this.owned=undefined;
+   });
    await fs.mkdir(cwd,{recursive:true,signal});
    const parentPath=await fs.realpath(cwd,{signal});
    const parent=await fs.stat(parentPath,{signal});
@@ -34,16 +43,15 @@ export class PythonInstallationRoot {
    }
    throw new Error('Python installation root names exhausted');
   })();
+  return context?initialized.then(async path=>{
+   if(compareIdentity(this.owned!.identity,await context.fs.lstat(path,{signal:context.signal}))!=='same')throw new Error('Python installation root identity changed');
+   return path;
+  }):initialized;
  }
  close():Promise<void>{
   return this.closing??=(async()=>{
    await this.initializing?.catch(()=>{});
-   if(!this.owned)return;
-   const {fs}=this.context,{path,parent,identity}=this.owned;
-   const current=await fs.lstat(path);
-   if(compareIdentity(identity,current)!=='same')throw new Error('Python installation root identity changed');
-   await fs.removeTreeConditional!(path,{parent,expected:current});
-   this.owned=undefined;
+   await this.cleanup?.();
   })();
  }
 }

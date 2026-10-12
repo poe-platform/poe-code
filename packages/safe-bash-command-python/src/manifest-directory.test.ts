@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {MemoryFileSystem} from '@poe-code/safe-fs/core';
+import {MemoryFileSystem,MountFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonPackageEnvironment} from './provisioning.js';
+import {MockS3Client,S3FileSystem} from '@poe-code/safe-fs/fs/s3';
 import {pythonPackageRuntimeKey} from './cache.js';
 
 const filename=pythonPackageRuntimeKey+'-environment';
@@ -43,4 +44,23 @@ test('configured manifest sessions retain their filesystem and detect competing 
    const restored=await env.prepare(context);try{assert.deepEqual(restored.restore,expected);}finally{await env.finish(restored);}
   }
  }finally{await env.finish(a);await env.finish(b);await other.finish(stale);await env.dispose();await other.dispose();}
+});
+
+for(const legacy of [false,true])test(`weak S3 caches publish manifests in durable caller storage; legacy=${legacy}`,async()=>{
+ const backing=new MemoryFileSystem(),remote=new S3FileSystem({bucket:'cache',transport:new MockS3Client({buckets:['cache']})});
+ const fs=new MountFileSystem({root:backing,mounts:{'/cache':remote}}),context={fs,cwd:'/',signal:new AbortController().signal,recordTransport:'host' as const};
+ if(legacy)await remote.mkdir('/'+pythonPackageRuntimeKey,{recursive:true});
+ if(legacy)await remote.writeFile('/'+pythonPackageRuntimeKey+'/'+filename,new TextEncoder().encode('["legacy==1"]'));
+ const env=createPythonPackageEnvironment({cacheDirectory:'/cache'}),first=await env.prepare(context);
+ try{
+  assert.deepEqual(first.restore,legacy?['legacy==1']:[]);
+  await env.dispatch('package-commit',[first.session,{version:3,installed:['fixture==2'],records:[]}],context);
+ }finally{await env.finish(first);await env.dispose();}
+ const restored=createPythonPackageEnvironment({cacheDirectory:'/cache'}),competing=createPythonPackageEnvironment({cacheDirectory:'/cache'});
+ const next=await restored.prepare(context),stale=await competing.prepare(context);
+ try{
+  assert.deepEqual(next.restore,['fixture==2']);
+  await restored.dispatch('package-commit',[next.session,['fixture==3']],context);
+  await assert.rejects(competing.dispatch('package-commit',[stale.session,['stale==1']],context),{code:'EPACKAGECONFLICT'});
+ }finally{await restored.finish(next);await competing.finish(stale);await restored.dispose();await competing.dispose();}
 });

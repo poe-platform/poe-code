@@ -1,5 +1,5 @@
 import {withPythonManifestPublication} from './manifest-publication.js';
-import {createPythonPackageFileManifestStore} from './manifest-file.js';
+import {createConfiguredPythonManifestStore} from './manifest-configured.js';
 import {serializeLlmJsonValue} from 'safe-bash-command-llm';
 import {createPythonRecordReader} from './record-reader.js';
 import {createDefaultPythonManifestStore} from './manifest-default.js';
@@ -291,7 +291,7 @@ export function createPythonPackageEnvironment(options: PythonPackageOptions = {
    async get(key: string) { try { return await context.fs.readFile(resolve(artifactDirectory,key),{signal}); } catch(error) { if(missing(error))return undefined;throw error; } },
    async set(key: string,bytes:Uint8Array) { await context.fs.mkdir(artifactDirectory,{recursive:true,signal});await context.fs.writeFile(resolve(artifactDirectory,key),bytes,{signal}); },
   });
-  const store=manifestStore??(directory?createPythonPackageFileManifestStore({fs:context.fs,directory,filename:manifestKey}):ownedManifest??=createDefaultPythonManifestStore({...context,signal:controller.signal},options.maxCacheBytes));
+  const store=manifestStore??(directory?await createConfiguredPythonManifestStore(context,directory,manifestKey,maxManifestBytes,options.maxCacheBytes):(ownedManifest??=createDefaultPythonManifestStore(options.maxCacheBytes)).forContext(context));
   const open=input.recordTransport==='host'?store.openSnapshot:undefined;
   let backed:PythonPackageRecordSnapshot|undefined,adopted=false;
   try{

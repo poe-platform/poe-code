@@ -867,7 +867,8 @@ impl<'a> EvalState<'a> {
         {
             return;
         }
-        let saved_exit = self.last_exit;
+        let saved_exit = out.exit_code;
+        self.last_exit = saved_exit;
         self.in_trap = true;
         let mut empty_in = String::new();
         if let Ok(trap_out) = self.eval_script_units(&err_handler, &mut empty_in) {
@@ -1064,10 +1065,6 @@ impl<'a> EvalState<'a> {
             {
                 break;
             }
-            if self.errexit && !self.in_condition && last_code != 0 {
-                self.exit_requested = Some(last_code);
-                break;
-            }
         }
         match prev_unit_locale {
             Some(v) => {
@@ -1179,6 +1176,9 @@ impl<'a> EvalState<'a> {
             && self.return_requested.is_none()
         {
             self.fire_err_trap(&mut first_out);
+            if self.errexit {
+                self.exit_requested = Some(first_out.exit_code);
+            }
         }
 
         Ok(first_out)
@@ -1394,6 +1394,12 @@ impl<'a> EvalState<'a> {
                 stage_out.exit_code = code;
             }
             sub.run_exit_trap_if_needed(&mut stage_out);
+            if !is_last {
+                if let Err(e) = self.budget.record_stdout(stage_out.stdout.len()) {
+                    self.in_condition = prev_cond;
+                    return Err(EvalError::Budget(e));
+                }
+            }
             combined_stderr.push_str(&stage_out.stderr);
             stage_codes.push(stage_out.exit_code);
             cur_stdin = stage_out.stdout;
@@ -1538,8 +1544,14 @@ impl<'a> EvalState<'a> {
             CommandNode::Group { body, redirects } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -1560,8 +1572,14 @@ impl<'a> EvalState<'a> {
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -1618,8 +1636,14 @@ impl<'a> EvalState<'a> {
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -1705,9 +1729,6 @@ impl<'a> EvalState<'a> {
                             break;
                         }
                     }
-                    if self.errexit && !self.in_condition && code != 0 {
-                        break;
-                    }
                 }
                 self.loop_depth -= 1;
 
@@ -1732,8 +1753,14 @@ impl<'a> EvalState<'a> {
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -1891,9 +1918,6 @@ impl<'a> EvalState<'a> {
                             .unwrap_or(true);
                         continue;
                     }
-                    if self.errexit && !self.in_condition && code != 0 {
-                        break;
-                    }
                     show_menu = self
                         .env
                         .get("REPLY")
@@ -1924,8 +1948,14 @@ impl<'a> EvalState<'a> {
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -2000,9 +2030,6 @@ impl<'a> EvalState<'a> {
                             break;
                         }
                     }
-                    if self.errexit && !self.in_condition && code != 0 {
-                        break;
-                    }
                     if !step.trim().is_empty() {
                         let exp_step = self.expand_arith_text(step)?;
                         if let Err(e) = eval_arith(&exp_step, self.env) {
@@ -2041,8 +2068,14 @@ impl<'a> EvalState<'a> {
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -2118,9 +2151,6 @@ impl<'a> EvalState<'a> {
                             break;
                         }
                     }
-                    if self.errexit && !self.in_condition && code != 0 {
-                        break;
-                    }
                 }
                 self.loop_depth -= 1;
 
@@ -2144,8 +2174,14 @@ impl<'a> EvalState<'a> {
             } => {
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
-                if let Some(err_out) = redir_err {
+                if let Some(mut err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
+                    if !self.in_condition && !self.in_trap {
+                        self.fire_err_trap(&mut err_out);
+                        if self.errexit {
+                            self.exit_requested = Some(err_out.exit_code);
+                        }
+                    }
                     return Ok(err_out);
                 }
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
@@ -4322,14 +4358,16 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     });
                 }
-                if let Some(b_out) =
-                    try_run_builtin(target, &args[idx + 1..], stdin, self.cwd, self.env, self.fs)
-                {
-                    return Ok(b_out);
-                }
+                self.budget.tick_command().map_err(EvalError::Budget)?;
                 self.budget
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
+                if let Some(b_out) =
+                    try_run_builtin(target, &args[idx + 1..], stdin, self.cwd, self.env, self.fs)
+                {
+                    self.budget.leave_substitution();
+                    return Ok(b_out);
+                }
                 let res = self.dispatch_words(&args[idx..], stdin, true);
                 self.budget.leave_substitution();
                 return res;
@@ -4394,6 +4432,7 @@ impl<'a> EvalState<'a> {
                     self.env
                         .insert("__command_default_path__".to_string(), "1".to_string());
                 }
+                self.budget.tick_command().map_err(EvalError::Budget)?;
                 self.budget
                     .enter_substitution()
                     .map_err(EvalError::Budget)?;
@@ -4560,6 +4599,7 @@ impl<'a> EvalState<'a> {
         let funcs_clone = self.functions.clone();
         let exported_clone = self.exported_functions.clone();
         let allow_fallback = self.allow_unported_fallback;
+        let mut sub_err: Option<EvalError> = None;
 
         if let Some(c_out) = try_run_command(
             effective_cmd,
@@ -4635,14 +4675,37 @@ impl<'a> EvalState<'a> {
                     active_aliases: BTreeSet::new(),
                     allow_unported_fallback: allow_fallback,
                 };
-                let mut sub_in = sub_stdin.to_string();
-                let mut out = sub_eval
-                    .dispatch_words(sub_words, &mut sub_in, false)
-                    .unwrap_or(BuiltinOutcome {
+                if let Err(e) = sub_eval.budget.enter_substitution() {
+                    sub_err = Some(EvalError::Budget(e));
+                    return BuiltinOutcome {
                         stdout: String::new(),
                         stderr: String::new(),
                         exit_code: 1,
-                    });
+                    };
+                }
+                if let Err(e) = sub_eval.budget.tick_command() {
+                    sub_eval.budget.leave_substitution();
+                    sub_err = Some(EvalError::Budget(e));
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: String::new(),
+                        exit_code: 1,
+                    };
+                }
+                let mut sub_in = sub_stdin.to_string();
+                let res = sub_eval.dispatch_words(sub_words, &mut sub_in, false);
+                sub_eval.budget.leave_substitution();
+                let mut out = match res {
+                    Ok(o) => o,
+                    Err(e) => {
+                        sub_err = Some(e);
+                        return BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 1,
+                        };
+                    }
+                };
                 if out.exit_code == 127
                     && let Some(stripped) = out.stderr.strip_prefix("shell: line 1: ")
                 {
@@ -4651,6 +4714,9 @@ impl<'a> EvalState<'a> {
                 out
             },
         ) {
+            if let Some(e) = sub_err {
+                return Err(e);
+            }
             if effective_cmd == "cat"
                 && (args.iter().all(|a| a.starts_with('-') && a != "-")
                     || args.iter().any(|a| a == "-"))
@@ -5483,6 +5549,9 @@ impl<'a> EvalState<'a> {
         if invoked_cmd == "sh" {
             sub_env.insert("__set_posix".to_string(), "1".to_string());
         }
+        self.budget
+            .enter_substitution()
+            .map_err(EvalError::Budget)?;
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.traps
             .retain(|k, v| v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN"));
@@ -5512,6 +5581,7 @@ impl<'a> EvalState<'a> {
         sub.apply_set_option("noglob", noglob);
         sub.apply_set_option("nounset", nounset);
         sub.apply_set_option("pipefail", pipefail);
+        sub.in_condition = false;
         sub.script_name = Some(arg0.clone());
         sub.current_line = 1;
         if command_string {
@@ -5526,10 +5596,13 @@ impl<'a> EvalState<'a> {
             .collect();
 
         if let Some(cs) = script_source {
-            sub.budget
-                .add_source_bytes(cs.len())
-                .map_err(EvalError::Budget)?;
-            match sub.eval_script_units(&cs, stdin) {
+            if let Err(e) = sub.budget.add_source_bytes(cs.len()) {
+                self.budget.leave_substitution();
+                return Err(EvalError::Budget(e));
+            }
+            let res = sub.eval_script_units(&cs, stdin);
+            self.budget.leave_substitution();
+            match res {
                 Ok(mut out) => {
                     out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
                     sub.last_exit = out.exit_code;
@@ -5551,7 +5624,9 @@ impl<'a> EvalState<'a> {
                 Err(other) => Err(other),
             }
         } else {
-            sub.eval_stdin_stream(stdin, &arg0)
+            let res = sub.eval_stdin_stream(stdin, &arg0);
+            self.budget.leave_substitution();
+            res
         }
     }
 
@@ -5719,6 +5794,10 @@ impl<'a> EvalState<'a> {
                 exit_code: 127,
             });
         }
+        self.budget
+            .enter_substitution()
+            .map_err(EvalError::Budget)?;
+        self.budget.leave_substitution();
         let path = resolve_posix_path(self.cwd, target);
         let mut source_bytes: Option<Vec<u8>> = None;
         let first_or_full_source: String;
@@ -5786,6 +5865,9 @@ impl<'a> EvalState<'a> {
                     });
                 }
             };
+            self.budget
+                .add_source_bytes(bytes.len())
+                .map_err(EvalError::Budget)?;
             first_or_full_source = if direct && bytes.starts_with(b"#!") {
                 let nl = bytes.iter().position(|&b| b == b'\n').unwrap_or(bytes.len());
                 match Self::decode_script_bytes(&bytes[..nl], target) {
@@ -5918,7 +6000,12 @@ impl<'a> EvalState<'a> {
                 }
                 words.push(target.to_string());
                 words.extend(args.iter().cloned());
-                return self.dispatch_words(&words, stdin, true);
+                self.budget
+                    .enter_substitution()
+                    .map_err(EvalError::Budget)?;
+                let res = self.dispatch_words(&words, stdin, true);
+                self.budget.leave_substitution();
+                return res;
             }
         }
 
@@ -5998,6 +6085,7 @@ impl<'a> EvalState<'a> {
         sub.apply_set_option("noglob", noglob);
         sub.apply_set_option("nounset", nounset);
         sub.apply_set_option("pipefail", pipefail);
+        sub.in_condition = false;
         sub.functions = self
             .functions
             .iter()
@@ -6005,12 +6093,19 @@ impl<'a> EvalState<'a> {
             .map(|(k, v)| (k.clone(), v.clone()))
             .collect();
 
-        match sub.eval_script_str(&full_source, stdin) {
-            Ok(res) => Ok(BuiltinOutcome {
-                stdout: res.stdout,
-                stderr: res.stderr,
-                exit_code: res.exit_code,
-            }),
+        self.budget
+            .enter_substitution()
+            .map_err(EvalError::Budget)?;
+        let res = sub.eval_script_units(&full_source, stdin);
+        self.budget.leave_substitution();
+        match res {
+            Ok(mut out) => {
+                out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
+                sub.last_exit = out.exit_code;
+                sub.run_exit_trap_if_needed(&mut out);
+                out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
+                Ok(out)
+            }
             Err(EvalError::Syntax(msg)) => Ok(BuiltinOutcome {
                 stdout: String::new(),
                 stderr: format!("{target}: {msg}\n"),
@@ -6139,6 +6234,7 @@ impl<'a> EvalState<'a> {
             "privileged",
             "verbose",
             "vi",
+            "xtrace",
         ];
         let mut stdout = String::new();
         if args.is_empty() {
@@ -6233,21 +6329,24 @@ impl<'a> EvalState<'a> {
                             if i + 1 < args.len() {
                                 i += 1;
                                 let opt_name = args[i].clone();
-                                if SET_OPTIONS.contains(&opt_name.as_str()) || opt_name == "xtrace"
-                                {
+                                if SET_OPTIONS.contains(&opt_name.as_str()) {
                                     self.apply_set_option(&opt_name, enable);
                                 } else if UNSUPPORTED_SET_OPTIONS.contains(&opt_name.as_str()) {
                                     return BuiltinOutcome {
                                         stdout: String::new(),
                                         stderr: format!(
-                                            "set: {opt_name}: unsupported shell option\n"
+                                            "{}set: {opt_name}: unsupported shell option\n",
+                                            self.diag_prefix()
                                         ),
                                         exit_code: 1,
                                     };
                                 } else {
                                     return BuiltinOutcome {
                                         stdout: String::new(),
-                                        stderr: format!("set: {opt_name}: invalid option name\n"),
+                                        stderr: format!(
+                                            "{}set: {opt_name}: invalid option name\n",
+                                            self.diag_prefix()
+                                        ),
                                         exit_code: 2,
                                     };
                                 }
@@ -6571,10 +6670,11 @@ impl<'a> EvalState<'a> {
 
         let mut status = 0;
         for name in &args[index..] {
-            let valid = known.contains(&name.as_str()) || (opt_mode && name == "xtrace");
+            let valid = known.contains(&name.as_str());
             if !valid {
                 stderr.push_str(&format!(
-                    "shopt: {name}: unsupported shell option name (supported: {})\n",
+                    "{}shopt: {name}: unsupported shell option name (supported: {})\n",
+                    self.diag_prefix(),
                     known.join(", ")
                 ));
                 status = 1;
@@ -8912,6 +9012,33 @@ impl<'a> EvalState<'a> {
         self.fs.lstat(full_path).is_ok()
     }
 
+    fn check_redirect_parent_dir(&self, full: &str, target: &str) -> Option<BuiltinOutcome> {
+        if matches!(
+            full,
+            "/dev/null" | "/dev/zero" | "/dev/random" | "/dev/urandom" | "/dev/full"
+        ) {
+            return None;
+        }
+        let parent = full
+            .rsplit_once('/')
+            .map(|(p, _)| if p.is_empty() { "/" } else { p })
+            .unwrap_or("/");
+        if self.fs.is_dir(parent) {
+            return None;
+        }
+        let prefix = self.diag_prefix();
+        let detail = if self.fs.exists(parent) {
+            "Not a directory"
+        } else {
+            "No such file or directory"
+        };
+        Some(BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{prefix}{target}: {detail}\n"),
+            exit_code: 1,
+        })
+    }
+
     #[allow(clippy::type_complexity)]
     fn setup_redirects(
         &mut self,
@@ -9098,6 +9225,17 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if full != "/dev/null" && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
@@ -9538,6 +9676,17 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if self.is_noclobber_blocked(&full) {
                         let mut err_out = BuiltinOutcome {
                             stdout: String::new(),
@@ -9608,6 +9757,17 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if full != "/dev/null" {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
@@ -9662,6 +9822,17 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if full != "/dev/null" && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
@@ -9741,6 +9912,19 @@ impl<'a> EvalState<'a> {
                             && src_str.chars().all(|c| c.is_ascii_digit());
                         if !is_digits && !*explicit_fd {
                             let full = resolve_posix_path(self.cwd, &target);
+                            if let Some(mut err_out) =
+                                self.check_redirect_parent_dir(&full, &target)
+                            {
+                                self.route_outcome(&mut err_out);
+                                return Ok((
+                                    (saved_fd_table, saved_aliases),
+                                    saved_in,
+                                    local_stdin,
+                                    use_local,
+                                    dup_fd,
+                                    Some(err_out),
+                                ));
+                            }
                             if self.is_noclobber_blocked(&full) {
                                 let mut err_out = BuiltinOutcome {
                                     stdout: String::new(),
@@ -9916,6 +10100,17 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if self.is_noclobber_blocked(&full) {
                         let mut err_out = BuiltinOutcome {
                             stdout: String::new(),
@@ -9975,6 +10170,17 @@ impl<'a> EvalState<'a> {
                         }
                     };
                     let full = resolve_posix_path(self.cwd, &target);
+                    if let Some(mut err_out) = self.check_redirect_parent_dir(&full, &target) {
+                        self.route_outcome(&mut err_out);
+                        return Ok((
+                            (saved_fd_table, saved_aliases),
+                            saved_in,
+                            local_stdin,
+                            use_local,
+                            dup_fd,
+                            Some(err_out),
+                        ));
+                    }
                     if full != "/dev/null" && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
@@ -11309,6 +11515,29 @@ impl<'a> EvalState<'a> {
         if chars[*idx] == '{' {
             let expr = scan_nested_brace_sub(chars, idx)?;
             let (pre_expr, temp_keys) = self.preprocess_param_expr_cmdsubs(&expr)?;
+            let var_end = find_var_name_end(&pre_expr);
+            if var_end > 0 {
+                let var_part = &pre_expr[..var_end];
+                let op_rest = &pre_expr[var_end..];
+                if let Some(pat_raw) = op_rest
+                    .strip_prefix("##")
+                    .or_else(|| op_rest.strip_prefix('#'))
+                    .or_else(|| op_rest.strip_prefix("%%"))
+                    .or_else(|| op_rest.strip_prefix('%'))
+                {
+                    let val_len = self.env.get(var_part).map(|s| s.len()).unwrap_or(0);
+                    if 128 + (val_len + pat_raw.len()) * 4 > self.budget.limits.max_expansion_bytes
+                    {
+                        for tk in temp_keys {
+                            self.env.remove(&tk);
+                        }
+                        return Err(EvalError::Budget(format!(
+                            "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                            self.budget.limits.max_expansion_bytes
+                        )));
+                    }
+                }
+            }
             let res = expand_parameter_expr(&pre_expr, self.env, self.last_exit, &self.pos_args)
                 .map_err(EvalError::Syntax);
             for tk in temp_keys {
@@ -11504,7 +11733,12 @@ impl<'a> EvalState<'a> {
             .env
             .get("__shopt_inherit_errexit")
             .map(|v| v == "1")
-            .unwrap_or(false);
+            .unwrap_or(false)
+            || self
+                .env
+                .get("__set_posix")
+                .map(|v| v == "1")
+                .unwrap_or(false);
         sub.errexit = inherit_errexit && self.errexit;
         sub.env.insert(
             "__set_errexit".to_string(),
@@ -14823,6 +15057,7 @@ mod tests {
     #[test]
     fn unit_readwrite_redirect_local_array_shadowing_and_unset_subscripts() {
         let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/tmp").unwrap();
         let mut cwd = "/".to_string();
         let mut env = BTreeMap::new();
         let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
@@ -15866,6 +16101,7 @@ printf 'locale=%s|%s\n' "$c_val" "$u_val"
     fn unit_eval_invocation_closure_sh_discovery_modes_options_parity() {
         let vfs = crate::MemoryVfs::new();
         vfs.mkdir_all("/work/bin").unwrap();
+        vfs.mkdir_all("/tmp").unwrap();
         vfs.write_file("/work/bin/tool", b"#!/bin/sh\nprintf 'tool:%s\\n' \"$1\"\n")
             .unwrap();
         vfs.chmod("/work/bin/tool", 0o755).unwrap();
@@ -15918,5 +16154,82 @@ bash -o noclobber -c '[[ -o noclobber ]]; printf "opt_c=%s\n" "$?"'
                 "opt_c=0\n",
             )
         );
+    }
+
+    #[test]
+    fn test_errexit_native_expanded_gaps_bounds_and_env_split_parity() {
+        let vfs = crate::MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.mkdir_all("/tmp").unwrap();
+        vfs.write_file("/work/plain_file", b"x").unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        let custom = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::ShellLimits::default(), None);
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        state.script_name = Some("shell".to_string());
+
+        let r = state
+            .eval_script_units(
+                r#"
+(set -e; { false && true; }; printf 'grp=%s\n' "$?")
+(set -e; for v in a; do false && true; done; printf 'for=%s\n' "$?")
+(set -e; f() { false && true; printf 'fn=%s\n' "$?"; }; f)
+(set -e; ! true; printf 'neg=%s\n' "$?")
+(set -e; { true; } 2>/tmp/r1 > /work/missing/out; printf 'BAD\n'); printf 'redir_miss=%s:%s\n' "$?" "$(cat /tmp/r1)"
+(set -e; { true; } 2>/tmp/r2 > /work/plain_file/out; printf 'BAD\n'); printf 'redir_notdir=%s:%s\n' "$?" "$(cat /tmp/r2)"
+sh -c 'set -e; v=$(false; printf sub); printf "BAD:%s\n" "$v"'; printf 'posix_sub=%s\n' "$?"
+set -o inherit_errexit 2>/tmp/set_inv; printf 'set_inv=%s:%s\n' "$?" "$(cat /tmp/set_inv)"
+set -o xtrace 2>/tmp/set_unsup; printf 'set_unsup=%s:%s\n' "$?" "$(cat /tmp/set_unsup)"
+LOOP='-S ${LOOP}' env -S '${LOOP}' 2>/tmp/env_loop; printf 'env_loop=%s:%s\n' "$?" "$(cat /tmp/env_loop)"
+"#,
+                &mut String::new(),
+            )
+            .unwrap();
+        assert_eq!(r.stderr, "");
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(
+            r.stdout,
+            concat!(
+                "grp=1\n",
+                "for=1\n",
+                "fn=1\n",
+                "neg=1\n",
+                "redir_miss=1:shell: line 6: /work/missing/out: No such file or directory\n",
+                "redir_notdir=1:shell: line 7: /work/plain_file/out: Not a directory\n",
+                "posix_sub=1\n",
+                "set_inv=2:shell: line 9: set: inherit_errexit: invalid option name\n",
+                "set_unsup=1:shell: line 10: set: xtrace: unsupported shell option\n",
+                "env_loop=125:env: split-string expansion limit exceeded (32)\n",
+            )
+        );
+
+        // Check maxOutputBytes across pipeline intermediate stage
+        {
+            let mut lim = crate::ShellLimits::default();
+            lim.max_output_bytes = 7;
+            let b = ExecutionBudget::new(lim, None);
+            let mut c = "/work".to_string();
+            let mut e = BTreeMap::new();
+            let mut st = EvalState::new(&mut c, &mut e, &vfs, &b, &custom, false);
+            let err = st
+                .eval_script_str("set -e; env -i printf 1234 | cat", "")
+                .unwrap_err();
+            assert!(format!("{err:?}").contains("maxOutputBytes"));
+        }
+        // Check maxExpansionBytes working-memory bound on parameter trim
+        {
+            let mut lim = crate::ShellLimits::default();
+            lim.max_expansion_bytes = 256;
+            let b = ExecutionBudget::new(lim, None);
+            let mut c = "/work".to_string();
+            let mut e = BTreeMap::new();
+            let mut st = EvalState::new(&mut c, &mut e, &vfs, &b, &custom, false);
+            let val = "a".repeat(200);
+            let err = st
+                .eval_script_str(&format!("v={val}; printf '%s' \"${{v#a*}}\""), "")
+                .unwrap_err();
+            assert!(format!("{err:?}").contains("maxExpansionBytes"));
+        }
     }
 }

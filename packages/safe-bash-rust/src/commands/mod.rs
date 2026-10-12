@@ -688,6 +688,7 @@ fn parse_env_options(
     args: &[String],
     env: &BTreeMap<String, String>,
 ) -> Result<ParsedEnvOptions, EnvError> {
+    let mut work = EnvSplitWork::default();
     let mut frames: Vec<(Vec<String>, usize)> = vec![(args.to_vec(), 0usize)];
     let next_arg = |frames: &mut Vec<(Vec<String>, usize)>| -> Option<String> {
         while let Some(frame) = frames.last_mut() {
@@ -710,12 +711,13 @@ fn parse_env_options(
 
     let mut accept = |key: char,
                       content: Option<String>,
-                      frames: &mut Vec<(Vec<String>, usize)>|
+                      frames: &mut Vec<(Vec<String>, usize)>,
+                      work: &mut EnvSplitWork|
      -> Result<(), EnvError> {
         match key {
             'S' => {
                 let raw = content.unwrap_or_default();
-                let expanded = split_env_string(&raw, env).map_err(EnvError::Split)?;
+                let expanded = split_env_string(&raw, env, work).map_err(EnvError::Split)?;
                 frames.push((expanded, 0));
             }
             'i' => ignore_env = true,
@@ -734,6 +736,8 @@ fn parse_env_options(
     };
 
     while let Some(argument) = next_arg(&mut frames) {
+        work.tick(argument.chars().count() + 1)
+            .map_err(EnvError::Split)?;
         if argument == "--" {
             break;
         }
@@ -779,12 +783,13 @@ fn parse_env_options(
                     "option '--{name}' requires an argument"
                 )));
             }
-            accept(key, content, &mut frames)?;
+            accept(key, content, &mut frames, &mut work)?;
             continue;
         }
         let chars: Vec<char> = argument.chars().collect();
         let mut index = 1usize;
         while index < chars.len() {
+            work.tick(1).map_err(EnvError::Split)?;
             let key = chars[index];
             if !matches!(key, 'a' | 'i' | 'u' | '0' | 'C' | 'S' | 'v') {
                 return Err(EnvError::Usage(format!("invalid option -- '{key}'")));
@@ -805,7 +810,7 @@ fn parse_env_options(
                     "option requires an argument -- '{key}'"
                 )));
             }
-            accept(key, content, &mut frames)?;
+            accept(key, content, &mut frames, &mut work)?;
             if required {
                 break;
             }
@@ -813,6 +818,7 @@ fn parse_env_options(
         }
     }
     while let Some(argument) = next_arg(&mut frames) {
+        work.tick(1).map_err(EnvError::Split)?;
         operands.push(argument);
     }
     if operands.first().map(|s| s.as_str()) == Some("-") {
@@ -1026,14 +1032,108 @@ where
     }
 }
 
-fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<String>, String> {
+#[derive(Default)]
+struct EnvSplitWork {
+    bytes: usize,
+    arguments: usize,
+    expansions: usize,
+    work: usize,
+}
+
+impl EnvSplitWork {
+    const MAX_BYTES: usize = 131_072;
+    const MAX_ARGUMENTS: usize = 10_000;
+    const MAX_EXPANSIONS: usize = 32;
+    const MAX_WORK: usize = 1_048_576;
+
+    fn account(&mut self, text: &str) -> Result<(), String> {
+        self.bytes = self.bytes.saturating_add(text.len());
+        if self.bytes > Self::MAX_BYTES {
+            return Err(format!(
+                "split-string byte limit exceeded ({})",
+                Self::MAX_BYTES
+            ));
+        }
+        if text.contains('\0') || text.contains('\u{e000}') {
+            return Err("NUL is not supported in -S strings".into());
+        }
+        Ok(())
+    }
+
+    fn argument(&mut self) -> Result<(), String> {
+        self.arguments += 1;
+        if self.arguments > Self::MAX_ARGUMENTS {
+            return Err(format!(
+                "split-string argument limit exceeded ({})",
+                Self::MAX_ARGUMENTS
+            ));
+        }
+        Ok(())
+    }
+
+    fn expansion(&mut self) -> Result<(), String> {
+        self.expansions += 1;
+        if self.expansions > Self::MAX_EXPANSIONS {
+            return Err(format!(
+                "split-string expansion limit exceeded ({})",
+                Self::MAX_EXPANSIONS
+            ));
+        }
+        if self.work > Self::MAX_WORK {
+            return Err(format!(
+                "split-string work limit exceeded ({})",
+                Self::MAX_WORK
+            ));
+        }
+        Ok(())
+    }
+
+    fn tick(&mut self, amount: usize) -> Result<(), String> {
+        self.work = self.work.saturating_add(amount);
+        if self.expansions > 0 && self.work > Self::MAX_WORK {
+            return Err(format!(
+                "split-string work limit exceeded ({})",
+                Self::MAX_WORK
+            ));
+        }
+        Ok(())
+    }
+}
+
+fn split_env_string(
+    raw: &str,
+    env: &BTreeMap<String, String>,
+    work: &mut EnvSplitWork,
+) -> Result<Vec<String>, String> {
+    work.expansion()?;
+    work.account(raw)?;
     let chars: Vec<char> = raw.chars().collect();
     let mut tokens = Vec::new();
     let mut cur = String::new();
     let mut active = false;
     let mut quote: Option<char> = None;
     let mut i = 0usize;
+    let start = |active: &mut bool, work: &mut EnvSplitWork| -> Result<(), String> {
+        if !*active {
+            work.argument()?;
+            *active = true;
+        }
+        Ok(())
+    };
+    let append_char = |ch: char,
+                       cur: &mut String,
+                       active: &mut bool,
+                       work: &mut EnvSplitWork|
+     -> Result<(), String> {
+        let mut buf = [0u8; 4];
+        let s = ch.encode_utf8(&mut buf);
+        work.account(s)?;
+        start(active, work)?;
+        cur.push(ch);
+        Ok(())
+    };
     while i < chars.len() {
+        work.tick(1)?;
         let ch = chars[i];
         if quote.is_none() && matches!(ch, ' ' | '\t' | '\n' | '\r' | '\x0c' | '\x0b') {
             if active {
@@ -1048,13 +1148,13 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
         }
         if ch == '\'' && quote != Some('"') {
             quote = if quote == Some('\'') { None } else { Some('\'') };
-            active = true;
+            start(&mut active, work)?;
             i += 1;
             continue;
         }
         if ch == '"' && quote != Some('\'') {
             quote = if quote == Some('"') { None } else { Some('"') };
-            active = true;
+            start(&mut active, work)?;
             i += 1;
             continue;
         }
@@ -1065,11 +1165,11 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
             }
             let nxt = chars[i];
             match nxt {
-                'n' => cur.push('\n'),
-                't' => cur.push('\t'),
-                'r' => cur.push('\r'),
-                'f' => cur.push('\x0c'),
-                'v' => cur.push('\x0b'),
+                'n' => append_char('\n', &mut cur, &mut active, work)?,
+                't' => append_char('\t', &mut cur, &mut active, work)?,
+                'r' => append_char('\r', &mut cur, &mut active, work)?,
+                'f' => append_char('\x0c', &mut cur, &mut active, work)?,
+                'v' => append_char('\x0b', &mut cur, &mut active, work)?,
                 'c' => {
                     if quote == Some('"') {
                         return Err("'\\c' must not appear in double-quoted -S string".into());
@@ -1088,13 +1188,12 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
                         i += 1;
                         continue;
                     } else {
-                        cur.push(' ');
+                        append_char(' ', &mut cur, &mut active, work)?;
                     }
                 }
-                '"' | '#' | '$' | '\'' | '\\' => cur.push(nxt),
+                '"' | '#' | '$' | '\'' | '\\' => append_char(nxt, &mut cur, &mut active, work)?,
                 other => return Err(format!("invalid sequence '\\{other}' in -S")),
             }
-            active = true;
             i += 1;
             continue;
         }
@@ -1108,6 +1207,7 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
             }
             let mut end = i + 3;
             while end < chars.len() && (chars[end].is_ascii_alphanumeric() || chars[end] == '_') {
+                work.tick(1)?;
                 end += 1;
             }
             if end >= chars.len() || chars[end] != '}' {
@@ -1118,14 +1218,15 @@ fn split_env_string(raw: &str, env: &BTreeMap<String, String>) -> Result<Vec<Str
                 && !env.contains_key(&format!("__unexported__{vname}"))
                 && let Some(val) = env.get(&vname)
             {
+                work.account(val)?;
+                start(&mut active, work)?;
                 cur.push_str(val);
-                active = true;
+                work.tick(val.chars().count())?;
             }
             i = end + 1;
             continue;
         }
-        cur.push(ch);
-        active = true;
+        append_char(ch, &mut cur, &mut active, work)?;
         i += 1;
     }
     if quote.is_some() {
@@ -1462,6 +1563,7 @@ mod tests {
         let tokens = split_env_string(
             r#"A="${GREET}_${TARGET}" B=two\tthree C="alpha\_beta" D=one\_two #comment ignored"#,
             &env,
+            &mut EnvSplitWork::default(),
         )
         .unwrap();
         assert_eq!(
@@ -1469,13 +1571,20 @@ mod tests {
             vec!["A=hello_world", "B=two	three", "C=alpha beta", "D=one", "two"]
         );
 
-        let tokens_c = split_env_string(r#"FIRST=1 SECOND=2\cIGNORED_TAIL"#, &env).unwrap();
+        let tokens_c = split_env_string(
+            r#"FIRST=1 SECOND=2\cIGNORED_TAIL"#,
+            &env,
+            &mut EnvSplitWork::default(),
+        )
+        .unwrap();
         assert_eq!(tokens_c, vec!["FIRST=1", "SECOND=2"]);
 
-        let err_c_quote = split_env_string(r#"BAD="\c""#, &env).unwrap_err();
+        let err_c_quote =
+            split_env_string(r#"BAD="\c""#, &env, &mut EnvSplitWork::default()).unwrap_err();
         assert!(err_c_quote.contains("must not appear in double-quoted -S string"));
 
-        let err_var = split_env_string(r#"X=${BAD:-default}"#, &env).unwrap_err();
+        let err_var =
+            split_env_string(r#"X=${BAD:-default}"#, &env, &mut EnvSplitWork::default()).unwrap_err();
         assert!(err_var.contains("only ${VARNAME} expansion is supported"));
     }
 

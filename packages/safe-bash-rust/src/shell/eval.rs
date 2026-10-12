@@ -93,6 +93,7 @@ pub struct EvalState<'a> {
     pub in_trap: bool,
     pub in_pipeline_producer: bool,
     pub in_cmdsub_file_shortcut: bool,
+    pub async_default_stdin: bool,
     pub redirect_assignments: Vec<(String, String)>,
     pub procsub_seq: usize,
     pub cmdsub_seq: usize,
@@ -192,6 +193,7 @@ impl<'a> EvalState<'a> {
             in_trap: false,
             in_pipeline_producer: false,
             in_cmdsub_file_shortcut: false,
+            async_default_stdin: false,
             redirect_assignments: Vec::new(),
             procsub_seq: 0,
             cmdsub_seq: 0,
@@ -254,6 +256,44 @@ impl<'a> EvalState<'a> {
             .unwrap_or(0);
         env.insert("BASH_SUBSHELL".to_string(), (cur_subshell + 1).to_string());
         env.insert("__unexported__BASH_SUBSHELL".to_string(), "1".to_string());
+        let old_parent_keys: Vec<String> = env
+            .keys()
+            .filter(|k| k.starts_with("__parent_job_"))
+            .cloned()
+            .collect();
+        for k in old_parent_keys {
+            env.remove(&k);
+        }
+        let listed_pids: Vec<String> = self
+            .env
+            .keys()
+            .filter_map(|k| k.strip_prefix("__job_active__").map(|s| s.to_string()))
+            .collect();
+        for pid in listed_pids {
+            if let Some(jid) = self.env.get(&format!("__job_id__{pid}")) {
+                env.insert(format!("__parent_job_id__{pid}"), jid.clone());
+            }
+            if let Some(cmd) = self.env.get(&format!("__job_cmd__{pid}")) {
+                env.insert(format!("__parent_job_cmd__{pid}"), cmd.clone());
+            }
+        }
+        let own_job_keys: Vec<String> = env
+            .keys()
+            .filter(|k| {
+                k.starts_with("__job_status__")
+                    || k.starts_with("__job_active__")
+                    || k.starts_with("__job_notified__")
+                    || k.starts_with("__job_saved__")
+                    || k.starts_with("__job_settled__")
+                    || k.starts_with("__job_id__")
+                    || k.starts_with("__job_cmd__")
+                    || *k == "__job_next_id"
+            })
+            .cloned()
+            .collect();
+        for k in own_job_keys {
+            env.remove(&k);
+        }
         EvalState {
             cwd,
             env,
@@ -298,6 +338,7 @@ impl<'a> EvalState<'a> {
             in_trap: self.in_trap,
             in_pipeline_producer: self.in_pipeline_producer,
             in_cmdsub_file_shortcut: false,
+            async_default_stdin: false,
             redirect_assignments: Vec::new(),
             procsub_seq: self.procsub_seq,
             cmdsub_seq: self.cmdsub_seq,
@@ -842,6 +883,7 @@ impl<'a> EvalState<'a> {
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
             if list.background {
+                self.retire_notified_jobs();
                 let next_pid = self
                     .env
                     .get("__job_next_pid")
@@ -849,20 +891,41 @@ impl<'a> EvalState<'a> {
                     .unwrap_or(1001);
                 self.env
                     .insert("__job_next_pid".to_string(), (next_pid + 1).to_string());
-                let next_job_id = self
+                let max_occupied_job_id = self
                     .env
-                    .get("__job_next_id")
-                    .and_then(|s| s.parse::<u32>().ok())
-                    .unwrap_or(1);
-                self.env
-                    .insert("__job_next_id".to_string(), (next_job_id + 1).to_string());
+                    .keys()
+                    .filter_map(|k| k.strip_prefix("__job_active__"))
+                    .filter_map(|pid| {
+                        self.env
+                            .get(&format!("__job_id__{pid}"))
+                            .and_then(|s| s.parse::<u32>().ok())
+                    })
+                    .max()
+                    .unwrap_or(0);
+                let next_job_id = max_occupied_job_id + 1;
                 let pid_str = next_pid.to_string();
                 self.env.insert("!".to_string(), pid_str.clone());
+
+                let alias_owner = self.in_fd_aliases.iter().find_map(|(&k, &v)| {
+                    if k != 0 && (v == STDIN_STREAM_FD || v == 0) {
+                        Some(k)
+                    } else {
+                        None
+                    }
+                });
+                if let Some(owner) = alias_owner {
+                    let mut dummy_saved = Vec::new();
+                    self.materialize_stdin_aliases(stdin, &mut dummy_saved);
+                    if !self.fd_table.contains_key(&0) && !self.in_fd_aliases.contains_key(&0) {
+                        self.in_fd_aliases.insert(0, owner);
+                    }
+                }
 
                 let mut sub_cwd = self.cwd.clone();
                 let mut sub_env = self.env.clone();
                 let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
                 sub.errexit = self.errexit;
+                sub.async_default_stdin = true;
                 let mut fg_list = list.clone();
                 fg_list.background = false;
                 let cmd_display = format!(
@@ -875,12 +938,16 @@ impl<'a> EvalState<'a> {
                         false
                     )
                 );
-                let mut empty_in = String::new();
-                let bg_out = match sub.eval_and_or_list(&fg_list, &mut empty_in) {
+                if fg_list.rest.is_empty() && fg_list.first.negated {
+                    sub.in_condition = true;
+                    fg_list.first.negated = false;
+                }
+                let bg_out = match sub.eval_and_or_list(&fg_list, stdin) {
                     Ok(mut o) => {
                         if let Some(code) = sub.exit_requested {
                             o.exit_code = code;
                         }
+                        sub.run_exit_trap_if_needed(&mut o);
                         o
                     }
                     Err(EvalError::Syntax(msg)) => BuiltinOutcome {
@@ -895,12 +962,37 @@ impl<'a> EvalState<'a> {
                     },
                     Err(e) => return Err(e),
                 };
+                for (k, v) in &sub.in_fds {
+                    if *k != 0 && *k != STDIN_STREAM_FD && self.in_fds.contains_key(k) {
+                        self.in_fds.insert(*k, v.clone());
+                    }
+                }
+                for (k, v) in &sub.rw_offsets {
+                    if self.rw_offsets.contains_key(k) {
+                        self.rw_offsets.insert(*k, *v);
+                    }
+                }
+                for (k, v) in &sub.rw_last_rem {
+                    if self.rw_last_rem.contains_key(k) {
+                        self.rw_last_rem.insert(*k, *v);
+                    }
+                }
+                let canon0 = self.resolve_in_fd(0);
+                if canon0 >= 3
+                    && canon0 != STDIN_STREAM_FD
+                    && let Some(updated) = self.in_fds.get(&canon0)
+                {
+                    *stdin = updated.clone();
+                }
                 stdout.push_str(&bg_out.stdout);
                 stderr.push_str(&bg_out.stderr);
                 self.env
                     .insert(format!("__job_status__{pid_str}"), bg_out.exit_code.to_string());
                 self.env
                     .insert(format!("__job_active__{pid_str}"), "1".to_string());
+                self.env.remove(&format!("__job_notified__{pid_str}"));
+                self.env.remove(&format!("__job_saved__{pid_str}"));
+                self.env.remove(&format!("__job_settled__{pid_str}"));
                 self.env
                     .insert(format!("__job_id__{pid_str}"), next_job_id.to_string());
                 self.env
@@ -1154,14 +1246,19 @@ impl<'a> EvalState<'a> {
                 };
                 self.set_pipestatus(&[reported]);
             }
-            if pipe.negated {
+            let flow_active = self.exit_requested.is_some()
+                || self.return_requested.is_some()
+                || self.break_count > 0
+                || self.continue_count > 0;
+            if pipe.negated && !flow_active {
                 out.exit_code = if out.exit_code == 0 { 1 } else { 0 };
             }
             self.last_exit = out.exit_code;
             return Ok(out);
         }
 
-        let mut cur_stdin = std::mem::take(stdin);
+        self.retire_notified_jobs();
+        let mut cur_stdin = String::new();
         let mut combined_stderr = String::new();
         let mut stage_codes = Vec::with_capacity(pipe.commands.len());
 
@@ -1187,10 +1284,37 @@ impl<'a> EvalState<'a> {
 
         for (idx, cmd_node) in pipe.commands.iter().enumerate() {
             let is_last = idx + 1 == pipe.commands.len();
+            let use_lastpipe =
+                is_last && self.env.get("__shopt_lastpipe").is_some_and(|v| v == "1");
+            if use_lastpipe {
+                let prev_pipe0 = self.env.insert("__pipe_fd__0".to_string(), "1".to_string());
+                let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin);
+                if let Some(p0) = prev_pipe0 {
+                    self.env.insert("__pipe_fd__0".to_string(), p0);
+                } else {
+                    self.env.remove("__pipe_fd__0");
+                }
+                let mut stage_out = match stage_res {
+                    Ok(o) => o,
+                    Err(e) => {
+                        self.in_condition = prev_cond;
+                        return Err(e);
+                    }
+                };
+                if let Some(code) = self.exit_requested {
+                    stage_out.exit_code = code;
+                }
+                combined_stderr.push_str(&stage_out.stderr);
+                stage_codes.push(stage_out.exit_code);
+                cur_stdin = stage_out.stdout;
+                continue;
+            }
             let mut sub_cwd = self.cwd.clone();
             let mut sub_env = self.env.clone();
             let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-            if idx > 0 {
+            if idx == 0 {
+                sub.async_default_stdin = self.async_default_stdin;
+            } else {
                 sub.env.insert("__pipe_fd__0".to_string(), "1".to_string());
             }
             if !is_last {
@@ -1211,7 +1335,11 @@ impl<'a> EvalState<'a> {
                 sub.fd_table.insert(1, FdTarget::Stdout);
                 sub.env.remove("__pipe_fd__1");
             }
-            let stage_res = sub.eval_command_node(cmd_node, &mut cur_stdin);
+            let stage_res = if idx == 0 {
+                sub.eval_command_node(cmd_node, stdin)
+            } else {
+                sub.eval_command_node(cmd_node, &mut cur_stdin)
+            };
             let mut stage_out = match stage_res {
                 Ok(o) => o,
                 Err(e) => {
@@ -1242,7 +1370,11 @@ impl<'a> EvalState<'a> {
             *stage_codes.last().unwrap_or(&0)
         };
 
-        if pipe.negated {
+        let flow_active = self.exit_requested.is_some()
+            || self.return_requested.is_some()
+            || self.break_count > 0
+            || self.continue_count > 0;
+        if pipe.negated && !flow_active {
             final_code = if final_code == 0 { 1 } else { 0 };
         }
         self.last_exit = final_code;
@@ -1259,6 +1391,58 @@ impl<'a> EvalState<'a> {
         node: &CommandNode,
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
+        if self.async_default_stdin {
+            let prev_async = std::mem::replace(&mut self.async_default_stdin, false);
+            let redirects: &[Redirect] = match node {
+                CommandNode::Simple(s) => &s.redirects,
+                CommandNode::Subshell { redirects, .. }
+                | CommandNode::Group { redirects, .. }
+                | CommandNode::If { redirects, .. }
+                | CommandNode::ForIn { redirects, .. }
+                | CommandNode::Select { redirects, .. }
+                | CommandNode::ForArith { redirects, .. }
+                | CommandNode::While { redirects, .. }
+                | CommandNode::Case { redirects, .. }
+                | CommandNode::ArithCommand { redirects, .. } => redirects,
+                CommandNode::FuncDef { .. } => &[],
+            };
+            let redirects_fd0 = redirects.iter().any(|r| {
+                matches!(
+                    r.kind,
+                    RedirectKind::In(0)
+                        | RedirectKind::ReadWrite(0)
+                        | RedirectKind::HereString(0)
+                        | RedirectKind::HereDoc { fd: 0, .. }
+                        | RedirectKind::DupIn { fd: 0, .. }
+                        | RedirectKind::Out(0)
+                        | RedirectKind::Append(0)
+                        | RedirectKind::Clobber(0)
+                        | RedirectKind::DupOut { fd: 0, .. }
+                )
+            });
+            if !matches!(self.fd_table.get(&0), Some(FdTarget::Closed)) && !redirects_fd0 {
+                let saved_alias0 = if !self.fd_table.contains_key(&0) {
+                    self.in_fd_aliases.remove(&0)
+                } else {
+                    None
+                };
+                let saved_stream = self.in_fds.remove(&STDIN_STREAM_FD);
+                let mut empty_stdin = String::new();
+                let res = self.eval_command_node(node, &mut empty_stdin);
+                if let Some(a0) = saved_alias0 {
+                    self.in_fd_aliases.insert(0, a0);
+                }
+                if let Some(st) = saved_stream {
+                    self.in_fds.insert(STDIN_STREAM_FD, st);
+                }
+                self.async_default_stdin = prev_async;
+                return res;
+            } else {
+                let res = self.eval_command_node(node, stdin);
+                self.async_default_stdin = prev_async;
+                return res;
+            }
+        }
         self.budget.check_cancelled().map_err(EvalError::Budget)?;
         self.budget.tick_command().map_err(EvalError::Budget)?;
         match node {
@@ -1272,12 +1456,12 @@ impl<'a> EvalState<'a> {
                     self.budget.leave_recursion();
                     return Ok(err_out);
                 }
+                self.retire_notified_jobs();
                 let eff_stdin = if use_local { &mut local_stdin } else { stdin };
                 let mut sub_cwd = self.cwd.clone();
                 let mut sub_env = self.env.clone();
                 let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-                sub.fd_table.insert(1, FdTarget::Stdout);
-                sub.fd_table.insert(2, FdTarget::Stderr);
+                let _ = sub.enter_body_stdio();
                 let res = sub.eval_script(body, eff_stdin);
                 self.budget.leave_recursion();
                 let mut out = match res {
@@ -1467,6 +1651,7 @@ impl<'a> EvalState<'a> {
                     if self.exit_requested.is_some() || self.return_requested.is_some() {
                         break;
                     }
+                    self.retire_notified_jobs();
                     if self.break_count > 0 {
                         self.break_count -= 1;
                         break;
@@ -1646,6 +1831,7 @@ impl<'a> EvalState<'a> {
                     if self.exit_requested.is_some() || self.return_requested.is_some() {
                         break;
                     }
+                    self.retire_notified_jobs();
                     if self.break_count > 0 {
                         self.break_count -= 1;
                         break;
@@ -1760,6 +1946,7 @@ impl<'a> EvalState<'a> {
                     if self.exit_requested.is_some() || self.return_requested.is_some() {
                         break;
                     }
+                    self.retire_notified_jobs();
                     if self.break_count > 0 {
                         self.break_count -= 1;
                         break;
@@ -1877,6 +2064,7 @@ impl<'a> EvalState<'a> {
                     if self.exit_requested.is_some() || self.return_requested.is_some() {
                         break;
                     }
+                    self.retire_notified_jobs();
                     if self.break_count > 0 {
                         self.break_count -= 1;
                         break;
@@ -4067,6 +4255,7 @@ impl<'a> EvalState<'a> {
                     in_trap: false,
                     in_pipeline_producer: false,
                     in_cmdsub_file_shortcut: false,
+                    async_default_stdin: false,
                     redirect_assignments: Vec::new(),
                     procsub_seq: 0,
                     cmdsub_seq: 0,
@@ -4935,6 +5124,16 @@ impl<'a> EvalState<'a> {
         sub.sync_funcname();
         sub.env.remove("BASH_SUBSHELL");
         sub.env.remove("__unexported__BASH_SUBSHELL");
+        sub.env.remove("!");
+        let parent_job_keys: Vec<String> = sub
+            .env
+            .keys()
+            .filter(|k| k.starts_with("__parent_job_"))
+            .cloned()
+            .collect();
+        for k in parent_job_keys {
+            sub.env.remove(&k);
+        }
         sub.errexit = errexit;
         sub.nounset = nounset;
         sub.pipefail = pipefail;
@@ -5267,6 +5466,16 @@ impl<'a> EvalState<'a> {
         sub.sync_funcname();
         sub.env.remove("BASH_SUBSHELL");
         sub.env.remove("__unexported__BASH_SUBSHELL");
+        sub.env.remove("!");
+        let parent_job_keys: Vec<String> = sub
+            .env
+            .keys()
+            .filter(|k| k.starts_with("__parent_job_"))
+            .cloned()
+            .collect();
+        for k in parent_job_keys {
+            sub.env.remove(&k);
+        }
         sub.errexit = errexit;
         sub.nounset = nounset;
         sub.pipefail = pipefail;
@@ -10556,6 +10765,7 @@ impl<'a> EvalState<'a> {
         }
         if chars[*idx] == '(' {
             let cmd_str = scan_nested_command_sub(chars, idx)?;
+            self.retire_notified_jobs();
             return self.run_command_substitution(&cmd_str);
         }
         if chars[*idx] == '{' {
@@ -10649,6 +10859,7 @@ impl<'a> EvalState<'a> {
                         }
                         idx += 1;
                         let cmd_str = scan_nested_command_sub(&chars, &mut idx)?;
+                        this.retire_notified_jobs();
                         let val = this.run_command_substitution(&cmd_str)?;
                         this.cmdsub_seq += 1;
                         let key = format!("__cmdsub_{}__", this.cmdsub_seq);
@@ -10849,7 +11060,102 @@ impl<'a> EvalState<'a> {
         entries
     }
 
+    fn parent_job_entries(&self) -> Vec<(u32, u32, String)> {
+        let mut entries: Vec<(u32, u32, String)> = self
+            .env
+            .keys()
+            .filter_map(|k| {
+                k.strip_prefix("__parent_job_id__")
+                    .and_then(|p| p.parse::<u32>().ok())
+            })
+            .map(|pid| {
+                let job_id = self
+                    .env
+                    .get(&format!("__parent_job_id__{pid}"))
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(1);
+                let cmd = self
+                    .env
+                    .get(&format!("__parent_job_cmd__{pid}"))
+                    .cloned()
+                    .unwrap_or_else(|| pid.to_string());
+                (job_id, pid, cmd)
+            })
+            .collect();
+        entries.sort_by_key(|(jid, pid, _)| (*jid, *pid));
+        entries
+    }
+
+    fn retire_notified_jobs(&mut self) {
+        let notified_pids: Vec<String> = self
+            .env
+            .keys()
+            .filter_map(|k| k.strip_prefix("__job_notified__").map(|s| s.to_string()))
+            .collect();
+        for pid in notified_pids {
+            if !self.env.contains_key(&format!("__job_saved__{pid}")) {
+                self.env
+                    .insert(format!("__job_saved__{pid}"), "1".to_string());
+                self.env.remove(&format!("__job_active__{pid}"));
+            }
+        }
+    }
+
+    fn forget_job(&mut self, pid: u32) {
+        self.env.remove(&format!("__job_active__{pid}"));
+        self.env.remove(&format!("__job_status__{pid}"));
+        self.env.remove(&format!("__job_notified__{pid}"));
+        self.env.remove(&format!("__job_saved__{pid}"));
+        self.env.remove(&format!("__job_settled__{pid}"));
+        self.env.remove(&format!("__job_id__{pid}"));
+        self.env.remove(&format!("__job_cmd__{pid}"));
+    }
+
+    fn parse_wait_pid(operand: &str, flexible: bool) -> Option<i64> {
+        let bytes = stream_string_to_bytes(operand);
+        let mut offset = 0usize;
+        let mut negative = false;
+        let is_c_space = |b: u8| b == b' ' || (9..=13).contains(&b);
+        if flexible {
+            while offset < bytes.len() && is_c_space(bytes[offset]) {
+                offset += 1;
+            }
+            if offset < bytes.len() && (bytes[offset] == b'+' || bytes[offset] == b'-') {
+                negative = bytes[offset] == b'-';
+                offset += 1;
+            }
+        }
+        let first_digit = offset;
+        let max_val: i64 = 2_147_483_647 + if negative { 1 } else { 0 };
+        let mut value: i64 = 0;
+        while offset < bytes.len() {
+            let b = bytes[offset];
+            if !b.is_ascii_digit() {
+                break;
+            }
+            value = value * 10 + (b - b'0') as i64;
+            if value > max_val {
+                return None;
+            }
+            offset += 1;
+        }
+        if offset == first_digit {
+            return None;
+        }
+        while offset < bytes.len() {
+            if !is_c_space(bytes[offset]) {
+                return None;
+            }
+            offset += 1;
+        }
+        Some(if negative { -value } else { value })
+    }
+
     fn resolve_job_operand(&self, operand: &str) -> Option<u32> {
+        self.resolve_job_operand_ex(operand, false)
+    }
+
+    fn resolve_job_operand_ex(&self, operand: &str, flexible: bool) -> Option<u32> {
         let entries = self.active_job_entries();
         if let Some(spec) = operand.strip_prefix('%') {
             if spec.is_empty() || spec == "%" || spec == "+" {
@@ -10862,7 +11168,8 @@ impl<'a> EvalState<'a> {
                     None
                 };
             }
-            if let Ok(jid) = spec.parse::<u32>() {
+            if let Some(jid) = Self::parse_wait_pid(spec, false).and_then(|v| u32::try_from(v).ok())
+            {
                 return entries
                     .iter()
                     .find(|(id, _, _)| *id == jid)
@@ -10870,7 +11177,8 @@ impl<'a> EvalState<'a> {
             }
             return None;
         }
-        let pid = operand.trim().parse::<u32>().ok()?;
+        let pid_i64 = Self::parse_wait_pid(operand, flexible)?;
+        let pid = u32::try_from(pid_i64).ok()?;
         if self.env.contains_key(&format!("__job_status__{pid}"))
             || self.env.contains_key(&format!("__job_active__{pid}"))
         {
@@ -10881,28 +11189,27 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_wait(&mut self, args: &[String]) -> BuiltinOutcome {
+        let prefix = self.diag_prefix();
         let mut offset = 0usize;
         let mut next_mode = false;
         let mut dest_var: Option<String> = None;
         while offset < args.len() {
-            let opt = &args[offset];
-            if !opt.starts_with('-') || opt == "-" {
+            let opt_bytes = stream_string_to_bytes(&args[offset]);
+            if opt_bytes.len() < 2 || opt_bytes[0] != b'-' {
                 break;
             }
             offset += 1;
-            if opt == "--" {
+            if opt_bytes == b"--" {
                 break;
             }
-            let chars: Vec<char> = opt.chars().collect();
             let mut i = 1usize;
-            while i < chars.len() {
-                match chars[i] {
-                    'f' => {}
-                    'n' => next_mode = true,
-                    'p' => {
-                        let rest: String = chars[i + 1..].iter().collect();
-                        let v = if !rest.is_empty() {
-                            Some(rest)
+            while i < opt_bytes.len() {
+                match opt_bytes[i] {
+                    b'f' => {}
+                    b'n' => next_mode = true,
+                    b'p' => {
+                        let v = if i + 1 < opt_bytes.len() {
+                            Some(bytes_to_stream_string(&opt_bytes[i + 1..]))
                         } else if offset < args.len() {
                             let val = args[offset].clone();
                             offset += 1;
@@ -10913,18 +11220,21 @@ impl<'a> EvalState<'a> {
                         let Some(var_name) = v else {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: "wait: -p: option requires an argument\nwait: usage: wait [-fn] [-p var] [id ...]\n".to_string(),
+                                stderr: format!(
+                                    "{prefix}wait: -p: option requires an argument\nwait: usage: wait [-fn] [-p var] [id ...]\n"
+                                ),
                                 exit_code: 2,
                             };
                         };
                         dest_var = Some(var_name);
                         break;
                     }
-                    ch => {
+                    byte => {
+                        let bad_opt = bytes_to_stream_string(&[byte]);
                         return BuiltinOutcome {
                             stdout: String::new(),
                             stderr: format!(
-                                "wait: -{ch}: invalid option\nwait: usage: wait [-fn] [-p var] [id ...]\n"
+                                "{prefix}wait: -{bad_opt}: invalid option\nwait: usage: wait [-fn] [-p var] [id ...]\n"
                             ),
                             exit_code: 2,
                         };
@@ -10934,61 +11244,262 @@ impl<'a> EvalState<'a> {
             }
         }
 
+        let mut dest_base_and_sub: Option<(String, Option<String>)> = None;
         if let Some(ref var_name) = dest_var {
-            let base = var_name.split_once('[').map(|(b, _)| b).unwrap_or(var_name);
-            if !is_valid_shell_ident(base) {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("wait: `{var_name}': not a valid identifier\n"),
-                    exit_code: 1,
-                };
-            }
-            if self
-                .env
-                .get(&format!("__attr__{base}"))
-                .is_some_and(|a| a.contains('r'))
-            {
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: format!("wait: {base}: readonly variable\n"),
-                    exit_code: 1,
-                };
-            }
-            self.env.remove(var_name);
-        }
-
-        let operands = &args[offset..];
-        if operands.is_empty() {
-            let active: Vec<String> = self
-                .env
-                .keys()
-                .filter_map(|k| k.strip_prefix("__job_active__").map(|p| p.to_string()))
-                .collect();
-            if next_mode {
-                if let Some(first_pid) = active.first() {
-                    self.env.remove(&format!("__job_active__{first_pid}"));
-                    if let Some(ref v) = dest_var {
-                        let _ = self.assign_variable(v, first_pid, false);
+            let parsed = if let Some((base, rest)) = var_name.split_once('[') {
+                if let Some(sub) = rest.strip_suffix(']') {
+                    if is_valid_shell_ident(base)
+                        && !sub.is_empty()
+                        && !sub.contains('[')
+                        && !sub.contains(']')
+                    {
+                        Some((base.to_string(), Some(sub.to_string())))
+                    } else {
+                        None
                     }
-                    let code = self
-                        .env
-                        .get(&format!("__job_status__{first_pid}"))
-                        .and_then(|s| s.parse::<i32>().ok())
-                        .unwrap_or(0);
+                } else {
+                    None
+                }
+            } else if is_valid_shell_ident(var_name) {
+                Some((var_name.clone(), None))
+            } else {
+                None
+            };
+            let Some((base, sub_opt)) = parsed else {
+                return BuiltinOutcome {
+                    stdout: String::new(),
+                    stderr: format!("{prefix}wait: `{var_name}': not a valid identifier\n"),
+                    exit_code: 1,
+                };
+            };
+            if sub_opt.is_none() {
+                if self
+                    .env
+                    .get(&format!("__attr__{base}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
                     return BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: String::new(),
-                        exit_code: code,
+                        stderr: format!(
+                            "{prefix}wait: {base}: cannot unset: readonly variable\n"
+                        ),
+                        exit_code: 1,
                     };
                 }
-                return BuiltinOutcome {
-                    stdout: String::new(),
-                    stderr: String::new(),
-                    exit_code: 127,
-                };
+                self.env.remove(&base);
+                self.env.remove(&format!("__declared__{base}"));
+                self.env.remove(&format!("__assoc__{base}"));
+                self.env.remove(&format!("__keys__{base}"));
+                let arr_prefix = format!("{base}[");
+                let arr_keys: Vec<String> = self
+                    .env
+                    .keys()
+                    .filter(|k| k.starts_with(&arr_prefix))
+                    .cloned()
+                    .collect();
+                for k in arr_keys {
+                    self.env.remove(&k);
+                }
             }
-            for p in active {
-                self.env.remove(&format!("__job_active__{p}"));
+            dest_base_and_sub = Some((base, sub_opt));
+        }
+
+        let publish_dest = |this: &mut Self,
+                            var_name: &Option<String>,
+                            base_and_sub: &Option<(String, Option<String>)>,
+                            pid: Option<u32>,
+                            mut stderr: String,
+                            code: i32|
+         -> BuiltinOutcome {
+            if let (Some(vn), Some((base, _)), Some(p)) = (var_name, base_and_sub, pid) {
+                if this
+                    .env
+                    .get(&format!("__attr__{base}"))
+                    .is_some_and(|a| a.contains('r'))
+                {
+                    stderr.push_str(&format!("{prefix}wait: {base}: readonly variable\n"));
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr,
+                        exit_code: 1,
+                    };
+                }
+                if let Err(EvalError::Syntax(msg)) =
+                    this.assign_variable(vn, &p.to_string(), false)
+                {
+                    stderr.push_str(&format!("{prefix}wait: {msg}\n"));
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr,
+                        exit_code: 1,
+                    };
+                }
+            }
+            BuiltinOutcome {
+                stdout: String::new(),
+                stderr,
+                exit_code: code,
+            }
+        };
+
+        let operands = &args[offset..];
+        if next_mode {
+            for op in operands {
+                if let Some(pid) = self.resolve_job_operand_ex(op, true)
+                    && self
+                        .env
+                        .get(&format!("__job_saved__{pid}"))
+                        .is_some_and(|v| v == "1")
+                {
+                    let saved_code = self
+                        .env
+                        .get(&format!("__job_status__{pid}"))
+                        .and_then(|s| s.parse::<i32>().ok())
+                        .unwrap_or(0);
+                    return publish_dest(
+                        self,
+                        &dest_var,
+                        &dest_base_and_sub,
+                        Some(pid),
+                        String::new(),
+                        saved_code,
+                    );
+                }
+            }
+            let mut stderr = String::new();
+            let mut candidate_pids: Vec<u32> = Vec::new();
+            if operands.is_empty() {
+                candidate_pids = self
+                    .env
+                    .keys()
+                    .filter_map(|k| {
+                        k.strip_prefix("__job_status__")
+                            .and_then(|p| p.parse::<u32>().ok())
+                    })
+                    .filter(|pid| {
+                        !self
+                            .env
+                            .get(&format!("__job_saved__{pid}"))
+                            .is_some_and(|v| v == "1")
+                    })
+                    .collect();
+            } else {
+                for op in operands {
+                    let parsed_pid = Self::parse_wait_pid(op, true);
+                    let handle_pid = self.resolve_job_operand_ex(op, true);
+                    if let Some(pid) = handle_pid
+                        && !self
+                            .env
+                            .get(&format!("__job_saved__{pid}"))
+                            .is_some_and(|v| v == "1")
+                    {
+                        if !candidate_pids.contains(&pid) {
+                            candidate_pids.push(pid);
+                        }
+                        continue;
+                    }
+                    if (parsed_pid.is_none() || parsed_pid == Some(-1))
+                        && !op.is_empty()
+                        && !op.starts_with('%')
+                    {
+                        stderr.push_str(&format!(
+                            "{prefix}wait: warning: {op}: job specification requires leading `%'\n"
+                        ));
+                    }
+                    if op.starts_with('%') {
+                        stderr.push_str(&format!("{prefix}wait: `{op}': no such job\n"));
+                    } else {
+                        stderr.push_str(&format!(
+                            "{prefix}wait: `{op}': not a pid or valid job spec\n"
+                        ));
+                    }
+                }
+                if candidate_pids.is_empty() {
+                    return BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr,
+                        exit_code: 127,
+                    };
+                }
+            }
+            let mut eligible: Vec<(u32, u32)> = candidate_pids
+                .into_iter()
+                .filter(|pid| {
+                    !self
+                        .env
+                        .get(&format!("__job_saved__{pid}"))
+                        .is_some_and(|v| v == "1")
+                        && !self
+                            .env
+                            .get(&format!("__job_notified__{pid}"))
+                            .is_some_and(|v| v == "1")
+                })
+                .map(|pid| {
+                    let jid = self
+                        .env
+                        .get(&format!("__job_id__{pid}"))
+                        .and_then(|s| s.parse::<u32>().ok())
+                        .unwrap_or(1);
+                    (jid, pid)
+                })
+                .collect();
+            eligible.sort_by_key(|(jid, pid)| (*jid, *pid));
+            if let Some((_, ready_pid)) = eligible.first().copied() {
+                self.env
+                    .insert(format!("__job_notified__{ready_pid}"), "1".to_string());
+                self.env
+                    .insert(format!("__job_saved__{ready_pid}"), "1".to_string());
+                self.env.remove(&format!("__job_active__{ready_pid}"));
+                let code = self
+                    .env
+                    .get(&format!("__job_status__{ready_pid}"))
+                    .and_then(|s| s.parse::<i32>().ok())
+                    .unwrap_or(0);
+                return publish_dest(
+                    self,
+                    &dest_var,
+                    &dest_base_and_sub,
+                    Some(ready_pid),
+                    stderr,
+                    code,
+                );
+            }
+            return BuiltinOutcome {
+                stdout: String::new(),
+                stderr,
+                exit_code: 127,
+            };
+        }
+
+        if operands.is_empty() {
+            let latest_pid = self.env.get("!").and_then(|s| s.parse::<u32>().ok());
+            let all_pids: Vec<u32> = self
+                .env
+                .keys()
+                .filter_map(|k| {
+                    k.strip_prefix("__job_status__")
+                        .or_else(|| k.strip_prefix("__job_active__"))
+                        .and_then(|p| p.parse::<u32>().ok())
+                })
+                .collect();
+            for p in all_pids {
+                if Some(p) == latest_pid
+                    && !self
+                        .env
+                        .get(&format!("__job_notified__{p}"))
+                        .is_some_and(|v| v == "1")
+                    && !self
+                        .env
+                        .get(&format!("__job_saved__{p}"))
+                        .is_some_and(|v| v == "1")
+                    && self
+                        .env
+                        .get(&format!("__job_settled__{p}"))
+                        .is_some_and(|v| v == "1")
+                {
+                    continue;
+                }
+                self.forget_job(p);
             }
             return BuiltinOutcome {
                 stdout: String::new(),
@@ -11001,12 +11512,24 @@ impl<'a> EvalState<'a> {
         let mut stderr = String::new();
         let mut last_waited_pid: Option<u32> = None;
         for op in operands {
+            let parsed_pid = Self::parse_wait_pid(op, false);
+            last_waited_pid = None;
+            let handle_pid = self.resolve_job_operand_ex(op, false);
             if op.starts_with('%') {
-                let Some(pid) = self.resolve_job_operand(op) else {
-                    stderr.push_str(&format!("wait: `{op}': no such job\n"));
+                let Some(pid) = handle_pid else {
+                    stderr.push_str(&format!("{prefix}wait: `{op}': no such job\n"));
                     code = 127;
                     continue;
                 };
+                if !self
+                    .env
+                    .get(&format!("__job_saved__{pid}"))
+                    .is_some_and(|v| v == "1")
+                {
+                    self.retire_notified_jobs();
+                }
+                self.env
+                    .insert(format!("__job_notified__{pid}"), "1".to_string());
                 self.env.remove(&format!("__job_active__{pid}"));
                 code = self
                     .env
@@ -11016,14 +11539,10 @@ impl<'a> EvalState<'a> {
                 last_waited_pid = Some(pid);
                 continue;
             }
-            let trimmed = op.trim();
-            let parsed_pid = if !trimmed.is_empty() && trimmed.bytes().all(|b| b.is_ascii_digit()) {
-                trimmed.parse::<u32>().ok().filter(|&p| p <= 2_147_483_647)
-            } else {
-                None
-            };
-            let Some(pid) = parsed_pid else {
-                stderr.push_str(&format!("wait: `{op}': not a pid or valid job spec\n"));
+            let Some(pid_i64) = parsed_pid else {
+                stderr.push_str(&format!(
+                    "{prefix}wait: `{op}': not a pid or valid job spec\n"
+                ));
                 code = 1;
                 if op.as_bytes().first().is_some_and(|b| b.is_ascii_digit()) {
                     last_waited_pid = None;
@@ -11031,14 +11550,23 @@ impl<'a> EvalState<'a> {
                 }
                 continue;
             };
-            if !self.env.contains_key(&format!("__job_status__{pid}"))
-                && !self.env.contains_key(&format!("__job_active__{pid}"))
-            {
-                stderr.push_str(&format!("wait: pid {pid} is not a child of this shell\n"));
+            let Some(pid) = handle_pid else {
+                stderr.push_str(&format!(
+                    "{prefix}wait: pid {pid_i64} is not a child of this shell\n"
+                ));
                 code = 127;
                 last_waited_pid = None;
                 continue;
+            };
+            if !self
+                .env
+                .get(&format!("__job_saved__{pid}"))
+                .is_some_and(|v| v == "1")
+            {
+                self.retire_notified_jobs();
             }
+            self.env
+                .insert(format!("__job_notified__{pid}"), "1".to_string());
             self.env.remove(&format!("__job_active__{pid}"));
             if let Some(st) = self.env.get(&format!("__job_status__{pid}")) {
                 code = st.parse::<i32>().unwrap_or(0);
@@ -11047,17 +11575,18 @@ impl<'a> EvalState<'a> {
             }
             last_waited_pid = Some(pid);
         }
-        if let (Some(var_name), Some(pid)) = (dest_var, last_waited_pid) {
-            let _ = self.assign_variable(&var_name, &pid.to_string(), false);
-        }
-        BuiltinOutcome {
-            stdout: String::new(),
+        publish_dest(
+            self,
+            &dest_var,
+            &dest_base_and_sub,
+            last_waited_pid,
             stderr,
-            exit_code: code,
-        }
+            code,
+        )
     }
 
     fn builtin_jobs(&self, args: &[String]) -> BuiltinOutcome {
+        let prefix = self.diag_prefix();
         let mut mode = "";
         let mut offset = 0usize;
         while offset < args.len() {
@@ -11075,12 +11604,17 @@ impl<'a> EvalState<'a> {
             } else {
                 return BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("jobs: {opt}: invalid option\n"),
+                    stderr: format!("{prefix}jobs: {opt}: invalid option\n"),
                     exit_code: 2,
                 };
             }
         }
-        let entries = self.active_job_entries();
+        let own_entries = self.active_job_entries();
+        let entries = if own_entries.is_empty() {
+            self.parent_job_entries()
+        } else {
+            own_entries
+        };
         let mut out = String::new();
         let mut stderr = String::new();
         let mut status = 0;
@@ -11114,17 +11648,40 @@ impl<'a> EvalState<'a> {
             };
         }
         let len = entries.len();
+        let resolve_from_entries = |spec: &str| -> Option<u32> {
+            if let Some(s) = spec.strip_prefix('%') {
+                if s.is_empty() || s == "%" || s == "+" {
+                    return entries.last().map(|(_, pid, _)| *pid);
+                }
+                if s == "-" {
+                    return if entries.len() >= 2 {
+                        Some(entries[entries.len() - 2].1)
+                    } else {
+                        None
+                    };
+                }
+                if let Some(jid) = Self::parse_wait_pid(s, false).and_then(|v| u32::try_from(v).ok())
+                {
+                    return entries
+                        .iter()
+                        .find(|(id, _, _)| *id == jid)
+                        .map(|(_, pid, _)| *pid);
+                }
+                return None;
+            }
+            None
+        };
         for op in &args[offset..] {
             let spec = if op.starts_with('%') {
                 op.clone()
             } else {
                 format!("%{op}")
             };
-            let resolved = self
-                .resolve_job_operand(&spec)
+            let resolved = resolve_from_entries(&spec)
+                .or_else(|| self.resolve_job_operand(&spec))
                 .or_else(|| self.resolve_job_operand(op));
             let Some(pid) = resolved else {
-                stderr.push_str(&format!("jobs: {op}: no such job\n"));
+                stderr.push_str(&format!("{prefix}jobs: {op}: no such job\n"));
                 status = 1;
                 continue;
             };
@@ -11150,6 +11707,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_disown(&mut self, args: &[String]) -> BuiltinOutcome {
+        let prefix = self.diag_prefix();
         let mut all = false;
         let mut running_only = false;
         let mut nohup_only = false;
@@ -11171,7 +11729,7 @@ impl<'a> EvalState<'a> {
                     _ => {
                         return BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("disown: -{ch}: invalid option\n"),
+                            stderr: format!("{prefix}disown: -{ch}: invalid option\n"),
                             exit_code: 2,
                         };
                     }
@@ -11184,8 +11742,7 @@ impl<'a> EvalState<'a> {
             if all || running_only {
                 if !nohup_only {
                     for (_, pid, _) in entries {
-                        self.env.remove(&format!("__job_active__{pid}"));
-                        self.env.remove(&format!("__job_status__{pid}"));
+                        self.forget_job(pid);
                     }
                 }
                 return BuiltinOutcome {
@@ -11197,13 +11754,12 @@ impl<'a> EvalState<'a> {
             let Some((_, cur_pid, _)) = entries.last() else {
                 return BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: "disown: current: no such job\n".to_string(),
+                    stderr: format!("{prefix}disown: current: no such job\n"),
                     exit_code: 1,
                 };
             };
             if !nohup_only {
-                self.env.remove(&format!("__job_active__{cur_pid}"));
-                self.env.remove(&format!("__job_status__{cur_pid}"));
+                self.forget_job(*cur_pid);
             }
             return BuiltinOutcome {
                 stdout: String::new(),
@@ -11222,13 +11778,12 @@ impl<'a> EvalState<'a> {
                 }
             });
             let Some(pid) = resolved else {
-                stderr.push_str(&format!("disown: {op}: no such job\n"));
+                stderr.push_str(&format!("{prefix}disown: {op}: no such job\n"));
                 status = 1;
                 continue;
             };
             if !nohup_only {
-                self.env.remove(&format!("__job_active__{pid}"));
-                self.env.remove(&format!("__job_status__{pid}"));
+                self.forget_job(pid);
             }
         }
         BuiltinOutcome {
@@ -11239,9 +11794,11 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_kill(&mut self, args: &[String]) -> BuiltinOutcome {
+        let prefix = self.diag_prefix();
         let catalog = Self::trap_signal_catalog();
         let lookup_sig = |spec: &str| -> Option<u32> {
-            if let Ok(num) = spec.parse::<u32>() {
+            if let Some(num) = Self::parse_wait_pid(spec, false).and_then(|v| u32::try_from(v).ok())
+            {
                 if num == 0 || (1..=31).contains(&num) {
                     return Some(num);
                 }
@@ -11271,20 +11828,26 @@ impl<'a> EvalState<'a> {
             let mut stderr = String::new();
             let mut status = 0;
             for op in &args[1..] {
-                if let Ok(mut num) = op.parse::<u32>() {
+                if let Some(mut num) =
+                    Self::parse_wait_pid(op, false).and_then(|v| u32::try_from(v).ok())
+                {
                     if num > 128 {
                         num -= 128;
                     }
                     if let Some((_, name)) = catalog.iter().find(|(n, _)| *n == num) {
                         out.push_str(&format!("{}\n", name.strip_prefix("SIG").unwrap_or(name)));
                     } else {
-                        stderr.push_str(&format!("kill: {op}: invalid signal specification\n"));
+                        stderr.push_str(&format!(
+                            "{prefix}kill: {op}: invalid signal specification\n"
+                        ));
                         status = 1;
                     }
                 } else if let Some(num) = lookup_sig(op).filter(|&n| n > 0) {
                     out.push_str(&format!("{num}\n"));
                 } else {
-                    stderr.push_str(&format!("kill: {op}: invalid signal specification\n"));
+                    stderr.push_str(&format!(
+                        "{prefix}kill: {op}: invalid signal specification\n"
+                    ));
                     status = 1;
                 }
             }
@@ -11313,22 +11876,25 @@ impl<'a> EvalState<'a> {
         let Some(sig_num) = sig_opt.filter(|&n| n <= 31) else {
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: "kill: invalid signal specification\n".to_string(),
+                stderr: format!("{prefix}kill: invalid signal specification\n"),
                 exit_code: 1,
             };
         };
         if matches!(sig_num, 17 | 18 | 19 | 20 | 21 | 22 | 23 | 28) {
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: "kill: signal is not supported by virtual job termination\n".to_string(),
+                stderr: format!(
+                    "{prefix}kill: signal is not supported by virtual job termination\n"
+                ),
                 exit_code: 1,
             };
         }
         if offset >= args.len() {
             return BuiltinOutcome {
                 stdout: String::new(),
-                stderr: "kill: usage: kill [-s signal | -n signal | -signal] pid | %job ...\n"
-                    .to_string(),
+                stderr: format!(
+                    "{prefix}kill: usage: kill [-s signal | -n signal | -signal] pid | %job ...\n"
+                ),
                 exit_code: 2,
             };
         }
@@ -11338,11 +11904,17 @@ impl<'a> EvalState<'a> {
         for op in &args[offset..] {
             let Some(pid) = self.resolve_job_operand(op) else {
                 let kind = if op.starts_with('%') { "job" } else { "process" };
-                stderr.push_str(&format!("kill: {op}: no such {kind}\n"));
+                stderr.push_str(&format!("{prefix}kill: {op}: no such {kind}\n"));
                 status = 1;
                 continue;
             };
-            if sig_num != 0 {
+            if sig_num == 0 {
+                self.env
+                    .insert(format!("__job_settled__{pid}"), "1".to_string());
+                let kind = if op.starts_with('%') { "job" } else { "process" };
+                stderr.push_str(&format!("{prefix}kill: {op}: no such {kind}\n"));
+                status = 1;
+            } else {
                 self.env
                     .insert(format!("__job_status__{pid}"), (128 + sig_num).to_string());
             }
@@ -13721,19 +14293,28 @@ mod tests {
 
         let wait_err = state.eval_script_str("wait 999", "").unwrap();
         assert_eq!(wait_err.exit_code, 127);
-        assert_eq!(wait_err.stderr, "wait: pid 999 is not a child of this shell\n");
+        assert_eq!(
+            wait_err.stderr,
+            "shell: line 1: wait: pid 999 is not a child of this shell\n"
+        );
 
         let disown_err = state.eval_script_str("disown", "").unwrap();
         assert_eq!(disown_err.exit_code, 1);
-        assert_eq!(disown_err.stderr, "disown: current: no such job\n");
+        assert_eq!(disown_err.stderr, "shell: line 1: disown: current: no such job\n");
 
         let kill_err = state.eval_script_str("kill -s BOGUS 123", "").unwrap();
         assert_eq!(kill_err.exit_code, 1);
-        assert_eq!(kill_err.stderr, "kill: invalid signal specification\n");
+        assert_eq!(
+            kill_err.stderr,
+            "shell: line 1: kill: invalid signal specification\n"
+        );
 
         let kill_l_err = state.eval_script_str("kill -l BOGUS", "").unwrap();
         assert_eq!(kill_l_err.exit_code, 1);
-        assert_eq!(kill_l_err.stderr, "kill: BOGUS: invalid signal specification\n");
+        assert_eq!(
+            kill_l_err.stderr,
+            "shell: line 1: kill: BOGUS: invalid signal specification\n"
+        );
     }
 
     #[test]
@@ -14372,6 +14953,138 @@ printf 'badcmd=%d:%s\n' "$?" "$(cat e_badcmd)"
                 "mf_syn=<one>:shell: stdin: line 18: syntax error near unexpected token `)'|shell: stdin: line 18: `) 0 'one''|\n",
                 "mf_src=<one>:/dev/fd/3: line 2: missing_cb_cmd: command not found\n",
                 "badcmd=127:shell: line 26: $'bad\\E[31m': command not found\n",
+            )
+        );
+    }
+
+    #[test]
+    fn unit_eval_jobs_wait_negation_retirement_and_destination_parity() {
+        let mut cwd = "/workspace".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("LC_ALL".to_string(), "C".to_string());
+        let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/workspace").unwrap();
+        let budget = ExecutionBudget::default();
+        let custom = BTreeMap::new();
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        let r = state
+            .eval_script_str(
+                r#"
+set -e
+! true & p1=$!
+! false & p2=$!
+: && ! true & p3=$!
+: && ! false & p4=$!
+: && ! { exit 7; } & p5=$!
+set +e
+wait "$p1"; s1=$?
+wait "$p2"; s2=$?
+wait "$p3"; s3=$?
+wait "$p4"; s4=$?
+wait "$p5"; s5=$?
+printf 'neg=%d:%d:%d:%d:%d\n' "$s1" "$s2" "$s3" "$s4" "$s5"
+
+{
+  read -r bg_default &
+  wait $!
+  read -r fg_after
+  printf 'bg_stdin=<%s>:<%s>\n' "${bg_default-UNSET}" "$fg_after"
+} <<< $'first\nsecond\n'
+
+{
+  { read -r bg_dup0; printf 'bg_dup0=<%s>\n' "$bg_dup0"; } <&0 &
+  wait $!
+  read -r fg_dup0
+  printf 'fg_dup0=<%s>\n' "$fg_dup0"
+} <<< $'one\ntwo\n'
+
+{
+  exec 3<&0
+  { read -r bg_fd3; printf 'bg_fd3=<%s>\n' "$bg_fd3"; } <&3 &
+  wait $!
+  read -r fg_fd3
+  printf 'fg_fd3=<%s>\n' "$fg_fd3"
+  exec 3<&-
+} <<< $'alpha\nbeta\n'
+
+( exit 9 ) & cpid=$!
+(
+  wait "$cpid" 2>e_sub_wait; sw=$?
+  jobs > e_sub_jobs
+  printf 'sub_wait=%d:%s|sub_jobs=%s\n' "$sw" "$(cat e_sub_wait)" "$(cat e_sub_jobs)"
+)
+wait "$cpid"; pw=$?
+printf 'parent_wait=%d\n' "$pw"
+
+shopt -s lastpipe
+( exit 11 ) & lpid=$!
+printf 'go\n' | { wait "$lpid"; lw=$?; }
+jobs > e_lp_jobs
+printf 'lastpipe=%d:<%s>\n' "$lw" "$(cat e_lp_jobs)"
+shopt -u lastpipe
+
+( exit 7 ) & j1=$!
+wait "$j1"
+:
+who=old
+wait -n -p who "$j1"; nr_st=$?
+printf 'no_retire=%d:<%s>\n' "$nr_st" "${who+x}"
+wait
+
+( exit 7 ) & k1=$!
+wait "$k1"
+(:)
+who=old
+wait -n -p who "$k1"; sr_st=$?
+printf 'sub_retire=%d:<%s>\n' "$sr_st" "${who+x}"
+wait
+
+( exit 17 ) & s_pid=$!
+wait "$s_pid"
+( exit 23 ) & a_pid=$!
+wait -n -p win1 "$s_pid" "$a_pid"; w1=$?
+wait -n -p win2 "$a_pid"; w2=$?
+printf 'saved_prepass=%d:%s|%d:%s\n' "$w1" "$win1" "$w2" "$win2"
+
+arr=(keep0 keep1)
+wait -n -p 'arr[1]'; we=$?
+printf 'arr_keep=%d:<%s>:<%s>\n' "$we" "${arr[0]}" "${arr[1]}"
+scalar=OLD
+wait -n -p scalar; ws=$?
+printf 'scalar_unset=%d:%s\n' "$ws" "${scalar+SET}"
+wait -p 'bad-name' -Z 2>e_order; wo=$?
+printf 'order=%d:%s\n' "$wo" "$(tr '\n' '|' < e_order)"
+( exit 5 ) & fpid=$!
+wait "$fpid"
+(:)
+wait " +$fpid" 2>e_flex; wf=$?
+wait -n -p fwin " +$fpid"; wfn=$?
+printf 'flex=%d:%s|%d:%s\n' "$wf" "$(cat e_flex)" "$wfn" "$fwin"
+"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r.stderr, "");
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(
+            r.stdout,
+            concat!(
+                "neg=0:1:1:0:7\n",
+                "bg_stdin=<UNSET>:<first>\n",
+                "bg_dup0=<one>\n",
+                "fg_dup0=<two>\n",
+                "bg_fd3=<alpha>\n",
+                "fg_fd3=<beta>\n",
+                "sub_wait=127:shell: line 41: wait: pid 1009 is not a child of this shell|sub_jobs=[1]+  Running                 ( exit 9 ) &\n",
+                "parent_wait=9\n",
+                "lastpipe=11:<>\n",
+                "no_retire=127:<>\n",
+                "sub_retire=7:<x>\n",
+                "saved_prepass=17:1013|23:1014\n",
+                "arr_keep=127:<keep0>:<keep1>\n",
+                "scalar_unset=127:\n",
+                "order=2:shell: line 84: wait: -Z: invalid option|wait: usage: wait [-fn] [-p var] [id ...]|\n",
+                "flex=1:shell: line 89: wait: ` +1015': not a pid or valid job spec|5:1015\n",
             )
         );
     }

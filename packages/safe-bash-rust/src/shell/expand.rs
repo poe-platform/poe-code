@@ -512,6 +512,88 @@ pub fn eval_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64,
     eval_arith_with_visiting(expr, env, &mut visiting)
 }
 
+pub fn eval_arith_formatted(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64, String> {
+    let mut visiting = BTreeSet::new();
+    let joined = expr.replace("\\\n", "");
+    let src = joined.trim_start();
+    if src.trim().is_empty() {
+        return Ok(0);
+    }
+    let tokens = match tokenize_arith_spanned(src, env) {
+        Ok(t) => t,
+        Err((msg, off)) => {
+            return Err(format_arith_diag(src, &msg, off));
+        }
+    };
+    if tokens.is_empty() {
+        return Ok(0);
+    }
+    let mut pos = 0usize;
+    let ast = match parse_arith_expr(&tokens, &mut pos, 1) {
+        Ok(a) => a,
+        Err((msg, off)) => {
+            return Err(format_arith_diag(src, &msg, off));
+        }
+    };
+    if pos < tokens.len() {
+        return Err(format_arith_diag(
+            src,
+            "Unexpected arithmetic token",
+            tokens[pos].1,
+        ));
+    }
+    match eval_arith_ast(&ast, env, &mut visiting) {
+        Ok(v) => Ok(v),
+        Err(e) => {
+            if let Some(off_s) = e.strip_prefix("Division by zero@")
+                && let Ok(off) = off_s.parse::<usize>()
+            {
+                let tok = src.get(off..).unwrap_or("0").trim_end();
+                return Err(format!(
+                    "{}: division by 0 (error token is \"{tok}\")",
+                    src.trim_end()
+                ));
+            }
+            if let Some(off_s) = e.strip_prefix("exponent less than 0@")
+                && let Ok(off) = off_s.parse::<usize>()
+            {
+                let tok = src.get(off..).unwrap_or("0").trim_end();
+                return Err(format!(
+                    "{}: exponent less than 0 (error token is \"{tok}\")",
+                    src.trim_end()
+                ));
+            }
+            Err(e)
+        }
+    }
+}
+
+fn format_arith_diag(src: &str, msg: &str, off: usize) -> String {
+    let trimmed_end = src.trim_end();
+    let clamp_off = if off >= trimmed_end.len() {
+        trimmed_end
+            .char_indices()
+            .next_back()
+            .map(|(i, _)| i)
+            .unwrap_or(0)
+    } else {
+        off
+    };
+    let err_tok = trimmed_end.get(clamp_off..).unwrap_or("");
+    let reason = if msg.contains("Unexpected end")
+        || msg.contains("Empty arithmetic")
+        || msg.contains("Invalid octal")
+        || msg.contains("Invalid arithmetic")
+        || msg.contains("Digit exceeds")
+        || msg.contains("Operand expected")
+    {
+        "arithmetic syntax error: operand expected"
+    } else {
+        "arithmetic syntax error in expression"
+    };
+    format!("{trimmed_end}: {reason} (error token is \"{err_tok}\")")
+}
+
 fn eval_arith_with_visiting(
     expr: &str,
     env: &mut BTreeMap<String, String>,
@@ -522,16 +604,24 @@ fn eval_arith_with_visiting(
     if trimmed.is_empty() {
         return Ok(0);
     }
-    let tokens = tokenize_arith(trimmed, env)?;
+    let tokens = tokenize_arith_spanned(trimmed, env).map_err(|(m, _)| m)?;
     if tokens.is_empty() {
         return Ok(0);
     }
     let mut pos = 0usize;
-    let ast = parse_arith_expr(&tokens, &mut pos, 1)?;
+    let ast = parse_arith_expr(&tokens, &mut pos, 1).map_err(|(m, _)| m)?;
     if pos < tokens.len() {
-        return Err(format!("Unexpected arithmetic token {:?}", tokens[pos]));
+        return Err(format!("Unexpected arithmetic token {:?}", tokens[pos].0));
     }
-    eval_arith_ast(&ast, env, visiting)
+    eval_arith_ast(&ast, env, visiting).map_err(|e| {
+        if e.starts_with("Division by zero@") {
+            "Division by zero".to_string()
+        } else if e.starts_with("exponent less than 0@") {
+            "exponent less than 0".to_string()
+        } else {
+            e
+        }
+    })
 }
 
 fn parse_js_int10(value: &str) -> i64 {
@@ -715,7 +805,10 @@ fn parse_arith_number_token(num_s: &str) -> Result<i64, String> {
     Ok(acc)
 }
 
-fn tokenize_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<Vec<ArithTok>, String> {
+fn tokenize_arith_spanned(
+    expr: &str,
+    env: &mut BTreeMap<String, String>,
+) -> Result<Vec<(ArithTok, usize)>, (String, usize)> {
     let mut expanded = String::new();
     let chars: Vec<char> = expr.chars().collect();
     let mut i = 0usize;
@@ -753,91 +846,93 @@ fn tokenize_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<Vec<
     }
 
     let mut out = Vec::new();
-    let echars: Vec<char> = expanded.chars().collect();
+    let echars: Vec<(usize, char)> = expanded.char_indices().collect();
     let mut idx = 0usize;
     while idx < echars.len() {
-        let c = echars[idx];
+        let (byte_off, c) = echars[idx];
         if c.is_whitespace() {
             idx += 1;
             continue;
         }
         if c == '(' {
             idx += 1;
-            out.push(ArithTok::LParen);
+            out.push((ArithTok::LParen, byte_off));
             continue;
         }
         if c == ')' {
             idx += 1;
-            out.push(ArithTok::RParen);
+            out.push((ArithTok::RParen, byte_off));
             continue;
         }
         if c.is_ascii_digit() {
             let mut num_s = String::new();
             while idx < echars.len()
-                && (echars[idx].is_ascii_alphanumeric()
-                    || echars[idx] == '#'
-                    || echars[idx] == '@'
-                    || echars[idx] == '_')
+                && (echars[idx].1.is_ascii_alphanumeric()
+                    || echars[idx].1 == '#'
+                    || echars[idx].1 == '@'
+                    || echars[idx].1 == '_')
             {
-                num_s.push(echars[idx]);
+                num_s.push(echars[idx].1);
                 idx += 1;
             }
-            let val = parse_arith_number_token(&num_s)?;
-            out.push(ArithTok::Num(val));
+            let after_off = echars.get(idx).map(|(b, _)| *b).unwrap_or(expanded.len());
+            let val = parse_arith_number_token(&num_s).map_err(|m| (m, after_off))?;
+            out.push((ArithTok::Num(val), byte_off));
             continue;
         }
         if c.is_ascii_alphabetic() || c == '_' {
             let mut id = String::new();
             while idx < echars.len()
-                && (echars[idx].is_ascii_alphanumeric() || echars[idx] == '_')
+                && (echars[idx].1.is_ascii_alphanumeric() || echars[idx].1 == '_')
             {
-                id.push(echars[idx]);
+                id.push(echars[idx].1);
                 idx += 1;
             }
-            if idx < echars.len() && echars[idx] == '[' {
+            if idx < echars.len() && echars[idx].1 == '[' {
+                let sub_off = echars[idx].0;
                 idx += 1;
                 let mut sub = String::new();
                 let mut depth = 1usize;
                 while idx < echars.len() && depth > 0 {
-                    if echars[idx] == '[' {
+                    if echars[idx].1 == '[' {
                         depth += 1;
-                    } else if echars[idx] == ']' {
+                    } else if echars[idx].1 == ']' {
                         depth -= 1;
                         if depth == 0 {
                             idx += 1;
                             break;
                         }
                     }
-                    sub.push(echars[idx]);
+                    sub.push(echars[idx].1);
                     idx += 1;
                 }
                 if depth != 0 {
-                    return Err("Unclosed arithmetic array subscript".to_string());
+                    return Err(("Unclosed arithmetic array subscript".to_string(), sub_off));
                 }
                 let clean_sub = sub.trim().trim_matches('"').trim_matches('\'');
                 if clean_sub.is_empty() {
-                    return Err("Empty arithmetic array subscript".to_string());
+                    return Err(("Empty arithmetic array subscript".to_string(), sub_off));
                 }
                 id.push('[');
                 id.push_str(clean_sub);
                 id.push(']');
             }
-            out.push(ArithTok::Ident(id));
+            out.push((ArithTok::Ident(id), byte_off));
             continue;
         }
-        let op_ch = echars[idx];
+        let op_ch = echars[idx].1;
         idx += 1;
         let mut op = String::from(op_ch);
         if idx + 1 < echars.len() {
-            let tri = format!("{op_ch}{}{}", echars[idx], echars[idx + 1]);
+            let tri = format!("{op_ch}{}{}", echars[idx].1, echars[idx + 1].1);
             if matches!(tri.as_str(), "<<=" | ">>=") {
                 idx += 2;
-                out.push(ArithTok::Op(tri));
+                out.push((ArithTok::Op(tri), byte_off));
                 continue;
             }
         }
         if idx < echars.len() {
-            let pair = format!("{op_ch}{}", echars[idx]);
+            let pair = format!("{op_ch}{}", echars[idx].1);
             if matches!(
                 pair.as_str(),
                 "++" | "--"
@@ -863,7 +958,7 @@ fn tokenize_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<Vec<
                 op = pair;
             }
         }
-        out.push(ArithTok::Op(op));
+        out.push((ArithTok::Op(op), byte_off));
     }
     Ok(out)
 }
@@ -1079,28 +1174,47 @@ pub fn sync_getopts_env(env: &mut BTreeMap<String, String>) {
 
 #[derive(Debug, Clone)]
 enum ArithNode {
-    Num(i64),
-    Var(String),
+    Num(i64, usize),
+    Var(String, usize),
+    Group(Box<ArithNode>, usize),
     Unary {
         op: String,
         arg: Box<ArithNode>,
         prefix: bool,
+        start: usize,
     },
     Binary {
         op: String,
         left: Box<ArithNode>,
         right: Box<ArithNode>,
+        start: usize,
     },
     Ternary {
         cond: Box<ArithNode>,
         yes: Box<ArithNode>,
         no: Box<ArithNode>,
+        start: usize,
     },
     Assign {
         op: String,
         target: String,
         right: Box<ArithNode>,
+        start: usize,
     },
+}
+
+impl ArithNode {
+    fn start(&self) -> usize {
+        match self {
+            ArithNode::Num(_, s)
+            | ArithNode::Var(_, s)
+            | ArithNode::Group(_, s)
+            | ArithNode::Unary { start: s, .. }
+            | ArithNode::Binary { start: s, .. }
+            | ArithNode::Ternary { start: s, .. }
+            | ArithNode::Assign { start: s, .. } => *s,
+        }
+    }
 }
 
 fn arith_op_info(op: &str) -> Option<(u8, bool)> {
@@ -1132,72 +1246,86 @@ fn is_arith_assign_op(op: &str) -> bool {
     )
 }
 
-fn parse_arith_prefix(tokens: &[ArithTok], pos: &mut usize) -> Result<ArithNode, String> {
-    let Some(tok) = tokens.get(*pos).cloned() else {
-        return Err("Unexpected end of arithmetic expression".to_string());
+fn parse_arith_prefix(
+    tokens: &[(ArithTok, usize)],
+    pos: &mut usize,
+) -> Result<ArithNode, (String, usize)> {
+    let Some((tok, start)) = tokens.get(*pos).cloned() else {
+        return Err(("Unexpected end of arithmetic expression".to_string(), usize::MAX));
     };
     match tok {
         ArithTok::Num(n) => {
             *pos += 1;
-            Ok(ArithNode::Num(n))
+            Ok(ArithNode::Num(n, start))
         }
         ArithTok::Ident(name) => {
             *pos += 1;
-            if let Some(ArithTok::Op(op)) = tokens.get(*pos)
+            if let Some((ArithTok::Op(op), _)) = tokens.get(*pos)
                 && (op == "++" || op == "--")
             {
                 let op_s = op.clone();
                 *pos += 1;
                 return Ok(ArithNode::Unary {
                     op: op_s,
-                    arg: Box::new(ArithNode::Var(name)),
+                    arg: Box::new(ArithNode::Var(name, start)),
                     prefix: false,
+                    start,
                 });
             }
-            Ok(ArithNode::Var(name))
+            Ok(ArithNode::Var(name, start))
         }
         ArithTok::LParen => {
             *pos += 1;
-            if matches!(tokens.get(*pos), Some(ArithTok::RParen)) {
-                return Err("Empty arithmetic parentheses".to_string());
+            if let Some((ArithTok::RParen, rp_off)) = tokens.get(*pos) {
+                return Err(("Empty arithmetic parentheses".to_string(), *rp_off));
             }
             let inner = parse_arith_expr(tokens, pos, 1)?;
-            if !matches!(tokens.get(*pos), Some(ArithTok::RParen)) {
-                return Err("Expected ')' in arithmetic expression".to_string());
+            if !matches!(tokens.get(*pos), Some((ArithTok::RParen, _))) {
+                return Err(("Expected ')' in arithmetic expression".to_string(), start));
             }
             *pos += 1;
-            if let Some(ArithTok::Op(op)) = tokens.get(*pos)
+            if let Some((ArithTok::Op(op), op_off)) = tokens.get(*pos)
                 && (op == "++" || op == "--")
             {
-                return Err("Arithmetic increment/decrement requires a variable".to_string());
+                return Err((
+                    "Arithmetic increment/decrement requires a variable".to_string(),
+                    *op_off,
+                ));
             }
-            Ok(inner)
+            Ok(ArithNode::Group(Box::new(inner), start))
         }
         ArithTok::Op(op) if matches!(op.as_str(), "+" | "-" | "!" | "~" | "++" | "--") => {
             *pos += 1;
             let arg = parse_arith_expr(tokens, pos, 15)?;
-            if (op == "++" || op == "--") && !matches!(arg, ArithNode::Var(_)) {
-                return Err("Arithmetic increment/decrement requires a variable".to_string());
+            if (op == "++" || op == "--") && !matches!(arg, ArithNode::Var(_, _)) {
+                return Err((
+                    "Arithmetic increment/decrement requires a variable".to_string(),
+                    start,
+                ));
             }
             Ok(ArithNode::Unary {
                 op,
                 arg: Box::new(arg),
                 prefix: true,
+                start,
             })
         }
-        other => Err(format!("Unexpected arithmetic token {other:?}")),
+        other => Err((format!("Operand expected: {other:?}"), start)),
     }
 }
 
 fn parse_arith_expr(
-    tokens: &[ArithTok],
+    tokens: &[(ArithTok, usize)],
     pos: &mut usize,
     min_prec: u8,
-) -> Result<ArithNode, String> {
+) -> Result<ArithNode, (String, usize)> {
     let mut left = parse_arith_prefix(tokens, pos)?;
-    while let Some(ArithTok::Op(op)) = tokens.get(*pos) {
+    while let Some((ArithTok::Op(op), op_off)) = tokens.get(*pos) {
         if op == "++" || op == "--" {
-            return Err("Arithmetic increment/decrement requires a variable".to_string());
+            return Err((
+                "Arithmetic increment/decrement requires a variable".to_string(),
+                *op_off,
+            ));
         }
         let Some((prec, right_assoc)) = arith_op_info(op.as_str()) else {
             break;
@@ -1206,11 +1334,13 @@ fn parse_arith_expr(
             break;
         }
         let op_s = op.clone();
+        let op_pos = *op_off;
         *pos += 1;
+        let start = left.start();
         if op_s == "?" {
             let yes = parse_arith_expr(tokens, pos, 1)?;
-            if !matches!(tokens.get(*pos), Some(ArithTok::Op(colon)) if colon == ":") {
-                return Err("Expected ':' in ternary arithmetic expression".to_string());
+            if !matches!(tokens.get(*pos), Some((ArithTok::Op(colon), _)) if colon == ":") {
+                return Err(("Expected ':' in ternary arithmetic expression".to_string(), op_pos));
             }
             *pos += 1;
             let no = parse_arith_expr(tokens, pos, 3)?;
@@ -1218,19 +1348,21 @@ fn parse_arith_expr(
                 cond: Box::new(left),
                 yes: Box::new(yes),
                 no: Box::new(no),
+                start,
             };
             continue;
         }
         let next_min = if right_assoc { prec } else { prec + 1 };
         let right = parse_arith_expr(tokens, pos, next_min)?;
         if is_arith_assign_op(&op_s) {
-            let ArithNode::Var(target) = left else {
-                return Err("Arithmetic assignment requires a variable".to_string());
+            let ArithNode::Var(target, _) = left else {
+                return Err(("Arithmetic assignment requires a variable".to_string(), op_pos));
             };
             left = ArithNode::Assign {
                 op: op_s,
                 target,
                 right: Box::new(right),
+                start,
             };
             continue;
         }
@@ -1238,6 +1370,7 @@ fn parse_arith_expr(
             op: op_s,
             left: Box::new(left),
             right: Box::new(right),
+            start,
         };
     }
     Ok(left)
@@ -1249,14 +1382,15 @@ fn eval_arith_ast(
     visiting: &mut BTreeSet<String>,
 ) -> Result<i64, String> {
     match node {
-        ArithNode::Num(n) => Ok(*n),
-        ArithNode::Var(name) => {
+        ArithNode::Num(n, _) => Ok(*n),
+        ArithNode::Var(name, _) => {
             let resolved_key = resolve_var_key_mut(name, env);
             resolve_arith_var_resolved(name, &resolved_key, env, visiting)
         }
-        ArithNode::Unary { op, arg, prefix } => {
+        ArithNode::Group(inner, _) => eval_arith_ast(inner, env, visiting),
+        ArithNode::Unary { op, arg, prefix, .. } => {
             if op == "++" || op == "--" {
-                let ArithNode::Var(var) = arg.as_ref() else {
+                let ArithNode::Var(var, _) = arg.as_ref() else {
                     return Err("Arithmetic increment/decrement requires a variable".to_string());
                 };
                 let resolved_key = resolve_var_key_mut(var, env);
@@ -1278,7 +1412,7 @@ fn eval_arith_ast(
                 _ => Err(format!("Unsupported unary operator {op}")),
             }
         }
-        ArithNode::Ternary { cond, yes, no } => {
+        ArithNode::Ternary { cond, yes, no, .. } => {
             let c = eval_arith_ast(cond, env, visiting)?;
             if c != 0 {
                 eval_arith_ast(yes, env, visiting)
@@ -1286,7 +1420,7 @@ fn eval_arith_ast(
                 eval_arith_ast(no, env, visiting)
             }
         }
-        ArithNode::Assign { op, target, right } => {
+        ArithNode::Assign { op, target, right, .. } => {
             if op == "=" {
                 let rhs = eval_arith_ast(right, env, visiting)?;
                 let resolved_key = resolve_var_key_mut(target, env);
@@ -1296,11 +1430,11 @@ fn eval_arith_ast(
             let resolved_key = resolve_var_key_mut(target, env);
             let cur = resolve_arith_var_resolved(target, &resolved_key, env, visiting)?;
             let rhs = eval_arith_ast(right, env, visiting)?;
-            let next = apply_arith_binary(op.trim_end_matches('='), cur, rhs)?;
+            let next = apply_arith_binary(op.trim_end_matches('='), cur, rhs, right.start())?;
             set_arith_var_resolved(resolved_key, next, env)?;
             Ok(next)
         }
-        ArithNode::Binary { op, left, right } => {
+        ArithNode::Binary { op, left, right, .. } => {
             if op == "," {
                 let _ = eval_arith_ast(left, env, visiting)?;
                 return eval_arith_ast(right, env, visiting);
@@ -1323,31 +1457,31 @@ fn eval_arith_ast(
             }
             let l = eval_arith_ast(left, env, visiting)?;
             let r = eval_arith_ast(right, env, visiting)?;
-            apply_arith_binary(op, l, r)
+            apply_arith_binary(op, l, r, right.start())
         }
     }
 }
 
-fn apply_arith_binary(op: &str, left: i64, right: i64) -> Result<i64, String> {
+fn apply_arith_binary(op: &str, left: i64, right: i64, right_start: usize) -> Result<i64, String> {
     match op {
         "+" => Ok(left.wrapping_add(right)),
         "-" => Ok(left.wrapping_sub(right)),
         "*" => Ok(left.wrapping_mul(right)),
         "/" => {
             if right == 0 {
-                return Err("Division by zero".to_string());
+                return Err(format!("Division by zero@{right_start}"));
             }
             Ok(left.wrapping_div(right))
         }
         "%" => {
             if right == 0 {
-                return Err("Division by zero".to_string());
+                return Err(format!("Division by zero@{right_start}"));
             }
             Ok(left.wrapping_rem(right))
         }
         "**" => {
             if right < 0 {
-                return Err("exponent less than 0".to_string());
+                return Err(format!("exponent less than 0@{right_start}"));
             }
             Ok(left.wrapping_pow(right as u32))
         }
@@ -2021,7 +2155,11 @@ pub fn expand_parameter_expr(
                 (None, rest)
             };
             let (pat_raw, rep_raw) = split_first_unescaped_slash(pat_and_rep);
-            let tilded_pat = expand_tilde_prefix(pat_raw, env, false, false);
+            let tilded_pat = if anchor.is_some() {
+                pat_raw.to_string()
+            } else {
+                expand_tilde_prefix(pat_raw, env, false, false)
+            };
             let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
@@ -3162,8 +3300,11 @@ fn replace_glob_pattern_full(
     nocase: bool,
     extglob: bool,
 ) -> String {
-    if pat.is_empty() {
+    if pat.is_empty() && anchor.is_none() {
         return val.to_string();
+    }
+    if val.is_empty() && !pat.is_empty() && anchor != Some('%') && !pat.starts_with('*') {
+        return String::new();
     }
     if anchor == Some('#') {
         let chars: Vec<char> = val.chars().collect();

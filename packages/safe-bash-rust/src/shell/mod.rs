@@ -87,6 +87,10 @@ impl Shell {
         self.env.insert("PWD".to_string(), norm);
     }
 
+    pub fn set_env(&mut self, key: &str, val: &str) {
+        self.env.insert(key.to_string(), val.to_string());
+    }
+
     pub fn env(&self) -> &BTreeMap<String, String> {
         &self.env
     }

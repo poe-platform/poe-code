@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use crate::shell::lexer::{Token, tokenize_shell};
+use crate::shell::lexer::{Token, tokenize_shell_with_extglob};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RedirectKind {
@@ -129,7 +129,11 @@ pub struct Script {
 }
 
 pub fn validate_basic_syntax(script: &str) -> Result<(), String> {
-    let tokens = tokenize_shell(script)?;
+    validate_basic_syntax_with_extglob(script, true)
+}
+
+pub fn validate_basic_syntax_with_extglob(script: &str, extglob: bool) -> Result<(), String> {
+    let tokens = tokenize_shell_with_extglob(script, extglob)?;
     validate_tokens_syntax(&tokens)
 }
 
@@ -563,6 +567,7 @@ fn expand_tokens_with_aliases_inner(
     aliases: &BTreeMap<String, String>,
     active: &BTreeSet<String>,
     state: &mut AliasTokenState,
+    extglob: bool,
 ) -> Result<Vec<Token>, String> {
     if aliases.is_empty() {
         return Ok(tokens.to_vec());
@@ -582,14 +587,19 @@ fn expand_tokens_with_aliases_inner(
                 && let Some(val) = aliases.get(w.as_str())
             {
                 let has_trailing_ws = val.ends_with(' ') || val.ends_with('\t');
-                let mut sub_tokens = tokenize_shell(val)?;
+                let mut sub_tokens = tokenize_shell_with_extglob(val, extglob)?;
                 if !val.ends_with('\n') && matches!(sub_tokens.last(), Some(Token::Newline)) {
                     sub_tokens.pop();
                 }
                 let mut next_active = active.clone();
                 next_active.insert(w.clone());
-                let sub_expanded =
-                    expand_tokens_with_aliases_inner(&sub_tokens, aliases, &next_active, state)?;
+                let sub_expanded = expand_tokens_with_aliases_inner(
+                    &sub_tokens,
+                    aliases,
+                    &next_active,
+                    state,
+                    extglob,
+                )?;
                 out.extend(sub_expanded);
                 if has_trailing_ws {
                     state.check_next = true;
@@ -609,13 +619,25 @@ pub fn expand_tokens_with_aliases(
     tokens: &[Token],
     aliases: &BTreeMap<String, String>,
 ) -> Result<Vec<Token>, String> {
+    expand_tokens_with_aliases_and_extglob(tokens, aliases, true)
+}
+
+pub fn expand_tokens_with_aliases_and_extglob(
+    tokens: &[Token],
+    aliases: &BTreeMap<String, String>,
+    extglob: bool,
+) -> Result<Vec<Token>, String> {
     let mut state = AliasTokenState::new();
-    expand_tokens_with_aliases_inner(tokens, aliases, &BTreeSet::new(), &mut state)
+    expand_tokens_with_aliases_inner(tokens, aliases, &BTreeSet::new(), &mut state, extglob)
 }
 
 pub fn parse_script(input: &str) -> Result<Script, String> {
-    validate_basic_syntax(input)?;
-    let tokens = tokenize_shell(input)?;
+    parse_script_with_extglob(input, true)
+}
+
+pub fn parse_script_with_extglob(input: &str, extglob: bool) -> Result<Script, String> {
+    validate_basic_syntax_with_extglob(input, extglob)?;
+    let tokens = tokenize_shell_with_extglob(input, extglob)?;
     let mut pos = 0usize;
     parse_tokens(&tokens, &mut pos, &[])
 }
@@ -625,8 +647,17 @@ pub fn parse_script_with_aliases(
     aliases: &BTreeMap<String, String>,
     line_offset: usize,
 ) -> Result<Script, String> {
-    let raw_tokens = tokenize_shell(input)?;
-    let expanded = expand_tokens_with_aliases(&raw_tokens, aliases)?;
+    parse_script_with_aliases_and_extglob(input, aliases, line_offset, true)
+}
+
+pub fn parse_script_with_aliases_and_extglob(
+    input: &str,
+    aliases: &BTreeMap<String, String>,
+    line_offset: usize,
+    extglob: bool,
+) -> Result<Script, String> {
+    let raw_tokens = tokenize_shell_with_extglob(input, extglob)?;
+    let expanded = expand_tokens_with_aliases_and_extglob(&raw_tokens, aliases, extglob)?;
     validate_tokens_syntax(&expanded)?;
     let mut tokens = Vec::with_capacity(line_offset + expanded.len());
     for _ in 0..line_offset {
@@ -638,19 +669,28 @@ pub fn parse_script_with_aliases(
 }
 
 pub fn is_incomplete_shell_unit(chunk: &str, aliases: &BTreeMap<String, String>) -> bool {
+    is_incomplete_shell_unit_with_extglob(chunk, aliases, true)
+}
+
+pub fn is_incomplete_shell_unit_with_extglob(
+    chunk: &str,
+    aliases: &BTreeMap<String, String>,
+    extglob: bool,
+) -> bool {
     let stripped = chunk.strip_suffix('\n').unwrap_or(chunk);
     let trailing_backslashes = stripped.bytes().rev().take_while(|&b| b == b'\\').count();
     if trailing_backslashes % 2 == 1 {
         return true;
     }
-    let raw_tokens = match tokenize_shell(chunk) {
+    let raw_tokens = match tokenize_shell_with_extglob(chunk, extglob) {
         Ok(t) => t,
         Err(err) => {
             return !err.contains("Unterminated conditional regular expression group")
-                && !err.contains("expected here-document delimiter");
+                && !err.contains("expected here-document delimiter")
+                && !err.contains("unexpected `");
         }
     };
-    let Ok(tokens) = expand_tokens_with_aliases(&raw_tokens, aliases) else {
+    let Ok(tokens) = expand_tokens_with_aliases_and_extglob(&raw_tokens, aliases, extglob) else {
         return true;
     };
     if let Err(err) = validate_tokens_syntax(&tokens) {
@@ -797,6 +837,21 @@ fn skip_newlines(tokens: &[Token], pos: &mut usize) {
     }
 }
 
+fn token_display(tok: &Token) -> &str {
+    match tok {
+        Token::Word(w) => w.as_str(),
+        Token::Semi => ";",
+        Token::Newline => "newline",
+        Token::Pipe => "|",
+        Token::AndIf => "&&",
+        Token::OrIf => "||",
+        Token::Background => "&",
+        Token::LParen => "(",
+        Token::RParen => ")",
+        _ => "redirect",
+    }
+}
+
 fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Script, String> {
     let mut lists = Vec::new();
     loop {
@@ -804,6 +859,7 @@ fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Scr
         if *pos >= tokens.len() || matches!(tokens.get(*pos), Some(Token::RParen)) || is_stop_word(tokens.get(*pos), stops) {
             break;
         }
+        let prev_pos = *pos;
         let mut list = parse_and_or(tokens, pos, stops)?;
         if matches!(tokens.get(*pos), Some(Token::Background)) {
             list.background = true;
@@ -811,6 +867,11 @@ fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Scr
         }
         if !list.first.commands.is_empty() || !list.rest.is_empty() {
             lists.push(list);
+        } else if *pos == prev_pos {
+            if let Some(t) = tokens.get(*pos) {
+                return Err(format!("Syntax error: unexpected `{}`", token_display(t)));
+            }
+            break;
         }
         while matches!(tokens.get(*pos), Some(Token::Semi | Token::Newline | Token::Background)) {
             *pos += 1;
@@ -821,6 +882,12 @@ fn parse_tokens(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Scr
 
 fn parse_and_or(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<AndOrList, String> {
     let first = parse_pipeline(tokens, pos, stops)?;
+    if first.commands.is_empty()
+        && !first.negated
+        && let Some(t @ (Token::AndIf | Token::OrIf)) = tokens.get(*pos)
+    {
+        return Err(format!("Syntax error: unexpected `{}`", token_display(t)));
+    }
     let mut rest = Vec::new();
     while let Some(tok) = tokens.get(*pos) {
         let op = match tok {
@@ -833,6 +900,12 @@ fn parse_and_or(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<And
             *pos += 1;
         }
         let next = parse_pipeline(tokens, pos, stops)?;
+        if next.commands.is_empty() && !next.negated {
+            return match tokens.get(*pos) {
+                None => Err("Syntax error: unexpected end of file".to_string()),
+                Some(t) => Err(format!("Syntax error: unexpected `{}`", token_display(t))),
+            };
+        }
         rest.push((op, next));
     }
     Ok(AndOrList { first, rest, background: false })
@@ -850,6 +923,9 @@ fn parse_pipeline(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<P
     if let Some(cmd) = parse_command(tokens, pos, stops)? {
         commands.push(cmd);
     }
+    if commands.is_empty() && matches!(tokens.get(*pos), Some(Token::Pipe)) {
+        return Err("Syntax error: unexpected `|`".to_string());
+    }
     while matches!(tokens.get(*pos), Some(Token::Pipe)) {
         *pos += 1;
         while matches!(tokens.get(*pos), Some(Token::Newline)) {
@@ -857,6 +933,11 @@ fn parse_pipeline(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<P
         }
         if let Some(cmd) = parse_command(tokens, pos, stops)? {
             commands.push(cmd);
+        } else {
+            return match tokens.get(*pos) {
+                None => Err("Syntax error: unexpected end of file".to_string()),
+                Some(t) => Err(format!("Syntax error: unexpected `{}`", token_display(t))),
+            };
         }
     }
     Ok(Pipeline { negated, commands })

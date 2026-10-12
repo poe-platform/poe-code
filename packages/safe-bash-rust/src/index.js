@@ -357,7 +357,7 @@ export class RustWasmBash {
     }
     if (options.cwd && options.cwd !== "/workspace") {
       this.mkdirAll(options.cwd);
-      this.execSync(`cd '${options.cwd}'`);
+      this.setEnv("__cwd", options.cwd);
     }
     if (options.profile === "overlay-cow-fs") {
       this.exports.safe_bash_configure_profile(this.sessionId, 1);
@@ -556,7 +556,12 @@ export class RustWasmBash {
   }
 
   setEnv(key, value) {
-    this.state.env[key] = value;
+    if (key === "__cwd") {
+      this.state.cwd = value;
+      this.state.env.PWD = value;
+    } else {
+      this.state.env[key] = value;
+    }
     const k = this._allocBytes(encoder.encode(key));
     const v = this._allocBytes(encoder.encode(value));
     try {
@@ -925,7 +930,7 @@ export class RustWasmBash {
         const prevCwd = self.state.cwd;
         const savedEnv = [];
         if (opts.cwd) {
-          self.execSync(`cd ${JSON.stringify(opts.cwd)}`);
+          self.setEnv("__cwd", opts.cwd);
         }
         if (opts.env && typeof opts.env === "object") {
           for (const [k, v] of Object.entries(opts.env)) {
@@ -938,7 +943,7 @@ export class RustWasmBash {
         const res = self.execSync(script, opts.stdin ?? "");
         lastStatus = res.exitCode;
         if (opts.cwd) {
-          self.execSync(`cd ${JSON.stringify(prevCwd)}`);
+          self.setEnv("__cwd", prevCwd);
         }
         for (const [k, oldVal] of savedEnv) {
           if (oldVal === undefined) {

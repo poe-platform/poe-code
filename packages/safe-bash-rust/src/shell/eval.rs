@@ -7,7 +7,7 @@ use crate::shell::builtins::{
 };
 use crate::shell::expand::{
     apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes,
-    decode_ansi_c_escapes_with_locale, eval_arith,
+    decode_ansi_c_escapes_with_locale, eval_arith, eval_arith_formatted,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
     has_glob_meta_ext, is_param_operand_active, resolve_nameref_base,
@@ -16,8 +16,9 @@ use crate::shell::expand::{
 };
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
-    SimpleCommand, is_incomplete_shell_unit, parse_script, parse_script_with_aliases,
-    validate_basic_syntax,
+    SimpleCommand, is_incomplete_shell_unit_with_extglob,
+    parse_script, parse_script_with_aliases_and_extglob, parse_script_with_extglob,
+    validate_basic_syntax, validate_basic_syntax_with_extglob,
 };
 use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_string_to_bytes};
 use std::collections::{BTreeMap, BTreeSet};
@@ -96,6 +97,7 @@ pub struct EvalState<'a> {
     pub in_trap: bool,
     pub in_pipeline_producer: bool,
     pub in_cmdsub_file_shortcut: bool,
+    pub isolated_inline_input: bool,
     pub async_default_stdin: bool,
     pub redirect_assignments: Vec<(String, String)>,
     pub procsub_seq: usize,
@@ -199,6 +201,7 @@ impl<'a> EvalState<'a> {
             in_trap: false,
             in_pipeline_producer: false,
             in_cmdsub_file_shortcut: false,
+            isolated_inline_input: false,
             async_default_stdin: false,
             redirect_assignments: Vec::new(),
             procsub_seq: 0,
@@ -347,6 +350,7 @@ impl<'a> EvalState<'a> {
             in_trap: self.in_trap,
             in_pipeline_producer: self.in_pipeline_producer,
             in_cmdsub_file_shortcut: false,
+            isolated_inline_input: false,
             async_default_stdin: false,
             redirect_assignments: Vec::new(),
             procsub_seq: self.procsub_seq,
@@ -562,9 +566,16 @@ impl<'a> EvalState<'a> {
         map
     }
 
+    fn extglob_enabled(&self) -> bool {
+        self.env
+            .get("__shopt_extglob")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+    }
+
     fn parse_with_current_aliases(&self, text: &str, line_offset: usize) -> Result<Script, String> {
         let aliases = self.active_alias_map();
-        parse_script_with_aliases(text, &aliases, line_offset)
+        parse_script_with_aliases_and_extglob(text, &aliases, line_offset, self.extglob_enabled())
     }
 
     fn eval_script_units(
@@ -578,7 +589,10 @@ impl<'a> EvalState<'a> {
             || (script_text.contains("$'")
                 && (script_text.contains("LC_") || script_text.contains("LANG")));
         if !needs_unit_loop {
-            match validate_basic_syntax(script_text).and_then(|()| parse_script(script_text)) {
+            let extglob = self.extglob_enabled();
+            match validate_basic_syntax_with_extglob(script_text, extglob)
+                .and_then(|()| parse_script_with_extglob(script_text, extglob))
+            {
                 Ok(ast) => {
                     let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
                     if parse_units > self.budget.limits.max_parse_units {
@@ -625,7 +639,9 @@ impl<'a> EvalState<'a> {
             unit_buf.push_str(line);
             let is_last = idx + 1 == lines.len();
             let aliases = self.active_alias_map();
-            if !is_last && is_incomplete_shell_unit(&unit_buf, &aliases) {
+            if !is_last
+                && is_incomplete_shell_unit_with_extglob(&unit_buf, &aliases, self.extglob_enabled())
+            {
                 continue;
             }
             let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
@@ -634,15 +650,26 @@ impl<'a> EvalState<'a> {
                     if !executed && self.mapfile_callback_depth == 0 {
                         return Err(EvalError::Syntax(syn_err));
                     }
+                    let code = if syn_err.starts_with("__exit127__")
+                        && (self.syntax_contexts.is_empty()
+                            || self
+                                .syntax_contexts
+                                .last()
+                                .is_some_and(|(n, _, _)| n.ends_with(": -c")))
+                    {
+                        127
+                    } else {
+                        2
+                    };
                     stderr.push_str(&self.format_active_syntax_diagnostic(script_text, &syn_err));
-                    self.last_exit = 2;
+                    self.last_exit = code;
                     if self.syntax_contexts.is_empty() && self.mapfile_callback_depth == 0 {
-                        self.exit_requested = Some(2);
+                        self.exit_requested = Some(code);
                     }
                     return Ok(BuiltinOutcome {
                         stdout,
                         stderr,
-                        exit_code: 2,
+                        exit_code: code,
                     });
                 }
             };
@@ -679,15 +706,26 @@ impl<'a> EvalState<'a> {
                     if !executed && self.mapfile_callback_depth == 0 {
                         return Err(EvalError::Syntax(syn_err));
                     }
+                    let code = if syn_err.starts_with("__exit127__")
+                        && (self.syntax_contexts.is_empty()
+                            || self
+                                .syntax_contexts
+                                .last()
+                                .is_some_and(|(n, _, _)| n.ends_with(": -c")))
+                    {
+                        127
+                    } else {
+                        2
+                    };
                     stderr.push_str(&self.format_active_syntax_diagnostic(script_text, &syn_err));
-                    self.last_exit = 2;
+                    self.last_exit = code;
                     if self.syntax_contexts.is_empty() && self.mapfile_callback_depth == 0 {
-                        self.exit_requested = Some(2);
+                        self.exit_requested = Some(code);
                     }
                     return Ok(BuiltinOutcome {
                         stdout,
                         stderr,
-                        exit_code: 2,
+                        exit_code: code,
                     });
                 }
             };
@@ -705,7 +743,8 @@ impl<'a> EvalState<'a> {
         })
     }
 
-    fn format_active_syntax_diagnostic(&self, script_text: &str, syn_err: &str) -> String {
+    pub(crate) fn format_active_syntax_diagnostic(&self, script_text: &str, syn_err: &str) -> String {
+        let syn_err = syn_err.strip_prefix("__exit127__").unwrap_or(syn_err);
         if self.mapfile_callback_depth > 0 {
             let outer_script = self
                 .script_name
@@ -722,7 +761,7 @@ impl<'a> EvalState<'a> {
         if let Some((name, offset, include_ctx)) = self.syntax_contexts.last() {
             return format_syntax_diagnostic(name, *offset, script_text, syn_err, *include_ctx);
         }
-        let name = self.script_name.as_deref().unwrap_or("shell");
+        let name = self.script_name.as_deref().unwrap_or("shell: -c");
         format_syntax_diagnostic(name, 0, script_text, syn_err, true)
     }
 
@@ -968,12 +1007,18 @@ impl<'a> EvalState<'a> {
                     }
                     Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!(
-                            "{}\n",
-                            msg.strip_prefix("__param_err__")
+                        stderr: {
+                            let clean = msg
+                                .strip_prefix("__param_err__")
                                 .or_else(|| msg.strip_prefix("__nounset__"))
-                                .unwrap_or(&msg)
-                        ),
+                                .unwrap_or(&msg);
+                            let pfx = sub.diag_prefix();
+                            if clean.starts_with(&pfx) || clean.starts_with("bash:") {
+                                format!("{clean}\n")
+                            } else {
+                                format!("{pfx}{clean}\n")
+                            }
+                        },
                         exit_code: 1,
                     },
                     Err(e) => return Err(e),
@@ -1025,7 +1070,12 @@ impl<'a> EvalState<'a> {
                         .strip_prefix("__param_err__")
                         .or_else(|| msg.strip_prefix("__nounset__"))
                         .unwrap_or(&msg);
-                    stderr.push_str(&format!("{clean_msg}\n"));
+                    let pfx = self.diag_prefix();
+                    if clean_msg.starts_with(&pfx) || clean_msg.starts_with("bash:") {
+                        stderr.push_str(&format!("{clean_msg}\n"));
+                    } else {
+                        stderr.push_str(&format!("{pfx}{clean_msg}\n"));
+                    }
                     let is_subshell = self
                         .env
                         .get("BASH_SUBSHELL")
@@ -1498,8 +1548,18 @@ impl<'a> EvalState<'a> {
             CommandNode::Simple(simple) => self.eval_simple_command(simple, stdin),
             CommandNode::Subshell { body, redirects } => {
                 self.budget.enter_recursion().map_err(EvalError::Budget)?;
+                let prev_iso = std::mem::replace(&mut self.isolated_inline_input, true);
                 let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
-                    self.setup_redirects(redirects, stdin)?;
+                    match self.setup_redirects(redirects, stdin) {
+                        Ok(r) => {
+                            self.isolated_inline_input = prev_iso;
+                            r
+                        }
+                        Err(e) => {
+                            self.isolated_inline_input = prev_iso;
+                            return Err(e);
+                        }
+                    };
                 if let Some(err_out) = redir_err {
                     self.restore_redirects(saved_fds, saved_in);
                     self.budget.leave_recursion();
@@ -1517,14 +1577,19 @@ impl<'a> EvalState<'a> {
                     Ok(o) => o,
                     Err(EvalError::Syntax(msg)) => {
                         let is_syn = msg.starts_with("Syntax error:");
+                        let clean = msg
+                            .strip_prefix("__param_err__")
+                            .or_else(|| msg.strip_prefix("__nounset__"))
+                            .unwrap_or(&msg);
+                        let pfx = sub.diag_prefix();
+                        let formatted = if clean.starts_with(&pfx) || clean.starts_with("bash:") {
+                            format!("{clean}\n")
+                        } else {
+                            format!("{pfx}{clean}\n")
+                        };
                         BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!(
-                                "{}\n",
-                                msg.strip_prefix("__param_err__")
-                                    .or_else(|| msg.strip_prefix("__nounset__"))
-                                    .unwrap_or(&msg)
-                            ),
+                            stderr: formatted,
                             exit_code: if is_syn { 2 } else { 1 },
                         }
                     }
@@ -1966,13 +2031,13 @@ impl<'a> EvalState<'a> {
 
                 if !init.trim().is_empty() {
                     let exp_init = self.expand_arith_text(init)?;
-                    if let Err(e) = eval_arith(&exp_init, self.env) {
+                    if let Err(e) = eval_arith_formatted(&exp_init, self.env) {
                         self.leave_body_stdio(body_stdio);
                         self.restore_redirects(saved_fds, saved_in);
                         if let Some(nu) = e.strip_prefix("__nounset__") {
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
-                        stderr.push_str(&format!("((: {e}\n"));
+                        stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
                         let mut out = BuiltinOutcome {
                             stdout,
                             stderr,
@@ -1991,7 +2056,7 @@ impl<'a> EvalState<'a> {
                     }
                     if !cond.trim().is_empty() {
                         let exp_cond = self.expand_arith_text(cond)?;
-                        match eval_arith(&exp_cond, self.env) {
+                        match eval_arith_formatted(&exp_cond, self.env) {
                             Ok(cval) => {
                                 if cval == 0 {
                                     break;
@@ -2004,7 +2069,7 @@ impl<'a> EvalState<'a> {
                                     self.restore_redirects(saved_fds, saved_in);
                                     return Err(EvalError::Syntax(nu.to_string()));
                                 }
-                                stderr.push_str(&format!("((: {e}\n"));
+                                stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
                                 code = 1;
                                 break;
                             }
@@ -2032,14 +2097,14 @@ impl<'a> EvalState<'a> {
                     }
                     if !step.trim().is_empty() {
                         let exp_step = self.expand_arith_text(step)?;
-                        if let Err(e) = eval_arith(&exp_step, self.env) {
+                        if let Err(e) = eval_arith_formatted(&exp_step, self.env) {
                             if let Some(nu) = e.strip_prefix("__nounset__") {
                                 self.loop_depth -= 1;
                                 self.leave_body_stdio(body_stdio);
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Syntax(nu.to_string()));
                             }
-                            stderr.push_str(&format!("((: {e}\n"));
+                            stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
                             code = 1;
                             break;
                         }
@@ -2285,7 +2350,7 @@ impl<'a> EvalState<'a> {
                     self.in_fds.insert(dfd, local_stdin);
                 }
                 self.route_outcome(&mut out);
-                match eval_arith(&exp, self.env) {
+                match eval_arith_formatted(&exp, self.env) {
                     Ok(val) => {
                         self.restore_redirects(saved_fds, saved_in);
                         out.exit_code = if val != 0 { 0 } else { 1 };
@@ -2299,7 +2364,7 @@ impl<'a> EvalState<'a> {
                         self.env.insert("__arith_diag".to_string(), "1".to_string());
                         let mut diag_out = BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("((: {e}\n"),
+                            stderr: format!("{}((: {e}\n", self.diag_prefix()),
                             exit_code: 1,
                         };
                         self.route_outcome(&mut diag_out);
@@ -3198,13 +3263,20 @@ impl<'a> EvalState<'a> {
             }
         }
 
+        let is_external_inline = has_inline_input
+            && !expanded_words.is_empty()
+            && !self.functions.contains_key(&expanded_words[0])
+            && !Self::is_shell_builtin_name(&expanded_words[0]);
+        let prev_iso = std::mem::replace(&mut self.isolated_inline_input, is_external_inline);
         let (saved_fds, saved_in, mut local_stdin, use_local, dup_fd, redir_err) =
             match self.setup_redirects(&simple.redirects, stdin) {
                 Ok(res) => {
+                    self.isolated_inline_input = prev_iso;
                     self.redirect_assignments.clear();
                     res
                 }
                 Err(e) => {
+                    self.isolated_inline_input = prev_iso;
                     self.redirect_assignments.clear();
                     return Err(e);
                 }
@@ -3446,7 +3518,7 @@ impl<'a> EvalState<'a> {
                 let mut sub_cwd = self.cwd.clone();
                 let mut sub_env = self.env.clone();
                 let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-                if let Ok(ast) = parse_script(&sub_cmd)
+                if let Ok(ast) = parse_script_with_extglob(&sub_cmd, sub.extglob_enabled())
                     && let Ok(sub_out) = sub.eval_script(&ast, &mut proc_stdin)
                 {
                     out.stdout.push_str(&sub_out.stdout);
@@ -4663,6 +4735,7 @@ impl<'a> EvalState<'a> {
                     procsub_seq: 0,
                     cmdsub_seq: 0,
                     in_prefix_assignment: false,
+                    isolated_inline_input: false,
                     retained_prefix_vars: Vec::new(),
                     pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
@@ -5611,13 +5684,14 @@ impl<'a> EvalState<'a> {
                     Ok(out)
                 }
                 Err(EvalError::Syntax(msg)) => {
+                    let code = if msg.starts_with("__exit127__") { 127 } else { 2 };
                     let mut out = BuiltinOutcome {
                         stdout: String::new(),
                         stderr: sub.format_active_syntax_diagnostic(&cs, &msg),
-                        exit_code: 2,
+                        exit_code: code,
                     };
-                    sub.last_exit = 2;
-                    sub.exit_requested = Some(2);
+                    sub.last_exit = code;
+                    sub.exit_requested = Some(code);
                     sub.run_exit_trap_if_needed(&mut out);
                     Ok(out)
                 }
@@ -5676,7 +5750,13 @@ impl<'a> EvalState<'a> {
                 unit_buf.push_str(&decoded);
             }
 
-            if !eof && is_incomplete_shell_unit(&unit_buf, &self.active_alias_map()) {
+            if !eof
+                && is_incomplete_shell_unit_with_extglob(
+                    &unit_buf,
+                    &self.active_alias_map(),
+                    self.extglob_enabled(),
+                )
+            {
                 continue;
             }
 
@@ -9344,7 +9424,10 @@ impl<'a> EvalState<'a> {
                             };
                             self.route_outcome(&mut err_out);
                             self.last_exit = code;
-                            if is_nounset || (self.errexit && !self.in_condition) {
+                            if is_nounset
+                                || (is_param_err && !self.isolated_inline_input)
+                                || (self.errexit && !self.in_condition)
+                            {
                                 self.exit_requested = Some(code);
                             }
                             return Ok((
@@ -9406,7 +9489,10 @@ impl<'a> EvalState<'a> {
                                 };
                                 self.route_outcome(&mut err_out);
                                 self.last_exit = code;
-                                if is_nounset || (self.errexit && !self.in_condition) {
+                                if is_nounset
+                                    || (is_param_err && !self.isolated_inline_input)
+                                    || (self.errexit && !self.in_condition)
+                                {
                                     self.exit_requested = Some(code);
                                 }
                                 return Ok((
@@ -10681,7 +10767,7 @@ impl<'a> EvalState<'a> {
                                    env: &mut BTreeMap<String, String>,
                                    diag_abort: &mut Option<(i32, String)>|
                  -> Result<Option<i64>, EvalError> {
-                    match eval_arith(src, env) {
+                    match eval_arith_formatted(src, env) {
                         Ok(v) => Ok(Some(v)),
                         Err(e) => {
                             if e.starts_with("__nounset__")
@@ -10690,18 +10776,7 @@ impl<'a> EvalState<'a> {
                             {
                                 return Err(EvalError::Syntax(e));
                             }
-                            let formatted = if e == "Division by zero" {
-                                let trimmed = src.trim_start();
-                                let err_tok = trimmed
-                                    .rsplit_once(['/', '%'])
-                                    .map(|(_, rhs)| rhs.trim_start())
-                                    .unwrap_or("0");
-                                format!(
-                                    "[[: {trimmed}: division by 0 (error token is \"{err_tok}\")\n"
-                                )
-                            } else {
-                                format!("[[: {e}\n")
-                            };
+                            let formatted = format!("[[: {e}\n");
                             *diag_abort = Some((1, formatted));
                             Ok(None)
                         }
@@ -11500,7 +11575,8 @@ impl<'a> EvalState<'a> {
                     let expr: String = chars[*idx + 2..expr_end].iter().collect();
                     *idx = resume_idx;
                     let expanded_expr = self.expand_arith_text(&expr)?;
-                    let val = eval_arith(&expanded_expr, self.env).map_err(EvalError::Syntax)?;
+                    let val = eval_arith_formatted(&expanded_expr, self.env)
+                        .map_err(EvalError::Syntax)?;
                     return Ok(val.to_string());
                 }
                 Ok(None) => {}
@@ -11756,12 +11832,18 @@ impl<'a> EvalState<'a> {
             Ok(o) => o,
             Err(EvalError::Syntax(msg)) => BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!(
-                    "{}\n",
-                    msg.strip_prefix("__param_err__")
+                stderr: {
+                    let clean = msg
+                        .strip_prefix("__param_err__")
                         .or_else(|| msg.strip_prefix("__nounset__"))
-                        .unwrap_or(&msg)
-                ),
+                        .unwrap_or(&msg);
+                    let pfx = sub.diag_prefix();
+                    if clean.starts_with(&pfx) || clean.starts_with("bash:") {
+                        format!("{clean}\n")
+                    } else {
+                        format!("{pfx}{clean}\n")
+                    }
+                },
                 exit_code: 1,
             },
             Err(e) => return Err(e),
@@ -14342,6 +14424,7 @@ fn format_syntax_diagnostic(
     syn_msg: &str,
     include_context: bool,
 ) -> String {
+    let syn_msg = syn_msg.strip_prefix("__exit127__").unwrap_or(syn_msg);
     if syn_msg.contains("unclosed single quote")
         || syn_msg.contains("unclosed double quote")
         || syn_msg.contains("unclosed backtick")
@@ -15727,7 +15810,7 @@ printf 'rc=%d:%d:%d:%d|o=%s|i=%s|m=%s|a=%s\n' \
         assert_eq!(r2.exit_code, 0);
         assert_eq!(
             r2.stdout,
-            "rc=1:1:1:1|o=shell: line 1: 0: Bad file descriptor|i=shell: line 3: 1: Bad file descriptor|m=shell: line 6: 1-: ambiguous redirect|a=((: Division by zero\n"
+            "rc=1:1:1:1|o=shell: line 1: 0: Bad file descriptor|i=shell: line 3: 1: Bad file descriptor|m=shell: line 6: 1-: ambiguous redirect|a=shell: line 7: ((: 1 / 0: division by 0 (error token is \"0\")\n"
         );
     }
 
@@ -16230,6 +16313,70 @@ LOOP='-S ${LOOP}' env -S '${LOOP}' 2>/tmp/env_loop; printf 'env_loop=%s:%s\n' "$
                 .eval_script_str(&format!("v={val}; printf '%s' \"${{v#a*}}\""), "")
                 .unwrap_err();
             assert!(format!("{err:?}").contains("maxExpansionBytes"));
+        }
+    }
+
+    #[test]
+    fn unit_eval_extglob_fatal_diagnostics_file_shortcut_and_pipestatus_parity() {
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let budget = ExecutionBudget::default();
+        let custom = BTreeMap::new();
+
+        // 1. Fresh shell PIPESTATUS is empty before any command runs
+        {
+            let (mut sh, _) = crate::Shell::with_memory_fs();
+            sh.set_env("__cwd", "/work");
+            let out = sh
+                .exec("printf 'before=<%s>\\n' \"${PIPESTATUS[*]}\"")
+                .unwrap();
+            assert_eq!(out.exit_code, 0);
+            assert_eq!(out.stdout, "before=<>\n");
+        }
+
+        // 2. Parse-time extglob affects subsequent lines after shopt -s / -u extglob
+        {
+            let mut st = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+            let r = st
+                .eval_script_str(
+                    "x=\"\"\nprintf '<%s>|<%s>\\n' \"${x//o/X}\" \"${x/#foo/X}\"\nshopt -s extglob\necho @(a|b)\nshopt -u extglob\necho @(a|b)",
+                    "",
+                )
+                .unwrap();
+            assert_eq!(r.exit_code, 2);
+            assert_eq!(r.stdout, "<>|<>\n@(a|b)\n");
+            assert_eq!(
+                r.stderr,
+                "shell: -c: line 6: syntax error near unexpected token `('\nshell: -c: line 6: `echo @(a|b)'\n"
+            );
+        }
+
+        // 3. Inline input expansion error isolates for external commands vs aborts for builtins
+        {
+            let mut c1 = "/work".to_string();
+            let mut e1 = BTreeMap::new();
+            let mut st1 = EvalState::new(&mut c1, &mut e1, &vfs, &budget, &custom, false);
+            let r1 = st1
+                .eval_script_str(
+                    "cat <<<\"${missing:?stop}\"\nprintf 'status=%d\\n' \"$?\"",
+                    "",
+                )
+                .unwrap();
+            assert_eq!(r1.exit_code, 0);
+            assert_eq!(r1.stdout, "status=127\n");
+            assert_eq!(r1.stderr, "shell: line 1: missing: stop\n");
+
+            let mut c2 = "/work".to_string();
+            let mut e2 = BTreeMap::new();
+            let mut st2 = EvalState::new(&mut c2, &mut e2, &vfs, &budget, &custom, false);
+            let r2 = st2
+                .eval_script_str(": <<<\"${missing:?stop}\"\necho after", "")
+                .unwrap();
+            assert_eq!(r2.exit_code, 127);
+            assert_eq!(r2.stdout, "");
+            assert_eq!(r2.stderr, "shell: line 1: missing: stop\n");
         }
     }
 }

@@ -268,6 +268,22 @@ pub fn read_heredoc_raw_delim(chars: &[char], i: &mut usize) -> Result<String, S
 }
 
 pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
+    tokenize_shell_with_extglob(input, true)
+}
+
+pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Token>, String> {
+    fn ends_with_unescaped_extglob_op(s: &str) -> bool {
+        let Some(last) = s.chars().last() else {
+            return false;
+        };
+        if !matches!(last, '?' | '*' | '+' | '@' | '!') {
+            return false;
+        }
+        let prefix = &s[..s.len() - last.len_utf8()];
+        let backslashes = prefix.bytes().rev().take_while(|&b| b == b'\\').count();
+        backslashes % 2 == 0
+    }
+
     fn is_lexer_cmd_position(tokens: &[Token]) -> bool {
         match tokens.last() {
             None => true,
@@ -520,9 +536,9 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                             i += 1;
                         }
                     } else if next == '$' && i + 1 < chars.len() && chars[i + 1] == '(' {
-                        read_dollar_paren(&chars, &mut i, &mut current)?;
+                        read_dollar_paren(&chars, &mut i, &mut current, extglob)?;
                     } else if next == '$' && i + 1 < chars.len() && chars[i + 1] == '{' {
-                        read_dollar_brace(&chars, &mut i, &mut current)?;
+                        read_dollar_brace(&chars, &mut i, &mut current, extglob)?;
                     } else if next == '"' {
                         current.push('"');
                         i += 1;
@@ -562,14 +578,14 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                     regex_bracket_first = false;
                     regex_bracket_negation = false;
                 }
-                read_dollar_paren(&chars, &mut i, &mut current)?;
+                read_dollar_paren(&chars, &mut i, &mut current, extglob)?;
             }
             '$' if i + 1 < chars.len() && chars[i + 1] == '{' => {
                 if in_double_bracket && after_regex_op && regex_bracket {
                     regex_bracket_first = false;
                     regex_bracket_negation = false;
                 }
-                read_dollar_brace(&chars, &mut i, &mut current)?;
+                read_dollar_brace(&chars, &mut i, &mut current, extglob)?;
             }
             '$' if i + 1 < chars.len() && chars[i + 1] == '\'' => {
                 if in_double_bracket && after_regex_op && regex_bracket {
@@ -727,7 +743,11 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
                 i += 1;
             }
             '(' => {
-                if current.ends_with(['=', '?', '*', '+', '@', '!']) {
+                let is_extglob_prefix = ends_with_unescaped_extglob_op(&current);
+                if is_extglob_prefix && !extglob {
+                    return Err("Syntax error: unexpected `(`".to_string());
+                }
+                if current.ends_with('=') || (is_extglob_prefix && extglob) {
                     current.push('(');
                     i += 1;
                     let mut depth = 1usize;
@@ -938,7 +958,7 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
             '>' | '<' if i + 1 < chars.len() && chars[i + 1] == '(' => {
                 current.push(ch);
                 i += 1;
-                read_paren_sub_body(&chars, &mut i, &mut current, "process substitution")?;
+                read_paren_sub_body(&chars, &mut i, &mut current, "process substitution", extglob)?;
             }
             '>' | '<' if in_double_bracket => {
                 flush_current_word(
@@ -1128,7 +1148,12 @@ pub fn tokenize_shell(input: &str) -> Result<Vec<Token>, String> {
     Ok(tokens)
 }
 
-fn read_dollar_paren(chars: &[char], i: &mut usize, out: &mut String) -> Result<(), String> {
+fn read_dollar_paren(
+    chars: &[char],
+    i: &mut usize,
+    out: &mut String,
+    extglob: bool,
+) -> Result<(), String> {
     out.push('$');
     *i += 1;
     if *i + 1 < chars.len() && chars[*i] == '(' && chars[*i + 1] == '(' {
@@ -1142,7 +1167,7 @@ fn read_dollar_paren(chars: &[char], i: &mut usize, out: &mut String) -> Result<
             return Ok(());
         }
     }
-    read_paren_sub_body(chars, i, out, "command substitution")
+    read_paren_sub_body(chars, i, out, "command substitution", extglob)
 }
 
 fn read_paren_sub_body(
@@ -1150,8 +1175,10 @@ fn read_paren_sub_body(
     i: &mut usize,
     out: &mut String,
     construct_name: &str,
+    extglob: bool,
 ) -> Result<(), String> {
     out.push('(');
+    let body_start = out.len();
     *i += 1;
 
     let mut depth = 1usize;
@@ -1179,9 +1206,9 @@ fn read_paren_sub_body(
                     *i += 1;
                 }
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '(' {
-                read_dollar_paren(chars, i, out)?;
+                read_dollar_paren(chars, i, out, extglob)?;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '{' {
-                read_dollar_brace(chars, i, out)?;
+                read_dollar_brace(chars, i, out, extglob)?;
             } else {
                 out.push(c);
                 *i += 1;
@@ -1210,9 +1237,9 @@ fn read_paren_sub_body(
                 *i += 1;
                 in_dq = true;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '(' {
-                read_dollar_paren(chars, i, out)?;
+                read_dollar_paren(chars, i, out, extglob)?;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '{' {
-                read_dollar_brace(chars, i, out)?;
+                read_dollar_brace(chars, i, out, extglob)?;
             } else if c == '<' && *i + 1 < chars.len() && chars[*i + 1] == '<' {
                 if chars.get(*i + 2) == Some(&'<') {
                     out.push_str("<<<");
@@ -1303,10 +1330,23 @@ fn read_paren_sub_body(
     if depth != 0 {
         return Err(format!("Syntax error: unclosed {construct_name}"));
     }
+    let inner_body = &out[body_start..out.len() - 1];
+    if let Err(err) = crate::shell::parser::parse_script_with_extglob(inner_body, extglob) {
+        let clean = err.strip_prefix("__exit127__").unwrap_or(&err);
+        if clean.contains("unexpected end of file") {
+            return Err("__exit127__Syntax error: unexpected `)`".to_string());
+        }
+        return Err(format!("__exit127__{clean}"));
+    }
     Ok(())
 }
 
-fn read_dollar_brace(chars: &[char], i: &mut usize, out: &mut String) -> Result<(), String> {
+fn read_dollar_brace(
+    chars: &[char],
+    i: &mut usize,
+    out: &mut String,
+    extglob: bool,
+) -> Result<(), String> {
     out.push('$');
     out.push('{');
     *i += 2;
@@ -1334,9 +1374,9 @@ fn read_dollar_brace(chars: &[char], i: &mut usize, out: &mut String) -> Result<
                     *i += 1;
                 }
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '(' {
-                read_dollar_paren(chars, i, out)?;
+                read_dollar_paren(chars, i, out, extglob)?;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '{' {
-                read_dollar_brace(chars, i, out)?;
+                read_dollar_brace(chars, i, out, extglob)?;
             } else {
                 out.push(c);
                 *i += 1;
@@ -1365,9 +1405,9 @@ fn read_dollar_brace(chars: &[char], i: &mut usize, out: &mut String) -> Result<
                 *i += 1;
                 in_dq = true;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '(' {
-                read_dollar_paren(chars, i, out)?;
+                read_dollar_paren(chars, i, out, extglob)?;
             } else if c == '$' && *i + 1 < chars.len() && chars[*i + 1] == '{' {
-                read_dollar_brace(chars, i, out)?;
+                read_dollar_brace(chars, i, out, extglob)?;
             } else if c == '{' {
                 out.push(c);
                 *i += 1;

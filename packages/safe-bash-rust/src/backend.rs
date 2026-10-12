@@ -221,13 +221,20 @@ impl HybridBackend {
                 }
                 Some(Ok(res))
             }
-            Err(EvalError::Syntax(msg)) => Some(Ok(CommandResult {
-                stdout: String::new(),
-                stderr: format!("syntax error: {msg}\n"),
-                exit_code: 2,
-                cwd: cwd.clone(),
-                env: env.clone(),
-            })),
+            Err(EvalError::Syntax(msg)) => {
+                let code = if msg.starts_with("__exit127__") { 127 } else { 2 };
+                let stderr = eval.format_active_syntax_diagnostic(script, &msg);
+                if script != ":" {
+                    env.insert("__last_exit".to_string(), code.to_string());
+                }
+                Some(Ok(CommandResult {
+                    stdout: String::new(),
+                    stderr,
+                    exit_code: code,
+                    cwd: cwd.clone(),
+                    env: env.clone(),
+                }))
+            }
             Err(EvalError::Budget(msg)) => Some(Err(msg)),
             Err(EvalError::UnportedCommand(_)) => None,
         }

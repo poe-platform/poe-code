@@ -412,6 +412,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-source-dot-eval-command-syntax-locale-parity-matrix.test.ts",
   "obscure-invocation-closure-sh-discovery-modes-options-parity-matrix.test.ts",
   "obscure-errexit-native-env-split-eval-loop-bounds-parity-matrix.test.ts",
+  "obscure-extglob-fatal-diagnostics-file-shortcut-function-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 
@@ -691,7 +692,7 @@ export class SafeBashE2EHarness {
         rustBash.symlink(target, normalizedLink);
       }
       if (options.cwd && options.cwd !== "/workspace") {
-        rustBash.execSync(`cd ${JSON.stringify(sb.normalizePath(options.cwd))}`);
+        rustBash.setEnv("__cwd", sb.normalizePath(options.cwd));
       }
       if (hasCustomJsPlugins) {
         (rustBash as unknown as { _getOrCreateCompanionSync(): void })._getOrCreateCompanionSync();

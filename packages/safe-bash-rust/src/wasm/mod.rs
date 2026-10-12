@@ -426,6 +426,10 @@ pub unsafe extern "C" fn safe_bash_set_env(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
+    if key == "__cwd" {
+        sess.shell.set_cwd(val);
+        return 0;
+    }
     let mut env = BTreeMap::new();
     env.insert(key.to_string(), val.to_string());
     let _ = sess.shell.exec_with_options(

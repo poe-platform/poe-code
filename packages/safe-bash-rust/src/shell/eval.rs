@@ -101,6 +101,7 @@ pub struct EvalState<'a> {
     pub procsub_seq: usize,
     pub cmdsub_seq: usize,
     pub in_prefix_assignment: bool,
+    pub retained_prefix_vars: Vec<String>,
     pub pending_out_procsubs: Vec<(String, String)>,
     pub pending_stdout: String,
     pub pending_stderr: String,
@@ -203,6 +204,7 @@ impl<'a> EvalState<'a> {
             procsub_seq: 0,
             cmdsub_seq: 0,
             in_prefix_assignment: false,
+            retained_prefix_vars: Vec::new(),
             pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
             pending_stderr: String::new(),
@@ -350,6 +352,7 @@ impl<'a> EvalState<'a> {
             procsub_seq: self.procsub_seq,
             cmdsub_seq: self.cmdsub_seq,
             in_prefix_assignment: false,
+            retained_prefix_vars: Vec::new(),
             pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
             pending_stderr: String::new(),
@@ -2273,6 +2276,42 @@ impl<'a> EvalState<'a> {
                 }
             }
             CommandNode::FuncDef { name, body } => {
+                let is_posix = self
+                    .env
+                    .get("__set_posix")
+                    .map(|v| v == "1")
+                    .unwrap_or(false);
+                if is_posix
+                    && matches!(
+                        name.as_str(),
+                        ":"
+                            | "."
+                            | "break"
+                            | "continue"
+                            | "eval"
+                            | "exec"
+                            | "exit"
+                            | "export"
+                            | "readonly"
+                            | "return"
+                            | "set"
+                            | "shift"
+                            | "times"
+                            | "trap"
+                            | "unset"
+                    )
+                {
+                    let prefix = self.diag_prefix();
+                    let mut err_out = BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{prefix}`{name}': is a special builtin\n"),
+                        exit_code: 2,
+                    };
+                    self.last_exit = 2;
+                    self.exit_requested = Some(2);
+                    self.route_outcome(&mut err_out);
+                    return Ok(err_out);
+                }
                 if self
                     .env
                     .get(&format!("__readonly_fn__{name}"))
@@ -3024,12 +3063,83 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        let is_posix = self
+            .env
+            .get("__set_posix")
+            .map(|v| v == "1")
+            .unwrap_or(false);
+        let is_special_head = is_posix
+            && expanded_words.first().is_some_and(|w| {
+                !self.functions.contains_key(w)
+                    && matches!(
+                        w.as_str(),
+                        ":"
+                            | "."
+                            | "break"
+                            | "continue"
+                            | "eval"
+                            | "exec"
+                            | "exit"
+                            | "export"
+                            | "readonly"
+                            | "return"
+                            | "set"
+                            | "shift"
+                            | "times"
+                            | "trap"
+                            | "unset"
+                    )
+            });
+        let has_inline_input = simple.redirects.iter().any(|r| {
+            matches!(
+                r.kind,
+                RedirectKind::HereString(_) | RedirectKind::HereDoc { .. }
+            )
+        });
+        let has_readonly_assign = simple.assignments.iter().any(|(k, _, _)| {
+            let base_k = k.split('[').next().unwrap_or(k);
+            let resolved = resolve_nameref_base(base_k, self.env);
+            self.env
+                .get(&format!("__attr__{resolved}"))
+                .is_some_and(|a| a.contains('r'))
+        });
+        if !has_inline_input && (is_posix || expanded_words.is_empty()) && has_readonly_assign {
+            self.sub_exit = None;
+            for (k, v, append) in &simple.assignments {
+                let val = if v.starts_with('(') && v.ends_with(')') {
+                    format!("\x00__ARRAY_LITERAL__{v}")
+                } else {
+                    self.expand_assignment_rhs(v)?
+                };
+                if let Err(e) = self.assign_variable(k, &val, *append) {
+                    match e {
+                        EvalError::Syntax(msg) if msg.contains("readonly variable") => {
+                            let code =
+                                if is_posix && (is_special_head || expanded_words.is_empty()) {
+                                    127
+                                } else {
+                                    1
+                                };
+                            let prefix = self.diag_prefix();
+                            let mut err_out = BuiltinOutcome {
+                                stdout: debug_out.stdout,
+                                stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
+                                exit_code: code,
+                            };
+                            self.last_exit = code;
+                            self.exit_requested = Some(code);
+                            self.route_outcome(&mut err_out);
+                            return Ok(err_out);
+                        }
+                        other => return Err(other),
+                    }
+                }
+            }
+        }
+
         if !expanded_words.is_empty()
             && !simple.assignments.is_empty()
-            && simple
-                .redirects
-                .iter()
-                .any(|r| matches!(r.kind, RedirectKind::HereString(_) | RedirectKind::HereDoc { .. }))
+            && has_inline_input
         {
             self.redirect_assignments.clear();
             for (k, v, append) in &simple.assignments {
@@ -3065,6 +3175,10 @@ impl<'a> EvalState<'a> {
             };
         if let Some(err_out) = redir_err {
             self.restore_redirects(saved_fds, saved_in);
+            self.last_exit = err_out.exit_code;
+            if is_special_head || (self.errexit && !self.in_condition) {
+                self.exit_requested = Some(err_out.exit_code);
+            }
             return Ok(err_out);
         }
         if expanded_words.is_empty() {
@@ -3078,13 +3192,15 @@ impl<'a> EvalState<'a> {
                 if let Err(e) = self.assign_variable(k, &val, *append) {
                     match e {
                         EvalError::Syntax(msg) if msg.contains("readonly variable") => {
+                            let code = if is_posix { 127 } else { 1 };
+                            let prefix = self.diag_prefix();
                             let mut err_out = BuiltinOutcome {
                                 stdout: debug_out.stdout,
-                                stderr: format!("{}{msg}\n", debug_out.stderr),
-                                exit_code: 1,
+                                stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
+                                exit_code: code,
                             };
-                            self.last_exit = 1;
-                            self.exit_requested = Some(1);
+                            self.last_exit = code;
+                            self.exit_requested = Some(code);
                             self.route_outcome(&mut err_out);
                             self.restore_redirects(saved_fds, saved_in);
                             return Ok(err_out);
@@ -3172,7 +3288,22 @@ impl<'a> EvalState<'a> {
                     temp_saved.push((base_k.to_string(), prev_val, was_unexp, extra_prev));
                 }
                 Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
-                    debug_out.stderr.push_str(&format!("{msg}\n"));
+                    let prefix = self.diag_prefix();
+                    if is_posix {
+                        let code = if is_special_head { 127 } else { 1 };
+                        self.in_prefix_assignment = false;
+                        let mut err_out = BuiltinOutcome {
+                            stdout: debug_out.stdout,
+                            stderr: format!("{}{prefix}{msg}\n", debug_out.stderr),
+                            exit_code: code,
+                        };
+                        self.last_exit = code;
+                        self.exit_requested = Some(code);
+                        self.route_outcome(&mut err_out);
+                        self.restore_redirects(saved_fds, saved_in);
+                        return Ok(err_out);
+                    }
+                    debug_out.stderr.push_str(&format!("{prefix}{msg}\n"));
                 }
                 Err(e) => {
                     self.in_prefix_assignment = false;
@@ -3208,6 +3339,7 @@ impl<'a> EvalState<'a> {
         };
         let eff_stdin = if use_local { &mut local_stdin } else { &mut *stdin };
         let body_stdio = self.enter_body_stdio();
+        self.retained_prefix_vars.clear();
         let dispatch_res = self.dispatch_words(&expanded_words, eff_stdin, false);
         self.leave_body_stdio(body_stdio);
         if stashed_outer_stdin {
@@ -3219,34 +3351,12 @@ impl<'a> EvalState<'a> {
             out.stderr = format!("{}{}", debug_out.stderr, out.stderr);
         }
 
-        let is_posix = self
-            .env
-            .get("__set_posix")
-            .map(|v| v == "1")
-            .unwrap_or(false);
-        let keep_prefix_assigns = matches!(
-            expanded_words[0].as_str(),
-            "export" | "readonly" | "declare" | "typeset" | "local"
-        ) || (is_posix
-            && !self.functions.contains_key(&expanded_words[0])
-            && matches!(
-                expanded_words[0].as_str(),
-                ":"
-                    | "."
-                    | "break"
-                    | "continue"
-                    | "eval"
-                    | "exec"
-                    | "exit"
-                    | "return"
-                    | "set"
-                    | "shift"
-                    | "times"
-                    | "trap"
-                    | "unset"
-            ));
+        let keep_prefix_assigns = is_special_head;
         if !keep_prefix_assigns {
             for (k, prev, was_unexp, extra_prev) in temp_saved.into_iter().rev() {
+                if self.retained_prefix_vars.iter().any(|rv| rv == &k) {
+                    continue;
+                }
                 if !extra_prev.is_empty() {
                     let prefix = format!("{k}[");
                     let to_remove: Vec<String> = self
@@ -3642,10 +3752,25 @@ impl<'a> EvalState<'a> {
                 return Ok(self.builtin_trap(args));
             }
             "export" | "local" | "readonly" | "declare" | "typeset" => {
-                return self.builtin_declare(cmd, args);
+                let out = self.builtin_declare(cmd, args)?;
+                if out.exit_code != 0
+                    && !bypass_functions
+                    && self.env.get("__set_posix").is_some_and(|v| v == "1")
+                    && matches!(cmd.as_str(), "export" | "readonly")
+                {
+                    self.exit_requested = Some(out.exit_code);
+                }
+                return Ok(out);
             }
             "unset" => {
-                return Ok(self.builtin_unset(args));
+                let out = self.builtin_unset(args);
+                if out.exit_code != 0
+                    && !bypass_functions
+                    && self.env.get("__set_posix").is_some_and(|v| v == "1")
+                {
+                    self.exit_requested = Some(out.exit_code);
+                }
+                return Ok(out);
             }
             "read" => {
                 return self.builtin_read(args, stdin);
@@ -4234,10 +4359,11 @@ impl<'a> EvalState<'a> {
                                 default_path = true;
                             }
                             _ => {
+                                let prefix = self.diag_prefix();
                                 return Ok(BuiltinOutcome {
                                     stdout: String::new(),
                                     stderr: format!(
-                                        "command: -{ch}: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n"
+                                        "{prefix}command: -{ch}: invalid option\ncommand: usage: command [-pVv] command [arg ...]\n"
                                     ),
                                     exit_code: 2,
                                 });
@@ -4497,6 +4623,7 @@ impl<'a> EvalState<'a> {
                     procsub_seq: 0,
                     cmdsub_seq: 0,
                     in_prefix_assignment: false,
+                    retained_prefix_vars: Vec::new(),
                     pending_out_procsubs: Vec::new(),
             pending_stdout: String::new(),
             pending_stderr: String::new(),
@@ -4524,6 +4651,12 @@ impl<'a> EvalState<'a> {
                 out
             },
         ) {
+            if effective_cmd == "cat"
+                && (args.iter().all(|a| a.starts_with('-') && a != "-")
+                    || args.iter().any(|a| a == "-"))
+            {
+                stdin.clear();
+            }
             return Ok(c_out);
         }
 
@@ -4614,7 +4747,7 @@ impl<'a> EvalState<'a> {
                 if denied.is_none() {
                     denied = Some(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{target}: Permission denied\n"),
+                        stderr: format!("{}{target}: Permission denied\n", self.diag_prefix()),
                         exit_code: 126,
                     });
                 }
@@ -4957,13 +5090,22 @@ impl<'a> EvalState<'a> {
                 matches.clear();
             }
             if show_all || matches.is_empty() {
+                let is_posix = self
+                    .env
+                    .get("__set_posix")
+                    .map(|v| v == "1")
+                    .unwrap_or(false);
+                let absolute = is_command && mode == "describe";
                 for mut path in self.search_discovery_paths(name, show_all, default_path) {
-                    if is_command
-                        && mode == "describe"
+                    if (absolute || is_posix)
                         && !name.contains('/')
                         && !path.starts_with('/')
                     {
-                        let rel = path.strip_prefix("./").unwrap_or(&path);
+                        let rel = if absolute {
+                            path.strip_prefix("./").unwrap_or(&path)
+                        } else {
+                            path.as_str()
+                        };
                         path = if self.cwd == "/" {
                             format!("/{rel}")
                         } else {
@@ -4975,7 +5117,7 @@ impl<'a> EvalState<'a> {
             }
             if matches.is_empty() {
                 if mode == "describe" {
-                    stderr.push_str(&format!("{invoked}: {name}: not found\n"));
+                    stderr.push_str(&format!("{}{invoked}: {name}: not found\n", self.diag_prefix()));
                 }
                 continue;
             }
@@ -5308,9 +5450,9 @@ impl<'a> EvalState<'a> {
                 });
             };
             idx += 1;
-            cs
+            Some(cs)
         } else {
-            std::mem::take(stdin)
+            None
         };
 
         let arg0 = if command_string && idx < args.len() {
@@ -5321,8 +5463,8 @@ impl<'a> EvalState<'a> {
             argv0_override.unwrap_or(invoked_cmd).to_string()
         };
 
-        if noexec {
-            return match validate_basic_syntax(&script_source) {
+        if noexec && let Some(ref cs) = script_source {
+            return match validate_basic_syntax(cs) {
                 Ok(()) => Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: String::new(),
@@ -5330,7 +5472,7 @@ impl<'a> EvalState<'a> {
                 }),
                 Err(e) => Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("{arg0}: {e}\n"),
+                    stderr: format_syntax_diagnostic(&format!("{arg0}: -c"), 0, cs, &e, true),
                     exit_code: 2,
                 }),
             };
@@ -5340,15 +5482,6 @@ impl<'a> EvalState<'a> {
         let mut sub_env = self.build_child_process_env(&sub_cwd, &arg0);
         if invoked_cmd == "sh" {
             sub_env.insert("__set_posix".to_string(), "1".to_string());
-        }
-        if allexport {
-            sub_env.insert("__set_allexport".to_string(), "1".to_string());
-        }
-        if noglob {
-            sub_env.insert("__set_noglob".to_string(), "1".to_string());
-        }
-        if braceexpand == Some(false) {
-            sub_env.insert("__set_braceexpand".to_string(), "0".to_string());
         }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.traps
@@ -5371,11 +5504,19 @@ impl<'a> EvalState<'a> {
         for k in parent_job_keys {
             sub.env.remove(&k);
         }
-        sub.errexit = errexit;
-        sub.nounset = nounset;
-        sub.pipefail = pipefail;
-        sub.noclobber = noclobber;
+        sub.apply_set_option("allexport", allexport);
+        sub.apply_set_option("braceexpand", braceexpand.unwrap_or(true));
+        sub.apply_set_option("errexit", errexit);
+        sub.apply_set_option("noclobber", noclobber);
+        sub.apply_set_option("noexec", noexec);
+        sub.apply_set_option("noglob", noglob);
+        sub.apply_set_option("nounset", nounset);
+        sub.apply_set_option("pipefail", pipefail);
         sub.script_name = Some(arg0.clone());
+        sub.current_line = 1;
+        if command_string {
+            sub.syntax_contexts.push((format!("{arg0}: -c"), 0, true));
+        }
         sub.pos_args = args[idx..].to_vec();
         sub.functions = self
             .functions
@@ -5384,19 +5525,150 @@ impl<'a> EvalState<'a> {
             .map(|(k, v)| (k.clone(), v.clone()))
             .collect();
 
-        match sub.eval_script_str(&script_source, stdin) {
-            Ok(res) => Ok(BuiltinOutcome {
-                stdout: res.stdout,
-                stderr: res.stderr,
-                exit_code: res.exit_code,
-            }),
-            Err(EvalError::Syntax(msg)) => Ok(BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("{arg0}: {msg}\n"),
-                exit_code: 2,
-            }),
-            Err(other) => Err(other),
+        if let Some(cs) = script_source {
+            sub.budget
+                .add_source_bytes(cs.len())
+                .map_err(EvalError::Budget)?;
+            match sub.eval_script_units(&cs, stdin) {
+                Ok(mut out) => {
+                    out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
+                    sub.last_exit = out.exit_code;
+                    sub.run_exit_trap_if_needed(&mut out);
+                    out.exit_code = sub.exit_requested.unwrap_or(out.exit_code);
+                    Ok(out)
+                }
+                Err(EvalError::Syntax(msg)) => {
+                    let mut out = BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: sub.format_active_syntax_diagnostic(&cs, &msg),
+                        exit_code: 2,
+                    };
+                    sub.last_exit = 2;
+                    sub.exit_requested = Some(2);
+                    sub.run_exit_trap_if_needed(&mut out);
+                    Ok(out)
+                }
+                Err(other) => Err(other),
+            }
+        } else {
+            sub.eval_stdin_stream(stdin, &arg0)
         }
+    }
+
+    fn eval_stdin_stream(
+        &mut self,
+        stdin: &mut String,
+        arg0: &str,
+    ) -> Result<BuiltinOutcome, EvalError> {
+        let mut stdout = String::new();
+        let mut stderr = String::new();
+        let mut last_code = 0;
+        let mut unit_buf = String::new();
+        let mut unit_start_line = 0usize;
+        let mut total_parse_units = 0usize;
+
+        loop {
+            let (line_bytes, eof) = if stdin.is_empty() {
+                (Vec::new(), true)
+            } else {
+                let raw_bytes = stream_string_to_bytes(stdin);
+                let take_len = match raw_bytes.iter().position(|&b| b == b'\n') {
+                    Some(nl) => nl + 1,
+                    None => raw_bytes.len(),
+                };
+                let taken = raw_bytes[..take_len].to_vec();
+                *stdin = bytes_to_stream_string(&raw_bytes[take_len..]);
+                (taken, false)
+            };
+
+            if !line_bytes.is_empty() {
+                self.budget
+                    .add_source_bytes(line_bytes.len())
+                    .map_err(EvalError::Budget)?;
+                let decoded = match Self::decode_script_bytes(&line_bytes, arg0) {
+                    Ok(s) => s,
+                    Err(mut err_out) => {
+                        let line_no = unit_start_line + unit_buf.matches('\n').count() + 1;
+                        err_out.stdout = stdout;
+                        err_out.stderr =
+                            format!("{stderr}{arg0}: line {line_no}: {}", err_out.stderr);
+                        self.last_exit = err_out.exit_code;
+                        self.exit_requested = Some(err_out.exit_code);
+                        self.run_exit_trap_if_needed(&mut err_out);
+                        return Ok(err_out);
+                    }
+                };
+                unit_buf.push_str(&decoded);
+            }
+
+            if !eof && is_incomplete_shell_unit(&unit_buf, &self.active_alias_map()) {
+                continue;
+            }
+
+            if !unit_buf.is_empty() {
+                let ast = match self.parse_with_current_aliases(&unit_buf, unit_start_line) {
+                    Ok(a) => a,
+                    Err(syn_err) => {
+                        stderr.push_str(&format_syntax_diagnostic(
+                            arg0,
+                            unit_start_line,
+                            &unit_buf,
+                            &syn_err,
+                            true,
+                        ));
+                        self.last_exit = 2;
+                        self.exit_requested = Some(2);
+                        let mut out = BuiltinOutcome {
+                            stdout,
+                            stderr,
+                            exit_code: 2,
+                        };
+                        self.run_exit_trap_if_needed(&mut out);
+                        return Ok(out);
+                    }
+                };
+                let parse_units: usize = ast.lists.iter().map(|l| 1 + l.rest.len()).sum();
+                total_parse_units += parse_units;
+                if total_parse_units > self.budget.limits.max_parse_units {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxParseUnits ({})",
+                        self.budget.limits.max_parse_units
+                    )));
+                }
+                if !self.noexec && !ast.lists.is_empty() {
+                    let unit_out = self.eval_script(&ast, stdin)?;
+                    stdout.push_str(&unit_out.stdout);
+                    stderr.push_str(&unit_out.stderr);
+                    last_code = unit_out.exit_code;
+                }
+                unit_start_line += unit_buf.matches('\n').count();
+                unit_buf.clear();
+
+                if self.exit_requested.is_some()
+                    || self.return_requested.is_some()
+                    || self.break_count > 0
+                    || self.continue_count > 0
+                    || crate::commands::is_timeout_expired()
+                    || (self.errexit && !self.in_condition && last_code != 0)
+                {
+                    break;
+                }
+            }
+
+            if eof {
+                break;
+            }
+        }
+
+        let mut out = BuiltinOutcome {
+            stdout,
+            stderr,
+            exit_code: self.exit_requested.unwrap_or(last_code),
+        };
+        self.last_exit = out.exit_code;
+        self.run_exit_trap_if_needed(&mut out);
+        out.exit_code = self.exit_requested.unwrap_or(out.exit_code);
+        Ok(out)
     }
 
     fn decode_script_bytes(bytes: &[u8], name: &str) -> Result<String, BuiltinOutcome> {
@@ -5440,9 +5712,10 @@ impl<'a> EvalState<'a> {
         loaded_source: Option<(String, String)>,
     ) -> Result<BuiltinOutcome, EvalError> {
         if target.is_empty() {
+            let prefix = if direct { self.diag_prefix() } else { String::new() };
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
-                stderr: format!("{invoked_cmd}: : No such file or directory\n"),
+                stderr: format!("{prefix}{invoked_cmd}: : No such file or directory\n"),
                 exit_code: 127,
             });
         }
@@ -5450,6 +5723,7 @@ impl<'a> EvalState<'a> {
         let mut source_bytes: Option<Vec<u8>> = None;
         let first_or_full_source: String;
         let mut interpreter_profile: Option<&'static str> = None;
+        let diag_pfx = if direct { self.diag_prefix() } else { String::new() };
 
         if let Some((ref lp, ref ls)) = loaded_source
             && lp == &path
@@ -5469,14 +5743,14 @@ impl<'a> EvalState<'a> {
                         {
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{target}: Not a directory\n"),
+                                stderr: format!("{diag_pfx}{target}: Not a directory\n"),
                                 exit_code: 126,
                             });
                         }
                     }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{target}: No such file or directory\n"),
+                        stderr: format!("{diag_pfx}{target}: No such file or directory\n"),
                         exit_code: 127,
                     });
                 }
@@ -5484,21 +5758,21 @@ impl<'a> EvalState<'a> {
             if st.kind == crate::vfs::VfsEntryKind::Directory {
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("{target}: Is a directory\n"),
+                    stderr: format!("{diag_pfx}{target}: Is a directory\n"),
                     exit_code: 126,
                 });
             }
             if st.kind != crate::vfs::VfsEntryKind::File {
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("{target}: not a regular file\n"),
+                    stderr: format!("{diag_pfx}{target}: not a regular file\n"),
                     exit_code: 126,
                 });
             }
             if (st.mode & 0o444) == 0 || (direct && (st.mode & 0o111) == 0) {
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
-                    stderr: format!("{target}: Permission denied\n"),
+                    stderr: format!("{diag_pfx}{target}: Permission denied\n"),
                     exit_code: 126,
                 });
             }
@@ -5507,7 +5781,7 @@ impl<'a> EvalState<'a> {
                 Err(_) => {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{target}: No such file or directory\n"),
+                        stderr: format!("{diag_pfx}{target}: No such file or directory\n"),
                         exit_code: 127,
                     });
                 }
@@ -5516,12 +5790,18 @@ impl<'a> EvalState<'a> {
                 let nl = bytes.iter().position(|&b| b == b'\n').unwrap_or(bytes.len());
                 match Self::decode_script_bytes(&bytes[..nl], target) {
                     Ok(s) => s,
-                    Err(out) => return Ok(out),
+                    Err(mut out) => {
+                        out.stderr = format!("{diag_pfx}{}", out.stderr);
+                        return Ok(out);
+                    }
                 }
             } else {
                 match Self::decode_script_bytes(&bytes, target) {
                     Ok(s) => s,
-                    Err(out) => return Ok(out),
+                    Err(mut out) => {
+                        out.stderr = format!("{diag_pfx}{}", out.stderr);
+                        return Ok(out);
+                    }
                 }
             };
             source_bytes = Some(bytes);
@@ -5546,7 +5826,10 @@ impl<'a> EvalState<'a> {
                 let full_src = if let Some(ref b) = source_bytes {
                     match Self::decode_script_bytes(b, target) {
                         Ok(s) => s,
-                        Err(out) => return Ok(out),
+                        Err(mut out) => {
+                            out.stderr = format!("{diag_pfx}{}", out.stderr);
+                            return Ok(out);
+                        }
                     }
                 } else {
                     first_or_full_source.clone()
@@ -5622,7 +5905,7 @@ impl<'a> EvalState<'a> {
                 {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{target}: unsupported interpreter: {interpreter}\n"),
+                        stderr: format!("{diag_pfx}{target}: unsupported interpreter: {interpreter}\n"),
                         exit_code: 126,
                     });
                 }
@@ -5642,7 +5925,10 @@ impl<'a> EvalState<'a> {
         let full_source = if let Some(ref b) = source_bytes {
             match Self::decode_script_bytes(b, target) {
                 Ok(s) => s,
-                Err(out) => return Ok(out),
+                Err(mut out) => {
+                    out.stderr = format!("{diag_pfx}{}", out.stderr);
+                    return Ok(out);
+                }
             }
         } else {
             first_or_full_source
@@ -5677,15 +5963,6 @@ impl<'a> EvalState<'a> {
         if use_posix {
             sub_env.insert("__set_posix".to_string(), "1".to_string());
         }
-        if allexport {
-            sub_env.insert("__set_allexport".to_string(), "1".to_string());
-        }
-        if noglob {
-            sub_env.insert("__set_noglob".to_string(), "1".to_string());
-        }
-        if braceexpand == Some(false) {
-            sub_env.insert("__set_braceexpand".to_string(), "0".to_string());
-        }
 
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.traps
@@ -5713,10 +5990,14 @@ impl<'a> EvalState<'a> {
         for k in parent_job_keys {
             sub.env.remove(&k);
         }
-        sub.errexit = errexit;
-        sub.nounset = nounset;
-        sub.pipefail = pipefail;
-        sub.noclobber = noclobber;
+        sub.apply_set_option("allexport", allexport);
+        sub.apply_set_option("braceexpand", braceexpand.unwrap_or(true));
+        sub.apply_set_option("errexit", errexit);
+        sub.apply_set_option("noclobber", noclobber);
+        sub.apply_set_option("noexec", noexec);
+        sub.apply_set_option("noglob", noglob);
+        sub.apply_set_option("nounset", nounset);
+        sub.apply_set_option("pipefail", pipefail);
         sub.functions = self
             .functions
             .iter()
@@ -6886,7 +7167,7 @@ impl<'a> EvalState<'a> {
                 .to_string();
 
             if !is_valid_shell_ident(&base_name) {
-                decl_stderr.push_str(&format!("{cmd}: `{op}': not a valid identifier\n"));
+                decl_stderr.push_str(&format!("{}{cmd}: `{op}': not a valid identifier\n", self.diag_prefix()));
                 decl_status = 1;
                 continue;
             }
@@ -6897,7 +7178,7 @@ impl<'a> EvalState<'a> {
                 .is_some_and(|a| a.contains('r'))
                 && (val_opt.is_some() || is_local)
             {
-                decl_stderr.push_str(&format!("{cmd}: {base_name}: readonly variable\n"));
+                decl_stderr.push_str(&format!("{}{cmd}: {base_name}: readonly variable\n", self.diag_prefix()));
                 decl_status = 1;
                 continue;
             }
@@ -7060,6 +7341,7 @@ impl<'a> EvalState<'a> {
             } else {
                 self.env.insert(format!("__attr__{base_name}"), cur_attr);
             }
+            self.retained_prefix_vars.push(base_name);
         }
 
         Ok(BuiltinOutcome {
@@ -7173,7 +7455,8 @@ impl<'a> EvalState<'a> {
                         .is_some_and(|a| a.contains('r'))
                     {
                         stderr.push_str(&format!(
-                            "unset: {arg}: cannot unset: readonly variable\n"
+                            "{}unset: {arg}: cannot unset: readonly variable\n",
+                            self.diag_prefix()
                         ));
                         status = 1;
                         continue;
@@ -7195,7 +7478,8 @@ impl<'a> EvalState<'a> {
                     .is_some_and(|a| a.contains('r'))
                 {
                     stderr.push_str(&format!(
-                        "unset: {resolved}: cannot unset: readonly variable\n"
+                        "{}unset: {resolved}: cannot unset: readonly variable\n",
+                        self.diag_prefix()
                     ));
                     status = 1;
                     continue;
@@ -7305,12 +7589,16 @@ impl<'a> EvalState<'a> {
                 .is_some_and(|a| a.contains('r'))
             {
                 stderr.push_str(&format!(
-                    "unset: {resolved}: cannot unset: readonly variable\n"
+                    "{}unset: {resolved}: cannot unset: readonly variable\n",
+                    self.diag_prefix()
                 ));
                 status = 1;
                 continue;
             }
             self.env.remove(&resolved);
+            if self.env.get("__set_posix").is_some_and(|v| v == "1") {
+                self.retained_prefix_vars.push(resolved.clone());
+            }
             if resolved == "PATH" {
                 self.env.insert("__path_unset__".to_string(), "1".to_string());
             }
@@ -8756,9 +9044,15 @@ impl<'a> EvalState<'a> {
                             bytes_to_stream_string(&bytes)
                         }
                         Err(e) => {
+                            let prefix = self.diag_prefix();
+                            let detail = if e.starts_with("ENOENT:") {
+                                "No such file or directory"
+                            } else {
+                                e.as_str()
+                            };
                             let mut err_out = BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
+                                stderr: format!("{prefix}{target}: {detail}\n"),
                                 exit_code: 1,
                             };
                             self.route_outcome(&mut err_out);
@@ -15566,5 +15860,63 @@ printf 'locale=%s|%s\n' "$c_val" "$u_val"
         let mut state_lim = EvalState::new(&mut cwd, &mut env, &vfs, &budget_lim, &custom, false);
         let err = state_lim.eval_script_str("eval 'VALUE=12345678901234567890'", "").unwrap_err();
         assert!(matches!(err, EvalError::Budget(ref msg) if msg.contains("Shell limit exceeded: maxSourceBytes")), "unexpected err: {err:?}");
+    }
+
+    #[test]
+    fn unit_eval_invocation_closure_sh_discovery_modes_options_parity() {
+        let vfs = crate::MemoryVfs::new();
+        vfs.mkdir_all("/work/bin").unwrap();
+        vfs.write_file("/work/bin/tool", b"#!/bin/sh\nprintf 'tool:%s\\n' \"$1\"\n")
+            .unwrap();
+        vfs.chmod("/work/bin/tool", 0o755).unwrap();
+        let mut cwd = "/work".to_string();
+        let mut env = BTreeMap::new();
+        env.insert("PATH".to_string(), "".to_string());
+        env.insert("LC_ALL".to_string(), "C".to_string());
+        let custom = BTreeMap::new();
+        let budget = ExecutionBudget::new(crate::ShellLimits::default(), None);
+        let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+        state.script_name = Some("shell".to_string());
+
+        let r = state
+            .eval_script_str(
+                r#"
+VALUE=old; VALUE=new export OTHER=ok; printf 'bash_exp=%s:%s\n' "$VALUE" "$OTHER"
+VALUE=old; VALUE=new command export VALUE; printf 'bash_cmd_exp=%s\n' "$VALUE"
+sh -c 'VALUE=old; VALUE=new export OTHER=ok; printf "sh_exp=%s:%s\n" "$VALUE" "$OTHER"' sh
+sh -c 'VALUE=old; VALUE=new command export OTHER=ok; printf "sh_cmd_exp=%s:%s\n" "$VALUE" "$OTHER"' sh
+sh -c 'VALUE=old; VALUE=new command unset VALUE; printf "sh_cmd_unset=%s\n" "${VALUE-unset}"' sh
+sh -c 'export() { :; }' sh 2>/tmp/sh_fn_err; printf 'sh_fn=%s:%s\n' "$?" "$(cat /tmp/sh_fn_err)"
+sh -c 'readonly LOCK=1; LOCK=2 : >/work/m1' sh 2>/tmp/sh_ro_err; printf 'sh_ro=%s:%s:%s\n' "$?" "$(test -e /work/m1 && echo yes || echo no)" "$(cat /tmp/sh_ro_err)"
+sh -c 'PATH=bin; printf "sh_disc=%s|%s\n" "$(command -v tool)" "$(type -p tool)"' sh
+bash -c 'PATH=bin; printf "bash_disc=%s|%s\n" "$(command -v tool)" "$(type -p tool)"' bash
+bash -c ': >/work/b1
+)
+: >/work/b2' named 2>/tmp/c_syn_err; printf 'c_syn=%s:%s:%s\n' "$?" "$(test -e /work/b1 && echo yes || echo no)" "$(tr '\n' '|' </tmp/c_syn_err)"
+printf 'read -r v\nhello world\nprintf "stdin_rd=[%%s]\\n" "$v"\n' | bash -s
+bash -o noclobber -c '[[ -o noclobber ]]; printf "opt_c=%s\n" "$?"'
+"#,
+                "",
+            )
+            .unwrap();
+        assert_eq!(r.stderr, "");
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(
+            r.stdout,
+            concat!(
+                "bash_exp=old:ok\n",
+                "bash_cmd_exp=new\n",
+                "sh_exp=new:ok\n",
+                "sh_cmd_exp=old:ok\n",
+                "sh_cmd_unset=unset\n",
+                "sh_fn=2:sh: line 1: `export': is a special builtin\n",
+                "sh_ro=127:no:sh: line 1: LOCK: readonly variable\n",
+                "sh_disc=/work/bin/tool|/work/bin/tool\n",
+                "bash_disc=bin/tool|bin/tool\n",
+                "c_syn=2:yes:named: -c: line 2: syntax error near unexpected token `)'|named: -c: line 2: `)'|\n",
+                "stdin_rd=[hello world]\n",
+                "opt_c=0\n",
+            )
+        );
     }
 }

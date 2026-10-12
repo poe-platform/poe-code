@@ -81,6 +81,12 @@ impl Shell {
         &self.cwd
     }
 
+    pub fn set_cwd(&mut self, cwd: &str) {
+        let norm = normalize_posix_path(cwd);
+        self.cwd = norm.clone();
+        self.env.insert("PWD".to_string(), norm);
+    }
+
     pub fn env(&self) -> &BTreeMap<String, String> {
         &self.env
     }

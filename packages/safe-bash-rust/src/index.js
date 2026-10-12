@@ -678,6 +678,10 @@ export class RustWasmBash {
       tempEnvKeys.push([k, this.state.env[k]]);
       this.setEnv(k, String(v));
     };
+    const prevCwd = options.cwd !== undefined ? this.state.cwd : undefined;
+    if (options.cwd !== undefined) {
+      this.setEnv("__cwd", String(options.cwd));
+    }
     if (options.capabilities?.predicateIdentity) {
       const pi = options.capabilities.predicateIdentity;
       if (pi.effectiveUid !== undefined) setTempEnv("__euid", pi.effectiveUid);
@@ -723,6 +727,9 @@ export class RustWasmBash {
     try {
       res = this.execSync(script, stdinData);
     } finally {
+      if (prevCwd !== undefined) {
+        this.setEnv("__cwd", prevCwd);
+      }
       if (Object.keys(resetLimits).length > 0) {
         this.setLimits(resetLimits);
       }

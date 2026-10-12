@@ -2316,7 +2316,14 @@ impl<'a> EvalState<'a> {
                 self.restore_redirects(saved_fds, saved_in);
                 Ok(out)
             }
-            CommandNode::ArithCommand { expr, redirects } => {
+            CommandNode::ArithCommand {
+                expr,
+                redirects,
+                line,
+            } => {
+                if *line > 0 {
+                    self.current_line = *line;
+                }
                 let (saved_fds, saved_in, local_stdin, _use_local, dup_fd, redir_err) =
                     self.setup_redirects(redirects, stdin)?;
                 if let Some(err_out) = redir_err {
@@ -2507,14 +2514,26 @@ impl<'a> EvalState<'a> {
                 .cloned()
                 .unwrap_or_default();
             let val = if attr.contains('i') {
-                let rhs_num = eval_arith(raw_val, self.env).map_err(EvalError::Syntax)?;
+                let map_int_err = |e: String| {
+                    let msg = if let Some(nu) = e.strip_prefix("__nounset__") {
+                        format!("__param_err__{nu}")
+                    } else {
+                        e
+                    };
+                    EvalError::Syntax(msg)
+                };
+                let rhs_num = if raw_val.trim().is_empty() {
+                    0
+                } else {
+                    eval_arith_formatted(raw_val, self.env).map_err(map_int_err)?
+                };
                 let num = if append {
-                    let cur = self
-                        .env
-                        .get(&key)
-                        .cloned()
-                        .and_then(|s| eval_arith(&s, self.env).ok())
-                        .unwrap_or(0);
+                    let prev_str = self.env.get(&key).cloned().unwrap_or_default();
+                    let cur = if prev_str.trim().is_empty() {
+                        0
+                    } else {
+                        eval_arith_formatted(&prev_str, self.env).map_err(map_int_err)?
+                    };
                     cur.wrapping_add(rhs_num)
                 } else {
                     rhs_num
@@ -2633,13 +2652,25 @@ impl<'a> EvalState<'a> {
                         .unwrap_or_default();
                     let final_item_val = if item_append {
                         if attr.contains('i') {
-                            let cur = self
-                                .env
-                                .get(&elem_key)
-                                .cloned()
-                                .and_then(|s| eval_arith(&s, self.env).ok())
-                                .unwrap_or(0);
-                            let add = eval_arith(&item_val, self.env).map_err(EvalError::Syntax)?;
+                            let map_int_err = |e: String| {
+                                let msg = if let Some(nu) = e.strip_prefix("__nounset__") {
+                                    format!("__param_err__{nu}")
+                                } else {
+                                    e
+                                };
+                                EvalError::Syntax(msg)
+                            };
+                            let prev_str = self.env.get(&elem_key).cloned().unwrap_or_default();
+                            let cur = if prev_str.trim().is_empty() {
+                                0
+                            } else {
+                                eval_arith_formatted(&prev_str, self.env).map_err(map_int_err)?
+                            };
+                            let add = if item_val.trim().is_empty() {
+                                0
+                            } else {
+                                eval_arith_formatted(&item_val, self.env).map_err(map_int_err)?
+                            };
                             cur.wrapping_add(add).to_string()
                         } else {
                             let cur = self.env.get(&elem_key).cloned().unwrap_or_default();
@@ -2690,18 +2721,35 @@ impl<'a> EvalState<'a> {
             .cloned()
             .unwrap_or_default();
         let final_val = if attr.contains('i') {
-            let rhs_num = eval_arith(raw_val, self.env).unwrap_or(0);
+            let map_int_err = |e: String| {
+                let msg = if let Some(nu) = e.strip_prefix("__nounset__") {
+                    format!("__param_err__{nu}")
+                } else {
+                    e
+                };
+                EvalError::Syntax(msg)
+            };
+            let rhs_num = if raw_val.trim().is_empty() {
+                0
+            } else {
+                eval_arith_formatted(raw_val, self.env).map_err(map_int_err)?
+            };
             let num = if append {
-                let cur = if is_existing_array {
+                let prev_str = if is_existing_array {
                     self.env
                         .get(&format!("{resolved}[0]"))
                         .or_else(|| self.env.get(&resolved))
                 } else {
                     self.env.get(&resolved)
                 }
-                .and_then(|s| s.parse::<i64>().ok())
-                .unwrap_or(0);
-                cur + rhs_num
+                .cloned()
+                .unwrap_or_default();
+                let cur = if prev_str.trim().is_empty() {
+                    0
+                } else {
+                    eval_arith_formatted(&prev_str, self.env).map_err(map_int_err)?
+                };
+                cur.wrapping_add(rhs_num)
             } else {
                 rhs_num
             };
@@ -7398,7 +7446,7 @@ impl<'a> EvalState<'a> {
                     .collect();
                 for (ak, av) in existing_arr_keys {
                     frame.insert(ak.clone(), Some(av));
-                    if !inherit_prev && (val_opt.is_none() || !append) {
+                    if !inherit_prev {
                         self.env.remove(&ak);
                     }
                 }
@@ -7408,9 +7456,7 @@ impl<'a> EvalState<'a> {
                     self.env.remove(&format!("__nameref__{base_name}"));
                     self.env.remove(&format!("__declared__{base_name}"));
                     self.env.remove(&format!("__keys__{base_name}"));
-                    if val_opt.is_none() || !append {
-                        self.env.remove(&base_name);
-                    }
+                    self.env.remove(&base_name);
                 }
                 if base_name == "OPTIND" {
                     self.env.insert("__getopts_int".to_string(), "0".to_string());
@@ -7516,10 +7562,16 @@ impl<'a> EvalState<'a> {
                 sync_getopts_env(self.env);
             }
 
-            if cur_attr.is_empty() {
-                self.env.remove(&format!("__attr__{base_name}"));
-            } else {
-                self.env.insert(format!("__attr__{base_name}"), cur_attr);
+            if cur_attr.contains('r') {
+                let mut post_attr = self
+                    .env
+                    .get(&format!("__attr__{base_name}"))
+                    .cloned()
+                    .unwrap_or_default();
+                if !post_attr.contains('r') {
+                    post_attr.push('r');
+                }
+                self.env.insert(format!("__attr__{base_name}"), post_attr);
             }
             self.retained_prefix_vars.push(base_name);
         }
@@ -9442,6 +9494,15 @@ impl<'a> EvalState<'a> {
                         Err(e) => return Err(e),
                     };
                     let content = format!("{val}\n");
+                    if self.budget.limits.max_expansion_bytes > 0
+                        && stream_string_to_bytes(&content).len()
+                            > self.budget.limits.max_expansion_bytes
+                    {
+                        return Err(EvalError::Budget(format!(
+                            "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                            self.budget.limits.max_expansion_bytes
+                        )));
+                    }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
@@ -9458,13 +9519,39 @@ impl<'a> EvalState<'a> {
                         self.in_fds.insert(*fd, content);
                     }
                 }
-                RedirectKind::HereDoc { fd, quoted, .. } => {
+                RedirectKind::HereDoc {
+                    fd,
+                    quoted,
+                    doc_line,
+                    ..
+                } => {
+                    let eff_doc_line = (*doc_line + self.callback_line_offset).max(1);
                     let content = if *quoted {
                         r.target.clone()
                     } else {
-                        match self.expand_heredoc_text(&r.target) {
+                        match self.expand_heredoc_body(&r.target, eff_doc_line) {
                             Ok(v) => v,
                             Err(EvalError::Syntax(msg)) => {
+                                if let Some(diag) = msg.strip_prefix("__heredoc_diag__") {
+                                    let mut err_out = BuiltinOutcome {
+                                        stdout: std::mem::take(&mut self.pending_stdout),
+                                        stderr: format!(
+                                            "{}{diag}",
+                                            std::mem::take(&mut self.pending_stderr)
+                                        ),
+                                        exit_code: 1,
+                                    };
+                                    self.route_outcome(&mut err_out);
+                                    self.last_exit = 1;
+                                    return Ok((
+                                        (saved_fd_table, saved_aliases),
+                                        saved_in,
+                                        local_stdin,
+                                        use_local,
+                                        dup_fd,
+                                        Some(err_out),
+                                    ));
+                                }
                                 let is_param_err = msg.starts_with("__param_err__");
                                 let is_nounset = msg.starts_with("__nounset__");
                                 let clean = msg
@@ -9507,6 +9594,15 @@ impl<'a> EvalState<'a> {
                             Err(e) => return Err(e),
                         }
                     };
+                    if self.budget.limits.max_expansion_bytes > 0
+                        && stream_string_to_bytes(&content).len()
+                            > self.budget.limits.max_expansion_bytes
+                    {
+                        return Err(EvalError::Budget(format!(
+                            "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                            self.budget.limits.max_expansion_bytes
+                        )));
+                    }
                     self.evacuate_in_fd_owner(*fd, &mut saved_aliases);
                     record_saved_fd(&self.fd_table, &mut saved_fd_table, *fd);
                     record_saved_alias(&self.in_fd_aliases, &mut saved_aliases, *fd);
@@ -10437,7 +10533,7 @@ impl<'a> EvalState<'a> {
                     idx += 2;
                     continue;
                 }
-                if matches!(chars[idx + 1], '$' | '`' | '\\' | '"' | '\'') {
+                if matches!(chars[idx + 1], '$' | '`' | '\\' | '"') {
                     out.push(chars[idx + 1]);
                     idx += 2;
                     continue;
@@ -10483,6 +10579,258 @@ impl<'a> EvalState<'a> {
             if chars[idx] == '`' {
                 let expanded = self.expand_backticks(&chars, &mut idx)?;
                 out.push_str(&expanded);
+                continue;
+            }
+            out.push(chars[idx]);
+            idx += 1;
+        }
+        Ok(out)
+    }
+
+    fn format_heredoc_cmdsub_syntax_error(
+        &self,
+        document_line: usize,
+        source_after_open: &str,
+        cmd_str: &str,
+        err_msg: &str,
+        backtick: bool,
+    ) -> String {
+        let prog = self.script_name.as_deref().unwrap_or("shell");
+        let clean = err_msg.strip_prefix("__exit127__").unwrap_or(err_msg);
+        if backtick
+            && (clean == "Syntax error: unexpected end of file"
+                || clean.starts_with("Syntax error: unclosed ")
+                || clean.starts_with("Syntax error: Unterminated "))
+        {
+            let line = document_line + cmd_str.split('\n').count();
+            return format!(
+                "{prog}: command substitution: line {line}: syntax error: unexpected end of file\n"
+            );
+        }
+        let (tok, line_idx) = if clean == "Syntax error: unexpected end of file"
+            || clean == "Syntax error: unexpected `)`"
+        {
+            (")", cmd_str.split('\n').count().saturating_sub(1))
+        } else if let Some(rest) = clean.strip_prefix("Syntax error: unexpected `") {
+            let t = rest.strip_suffix('`').unwrap_or("newline");
+            let li = cmd_str
+                .find(t)
+                .map(|i| cmd_str[..i].split('\n').count().saturating_sub(1))
+                .unwrap_or(0);
+            (t, li)
+        } else {
+            (")", cmd_str.split('\n').count().saturating_sub(1))
+        };
+        let line = document_line + line_idx + 1;
+        let source_line = source_after_open.split('\n').nth(line_idx).unwrap_or("");
+        format!(
+            "{prog}: command substitution: line {line}: syntax error near unexpected token `{tok}'\n{prog}: command substitution: line {line}: `{source_line}'\n"
+        )
+    }
+
+    fn expand_heredoc_body(
+        &mut self,
+        text: &str,
+        document_line: usize,
+    ) -> Result<String, EvalError> {
+        let prog = self.script_name.as_deref().unwrap_or("shell").to_string();
+        let mut out = String::new();
+        let char_offsets: Vec<(usize, char)> = text.char_indices().collect();
+        let chars: Vec<char> = char_offsets.iter().map(|&(_, c)| c).collect();
+        let mut idx = 0usize;
+        while idx < chars.len() {
+            if chars[idx] == '\\' && idx + 1 < chars.len() {
+                if chars[idx + 1] == '\n' {
+                    idx += 2;
+                    continue;
+                }
+                if matches!(chars[idx + 1], '$' | '`' | '\\') {
+                    out.push(chars[idx + 1]);
+                    idx += 2;
+                    continue;
+                }
+            }
+            if chars[idx] == '`' {
+                let bt_byte = char_offsets[idx].0;
+                let mut scan_idx = idx + 1;
+                let mut cmd_str = String::new();
+                while scan_idx < chars.len() && chars[scan_idx] != '`' {
+                    if chars[scan_idx] == '\\'
+                        && scan_idx + 1 < chars.len()
+                        && matches!(chars[scan_idx + 1], '`' | '$' | '\\')
+                    {
+                        cmd_str.push(chars[scan_idx + 1]);
+                        scan_idx += 2;
+                        continue;
+                    }
+                    cmd_str.push(chars[scan_idx]);
+                    scan_idx += 1;
+                }
+                if scan_idx >= chars.len() {
+                    return Err(EvalError::Syntax(format!(
+                        "__heredoc_diag__{prog}: line {document_line}: bad substitution: no closing \"`\" in {}\n",
+                        &text[bt_byte..]
+                    )));
+                }
+                idx = scan_idx + 1;
+                match self.parse_with_current_aliases(&cmd_str, 0) {
+                    Err(err_msg) => {
+                        self.budget
+                            .enter_substitution()
+                            .map_err(EvalError::Budget)?;
+                        self.budget.leave_substitution();
+                        let diag = self.format_heredoc_cmdsub_syntax_error(
+                            document_line,
+                            &cmd_str,
+                            &cmd_str,
+                            &err_msg,
+                            true,
+                        );
+                        let fd2 = self.fd_table.get(&2).cloned().unwrap_or(FdTarget::Stderr);
+                        let mut dummy = BuiltinOutcome {
+                            stdout: String::new(),
+                            stderr: String::new(),
+                            exit_code: 0,
+                        };
+                        self.write_to_fd_target(&fd2, &diag, &mut dummy);
+                        self.pending_stdout.push_str(&dummy.stdout);
+                        self.pending_stderr.push_str(&dummy.stderr);
+                        self.last_exit = 2;
+                        continue;
+                    }
+                    Ok(_) => {
+                        let expanded = self.run_command_substitution(&cmd_str)?;
+                        out.push_str(&expanded);
+                        if self.budget.limits.max_expansion_bytes > 0
+                            && stream_string_to_bytes(&out).len()
+                                > self.budget.limits.max_expansion_bytes
+                        {
+                            return Err(EvalError::Budget(format!(
+                                "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                                self.budget.limits.max_expansion_bytes
+                            )));
+                        }
+                        continue;
+                    }
+                }
+            }
+            if chars[idx] == '$' {
+                if idx + 1 >= chars.len() {
+                    out.push('$');
+                    idx += 1;
+                    continue;
+                }
+                if chars[idx + 1] == '(' && idx + 2 < chars.len() && chars[idx + 2] == '(' {
+                    match crate::shell::lexer::find_arithmetic_end(&chars, idx + 3, true) {
+                        Ok(Some((expr_end, resume_idx))) => {
+                            let expr: String = chars[idx + 3..expr_end].iter().collect();
+                            idx = resume_idx;
+                            let expanded_expr = self.expand_arith_text(&expr)?;
+                            let val = eval_arith_formatted(&expanded_expr, self.env)
+                                .map_err(EvalError::Syntax)?;
+                            out.push_str(&val.to_string());
+                            continue;
+                        }
+                        Ok(None) => {}
+                        Err(msg) => {
+                            if msg.contains("Unterminated arithmetic expression") {
+                                return Err(EvalError::Syntax(format!(
+                                    "__heredoc_diag__{prog}: line {document_line}: bad substitution: no closing `)' in {text}\n"
+                                )));
+                            }
+                            return Err(EvalError::Syntax(msg));
+                        }
+                    }
+                }
+                if chars[idx + 1] == '(' {
+                    let start_char_idx = idx + 2;
+                    let start_byte = if start_char_idx < char_offsets.len() {
+                        char_offsets[start_char_idx].0
+                    } else {
+                        text.len()
+                    };
+                    let source_after_open = &text[start_byte..];
+                    let mut scan_idx = idx + 1;
+                    let cmd_str = match scan_nested_command_sub(&chars, &mut scan_idx) {
+                        Ok(s) => s,
+                        Err(_) => {
+                            let line = document_line + source_after_open.split('\n').count();
+                            return Err(EvalError::Syntax(format!(
+                                "__heredoc_diag__{prog}: command substitution: line {line}: unexpected EOF while looking for matching `)'\n"
+                            )));
+                        }
+                    };
+                    if !is_cmdsub_file_shortcut(&cmd_str)
+                        && let Err(err_msg) = self.parse_with_current_aliases(&cmd_str, 0)
+                    {
+                        let diag = self.format_heredoc_cmdsub_syntax_error(
+                            document_line,
+                            source_after_open,
+                            &cmd_str,
+                            &err_msg,
+                            false,
+                        );
+                        return Err(EvalError::Syntax(format!("__heredoc_diag__{diag}")));
+                    }
+                    idx = scan_idx;
+                    self.retire_notified_jobs();
+                    let expanded = self.run_command_substitution(&cmd_str)?;
+                    out.push_str(&expanded);
+                    if self.budget.limits.max_expansion_bytes > 0
+                        && stream_string_to_bytes(&out).len()
+                            > self.budget.limits.max_expansion_bytes
+                    {
+                        return Err(EvalError::Budget(format!(
+                            "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                            self.budget.limits.max_expansion_bytes
+                        )));
+                    }
+                    continue;
+                }
+                if chars[idx + 1] == '{' {
+                    let mut scan_idx = idx + 1;
+                    if scan_nested_brace_sub(&chars, &mut scan_idx).is_err() {
+                        return Err(EvalError::Syntax(format!(
+                            "__heredoc_diag__{prog}: line {document_line}: {text}: bad substitution\n"
+                        )));
+                    }
+                    match self.expand_dollar(&chars, &mut idx) {
+                        Ok(expanded) => {
+                            out.push_str(&expanded);
+                            if self.budget.limits.max_expansion_bytes > 0
+                                && stream_string_to_bytes(&out).len()
+                                    > self.budget.limits.max_expansion_bytes
+                            {
+                                return Err(EvalError::Budget(format!(
+                                    "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                                    self.budget.limits.max_expansion_bytes
+                                )));
+                            }
+                            continue;
+                        }
+                        Err(EvalError::Syntax(msg)) => {
+                            if msg.ends_with(": bad substitution")
+                                || msg.starts_with("Syntax error:")
+                            {
+                                return Err(EvalError::Syntax(format!(
+                                    "__heredoc_diag__{prog}: line {document_line}: {text}: bad substitution\n"
+                                )));
+                            }
+                            return Err(EvalError::Syntax(msg));
+                        }
+                        Err(e) => return Err(e),
+                    }
+                }
+                let expanded = self.expand_dollar(&chars, &mut idx)?;
+                out.push_str(&expanded);
+                if self.budget.limits.max_expansion_bytes > 0
+                    && stream_string_to_bytes(&out).len() > self.budget.limits.max_expansion_bytes
+                {
+                    return Err(EvalError::Budget(format!(
+                        "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                        self.budget.limits.max_expansion_bytes
+                    )));
+                }
                 continue;
             }
             out.push(chars[idx]);
@@ -11804,6 +12152,7 @@ impl<'a> EvalState<'a> {
             sub_env.remove(&format!("__unexported__{rk}"));
         }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
+        sub.callback_line_offset = self.current_line.saturating_sub(1);
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
         let inherit_errexit = self
             .env
@@ -15810,7 +16159,7 @@ printf 'rc=%d:%d:%d:%d|o=%s|i=%s|m=%s|a=%s\n' \
         assert_eq!(r2.exit_code, 0);
         assert_eq!(
             r2.stdout,
-            "rc=1:1:1:1|o=shell: line 1: 0: Bad file descriptor|i=shell: line 3: 1: Bad file descriptor|m=shell: line 6: 1-: ambiguous redirect|a=shell: line 7: ((: 1 / 0: division by 0 (error token is \"0\")\n"
+            "rc=1:1:1:1|o=shell: line 1: 0: Bad file descriptor|i=shell: line 3: 1: Bad file descriptor|m=shell: line 6: 1-: ambiguous redirect|a=shell: line 8: ((: 1 / 0 : division by 0 (error token is \"0 \")\n"
         );
     }
 
@@ -16377,6 +16726,100 @@ LOOP='-S ${LOOP}' env -S '${LOOP}' 2>/tmp/env_loop; printf 'env_loop=%s:%s\n' "$
             assert_eq!(r2.exit_code, 127);
             assert_eq!(r2.stdout, "");
             assert_eq!(r2.stderr, "shell: line 1: missing: stop\n");
+        }
+    }
+
+    #[test]
+    fn unit_eval_deferred_heredoc_integer_nounset_and_local_array_parity() {
+        let vfs = crate::vfs::MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        let budget = ExecutionBudget::default();
+        let custom = BTreeMap::new();
+
+        // 1. Deferred heredoc: syntax error in $(...) aborts before earlier command in substitution, while malformed backtick sets $?=2 and continues
+        {
+            let mut cwd = "/work".to_string();
+            let mut env = BTreeMap::new();
+            let mut st = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+            let r = st
+                .eval_script_str(
+                    ": >before\ncat <<EOF\n$(: >inside; (\nEOF\nprintf 'cat=%d\\n' \"$?\"\n: >after",
+                    "",
+                )
+                .unwrap();
+            assert_eq!(r.exit_code, 0);
+            assert_eq!(r.stdout, "cat=1\n");
+            assert_eq!(
+                r.stderr,
+                "shell: command substitution: line 4: unexpected EOF while looking for matching `)'\n"
+            );
+            assert!(vfs.exists("/work/before"));
+            assert!(!vfs.exists("/work/inside"));
+            assert!(vfs.exists("/work/after"));
+
+            let mut cwd2 = "/work".to_string();
+            let mut env2 = BTreeMap::new();
+            let mut st2 = EvalState::new(&mut cwd2, &mut env2, &vfs, &budget, &custom, false);
+            let r2 = st2
+                .eval_script_str("cat <<EOF\n`echo hi; (` status:$?\nEOF\n", "")
+                .unwrap();
+            assert_eq!(r2.exit_code, 0);
+            assert_eq!(r2.stdout, " status:2\n");
+            assert_eq!(
+                r2.stderr,
+                "shell: command substitution: line 2: syntax error: unexpected end of file\n"
+            );
+        }
+
+        // 2. Integer nounset: 127 in parent shell, 1 in isolated subshell / command substitution
+        {
+            let mut cwd = "/work".to_string();
+            let mut env = BTreeMap::new();
+            let mut st = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+            let r = st
+                .eval_script_str(
+                    "set -u\ndeclare -i n=missing || echo recovered\necho unreachable",
+                    "",
+                )
+                .unwrap();
+            assert_eq!(r.exit_code, 127);
+            assert_eq!(r.stdout, "");
+            assert_eq!(r.stderr, "shell: line 2: missing: unbound variable\n");
+
+            let mut cwd2 = "/work".to_string();
+            let mut env2 = BTreeMap::new();
+            let mut st2 = EvalState::new(&mut cwd2, &mut env2, &vfs, &budget, &custom, false);
+            let r2 = st2
+                .eval_script_str(
+                    "set -u\nn=$(declare -i n=missing; echo unreachable); echo status:$?\necho parent",
+                    "",
+                )
+                .unwrap();
+            assert_eq!(r2.exit_code, 0);
+            assert_eq!(r2.stdout, "status:1\nparent\n");
+            assert_eq!(r2.stderr, "shell: line 2: missing: unbound variable\n");
+        }
+
+        // 3. Arithmetic quotes, recursive variable syntax errors, and local array attributes
+        {
+            let mut cwd = "/work".to_string();
+            let mut env = BTreeMap::new();
+            let mut st = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+            let r = st
+                .eval_script_str(
+                    "(( '5' == 5 )); echo $?\na=0; b=\"foo bar\"; (( a++, x = b )); echo \"a=$a\"\narr=(); set -a; readonly arr=9; declare -p arr; set +a\narr2=(x y); f() { local -u arr2+=new; declare -p arr2; }; f\nfunction time { :; }; type -t time",
+                    "",
+                )
+                .unwrap();
+            assert_eq!(r.exit_code, 0);
+            assert_eq!(
+                r.stdout,
+                "1\na=1\ndeclare -arx arr=([0]=\"9\")\ndeclare -u arr2=\"NEW\"\nkeyword\n"
+            );
+            assert_eq!(
+                r.stderr,
+                "shell: line 1: ((: '5' == 5 : syntax error: operand expected (error token is \"'5' == 5 \")\nshell: line 2: ((: a++, x = b : arithmetic syntax error in expression (error token is \", x = b \")\n"
+            );
         }
     }
 }

@@ -509,13 +509,21 @@ fn decode_c_escapes_inner(
 
 pub fn eval_arith(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64, String> {
     let mut visiting = BTreeSet::new();
-    eval_arith_with_visiting(expr, env, &mut visiting)
+    eval_arith_with_visiting(expr, env, &mut visiting).map_err(|e| {
+        if let Some(rest) = e.strip_prefix("__syntax__")
+            && let Some((_, msg)) = rest.split_once("__")
+        {
+            msg.to_string()
+        } else {
+            e
+        }
+    })
 }
 
 pub fn eval_arith_formatted(expr: &str, env: &mut BTreeMap<String, String>) -> Result<i64, String> {
     let mut visiting = BTreeSet::new();
     let joined = expr.replace("\\\n", "");
-    let src = joined.trim_start();
+    let src = joined.as_str();
     if src.trim().is_empty() {
         return Ok(0);
     }
@@ -545,22 +553,28 @@ pub fn eval_arith_formatted(expr: &str, env: &mut BTreeMap<String, String>) -> R
     match eval_arith_ast(&ast, env, &mut visiting) {
         Ok(v) => Ok(v),
         Err(e) => {
+            if let Some(rest) = e.strip_prefix("__syntax__")
+                && let Some((off_s, msg)) = rest.split_once("__")
+                && let Ok(off) = off_s.parse::<usize>()
+            {
+                return Err(format_arith_diag(src, msg, off));
+            }
             if let Some(off_s) = e.strip_prefix("Division by zero@")
                 && let Ok(off) = off_s.parse::<usize>()
             {
-                let tok = src.get(off..).unwrap_or("0").trim_end();
+                let tok = src.get(off..).unwrap_or("0");
                 return Err(format!(
                     "{}: division by 0 (error token is \"{tok}\")",
-                    src.trim_end()
+                    src.trim_start()
                 ));
             }
             if let Some(off_s) = e.strip_prefix("exponent less than 0@")
                 && let Ok(off) = off_s.parse::<usize>()
             {
-                let tok = src.get(off..).unwrap_or("0").trim_end();
+                let tok = src.get(off..).unwrap_or("0");
                 return Err(format!(
                     "{}: exponent less than 0 (error token is \"{tok}\")",
-                    src.trim_end()
+                    src.trim_start()
                 ));
             }
             Err(e)
@@ -569,6 +583,7 @@ pub fn eval_arith_formatted(expr: &str, env: &mut BTreeMap<String, String>) -> R
 }
 
 fn format_arith_diag(src: &str, msg: &str, off: usize) -> String {
+    let display_src = src.trim_start();
     let trimmed_end = src.trim_end();
     let clamp_off = if off >= trimmed_end.len() {
         trimmed_end
@@ -579,8 +594,12 @@ fn format_arith_diag(src: &str, msg: &str, off: usize) -> String {
     } else {
         off
     };
-    let err_tok = trimmed_end.get(clamp_off..).unwrap_or("");
-    let reason = if msg.contains("Unexpected end")
+    let err_tok = src.get(clamp_off..).unwrap_or("");
+    let reason = if msg == "Quoted arithmetic operand expected" {
+        "syntax error: operand expected"
+    } else if msg == "Invalid quoted arithmetic operator" {
+        "syntax error: invalid arithmetic operator"
+    } else if msg.contains("Unexpected end")
         || msg.contains("Empty arithmetic")
         || msg.contains("Invalid octal")
         || msg.contains("Invalid arithmetic")
@@ -591,7 +610,7 @@ fn format_arith_diag(src: &str, msg: &str, off: usize) -> String {
     } else {
         "arithmetic syntax error in expression"
     };
-    format!("{trimmed_end}: {reason} (error token is \"{err_tok}\")")
+    format!("{display_src}: {reason} (error token is \"{err_tok}\")")
 }
 
 fn eval_arith_with_visiting(
@@ -604,14 +623,19 @@ fn eval_arith_with_visiting(
     if trimmed.is_empty() {
         return Ok(0);
     }
-    let tokens = tokenize_arith_spanned(trimmed, env).map_err(|(m, _)| m)?;
+    let tokens =
+        tokenize_arith_spanned(trimmed, env).map_err(|(m, off)| format!("__syntax__{off}__{m}"))?;
     if tokens.is_empty() {
         return Ok(0);
     }
     let mut pos = 0usize;
-    let ast = parse_arith_expr(&tokens, &mut pos, 1).map_err(|(m, _)| m)?;
+    let ast = parse_arith_expr(&tokens, &mut pos, 1)
+        .map_err(|(m, off)| format!("__syntax__{off}__{m}"))?;
     if pos < tokens.len() {
-        return Err(format!("Unexpected arithmetic token {:?}", tokens[pos].0));
+        return Err(format!(
+            "__syntax__{}__Unexpected arithmetic token",
+            tokens[pos].1
+        ));
     }
     eval_arith_ast(&ast, env, visiting).map_err(|e| {
         if e.starts_with("Division by zero@") {
@@ -921,6 +945,27 @@ fn tokenize_arith_spanned(
             continue;
         }
         let op_ch = echars[idx].1;
+        if !matches!(
+            op_ch,
+            '~' | '?' | ':' | ',' | '+' | '-' | '*' | '/' | '%' | '^' | '!' | '=' | '&' | '|' | '<' | '>'
+        ) {
+            let quoted = op_ch == '\'' || op_ch == '\\';
+            let operand_expected = match out.last().map(|(t, _)| t) {
+                None | Some(ArithTok::LParen) => true,
+                Some(ArithTok::Op(prev)) => !matches!(prev.as_str(), "++" | "--"),
+                Some(ArithTok::RParen | ArithTok::Num(_) | ArithTok::Ident(_)) => false,
+            };
+            let reason = if quoted {
+                if operand_expected {
+                    "Quoted arithmetic operand expected"
+                } else {
+                    "Invalid quoted arithmetic operator"
+                }
+            } else {
+                "Unsupported arithmetic token"
+            };
+            return Err((reason.to_string(), byte_off));
+        }
         idx += 1;
         let mut op = String::from(op_ch);
         if idx + 1 < echars.len() {
@@ -1072,7 +1117,7 @@ fn resolve_arith_var_resolved(
         return Ok(n);
     }
     if visiting.contains(base) {
-        return Err(format!("Arithmetic variable recursion: {base}"));
+        return Err("Arithmetic variable recursion".to_string());
     }
     visiting.insert(base.to_string());
     let res = eval_arith_with_visiting(trimmed, env, visiting);
@@ -1099,7 +1144,7 @@ fn set_arith_var_resolved(
     if write_dynamic_variable(&resolved, &val_s, env) {
         return Ok(());
     }
-    if env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
+    if !resolved.contains('[') && env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
         let attr_key = format!("__attr__{base}");
         let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
         if !attr.contains('x') {
@@ -1526,7 +1571,15 @@ pub fn apply_var_attributes(
         final_val = if trimmed.is_empty() {
             "0".to_string()
         } else {
-            eval_arith(trimmed, env)?.to_string()
+            eval_arith_formatted(trimmed, env)
+                .map_err(|e| {
+                    if let Some(nu) = e.strip_prefix("__nounset__") {
+                        format!("__param_err__{nu}")
+                    } else {
+                        e
+                    }
+                })?
+                .to_string()
         };
     }
     if attr.contains('l') {
@@ -2426,6 +2479,10 @@ pub fn expand_parameter_expr(
             };
             return Ok(chars[start..end].iter().collect());
         }
+        return Err(format!("${{{expr}}}: bad substitution"));
+    }
+    if var_end == 0 {
+        return Err(format!("${{{expr}}}: bad substitution"));
     }
 
     if env.get("__set_nounset").map(|v| v == "1").unwrap_or(false)

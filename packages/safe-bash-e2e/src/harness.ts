@@ -413,6 +413,7 @@ const PURE_RUST_SUITE_FILES = [
   "obscure-invocation-closure-sh-discovery-modes-options-parity-matrix.test.ts",
   "obscure-errexit-native-env-split-eval-loop-bounds-parity-matrix.test.ts",
   "obscure-extglob-fatal-diagnostics-file-shortcut-function-parity-matrix.test.ts",
+  "obscure-deferred-heredoc-integer-nounset-and-local-array-parity-matrix.test.ts",
   "rust-typescript-native-parity-verification.test.ts",
 ];
 

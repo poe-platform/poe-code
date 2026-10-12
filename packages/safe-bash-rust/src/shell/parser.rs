@@ -13,6 +13,7 @@ pub enum RedirectKind {
         fd: u32,
         quoted: bool,
         eof_warning: Option<String>,
+        doc_line: usize,
     },
     DupOut {
         fd: u32,
@@ -97,6 +98,7 @@ pub enum CommandNode {
     ArithCommand {
         expr: String,
         redirects: Vec<Redirect>,
+        line: usize,
     },
     FuncDef {
         name: String,
@@ -147,6 +149,7 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
     let mut brace_depth = 0i32;
 
     let mut at_cmd_start = true;
+    let mut after_function = false;
     let mut for_state = 0u8; // 0: none, 1: after for/select, 2: after var, 3: in word list
     let mut idx = 0usize;
     while idx < tokens.len() {
@@ -298,7 +301,10 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                 }
             }
             Token::Word(w) => {
-                if for_state == 1 {
+                if after_function {
+                    after_function = false;
+                    at_cmd_start = true;
+                } else if for_state == 1 {
                     for_state = 2;
                     at_cmd_start = false;
                 } else if for_state == 2 {
@@ -378,6 +384,13 @@ pub fn validate_tokens_syntax(tokens: &[Token]) -> Result<(), String> {
                         }
                         "!" => {
                             at_cmd_start = true;
+                        }
+                        "time" => {
+                            at_cmd_start = true;
+                        }
+                        "function" => {
+                            after_function = true;
+                            at_cmd_start = false;
                         }
                         _ => {
                             at_cmd_start = false;
@@ -994,12 +1007,15 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                 let q = *quoted;
                 let b = body.clone();
                 let w = eof_warning.clone();
+                let doc_line =
+                    token_line(tokens, *pos) + b.bytes().filter(|&ch| ch == b'\n').count() + 1;
                 *pos += 1;
                 Redirect {
                     kind: RedirectKind::HereDoc {
                         fd: f,
                         quoted: q,
                         eof_warning: w,
+                        doc_line,
                     },
                     target: b,
                 }
@@ -1082,12 +1098,14 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
             && matches!(tokens.get(*pos + 3), Some(Token::RParen))
             && matches!(tokens.get(*pos + 4), Some(Token::RParen))
         {
+            let cmd_line = token_line(tokens, *pos);
             let expr = raw_expr.to_string();
             *pos += 5;
             let redirects = parse_trailing_redirects(tokens, pos)?;
             return Ok(Some(CommandNode::ArithCommand {
                 expr,
                 redirects,
+                line: cmd_line,
             }));
         }
         *pos += 1;
@@ -1116,27 +1134,51 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 *pos += 1;
                 let mut branches = Vec::new();
                 let cond = parse_tokens(tokens, pos, &["then"])?;
+                if cond.lists.is_empty() {
+                    return Err("Syntax error: unexpected `then`".to_string());
+                }
                 if !is_stop_word(tokens.get(*pos), &["then"]) {
                     return Err("Syntax error: expected `then`".to_string());
                 }
                 *pos += 1;
                 let then_body = parse_tokens(tokens, pos, &["elif", "else", "fi"])?;
+                if then_body.lists.is_empty() {
+                    let unexpected = match tokens.get(*pos) {
+                        Some(Token::Word(w)) => w.as_str(),
+                        _ => "fi",
+                    };
+                    return Err(format!("Syntax error: unexpected `{unexpected}`"));
+                }
                 branches.push((cond, then_body));
 
                 while is_stop_word(tokens.get(*pos), &["elif"]) {
                     *pos += 1;
                     let econd = parse_tokens(tokens, pos, &["then"])?;
+                    if econd.lists.is_empty() {
+                        return Err("Syntax error: unexpected `then`".to_string());
+                    }
                     if !is_stop_word(tokens.get(*pos), &["then"]) {
                         return Err("Syntax error: expected `then` after `elif`".to_string());
                     }
                     *pos += 1;
                     let ebody = parse_tokens(tokens, pos, &["elif", "else", "fi"])?;
+                    if ebody.lists.is_empty() {
+                        let unexpected = match tokens.get(*pos) {
+                            Some(Token::Word(w)) => w.as_str(),
+                            _ => "fi",
+                        };
+                        return Err(format!("Syntax error: unexpected `{unexpected}`"));
+                    }
                     branches.push((econd, ebody));
                 }
 
                 let else_branch = if is_stop_word(tokens.get(*pos), &["else"]) {
                     *pos += 1;
-                    Some(parse_tokens(tokens, pos, &["fi"])?)
+                    let eb = parse_tokens(tokens, pos, &["fi"])?;
+                    if eb.lists.is_empty() {
+                        return Err("Syntax error: unexpected `fi`".to_string());
+                    }
+                    Some(eb)
                 } else {
                     None
                 };
@@ -1232,6 +1274,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 }
                 *pos += 1;
                 let body = parse_tokens(tokens, pos, &["done"])?;
+                if body.lists.is_empty() {
+                    return Err("Syntax error: unexpected `done`".to_string());
+                }
                 if !is_stop_word(tokens.get(*pos), &["done"]) {
                     return Err("Syntax error: expected `done`".to_string());
                 }
@@ -1256,11 +1301,17 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
                 let until = kw == "until";
                 *pos += 1;
                 let cond = parse_tokens(tokens, pos, &["do"])?;
+                if cond.lists.is_empty() {
+                    return Err("Syntax error: unexpected `do`".to_string());
+                }
                 if !is_stop_word(tokens.get(*pos), &["do"]) {
                     return Err("Syntax error: expected `do` in while/until loop".to_string());
                 }
                 *pos += 1;
                 let body = parse_tokens(tokens, pos, &["done"])?;
+                if body.lists.is_empty() {
+                    return Err("Syntax error: unexpected `done`".to_string());
+                }
                 if !is_stop_word(tokens.get(*pos), &["done"]) {
                     return Err("Syntax error: expected `done`".to_string());
                 }
@@ -1555,6 +1606,12 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
         );
     }
 
+    for r in &mut redirects {
+        if let RedirectKind::HereDoc { doc_line, .. } = &mut r.kind {
+            *doc_line = cmd_line;
+        }
+    }
+
     Ok(Some(CommandNode::Simple(SimpleCommand {
         assignments,
         words,
@@ -1834,7 +1891,7 @@ mod tests {
         let parsed = parse_script(script).unwrap();
         assert_eq!(parsed.lists.len(), 2);
         match &parsed.lists[0].first.commands[0] {
-            CommandNode::ArithCommand { expr, redirects } => {
+            CommandNode::ArithCommand { expr, redirects, .. } => {
                 assert_eq!(expr.trim(), "x = 42");
                 assert_eq!(redirects.len(), 2);
             }

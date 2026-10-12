@@ -746,7 +746,7 @@ factory = Backend()
           const sourceBackend=new TextDecoder().decode(await backend.readFile('/work/build-source/backend.py')).replaceAll("config_settings == {'feature': ['one', 'two']}","config_settings is None");
           await backend.writeFile('/work/build-source/backend.py',new TextEncoder().encode(sourceBackend));
           const sourceEnvironment=createPythonSourcePackageEnvironment({...configuration,scope:'source',maxMetadataBytes:4096},{directory:'/work/published-wheels',python:{createExecutor,maxTransferBytes:32}});
-          const sourceShell=new Shell({fs:backend,cwd:'/work'}).use(pythonCommands({createExecutor,environment:sourceEnvironment,maxTransferBytes:32}));
+          const sourceShell=new Shell({fs:backend,cwd:'/work',onInternalError:error=>diagnostics.push(String(error?.stack??error))}).use(pythonCommands({createExecutor,environment:sourceEnvironment,maxTransferBytes:32}));
           let sourceInstalled,sourceImported,sourceMetadata,sourceUninstalled,sourceRemoved;
           try{
             sourceInstalled=await sourceShell.exec('python -m pip install ./build-source');
@@ -889,12 +889,12 @@ print('worker package verified')
     const conflict = await shell.exec(prefix + ' install worker-dependency==2.0');
     const recovered = await shell.exec(verify);
     const native = [];
-    if(useLlm)for(const args of [['install','--help'],['uninstall','--help'],['install','--unknown'],['uninstall']]) {
+    if(useLlm&&pluginCheck!=='features')for(const args of [['install','--help'],['uninstall','--help'],['install','--unknown'],['uninstall']]) {
       const result = await shell.exec('llm ' + args.join(' '));
       native.push({args,exitCode:result.exitCode,output:result.stdout+result.stderr});
     }
     let plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate,failedFragment,failedTemplate,importFragment,importTemplate;
-    if(useLlm) {
+    if(pluginCheck==='features') {
       const added=await shell.exec('llm install ./worker_provider-1.0-py3-none-any.whl');
       if(added.exitCode)throw new Error(JSON.stringify({added,diagnostics}));
       fragmentListing=await shell.exec('llm fragments loaders');
@@ -916,6 +916,7 @@ print('worker package verified')
       await backend.unlink('/work/fail-import');
       const denied=new Shell({fs:backend,cwd:'/work'}).use(llmCommands({loadTools:createPythonLlmToolLoader({...pythonOptions,plugins:['worker-provider']})}));
       try {blocked=await denied.exec('llm plugins');} finally {await denied.dispose();}
+      return {installed,plugins,listed,called,blocked,fragment,template,fragmentListing,templateListing,missingFragment,missingTemplate,failedFragment,failedTemplate,importFragment,importTemplate,wheelReads,requests,diagnostics};
     }
     // Simulate a caller restoring an intentionally incomplete installed state.
     // Starting Python must not resolve metadata and silently reinstall a dependency.
@@ -2309,8 +2310,8 @@ PY`);
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }
-    if (mode === '/packages' || mode === '/llm-packages' || mode.startsWith('/build-environment/') || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort') {
-      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort',false,false,mode.startsWith('/build-environment/')?mode.slice('/build-environment/'.length):false,false,false,mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':mode === '/llm-interrupts'?'interrupt':mode === '/llm-eof'?'eof':mode === '/llm-abort'?'abort':''),failures});}
+    if (mode === '/packages' || mode === '/llm-packages' || mode === '/llm-package-features' || mode.startsWith('/build-environment/') || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort') {
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-package-features' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort',false,false,mode.startsWith('/build-environment/')?mode.slice('/build-environment/'.length):false,false,false,mode === '/llm-package-features'?'features':mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':mode === '/llm-interrupts'?'interrupt':mode === '/llm-eof'?'eof':mode === '/llm-abort'?'abort':''),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

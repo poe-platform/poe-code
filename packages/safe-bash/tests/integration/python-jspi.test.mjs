@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { lstatSync, readFileSync } from 'node:fs';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -147,6 +147,10 @@ export async function installStaticPackages(runtime) {
       'pinned-pyodide-module': resolve(runtimeRoot, 'pyodide.asm.mjs'),
       'pinned-pyodide-lock': resolve(runtimeRoot, 'pyodide-lock.json'),
       ...(consumerRoot ? {} : {
+        // Keep source adapters and Python imports on the same LLM module graph.
+        'safe-bash-command-llm/collections': resolve(root,'packages/safe-bash-command-llm/src/collections.ts'),
+        'safe-bash-command-llm/mime': resolve(root,'packages/safe-bash-command-llm/src/mime.ts'),
+        'safe-bash-command-llm': resolve(root,'packages/safe-bash-command-llm/src/index.ts'),
         '@poe-code/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-fs/core': resolve(root, 'packages/safe-fs/src/core.ts'),
         '@poe-platform/safe-bash/core': resolve(root, 'packages/safe-bash/src/commands/index.ts'),
@@ -752,53 +756,11 @@ for(const mode of ['packages','llm-packages'])test('real workerd installs and re
   assert.equal(result.afterRootRemoval.stdout,'root removed; dependency retained\n');
   assert.equal(result.requests.length,1);
   assert.deepEqual(result.failures,[]);
-  if(mode==='llm-packages') {
-    assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
-    assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
-    assert.equal(result.plugins.stderr,'');
-    for(const [kind,listing] of [['fragments',result.fragmentListing],['templates',result.templateListing]]){
-      assert.equal(listing.exitCode,0,JSON.stringify(listing));
-      assert.equal(listing.stdout,'register '+kind+'\nnative:\n  Undocumented\n');
-      assert.equal(listing.stderr,'');
-    }
-    assert.equal(result.listed.exitCode,0,JSON.stringify(result));
-    assert.match(result.listed.stdout,/installed_tool/);
-    assert.equal(result.called.exitCode,0,JSON.stringify(result));
-    assert.equal(result.called.stdout,'78\n');
-    assert.equal(result.called.stderr,'');
-    assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
-    assert.match(result.fragment.stdout,/native fragment:hello/);
-    assert.match(result.fragment.stdout,/prompt/);
-    assert.ok(result.fragment.stdout.startsWith('register fragments\nplugin output\n'));
-    assert.equal(result.fragment.stdout.split('register fragments').length,2);
-    assert.ok(!result.fragment.stdout.includes('register templates'));
-    assert.equal(result.fragment.stderr,'plugin diagnostic\n');
-    assert.equal(result.template.exitCode,0,JSON.stringify(result.template));
-    assert.equal(result.template.stdout,'register templates\ntemplate output\nnative template:hello Ada question\n');
-    assert.equal(result.template.stderr,'template diagnostic\n');
-    for(const [kind,missing]of [['fragment',result.missingFragment],['template',result.missingTemplate]]){
-      assert.equal(missing.exitCode,1,JSON.stringify(missing));
-      assert.equal(missing.stdout,'register '+kind+'s\n');
-      assert.equal(missing.stderr,'Error: Unknown '+kind+' prefix: missing\n');
-    }
-    for(const [kind,failed]of [['fragments',result.failedFragment],['templates',result.failedTemplate]]){
-      assert.equal(failed.exitCode,1,JSON.stringify(failed));
-      assert.equal(failed.stdout,'register '+kind+'\n');
-      assert.equal(failed.stderr,'Error: '+kind+' registration failed\n');
-    }
-    for(const failed of [result.importFragment,result.importTemplate]){
-      assert.equal(failed.exitCode,1,JSON.stringify(failed));
-      assert.equal(failed.stdout,'');
-      assert.equal(failed.stderr,'Error: plugin import failed\n');
-    }
-    assert.equal(result.blocked.exitCode,1);
-    assert.match(result.blocked.stderr,/platform-configured providers/);
-  }
   assert.equal(result.native.length,mode==='llm-packages'?6:0);
   if(mode==='llm-packages' && process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT) {
     const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
     assert.ok(output.startsWith(resolve(root,'out')+'/'));
-    await writeFile(output,result.removed.stdout+'\n'+result.installed.stdout+'\n'+result.plugins.stdout+'\n'+result.called.stdout);
+    await writeFile(output,result.removed.stdout+'\n'+result.installed.stdout);
   }
   for(const actual of result.native) {
     const expected=packageCommandReference.find(row=>JSON.stringify(row.args)===JSON.stringify(actual.args));
@@ -810,6 +772,68 @@ for(const mode of ['packages','llm-packages'])test('real workerd installs and re
   assert.deepEqual(await errors.json(),[]);
 });
 
+
+test('real workerd discovers installed LLM plugins and preserves loader diagnostics', {timeout:240000}, async()=>{
+  const {miniflare,runtimeErrors}=nativeFixture;
+  const response=await miniflare.dispatchFetch('http://fixture/llm-package-features',{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+  const result=await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.equal(result.installed.exitCode,0,JSON.stringify(result));
+  assert.ok(result.wheelReads.opened>0);
+  assert.equal(result.wheelReads.closed,result.wheelReads.opened);
+  assert.ok(result.wheelReads.reads>result.wheelReads.opened);
+  assert.ok(result.wheelReads.largest<=65536);
+  assert.equal(result.requests.length,1);
+  assert.equal(result.plugins.exitCode,0,JSON.stringify(result));
+  assert.deepEqual(JSON.parse(result.plugins.stdout),[{name:'worker-fixture',hooks:['register_fragment_loaders','register_template_loaders','register_tools'],version:'1.0'}]);
+  assert.equal(result.plugins.stderr,'');
+  for(const [kind,listing] of [['fragments',result.fragmentListing],['templates',result.templateListing]]){
+    assert.equal(listing.exitCode,0,JSON.stringify(listing));
+    assert.equal(listing.stdout,'register '+kind+'\nnative:\n  Undocumented\n');
+    assert.equal(listing.stderr,'');
+  }
+  assert.equal(result.listed.exitCode,0,JSON.stringify(result));
+  assert.match(result.listed.stdout,/installed_tool/);
+  assert.equal(result.called.exitCode,0,JSON.stringify(result));
+  assert.equal(result.called.stdout,'78\n');
+  assert.equal(result.called.stderr,'');
+  assert.equal(result.fragment.exitCode,0,JSON.stringify(result.fragment));
+  assert.match(result.fragment.stdout,/native fragment:hello/);
+  assert.match(result.fragment.stdout,/prompt/);
+  assert.ok(result.fragment.stdout.startsWith('register fragments\nplugin output\n'));
+  assert.equal(result.fragment.stdout.split('register fragments').length,2);
+  assert.ok(!result.fragment.stdout.includes('register templates'));
+  assert.equal(result.fragment.stderr,'plugin diagnostic\n');
+  assert.equal(result.template.exitCode,0,JSON.stringify(result.template));
+  assert.equal(result.template.stdout,'register templates\ntemplate output\nnative template:hello Ada question\n');
+  assert.equal(result.template.stderr,'template diagnostic\n');
+  for(const [kind,missing]of [['fragment',result.missingFragment],['template',result.missingTemplate]]){
+    assert.equal(missing.exitCode,1,JSON.stringify(missing));
+    assert.equal(missing.stdout,'register '+kind+'s\n');
+    assert.equal(missing.stderr,'Error: Unknown '+kind+' prefix: missing\n');
+  }
+  for(const [kind,failed]of [['fragments',result.failedFragment],['templates',result.failedTemplate]]){
+    assert.equal(failed.exitCode,1,JSON.stringify(failed));
+    assert.equal(failed.stdout,'register '+kind+'\n');
+    assert.equal(failed.stderr,'Error: '+kind+' registration failed\n');
+  }
+  for(const failed of [result.importFragment,result.importTemplate]){
+    assert.equal(failed.exitCode,1,JSON.stringify(failed));
+    assert.equal(failed.stdout,'');
+    assert.equal(failed.stderr,'Error: plugin import failed\n');
+  }
+  assert.equal(result.blocked.exitCode,1);
+  assert.match(result.blocked.stderr,/platform-configured providers/);
+  if(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT){
+    const output=resolve(process.env.SAFE_BASH_LLM_PACKAGE_OUTPUT);
+    assert.ok(output.startsWith(resolve(root,'out')+'/'));
+    await appendFile(output,'\n'+result.plugins.stdout+'\n'+result.called.stdout);
+  }
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(runtimeErrors,[]);
+  const errors=await miniflare.dispatchFetch('http://fixture/unhandled-errors');
+  assert.deepEqual(await errors.json(),[]);
+});
 
 test('real workerd preserves uncaught asyncio errors and immediately reuses interpreter capacity', {timeout:120000}, async () => {
   const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-async-errors');
@@ -863,9 +887,8 @@ test('real workerd replaces requested packages while retaining unrelated install
 });
 
 
-test('real workerd migrates legacy requirements before uninstall without making them host requirements', {timeout:120000}, async()=>{
+for(const mode of ['legacy-packages', 'legacy-llm-packages'])test('real workerd migrates legacy requirements before uninstall without making them host requirements; '+mode, {timeout:120000}, async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- for(const mode of ['legacy-packages','legacy-llm-packages']){
   const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
   const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
   assert.equal(result.rows.length,2);
@@ -885,14 +908,12 @@ test('real workerd migrates legacy requirements before uninstall without making 
    await writeFile(output,result.rows.map(row=>row.stdout).join('\n'));
   }
   assert.deepEqual(result.failures,[]);
- }
  assert.deepEqual(runtimeErrors,[]);
 });
 
 
-test('real workerd uninstalls packages after their wheel artifacts are gone', {timeout:120000}, async()=>{
+for(const mode of ['artifact-uninstall', 'artifact-llm-uninstall'])test('real workerd uninstalls packages after their wheel artifacts are gone; '+mode, {timeout:120000}, async()=>{
  const {miniflare,runtimeErrors}=nativeFixture;
- for(const mode of ['artifact-uninstall','artifact-llm-uninstall']){
   const response=await miniflare.dispatchFetch('http://fixture/'+mode,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
   const result=await response.json();assert.equal(response.status,200,JSON.stringify(result));
   for(const name of ['declined','removed','dependency','missing','state'])assert.equal(result[name].exitCode,0,JSON.stringify(result));
@@ -920,7 +941,6 @@ test('real workerd uninstalls packages after their wheel artifacts are gone', {t
    await writeFile(output,result.removed.stdout+result.dependency.stdout);
   }
   assert.deepEqual(result.failures,[]);
- }
  assert.deepEqual(runtimeErrors,[]);
 });
 

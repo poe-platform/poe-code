@@ -1002,21 +1002,21 @@ test('real workerd retains direct wheel provenance for roots and dependencies ac
 });
 
 
-test('real workerd preserves explicit native plugin exit statuses', {timeout:60000}, async()=>{
+for(const phase of ['loaders','tool-success','tool-failure'])test('real workerd preserves explicit native plugin exit statuses; phase='+phase, {timeout:60000}, async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path, 'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip wheel');
   const {miniflare,runtimeErrors}=nativeFixture;
-  const response=await miniflare.dispatchFetch('http://fixture/llm-plugin-exits',{method:'POST',body:readFileSync(path)});
+  const response=await miniflare.dispatchFetch('http://fixture/llm-plugin-exits?phase='+phase,{method:'POST',body:readFileSync(path)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
-  for(const [kind,exited,code]of [['fragments',result.fragment,0],['templates',result.template,7]]){
+  if(phase==='loaders')for(const [kind,exited,code]of [['fragments',result.fragment,0],['templates',result.template,7]]){
     assert.equal(exited.exitCode,code,JSON.stringify(exited));
     assert.equal(exited.stdout,'register '+kind+'\n');
     assert.equal(exited.stderr,'');
   }
-  assert.deepEqual(result.tools.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),[
-    {exitCode:0,stdout:'',stderr:''},{exitCode:0,stdout:'',stderr:''},
-    {exitCode:7,stdout:'',stderr:''},{exitCode:1,stdout:'',stderr:'tool exit\n'},
+  if(phase!=='loaders')assert.deepEqual(result.tools.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),[
+    ...(phase==='tool-success'?[{exitCode:0,stdout:'',stderr:''},{exitCode:0,stdout:'',stderr:''}]:
+    [{exitCode:7,stdout:'',stderr:''},{exitCode:1,stdout:'',stderr:'tool exit\n'}]),
   ]);
   assert.deepEqual(result.diagnostics,[]);
   assert.deepEqual(result.failures,[]);
@@ -1045,28 +1045,28 @@ test('real workerd preserves tool execution and preparation process exits',{time
 });
 
 
-test('real workerd preserves native Click plugin diagnostics and custom exit status',{timeout:60000},async()=>{
+for(const phase of ['registration','invocation','tools'])test('real workerd preserves native Click plugin diagnostics and custom exit status; phase='+phase,{timeout:60000},async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path,'Set SAFE_BASH_PYTHON_MICROPIP_WHEEL to the pinned micropip wheel');
   const {miniflare,runtimeErrors}=nativeFixture;
-  const response=await miniflare.dispatchFetch('http://fixture/llm-click-errors',{method:'POST',body:readFileSync(path)});
+  const response=await miniflare.dispatchFetch('http://fixture/llm-click-errors?phase='+phase,{method:'POST',body:readFileSync(path)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
   assert.deepEqual(result.results.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),
-    ['register templates\n','register fragments\n','register templates\n','register fragments\n',''].map(stdout=>({exitCode:9,stdout,stderr:'Error: formatted plugin failure\n'})));
+    (phase==='tools'?['']:['register templates\n','register fragments\n']).map(stdout=>({exitCode:9,stdout,stderr:'Error: formatted plugin failure\n'})));
   assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
 
-test('real workerd preserves native plugin keyboard interrupts',{timeout:60000},async()=>{
+for(const phase of ['registration','invocation','callback','tools'])test('real workerd preserves native plugin keyboard interrupts; phase='+phase,{timeout:60000},async()=>{
   const path=process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL;
   assert.ok(path);
   const {miniflare,runtimeErrors}=nativeFixture;
-  const response=await miniflare.dispatchFetch('http://fixture/llm-interrupts',{method:'POST',body:readFileSync(path)});
+  const response=await miniflare.dispatchFetch('http://fixture/llm-interrupts?phase='+phase,{method:'POST',body:readFileSync(path)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
   assert.deepEqual(result.results.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),[
-    ...['register templates\n','register fragments\n','','register templates\n','register fragments\n','register templates\n','register fragments\n'].map(stdout=>({exitCode:1,stdout,stderr:'\nAborted!\n'})),
+    ...(phase==='tools'?['']:['register templates\n','register fragments\n']).map(stdout=>({exitCode:1,stdout,stderr:'\nAborted!\n'})),
   ]);
   assert.deepEqual(result.diagnostics,[]);
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
@@ -1083,13 +1083,13 @@ test('real workerd preserves native toolbox EOF and Click aborts',{timeout:60000
   assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 
-for(const mode of ['eof','abort'])test('real workerd preserves native plugin abort boundaries; mode='+mode,{timeout:60000},async()=>{
+for(const mode of ['eof','abort'])for(const phase of ['registration','invocation','tools'])test('real workerd preserves native plugin abort boundaries; mode='+mode+'; phase='+phase,{timeout:60000},async()=>{
   const {miniflare,runtimeErrors}=nativeFixture;
-  const response=await miniflare.dispatchFetch('http://fixture/llm-'+mode,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
+  const response=await miniflare.dispatchFetch('http://fixture/llm-'+mode+'?phase='+phase,{method:'POST',body:readFileSync(process.env.SAFE_BASH_PYTHON_MICROPIP_WHEEL)});
   const result=await response.json();
   assert.equal(response.status,200,JSON.stringify(result));
   assert.deepEqual(result.results.map(({exitCode,stdout,stderr})=>({exitCode,stdout,stderr})),
-    ['register templates\n','register fragments\n','register templates\n','register fragments\n',''].map(stdout=>({exitCode:1,stdout,stderr:mode==='eof'?'\nAborted!\n':'Aborted!\n'})));
+    (phase==='tools'?['']:['register templates\n','register fragments\n']).map(stdout=>({exitCode:1,stdout,stderr:mode==='eof'?'\nAborted!\n':'Aborted!\n'})));
   assert.deepEqual(result.diagnostics,[]);assert.deepEqual(result.failures,[]);assert.deepEqual(runtimeErrors,[]);
 });
 

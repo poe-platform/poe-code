@@ -569,7 +569,7 @@ for name in ('replace_root', 'replace_dep', 'replace_orphan'):
  }finally{await shell.dispose();await environment.dispose();}
 }
 
-async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false, provenanceOnly=false, pluginCheck='') {
+async function qualifyPackages(backend, createExecutor, micropip, useLlm, legacyOnly=false, artifactOnly=false, buildOnly=false, integrityOnly=false, provenanceOnly=false, pluginCheck='', pluginPhase='all') {
   const wheelReads={opened:0,closed:0,reads:0,largest:0};
   backend=new Proxy(backend,{get(target,key){
     if(key==='readFile')return (path,...args)=>{if(path.endsWith('.whl'))throw Error('Whole canonical wheel read');return target.readFile(path,...args);};
@@ -811,35 +811,38 @@ print(json.dumps(result))
       }
       return {rows,requests};
     }
+    const loaderCommands=['llm templates loaders','llm fragments loaders','llm -t native:value question','llm -f native:value question'];
+    const selectedLoaders=pluginPhase==='registration'?loaderCommands.slice(0,2):pluginPhase==='invocation'?loaderCommands.slice(2):loaderCommands;
     const installed = await shell.exec(prefix + ' install ./worker_fixture-1.0-py3-none-any.whl');
     if(installed.exitCode)throw new Error(JSON.stringify({stage:'install',installed,diagnostics}));
     if(pluginCheck==='eof'||pluginCheck==='abort'){
       const results=[];
       await backend.writeFile('/work/'+pluginCheck,Uint8Array.of(1));
-      for(const command of ['llm templates loaders','llm fragments loaders','llm -t native:value question','llm -f native:value question'])results.push(await shell.exec(command));
-      results.push(await shell.exec('llm tools --functions '+quote('from click import Abort\nraise '+(pluginCheck==='eof'?'EOFError':'Abort')+'("raw plugin failure")')));
+      if(pluginPhase!=='tools'&&pluginPhase!=='callback')for(const command of selectedLoaders)results.push(await shell.exec(command));
+      if(pluginPhase==='all'||pluginPhase==='tools')results.push(await shell.exec('llm tools --functions '+quote('from click import Abort\nraise '+(pluginCheck==='eof'?'EOFError':'Abort')+'("raw plugin failure")')));
       return {results,diagnostics};
     }
     if(pluginCheck==='interrupt'){
       const results=[];
-      for(const command of ['llm -t native:interrupt question','llm -f native:interrupt question','llm tools --functions "raise KeyboardInterrupt()"'])results.push(await shell.exec(command));
+      if(pluginPhase==='all'||pluginPhase==='callback')for(const command of ['llm -t native:interrupt question','llm -f native:interrupt question'])results.push(await shell.exec(command));
+      if(pluginPhase==='all'||pluginPhase==='tools')results.push(await shell.exec('llm tools --functions "raise KeyboardInterrupt()"'));
       await backend.writeFile('/work/interrupt',Uint8Array.of(1));
-      for(const command of ['llm templates loaders','llm fragments loaders','llm -t native:value question','llm -f native:value question'])results.push(await shell.exec(command));
+      if(pluginPhase!=='tools'&&pluginPhase!=='callback')for(const command of selectedLoaders)results.push(await shell.exec(command));
       return {results,diagnostics};
     }
     if(pluginCheck==='click'){
       await backend.writeFile('/work/click-error',Uint8Array.of(1));
       const results=[];
-      for(const command of ['llm templates loaders','llm fragments loaders','llm -t native:value question','llm -f native:value question'])results.push(await shell.exec(command));
+      if(pluginPhase!=='tools'&&pluginPhase!=='callback')for(const command of selectedLoaders)results.push(await shell.exec(command));
       const definition='import click as _click\nclass _Failure(_click.ClickException):\n exit_code=9\n def format_message(self): return "formatted plugin failure"\nraise _Failure("raw plugin failure")';
-      results.push(await shell.exec('llm tools --functions '+quote(definition)));
+      if(pluginPhase==='all'||pluginPhase==='tools')results.push(await shell.exec('llm tools --functions '+quote(definition)));
       return {results,diagnostics};
     }
     if(pluginCheck==='exits'){
-      const fragment=await shell.exec('llm -f native:exit question');
-      const template=await shell.exec('llm -t native:exit question');
+      const fragment=pluginPhase.startsWith('tool')?undefined:await shell.exec('llm -f native:exit question');
+      const template=pluginPhase.startsWith('tool')?undefined:await shell.exec('llm -t native:exit question');
       const tools=[];
-      for(const value of ['None','0','7',"'tool exit'"])tools.push(await shell.exec('llm tools --functions '+quote('raise SystemExit('+value+')')));
+      if(pluginPhase!=='loaders')for(const value of (pluginPhase==='tool-success'?['None','0']:pluginPhase==='tool-failure'?['7',"'tool exit'"]:['None','0','7',"'tool exit'"]))tools.push(await shell.exec('llm tools --functions '+quote('raise SystemExit('+value+')')));
       return {fragment,template,tools,diagnostics};
     }
     if(artifactOnly){
@@ -2311,7 +2314,7 @@ PY`);
       finally {clearInterval(timer);await filesystem.close();}
     }
     if (mode === '/packages' || mode === '/llm-packages' || mode === '/llm-package-features' || mode.startsWith('/build-environment/') || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort') {
-      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-package-features' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort',false,false,mode.startsWith('/build-environment/')?mode.slice('/build-environment/'.length):false,false,false,mode === '/llm-package-features'?'features':mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':mode === '/llm-interrupts'?'interrupt':mode === '/llm-eof'?'eof':mode === '/llm-abort'?'abort':''),failures});}
+      try {return Response.json({...await qualifyPackages(backend,createExecutor,new Uint8Array(await request.arrayBuffer()),mode === '/llm-packages' || mode === '/llm-package-features' || mode === '/llm-plugin-exits' || mode === '/llm-click-errors' || mode === '/llm-interrupts' || mode === '/llm-eof' || mode === '/llm-abort',false,false,mode.startsWith('/build-environment/')?mode.slice('/build-environment/'.length):false,false,false,mode === '/llm-package-features'?'features':mode === '/llm-plugin-exits'?'exits':mode === '/llm-click-errors'?'click':mode === '/llm-interrupts'?'interrupt':mode === '/llm-eof'?'eof':mode === '/llm-abort'?'abort':'',new URL(request.url).searchParams.get('phase')??'all'),failures});}
       catch(error) {return Response.json({error:String(error),stack:error.stack,failures},{status:500});}
       finally {clearInterval(timer);await filesystem.close();}
     }

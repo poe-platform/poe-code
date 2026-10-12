@@ -29,12 +29,10 @@ for size in [0, 196615]:
     reads.append((offset,length))
     return payload[offset:offset+min(length,8191)]
    namespace={'_safe_native_wheel_read':read,'_safe_native_wheel_config':json.dumps(dict(size=size,integrity=[algorithm,expected]))}
-   try:
-    exec(program,namespace)
-    actual=True
-   except ValueError as error:
-    assert 'integrity mismatch' in str(error),error
-    actual=False
+   exec(program,namespace)
+   result=json.loads(namespace['_safe_extract_native_wheel'](read,namespace['_safe_native_wheel_config']))
+   actual=not isinstance(result,dict) or 'wheelError' not in result
+   if not actual:assert result['wheelError']=='Python package integrity mismatch: '+algorithm
    assert actual==reference,(algorithm,size,correct)
    assert len(reads)>1 if size else not reads
 `],{input:JSON.stringify(pythonNativeWheel),encoding:'utf8',timeout:5000});

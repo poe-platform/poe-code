@@ -281,6 +281,19 @@ for(const fail of [false,true])test(`native wheel extraction streams native load
  assert.equal(globals.size,0);
 });
 
+test('native wheel guest failures reject installation and retire the retained source',async()=>{
+ const globals=new Map<string,unknown>();const operations:string[]=[];
+ const runtime={version:'314.0.6',_api:{lockfile_packages:{fixture:{file_name:'fixture-1-py3-none-any.whl',sha256:'hash',install_dir:'site'}},
+  async loadDynlib(){},packageManager:{defaultChannel:'default',async downloadPackage(_metadata:unknown):Promise<unknown>{return null;},async installPackage(_metadata:unknown,_source:unknown){throw Error('unexpected buffer');}}},
+  globals:{set(name:string,value:unknown){globals.set(name,value);},delete(name:string){globals.delete(name);}},
+  async loadPackage(){const metadata={normalizedName:'fixture',channel:'default'};await runtime._api.packageManager.installPackage(metadata,await runtime._api.packageManager.downloadPackage(metadata));},
+  async runPythonAsync(){if(globals.has('_safe_native_wheel_read'))return JSON.stringify({wheelError:'Python package integrity mismatch: sha256'});},runPython(){return '[]';}};
+ await assert.rejects(installPythonPackages(runtime as never,{session:'1',requirements:['fixture'],offline:false},async(op)=>{
+  operations.push(op);if(op==='package-open')return {key:'wheel',size:1,headers:[]};
+ },65536),/Python package integrity mismatch: sha256/);
+ assert.deepEqual(operations,['package-open','package-close']);assert.equal(globals.size,0);
+});
+
 test('native extraction preserves host read failure identity across the Python exception bridge',async()=>{
  for(const asyncRead of [false,true]){
   const failure=new Error('cancelled retained wheel read');

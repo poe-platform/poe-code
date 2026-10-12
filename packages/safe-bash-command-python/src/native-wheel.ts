@@ -245,7 +245,9 @@ def _safe_extract_native_wheel(read, serialized):
    while chunk := _native_archive.read(65536):
     checksum.update(chunk)
    if checksum.hexdigest() != expected:
-    raise ValueError('Python package integrity mismatch: ' + algorithm)
+    # Return expected validation failures before Pyodide's synchronous error
+    # conversion tries to perform traceback I/O on the caller filesystem.
+    return _native_json.dumps({'wheelError':'Python package integrity mismatch: ' + algorithm})
    return '""'
   with _native_directory_parser(_native_archive):
    if 'metadata_name' in _native_config:

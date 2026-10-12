@@ -87,7 +87,8 @@ export async function installPythonPackages(
     }catch(error){return failed(error);}
    });
    runtime.globals.set(globals[1]!,JSON.stringify({...configuration,size}));
-   const result=JSON.parse(await runtime.runPythonAsync(await loadPythonNativeWheel()) as string) as string|string[]|{dynlibError:string};
+   const result=JSON.parse(await runtime.runPythonAsync(await loadPythonNativeWheel()) as string) as string|string[]|{dynlibError:string}|{wheelError:string};
+   if(result && typeof result==='object' && 'wheelError' in result)throw new Error(result.wheelError);
    if(result && typeof result==='object' && 'dynlibError' in result)throw new Error(result.dynlibError);
    return result;
   }finally{

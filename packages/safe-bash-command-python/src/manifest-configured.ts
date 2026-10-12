@@ -17,12 +17,11 @@ export async function createConfiguredPythonManifestStore(context:PythonPackageC
  const root=native?directory:cwd+'/.python-packages/manifests/'+bytesToHex(sha256(new TextEncoder().encode(directory)));
  const store=createPythonPackageFileManifestStore({fs,directory:root,filename,...maxCacheBytes===undefined?{}:{maxCacheBytes}});
  if(!native){
-  try{await fs.lstat(root+'/'+filename,{signal});return store;}
-  catch(error){if(!(error instanceof FsError)||error.code!=='ENOENT')throw error;}
-  let stat;
-  try{stat=await fs.lstat(directory+'/'+filename,{signal});}
-  catch(error){if(error instanceof FsError&&error.code==='ENOENT')return store;throw error;}
-  if(stat.type!=='file'||stat.size>maxBytes)throw new Error('Invalid legacy Python package manifest');
+  const stat=async(path:string)=>{try{return await fs.lstat(path,{signal});}catch(error){if(!(error instanceof FsError)||error.code!=='ENOENT')throw error;return undefined;}};
+  if(await stat(root+'/'+filename))return store;
+  const legacy=await stat(directory+'/'+filename);
+  if(!legacy)return store;
+  if(legacy.type!=='file'||legacy.size>maxBytes)throw new Error('Invalid legacy Python package manifest');
   if(!fs.readStream)throw new Error('Legacy Python manifest migration requires streaming reads');
   await store.compareAndSetSource!(filename,undefined,fs.readStream(directory+'/'+filename,{signal}),{signal,maxBytes});
  }

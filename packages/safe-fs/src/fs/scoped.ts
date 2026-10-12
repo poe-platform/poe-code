@@ -579,15 +579,12 @@ export function retainFileSystemCleanup(
     pending.add(completion);
     return result;
   };
-  const view: RetainedFileSystemCleanupView = Object.freeze(Object.assign(Object.create(null) as RetainedFileSystemCleanupView, {
-    ...(typeof backing.removeFileConditional === "function" ? { removeFileConditional: invoke.bind(undefined, "removeFileConditional") as NonNullable<RetainedFileSystemCleanupView["removeFileConditional"]> } : {}),
-    ...(typeof backing.removeStagedFile === "function" ? { removeStagedFile: invoke.bind(undefined, "removeStagedFile") as NonNullable<RetainedFileSystemCleanupView["removeStagedFile"]> } : {}),
-    ...(typeof backing.removeTreeConditional === "function" ? { removeTreeConditional: invoke.bind(undefined, "removeTreeConditional") as NonNullable<RetainedFileSystemCleanupView["removeTreeConditional"]> } : {}),
-    lstat: invoke.bind(undefined, "lstat") as RetainedFileSystemCleanupView["lstat"],
-    realpath: invoke.bind(undefined, "realpath") as RetainedFileSystemCleanupView["realpath"],
-    rm: invoke.bind(undefined, "rm") as RetainedFileSystemCleanupView["rm"],
-    ...(typeof backing.rmdir === "function" ? { rmdir: invoke.bind(undefined, "rmdir") as NonNullable<RetainedFileSystemCleanupView["rmdir"]> } : {}),
-  }));
+  const view = Object.create(null) as RetainedFileSystemCleanupView;
+  for (const method of ["removeFileConditional", "removeStagedFile", "removeTreeConditional", "lstat", "realpath", "rm", "rmdir"] as const) {
+    if (method === "lstat" || method === "realpath" || method === "rm" || typeof backing[method] === "function")
+      Object.defineProperty(view, method, { value: invoke.bind(undefined, method), enumerable: true });
+  }
+  Object.freeze(view);
   scope?.signal.throwIfAborted();
   return () => {
     if (!closing) {

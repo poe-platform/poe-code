@@ -7,8 +7,8 @@ import {createPythonBuildEnvironment} from './build-environment.js';
 const context=()=>({fs:new MemoryFileSystem(),cwd:'/',env:{},signal:new AbortController().signal,maxBytes:4096,stdout:{async write(){}},stderr:{async write(){}}});
 const request={source:'/source',name:'fixture',buildSystem:{requires:['declared==1'],backend:'fixture:backend',backendPath:['.'],check:[]},configSettings:{feature:['one','two']}};
 
-test('build preparation installs declared then missing dynamic dependencies and preserves explicit build state',async()=>{
- const environment=createPythonBuildEnvironment();const calls:unknown[]=[];
+for(const host of [false,true])test('build preparation installs declared then missing dynamic dependencies and preserves explicit build state; host='+host,async()=>{
+ const owned=createPythonBuildEnvironment(),environment={...owned,prepare(input:Parameters<typeof owned.prepare>[0]){return owned.prepare({...input,...host?{recordTransport:'host' as const}:{}});}};const calls:unknown[]=[];
  const prepare=createPythonBuildDependencies({environment,createExecutor:()=>({terminate(){},async run(start){
   if(start.installOnly){
    calls.push(start.packages?.requested);
@@ -48,6 +48,18 @@ test('failed declared installation never invokes backend hooks',async()=>{
  const environment=createPythonBuildEnvironment();let runs=0;
  const prepare=createPythonBuildDependencies({environment,createExecutor:()=>({terminate(){},async run(start){runs++;assert.equal(start.installOnly,true);return 7;}})});
  try{await assert.rejects(prepare(request,context()),/installation exited with status 7/);assert.equal(runs,1);}finally{await environment.dispose();}
+});
+
+test('host build inventory reads only name fields and retires the session on a UTF-8 limit failure',async()=>{
+ let finished=0;
+ const environment={
+  async prepare(input:any){assert.equal(input.recordTransport,'host');return {session:'names',requirements:[],restore:['fixture==1'],recordCount:1,offline:true};},
+  async dispatch(operation:string,args:unknown[]){assert.equal(operation,'package-record-read');assert.deepEqual(args,['names',0,0,0]);return JSON.stringify('éé');},
+  async finish(){finished++;},async dispose(){},
+ };
+ const prepare=createPythonBuildDependencies({environment,createExecutor:()=>{throw new Error('backend must not start');}});
+ await assert.rejects(prepare({...request,buildSystem:{...request.buildSystem,requires:[],check:['fixture']}},{...context(),maxBytes:5}),/names exceed maxBytes/);
+ assert.equal(finished,1);
 });
 
 test('missing fallback requirements warn before backend invocation without installing defaults',async()=>{

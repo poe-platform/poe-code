@@ -30,11 +30,30 @@ export function createPythonBuildDependencies(options:Omit<PythonCommandsOptions
   };
   const check=async(requirements:readonly string[],against:string)=>{
    if(!requirements.length)return [];
-   const receipt=await isolated.environment.prepare(context);
+   const receipt=await isolated.environment.prepare({...context,recordTransport:'host'});
    let installed:readonly string[];
    try{
-    if(!receipt.records&&receipt.restore?.length)throw new Error('Python build dependency checks require an installed metadata manifest');
-    installed=receipt.records?.map(record=>record[0])??[];
+    if(receipt.recordCount===undefined){
+     if(!receipt.records&&receipt.restore?.length)throw new Error('Python build dependency checks require an installed metadata manifest');
+     installed=receipt.records?.map(record=>record[0])??[];
+    }else{
+     if(receipt.recordCount<0&&receipt.restore?.length)throw new Error('Python build dependency checks require an installed metadata manifest');
+     const names:string[]=[];let bytes=0;
+     for(let ordinal=0;ordinal<receipt.recordCount;ordinal++){
+      let text='';
+      for(;;){
+       const chunk=await isolated.environment.dispatch('package-record-read',[receipt.session,ordinal,text.length,0],context);
+       if(typeof chunk!=='string')throw new Error('Python build dependency name transport is unavailable');
+       bytes+=new TextEncoder().encode(chunk).length;
+       if(bytes>context.maxBytes)throw new RangeError('Python build dependency names exceed maxBytes');
+       text+=chunk;if(chunk.length<8192)break;
+      }
+      const name:unknown=JSON.parse(text);
+      if(typeof name!=='string')throw new TypeError('Invalid Python build dependency name');
+      names.push(name);
+     }
+     installed=names;
+    }
    }finally{await isolated.environment.finish(receipt);}
    const status=await hook({hook:'check_build_requirements',source,requirements,installed},context);
    if(status.conflicting.length)throw Object.assign(new Error('Some build dependencies for '+(request.name??source)+' conflict with '+against+': '+[...status.conflicting].sort(([a,b],[c,d])=>a<c?-1:a>c?1:b<d?-1:b>d?1:0).map(([installed,wanted])=>installed+' is incompatible with '+wanted).join(', ')+'.'),{name:'InstallationError'});

@@ -4,14 +4,19 @@ import test from 'node:test';
 import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createPythonPackageEnvironment} from './provisioning.js';
 
-test('nested local requirement files match native pip ordering and relative includes',async()=>{
+const python=process.env.LLM_TEST_PYTHON??'python3';
+const available=spawnSync(python,['-B','-c','import pip; assert pip.__version__ == "21.2.4"'],{timeout:5000}).status===0;
+const reference={skip:!available&&!process.env.LLM_TEST_PYTHON?'Requires pinned pip==21.2.4':false};
+
+test('nested local requirement files match native pip ordering and relative includes',reference,async()=>{
  const files:Record<string,string>={
   '/project/requirements.txt':'alpha==1\n-r nested/one.txt\n--requirement=nested/two.txt\n-rnested/one.txt\n--requirem=nested/one.txt\n--requiremen nested/two.txt\n-r nested/two.txt -r nested/one.txt\nomega==2',
   '/project/nested/one.txt':'beta==3\n--requirement "more packages.txt"',
   '/project/nested/two.txt':'delta==5',
   '/project/nested/more packages.txt':'gamma==4',
  };
- const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os,pip
+assert pip.__version__ == '21.2.4'
 from unittest.mock import patch
 from pip._internal.req.req_file import RequirementsFileParser,get_line_parser
 files=json.load(sys.stdin)
@@ -61,9 +66,10 @@ test('nested requirements share the caller byte allowance and retain cancellatio
  finally{await environment.dispose();}
 });
 
-test('constraint files remain separate from roots with native nested include roles',async()=>{
+test('constraint files remain separate from roots with native nested include roles',reference,async()=>{
  const files:Record<string,string>={'/req':'alpha>=1\n-c pins','/pins':'alpha<3\nunused==4\n-r extra\n-c other','/extra':'gamma','/other':'gamma!=2'};
- const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os
+ const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',`import json,sys,os,pip
+assert pip.__version__ == '21.2.4'
 from unittest.mock import patch
 from pip._internal.req.req_file import RequirementsFileParser,get_line_parser
 files=json.load(sys.stdin)
@@ -93,10 +99,11 @@ for(const lines of [
  'alpha --index-url https://ignored/simple',
  'alpha --pre',
  'alpha -r /missing',
-])test('requirements file index directives match native pip: '+JSON.stringify(lines),async()=>{
+])test('requirements file index directives match native pip: '+JSON.stringify(lines),reference,async()=>{
  const files={'/req':lines,'/child':'beta','/pins':'--index-url https://constraint/simple\nalpha<3'};
  const native=spawnSync(process.env.LLM_TEST_PYTHON??'python3',['-B','-c',String.raw`
-import json,sys,os
+import json,sys,os,pip
+assert pip.__version__ == '21.2.4'
 from unittest.mock import patch
 from pip._internal.commands.install import InstallCommand
 from pip._internal.network.session import PipSession

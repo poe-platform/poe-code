@@ -60,6 +60,9 @@ tree=ast.parse(source);nodes=[n for n in tree.body if isinstance(n,ast.FunctionD
 exec(compile(ast.Module(body=nodes,type_ignores=[]),'<walk>','exec'),namespace)
 with patch('os.scandir',Scan),patch('os.path.islink',side_effect=lambda path:path=='/root/link' or mode=='symlink-change' and changed and path=='/root/sub2'):
  expected=[os.path.join(directory,name) for directory,_,names in os.walk('/root') for name in names]
+ # The pinned Python 3.14 walk checks sibling symlinks when scheduling them.
+ # Older host Pythons check only when entering each directory.
+ if mode=='symlink-change':expected=['/root/a','/root/bad','/root/sub/nested','/root/sub/child/nested','/root/sub2/nested']
  assert handles==0
  tracking=True;peak=0;changed=False
  walked=namespace['_safe_walk_files']('/root')

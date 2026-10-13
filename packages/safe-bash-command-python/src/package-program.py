@@ -731,12 +731,9 @@ def _safe_walk_files(root):
   lifetime.callback(pending.close)
   pending.put('0', root)
   count = 1
-  initial = True
   while count:
    count -= 1
    directory = pending.get(str(count))
-   if initial:initial = False
-   elif os.path.islink(directory):continue
    with ExitStack() as scan_storage:
     directories = _SafeValues()
     scan_storage.callback(directories.close)
@@ -760,6 +757,7 @@ def _safe_walk_files(root):
     for name in files:yield os.path.join(directory, name)
     for ordinal in range(len(directories)-1, -1, -1):
      path = os.path.join(directory, directories.get(str(ordinal)))
+     if os.path.islink(path):continue
      pending.put(str(count), path)
      count += 1
 def _safe_removal_listing(_safe_dist):

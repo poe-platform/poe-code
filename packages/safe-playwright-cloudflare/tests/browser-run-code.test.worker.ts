@@ -14,7 +14,7 @@ import { browserPageCDP } from "../src/browser-page-cdp";
 import { createBrowserRunCode } from "../src/browser-run-code";
 import type { BrowserRunCodeMetadata, BrowserRunCodeReceiver, BrowserRunCodeRelay } from "../src/browser-run-code-contract";
 import type BrowserRunCodeGuest from "../src/browser-run-code-guest";
-import { browserRunCodeGuestSource } from "../src/browser-run-code-guest.generated.js";
+import { loadBrowserRunCodeGuestSource } from "../src/browser-run-code-guest.generated.js";
 import { captureRunCodeState } from "../src/browser-run-code-native";
 import type { RunCodeState } from "../src/browser-run-code-state";
 import { assertRunCodeContextMutations } from "./browser-run-code-context.test.worker-cases";
@@ -102,7 +102,7 @@ async function fixture(env: Env, mobile: boolean, loader = env.BROWSER_RUN_CODE_
 		ownerId: sessionId,
 		browser,
 		loader,
-		guestSource: browserRunCodeGuestSource,
+		guestSource: loadBrowserRunCodeGuestSource,
 		retire,
 		async connectSocket(signal) {
 			const response = await env.BROWSER.fetch(

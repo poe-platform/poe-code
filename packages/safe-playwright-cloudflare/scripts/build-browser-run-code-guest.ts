@@ -1,3 +1,4 @@
+import { gzipSync } from "node:zlib";
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -38,7 +39,7 @@ export async function buildBrowserRunCodeGuest() {
 	await mkdir(dirname(output), { recursive: true });
 	await writeFile(
 		output,
-    `/** @type {string} */\nexport const browserRunCodeGuestSource = ${JSON.stringify(source)};\n`,
+    `import { createCompressedGuestSource } from "./browser-guest-source.js";\nexport const loadBrowserRunCodeGuestSource = createCompressedGuestSource(${JSON.stringify(gzipSync(Buffer.from(source), { level: 9 }).toString("base64"))}, ${Buffer.byteLength(source)});\n`,
 	);
 }
 

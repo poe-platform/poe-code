@@ -27,7 +27,7 @@ export interface BrowserRunCodeOptions {
 	ownerId: string;
 	browser: Browser;
 	loader: WorkerLoader;
-	guestSource: string;
+	guestSource: string | ((signal: AbortSignal) => Promise<string>);
 	/** Opens only the browser acquired for this owner; never accepts a guest ID. */
 	connectSocket(signal: AbortSignal): Promise<WebSocket>;
 	/** Idempotently destroys the owned browser, including renderer-side work. */

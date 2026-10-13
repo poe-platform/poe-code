@@ -1,3 +1,3 @@
 declare module "*.generated.js" {
-	export const browserRunCodeGuestSource: string;
+	export const loadBrowserRunCodeGuestSource: (signal: AbortSignal) => Promise<string>;
 }

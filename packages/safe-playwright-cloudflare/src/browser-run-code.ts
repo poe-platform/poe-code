@@ -304,12 +304,15 @@ async function runGuest(
 	const source = statements
 		? `export default async (page) => {\n${input.source}\n};`
 		: `export default async (page) => {\nconst result = (${input.source}\n);\nreturn typeof result === "function" ? await result(page) : result;\n};`;
+	const guestSource = typeof options.guestSource === "string"
+		? options.guestSource : await options.guestSource(signal);
+	signal.throwIfAborted();
 	const worker = options.loader.load({
 		compatibilityDate: "2026-07-08",
 		compatibilityFlags: [],
 		mainModule: "guest.js",
 		modules: {
-			"guest.js": options.guestSource,
+			"guest.js": guestSource,
 			"browser-user-code.js": source,
 		},
 	});

@@ -1,7 +1,7 @@
 import type { Page } from "@cloudflare/playwright";
 import type { PlaywrightCodeExecutor } from "@poe-platform/safe-bash/playwright";
 import { createBrowserRunCode } from "./browser-run-code.js";
-import { browserRunCodeGuestSource } from "./browser-run-code-guest.generated.js";
+import { loadBrowserRunCodeGuestSource } from "./browser-run-code-guest.generated.js";
 import type { acquireCloudflareBrowser } from "./shell-browser-resource.js";
 
 export interface BrowserCodeRuntime {
@@ -17,7 +17,7 @@ export function createBrowserCodeExecutor(
 		? createBrowserRunCode({
 				ownerId: runtime.ownerId,
 				loader: runtime.loader,
-				guestSource: browserRunCodeGuestSource,
+				guestSource: loadBrowserRunCodeGuestSource,
 				browser: resource.browser,
 				connectSocket: resource.connectSocket,
 				retire: resource.release,

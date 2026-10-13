@@ -321,11 +321,11 @@ describe("obscure structured pandoc ssconvert mmdc unrtf html2md astgrep csvkit 
     const bash = await createEnv();
     const r = await bash.exec(`
       printf 'id,name\n1,Ada\n' > /tmp/cg.csv
-      csvgrep /tmp/cg.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]\}"
-      csvgrep -c 1 /tmp/cg.csv 2>&1 | tail -n 1; echo "rc2=$\{PIPESTATUS[0]\}"
-      in2csv <<< 'a,b' 2>&1 | tail -n 1; echo "rc3=$\{PIPESTATUS[0]\}"
-      in2csv /tmp/cg.unknown 2>&1 | tail -n 1; echo "rc4=$\{PIPESTATUS[0]\}"
-      in2csv -n /tmp/cg.csv 2>&1 | tail -n 1; echo "rc5=$\{PIPESTATUS[0]\}"
+      csvgrep /tmp/cg.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]}"
+      csvgrep -c 1 /tmp/cg.csv 2>&1 | tail -n 1; echo "rc2=$\{PIPESTATUS[0]}"
+      in2csv <<< 'a,b' 2>&1 | tail -n 1; echo "rc3=$\{PIPESTATUS[0]}"
+      in2csv /tmp/cg.unknown 2>&1 | tail -n 1; echo "rc4=$\{PIPESTATUS[0]}"
+      in2csv -n /tmp/cg.csv 2>&1 | tail -n 1; echo "rc5=$\{PIPESTATUS[0]}"
     `);
     assert.equal(r.exitCode, 0);
     assert.equal(
@@ -351,12 +351,12 @@ describe("obscure structured pandoc ssconvert mmdc unrtf html2md astgrep csvkit 
     const r = await bash.exec(`
       printf 'id,name\n1,Ada\n' > /tmp/c1.csv
       printf 'id,name\n2,Grace\n' > /tmp/c2.csv
-      csvstack -g a,b,c /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]\}"
-      csvjoin -c id,id,id /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc2=$\{PIPESTATUS[0]\}"
-      csvjoin --left /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc3=$\{PIPESTATUS[0]\}"
-      csvjoin -c id --left --right /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc4=$\{PIPESTATUS[0]\}"
-      csvclean /tmp/c1.csv 2>&1 | tail -n 1; echo "rc5=$\{PIPESTATUS[0]\}"
-      csvclean --join-short-rows --fill-short-rows /tmp/c1.csv 2>&1 | tail -n 1; echo "rc6=$\{PIPESTATUS[0]\}"
+      csvstack -g a,b,c /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]}"
+      csvjoin -c id,id,id /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc2=$\{PIPESTATUS[0]}"
+      csvjoin --left /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc3=$\{PIPESTATUS[0]}"
+      csvjoin -c id --left --right /tmp/c1.csv /tmp/c2.csv 2>&1 | tail -n 1; echo "rc4=$\{PIPESTATUS[0]}"
+      csvclean /tmp/c1.csv 2>&1 | tail -n 1; echo "rc5=$\{PIPESTATUS[0]}"
+      csvclean --join-short-rows --fill-short-rows /tmp/c1.csv 2>&1 | tail -n 1; echo "rc6=$\{PIPESTATUS[0]}"
     `);
     assert.equal(r.exitCode, 0);
     assert.equal(
@@ -383,11 +383,11 @@ describe("obscure structured pandoc ssconvert mmdc unrtf html2md astgrep csvkit 
     const bash = await createEnv();
     const r = await bash.exec(`
       printf 'id,val,lat,lon\n1,10,37.7,-122.4\n2,20,37.8,-122.5\n' > /tmp/stat.csv
-      csvstat --mean --sum /tmp/stat.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]\}"
-      csvstat --mean --csv /tmp/stat.csv 2>&1 | tail -n 1; echo "rc2=$\{PIPESTATUS[0]\}"
-      csvjson --lat lat /tmp/stat.csv 2>&1 | tail -n 1; echo "rc3=$\{PIPESTATUS[0]\}"
+      csvstat --mean --sum /tmp/stat.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]}"
+      csvstat --mean --csv /tmp/stat.csv 2>&1 | tail -n 1; echo "rc2=$\{PIPESTATUS[0]}"
+      csvjson --lat lat /tmp/stat.csv 2>&1 | tail -n 1; echo "rc3=$\{PIPESTATUS[0]}"
       csvjson --lat lat --lon lon --stream -k id /tmp/stat.csv >/dev/null 2>&1; echo "rc4=$?"
-      csvjson --stream -k id /tmp/stat.csv 2>&1 | tail -n 1; echo "rc5=$\{PIPESTATUS[0]\}"
+      csvjson --stream -k id /tmp/stat.csv 2>&1 | tail -n 1; echo "rc5=$\{PIPESTATUS[0]}"
     `);
     assert.equal(r.exitCode, 0);
     assert.equal(
@@ -412,7 +412,7 @@ describe("obscure structured pandoc ssconvert mmdc unrtf html2md astgrep csvkit 
     const r = await bash.exec(`
       mkdir -p /tmp/csv_dir
       printf 'id,name\n1,Ada\n2,Grace\n' > /tmp/single.csv
-      csvsql --insert /tmp/single.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]\}"
+      csvsql --insert /tmp/single.csv 2>&1 | tail -n 1; echo "rc1=$\{PIPESTATUS[0]}"
       csvcut /tmp/no_such.csv 2>&1; echo "rc2=$?"
       csvcut /tmp/csv_dir 2>&1; echo "rc3=$?"
       csvjoin /tmp/single.csv

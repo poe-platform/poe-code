@@ -391,15 +391,15 @@ MMD
             *) echo "unknown" ;;
           esac
         }
-        echo "c1=\$(classify archive.tar.zst) c2=\$(classify state.db)"
+        echo "c1=$(classify archive.tar.zst) c2=$(classify state.db)"
 
         N=3
         ACC=""
-        until [ "\$N" -eq 0 ]; do
+        until [ "$N" -eq 0 ]; do
           ACC="\${ACC}\${N}"
-          N=\$(( N - 1 ))
+          N=$(( N - 1 ))
         done
-        echo "until=\$ACC"
+        echo "until=$ACC"
 
         set +e
         false | true

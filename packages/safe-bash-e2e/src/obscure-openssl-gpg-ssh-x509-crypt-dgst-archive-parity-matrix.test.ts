@@ -338,7 +338,7 @@ describe("obscure openssl, gpg, ssh, ssh-keygen, x509, crypt, dgst, and archive 
           gpg --list-keys | grep -c '^uid'
         `);
         assert.equal(res.exitCode, 0, res.stderr);
-        assert.match(res.stdout, /gpg: Total number processed: 1\ngpg:               imported: 1/);
+        assert.match(res.stdout, /gpg: Total number processed: 1\ngpg: {15}imported: 1/);
         assert.match(res.stdout, /\n2\n$/);
       },
     );

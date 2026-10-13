@@ -272,14 +272,14 @@ echo "$?:$opt:$OPTARG:$OPTIND"
 set -- -ab -c val -- rest
 out=""
 while getopts "abc:" opt; do
-  out="\${out}(\$opt:\${OPTARG:-none}:\$OPTIND)"
+  out="\${out}($opt:\${OPTARG:-none}:$OPTIND)"
 done
 getopts "abc:" opt
-end_state="\$?:\$opt:\${OPTARG:-unset}:\$OPTIND"
+end_state="$?:$opt:\${OPTARG:-unset}:$OPTIND"
 OPTIND=1
 getopts "abc:" opt
-reset_state="\$opt:\$OPTIND"
-echo "\$out|\$end_state|\$reset_state"
+reset_state="$opt:$OPTIND"
+echo "$out|$end_state|$reset_state"
 `);
       assert.equal(res.exitCode, 0);
       assert.equal(res.stdout, "(a:none:1)(b:none:2)(c:val:4)|1:?:unset:5|a:1\n");

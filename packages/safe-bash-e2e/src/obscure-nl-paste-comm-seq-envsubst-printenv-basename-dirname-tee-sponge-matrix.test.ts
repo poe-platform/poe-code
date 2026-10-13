@@ -512,7 +512,7 @@ cat << 'TPL' | envsubst
 app=$APP_NAME port=\${_PORT_2} missing=$UNSET_VAR
 positional=$1 pid=$$ empty=\${}
 fallback=\${APP_NAME:-default} numbrace=\${123}
-unclosed=\${APP_NAME and nested=\${bad-\$APP_NAME}
+unclosed=\${APP_NAME and nested=\${bad-$APP_NAME}
 TPL
 `);
     assert.equal(r.exitCode, 0);

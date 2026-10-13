@@ -162,7 +162,7 @@ describe("obscure media, PDF, image, office, sponge, envsubst, dd, truncate, and
         export APP_HOST="api.example.com"
         export APP_PORT="8443"
         export KEEP_ME="should_not_expand"
-        printf 'url=https://\${APP_HOST}:\$APP_PORT/v1?token=\${KEEP_ME}\\n' | envsubst '\$APP_HOST \$APP_PORT'
+        printf 'url=https://\${APP_HOST}:$APP_PORT/v1?token=\${KEEP_ME}\\n' | envsubst '$APP_HOST $APP_PORT'
       `);
       assert.equal(r.exitCode, 0, r.stderr);
       assert.equal(

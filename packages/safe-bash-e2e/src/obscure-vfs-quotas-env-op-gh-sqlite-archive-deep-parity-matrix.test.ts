@@ -140,7 +140,7 @@ describe("obscure vfs quotas, env, op/gh, sqlite3, archive, and timing deep pari
         gh variable set DEPLOY_ENV -R acme/config -b "production" > /dev/null
         gh secret set API_KEY -R acme/config -b "sec_123" > /dev/null
         echo "VAR=$(gh variable get DEPLOY_ENV -R acme/config)"
-        echo "HAS_LABEL=$(gh label list -R acme/config --json name | jq 'map(select(.name == \"priority-high\")) | length')"
+        echo "HAS_LABEL=$(gh label list -R acme/config --json name | jq 'map(select(.name == "priority-high")) | length')"
         echo "SECRETS=$(gh secret list -R acme/config --json name | jq -c 'map(.name)')"
       `);
       assert.equal(res.exitCode, 0, res.stderr);

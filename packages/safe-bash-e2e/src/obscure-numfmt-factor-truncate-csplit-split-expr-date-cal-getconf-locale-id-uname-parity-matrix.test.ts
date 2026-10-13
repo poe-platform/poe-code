@@ -359,7 +359,7 @@ describe("obscure numfmt/factor/truncate/csplit/split/expr/date/cal/getconf/loca
 
     const sep1752 = await h.exec("cal 9 1752");
     assert.equal(sep1752.exitCode, 0);
-    assert.match(sep1752.stdout, /1  2 14 15 16/);
+    assert.match(sep1752.stdout, /1 {2}2 14 15 16/);
   });
 
   it("15. getconf --help, --version, -a, and missing operand usage match TypeScript", async () => {

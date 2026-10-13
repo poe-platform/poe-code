@@ -312,7 +312,7 @@ EOF
         for op in "add:+" "mul:*" "sub:-"; do
           name="\${op%%:*}"
           sym="\${op#*:}"
-          eval "fn_\${name}() { echo \\\$(( \\\$1 \${sym} \\\$2 )); }"
+          eval "fn_\${name}() { echo \\$(( \\$1 \${sym} \\$2 )); }"
         done
         echo "$(fn_add 6 7):$(fn_mul 6 7):$(fn_sub 20 8)"
         echo() { printf "custom:%s\\n" "$*"; }

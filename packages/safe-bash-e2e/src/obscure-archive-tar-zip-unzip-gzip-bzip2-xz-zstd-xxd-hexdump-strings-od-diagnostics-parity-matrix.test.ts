@@ -277,7 +277,7 @@ describe("obscure archive tar zip unzip gzip bzip2 xz zstd xxd hexdump strings o
     );
     assert.match(
       r.stdout,
-      /\nzip error: Invalid command arguments \(Option -Z \(--compression-method\):  unknown method\)\nrc4=16\n/,
+      /\nzip error: Invalid command arguments \(Option -Z \(--compression-method\): {2}unknown method\)\nrc4=16\n/,
     );
     assert.match(
       r.stdout,
@@ -531,7 +531,7 @@ describe("obscure archive tar zip unzip gzip bzip2 xz zstd xxd hexdump strings o
     assert.match(r.stdout, /zip: ZIP entropy capability is unavailable\npw_rc=2\n/);
     assert.match(r.stdout, /zip: ZIP no-echo password capability is unavailable\nenc_rc=2\n/);
     assert.match(r.stdout, /tmp\/zip_wk\/secret\.txt\ntmp\/zip_wk\/note\.txt\n/);
-    assert.match(r.stdout, /Archive:  \/tmp\/zip_wk\/vault\.zip\nArchive Header Comment\n/);
+    assert.match(r.stdout, /Archive: {2}\/tmp\/zip_wk\/vault\.zip\nArchive Header Comment\n/);
     assert.match(
       r.stdout,
       /testing: tmp\/zip_wk\/secret\.txt\s+OK\n\s+testing: tmp\/zip_wk\/note\.txt\s+OK\nNo errors detected in compressed data of \/tmp\/zip_wk\/vault\.zip\.\n/,

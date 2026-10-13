@@ -183,7 +183,7 @@ describe("obscure arithmetic, arrays, and parameter transforms parity matrix", (
       assert.equal(r.exitCode, 0);
       assert.equal(
         r.stdout,
-        'keys=zeta alpha mu|vals=1 22 3|slice=22 3|at_k=zeta 1 alpha 22 mu 3\ndeclare -A map=([\"zeta\"]=\"1\" [\"alpha\"]=\"22\" [\"mu\"]=\"3\")\n'
+        'keys=zeta alpha mu|vals=1 22 3|slice=22 3|at_k=zeta 1 alpha 22 mu 3\ndeclare -A map=(["zeta"]="1" ["alpha"]="22" ["mu"]="3")\n'
       );
       assert.equal(r.stderr, "");
     });

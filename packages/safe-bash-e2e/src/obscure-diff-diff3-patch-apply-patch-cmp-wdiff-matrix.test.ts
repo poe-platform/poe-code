@@ -542,12 +542,12 @@ describe("obscure diff, diff3, patch, apply_patch, cmp, and wdiff parity matrix"
 
     const fwdSkip = await h.exec("patch -N < /work/deep.patch");
     assert.equal(fwdSkip.exitCode, 1);
-    assert.match(fwdSkip.stdout, /Reversed \(or previously applied\) patch detected!  Skipping patch\./);
+    assert.match(fwdSkip.stdout, /Reversed \(or previously applied\) patch detected! {2}Skipping patch\./);
     assert.equal(await h.readText("/work/flat.txt"), "alpha\nBETA\n");
 
     const autoRev = await h.exec("patch < /work/deep.patch");
     assert.equal(autoRev.exitCode, 0);
-    assert.match(autoRev.stdout, /Reversed \(or previously applied\) patch detected!  Assuming -R\./);
+    assert.match(autoRev.stdout, /Reversed \(or previously applied\) patch detected! {2}Assuming -R\./);
     assert.equal(await h.readText("/work/flat.txt"), "alpha\nbeta\n");
 
     const idxRes = await h.exec("patch < /work/normal_idx.patch");

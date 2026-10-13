@@ -495,17 +495,17 @@ DATA
         DASHED="\${STRIPPED//_/-}"
         UPPER="\${DASHED^^}"
         LOWER="\${UPPER,,}"
-        echo "\$STRIPPED|\$HEAD_ONLY|\$UPPER|\$LOWER"
+        echo "$STRIPPED|$HEAD_ONLY|$UPPER|$LOWER"
 
         SUM=0
         while IFS=: read -r name val; do
-          SUM=\$(( SUM + val ))
+          SUM=$(( SUM + val ))
         done <<'ROWS'
 a:12
 b:18
 c:12
 ROWS
-        echo "sum=\$SUM braces="\$(echo item_{01..03})
+        echo "sum=$SUM braces="$(echo item_{01..03})
       `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(

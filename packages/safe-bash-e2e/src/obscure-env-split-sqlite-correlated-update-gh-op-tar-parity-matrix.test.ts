@@ -296,9 +296,9 @@ describe("obscure env -C/-S, sqlite3 correlated UPDATE & -json, gh/op workflows,
         xxd -p -l 2 /workspace/tree.tar.gz | tr -d '\\n'; printf '\\n'
 
         for ext in bz2 xz zst gz; do
-          mkdir -p "/workspace/out_\$ext"
-          tar -xf "/workspace/tree.tar.\$ext" -C "/workspace/out_\$ext"
-          cat "/workspace/out_\$ext/a.txt" "/workspace/out_\$ext/nested/b.txt" | tr '\\n' ':'
+          mkdir -p "/workspace/out_$ext"
+          tar -xf "/workspace/tree.tar.$ext" -C "/workspace/out_$ext"
+          cat "/workspace/out_$ext/a.txt" "/workspace/out_$ext/nested/b.txt" | tr '\\n' ':'
           printf '\\n'
         done
       `);
@@ -463,7 +463,7 @@ PATCH
 
         arr=(one two)
         arr+=(three four)
-        printf "%s|%s|%s|%s\\n" "\${scores[alice]}" "\${scores[carol]}" "\$target_var" "\${arr[*]}"
+        printf "%s|%s|%s|%s\\n" "\${scores[alice]}" "\${scores[carol]}" "$target_var" "\${arr[*]}"
       `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(res.stdout, "15|30|updated_via_nameref|one two three four\n");
@@ -476,10 +476,10 @@ PATCH
         set +e
         head -c 4 /dev/zero | xxd -p
         ulen=$(head -c 16 /dev/urandom | xxd -p | tr -d '\\n' | wc -c | tr -d ' ')
-        echo "urandom_hex_len=\$ulen"
+        echo "urandom_hex_len=$ulen"
         echo "write-fail" > /dev/full 2>/dev/null
         full_rc=$?
-        echo "full_rc=\$full_rc"
+        echo "full_rc=$full_rc"
       `);
       assert.equal(res.exitCode, 0, res.stderr);
       assert.equal(res.stdout, "00000000\nurandom_hex_len=32\nfull_rc=1\n");

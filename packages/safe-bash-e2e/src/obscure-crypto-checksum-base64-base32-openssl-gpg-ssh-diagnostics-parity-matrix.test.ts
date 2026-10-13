@@ -757,7 +757,7 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
       echo "SIGNED:$?"
 
       gpg --verify /tmp/artifact.sig /tmp/artifact.txt 2>/tmp/ver.err
-      echo "VERIFY:$?:$(grep -o 'Good signature from \"Release Bot <bot@example.com>\"' /tmp/ver.err)"
+      echo "VERIFY:$?:$(grep -o 'Good signature from "Release Bot <bot@example.com>"' /tmp/ver.err)"
     `);
     assert.equal(result.exitCode, 0);
     assert.equal(
@@ -833,7 +833,7 @@ describe("obscure crypto, checksum, base64/base32, openssl, gpg, ssh, and ssh-ke
 
       printf 'git.example.com %s\nother.example.com %s\n' "$pub_key" "$pub_key" > /tmp/known_hosts
       found="$(ssh-keygen -F git.example.com -f /tmp/known_hosts)"
-      echo "FOUND:$(printf '%s' "$found" | grep -c '^git\.example\.com ')"
+      echo "FOUND:$(printf '%s' "$found" | grep -c '^git.example.com ')"
 
       ssh-keygen -R git.example.com -f /tmp/known_hosts >/dev/null
       set +e

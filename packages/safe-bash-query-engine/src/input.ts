@@ -755,7 +755,6 @@ export interface JsonInputOptions {
   readonly onChunkEnd?: () => Promise<void> | void;
   readonly hasPendingDiagnostics?: () => boolean;
 }
-let sharedFlatParser: JsonParser | undefined;
 let sharedFlatParserInUse = false;
 
 export interface FlatSchemaPlan {
@@ -1011,9 +1010,7 @@ export function tryProcessFlatJsonChunkSync(
     }
     checkOffset = nl + 1;
   }
-  const parser = sharedFlatParser ??= new JsonParser(budget, false);
-  (parser as unknown as { budget: Budget }).budget = budget;
-  parser.releaseReusable();
+  const parser = new JsonParser(budget, false);
   sharedFlatParserInUse = true;
   try {
     budget.inputBytes = totalAfter;
@@ -1047,7 +1044,6 @@ export function tryProcessFlatJsonChunkSync(
     if (flushPending) return false;
     return true;
   } finally {
-    (parser as unknown as { budget: Budget | undefined }).budget = undefined;
     sharedFlatParserInUse = false;
   }
 }

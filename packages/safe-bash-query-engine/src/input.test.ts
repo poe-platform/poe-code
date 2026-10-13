@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { jsonFragments, jsonValues, renderJsonFragment } from "./input.js";
+import { jsonFragments, jsonValues, renderJsonFragment, tryProcessFlatJsonChunkSync } from "./input.js";
 import { Budget, objectKeys, objectSize, resolveJqLimits, type Json } from "./limits.js";
+
+test("flat JSON parsing uses each invocation's value limit", () => {
+  const bytes = new TextEncoder().encode('{"x":1}\n');
+  for (const maxValueBytes of [100, 2, 100]) {
+    const budget = new Budget(resolveJqLimits({ maxValueBytes }), new AbortController().signal);
+    let values = 0;
+    assert.equal(tryProcessFlatJsonChunkSync(bytes, budget, () => { values++; }), maxValueBytes === 100);
+    assert.equal(values, maxValueBytes === 100 ? 1 : 0);
+  }
+});
 
 for (const key of ["0", "12", "1abc", "__proto__"]) {
   for (const retainValues of [false, true]) {

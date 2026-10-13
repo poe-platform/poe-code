@@ -19,7 +19,7 @@ import {installPythonPackages} from './provisioning-runtime.js';
   assert.equal(await call('records-get','package-0'),0);assert.equal(await call('records-get','package-129'),129);
   assert.equal(await call('records-get','missing'),null);assert.equal(await call('names-has','package-0'),false);
   await environment.dispatch('package-commit',[start.session,[]],context);
-  assert.deepEqual((await fs.readdir('/')).map(item=>item.name),['.python-install-1'],'only the environment manifest survives publication');
+  const retained=await fs.readdir('/');assert.equal(retained.length,1,'only the environment manifest survives publication');assert.ok(retained[0].name.startsWith('.python-install-'));assert.equal((await fs.readdir('/'+retained[0].name)).length,1);
  }finally{await environment.finish(start);await environment.dispose();}
  assert.deepEqual(await fs.readdir('/'),[]);
 });

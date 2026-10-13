@@ -18,7 +18,7 @@ for(const retirement of ['commit','finish','abort','dispose'])test('preloaded pa
   assert.equal(await call('names-has','host-0'),true);
   assert.equal(await call('names-has','host-129'),true);
   assert.equal(await call('names-has','new-package'),false);
-  if(retirement==='commit'){await environment.dispatch('package-commit',[start.session,[]],context);assert.deepEqual((await fs.readdir('/')).map(item=>item.name),['.python-install-1'],'only the environment manifest survives publication');}
+  if(retirement==='commit'){await environment.dispatch('package-commit',[start.session,[]],context);const retained=await fs.readdir('/');assert.equal(retained.length,1,'only the environment manifest survives publication');assert.ok(retained[0].name.startsWith('.python-install-'));assert.equal((await fs.readdir('/'+retained[0].name)).length,1);}
   if(retirement==='finish'){await environment.finish(start);assert.deepEqual(await fs.readdir('/'),[]);}
   if(retirement==='abort')controller.abort(new Error('cancelled'));
  }finally{await environment.dispose();}

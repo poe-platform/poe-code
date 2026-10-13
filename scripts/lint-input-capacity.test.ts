@@ -1,13 +1,13 @@
 import { expect, it } from "vitest";
 import { model, createLintInputGuard, root, boundaries } from "./lint-eslint.fixtures.js";
 
-it("supports a repository subject budget above twelve thousand without bypassing other input guards", () => {
+it("supports a repository subject budget above twenty-four thousand without bypassing other input guards", () => {
   const state = model({ "subjects/a.ts": "export {};" });
   const guard = createLintInputGuard({
     root,
     boundaries,
     fileSystem: state.fileSystem,
-    limits: { subjects: 12001 }
+    limits: { subjects: 24001 }
   });
   expect(guard.read("subjects/a.ts", "subject").toString()).toBe("export {};");
   expect(guard.snapshot()).toMatchObject({ subjects: 1, opens: 1, closes: 1, failed: false });

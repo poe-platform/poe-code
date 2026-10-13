@@ -9,7 +9,7 @@ import { ESLint } from 'eslint';
 import { loadBoundaries, lintExclusions, validateBoundaries } from '../packages/safe-bash/scripts/integration-inputs.mjs';
 import { assertAdmittedInputPath, assertLiteralInputPath, isHeldInputPath } from '../packages/safe-bash/scripts/typecheck-integration-inputs.mjs';
 
-export const LIMITS = Object.freeze({ fileBytes: 16777216, configurationBytes: 268435456, subjectBytes: 268435456, subjects: 24000, metadataOperations: 8000000, directories: 50000, entries: 250000, directoryEntries: 30000, receiptBytes: 131072 });
+export const LIMITS = Object.freeze({ fileBytes: 16777216, configurationBytes: 268435456, subjectBytes: 268435456, subjects: 32000, metadataOperations: 8000000, directories: 50000, entries: 250000, directoryEntries: 30000, receiptBytes: 131072 });
 export const BOUNDARY_RECEIPTS = Object.freeze({ path: 'packages/safe-bash/integration-lint-audit/boundary-leaf-receipts.json', bytes: 29399, sha256: '80463efffa0b8939e69fd1e52ea36c0a13982ff417ef844eb8830173072e9423' });
 export const BOUNDARY_POLICY = Object.freeze({ path: 'packages/safe-bash/integration-boundaries.json', bytes: 2275, sha256: '74fec8c645563db60a48b6a17b422cb5e00a90bdb7a2d796a33e9e4e5e5e22e9' });
 const require = createRequire(import.meta.url);

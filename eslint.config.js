@@ -276,6 +276,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
       'dist/**',
       '**/dist/**',
       'packages/git-rust/target/**',
+      'packages/safe-bash-rust/target/**',
       'docs/**',
       '.snapshots/**',
       '.github/**',
@@ -298,6 +299,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
       // Generated codec artifact is authenticated by media-codecs/scripts/verify.mjs.
       'packages/media-codecs/vendor/runtime.js',
       'packages/git-rust/target/**',
+      'packages/safe-bash-rust/target/**',
       'packages/safe-bash/src/commands/xan',
       ...safeBashInputs.files.map(path => `packages/safe-bash/${path}`),
       ...safeBashInputs.directories.map(path => `packages/safe-bash/${path}/**`),

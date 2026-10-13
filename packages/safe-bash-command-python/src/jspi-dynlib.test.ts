@@ -4,7 +4,9 @@ import {installPythonJspiDynlib} from './jspi-dynlib.js';
 
 for (const fail of [false,true]) test(`native loader owns its pathname and suspension mode until settlement; failure=${fail}`, async context => {
  const engine = (globalThis as any).WebAssembly;
- context.mock.method(engine,'promising',(fn:unknown)=>fn);
+ const promising = Object.getOwnPropertyDescriptor(engine,'promising');
+ Object.defineProperty(engine,'promising',{configurable:true,value:(fn:unknown)=>fn});
+ context.after(()=>{if(promising)Object.defineProperty(engine,'promising',promising);else Reflect.deleteProperty(engine,'promising');});
  const heap = new Uint8Array(512), active = {value:1};
  heap.set(new TextEncoder().encode('/caller/library.so\0'),16);
  let resume!:()=>void;

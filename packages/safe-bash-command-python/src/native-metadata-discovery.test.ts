@@ -10,6 +10,11 @@ for(const plain of [false,true])test('metadata discovery preserves pinned groupi
 import builtins,contextlib,errno,gc,importlib.metadata as metadata,io,json,linecache,os,pathlib,sys,tempfile,types,warnings,weakref,zipfile
 from unittest.mock import patch
 fixture,program,plain=json.load(sys.stdin)
+def collect():
+ # Modern FastPath caches retain bound ZIP paths until cache eviction.
+ clear=getattr(metadata.FastPath.__new__,'cache_clear',None)
+ if clear:clear()
+ gc.collect()
 fixture='from __future__ import annotations\n'+fixture
 filename='<pinned metadata lookup>'
 linecache.cache[filename]=(len(fixture),None,fixture.splitlines(True),filename)
@@ -104,17 +109,17 @@ with contextlib.ExitStack() as stack:
    actual=metadata.Lookup(root)
    assert [str(p) for p in actual.search(Prepared(query))]==expected,(entries,query,expected)
    del actual
-  gc.collect()
- names[:]=['package_%05d-1.dist-info'%i for i in range(4096)]
+  collect()
+ names[:]=['package_%05d-1.dist-info'%i for i in range(257)]
  Path.maximum=0
  lookup=metadata.Lookup(Root(names))
  assert Path.maximum<=4,('metadata paths retained',Path.maximum)
- assert sum(1 for _ in lookup.search(Prepared(None)))==4096
+ assert sum(1 for _ in lookup.search(Prepared(None)))==257
  assert [str(p) for p in lookup.search(Prepared('package-00007'))]==['/packages/package_00007-1.dist-info']
  # A suspended iterator must keep its snapshot alive after cache eviction.
- iterator=lookup.search(Prepared(None));next(iterator);del lookup;gc.collect()
- assert sum(1 for _ in iterator)==4095
- del iterator;gc.collect()
+ iterator=lookup.search(Prepared(None));next(iterator);del lookup;collect()
+ assert sum(1 for _ in iterator)==256
+ del iterator;collect()
  assert not files,('metadata scratch leaked',list(files)[:3])
  assert allocations,'caller backing was never used'
  # Legacy eggs, empty names, Unicode and normalized collisions follow the same
@@ -125,10 +130,10 @@ with contextlib.ExitStack() as stack:
  for query in [None,'packages','a-b','caf\u00e9','missing']:
   expected=[str(p) for p in original(Root(names[:-1])).search(Prepared(query))]
   assert [str(p) for p in lookup.search(Prepared(query))]==expected
- del lookup;gc.collect();assert not files
+ del lookup;collect();assert not files
  # ZIP paths must retain archive semantics while group rows use caller storage.
  payload=io.BytesIO()
- zip_names=['zip_package_%04d-1.dist-info'%i for i in range(1024)]
+ zip_names=['zip_package_%04d-1.dist-info'%i for i in range(129)]
  with zipfile.ZipFile(payload,'w') as writer:
   for name in zip_names:
    info=zipfile.ZipInfo(name+'/METADATA');info.comment=b'x'*64
@@ -157,15 +162,15 @@ with contextlib.ExitStack() as stack:
   assert selected[0].joinpath('METADATA').read_text()=='Name: zip_package_0007-1.dist-info\n'
   iterator=lookup.search(Prepared(None));first=next(iterator)
   assert first.at==zip_names[0]+'/'
-  del lookup,selected,first;gc.collect()
-  assert sum(1 for _ in iterator)==1023
-  del iterator;gc.collect();assert not files
+  del lookup,selected,first;collect()
+  assert sum(1 for _ in iterator)==128
+  del iterator;collect();assert not files
   assert archive.read(zip_names[0]+'/METADATA').startswith(b'Name: '),'borrowed archive was closed'
  scan_failure=False;ZipRoot.root='/packages.zip';write_failure=True
  try:metadata.Lookup(zip_root)
  except PermissionError as error:assert str(error)=='backing write denied'
  else:raise AssertionError('ZIP scratch failure swallowed')
- gc.collect();assert not files
+ collect();assert not files
  write_failure=False;archive.close()
  # Native ZIP discovery deduplicates top-level children before grouping. Its
  # dictionary must not retain a second archive-sized collection of names.
@@ -195,27 +200,27 @@ with contextlib.ExitStack() as stack:
   assert {name:archive.resolve_dir(name) for name in queries}==expected_resolution
   assert not any(name.endswith('__names') or name.endswith('__lookup') for name in vars(archive))
   selected=next(lookup.search(Prepared('zip-package-0007')))
-  del lookup,fast;gc.collect()
+  del lookup,fast;collect()
   # Returned ZIP paths can outlive the lookup; membership backing lives as long
   # as the archive that uses it, including after cache eviction.
   assert selected.joinpath('METADATA').read_text()=='Name: zip_package_0007-1.dist-info\n'
   del selected
- archive.close();del archive;gc.collect();assert not files
+ archive.close();del archive;collect();assert not files
  archive=NativeZipPath(io.BytesIO(payload.getvalue())).root
  with patch.object(zipfile,'Path',NativePath):
   child_write_failure=True
   try:metadata.Lookup(metadata.FastPath('/packages.zip'))
   except PermissionError as error:assert str(error)=='child backing denied'
   else:raise AssertionError('child scratch failure swallowed')
-  gc.collect();assert not files
+  collect();assert not files
   child_write_failure=False
   member_write_failure=True
   try:metadata.Lookup(metadata.FastPath('/packages.zip'))
   except PermissionError as error:assert str(error)=='member backing denied'
   else:raise AssertionError('member scratch failure swallowed')
-  gc.collect();assert not files
+  collect();assert not files
   member_write_failure=False
- archive.close();del archive;gc.collect();assert not files
+ archive.close();del archive;collect();assert not files
  # Opening the real archive must not copy its complete central directory.
  class Comment(bytes):
   live=maximum=0
@@ -253,36 +258,36 @@ with contextlib.ExitStack() as stack:
    for child in cursor:
     if set(files)!=before:break
    else:raise AssertionError('implied ZIP directory enumeration never used backing')
-   del cursor,child;gc.collect();assert set(files)==before
+   del cursor,child;collect();assert set(files)==before
    enumeration_write_failure=True
    try:list(NativeZipPath(backed_archive).iterdir())
    except PermissionError as error:assert str(error)=='enumeration backing denied'
    else:raise AssertionError('enumeration backing failure swallowed')
    enumeration_write_failure=False
-   gc.collect();assert set(files)==before
+   collect();assert set(files)==before
    try:NativeZipPath(backed_archive,'plain').iterdir()
    except ValueError as error:assert str(error)=="Can't listdir a file"
    else:raise AssertionError('file enumeration did not fail eagerly')
   del backed_archive
-  del lookup,fast;gc.collect();assert not files
+  del lookup,fast;collect();assert not files
   for source_bytes in [b'',payload.getvalue()[:-22],payload.getvalue().replace(b'PK\x01\x02',b'XX\x01\x02',1)]:
    expected=[p.at for p in original(metadata.FastPath('/packages.zip')).search(Prepared(None))]
    fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
    assert [p.at for p in lookup.search(Prepared(None))]==expected
    assert zipfile.ZipFile._RealGetContents is original_parser,'rejected ZIP leaked parser patch'
-   del lookup,fast;gc.collect();assert not files
+   del lookup,fast;collect();assert not files
   source_bytes=payload.getvalue();Source.failure=True
   fast=metadata.FastPath('/packages.zip');lookup=metadata.Lookup(fast)
   assert list(lookup.search(Prepared(None)))==[]
   assert zipfile.ZipFile._RealGetContents is original_parser,'failed ZIP read leaked parser patch'
-  del lookup,fast;gc.collect();assert not files
+  del lookup,fast;collect();assert not files
   Source.failure=False
   child_write_failure=True
   try:metadata.Lookup(metadata.FastPath('/packages.zip'))
   except PermissionError as error:assert str(error)=='child backing denied'
   else:raise AssertionError('entry backing failure swallowed')
   child_write_failure=False
-  gc.collect();assert not files
+  collect();assert not files
   duplicates=io.BytesIO()
   with warnings.catch_warnings():
    warnings.simplefilter('ignore',UserWarning)
@@ -298,7 +303,7 @@ with contextlib.ExitStack() as stack:
   assert [fields(entry) for entry in lookup._safe_store.archive.filelist]==expected_entries
   assert lookup._safe_store.archive.read('duplicate-1.dist-info/METADATA')==expected_content==b'last'
   assert [child.at for child in NativeZipPath(lookup._safe_store.archive,'duplicate-1.dist-info/').iterdir()]==['duplicate-1.dist-info/METADATA']*2
-  del lookup,fast;gc.collect();assert not files
+  del lookup,fast;collect();assert not files
  # Python 3.9 has no end-offset slot. Exercise the actual bounded sorter with
  # that newer native slot supplied, comparing reversed stable native ordering.
  NativeInfo=zipfile.ZipInfo
@@ -309,40 +314,42 @@ with contextlib.ExitStack() as stack:
   values=list(values);assert len(values)<=64,('unbounded ZIP sort',len(values))
   return native_sorted(values,*args,**kwargs)
  with patch.object(zipfile,'ZipInfo',EndInfo),patch('builtins.sorted',side_effect=bounded_sorted):
-  for count in [0,1,64,65,129]:
-   store=Store();entries=Entries(store)
-   offsets=[(i*37)%53 for i in range(count)]
-   for i,offset in enumerate(offsets):
-    entry=EndInfo('member-'+str(i));entry.header_offset=offset;entries.append(entry)
-   expected=[None]*count;end=1000
-   for i in reversed(native_sorted(range(count),key=lambda i:offsets[i])):
-    expected[i]=end;end=offsets[i]
-   entries.seal(1000)
-   assert [entry._end_offset for entry in entries]==expected
-   assert [entry.filename for entry in entries]==['member-'+str(i) for i in range(count)]
-   sort_write_failure=True
-   if count:
-    try:entries.seal(1000)
-    except Exception as error:assert isinstance(error.__cause__,PermissionError)
-    else:raise AssertionError('sort backing failure swallowed')
-   sort_write_failure=False
-   store.cleanup();del entries,store;gc.collect();assert not files
+  for reverse_ties in [False,True]:
+   for count in [0,1,64,65,129]:
+    store=Store();entries=Entries(store)
+    offsets=[(i*37)%53 for i in range(count)]
+    for i,offset in enumerate(offsets):
+     entry=EndInfo('member-'+str(i));entry.header_offset=offset;entries.append(entry)
+    expected=[None]*count;end=1000
+    order=reversed(native_sorted(range(count),key=lambda i:offsets[i])) if reverse_ties else native_sorted(range(count),key=lambda i:offsets[i],reverse=True)
+    for i in order:
+     expected[i]=end;end=offsets[i]
+    entries.seal(1000,reverse_ties)
+    assert [entry._end_offset for entry in entries]==expected
+    assert [entry.filename for entry in entries]==['member-'+str(i) for i in range(count)]
+    sort_write_failure=True
+    if count:
+     try:entries.seal(1000,reverse_ties)
+     except Exception as error:assert isinstance(error.__cause__,PermissionError)
+     else:raise AssertionError('sort backing failure swallowed')
+    sort_write_failure=False
+    store.cleanup();del entries,store;collect();assert not files
  # Native children suppress failed directory enumeration and then try ZIP.
  scan_failure=True
  lookup=metadata.Lookup(Root(names))
  assert list(lookup.search(Prepared(None)))==[]
- del lookup;gc.collect();assert not files
+ del lookup;collect();assert not files
  scan_failure=False;write_failure=True
  try:metadata.Lookup(Root(names))
  except PermissionError as error:assert str(error)=='backing write denied'
  else:raise AssertionError('scratch failure swallowed')
- gc.collect();assert not files
+ collect();assert not files
  write_failure=False
  # Fixed runtime assets and non-directory/ZIP paths keep the native boundary.
  Root.root='/runtime/lib';before=len(allocations)
  lookup=metadata.Lookup(Root(names))
  assert [str(p) for p in lookup.search(Prepared(None))]==[str(p) for p in original(Root(names)).search(Prepared(None))]
- del lookup;gc.collect();assert len(allocations)==before
+ del lookup;collect();assert len(allocations)==before
 
 `],{input:JSON.stringify([fixture,program,plain]),encoding:'utf8',timeout:15000});
  assert.ifError(result.error);assert.equal(result.status,0,result.stdout+result.stderr);assert.equal(result.stderr,'');

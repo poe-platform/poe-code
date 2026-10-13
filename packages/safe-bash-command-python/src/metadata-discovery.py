@@ -128,7 +128,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
    return entry
   def __iter__(self):
    for ordinal in range(self.count):yield self[ordinal]
-  def seal(self, end_offset):
+  def seal(self, end_offset, reverse_ties=True):
    # Match reversed stable native sorting, including duplicate header offsets.
    # Sort scalar offset/ordinal pairs in bounded runs, then merge two at a time.
    import heapq
@@ -144,7 +144,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
     root = tempfile.mkdtemp(dir=self.store.root, prefix='.zip-sort-')
     chunk = []
     for ordinal, entry in enumerate(self):
-     chunk.append([entry.header_offset, ordinal])
+     chunk.append([entry.header_offset, ordinal if reverse_ties else -ordinal])
      if len(chunk) == 64:
       save(sorted(chunk, reverse=True));chunk.clear()
     if chunk:save(sorted(chunk, reverse=True))
@@ -159,6 +159,7 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
      with open(os.path.join(root, str(current)), encoding='utf-8') as source:
       for line in source:
        offset, ordinal = json.loads(line)
+       if not reverse_ties:ordinal = -ordinal
        entry = self[ordinal];entry._end_offset = end_offset
        self.write(ordinal, entry);end_offset = offset
    except Exception as error:raise BackingFailure() from error
@@ -208,6 +209,9 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
  offset_order = ast.dump(ast.parse('''for zinfo in reversed(sorted(self.filelist, key=lambda zinfo: zinfo.header_offset)):
  zinfo._end_offset = end_offset
  end_offset = zinfo.header_offset''').body[0])
+ stable_offset_order = ast.dump(ast.parse('''for zinfo in sorted(self.filelist, key=lambda zinfo: zinfo.header_offset, reverse=True):
+ zinfo._end_offset = end_offset
+ end_offset = zinfo.header_offset''').body[0])
  class DirectoryRewrite(ast.NodeTransformer):
   reads = buffers = names = orders = 0
   def visit_Assign(self, node):
@@ -223,9 +227,11 @@ def _safe_install_metadata_lookup(installation_root, runtime_root):
     return ast.copy_location(ast.parse('fp = _safe_directory_window(fp, size_cd)').body[0], node)
    return node
   def visit_For(self, node):
-   if ast.dump(node) == offset_order:
+   shape = ast.dump(node)
+   if shape in (offset_order, stable_offset_order):
     self.orders += 1
-    return ast.copy_location(ast.parse('self.filelist.seal(end_offset)').body[0], node)
+    replacement = 'self.filelist.seal(end_offset)' if shape == offset_order else 'self.filelist.seal(end_offset, False)'
+    return ast.copy_location(ast.parse(replacement).body[0], node)
    return self.generic_visit(node)
  class Window:
   def __init__(self, source, size):

@@ -399,7 +399,7 @@ test('disposing one borrowing Shell drains only its download while its sibling c
     assert.deepEqual(JSON.parse(new TextDecoder().decode(new Uint8Array(siblingStart!.shared, 8, Atomics.load(control, 1)))), [10, 11, 12]);
     Atomics.store(control, 0, 0);
     workers[1]!.send({ op: 'package-commit', args: [siblingStart!.packages!.session, ['sibling==1']] });
-    await nextTurn();
+    await Atomics.waitAsync(control, 0, 0, 1000).value;
     assert.equal(Atomics.load(control, 0), 1);
     workers[1]!.send({ type: 'exit', exitCode: 0 });
     assert.equal((await siblingRun).exitCode, 0);

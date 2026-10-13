@@ -96,7 +96,7 @@ test("retained cleanup has one shared close promise and a frozen minimal view", 
     escaped = view;
     assert.ok(Object.isFrozen(view));
     assert.equal(Object.getPrototypeOf(view), null);
-    assert.deepEqual(Object.keys(view).sort(), ["lstat", "realpath", "removeFileConditional", "removeStagedFile", "rm", "rmdir"]);
+    assert.deepEqual(Object.keys(view).sort(), ["lstat", "realpath", "removeFileConditional", "removeStagedFile", "removeTreeConditional", "rm", "rmdir"]);
     assert.equal("writeFile" in view, false);
     assert.equal("capabilities" in view, false);
     started.resolve();

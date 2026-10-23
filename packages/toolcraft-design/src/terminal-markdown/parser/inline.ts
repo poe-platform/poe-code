@@ -715,11 +715,11 @@ function parseInlineCode(
 }
 
 function normalizeInlineCodeValue(value: string): string {
+  value = value.replace(/\r\n?|\n/g, " ");
   if (
     value.length >= 2 &&
     value.startsWith(" ") &&
     value.endsWith(" ") &&
-    (value[1] === "`" || value[value.length - 2] === "`") &&
     value.trim().length > 0
   ) {
     return value.slice(1, -1);
@@ -856,6 +856,9 @@ function parseLinkDestination(
   let depth = 1;
   let quote: '"' | "'" | null = null;
   let index = openParenIndex + 1;
+  while (isAsciiWhitespace(input[index])) index += 1;
+  const destinationStart = index;
+  let angleDestination = false;
 
   while (index < input.length) {
     const char = input[index];
@@ -876,6 +879,18 @@ function parseLinkDestination(
 
     if (char === "\\" && index + 1 < input.length && isEscapable(input[index + 1])) {
       index += 2;
+      continue;
+    }
+
+    if (index === destinationStart && char === "<") {
+      angleDestination = true;
+      index += 1;
+      continue;
+    }
+    if (angleDestination) {
+      if (char === "\n" || char === "\r" || char === "<") return null;
+      if (char === ">") angleDestination = false;
+      index += 1;
       continue;
     }
 
@@ -913,33 +928,22 @@ function parseLinkDestination(
 
 function parseLinkDestinationContent(content: string): { url: string; title?: string } {
   const trimmedEnd = trimAsciiWhitespaceEndIndex(content);
-
-  if (trimmedEnd === 0) {
-    return { url: "" };
-  }
-
+  let url = trimAsciiWhitespace(content.slice(0, trimmedEnd));
+  let title: string | undefined;
   const quote = content[trimmedEnd - 1];
-
   if (quote === '"' || quote === "'") {
     const titleStart = findTrailingQuotedSegmentStart(content, trimmedEnd, quote);
-
     if (titleStart !== -1) {
       let separatorStart = titleStart;
-
-      while (separatorStart > 0 && isAsciiWhitespace(content[separatorStart - 1])) {
-        separatorStart -= 1;
-      }
-
+      while (separatorStart > 0 && isAsciiWhitespace(content[separatorStart - 1])) separatorStart -= 1;
       if (separatorStart < titleStart) {
-        return {
-          url: decodeEscapes(trimAsciiWhitespace(content.slice(0, separatorStart))),
-          title: decodeEscapes(content.slice(titleStart + 1, trimmedEnd - 1))
-        };
+        url = trimAsciiWhitespace(content.slice(0, separatorStart));
+        title = decodeEscapes(content.slice(titleStart + 1, trimmedEnd - 1));
       }
     }
   }
-
-  return { url: decodeEscapes(trimAsciiWhitespace(content.slice(0, trimmedEnd))) };
+  if (url.startsWith("<") && url.endsWith(">")) url = url.slice(1, -1);
+  return { url: decodeEscapes(url), ...(title === undefined ? {} : { title }) };
 }
 
 function findTrailingQuotedSegmentStart(content: string, end: number, quote: '"' | "'"): number {

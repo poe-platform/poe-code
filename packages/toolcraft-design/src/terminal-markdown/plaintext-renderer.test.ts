@@ -49,7 +49,8 @@ describe("inline nodes", () => {
   it("` spaces `", () => {
     const result = renderMarkdownPlaintext("` spaces `");
 
-    expect(result).toBe(" spaces ");
+    expect(result).toBe("spaces");
+    expect(renderMarkdownPlaintext("`  spaces  `")).toBe(" spaces ");
   });
 
   it("`<div>&\"'`", () => {

@@ -836,10 +836,28 @@ describe("parseInline", () => {
     ]);
   });
 
-  it("parses single-backtick inline code without trimming spaces (test 38)", () => {
+  it.each([
+    ["[label](<https://example.com/a_(b)?x=1&y=2>)", "https://example.com/a_(b)?x=1&y=2"],
+    ["[label](<https://example.com/a)b>)", "https://example.com/a)b"],
+    ["[label](<https://example.com/a(b>)", "https://example.com/a(b"],
+    ["[label](<https://example.com/a> \"title\")", "https://example.com/a"]
+  ])("parses angle-delimited link destinations: %s", (markdown, url) => {
+    expect(parseInline(markdown)).toMatchObject([{ type: "link", url }]);
+  });
+
+  it.each([
+    ["`` one ` tick ``", "one ` tick"],
+    ["`  code  `", " code "],
+    ["`   `", "   "],
+    ["`one\ntwo`", "one two"]
+  ])("normalizes code span whitespace: %s", (markdown, value) => {
+    expect(parseInline(markdown)).toEqual([{ type: "inlineCode", value }]);
+  });
+
+  it("normalizes one padding space around single-backtick inline code (test 38)", () => {
     expect(parseInline("before `  code  ` after")).toEqual([
       { type: "text", value: "before " },
-      { type: "inlineCode", value: "  code  " },
+      { type: "inlineCode", value: " code " },
       { type: "text", value: " after" }
     ]);
   });

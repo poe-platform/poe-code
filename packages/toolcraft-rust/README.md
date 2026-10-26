@@ -134,9 +134,11 @@ const humanInLoop = createHumanInLoop({ provider: osascriptProvider() });
 Import terminal design helpers through the same Toolcraft paths:
 
 ```ts
-import { renderMarkdown } from "toolcraft-rust/design/render-markdown";
+import { renderMarkdown, parse, type MdNode } from "toolcraft-rust/design/render-markdown";
 import { renderTable, type TableColumn } from "toolcraft-rust/design/render-table";
 import { createDashboard } from "toolcraft-rust/design/create-dashboard";
+
+const ast: MdNode = parse("# Heading").ast;
 ```
 
 These entry points share the native design package's function, theme and

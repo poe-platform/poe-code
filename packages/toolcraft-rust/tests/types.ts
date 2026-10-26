@@ -144,6 +144,7 @@ native.createRuntimeLogger().emit({ level: "silent", message: "silent" });
 import * as design from "toolcraft-rust/design";
 import {renderTable as designTable, type TableColumn} from "toolcraft-rust/design/render-table";
 import {renderMarkdownPlaintext as designPlaintext} from "toolcraft-rust/design/render-markdown-plaintext";
+import {parse as designParse, type MdNode as DesignMdNode} from "toolcraft-rust/design/render-markdown";
 import {singleDetail as designSingleDetail, type Row as DesignRow} from "toolcraft-rust/design/single-detail";
 import type {SelectOptions as DesignSelectOptions} from "toolcraft-rust/design/select";
 import type {ExplorerConfig as DesignExplorerConfig} from "toolcraft-rust/design/run-explorer";
@@ -152,13 +153,15 @@ const designTableOwn: typeof designTable = null as unknown as typeof import("too
 const designColumns: TableColumn[] = [{name:"name",title:"Name",alignment:"left",maxLen:40}];
 const designRendered: string = designTable({theme:design.getTheme(),rows:[{name:"Example"}],columns:designColumns});
 const designPlain: string = designPlaintext("# Heading");
+const designAst: DesignMdNode = designParse("# Heading").ast;
+const designOriginalAst: import("toolcraft/design/render-markdown").MdNode = designAst;
 const designTheme: typeof import("toolcraft-design-rust").getTheme = design.getTheme;
 const designSelection: DesignSelectOptions<"one"|"two"> = {message:"Pick",options:[{value:"one",label:"One"},{value:"two",label:"Two"}]};
 const designRows: DesignRow[] = [{id:"a",title:"A"}];
 const designExplorer: DesignExplorerConfig<{title:string}> = {title:"Example",actions:[],rows:async()=>designRows,detail:designSingleDetail(row=>row.title)};
 // @ts-expect-error selection values must preserve the caller's option type
 const invalidDesignSelection: DesignSelectOptions<"one"> = {message:"Pick",options:[{value:"two",label:"Two"}]};
-void [designTableOriginal,designTableOwn,designRendered,designPlain,designTheme,designSelection,designExplorer,invalidDesignSelection];
+void [designTableOriginal,designTableOwn,designRendered,designPlain,designAst,designOriginalAst,designTheme,designSelection,designExplorer,invalidDesignSelection];
 
 import * as stackTrim from "../dist/stack-trim.js";
 import type * as referenceStackTrim from "../../toolcraft/dist/stack-trim.js";

@@ -374,6 +374,12 @@ describe("serializeGooseMcpArgs", () => {
 });
 
 describe("configs/MCP serialization", () => {
+  it.each([60, 300])("sets Codex tool_timeout_sec to %s seconds", (timeout) => {
+    const args = serializeCodexMcpArgs({ slack: { command: "slack-mcp", timeout } });
+    expect(args).toContain(`mcp_servers.slack.tool_timeout_sec=${timeout}`);
+    expect(args).not.toContain(`mcp_servers.slack.timeout=${timeout}`);
+  });
+
   it("auto-approves explicitly configured Codex MCP servers by default", () => {
     expect(serializeCodexMcpArgs({ slack: { command: "slack-mcp" } })).toEqual([
       "-c",
@@ -392,7 +398,7 @@ describe("configs/MCP serialization", () => {
   it("quotes Codex MCP server names that are not valid TOML bare keys", () => {
     expect(
       serializeCodexMcpArgs({
-        "team.search": { command: "search-mcp" },
+        "team.search": { command: "search-mcp", timeout: 60 },
         "local tools": { command: "tools-mcp" }
       })
     ).toEqual([
@@ -400,6 +406,8 @@ describe("configs/MCP serialization", () => {
       'mcp_servers."team.search".command="search-mcp"',
       "-c",
       'mcp_servers."team.search".default_tools_approval_mode="approve"',
+      "-c",
+      'mcp_servers."team.search".tool_timeout_sec=60',
       "-c",
       'mcp_servers."local tools".command="tools-mcp"',
       "-c",

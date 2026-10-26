@@ -252,7 +252,7 @@ Omitting `mode` uses the shared `auto` default. Mode-specific args and env vars 
 
 ## MCP at spawn time
 
-Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
+Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. For Codex, `timeout` sets the tool execution timeout in seconds (`tool_timeout_sec`). `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
 MCP server names and commands must be non-blank before provider-specific serialization runs. Goose rejects MCP entries with `env` or `timeout` values because its CLI argument format cannot preserve them, and OpenCode rejects MCP timeouts because its environment-config path cannot preserve them. Temporary MCP files are written only through non-symlinked target paths and bridged resources are cleaned up if setup fails.
 

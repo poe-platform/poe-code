@@ -123,7 +123,7 @@ export function serializeCodexMcpArgs(servers: McpSpawnConfig): string[] {
     }
 
     if (server.timeout !== undefined) {
-      args.push("-c", `${prefix}.timeout=${server.timeout}`);
+      args.push("-c", `${prefix}.tool_timeout_sec=${server.timeout}`);
     }
   }
 

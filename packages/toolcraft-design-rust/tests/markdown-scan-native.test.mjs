@@ -11,9 +11,9 @@ function compare(kind,input,start=0){
 
 test("Markdown scanners preserve code fences, bracket depth, escaped destinations and titles",()=>{
   const cases={
-    parseInlineCode:["`x`","`` `x` ``","` x `","`  `","`a\nb`","``x`y``","`unclosed","```a``b```","`😀\ud800\0`"],
+    parseInlineCode:["` a\r\nb `","`a\rb`","` a\u00a0 `","` \t `","` \ufeff `","` \u0085 `","`x`","`` `x` ``","` x `","`  `","`a\nb`","``x`y``","`unclosed","```a``b```","`😀\ud800\0`"],
     parseBracketedLabel:["[a]","[a[b]c]","[a\\]b]","[a`[x]`b]","[a``]``b]","[a`b]","[a\\q]","[", "[😀\ud800]"],
-    parseLinkDestination:["()","( \t)","(url)","(url \"title\")","(url 'ti\\'tle')","(url \"\")","( \"title\")","(\"title\")","(url(title))","(url\\(x\\))","(<https://a>)","(a\\q)","(a\n\"title\")","(a \"unfinished)","(a\"b)","(a '\\\\' )","(😀\ud800 \"x\")"]
+    parseLinkDestination:["(<a(b)c>)","( <a)b> \"title\")","(<a\nb>)","(<a<b>)","(<a\\>b>)","()","( \t)","(url)","(url \"title\")","(url 'ti\\'tle')","(url \"\")","( \"title\")","(\"title\")","(url(title))","(url\\(x\\))","(<https://a>)","(a\\q)","(a\n\"title\")","(a \"unfinished)","(a\"b)","(a '\\\\' )","(😀\ud800 \"x\")"]
   };
   for(const [kind,inputs] of Object.entries(cases))for(const input of inputs){compare(kind,input);compare(kind,`prefix${input}tail`,6);}
 });

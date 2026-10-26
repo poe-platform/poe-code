@@ -454,7 +454,9 @@ text. It supports heading/code/alert announcements, checked and ordered lists,
 header-labelled table sentences, link expansion, optional frontmatter and ordered
 footnotes. `PlaintextRenderOptions`, `MdNode` and code-token types are standalone
 root exports. Use `renderMarkdownPlaintext(markdown, options)` to parse and render
-a Markdown string directly.
+a Markdown string directly. Inline code normalizes line endings to spaces and
+removes one surrounding space from nonblank content; angle-bracket link
+destinations retain URL punctuation without retaining the brackets.
 
 The internal Markdown code highlighter now tokenizes the supported lexical,
 data, style, line and markup languages in Rust, preserving source code units and

@@ -109,16 +109,29 @@ pub fn inline_code(input: &[u16], start: usize) -> Option<Code> {
         }
         let closing = run_length(input, index, 96);
         if closing == fence {
-            let mut value = &input[start + fence..index];
+            let mut value = Vec::with_capacity(index - start - fence);
+            let mut cursor = start + fence;
+            while cursor < index {
+                let unit = input[cursor];
+                value.push(if matches!(unit, 10 | 13) { 32 } else { unit });
+                cursor += 1;
+                if unit == 13 && cursor < index && input[cursor] == 10 {
+                    cursor += 1;
+                }
+            }
             if value.len() >= 2
                 && value[0] == 32
                 && value[value.len() - 1] == 32
-                && (value[1] == 96 || value[value.len() - 2] == 96)
+                && value.iter().any(|unit| {
+                    !matches!(*unit, 9..=13 | 32 | 160 | 0x1680 | 0x2000..=0x200a
+                        | 0x2028 | 0x2029 | 0x202f | 0x205f | 0x3000 | 0xfeff)
+                })
             {
-                value = &value[1..value.len() - 1];
+                value.pop();
+                value.remove(0);
             }
             return Some(Code {
-                value: value.to_vec(),
+                value,
                 end: index + fence,
             });
         }
@@ -191,6 +204,11 @@ pub fn link_destination(input: &[u16], start: usize) -> Option<Destination> {
     let mut depth = 1;
     let mut quote = None;
     let mut index = start + 1;
+    while input.get(index).copied().is_some_and(ascii_whitespace) {
+        index += 1;
+    }
+    let destination_start = index;
+    let mut angle_destination = false;
     while index < input.len() {
         let unit = input[index];
         if let Some(delimiter) = quote {
@@ -204,11 +222,26 @@ pub fn link_destination(input: &[u16], start: usize) -> Option<Destination> {
             index += 1;
             continue;
         }
-        match unit {
-            92 if input.get(index + 1).copied().is_some_and(escapable) => {
-                index += 2;
-                continue;
+        if unit == 92 && input.get(index + 1).copied().is_some_and(escapable) {
+            index += 2;
+            continue;
+        }
+        if index == destination_start && unit == 60 {
+            angle_destination = true;
+            index += 1;
+            continue;
+        }
+        if angle_destination {
+            if matches!(unit, 10 | 13 | 60) {
+                return None;
             }
+            if unit == 62 {
+                angle_destination = false;
+            }
+            index += 1;
+            continue;
+        }
+        match unit {
             34 | 39 => quote = Some(unit),
             40 => depth += 1,
             41 => {
@@ -237,6 +270,8 @@ fn destination_content(input: &[u16]) -> (Vec<u16>, Option<Vec<u16>>) {
     if end == 0 {
         return (vec![], None);
     }
+    let mut url = trim_ascii(&input[..end]);
+    let mut title = None;
     let quote = input[end - 1];
     if matches!(quote, 34 | 39)
         && let Some(title_start) = (0..end - 1)
@@ -248,13 +283,14 @@ fn destination_content(input: &[u16]) -> (Vec<u16>, Option<Vec<u16>>) {
             separator -= 1;
         }
         if separator < title_start {
-            return (
-                decode_escapes(trim_ascii(&input[..separator])),
-                Some(decode_escapes(&input[title_start + 1..end - 1])),
-            );
+            url = trim_ascii(&input[..separator]);
+            title = Some(decode_escapes(&input[title_start + 1..end - 1]));
         }
     }
-    (decode_escapes(trim_ascii(&input[..end])), None)
+    if url.first() == Some(&60) && url.last() == Some(&62) {
+        url = &url[1..url.len() - 1];
+    }
+    (decode_escapes(url), title)
 }
 
 pub fn angle_autolink(input: &[u16], start: usize) -> Option<Autolink> {

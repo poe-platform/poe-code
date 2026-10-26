@@ -111,7 +111,7 @@ pub fn serialize(servers: &Value, format: &str) -> Result<Value, String> {
                     );
                 }
                 if let Some(timeout) = timeout {
-                    push("timeout", string(timeout));
+                    push("tool_timeout_sec", string(timeout));
                 }
             }
             "goose" => {

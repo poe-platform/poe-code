@@ -4,7 +4,7 @@ Plan coding-agent launches with Rust and no npm runtime dependencies. Launch arg
 
 - Build execution arguments alongside prompt-redacted display arguments.
 - Look up immutable CLI and ACP configurations and agent aliases.
-- Serialize JSON, Codex TOML, OpenCode environment and Goose MCP settings.
+- Serialize JSON, Codex TOML, OpenCode environment and Goose MCP settings. Codex MCP timeouts use `tool_timeout_sec` in seconds.
 - Merge environments with explicit variable deletion.
 - Retry injected spawn handles with capped backoff, cancellation and attempt-tagged events.
 - Drive autonomous streaming runs with an injected event consumer and activity-timeout retries.

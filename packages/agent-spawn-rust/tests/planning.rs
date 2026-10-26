@@ -40,6 +40,10 @@ fn mcp_serializers_preserve_names_and_admit_only_supported_features() {
         args[1],
         v(r#""mcp_servers.\"server.name\".command=\"node\"""#)
     );
+    assert_eq!(
+        args.last(),
+        Some(&v(r#""mcp_servers.\"server.name\".tool_timeout_sec=3""#))
+    );
     assert!(
         mcp::serialize(&servers, "goose")
             .unwrap_err()

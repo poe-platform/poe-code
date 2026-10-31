@@ -2620,6 +2620,7 @@ pub fn expand_double_quoted_at_expr(
             return Some(entries.into_iter().map(|(_, v)| v).collect());
         }
         if let Some((var_part, slice_spec)) = expr.split_once(':')
+            && !slice_spec.starts_with(['-', '+', '=', '?'])
             && let Some(arr_base) = var_part.strip_suffix("[@]")
         {
             let Ok((off, len_val)) = parse_slice_spec(slice_spec, env) else {

@@ -1086,7 +1086,13 @@ impl<'a> EvalState<'a> {
                         .and_then(|s| s.parse::<u32>().ok())
                         .unwrap_or(0)
                         > 0;
-                    let code = if is_param_err && !is_subshell { 127 } else { 1 };
+                    let code = if msg.starts_with("Syntax error:") {
+                        2
+                    } else if is_param_err && !is_subshell {
+                        127
+                    } else {
+                        1
+                    };
                     last_code = code;
                     self.last_exit = code;
                     self.exit_requested = Some(code);
@@ -2032,8 +2038,8 @@ impl<'a> EvalState<'a> {
                     let exp_init = self.expand_arith_text(init)?;
                     if let Err(e) = eval_arith_formatted(&exp_init, self.env) {
                         self.leave_body_stdio(body_stdio);
-                        self.restore_redirects(saved_fds, saved_in);
                         if let Some(nu) = e.strip_prefix("__nounset__") {
+                            self.restore_redirects(saved_fds, saved_in);
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
                         stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
@@ -2043,6 +2049,7 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         };
                         self.route_outcome(&mut out);
+                        self.restore_redirects(saved_fds, saved_in);
                         return Ok(out);
                     }
                 }
@@ -11715,18 +11722,17 @@ impl<'a> EvalState<'a> {
         }
         if split_and_glob
             && let Some(dq_body) = word.strip_prefix('"').and_then(|s| s.strip_suffix('"'))
-            && !dq_body.contains('"')
+            && let Some(start_brace) = dq_body.find("${")
         {
-            if let Some(start_brace) = dq_body.find("${")
-                && let Some(rel_end) = dq_body[start_brace + 2..].find('}')
-            {
-                let end_brace = start_brace + 2 + rel_end;
-                let prefix = &dq_body[..start_brace];
-                let inner = &dq_body[start_brace + 2..end_brace];
-                let suffix = &dq_body[end_brace + 1..];
-                if !suffix.contains("${")
+            let prefix = &dq_body[..start_brace];
+            if !prefix.contains(['"', '\\']) {
+                let chars: Vec<char> = dq_body[start_brace..].chars().collect();
+                let mut end = 1;
+                let inner = scan_nested_brace_sub(&chars, &mut end)?;
+                let suffix = &dq_body[start_brace + inner.len() + 3..];
+                if !suffix.contains('"') && !suffix.contains("${")
                     && let Some(mut items) =
-                        expand_double_quoted_at_expr(inner, self.env, &self.pos_args)
+                        expand_double_quoted_at_expr(&inner, self.env, &self.pos_args)
                 {
                     if prefix.is_empty() && suffix.is_empty() {
                         return Ok(items);

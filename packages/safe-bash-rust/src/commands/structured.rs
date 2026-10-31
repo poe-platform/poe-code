@@ -255,6 +255,8 @@ pub fn try_run_structured_command(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    let expanded;
+    let mut args = args;
     if matches!(
         cmd,
         "csvcut"
@@ -271,9 +273,12 @@ pub fn try_run_structured_command(
             | "sql2csv"
             | "csvclean"
             | "csvpy"
-    ) && let Some(out) = csvkit_precheck(cmd, args)
-    {
-        return Some(out);
+    ) {
+        expanded = csvkit_expand_options(cmd, args);
+        args = expanded.as_deref().unwrap_or(args);
+        if let Some(out) = csvkit_precheck(cmd, args) {
+            return Some(out);
+        }
     }
     match cmd {
         "jq" => Some(cmd_jq_with_env(args, stdin, cwd, env, fs)),
@@ -10063,6 +10068,56 @@ fn csvkit_option_specs(
     }
 }
 
+// argparse accepts both attached short values (-c2) and clusters (-HIfjson).
+// Expand once so validation and execution see the same arguments.
+fn csvkit_expand_options(cmd: &str, args: &[String]) -> Option<Vec<String>> {
+    let (switches, one, two) = csvkit_option_specs(cmd);
+    let mut expanded: Option<Vec<String>> = None;
+    let mut index = 0;
+    while index < args.len() {
+        let arg = args[index].as_str();
+        if arg == "--" { break; }
+        let mut parts = Vec::new();
+        let mut following = 0;
+        if one.contains(&arg) { following = 1; }
+        else if two.contains(&arg) { following = 2; }
+        else if let Some((name, value)) = arg.split_once('=')
+            && one.contains(&name) {
+            parts.extend([name.to_owned(), value.to_owned()]);
+        } else if arg.starts_with('-') && !arg.starts_with("--") && arg.len() > 2 {
+            let mut tail = &arg[1..];
+            while let Some(ch) = tail.get(..1) {
+                let name = format!("-{ch}");
+                tail = &tail[1..];
+                if one.contains(&name.as_str()) {
+                    parts.push(name);
+                    if tail.is_empty() { following = 1; }
+                    else { parts.push(tail.to_owned()); }
+                    tail = "";
+                    break;
+                } else if switches.contains(&name.as_str()) {
+                    parts.push(name);
+                } else {
+                    parts.clear();
+                    break;
+                }
+            }
+            if !tail.is_empty() { parts.clear(); }
+        }
+        let end = (index + 1 + following).min(args.len());
+        if parts.is_empty() {
+            if let Some(out) = &mut expanded { out.extend_from_slice(&args[index..end]); }
+        } else {
+            let out = expanded.get_or_insert_with(|| args[..index].to_vec());
+            out.extend(parts);
+            out.extend_from_slice(&args[index+1..end]);
+        }
+        index = end;
+    }
+    if let Some(out) = &mut expanded { out.extend_from_slice(&args[index..]); }
+    expanded
+}
+
 fn csvkit_precheck(cmd: &str, args: &[String]) -> Option<BuiltinOutcome> {
     if cmd == "csvpy" {
         return None;
@@ -11765,19 +11820,21 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 i += 1;
                 quotechar = args[i].chars().next().unwrap_or('"');
             }
-            "-p" | "--skipinitialspace" => skip_initial_space = true,
+            "-S" | "--skipinitialspace" => skip_initial_space = true,
             "-l" | "--linenumbers" => line_numbers = true,
             "--add-bom" => add_bom = true,
             "-L" | "--locale" if i + 1 < args.len() => { i += 1; json_options.locale = Some(&args[i]); }
             "--null-value" if i + 1 < args.len() => { i += 1; json_options.nulls.push(&args[i]); }
             "--blanks" => json_options.blanks = true,
             "--no-leading-zeroes" => json_options.no_leading_zeroes = true,
-            "-e" | "--encoding" | "--date-format" | "--datetime-format"
+            "-u" | "--quoting" | "-z" | "--maxfieldsize" | "-p" | "--escapechar"
+            | "-e" | "--encoding" | "--date-format" | "--datetime-format"
             | "-y" | "--snifflimit" | "--write-sheets" | "--encoding-xls"
                 if i + 1 < args.len() =>
             {
                 i += 1;
             }
+            "--" => { files.extend_from_slice(&args[i + 1..]); break; }
             a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
             _ => {}
         }
@@ -37587,6 +37644,19 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvkit_passes_attached_option_values_to_the_command() {
+        let fs = MemoryVfs::new();
+        let env = BTreeMap::new();
+        let r = try_run_structured_command("in2csv", &args(&[
+            "-HIfjson", "-K99", "-z1", "-y0", "-u3", "--key=rows",
+        ]), r#"{"rows":[{"n":1.00}]}"#, "/", &env, &fs).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "n\n1.00\n", ""));
+        let r = try_run_structured_command("csvcut", &args(&["-d;", "-c2"]),
+            "first;second\n1;2\n", "/", &env, &fs).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "second\n2\n", ""));
     }
 
     #[test]

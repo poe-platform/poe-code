@@ -50,6 +50,19 @@ impl SafeBashFs for MountVfs {
         fs.write_file(&rel, data)
     }
 
+    fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<(), String> {
+        let (fs, rel) = self.route(path);
+        let inner_version = fs.generation();
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before publication".into());
+        }
+        let local_inputs = inputs.iter().filter_map(|input| {
+            let (source, local) = self.route(input);
+            std::ptr::addr_eq(source, fs).then_some(local)
+        }).collect::<Vec<_>>();
+        fs.publish_file(&rel, data, &local_inputs, inner_version)
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
         let (fs, rel) = self.route(path);
         fs.remove_path(&rel)

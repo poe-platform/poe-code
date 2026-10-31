@@ -81,6 +81,13 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.write_file(path, data)
     }
 
+    fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.budget.add_output_bytes(data.len())?;
+        self.inner.publish_file(path, data, inputs, version)
+    }
+
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

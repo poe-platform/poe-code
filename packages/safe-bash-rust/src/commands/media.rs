@@ -6023,6 +6023,7 @@ fn cmd_media_doc(
             doc.page_h = ph;
             let mut all_headings: Vec<(String, String, usize)> = Vec::new();
             let mut page_meta: Vec<(String, bool, bool)> = Vec::new();
+            let output_version = fs.generation();
             let out_arg = &pos_args.last().unwrap().0;
             for (src, is_cover, is_cover_obj) in &pos_args[..pos_args.len() - 1] {
                 let raw_and_dir = if src == "-" {
@@ -6178,7 +6179,11 @@ fn cmd_media_doc(
                 return ok_out(&crate::vfs::bytes_to_stream_string(&serialized));
             }
             let dst = resolve_posix_path(cwd, out_arg);
-            let _ = fs.write_file(&dst, &serialized);
+            let inputs = pos_args[..pos_args.len()-1].iter().filter(|(name, _, _)| name != "-")
+                .map(|(name, _, _)| resolve_posix_path(cwd, name)).collect::<Vec<_>>();
+            if let Err(message) = fs.publish_file(&dst, &serialized, &inputs, output_version) {
+                return err_out(&format!("wkhtmltopdf: {message}\n"), 1);
+            }
             ok_out("")
         }
         "pdfunite" => {
@@ -13324,6 +13329,30 @@ mod media_unit_tests {
             assert_eq!(result.exit_code, 0, "{flags:?}");
             assert_eq!(result.stdout, expected, "{flags:?}");
         }
+    }
+
+    #[test]
+    fn wkhtmltopdf_only_publishes_to_distinct_regular_files() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/source", b"<p>original</p>").unwrap();
+        fs.symlink("/source", "/alias").unwrap();
+        fs.symlink("__hardlink__:/source", "/hard").unwrap();
+        let run = |src, dst| cmd_media_doc("wkhtmltopdf", &media_args(&[src, dst]), "", "/", &fs);
+        for (src, dst) in [("/source","/alias"),("/alias","/source"),("/hard","/source"),("/source","/hard"),
+                            ("/source","/source"),("/source","/"),("/source","/missing/output")] {
+            assert_eq!(run(src,dst).exit_code, 1, "{src} -> {dst}");
+            assert_eq!(fs.read_file("/source").unwrap(), b"<p>original</p>");
+        }
+        assert!(!fs.exists("/missing"));
+        assert_eq!(run("/source", "/new").exit_code, 0);
+        assert_eq!(fs.stat("/new").unwrap().mode & 0o777, 0o666);
+        let version = fs.generation();
+        fs.write_file("/new", b"another writer").unwrap();
+        assert!(fs.publish_file("/new", b"stale output", &[], version).is_err());
+        assert_eq!(fs.read_file("/new").unwrap(), b"another writer");
+        fs.chmod("/new", 0o600).unwrap();
+        assert_eq!(run("/source", "/new").exit_code, 0);
+        assert_eq!(fs.stat("/new").unwrap().mode & 0o777, 0o600);
     }
 
     #[test]

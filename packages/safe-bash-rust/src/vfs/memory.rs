@@ -192,6 +192,41 @@ impl MemoryVfs {
         Ok(current)
     }
 
+    fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32) -> Result<(), String> {
+        let existing_info = match state.nodes.get(&resolved) {
+            Some(MemoryNode::Directory { .. }) => {
+                return Err(format!(
+                    "EISDIR: illegal operation on a directory, open '{resolved}'"
+                ));
+            }
+            Some(MemoryNode::File { data: old, mode, .. }) => Some((old.len(), *mode)),
+            _ => None,
+        };
+
+        let old_len = existing_info.map(|(l, _)| l).unwrap_or(0);
+        let mode = existing_info.map(|(_, m)| m).unwrap_or(create_mode);
+        if existing_info.is_none() && state.nodes.len() >= state.limits.max_entries {
+            return Err("ENOSPC: inode limit exceeded".to_string());
+        }
+        if data.len() > state.limits.max_file_bytes {
+            return Err("EFBIG: file size budget exceeded".to_string());
+        }
+        let next_total = state.total_bytes.saturating_sub(old_len).saturating_add(data.len());
+        if next_total > state.limits.max_total_bytes {
+            return Err("ENOSPC: file system byte budget exceeded".to_string());
+        }
+        state.total_bytes = next_total;
+        state.nodes.insert(
+            resolved,
+            MemoryNode::File {
+                data: data.to_vec(),
+                mode,
+                mtime_ms: 1_700_000_000_000,
+            },
+        );
+        Ok(())
+    }
+
     fn ensure_parent_dirs_locked(state: &mut MemoryState, path: &str) -> Result<(), FsError> {
         let norm = normalize_posix_path(path);
         let mut ancestors = Vec::new();
@@ -285,38 +320,37 @@ impl SafeBashFs for MemoryVfs {
         Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
 
-        let existing_info = match guard.nodes.get(&resolved) {
-            Some(MemoryNode::Directory { .. }) => {
-                return Err(format!(
-                    "EISDIR: illegal operation on a directory, open '{norm}'"
-                ));
-            }
-            Some(MemoryNode::File { data: old, mode, .. }) => Some((old.len(), *mode)),
-            _ => None,
-        };
+        Self::store_file(&mut guard, resolved, data, 0o100644)?;
+        self.bump_generation();
+        Ok(())
+    }
 
-        let old_len = existing_info.map(|(l, _)| l).unwrap_or(0);
-        let mode = existing_info.map(|(_, m)| m).unwrap_or(0o100644);
-        if existing_info.is_none() && guard.nodes.len() >= guard.limits.max_entries {
-            return Err("ENOSPC: inode limit exceeded".to_string());
+    fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        if version != self.generation() {
+            return Err("EAGAIN: filesystem changed before publication".into());
         }
-        if data.len() > guard.limits.max_file_bytes {
-            return Err("EFBIG: file size budget exceeded".to_string());
+        let entry = Self::resolve_symlinks_locked(&state, path, false).map_err(|e| e.message)?;
+        let parent = parent_posix_path(&entry).unwrap_or_else(|| "/".into());
+        if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { .. })) {
+            return Err(format!("ENOENT: ENOENT: no such file or directory, realpath '{parent}'"));
         }
-        let next_total = guard.total_bytes.saturating_sub(old_len).saturating_add(data.len());
-        if next_total > guard.limits.max_total_bytes {
-            return Err("ENOSPC: file system byte budget exceeded".to_string());
+        let dest = Self::resolve_symlinks_locked(&state, &entry, true).map_err(|e| e.message)?;
+        let regular = match state.nodes.get(&entry) {
+            None | Some(MemoryNode::File { .. }) => true,
+            Some(MemoryNode::Symlink { target, .. }) => target.starts_with("__hardlink__:")
+                && matches!(state.nodes.get(&dest), Some(MemoryNode::File { .. })),
+            _ => false,
+        };
+        if !regular || matches!(dest.as_str(), "/dev" | "/dev/null" | "/dev/full" | "/dev/zero" | "/dev/random" | "/dev/urandom") {
+            return Err("INVALID_VALUE: Output must be a regular VFS file or absent".into());
         }
-        guard.total_bytes = next_total;
-        guard.nodes.insert(
-            resolved,
-            MemoryNode::File {
-                data: data.to_vec(),
-                mode,
-                mtime_ms: 1_700_000_000_000,
-            },
-        );
-        drop(guard);
+        for input in inputs {
+            if Self::resolve_symlinks_locked(&state, input, true).map_err(|e| e.message)? == dest {
+                return Err("INVALID_VALUE: Input and output VFS identities must be distinct".into());
+            }
+        }
+        Self::store_file(&mut state, dest, data, 0o100666)?;
         self.bump_generation();
         Ok(())
     }
@@ -390,7 +424,6 @@ impl SafeBashFs for MemoryVfs {
                 _ => {}
             }
         }
-        drop(guard);
         self.bump_generation();
         Ok(())
     }
@@ -421,7 +454,6 @@ impl SafeBashFs for MemoryVfs {
                 );
             }
         }
-        drop(guard);
         self.bump_generation();
         Ok(())
     }
@@ -521,7 +553,6 @@ impl SafeBashFs for MemoryVfs {
                 mtime_ms: 1_700_000_000_000,
             },
         );
-        drop(guard);
         self.bump_generation();
         Ok(())
     }
@@ -662,7 +693,6 @@ impl SafeBashFs for MemoryVfs {
             }
             None => return Err(format!("ENOENT: no such file or directory, chmod '{norm}'")),
         }
-        drop(guard);
         self.bump_generation();
         Ok(())
     }
@@ -679,7 +709,6 @@ impl SafeBashFs for MemoryVfs {
             }
             None => return Err(format!("ENOENT: no such file or directory, utime '{norm}'")),
         }
-        drop(guard);
         self.bump_generation();
         Ok(())
     }
@@ -787,7 +816,6 @@ impl SafeBashFs for MemoryVfs {
                 );
             }
         }
-        drop(guard);
         self.bump_generation();
         Ok(())
     }

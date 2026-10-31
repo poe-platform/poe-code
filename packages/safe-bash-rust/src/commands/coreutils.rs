@@ -13401,7 +13401,6 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut stdout = String::new();
 
     let input_path = (input_file != "-").then(|| resolve_posix_path(cwd, input_file));
-    let input_path = input_path.map(|path| super::fs::canonicalize_posix_path(&path, 'e', false, fs).unwrap_or(path));
     let mut finish_piece = |piece: &mut Vec<u8>, open: &mut bool| -> Result<(), String> {
         if !*open {
             return Ok(());
@@ -13412,6 +13411,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         }
         let fname = format!("{prefix}{}", suffix_fn(file_no));
         let full = resolve_posix_path(cwd, &fname);
+        let version = fs.generation();
         for (i, _) in full.match_indices('/').skip(1) {
             match fs.lstat(&full[..i]) {
                 Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {}
@@ -13422,10 +13422,15 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         if fs.lstat(&full).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File) {
             return Err(format!("csplit: unsafe output file '{fname}'\n"));
         }
-        if input_path.as_ref() == Some(&full) {
-            return Err("csplit: output would overwrite the input file\n".into());
-        }
-        fs.write_file(&full, piece).map_err(|e| format!("csplit: {fname}: {e}\n"))?;
+        fs.publish_file(&full, piece, input_path.as_slice(), version).map_err(|e| {
+            match e.as_str() {
+                "INVALID_VALUE: Input and output VFS identities must be distinct" =>
+                    "csplit: output would overwrite the input file\n".into(),
+                _ if e.starts_with("UNSUPPORTED_CAPABILITY:") =>
+                    "csplit: atomic output mutations are not supported\n".into(),
+                _ => format!("csplit: {fname}: {e}\n"),
+            }
+        })?;
         file_no += 1;
         created_files.push(full);
         if !quiet {
@@ -21754,6 +21759,27 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csplit_publishes_binary_pieces_without_overwriting_input_aliases() {
+        let fs = MemoryVfs::new();
+        let bytes = b"\xff\x00\n\x80\nlast";
+        fs.write_file("/src", bytes).unwrap();
+        fs.write_file("/xx01", b"old").unwrap();
+        fs.chmod("/xx01", 0o600).unwrap();
+        let r = cmd_csplit(&args(&["src", "2"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str()), (0, "3\n6\n"));
+        assert_eq!(fs.read_file("/xx00").unwrap(), &bytes[..3]);
+        assert_eq!(fs.read_file("/xx01").unwrap(), &bytes[3..]);
+        assert_eq!(fs.stat("/xx00").unwrap().mode & 0o777, 0o666);
+        assert_eq!(fs.stat("/xx01").unwrap().mode & 0o777, 0o600);
+
+        fs.remove_path("/xx00").unwrap();
+        fs.symlink("__hardlink__:/src", "/xx00").unwrap();
+        let r = cmd_csplit(&args(&["src", "2"]), "", "/", &fs);
+        assert_eq!(r.stderr, "csplit: output would overwrite the input file\n");
+        assert_eq!(fs.read_file("/src").unwrap(), bytes);
     }
 
     #[test]

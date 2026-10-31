@@ -5909,7 +5909,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
-    padX: number; padY: number; borderW: number; operands: string[];
+    padX: number; padY: number; borderW: number; operands: string[]; labels: string[];
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments, void> {
     let cooperativeWork = 63;
@@ -5922,6 +5922,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let padY = 2;
     let borderW = 0;
     const operands: string[] = [];
+    const labels: string[] = [];
+    let label = "";
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -5955,18 +5957,31 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
-        else if (t === "-mode" || t === "-label" || t === "-title") {
+        else if (t === "-label") {
+            label = argv[++i] ?? "";
+        }
+        else if (t === "+label") {
+            label = "";
+        }
+        else if (t === "-pointsize") {
+            state.pointsize = Math.max(1, Number(argv[++i] ?? 12));
+        }
+        else if (t === "-fill") {
+            state.fill = parseColor(argv[++i] ?? "#000000");
+        }
+        else if (t === "-mode" || t === "-title") {
             i++;
         }
         else if (!t.startsWith("-")) {
             operands.push(t);
+            labels.push(label);
         }
     }
-    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands };
+    return { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels };
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands } = yield* parseMontageArguments(argv);
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels } = yield* parseMontageArguments(argv);
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -5977,7 +5992,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = cellW === undefined && cellH === undefined;
+    let canStreamTiles = cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -6101,7 +6116,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
     } else {
         const images: RgbaImage[] = [];
-        for (const p of inPaths) {
+        for (const [inputIndex, p] of inPaths.entries()) {
             yield;
             let loadedList: RgbaImage[] | undefined;
             try {
@@ -6141,6 +6156,16 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         extendWith: "background"
                     }));
                     if (thumb !== prev) detachRgbaBuffer(prev.data);
+                }
+                if (labels[inputIndex]) {
+                    const text = yield* formatMagickPropertyStringSteps(labels[inputIndex]!, thumb, () => thumb, { filePath: parseInputToken(p).baseToken });
+                    const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
+                    const caption = decodeImage(new TextEncoder().encode(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: thumb.width, sizeHeight: height, gravity: "center" })));
+                    const previous = thumb;
+                    thumb = yield* extendImageSteps(thumb, { top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" });
+                    if (thumb !== previous) detachRgbaBuffer(previous.data);
+                    yield* blitOverRgbaInPlaceSteps(thumb, caption, 0, thumb.height - height);
+                    detachRgbaBuffer(caption.data);
                 }
                 images.push(thumb);
             }
@@ -6192,12 +6217,12 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands } = await drainSteps(parseMontageArguments(argv), signal);
+    const { state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels } = await drainSteps(parseMontageArguments(argv), signal);
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     return withCompareFiles(input, stdinBytes, signal, async backend => {
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = cellW === undefined && cellH === undefined, maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -6258,6 +6283,14 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             if (resize) image = await transformStoredImage(image, backend.storage, { kind: "resize", ...resize }, signal);
                         }
                         if (borderW > 0) image = await transformStoredImage(image, backend.storage, { kind: "extend", top: borderW, bottom: borderW, left: borderW, right: borderW, background: state.borderColor, extendWith: "background" }, signal);
+                        if (labels[index]) {
+                            const labeled = image;
+                            const text = await formatRetainedIdentify(labels[index]!, image, { filePath: parseInputToken(path).baseToken }, async () => ({ image: labeled, storage: backend.storage }), signal);
+                            const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
+                            const caption = await decodeStoredMagickSvg(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: image.width, sizeHeight: height, gravity: "center" }), 72, backend, signal);
+                            image = await transformStoredImage(image, backend.storage, { kind: "extend", top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
+                            image = await compositeStoredMagick(image, caption, backend, signal, 0, image.height - height, "over", undefined, false, true);
+                        }
                         maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                     } });
                     if (!loaded) return { exitCode: 1, stdout: "", stderr: `montage: unable to open image '${path}': No such file or directory\n` };

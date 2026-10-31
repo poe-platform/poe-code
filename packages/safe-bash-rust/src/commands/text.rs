@@ -8490,10 +8490,8 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                     out_str.into_bytes()
                 };
                 if let Some(dest) = f.destination {
-                    if dest != f.path {
-                        staged_ops.push(StagedPatchOp::Delete(f.path));
-                    }
                     staged_ops.push(StagedPatchOp::Write(dest, updated_bytes));
+                    staged_ops.push(StagedPatchOp::Delete(f.path));
                     summary_lines.push(format!(
                         "M {}",
                         f.destination_label.as_deref().unwrap_or(&f.label)
@@ -8510,15 +8508,17 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         match op {
             StagedPatchOp::Write(full, bytes) => {
                 let parent = crate::vfs::dirname_posix_path(&full);
-                if !parent.is_empty() && parent != "/" {
-                    let _ = fs.mkdir_all(&parent);
+                if !parent.is_empty() && parent != "/" && let Err(e) = fs.mkdir_all(&parent) {
+                    return err_out(&format!("apply_patch: {e}\n"), 1);
                 }
                 if let Err(e) = fs.write_file(&full, &bytes) {
                     return err_out(&format!("apply_patch: {e}\n"), 1);
                 }
             }
             StagedPatchOp::Delete(full) => {
-                let _ = fs.remove(&full, false);
+                if let Err(e) = fs.remove(&full, false) {
+                    return err_out(&format!("apply_patch: {e}\n"), 1);
+                }
             }
         }
     }
@@ -10056,6 +10056,19 @@ mod tests {
         .unwrap();
         assert_eq!(sed_w.exit_code, 0);
         assert_eq!(vfs.read_file("/work/out.txt").unwrap(), b"/usr/sbin\n/home/sbin\n");
+    }
+
+    #[test]
+    fn apply_patch_failed_move_keeps_the_source() {
+        let vfs = MemoryVfs::with_limits(crate::vfs::MemoryVfsLimits {
+            max_file_bytes: 4, ..Default::default()
+        });
+        vfs.write_file("/src", b"old\n").unwrap();
+        let patch = "*** Begin Patch\n*** Update File: src\n*** Move to: dest\n@@\n-old\n+oversized\n*** End Patch";
+        let result = cmd_apply_patch(&[], patch, "/", &vfs);
+        assert_eq!(result.exit_code, 1);
+        assert_eq!(vfs.read_file("/src").unwrap(), b"old\n");
+        assert!(!vfs.exists("/dest"));
     }
 
     #[test]

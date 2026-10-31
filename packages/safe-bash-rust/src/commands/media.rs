@@ -6326,8 +6326,16 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
             }
-            let doc = PdfDoc::parse(&b);
-            let total = doc.pages.len().max(1);
+            let mut source = pdf_reader::PageSource::open(&b);
+            let legacy = if source.is_none() && b.split(|c| *c == b'\n').take(2).any(|line| {
+                line == b"%%SAFE_PDF_V2%%" || line == b"%%PAGE%%"
+            }) { Some(PdfDoc::parse(&b)) } else { None };
+            let damaged = || err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
+            let total = match (&source, &legacy) {
+                (Some(s), _) => s.len(),
+                (_, Some(doc)) => doc.pages.len(),
+                _ => return damaged(),
+            };
             let end_p = last_p.map(|lp| total.min(lp)).unwrap_or(total);
             if first_p > total || last_p.is_some_and(|lp| lp > total || first_p > lp) {
                 return err_out(
@@ -6342,8 +6350,14 @@ fn cmd_media_doc(
             if count > 1 && !has_spec {
                 return err_out(&format!("Error: '{pat}' must contain '%d' if more than one page should be extracted\n"), 99);
             }
+            let mut outputs = Vec::new();
+            let mut remaining = crate::budget::ShellLimits::default().max_output_bytes;
             for pno in first_p..=end_p {
-                if let Some(pg) = doc.pages.get(pno - 1) {
+                let bytes = if let Some(s) = &mut source {
+                    let Some(bytes) = s.extract(pno - 1, remaining) else { return damaged() };
+                    bytes
+                } else if let Some(doc) = &legacy {
+                    let pg = &doc.pages[pno - 1];
                     let mut single = PdfDoc::new();
                     single.version = doc.version.clone();
                     single.title = doc.title.clone();
@@ -6354,13 +6368,19 @@ fn cmd_media_doc(
                         single.page_media.insert(1, *m);
                     }
                     single.pages.push(pg.clone());
-                    let formatted = if has_spec {
-                        format_printf_num(pat, pno)
-                    } else {
-                        pat.replace("%%", "%")
-                    };
-                    let out_p = resolve_posix_path(cwd, &formatted);
-                    let _ = fs.write_file(&out_p, &single.serialize());
+                    single.serialize()
+                } else { return damaged() };
+                let Some(left) = remaining.checked_sub(bytes.len()) else {
+                    return err_out("pdfseparate: output byte limit exceeded\n", 99);
+                };
+                remaining = left;
+                let name = if has_spec { format_printf_num(pat, pno) } else { pat.replace("%%", "%") };
+                outputs.push((name, bytes));
+            }
+            for (name, bytes) in outputs {
+                let path = resolve_posix_path(cwd, &name);
+                if !fs.is_dir(&crate::vfs::dirname_posix_path(&path)) || fs.write_file(&path, &bytes).is_err() {
+                    return err_out(&format!("I/O Error: Couldn't open file '{name}'\n"), 99);
                 }
             }
             ok_out("")
@@ -13052,6 +13072,46 @@ mod media_unit_tests {
         assert!(vfs.read_file("/media/code.png").unwrap().starts_with(b"\x89PNG"));
     }
 
+    fn classic_pdf(objects: &[&str], extra: &str) -> String {
+        let mut pdf = String::from("%PDF-1.4\n");
+        let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", objects.len() + 1);
+        for (i, object) in objects.iter().enumerate() {
+            xref.push_str(&format!("{:010} 00000 n \n", pdf.len()));
+            pdf.push_str(&format!("{} 0 obj\n{object}\nendobj\n", i + 1));
+        }
+        let offset = pdf.len();
+        pdf.push_str(&xref);
+        pdf.push_str(&format!("trailer\n<< /Size {} /Root 1 0 R {extra} >>\nstartxref\n{offset}\n%%EOF", objects.len() + 1));
+        pdf
+    }
+
+    #[test]
+    fn pdfseparate_copies_page_objects_and_excludes_unselected_content() {
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [4 0 R 3 0 R] /Count 2 /MediaBox [0 0 300 410] /Resources << /Font << /F1 7 0 R >> >> /Rotate 90 >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 6 0 R >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 5 0 R /Annots [8 0 R] >>",
+            "<< /Length 19 >>\nstream\nBT (selected) Tj ET\nendstream",
+            "<< /Length 24 >>\nstream\nBT (excluded-page) Tj ET\nendstream",
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>",
+            "<< /Type /Annot /Subtype /Link /P 4 0 R /Dest [3 0 R /Fit] >>",
+        ], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        let res = cmd_media_doc("pdfseparate", &media_args(&["-l", "1", "/in.pdf", "/page.pdf"]), "", "/", &fs);
+        assert_eq!(res.exit_code, 0, "{}", res.stderr);
+        let output = fs.read_file("/page.pdf").unwrap();
+        let doc = pdf_reader::read(&output).expect("a standalone PDF with a working xref");
+        assert_eq!(doc.pages.len(), 1);
+        assert_eq!(doc.pages[0].text, "selected");
+        assert_eq!(doc.pages[0].rot, 90);
+        assert_eq!((doc.page_w, doc.page_h), (300., 410.));
+        let raw = String::from_utf8_lossy(&output);
+        assert!(raw.contains("/Courier") && raw.contains("/Annots"));
+        assert!(!raw.contains("excluded-page"));
+    }
+
     #[test]
     fn reads_page_tree_and_text_from_classic_pdf_objects() {
         let objects = [
@@ -13063,15 +13123,7 @@ mod media_unit_tests {
             "<< /Length 24 >>\nstream\nBT [(sec) 0 (ond)] TJ ET\nendstream",
             "<< /Zebra (last) /Producer (writer) /Title (example) /Subject (testing) /Alpha (first) >>",
         ];
-        let mut pdf = String::from("%PDF-1.4\n");
-        let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", objects.len() + 1);
-        for (i, object) in objects.iter().enumerate() {
-            xref.push_str(&format!("{:010} 00000 n \n", pdf.len()));
-            pdf.push_str(&format!("{} 0 obj\n{object}\nendobj\n", i + 1));
-        }
-        let offset = pdf.len();
-        pdf.push_str(&xref);
-        pdf.push_str(&format!("trailer\n<< /Size 8 /Root 1 0 R /Info 7 0 R /ID [<f123> <cdef>] >>\nstartxref\n{offset}\n%%EOF"));
+        let pdf = classic_pdf(&objects, "/Info 7 0 R /ID [<f123> <cdef>]");
         let doc = PdfDoc::parse(pdf.as_bytes());
         assert_eq!(doc.title, "example");
         assert_eq!((doc.page_w, doc.page_h), (300.25, 400.5));

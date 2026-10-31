@@ -2,6 +2,10 @@
 use super::{PdfDoc, PdfPage};
 use std::collections::{BTreeMap, BTreeSet};
 
+#[path = "pdf_copy.rs"]
+mod pdf_copy;
+pub(super) use pdf_copy::PageSource;
+
 type ObjectId = (usize, usize);
 
 enum Value<'a> {
@@ -324,8 +328,7 @@ impl<'a> Objects<'a> {
         Some((value, c))
     }
 
-    fn stream_text(&mut self, id: ObjectId) -> Option<String> {
-        let (dict, mut c) = self.object(id)?;
+    fn stream(&mut self, dict: &Value<'a>, mut c: Cursor<'a>) -> Option<&'a [u8]> {
         if c.word()? != b"stream" || !(c.eat(b"\r\n") || c.eat(b"\n") || c.eat(b"\r")) {
             return None;
         }
@@ -334,7 +337,14 @@ impl<'a> Objects<'a> {
             Some(r) => uint(self.object(r)?.0.word()?)?,
             None => uint(length.word()?)?,
         };
-        let stream = c.0.get(..length)?;
+        let bytes = c.0.get(..length)?;
+        c.0 = &c.0[length..];
+        (c.word()? == b"endstream").then_some(bytes)
+    }
+
+    fn stream_text(&mut self, id: ObjectId) -> Option<String> {
+        let (dict, c) = self.object(id)?;
+        let stream = self.stream(&dict, c)?;
         let decoded;
         let bytes = match dict.get(b"Filter") {
             None => stream,
@@ -357,7 +367,7 @@ impl<'a> Objects<'a> {
     }
 }
 
-pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
+fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
     let tail = bytes.get(bytes.len().saturating_sub(4096)..)?;
     let offset_pos = tail.windows(9).rposition(|w| w == b"startxref")? + 9;
     let offset = uint(Cursor(&tail[offset_pos..]).word()?)?;
@@ -395,6 +405,11 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
     if trailer.get(b"Encrypt").is_some() || trailer.get(b"Prev").is_some() {
         return None;
     }
+    Some((objects, trailer))
+}
+
+pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
+    let (mut objects, trailer) = index(bytes)?;
     let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
     let mut doc = PdfDoc::new();
     doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)

@@ -226,20 +226,41 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     id: u32,
     path_ptr: *const u8,
     path_len: usize,
+    // 0: recursive rm (legacy ABI default), 1: unlink, 2: rmdir.
+    operation: u32,
+    force: bool,
 ) -> i32 {
-    let path = unsafe {
-        str_from_raw(path_ptr, path_len)
-    };
-    let Ok(map) = sessions().lock() else {
-        return -1;
-    };
-    let Some(sess) = map.get(&id) else {
-        return -1;
-    };
-    if sess.vfs.remove_path(path).is_ok() {
-        0
-    } else {
-        -1
+    let path = unsafe { str_from_raw(path_ptr, path_len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let result = (|| -> Result<(), String> {
+        let kind = sess.vfs.lstat(path)?.kind;
+        if matches!(path.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
+            return Err(format!("EINVAL: invalid argument '{path}'"));
+        }
+        if crate::vfs::normalize_posix_path(path) == "/" {
+            return Err("EBUSY: cannot remove root directory '/'".into());
+        }
+        match (operation, kind) {
+            (1, VfsEntryKind::Directory) => return Err(format!("EISDIR: is a directory '{path}'")),
+            (2, VfsEntryKind::Directory) => {
+                if !sess.vfs.list_dir(path)?.is_empty() {
+                    return Err(format!("ENOTEMPTY: directory not empty '{path}'"));
+                }
+            }
+            (2, _) => return Err(format!("ENOTDIR: not a directory '{path}'")),
+            (0 | 1, _) => {}
+            _ => return Err("EINVAL: invalid removal operation".into()),
+        }
+        sess.vfs.remove_path(path)
+    })();
+    match result {
+        Ok(()) => 0,
+        Err(e) if force && e.starts_with("ENOENT:") => 0,
+        Err(e) => {
+            sess.last_output_buf = e.into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
     }
 }
 

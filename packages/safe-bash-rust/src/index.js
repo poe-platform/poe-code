@@ -146,52 +146,55 @@ export class WasmFileSystem {
     this.bash.chmod(filePath, mode);
   }
 
-  async unlink(filePath) {
+  async unlink(filePath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.unlink) {
-        return this.bash._companion.fs.unlink(filePath);
+        return this.bash._companion.fs.unlink(filePath, options);
       }
       return this.bash._companion.fs.rm(filePath);
     }
+    this.bash.removePath(filePath, 1);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
         run: (fs) => (fs.unlink ? fs.unlink(filePath) : fs.rm(filePath)),
       });
     }
-    this.bash.removePath(filePath);
   }
 
   async rm(filePath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       return this.bash._companion.fs.rm(filePath, options);
     }
+    this.bash.removePath(filePath, options?.recursive === true ? 0 : 1, options?.force === true);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
         run: (fs) => fs.rm(filePath, options),
       });
     }
-    this.bash.removePath(filePath);
   }
 
-  async rmdir(dirPath) {
+  async rmdir(dirPath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.rmdir) {
-        return this.bash._companion.fs.rmdir(dirPath);
+        return this.bash._companion.fs.rmdir(dirPath, options);
       }
       return this.bash._companion.fs.rm(dirPath);
     }
+    this.bash.removePath(dirPath, 2);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
         run: (fs) => (fs.rmdir ? fs.rmdir(dirPath) : fs.rm(dirPath)),
       });
     }
-    this.bash.removePath(dirPath);
   }
 
   async utimes(filePath, atime, mtime) {
@@ -428,12 +431,15 @@ export class RustWasmBash {
     return decoder.decode(this.readFile(filePath));
   }
 
-  removePath(filePath) {
+  removePath(filePath, operation = 0, force = false) {
     const p = this._allocBytes(encoder.encode(filePath));
     try {
-      const rc = this.exports.safe_bash_remove_path(this.sessionId, p.ptr, p.len);
+      const rc = this.exports.safe_bash_remove_path(this.sessionId, p.ptr, p.len, operation, force);
+      if (rc === -1) throw new Error("Wasm session unavailable");
       if (rc < 0) {
-        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
+        const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+        const message = decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -rc));
+        throw fsErr(message.split(":", 1)[0], message);
       }
     } finally {
       this._freeBytes(p);

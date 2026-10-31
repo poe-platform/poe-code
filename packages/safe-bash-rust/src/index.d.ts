@@ -52,9 +52,9 @@ export class WasmFileSystem {
   symlink(target: string, linkPath: string): Promise<void>;
   readlink(linkPath: string): Promise<string>;
   chmod(filePath: string, mode: number): Promise<void>;
-  unlink(filePath: string): Promise<void>;
-  rm(filePath: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
-  rmdir(dirPath: string): Promise<void>;
+  unlink(filePath: string, options?: { signal?: AbortSignal }): Promise<void>;
+  rm(filePath: string, options?: { recursive?: boolean; force?: boolean; signal?: AbortSignal }): Promise<void>;
+  rmdir(dirPath: string, options?: { signal?: AbortSignal }): Promise<void>;
   utimes(filePath: string, atime: Date | number, mtime: Date | number): Promise<void>;
   realpath(filePath: string): Promise<string>;
   open(filePath: string, flags?: string | number, mode?: number): Promise<unknown>;

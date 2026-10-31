@@ -294,3 +294,28 @@ test("WASM Bash forceNative supports sqlite3 -json formatting and WITH ... UPDAT
     "[{\"id\":1,\"tag\":\"u-1\"},\n{\"id\":2,\"tag\":\"u-2-vip\"}]\n"
   );
 });
+
+test("Wasm filesystem removes only entries admitted by rm, unlink and rmdir", async () => {
+  const bash = new RustWasmBash({ files: { "/tree/keep": "data" } });
+  const { fs } = bash;
+  try {
+    await assert.rejects(fs.rm("/tree"), { code: "EISDIR" });
+    await assert.rejects(fs.unlink("/tree"), { code: "EISDIR" });
+    await assert.rejects(fs.rmdir("/tree"), { code: "ENOTEMPTY" });
+    await assert.rejects(fs.rmdir("/tree/keep"), { code: "ENOTDIR" });
+    await assert.rejects(fs.rm("/tree/.", { recursive: true }), { code: "EINVAL" });
+    await assert.rejects(fs.rm("/", { recursive: true }), { code: "EBUSY" });
+    assert.equal(bash.readText("/tree/keep"), "data");
+    await fs.symlink("/tree", "/alias");
+    await fs.unlink("/alias");
+    assert.equal(bash.readText("/tree/keep"), "data");
+    await fs.rm("/tree", { recursive: true });
+    await fs.rm("/tree", { force: true });
+    await assert.rejects(fs.rm("/tree"), { code: "ENOENT" });
+    await fs.mkdir("/empty");
+    await fs.rmdir("/empty");
+    await assert.rejects(fs.stat("/empty"), { code: "ENOENT" });
+  } finally {
+    bash.dispose();
+  }
+});

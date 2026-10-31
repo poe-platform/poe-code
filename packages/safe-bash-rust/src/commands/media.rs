@@ -4240,11 +4240,46 @@ fn qr_fmt_ratio(v: u8) -> String {
     }
 }
 
+fn rgba_png(width: usize, height: usize, dpi: u32, pixel: impl Fn(usize, usize) -> [u8; 4]) -> Vec<u8> {
+    let mut raw = Vec::with_capacity((width * 4 + 1) * height);
+    for y in 0..height {
+        raw.push(1); // Sub filter: store the channel difference from the pixel to the left.
+        let mut prev = [0; 4];
+        for x in 0..width {
+            let rgba = pixel(x, y);
+            for i in 0..4 { raw.push(rgba[i].wrapping_sub(prev[i])); }
+            prev = rgba;
+        }
+    }
+    let mut out = b"\x89PNG\r\n\x1a\n".to_vec();
+    let mut chunk = |tag: &[u8; 4], data: &[u8]| {
+        out.extend_from_slice(&(data.len() as u32).to_be_bytes());
+        let start = out.len();
+        out.extend_from_slice(tag);
+        out.extend_from_slice(data);
+        out.extend_from_slice(&crc32_ieee(&out[start..]).to_be_bytes());
+    };
+    let mut header = [0; 13];
+    header[..4].copy_from_slice(&(width as u32).to_be_bytes());
+    header[4..8].copy_from_slice(&(height as u32).to_be_bytes());
+    header[8..10].copy_from_slice(&[8, 6]);
+    chunk(b"IHDR", &header);
+    let ppm = ((dpi as f64 / 0.0254).round() as u32).to_be_bytes();
+    let mut phys = [1; 9];
+    phys[..4].copy_from_slice(&ppm);
+    phys[4..8].copy_from_slice(&ppm);
+    chunk(b"pHYs", &phys);
+    chunk(b"IDAT", &crate::commands::codecs::zlib_compress(&raw));
+    chunk(b"IEND", &[]);
+    out
+}
+
 fn qr_render(
     modules: &[Vec<bool>],
     rtype: &str,
     size: usize,
     margin: usize,
+    dpi: u32,
     fg: [u8; 4],
     bg: [u8; 4],
 ) -> Vec<u8> {
@@ -4259,14 +4294,7 @@ fn qr_render(
         }
     };
     if rtype == "PNG" || rtype == "PNG32" {
-        let im = ImageMeta {
-            fmt: "PNG".to_string(),
-            w: pixels as u32,
-            h: pixels as u32,
-            cs: "sRGB".to_string(),
-            exif: BTreeMap::new(),
-        };
-        return write_image_bytes(&im);
+        return rgba_png(pixels, pixels, dpi, |x, y| if dark(x / size, y / size) { fg } else { bg });
     }
     let mut text = String::new();
     if rtype == "SVG" {
@@ -12657,6 +12685,7 @@ fn cmd_media_doc(
             let mut operand_opt: Option<String> = None;
             let mut rtype = "PNG".to_string();
             let mut size = 3usize;
+            let mut dpi = 72;
             let mut margin_opt: Option<usize> = None;
             let mut level = 0usize; // L=0, M=1, Q=2, H=3
             let mut version = 0usize;
@@ -12767,8 +12796,9 @@ fn cmd_media_doc(
                         Ok(v) => margin_opt = Some(v),
                         Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
                     },
-                    "d" => if let Err(e) = parse_uint(&val, 1, 109093169) {
-                        return err_out(&format!("qrencode: {e}\n"), 1);
+                    "d" => match parse_uint(&val, 1, 109093169) {
+                        Ok(v) => dpi = v as u32,
+                        Err(e) => return err_out(&format!("qrencode: {e}\n"), 1),
                     },
                     "v" => if val == "auto" {
                         version = 0;
@@ -12868,7 +12898,7 @@ fn cmd_media_doc(
             let mut stdout_bytes = Vec::new();
             for (idx, sym) in syms.iter().enumerate() {
                 let n = sym.len();
-                let width = n + 2 * margin;
+                let width = n.saturating_add(margin.saturating_mul(2));
                 let pixels = width.saturating_mul(size);
                 let raster = rtype == "PNG" || rtype == "PNG32";
                 let vector = rtype == "SVG" || rtype == "EPS";
@@ -12885,7 +12915,7 @@ fn cmd_media_doc(
                 if pixels > 0x7fff_ffff || estimate > max_mem {
                     return err_out("qrencode: QR output exceeds memory budget\n", 1);
                 }
-                let rendered = qr_render(sym, &rtype, size, margin, fg, bg);
+                let rendered = qr_render(sym, &rtype, size, margin, dpi, fg, bg);
                 if let Some(ref out_p) = output_opt && out_p != "-" {
                     let mut name = out_p.clone();
                     if structured {
@@ -12940,6 +12970,26 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn qr_png_carries_colored_modules_and_physical_resolution() {
+        let fs = MemoryVfs::new();
+        let args = media_args(&["-m", "0", "-s", "1", "-d", "300", "--foreground=10203040", "--background=ffeecc99", "-o", "qr.png", "Hello"]);
+        assert_eq!(cmd_media_doc("qrencode", &args, "", "/", &fs).exit_code, 0);
+        let png = fs.read_file("/qr.png").unwrap();
+        assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");
+        let mut chunks = BTreeMap::new();
+        let mut rest = &png[8..];
+        while !rest.is_empty() {
+            let len = u32::from_be_bytes(rest[..4].try_into().unwrap()) as usize;
+            assert_eq!(crc32_ieee(&rest[4..8+len]), u32::from_be_bytes(rest[8+len..12+len].try_into().unwrap()));
+            chunks.insert(&rest[4..8], &rest[8..8+len]);
+            rest = &rest[12+len..];
+        }
+        assert_eq!(chunks[b"pHYs".as_slice()], &[0,0,46,35,0,0,46,35,1]);
+        let (scanlines, _) = crate::commands::codecs::inflate_raw(&chunks[b"IDAT".as_slice()][2..]).unwrap();
+        assert_eq!(hex_enc(&sha256_bytes(&scanlines)), "195c11634fdb5b6c77a09adbd17c51cceae73da5e70ee27164c290067a199b1f");
     }
 
     #[test]

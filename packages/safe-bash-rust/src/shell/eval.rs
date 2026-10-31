@@ -1428,9 +1428,6 @@ impl<'a> EvalState<'a> {
                 sub.fd_table.insert(1, FdTarget::PipeStdout { peer_retired });
                 sub.env.insert("__pipe_fd__1".to_string(), "1".to_string());
                 sub.in_pipeline_producer = true;
-            } else {
-                sub.fd_table.insert(1, FdTarget::Stdout);
-                sub.env.remove("__pipe_fd__1");
             }
             let stage_res = if idx == 0 {
                 sub.eval_command_node(cmd_node, stdin)

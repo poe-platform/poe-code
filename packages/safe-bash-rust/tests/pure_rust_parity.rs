@@ -19,6 +19,15 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
 }
 
 #[test]
+fn redirected_pipeline_writes_before_the_next_command() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    let result = shell.exec("(printf A | cat; cat output >&2; printf B) > output").unwrap();
+    assert_eq!(result.exit_code, 0);
+    assert_eq!(result.stderr, "A");
+    assert_eq!(fs.read_file("/work/output").unwrap(), b"AB");
+}
+
+#[test]
 fn canonical_paths_resume_after_cycles_and_repeated_symlinks() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     fs.mkdir_all("/work/sub").unwrap();

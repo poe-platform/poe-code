@@ -322,12 +322,15 @@ struct PdfDoc {
 #[path = "pdf_reader.rs"]
 mod pdf_reader;
 
-fn write_copied_pdf(fs: &dyn SafeBashFs, cwd: &str, name: &str, bytes: &[u8], status: i32) -> BuiltinOutcome {
+fn write_regular_output(fs: &dyn SafeBashFs, cwd: &str, name: &str, bytes: &[u8]) -> bool {
     let path = resolve_posix_path(cwd, name);
-    if !fs.is_dir(&crate::vfs::dirname_posix_path(&path))
-        || fs.lstat(&path).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File || st.mode & 0o170000 == 0o020000)
-        || fs.write_file(&path, bytes).is_err()
-    {
+    fs.is_dir(&crate::vfs::dirname_posix_path(&path))
+        && !fs.lstat(&path).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File || st.mode & 0o170000 == 0o020000)
+        && fs.write_file(&path, bytes).is_ok()
+}
+
+fn write_copied_pdf(fs: &dyn SafeBashFs, cwd: &str, name: &str, bytes: &[u8], status: i32) -> BuiltinOutcome {
+    if !write_regular_output(fs, cwd, name, bytes) {
         return err_out(&format!("I/O Error: Couldn't open file '{name}'\n"), status);
     }
     ok_out("")
@@ -8314,7 +8317,7 @@ fn cmd_media_doc(
                         }
                         i += 1;
                     }
-                    a if !a.starts_with('-') => pdf_file = Some(a.to_string()),
+                    a if a == "-" || !a.starts_with('-') => { pdf_file.get_or_insert_with(|| a.to_string()); }
                     a => return err_out(&format!("pdfdetach: unknown option {a}\n"), 99),
                 }
                 i += 1;
@@ -8322,66 +8325,63 @@ fn cmd_media_doc(
             let Some(f) = pdf_file else {
                 return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
             };
-            let full = resolve_posix_path(cwd, &f);
-            let Ok(b) = fs.read_file(&full) else {
-                return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
+            let b = if f == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
+            } else {
+                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd,&f)) else {
+                    return err_out(&format!("I/O Error: Couldn't open file '{f}'\n"), 1);
+                };
+                bytes
             };
             if !b.starts_with(b"%PDF-") {
                 return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
-            let doc = PdfDoc::parse(&b);
-            if let Some(ref enc_pw) = doc.encrypted {
-                let supplied = pw_opt.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
+            let attachments = if let Some(mut source) = pdf_reader::PageSource::open(&b) {
+                let Some(files) = source.read_attachments() else {
+                    return err_out("PDF Error: Invalid embedded file stream\n", 1);
+                };
+                files
+            } else {
+                let doc = PdfDoc::parse(&b);
+                if let Some(ref password) = doc.encrypted
+                    && !password.is_empty() && pw_opt.as_deref() != Some(password.as_str()) {
                     return err_out("PDF Error: Invalid PDF password\n", 1);
                 }
-            }
+                doc.attachments.into_iter().map(|(_,name,_,data)|(name,data)).collect()
+            };
             if list_mode || (!save_all && save_idx.is_none() && save_file.is_none()) {
-                let mut out = format!("{} embedded files\n", doc.attachments.len());
-                for (idx, (_, fname, _, _)) in doc.attachments.iter().enumerate() {
-                    out.push_str(&format!("{}: {fname}\n", idx + 1));
+                let mut out = format!("{} embedded files\n", attachments.len());
+                for (i, (name,_)) in attachments.iter().enumerate() {
+                    out.push_str(&format!("{}: {name}\n", i+1));
                 }
                 return ok_out(&out);
             }
-            if save_all {
-                let base_dir = out_target
-                    .as_deref()
-                    .map(|d| resolve_posix_path(cwd, d))
-                    .unwrap_or_else(|| cwd.to_string());
-                let _ = fs.mkdir_all(&base_dir);
-                for (_, fname, _, payload) in &doc.attachments {
-                    let safe_name = fname.rsplit('/').next().unwrap_or(fname);
-                    let dst = resolve_posix_path(&base_dir, safe_name);
-                    let _ = fs.write_file(&dst, payload);
-                }
-                return ok_out("");
-            }
-            if let Some(ref target_name) = save_file {
-                let Some((_, fname, _, payload)) = doc
-                    .attachments
-                    .iter()
-                    .find(|(k, fnm, _, _)| fnm == target_name || k == target_name)
-                else {
-                    return err_out(&format!("Error: Embedded file '{target_name}' not found\n"), 1);
+            let dest = out_target.as_deref().unwrap_or("");
+            let directory = dest.ends_with('/') || !dest.is_empty() && fs.is_dir(&resolve_posix_path(cwd,dest));
+            let mut outputs = Vec::new();
+            for (i,(name,bytes)) in attachments.into_iter().enumerate() {
+                if let Some(n) = save_idx {
+                    if i+1 != n { continue; }
+                } else if let Some(ref wanted) = save_file && wanted != &name { continue; }
+                let path = if !dest.is_empty() && !directory && (save_idx.is_some() || save_file.is_some()) {
+                    dest.to_string()
+                } else {
+                    let leaf = name.rsplit(['/', '\\']).next().unwrap_or("");
+                    if matches!(leaf, "" | "." | "..") || leaf.contains('\0') {
+                        return err_out("PDF Error: Invalid embedded attachment filename\n", 1);
+                    }
+                    if dest.is_empty() { leaf.into() } else { format!("{}/{leaf}",dest.trim_end_matches('/')) }
                 };
-                let dst = out_target
-                    .as_deref()
-                    .map(|p| resolve_posix_path(cwd, p))
-                    .unwrap_or_else(|| resolve_posix_path(cwd, fname.rsplit('/').next().unwrap_or(fname)));
-                let _ = fs.write_file(&dst, payload);
-                return ok_out("");
+                outputs.push((path,bytes));
             }
-            if let Some(idx1) = save_idx {
-                if idx1 == 0 || idx1 > doc.attachments.len() {
-                    return err_out(&format!("Error: Invalid file index {idx1}\n"), 1);
+            if outputs.is_empty() {
+                if let Some(n) = save_idx { return err_out(&format!("Error: Invalid file index {n}\n"),1); }
+                if let Some(name) = save_file { return err_out(&format!("Error: Embedded file '{name}' not found\n"),1); }
+            }
+            for (path, bytes) in outputs {
+                if !write_regular_output(fs,cwd,&path,&bytes) {
+                    return err_out(&format!("I/O Error: Error saving embedded file as '{path}'\n"), 2);
                 }
-                let (_, fname, _, payload) = &doc.attachments[idx1 - 1];
-                let dst = out_target
-                    .as_deref()
-                    .map(|p| resolve_posix_path(cwd, p))
-                    .unwrap_or_else(|| resolve_posix_path(cwd, fname.rsplit('/').next().unwrap_or(fname)));
-                let _ = fs.write_file(&dst, payload);
-                return ok_out("");
             }
             ok_out("")
         }
@@ -13249,6 +13249,17 @@ mod media_unit_tests {
         let raw = String::from_utf8_lossy(&bytes);
         assert!(raw.contains("/EmbeddedFiles"), "attachment name tree is missing");
         assert_eq!(raw.matches("/Type /EmbeddedFile\n").count(), 2);
+        let list = cmd_media_doc("pdfdetach", &media_args(&["-list", "book.pdf"]), "", "/", &fs);
+        assert_eq!(list.stdout, "2 embedded files\n1: note.bin\n2: more.bin\n");
+        fs.mkdir_all("/saved").unwrap();
+        let save = cmd_media_doc("pdfdetach", &media_args(&["-saveall", "-o", "/saved", "book.pdf"]), "", "/", &fs);
+        assert_eq!(save.exit_code, 0, "{}", save.stderr);
+        assert_eq!(fs.read_file("/saved/note.bin").unwrap(), b"first");
+        assert_eq!(fs.read_file("/saved/more.bin").unwrap(), b"extra");
+        fs.symlink("/book.pdf", "/dest").unwrap();
+        let save = cmd_media_doc("pdfdetach", &media_args(&["-save", "1", "-o", "/dest", "book.pdf"]), "", "/", &fs);
+        assert_eq!((save.exit_code,save.stderr.as_str()), (2,"I/O Error: Error saving embedded file as '/dest'\n"));
+        assert_eq!(fs.read_file("/book.pdf").unwrap(), bytes);
     }
 
     #[test]

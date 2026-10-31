@@ -164,6 +164,18 @@ impl<'a> PageSource<'a> {
         Some(files)
     }
 
+    pub(in super::super) fn read_attachments(&mut self) -> Option<Vec<(String, Vec<u8>)>> {
+        let mut seen = BTreeSet::new();
+        let mut result = Vec::new();
+        for (name, id) in self.attachments()? {
+            let name = super::text(&name);
+            if seen.insert(name.clone()) {
+                result.push((name, self.objects.decoded_stream(id)?.into_owned()));
+            }
+        }
+        Some(result)
+    }
+
     pub(in super::super) fn len(&self) -> usize {
         self.pages.len()
     }

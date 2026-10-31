@@ -1286,9 +1286,7 @@ impl<'a> EvalState<'a> {
             self.env.remove(&k);
         }
         if self.func_stack.is_empty() {
-            self.env.remove("FUNCNAME[#]");
-            self.env.remove("FUNCNAME[*]");
-            self.env.remove("FUNCNAME[@]");
+            self.env.remove("FUNCNAME");
             self.env.remove("__keys__FUNCNAME");
         } else {
             for (i, f) in self.func_stack.iter().enumerate() {
@@ -3690,7 +3688,6 @@ impl<'a> EvalState<'a> {
                     }
                 }
             }
-            sync_getopts_env(self.env);
             let mut out = res;
             if let Ok(ref mut o) = out
                 && self.exit_requested.is_some()

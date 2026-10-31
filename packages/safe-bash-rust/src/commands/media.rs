@@ -7628,23 +7628,22 @@ fn cmd_media_doc(
 
             let format_dump = |doc: &PdfDoc, utf8: bool| -> String {
                 let mut out = String::new();
-                if !doc.title.is_empty() {
-                    out.push_str(&format!(
-                        "InfoBegin\nInfoKey: Title\nInfoValue: {}\n",
-                        encode_pdftk_text(&doc.title, utf8)
-                    ));
-                }
-                if !doc.author.is_empty() {
-                    out.push_str(&format!(
-                        "InfoBegin\nInfoKey: Author\nInfoValue: {}\n",
-                        encode_pdftk_text(&doc.author, utf8)
-                    ));
-                }
-                for (k, v) in &doc.info {
-                    out.push_str(&format!(
-                        "InfoBegin\nInfoKey: {k}\nInfoValue: {}\n",
-                        encode_pdftk_text(v, utf8)
-                    ));
+                let fields = doc.info.iter().map(|(k, v)| (k.as_str(), v.as_str()));
+                let standard = ["Title", "Author", "Subject", "Keywords", "Creator", "Producer"];
+                let mut emitted = std::collections::BTreeSet::new();
+                for (k, v) in standard.into_iter().filter_map(|key| {
+                    match key {
+                        "Title" if !doc.title.is_empty() => Some((key, doc.title.as_str())),
+                        "Author" if !doc.author.is_empty() => Some((key, doc.author.as_str())),
+                        _ => fields.clone().find(|(k, _)| *k == key),
+                    }
+                }).chain(fields.clone()) {
+                    if !v.is_empty() && emitted.insert(k) {
+                        out.push_str(&format!(
+                            "InfoBegin\nInfoKey: {}\nInfoValue: {}\n",
+                            encode_pdftk_text(k, utf8), encode_pdftk_text(v, utf8)
+                        ));
+                    }
                 }
                 out.push_str(&format!("PdfID0: {}\n", doc.pdf_id0));
                 out.push_str(&format!("PdfID1: {}\n", doc.pdf_id1));
@@ -7663,18 +7662,12 @@ fn cmd_media_doc(
                         .copied()
                         .unwrap_or((doc.page_w, doc.page_h, None));
                     out.push_str(&format!(
-                        "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: 0 0 {} {}\nPageMediaDimensions: {} {}\n",
-                        pg.rot,
-                        pw as i64,
-                        ph as i64,
-                        pw as i64,
-                        ph as i64
+                        "PageMediaBegin\nPageMediaNumber: {pno}\nPageMediaRotation: {}\nPageMediaRect: 0 0 {pw} {ph}\nPageMediaDimensions: {pw} {ph}\n",
+                        pg.rot
                     ));
                     if let Some([cx0, cy0, cx1, cy1]) = crop_opt {
                         out.push_str(&format!(
-                            "PageMediaCropBox: {} {} {} {}\nPageMediaCropRect: {} {} {} {}\n",
-                            cx0 as i64, cy0 as i64, cx1 as i64, cy1 as i64,
-                            cx0 as i64, cy0 as i64, cx1 as i64, cy1 as i64
+                            "PageMediaCropBox: {cx0} {cy0} {cx1} {cy1}\nPageMediaCropRect: {cx0} {cy0} {cx1} {cy1}\n"
                         ));
                     }
                 }
@@ -13063,12 +13056,12 @@ mod media_unit_tests {
     fn reads_page_tree_and_text_from_classic_pdf_objects() {
         let objects = [
             "<< /Type /Catalog /Pages 2 0 R >>",
-            "<< /Type /Pages /Count 2 /Kids [4 0 R 3 0 R] /MediaBox [0 0 300 400] /CropBox [5 6 205 306] /Rotate 90 >>",
+            "<< /Type /Pages /Count 2 /Kids [4 0 R 3 0 R] /MediaBox [0 0 300.25 400.5] /CropBox [5 6 205 306] /Rotate 90 >>",
             "<< /Type /Page /Parent 2 0 R /Contents 6 0 R /Rotate 0 /CropBox [0 0 10 20] >>",
             "<< /Type /Page /Parent 2 0 R /Contents 5 0 R >>",
             "<< /Length 25 >>\nstream\nBT (first \\(page\\)) Tj ET\nendstream",
             "<< /Length 24 >>\nstream\nBT [(sec) 0 (ond)] TJ ET\nendstream",
-            "<< /Title (example) >>",
+            "<< /Zebra (last) /Producer (writer) /Title (example) /Subject (testing) /Alpha (first) >>",
         ];
         let mut pdf = String::from("%PDF-1.4\n");
         let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", objects.len() + 1);
@@ -13078,10 +13071,10 @@ mod media_unit_tests {
         }
         let offset = pdf.len();
         pdf.push_str(&xref);
-        pdf.push_str(&format!("trailer\n<< /Size 8 /Root 1 0 R /Info 7 0 R >>\nstartxref\n{offset}\n%%EOF"));
+        pdf.push_str(&format!("trailer\n<< /Size 8 /Root 1 0 R /Info 7 0 R /ID [<f123> <cdef>] >>\nstartxref\n{offset}\n%%EOF"));
         let doc = PdfDoc::parse(pdf.as_bytes());
         assert_eq!(doc.title, "example");
-        assert_eq!((doc.page_w, doc.page_h), (300.0, 400.0));
+        assert_eq!((doc.page_w, doc.page_h), (300.25, 400.5));
         assert_eq!(doc.pages.len(), 2);
         assert_eq!(doc.pages[0].text, "first (page)");
         assert_eq!(doc.pages[1].text, "second");
@@ -13089,6 +13082,14 @@ mod media_unit_tests {
         assert_eq!(doc.pages[1].rot, 0);
         assert_eq!(doc.page_media[&1].2, Some([5., 6., 205., 306.]));
         assert_eq!(doc.page_media[&2].2, Some([0., 0., 10., 20.]));
+        let vfs = MemoryVfs::new();
+        vfs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        let dump = cmd_media_doc("pdftk", &media_args(&["/in.pdf", "dump_data"]), "", "/", &vfs);
+        assert_eq!(dump.exit_code, 0);
+        let keys: Vec<_> = dump.stdout.lines().filter_map(|l| l.strip_prefix("InfoKey: ")).collect();
+        assert_eq!(keys, ["Title", "Subject", "Producer", "Zebra", "Alpha"]);
+        assert!(dump.stdout.contains("PdfID0: f123\nPdfID1: cdef\n"));
+        assert!(dump.stdout.contains("PageMediaDimensions: 300.25 400.5\n"));
     }
 
     #[test]

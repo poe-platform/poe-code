@@ -9,13 +9,13 @@ enum Value<'a> {
     String(Vec<u8>),
     Ref(ObjectId),
     Array(Vec<Value<'a>>),
-    Dict(BTreeMap<&'a [u8], Value<'a>>),
+    Dict(Vec<(&'a [u8], Value<'a>)>),
 }
 
 impl<'a> Value<'a> {
     fn get(&self, key: &[u8]) -> Option<&Self> {
         match self {
-            Self::Dict(d) => d.get(key),
+            Self::Dict(d) => d.iter().rev().find(|(k, _)| *k == key).map(|(_, v)| v),
             _ => None,
         }
     }
@@ -105,14 +105,14 @@ impl<'a> Cursor<'a> {
         }
         self.skip();
         if self.eat(b"<<") {
-            let mut dict = BTreeMap::new();
+            let mut dict = Vec::new();
             loop {
                 self.skip();
                 if self.eat(b">>") {
                     return Some(Value::Dict(dict));
                 }
                 let key = self.word()?.strip_prefix(b"/")?;
-                dict.insert(key, self.value(depth + 1, tokens)?);
+                dict.push((key, self.value(depth + 1, tokens)?));
             }
         }
         if self.eat(b"[") {
@@ -400,6 +400,13 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
     doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)
         .ok()?
         .to_string();
+    if let Some(Value::Array(ids)) = trailer.get(b"ID") {
+        for (id, target) in ids.iter().zip([&mut doc.pdf_id0, &mut doc.pdf_id1]) {
+            if let Value::String(bytes) = id {
+                *target = super::hex_enc(bytes);
+            }
+        }
+    }
     if let Some(r) = trailer.get(b"Info").and_then(Value::reference)
         && let Value::Dict(info) = objects.object(r)?.0
     {

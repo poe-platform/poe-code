@@ -6457,7 +6457,7 @@ fn classify_file_bytes(bytes: &[u8]) -> (String, &'static str, &'static str) {
             return ("data".to_string(), "application/octet-stream", "binary");
         }
         let units: Vec<u16> = payload
-            .chunks_exact(2)
+            .as_chunks::<2>().0.iter()
             .map(|c| {
                 if encoding == "utf-16le" {
                     u16::from_le_bytes([c[0], c[1]])

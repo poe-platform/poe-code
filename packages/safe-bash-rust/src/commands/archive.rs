@@ -106,7 +106,7 @@ fn sha256_with_iv(data: &[u8], mut h: [u32; 8]) -> [u8; 32] {
     }
     msg.extend_from_slice(&bit_len.to_be_bytes());
 
-    for chunk in msg.chunks_exact(64) {
+    for chunk in msg.as_chunks::<64>().0 {
         let mut w = [0u32; 64];
         for i in 0..16 {
             w[i] = u32::from_be_bytes([
@@ -188,7 +188,7 @@ pub fn sha1_bytes(data: &[u8]) -> [u8; 20] {
     }
     msg.extend_from_slice(&bit_len.to_be_bytes());
 
-    for chunk in msg.chunks_exact(64) {
+    for chunk in msg.as_chunks::<64>().0 {
         let mut w = [0u32; 80];
         for i in 0..16 {
             w[i] = u32::from_be_bytes([
@@ -274,7 +274,7 @@ fn md5_bytes(data: &[u8]) -> [u8; 16] {
     }
     msg.extend_from_slice(&bit_len.to_le_bytes());
 
-    for chunk in msg.chunks_exact(64) {
+    for chunk in msg.as_chunks::<64>().0 {
         let mut m = [0u32; 16];
         for i in 0..16 {
             m[i] = u32::from_le_bytes([
@@ -378,7 +378,7 @@ fn sha512_with_iv(data: &[u8], mut h: [u64; 8]) -> [u8; 64] {
     }
     msg.extend_from_slice(&bit_len.to_be_bytes());
 
-    for chunk in msg.chunks_exact(128) {
+    for chunk in msg.as_chunks::<128>().0 {
         let mut w = [0u64; 80];
         for i in 0..16 {
             w[i] = u64::from_be_bytes(chunk[i * 8..i * 8 + 8].try_into().unwrap());
@@ -468,7 +468,7 @@ fn sm3_bytes(data: &[u8]) -> [u8; 32] {
     padded.extend_from_slice(&bit_len.to_be_bytes());
     let p0 = |x: u32| x ^ x.rotate_left(9) ^ x.rotate_left(17);
     let p1 = |x: u32| x ^ x.rotate_left(15) ^ x.rotate_left(23);
-    for chunk in padded.chunks_exact(64) {
+    for chunk in padded.as_chunks::<64>().0 {
         let mut w = [0u32; 68];
         for i in 0..16 {
             w[i] = u32::from_be_bytes(chunk[i * 4..i * 4 + 4].try_into().unwrap());
@@ -673,8 +673,8 @@ fn sha3_bytes(data: &[u8], bits: usize) -> Vec<u8> {
     }
     buf.push(0x80);
     for chunk in buf.chunks_exact(rate) {
-        for (i, w) in chunk.chunks_exact(8).enumerate() {
-            st[i] ^= u64::from_le_bytes(w.try_into().unwrap());
+        for (i, w) in chunk.as_chunks::<8>().0.iter().enumerate() {
+            st[i] ^= u64::from_le_bytes(*w);
         }
         keccak_f(&mut st);
     }
@@ -9640,7 +9640,7 @@ fn cmd_openssl(
                 let mut out = Vec::with_capacity(padded.len());
                 let mut prev = [0u8; 16];
                 prev.copy_from_slice(&iv);
-                for chunk in padded.chunks_exact(16) {
+                for chunk in padded.as_chunks::<16>().0 {
                     let mut blk = [0u8; 16];
                     for j in 0..16 {
                         blk[j] = chunk[j] ^ prev[j];
@@ -9656,7 +9656,7 @@ fn cmd_openssl(
                 let mut out = Vec::with_capacity(input.len());
                 let mut prev = [0u8; 16];
                 prev.copy_from_slice(&iv);
-                for chunk in input.chunks_exact(16) {
+                for chunk in input.as_chunks::<16>().0 {
                     let mut blk = [0u8; 16];
                     blk.copy_from_slice(chunk);
                     let mut dec = aes_decrypt_block(&blk, &round_keys, nr);

@@ -9181,6 +9181,25 @@ impl<'a> EvalState<'a> {
         self.fs.lstat(full_path).is_ok()
     }
 
+    fn redirect_error(&self, target: &str, error: &str) -> BuiltinOutcome {
+        let detail = match error.split(':').next().unwrap_or(error) {
+            "ENOENT" => "No such file or directory",
+            "EACCES" => "Permission denied",
+            "EPERM" => "Operation not permitted",
+            "ENOTDIR" => "Not a directory",
+            "EISDIR" => "Is a directory",
+            "ELOOP" => "Too many levels of symbolic links",
+            "ENOSPC" => "No space left on device",
+            "EROFS" => "Read-only file system",
+            _ => error,
+        };
+        BuiltinOutcome {
+            stdout: String::new(),
+            stderr: format!("{}{target}: {detail}\n", self.diag_prefix()),
+            exit_code: 1,
+        }
+    }
+
     fn check_redirect_parent_dir(&self, full: &str, target: &str) -> Option<BuiltinOutcome> {
         if self.is_default_null(full) {
             return None;
@@ -9189,20 +9208,11 @@ impl<'a> EvalState<'a> {
             .rsplit_once('/')
             .map(|(p, _)| if p.is_empty() { "/" } else { p })
             .unwrap_or("/");
-        if self.fs.is_dir(parent) {
-            return None;
+        match self.fs.stat(parent) {
+            Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => None,
+            Ok(_) => Some(self.redirect_error(target, "ENOTDIR")),
+            Err(e) => Some(self.redirect_error(target, &e)),
         }
-        let prefix = self.diag_prefix();
-        let detail = if self.fs.exists(parent) {
-            "Not a directory"
-        } else {
-            "No such file or directory"
-        };
-        Some(BuiltinOutcome {
-            stdout: String::new(),
-            stderr: format!("{prefix}{target}: {detail}\n"),
-            exit_code: 1,
-        })
     }
 
     #[allow(clippy::type_complexity)]
@@ -9357,17 +9367,7 @@ impl<'a> EvalState<'a> {
                             bytes_to_stream_string(&bytes)
                         }
                         Err(e) => {
-                            let prefix = self.diag_prefix();
-                            let detail = if e.starts_with("ENOENT:") {
-                                "No such file or directory"
-                            } else {
-                                e.as_str()
-                            };
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{prefix}{target}: {detail}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -9424,11 +9424,7 @@ impl<'a> EvalState<'a> {
                     }
                     if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -9460,11 +9456,7 @@ impl<'a> EvalState<'a> {
                             bytes_to_stream_string(&bytes)
                         }
                         Err(e) => {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -9942,11 +9934,7 @@ impl<'a> EvalState<'a> {
                     if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -10007,11 +9995,7 @@ impl<'a> EvalState<'a> {
                     if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -10071,11 +10055,7 @@ impl<'a> EvalState<'a> {
                     }
                     if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -10180,11 +10160,7 @@ impl<'a> EvalState<'a> {
                             if !self.is_default_null(&full) {
                                 let existed = self.fs.exists(&full);
                                 if let Err(e) = self.fs.write_file(&full, b"") {
-                                    let mut err_out = BuiltinOutcome {
-                                        stdout: String::new(),
-                                        stderr: format!("{target}: {e}\n"),
-                                        exit_code: 1,
-                                    };
+                                    let mut err_out = self.redirect_error(&target, &e);
                                     self.route_outcome(&mut err_out);
                                     return Ok((
                                         (saved_fd_table, saved_aliases),
@@ -10366,11 +10342,7 @@ impl<'a> EvalState<'a> {
                     if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -10419,11 +10391,7 @@ impl<'a> EvalState<'a> {
                     }
                     if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
-                            let mut err_out = BuiltinOutcome {
-                                stdout: String::new(),
-                                stderr: format!("{target}: {e}\n"),
-                                exit_code: 1,
-                            };
+                            let mut err_out = self.redirect_error(&target, &e);
                             self.route_outcome(&mut err_out);
                             return Ok((
                                 (saved_fd_table, saved_aliases),
@@ -15520,6 +15488,27 @@ mod tests {
             expand_braces("literal_without_range"),
             vec!["literal_without_range"]
         );
+    }
+
+    #[test]
+    fn redirect_errors_report_shell_line_and_filesystem_reason() {
+        use crate::vfs::{MemoryVfs, MountVfs};
+        let root = std::sync::Arc::new(MemoryVfs::new());
+        root.symlink("/mnt", "/dir-link").unwrap();
+        root.symlink("/mnt/f", "/file-link").unwrap();
+        let fs = MountVfs::new(root).with_mount("/mnt", std::sync::Arc::new(MemoryVfs::new()));
+        for target in ["/file-link", "/dir-link/f"] {
+            for redirect in [">", ">>", "<", "<>", "2>", "&>", ">|"] {
+                let mut cwd = "/".to_string();
+                let mut env = BTreeMap::new();
+                let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+                let custom = BTreeMap::new();
+                let mut state = EvalState::new(&mut cwd, &mut env, &fs, &budget, &custom, false);
+                let res = state.eval_script_str(&format!("true\nprintf x {redirect} {target}"), "").unwrap();
+                assert_eq!(res.exit_code, 1, "{redirect} {target}");
+                assert_eq!(res.stderr, format!("shell: line 2: {target}: Permission denied\n"));
+            }
+        }
     }
 
     #[test]

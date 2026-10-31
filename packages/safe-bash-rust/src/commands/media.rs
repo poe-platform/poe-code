@@ -8579,17 +8579,11 @@ fn cmd_media_doc(
                     "-locPS" => show_loc_ps = true,
                     "-f" | "-l" => {
                         let is_first = args[i] == "-f";
-                        let Some(v) = args.get(i + 1).and_then(|s| s.parse::<usize>().ok()) else {
-                            return err_out("pdffonts: invalid page number\n", 99);
-                        };
-                        if v == 0 {
-                            return err_out("pdffonts: invalid page number\n", 99);
-                        }
-                        if is_first {
-                            first_p = v;
-                        } else {
-                            last_p = v;
-                        }
+                        let raw = args.get(i+1).map(|s|s.trim_start()).unwrap_or("");
+                        let raw = raw.strip_prefix('+').unwrap_or(raw);
+                        let digits = raw.bytes().take_while(u8::is_ascii_digit).count();
+                        let v = if digits == 0 { 0 } else { raw[..digits].parse().unwrap_or(usize::MAX) };
+                        if is_first { first_p = v.max(1); } else { last_p = v; }
                         i += 1;
                     }
                     "-upw" | "-opw" => {
@@ -8599,11 +8593,11 @@ fn cmd_media_doc(
                         }
                     }
                     a if a == "-" || !a.starts_with('-') => files.push(a.to_string()),
-                    a => return err_out(&format!("pdffonts: unknown option {a}\n"), 99),
+                    _ => {}
                 }
                 i += 1;
             }
-            if files.len() != 1 {
+            if files.is_empty() {
                 return err_out("Usage: pdffonts [options] <PDF-file>\n", 99);
             }
             let b = if files[0] == "-" {
@@ -8618,14 +8612,19 @@ fn cmd_media_doc(
             if !b.starts_with(b"%PDF-") {
                 return err_out("PDF Error: Invalid PDF header: missing %PDF- signature\n", 1);
             }
-            let doc = PdfDoc::parse(&b);
-            if let Some(ref enc_pw) = doc.encrypted {
-                let supplied = pw_opt.as_deref().unwrap_or("");
-                if !enc_pw.is_empty() && supplied != enc_pw {
+            let source = pdf_reader::PageSource::open(&b);
+            let mut has_text = false;
+            let page_count = if let Some(src) = &source {
+                src.len()
+            } else {
+                let doc = PdfDoc::parse(&b);
+                if let Some(ref password) = doc.encrypted
+                    && !password.is_empty() && pw_opt.as_deref() != Some(password) {
                     return err_out("PDF Error: Invalid PDF password\n", 1);
                 }
-            }
-            let page_count = doc.pages.len().max(1);
+                has_text = doc.pages.iter().any(|p| !p.text.trim().is_empty());
+                doc.pages.len().max(1)
+            };
             let end_p = if last_p > 0 { page_count.min(last_p) } else { page_count };
             if first_p > page_count || (last_p > 0 && first_p > end_p) {
                 return err_out(
@@ -8635,37 +8634,28 @@ fn cmd_media_doc(
                     99,
                 );
             }
-            let has_text = doc.pages.iter().any(|p| !p.text.trim().is_empty());
-            if show_subst {
-                let mut out = String::from(
-                    "name                                 object ID substitute font                      substitute font file\n------------------------------------ --------- ------------------------------------ ------------------------------------\n",
-                );
-                if has_text {
+            let mut out = String::from(if show_subst {
+                "name                                 object ID substitute font                      substitute font file\n------------------------------------ --------- ------------------------------------ ------------------------------------\n"
+            } else if show_loc || show_loc_ps {
+                "name                                 type              encoding         emb sub uni object ID location\n------------------------------------ ----------------- ---------------- --- --- --- --------- --------\n"
+            } else {
+                "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\n"
+            });
+            if let Some(mut src) = source {
+                let Some(rows) = src.font_rows(first_p, end_p, show_loc || show_loc_ps, show_loc_ps, show_subst) else {
+                    return err_out("PDF Error: PDF font resource limit exceeded\n", 1);
+                };
+                out.push_str(&rows);
+            } else if has_text {
+                // Older internally generated documents have no PDF resource dictionaries.
+                if show_subst {
                     out.push_str("Helvetica                                 6  0 Nimbus Sans                          /usr/share/fonts/type1/urw-base35/NimbusSans.t1\n");
+                } else if show_loc || show_loc_ps {
+                    let loc = if show_loc_ps { "Substitute (Helvetica)" } else { "Substitute" };
+                    out.push_str(&format!("Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"));
+                } else {
+                    out.push_str("Helvetica                            Type 1            WinAnsi          no  no  no       4  0\n");
                 }
-                return ok_out(&out);
-            }
-            if show_loc || show_loc_ps {
-                let mut out = String::from(
-                    "name                                 type              encoding         emb sub uni object ID location\n------------------------------------ ----------------- ---------------- --- --- --- --------- --------\n",
-                );
-                if has_text {
-                    let loc = if show_loc_ps {
-                        "Substitute (Helvetica)"
-                    } else {
-                        "Substitute"
-                    };
-                    out.push_str(&format!(
-                        "Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"
-                    ));
-                }
-                return ok_out(&out);
-            }
-            let mut out = String::from(
-                "name                                 type              encoding         emb sub uni object ID\n------------------------------------ ----------------- ---------------- --- --- --- ---------\n",
-            );
-            if has_text {
-                out.push_str("Helvetica                            Type 1            WinAnsi          no  no  no       4  0\n");
             }
             ok_out(&out)
         }
@@ -13009,6 +12999,28 @@ mod media_unit_tests {
         pdf.push_str(&xref);
         pdf.push_str(&format!("trailer\n<< /Size {} /Root 1 0 R {extra} >>\nstartxref\n{offset}\n%%EOF", objects.len() + 1));
         pdf
+    }
+
+    #[test]
+    fn pdffonts_lists_inherited_font_objects_on_selected_pages_without_text() {
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 /MediaBox [0 0 300 400] /Resources << /Font << /A 5 0 R /Alias 5 0 R >> >> >>",
+            "<< /Type /Page /Parent 2 0 R >>",
+            "<< /Type /Page /Parent 2 0 R /Resources << /Font << /B 6 0 R >> >> >>",
+            "<< /Type /Font /Subtype /TrueType /BaseFont /ABCDEF+Arial /Encoding /WinAnsiEncoding /FontDescriptor << /FontFile2 8 0 R >> /ToUnicode 7 0 R >>",
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>",
+        ], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        let result = cmd_media_doc("pdffonts", &media_args(&["-loc", "-l", "1", "in.pdf"]), "", "/", &fs);
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(result.stdout.lines().skip(2).collect::<Vec<_>>(), [
+            "ABCDEF+Arial                         TrueType          WinAnsi          yes yes yes      5  0 Embedded"
+        ]);
+        let subst = cmd_media_doc("pdffonts", &media_args(&["-subst", "in.pdf"]), "", "/", &fs);
+        assert_eq!(subst.stdout.lines().count(), 3);
+        assert!(subst.stdout.ends_with("/NimbusMonoPS.t1\n"));
     }
 
     #[test]

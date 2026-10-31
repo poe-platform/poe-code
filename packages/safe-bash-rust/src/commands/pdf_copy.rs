@@ -3,6 +3,9 @@ use super::{ObjectId, Objects, Value, index};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::Write;
 
+#[path = "pdf_fonts.rs"]
+mod pdf_fonts;
+
 pub(in super::super) struct PageSource<'a> {
     objects: Objects<'a>,
     pages: Vec<ObjectId>,

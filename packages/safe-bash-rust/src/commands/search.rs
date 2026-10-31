@@ -4144,6 +4144,7 @@ fn run_grep_engine(
         .clone()
         .unwrap_or_else(|| "(standard input)".to_string());
 
+    let mut searched_directory = false;
     if targets.is_empty() {
         let lbl = if cfg.with_filename {
             Some(default_stdin_label.clone())
@@ -4181,7 +4182,9 @@ fn run_grep_engine(
                 had_error = true;
                 continue;
             }
-            if fs.is_dir(&resolved) && !cfg.is_rg && !cfg.recursive {
+            let is_dir = fs.is_dir(&resolved);
+            searched_directory |= is_dir;
+            if is_dir && !cfg.is_rg && !cfg.recursive {
                 if cfg.dir_action.as_deref() == Some("skip") {
                     continue;
                 }
@@ -4232,7 +4235,7 @@ fn run_grep_engine(
     } else if cfg.with_filename {
         true
     } else {
-        inputs.len() > 1 || targets.len() > 1 || cfg.recursive
+        inputs.len() > 1 || targets.len() > 1 || searched_directory
     };
 
     let mut out = String::new();

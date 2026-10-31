@@ -13796,6 +13796,7 @@ fn map_xan_short_option(sub: &str, ch: char) -> Option<&'static str> {
         ("top", 'R') | ("sort", 'R') => Some("reverse"),
         ("table", 's') | ("dedup", 's') | ("sort", 's') | ("search", 's') | ("rename", 's') | ("stats", 's') | ("freq", 's') => Some("select"),
         ("dedup", 'S') => Some("sorted"),
+        ("dedup", 'l') => Some("keep-last"),
         ("enum", 'c') => Some("column-name"),
         ("enum", 'S') => Some("start"),
         ("from", 'f') => Some("format"),

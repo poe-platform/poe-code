@@ -329,6 +329,57 @@ impl<'a> Objects<'a> {
         Some((value, c))
     }
 
+    fn resolve(&mut self, value: &Value<'a>) -> Option<Value<'a>> {
+        match value.reference() {
+            Some(id) => Some(self.object(id)?.0),
+            None => Some(value.clone()),
+        }
+    }
+
+    fn labels(&mut self, root: Option<&Value<'a>>) -> Option<Vec<(usize, Value<'a>)>> {
+        let mut labels = Vec::new();
+        let mut seen = BTreeSet::new();
+        let mut pending: Vec<_> = root.cloned().into_iter().collect();
+        while let Some(node) = pending.pop() {
+            if let Some(id) = node.reference()
+                && !seen.insert(id)
+            {
+                continue;
+            }
+            let node = self.resolve(&node)?;
+            if let Some(Value::Array(pairs)) = node.get(b"Nums").and_then(|v| self.resolve(v)) {
+                for pair in pairs.chunks_exact(2) {
+                    let Some(index) = self.resolve(&pair[0]).and_then(|v| uint(v.word()?)) else {
+                        continue;
+                    };
+                    let value = self.resolve(&pair[1])?;
+                    let mut fields = Vec::new();
+                    for k in [b"S".as_slice(), b"St", b"P"] {
+                        if let Some(v) = value.get(k).and_then(|v| self.resolve(v))
+                            && match (k, &v) {
+                                (b"S", Value::Word(w)) => w.starts_with(b"/"),
+                                (b"St", Value::Word(w)) => uint(w).is_some(),
+                                (b"P", Value::String(_)) => true,
+                                _ => false,
+                            }
+                        {
+                            if let Value::String(prefix) = &v {
+                                self.remaining_bytes =
+                                    self.remaining_bytes.checked_sub(prefix.len())?;
+                            }
+                            fields.push((k, v));
+                        }
+                    }
+                    labels.push((index, Value::Dict(fields)));
+                }
+            }
+            if let Some(Value::Array(kids)) = node.get(b"Kids").and_then(|v| self.resolve(v)) {
+                pending.extend(kids.into_iter().rev());
+            }
+        }
+        Some(labels)
+    }
+
     fn stream(&mut self, dict: &Value<'a>, mut c: Cursor<'a>) -> Option<&'a [u8]> {
         if c.word()? != b"stream" || !(c.eat(b"\r\n") || c.eat(b"\n") || c.eat(b"\r")) {
             return None;
@@ -438,6 +489,31 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
                     .push((std::str::from_utf8(k).ok()?.to_string(), value));
             }
         }
+    }
+    for (index, label) in objects.labels(catalog.get(b"PageLabels"))? {
+        let start = label
+            .get(b"St")
+            .and_then(Value::word)
+            .and_then(uint)
+            .unwrap_or(1);
+        let prefix = match label.get(b"P") {
+            Some(Value::String(s)) => text(s),
+            _ => String::new(),
+        };
+        let style = match label.get(b"S").and_then(Value::word) {
+            Some(b"/D") => "DecimalArabicNumerals",
+            Some(b"/R") => "UppercaseRomanNumerals",
+            Some(b"/r") => "LowercaseRomanNumerals",
+            Some(b"/A") => "UppercaseLetters",
+            Some(b"/a") => "LowercaseLetters",
+            _ => "NoNumber",
+        };
+        doc.page_labels.push((
+            index.checked_add(1)?.to_string(),
+            start.to_string(),
+            prefix,
+            style.into(),
+        ));
     }
     let mut pending = vec![(
         catalog.get(b"Pages")?.reference()?,

@@ -6239,8 +6239,7 @@ fn cmd_media_doc(
                 for src in sources {
                     let damaged = || err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"), 255);
                     let Some(mut source) = pdf_reader::PageSource::open(&inputs[src]) else { return damaged() };
-                    let pages = 0..source.len();
-                    if output.append(&mut source, pages).is_none() { return damaged(); }
+                    if output.append(&mut source, None).is_none() { return damaged(); }
                 }
                 return match output.finish() {
                     Some(bytes) => write_copied_pdf(fs, cwd, destination, &bytes, 255),
@@ -6392,7 +6391,7 @@ fn cmd_media_doc(
             for pno in first_p..=end_p {
                 let bytes = if let Some(s) = &mut source {
                     let mut output = pdf_reader::PageOutput::new(remaining);
-                    let Some(bytes) = output.append(s, pno - 1..pno).and_then(|()| output.finish()) else { return damaged() };
+                    let Some(bytes) = output.append(s, Some(pno - 1)).and_then(|()| output.finish()) else { return damaged() };
                     bytes
                 } else if let Some(doc) = &legacy {
                     let pg = &doc.pages[pno - 1];
@@ -13198,11 +13197,34 @@ mod media_unit_tests {
         let pdf = classic_pdf(&objects, "");
         let mut source = pdf_reader::PageSource::open(pdf.as_bytes()).unwrap();
         let mut dest = pdf_reader::PageOutput::new(1024*1024);
-        dest.append(&mut source, 0..count).expect("copy every page");
+        dest.append(&mut source, None).expect("copy every page");
         let bytes = dest.finish().unwrap();
         let merged = pdf_reader::read(&bytes).unwrap();
         assert_eq!(merged.pages.len(), count);
         assert_eq!(merged.page_media[&count], (300., 410., None));
+    }
+
+    #[test]
+    fn pdfunite_shifts_page_labels_from_indirect_number_trees() {
+        let fs = MemoryVfs::new();
+        for prefix in ["front", "back"] {
+            let label = format!("<< /P ({prefix}) /St 4 /S /r >>");
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R /PageLabels 4 0 R >>",
+                "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+                "<< /Type /Page /Parent 2 0 R >>",
+                "<< /Kids [5 0 R] >>",
+                "<< /Nums [0 6 0 R] >>",
+                &label,
+            ], "");
+            fs.write_file(&format!("/{prefix}.pdf"), pdf.as_bytes()).unwrap();
+        }
+        let r = cmd_media_doc("pdfunite", &media_args(&["front.pdf", "back.pdf", "book.pdf"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0);
+        let dump = cmd_media_doc("pdftk", &media_args(&["book.pdf", "dump_data_utf8"]), "", "/", &fs);
+        for (index,prefix) in [(1,"front"),(2,"back")] {
+            assert!(dump.stdout.contains(&format!("PageLabelNewIndex: {index}\nPageLabelStart: 4\nPageLabelPrefix: {prefix}\nPageLabelNumStyle: LowercaseRomanNumerals\n")), "{}", dump.stdout);
+        }
     }
 
     #[test]

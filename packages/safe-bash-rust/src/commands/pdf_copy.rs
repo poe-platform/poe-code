@@ -8,6 +8,7 @@ pub(in super::super) struct PageSource<'a> {
     pages: Vec<ObjectId>,
     tree: BTreeMap<ObjectId, Option<Value<'a>>>,
     info: Value<'a>,
+    labels: Option<Value<'a>>,
 }
 
 impl<'a> PageSource<'a> {
@@ -78,6 +79,7 @@ impl<'a> PageSource<'a> {
             tree,
             pages,
             info: Value::Dict(info),
+            labels: catalog.get(b"PageLabels").cloned(),
         })
     }
 
@@ -88,6 +90,7 @@ impl<'a> PageSource<'a> {
 
 pub(in super::super) struct PageOutput {
     pages: Vec<usize>,
+    labels: Vec<u8>,
     bodies: Vec<Vec<u8>>,
     limit: usize,
     remaining: usize,
@@ -97,6 +100,7 @@ impl PageOutput {
     pub(in super::super) fn new(limit: usize) -> Self {
         Self {
             pages: vec![],
+            labels: Vec::new(),
             bodies: vec![
                 b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
                 vec![],
@@ -110,8 +114,13 @@ impl PageOutput {
     pub(in super::super) fn append(
         &mut self,
         source: &mut PageSource<'_>,
-        selection: std::ops::Range<usize>,
+        single_page: Option<usize>,
     ) -> Option<()> {
+        let page_offset = self.pages.len();
+        let selection = match single_page {
+            Some(i) => i..i.checked_add(1)?,
+            None => 0..source.len(),
+        };
         let mut ids = BTreeMap::new();
         for i in selection.clone() {
             let n = self.bodies.len() + 1;
@@ -131,6 +140,16 @@ impl PageOutput {
             copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
             copy.output.bodies[2] = body;
         }
+        if single_page.is_none() {
+            for (index, label) in copy.objects.labels(source.labels.as_ref())? {
+                let mut pair = Vec::new();
+                write!(pair, "{} ", page_offset.checked_add(index)?).ok()?;
+                copy.value(&label, &mut pair, 0)?;
+                pair.push(b' ');
+                copy.output.remaining = copy.output.remaining.checked_sub(pair.len())?;
+                copy.output.labels.extend_from_slice(&pair);
+            }
+        }
         for i in selection {
             let id = source.pages[i];
             let page = copy.page(id)?;
@@ -143,6 +162,15 @@ impl PageOutput {
     }
 
     pub(in super::super) fn finish(mut self) -> Option<Vec<u8>> {
+        if !self.labels.is_empty() {
+            let n = self.bodies.len() + 1;
+            self.bodies[0] =
+                format!("<<\n/Type /Catalog\n/Pages 2 0 R\n/PageLabels {n} 0 R\n>>").into_bytes();
+            let mut body = b"<<\n/Nums [ ".to_vec();
+            body.append(&mut self.labels);
+            body.extend_from_slice(b"]\n>>");
+            self.bodies.push(body);
+        }
         let mut tree =
             format!("<<\n/Type /Pages\n/Count {}\n/Kids [ ", self.pages.len()).into_bytes();
         for r in self.pages {

@@ -1,4 +1,4 @@
-use crate::backend::{CommandContext, CommandResult, RustCommand};
+use crate::backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
 use crate::budget::ExecutionBudget;
 use crate::commands::try_run_command;
 use crate::shell::builtins::{
@@ -22,6 +22,7 @@ use crate::shell::parser::{
 };
 use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_string_to_bytes};
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
 #[derive(Debug, Clone)]
 pub enum EvalError {
@@ -114,6 +115,7 @@ pub struct EvalState<'a> {
     pub loop_depth: usize,
     pub active_aliases: BTreeSet<String>,
     pub allow_unported_fallback: bool,
+    pub used_typescript_bridge: Arc<AtomicBool>,
 }
 
 impl<'a> EvalState<'a> {
@@ -218,6 +220,7 @@ impl<'a> EvalState<'a> {
             loop_depth: 0,
             active_aliases: BTreeSet::new(),
             allow_unported_fallback,
+            used_typescript_bridge: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -367,6 +370,7 @@ impl<'a> EvalState<'a> {
             loop_depth: 0,
             active_aliases: self.active_aliases.clone(),
             allow_unported_fallback: self.allow_unported_fallback,
+            used_typescript_bridge: self.used_typescript_bridge.clone(),
         }
     }
 
@@ -4713,12 +4717,37 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
+        // These native command shims contain metadata-only writers, not media
+        // codecs. Run the real implementation once, at this command boundary.
+        if matches!(effective_cmd,
+            "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf"
+            | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts"
+            | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo"
+            | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox"
+            | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite"
+            | "montage" | "compare" | "sips" | "exiftool" | "identify")
+        {
+            if !self.allow_unported_fallback {
+                return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; native media processing is unavailable\n"), exit_code: 1 });
+            }
+            self.budget.check_cancelled().map_err(EvalError::Budget)?;
+            let script = std::iter::once(effective_cmd).chain(args.iter().map(String::as_str))
+                .map(|word| format!("'{}'", word.replace('\'', "'\\''"))).collect::<Vec<_>>().join(" ");
+            self.used_typescript_bridge.store(true, Ordering::Relaxed);
+            let result = HybridBackend::new(BackendMode::TypeScriptOnly).execute_typescript_bridge(
+                &script, self.cwd, self.env, stdin, self.budget.remaining_timeout_ms(), self.fs,
+            ).map_err(EvalError::Budget)?;
+            self.budget.check_cancelled().map_err(EvalError::Budget)?;
+            return Ok(BuiltinOutcome { stdout: result.stdout, stderr: result.stderr, exit_code: result.exit_code });
+        }
+
         let fs_ref = self.fs;
         let budget_ref = self.budget;
         let custom_ref = self.custom_commands;
         let funcs_clone = self.functions.clone();
         let exported_clone = self.exported_functions.clone();
         let allow_fallback = self.allow_unported_fallback;
+        let used_typescript_bridge = self.used_typescript_bridge.clone();
         let mut sub_err: Option<EvalError> = None;
 
         if let Some(c_out) = try_run_command(
@@ -4795,6 +4824,7 @@ impl<'a> EvalState<'a> {
                     loop_depth: 0,
                     active_aliases: BTreeSet::new(),
                     allow_unported_fallback: allow_fallback,
+                    used_typescript_bridge: used_typescript_bridge.clone(),
                 };
                 if let Err(e) = sub_eval.budget.enter_substitution() {
                     sub_err = Some(EvalError::Budget(e));

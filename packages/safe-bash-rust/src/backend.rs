@@ -6,6 +6,7 @@ use crate::shell::parser::Script;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum BackendMode {
@@ -40,6 +41,7 @@ pub struct HybridBackend {
     pub mode: BackendMode,
     commands: BTreeMap<String, RustCommand>,
     functions: Mutex<BTreeMap<String, Script>>,
+    pub(crate) used_typescript_bridge: Arc<AtomicBool>,
 }
 
 fn jstr(s: &str) -> Vec<u16> {
@@ -157,6 +159,7 @@ impl HybridBackend {
             mode,
             commands: BTreeMap::new(),
             functions: Mutex::new(BTreeMap::new()),
+            used_typescript_bridge: Arc::new(AtomicBool::new(false)),
         }
     }
 
@@ -193,6 +196,7 @@ impl HybridBackend {
         limits: &ShellLimits,
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
+        self.used_typescript_bridge.store(false, Ordering::Relaxed);
         if script != ":" {
             crate::commands::reset_virtual_clock();
         }
@@ -203,6 +207,7 @@ impl HybridBackend {
         };
         let allow_fallback = self.mode == BackendMode::Hybrid;
         let mut eval = EvalState::new(cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
+        eval.used_typescript_bridge = self.used_typescript_bridge.clone();
         if let Ok(guard) = self.functions.lock() {
             eval.functions = guard.clone();
         }
@@ -307,7 +312,7 @@ impl HybridBackend {
             (jstr("script"), Value::String(jstr(script))),
             (jstr("cwd"), Value::String(jstr(cwd))),
             (jstr("env"), Value::Object(env_obj)),
-            (jstr("stdin"), Value::String(jstr(stdin))),
+            (jstr("stdinBase64"), Value::String(jstr(&base64_encode(&crate::vfs::stream_string_to_bytes(stdin))))),
             (jstr("files"), Value::Array(files_json)),
         ];
         if let Some(ms) = timeout_ms {
@@ -360,8 +365,8 @@ impl HybridBackend {
             return Err("Command timed out".into());
         }
 
-        let out_stdout = match obj_get(&resp, "stdout") {
-            Some(Value::String(s)) => from_jstr(s),
+        let out_stdout = match obj_get(&resp, "stdoutBase64") {
+            Some(Value::String(s)) => crate::vfs::bytes_to_stream_string(&base64_decode(&from_jstr(s))?),
             _ => String::new(),
         };
         let out_stderr = match obj_get(&resp, "stderr") {

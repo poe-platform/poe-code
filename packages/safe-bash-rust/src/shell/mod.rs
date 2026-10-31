@@ -133,7 +133,7 @@ impl Shell {
                 stderr: res.stderr,
                 exit_code: res.exit_code,
                 cwd: self.cwd.clone(),
-                used_typescript_bridge: false,
+                used_typescript_bridge: self.backend.used_typescript_bridge.load(std::sync::atomic::Ordering::Relaxed),
             });
         }
 

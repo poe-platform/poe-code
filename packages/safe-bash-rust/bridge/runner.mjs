@@ -116,7 +116,7 @@ async function main() {
       result = await session.exec(req.script, {
         cwd: req.cwd || "/",
         env: req.env || {},
-        stdin: req.stdin ?? "",
+        stdin: Buffer.from(req.stdinBase64 ?? "", "base64"),
         signal: controller.signal,
       });
     } catch (err) {
@@ -166,7 +166,7 @@ async function main() {
     }
 
     const response = {
-      stdout: result.stdout ?? "",
+      stdoutBase64: Buffer.from(result.stdoutBytes).toString("base64"),
       stderr: result.stderr ?? "",
       exitCode: result.exitCode,
       cwd: state?.cwd || req.cwd || "/",

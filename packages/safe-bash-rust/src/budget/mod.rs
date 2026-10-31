@@ -146,6 +146,13 @@ impl ExecutionBudget {
         Ok(())
     }
 
+    pub(crate) fn remaining_timeout_ms(&self) -> Option<u64> {
+        #[cfg(not(target_arch = "wasm32"))]
+        return self.deadline.map(|deadline| deadline.saturating_duration_since(Instant::now()).as_millis().clamp(1, u64::MAX as u128) as u64);
+        #[cfg(target_arch = "wasm32")]
+        None
+    }
+
     pub fn tick_loop(&self) -> Result<(), String> {
         self.check_cancelled()?;
         let prev = self.loop_iterations.fetch_add(1, Ordering::Relaxed);

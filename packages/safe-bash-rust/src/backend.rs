@@ -63,6 +63,10 @@ struct BudgetedFs<'a> {
 }
 
 impl<'a> SafeBashFs for BudgetedFs<'a> {
+    fn max_input_bytes(&self) -> usize {
+        self.budget.limits.max_input_bytes
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

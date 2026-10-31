@@ -81,6 +81,10 @@ pub trait SafeBashFs: Send + Sync {
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String>;
     fn replace_entries(&self, entries: &[VfsFileEntry]) -> Result<(), String>;
 
+    fn max_input_bytes(&self) -> usize {
+        crate::budget::ShellLimits::default().max_input_bytes
+    }
+
     fn read_dir(&self, path: &str) -> Result<Vec<String>, String> {
         self.list_dir(path)
     }

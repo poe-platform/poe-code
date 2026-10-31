@@ -9762,67 +9762,22 @@ fn resolve_csvkit_columns(
     selected
 }
 
-fn decompress_gzip_if_needed(bytes: &[u8]) -> Vec<u8> {
-    if bytes.len() >= 18 && bytes[0] == 0x1f && bytes[1] == 0x8b {
-        let flg = bytes[3];
-        let mut pos = 10usize;
-        if (flg & 0x04) != 0 && pos + 2 <= bytes.len() {
-            let xlen = u16::from_le_bytes([bytes[pos], bytes[pos + 1]]) as usize;
-            pos += 2 + xlen;
-        }
-        if (flg & 0x08) != 0 {
-            while pos < bytes.len() && bytes[pos] != 0 {
-                pos += 1;
-            }
-            pos += 1;
-        }
-        if (flg & 0x10) != 0 {
-            while pos < bytes.len() && bytes[pos] != 0 {
-                pos += 1;
-            }
-            pos += 1;
-        }
-        if (flg & 0x02) != 0 {
-            pos += 2;
-        }
-        let mut out = Vec::new();
-        let mut ok = true;
-        while pos + 5 <= bytes.len().saturating_sub(8) {
-            let hdr = bytes[pos];
-            let btype = (hdr >> 1) & 0x03;
-            if btype != 0 {
-                ok = false;
-                break;
-            }
-            let bfinal = (hdr & 0x01) != 0;
-            let len = u16::from_le_bytes([bytes[pos + 1], bytes[pos + 2]]) as usize;
-            pos += 5;
-            if pos + len + 8 > bytes.len() {
-                ok = false;
-                break;
-            }
-            out.extend_from_slice(&bytes[pos..pos + len]);
-            pos += len;
-            if bfinal {
-                break;
-            }
-        }
-        if ok {
-            return out;
-        }
+fn decompress_gzip_if_needed(bytes: Vec<u8>, fs: &dyn SafeBashFs) -> Result<Vec<u8>, String> {
+    if bytes.starts_with(&[0x1f, 0x8b]) {
+        return super::codecs::gzip_decompress_bounded(&bytes, fs.max_input_bytes());
     }
-    bytes.to_vec()
+    Ok(bytes)
 }
 
 fn read_csv_bytes_input(files: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<Vec<u8>, String> {
     if files.is_empty() || files[0] == "-" {
-        return Ok(decompress_gzip_if_needed(stdin.as_bytes()));
+        return decompress_gzip_if_needed(crate::vfs::stream_string_to_bytes(stdin), fs);
     }
     let full = resolve_posix_path(cwd, &files[0]);
     let bytes = fs
         .read_file(&full)
         .map_err(|_| format!("{}: No such file or directory\n", files[0]))?;
-    Ok(decompress_gzip_if_needed(&bytes))
+    decompress_gzip_if_needed(bytes, fs)
 }
 
 fn read_csv_input(files: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
@@ -9838,7 +9793,7 @@ fn read_csvkit_bytes_input(
     fs: &dyn SafeBashFs,
 ) -> Result<Vec<u8>, String> {
     if files.is_empty() || files[0] == "-" {
-        return Ok(decompress_gzip_if_needed(stdin.as_bytes()));
+        return decompress_gzip_if_needed(crate::vfs::stream_string_to_bytes(stdin), fs);
     }
     let raw_path = &files[0];
     let full = resolve_posix_path(cwd, raw_path);
@@ -9854,7 +9809,7 @@ fn read_csvkit_bytes_input(
             "FileNotFoundError: [Errno 2] No such file or directory: '{raw_path}'\n"
         )
     })?;
-    Ok(decompress_gzip_if_needed(&bytes))
+    decompress_gzip_if_needed(bytes, fs)
 }
 
 fn read_csvkit_input(

@@ -250,6 +250,10 @@ const DIST_EXTRA: [u8; 30] = [
 ];
 
 pub fn inflate_raw(data: &[u8]) -> Result<(Vec<u8>, usize), String> {
+    inflate_raw_bounded(data, usize::MAX)
+}
+
+fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
     const CL_ORDER: [usize; 19] = [
         16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
     ];
@@ -266,6 +270,9 @@ pub fn inflate_raw(data: &[u8]) -> Result<(Vec<u8>, usize), String> {
                 let nlen = reader.read_u16_aligned()?;
                 if len != !nlen {
                     return Err("corrupt deflate block length".into());
+                }
+                if len as usize > limit - out.len() {
+                    return Err("inflated data exceeds input limit".into());
                 }
                 for _ in 0..len {
                     out.push(reader.read_bits(8)? as u8);
@@ -329,6 +336,9 @@ pub fn inflate_raw(data: &[u8]) -> Result<(Vec<u8>, usize), String> {
                 loop {
                     let sym = lit_tree.decode(&mut reader)? as usize;
                     if sym < 256 {
+                        if out.len() == limit {
+                            return Err("inflated data exceeds input limit".into());
+                        }
                         out.push(sym as u8);
                     } else if sym == 256 {
                         break;
@@ -347,6 +357,9 @@ pub fn inflate_raw(data: &[u8]) -> Result<(Vec<u8>, usize), String> {
                             + (reader.read_bits(DIST_EXTRA[d_sym])? as usize);
                         if dist == 0 || dist > out.len() {
                             return Err("invalid deflate distance".into());
+                        }
+                        if length > limit - out.len() {
+                            return Err("inflated data exceeds input limit".into());
                         }
                         for _ in 0..length {
                             let b = out[out.len() - dist];
@@ -486,6 +499,10 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
 }
 
 pub fn gzip_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
+    gzip_decompress_bounded(data, usize::MAX)
+}
+
+pub(super) fn gzip_decompress_bounded(data: &[u8], limit: usize) -> Result<Vec<u8>, String> {
     if data.len() < 18 || data[0] != 0x1f || data[1] != 0x8b {
         return Err("not in gzip format".into());
     }
@@ -528,7 +545,7 @@ pub fn gzip_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
         if pos > data.len() {
             return Err("unexpected end of file".into());
         }
-        let (member_out, consumed) = inflate_raw(&data[pos..])?;
+        let (member_out, consumed) = inflate_raw_bounded(&data[pos..], limit - total_out.len())?;
         pos += consumed;
         if pos + 8 > data.len() {
             return Err("unexpected end of file".into());
@@ -1121,6 +1138,7 @@ mod tests {
         let mut concat = gzip_compress(b"first-");
         concat.extend_from_slice(&gzip_compress(b"second"));
         assert_eq!(gzip_decompress(&concat).unwrap(), b"first-second");
+        assert!(gzip_decompress_bounded(&concat, 11).is_err());
 
         // Reject non-gzip magic
         assert!(gzip_decompress(b"not-gzip").is_err());

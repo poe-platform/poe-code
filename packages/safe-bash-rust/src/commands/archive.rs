@@ -7504,9 +7504,20 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             }
         }
     }
+    let mut entries = match fs.read_file(&arch_full) {
+        Ok(bytes) => match crate::commands::codecs::parse_zip_archive(&bytes) {
+            Ok(entries) => entries,
+            Err(e) => return err_out(&format!("zip: {e}\n"), 2),
+        },
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => {
+            if copy_mode || delete_mode || freshen_mode {
+                return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
+            }
+            Vec::new()
+        }
+        Err(e) => return err_out(&format!("zip: {e}\n"), 2),
+    };
     if show_files {
-        let bytes = fs.read_file(&arch_full).unwrap_or_default();
-        let entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         let mut out = format!("Archive contains:\n");
         for e in &entries {
             if e.name != "__ZIP_COMMENT__" {
@@ -7517,10 +7528,6 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return ok_out(&out);
     }
     if copy_mode {
-        let Ok(bytes) = fs.read_file(&arch_full) else {
-            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
-        };
-        let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         entries.retain(|e| {
             if e.name == "__ZIP_COMMENT__" {
                 return true;
@@ -7534,10 +7541,6 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return ok_out("");
     }
     if delete_mode {
-        let Ok(bytes) = fs.read_file(&arch_full) else {
-            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
-        };
-        let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         entries.retain(|e| {
             e.name == "__ZIP_COMMENT__" || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
@@ -7545,10 +7548,6 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         return ok_out("");
     }
     if freshen_mode {
-        let Ok(bytes) = fs.read_file(&arch_full) else {
-            return err_out(&format!("zip: cannot read {arch_name}\n"), 1);
-        };
-        let mut entries = crate::commands::codecs::parse_zip_archive(&bytes).unwrap_or_default();
         for e in &mut entries {
             if e.typeflag == b'0' && e.name != "__ZIP_COMMENT__" {
                 if !operands.is_empty() && !operands.iter().any(|t| zip_matches_pattern(t, &e.name)) {
@@ -7563,11 +7562,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
         let _ = fs.write_file(&dest_full, &crate::commands::codecs::serialize_zip_archive(&entries));
         return ok_out("");
     }
-    let mut entries = if !filesync_mode && fs.exists(&arch_full) {
-        crate::commands::codecs::parse_zip_archive(&fs.read_file(&arch_full).unwrap_or_default()).unwrap_or_default()
-    } else {
-        Vec::new()
-    };
+    if filesync_mode { entries.clear(); }
     let effective_targets: Vec<String> = if recursive_patterns {
         vec![".".to_string()]
     } else {
@@ -11844,6 +11839,22 @@ mod tests {
         let neato_svg = cmd_graphviz("neato", &args(&["-Tsvg", "/work/g.dot"]), "", "/work", &vfs);
         assert_eq!(neato_svg.exit_code, 0);
         assert!(neato_svg.stdout.contains("<svg"));
+    }
+
+    #[test]
+    fn zip_rejects_invalid_archives_before_mutating_sources_or_outputs() {
+        for options in [vec!["-qm"], vec!["-qd"], vec!["-qf"], vec!["-qU", "-O", "copy.zip"], vec!["-FS"], vec!["-sf"]] {
+            let vfs = MemoryVfs::new();
+            vfs.write_file("/broken.zip", b"broken").unwrap();
+            vfs.write_file("/input", b"contents").unwrap();
+            let mut argv = args(&options);
+            argv.extend(args(&["broken.zip", "input"]));
+            let result = cmd_zip(&argv, "", "/", &vfs);
+            assert_eq!((result.exit_code, result.stderr.as_str()), (2, "zip: ZIP missing end record\n"), "{options:?}");
+            assert_eq!(vfs.read_file("/broken.zip").unwrap(), b"broken");
+            assert_eq!(vfs.read_file("/input").unwrap(), b"contents");
+            assert!(!vfs.exists("/copy.zip"));
+        }
     }
 
     #[test]

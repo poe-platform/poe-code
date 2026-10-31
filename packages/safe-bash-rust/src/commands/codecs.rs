@@ -1257,6 +1257,18 @@ mod tests {
     }
 
     #[test]
+    fn zip_directory_rejects_ambiguous_end_or_absent_volumes() {
+        let empty = serialize_zip_archive(&[]);
+        let mut ambiguous = empty.clone();
+        ambiguous[20] = 22;
+        ambiguous.extend(&empty);
+        assert_eq!(parse_zip_archive(&ambiguous).err().as_deref(), Some("ZIP ambiguous end records"));
+        let mut split = empty;
+        split[4] = 1;
+        assert_eq!(parse_zip_archive(&split).err().as_deref(), Some("ZIP multi-disk archive requires an explicit VFS volume resolver"));
+    }
+
+    #[test]
     fn unit_deflate_empty_single_byte_and_repeating_runs() {
         for sample in [&b""[..], &b"A"[..], &[b"X"[0]; 4096][..]] {
             let gz = gzip_compress(sample);
@@ -3335,40 +3347,38 @@ pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> 
 
 pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::TarEntry>, String> {
     if data.len() < 22 {
-        return Err("End-of-central-directory signature not found".into());
+        return Err("ZIP missing end record".into());
     }
     let min_eocd = data.len().saturating_sub(22 + 65535);
     let mut eocd_pos: Option<usize> = None;
     for pos in (min_eocd..=data.len() - 22).rev() {
         if u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) == 0x0605_4b50 {
             let cmt_len = u16::from_le_bytes([data[pos + 20], data[pos + 21]]) as usize;
-            if pos + 22 + cmt_len == data.len() {
-                eocd_pos = Some(pos);
-                break;
+            if data.len() - pos - 22 == cmt_len && eocd_pos.replace(pos).is_some() {
+                return Err("ZIP ambiguous end records".into());
             }
         }
     }
     let Some(eocd) = eocd_pos else {
-        let ustar = crate::commands::archive::parse_ustar_archive(data);
-        if !ustar.is_empty() {
-            return Ok(ustar);
-        }
-        return Err("End-of-central-directory signature not found".into());
+        return Err("ZIP missing end record".into());
     };
 
+    if data[eocd + 4..eocd + 8] != [0; 4] {
+        return Err("ZIP multi-disk archive requires an explicit VFS volume resolver".into());
+    }
     let total_entries = u16::from_le_bytes([data[eocd + 10], data[eocd + 11]]) as usize;
     let central_size = u32::from_le_bytes(data[eocd + 12..eocd + 16].try_into().unwrap()) as usize;
     let central_offset = u32::from_le_bytes(data[eocd + 16..eocd + 20].try_into().unwrap()) as usize;
     let cmt_len = u16::from_le_bytes([data[eocd + 20], data[eocd + 21]]) as usize;
 
-    if central_offset + central_size > eocd {
+    if central_offset.checked_add(central_size) != Some(eocd) {
         return Err("corrupt central directory".into());
     }
 
     let mut out = Vec::with_capacity(total_entries + 1);
     let mut pos = central_offset;
     for _ in 0..total_entries {
-        if pos + 46 > central_offset + central_size {
+        if eocd - pos < 46 {
             return Err("truncated central directory".into());
         }
         if u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap()) != 0x0201_4b50 {
@@ -3387,7 +3397,7 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
         let ext_attr = u32::from_le_bytes(data[pos + 38..pos + 42].try_into().unwrap());
         let local_off = u32::from_le_bytes(data[pos + 42..pos + 46].try_into().unwrap()) as usize;
 
-        if pos + 46 + name_len + extra_len + entry_cmt_len > central_offset + central_size {
+        if name_len + extra_len + entry_cmt_len > eocd - pos - 46 {
             return Err("truncated central directory entry".into());
         }
         let name = String::from_utf8_lossy(&data[pos + 46..pos + 46 + name_len]).to_string();
@@ -3412,15 +3422,15 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
             ex_pos += len;
         }
 
-        if local_off + 30 > central_offset
+        if local_off.checked_add(30).is_none_or(|end| end > central_offset)
             || u32::from_le_bytes(data[local_off..local_off + 4].try_into().unwrap()) != 0x0403_4b50
         {
             return Err("invalid local header".into());
         }
         let l_name_len = u16::from_le_bytes([data[local_off + 26], data[local_off + 27]]) as usize;
         let l_extra_len = u16::from_le_bytes([data[local_off + 28], data[local_off + 29]]) as usize;
-        let payload_start = local_off + 30 + l_name_len + l_extra_len;
-        if payload_start + comp_size > central_offset {
+        let payload_start = (local_off + 30).checked_add(l_name_len + l_extra_len).ok_or("invalid local header")?;
+        if payload_start.checked_add(comp_size).is_none_or(|end| end > central_offset) {
             return Err("truncated entry data".into());
         }
         let raw_payload = &data[payload_start..payload_start + comp_size];
@@ -3472,6 +3482,9 @@ pub fn parse_zip_archive(data: &[u8]) -> Result<Vec<crate::commands::archive::Ta
         });
     }
 
+    if pos != eocd {
+        return Err("ZIP central directory size or member count mismatch".into());
+    }
     if cmt_len > 0 {
         out.push(crate::commands::archive::TarEntry {
             name: "__ZIP_COMMENT__".to_string(),

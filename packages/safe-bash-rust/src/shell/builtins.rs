@@ -2183,18 +2183,11 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
             let eff = if idx < 0 { tail_len + 1 + idx } else { idx };
             return eff >= 0 && eff <= tail_len;
         }
-        if sub == "@" || sub == "*" {
-            if env.contains_key(&resolved_base) {
-                return true;
-            }
-            let prefix = format!("{resolved_base}[");
-            return env.keys().any(|k| {
-                k.strip_prefix(&prefix)
-                    .and_then(|s| s.strip_suffix(']'))
-                    .is_some_and(|sub_k| !matches!(sub_k, "#" | "@" | "*"))
-            });
-        }
         let is_assoc = env.get(&format!("__assoc__{resolved_base}")).is_some_and(|v| v == "1");
+        if !is_assoc && matches!(sub, "@" | "*") {
+            let prefix = format!("{resolved_base}[");
+            return env.contains_key(&resolved_base) || env.keys().any(|k| k.starts_with(&prefix));
+        }
         let key = if is_assoc {
             format!("{resolved_base}[{sub}]")
         } else {

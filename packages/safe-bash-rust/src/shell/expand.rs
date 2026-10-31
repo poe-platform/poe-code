@@ -1010,26 +1010,12 @@ fn tokenize_arith_spanned(
 
 pub fn sync_array_metadata(base: &str, env: &mut BTreeMap<String, String>) {
     let prefix = format!("{base}[");
-    let mut entries: Vec<(String, String)> = Vec::new();
-    for (k, v) in env.iter() {
-        if let Some(rest) = k.strip_prefix(&prefix)
-            && let Some(sub) = rest.strip_suffix(']')
-            && !matches!(sub, "@" | "*" | "#")
-        {
-            entries.push((sub.to_string(), v.clone()));
-        }
-    }
+    let mut entries: Vec<(String, String)> = env
+        .keys()
+        .filter_map(|k| Some((k.strip_prefix(&prefix)?.strip_suffix(']')?.to_string(), String::new())))
+        .collect();
     sort_array_entries(base, env, &mut entries);
-    let mut keys: Vec<String> = Vec::with_capacity(entries.len());
-    let mut vals: Vec<String> = Vec::with_capacity(entries.len());
-    for (k, v) in entries {
-        keys.push(k);
-        vals.push(v);
-    }
-    let joined = vals.join(" ");
-    env.insert(format!("{base}[#]"), vals.len().to_string());
-    env.insert(format!("{base}[*]"), joined.clone());
-    env.insert(format!("{base}[@]"), joined);
+    let keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
     env.insert(format!("__keys__{base}"), keys.join("\x1f"));
     if let Some(zero) = env.get(&format!("{base}[0]")).cloned() {
         env.insert(base.to_string(), zero);
@@ -1094,7 +1080,7 @@ fn resolve_arith_var_resolved(
             if !resolved.contains('[') {
                 env.get(&format!("{resolved}[0]")).cloned()
             } else if let Some(b) = resolved.strip_suffix("[0]")
-                && !env.contains_key(&format!("{b}[#]"))
+                && !env.contains_key(&format!("__keys__{b}"))
                 && !env.contains_key(&format!("__assoc__{b}"))
             {
                 env.get(b).cloned()
@@ -1154,7 +1140,7 @@ fn set_arith_var_resolved(
         env.remove(&format!("__unexported__{base}"));
     }
     let is_array = !resolved.contains('[')
-        && (env.contains_key(&format!("{resolved}[#]"))
+        && (env.contains_key(&format!("__keys__{resolved}"))
             || env.contains_key(&format!("__assoc__{resolved}"))
             || env
                 .get(&format!("__attr__{resolved}"))
@@ -1767,7 +1753,6 @@ pub fn expand_parameter_expr(
                 .filter_map(|k| {
                     k.strip_prefix(&prefix)
                         .and_then(|s| s.strip_suffix(']'))
-                        .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                         .map(|s| (s.to_string(), String::new()))
                 })
                 .collect();
@@ -1775,7 +1760,7 @@ pub fn expand_parameter_expr(
             let mut keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
             if keys.is_empty()
                 && !is_assoc
-                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 keys.push("0".to_string());
@@ -1830,11 +1815,11 @@ pub fn expand_parameter_expr(
                 .filter(|k| {
                     k.strip_prefix(&prefix)
                         .and_then(|s| s.strip_suffix(']'))
-                        .is_some_and(|sub| !matches!(sub, "@" | "*" | "#"))
+                        .is_some()
                 })
                 .count();
             if count == 0
-                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__keys__{resolved}"))
                 && !env.contains_key(&format!("__assoc__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
@@ -1999,7 +1984,7 @@ pub fn expand_parameter_expr(
                 }
                 if !write_dynamic_variable(&resolved, &transformed_def, env) {
                     let is_array = !resolved.contains('[')
-                        && (env.contains_key(&format!("{resolved}[#]"))
+                        && (env.contains_key(&format!("__keys__{resolved}"))
                             || env.contains_key(&format!("__assoc__{resolved}"))
                             || env
                                 .get(&format!("__attr__{resolved}"))
@@ -2063,7 +2048,7 @@ pub fn expand_parameter_expr(
                 }
                 if !write_dynamic_variable(&resolved, &transformed_def, env) {
                     let is_array = !resolved.contains('[')
-                        && (env.contains_key(&format!("{resolved}[#]"))
+                        && (env.contains_key(&format!("__keys__{resolved}"))
                             || env.contains_key(&format!("__assoc__{resolved}"))
                             || env
                                 .get(&format!("__attr__{resolved}"))
@@ -2339,7 +2324,6 @@ pub fn expand_parameter_expr(
                         .filter_map(|(k, v)| {
                             k.strip_prefix(&prefix)
                                 .and_then(|s| s.strip_suffix(']'))
-                                .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                                 .map(|sub| (sub.to_string(), v.clone()))
                         })
                         .collect();
@@ -2370,7 +2354,7 @@ pub fn expand_parameter_expr(
                     })
                     .collect();
                 if entries.is_empty()
-                    && !env.contains_key(&format!("{resolved}[#]"))
+                    && !env.contains_key(&format!("__keys__{resolved}"))
                     && is_var_set(&resolved, env, pos_args)
                 {
                     entries.push((0, lookup_var(&resolved, env, 0, pos_args)));
@@ -2572,7 +2556,6 @@ pub fn expand_double_quoted_at_expr(
                 .filter_map(|k| {
                     k.strip_prefix(&prefix)
                         .and_then(|s| s.strip_suffix(']'))
-                        .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                         .map(|s| (s.to_string(), String::new()))
                 })
                 .collect();
@@ -2580,7 +2563,7 @@ pub fn expand_double_quoted_at_expr(
             let mut keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
             if keys.is_empty()
                 && !is_assoc
-                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 keys.push("0".to_string());
@@ -2604,14 +2587,13 @@ pub fn expand_double_quoted_at_expr(
                 .filter_map(|(k, v)| {
                     k.strip_prefix(&prefix)
                         .and_then(|s| s.strip_suffix(']'))
-                        .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                         .map(|sub| (sub.to_string(), v.clone()))
                 })
                 .collect();
             sort_array_entries(&resolved, env, &mut entries);
             if entries.is_empty()
                 && !is_assoc
-                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 let single = lookup_var(&resolved, env, 0, pos_args);
@@ -2649,7 +2631,6 @@ pub fn expand_double_quoted_at_expr(
                     .filter_map(|(k, v)| {
                         k.strip_prefix(&prefix)
                             .and_then(|s| s.strip_suffix(']'))
-                            .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                             .map(|sub| (sub.to_string(), v.clone()))
                     })
                     .collect();
@@ -2680,7 +2661,7 @@ pub fn expand_double_quoted_at_expr(
                 })
                 .collect();
             if entries.is_empty()
-                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__keys__{resolved}"))
                 && !env.contains_key(&format!("__assoc__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
@@ -3101,7 +3082,7 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
         let has_elem = env.keys().any(|k| {
             k.strip_prefix(&prefix)
                 .and_then(|s| s.strip_suffix(']'))
-                .is_some_and(|sub| !matches!(sub, "@" | "*" | "#"))
+                .is_some()
         });
         if has_elem {
             return true;
@@ -3113,7 +3094,7 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
             || env
                 .get(&format!("__attr__{resolved}"))
                 .is_some_and(|a| a.contains('A'));
-        if !is_assoc && !env.contains_key(&format!("{resolved}[#]")) {
+        if !is_assoc && !env.contains_key(&format!("__keys__{resolved}")) {
             return env.contains_key(resolved);
         }
         return false;
@@ -3513,14 +3494,13 @@ pub fn get_var_meta_info(
         .filter_map(|(k, v)| {
             k.strip_prefix(&prefix)
                 .and_then(|s| s.strip_suffix(']'))
-                .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                 .map(|sub| (sub.to_string(), v.clone()))
         })
         .collect();
     sort_array_entries(resolved, env, &mut entries);
     let is_indexed = !is_assoc
         && (!entries.is_empty()
-            || env.contains_key(&format!("{resolved}[#]"))
+            || env.contains_key(&format!("__keys__{resolved}"))
             || attr.contains('a'));
     let is_array = is_assoc || is_indexed;
     let has_var = is_array
@@ -3675,14 +3655,13 @@ fn lookup_array_elements(
         .filter_map(|(k, v)| {
             k.strip_prefix(&prefix)
                 .and_then(|s| s.strip_suffix(']'))
-                .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                 .map(|sub| (sub.to_string(), v.clone()))
         })
         .collect();
     sort_array_entries(&resolved, env, &mut entries);
     if entries.is_empty()
         && !is_assoc
-        && !env.contains_key(&format!("{resolved}[#]"))
+        && !env.contains_key(&format!("__keys__{resolved}"))
         && is_var_set(&resolved, env, pos_args)
     {
         let single = lookup_var(&resolved, env, 0, pos_args);
@@ -3880,19 +3859,18 @@ pub fn lookup_var(
             .filter_map(|(k, v)| {
                 k.strip_prefix(&prefix)
                     .and_then(|s| s.strip_suffix(']'))
-                    .filter(|&sub| !matches!(sub, "@" | "*" | "#"))
                     .map(|sub| (sub.to_string(), v.clone()))
             })
             .collect();
         sort_array_entries(&resolved, env, &mut entries);
         if entries.is_empty() {
             if !is_assoc
-                && !env.contains_key(&format!("{resolved}[#]"))
+                && !env.contains_key(&format!("__keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 return lookup_var(&resolved, env, last_exit, pos_args);
             }
-            return env.get(&format!("{resolved}[*]")).cloned().unwrap_or_default();
+            return String::new();
         }
         let vals: Vec<String> = entries.into_iter().map(|(_, v)| v).collect();
         if is_star {
@@ -3937,7 +3915,7 @@ pub fn lookup_var(
     }
     if let Some(base) = key.strip_suffix("[0]")
         && !env.contains_key(&key)
-        && !env.contains_key(&format!("{base}[#]"))
+        && !env.contains_key(&format!("__keys__{base}"))
         && !env.contains_key(&format!("__assoc__{base}"))
         && let Some(sv) = env.get(base)
     {

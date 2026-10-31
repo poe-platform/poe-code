@@ -2719,7 +2719,8 @@ impl<'a> EvalState<'a> {
         }
 
         let arr_prefix = format!("{resolved}[");
-        let is_existing_array = self.env.contains_key(&format!("__assoc__{resolved}"))
+        let is_existing_array = self.env.contains_key(&format!("__keys__{resolved}"))
+            || self.env.contains_key(&format!("__assoc__{resolved}"))
             || self.env.keys().any(|k| k.starts_with(&arr_prefix));
         let attr = self
             .env
@@ -7507,7 +7508,7 @@ impl<'a> EvalState<'a> {
                         .env
                         .get(&format!("__attr__{base_name}"))
                         .is_some_and(|a| a.contains('a'))
-                        || self.env.contains_key(&format!("{base_name}[#]"))
+                        || self.env.contains_key(&format!("__keys__{base_name}"))
                         || self.env.keys().any(|k| k.starts_with(&arr_prefix)));
                 if was_indexed {
                     decl_stderr.push_str(&format!(
@@ -7771,7 +7772,8 @@ impl<'a> EvalState<'a> {
                         .filter(|k| k.starts_with(&prefix))
                         .cloned()
                         .collect();
-                    let was_arr = !arr_keys.is_empty()
+                    let was_arr = self.env.contains_key(&format!("__keys__{resolved}"))
+                        || !arr_keys.is_empty()
                         || self
                             .env
                             .get(&format!("__attr__{resolved}"))
@@ -7782,9 +7784,7 @@ impl<'a> EvalState<'a> {
                     self.env.remove(&resolved);
                     self.env.remove(&format!("__keys__{resolved}"));
                     if was_arr {
-                        self.env.insert(format!("{resolved}[#]"), "0".to_string());
-                        self.env.insert(format!("{resolved}[*]"), String::new());
-                        self.env.insert(format!("{resolved}[@]"), String::new());
+                        self.env.insert(format!("__keys__{resolved}"), String::new());
                     }
                     continue;
                 }
@@ -8690,7 +8690,7 @@ impl<'a> EvalState<'a> {
             .filter(|k| {
                 k.strip_prefix(&arr_prefix)
                     .and_then(|s| s.strip_suffix(']'))
-                    .is_some_and(|sub| !matches!(sub, "@" | "*" | "#"))
+                    .is_some()
             })
             .count();
 

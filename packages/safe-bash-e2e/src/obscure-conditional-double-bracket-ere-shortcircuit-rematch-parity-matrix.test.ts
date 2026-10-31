@@ -264,6 +264,9 @@ describe("obscure [[ ... ]] conditional short-circuit, ERE regex fragment escapi
           "[[ -v map[beta] ]]; s2=$?",
           "[[ -v map[gamma] ]]; s3=$?",
           "[[ -v map[@] ]]; s4=$?",
+          "map[@]=literal",
+          "[[ -v map[@] ]]; literal_at=$?",
+          "[[ -v map[*] ]]; literal_star=$?",
           "arr=(zero one two)",
           "declare -n ref_elem='arr[1]'",
           "declare -n ref_missing='arr[9]'",
@@ -275,11 +278,11 @@ describe("obscure [[ ... ]] conditional short-circuit, ERE regex fragment escapi
           "declare -n ref_unset='unset_var'",
           "[[ -v ref_unset ]]; s8=$?",
           "[[ -R ref_unset ]]; s9=$?",
-          'echo "$s1:$s2:$s3:$s4|$s5:$s6:$s7:$s8:$s9"',
+          'echo "$s1:$s2:$s3:$s4:$literal_at:$literal_star|$s5:$s6:$s7:$s8:$s9"',
         ].join("\n"),
       );
       assert.equal(res.exitCode, 0);
-      assert.equal(res.stdout, "0:0:1:0|0:1:0:1:0\n");
+      assert.equal(res.stdout, "0:0:1:1:0:1|0:1:0:1:0\n");
       assert.equal(res.stderr, "");
     });
   });

@@ -5523,10 +5523,11 @@ impl<'a> EvalState<'a> {
         let mut command_string = false;
         let mut standard_input = false;
 
-        let loaded_source = self
-            .env
-            .remove("__shebang_loaded_path")
-            .and_then(|p| self.env.remove("__shebang_loaded_source").map(|s| (p, s)));
+        let loaded_source = if let Some(path) = self.env.remove("__shebang_loaded_path") {
+            self.env.remove("__shebang_loaded_source").map(|source| (path, source))
+        } else {
+            None
+        };
 
         while idx < args.len() {
             let a = &args[idx];

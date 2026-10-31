@@ -1,6 +1,5 @@
 #![allow(
     clippy::byte_char_slices,
-    clippy::chunks_exact_to_as_chunks,
     clippy::collapsible_if,
     clippy::collapsible_match,
     clippy::double_ended_iterator_last,

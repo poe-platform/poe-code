@@ -7205,6 +7205,9 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut update_mode = false;
     let mut filesync_mode = false;
     let mut move_mode = false;
+    let mut level = 6;
+    let mut use_deflate = true;
+    let mut suffixes = ".Z:.zip:.zoo:.arc:.lzh:.arj";
     let mut junk_paths = false;
     let mut omit_dirs = false;
     let mut recursive = false;
@@ -7286,6 +7289,19 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                 in_include = false;
                 output_archive = Some(out.trim_start_matches('=').to_string());
             }
+        } else if a == "--store" {
+            level = 0;
+            use_deflate = false;
+        } else if a == "-n" || a == "--suffixes" || a.starts_with("-n") || a.starts_with("--suffixes=") {
+            let value = if a == "-n" || a == "--suffixes" {
+                i += 1;
+                match args.get(i) {
+                    Some(s) if !s.starts_with('-') || s == "-" => s.as_str(),
+                    _ => return zip_err("option 'n' requires a value"),
+                }
+            } else { a.strip_prefix("--suffixes=").or_else(|| a.strip_prefix("-n")).unwrap() };
+            let value = value.trim_start_matches('=');
+            suffixes = if value.is_empty() { ".Z:.zip:.zoo:.arc:.lzh:.arj" } else { value };
         } else if a == "-Z" || a == "--compression-method" || a.starts_with("-Z") || a.starts_with("--compression-method=") {
             let val = if a == "-Z" || a == "--compression-method" {
                 if i + 1 >= args.len() || (args[i + 1].starts_with('-') && args[i + 1] != "-") {
@@ -7306,6 +7322,7 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             if lower.is_empty() || matches_cnt != 1 {
                 return zip_err("Option -Z (--compression-method):  unknown method");
             }
+            use_deflate = "deflate".starts_with(&lower);
         } else if a == "-s" || a == "--split-size" {
             if i + 1 >= args.len() {
                 return zip_err("split size requires a value");
@@ -7450,7 +7467,11 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     'z' => read_comment = true,
                     '@' => stdin_names = true,
                     'e' => has_encrypt_opt = true,
-                    'q' | 'v' | '0'..='9' | 'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
+                    '0'..='9' => {
+                        level = ch as u8 - b'0';
+                        if level == 0 { use_deflate = false; }
+                    }
+                    'q' | 'v' | 'c' | 'o' | 'X' | 'T' | 'k' | 'g' | 'J' | 'A'
                     | 'F' | 'p' => {}
                     other => return zip_err(&format!("unsupported option: -{other}")),
                 }
@@ -7678,7 +7699,8 @@ fn cmd_zip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
             content: comment_bytes,
         });
     }
-    let out_bytes = crate::commands::codecs::serialize_zip_archive(&entries);
+    let suffixes: Vec<_> = suffixes.split(':').filter(|s| !s.is_empty()).collect();
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries, if use_deflate { level } else { 0 }, &suffixes);
     if let Some(sz) = split_size
         && out_bytes.len() > sz
     {
@@ -11839,6 +11861,34 @@ mod tests {
         let neato_svg = cmd_graphviz("neato", &args(&["-Tsvg", "/work/g.dot"]), "", "/work", &vfs);
         assert_eq!(neato_svg.exit_code, 0);
         assert!(neato_svg.stdout.contains("<svg"));
+    }
+
+    #[test]
+    fn zip_deflates_compressible_members_and_honors_storage_selection() {
+        let vfs = MemoryVfs::new();
+        let data = b"alpha\nbeta\nbeta\n";
+        for (name, flags, method, ascii) in [
+            ("text", vec!["-q"], 8, 1), ("text", vec!["-q0"], 0, 0),
+            ("text", vec!["-Z", "store", "-9"], 0, 0),
+            ("text.zip", vec!["-q"], 0, 0), ("text.zip", vec!["-9"], 8, 1),
+            ("text", vec!["-n", "text"], 0, 0),
+        ] {
+            vfs.write_file(&format!("/{name}"), data).unwrap();
+            let mut argv = args(&flags);
+            argv.extend(args(&["out.zip", name]));
+            let result = cmd_zip(&argv, "", "/", &vfs);
+            assert_eq!(result.exit_code, 0, "{flags:?} {}", result.stderr);
+            let bytes = vfs.read_file("/out.zip").unwrap();
+            assert_eq!(bytes[8], method, "{flags:?} {name}");
+            let eocd = bytes.len() - 22;
+            let central = u32::from_le_bytes(bytes[eocd+16..eocd+20].try_into().unwrap()) as usize;
+            assert_eq!((bytes[central+10], bytes[central+36]), (method, ascii));
+            if method == 8 {
+                assert_eq!(&bytes[central-12..central], &[0x4b,0xcc,0x29,0xc8,0x48,0xe4,0x4a,0x4a,0x2d,0x81,0x12,0]);
+            }
+            assert_eq!(crate::commands::codecs::parse_zip_archive(&bytes).unwrap()[0].content, data);
+            vfs.remove_path("/out.zip").unwrap();
+        }
     }
 
     #[test]

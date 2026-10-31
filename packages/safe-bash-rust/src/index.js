@@ -19,7 +19,19 @@ function createWasmInstance() {
     const bytes = fs.readFileSync(wasmPath);
     compiledWasmModule = new WebAssembly.Module(bytes);
   }
-  return new WebAssembly.Instance(compiledWasmModule, {});
+  const instance = new WebAssembly.Instance(compiledWasmModule, {
+    safe_bash: {
+      fill_random_bytes(ptr, len) {
+        try {
+          globalThis.crypto.getRandomValues(new Uint8Array(instance.exports.memory.buffer, ptr >>> 0, len >>> 0));
+          return 0;
+        } catch {
+          return -1;
+        }
+      },
+    },
+  });
+  return instance;
 }
 
 export class ShellLimitError extends Error {

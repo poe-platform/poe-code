@@ -348,3 +348,19 @@ test("provided devices preserve backing files and the mounted test devices remai
     assert.equal(devices.stdout, "null\nrandom\nurandom\nzero\n0000\n");
   } finally { provided.dispose(); mounted.dispose(); }
 });
+
+test("random devices use the host entropy source and fail if it is unavailable", async t => {
+  const bash = createRustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  try {
+    const random = t.mock.method(globalThis.crypto, "getRandomValues", view => view.fill(0x5a));
+    const read = await bash.exec("head -c 16 /dev/urandom");
+    assert.equal(read.exitCode, 0, read.stderr);
+    assert.deepEqual(read.stdoutBytes, new Uint8Array(16).fill(0x5a));
+    assert.ok(random.mock.callCount() > 0);
+    random.mock.mockImplementation(() => { throw new Error("entropy unavailable"); });
+    const failed = await bash.exec("head -c 16 /dev/random");
+    assert.notEqual(failed.exitCode, 0);
+    assert.equal(failed.stdoutBytes.length, 0);
+  } finally { bash.dispose(); }
+});

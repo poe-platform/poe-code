@@ -23,7 +23,47 @@ enum MemoryNode {
 }
 
 static NEXT_FS_ID: AtomicU64 = AtomicU64::new(1);
-static DEV_RANDOM_SEED: AtomicU64 = AtomicU64::new(0x9E37_79B9_7F4A_7C15);
+
+fn fill_random(bytes: &mut [u8]) -> Result<(), String> {
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[link(wasm_import_module = "safe_bash")]
+        unsafe extern "C" {
+            fn fill_random_bytes(ptr: *mut u8, len: usize) -> i32;
+        }
+        // The host writes only to this live slice and never retains its pointer.
+        if unsafe { fill_random_bytes(bytes.as_mut_ptr(), bytes.len()) } != 0 {
+            return Err("EIO: host entropy source unavailable".into());
+        }
+        Ok(())
+    }
+    #[cfg(all(unix, not(target_arch = "wasm32")))]
+    {
+        use std::io::Read;
+        std::fs::File::open("/dev/urandom")
+            .and_then(|mut file| file.read_exact(bytes))
+            .map_err(|e| format!("EIO: host entropy source: {e}"))
+    }
+    #[cfg(windows)]
+    {
+        #[link(name = "bcrypt")]
+        unsafe extern "system" {
+            fn BCryptGenRandom(algorithm: *mut std::ffi::c_void, buffer: *mut u8, len: u32, flags: u32) -> i32;
+        }
+        let len = u32::try_from(bytes.len()).map_err(|_| "EFBIG: random read too large")?;
+        // BCRYPT_USE_SYSTEM_PREFERRED_RNG requires a null algorithm handle.
+        if unsafe { BCryptGenRandom(std::ptr::null_mut(), bytes.as_mut_ptr(), len, 2) } < 0 {
+            return Err("EIO: host entropy source unavailable".into());
+        }
+        Ok(())
+    }
+    #[cfg(not(any(unix, windows, target_arch = "wasm32")))]
+    {
+        let _ = bytes;
+        Err("ENOTSUP: host entropy source unavailable".into())
+    }
+}
+
 
 #[derive(Debug, Clone)]
 pub struct MemoryVfsLimits {
@@ -347,18 +387,8 @@ impl SafeBashFs for MemoryVfs {
             return Ok(vec![0u8; 65536]);
         }
         if matches!(device, Some("urandom" | "random")) {
-            let mut st = DEV_RANDOM_SEED.fetch_add(0x9E37_79B9_7F4A_7C15, Ordering::Relaxed);
-            if st == 0 {
-                st = 0xCAFE_BABE_DEAD_BEEF;
-            }
             let mut buf = vec![0u8; 4096];
-            for b in &mut buf {
-                st ^= st >> 12;
-                st ^= st << 25;
-                st ^= st >> 27;
-                let v = st.wrapping_mul(0x2545_F491_4F6C_DD1D);
-                *b = ((v >> 32) & 0xFF) as u8;
-            }
+            fill_random(&mut buf)?;
             return Ok(buf);
         }
         match guard.nodes.get(&resolved) {
@@ -814,7 +844,7 @@ mod tests {
         assert!(!zeros.is_empty());
         assert!(zeros.iter().all(|&b| b == 0));
 
-        // Reading /dev/urandom returns pseudo-random non-empty bytes
+        // Reading /dev/urandom returns bytes from the host entropy source
         let rand_bytes = vfs.read_file("/dev/urandom").unwrap();
         assert!(!rand_bytes.is_empty());
         assert!(rand_bytes.iter().any(|&b| b != 0));

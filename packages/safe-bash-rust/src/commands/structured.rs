@@ -1,6 +1,7 @@
 mod csvkit_cell;
 mod csvkit_decimal;
 mod csvkit_encoding;
+mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
 use crate::commands::search::{
@@ -10357,6 +10358,9 @@ fn csvkit_precheck(cmd: &str, args: &[String]) -> Option<BuiltinOutcome> {
             }
         }
         "csvstat" => {
+            if has_any(&["--names", "-n"]) { return None; }
+            stat_ops.sort_unstable();
+            stat_ops.dedup();
             if stat_ops.len() > 1 {
                 return err2("Only one operation argument may be specified (--mean, --median, etc).");
             }
@@ -10912,27 +10916,42 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         Ok(t) => t,
         Err(e) => return err_out(&e, 1),
     };
-    let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
-    if rows.is_empty() {
-        return if count_only { ok_out("0\n") } else { ok_out("") };
-    }
-    let (headers, data): (Vec<String>, &[Vec<String>]) = if no_header_row {
-        (default_csvkit_headers(rows[0].len()), &rows[..])
-    } else {
-        (normalize_csvkit_headers(&rows[0]), &rows[1..])
-    };
-
+    let mut records = csvkit_records::records(&text, delim, quotechar, skip_initial_space, skip_lines);
     if list_names {
-        let base = if zero_based { 0usize } else { 1usize };
+        let headers = match records.next() {
+            Some(Ok(row)) => row,
+            Some(Err(e)) => return err_out(e, 1),
+            None => return err_out("StopIteration: \n", 1),
+        };
+        let base = usize::from(!zero_based);
         let mut out = String::new();
         for (idx, h) in headers.iter().enumerate() {
             out.push_str(&format!("{:3}: {h}\n", idx + base));
         }
         return ok_out(&out);
     }
-
     if count_only {
-        return ok_out(&format!("{}\n", data.len()));
+        let mut count = if no_header_row { 0isize } else { -1 };
+        for row in records {
+            if let Err(e) = row { return err_out(e, 1); }
+            count += 1;
+        }
+        return ok_out(&format!("{count}\n"));
+    }
+    let rows = match records.collect::<Result<Vec<_>, _>>() {
+        Ok(rows) => rows, Err(e) => return err_out(e, 1),
+    };
+    let (headers, data) = match rows.split_first() {
+        None => (vec![], &rows[..]),
+        Some((first, _)) if no_header_row => (default_csvkit_headers(first.len()), &rows[..]),
+        Some((first, rest)) => (first.clone(), rest),
+    };
+    if (!data.is_empty() && headers.is_empty()) || headers.iter().any(String::is_empty)
+        || headers.iter().collect::<BTreeSet<_>>().len() != headers.len() {
+        return err_out("csvkit: unsupported or unqualified: Agate duplicate/unnamed column warning provenance\n", 78);
+    }
+    if let Some((i, row)) = data.iter().enumerate().find(|(_, row)| row.len() > headers.len()) {
+        return err_out(&format!("ValueError: Row {i} has {} values, but Table only has {} columns.\n", row.len(), headers.len()), 1);
     }
 
     let indices = resolve_csvkit_columns(cols_spec.as_deref(), None, &headers, zero_based);
@@ -37635,6 +37654,22 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_preserves_record_boundaries_and_validates_table_width() {
+        let fs = MemoryVfs::new();
+        let run = |flags: &[&str], input: &str| cmd_csvstat(&args(flags), input, "/", &fs);
+        assert_eq!(run(&["--count"], "").stdout, "-1\n");
+        assert_eq!(run(&[], "").stdout, "Row count: 0\n");
+        assert_eq!(run(&["--json"], "").stdout, "[]");
+        assert_eq!(run(&["-n"], "").stderr, "StopIteration: \n");
+        let input = "x\r\n\n\"\"\n\"a\r\nb\"\n";
+        assert_eq!(run(&["--count"], input).stdout, "3\n");
+        assert_eq!(run(&["--freq", "-I", "--blanks"], input).stdout, "{ \"None\": 1, \"\": 1, \"a\r\nb\": 1 }\n");
+        assert_eq!(run(&["--sum"], "x\na,b\n").stderr, "ValueError: Row 0 has 2 values, but Table only has 1 columns.\n");
+        assert_eq!(run(&["--names"], "x,x\na\rb\n").stdout, "  1: x\n  2: x\n");
+        assert_eq!(run(&["--count"], "x\ra\n").exit_code, 1);
     }
 
     #[test]

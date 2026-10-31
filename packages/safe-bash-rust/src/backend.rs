@@ -85,6 +85,19 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.write_file(path, data)
     }
 
+    fn patch_revision(&self, path: &str) -> Result<(u64, u64), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.patch_revision(path)
+    }
+
+    fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        if let Some(data) = bytes { self.budget.add_output_bytes(data.len())?; }
+        self.inner.patch_file(path, bytes, expected)
+    }
+
     fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

@@ -7934,11 +7934,6 @@ fn find_subslice_pos_with_fuzz(
     None
 }
 
-enum StagedPatchOp {
-    Write(String, Vec<u8>),
-    Delete(String),
-}
-
 fn apply_patch_norm(s: &str, pass: u8) -> String {
     if pass == 0 {
         return s.to_string();
@@ -8288,7 +8283,16 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         }
     }
 
-    let mut staged_ops: Vec<StagedPatchOp> = Vec::new();
+    let mut scopes = BTreeMap::new();
+    let mut revisions = BTreeMap::new();
+    for path in seen_paths {
+        let (scope, version) = match fs.patch_revision(&path) {
+            Ok(v) => v, Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
+        };
+        scopes.insert(path, scope);
+        revisions.entry(scope).or_insert(version);
+    }
+    let mut staged_ops = StagedPatchWrites::new();
     let mut summary_lines: Vec<String> = Vec::new();
 
     for f in &parsed_files {
@@ -8330,11 +8334,11 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                 } else {
                     format!("{}\n", f.added.join("\n"))
                 };
-                staged_ops.push(StagedPatchOp::Write(f.path, payload.into_bytes()));
+                staged_ops.push((f.path, Some(payload.into_bytes())));
                 summary_lines.push(format!("A {}", f.label));
             }
             ApplyPatchFileKind::Delete => {
-                staged_ops.push(StagedPatchOp::Delete(f.path));
+                staged_ops.push((f.path, None));
                 summary_lines.push(format!("D {}", f.label));
             }
             ApplyPatchFileKind::Update => {
@@ -8490,36 +8494,26 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                     out_str.into_bytes()
                 };
                 if let Some(dest) = f.destination {
-                    staged_ops.push(StagedPatchOp::Write(dest, updated_bytes));
-                    staged_ops.push(StagedPatchOp::Delete(f.path));
+                    staged_ops.push((dest, Some(updated_bytes)));
+                    staged_ops.push((f.path, None));
                     summary_lines.push(format!(
                         "M {}",
                         f.destination_label.as_deref().unwrap_or(&f.label)
                     ));
                 } else {
-                    staged_ops.push(StagedPatchOp::Write(f.path, updated_bytes));
+                    staged_ops.push((f.path, Some(updated_bytes)));
                     summary_lines.push(format!("M {}", f.label));
                 }
             }
         }
     }
 
-    for op in staged_ops {
-        match op {
-            StagedPatchOp::Write(full, bytes) => {
-                let parent = crate::vfs::dirname_posix_path(&full);
-                if !parent.is_empty() && parent != "/" && let Err(e) = fs.mkdir_all(&parent) {
-                    return err_out(&format!("apply_patch: {e}\n"), 1);
-                }
-                if let Err(e) = fs.write_file(&full, &bytes) {
-                    return err_out(&format!("apply_patch: {e}\n"), 1);
-                }
-            }
-            StagedPatchOp::Delete(full) => {
-                if let Err(e) = fs.remove(&full, false) {
-                    return err_out(&format!("apply_patch: {e}\n"), 1);
-                }
-            }
+    for (path, data) in staged_ops {
+        let scope = scopes[&path];
+        let revision = revisions.get_mut(&scope).unwrap();
+        match fs.patch_file(&path, data.as_deref(), (scope, *revision)) {
+            Ok(new) => *revision = new,
+            Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
         }
     }
 
@@ -10056,6 +10050,27 @@ mod tests {
         .unwrap();
         assert_eq!(sed_w.exit_code, 0);
         assert_eq!(vfs.read_file("/work/out.txt").unwrap(), b"/usr/sbin\n/home/sbin\n");
+    }
+
+    #[test]
+    fn apply_patch_creates_new_modes_and_preserves_existing_entries() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/work").unwrap();
+        fs.chmod("/work", 0o750).unwrap();
+        let patch = |body: &str| cmd_apply_patch(&[], &format!("*** Begin Patch\n{body}\n*** End Patch"), "/work", &fs);
+        assert_eq!(patch("*** Add File: a/b/new\n+one").exit_code, 0);
+        for path in ["/work/a", "/work/a/b"] { assert_eq!(fs.stat(path).unwrap().mode, 0o40777); }
+        assert_eq!(fs.stat("/work").unwrap().mode, 0o40750);
+        assert_eq!(fs.stat("/work/a/b/new").unwrap().mode, 0o100666);
+        fs.chmod("/work/a/b/new", 0o751).unwrap();
+        fs.set_mtime("/work/a/b/new", 42).unwrap();
+        assert_eq!(patch("*** Add File: a/b/new\n+one").exit_code, 0);
+        assert_eq!(fs.stat("/work/a/b/new").unwrap().mtime_ms, 42);
+        assert_eq!(patch("*** Add File: a/b/new\n+two").exit_code, 0);
+        assert_eq!(fs.stat("/work/a/b/new").unwrap().mode, 0o100751);
+        assert_eq!(patch("*** Update File: a/b/new\n*** Move to: dest").exit_code, 0);
+        assert_eq!(fs.stat("/work/dest").unwrap().mode, 0o100666);
+        assert!(!fs.exists("/work/a/b/new"));
     }
 
     #[test]

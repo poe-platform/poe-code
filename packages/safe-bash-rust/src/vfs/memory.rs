@@ -381,59 +381,63 @@ impl MemoryVfs {
             ));
         }
         for k in keys {
-            match guard.nodes.remove(&k) {
-                Some(MemoryNode::File { data, mode, mtime_ms, .. }) => {
-                    let hl_marker = format!("__hardlink__:{k}");
-                    let survivor = guard
-                        .nodes
-                        .iter()
-                        .find_map(|(nk, nv)| match nv {
-                            MemoryNode::Symlink { target, .. } if target == &hl_marker => {
-                                Some(nk.clone())
-                            }
-                            _ => None,
-                        });
-                    if let Some(surv_key) = survivor {
-                        let new_marker = format!("__hardlink__:{surv_key}");
-                        for (nk, nv) in guard.nodes.iter_mut() {
-                            if nk != &surv_key
-                                && let MemoryNode::Symlink { target, .. } = nv
-                                && target == &hl_marker
-                            {
-                                *target = new_marker.clone();
-                            }
-                        }
-                        guard.nodes.insert(
-                            surv_key,
-                            MemoryNode::File {
-                                data,
-                                publication: None,
-                                mode,
-                                mtime_ms,
-                            },
-                        );
-                    } else {
-                        guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
-                    }
-                }
-                Some(MemoryNode::Symlink { target: removed_target, .. })
-                    if removed_target.starts_with("__hardlink__:") =>
-                {
-                    Self::invalidate_link_target(&mut guard, &k, &removed_target);
-                    let hl_marker = format!("__hardlink__:{k}");
-                    for nv in guard.nodes.values_mut() {
-                        if let MemoryNode::Symlink { target, .. } = nv
-                            && target == &hl_marker
-                        {
-                            *target = removed_target.clone();
-                        }
-                    }
-                }
-                _ => {}
-            }
+            Self::unlink_locked(&mut guard, &k);
         }
         self.bump_generation();
         Ok(true)
+    }
+
+    fn unlink_locked(guard: &mut MemoryState, k: &str) {
+        match guard.nodes.remove(k) {
+            Some(MemoryNode::File { data, mode, mtime_ms, .. }) => {
+                let hl_marker = format!("__hardlink__:{k}");
+                let survivor = guard
+                    .nodes
+                    .iter()
+                    .find_map(|(nk, nv)| match nv {
+                        MemoryNode::Symlink { target, .. } if target == &hl_marker => {
+                            Some(nk.clone())
+                        }
+                        _ => None,
+                    });
+                if let Some(surv_key) = survivor {
+                    let new_marker = format!("__hardlink__:{surv_key}");
+                    for (nk, nv) in guard.nodes.iter_mut() {
+                        if nk != &surv_key
+                            && let MemoryNode::Symlink { target, .. } = nv
+                            && target == &hl_marker
+                        {
+                            *target = new_marker.clone();
+                        }
+                    }
+                    guard.nodes.insert(
+                        surv_key,
+                        MemoryNode::File {
+                            data,
+                            publication: None,
+                            mode,
+                            mtime_ms,
+                        },
+                    );
+                } else {
+                    guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+                }
+            }
+            Some(MemoryNode::Symlink { target: removed_target, .. })
+                if removed_target.starts_with("__hardlink__:") =>
+            {
+                Self::invalidate_link_target(guard, k, &removed_target);
+                let hl_marker = format!("__hardlink__:{k}");
+                for nv in guard.nodes.values_mut() {
+                    if let MemoryNode::Symlink { target, .. } = nv
+                        && target == &hl_marker
+                    {
+                        *target = removed_target.clone();
+                    }
+                }
+            }
+            _ => {}
+        }
     }
 
     fn ensure_parent_dirs_locked(state: &mut MemoryState, path: &str) -> Result<(), FsError> {
@@ -528,6 +532,61 @@ impl SafeBashFs for MemoryVfs {
         Self::store_file(&mut guard, resolved, data, 0o100644, None)?;
         self.bump_generation();
         Ok(())
+    }
+
+    fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
+        Ok((self.id, self.generation()))
+    }
+
+    fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
+        let mut state = self.state.write().map_err(|e| e.to_string())?;
+        if (self.id, self.generation()) != expected {
+            return Err(format!("target changed since preflight: {path}"));
+        }
+        if path == "/" || !path.starts_with('/') || normalize_posix_path(path) != path
+            || state.devices == Devices::Mounted || state.devices.entry(path).is_some() {
+            return Err(format!("target is not a regular file: {path}"));
+        }
+        let mut missing = Vec::new();
+        for (i, _) in path.match_indices('/').skip(1) {
+            let dir = &path[..i];
+            match state.nodes.get(dir) {
+                Some(MemoryNode::Directory { .. }) => {}
+                Some(_) => return Err(format!("not a directory: {dir}")),
+                None if state.devices.entry(dir) == Some("") => {}
+                None if state.devices.entry(dir).is_some() => return Err(format!("not a directory: {dir}")),
+                None => missing.push(dir),
+            }
+        }
+        let dest = match state.nodes.get(path) {
+            Some(MemoryNode::File { .. }) | None => path.to_owned(),
+            Some(MemoryNode::Symlink { target, .. }) if target.starts_with("__hardlink__:") => {
+                let dest = Self::resolve_symlinks_locked(&state, path, true).map_err(|e| e.message)?;
+                if !matches!(state.nodes.get(&dest), Some(MemoryNode::File { .. })) {
+                    return Err(format!("target is not a regular file: {path}"));
+                }
+                dest
+            }
+            _ => return Err(format!("target is not a regular file: {path}")),
+        };
+        if let Some(data) = bytes {
+            if matches!(state.nodes.get(&dest), Some(MemoryNode::File { data: old, .. }) if old == data) {
+                return Ok(expected.1);
+            }
+            let needed = missing.len() + usize::from(!state.nodes.contains_key(&dest));
+            if needed > state.limits.max_entries.saturating_sub(state.nodes.len()) {
+                return Err("ENOSPC: inode limit exceeded".into());
+            }
+            Self::store_file(&mut state, dest, data, 0o100666, None)?;
+            for dir in missing {
+                state.nodes.insert(dir.to_owned(), MemoryNode::Directory { mode: 0o40777, mtime_ms: 1_700_000_000_000 });
+            }
+        } else {
+            if !state.nodes.contains_key(path) { return Err(format!("missing target: {path}")); }
+            Self::unlink_locked(&mut state, path);
+        }
+        self.bump_generation();
+        Ok(self.generation())
     }
 
     fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
@@ -843,6 +902,24 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn patch_publication_cannot_follow_a_replaced_parent_or_unlink_a_replacement() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/original").unwrap();
+        fs.write_file("/outside/file", b"keep").unwrap();
+        let rev = fs.patch_revision("/original/file").unwrap();
+        fs.remove_path("/original").unwrap();
+        fs.symlink("/outside", "/original").unwrap();
+        assert!(fs.patch_file("/original/file", Some(b"bad"), rev).is_err());
+        assert!(fs.patch_file("/original/file", None, rev).is_err());
+        assert_eq!(fs.read_file("/outside/file").unwrap(), b"keep");
+
+        let rev = fs.patch_revision("/outside/file").unwrap();
+        fs.write_file("/outside/file", b"new").unwrap();
+        assert!(fs.patch_file("/outside/file", None, rev).is_err());
+        assert_eq!(fs.read_file("/outside/file").unwrap(), b"new");
+    }
 
     #[test]
     fn publication_cleanup_preserves_replacements_and_unrelated_files() {

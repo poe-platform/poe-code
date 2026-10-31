@@ -79,6 +79,14 @@ impl FsError {
 pub trait SafeBashFs: Send + Sync {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
+    /// Filesystem identity and revision covering a patch target and its local ancestors.
+    fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
+        Err("filesystem does not support race-safe patch mutations".into())
+    }
+    /// Replace or unlink a regular file only at the inspected revision. Return the revision after this change.
+    fn patch_file(&self, _path: &str, _bytes: Option<&[u8]>, _expected: (u64, u64)) -> Result<u64, String> {
+        Err("filesystem does not support race-safe patch mutations".into())
+    }
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.
     fn publish_file(&self, _path: &str, _data: &[u8], _inputs: &[String], _version: u64) -> Result<u64, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into())

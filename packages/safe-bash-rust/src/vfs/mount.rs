@@ -114,6 +114,20 @@ impl SafeBashFs for MountVfs {
         fs.write_file(&rel, data)
     }
 
+    fn patch_revision(&self, path: &str) -> Result<(u64, u64), String> {
+        let (_, fs, local) = self.location(path);
+        fs.patch_revision(&local)
+    }
+
+    fn patch_file(&self, path: &str, bytes: Option<&[u8]>, expected: (u64, u64)) -> Result<u64, String> {
+        // A patch never follows symlinks. Route the inspected lexical path, not a newly resolved alias.
+        if self.mounts.keys().any(|mount| crate::vfs::is_path_within(path, mount)) {
+            return Err("EBUSY: cannot patch a mount or its parent".into());
+        }
+        let (_, fs, local) = self.location(path);
+        fs.patch_file(&local, bytes, expected)
+    }
+
     fn publish_file(
         &self,
         path: &str,

@@ -10778,7 +10778,7 @@ fn is_csvkit_num_str(s: &str, allow_leading_zero: bool) -> bool {
     t.parse::<f64>().map(|v| v.is_finite()).unwrap_or(false)
 }
 
-fn format_jval_with_indent(val: &JVal, indent_opt: Option<usize>, depth: usize) -> String {
+pub(super) fn format_jval_with_indent(val: &JVal, indent_opt: Option<usize>, depth: usize) -> String {
     let Some(spaces) = indent_opt else {
         return format_jval_python_json(val);
     };

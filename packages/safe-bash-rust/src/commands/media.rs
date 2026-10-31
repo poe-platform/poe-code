@@ -2970,6 +2970,181 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+fn format_wave_probe(
+    info: &WavStreamInfo,
+    size: usize,
+    filename: &str,
+    sections: &BTreeMap<&str, Option<&str>>,
+    writer: &str,
+    settings: &BTreeMap<&str, &str>,
+) -> String {
+    use super::structured::{JVal, format_jval_with_indent};
+    use JVal::{Number, Object, Str};
+    let enabled = |long, short, fallback| {
+        settings
+            .get(long)
+            .or_else(|| settings.get(short))
+            .map_or(fallback, |v| *v == "1")
+    };
+    let includes = |section, key: &str| match sections.get(section) {
+        Some(None) => true,
+        Some(Some(fields)) => fields.split(',').any(|field| field == key),
+        None => false,
+    };
+    let mut result = Vec::new();
+    let mut lines = Vec::new();
+    for (section, tag_section) in [("stream", "stream_tags"), ("format", "format_tags")] {
+        if !sections.contains_key(section) && !sections.contains_key(tag_section) {
+            continue;
+        }
+        let duration = Str(format!("{:.6}", info.duration));
+        let mut fields = if section == "stream" {
+            let bits = info.bits_per_sample;
+            let codec = match (info.codec.as_str(), bits) {
+                ("pcm_float", _) => format!("pcm_f{bits}le"),
+                (_, 8) => "pcm_u8".to_owned(),
+                _ => format!("pcm_s{bits}le"),
+            };
+            vec![
+                ("index", Number(0.0)),
+                ("codec_name", Str(codec)),
+                ("codec_type", Str("audio".into())),
+                ("sample_rate", Str(info.sample_rate.to_string())),
+                ("channels", Number(info.channels as f64)),
+                ("bits_per_sample", Number(bits as f64)),
+                ("duration", duration),
+                (
+                    "bit_rate",
+                    Str((info.sample_rate as u64 * info.channels as u64 * bits as u64).to_string()),
+                ),
+            ]
+        } else {
+            vec![
+                ("filename", Str(filename.into())),
+                ("nb_streams", Number(1.0)),
+                ("format_name", Str("wav".into())),
+                ("duration", duration),
+                ("size", Str(size.to_string())),
+                ("bit_rate", Str(info.bitrate.floor().to_string())),
+            ]
+        };
+        fields.retain(|(key, _)| includes(section, key));
+        if sections.contains_key(tag_section)
+            || (section == "format" && !info.tags.is_empty() && includes(section, "tags"))
+        {
+            fields.push((
+                "tags",
+                Object(
+                    info.tags
+                        .iter()
+                        .filter(|(k, _)| {
+                            !sections.contains_key(tag_section) || includes(tag_section, k)
+                        })
+                        .map(|(k, v)| {
+                            (
+                                k.clone(),
+                                Str(v.split('\0').next().unwrap_or("").trim().to_owned()),
+                            )
+                        })
+                        .collect(),
+                ),
+            ));
+        }
+        if writer == "json" {
+            let row = Object(fields.into_iter().map(|(k, v)| (k.to_owned(), v)).collect());
+            result.push(if section == "stream" {
+                ("streams".into(), JVal::Array(vec![row]))
+            } else {
+                ("format".into(), row)
+            });
+            continue;
+        }
+        let csv = writer == "csv";
+        let delimited = csv || writer == "compact";
+        let mut values = Vec::new();
+        let sep = settings
+            .get("item_sep")
+            .or_else(|| settings.get("s"))
+            .copied()
+            .unwrap_or(if csv { "," } else { "|" });
+        let wrappers = writer == "default" && !enabled("noprint_wrappers", "nw", false);
+        if wrappers {
+            lines.push(format!("[{}]", section.to_uppercase()));
+        }
+        if delimited && enabled("print_section", "p", true) {
+            values.push(section.to_owned());
+        }
+        let mut emit = |key: &str, value: &JVal, tag: bool| {
+            if writer == "flat" {
+                let prefix = if section == "stream" {
+                    "streams.stream.0"
+                } else {
+                    "format"
+                };
+                let tag_prefix = if tag { "tags." } else { "" };
+                lines.push(format!(
+                    "{prefix}.{tag_prefix}{key}={}",
+                    value.to_json_string(true, false, 0)
+                ));
+                return;
+            }
+            let mut field = String::new();
+            if !enabled("nokey", "nk", csv) {
+                if tag {
+                    field.push_str(if delimited { "tag:" } else { "TAG:" });
+                }
+                field.push_str(key);
+                field.push('=');
+            }
+            match value {
+                Str(s) => field.push_str(s),
+                _ => field.push_str(&value.to_json_string(true, false, 0)),
+            }
+            if delimited {
+                if csv {
+                    if field.contains(sep) || field.contains(['"', '\n']) {
+                        field = format!("\"{}\"", field.replace('"', "\"\""));
+                    }
+                } else {
+                    field = field
+                        .replace('\\', "\\\\")
+                        .replace('\n', "\\n")
+                        .replace('\r', "\\r");
+                    if !sep.is_empty() {
+                        field = field.replace(sep, &format!("\\{sep}"));
+                    }
+                }
+                values.push(field);
+            } else {
+                lines.push(field);
+            }
+        };
+        for (key, value) in &fields {
+            if let Object(tags) = value {
+                for (k, v) in tags {
+                    emit(k, v, true);
+                }
+            } else {
+                emit(key, value, false);
+            }
+        }
+        if delimited {
+            lines.push(values.join(sep));
+        }
+        if wrappers {
+            lines.push(format!("[/{}]", section.to_uppercase()));
+        }
+    }
+    if writer == "json" {
+        lines.push(format_jval_with_indent(&Object(result), Some(4), 0));
+    }
+    if lines.is_empty() {
+        String::new()
+    } else {
+        lines.join("\n") + "\n"
+    }
+}
+
 fn decode_wav_pcm(bytes: &[u8]) -> Result<(PcmAudio, WavStreamInfo), String> {
     let info = probe_wav_info(bytes)?;
     let width = (info.bits_per_sample / 8) as usize;
@@ -4987,6 +5162,8 @@ fn cmd_media_doc(
                     err_out(&format!("ffprobe: {msg}\n"), 1)
                 }
             };
+            let mut audio_options = true;
+            let mut sections = BTreeMap::new();
             let mut of_fmt = "default".to_string();
             let mut in_arg: Option<String> = None;
             let mut show_entries = String::new();
@@ -5008,12 +5185,19 @@ fn cmd_media_doc(
                             return ffprobe_err(&format!("Missing value for {}", args[i]));
                         };
                         show_entries = v.clone();
+                        for entry in v.split(':') {
+                            let mut parts = entry.split('=');
+                            let section = parts.next().unwrap();
+                            audio_options &= matches!(section, "stream" | "format" | "stream_tags" | "format_tags");
+                            sections.insert(section, parts.next());
+                        }
                         i += 2;
                     }
                     "-select_streams" => {
                         let Some(v) = args.get(i + 1) else {
                             return ffprobe_err(&format!("Missing value for {}", args[i]));
                         };
+                        audio_options &= matches!(v.as_str(), "0" | "a" | "a:0");
                         select_streams = Some(v.to_ascii_lowercase());
                         i += 2;
                     }
@@ -5031,10 +5215,16 @@ fn cmd_media_doc(
                         if i + 1 >= args.len() {
                             return ffprobe_err(&format!("Missing value for {}", args[i]));
                         }
+                        audio_options &= args[i] == "-v" && matches!(args[i+1].as_str(), "quiet" | "error" | "warning" | "info");
                         i += 2;
                     }
                     "-hide_banner" | "-show_format" | "-show_streams" | "-show_packets"
                     | "-show_frames" | "-show_chapters" | "-show_programs" => {
+                        match args[i].as_str() {
+                            "-show_streams" => { sections.insert("stream", None); }
+                            "-show_format" => { sections.insert("format", None); }
+                            _ => audio_options = false,
+                        }
                         i += 1;
                     }
                     "-count_frames" => {
@@ -5072,7 +5262,17 @@ fn cmd_media_doc(
             if !matches!(writer.as_str(), "json" | "compact" | "csv" | "default" | "flat") {
                 return ffprobe_err(&format!("Unknown output format {writer}"));
             }
+            audio_options &= head == writer;
+            let mut settings = BTreeMap::new();
             for param in params {
+                let mut parts = param.split('=');
+                let k = parts.next().unwrap();
+                if let Some(v) = parts.next() {
+                    settings.insert(k, v);
+                    audio_options &= !matches!(k, "compact" | "c");
+                } else {
+                    audio_options = false;
+                }
                 if param.is_empty() {
                     continue;
                 }
@@ -5113,6 +5313,9 @@ fn cmd_media_doc(
                     }
                 }
             };
+            if audio_options && !count_frames && !count_packets && let Ok(info) = probe_wav_info(&raw_bytes) {
+                return ok_out(&format_wave_probe(&info, raw_bytes.len(), in_arg.as_deref().unwrap(), &sections, &writer, &settings));
+            }
             let doc = MediaDoc::parse(&raw_bytes, &path_str);
             let dur_val = if doc.duration > 0.0 {
                 doc.duration
@@ -12731,6 +12934,22 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffprobe_wave_reads_pcm_and_filters_requested_rows() {
+        let fs = MemoryVfs::new();
+        let pcm = PcmAudio { sample_rate: 8000, channels: vec![vec![0.0; 80]] };
+        let bytes = encode_wav_pcm(&pcm, 24, false).unwrap();
+        fs.write_file("/tone", &bytes).unwrap();
+        let probe = |args: &[&str]| cmd_media_doc("ffprobe", &media_args(args), "", "/", &fs).stdout;
+        assert_eq!(probe(&["-show_format", "./tone"]), format!(
+            "[FORMAT]\nfilename=./tone\nnb_streams=1\nformat_name=wav\nduration=0.010000\nsize={}\nbit_rate={}\n[/FORMAT]\n",
+            bytes.len(), bytes.len() * 800
+        ));
+        assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
+            format!("pcm_s24le,1\n{}\n", bytes.len()));
+        assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
     }
 
     #[test]

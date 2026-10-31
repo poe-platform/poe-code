@@ -89,38 +89,9 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
-fn normalize_magick_rgb(raw: &str) -> (u8, u8, u8) {
-    let s = raw.trim().to_ascii_lowercase();
-    match s.as_str() {
-        "black" => (0, 0, 0),
-        "white" | "" => (255, 255, 255),
-        "red" => (255, 0, 0),
-        "lime" => (0, 255, 0),
-        "green" => (0, 128, 0),
-        "blue" => (0, 0, 255),
-        "yellow" => (255, 255, 0),
-        "cyan" | "aqua" => (0, 255, 255),
-        "magenta" | "fuchsia" => (255, 0, 255),
-        "gray" | "grey" => (126, 126, 126),
-        "navy" => (0, 0, 128),
-        "orange" => (255, 165, 0),
-        "coral" => (255, 127, 80),
-        "skyblue" => (135, 206, 235),
-        _ if s.starts_with('#') && s.len() == 7 => {
-            let r = u8::from_str_radix(&s[1..3], 16).unwrap_or(255);
-            let g = u8::from_str_radix(&s[3..5], 16).unwrap_or(255);
-            let b = u8::from_str_radix(&s[5..7], 16).unwrap_or(255);
-            (r, g, b)
-        }
-        _ if s.starts_with('#') && s.len() == 4 => {
-            let r = u8::from_str_radix(&s[1..2], 16).unwrap_or(15) * 17;
-            let g = u8::from_str_radix(&s[2..3], 16).unwrap_or(15) * 17;
-            let b = u8::from_str_radix(&s[3..4], 16).unwrap_or(15) * 17;
-            (r, g, b)
-        }
-        _ => (255, 255, 255),
-    }
-}
+#[path = "magick_color.rs"]
+mod magick_color;
+use magick_color::parse_color;
 
 fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
     let s = spec.trim();
@@ -4240,7 +4211,7 @@ fn qr_fmt_ratio(v: u8) -> String {
     }
 }
 
-fn rgba_png(width: usize, height: usize, dpi: u32, pixel: impl Fn(usize, usize) -> [u8; 4]) -> Vec<u8> {
+fn rgba_png(width: usize, height: usize, dpi: u32, stored: bool, pixel: impl Fn(usize, usize) -> [u8; 4]) -> Vec<u8> {
     let mut raw = Vec::with_capacity((width * 4 + 1) * height);
     for y in 0..height {
         raw.push(1); // Sub filter: store the channel difference from the pixel to the left.
@@ -4269,7 +4240,14 @@ fn rgba_png(width: usize, height: usize, dpi: u32, pixel: impl Fn(usize, usize) 
     phys[..4].copy_from_slice(&ppm);
     phys[4..8].copy_from_slice(&ppm);
     chunk(b"pHYs", &phys);
-    chunk(b"IDAT", &crate::commands::codecs::zlib_compress(&raw));
+    let compressed = crate::commands::codecs::zlib_compress(&raw);
+    if stored {
+        // Stored images start the encoder with the first row filter, emitting its zlib header.
+        chunk(b"IDAT", &compressed[..2]);
+        for part in compressed[2..].chunks(4084) { chunk(b"IDAT", part); }
+    } else {
+        chunk(b"IDAT", &compressed);
+    }
     chunk(b"IEND", &[]);
     out
 }
@@ -4294,7 +4272,7 @@ fn qr_render(
         }
     };
     if rtype == "PNG" || rtype == "PNG32" {
-        return rgba_png(pixels, pixels, dpi, |x, y| if dark(x / size, y / size) { fg } else { bg });
+        return rgba_png(pixels, pixels, dpi, false, |x, y| if dark(x / size, y / size) { fg } else { bg });
     }
     let mut text = String::new();
     if rtype == "SVG" {
@@ -10121,7 +10099,7 @@ fn cmd_media_doc(
             let mut append_mode: Option<bool> = None;
             let mut mogrify_format: Option<String> = None;
             let mut mogrify_path: Option<String> = None;
-            let mut pseudo_color: Option<(u8, u8, u8)> = None;
+            let mut pseudo_color = None;
             let mut has_pseudo_input = false;
             let mut pos_files: Vec<String> = Vec::new();
             let mut i = 0usize;
@@ -10206,7 +10184,9 @@ fn cmd_media_doc(
                     }
                     a if a.starts_with("xc:") || a.starts_with("canvas:") => {
                         let c_str = a.split_once(':').map(|(_, r)| r).unwrap_or("white");
-                        pseudo_color = Some(normalize_magick_rgb(c_str));
+                        pseudo_color = Some(match parse_color(if c_str.is_empty() { "white" } else { c_str }) {
+                            Ok(color) => color, Err(e) => return err_out(&format!("magick: {e}\n"), 1),
+                        });
                         has_pseudo_input = true;
                         i += 1;
                     }
@@ -10269,7 +10249,7 @@ fn cmd_media_doc(
                 if gray_cs {
                     meta.cs = "Gray".to_string();
                 }
-                if let Some((r, g, b)) = pseudo_color {
+                if let Some([r, g, b, _]) = pseudo_color {
                     meta.exif
                         .insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
                 }
@@ -10279,7 +10259,7 @@ fn cmd_media_doc(
                         .get("__color")
                         .cloned()
                         .unwrap_or_else(|| "#ffffff".to_string());
-                    let (r, g, b) = normalize_magick_rgb(&cur);
+                    let [r,g,b,_] = parse_color(&cur).unwrap_or([255;4]);
                     meta.exif.insert(
                         "__color".to_string(),
                         format!("#{:02x}{:02x}{:02x}", 255 - r, 255 - g, 255 - b),
@@ -10384,7 +10364,7 @@ fn cmd_media_doc(
                         .map(|b| read_image_meta(&b, &in_full))
                         .unwrap_or_else(|_| read_image_meta(&[], &in_full))
                 } else {
-                    let (w, h) = size_opt.unwrap_or((32, 32));
+                    let (w, h) = size_opt.unwrap_or(if pseudo_color.is_some() { (1, 1) } else { (32, 32) });
                     ImageMeta {
                         fmt: format_from_path(&out_full).to_string(),
                         w,
@@ -10394,6 +10374,19 @@ fn cmd_media_doc(
                     }
                 };
                 apply_ops(&mut meta);
+                let stdout_png = out_rel == "png:-" || out_rel == "-";
+                if let Some(mut rgba) = pseudo_color && pos_files.len() == 1
+                    && (out_full.to_ascii_lowercase().ends_with(".png") || stdout_png) {
+                    if negate_count % 2 == 1 { for c in &mut rgba[..3] { *c = 255 - *c; } }
+                    let (w,h) = (meta.w.max(1) as usize, meta.h.max(1) as usize);
+                    if (w.saturating_mul(4).saturating_add(1)).saturating_mul(h) > fs.max_input_bytes() {
+                        return err_out("magick: image exceeds memory budget\n", 1);
+                    }
+                    let png = rgba_png(w,h,72,true,|_,_|rgba);
+                    if stdout_png { return ok_out(&crate::vfs::bytes_to_stream_string(&png)); }
+                    if let Err(e) = fs.write_file(&out_full, &png) { return err_out(&format!("magick: {e}\n"),1); }
+                    return ok_out("");
+                }
                 if out_full.to_ascii_lowercase().ends_with(".pdf") {
                     let mut pdf = PdfDoc::new();
                     pdf.pages.push(PdfPage {
@@ -10650,7 +10643,7 @@ fn cmd_media_doc(
                 let lower = spec.to_ascii_lowercase();
                 if lower.starts_with("xc:") || lower.starts_with("canvas:") {
                     let c_str = spec.split_once(':').map(|(_, r)| r).unwrap_or("white");
-                    let (r, g, b) = normalize_magick_rgb(c_str);
+                    let [r,g,b,_] = parse_color(if c_str.is_empty() { "white" } else { c_str }).map_err(|e|format!("compare: {e}\n"))?;
                     let mut ex = BTreeMap::new();
                     ex.insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
                     let m = ImageMeta {
@@ -10690,8 +10683,8 @@ fn cmd_media_doc(
             let height = meta_a.h.max(meta_b.h);
             let color_a = meta_a.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
             let color_b = meta_b.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
-            let (ra, ga, ba) = normalize_magick_rgb(if color_a.is_empty() { "#ffffff" } else { color_a });
-            let (rb, gb, bb) = normalize_magick_rgb(if color_b.is_empty() { "#ffffff" } else { color_b });
+            let [ra,ga,ba,_] = parse_color(color_a).unwrap_or([255;4]);
+            let [rb,gb,bb,_] = parse_color(color_b).unwrap_or([255;4]);
             let max_ch_diff = (ra as i32 - rb as i32)
                 .abs()
                 .max((ga as i32 - gb as i32).abs())
@@ -12977,6 +12970,22 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn magick_writes_rgba_canvas_png_and_rejects_bad_colors() {
+        let fs = MemoryVfs::new();
+        for command in ["convert", "magick"] {
+            let run = |args: &[&str]| cmd_media_doc(command, &media_args(args), "", "/", &fs);
+            let result = run(&["-size", "5x7", "canvas:#12345678", "canvas.png"]);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let png = fs.read_file("/canvas.png").unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(&png)), "2f470f13880056e4a01b56979c0aefaaa893897ffb15ee40d5d52268209d8645");
+            let result = run(&["xc:notacolor", "canvas.png"]);
+            assert_eq!(result.exit_code, 1);
+            assert_eq!(result.stderr, "magick: Unable to parse color from string: notacolor\n");
+            assert_eq!(fs.read_file("/canvas.png").unwrap(), png);
+        }
     }
 
     #[test]

@@ -1,3 +1,4 @@
+mod csvkit_encoding;
 mod in2csv_json;
 use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
@@ -11827,8 +11828,10 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "--null-value" if i + 1 < args.len() => { i += 1; json_options.nulls.push(&args[i]); }
             "--blanks" => json_options.blanks = true,
             "--no-leading-zeroes" => json_options.no_leading_zeroes = true,
+            "-e" | "--encoding" if i + 1 < args.len() => { i += 1; json_options.encoding = Some(&args[i]); }
+            "-v" | "--verbose" => json_options.verbose = true,
             "-u" | "--quoting" | "-z" | "--maxfieldsize" | "-p" | "--escapechar"
-            | "-e" | "--encoding" | "--date-format" | "--datetime-format"
+            | "--date-format" | "--datetime-format"
             | "-y" | "--snifflimit" | "--write-sheets" | "--encoding-xls"
                 if i + 1 < args.len() =>
             {
@@ -12291,13 +12294,13 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         return finish_rows(headers, data_rows);
     }
 
-    let text = match read_csvkit_input(&files, stdin, cwd, fs) {
+    let bytes = match read_csvkit_bytes_input(&files, stdin, cwd, fs) {
         Ok(t) => t,
         Err(e) => return err_out(&e, 1),
     };
     json_options.bom = add_bom;
     json_options.line_numbers = line_numbers;
-    in2csv_json::convert(&text, fmt == "ndjson", key_prop.as_deref(), &json_options, &fs.shell_limits())
+    in2csv_json::convert(bytes, fmt == "ndjson", key_prop.as_deref(), &json_options, &fs.shell_limits())
 }
 
 fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -37657,6 +37660,21 @@ mod tests {
         let r = try_run_structured_command("csvcut", &args(&["-d;", "-c2"]),
             "first;second\n1;2\n", "/", &env, &fs).unwrap();
         assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "second\n2\n", ""));
+    }
+
+    #[test]
+    fn in2csv_decodes_declared_input_encoding_before_parsing_json() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/a", b"[{\"city\":\"Z\xfcrich\"}]").unwrap();
+        let run = |enc: &str| cmd_in2csv(&args(&["-f", "json", "-e", enc, "/a"]), "", "/", &fs);
+        let r = run("latin1");
+        assert_eq!((r.exit_code, r.stdout.as_str()), (0, "city\nZürich\n"));
+        let r = run("utf-8");
+        assert_eq!(r.exit_code, 1);
+        assert!(r.stdout.is_empty());
+        assert!(r.stderr.contains("not \"utf-8\" encoded"));
+        let r = run("bad-codec");
+        assert_eq!(r.stderr, "LookupError: unknown encoding: bad-codec\n");
     }
 
     #[test]

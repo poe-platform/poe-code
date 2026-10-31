@@ -313,6 +313,8 @@ fn decimal(token: &str, round: bool) -> Option<String> {
 #[derive(Default)]
 pub(super) struct Options<'a> {
     pub locale: Option<&'a str>,
+    pub encoding: Option<&'a str>,
+    pub verbose: bool,
     pub no_inference: bool,
     pub blanks: bool,
     pub nulls: Vec<&'a str>,
@@ -502,18 +504,25 @@ fn flatten(
 }
 
 pub(super) fn convert(
-    text: &str,
+    bytes: Vec<u8>,
     newline: bool,
     key: Option<&str>,
     opts: &Options<'_>,
     limits: &ShellLimits,
 ) -> BuiltinOutcome {
-    match table(text, newline, key, opts, limits) {
+    let encoding = opts.encoding.unwrap_or("utf-8-sig");
+    let result = super::csvkit_encoding::decode(bytes, encoding, limits.max_memory_bytes)
+        .and_then(|text| table(&text, newline, key, opts, limits));
+    match result {
         Ok(stdout) => BuiltinOutcome {
             stdout,
             stderr: String::new(),
             exit_code: 0,
         },
+        Err(e) if opts.verbose && !e.starts_with("csvkit: unsupported or unqualified:") => err_out(
+            "csvkit: unsupported or unqualified: frozen Python traceback frames and deployment identity\n",
+            78,
+        ),
         Err(e) => err_out(
             &format!("{e}\n"),
             if e.starts_with("csvkit: unsupported or unqualified:") {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile, lstat } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawn } from 'node:child_process';
 import { verifySafeFsWorkerd } from './verify-safe-fs-workerd.mjs';
 
@@ -21,7 +21,10 @@ async function text(filename) {
   return readFile(filename, 'utf8');
 }
 assert.ok((await text(resolve(installed, entry.types))).includes('createCloudflarePlaywrightAdapter'));
-const guest = await text(resolve(directory, 'browser-run-code-guest.generated.js'));
+const guestPath = resolve(directory, 'browser-run-code-guest.generated.js');
+await text(guestPath);
+const { loadBrowserRunCodeGuestSource } = await import(pathToFileURL(guestPath).href);
+const guest = await loadBrowserRunCodeGuestSource(AbortSignal.timeout(30_000));
 assert.ok(guest.includes('cloudflare:workers') && guest.includes('browser-user-code.js'));
 assert.ok((await text(resolve(directory, 'browser-codegen.generated.js'))).includes('@cloudflare/playwright@1.3.6'));
 const attribution = resolve(installed, 'third-party/safe-playwright-cloudflare/third-party/playwright');

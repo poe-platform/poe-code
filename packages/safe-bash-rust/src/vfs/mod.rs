@@ -22,8 +22,16 @@ pub enum VfsEntryKind {
     Symlink,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum EntryIdentity {
+    Memory(u64, String),
+    Unix(u64, u64),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FileStat {
+    pub allocated_bytes: Option<u64>,
+    pub identity: Option<EntryIdentity>,
     pub kind: VfsEntryKind,
     pub size: usize,
     pub mode: u32,
@@ -107,6 +115,8 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if self.is_dir(&norm) {
             return Ok(FileStat {
+                identity: None,
+                allocated_bytes: None,
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: 0o40755,
@@ -115,6 +125,8 @@ pub trait SafeBashFs: Send + Sync {
         }
         if let Ok(data) = self.read_file(&norm) {
             return Ok(FileStat {
+                identity: None,
+                allocated_bytes: None,
                 kind: VfsEntryKind::File,
                 size: data.len(),
                 mode: 0o100644,
@@ -128,6 +140,8 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if let Ok(target) = self.readlink(&norm) {
             return Ok(FileStat {
+                identity: None,
+                allocated_bytes: None,
                 kind: VfsEntryKind::Symlink,
                 size: target.len(),
                 mode: 0o120777,

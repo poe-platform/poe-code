@@ -118,7 +118,16 @@ impl RealVfs {
         } else {
             !0
         };
+        #[cfg(unix)]
+        let (identity, allocated_bytes) = {
+            use std::os::unix::fs::MetadataExt;
+            (Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())), meta.blocks().checked_mul(512))
+        };
+        #[cfg(not(unix))]
+        let (identity, allocated_bytes) = (None, None);
         Ok(FileStat {
+            identity,
+            allocated_bytes,
             kind,
             mode,
             size: meta.len().try_into().map_err(|_| "EOVERFLOW: file size")?,

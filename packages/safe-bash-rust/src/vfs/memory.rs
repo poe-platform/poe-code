@@ -1,5 +1,5 @@
 use crate::vfs::path::{normalize_posix_path, parent_posix_path};
-use crate::vfs::{FileStat, FsError, FsErrorCode, SafeBashFs, VfsEntryKind, VfsFileEntry};
+use crate::vfs::{EntryIdentity, FileStat, FsError, FsErrorCode, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::collections::BTreeMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
@@ -566,6 +566,8 @@ impl SafeBashFs for MemoryVfs {
         let norm = normalize_posix_path(path);
         if norm == "/dev" {
             return Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, norm)),
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: 0o40755,
@@ -577,6 +579,8 @@ impl SafeBashFs for MemoryVfs {
             "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
         ) {
             return Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, norm)),
                 kind: VfsEntryKind::File,
                 size: 0,
                 mode: 0o20666,
@@ -587,6 +591,8 @@ impl SafeBashFs for MemoryVfs {
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         if resolved == "/dev" {
             return Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: 0o40755,
@@ -598,6 +604,8 @@ impl SafeBashFs for MemoryVfs {
             "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
         ) {
             return Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::File,
                 size: 0,
                 mode: 0o20666,
@@ -606,18 +614,24 @@ impl SafeBashFs for MemoryVfs {
         }
         match guard.nodes.get(&resolved) {
             Some(MemoryNode::File { data, mode, mtime_ms }) => Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::File,
                 size: data.len(),
                 mode: *mode,
                 mtime_ms: *mtime_ms,
             }),
             Some(MemoryNode::Directory { mode, mtime_ms }) => Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: *mode,
                 mtime_ms: *mtime_ms,
             }),
             Some(MemoryNode::Symlink { target, mode, mtime_ms }) => Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::Symlink,
                 size: target.len(),
                 mode: *mode,
@@ -631,6 +645,8 @@ impl SafeBashFs for MemoryVfs {
         let norm = normalize_posix_path(path);
         if norm == "/dev" {
             return Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, norm)),
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: 0o40755,
@@ -642,6 +658,8 @@ impl SafeBashFs for MemoryVfs {
             "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
         ) {
             return Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, norm)),
                 kind: VfsEntryKind::File,
                 size: 0,
                 mode: 0o20666,
@@ -652,12 +670,16 @@ impl SafeBashFs for MemoryVfs {
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
         match guard.nodes.get(&resolved) {
             Some(MemoryNode::File { data, mode, mtime_ms }) => Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::File,
                 size: data.len(),
                 mode: *mode,
                 mtime_ms: *mtime_ms,
             }),
             Some(MemoryNode::Directory { mode, mtime_ms }) => Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: *mode,
@@ -668,6 +690,8 @@ impl SafeBashFs for MemoryVfs {
                 self.stat(&norm)
             }
             Some(MemoryNode::Symlink { target, mode, mtime_ms }) => Ok(FileStat {
+                allocated_bytes: None,
+                identity: Some(EntryIdentity::Memory(self.id, resolved)),
                 kind: VfsEntryKind::Symlink,
                 size: target.len(),
                 mode: *mode,

@@ -4005,7 +4005,7 @@ fn parse_du_size(s: &str, allow_neg: bool) -> Option<(i64, String)> {
 }
 
 fn format_du_amount(
-    bytes: usize,
+    bytes: u64,
     inodes: bool,
     apparent: bool,
     block_unit: Option<(u64, String)>,
@@ -4015,7 +4015,7 @@ fn format_du_amount(
         return bytes.to_string();
     }
     if let Some(base) = human_base {
-        let b = bytes as u64;
+        let b = bytes;
         let mut unit = 1u64;
         let mut exp = 0usize;
         while b >= unit.saturating_mul(base) && exp < 6 {
@@ -4043,7 +4043,7 @@ fn format_du_amount(
         return format!("{num_str}{}", suffixes[exp - 1] as char);
     }
     if let Some((unit, ref sfx)) = block_unit {
-        let u = unit.max(1) as usize;
+        let u = unit.max(1);
         return format!("{}{sfx}", bytes.div_ceil(u));
     }
     if apparent {
@@ -4088,6 +4088,7 @@ fn cmd_du(
     let mut inodes = false;
     let mut separate = false;
     let mut count_links = false;
+    let mut one_fs = false;
     let mut deref_mode = 'P';
     let mut null_output = false;
     let mut max_depth: Option<usize> = None;
@@ -4201,6 +4202,9 @@ fn cmd_du(
         } else if a == "--apparent-size" {
             apparent = true;
             i += 1;
+        } else if a == "--one-file-system" {
+            one_fs = true;
+            i += 1;
         } else if a == "--count-links" {
             count_links = true;
             i += 1;
@@ -4235,6 +4239,7 @@ fn cmd_du(
                 match chars[j] {
                     'a' => all = true,
                     's' => summary_only = true,
+                    'x' => one_fs = true,
                     'c' => show_total = true,
                     'l' => count_links = true,
                     'L' => deref_mode = 'L',
@@ -4388,7 +4393,7 @@ fn cmd_du(
     let eff_depth = if summary_only { Some(0) } else { max_depth };
     let term = if null_output { "\0" } else { "\n" };
 
-    let emit_line = |amt: usize, disp: &str, out: &mut String| {
+    let emit_line = |amt: u64, disp: &str, out: &mut String| {
         if let Some(th) = threshold {
             let signed = amt as i64;
             if th >= 0 {
@@ -4403,153 +4408,132 @@ fn cmd_du(
         out.push_str(&format!("{val}\t{disp}{term}"));
     };
 
-    let all_entries = fs.export_entries().unwrap_or_default();
-    let mut seen_inodes: std::collections::BTreeSet<String> = std::collections::BTreeSet::new();
-
-    #[allow(clippy::too_many_arguments)]
-    fn walk_du_node(
-        disp: &str,
-        full: &str,
-        depth: usize,
-        eff_depth: Option<usize>,
-        all: bool,
-        inodes: bool,
-        separate: bool,
-        count_links: bool,
-        deref_mode: char,
-        excludes: &[String],
-        all_entries: &[crate::vfs::VfsFileEntry],
-        seen_inodes: &mut std::collections::BTreeSet<String>,
-        fs: &dyn SafeBashFs,
-        emit_line: &dyn Fn(usize, &str, &mut String),
-        out: &mut String,
-    ) -> (usize, bool) {
-        if du_matches_excludes(disp, excludes) || du_matches_excludes(full, excludes) {
-            return (0, false);
-        }
-        let sym_target = fs
-            .readlink(full)
-            .ok()
-            .filter(|t| !t.starts_with("__hardlink__:"));
-        let is_symlink = sym_target.is_some();
-        let follow = is_symlink && (deref_mode == 'L' || (deref_mode == 'H' && depth == 0));
-
-        if is_symlink && !follow {
-            let amt = if inodes {
-                1usize
-            } else {
-                sym_target.map(|t| t.len()).unwrap_or(0)
-            };
-            if depth == 0 || (eff_depth.map(|md| depth <= md).unwrap_or(true) && all) {
-                emit_line(amt, disp, out);
-            }
-            return (amt, false);
-        }
-
-        let is_dir = fs.is_dir(full);
-        if !count_links && !is_dir {
-            let phys = if follow {
-                canonicalize_posix_path(full, 'e', false, fs)
-                    .unwrap_or_else(|_| normalize_posix_path(full))
-            } else {
-                normalize_posix_path(full)
-            };
-            let canon_id = resolve_hardlink_root_path(&phys, all_entries);
-            if !seen_inodes.insert(canon_id) {
-                return (0, false);
-            }
-        }
-
-        let base_amt = if inodes {
-            1usize
-        } else if is_dir {
-            0usize
-        } else {
-            fs.read_file(full).map(|b| b.len()).unwrap_or(0)
-        };
-        let mut total_amt = base_amt;
-        let mut own_amt = base_amt;
-        if is_dir {
-            let mut entries = fs.list_dir(full).unwrap_or_default();
-            entries.sort();
-            for name in entries {
-                let child_full = child_disp_path(full, &name);
-                let child_disp = child_disp_path(disp, &name);
-                if du_matches_excludes(&child_disp, excludes)
-                    || du_matches_excludes(&child_full, excludes)
-                {
-                    continue;
-                }
-                let (c_amt, c_is_dir) = walk_du_node(
-                    &child_disp,
-                    &child_full,
-                    depth + 1,
-                    eff_depth,
-                    all,
-                    inodes,
-                    separate,
-                    count_links,
-                    deref_mode,
-                    excludes,
-                    all_entries,
-                    seen_inodes,
-                    fs,
-                    emit_line,
-                    out,
-                );
-                total_amt += c_amt;
-                if separate && !c_is_dir {
-                    own_amt += c_amt;
-                }
-            }
-        }
-        if depth == 0 || (eff_depth.map(|md| depth <= md).unwrap_or(true) && (is_dir || all)) {
-            let reported = if separate { own_amt } else { total_amt };
-            emit_line(reported, disp, out);
-        }
-        (total_amt, is_dir)
+    // Size and identity come from metadata. Looking up an inode must never read a file's contents.
+    enum Visit {
+        Entry(String, String),
+        Finish(String, Option<crate::vfs::EntryIdentity>),
     }
-
     let mut out = String::new();
     let mut stderr = String::new();
-    let mut code = 0;
-    let mut grand_total = 0usize;
-    for t in targets {
-        let p = resolve_posix_path(cwd, &t);
-        if !fs.exists(&p) && fs.lstat(&p).is_err() {
-            stderr.push_str(&format!(
-                "du: \"{t}\": no such file or directory, lstat '{p}'\n"
-            ));
-            code = 1;
-            continue;
+    let mut seen = std::collections::BTreeSet::new();
+    let mut total = Some(0u64);
+    const MAX_AMOUNT: u64 = (1 << 53) - 1;
+    let add = |amount: &mut Option<u64>, child: Option<u64>, disp: &str, errors: &mut String| {
+        *amount = match (*amount, child) {
+            (Some(a), Some(b)) if a <= MAX_AMOUNT - b => Some(a + b),
+            (Some(_), Some(_)) => {
+                errors.push_str(&format!("du: {}: aggregate exceeds safe integer range; total suppressed\n", tree_json_escape(disp)));
+                None
+            }
+            _ => None,
+        };
+    };
+    for operand in targets {
+        let mut pending = vec![Visit::Entry(resolve_posix_path(cwd, &operand), operand)];
+        let mut ancestors = std::collections::BTreeSet::new();
+        let mut dirs: Vec<(Option<u64>, Option<u64>)> = Vec::new(); // recursive total and direct children
+        let mut root_device = None;
+        while let Some(visit) = pending.pop() {
+            let (disp, amount, own, is_dir) = match visit {
+                Visit::Finish(disp, id) => {
+                    if let Some(id) = id { ancestors.remove(&id); }
+                    let (amount, own) = dirs.pop().unwrap();
+                    (disp, amount, own, true)
+                }
+                Visit::Entry(full, disp) => {
+                    if du_matches_excludes(&disp, &excludes) { continue; }
+                    let depth = dirs.len();
+                    let stat = fs.lstat(&full).and_then(|stat| {
+                        if stat.kind == crate::vfs::VfsEntryKind::Symlink &&
+                            (deref_mode == 'L' || deref_mode == 'H' && depth == 0) {
+                            fs.stat(&full)
+                        } else { Ok(stat) }
+                    });
+                    let mut failure = |message: &str| {
+                        stderr.push_str(&format!("du: {}: {message}\n", tree_json_escape(&disp)));
+                    };
+                    let stat = match stat {
+                        Ok(s) => s,
+                        Err(err) => {
+                            failure(err.split_once(": ").map_or(err.as_str(), |(_, msg)| msg));
+                            if let Some((amount, own)) = dirs.last_mut() { *amount = None; *own = None; }
+                            total = None;
+                            continue;
+                        }
+                    };
+                    let is_dir = stat.kind == crate::vfs::VfsEntryKind::Directory;
+                    if one_fs && is_dir {
+                        let device = stat.identity.as_ref().map(|id| match id {
+                            crate::vfs::EntryIdentity::Memory(dev, _) => (true, *dev),
+                            crate::vfs::EntryIdentity::Unix(dev, _) => (false, *dev),
+                        });
+                        if depth == 0 { root_device = device; }
+                        if root_device.is_none() || device.is_none() {
+                            failure("device identity unknown; cannot restrict traversal to one filesystem");
+                            if let Some((amount, _)) = dirs.last_mut() { *amount = None; }
+                            total = None;
+                            continue;
+                        }
+                        if device != root_device { continue; }
+                    }
+                    if is_dir && stat.identity.as_ref().is_some_and(|id| ancestors.contains(id)) {
+                        failure("directory cycle detected");
+                        if let Some((amount, own)) = dirs.last_mut() { *amount = None; *own = None; }
+                        total = None;
+                        continue;
+                    }
+                    let bytes = if inodes { Some(1) } else if apparent {
+                        Some(if is_dir { 0 } else { stat.size as u64 })
+                    } else { stat.allocated_bytes };
+                    let amount = bytes.filter(|v| *v <= MAX_AMOUNT);
+                    if amount.is_none() {
+                        failure(&format!("{} {}; total suppressed",
+                            if apparent { "apparent size" } else { "allocated bytes" },
+                            if bytes.is_some() { "invalid" } else { "unknown" }));
+                    }
+                    if !count_links && let Some(id) = &stat.identity && !seen.insert(id.clone()) {
+                        if amount.is_none() {
+                            if let Some((amount, own)) = dirs.last_mut() { *amount = None; *own = None; }
+                            total = None;
+                        }
+                        continue;
+                    }
+                    if is_dir {
+                        match fs.list_dir(&full) {
+                            Ok(mut names) => {
+                                names.sort();
+                                if let Some(id) = &stat.identity { ancestors.insert(id.clone()); }
+                                pending.push(Visit::Finish(disp.clone(), stat.identity));
+                                dirs.push((amount, amount));
+                                for name in names.into_iter().rev() {
+                                    pending.push(Visit::Entry(child_disp_path(&full, &name), child_disp_path(&disp, &name)));
+                                }
+                                continue;
+                            }
+                            Err(err) => {
+                                failure(&err);
+                                if let Some((amount, _)) = dirs.last_mut() { *amount = None; }
+                                total = None;
+                                continue;
+                            }
+                        }
+                    }
+                    (disp, amount, amount, false)
+                }
+            };
+            let depth = dirs.len();
+            if (depth == 0 || (eff_depth.is_none_or(|d| depth <= d) && (is_dir || all)))
+                && let Some(n) = if separate { own } else { amount } {
+                emit_line(n, &disp, &mut out);
+            }
+            if let Some((sum, direct)) = dirs.last_mut() {
+                add(sum, amount, &disp, &mut stderr);
+                if separate && !is_dir { add(direct, amount, &disp, &mut stderr); }
+            } else if show_total { add(&mut total, amount, "total", &mut stderr); }
         }
-        let (amt, _) = walk_du_node(
-            &t,
-            &p,
-            0,
-            eff_depth,
-            all,
-            inodes,
-            separate,
-            count_links,
-            deref_mode,
-            &excludes,
-            &all_entries,
-            &mut seen_inodes,
-            fs,
-            &emit_line,
-            &mut out,
-        );
-        grand_total += amt;
     }
-    if show_total && code == 0 {
-        emit_line(grand_total, "total", &mut out);
-    }
-    BuiltinOutcome {
-        stdout: out,
-        stderr,
-        exit_code: code,
-    }
+    if show_total && let Some(total) = total { emit_line(total, "total", &mut out); }
+    BuiltinOutcome { stdout: out, exit_code: i32::from(!stderr.is_empty()), stderr }
 }
 fn parse_df_block_size(spec: &str) -> Option<(u64, String)> {
     let cleaned = spec.trim().strip_prefix('\'').unwrap_or(spec.trim());
@@ -7004,6 +6988,35 @@ mod tests {
     }
 
     #[test]
+    fn du_reports_incomplete_subtrees_and_detects_directory_cycles() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/d").unwrap();
+        fs.write_file("/d/f", b"abc").unwrap();
+        fs.symlink(".", "/d/loop").unwrap();
+        let run = |flags| cmd_du(&args(&[flags, "/d"]), "/", &Default::default(), &fs);
+        let allocated = run("-ac");
+        assert_eq!(allocated.exit_code, 1);
+        assert_eq!(allocated.stdout, "");
+        assert_eq!(allocated.stderr, ["d", "d/f", "d/loop"].map(|p|
+            format!("du: \"/{p}\": allocated bytes unknown; total suppressed\n")).concat());
+        let apparent = run("-ablL");
+        assert_eq!(apparent.stdout, "3\t/d/f\n");
+        assert_eq!(apparent.stderr, "du: \"/d/loop\": directory cycle detected\n");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn du_uses_host_allocation_for_regular_files() {
+        use std::os::unix::fs::MetadataExt;
+        let root = env!("CARGO_MANIFEST_DIR");
+        let fs = crate::vfs::RealVfs::new(root).unwrap();
+        let allocated = std::fs::metadata(std::path::Path::new(root).join("Cargo.toml")).unwrap().blocks() * 512;
+        let result = cmd_du(&args(&["-B1", "Cargo.toml"]), "/", &Default::default(), &fs);
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(result.stdout, format!("{allocated}\tCargo.toml\n"));
+    }
+
+    #[test]
     fn unit_fs_diagnostics_help_version_and_validation_match_typescript() {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work/dir").unwrap();
@@ -7067,6 +7080,11 @@ mod tests {
         let touch_t = try_run_fs_command("touch", &args(&["-t", "bad", "/work/f.txt"]), "", "/work", &env, &vfs).unwrap();
         assert_eq!(touch_t.exit_code, 1);
         assert_eq!(touch_t.stderr, "touch: invalid date format 'bad'\n");
+
+        let usage = try_run_fs_command("du", &args(&["-ck", "f.txt"]), "", "/work", &env, &vfs).unwrap();
+        assert_eq!(usage.stdout, "");
+        assert_eq!(usage.stderr, "du: \"f.txt\": allocated bytes unknown; total suppressed\n");
+        assert_eq!(usage.exit_code, 1);
 
         // du invalid max-depth & missing operand
         let du_bad = try_run_fs_command("du", &args(&["-d", "abc"]), "", "/work", &env, &vfs).unwrap();

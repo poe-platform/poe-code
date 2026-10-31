@@ -64,8 +64,8 @@ struct BudgetedFs<'a> {
 }
 
 impl<'a> SafeBashFs for BudgetedFs<'a> {
-    fn max_output_bytes(&self) -> usize {
-        self.budget.limits.max_output_bytes
+    fn shell_limits(&self) -> ShellLimits {
+        self.budget.limits.clone()
     }
 
     fn max_input_bytes(&self) -> usize {

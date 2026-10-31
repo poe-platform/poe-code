@@ -1,5 +1,6 @@
 // in2csv uses Python JSON numbers (int and Decimal), including their original scale.
-use super::{BuiltinOutcome, err_out, ok_out};
+use super::{BuiltinOutcome, err_out};
+use crate::budget::{AllocationGuard, ShellLimits};
 use mcp_protocol_rust::json;
 use std::collections::BTreeMap;
 
@@ -12,11 +13,12 @@ enum Value<'a> {
     Object(Vec<(String, Value<'a>)>),
 }
 
-struct Parser<'a> {
+struct Parser<'a, 'b> {
+    memory: &'b AllocationGuard,
     text: &'a str,
     pos: usize,
 }
-impl<'a> Parser<'a> {
+impl<'a, 'b> Parser<'a, 'b> {
     fn error(&self, msg: &str, at: usize) -> String {
         let prefix = &self.text[..at];
         let line = prefix.bytes().filter(|&c| c == b'\n').count() + 1;
@@ -43,6 +45,7 @@ impl<'a> Parser<'a> {
             self.pos += 1;
             match self.text.as_bytes()[p] {
                 b'"' => {
+                    self.memory.try_reserve((p - start).saturating_mul(6))?;
                     if !escaped {
                         return Ok(self.text[start + 1..p].into());
                     }
@@ -81,6 +84,9 @@ impl<'a> Parser<'a> {
         Err(self.error("Unterminated string starting at", start))
     }
     fn value(&mut self, depth: usize) -> Result<Value<'a>, String> {
+        // Admit the parsed node and its table slot before growing either structure.
+        self.memory
+            .try_reserve(2 * size_of::<Value>() + size_of::<Cell>() + 64)?;
         self.white();
         let start = self.pos;
         let first = self.byte();
@@ -208,6 +214,7 @@ impl<'a> Parser<'a> {
             }
         }
         let token = &self.text[start..self.pos];
+        self.memory.try_reserve(token.len().saturating_mul(5))?;
         if !token.contains(['.', 'e', 'E']) && token.trim_start_matches('-').len() > 4300 {
             return Err(format!(
                 "ValueError: Exceeds the limit (4300 digits) for integer string conversion: value has {} digits; use sys.set_int_max_str_digits() to increase the limit",
@@ -216,8 +223,12 @@ impl<'a> Parser<'a> {
         }
         Ok(Value::Number(token))
     }
-    fn parse(text: &'a str) -> Result<Value<'a>, String> {
-        let mut p = Self { text, pos: 0 };
+    fn parse(text: &'a str, memory: &'b AllocationGuard) -> Result<Value<'a>, String> {
+        let mut p = Self {
+            text,
+            pos: 0,
+            memory,
+        };
         if text.starts_with('\u{feff}') {
             return Err(p.error("Unexpected UTF-8 BOM (decode using utf-8-sig)", 0));
         }
@@ -450,6 +461,7 @@ fn flatten(
     names: &mut BTreeMap<String, usize>,
     columns: &mut Vec<Column>,
     opts: &Options<'_>,
+    memory: &AllocationGuard,
 ) -> Result<(), String> {
     let len = path.len();
     match v {
@@ -457,7 +469,7 @@ fn flatten(
             for (key, v) in fields {
                 path.push_str(&key);
                 path.push('/');
-                flatten(v, path, cells, names, columns, opts)?;
+                flatten(v, path, cells, names, columns, opts, memory)?;
                 path.truncate(len);
             }
         }
@@ -465,20 +477,24 @@ fn flatten(
             for (i, v) in values.into_iter().enumerate() {
                 path.push_str(&i.to_string());
                 path.push('/');
-                flatten(v, path, cells, names, columns, opts)?;
+                flatten(v, path, cells, names, columns, opts, memory)?;
                 path.truncate(len);
             }
         }
         v => {
             let name = path.trim_matches('/');
-            let idx = *names.entry(name.to_owned()).or_insert_with(|| {
+            let idx = if let Some(&idx) = names.get(name) {
+                idx
+            } else {
+                memory.try_reserve(name.len().saturating_mul(4) + size_of::<Column>())?;
+                names.insert(name.into(), columns.len());
                 columns.push(Column {
                     name: name.into(),
                     boolean: !opts.no_inference,
                     numeric: !opts.no_inference,
                 });
                 columns.len() - 1
-            });
+            };
             cells.insert(idx, opts.cell(v)?);
         }
     }
@@ -490,10 +506,14 @@ pub(super) fn convert(
     newline: bool,
     key: Option<&str>,
     opts: &Options<'_>,
-    output_limit: usize,
+    limits: &ShellLimits,
 ) -> BuiltinOutcome {
-    match table(text, newline, key, opts, output_limit) {
-        Ok(out) => ok_out(&out),
+    match table(text, newline, key, opts, limits) {
+        Ok(stdout) => BuiltinOutcome {
+            stdout,
+            stderr: String::new(),
+            exit_code: 0,
+        },
         Err(e) => err_out(
             &format!("{e}\n"),
             if e.starts_with("csvkit: unsupported or unqualified:") {
@@ -509,17 +529,19 @@ fn table(
     newline: bool,
     key: Option<&str>,
     opts: &Options<'_>,
-    output_limit: usize,
+    limits: &ShellLimits,
 ) -> Result<String, String> {
+    let memory = AllocationGuard::new(limits.max_memory_bytes);
+    memory.try_reserve(text.len())?;
     let values = if newline {
         if key.is_some() {
             return Err("ValueError: key and newline may not be specified together.".into());
         }
         text.split_inclusive('\n')
-            .map(Parser::parse)
+            .map(|line| Parser::parse(line, &memory))
             .collect::<Result<Vec<_>, _>>()?
     } else {
-        let mut root = Parser::parse(text)?;
+        let mut root = Parser::parse(text, &memory)?;
         if let Value::Object(entries) = root {
             let key = key.filter(|s| !s.is_empty()).ok_or("TypeError: When converting a JSON document with a top-level dictionary element, a key must be specified.")?;
             root = entries
@@ -531,7 +553,14 @@ fn table(
         match root {
             Value::Array(vals) => vals,
             Value::Object(o) => o.into_iter().map(|(k, _)| Value::Text(k)).collect(),
-            Value::Text(s) => s.chars().map(|c| Value::Text(c.to_string())).collect(),
+            Value::Text(s) => {
+                memory.try_reserve(
+                    s.chars()
+                        .count()
+                        .saturating_mul(2 * size_of::<Value>() + size_of::<Cell>() + 64),
+                )?;
+                s.chars().map(|c| Value::Text(c.to_string())).collect()
+            }
             v => {
                 let ty = match v {
                     Value::Null => "NoneType",
@@ -564,6 +593,7 @@ fn table(
             &mut names,
             &mut columns,
             opts,
+            &memory,
         )?;
         for (&idx, c) in &cells {
             if let Some(c) = c {
@@ -573,7 +603,19 @@ fn table(
         }
         rows.push(cells);
     }
-    let bound = "csvkit: unsupported or unqualified: CSV output budget exceeded";
+    let remaining = if limits.max_memory_bytes == 0 {
+        usize::MAX
+    } else {
+        limits
+            .max_memory_bytes
+            .saturating_sub(memory.current_bytes())
+    };
+    let output_limit = limits.max_output_bytes.min(remaining);
+    let bound = if remaining < limits.max_output_bytes {
+        "Memory budget exceeded while rendering CSV"
+    } else {
+        "csvkit: unsupported or unqualified: CSV output budget exceeded"
+    };
     if columns.len().max(1).saturating_mul(rows.len() + 1) > output_limit {
         return Err(bound.into());
     }
@@ -589,34 +631,66 @@ fn table(
     } else {
         String::new()
     };
-    out.push_str(&super::format_csv_row(&headers, ','));
+    let width = headers.len();
+    let mut field = |text: &str, last: bool| -> Result<(), String> {
+        let quoted = (width == 1 && text.is_empty()) || text.contains([',', '"', '\r', '\n']);
+        let extra = if quoted {
+            2 + text.bytes().filter(|&c| c == b'"').count()
+        } else {
+            0
+        };
+        if out
+            .len()
+            .saturating_add(text.len())
+            .saturating_add(extra + 1)
+            > output_limit
+        {
+            return Err(bound.into());
+        }
+        if quoted {
+            out.push('"');
+            for c in text.chars() {
+                if c == '"' {
+                    out.push('"');
+                }
+                out.push(c);
+            }
+            out.push('"');
+        } else {
+            out.push_str(text);
+        }
+        out.push(if last { '\n' } else { ',' });
+        Ok(())
+    };
+    if width == 0 {
+        field("", true)?;
+    }
+    for (i, header) in headers.iter().enumerate() {
+        field(header, i + 1 == width)?;
+    }
     for (i, row) in rows.into_iter().enumerate() {
-        let mut fields = Vec::with_capacity(headers.len());
         if opts.line_numbers {
-            fields.push((i + 1).to_string());
+            field(&(i + 1).to_string(), columns.is_empty())?;
+        }
+        if width == 0 {
+            field("", true)?;
         }
         let mut cells = row.into_iter().peekable();
         for (idx, col) in columns.iter().enumerate() {
             let cell = cells.next_if(|(k, _)| *k == idx).and_then(|(_, c)| c);
-            fields.push(match cell {
-                None => String::new(),
-                Some(c) if col.boolean => if c.boolean == Some(true) {
-                    "True"
-                } else {
-                    "False"
+            let value = match &cell {
+                None => "",
+                Some(c) if col.boolean => {
+                    if c.boolean == Some(true) {
+                        "True"
+                    } else {
+                        "False"
+                    }
                 }
-                .into(),
-                Some(c) if col.numeric => c.number.unwrap_or_default(),
-                Some(c) => c.text,
-            });
-        }
-        if fields.len() == 1 && fields[0].is_empty() {
-            out.push_str("\"\"\n");
-        } else {
-            out.push_str(&super::format_csv_row(&fields, ','));
-        }
-        if out.len() > output_limit {
-            return Err(bound.into());
+                Some(c) if col.numeric => c.number.as_deref().unwrap_or_default(),
+                Some(c) => &c.text,
+            };
+            field(value, idx + 1 == columns.len())?;
         }
     }
     Ok(out)

@@ -200,6 +200,22 @@ test("WASM Bash forceNative executes tar compressed archives, jq, csvpy, bc, sed
   assert.equal(res.stdout, "{\"result\":84}\nDOT_OK\n");
 });
 
+test("in2csv admits JSON table storage under the shell memory limit", () => {
+  const bash = new RustWasmBash({
+    limits: { maxMemoryBytes: 4096 },
+    files: { "/input.json": JSON.stringify(Array.from({ length: 128 }, (_, n) => ({ n }))) },
+  });
+  try {
+    const r = bash.execSync("in2csv /input.json");
+    assert.notEqual(r.exitCode, 0);
+    assert.match(r.stderr, /memory budget/i);
+    assert.equal(r.stdout, "");
+    assert.equal(bash.execSync("echo ok").stdout, "ok\n");
+  } finally {
+    bash.dispose();
+  }
+});
+
 test("WASM Bash forceNative enforces memoryFsOptions quotas and execution limits", async () => {
   const bash = createRustWasmBash({
     forceNative: true,

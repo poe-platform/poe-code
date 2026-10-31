@@ -12297,7 +12297,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     };
     json_options.bom = add_bom;
     json_options.line_numbers = line_numbers;
-    in2csv_json::convert(&text, fmt == "ndjson", key_prop.as_deref(), &json_options, fs.max_output_bytes())
+    in2csv_json::convert(&text, fmt == "ndjson", key_prop.as_deref(), &json_options, &fs.shell_limits())
 }
 
 fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {

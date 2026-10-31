@@ -60,25 +60,33 @@ function extractVideoFramesFromDoc(doc: MediaDocument, maxFrames?: number): {
   }
   const width = vTrack.width ?? vTrack.codecDescriptions[0]?.width ?? 64;
   const height = vTrack.height ?? vTrack.codecDescriptions[0]?.height ?? 64;
-  if (vTrack.decodedVideoFrames && vTrack.decodedVideoFrames.length > 0) {
-    const dur = vTrack.decodedVideoFrames[0]!.durationSeconds || 0.1;
-    return {
-      frames: [...vTrack.decodedVideoFrames],
-      width,
-      height,
-      fps: Math.max(1, Math.round(1 / dur))
-    };
-  }
   const ts = vTrack.timescale || 90000;
   const frames: MediaVideoFrame[] = [];
-  for (const frame of decodeH264Samples(vTrack.samples, vTrack.codecDescriptions, width, height, ts)) {
-    frames.push(frame);
+  const edits = vTrack.editList?.length ? vTrack.editList : undefined;
+  let presentationStart = 0;
+  for (const edit of edits ?? [undefined]) {
+    const duration = edit ? edit.segmentDuration / doc.timescale : Infinity;
+    if (edit && edit.mediaTime < 0) {
+      presentationStart += duration;
+      continue;
+    }
+    const mediaStart = edit ? edit.mediaTime / ts : -Infinity;
+    const mediaEnd = edit ? mediaStart + duration : Infinity;
+    const decoded = vTrack.decodedVideoFrames?.length ? vTrack.decodedVideoFrames
+      : decodeH264Samples(vTrack.samples, vTrack.codecDescriptions, width, height, ts);
+    for (const frame of decoded) {
+      // MP4 retains reference pictures outside its visible interval. Other
+      // containers must export only the displayed portion of each picture.
+      const start = Math.max(Math.round(frame.ptsSeconds * ts) / ts, mediaStart);
+      const end = Math.min(Math.round((frame.ptsSeconds + frame.durationSeconds) * ts) / ts, mediaEnd);
+      if (end <= start) continue;
+      frames.push(edit ? { ...frame, ptsSeconds: presentationStart + start - mediaStart, durationSeconds: end - start } : frame);
+      if (maxFrames !== undefined && frames.length >= maxFrames) break;
+    }
     if (maxFrames !== undefined && frames.length >= maxFrames) break;
+    presentationStart += duration;
   }
-  const fps =
-    frames.length > 0 && doc.durationSeconds > 0
-      ? Math.max(1, Math.round(frames.length / doc.durationSeconds))
-      : 30;
+  const fps = frames.length > 0 ? Math.max(1, Math.round(1 / (frames[0]!.durationSeconds || .1))) : 30;
   return { frames, width, height, fps };
 }
 

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
-import { gifAst } from "./containers/adapters.js";
+import { gifAst, image2Ast } from "./containers/adapters.js";
+import { createSyntheticMp4, parseMp4, serializeMp4 } from "./index.js";
 
 it("parses and probes six GIF frames with individual durations", () => {
   const data = new Uint8Array(2 * 3 * 6 * 4);
@@ -34,3 +35,30 @@ it("serializes every decoded video frame without accumulating GIF timing drift",
   assert.equal(image.pages, 12);
   assert.equal(image.delay!.reduce((sum, delay) => sum + delay, 0), 1500);
 });
+
+for (const encoded of [false, true]) {
+  it(`omits decode preroll and trailing pictures from ${encoded ? "encoded" : "decoded"} GIF output`, () => {
+    const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 6, fps: 10, includeAudio: false }));
+    const track = source.tracks[0]!;
+    const decodedVideoFrames = Array.from({ length: 6 }, (_, index) => ({
+      width: 16, height: 16,
+      data: new Uint8Array(16 * 16 * 4).map((_, channel) => channel % 4 === 3 ? 255 : index * 40),
+      ptsSeconds: index / 10, durationSeconds: .1, keyframe: true
+    }));
+    const doc = { ...source, duration: 300, durationSeconds: .3, tracks: [{ ...track, samples: [], decodedVideoFrames,
+      editList: [{ segmentDuration: 300, mediaTime: Math.round(.2 * track.timescale), mediaRateInteger: 1, mediaRateFraction: 0 }]
+    }], timescale: 1000 };
+    const input = encoded ? parseMp4(serializeMp4(doc)) : doc;
+    const output = decodeImage(gifAst().serialize(input), { animated: true });
+    assert.equal(output.pages, 3);
+    assert.equal(output.delay!.reduce((sum, delay) => sum + delay, 0), 300);
+    for (let index = 0; index < 3; index++) {
+      assert.ok(Math.abs(output.data[index * 16 * 16 * 4]! - (index + 2) * 40) < 8, `visible picture ${index}`);
+    }
+    assert.ok(Math.abs(decodeImage(image2Ast().serialize(input)).data[0]! - 80) < 8, "first displayed picture");
+    const partial = { ...input, tracks: input.tracks.map(t => ({ ...t,
+      editList: [{ segmentDuration: 200, mediaTime: Math.round(.25 * t.timescale), mediaRateInteger: 1, mediaRateFraction: 0 }]
+    })) };
+    assert.deepEqual(decodeImage(gifAst().serialize(partial), { animated: true }).delay, [50, 100, 50]);
+  });
+}

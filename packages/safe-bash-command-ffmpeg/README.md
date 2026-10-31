@@ -20,6 +20,9 @@ and `pipe:` aliases. Shell and media input limits count bytes cumulatively acros
 stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
+WAV extraction and audio filters require decoded PCM audio, such as a WAV input
+or a `lavfi` source. Encoded AAC input cannot currently be decoded; these operations
+fail without replacing it with silence or a generated tone. Stream copying remains supported.
 
 `ffprobe` uses the same audio/video implementation as `@poe-platform/safe-bash/commands/ffprobe`, with default limits of 32 MiB input and 1 MiB output. Pass `limits` to override them.
 

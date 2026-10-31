@@ -15,6 +15,14 @@ function audio(sampleRate = 4, channelData = [Float32Array.from([0, .25, .5, .75
   };
 }
 
+it("rejects WAV serialization without decoded or PCM source audio", () => {
+  const source = audio();
+  assert.throws(() => serializeWav({ ...source, tracks: [] }), /WAV encoding requires decoded PCM audio/);
+  const encoded = { ...source.tracks[0]!, decodedAudio: undefined,
+    codecDescriptions: [{ formatFourCC: "mp4a", codecName: "aac", sampleRate: 4, channels: 1 }] };
+  assert.throws(() => serializeWav({ ...source, tracks: [encoded] }), /WAV encoding requires decoded PCM audio/);
+});
+
 it("slices decoded waveforms at rounded sample boundaries without mutating the input", () => {
   const source = parseWav(serializeWav(audio()));
   const result = sliceMp4(source, { startSeconds: .375, durationSeconds: .75 });

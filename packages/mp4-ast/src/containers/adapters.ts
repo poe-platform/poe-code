@@ -509,8 +509,7 @@ export function serializeWav(doc: MediaDocument): Uint8Array {
   ) {
     pcmBytes = concatBytes(audioTrack.samples.map((s) => s.data));
   } else {
-    const numSamples = Math.max(1024, Math.round((doc.durationSeconds || 1) * sampleRate));
-    pcmBytes = new Uint8Array(numSamples * channels * 2);
+    throw new Error("WAV encoding requires decoded PCM audio");
   }
 
   const writer = new BinaryWriter(44 + pcmBytes.byteLength);

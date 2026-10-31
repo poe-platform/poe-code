@@ -1987,6 +1987,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
   let work = 0;
 
               if (t.type !== "audio") return t;
+              if (!t.decodedAudio) throw new Error("Audio filtering requires decoded PCM audio");
               const origRate = t.decodedAudio?.sampleRate ?? t.codecDescriptions[0]?.sampleRate ?? t.timescale ?? 44100;
               const origCh = t.decodedAudio?.channels ?? t.codecDescriptions[0]?.channels ?? 2;
               const targetRate = audioRate ?? origRate;
@@ -2028,12 +2029,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                     const srcIdx = Math.min(srcCh.length - 1, Math.floor((i / targetSamples) * srcCh.length));
                     dst[i] = Math.max(-1, Math.min(1, srcCh[srcIdx]! * volFactor));
-                  }
-                } else {
-                  for (let i = 0; i < targetSamples; i++) {
-                    if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-
-                    dst[i] = Math.sin((2 * Math.PI * 440 * i) / targetRate) * 0.2 * volFactor;
                   }
                 }
                 if (reverseAudio) dst.reverse();

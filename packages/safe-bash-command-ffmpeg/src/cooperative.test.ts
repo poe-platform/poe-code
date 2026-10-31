@@ -39,11 +39,15 @@ it("yields audio sample work and observes cancellation with frozen clocks", asyn
   } finally { mock.restoreAll(); }
 });
 
-import { createSyntheticMp4 } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, serializeWav } from "@poe-code/mp4-ast";
 
 for (const mode of ["audio resampling", "video frames"] as const) {
   it(`cancels ${mode} between work batches with frozen clocks`, async () => {
-    const input = createSyntheticMp4({ width: 32, height: 32, frameCount: 30, fps: 30, includeAudio: true });
+    const video = createSyntheticMp4({ width: 32, height: 32, frameCount: 30, fps: 30, includeAudio: true });
+    const doc = parseMp4(video);
+    const input = mode === "video frames" ? video : serializeWav({ ...doc, tracks: doc.tracks.filter(track => track.type === "audio").map(track => ({ ...track,
+      decodedAudio: { sampleRate: 44100, channels: 2, channelData: [new Float32Array(44100), new Float32Array(44100)] }
+    })) });
     mock.method(performance, "now", () => 0);
     mock.method(Date, "now", () => 0);
     try {
@@ -54,7 +58,7 @@ for (const mode of ["audio resampling", "video frames"] as const) {
         if (++turns === 4) setTimeout(() => controller.abort(new Error("cancel media")), 0);
       });
       const context = {
-        args: mode === "audio resampling" ? ["-i", "in.mp4", "-vn", "-ar", "48000", "out.wav"] : ["-i", "in.mp4", "out%02d.png"],
+        args: mode === "audio resampling" ? ["-i", "in.wav", "-ar", "48000", "out.wav"] : ["-i", "in.mp4", "out%02d.png"],
         cwd: "/", env: {}, signal: controller.signal,
         stdin: (async function* () {})(),
         fs: { async readFile() { return input; }, async writeFile() { published = true; }, async stat() { throw Object.assign(new Error("ENOENT"), { code: "ENOENT" }); }, async mkdir() {} },

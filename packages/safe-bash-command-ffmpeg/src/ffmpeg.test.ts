@@ -214,13 +214,16 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     assert.equal(failRes.exitCode, 1);
     assert.ok((failRes.stderr).includes("format AST not registered"));
 
-    // With allMediaAsts(), MP4 -> MKV, TS, AVI, FLV, Y4M, WAV all succeed!
+    // Container support does not imply an audio decoder for WAV extraction.
     const fullFfmpeg = createFfmpegCommand({ asts: allMediaAsts() });
-    for (const ext of ["mkv", "webm", "ts", "avi", "flv", "y4m", "wav", "gif"]) {
+    for (const ext of ["mkv", "webm", "ts", "avi", "flv", "y4m", "gif"]) {
       const res = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", `/out.${ext}`], vfs);
       assert.equal(res.exitCode, 0);
       assert.ok((vfs.store.get(`/out.${ext}`)?.byteLength ?? 0) > 10);
     }
+    const wav = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", "/out.wav"], vfs);
+    assert.equal(wav.exitCode, 1);
+    assert.equal(vfs.store.has("/out.wav"), false);
   });
 
   it("supports lavfi sources, video filters (scale, crop, pad, hflip, hstack), and image sequence extraction", async () => {
@@ -362,15 +365,17 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     assert.equal(sheetProbe.streams[0].width, 64);
     assert.equal(sheetProbe.streams[0].height, 48);
 
-    // 4. Whisper audio resampling (-vn -ar 16000 -ac 1)
-    const r4 = await runCmd(ffmpeg, ["-i", "/v.mp4", "-vn", "-ar", "16000", "-ac", "1", "/audio.wav"], vfs);
+    // 4. Resample actual PCM audio rather than an undecoded AAC track.
+    assert.equal((await runCmd(ffmpeg, ["-f", "lavfi", "-i", "sine=frequency=220:duration=1", "/source.wav"], vfs)).exitCode, 0);
+    const r4 = await runCmd(ffmpeg, ["-i", "/source.wav", "-ar", "16000", "-ac", "1", "/audio.wav"], vfs);
     assert.equal(r4.exitCode, 0);
     const wavProbe = JSON.parse((await runCmd(ffprobe, ["-v", "quiet", "-print_format", "json", "-show_streams", "/audio.wav"], vfs)).stdout);
     assert.equal(wavProbe.streams[0].sample_rate, "16000");
     assert.equal(wavProbe.streams[0].channels, 1);
+    assert.ok(parseWav(vfs.store.get("/audio.wav")!).tracks[0]!.decodedAudio!.channelData[0]!.some(sample => Math.abs(sample) > .1));
   });
 
-  it("segments MP4 into HLS (.m3u8 + .ts) and rejoins back to MP4, probes chapters, and applies xfade/setpts/reverse/atempo", async () => {
+  it("segments MP4 into HLS (.m3u8 + .ts) and rejoins back to MP4, probes chapters, and applies xfade/setpts/reverse", async () => {
     const { ffmpeg, ffprobe } = createFfmpegCommands();
     const video = createSyntheticMp4({ width: 32, height: 24, fps: 10, durationSeconds: 2, includeAudio: true });
     const ffmeta = ";FFMETADATA1\ntitle=Demo\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=1000\ntitle=Intro\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=1000\nEND=2000\ntitle=Outro\n";
@@ -399,10 +404,10 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     assert.equal(chProbe.chapters[0].tags.title, "Intro");
     assert.equal(chProbe.chapters[1].tags.title, "Outro");
 
-    // 3. xfade + setpts + reverse + atempo
+    // 3. xfade + setpts + reverse
     const xfRes = await runCmd(
       ffmpeg,
-      ["-i", "/v.mp4", "-i", "/v.mp4", "-filter_complex", "[0:v][1:v]xfade=transition=fade:duration=0.4:offset=1.6", "-vf", "setpts=0.5*PTS,reverse", "-af", "atempo=2.0,areverse", "/xf.mp4"],
+      ["-i", "/v.mp4", "-i", "/v.mp4", "-filter_complex", "[0:v][1:v]xfade=transition=fade:duration=0.4:offset=1.6", "-vf", "setpts=0.5*PTS,reverse", "/xf.mp4"],
       vfs
     );
     assert.equal(xfRes.exitCode, 0);
@@ -449,6 +454,17 @@ it("HLS copies each video sample once and cuts at keyframes", async () => {
 });
 
 describe("decoded audio editing", () => {
+  it("rejects undecoded audio instead of replacing it with silence or a tone", async () => {
+    for (const options of [[], ["-ar", "16000"], ["-af", "volume=0.5"]]) {
+      const original = new Uint8Array([1, 2, 3]);
+      const vfs = createTestVfs({ "/input.mp4": createSyntheticMp4({ width: 16, height: 16, frameCount: 2, includeAudio: true }), "/output.wav": original });
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.mp4", "-vn", ...options, "/output.wav"], vfs);
+      assert.equal(result.exitCode, 1, JSON.stringify(options));
+      assert.match(result.stderr, /requires decoded PCM audio/);
+      assert.deepEqual(vfs.store.get("/output.wav"), original);
+    }
+  });
+
   it("trims and repeats WAV waveforms through ffmpeg options", async () => {
     const vfs = createTestVfs();
     const command = createFfmpegCommand();
@@ -459,7 +475,8 @@ describe("decoded audio editing", () => {
       [["-ss", "1", "-i", "/four.wav", "-to", "2"], 2],
       [["-stream_loop", "2", "-i", "/four.wav"], 12],
       [["-i", "concat:/four.wav|/four.wav"], 8],
-      [["-i", "/four.wav", "-af", "volume=0.5", "-t", "1"], 1]
+      [["-i", "/four.wav", "-af", "volume=0.5", "-t", "1"], 1],
+      [["-i", "/four.wav", "-af", "atempo=2.0,areverse"], 2]
     ] as const) {
       const result = await runCmd(command, [...args, "-y", "/output.wav"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);

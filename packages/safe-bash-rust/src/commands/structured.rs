@@ -10810,6 +10810,8 @@ fn format_jval_with_indent(val: &JVal, indent_opt: Option<usize>, depth: usize) 
 }
 
 fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+    let mut decimal_format = "%.3f";
+    let mut grouping = true;
     let mut count_only = false;
     let mut list_names = false;
     let mut no_header_row = false;
@@ -10880,7 +10882,9 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 i += 1;
                 cols_spec = Some(args[i].clone());
             }
-            "-e" | "--encoding" | "-y" | "--snifflimit" | "--decimal-format" if i + 1 < args.len() => {
+            "-G" | "--no-grouping-separator" => grouping = false,
+            "--decimal-format" if i + 1 < args.len() => { i += 1; decimal_format = &args[i]; }
+            "-e" | "--encoding" | "-y" | "--snifflimit" if i + 1 < args.len() => {
                 i += 1;
             }
             a if !a.starts_with('-') || a == "-" => files.push(a.to_string()),
@@ -10945,6 +10949,9 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         freq_csv_str: String,
     }
 
+    let output_limit = fs.shell_limits().max_output_bytes;
+    let format_stat = |v: &str| csvkit_decimal::format_number(v, decimal_format, grouping, output_limit);
+    let unsupported = |why| err_out(&format!("csvkit: unsupported or unqualified: {why}\n"), 78);
     let mut stats = Vec::new();
     for &c_idx in &indices {
         let col_name = headers.get(c_idx).cloned().unwrap_or_default();
@@ -11023,18 +11030,22 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 } else {
                     (nums[n / 2 - 1] + nums[n / 2]) / 2.0
                 };
-                min = Some(format_csvkit_num(nums[0]));
-                max = Some(format_csvkit_num(nums[n - 1]));
-                sum = Some(format_csvkit_num(raw_sum));
-                mean = Some(format_csvkit_num(raw_mean));
-                median = Some(format_csvkit_num(raw_med));
-                if n > 1 {
-                    let variance: f64 = nums
-                        .iter()
-                        .map(|x| (x - raw_mean).powi(2))
-                        .sum::<f64>()
-                        / ((n - 1) as f64);
-                    stdev = Some(format_csvkit_num(variance.sqrt()));
+                let raw_stdev = (n > 1).then(|| (nums.iter()
+                    .map(|x| (x - raw_mean).powi(2)).sum::<f64>() / (n - 1) as f64).sqrt());
+                for (op, slot, value) in [
+                    ("min", &mut min, Some(nums[0])), ("max", &mut max, Some(nums[n-1])),
+                    ("sum", &mut sum, Some(raw_sum)), ("mean", &mut mean, Some(raw_mean)),
+                    ("median", &mut median, Some(raw_med)), ("stdev", &mut stdev, raw_stdev),
+                ] {
+                    if single_op.is_some_and(|which| which != op) { continue; }
+                    if let Some(value) = value {
+                        let raw = if value.is_infinite() {
+                            if value.is_sign_negative() {"-Infinity".into()} else {"Infinity".into()}
+                        } else { value.to_string() };
+                        *slot = Some(if json_out { raw } else {
+                            match format_stat(&raw) { Ok(v) => v, Err(e) => return unsupported(e) }
+                        });
+                    }
                 }
                 let (whole, places) = non_empty.iter()
                     .filter(|v| v.trim().parse::<f64>().is_ok_and(f64::is_finite))
@@ -11247,6 +11258,11 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if !s.freq_pairs.is_empty() {
             for (idx, (val, cnt)) in s.freq_pairs.iter().enumerate() {
+                let formatted;
+                let val = if s.col_type == "Number" {
+                    formatted = match format_stat(val.trim()) { Ok(v) => v, Err(e) => return unsupported(e) };
+                    &formatted
+                } else { val };
                 if idx == 0 {
                     out.push_str(&format!("\tMost common values:    {val} ({cnt}x)\n"));
                 } else {
@@ -37644,6 +37660,27 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_formats_numeric_results_and_leaves_frequency_keys_unformatted() {
+        let fs = MemoryVfs::new();
+        let data = "x\n1234.625\n2345.375\n";
+        for (flags, expected) in [
+            (vec!["--min"], "1,234.625\n"),
+            (vec!["--min", "--decimal-format", "%.2f"], "1,234.62\n"),
+            (vec!["--min", "-G", "--decimal-format", "%d"], "1234\n"),
+            (vec!["--stdev"], "785.419\n"),
+            (vec!["--freq"], "{ \"1234.625\": 1, \"2345.375\": 1 }\n"),
+        ] {
+            let r = cmd_csvstat(&args(&flags), data, "/", &fs);
+            assert_eq!((r.exit_code, r.stdout.as_str()), (0, expected), "{flags:?}");
+        }
+        let r = cmd_csvstat(&args(&["--min", "--decimal-format", "#,##0.###"]), "n\n1.2345\n2\n", "/", &fs);
+        assert_eq!(r.stdout, "1.234\n");
+        let bad = cmd_csvstat(&args(&["--mean", "--decimal-format", "bad"]), data, "/", &fs);
+        assert_eq!(bad.exit_code, 78);
+        assert!(bad.stderr.contains("portable locale"));
     }
 
     #[test]

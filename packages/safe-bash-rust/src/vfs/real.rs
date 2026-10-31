@@ -1,5 +1,6 @@
-use crate::vfs::{SafeBashFs, VfsFileEntry};
+use crate::vfs::{FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::path::{Path, PathBuf};
+use std::time::{Duration, UNIX_EPOCH};
 
 #[derive(Clone, Debug)]
 pub struct RealVfs {
@@ -92,9 +93,79 @@ impl RealVfs {
         }
         Ok(current)
     }
+
+    fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
+        let host = self.walk(&self.root, path, follow, false)?;
+        let meta = std::fs::symlink_metadata(host).map_err(|e| e.to_string())?;
+        let kind = if meta.is_file() {
+            VfsEntryKind::File
+        } else if meta.is_dir() {
+            VfsEntryKind::Directory
+        } else if meta.is_symlink() {
+            VfsEntryKind::Symlink
+        } else {
+            return Err("ENOTSUP: unsupported file type".into());
+        };
+        #[cfg(unix)]
+        let mode = std::os::unix::fs::PermissionsExt::mode(&meta.permissions());
+        #[cfg(not(unix))]
+        let mode = match kind {
+            VfsEntryKind::File => 0o100666,
+            VfsEntryKind::Directory => 0o040777,
+            VfsEntryKind::Symlink => 0o120777,
+        } & if meta.permissions().readonly() {
+            !0o222
+        } else {
+            !0
+        };
+        Ok(FileStat {
+            kind,
+            mode,
+            size: meta.len().try_into().map_err(|_| "EOVERFLOW: file size")?,
+            mtime_ms: meta
+                .modified()
+                .map_err(|e| e.to_string())?
+                .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64,
+        })
+    }
 }
 
 impl SafeBashFs for RealVfs {
+    fn stat(&self, path: &str) -> Result<FileStat, String> {
+        self.metadata(path, true)
+    }
+
+    fn lstat(&self, path: &str) -> Result<FileStat, String> {
+        self.metadata(path, false)
+    }
+
+    fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
+        let host = self.walk(&self.root, path, true, false)?;
+        #[cfg(unix)]
+        let permissions = std::os::unix::fs::PermissionsExt::from_mode(mode & 0o7777);
+        #[cfg(not(unix))]
+        let permissions = {
+            let mut permissions = std::fs::metadata(&host)
+                .map_err(|e| e.to_string())?
+                .permissions();
+            permissions.set_readonly(mode & 0o200 == 0);
+            permissions
+        };
+        std::fs::set_permissions(host, permissions).map_err(|e| e.to_string())
+    }
+
+    fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        let host = self.walk(&self.root, path, true, false)?;
+        let time = UNIX_EPOCH
+            .checked_add(Duration::from_millis(mtime_ms))
+            .ok_or("EOVERFLOW: modification time")?;
+        std::fs::File::open(host)
+            .and_then(|file| file.set_modified(time))
+            .map_err(|e| e.to_string())
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let host = self.walk(&self.root, path, true, false)?;
         std::fs::read(host).map_err(|e| e.to_string())
@@ -272,6 +343,22 @@ mod tests {
         let st = vfs.stat("/confined.txt").unwrap();
         assert_eq!(st.size, 4);
         assert_eq!(st.kind, crate::VfsEntryKind::File);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            vfs.symlink("confined.txt", "/alias").unwrap();
+            vfs.chmod("/alias", 0o610).unwrap();
+            vfs.set_mtime("/alias", 1_600_000_001_234).unwrap();
+            let metadata = std::fs::metadata(tmp_root.join("confined.txt")).unwrap();
+            assert_eq!(metadata.permissions().mode() & 0o7777, 0o610);
+            let stat = vfs.stat("/alias").unwrap();
+            assert_eq!(stat.mode, 0o100610);
+            assert_eq!(stat.mtime_ms, 1_600_000_001_234);
+            assert_eq!(
+                vfs.lstat("/alias").unwrap().kind,
+                crate::VfsEntryKind::Symlink
+            );
+        }
 
         let _ = std::fs::remove_dir_all(&tmp_root);
     }

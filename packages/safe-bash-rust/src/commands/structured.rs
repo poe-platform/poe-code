@@ -1,3 +1,4 @@
+mod csvkit_decimal;
 mod csvkit_encoding;
 mod in2csv_json;
 use crate::commands::search::{
@@ -10938,7 +10939,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         median: Option<String>,
         stdev: Option<String>,
         len: Option<usize>,
-        maxprecision: Option<usize>,
+        maxprecision: Option<i128>,
         freq_pairs: Vec<(String, usize)>,
         freq_json_str: String,
         freq_csv_str: String,
@@ -11007,7 +11008,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .all(|v| v.trim().eq_ignore_ascii_case("true") || v.trim().eq_ignore_ascii_case("false"))
             {
                 col_type = "Boolean".to_string();
-            } else if non_empty.iter().all(|v| is_csvkit_num_str(v, false)) {
+            } else if non_empty.iter().all(|v| v.trim().parse::<f64>().is_ok()) {
                 col_type = "Number".to_string();
                 let mut nums: Vec<f64> = non_empty
                     .iter()
@@ -11035,19 +11036,12 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                         / ((n - 1) as f64);
                     stdev = Some(format_csvkit_num(variance.sqrt()));
                 }
-                let mp = non_empty
-                    .iter()
-                    .map(|v| {
-                        let t = v.trim();
-                        if let Some(dot) = t.find('.') {
-                            t[dot + 1..].trim_end_matches('0').len()
-                        } else {
-                            0
-                        }
-                    })
-                    .max()
-                    .unwrap_or(0);
-                maxprecision = Some(mp);
+                let (whole, places) = non_empty.iter()
+                    .filter(|v| v.trim().parse::<f64>().is_ok_and(f64::is_finite))
+                    .filter_map(|v| csvkit_decimal::Decimal::parse(v.trim(), true))
+                    .map(|v| v.normalized_places())
+                    .fold((1, 0), |(w, p), (whole, places)| (w.max(whole), p.max(places)));
+                maxprecision = Some(places.min(28 - whole));
             } else if non_empty.iter().all(|v| {
                 let t = v.trim();
                 t.len() == 10
@@ -11247,6 +11241,9 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         }
         if let Some(l) = s.len {
             out.push_str(&format!("\tLongest value:         {l} characters\n"));
+        }
+        if let Some(mp) = s.maxprecision {
+            out.push_str(&format!("\tMost decimal places:   {mp}\n"));
         }
         if !s.freq_pairs.is_empty() {
             for (idx, (val, cnt)) in s.freq_pairs.iter().enumerate() {
@@ -37647,6 +37644,21 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_reports_decimal_places_with_the_28_digit_precision_limit() {
+        let fs = MemoryVfs::new();
+        for (rows, expected) in [
+            ("1e-100\n2e-100", "27"), ("1e28\n0.01", "-1"), ("0.12500\n2", "3"),
+            ("1e309\n0.125", "3"), ("2.0000000000000000000000000001\n4.0", "0")
+        ] {
+            let input = format!("n\n{rows}\n");
+            let result = cmd_csvstat(&args(&["--max-precision"]), &input, "/", &fs);
+            assert_eq!(result.stdout.trim_end(), expected, "{rows}");
+        }
+        let report = cmd_csvstat(&[], "n\n1\n2\n", "/", &fs);
+        assert!(report.stdout.contains("\tMost decimal places:   0\n"));
     }
 
     #[test]

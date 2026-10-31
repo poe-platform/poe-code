@@ -10713,8 +10713,8 @@ fn is_csvkit_num_str(s: &str, allow_leading_zero: bool) -> bool {
 }
 
 fn format_jval_with_indent(val: &JVal, indent_opt: Option<usize>, depth: usize) -> String {
-    let Some(spaces) = indent_opt.filter(|&s| s > 0) else {
-        return val.to_json_string(true, false, 0);
+    let Some(spaces) = indent_opt else {
+        return format_jval_python_json(val);
     };
     match val {
         JVal::Array(items) => {
@@ -11304,7 +11304,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     };
     let rows = parse_csv_rows_opts(&text, delim, quotechar, skip_initial_space, skip_lines);
     if rows.is_empty() {
-        return ok_out(if stream { "" } else if key_col.is_some() { "{}\n" } else { "[]\n" });
+        return ok_out(if stream { "" } else if key_col.is_some() { "{}" } else { "[]" });
     }
     let (headers, data): (Vec<String>, &[Vec<String>]) = if no_header_row {
         (default_csvkit_headers(rows[0].len()), &rows[..])
@@ -11421,7 +11421,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         if stream {
             let mut out = String::new();
             for f in &features {
-                out.push_str(&f.to_json_string(true, false, 0));
+                out.push_str(&format_jval_python_json(f));
                 out.push('\n');
             }
             return ok_out(&out);
@@ -11452,10 +11452,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             ));
         }
         fc.push(("features".to_string(), JVal::Array(features)));
-        return ok_out(&format!(
-            "{}\n",
-            format_jval_with_indent(&JVal::Object(fc), indent, 0)
-        ));
+        return ok_out(&format_jval_with_indent(&JVal::Object(fc), indent, 0));
     }
 
     if let Some(ref ks) = key_col {
@@ -11472,10 +11469,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             obj_entries.push((k_str, JVal::Object(rec)));
         }
-        return ok_out(&format!(
-            "{}\n",
-            format_jval_with_indent(&JVal::Object(obj_entries), indent, 0)
-        ));
+        return ok_out(&format_jval_with_indent(&JVal::Object(obj_entries), indent, 0));
     }
 
     let records: Vec<JVal> = data
@@ -11496,16 +11490,13 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     if stream {
         let mut out = String::new();
         for r in &records {
-            out.push_str(&r.to_json_string(true, false, 0));
+            out.push_str(&format_jval_python_json(r));
             out.push('\n');
         }
         return ok_out(&out);
     }
 
-    ok_out(&format!(
-        "{}\n",
-        format_jval_with_indent(&JVal::Array(records), indent, 0)
-    ))
+    ok_out(&format_jval_with_indent(&JVal::Array(records), indent, 0))
 }
 
 fn parse_delim_arg(s: &str) -> char {
@@ -11535,10 +11526,6 @@ fn is_iso_datetime_str(s: &str) -> bool {
 
 fn format_jval_python_json(v: &JVal) -> String {
     match v {
-        JVal::Null => "null".to_string(),
-        JVal::Bool(b) => if *b { "true" } else { "false" }.to_string(),
-        JVal::Number(n) => format_csvkit_num(*n),
-        JVal::Str(s) => JVal::Str(s.clone()).to_json_string(true, false, 0),
         JVal::Array(arr) => {
             let parts: Vec<String> = arr.iter().map(format_jval_python_json).collect();
             format!("[{}]", parts.join(", "))
@@ -11556,6 +11543,7 @@ fn format_jval_python_json(v: &JVal) -> String {
                 .collect();
             format!("{{{}}}", parts.join(", "))
         }
+        _ => v.to_json_string(true, false, 0),
     }
 }
 

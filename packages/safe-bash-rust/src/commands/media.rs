@@ -6164,7 +6164,16 @@ fn cmd_media_doc(
                 doc.info.push(("Producer".to_string(), "@poe-code/pdf-ast".to_string()));
             }
             let out_arg = &pos_args.last().unwrap().0;
-            let serialized = doc.serialize();
+            let furniture = [&hdr_left, &hdr_center, &hdr_right, &ftr_left, &ftr_center, &ftr_right];
+            let serialized = if furniture.iter().all(|s| s.is_empty()) {
+                match pdf_reader::render_paragraphs(&doc) {
+                    Ok(Some(pdf)) => pdf,
+                    Ok(None) => doc.serialize(),
+                    Err(()) => return err_out("wkhtmltopdf: PDF output exceeds resource limits\n", 1),
+                }
+            } else {
+                doc.serialize()
+            };
             if out_arg == "-" {
                 return ok_out(&crate::vfs::bytes_to_stream_string(&serialized));
             }
@@ -13315,6 +13324,19 @@ mod media_unit_tests {
             assert_eq!(result.exit_code, 0, "{flags:?}");
             assert_eq!(result.stdout, expected, "{flags:?}");
         }
+    }
+
+    #[test]
+    fn wkhtmltopdf_paragraphs_produce_readable_pdf_objects() {
+        let fs = MemoryVfs::new();
+        let result = cmd_media_doc("wkhtmltopdf", &media_args(&["--page-size", "Letter", "-", "/doc.pdf"]),
+            "<title>Budget</title><p>alpha (one)</p><p>bêta</p>", "/", &fs);
+        assert_eq!(result.exit_code, 0);
+        let bytes = fs.read_file("/doc.pdf").unwrap();
+        let doc = pdf_reader::read(&bytes).expect("standard PDF page tree and xref");
+        assert_eq!(doc.title, "Budget");
+        assert_eq!((doc.page_w, doc.page_h), (612., 792.));
+        assert_eq!(doc.pages[0].text, "alpha (one)\n\nbêta");
     }
 
     #[test]

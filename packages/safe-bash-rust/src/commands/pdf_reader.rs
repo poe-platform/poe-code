@@ -6,6 +6,10 @@ use std::collections::{BTreeMap, BTreeSet};
 mod pdf_copy;
 pub(super) use pdf_copy::{PageOutput, PageSource};
 
+#[path = "pdf_render.rs"]
+mod pdf_render;
+pub(super) use pdf_render::render_paragraphs;
+
 type ObjectId = (usize, usize);
 
 #[derive(Clone)]
@@ -214,6 +218,11 @@ impl<'a> Cursor<'a> {
     }
 }
 
+const CP1252: &[char] = &[
+    '€', '�', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '�', 'Ž', '�', '�', '‘', '’',
+    '“', '”', '•', '–', '—', '˜', '™', 'š', '›', 'œ', '�', 'ž', 'Ÿ',
+];
+
 fn text(bytes: &[u8]) -> String {
     if let Some(utf16) = bytes.strip_prefix(&[0xfe, 0xff]) {
         return char::decode_utf16(
@@ -224,10 +233,6 @@ fn text(bytes: &[u8]) -> String {
         .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
         .collect();
     }
-    const CP1252: &[char] = &[
-        '€', '�', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '�', 'Ž', '�', '�', '‘',
-        '’', '“', '”', '•', '–', '—', '˜', '™', 'š', '›', 'œ', '�', 'ž', 'Ÿ',
-    ];
     bytes
         .iter()
         .map(|&b| {

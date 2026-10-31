@@ -6605,7 +6605,7 @@ fn cmd_xq(
     cmd_jq_core(args, stdin, cwd, env, fs, true)
 }
 
-fn unescape_xml_entities(s: &str) -> String {
+pub(super) fn unescape_xml_entities(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     let bytes = s.as_bytes();
     let mut i = 0usize;

@@ -312,22 +312,31 @@ impl PageOutput {
         }
         tree.extend_from_slice(b"]\n>>");
         self.bodies[1] = tree;
-        let mut out = b"%PDF-1.7\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n".to_vec();
-        let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", self.bodies.len() + 1);
-        for (i, body) in self.bodies.iter().enumerate() {
-            use std::fmt::Write;
-            writeln!(xref, "{:010} 00000 n ", out.len()).ok()?;
-            writeln!(out, "{} 0 obj", i + 1).ok()?;
-            if body.len() > self.limit.checked_sub(out.len() + xref.len())? {
-                return None;
-            }
-            out.extend_from_slice(body);
-            out.extend_from_slice(b"\nendobj\n\n");
-        }
-        let offset = out.len();
-        write!(out,"{xref}trailer\n<<\n/Size {}\n/Root 1 0 R\n/Info 3 0 R\n>>\n\nstartxref\n{offset}\n%%EOF",self.bodies.len()+1).ok()?;
-        (out.len() <= self.limit).then_some(out)
+        write_objects(&self.bodies, self.limit)
     }
+}
+
+pub(super) fn write_objects(bodies: &[Vec<u8>], limit: usize) -> Option<Vec<u8>> {
+    let mut out = b"%PDF-1.7\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n".to_vec();
+    let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", bodies.len() + 1);
+    for (i, body) in bodies.iter().enumerate() {
+        use std::fmt::Write;
+        writeln!(xref, "{:010} 00000 n ", out.len()).ok()?;
+        writeln!(out, "{} 0 obj", i + 1).ok()?;
+        if body.len() > limit.checked_sub(out.len() + xref.len())? {
+            return None;
+        }
+        out.extend_from_slice(body);
+        out.extend_from_slice(b"\nendobj\n\n");
+    }
+    let offset = out.len();
+    write!(
+        out,
+        "{xref}trailer\n<<\n/Size {}\n/Root 1 0 R\n/Info 3 0 R\n>>\n\nstartxref\n{offset}\n%%EOF",
+        bodies.len() + 1
+    )
+    .ok()?;
+    (out.len() <= limit).then_some(out)
 }
 
 struct Copy<'c, 'a> {
@@ -439,7 +448,7 @@ impl<'a> Copy<'_, 'a> {
     }
 }
 
-fn literal(s: &[u8], out: &mut Vec<u8>) {
+pub(super) fn literal(s: &[u8], out: &mut Vec<u8>) {
     out.push(b'(');
     for &b in s {
         match b {

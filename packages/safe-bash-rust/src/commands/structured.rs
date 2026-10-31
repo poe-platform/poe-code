@@ -1,3 +1,4 @@
+mod csvkit_cell;
 mod csvkit_decimal;
 mod csvkit_encoding;
 mod in2csv_json;
@@ -10816,7 +10817,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut list_names = false;
     let mut no_header_row = false;
     let mut zero_based = false;
-    let mut no_inference = false;
+    let mut inference = csvkit_cell::Inference::default();
     let mut csv_out = false;
     let mut json_out = false;
     let mut indent: Option<usize> = None;
@@ -10836,7 +10837,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "-n" | "--names" => list_names = true,
             "-H" | "--no-header-row" => no_header_row = true,
             "--zero" => zero_based = true,
-            "-I" | "--no-inference" => no_inference = true,
+            "-I" | "--no-inference" => inference.no_inference = true,
             "--csv" => csv_out = true,
             "--json" => json_out = true,
             "-S" | "--skipinitialspace" => skip_initial_space = true,
@@ -10860,7 +10861,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             "--freq-count" if i + 1 < args.len() => {
                 i += 1;
-                freq_count = args[i].parse::<usize>().unwrap_or(5).max(1);
+                freq_count = match args[i].parse::<isize>() { Ok(0) | Err(_) => 5, Ok(n) => n.max(0) as usize };
             }
             "-K" | "--skip-lines" if i + 1 < args.len() => {
                 i += 1;
@@ -10882,6 +10883,12 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 i += 1;
                 cols_spec = Some(args[i].clone());
             }
+            "--blanks" => inference.blanks = true,
+            "--no-leading-zeroes" => inference.no_leading_zeroes = true,
+            "--null-value" if i + 1 < args.len() => {
+                while i + 1 < args.len() && !args[i + 1].starts_with('-') { i += 1; inference.nulls.push(&args[i]); }
+            }
+            "-L" | "--locale" if i + 1 < args.len() => { i += 1; inference.locale = Some(&args[i]); }
             "-G" | "--no-grouping-separator" => grouping = false,
             "--decimal-format" if i + 1 < args.len() => { i += 1; decimal_format = &args[i]; }
             "-e" | "--encoding" | "-y" | "--snifflimit" if i + 1 < args.len() => {
@@ -10944,7 +10951,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         stdev: Option<String>,
         len: Option<usize>,
         maxprecision: Option<i128>,
-        freq_pairs: Vec<(String, usize)>,
+        freq_pairs: Vec<(Option<String>, usize)>,
         freq_json_str: String,
         freq_csv_str: String,
     }
@@ -10955,49 +10962,39 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut stats = Vec::new();
     for &c_idx in &indices {
         let col_name = headers.get(c_idx).cloned().unwrap_or_default();
-        let raw_cells: Vec<&str> = data
-            .iter()
-            .map(|r| r.get(c_idx).map(|s| s.as_str()).unwrap_or(""))
-            .collect();
-        let non_empty: Vec<&str> = raw_cells
-            .iter()
-            .copied()
-            .filter(|v| !v.trim().is_empty())
-            .collect();
-        let nulls = non_empty.len() < raw_cells.len();
+        let cells: Vec<_> = data.iter().map(|row| row.get(c_idx).and_then(|v| inference.text_cell(v.clone()))).collect();
+        let boolean = !inference.no_inference && cells.iter().flatten().all(|c| c.boolean.is_some());
+        let numeric = !boolean && !inference.no_inference && cells.iter().flatten().all(|c| c.number.is_some());
+        let values: Vec<Option<String>> = cells.into_iter().map(|cell| cell.map(|c| {
+            if boolean { if c.boolean == Some(true) { "True" } else { "False" }.into() }
+            else if numeric { c.number.unwrap() } else { c.text }
+        })).collect();
+        let non_empty: Vec<&str> = values.iter().filter_map(Option::as_deref).collect();
+        let nulls = non_empty.len() != values.len();
         let nonnulls = non_empty.len();
 
-        let mut freq_order: Vec<String> = Vec::new();
-        let mut freq_counts: BTreeMap<String, usize> = BTreeMap::new();
-        for &v in &non_empty {
-            if !freq_counts.contains_key(v) {
-                freq_order.push(v.to_string());
-            }
-            *freq_counts.entry(v.to_string()).or_insert(0) += 1;
+        // Keep the first spelling and encounter order, even when 2.5 and 2.50
+        // compare equal. Each NaN gets its own frequency group.
+        let mut by_value = BTreeMap::new();
+        let mut top_freq: Vec<(Option<String>, usize)> = Vec::new();
+        for (i, value) in values.iter().enumerate() {
+            let key = if numeric {
+                value.as_ref().map(|v| csvkit_decimal::Decimal::parse(v, false)
+                    .map(|d| d.normalized_key()).unwrap_or_else(|| v.clone()))
+            } else { value.clone() };
+            let nan = numeric && key.as_deref() == Some("NaN");
+            let index = *by_value.entry((key, nan.then_some(i))).or_insert_with(|| {
+                top_freq.push((value.clone(), 0));
+                top_freq.len() - 1
+            });
+            top_freq[index].1 += 1;
         }
-        let unique = freq_order.len();
-        let mut freq_pairs: Vec<(String, usize)> = freq_order
-            .into_iter()
-            .map(|k| {
-                let c = *freq_counts.get(&k).unwrap_or(&0);
-                (k, c)
-            })
-            .collect();
-        freq_pairs.sort_by(|a, b| b.1.cmp(&a.1));
-        let top_freq: Vec<(String, usize)> = freq_pairs.into_iter().take(freq_count).collect();
-        let freq_json_str = format!(
-            "{{ {} }}",
-            top_freq
-                .iter()
-                .map(|(k, c)| format!("{}: {c}", escape_json_str(k)))
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-        let freq_csv_str = top_freq
-            .iter()
-            .map(|(k, _)| k.clone())
-            .collect::<Vec<_>>()
-            .join(", ");
+        let unique = top_freq.len();
+        top_freq.sort_by_key(|(_, count)| std::cmp::Reverse(*count));
+        top_freq.truncate(freq_count);
+        let freq_json_str = format!("{{ {} }}", top_freq.iter().map(|(k,c)|
+            format!("\"{}\": {c}", k.as_deref().unwrap_or("None"))).collect::<Vec<_>>().join(", "));
+        let freq_csv_str = top_freq.iter().map(|(k,_)| k.as_deref().unwrap_or("None")).collect::<Vec<_>>().join(", ");
 
         let mut col_type = "Text".to_string();
         let mut min = None;
@@ -11009,13 +11006,10 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         let mut len = None;
         let mut maxprecision = None;
 
-        if !no_inference && !non_empty.is_empty() {
-            if non_empty
-                .iter()
-                .all(|v| v.trim().eq_ignore_ascii_case("true") || v.trim().eq_ignore_ascii_case("false"))
-            {
-                col_type = "Boolean".to_string();
-            } else if non_empty.iter().all(|v| v.trim().parse::<f64>().is_ok()) {
+        if !inference.no_inference {
+            if boolean {
+                col_type = "Boolean".into();
+            } else if numeric {
                 col_type = "Number".to_string();
                 let mut nums: Vec<f64> = non_empty
                     .iter()
@@ -11068,8 +11062,8 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             } else {
                 len = non_empty.iter().map(|v| v.chars().count()).max();
             }
-        } else if !non_empty.is_empty() {
-            len = non_empty.iter().map(|v| v.chars().count()).max();
+        } else {
+            len = Some(non_empty.iter().map(|v| v.chars().count()).max().unwrap_or(0));
         }
 
         stats.push(ColStat {
@@ -11201,10 +11195,11 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                 .freq_pairs
                 .iter()
                 .map(|(k, c)| {
-                    let val_jv = if is_num && let Ok(n) = k.parse::<f64>() {
-                        JVal::Number(n)
-                    } else {
-                        JVal::Str(k.clone())
+                    let val_jv = match k {
+                        None => JVal::Null,
+                        Some(v) if is_num => JVal::Number(v.parse().unwrap_or(f64::NAN)),
+                        Some(v) if s.col_type == "Boolean" => JVal::Bool(v == "True"),
+                        Some(v) => JVal::Str(v.clone()),
                     };
                     JVal::Object(vec![
                         ("value".to_string(), val_jv),
@@ -11259,10 +11254,10 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         if !s.freq_pairs.is_empty() {
             for (idx, (val, cnt)) in s.freq_pairs.iter().enumerate() {
                 let formatted;
-                let val = if s.col_type == "Number" {
+                let val = if s.col_type == "Number" && let Some(val) = val {
                     formatted = match format_stat(val.trim()) { Ok(v) => v, Err(e) => return unsupported(e) };
                     &formatted
-                } else { val };
+                } else { val.as_deref().unwrap_or("None") };
                 if idx == 0 {
                     out.push_str(&format!("\tMost common values:    {val} ({cnt}x)\n"));
                 } else {
@@ -11819,7 +11814,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 sheet_name = Some(args[i].clone());
             }
             "-n" | "--names" => names_only = true,
-            "-I" | "--no-inference" => json_options.no_inference = true,
+            "-I" | "--no-inference" => json_options.inference.no_inference = true,
             "-H" | "--no-header-row" => no_header = true,
             "-K" | "--skip-lines" if i + 1 < args.len() => {
                 i += 1;
@@ -11837,10 +11832,10 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "-S" | "--skipinitialspace" => skip_initial_space = true,
             "-l" | "--linenumbers" => line_numbers = true,
             "--add-bom" => add_bom = true,
-            "-L" | "--locale" if i + 1 < args.len() => { i += 1; json_options.locale = Some(&args[i]); }
-            "--null-value" if i + 1 < args.len() => { i += 1; json_options.nulls.push(&args[i]); }
-            "--blanks" => json_options.blanks = true,
-            "--no-leading-zeroes" => json_options.no_leading_zeroes = true,
+            "-L" | "--locale" if i + 1 < args.len() => { i += 1; json_options.inference.locale = Some(&args[i]); }
+            "--null-value" if i + 1 < args.len() => { i += 1; json_options.inference.nulls.push(&args[i]); }
+            "--blanks" => json_options.inference.blanks = true,
+            "--no-leading-zeroes" => json_options.inference.no_leading_zeroes = true,
             "-e" | "--encoding" if i + 1 < args.len() => { i += 1; json_options.encoding = Some(&args[i]); }
             "-v" | "--verbose" => json_options.verbose = true,
             "-u" | "--quoting" | "-z" | "--maxfieldsize" | "-p" | "--escapechar"
@@ -37660,6 +37655,19 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_ranks_typed_values_and_counts_nulls_without_losing_first_spelling() {
+        let fs = MemoryVfs::new();
+        let input = "n,b\n2.50,yes\nNULL,no\n2.5,1\nmissing,F\n4.25,NA\n";
+        let run = |op| cmd_csvstat(&args(&[op, "--null-value", "missing"]), input, "/", &fs);
+        assert_eq!(run("--non-nulls").stdout, "  1. n: 3\n  2. b: 4\n");
+        assert_eq!(run("--type").stdout, "  1. n: Number\n  2. b: Boolean\n");
+        assert_eq!(run("--freq").stdout,
+            "  1. n: { \"2.50\": 2, \"None\": 2, \"4.25\": 1 }\n  2. b: { \"True\": 2, \"False\": 2, \"None\": 1 }\n");
+        let r = cmd_csvstat(&args(&["--unique", "--blanks", "-I"]), "x\nNA\nnull\n", "/", &fs);
+        assert_eq!(r.stdout, "2\n");
     }
 
     #[test]

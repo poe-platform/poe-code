@@ -1,3 +1,4 @@
+use super::csvkit_cell::{Cell, Inference};
 use super::csvkit_decimal::Decimal;
 // in2csv uses Python JSON numbers (int and Decimal), including their original scale.
 use super::{BuiltinOutcome, err_out};
@@ -244,21 +245,11 @@ impl<'a, 'b> Parser<'a, 'b> {
 
 #[derive(Default)]
 pub(super) struct Options<'a> {
-    pub locale: Option<&'a str>,
+    pub inference: Inference<'a>,
     pub encoding: Option<&'a str>,
     pub verbose: bool,
-    pub no_inference: bool,
-    pub blanks: bool,
-    pub nulls: Vec<&'a str>,
-    pub no_leading_zeroes: bool,
     pub line_numbers: bool,
     pub bom: bool,
-}
-
-struct Cell {
-    text: String,
-    boolean: Option<bool>,
-    number: Option<String>,
 }
 
 impl Options<'_> {
@@ -304,51 +295,7 @@ impl Options<'_> {
                 };
                 (text, b, Some(num))
             }
-            Value::Text(s) => {
-                let trimmed = s.trim();
-                let lower = trimmed.to_lowercase();
-                if (!self.blanks
-                    && matches!(lower.as_str(), "" | "na" | "n/a" | "none" | "null" | "."))
-                    || self.nulls.iter().any(|v| v.to_lowercase() == lower)
-                {
-                    return Ok(None);
-                }
-                if self.no_inference {
-                    return Ok(Some(Cell {
-                        text: s,
-                        boolean: None,
-                        number: None,
-                    }));
-                }
-                let boolean = match lower.replace(',', "").as_str() {
-                    "1" | "yes" | "y" | "true" | "t" => Some(true),
-                    "0" | "no" | "n" | "false" | "f" => Some(false),
-                    _ => None,
-                };
-                let neg = trimmed.trim_matches('%');
-                let (minus, rest) = neg.strip_prefix('-').map_or(("", neg), |s| ("-", s));
-                let rest = rest.trim_matches(|c| "؋$ƒ៛¥₡₱£₭₨€﷼₪₩฿₤₫".contains(c));
-                let raw = if self.locale == Some("de_DE") {
-                    rest.replace('.', "").replace(',', ".")
-                } else {
-                    rest.replace(',', "")
-                };
-                let num = if self.no_leading_zeroes
-                    && raw.starts_with('0')
-                    && raw.len() > 1
-                    && !raw.starts_with("0.")
-                {
-                    None
-                } else {
-                    match raw.to_ascii_lowercase().as_str() {
-                        "inf" | "infinity" => Some(format!("{minus}Infinity")),
-                        "nan" => Some("NaN".into()),
-                        _ => Decimal::parse(&format!("{minus}{}", raw.replace('_', "")), true)
-                            .map(|v| v.spelling()),
-                    }
-                };
-                (s, boolean, num)
-            }
+            Value::Text(s) => return Ok(self.inference.text_cell(s)),
             _ => unreachable!(),
         };
         Ok(Some(Cell {
@@ -425,8 +372,8 @@ fn flatten(
                 names.insert(name.into(), columns.len());
                 columns.push(Column {
                     name: name.into(),
-                    boolean: !opts.no_inference,
-                    numeric: !opts.no_inference,
+                    boolean: !opts.inference.no_inference,
+                    numeric: !opts.inference.no_inference,
                 });
                 columns.len() - 1
             };
@@ -515,8 +462,8 @@ fn table(
             }
         }
     };
-    if !opts.no_inference
-        && let Some(locale) = opts.locale
+    if !opts.inference.no_inference
+        && let Some(locale) = opts.inference.locale
         && !matches!(locale, "en_US" | "de_DE")
     {
         return Err(format!(

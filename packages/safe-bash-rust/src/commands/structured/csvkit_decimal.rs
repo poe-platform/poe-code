@@ -60,6 +60,15 @@ impl Decimal {
         })
     }
 
+    pub(super) fn normalized_key(&self) -> String {
+        if self.digits == "0" {
+            return "0".into();
+        }
+        let digits = self.digits.trim_end_matches('0');
+        let scale = self.scale + (self.digits.len() - digits.len()) as i128;
+        format!("{}{digits}e{scale}", if self.negative { "-" } else { "" })
+    }
+
     pub(super) fn normalized_places(&self) -> (i128, i128) {
         if self.digits == "0" {
             return (1, 0);

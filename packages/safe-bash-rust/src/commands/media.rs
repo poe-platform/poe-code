@@ -12935,7 +12935,14 @@ fn cmd_media_doc(
                         name = format!("{stem}-{:02}{suffix}", idx + 1);
                     }
                     let full = resolve_posix_path(cwd, &name);
-                    let _ = fs.write_file(&full, &rendered);
+                    if let Err(error) = fs.write_file(&full, &rendered) {
+                        let message = match error.split_once(':').map(|(code,_)| code) {
+                            Some("EISDIR") => format!("EISDIR: illegal operation on a directory, writeFile '{full}'"),
+                            Some("ENOTDIR") => format!("ENOTDIR: not a directory, writeFile '{full}'"),
+                            _ => error,
+                        };
+                        return err_out(&format!("qrencode: {message}\n"), 1);
+                    }
                 } else {
                     stdout_bytes.extend_from_slice(&rendered);
                 }
@@ -12970,6 +12977,19 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn qr_structured_append_stops_at_failed_output() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/block-02.png").unwrap();
+        let data = "0123456789".repeat(10);
+        let args = media_args(&["-S","-v","1","-l","H","-o","block.png",&data]);
+        let result = cmd_media_doc("qrencode", &args, "", "/", &fs);
+        assert_eq!((result.exit_code,result.stderr.as_str()),(1,"qrencode: EISDIR: illegal operation on a directory, writeFile '/block-02.png'\n"));
+        assert!(fs.read_file("/block-01.png").unwrap().starts_with(b"\x89PNG"));
+        assert!(fs.is_dir("/block-02.png"));
+        assert!(!fs.exists("/block-03.png"));
     }
 
     #[test]

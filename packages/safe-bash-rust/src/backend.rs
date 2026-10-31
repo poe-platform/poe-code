@@ -62,65 +62,57 @@ struct BudgetedFs<'a> {
     budget: &'a ExecutionBudget,
 }
 
-impl<'a> BudgetedFs<'a> {
-    fn check_path(&self, path: &str) -> Result<(), String> {
-        let comps = path.split('/').filter(|s| !s.is_empty()).count();
-        if comps > self.budget.limits.max_pathname_components {
-            return Err("ENAMETOOLONG: File name too long".to_string());
-        }
-        Ok(())
-    }
-}
-
 impl<'a> SafeBashFs for BudgetedFs<'a> {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        self.check_path(path)?;
+        self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.inner.read_file(path)
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        self.check_path(path)?;
+        self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
         self.inner.write_file(path, data)
     }
 
     fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        self.check_path(path)?;
+        self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
         self.budget.add_output_bytes(data.len())?;
         self.inner.append_file(path, data)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        self.check_path(path)?;
+        self.budget.limits.check_path(path)?;
         self.inner.remove_path(path)
     }
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
-        self.check_path(path)?;
+        self.budget.limits.check_path(path)?;
         self.inner.mkdir_all(path)
     }
 
     fn exists(&self, path: &str) -> bool {
-        self.inner.exists(path)
+        self.budget.limits.check_path(path).is_ok() && self.inner.exists(path)
     }
 
     fn is_dir(&self, path: &str) -> bool {
-        self.inner.is_dir(path)
+        self.budget.limits.check_path(path).is_ok() && self.inner.is_dir(path)
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
+        self.budget.limits.check_path(path)?;
         self.inner.list_dir(path)
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
-        self.check_path(path)?;
+        self.budget.limits.check_path(path)?;
         self.inner.symlink(target, path)
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
+        self.budget.limits.check_path(path)?;
         self.inner.readlink(path)
     }
 
@@ -133,18 +125,22 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
     }
 
     fn stat(&self, path: &str) -> Result<FileStat, String> {
+        self.budget.limits.check_path(path)?;
         self.inner.stat(path)
     }
 
     fn lstat(&self, path: &str) -> Result<FileStat, String> {
+        self.budget.limits.check_path(path)?;
         self.inner.lstat(path)
     }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
         self.inner.chmod(path, mode)
     }
 
     fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
+        self.budget.limits.check_path(path)?;
         self.inner.set_mtime(path, mtime_ms)
     }
 

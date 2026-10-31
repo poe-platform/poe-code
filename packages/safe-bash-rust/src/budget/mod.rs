@@ -25,6 +25,17 @@ pub struct ShellLimits {
     pub max_source_bytes: usize,
 }
 
+impl ShellLimits {
+    pub(crate) fn check_path(&self, path: &str) -> Result<(), String> {
+        if path.len() > self.max_pathname_components
+            && path.split('/').filter(|s| !s.is_empty()).nth(self.max_pathname_components).is_some()
+        {
+            return Err(format!("ENAMETOOLONG: name too long, resolve '{path}'"));
+        }
+        Ok(())
+    }
+}
+
 impl Default for ShellLimits {
     fn default() -> Self {
         Self {

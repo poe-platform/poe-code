@@ -9275,7 +9275,27 @@ impl<'a> EvalState<'a> {
                         this.route_outcome(&mut err_out);
                         return Ok(Err(err_out));
                     }
-                    Ok(Ok(fields.into_iter().next().unwrap()))
+                    let target = fields.into_iter().next().unwrap();
+                    let file_operand = match r.kind {
+                        RedirectKind::DupIn { .. } => false,
+                        RedirectKind::DupOut { explicit_fd, .. } => !explicit_fd && target != "-"
+                            && !target.trim_end_matches('-').bytes().all(|b| b.is_ascii_digit()),
+                        _ => true,
+                    };
+                    if file_operand {
+                        let full = if target.starts_with('/') { std::borrow::Cow::Borrowed(target.as_str()) }
+                            else { std::borrow::Cow::Owned(format!("{}/{}", this.cwd.trim_end_matches('/'), target)) };
+                        if let Err(error) = this.budget.limits.check_path(&full) {
+                            let mut out = BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{}{error}\n", this.diag_prefix()),
+                                exit_code: 1,
+                            };
+                            this.route_outcome(&mut out);
+                            return Ok(Err(out));
+                        }
+                    }
+                    Ok(Ok(target))
                 };
             match &r.kind {
                 RedirectKind::In(fd) => {

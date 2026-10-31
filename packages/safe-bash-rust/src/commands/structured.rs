@@ -1,5 +1,6 @@
 mod csvkit_cell;
 mod csvkit_decimal;
+mod csvkit_duration;
 mod csvkit_encoding;
 mod csvkit_records;
 mod csvstat_json;
@@ -10985,10 +10986,27 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
         let cells: Vec<_> = data.iter().map(|row| row.get(c_idx).and_then(|v| inference.text_cell(v.clone()))).collect();
         let boolean = !inference.no_inference && cells.iter().flatten().all(|c| c.boolean.is_some());
         let numeric = !boolean && !inference.no_inference && cells.iter().flatten().all(|c| c.number.is_some());
-        let values: Vec<Option<String>> = cells.into_iter().map(|cell| cell.map(|c| {
+        let durations = if boolean || numeric || inference.no_inference { None } else {
+            let mut parsed = Vec::with_capacity(cells.len());
+            for cell in &cells {
+                match cell {
+                    None => parsed.push(None),
+                    Some(cell) => match csvkit_duration::parse(&cell.text) {
+                        Ok(Some(n)) => parsed.push(Some(n)),
+                        Ok(None) => break,
+                        Err((code, message)) => return err_out(&message, code),
+                    },
+                }
+            }
+            (parsed.len() == cells.len()).then_some(parsed)
+        };
+        let duration_value = |n: i128| if json_out && !csv_out { n.to_string() } else { csvkit_duration::text(n) };
+        let values: Vec<Option<String>> = if let Some(micros) = &durations {
+            micros.iter().map(|n| n.map(duration_value)).collect()
+        } else { cells.into_iter().map(|cell| cell.map(|c| {
             if boolean { if c.boolean == Some(true) { "True" } else { "False" }.into() }
             else if numeric { c.number.unwrap() } else { c.text }
-        })).collect();
+        })).collect() };
         let non_empty: Vec<&str> = values.iter().filter_map(Option::as_deref).collect();
         let nulls = non_empty.len() != values.len();
         let nonnulls = non_empty.len();
@@ -11067,6 +11085,22 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     .map(|v| v.normalized_places())
                     .fold((1, 0), |(w, p), (whole, places)| (w.max(whole), p.max(places)));
                 maxprecision = Some(places.min(28 - whole));
+            } else if let Some(durations) = durations {
+                col_type = "TimeDelta".into();
+                let micros = durations.iter().flatten().copied();
+                min = micros.clone().min().map(duration_value);
+                max = micros.clone().max().map(duration_value);
+                if let Some(total) = micros.clone().try_fold(0i128, |n, v| {
+                    let sum = n + v;
+                    csvkit_duration::in_range(sum).then_some(sum)
+                }) {
+                    sum = Some(duration_value(total));
+                    let n = nonnulls as i128;
+                    let q = total / n;
+                    let rem = (total % n).abs() * 2;
+                    let round = rem > n || rem == n && q % 2 != 0;
+                    mean = Some(duration_value(if round { q + total.signum() } else { q }));
+                }
             } else if non_empty.iter().all(|v| {
                 let t = v.trim();
                 t.len() == 10
@@ -11192,6 +11226,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             ];
             let value = |v: &str| match s.col_type.as_str() {
                 "Number" => Report::float(v.parse().unwrap_or(f64::NAN)),
+                "TimeDelta" => Report::float(v.parse::<i128>().unwrap() as f64 / 1_000_000.0),
                 "Boolean" => Report::Token((v == "True").to_string()),
                 _ => Report::string(v),
             };
@@ -37654,6 +37689,19 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_duration_statistics_use_signed_microseconds() {
+        let fs = MemoryVfs::new();
+        let run = |flag: &str, data: &str| cmd_csvstat(&args(&[flag]), data, "/", &fs);
+        let negative = "x\n-0.000001 seconds\n-0.000002 seconds\n";
+        assert_eq!(run("--mean", negative).stdout, "-1 day, 23:59:59.999998\n");
+        assert_eq!(run("--sum", "x\n-1.5h 2s\n1.5h 2s\n").stdout, "0:00:04\n");
+        assert_eq!(run("--freq", "x\n1h\n60m\nnull\n").stdout, "{ \"1:00:00\": 2, \"None\": 1 }\n");
+        assert!(run("--json", negative).stdout.contains(r#""sum": -3e-06, "mean": -2e-06"#));
+        assert_eq!(run("--sum", "x\n999999999 days\n1 day\n-1 day\n").stdout, "None\n");
+        assert_eq!(run("--type", "x\n2ms\n3s\n").stdout, "Text\n");
     }
 
     #[test]

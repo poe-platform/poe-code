@@ -253,7 +253,7 @@ pub fn inflate_raw(data: &[u8]) -> Result<(Vec<u8>, usize), String> {
     inflate_raw_bounded(data, usize::MAX)
 }
 
-fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
+pub(super) fn inflate_raw_bounded(data: &[u8], limit: usize) -> Result<(Vec<u8>, usize), String> {
     const CL_ORDER: [usize; 19] = [
         16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
     ];

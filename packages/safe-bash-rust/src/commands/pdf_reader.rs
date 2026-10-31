@@ -1,0 +1,433 @@
+// Classic cross-reference tables and page content streams (PDF 32000-1, sections 7 and 9).
+use super::{PdfDoc, PdfPage};
+use std::collections::{BTreeMap, BTreeSet};
+
+type ObjectId = (usize, usize);
+
+enum Value<'a> {
+    Word(&'a [u8]),
+    String(Vec<u8>),
+    Ref(ObjectId),
+    Array(Vec<Value<'a>>),
+    Dict(BTreeMap<&'a [u8], Value<'a>>),
+}
+
+impl<'a> Value<'a> {
+    fn get(&self, key: &[u8]) -> Option<&Self> {
+        match self {
+            Self::Dict(d) => d.get(key),
+            _ => None,
+        }
+    }
+    fn word(&self) -> Option<&'a [u8]> {
+        match self {
+            Self::Word(w) => Some(w),
+            _ => None,
+        }
+    }
+    fn reference(&self) -> Option<ObjectId> {
+        match self {
+            Self::Ref(r) => Some(*r),
+            _ => None,
+        }
+    }
+}
+
+fn uint(s: &[u8]) -> Option<usize> {
+    std::str::from_utf8(s).ok()?.parse().ok()
+}
+
+#[derive(Clone, Copy)]
+struct Cursor<'a>(&'a [u8]);
+
+impl<'a> Cursor<'a> {
+    fn skip(&mut self) {
+        loop {
+            self.0 = self.0.trim_ascii_start();
+            if !self.0.starts_with(b"%") {
+                break;
+            }
+            self.0 = self
+                .0
+                .iter()
+                .position(|&b| matches!(b, b'\r' | b'\n'))
+                .map_or(&[], |end| &self.0[end..]);
+        }
+    }
+
+    fn eat(&mut self, token: &[u8]) -> bool {
+        if let Some(rest) = self.0.strip_prefix(token) {
+            self.0 = rest;
+            return true;
+        }
+        false
+    }
+
+    fn word(&mut self) -> Option<&'a [u8]> {
+        self.skip();
+        let start = usize::from(self.0.starts_with(b"/"));
+        let end = start
+            + self.0[start..]
+                .iter()
+                .position(|&b| b.is_ascii_whitespace() || b"()<>[]{}/%".contains(&b))
+                .unwrap_or(self.0.len() - start);
+        if end == 0 {
+            return None;
+        }
+        let (word, rest) = self.0.split_at(end);
+        self.0 = rest;
+        Some(word)
+    }
+
+    fn byte(&mut self) -> Option<u8> {
+        let (&b, rest) = self.0.split_first()?;
+        self.0 = rest;
+        Some(b)
+    }
+
+    fn value(&mut self, depth: usize, tokens: &mut usize) -> Option<Value<'a>> {
+        *tokens = tokens.checked_sub(1)?;
+        if depth > 64 {
+            return None;
+        }
+        self.skip();
+        if self.eat(b"<<") {
+            let mut dict = BTreeMap::new();
+            loop {
+                self.skip();
+                if self.eat(b">>") {
+                    return Some(Value::Dict(dict));
+                }
+                let key = self.word()?.strip_prefix(b"/")?;
+                dict.insert(key, self.value(depth + 1, tokens)?);
+            }
+        }
+        if self.eat(b"[") {
+            let mut arr = Vec::new();
+            loop {
+                self.skip();
+                if self.eat(b"]") {
+                    return Some(Value::Array(arr));
+                }
+                arr.push(self.value(depth + 1, tokens)?);
+            }
+        }
+        if self.eat(b"(") {
+            let mut bytes = Vec::new();
+            let mut level = 1;
+            loop {
+                let mut b = self.byte()?;
+                match b {
+                    b'(' => level += 1,
+                    b')' => {
+                        level -= 1;
+                        if level == 0 {
+                            return Some(Value::String(bytes));
+                        }
+                    }
+                    b'\\' => {
+                        b = match self.byte()? {
+                            b'n' => b'\n',
+                            b'r' => b'\r',
+                            b'b' => 8,
+                            b't' => b'\t',
+                            b'f' => 12,
+                            b'\r' => {
+                                self.eat(b"\n");
+                                continue;
+                            }
+                            b'\n' => continue,
+                            digit @ b'0'..=b'7' => {
+                                let mut n = digit - b'0';
+                                for _ in 0..2 {
+                                    if !matches!(self.0.first(), Some(b'0'..=b'7')) {
+                                        break;
+                                    }
+                                    n = n.wrapping_mul(8) + (self.byte()? - b'0');
+                                }
+                                n
+                            }
+                            other => other,
+                        };
+                    }
+                    b'\r' => {
+                        self.eat(b"\n");
+                        b = b'\n';
+                    }
+                    _ => {}
+                }
+                bytes.push(b);
+            }
+        }
+        if self.eat(b"<") {
+            let mut bytes = Vec::new();
+            let mut high = None;
+            loop {
+                let b = self.byte()?;
+                if b == b'>' {
+                    break;
+                }
+                if b.is_ascii_whitespace() {
+                    continue;
+                }
+                let digit = (b as char).to_digit(16)? as u8;
+                if let Some(h) = high.take() {
+                    bytes.push(h | digit)
+                } else {
+                    high = Some(digit << 4)
+                }
+            }
+            if let Some(h) = high {
+                bytes.push(h)
+            }
+            return Some(Value::String(bytes));
+        }
+        let word = self.word()?;
+        if let Some(id) = uint(word) {
+            let mut probe = *self;
+            if let Some(generation) = probe.word().and_then(uint)
+                && probe.word() == Some(b"R")
+            {
+                *self = probe;
+                return Some(Value::Ref((id, generation)));
+            }
+        }
+        Some(Value::Word(word))
+    }
+}
+
+fn text(bytes: &[u8]) -> String {
+    if let Some(utf16) = bytes.strip_prefix(&[0xfe, 0xff]) {
+        return char::decode_utf16(
+            utf16
+                .chunks_exact(2)
+                .map(|p| u16::from_be_bytes([p[0], p[1]])),
+        )
+        .map(|c| c.unwrap_or(char::REPLACEMENT_CHARACTER))
+        .collect();
+    }
+    const CP1252: &[char] = &[
+        '€', '�', '‚', 'ƒ', '„', '…', '†', '‡', 'ˆ', '‰', 'Š', '‹', 'Œ', '�', 'Ž', '�', '�', '‘',
+        '’', '“', '”', '•', '–', '—', '˜', '™', 'š', '›', 'œ', '�', 'ž', 'Ÿ',
+    ];
+    bytes
+        .iter()
+        .map(|&b| {
+            if (128..160).contains(&b) {
+                CP1252[(b - 128) as usize]
+            } else {
+                char::from(b)
+            }
+        })
+        .collect()
+}
+
+fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
+    let mut c = Cursor(bytes);
+    let mut last = None;
+    let mut out = String::new();
+    let mut in_text = false;
+    let mut new_line = false;
+    loop {
+        c.skip();
+        if c.0.is_empty() {
+            return Some(out);
+        }
+        let v = c.value(0, tokens)?;
+        match v.word() {
+            Some(b"BT") => {
+                in_text = true;
+                new_line = true;
+            }
+            Some(b"ET") => in_text = false,
+            Some(b"Tm" | b"Td" | b"TD" | b"T*") => new_line = true,
+            Some(op @ (b"Tj" | b"TJ" | b"'" | b"\"")) if in_text => {
+                if (new_line || matches!(op, b"'" | b"\"")) && !out.is_empty() {
+                    out.push('\n')
+                }
+                match last.take() {
+                    Some(Value::String(b)) => out.push_str(&text(&b)),
+                    Some(Value::Array(a)) => {
+                        for part in a {
+                            if let Value::String(b) = part {
+                                out.push_str(&text(&b));
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+                new_line = false;
+            }
+            _ => {}
+        }
+        last = Some(v);
+    }
+}
+
+struct Objects<'a> {
+    bytes: &'a [u8],
+    xref: BTreeMap<ObjectId, usize>,
+    tokens: usize,
+    remaining_bytes: usize,
+}
+
+impl<'a> Objects<'a> {
+    fn object(&mut self, id: ObjectId) -> Option<(Value<'a>, Cursor<'a>)> {
+        let mut c = Cursor(self.bytes.get(*self.xref.get(&id)?..)?);
+        if (uint(c.word()?)?, uint(c.word()?)?) != id || c.word()? != b"obj" {
+            return None;
+        }
+        let value = c.value(0, &mut self.tokens)?;
+        Some((value, c))
+    }
+
+    fn stream_text(&mut self, id: ObjectId) -> Option<String> {
+        let (dict, mut c) = self.object(id)?;
+        if c.word()? != b"stream" || !(c.eat(b"\r\n") || c.eat(b"\n") || c.eat(b"\r")) {
+            return None;
+        }
+        let length = dict.get(b"Length")?;
+        let length = match length.reference() {
+            Some(r) => uint(self.object(r)?.0.word()?)?,
+            None => uint(length.word()?)?,
+        };
+        let stream = c.0.get(..length)?;
+        let decoded;
+        let bytes = match dict.get(b"Filter") {
+            None => stream,
+            Some(f) if f.word() == Some(b"/FlateDecode") => {
+                let (&cmf, rest) = stream.split_first()?;
+                let (&flags, payload) = rest.split_first()?;
+                if cmf & 15 != 8 || flags & 32 != 0 || u16::from_be_bytes([cmf, flags]) % 31 != 0 {
+                    return None;
+                }
+                decoded =
+                    crate::commands::codecs::inflate_raw_bounded(payload, self.remaining_bytes)
+                        .ok()?
+                        .0;
+                &decoded
+            }
+            _ => return None,
+        };
+        self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
+        content_text(bytes, &mut self.tokens)
+    }
+}
+
+pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
+    let tail = bytes.get(bytes.len().saturating_sub(4096)..)?;
+    let offset_pos = tail.windows(9).rposition(|w| w == b"startxref")? + 9;
+    let offset = uint(Cursor(&tail[offset_pos..]).word()?)?;
+    let mut c = Cursor(bytes.get(offset..)?);
+    if c.word()? != b"xref" {
+        return None;
+    }
+    let mut objects = Objects {
+        bytes,
+        xref: BTreeMap::new(),
+        tokens: 1_000_000,
+        remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
+    };
+    loop {
+        let first = c.word()?;
+        if first == b"trailer" {
+            break;
+        }
+        let first = uint(first)?;
+        let count = uint(c.word()?)?;
+        objects.tokens = objects.tokens.checked_sub(count)?;
+        for id in first..first.checked_add(count)? {
+            let pos = uint(c.word()?)?;
+            let generation = uint(c.word()?)?;
+            match c.word()? {
+                b"n" => {
+                    objects.xref.insert((id, generation), pos);
+                }
+                b"f" => {}
+                _ => return None,
+            }
+        }
+    }
+    let trailer = c.value(0, &mut objects.tokens)?;
+    if trailer.get(b"Encrypt").is_some() || trailer.get(b"Prev").is_some() {
+        return None;
+    }
+    let catalog = objects.object(trailer.get(b"Root")?.reference()?)?.0;
+    let mut doc = PdfDoc::new();
+    doc.version = std::str::from_utf8(bytes.strip_prefix(b"%PDF-")?.get(..3)?)
+        .ok()?
+        .to_string();
+    if let Some(r) = trailer.get(b"Info").and_then(Value::reference)
+        && let Value::Dict(info) = objects.object(r)?.0
+    {
+        for (k, v) in info {
+            if let Value::String(b) = v {
+                let value = text(&b);
+                match k {
+                    b"Title" => doc.title.clone_from(&value),
+                    b"Author" => doc.author.clone_from(&value),
+                    _ => {}
+                }
+                doc.info
+                    .push((std::str::from_utf8(k).ok()?.to_string(), value));
+            }
+        }
+    }
+    let mut pending = vec![(
+        catalog.get(b"Pages")?.reference()?,
+        [0.0, 0.0, 612.0, 792.0],
+    )];
+    let mut seen = BTreeSet::new();
+    while let Some((id, mut media)) = pending.pop() {
+        if !seen.insert(id) {
+            return None;
+        }
+        let node = objects.object(id)?.0;
+        if let Some(Value::Array(rect)) = node.get(b"MediaBox") {
+            if rect.len() != 4 {
+                return None;
+            }
+            for (v, n) in rect.iter().zip(&mut media) {
+                *n = std::str::from_utf8(v.word()?).ok()?.parse::<f64>().ok()?;
+                if !n.is_finite() {
+                    return None;
+                }
+            }
+        }
+        match node.get(b"Type")?.word()? {
+            b"/Pages" => {
+                let Value::Array(kids) = node.get(b"Kids")? else {
+                    return None;
+                };
+                for kid in kids.iter().rev() {
+                    pending.push((kid.reference()?, media));
+                }
+            }
+            b"/Page" => {
+                let mut page = PdfPage::default();
+                match node.get(b"Contents") {
+                    Some(Value::Ref(r)) => page.text = objects.stream_text(*r)?,
+                    Some(Value::Array(streams)) => {
+                        for s in streams {
+                            if !page.text.is_empty() {
+                                page.text.push('\n');
+                            }
+                            page.text.push_str(&objects.stream_text(s.reference()?)?);
+                        }
+                    }
+                    None => {}
+                    _ => return None,
+                }
+                let (w, h) = (media[2] - media[0], media[3] - media[1]);
+                if doc.pages.is_empty() {
+                    doc.page_w = w;
+                    doc.page_h = h;
+                }
+                doc.pages.push(page);
+                doc.page_media.insert(doc.pages.len(), (w, h, None));
+            }
+            _ => return None,
+        }
+    }
+    Some(doc)
+}

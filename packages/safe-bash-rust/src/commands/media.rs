@@ -319,6 +319,9 @@ struct PdfDoc {
     exif: BTreeMap<String, String>,
 }
 
+#[path = "pdf_reader.rs"]
+mod pdf_reader;
+
 impl PdfDoc {
     fn new() -> Self {
         Self {
@@ -342,6 +345,9 @@ impl PdfDoc {
     }
 
     fn parse(bytes: &[u8]) -> Self {
+        if let Some(doc) = pdf_reader::read(bytes) {
+            return doc;
+        }
         let raw = String::from_utf8_lossy(bytes);
         let mut doc = Self::new();
         for line in raw.lines() {
@@ -13022,6 +13028,34 @@ mod media_unit_tests {
         );
         assert_eq!(rsvg.exit_code, 0);
         assert!(vfs.read_file("/media/code.png").unwrap().starts_with(b"\x89PNG"));
+    }
+
+    #[test]
+    fn reads_page_tree_and_text_from_classic_pdf_objects() {
+        let objects = [
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 2 /Kids [4 0 R 3 0 R] /MediaBox [0 0 300 400] >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 6 0 R >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 5 0 R >>",
+            "<< /Length 25 >>\nstream\nBT (first \\(page\\)) Tj ET\nendstream",
+            "<< /Length 24 >>\nstream\nBT [(sec) 0 (ond)] TJ ET\nendstream",
+            "<< /Title (example) >>",
+        ];
+        let mut pdf = String::from("%PDF-1.4\n");
+        let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", objects.len() + 1);
+        for (i, object) in objects.iter().enumerate() {
+            xref.push_str(&format!("{:010} 00000 n \n", pdf.len()));
+            pdf.push_str(&format!("{} 0 obj\n{object}\nendobj\n", i + 1));
+        }
+        let offset = pdf.len();
+        pdf.push_str(&xref);
+        pdf.push_str(&format!("trailer\n<< /Size 8 /Root 1 0 R /Info 7 0 R >>\nstartxref\n{offset}\n%%EOF"));
+        let doc = PdfDoc::parse(pdf.as_bytes());
+        assert_eq!(doc.title, "example");
+        assert_eq!((doc.page_w, doc.page_h), (300.0, 400.0));
+        assert_eq!(doc.pages.len(), 2);
+        assert_eq!(doc.pages[0].text, "first (page)");
+        assert_eq!(doc.pages[1].text, "second");
     }
 
     #[test]

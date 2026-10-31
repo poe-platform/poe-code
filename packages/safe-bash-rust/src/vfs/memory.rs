@@ -8,6 +8,7 @@ use std::sync::{Arc, RwLock};
 enum MemoryNode {
     File {
         data: Vec<u8>,
+        publication: Option<u64>,
         mode: u32,
         mtime_ms: u64,
     },
@@ -22,6 +23,7 @@ enum MemoryNode {
     },
 }
 
+static NEXT_PUBLICATION: AtomicU64 = AtomicU64::new(1);
 static NEXT_FS_ID: AtomicU64 = AtomicU64::new(1);
 
 fn fill_random(bytes: &mut [u8]) -> Result<(), String> {
@@ -279,7 +281,7 @@ impl MemoryVfs {
             else { (VfsEntryKind::File, 0, 0o20666, 0) }
         } else {
             match state.nodes.get(&resolved) {
-                Some(MemoryNode::File { data, mode, mtime_ms }) => (VfsEntryKind::File, data.len(), *mode, *mtime_ms),
+                Some(MemoryNode::File { data, mode, mtime_ms, .. }) => (VfsEntryKind::File, data.len(), *mode, *mtime_ms),
                 Some(MemoryNode::Directory { mode, mtime_ms }) => (VfsEntryKind::Directory, 0, *mode, *mtime_ms),
                 Some(MemoryNode::Symlink { target, mode, mtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *mtime_ms),
                 None => return Err(format!("ENOENT: no such file or directory, {} '{}'", if follow { "stat" } else { "lstat" }, normalize_posix_path(path))),
@@ -293,7 +295,7 @@ impl MemoryVfs {
         })
     }
 
-    fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32) -> Result<(), String> {
+    fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32, publication: Option<u64>) -> Result<(), String> {
         let existing_info = match state.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => {
                 return Err(format!(
@@ -321,11 +323,117 @@ impl MemoryVfs {
             resolved,
             MemoryNode::File {
                 data: data.to_vec(),
+                publication,
                 mode,
                 mtime_ms: 1_700_000_000_000,
             },
         );
         Ok(())
+    }
+
+    fn invalidate_link_target(state: &mut MemoryState, link: &str, target: &str) {
+        if let Some(target) = target.strip_prefix("__hardlink__:") {
+            let parent = parent_posix_path(link).unwrap_or_else(|| "/".into());
+            let target = crate::vfs::resolve_posix_path(&parent, target);
+            if let Ok(dest) = Self::resolve_symlinks_locked(state, &target, true)
+                && let Some(MemoryNode::File { publication, .. }) = state.nodes.get_mut(&dest)
+            {
+                *publication = None;
+            }
+        }
+    }
+
+    fn remove_entry(&self, path: &str, publication: Option<u64>) -> Result<bool, String> {
+        let norm = normalize_posix_path(path);
+        if norm == "/" {
+            return Err("EBUSY: cannot remove root directory '/'".to_string());
+        }
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
+        if guard.devices.entry(&resolved).is_some() {
+            return Err(format!("EBUSY: device or resource busy, unlink '{norm}'"));
+        }
+        if let Some(expected) = publication {
+            if resolved != norm {
+                return Ok(false);
+            }
+            let dest = match guard.nodes.get(&resolved) {
+                Some(MemoryNode::Symlink { target, .. }) if target.starts_with("__hardlink__:") =>
+                    Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?,
+                _ => resolved.clone(),
+            };
+            if !matches!(guard.nodes.get(&dest), Some(MemoryNode::File { publication: Some(id), .. }) if *id == expected) {
+                return Ok(false);
+            }
+        }
+        let keys: Vec<String> = if publication.is_some() {
+            vec![resolved]
+        } else {
+            let prefix = format!("{resolved}/");
+            guard.nodes.keys()
+                .filter(|k| **k == resolved || k.starts_with(&prefix))
+                .cloned()
+                .collect()
+        };
+        if keys.is_empty() {
+            return Err(format!(
+                "ENOENT: no such file or directory, unlink '{norm}'"
+            ));
+        }
+        for k in keys {
+            match guard.nodes.remove(&k) {
+                Some(MemoryNode::File { data, mode, mtime_ms, .. }) => {
+                    let hl_marker = format!("__hardlink__:{k}");
+                    let survivor = guard
+                        .nodes
+                        .iter()
+                        .find_map(|(nk, nv)| match nv {
+                            MemoryNode::Symlink { target, .. } if target == &hl_marker => {
+                                Some(nk.clone())
+                            }
+                            _ => None,
+                        });
+                    if let Some(surv_key) = survivor {
+                        let new_marker = format!("__hardlink__:{surv_key}");
+                        for (nk, nv) in guard.nodes.iter_mut() {
+                            if nk != &surv_key
+                                && let MemoryNode::Symlink { target, .. } = nv
+                                && target == &hl_marker
+                            {
+                                *target = new_marker.clone();
+                            }
+                        }
+                        guard.nodes.insert(
+                            surv_key,
+                            MemoryNode::File {
+                                data,
+                                publication: None,
+                                mode,
+                                mtime_ms,
+                            },
+                        );
+                    } else {
+                        guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+                    }
+                }
+                Some(MemoryNode::Symlink { target: removed_target, .. })
+                    if removed_target.starts_with("__hardlink__:") =>
+                {
+                    Self::invalidate_link_target(&mut guard, &k, &removed_target);
+                    let hl_marker = format!("__hardlink__:{k}");
+                    for nv in guard.nodes.values_mut() {
+                        if let MemoryNode::Symlink { target, .. } = nv
+                            && target == &hl_marker
+                        {
+                            *target = removed_target.clone();
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+        self.bump_generation();
+        Ok(true)
     }
 
     fn ensure_parent_dirs_locked(state: &mut MemoryState, path: &str) -> Result<(), FsError> {
@@ -417,12 +525,12 @@ impl SafeBashFs for MemoryVfs {
         }
         if guard.devices == Devices::Mounted { return Err(format!("ENOENT: no such file or directory, write '{norm}'")); }
         Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
-        Self::store_file(&mut guard, resolved, data, 0o100644)?;
+        Self::store_file(&mut guard, resolved, data, 0o100644, None)?;
         self.bump_generation();
         Ok(())
     }
 
-    fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<(), String> {
+    fn publish_file(&self, path: &str, data: &[u8], inputs: &[String], version: u64) -> Result<u64, String> {
         let mut state = self.state.write().map_err(|e| e.to_string())?;
         if version != self.generation() {
             return Err("EAGAIN: filesystem changed before publication".into());
@@ -447,85 +555,18 @@ impl SafeBashFs for MemoryVfs {
                 return Err("INVALID_VALUE: Input and output VFS identities must be distinct".into());
             }
         }
-        Self::store_file(&mut state, dest, data, 0o100666)?;
+        let publication = NEXT_PUBLICATION.fetch_add(1, Ordering::Relaxed);
+        Self::store_file(&mut state, dest, data, 0o100666, Some(publication))?;
         self.bump_generation();
-        Ok(())
+        Ok(publication)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        if norm == "/" {
-            return Err("EBUSY: cannot remove root directory '/'".to_string());
-        }
-        let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
-        if guard.devices.entry(&resolved).is_some() {
-            return Err(format!("EBUSY: device or resource busy, unlink '{norm}'"));
-        }
-        let prefix = format!("{resolved}/");
-        let keys: Vec<String> = guard
-            .nodes
-            .keys()
-            .filter(|k| **k == resolved || k.starts_with(&prefix))
-            .cloned()
-            .collect();
-        if keys.is_empty() {
-            return Err(format!(
-                "ENOENT: no such file or directory, unlink '{norm}'"
-            ));
-        }
-        for k in keys {
-            match guard.nodes.remove(&k) {
-                Some(MemoryNode::File { data, mode, mtime_ms }) => {
-                    let hl_marker = format!("__hardlink__:{k}");
-                    let survivor = guard
-                        .nodes
-                        .iter()
-                        .find_map(|(nk, nv)| match nv {
-                            MemoryNode::Symlink { target, .. } if target == &hl_marker => {
-                                Some(nk.clone())
-                            }
-                            _ => None,
-                        });
-                    if let Some(surv_key) = survivor {
-                        let new_marker = format!("__hardlink__:{surv_key}");
-                        for (nk, nv) in guard.nodes.iter_mut() {
-                            if nk != &surv_key
-                                && let MemoryNode::Symlink { target, .. } = nv
-                                && target == &hl_marker
-                            {
-                                *target = new_marker.clone();
-                            }
-                        }
-                        guard.nodes.insert(
-                            surv_key,
-                            MemoryNode::File {
-                                data,
-                                mode,
-                                mtime_ms,
-                            },
-                        );
-                    } else {
-                        guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
-                    }
-                }
-                Some(MemoryNode::Symlink { target: removed_target, .. })
-                    if removed_target.starts_with("__hardlink__:") =>
-                {
-                    let hl_marker = format!("__hardlink__:{k}");
-                    for nv in guard.nodes.values_mut() {
-                        if let MemoryNode::Symlink { target, .. } = nv
-                            && target == &hl_marker
-                        {
-                            *target = removed_target.clone();
-                        }
-                    }
-                }
-                _ => {}
-            }
-        }
-        self.bump_generation();
-        Ok(())
+        self.remove_entry(path, None).map(|_| ())
+    }
+
+    fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
+        self.remove_entry(path, Some(publication))
     }
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
@@ -616,6 +657,7 @@ impl SafeBashFs for MemoryVfs {
         if guard.nodes.len() >= guard.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".to_string());
         }
+        Self::invalidate_link_target(&mut guard, &resolved, target);
         guard.nodes.insert(
             resolved,
             MemoryNode::Symlink {
@@ -646,7 +688,8 @@ impl SafeBashFs for MemoryVfs {
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get_mut(&resolved) {
-            Some(MemoryNode::File { mode: m, .. }) => {
+            Some(MemoryNode::File { mode: m, publication, .. }) => {
+                *publication = None;
                 *m = 0o100000 | (mode & 0o7777);
             }
             Some(MemoryNode::Directory { mode: m, .. }) => {
@@ -666,8 +709,11 @@ impl SafeBashFs for MemoryVfs {
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get_mut(&resolved) {
-            Some(MemoryNode::File { mtime_ms: m, .. })
-            | Some(MemoryNode::Directory { mtime_ms: m, .. })
+            Some(MemoryNode::File { mtime_ms: m, publication, .. }) => {
+                *publication = None;
+                *m = mtime_ms;
+            }
+            Some(MemoryNode::Directory { mtime_ms: m, .. })
             | Some(MemoryNode::Symlink { mtime_ms: m, .. }) => {
                 *m = mtime_ms;
             }
@@ -758,6 +804,7 @@ impl SafeBashFs for MemoryVfs {
                     norm,
                     MemoryNode::File {
                         data: entry.data.clone(),
+                        publication: None,
                         mode: if entry.mode != 0 { entry.mode } else { 0o100644 },
                         mtime_ms: 1_700_000_000_000,
                     },
@@ -796,6 +843,28 @@ impl GitFsView<'_> {
 mod tests {
     use super::*;
     use crate::vfs::SafeBashFs;
+
+    #[test]
+    fn publication_cleanup_preserves_replacements_and_unrelated_files() {
+        let fs = MemoryVfs::new();
+        let a = fs.publish_file("/a", b"same", &[], fs.generation()).unwrap();
+        let b = fs.publish_file("/b", b"other", &[], fs.generation()).unwrap();
+        fs.remove_path("/a").unwrap();
+        fs.write_file("/a", b"same").unwrap();
+        assert!(!fs.remove_published("/a", a).unwrap());
+        assert!(fs.remove_published("/b", b).unwrap());
+        assert_eq!(fs.read_file("/a").unwrap(), b"same");
+        assert!(!fs.exists("/b"));
+        for change in ["chmod", "mtime", "link"] {
+            let stamp = fs.publish_file("/a", b"revision", &[], fs.generation()).unwrap();
+            match change {
+                "chmod" => fs.chmod("/a", 0o600).unwrap(),
+                "mtime" => fs.set_mtime("/a", 10).unwrap(),
+                _ => fs.symlink("__hardlink__:/a", "/linked").unwrap(),
+            }
+            assert!(!fs.remove_published("/a", stamp).unwrap(), "{change}");
+        }
+    }
 
     #[test]
     fn memory_vfs_enforces_max_file_bytes_max_total_bytes_and_max_entries() {

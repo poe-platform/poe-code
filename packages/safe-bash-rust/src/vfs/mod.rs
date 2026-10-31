@@ -80,8 +80,12 @@ pub trait SafeBashFs: Send + Sync {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
     /// Publish without following a final symlink, replacing an input, or committing after a concurrent mutation.
-    fn publish_file(&self, _path: &str, _data: &[u8], _inputs: &[String], _version: u64) -> Result<(), String> {
+    fn publish_file(&self, _path: &str, _data: &[u8], _inputs: &[String], _version: u64) -> Result<u64, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file publication".into())
+    }
+    /// Remove only the file version returned by publish_file. A replacement is left intact.
+    fn remove_published(&self, _path: &str, _publication: u64) -> Result<bool, String> {
+        Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file removal".into())
     }
     fn remove_path(&self, path: &str) -> Result<(), String>;
     fn mkdir_all(&self, path: &str) -> Result<(), String>;

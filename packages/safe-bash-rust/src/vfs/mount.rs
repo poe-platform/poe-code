@@ -120,7 +120,7 @@ impl SafeBashFs for MountVfs {
         data: &[u8],
         inputs: &[String],
         version: u64,
-    ) -> Result<(), String> {
+    ) -> Result<u64, String> {
         let (fs, rel) = self.route(path, false)?;
         let inner_version = fs.generation();
         if version != self.generation() {
@@ -134,6 +134,11 @@ impl SafeBashFs for MountVfs {
             }
         }
         fs.publish_file(&rel, data, &local_inputs, inner_version)
+    }
+
+    fn remove_published(&self, path: &str, publication: u64) -> Result<bool, String> {
+        let (fs, rel) = self.route(path, false)?;
+        fs.remove_published(&rel, publication)
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {

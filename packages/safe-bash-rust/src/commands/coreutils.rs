@@ -13396,7 +13396,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut current_line = 0usize;
     let mut cur_piece: Vec<u8> = Vec::new();
     let mut piece_open = false;
-    let mut created_files: Vec<String> = Vec::new();
+    let mut created_files = Vec::new();
     let mut file_no = 0usize;
     let mut stdout = String::new();
 
@@ -13406,9 +13406,6 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             return Ok(());
         }
         *open = false;
-        if elide && piece.is_empty() {
-            return Ok(());
-        }
         let fname = format!("{prefix}{}", suffix_fn(file_no));
         let full = resolve_posix_path(cwd, &fname);
         let version = fs.generation();
@@ -13422,7 +13419,7 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         if fs.lstat(&full).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File) {
             return Err(format!("csplit: unsafe output file '{fname}'\n"));
         }
-        fs.publish_file(&full, piece, input_path.as_slice(), version).map_err(|e| {
+        let publication = fs.publish_file(&full, piece, input_path.as_slice(), version).map_err(|e| {
             match e.as_str() {
                 "INVALID_VALUE: Input and output VFS identities must be distinct" =>
                     "csplit: output would overwrite the input file\n".into(),
@@ -13431,8 +13428,15 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 _ => format!("csplit: {fname}: {e}\n"),
             }
         })?;
+        if elide && piece.is_empty() {
+            return match fs.remove_published(&full, publication) {
+                Ok(true) => Ok(()),
+                Ok(false) => Err("csplit: output changed before empty-file removal\n".into()),
+                Err(e) => Err(format!("csplit: {fname}: {e}\n")),
+            };
+        }
         file_no += 1;
-        created_files.push(full);
+        created_files.push((full, publication));
         if !quiet {
             stdout.push_str(&format!("{}\n", piece.len()));
         }
@@ -13590,8 +13594,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
     if let Some(err) = fail_msg {
         if !keep {
-            for f in &created_files {
-                let _ = fs.remove(f, false);
+            for (path, publication) in created_files {
+                if let Err(e) = fs.remove_published(&path, publication) {
+                    stderr.push_str(&format!("csplit: {path}: {e}\n"));
+                }
             }
         }
         stderr.push_str(&err);
@@ -21780,6 +21786,18 @@ mod tests {
         let r = cmd_csplit(&args(&["src", "2"]), "", "/", &fs);
         assert_eq!(r.stderr, "csplit: output would overwrite the input file\n");
         assert_eq!(fs.read_file("/src").unwrap(), bytes);
+    }
+
+    #[test]
+    fn csplit_elides_existing_empty_piece_before_reusing_its_name() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src", b"one\ntwo\n").unwrap();
+        fs.write_file("/xx00", b"old").unwrap();
+        fs.chmod("/xx00", 0o600).unwrap();
+        let r = cmd_csplit(&args(&["-z", "src", "1"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str()), (0, "8\n"));
+        assert_eq!(fs.stat("/xx00").unwrap().mode & 0o777, 0o666);
+        assert_eq!(fs.read_file("/xx00").unwrap(), b"one\ntwo\n");
     }
 
     #[test]

@@ -5383,7 +5383,7 @@ fn cmd_yes(args: &[String]) -> BuiltinOutcome {
             continue;
         }
         if arg == "--help" {
-            return ok_out("Usage: yes [STRING]...\n");
+            return ok_out(include_str!("help/yes.txt"));
         }
         if arg == "--version" {
             return ok_out("yes (virtual-bash GNU-compatible profile)\n");
@@ -16563,7 +16563,7 @@ fn cmd_column(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 
     if opts.help {
-        return ok_out("Usage: column [-t] [-s characters] [-o string] [-c width] [-x] [file ...]\n");
+        return ok_out(include_str!("help/column.txt"));
     }
     if opts.table && opts.across {
         return err_out("column: EINVAL: -x/--fillrows cannot be combined with table mode\n", 1);
@@ -17004,7 +17004,7 @@ fn cmd_shuf(
                 );
             };
             if selected.1 == "help" {
-                return ok_out("Usage: shuf [OPTION]... [FILE]\n");
+                return ok_out(include_str!("help/shuf.txt"));
             }
             if selected.1 == "version" {
                 return ok_out("shuf (GNU coreutils) 9.5\n");
@@ -17979,7 +17979,7 @@ fn cmd_dd(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
                         1,
                     );
                 }
-                return ok_out("Usage: dd [OPERAND]...\n");
+                return ok_out(include_str!("help/dd.txt"));
             }
             if "--version".starts_with(opt) {
                 if a.contains('=') {
@@ -18592,7 +18592,7 @@ fn cmd_install(
             };
             let (full_name, key, req_arg, opt_arg) = *selected;
             if key == "help" {
-                return ok_out("Usage: install [OPTION]... SOURCE... DEST\n");
+                return ok_out(include_str!("help/install.txt"));
             }
             if key == "version" {
                 return ok_out("install (Sandbox VFS-ish/GNU coreutils) 9.7\n");
@@ -20163,7 +20163,7 @@ fn cmd_getopt(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutcome
                 'V' => return ok_out("getopt (virtual-bash)\n"),
                 'h' => {
                     return ok_out(
-                        "Usage: getopt [OPTIONS] -o OPTSTRING [--] PARAMETERS...\n",
+                        include_str!("help/getopt.txt"),
                     );
                 }
                 _ => {}

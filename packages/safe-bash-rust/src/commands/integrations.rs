@@ -1172,51 +1172,7 @@ fn render_op_inject_template(
     Ok(out)
 }
 
-const OP_ROOT_HELP: &str = "\
-This portable implementation exposes an op-compatible command interface with a configurable backend and host approval policies.
-
-Stable command metadata targets 1Password CLI 2.39.0. Beta commands and local extensions are identified separately.
-
-Usage:  op [command] [flags]
-
-Management Commands:
-  account          Manage your locally configured 1Password accounts
-  connect          Manage Connect server instances and tokens in your 1Password account
-  document         Perform CRUD operations on Document items in your vaults
-  events-api       Manage Events API integrations in your 1Password account
-  group            Manage the groups in your 1Password account
-  item             Perform CRUD operations on the 1Password items in your vaults
-  plugin           Manage the shell plugins you use to authenticate third-party CLIs
-  service-account  Manage service accounts
-  user             Manage users within this 1Password account
-  vault            Manage permissions and perform CRUD operations on your 1Password vaults
-  environment      Manage Environments and local snapshots [extension]
-
-Commands:
-  completion  Generate shell completion information
-  inject      Inject secrets into a config file
-  read        Read a secret reference
-  run         Pass secrets as environment variables to a process
-  signin      Sign in to a 1Password account
-  signout     Sign out of a 1Password account
-  update      Check for and download updates.
-  whoami      Get information about a signed-in account
-
-Global Flags:
-      --account account    Select the account to execute the command by account shorthand, sign-in address, account ID, or user ID.
-      --cache              Store and use cached information. (default true)
-      --config directory   Use this configuration directory.
-      --debug              Enable debug mode.
-      --encoding type      Use this character encoding type. Default: UTF-8. Supported: SHIFT_JIS, gbk.
-      --format string      Use this output format. Can be 'human-readable' or 'json'. (default \"human-readable\")
-  -h, --help               Get help for op.
-      --iso-timestamps     Format timestamps according to ISO 8601 / RFC 3339.
-      --no-color           Print output without color.
-      --session token      Authenticate with this session token.
-  -v, --version            version for op
-
-Run 'op [command] --help' for more information on the command.
-";
+const OP_ROOT_HELP: &str = include_str!("help/op.txt");
 
 const GH_ROOT_HELP: &str = "\
 Work seamlessly with GitHub from the command line.

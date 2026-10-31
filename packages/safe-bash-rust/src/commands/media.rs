@@ -4268,14 +4268,11 @@ fn format_ffmpeg_introspection(flag: &str, cmd: &str) -> Option<String> {
             ]
             .join("\n"),
         ),
-        "-h" | "-help" | "--help" => Some(format!(
-            "{}\nusage: {cmd} [options] ...\n",
-            if cmd == "ffprobe" {
-                "Multimedia stream analyzer (safe-bash pure-AST engine)"
-            } else {
-                "Hyper fast Audio and Video encoder (safe-bash pure-AST engine)"
-            }
-        )),
+        "-h" | "-help" | "--help" => Some(if cmd == "ffprobe" {
+            "Multimedia stream analyzer (safe-bash pure-AST engine)\nusage: ffprobe [options] input_file\n"
+        } else {
+            "Hyper fast Audio and Video encoder (safe-bash pure-AST engine)\nusage: ffmpeg [options] [[infile options] -i infile]... {[outfile options] outfile}...\n"
+        }.to_string()),
         _ => None,
     }
 }
@@ -5823,8 +5820,8 @@ fn cmd_media_doc(
             if args.iter().any(|a| a == "-V" || a == "--version") {
                 return ok_out("wkhtmltopdf 0.12.6 (safe-bash html-to-pdf)\n");
             }
-            if args.iter().any(|a| a == "-h" || a == "--help") {
-                return ok_out("Usage: wkhtmltopdf [GLOBAL OPTION]... [OBJECT]... <input file> [PAGE OPTION]... <output file>\n");
+            if args.iter().any(|a| matches!(a.as_str(), "-h" | "-help" | "--help")) {
+                return ok_out("Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nBuilt-in PDF AST static renderer; trusted overrides are optional. Input/output '-' use stdin/stdout.\n");
             }
             if args.iter().any(|a| a == "--read-args-from-stdin") {
                 for line in stdin.lines() {
@@ -6367,7 +6364,7 @@ fn cmd_media_doc(
                 return ok_out("qpdf version 11.9.0 (safe-bash pdf-ast)\n");
             }
             if args.iter().any(|a| a == "--help" || a == "-h" || a.starts_with("--help=")) {
-                return ok_out("Usage: qpdf [ options ] infilename [ outfilename ]\n");
+                return ok_out("Usage: qpdf [options] infile [outfile]\n");
             }
             let mut password: Option<String> = None;
             let mut empty_input = false;
@@ -10133,7 +10130,7 @@ fn cmd_media_doc(
                     if !is_mogrify {
                         return ok_out("Usage: magick [input-options] input-file [operators] output-file\n");
                     }
-                    return ok_out(&format!("Usage: {cmd} [options] input... output\n"));
+                    return ok_out("");
                 }
             }
             let mut size_opt: Option<(u32, u32)> = None;
@@ -10449,9 +10446,6 @@ fn cmd_media_doc(
                     "-version" | "--version" => {
                         return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
                     }
-                    "-help" | "--help" | "-h" => {
-                        return ok_out("Usage: composite [options] overlay base [mask] output\n");
-                    }
                     "-gravity" | "-geometry" | "-compose" | "-background" | "-quality"
                     | "-define" | "-dissolve" | "-blend" | "-watermark"
                         if i + 1 < args.len() =>
@@ -10514,9 +10508,6 @@ fn cmd_media_doc(
                 match args[i].as_str() {
                     "-version" | "--version" => {
                         return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
-                    }
-                    "-help" | "--help" | "-h" => {
-                        return ok_out("Usage: montage [options] file... output\n");
                     }
                     "-tile" if i + 1 < args.len() => {
                         let t = &args[i + 1];
@@ -11417,7 +11408,7 @@ fn cmd_media_doc(
                 return ok_out("13.59\n");
             }
             if args.len() == 1 && matches!(args[0].as_str(), "--help" | "-help" | "-?") {
-                return ok_out("Usage: exiftool [OPTIONS] [-TAG...] FILE...\n       exiftool --help | -help | -?\n");
+                return ok_out(include_str!("help/exiftool.txt"));
             }
             let mut expanded_args: Vec<String> = Vec::new();
             let mut ai = 0usize;

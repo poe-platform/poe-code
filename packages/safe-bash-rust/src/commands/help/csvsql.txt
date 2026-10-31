@@ -1,0 +1,138 @@
+usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]
+              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]
+              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]
+              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]
+              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]
+              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]
+              [--db CONNECTION_STRING]
+              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]
+              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]
+              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]
+              [--tables TABLE_NAMES] [--no-constraints]
+              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]
+              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]
+              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]
+              [--min-col-len MIN_COL_LEN]
+              [--col-len-multiplier COL_LEN_MULTIPLIER]
+              [FILE ...]
+
+Generate SQL statements for one or more CSV files, or execute those statements
+directly on a database, and execute one or more SQL queries.
+
+positional arguments:
+  FILE                  The CSV file(s) to operate on. If omitted, will accept
+                        input as piped data via STDIN.
+
+options:
+  -h, --help            show this help message and exit
+  -d, --delimiter DELIMITER
+                        Delimiting character of the input CSV file.
+  -t, --tabs            Specify that the input CSV file is delimited with
+                        tabs. Overrides "-d".
+  -q, --quotechar QUOTECHAR
+                        Character used to quote strings in the input CSV file.
+  -u, --quoting {0,1,2,3,4,5}
+                        Quoting style used in the input CSV file: 0 quote
+                        minimal, 1 quote all, 2 quote non-numeric, 3 quote
+                        none.
+  -b, --no-doublequote  Whether or not double quotes are doubled in the input
+                        CSV file.
+  -p, --escapechar ESCAPECHAR
+                        Character used to escape the delimiter if --quoting 3
+                        ("quote none") is specified and to escape the
+                        QUOTECHAR if --no-doublequote is specified.
+  -z, --maxfieldsize FIELD_SIZE_LIMIT
+                        Maximum length of a single field in the input CSV
+                        file.
+  -e, --encoding ENCODING
+                        Specify the encoding of the input CSV file.
+  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.
+  -S, --skipinitialspace
+                        Ignore whitespace immediately following the delimiter.
+  --blanks              Do not convert "", "na", "n/a", "none", "null", "." to
+                        NULL.
+  --null-value NULL_VALUES [NULL_VALUES ...]
+                        Convert this value to NULL. --null-value can be
+                        specified multiple times.
+  --date-format DATE_FORMAT
+                        Specify a strptime date format string like "%m/%d/%Y".
+  --datetime-format DATETIME_FORMAT
+                        Specify a strptime datetime format string like
+                        "%m/%d/%Y %I:%M %p".
+  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to
+                        a number.
+  -H, --no-header-row   Specify that the input CSV file has no header row.
+                        Will create default headers (a,b,c,...).
+  -K, --skip-lines SKIP_LINES
+                        Specify the number of initial lines to skip before the
+                        header row (e.g. comments, copyright notices, empty
+                        rows).
+  -v, --verbose         Print detailed tracebacks when errors occur.
+  -l, --linenumbers     Insert a column of line numbers at the front of the
+                        output. Useful when piping to grep or as a simple
+                        primary key.
+  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for
+                        Excel compatibility
+  --zero                When interpreting or displaying column numbers, use
+                        zero-based numbering instead of the default 1-based
+                        numbering.
+  -V, --version         Display version information and exit.
+  -i, --dialect {mssql,mysql,oracle,postgresql,sqlite}
+                        Dialect of SQL to generate. Cannot be used with --db.
+  --db CONNECTION_STRING
+                        If present, a SQLAlchemy connection string to use to
+                        directly execute generated SQL on a database.
+  --engine-option ENGINE_OPTION ENGINE_OPTION
+                        A keyword argument to SQLAlchemy's create_engine(), as
+                        a space-separated pair. This option can be specified
+                        multiple times. For example: thick_mode True
+  --query QUERIES       Execute one or more SQL queries delimited by --sql-
+                        delimiter, and output the result of the last query as
+                        CSV. QUERY may be a filename. --query may be specified
+                        multiple times.
+  --insert              Insert the data into the table. Requires --db.
+  --prefix PREFIX       Add an expression following the INSERT keyword, like
+                        OR IGNORE or OR REPLACE.
+  --before-insert BEFORE_INSERT
+                        Before the INSERT command, execute one or more SQL
+                        queries delimited by --sql-delimiter. Requires
+                        --insert.
+  --after-insert AFTER_INSERT
+                        After the INSERT command, execute one or more SQL
+                        queries delimited by --sql-delimiter. Requires
+                        --insert.
+  --sql-delimiter SQL_DELIMITER
+                        Delimiter separating SQL queries in --query, --before-
+                        insert, and --after-insert.
+  --tables TABLE_NAMES  A comma-separated list of names of tables to be
+                        created. By default, the tables will be named after
+                        the filenames without extensions or "stdin".
+  --no-constraints      Generate a schema without length limits or null
+                        checks. Useful when sampling big tables.
+  --unique-constraint UNIQUE_CONSTRAINT
+                        A column-separated list of names of columns to include
+                        in a UNIQUE constraint.
+  --no-create           Skip creating the table. Requires --insert.
+  --create-if-not-exists
+                        Create the table if it does not exist, otherwise keep
+                        going. Requires --insert.
+  --overwrite           Drop the table if it already exists. Requires
+                        --insert. Cannot be used with --no-create.
+  --db-schema DB_SCHEMA
+                        Optional name of database schema to create table(s)
+                        in.
+  -y, --snifflimit SNIFF_LIMIT
+                        Limit CSV dialect sniffing to the specified number of
+                        bytes. Specify "0" to disable sniffing entirely, or
+                        "-1" to sniff the entire file.
+  -I, --no-inference    Disable type inference (and --locale, --date-format,
+                        --datetime-format, --no-leading-zeroes) when parsing
+                        the input.
+  --chunk-size CHUNK_SIZE
+                        Chunk size for batch insert into the table. Requires
+                        --insert.
+  --min-col-len MIN_COL_LEN
+                        The minimum length of text columns.
+  --col-len-multiplier COL_LEN_MULTIPLIER
+                        Multiply the maximum column length by this multiplier
+                        to accomodate larger values in later runs.

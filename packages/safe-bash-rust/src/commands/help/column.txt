@@ -1,0 +1,26 @@
+Usage: column [-t] [-s characters] [-o string] [-c width] [-x] [file ...]
+  -t, --table              align fields; default ASCII whitespace splitting
+  -J, --json               JSON table output (requires named columns)
+  -N, --table-columns      comma-separated column names for table mode
+  -n, --table-name         JSON table name (default table)
+  -C, --table-column       repeatable name=NAME column definitions and attributes
+  -O, --table-order        comma-separated names or numbers in output order
+  -H, --table-hide         columns to hide; - selects unnamed columns
+  -R, --table-right        columns to align right
+  -T, --table-truncate     columns to truncate to the output width
+  -W, --table-wrap         columns to wrap to the output width
+  -E, --table-noextreme    columns whose long cells may exceed their layout width
+  -l, --table-columns-limit  keep the unsplit remainder in the last input column
+  -d, --table-noheadings   suppress table headings
+  -e, --table-header-repeat  repeat headings every 24 output lines
+  -m, --table-maxout       expand table padding to the output width
+  -L, --keep-empty-lines   retain empty input records
+  -s, --separator          table input delimiter characters; preserve empty fields
+      --input-separator   alias for --separator
+  -o, --output-separator   table output separator (default two spaces)
+  -c, --output-width       positive layout width (default 80)
+  -x, --fillrows           fill across rows instead of down columns
+  -h, --help              show this supported profile
+  --                      end options; - reads shared stdin
+Strict UTF-8; deterministic scalar widths; retained tabs expand at 8-column stops.
+No terminal/locale detection, ANSI controls, colors, or tree mode.

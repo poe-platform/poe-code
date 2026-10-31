@@ -1,0 +1,24 @@
+Usage: sqlite3 [OPTIONS] FILENAME [SQL]
+Options:
+  -bail                stop after hitting an error
+  -batch               force batch I/O
+  -box                 set output mode to 'box'
+  -column              set output mode to 'column'
+  -cmd COMMAND         run "COMMAND" before reading stdin
+  -csv                 set output mode to 'csv'
+  -echo                print inputs before execution
+  -header              turn headers on
+  -noheader            turn headers off
+  -html                set output mode to HTML
+  -init FILENAME       read/process named file
+  -json                set output mode to 'json'
+  -line                set output mode to 'line'
+  -list                set output mode to 'list'
+  -markdown            set output mode to 'markdown'
+  -nullvalue TEXT      set text string for NULL values
+  -quote               set output mode to 'quote'
+  -readonly            open the database read-only
+  -separator SEP       set output column separator
+  -table               set output mode to 'table'
+  -tabs                set output mode to 'tabs'
+  -version             show SQLite version

@@ -1,0 +1,78 @@
+usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]
+                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]
+                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]
+                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]
+                [--label LABEL] [--header-normalize-space] [--join-short-rows]
+                [--separator SEPARATOR] [--fill-short-rows]
+                [--fillvalue FILLVALUE]
+                [FILE]
+
+Report and fix common errors in a CSV file.
+
+positional arguments:
+  FILE                  The CSV file to operate on. If omitted, will accept
+                        input as piped data via STDIN.
+
+options:
+  -h, --help            show this help message and exit
+  -d, --delimiter DELIMITER
+                        Delimiting character of the input CSV file.
+  -t, --tabs            Specify that the input CSV file is delimited with
+                        tabs. Overrides "-d".
+  -q, --quotechar QUOTECHAR
+                        Character used to quote strings in the input CSV file.
+  -u, --quoting {0,1,2,3,4,5}
+                        Quoting style used in the input CSV file: 0 quote
+                        minimal, 1 quote all, 2 quote non-numeric, 3 quote
+                        none.
+  -b, --no-doublequote  Whether or not double quotes are doubled in the input
+                        CSV file.
+  -p, --escapechar ESCAPECHAR
+                        Character used to escape the delimiter if --quoting 3
+                        ("quote none") is specified and to escape the
+                        QUOTECHAR if --no-doublequote is specified.
+  -z, --maxfieldsize FIELD_SIZE_LIMIT
+                        Maximum length of a single field in the input CSV
+                        file.
+  -e, --encoding ENCODING
+                        Specify the encoding of the input CSV file.
+  -S, --skipinitialspace
+                        Ignore whitespace immediately following the delimiter.
+  -H, --no-header-row   Specify that the input CSV file has no header row.
+                        Will create default headers (a,b,c,...).
+  -K, --skip-lines SKIP_LINES
+                        Specify the number of initial lines to skip before the
+                        header row (e.g. comments, copyright notices, empty
+                        rows).
+  -v, --verbose         Print detailed tracebacks when errors occur.
+  -l, --linenumbers     Insert a column of line numbers at the front of the
+                        output. Useful when piping to grep or as a simple
+                        primary key.
+  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for
+                        Excel compatibility
+  --zero                When interpreting or displaying column numbers, use
+                        zero-based numbering instead of the default 1-based
+                        numbering.
+  -V, --version         Display version information and exit.
+  --length-mismatch     Report data rows that are shorter or longer than the
+                        header row.
+  --empty-columns       Report empty columns as errors.
+  -a, --enable-all-checks
+                        Enable all error reporting.
+  --omit-error-rows     Omit data rows that contain errors, from standard
+                        output.
+  --label LABEL         Add a "label" column to standard error. Useful in
+                        automated workflows. Use "-" to default to the input
+                        filename.
+  --header-normalize-space
+                        Strip leading and trailing whitespace and replace
+                        sequences of whitespace characters by a single space
+                        in the header.
+  --join-short-rows     Merges short rows into a single row.
+  --separator SEPARATOR
+                        The string with which to join short rows. Defaults to
+                        a newline.
+  --fill-short-rows     Fill short rows with the missing cells.
+  --fillvalue FILLVALUE
+                        The value with which to fill short rows. Defaults to
+                        none.

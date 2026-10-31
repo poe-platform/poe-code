@@ -9868,21 +9868,21 @@ fn read_csvkit_input(
     Ok(s.strip_prefix('\u{feff}').unwrap_or(&s).to_string())
 }
 
-fn csvkit_usage(cmd: &str) -> &'static str {
+fn csvkit_help(cmd: &str) -> &'static str {
     match cmd {
-        "csvcut" => "usage: csvcut [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n              [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n              [-c COLUMNS] [-C NOT_COLUMNS] [-x]\n              [FILE]\n",
-        "csvgrep" => "usage: csvgrep [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S] [-H]\n               [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V] [-n]\n               [-c COLUMNS] [-m PATTERN] [-r REGEX] [-f MATCHFILE] [-i] [-a]\n               [FILE]\n",
-        "csvstat" => "usage: csvstat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--csv] [--json] [-i INDENT] [-n]\n               [-c COLUMNS] [--type] [--nulls] [--non-nulls] [--unique]\n               [--min] [--max] [--sum] [--mean] [--median] [--stdev] [--len]\n               [--max-precision] [--freq] [--freq-count FREQ_COUNT] [--count]\n               [--decimal-format DECIMAL_FORMAT] [-G] [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
-        "csvjson" => "usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]\n               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]\n               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
-        "in2csv" => "usage: in2csv [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-f {csv,dbf,fixed,geojson,json,ndjson,xls,xlsx}]\n              [-s SCHEMA] [-k KEY] [-n] [--sheet SHEET]\n              [--write-sheets WRITE_SHEETS] [--use-sheet-names]\n              [--reset-dimensions] [--encoding-xls ENCODING_XLS]\n              [-y SNIFF_LIMIT] [-I]\n              [FILE]\n",
-        "csvformat" => "usage: csvformat [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                 [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING]\n                 [-L LOCALE] [-S] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n                 [--zero] [-V] [-E] [-D OUT_DELIMITER] [-T] [-A]\n                 [-Q OUT_QUOTECHAR] [-U {0,1,2,3,4,5}] [-B]\n                 [-P OUT_ESCAPECHAR] [-M OUT_LINETERMINATOR]\n                 [FILE]\n",
-        "csvlook" => "usage: csvlook [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [--max-rows MAX_ROWS]\n               [--max-columns MAX_COLUMNS]\n               [--max-column-width MAX_COLUMN_WIDTH]\n               [--max-precision MAX_PRECISION] [--no-number-ellipsis]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
-        "csvsql" => "usage: csvsql [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n              [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n              [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n              [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n              [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom]\n              [--zero] [-V] [-i {mssql,mysql,oracle,postgresql,sqlite}]\n              [--db CONNECTION_STRING]\n              [--engine-option ENGINE_OPTION ENGINE_OPTION] [--query QUERIES]\n              [--insert] [--prefix PREFIX] [--before-insert BEFORE_INSERT]\n              [--after-insert AFTER_INSERT] [--sql-delimiter SQL_DELIMITER]\n              [--tables TABLE_NAMES] [--no-constraints]\n              [--unique-constraint UNIQUE_CONSTRAINT] [--no-create]\n              [--create-if-not-exists] [--overwrite] [--db-schema DB_SCHEMA]\n              [-y SNIFF_LIMIT] [-I] [--chunk-size CHUNK_SIZE]\n              [--min-col-len MIN_COL_LEN]\n              [--col-len-multiplier COL_LEN_MULTIPLIER]\n              [FILE ...]\n",
-        "sql2csv" => "usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]\n               [--engine-option ENGINE_OPTION ENGINE_OPTION]\n               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]\n               [--query QUERY] [-e ENCODING] [-H]\n               [FILE]\n",
-        "csvclean" => "usage: csvclean [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [--length-mismatch] [--empty-columns] [-a] [--omit-error-rows]\n                [--label LABEL] [--header-normalize-space] [--join-short-rows]\n                [--separator SEPARATOR] [--fill-short-rows]\n                [--fillvalue FILLVALUE]\n                [FILE]\n",
-        "csvstack" => "usage: csvstack [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}]\n                [-b] [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-S]\n                [-H] [-K SKIP_LINES] [-v] [-l] [--add-bom] [--zero] [-V]\n                [-g GROUPS] [-n GROUP_NAME] [--filenames]\n                [FILE ...]\n",
-        "csvjoin" => "usage: csvjoin [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-c COLUMNS] [--outer] [--left]\n               [--right] [-y SNIFF_LIMIT] [-I]\n               [FILE ...]\n",
-        "csvsort" => "usage: csvsort [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]\n               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]\n               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]\n               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]\n               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]\n               [--add-bom] [--zero] [-V] [-n] [-c COLUMNS] [-r] [-i]\n               [-y SNIFF_LIMIT] [-I]\n               [FILE]\n",
+        "csvcut" => include_str!("help/csvcut.txt"),
+        "csvgrep" => include_str!("help/csvgrep.txt"),
+        "csvstat" => include_str!("help/csvstat.txt"),
+        "csvjson" => include_str!("help/csvjson.txt"),
+        "in2csv" => include_str!("help/in2csv.txt"),
+        "csvformat" => include_str!("help/csvformat.txt"),
+        "csvlook" => include_str!("help/csvlook.txt"),
+        "csvsql" => include_str!("help/csvsql.txt"),
+        "sql2csv" => include_str!("help/sql2csv.txt"),
+        "csvclean" => include_str!("help/csvclean.txt"),
+        "csvstack" => include_str!("help/csvstack.txt"),
+        "csvjoin" => include_str!("help/csvjoin.txt"),
+        "csvsort" => include_str!("help/csvsort.txt"),
         _ => CSVPY_USAGE,
     }
 }
@@ -10111,7 +10111,8 @@ fn csvkit_precheck(cmd: &str, args: &[String]) -> Option<BuiltinOutcome> {
     if cmd == "csvpy" {
         return None;
     }
-    let usage = csvkit_usage(cmd);
+    let help = csvkit_help(cmd);
+    let usage = help.split_once("\n\n").map_or(help, |(synopsis, _)| &help[..synopsis.len() + 1]);
     let (zero_flags, one_flags, two_flags) = csvkit_option_specs(cmd);
     let mut extras: Vec<String> = Vec::new();
     let mut files: Vec<String> = Vec::new();
@@ -10128,7 +10129,7 @@ fn csvkit_precheck(cmd: &str, args: &[String]) -> Option<BuiltinOutcome> {
             continue;
         }
         if !terminated && (a == "-h" || a == "--help") {
-            return Some(ok_out(usage));
+            return Some(ok_out(help));
         }
         if !terminated && (a == "-V" || a == "--version") {
             return Some(ok_out(&format!("{cmd} 2.2.0\n")));
@@ -20205,6 +20206,7 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
+            "-help" | "--help" => return ok_out(include_str!("help/sqlite3.txt")),
             "-csv" => {
                 mode = "csv".to_string();
                 csv_mode = true;

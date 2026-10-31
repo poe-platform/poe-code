@@ -1,0 +1,35 @@
+usage: sql2csv [-h] [-v] [-l] [-V] [--db CONNECTION_STRING]
+               [--engine-option ENGINE_OPTION ENGINE_OPTION]
+               [--execution-option EXECUTION_OPTION EXECUTION_OPTION]
+               [--query QUERY] [-e ENCODING] [-H]
+               [FILE]
+
+Execute a SQL query on a database and output the result to a CSV file.
+
+positional arguments:
+  FILE                  The file to use as SQL query. If FILE and --query are
+                        omitted, the query is piped data via STDIN.
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose         Print detailed tracebacks when errors occur.
+  -l, --linenumbers     Insert a column of line numbers at the front of the
+                        output. Useful when piping to grep or as a simple
+                        primary key.
+  -V, --version         Display version information and exit.
+  --db CONNECTION_STRING
+                        A SQLAlchemy connection string to connect to a
+                        database.
+  --engine-option ENGINE_OPTION ENGINE_OPTION
+                        A keyword argument to SQLAlchemy's create_engine(), as
+                        a space-separated pair. This option can be specified
+                        multiple times. For example: thick_mode True
+  --execution-option EXECUTION_OPTION EXECUTION_OPTION
+                        A keyword argument to SQLAlchemy's
+                        execution_options(), as a space-separated pair. This
+                        option can be specified multiple times. For example:
+                        stream_results True
+  --query QUERY         The SQL query to execute. Overrides FILE and STDIN.
+  -e, --encoding ENCODING
+                        Specify the encoding of the input query file.
+  -H, --no-header-row   Do not output column names.

@@ -1,0 +1,98 @@
+usage: csvjson [-h] [-d DELIMITER] [-t] [-q QUOTECHAR] [-u {0,1,2,3,4,5}] [-b]
+               [-p ESCAPECHAR] [-z FIELD_SIZE_LIMIT] [-e ENCODING] [-L LOCALE]
+               [-S] [--blanks] [--null-value NULL_VALUES [NULL_VALUES ...]]
+               [--date-format DATE_FORMAT] [--datetime-format DATETIME_FORMAT]
+               [--no-leading-zeroes] [-H] [-K SKIP_LINES] [-v] [-l]
+               [--add-bom] [--zero] [-V] [-i INDENT] [-k KEY] [--lat LAT]
+               [--lon LON] [--type TYPE] [--geometry GEOMETRY] [--crs CRS]
+               [--no-bbox] [--stream] [-y SNIFF_LIMIT] [-I]
+               [FILE]
+
+Convert a CSV file into JSON (or GeoJSON).
+
+positional arguments:
+  FILE                  The CSV file to operate on. If omitted, will accept
+                        input as piped data via STDIN.
+
+options:
+  -h, --help            show this help message and exit
+  -d, --delimiter DELIMITER
+                        Delimiting character of the input CSV file.
+  -t, --tabs            Specify that the input CSV file is delimited with
+                        tabs. Overrides "-d".
+  -q, --quotechar QUOTECHAR
+                        Character used to quote strings in the input CSV file.
+  -u, --quoting {0,1,2,3,4,5}
+                        Quoting style used in the input CSV file: 0 quote
+                        minimal, 1 quote all, 2 quote non-numeric, 3 quote
+                        none.
+  -b, --no-doublequote  Whether or not double quotes are doubled in the input
+                        CSV file.
+  -p, --escapechar ESCAPECHAR
+                        Character used to escape the delimiter if --quoting 3
+                        ("quote none") is specified and to escape the
+                        QUOTECHAR if --no-doublequote is specified.
+  -z, --maxfieldsize FIELD_SIZE_LIMIT
+                        Maximum length of a single field in the input CSV
+                        file.
+  -e, --encoding ENCODING
+                        Specify the encoding of the input CSV file.
+  -L, --locale LOCALE   Specify the locale (en_US) of any formatted numbers.
+  -S, --skipinitialspace
+                        Ignore whitespace immediately following the delimiter.
+  --blanks              Do not convert "", "na", "n/a", "none", "null", "." to
+                        NULL.
+  --null-value NULL_VALUES [NULL_VALUES ...]
+                        Convert this value to NULL. --null-value can be
+                        specified multiple times.
+  --date-format DATE_FORMAT
+                        Specify a strptime date format string like "%m/%d/%Y".
+  --datetime-format DATETIME_FORMAT
+                        Specify a strptime datetime format string like
+                        "%m/%d/%Y %I:%M %p".
+  --no-leading-zeroes   Do not convert a numeric value with leading zeroes to
+                        a number.
+  -H, --no-header-row   Specify that the input CSV file has no header row.
+                        Will create default headers (a,b,c,...).
+  -K, --skip-lines SKIP_LINES
+                        Specify the number of initial lines to skip before the
+                        header row (e.g. comments, copyright notices, empty
+                        rows).
+  -v, --verbose         Print detailed tracebacks when errors occur.
+  -l, --linenumbers     Insert a column of line numbers at the front of the
+                        output. Useful when piping to grep or as a simple
+                        primary key.
+  --add-bom             Add the UTF-8 byte-order mark (BOM) to the output, for
+                        Excel compatibility
+  --zero                When interpreting or displaying column numbers, use
+                        zero-based numbering instead of the default 1-based
+                        numbering.
+  -V, --version         Display version information and exit.
+  -i, --indent INDENT   Indent the output JSON this many spaces. Disabled by
+                        default.
+  -k, --key KEY         Output JSON as an object keyed by a given column, KEY,
+                        rather than as an array. All column values must be
+                        unique. If --lat and --lon are specified, this column
+                        is used as the GeoJSON Feature ID.
+  --lat LAT             A column index or name containing a latitude. Output
+                        will be GeoJSON instead of JSON. Requires --lon.
+  --lon LON             A column index or name containing a longitude. Output
+                        will be GeoJSON instead of JSON. Requires --lat.
+  --type TYPE           A column index or name containing a GeoJSON type.
+                        Output will be GeoJSON instead of JSON. Requires --lat
+                        and --lon.
+  --geometry GEOMETRY   A column index or name containing a GeoJSON geometry.
+                        Output will be GeoJSON instead of JSON. Requires --lat
+                        and --lon.
+  --crs CRS             A coordinate reference system string to be included
+                        with GeoJSON output. Requires --lat and --lon.
+  --no-bbox             Disable the calculation of a bounding box.
+  --stream              Output JSON as a stream of newline-separated objects,
+                        rather than an as an array.
+  -y, --snifflimit SNIFF_LIMIT
+                        Limit CSV dialect sniffing to the specified number of
+                        bytes. Specify "0" to disable sniffing entirely, or
+                        "-1" to sniff the entire file.
+  -I, --no-inference    Disable type inference (and --locale, --date-format,
+                        --datetime-format, --no-leading-zeroes) when parsing
+                        the input.

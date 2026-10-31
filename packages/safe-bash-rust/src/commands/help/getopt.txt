@@ -1,0 +1,5 @@
+Usage: getopt [OPTIONS] -o OPTSTRING [--] PARAMETERS...
+Parse short and long options and emit shell-quoted arguments.
+Options: -a, --alternative; -l, --longoptions; -n, --name; -o, --options;
+         -q, --quiet; -Q, --quiet-output; -s, --shell; -T, --test;
+         -u, --unquoted; -h, --help; -V, --version

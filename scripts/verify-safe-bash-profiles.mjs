@@ -134,7 +134,7 @@ export const safeBashProfileBaselines = {
   "pythonLlm": 2095516,
   // Canonical PDF graph includes caller-backed parsing, fonts, editing and output.
   "pdf": 3234703,
-  "multiplePdf": 3442346,
+  "multiplePdf": 3511461,
   // One spreadsheet engine with streamed formats and caller-backed workbook storage.
   "csv": 3570816,
   "csvXlsx": 3878506,

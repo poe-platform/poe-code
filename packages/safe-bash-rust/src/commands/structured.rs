@@ -1,3 +1,4 @@
+mod in2csv_json;
 use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
 };
@@ -11720,7 +11721,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut key_prop: Option<String> = None;
     let mut sheet_name: Option<String> = None;
     let mut names_only = false;
-    let mut no_inference = false;
+    let mut json_options = in2csv_json::Options::default();
     let mut no_header = false;
     let mut skip_lines = 0usize;
     let mut delim = ',';
@@ -11749,7 +11750,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 sheet_name = Some(args[i].clone());
             }
             "-n" | "--names" => names_only = true,
-            "-I" | "--no-inference" => no_inference = true,
+            "-I" | "--no-inference" => json_options.no_inference = true,
             "-H" | "--no-header-row" => no_header = true,
             "-K" | "--skip-lines" if i + 1 < args.len() => {
                 i += 1;
@@ -11767,8 +11768,12 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "-p" | "--skipinitialspace" => skip_initial_space = true,
             "-l" | "--linenumbers" => line_numbers = true,
             "--add-bom" => add_bom = true,
-            "-e" | "--encoding" | "-L" | "--locale" | "--date-format" | "--datetime-format"
-            | "--null-value" | "-y" | "--snifflimit" | "--write-sheets" | "-- encoding-xls"
+            "-L" | "--locale" if i + 1 < args.len() => { i += 1; json_options.locale = Some(&args[i]); }
+            "--null-value" if i + 1 < args.len() => { i += 1; json_options.nulls.push(&args[i]); }
+            "--blanks" => json_options.blanks = true,
+            "--no-leading-zeroes" => json_options.no_leading_zeroes = true,
+            "-e" | "--encoding" | "--date-format" | "--datetime-format"
+            | "-y" | "--snifflimit" | "--write-sheets" | "--encoding-xls"
                 if i + 1 < args.len() =>
             {
                 i += 1;
@@ -12226,7 +12231,6 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         } else {
             (normalize_csvkit_headers(&rows[0]), rows[1..].to_vec())
         };
-        let _ = no_inference;
         return finish_rows(headers, data_rows);
     }
 
@@ -12234,64 +12238,9 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         Ok(t) => t,
         Err(e) => return err_out(&e, 1),
     };
-    let vals = match parse_json_stream(&text) {
-        Ok(v) => v,
-        Err(e) => return err_out(&format!("in2csv: {e}\n"), 1),
-    };
-    let items: Vec<JVal> = if fmt != "ndjson" && vals.len() == 1 {
-        match vals.into_iter().next().unwrap() {
-            JVal::Array(arr) => arr,
-            JVal::Object(entries) => {
-                if let Some(ref k) = key_prop
-                    && let Some((_, JVal::Array(arr))) =
-                        entries.into_iter().find(|(ek, _)| ek == k)
-                {
-                    arr
-                } else {
-                    Vec::new()
-                }
-            }
-            _ => Vec::new(),
-        }
-    } else {
-        vals
-    };
-
-    let mut headers: Vec<String> = Vec::new();
-    for item in &items {
-        if let JVal::Object(entries) = item {
-            for (k, _) in entries {
-                if !headers.contains(k) {
-                    headers.push(k.clone());
-                }
-            }
-        }
-    }
-    if headers.is_empty() {
-        return ok_out("");
-    }
-    let mut data_rows = Vec::new();
-    for item in &items {
-        if let JVal::Object(entries) = item {
-            let row: Vec<String> = headers
-                .iter()
-                .map(|h| {
-                    entries
-                        .iter()
-                        .find(|(k, _)| k == h)
-                        .map(|(_, v)| match v {
-                            JVal::Null => String::new(),
-                            JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
-                            JVal::Number(n) => format_csvkit_num(*n),
-                            _ => v.to_raw_string(true, false),
-                        })
-                        .unwrap_or_default()
-                })
-                .collect();
-            data_rows.push(row);
-        }
-    }
-    finish_rows(headers, data_rows)
+    json_options.bom = add_bom;
+    json_options.line_numbers = line_numbers;
+    in2csv_json::convert(&text, fmt == "ndjson", key_prop.as_deref(), &json_options, fs.max_output_bytes())
 }
 
 fn cmd_csvformat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -37638,6 +37587,18 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn in2csv_converts_exact_json_cells_and_reports_ndjson_positions() {
+        let fs = MemoryVfs::new();
+        let raw = r#"[{"n":123456789012345678901234567890,"child":[1,2.50],"ok":true},{"n":3,"ok":2}]"#;
+        let r = cmd_in2csv(&args(&["-f", "json"]), raw, "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (0, "n,child/0,child/1,ok\n123456789012345678901234567890,True,2.50,1\n3,,,2\n", ""));
+        let r = cmd_in2csv(&args(&["-f", "ndjson"]), "{\"x\":2}\r\n\r\n", "/", &fs);
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()),
+            (1, "", "JSONDecodeError: Expecting value: line 2 column 1 (char 2)\n"));
     }
 
     #[test]

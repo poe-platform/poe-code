@@ -2389,24 +2389,16 @@ fn cmd_ln(
             }
         }
         if !symbolic && src_full == link_path {
-            if force || interactive || backup_mode != BackupMode::None {
-                stderr.push_str(&format!(
-                    "ln: '{src_op}' and '{disp_target}' are the same file\n"
-                ));
-            } else {
-                stderr.push_str(&format!(
-                    "ln: EEXIST: file already exists '{link_path}'\n"
-                ));
-            }
+            stderr.push_str(&format!("ln: EEXIST: file already exists '{link_path}'\n"));
             code = 1;
             continue;
         }
         if fs.exists(&link_path) || fs.lstat(&link_path).is_ok() {
             let src_entry = canonical_entry_identity(&src_full, false, fs);
             let dst_entry = canonical_entry_identity(&link_path, false, fs);
-            if !symbolic && src_entry == dst_entry && (force || interactive || backup_mode != BackupMode::None) {
+            if src_entry == dst_entry && (force || interactive || backup_mode != BackupMode::None) {
                 stderr.push_str(&format!(
-                    "ln: '{src_op}' and '{disp_target}' are the same file\n"
+                    "ln: EEXIST: source and destination are the same file '{link_path}'\n"
                 ));
                 code = 1;
                 continue;

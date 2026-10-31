@@ -13228,6 +13228,30 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdfunite_preserves_embedded_files_and_keeps_the_first_duplicate() {
+        let fs = MemoryVfs::new();
+        for (path, name, data) in [("a","note.bin","first"),("b","more.bin","extra"),("c","note.bin","other")] {
+            let spec = format!("<< /Type /Filespec /UF ({name}) /EF << /F 7 0 R >> >>");
+            let stream = format!("<< /Type /EmbeddedFile /Length 5 >>\nstream\n{data}\nendstream");
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles 4 0 R >> >>",
+                "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+                "<< /Type /Page /Parent 2 0 R >>",
+                "<< /Kids [5 0 R] >>",
+                "<< /Names [(key) 6 0 R] >>",
+                &spec,&stream,
+            ], "");
+            fs.write_file(&format!("/{path}.pdf"), pdf.as_bytes()).unwrap();
+        }
+        let r = cmd_media_doc("pdfunite", &media_args(&["a.pdf","b.pdf","c.pdf","book.pdf"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0);
+        let bytes = fs.read_file("/book.pdf").unwrap();
+        let raw = String::from_utf8_lossy(&bytes);
+        assert!(raw.contains("/EmbeddedFiles"), "attachment name tree is missing");
+        assert_eq!(raw.matches("/Type /EmbeddedFile\n").count(), 2);
+    }
+
+    #[test]
     fn reads_page_tree_and_text_from_classic_pdf_objects() {
         let objects = [
             "<< /Type /Catalog /Pages 2 0 R >>",

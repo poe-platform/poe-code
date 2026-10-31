@@ -417,8 +417,28 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
         9 => 2,
         _ => 0,
     };
+    let mut out = deflate(data, level, vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, flags, 255]);
+    let crc = crc32_ieee(data);
+    out.extend_from_slice(&crc.to_le_bytes());
+    out.extend_from_slice(&(data.len() as u32).to_le_bytes());
+    out
+}
+
+pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
+    let mut out = deflate(data, 6, vec![0x78, 0x9c]);
+    let (mut a, mut b) = (1u32, 0u32);
+    for chunk in data.chunks(5552) {
+        for &x in chunk { a += u32::from(x); b += a; }
+        a %= 65521; b %= 65521;
+    }
+    out.extend_from_slice(&((b << 16) | a).to_be_bytes());
+    out
+}
+
+fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
+    let header_len = header.len();
     let mut writer = DeflateWriter {
-        bytes: vec![0x1f, 0x8b, 8, 0, 0, 0, 0, 0, flags, 255],
+        bytes: header,
         pending: 0,
         bits: 0,
     };
@@ -481,8 +501,8 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
     }
     let mut out = writer.bytes;
     // Incompressible inputs are smaller as stored blocks.
-    if out.len() - 10 > data.len() + 5 * data.len().div_ceil(65535) && !data.is_empty() {
-        out.truncate(10);
+    if out.len() - header_len > data.len() + 5 * data.len().div_ceil(65535) && !data.is_empty() {
+        out.truncate(header_len);
         let mut chunks = data.chunks(65535).peekable();
         while let Some(chunk) = chunks.next() {
             out.push(u8::from(chunks.peek().is_none()));
@@ -492,9 +512,6 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
             out.extend_from_slice(chunk);
         }
     }
-    let crc = crc32_ieee(data);
-    out.extend_from_slice(&crc.to_le_bytes());
-    out.extend_from_slice(&(data.len() as u32).to_le_bytes());
     out
 }
 

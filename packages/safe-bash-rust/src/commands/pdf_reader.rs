@@ -336,8 +336,12 @@ impl<'a> Objects<'a> {
         }
     }
 
-    fn labels(&mut self, root: Option<&Value<'a>>) -> Option<Vec<(usize, Value<'a>)>> {
-        let mut labels = Vec::new();
+    fn tree_pairs(
+        &mut self,
+        root: Option<&Value<'a>>,
+        key: &[u8],
+    ) -> Option<Vec<(Value<'a>, Value<'a>)>> {
+        let mut entries = Vec::new();
         let mut seen = BTreeSet::new();
         let mut pending: Vec<_> = root.cloned().into_iter().collect();
         while let Some(node) = pending.pop() {
@@ -347,35 +351,43 @@ impl<'a> Objects<'a> {
                 continue;
             }
             let node = self.resolve(&node)?;
-            if let Some(Value::Array(pairs)) = node.get(b"Nums").and_then(|v| self.resolve(v)) {
-                for pair in pairs.chunks_exact(2) {
-                    let Some(index) = self.resolve(&pair[0]).and_then(|v| uint(v.word()?)) else {
-                        continue;
-                    };
-                    let value = self.resolve(&pair[1])?;
-                    let mut fields = Vec::new();
-                    for k in [b"S".as_slice(), b"St", b"P"] {
-                        if let Some(v) = value.get(k).and_then(|v| self.resolve(v))
-                            && match (k, &v) {
-                                (b"S", Value::Word(w)) => w.starts_with(b"/"),
-                                (b"St", Value::Word(w)) => uint(w).is_some(),
-                                (b"P", Value::String(_)) => true,
-                                _ => false,
-                            }
-                        {
-                            if let Value::String(prefix) = &v {
-                                self.remaining_bytes =
-                                    self.remaining_bytes.checked_sub(prefix.len())?;
-                            }
-                            fields.push((k, v));
-                        }
-                    }
-                    labels.push((index, Value::Dict(fields)));
+            if let Some(Value::Array(pairs)) = node.get(key).and_then(|v| self.resolve(v)) {
+                let mut items = pairs.into_iter();
+                while let (Some(k), Some(v)) = (items.next(), items.next()) {
+                    entries.push((k, v));
                 }
             }
             if let Some(Value::Array(kids)) = node.get(b"Kids").and_then(|v| self.resolve(v)) {
                 pending.extend(kids.into_iter().rev());
             }
+        }
+        Some(entries)
+    }
+
+    fn labels(&mut self, root: Option<&Value<'a>>) -> Option<Vec<(usize, Value<'a>)>> {
+        let mut labels = Vec::new();
+        for (key, data) in self.tree_pairs(root, b"Nums")? {
+            let Some(index) = self.resolve(&key).and_then(|v| uint(v.word()?)) else {
+                continue;
+            };
+            let value = self.resolve(&data)?;
+            let mut fields = Vec::new();
+            for k in [b"S".as_slice(), b"St", b"P"] {
+                if let Some(v) = value.get(k).and_then(|v| self.resolve(v))
+                    && match (k, &v) {
+                        (b"S", Value::Word(w)) => w.starts_with(b"/"),
+                        (b"St", Value::Word(w)) => uint(w).is_some(),
+                        (b"P", Value::String(_)) => true,
+                        _ => false,
+                    }
+                {
+                    if let Value::String(prefix) = &v {
+                        self.remaining_bytes = self.remaining_bytes.checked_sub(prefix.len())?;
+                    }
+                    fields.push((k, v));
+                }
+            }
+            labels.push((index, Value::Dict(fields)));
         }
         Some(labels)
     }
@@ -394,28 +406,31 @@ impl<'a> Objects<'a> {
         (c.word()? == b"endstream").then_some(bytes)
     }
 
-    fn stream_text(&mut self, id: ObjectId) -> Option<String> {
+    fn decoded_stream(&mut self, id: ObjectId) -> Option<std::borrow::Cow<'a, [u8]>> {
         let (dict, c) = self.object(id)?;
         let stream = self.stream(&dict, c)?;
-        let decoded;
         let bytes = match dict.get(b"Filter") {
-            None => stream,
+            None => std::borrow::Cow::Borrowed(stream),
             Some(f) if f.word() == Some(b"/FlateDecode") => {
                 let (&cmf, rest) = stream.split_first()?;
                 let (&flags, payload) = rest.split_first()?;
                 if cmf & 15 != 8 || flags & 32 != 0 || u16::from_be_bytes([cmf, flags]) % 31 != 0 {
                     return None;
                 }
-                decoded =
+                std::borrow::Cow::Owned(
                     crate::commands::codecs::inflate_raw_bounded(payload, self.remaining_bytes)
                         .ok()?
-                        .0;
-                &decoded
+                        .0,
+                )
             }
             _ => return None,
         };
         self.remaining_bytes = self.remaining_bytes.checked_sub(bytes.len())?;
-        content_text(bytes, &mut self.tokens)
+        Some(bytes)
+    }
+
+    fn stream_text(&mut self, id: ObjectId) -> Option<String> {
+        content_text(&self.decoded_stream(id)?, &mut self.tokens)
     }
 }
 

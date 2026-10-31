@@ -1,6 +1,7 @@
 mod csvkit_cell;
 mod csvkit_decimal;
 mod csvkit_encoding;
+mod csvstat_json;
 mod in2csv_json;
 use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
@@ -10857,7 +10858,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             "--freq" => single_op = Some("freq"),
             "-i" | "--indent" if i + 1 < args.len() => {
                 i += 1;
-                indent = args[i].parse::<usize>().ok();
+                indent = Some(if args[i].starts_with('-') { 0 } else { args[i].parse().unwrap_or(usize::MAX) });
             }
             "--freq-count" if i + 1 < args.len() => {
                 i += 1;
@@ -11159,61 +11160,40 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     }
 
     if json_out {
+        use csvstat_json::Report;
         let mut items = Vec::new();
         for s in &stats {
             let mut entries = vec![
-                ("column_id".to_string(), JVal::Number(s.col_id as f64)),
-                ("column_name".to_string(), JVal::Str(s.col_name.clone())),
-                ("type".to_string(), JVal::Str(s.col_type.clone())),
-                ("nulls".to_string(), JVal::Bool(s.nulls)),
-                ("nonnulls".to_string(), JVal::Number(s.nonnulls as f64)),
-                ("unique".to_string(), JVal::Number(s.unique as f64)),
+                ("column_id", Report::Token(s.col_id.to_string())),
+                ("column_name", Report::string(&s.col_name)),
+                ("type", Report::string(&s.col_type)),
+                ("nulls", Report::Token(s.nulls.to_string())),
+                ("nonnulls", Report::Token(s.nonnulls.to_string())),
+                ("unique", Report::Token(s.unique.to_string())),
             ];
-            let push_num_or_str = |entries: &mut Vec<(String, JVal)>, k: &str, opt: &Option<String>, is_num: bool| {
-                if let Some(v) = opt {
-                    if is_num && let Ok(n) = v.parse::<f64>() {
-                        entries.push((k.to_string(), JVal::Number(n)));
-                    } else {
-                        entries.push((k.to_string(), JVal::Str(v.clone())));
-                    }
-                }
+            let value = |v: &str| match s.col_type.as_str() {
+                "Number" => Report::float(v.parse().unwrap_or(f64::NAN)),
+                "Boolean" => Report::Token((v == "True").to_string()),
+                _ => Report::string(v),
             };
-            let is_num = s.col_type == "Number";
-            push_num_or_str(&mut entries, "min", &s.min, is_num);
-            push_num_or_str(&mut entries, "max", &s.max, is_num);
-            push_num_or_str(&mut entries, "sum", &s.sum, true);
-            push_num_or_str(&mut entries, "mean", &s.mean, true);
-            push_num_or_str(&mut entries, "median", &s.median, true);
-            push_num_or_str(&mut entries, "stdev", &s.stdev, true);
-            if let Some(l) = s.len {
-                entries.push(("len".to_string(), JVal::Number(l as f64)));
+            for (key, metric) in [("min", &s.min), ("max", &s.max), ("sum", &s.sum),
+                ("mean", &s.mean), ("median", &s.median), ("stdev", &s.stdev)] {
+                if let Some(v) = metric { entries.push((key, value(v))); }
             }
-            if let Some(mp) = s.maxprecision {
-                entries.push(("maxprecision".to_string(), JVal::Number(mp as f64)));
-            }
-            let freq_arr: Vec<JVal> = s
-                .freq_pairs
-                .iter()
-                .map(|(k, c)| {
-                    let val_jv = match k {
-                        None => JVal::Null,
-                        Some(v) if is_num => JVal::Number(v.parse().unwrap_or(f64::NAN)),
-                        Some(v) if s.col_type == "Boolean" => JVal::Bool(v == "True"),
-                        Some(v) => JVal::Str(v.clone()),
-                    };
-                    JVal::Object(vec![
-                        ("value".to_string(), val_jv),
-                        ("count".to_string(), JVal::Number(*c as f64)),
-                    ])
-                })
-                .collect();
-            entries.push(("freq".to_string(), JVal::Array(freq_arr)));
-            items.push(JVal::Object(entries));
+            if let Some(len) = s.len { entries.push(("len", Report::float(len as f64))); }
+            if let Some(mp) = s.maxprecision { entries.push(("maxprecision", Report::Token(mp.to_string()))); }
+            let frequencies = s.freq_pairs.iter().map(|(k, count)| Report::Object(vec![
+                ("value", k.as_deref().map_or_else(|| Report::Token("null".into()), &value)),
+                ("count", Report::Token(count.to_string())),
+            ])).collect();
+            entries.push(("freq", Report::Array(frequencies)));
+            items.push(Report::Object(entries));
         }
-        return ok_out(&format!(
-            "{}\n",
-            format_jval_with_indent(&JVal::Array(items), indent, 0)
-        ));
+        let mut out = String::new();
+        if let Err(why) = Report::Array(items).write(&mut out, indent, 0, output_limit) {
+            return unsupported(why);
+        }
+        return ok_out(&out);
     }
 
     let mut out = String::new();
@@ -37655,6 +37635,21 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_json_preserves_typed_tokens_and_layout() {
+        let fs = MemoryVfs::new();
+        let data = "x\n2\n";
+        let run = |options: &[&str], input: &str| cmd_csvstat(&args(options), input, "/", &fs).stdout;
+        assert_eq!(run(&["--json"], data),
+            r#"[{"column_id": 1, "column_name": "x", "type": "Number", "nulls": false, "nonnulls": 1, "unique": 1, "min": 2.0, "max": 2.0, "sum": 2.0, "mean": 2.0, "median": 2.0, "maxprecision": 0, "freq": [{"value": 2.0, "count": 1}]}]"#);
+        let pretty = run(&["--json", "-i", "2"], "x\n😀\n");
+        assert!(pretty.contains("\n    \"len\": 1.0,\n    \"freq\": [\n      {\n        \"value\": \"😀\","));
+        assert!(pretty.ends_with("\n      }\n    ]\n  }\n]"));
+        for (input, expected) in [("1e-5", "1e-05"), ("1e16", "1e+16"), ("-0.00", "-0.0")] {
+            assert!(run(&["--json"], &format!("n\n{input}\n")).contains(&format!(r#""value": {expected},"#)));
+        }
     }
 
     #[test]

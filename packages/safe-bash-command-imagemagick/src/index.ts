@@ -3115,9 +3115,9 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
     const fontSize = Math.max(8, state.pointsize);
     const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
     const estH = Math.max(8, Math.ceil(fontSize));
-    const gravOff = resolveGravityOffset(img.width - estW, img.height - estH, state.gravity);
-    const x = Math.max(0, Math.round(gravOff.left + g.x));
-    const y = Math.max(fontSize, Math.round(gravOff.top + estH + g.y));
+    const offset = gravityAdjustBox(img.width, img.height, estW, estH, g.x, g.y, state.gravity);
+    const x = Math.max(0, offset.x);
+    const y = Math.max(fontSize, offset.y + estH);
     const scale = (state.density || 72) / 72;
     const effFontSize = Math.max(6, fontSize * scale);
     const glyphH = Math.max(7, Math.round(effFontSize * 0.76));

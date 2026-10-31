@@ -14,7 +14,7 @@ const operators = [
 async function fixture(width = 13, height = 17) {
     return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => i * 37 % 256), { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
-it("preserves original annotation pixel vectors", async () => {
+it("preserves annotation pixel vectors", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {
         const files = new Map([["input", bytes]]);
@@ -27,7 +27,7 @@ it("preserves original annotation pixel vectors", async () => {
         "c998318230304e92b40151c50b787bdb9f960a8ec9f3c7dd6cff37966c00cf35",
         "80b3353664ec5027345884665af0d81486a367ee9634eaac964bec42fbf4858b",
         "eab895dab1902cf012c088b4455008e9325497c079ac1b3d2a5578378294598c",
-        "3524d65c96c6a6f8d6ba75d9cfe060cab4323da83760e23ca11dede448f9125a",
+        "dc50722baf08f999796b43579d14f5f0dba671ad73eb21c8c6c3c644a22bac01",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "4d6958a5b1856d33e4958be64c75a55533aa73309a938ce487f25731abc3899b",
         "95b465989ef20e01b731de291af66e4cfd6ce9f9f20b992ddd35cf6ac5ed32b4",

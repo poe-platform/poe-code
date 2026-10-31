@@ -1,5 +1,5 @@
 // RFC 1951 encoding with the match selection, block boundaries, and tree tie breaks
-// of zlib's default compression level (the production JavaScript codec uses pako).
+// of zlib's compression levels (the production JavaScript codec uses pako).
 use super::{DIST_BASE, DIST_EXTRA, DeflateWriter, LEN_BASE, LEN_EXTRA};
 
 type Code = (u16, u8); // reversed canonical code and bit length
@@ -284,12 +284,25 @@ fn block(w: &mut DeflateWriter, tokens: &[Token], raw: Option<&[u8]>, last: bool
     }
 }
 
-pub(super) fn level_six(data: &[u8], header: Vec<u8>) -> Vec<u8> {
+pub(super) fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
     let mut w = DeflateWriter {
         bytes: header,
         pending: 0,
         bits: 0,
     };
+    // Good match length, lazy match limit, early-stop length, hash chain limit.
+    let (good, lazy, nice, chain) = match level {
+        1 => (4, 4, 8, 4),
+        2 => (4, 5, 16, 8),
+        3 => (4, 6, 32, 32),
+        4 => (4, 4, 16, 16),
+        5 => (8, 16, 32, 32),
+        7 => (8, 32, 128, 256),
+        8 => (32, 128, 258, 1024),
+        9 => (32, 258, 258, 4096),
+        _ => (8, 16, 128, 128),
+    };
+    let fast = matches!(level, 1..=3);
     let mut heads = vec![0usize; 32768];
     let mut prev = vec![0usize; 32768];
     let insert = |p: usize, heads: &mut [usize], prev: &mut [usize]| {
@@ -320,11 +333,11 @@ pub(super) fn level_six(data: &[u8], header: Vec<u8>) -> Vec<u8> {
         let old_len = len;
         let old_dist = distance;
         len = 2;
-        if candidate > window && p - candidate <= 32506 && old_len < 16 {
+        if candidate > window && p - candidate <= 32506 && old_len < lazy {
             let max = (data.len() - p).min(258);
             let limit = p.saturating_sub(32506).max(window);
             let mut best = old_len;
-            for _ in 0..if old_len >= 8 { 32 } else { 128 } {
+            for _ in 0..if old_len >= good { chain / 4 } else { chain } {
                 if best >= max {
                     break;
                 }
@@ -339,7 +352,7 @@ pub(super) fn level_six(data: &[u8], header: Vec<u8>) -> Vec<u8> {
                         best = n;
                         len = n;
                         distance = p - candidate;
-                        if n >= 128 {
+                        if n >= nice {
                             break;
                         }
                     }
@@ -349,11 +362,26 @@ pub(super) fn level_six(data: &[u8], header: Vec<u8>) -> Vec<u8> {
                     break;
                 }
             }
-            if len == 3 && distance > 4096 {
+            if !fast && len == 3 && distance > 4096 {
                 len = 2;
             }
         }
-        let end = if old_len >= 3 && len <= old_len {
+        let end = if fast {
+            if len >= 3 {
+                tokens.push(Token::matched(len, distance));
+                if len <= lazy && data.len() - (p + len) >= 3 {
+                    for at in p + 1..p + len {
+                        insert(at, &mut heads, &mut prev);
+                    }
+                }
+                p += len;
+            } else {
+                tokens.push(Token::literal(data[p] as usize));
+                p += 1;
+            }
+            len = 2;
+            p
+        } else if old_len >= 3 && len <= old_len {
             tokens.push(Token::matched(old_len, old_dist));
             for at in p + 1..p + old_len - 1 {
                 insert(at, &mut heads, &mut prev);

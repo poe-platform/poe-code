@@ -426,95 +426,16 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
 
 #[path = "deflate.rs"]
 mod deflate_encoder;
+use deflate_encoder::deflate;
 
 pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
-    let mut out = deflate_encoder::level_six(data, vec![0x78, 0x9c]);
+    let mut out = deflate(data, 6, vec![0x78, 0x9c]);
     let (mut a, mut b) = (1u32, 0u32);
     for chunk in data.chunks(5552) {
         for &x in chunk { a += u32::from(x); b += a; }
         a %= 65521; b %= 65521;
     }
     out.extend_from_slice(&((b << 16) | a).to_be_bytes());
-    out
-}
-
-fn deflate(data: &[u8], level: u8, header: Vec<u8>) -> Vec<u8> {
-    let header_len = header.len();
-    let mut writer = DeflateWriter {
-        bytes: header,
-        pending: 0,
-        bits: 0,
-    };
-    writer.bits(3, 3); // final block, fixed Huffman codes
-    let window = data.len().clamp(1, 32768);
-    let mut heads = vec![usize::MAX; window.min(16384).next_power_of_two()];
-    let mut previous = vec![usize::MAX; window];
-    let hash = |pos: usize, mask: usize| {
-        (((data[pos] as usize) << 8) ^ ((data[pos + 1] as usize) << 4) ^ data[pos + 2] as usize)
-            & mask
-    };
-    let mut pos = 0;
-    while pos < data.len() {
-        let max_len = (data.len() - pos).min(258);
-        let mut length = 0;
-        let mut distance = 0;
-        if max_len >= 3 {
-            let mut candidate = heads[hash(pos, heads.len() - 1)];
-            for _ in 0..(1 << level.min(8)) {
-                if candidate == usize::MAX || pos - candidate > window {
-                    break;
-                }
-                if data[candidate + length] == data[pos + length] {
-                    let mut n = 0;
-                    while n < max_len && data[candidate + n] == data[pos + n] {
-                        n += 1;
-                    }
-                    if n >= 3 && n > length {
-                        length = n;
-                        distance = pos - candidate;
-                        if n == max_len {
-                            break;
-                        }
-                    }
-                }
-                candidate = previous[candidate % window];
-            }
-        }
-        if length >= 3 {
-            let i = LEN_BASE.partition_point(|&n| n as usize <= length) - 1;
-            writer.symbol(257 + i as u16);
-            writer.bits(length as u16 - LEN_BASE[i], LEN_EXTRA[i]);
-            let i = DIST_BASE.partition_point(|&n| n as usize <= distance) - 1;
-            writer.bits((i as u16).reverse_bits() >> 11, 5);
-            writer.bits(distance as u16 - DIST_BASE[i], DIST_EXTRA[i]);
-        } else {
-            writer.symbol(data[pos] as u16);
-            length = 1;
-        }
-        for at in pos..(pos + length).min(data.len().saturating_sub(2)) {
-            let h = hash(at, heads.len() - 1);
-            previous[at % window] = heads[h];
-            heads[h] = at;
-        }
-        pos += length;
-    }
-    writer.symbol(256);
-    if writer.bits > 0 {
-        writer.bytes.push(writer.pending as u8);
-    }
-    let mut out = writer.bytes;
-    // Incompressible inputs are smaller as stored blocks.
-    if out.len() - header_len > data.len() + 5 * data.len().div_ceil(65535) && !data.is_empty() {
-        out.truncate(header_len);
-        let mut chunks = data.chunks(65535).peekable();
-        while let Some(chunk) = chunks.next() {
-            out.push(u8::from(chunks.peek().is_none()));
-            let len = chunk.len() as u16;
-            out.extend_from_slice(&len.to_le_bytes());
-            out.extend_from_slice(&(!len).to_le_bytes());
-            out.extend_from_slice(chunk);
-        }
-    }
     out
 }
 
@@ -1152,6 +1073,19 @@ mod tests {
             let digest: String = crate::commands::archive::sha256_bytes(&encoded).iter().map(|b|format!("{b:02x}")).collect();
             assert_eq!(digest, expected, "{} input bytes", data.len());
         }
+    }
+
+    #[test]
+    fn gzip_levels_match_production_match_selection() {
+        let data: Vec<u8> = (0usize..12000).map(|i| ((if i%5000 < 4300 { (i>>5) ^ (i%5) } else { i*7919 }) ^ (i>>9)) as u8).collect();
+        let mut streams = Vec::new();
+        for level in 1..=9 {
+            let compressed = gzip_compress_level(&data,level);
+            assert_eq!(gzip_decompress(&compressed).unwrap(),data);
+            streams.extend(compressed);
+        }
+        let digest: String = crate::commands::archive::sha256_bytes(&streams).iter().map(|b|format!("{b:02x}")).collect();
+        assert_eq!(digest, "ad8e50f82127d77a8568a7fdc2e96c9c8895895fde6f1ba12475da7cd779762e");
     }
 
     #[test]

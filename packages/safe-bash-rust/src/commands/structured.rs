@@ -1,3 +1,4 @@
+mod csvkit_calendar;
 mod csvkit_cell;
 mod csvkit_decimal;
 mod csvkit_duration;
@@ -11000,9 +11001,20 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             }
             (parsed.len() == cells.len()).then_some(parsed)
         };
+        let calendar: Option<Vec<_>> = if boolean || numeric || durations.is_some() || inference.no_inference { None } else {
+            cells.iter().map(|cell| match cell {
+                Some(c) => csvkit_calendar::parse_iso(&c.text).map(Some),
+                None => Some(None),
+            }).collect()
+        };
+        let datetime = calendar.as_ref().is_some_and(|dates| dates.iter().flatten().any(|d| d.value.len() > 10));
         let duration_value = |n: i128| if json_out && !csv_out { n.to_string() } else { csvkit_duration::text(n) };
         let values: Vec<Option<String>> = if let Some(micros) = &durations {
             micros.iter().map(|n| n.map(duration_value)).collect()
+        } else if let Some(dates) = &calendar {
+            dates.iter().map(|d| d.as_ref().map(|d| if datetime && d.value.len() == 10 {
+                format!("{} 00:00:00", d.value)
+            } else { d.value.clone() })).collect()
         } else { cells.into_iter().map(|cell| cell.map(|c| {
             if boolean { if c.boolean == Some(true) { "True" } else { "False" }.into() }
             else if numeric { c.number.unwrap() } else { c.text }
@@ -11019,9 +11031,10 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let key = if numeric {
                 value.as_ref().map(|v| csvkit_decimal::Decimal::parse(v, false)
                     .map(|d| d.normalized_key()).unwrap_or_else(|| v.clone()))
-            } else { value.clone() };
+            } else if calendar.is_some() { None } else { value.clone() };
+            let instant = calendar.as_ref().and_then(|ds| ds[i].as_ref()).map(|d| (d.aware, d.instant));
             let nan = numeric && key.as_deref() == Some("NaN");
-            let index = *by_value.entry((key, nan.then_some(i))).or_insert_with(|| {
+            let index = *by_value.entry((key, instant, nan.then_some(i))).or_insert_with(|| {
                 top_freq.push((value.clone(), 0));
                 top_freq.len() - 1
             });
@@ -11101,18 +11114,21 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     let round = rem > n || rem == n && q % 2 != 0;
                     mean = Some(duration_value(if round { q + total.signum() } else { q }));
                 }
-            } else if non_empty.iter().all(|v| {
-                let t = v.trim();
-                t.len() == 10
-                    && t.as_bytes()[4] == b'-'
-                    && t.as_bytes()[7] == b'-'
-                    && t.bytes().enumerate().all(|(idx, b)| idx == 4 || idx == 7 || b.is_ascii_digit())
-            }) {
-                col_type = "Date".to_string();
-                let mut sorted: Vec<&str> = non_empty.iter().map(|v| v.trim()).collect();
-                sorted.sort_unstable();
-                min = sorted.first().map(|s| s.to_string());
-                max = sorted.last().map(|s| s.to_string());
+            } else if let Some(dates) = calendar {
+                col_type = if datetime { "DateTime" } else { "Date" }.into();
+                let mut rows = dates.iter().enumerate().filter_map(|(i,d)| d.as_ref().map(|d| (i,d)));
+                if let Some(first) = rows.next() {
+                    let mut lo = first;
+                    let mut hi = first;
+                    if rows.all(|(i, d)| {
+                        if d.instant < lo.1.instant { lo = (i, d); }
+                        if d.instant > hi.1.instant { hi = (i, d); }
+                        d.aware == first.1.aware
+                    }) {
+                        min = values[lo.0].clone();
+                        max = values[hi.0].clone();
+                    }
+                }
             } else {
                 len = non_empty.iter().map(|v| v.chars().count()).max();
             }
@@ -11226,6 +11242,7 @@ fn cmd_csvstat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             ];
             let value = |v: &str| match s.col_type.as_str() {
                 "Number" => Report::float(v.parse().unwrap_or(f64::NAN)),
+                "DateTime" => Report::string(&v.replace(' ', "T")),
                 "TimeDelta" => Report::float(v.parse::<i128>().unwrap() as f64 / 1_000_000.0),
                 "Boolean" => Report::Token((v == "True").to_string()),
                 _ => Report::string(v),
@@ -37689,6 +37706,21 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csvstat_groups_iso_datetimes_by_instant_and_retains_first_offset() {
+        let fs = MemoryVfs::new();
+        let run = |flag: &str, input: &str| cmd_csvstat(&args(&[flag]), input, "/", &fs).stdout;
+        let data = "x\n2020-03-01T00:00Z\n2020-02-29T23:00:00-0100\n2020-02-29T23:59:59.9999999+00:00\n";
+        assert_eq!(run("--type", data), "DateTime\n");
+        assert_eq!(run("--freq", data), "{ \"2020-03-01 00:00:00+00:00\": 2, \"2020-02-29 23:59:59.999999+00:00\": 1 }\n");
+        assert_eq!(run("--max", data), "2020-03-01 00:00:00+00:00\n");
+        assert!(run("--json", data).contains(r#""min": "2020-02-29T23:59:59.999999+00:00""#));
+        let mixed = "x\n2020-03-01T00:00Z\n2020-03-01T00:00\n";
+        assert_eq!(run("--unique", mixed), "2\n");
+        assert_eq!(run("--min", mixed), "None\n");
+        assert_eq!(run("--type", "x\n2021-02-29\n"), "Text\n");
     }
 
     #[test]

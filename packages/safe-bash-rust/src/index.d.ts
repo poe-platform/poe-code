@@ -75,6 +75,7 @@ export class RustWasmBash {
   };
 
   constructor(options?: RustWasmBashOptions);
+  mountDevices(): void;
   mkdirAll(dirPath: string): void;
   writeFile(filePath: string, data: string | Uint8Array): void;
   readFile(filePath: string): Uint8Array;

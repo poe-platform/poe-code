@@ -35,7 +35,7 @@ pub struct ExecOutput {
 }
 
 pub struct Shell {
-    fs: Arc<dyn SafeBashFs>,
+    pub(crate) fs: Arc<dyn SafeBashFs>,
     cwd: String,
     env: BTreeMap<String, String>,
     backend: HybridBackend,

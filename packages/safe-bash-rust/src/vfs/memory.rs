@@ -44,8 +44,34 @@ impl Default for MemoryVfsLimits {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Devices {
+    Null,
+    Extended,
+    Mounted,
+    None,
+}
+
+impl Devices {
+    fn entry(self, path: &str) -> Option<&str> {
+        let name = match self {
+            Self::None => return None,
+            Self::Mounted => path.strip_prefix('/')?,
+            _ if path == "/dev" => "",
+            _ => path.strip_prefix("/dev/")?,
+        };
+        match name {
+            "" | "null" => Some(name),
+            "full" if self == Self::Extended => Some(name),
+            "zero" | "random" | "urandom" if self != Self::Null => Some(name),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug)]
 struct MemoryState {
+    devices: Devices,
     nodes: BTreeMap<String, MemoryNode>,
     total_bytes: usize,
     limits: MemoryVfsLimits,
@@ -65,6 +91,11 @@ impl Default for MemoryVfs {
 }
 
 impl MemoryVfs {
+    pub(crate) fn set_devices(&self, devices: Devices) {
+        self.state.write().unwrap().devices = devices;
+        self.bump_generation();
+    }
+
     pub fn set_max_total_bytes(&self, max_total_bytes: usize) {
         if let Ok(mut guard) = self.state.write() {
             guard.limits.max_total_bytes = max_total_bytes;
@@ -99,6 +130,7 @@ impl MemoryVfs {
         Self {
             id: NEXT_FS_ID.fetch_add(1, Ordering::Relaxed),
             state: Arc::new(RwLock::new(MemoryState {
+                devices: Devices::Extended,
                 nodes,
                 total_bytes: 0,
                 limits,
@@ -160,6 +192,9 @@ impl MemoryVfs {
                 format!("{current}/{part}")
             };
 
+            if !is_last && state.devices.entry(&candidate).is_some_and(|n| !n.is_empty()) {
+                return Err(FsError::new(FsErrorCode::NotDirectory, format!("ENOTDIR: not a directory, '{candidate}'")));
+            }
             if is_last && !follow_final {
                 current = candidate;
                 break;
@@ -190,6 +225,32 @@ impl MemoryVfs {
             }
         }
         Ok(current)
+    }
+
+    fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
+        let state = self.state.read().map_err(|e| e.to_string())?;
+        let mut resolved = Self::resolve_symlinks_locked(&state, path, follow).map_err(|e| e.message)?;
+        if !follow && matches!(state.nodes.get(&resolved), Some(MemoryNode::Symlink { target, .. }) if target.starts_with("__hardlink__:")) {
+            resolved = Self::resolve_symlinks_locked(&state, &resolved, true).map_err(|e| e.message)?;
+        }
+        let device = state.devices.entry(&resolved);
+        let (kind, size, mode, mtime_ms) = if let Some(name) = device {
+            if name.is_empty() { (VfsEntryKind::Directory, 0, if state.devices == Devices::Mounted { 0o40555 } else { 0o40755 }, 0) }
+            else { (VfsEntryKind::File, 0, 0o20666, 0) }
+        } else {
+            match state.nodes.get(&resolved) {
+                Some(MemoryNode::File { data, mode, mtime_ms }) => (VfsEntryKind::File, data.len(), *mode, *mtime_ms),
+                Some(MemoryNode::Directory { mode, mtime_ms }) => (VfsEntryKind::Directory, 0, *mode, *mtime_ms),
+                Some(MemoryNode::Symlink { target, mode, mtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *mtime_ms),
+                None => return Err(format!("ENOENT: no such file or directory, {} '{}'", if follow { "stat" } else { "lstat" }, normalize_posix_path(path))),
+            }
+        };
+        let default_device = device.is_some() && state.devices == Devices::Null;
+        Ok(FileStat {
+            identity: Some(EntryIdentity::Memory(if default_device { 0 } else { self.id }, resolved)),
+            allocated_bytes: default_device.then_some(0),
+            kind, size, mode, mtime_ms,
+        })
     }
 
     fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32) -> Result<(), String> {
@@ -273,13 +334,19 @@ impl MemoryVfs {
 impl SafeBashFs for MemoryVfs {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let norm = normalize_posix_path(path);
-        if norm == "/dev/null" {
+        let guard = self.state.read().map_err(|e| e.to_string())?;
+        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
+        let device = guard.devices.entry(&resolved);
+        if device == Some("") {
+            return Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"));
+        }
+        if device == Some("null") {
             return Ok(Vec::new());
         }
-        if norm == "/dev/zero" {
+        if device == Some("zero") {
             return Ok(vec![0u8; 65536]);
         }
-        if norm == "/dev/urandom" || norm == "/dev/random" {
+        if matches!(device, Some("urandom" | "random")) {
             let mut st = DEV_RANDOM_SEED.fetch_add(0x9E37_79B9_7F4A_7C15, Ordering::Relaxed);
             if st == 0 {
                 st = 0xCAFE_BABE_DEAD_BEEF;
@@ -294,8 +361,6 @@ impl SafeBashFs for MemoryVfs {
             }
             return Ok(buf);
         }
-        let guard = self.state.read().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get(&resolved) {
             Some(MemoryNode::File { data, .. }) => Ok(data.clone()),
             Some(MemoryNode::Directory { .. }) => {
@@ -310,16 +375,18 @@ impl SafeBashFs for MemoryVfs {
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        if matches!(norm.as_str(), "/dev/null" | "/dev/zero" | "/dev/random" | "/dev/urandom") {
-            return Ok(());
-        }
-        if norm == "/dev/full" {
-            return Err("ENOSPC: no space left on device, write '/dev/full'".to_string());
-        }
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-
+        if let Some(name) = guard.devices.entry(&resolved) {
+            return match name {
+                "" => Err(format!("EISDIR: illegal operation on a directory, open '{norm}'")),
+                "urandom" if guard.devices == Devices::Mounted => Err(format!("EPERM: operation not permitted, write '{norm}'")),
+                "full" => Err("ENOSPC: no space left on device, write '/dev/full'".into()),
+                _ => Ok(()),
+            };
+        }
+        if guard.devices == Devices::Mounted { return Err(format!("ENOENT: no such file or directory, write '{norm}'")); }
+        Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
         Self::store_file(&mut guard, resolved, data, 0o100644)?;
         self.bump_generation();
         Ok(())
@@ -342,7 +409,7 @@ impl SafeBashFs for MemoryVfs {
                 && matches!(state.nodes.get(&dest), Some(MemoryNode::File { .. })),
             _ => false,
         };
-        if !regular || matches!(dest.as_str(), "/dev" | "/dev/null" | "/dev/full" | "/dev/zero" | "/dev/random" | "/dev/urandom") {
+        if !regular || (state.devices == Devices::Mounted || state.devices.entry(&dest).is_some()) {
             return Err("INVALID_VALUE: Output must be a regular VFS file or absent".into());
         }
         for input in inputs {
@@ -362,6 +429,9 @@ impl SafeBashFs for MemoryVfs {
         }
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
+        if guard.devices.entry(&resolved).is_some() {
+            return Err(format!("EBUSY: device or resource busy, unlink '{norm}'"));
+        }
         let prefix = format!("{resolved}/");
         let keys: Vec<String> = guard
             .nodes
@@ -434,6 +504,7 @@ impl SafeBashFs for MemoryVfs {
             return Ok(());
         }
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{norm}'")); }
         Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get(&resolved) {
@@ -459,65 +530,34 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn exists(&self, path: &str) -> bool {
-        let norm = normalize_posix_path(path);
-        if matches!(
-            norm.as_str(),
-            "/dev" | "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
-        ) {
-            return true;
-        }
-        let Ok(guard) = self.state.read() else {
-            return false;
-        };
-        if guard.nodes.contains_key(&norm) {
-            return true;
-        }
-        match Self::resolve_symlinks_locked(&guard, &norm, true) {
-            Ok(resolved) => {
-                matches!(
-                    resolved.as_str(),
-                    "/dev" | "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
-                ) || guard.nodes.contains_key(&resolved)
-            }
-            Err(_) => false,
-        }
+        self.stat(path).is_ok()
     }
 
     fn is_dir(&self, path: &str) -> bool {
-        let norm = normalize_posix_path(path);
-        if norm == "/dev" {
-            return true;
-        }
-        let Ok(guard) = self.state.read() else {
-            return false;
-        };
-        let Ok(resolved) = Self::resolve_symlinks_locked(&guard, &norm, true) else {
-            return false;
-        };
-        matches!(guard.nodes.get(&resolved), Some(MemoryNode::Directory { .. }))
+        self.stat(path).is_ok_and(|st| st.kind == VfsEntryKind::Directory)
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-        if resolved != "/dev" {
+        let directory = guard.devices.entry(&resolved) == Some("");
+        if !directory {
             match guard.nodes.get(&resolved) {
                 Some(MemoryNode::Directory { .. }) => {}
                 Some(_) => return Err(format!("ENOTDIR: not a directory, scandir '{norm}'")),
                 None => return Err(format!("ENOENT: no such file or directory, scandir '{norm}'")),
             }
         }
-        let prefix = if resolved == "/" {
-            "/".to_string()
-        } else {
-            format!("{resolved}/")
-        };
+        let prefix = if resolved == "/" { "/".into() } else { format!("{resolved}/") };
         let mut children = Vec::new();
-        if resolved == "/dev" {
-            for dev in ["null", "random", "urandom", "zero"] {
-                children.push(dev.to_string());
+        if directory {
+            children.push("null".into());
+            if matches!(guard.devices, Devices::Extended | Devices::Mounted) {
+                children.extend(["random", "urandom", "zero"].map(str::to_string));
             }
+        } else if guard.devices != Devices::None && resolved == "/" {
+            children.push("dev".into());
         }
         for key in guard.nodes.keys() {
             if key == &resolved {
@@ -537,6 +577,7 @@ impl SafeBashFs for MemoryVfs {
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        if guard.devices == Devices::Mounted { return Err(format!("EROFS: read-only device directory '{norm}'")); }
         Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
         if guard.nodes.contains_key(&resolved) {
@@ -563,142 +604,11 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn stat(&self, path: &str) -> Result<FileStat, String> {
-        let norm = normalize_posix_path(path);
-        if norm == "/dev" {
-            return Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, norm)),
-                kind: VfsEntryKind::Directory,
-                size: 0,
-                mode: 0o40755,
-                mtime_ms: 1_700_000_000_000,
-            });
-        }
-        if matches!(
-            norm.as_str(),
-            "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
-        ) {
-            return Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, norm)),
-                kind: VfsEntryKind::File,
-                size: 0,
-                mode: 0o20666,
-                mtime_ms: 1_700_000_000_000,
-            });
-        }
-        let guard = self.state.read().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-        if resolved == "/dev" {
-            return Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::Directory,
-                size: 0,
-                mode: 0o40755,
-                mtime_ms: 1_700_000_000_000,
-            });
-        }
-        if matches!(
-            resolved.as_str(),
-            "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
-        ) {
-            return Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::File,
-                size: 0,
-                mode: 0o20666,
-                mtime_ms: 1_700_000_000_000,
-            });
-        }
-        match guard.nodes.get(&resolved) {
-            Some(MemoryNode::File { data, mode, mtime_ms }) => Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::File,
-                size: data.len(),
-                mode: *mode,
-                mtime_ms: *mtime_ms,
-            }),
-            Some(MemoryNode::Directory { mode, mtime_ms }) => Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::Directory,
-                size: 0,
-                mode: *mode,
-                mtime_ms: *mtime_ms,
-            }),
-            Some(MemoryNode::Symlink { target, mode, mtime_ms }) => Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::Symlink,
-                size: target.len(),
-                mode: *mode,
-                mtime_ms: *mtime_ms,
-            }),
-            None => Err(format!("ENOENT: no such file or directory, stat '{norm}'")),
-        }
+        self.metadata(path, true)
     }
 
     fn lstat(&self, path: &str) -> Result<FileStat, String> {
-        let norm = normalize_posix_path(path);
-        if norm == "/dev" {
-            return Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, norm)),
-                kind: VfsEntryKind::Directory,
-                size: 0,
-                mode: 0o40755,
-                mtime_ms: 1_700_000_000_000,
-            });
-        }
-        if matches!(
-            norm.as_str(),
-            "/dev/null" | "/dev/zero" | "/dev/full" | "/dev/random" | "/dev/urandom"
-        ) {
-            return Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, norm)),
-                kind: VfsEntryKind::File,
-                size: 0,
-                mode: 0o20666,
-                mtime_ms: 1_700_000_000_000,
-            });
-        }
-        let guard = self.state.read().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, false).map_err(|e| e.message)?;
-        match guard.nodes.get(&resolved) {
-            Some(MemoryNode::File { data, mode, mtime_ms }) => Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::File,
-                size: data.len(),
-                mode: *mode,
-                mtime_ms: *mtime_ms,
-            }),
-            Some(MemoryNode::Directory { mode, mtime_ms }) => Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::Directory,
-                size: 0,
-                mode: *mode,
-                mtime_ms: *mtime_ms,
-            }),
-            Some(MemoryNode::Symlink { target, .. }) if target.starts_with("__hardlink__:") => {
-                drop(guard);
-                self.stat(&norm)
-            }
-            Some(MemoryNode::Symlink { target, mode, mtime_ms }) => Ok(FileStat {
-                allocated_bytes: None,
-                identity: Some(EntryIdentity::Memory(self.id, resolved)),
-                kind: VfsEntryKind::Symlink,
-                size: target.len(),
-                mode: *mode,
-                mtime_ms: *mtime_ms,
-            }),
-            None => Err(format!("ENOENT: no such file or directory, lstat '{norm}'")),
-        }
+        self.metadata(path, false)
     }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {

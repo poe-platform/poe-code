@@ -304,6 +304,10 @@ export class RustWasmBash {
       functions: {},
     };
 
+    const providedDevices = options.deviceView === "provided" || options.profile === "strict-budgets-mount-dev";
+    if (providedDevices) {
+      this.exports.safe_bash_use_provided_devices(this.sessionId);
+    }
     if (options.directories) {
       for (const dir of options.directories) {
         this.mkdirAll(dir);
@@ -370,8 +374,11 @@ export class RustWasmBash {
     } else if (options.profile === "strict-budgets-mount-dev") {
       this.exports.safe_bash_configure_profile(this.sessionId, 2);
     }
-    if (options.deviceView === "provided" || options.profile === "strict-budgets-mount-dev") {
-      this.exports.safe_bash_use_provided_devices(this.sessionId);
+  }
+
+  mountDevices() {
+    if (this.exports.safe_bash_configure_profile(this.sessionId, 3) !== 0) {
+      throw new Error("Unable to mount virtual devices");
     }
   }
 

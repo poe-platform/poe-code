@@ -162,7 +162,8 @@ test("WASM Bash forceNative supports SQLite multi-page B-trees, recursive CTEs, 
 });
 
 test("WASM Bash forceNative supports /dev/* devices, arrays, namerefs, process substitution, and traps", async () => {
-  const bash = createRustWasmBash({ forceNative: true, cwd: "/work" });
+  const bash = createRustWasmBash({ deviceView: "provided", forceNative: true, cwd: "/work" });
+  bash.mountDevices();
   await bash.fs.mkdir("/work", { recursive: true });
 
   const res = await bash.exec(`
@@ -318,4 +319,32 @@ test("Wasm filesystem removes only entries admitted by rm, unlink and rmdir", as
   } finally {
     bash.dispose();
   }
+});
+
+test("the default device directory merges null with backing files and is counted once by df", async () => {
+  const bash = createRustWasmBash({ files: { "/dev/zero": "ordinary" }, symlinks: { "/discard": "/dev/null" } });
+  try {
+    const listed = await bash.exec("ls -A /dev; head -c 8 /dev/zero; printf 'discarded' > /discard; wc -c < /dev/null");
+    assert.equal(listed.exitCode, 0, listed.stderr);
+    assert.equal(listed.stdout, "null\nzero\nordinary0\n");
+    const empty = createRustWasmBash();
+    try {
+      const usage = await empty.exec("df --output=iused,used /");
+      assert.match(usage.stdout, /\b6\s+20\s*$/);
+      const absent = await empty.exec("test -e /dev/random");
+      assert.equal(absent.exitCode, 1);
+    } finally { empty.dispose(); }
+  } finally { bash.dispose(); }
+});
+
+test("provided devices preserve backing files and the mounted test devices remain readable", async () => {
+  const provided = createRustWasmBash({ deviceView: "provided", files: { "/dev/null": "kept" } });
+  const mounted = createRustWasmBash({ deviceView: "provided", files: { "/dev/hidden": "backing" } });
+  mounted.mountDevices();
+  try {
+    const result = await provided.exec("cat /dev/null; printf updated > /dev/null; cat /dev/null");
+    assert.equal(result.stdout, "keptupdated");
+    const devices = await mounted.exec("ls /dev; head -c 2 /dev/zero | xxd -p");
+    assert.equal(devices.stdout, "null\nrandom\nurandom\nzero\n0000\n");
+  } finally { provided.dispose(); mounted.dispose(); }
 });

@@ -50,7 +50,7 @@ assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 
 ### 2. WebAssembly Shell from JavaScript / TypeScript
 
-The JavaScript entry point requires Node.js to load the packaged WebAssembly binary.
+The JavaScript entry point requires Node.js to load the packaged WebAssembly binary. By default the shell exposes a virtual `/dev/null` alongside files you supply under `/dev`. Use `deviceView: "provided"` to keep your own `/dev/null`, or call `bash.mountDevices()` to mount the device filesystem over `/dev`.
 
 ```ts
 import { createRustWasmBash } from "@poe-code/safe-bash-rust";

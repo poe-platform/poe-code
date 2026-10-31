@@ -696,6 +696,7 @@ export class SafeBashE2EHarness {
       if (options.cwd && options.cwd !== "/workspace") {
         rustBash.setEnv("__cwd", sb.normalizePath(options.cwd));
       }
+      if (options.mountDev) rustBash.mountDevices();
       if (hasCustomJsPlugins) {
         (rustBash as unknown as { _getOrCreateCompanionSync(): void })._getOrCreateCompanionSync();
       }

@@ -85,7 +85,15 @@ impl SafeBashFs for MountVfs {
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
         let (fs, rel) = self.route(path);
-        fs.list_dir(&rel)
+        let mut entries = fs.list_dir(&rel)?;
+        let parent = normalize_posix_path(path);
+        for mount in self.mounts.keys() {
+            if crate::vfs::parent_posix_path(mount).as_deref() == Some(&parent) {
+                let name = crate::vfs::basename_posix_path(mount);
+                if !entries.contains(&name) { entries.push(name); }
+            }
+        }
+        Ok(entries)
     }
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {

@@ -9,7 +9,6 @@ use std::sync::{Arc, Mutex, OnceLock};
 struct WasmSession {
     shell: Shell,
     memory_vfs: MemoryVfs,
-    vfs: Arc<dyn SafeBashFs>,
     last_output_buf: Vec<u8>,
 }
 
@@ -54,12 +53,13 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
     let mut map = sessions().lock().unwrap();
     let id = map.keys().next_back().copied().unwrap_or(0) + 1;
     let vfs = MemoryVfs::new();
+    vfs.set_devices(crate::vfs::memory::Devices::Null);
     let _ = vfs.mkdir_all("/workspace");
     let _ = vfs.mkdir_all("/tmp");
     let _ = vfs.mkdir_all("/home/user");
     let fs_arc: Arc<dyn SafeBashFs> = Arc::new(vfs.clone());
     let shell = Shell::new(
-        fs_arc.clone(),
+        fs_arc,
         ShellOptions {
             cwd: Some("/workspace".into()),
             env: BTreeMap::new(),
@@ -71,7 +71,6 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
         WasmSession {
             shell,
             memory_vfs: vfs,
-            vfs: fs_arc,
             last_output_buf: Vec::new(),
         },
     );
@@ -86,49 +85,36 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    let cwd = sess.shell.cwd().to_string();
-    let env = sess.shell.env().clone();
     match profile {
         1 => {
             let upper = Arc::new(MemoryVfs::new());
-            let overlay: Arc<dyn SafeBashFs> = Arc::new(OverlayVfs::new(sess.vfs.clone(), upper));
-            sess.vfs = overlay.clone();
-            sess.shell = Shell::new(
-                overlay,
-                ShellOptions {
-                    cwd: Some(cwd),
-                    env,
-                    mode: BackendMode::NativeOnly,
-                },
-            );
+            upper.set_devices(crate::vfs::memory::Devices::None);
+            sess.shell.fs = Arc::new(OverlayVfs::new(sess.shell.fs.clone(), upper));
         }
-        2 => {
+        2 | 3 => {
             let dev_fs = Arc::new(MemoryVfs::new());
-            let _ = dev_fs.write_file("/null", b"");
-            let _ = dev_fs.write_file("/zero", &[0u8; 64]);
-            let mounted: Arc<dyn SafeBashFs> =
-                Arc::new(MountVfs::new(sess.vfs.clone()).with_mount("/dev", dev_fs));
-            sess.vfs = mounted.clone();
-            let mut shell = Shell::new(
-                mounted,
-                ShellOptions {
-                    cwd: Some(cwd),
-                    env,
-                    mode: BackendMode::NativeOnly,
-                },
-            );
-            shell.set_limits(ShellLimits {
-                max_loop_iterations: 50_000,
-                max_commands: 10_000,
-                max_output_bytes: 4 * 1024 * 1024,
-                max_filesystem_operations: 50_000,
-                max_pipeline_stages: 16,
-                max_substitution_depth: 16,
-                max_expansion_fields: 10_000,
-                max_expansion_bytes: 1024 * 1024,
-                ..ShellLimits::default()
-            });
-            sess.shell = shell;
+            if profile == 3 {
+                dev_fs.set_devices(crate::vfs::memory::Devices::Mounted);
+            } else {
+                dev_fs.set_devices(crate::vfs::memory::Devices::None);
+                let _ = dev_fs.write_file("/null", b"");
+                let _ = dev_fs.write_file("/zero", &[0u8; 64]);
+            }
+            sess.shell.fs = Arc::new(MountVfs::new(sess.shell.fs.clone()).with_mount("/dev", dev_fs));
+            sess.shell.use_provided_devices();
+            if profile == 2 {
+                sess.shell.set_limits(ShellLimits {
+                    max_loop_iterations: 50_000,
+                    max_commands: 10_000,
+                    max_output_bytes: 4 * 1024 * 1024,
+                    max_filesystem_operations: 50_000,
+                    max_pipeline_stages: 16,
+                    max_substitution_depth: 16,
+                    max_expansion_fields: 10_000,
+                    max_expansion_bytes: 1024 * 1024,
+                    ..ShellLimits::default()
+                });
+            }
         }
         _ => {}
     }
@@ -138,6 +124,7 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_use_provided_devices(id: u32) {
     if let Some(sess) = sessions().lock().unwrap().get_mut(&id) {
+        sess.memory_vfs.set_devices(crate::vfs::memory::Devices::None);
         sess.shell.use_provided_devices();
     }
 }
@@ -164,7 +151,7 @@ pub unsafe extern "C" fn safe_bash_mkdir_all(
     let Some(sess) = map.get(&id) else {
         return -1;
     };
-    if sess.vfs.mkdir_all(path).is_ok() {
+    if sess.shell.fs.mkdir_all(path).is_ok() {
         0
     } else {
         -1
@@ -189,7 +176,7 @@ pub unsafe extern "C" fn safe_bash_write_file(
     let Some(sess) = map.get(&id) else {
         return -1;
     };
-    if sess.vfs.write_file(path, data).is_ok() {
+    if sess.shell.fs.write_file(path, data).is_ok() {
         0
     } else {
         -1
@@ -211,7 +198,7 @@ pub unsafe extern "C" fn safe_bash_read_file(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match sess.vfs.read_file(path) {
+    match sess.shell.fs.read_file(path) {
         Ok(bytes) => {
             let len = bytes.len() as i32;
             sess.last_output_buf = bytes;
@@ -234,7 +221,7 @@ pub unsafe extern "C" fn safe_bash_remove_path(
     let Ok(mut map) = sessions().lock() else { return -1 };
     let Some(sess) = map.get_mut(&id) else { return -1 };
     let result = (|| -> Result<(), String> {
-        let kind = sess.vfs.lstat(path)?.kind;
+        let kind = sess.shell.fs.lstat(path)?.kind;
         if matches!(path.trim_end_matches('/').rsplit('/').next(), Some("." | "..")) {
             return Err(format!("EINVAL: invalid argument '{path}'"));
         }
@@ -244,7 +231,7 @@ pub unsafe extern "C" fn safe_bash_remove_path(
         match (operation, kind) {
             (1, VfsEntryKind::Directory) => return Err(format!("EISDIR: is a directory '{path}'")),
             (2, VfsEntryKind::Directory) => {
-                if !sess.vfs.list_dir(path)?.is_empty() {
+                if !sess.shell.fs.list_dir(path)?.is_empty() {
                     return Err(format!("ENOTEMPTY: directory not empty '{path}'"));
                 }
             }
@@ -252,7 +239,7 @@ pub unsafe extern "C" fn safe_bash_remove_path(
             (0 | 1, _) => {}
             _ => return Err("EINVAL: invalid removal operation".into()),
         }
-        sess.vfs.remove_path(path)
+        sess.shell.fs.remove_path(path)
     })();
     match result {
         Ok(()) => 0,
@@ -284,7 +271,7 @@ pub unsafe extern "C" fn safe_bash_symlink(
     let Some(sess) = map.get(&id) else {
         return -1;
     };
-    if sess.vfs.symlink(target, path).is_ok() {
+    if sess.shell.fs.symlink(target, path).is_ok() {
         0
     } else {
         -1
@@ -306,7 +293,7 @@ pub unsafe extern "C" fn safe_bash_readlink(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match sess.vfs.readlink(path) {
+    match sess.shell.fs.readlink(path) {
         Ok(target) => {
             let bytes = target.into_bytes();
             let len = bytes.len() as i32;
@@ -333,7 +320,7 @@ pub unsafe extern "C" fn safe_bash_chmod(
     let Some(sess) = map.get(&id) else {
         return -1;
     };
-    if sess.vfs.chmod(path, mode).is_ok() {
+    if sess.shell.fs.chmod(path, mode).is_ok() {
         0
     } else {
         -1
@@ -354,7 +341,7 @@ pub unsafe extern "C" fn safe_bash_set_mtime(
     let Some(sess) = map.get(&id) else {
         return -1;
     };
-    if sess.vfs.set_mtime(path, mtime_ms).is_ok() {
+    if sess.shell.fs.set_mtime(path, mtime_ms).is_ok() {
         0
     } else {
         -1
@@ -378,9 +365,9 @@ pub unsafe extern "C" fn safe_bash_stat(
         return -1;
     };
     let res = if follow != 0 {
-        sess.vfs.stat(path)
+        sess.shell.fs.stat(path)
     } else {
-        sess.vfs.lstat(path)
+        sess.shell.fs.lstat(path)
     };
     match res {
         Ok(st) => {
@@ -416,7 +403,7 @@ pub unsafe extern "C" fn safe_bash_readdir(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match sess.vfs.list_dir(path) {
+    match sess.shell.fs.list_dir(path) {
         Ok(mut entries) => {
             entries.sort();
             let mut buf = Vec::new();

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createSyntheticMp4, mp4Ast, parseMp4, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, decodeH264Samples, mp4Ast, parseMp4, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -453,6 +453,31 @@ it("HLS copies each video sample once and cuts at keyframes", async () => {
   const segments = [...vfs.store.entries()].filter(([path]) => path.endsWith(".ts"));
   assert.equal(segments.length, 2);
   assert.equal(segments.reduce((sum, [, bytes]) => sum + parseMpegTs(bytes).tracks.find(t => t.type === "video")!.samples.length, 0), 20);
+});
+
+it("burns captions at presentation times through media offsets and leading empty edits", async () => {
+  for (const delay of [0, .2]) {
+    const source = parseMp4(createSyntheticMp4({ width: 64, height: 32, frameCount: 10, fps: 10, includeAudio: false }));
+    const track = source.tracks[0]!;
+    const decodedVideoFrames = Array.from({ length: 10 }, (_, index) => {
+      const data = new Uint8Array(64 * 32 * 4);
+      for (let alpha = 3; alpha < data.length; alpha += 4) data[alpha] = 255;
+      return { width: 64, height: 32, data, ptsSeconds: .2 + index / 10, durationSeconds: .1, keyframe: true };
+    });
+    const edits = [
+      ...(delay ? [{ segmentDuration: Math.round(delay * source.timescale), mediaTime: -1, mediaRateInteger: 1, mediaRateFraction: 0 }] : []),
+      { segmentDuration: source.duration, mediaTime: Math.round(.2 * track.timescale), mediaRateInteger: 1, mediaRateFraction: 0 }
+    ];
+    const input = serializeMp4({ ...source, tracks: [{ ...track, samples: [], decodedVideoFrames, editList: edits }] });
+    const vfs = createTestVfs({ "/input.mp4": input, "/captions.srt": "1\n00:00:00,300 --> 00:00:00,600\nHI\n" });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.mp4", "-vf", "subtitles=/captions.srt", "/output.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseMp4(vfs.store.get("/output.mp4")!).tracks[0]!;
+    const frames = [...decodeH264Samples(output.samples, output.codecDescriptions, 64, 32, output.timescale)];
+    assert.equal(frames.length, 10);
+    const visible = frames.flatMap((frame, index) => frame.data.some((value, offset) => offset % 4 === 0 && value > 180) ? [index] : []);
+    assert.deepEqual(visible, delay ? [1, 2, 3] : [3, 4, 5]);
+  }
 });
 
 describe("decoded audio editing", () => {

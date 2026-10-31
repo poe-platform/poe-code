@@ -754,7 +754,7 @@ async function applyVideoFilterChain(
       current = await mapWork(current, async (f) => {
 
 
-        const active = cues.filter((c) => f.ptsSeconds >= c.startSec && f.ptsSeconds <= c.endSec);
+        const active = cues.filter((c) => f.ptsSeconds >= c.startSec && f.ptsSeconds < c.endSec);
         if (active.length === 0) return f;
         const cueStr = active.map((c) => c.text).join("\n");
         return {
@@ -1938,15 +1938,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
 
               if (t.type !== "video") return t;
+              let presentationOffset = 0;
+              for (const edit of t.editList ?? []) {
+                if (edit.mediaTime < 0) presentationOffset -= edit.segmentDuration / workingDoc.timescale;
+                else { presentationOffset += edit.mediaTime / t.timescale; break; }
+              }
+              const offsetTicks = Math.round(presentationOffset * t.timescale);
               const decoded = await ensureDecodedFrames(t, budget, context.signal);
-              const filtered = await applyVideoFilterChain(decoded, combinedChain, budget, loadedSubtitleCues, context.signal);
+              // Filters use the displayed timeline; retain media coordinates for the existing edit list.
+              const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
+              const filtered = await applyVideoFilterChain(displayed, combinedChain, budget, loadedSubtitleCues, context.signal);
               const first = filtered[0];
               return {
                 ...t,
                 width: first?.width ?? t.width,
                 height: first?.height ?? t.height,
                 samples: [],
-                decodedVideoFrames: filtered
+                decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
               };
             }, context.signal)
           };

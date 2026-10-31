@@ -116,6 +116,7 @@ pub struct EvalState<'a> {
     pub active_aliases: BTreeSet<String>,
     pub allow_unported_fallback: bool,
     pub used_typescript_bridge: Arc<AtomicBool>,
+    pub(crate) provided_devices: bool,
 }
 
 impl<'a> EvalState<'a> {
@@ -221,6 +222,7 @@ impl<'a> EvalState<'a> {
             active_aliases: BTreeSet::new(),
             allow_unported_fallback,
             used_typescript_bridge: Arc::new(AtomicBool::new(false)),
+            provided_devices: false,
         }
     }
 
@@ -371,6 +373,7 @@ impl<'a> EvalState<'a> {
             active_aliases: self.active_aliases.clone(),
             allow_unported_fallback: self.allow_unported_fallback,
             used_typescript_bridge: self.used_typescript_bridge.clone(),
+            provided_devices: self.provided_devices,
         }
     }
 
@@ -4749,6 +4752,7 @@ impl<'a> EvalState<'a> {
         let exported_clone = self.exported_functions.clone();
         let allow_fallback = self.allow_unported_fallback;
         let used_typescript_bridge = self.used_typescript_bridge.clone();
+        let provided_devices = self.provided_devices;
         let mut sub_err: Option<EvalError> = None;
 
         if let Some(c_out) = try_run_command(
@@ -4826,6 +4830,7 @@ impl<'a> EvalState<'a> {
                     active_aliases: BTreeSet::new(),
                     allow_unported_fallback: allow_fallback,
                     used_typescript_bridge: used_typescript_bridge.clone(),
+                    provided_devices,
                 };
                 if let Err(e) = sub_eval.budget.enter_substitution() {
                     sub_err = Some(EvalError::Budget(e));
@@ -8082,7 +8087,7 @@ impl<'a> EvalState<'a> {
             }
             if !self.is_fd_readable(fd_num) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path }) if path != "/dev/null" => {
+                    Some(FdTarget::File { path }) if !self.is_default_null(path) => {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
@@ -8143,7 +8148,7 @@ impl<'a> EvalState<'a> {
         if !self.is_fd_readable(fd_num) && nchars != Some(0) {
             if effective_timeout.is_some_and(|t| t > 0.0) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { path }) if path != "/dev/null" => {}
+                    Some(FdTarget::File { path }) if !self.is_default_null(path) => {}
                     Some(FdTarget::PipeStdout { peer_retired }) => {
                         timed_out = !*peer_retired;
                     }
@@ -9158,15 +9163,16 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn is_default_null(&self, path: &str) -> bool {
+        !self.provided_devices && path == "/dev/null"
+    }
+
     fn is_noclobber_blocked(&self, full_path: &str) -> bool {
         if !self.noclobber {
             return false;
         }
         let resolved = resolve_physical_path(self.cwd, full_path, self.fs);
-        if matches!(
-            resolved.as_str(),
-            "/dev/null" | "/dev/zero" | "/dev/random" | "/dev/urandom"
-        ) {
+        if self.is_default_null(&resolved) || self.fs.stat(&resolved).is_ok_and(|st| st.mode & 0o170000 == 0o020000) {
             return false;
         }
         if self.fs.exists(full_path) {
@@ -9176,10 +9182,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn check_redirect_parent_dir(&self, full: &str, target: &str) -> Option<BuiltinOutcome> {
-        if matches!(
-            full,
-            "/dev/null" | "/dev/zero" | "/dev/random" | "/dev/urandom" | "/dev/full"
-        ) {
+        if self.is_default_null(full) {
             return None;
         }
         let parent = full
@@ -9419,7 +9422,7 @@ impl<'a> EvalState<'a> {
                             Some(err_out),
                         ));
                     }
-                    if full != "/dev/null" && !self.fs.exists(&full) {
+                    if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
                                 stdout: String::new(),
@@ -9936,7 +9939,7 @@ impl<'a> EvalState<'a> {
                             Some(err_out),
                         ));
                     }
-                    if full != "/dev/null" {
+                    if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
@@ -10001,7 +10004,7 @@ impl<'a> EvalState<'a> {
                             Some(err_out),
                         ));
                     }
-                    if full != "/dev/null" {
+                    if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
@@ -10066,7 +10069,7 @@ impl<'a> EvalState<'a> {
                             Some(err_out),
                         ));
                     }
-                    if full != "/dev/null" && !self.fs.exists(&full) {
+                    if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
                                 stdout: String::new(),
@@ -10174,7 +10177,7 @@ impl<'a> EvalState<'a> {
                                     Some(err_out),
                                 ));
                             }
-                            if full != "/dev/null" {
+                            if !self.is_default_null(&full) {
                                 let existed = self.fs.exists(&full);
                                 if let Err(e) = self.fs.write_file(&full, b"") {
                                     let mut err_out = BuiltinOutcome {
@@ -10360,7 +10363,7 @@ impl<'a> EvalState<'a> {
                             Some(err_out),
                         ));
                     }
-                    if full != "/dev/null" {
+                    if !self.is_default_null(&full) {
                         let existed = self.fs.exists(&full);
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
@@ -10414,7 +10417,7 @@ impl<'a> EvalState<'a> {
                             Some(err_out),
                         ));
                     }
-                    if full != "/dev/null" && !self.fs.exists(&full) {
+                    if !self.is_default_null(&full) && !self.fs.exists(&full) {
                         if let Err(e) = self.fs.write_file(&full, b"") {
                             let mut err_out = BuiltinOutcome {
                                 stdout: String::new(),
@@ -10504,7 +10507,7 @@ impl<'a> EvalState<'a> {
             FdTarget::Stdout | FdTarget::PipeStdout { .. } => out.stdout.push_str(data),
             FdTarget::Stderr => out.stderr.push_str(data),
             FdTarget::File { path } => {
-                if path != "/dev/null" {
+                if !self.is_default_null(path) {
                     if let Err(e) = self.fs.append_file(path, &stream_string_to_bytes(data)) {
                         out.stderr.push_str(&format!("{path}: {e}\n"));
                         out.exit_code = 1;
@@ -10512,7 +10515,7 @@ impl<'a> EvalState<'a> {
                 }
             }
             FdTarget::ReadWriteFile { path, owner_fd } => {
-                if path != "/dev/null" {
+                if !self.is_default_null(path) {
                     let cur_rem = if *owner_fd == 0 {
                         self.in_fds
                             .get(&0)

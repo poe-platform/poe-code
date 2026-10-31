@@ -65,6 +65,11 @@ impl Shell {
         (shell, vfs)
     }
 
+    /// Preserve the supplied filesystem's device paths when redirecting descriptors.
+    pub fn use_provided_devices(&mut self) {
+        self.backend.provided_devices = true;
+    }
+
     pub fn set_limits(&mut self, limits: ShellLimits) {
         self.limits = limits;
     }

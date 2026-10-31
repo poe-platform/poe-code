@@ -13,6 +13,7 @@ export interface RustWasmBashOptions {
   readonly limits?: Readonly<Record<string, number | undefined>> | object;
   readonly memoryFsOptions?: Readonly<Record<string, unknown>>;
   readonly forceNative?: boolean;
+  readonly deviceView?: "default" | "provided";
   readonly companionFactory?: () => { shell: unknown; fs: unknown };
   readonly companionSeed?: (fs: unknown) => Promise<void>;
   readonly profile?: "warm-memory-fastpath" | "overlay-cow-fs" | "strict-budgets-mount-dev";

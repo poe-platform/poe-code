@@ -39,6 +39,7 @@ pub type RustCommand =
 #[derive(Default)]
 pub struct HybridBackend {
     pub mode: BackendMode,
+    pub(crate) provided_devices: bool,
     commands: BTreeMap<String, RustCommand>,
     functions: Mutex<BTreeMap<String, Script>>,
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
@@ -157,6 +158,7 @@ impl HybridBackend {
     pub fn new(mode: BackendMode) -> Self {
         Self {
             mode,
+            provided_devices: false,
             commands: BTreeMap::new(),
             functions: Mutex::new(BTreeMap::new()),
             used_typescript_bridge: Arc::new(AtomicBool::new(false)),
@@ -208,6 +210,7 @@ impl HybridBackend {
         let allow_fallback = self.mode == BackendMode::Hybrid;
         let mut eval = EvalState::new(cwd, env, &budgeted_fs, &budget, &self.commands, allow_fallback);
         eval.used_typescript_bridge = self.used_typescript_bridge.clone();
+        eval.provided_devices = self.provided_devices;
         if let Ok(guard) = self.functions.lock() {
             eval.functions = guard.clone();
         }

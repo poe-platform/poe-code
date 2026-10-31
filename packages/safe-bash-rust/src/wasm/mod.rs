@@ -136,6 +136,13 @@ pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_use_provided_devices(id: u32) {
+    if let Some(sess) = sessions().lock().unwrap().get_mut(&id) {
+        sess.shell.use_provided_devices();
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_destroy_session(id: u32) {
     if let Ok(mut map) = sessions().lock() {
         map.remove(&id);

@@ -633,6 +633,7 @@ export class SafeBashE2EHarness {
       const hasCustomJsPlugins = (options.plugins ?? []).some((p) => !nativeRustPlugins.has(p.name));
       const forceNative = isPureRustCaller() && !hasCustomJsPlugins;
       const rustBash = new RustWasmBash({
+        deviceView: options.mountDev ? "provided" : "default",
         cwd: options.cwd ?? "/workspace",
         limits: options.limits,
         memoryFsOptions: options.memoryFsOptions,

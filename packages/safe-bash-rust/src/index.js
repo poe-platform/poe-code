@@ -278,6 +278,9 @@ const SAFE_DETERMINISTIC_CMDS = new Set([
 
 export class RustWasmBash {
   constructor(options = {}) {
+    if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
+      throw new TypeError("deviceView must be default or provided");
+    }
     this.instance = createWasmInstance();
     this.exports = this.instance.exports;
     this.sessionId = this.exports.safe_bash_create_session();
@@ -363,6 +366,9 @@ export class RustWasmBash {
       this.exports.safe_bash_configure_profile(this.sessionId, 1);
     } else if (options.profile === "strict-budgets-mount-dev") {
       this.exports.safe_bash_configure_profile(this.sessionId, 2);
+    }
+    if (options.deviceView === "provided" || options.profile === "strict-budgets-mount-dev") {
+      this.exports.safe_bash_use_provided_devices(this.sessionId);
     }
   }
 

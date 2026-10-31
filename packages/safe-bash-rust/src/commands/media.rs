@@ -8755,6 +8755,9 @@ fn cmd_media_doc(
             let mut tsv_mode = false;
             let mut htmlmeta = false;
             let mut urls_mode = false;
+            let mut layout = false;
+            let mut raw = false;
+            let mut page_break = true;
             let mut eol_mode = "unix";
             let mut invalid_eol_warn = false;
             let mut invalid_colspacing = false;
@@ -8887,7 +8890,19 @@ fn cmd_media_doc(
                         help = true;
                         i += 1;
                     }
-                    "-layout" | "-table" | "-lineprinter" | "-raw" | "-nopgbrk" | "-nodiag" | "-cropbox" | "-clip" => {
+                    "-layout" | "-table" | "-lineprinter" => {
+                        layout = true;
+                        i += 1;
+                    }
+                    "-raw" => {
+                        raw = true;
+                        i += 1;
+                    }
+                    "-nopgbrk" => {
+                        page_break = false;
+                        i += 1;
+                    }
+                    "-nodiag" | "-cropbox" | "-clip" => {
                         i += 1;
                     }
                     _ if a.starts_with('-') && a != "-" => {
@@ -8984,26 +8999,6 @@ fn cmd_media_doc(
                     selected_pages.push((pno, pg));
                 }
             }
-            let mut selected_texts = Vec::new();
-            for (_pno, pg) in &selected_pages {
-                let mut t = pg.text.clone();
-                if urls_mode {
-                    let mut extra = Vec::new();
-                    for u in &pg.urls {
-                        if !t.contains(u) && !extra.contains(u) {
-                            extra.push(u.clone());
-                        }
-                    }
-                    if !extra.is_empty() {
-                        if !t.is_empty() && !t.ends_with('\n') {
-                            t.push('\n');
-                        }
-                        t.push_str(&extra.join("\n"));
-                    }
-                }
-                selected_texts.push(t);
-            }
-            let combined = selected_texts.join("\n");
             let mut rendered = if bbox_mode {
                 let mut pages_xml = String::new();
                 for (_pno, pg) in &selected_pages {
@@ -9072,7 +9067,37 @@ fn cmd_media_doc(
                     tsv
                 }
             } else {
-                let mut plain = format!("{combined}\n");
+                let mut plain = String::new();
+                for (_, pg) in &selected_pages {
+                    let mut t = pg.text.clone();
+                    if urls_mode {
+                        let mut extra = Vec::new();
+                        for u in &pg.urls {
+                            if !t.contains(u) && !extra.contains(u) {
+                                extra.push(u.clone());
+                            }
+                        }
+                        if !extra.is_empty() {
+                            if !t.is_empty() && !t.ends_with('\n') {
+                                t.push('\n');
+                            }
+                            t.push_str(&extra.join("\n"));
+                            t.push('\n');
+                        }
+                    }
+                    if !raw && !t.is_empty() {
+                        if !t.ends_with('\n') {
+                            t.push('\n');
+                        }
+                        if !layout {
+                            t.push('\n');
+                        }
+                    }
+                    plain.push_str(&t);
+                    if page_break {
+                        plain.push('\x0c');
+                    }
+                }
                 if eol_mode == "dos" {
                     plain = plain.replace('\n', "\r\n");
                 } else if eol_mode == "mac" {
@@ -13056,6 +13081,29 @@ mod media_unit_tests {
         assert_eq!(doc.pages.len(), 2);
         assert_eq!(doc.pages[0].text, "first (page)");
         assert_eq!(doc.pages[1].text, "second");
+    }
+
+    #[test]
+    fn pdftotext_formats_each_page_including_empty_pages() {
+        let vfs = MemoryVfs::new();
+        let mut doc = PdfDoc::new();
+        for text in ["one", "", "three"] {
+            doc.pages.push(PdfPage { text: text.into(), ..Default::default() });
+        }
+        vfs.write_file("/in.pdf", &doc.serialize()).unwrap();
+        for (flags, expected) in [
+            (vec![], "one\n\n\x0c\x0cthree\n\n\x0c"),
+            (vec!["-layout", "-eol", "dos"], "one\r\n\x0c\x0cthree\r\n\x0c"),
+            (vec!["-raw"], "one\x0c\x0cthree\x0c"),
+            (vec!["-nopgbrk", "-eol", "mac"], "one\r\rthree\r\r"),
+            (vec!["-f", "2", "-l", "2"], "\x0c"),
+        ] {
+            let mut args = media_args(&flags);
+            args.extend(media_args(&["/in.pdf", "-"]));
+            let result = cmd_media_doc("pdftotext", &args, "", "/", &vfs);
+            assert_eq!(result.exit_code, 0, "{flags:?}");
+            assert_eq!(result.stdout, expected, "{flags:?}");
+        }
     }
 
     #[test]

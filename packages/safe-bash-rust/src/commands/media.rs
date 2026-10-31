@@ -322,6 +322,17 @@ struct PdfDoc {
 #[path = "pdf_reader.rs"]
 mod pdf_reader;
 
+fn write_copied_pdf(fs: &dyn SafeBashFs, cwd: &str, name: &str, bytes: &[u8], status: i32) -> BuiltinOutcome {
+    let path = resolve_posix_path(cwd, name);
+    if !fs.is_dir(&crate::vfs::dirname_posix_path(&path))
+        || fs.lstat(&path).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File || st.mode & 0o170000 == 0o020000)
+        || fs.write_file(&path, bytes).is_err()
+    {
+        return err_out(&format!("I/O Error: Couldn't open file '{name}'\n"), status);
+    }
+    ok_out("")
+}
+
 fn is_legacy_pdf(bytes: &[u8]) -> bool {
     bytes.split(|c| *c == b'\n').nth(1).is_some_and(|line| matches!(line, b"%%SAFE_PDF_V2%%" | b"%%PAGE%%"))
 }
@@ -6198,7 +6209,6 @@ fn cmd_media_doc(
             }
             let sources = &pos[..pos.len()-1];
             let destination = pos.last().unwrap();
-            let dst = resolve_posix_path(cwd, destination);
             let mut inputs = BTreeMap::new();
             let mut remaining = fs.max_input_bytes();
             for src in sources {
@@ -6224,12 +6234,6 @@ fn cmd_media_doc(
                 remaining = left;
                 inputs.insert(src, b);
             }
-            let publish = |bytes: &[u8]| {
-                if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, bytes).is_err() {
-                    return err_out(&format!("I/O Error: Couldn't open file '{destination}'\n"), 255);
-                }
-                ok_out("")
-            };
             if !inputs.values().any(|bytes| is_legacy_pdf(bytes)) {
                 let mut output = pdf_reader::PageOutput::new(crate::budget::ShellLimits::default().max_output_bytes);
                 for src in sources {
@@ -6239,7 +6243,7 @@ fn cmd_media_doc(
                     if output.append(&mut source, pages).is_none() { return damaged(); }
                 }
                 return match output.finish() {
-                    Some(bytes) => publish(&bytes),
+                    Some(bytes) => write_copied_pdf(fs, cwd, destination, &bytes, 255),
                     None => err_out("pdfunite: output byte limit exceeded\n", 255),
                 };
             }
@@ -6281,7 +6285,7 @@ fn cmd_media_doc(
                 }
                 out_doc.pages.extend(sub.pages);
             }
-            publish(&out_doc.serialize())
+            write_copied_pdf(fs, cwd, destination, &out_doc.serialize(), 255)
         }
         "pdfseparate" => {
             let mut first_p = 1usize;
@@ -6412,10 +6416,8 @@ fn cmd_media_doc(
                 outputs.push((name, bytes));
             }
             for (name, bytes) in outputs {
-                let path = resolve_posix_path(cwd, &name);
-                if !fs.is_dir(&crate::vfs::dirname_posix_path(&path)) || fs.write_file(&path, &bytes).is_err() {
-                    return err_out(&format!("I/O Error: Couldn't open file '{name}'\n"), 99);
-                }
+                let result = write_copied_pdf(fs, cwd, &name, &bytes, 99);
+                if result.exit_code != 0 { return result; }
             }
             ok_out("")
         }
@@ -13166,6 +13168,24 @@ mod media_unit_tests {
         let doc = pdf_reader::read(&bytes).expect("merged PDF has a valid xref and page tree");
         assert_eq!(doc.pages.iter().map(|p| p.text.as_str()).collect::<Vec<_>>(), ["first", "first", "other", "other"]);
         assert_eq!(String::from_utf8_lossy(&bytes).matches("\nstream\n").count(), 2);
+    }
+
+    #[test]
+    fn page_copy_commands_do_not_follow_output_symlinks() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Count 1 /Kids [3 0 R] >>", "<< /Type /Page /Parent 2 0 R >>"], "");
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        fs.write_file("/existing", b"original").unwrap();
+        fs.symlink("existing", "/link").unwrap();
+        for (cmd, args, status) in [
+            ("pdfseparate", media_args(&["in.pdf", "link"]), 99),
+            ("pdfunite", media_args(&["in.pdf", "in.pdf", "link"]), 255),
+        ] {
+            let r = cmd_media_doc(cmd, &args, "", "/", &fs);
+            assert_eq!((r.exit_code, r.stderr.as_str()), (status, "I/O Error: Couldn't open file 'link'\n"));
+            assert_eq!(fs.read_file("/existing").unwrap(), b"original");
+            assert_eq!(fs.readlink("/link").unwrap(), "existing");
+        }
     }
 
     #[test]

@@ -424,8 +424,11 @@ pub fn gzip_compress_level(data: &[u8], level: u8) -> Vec<u8> {
     out
 }
 
+#[path = "deflate.rs"]
+mod deflate_encoder;
+
 pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
-    let mut out = deflate(data, 6, vec![0x78, 0x9c]);
+    let mut out = deflate_encoder::level_six(data, vec![0x78, 0x9c]);
     let (mut a, mut b) = (1u32, 0u32);
     for chunk in data.chunks(5552) {
         for &x in chunk { a += u32::from(x); b += a; }
@@ -1132,6 +1135,24 @@ pub fn bzip2_decompress(data: &[u8]) -> Result<Vec<u8>, String> {
 mod tests {
     use super::*;
     use crate::commands::archive::TarEntry;
+
+    #[test]
+    fn zlib_streams_match_production_fixed_dynamic_and_stored_blocks() {
+        let mixed = (0usize..120000).map(|i| ((if i%5000 < 4300 { (i>>5) ^ (i%5) } else { i*7919 }) ^ (i>>9)) as u8).collect();
+        let mut seed = 1u32;
+        let noise = (0..70000).map(|_| { seed = seed.wrapping_mul(1664525).wrapping_add(1013904223); (seed>>24) as u8 }).collect();
+        for (data, expected) in [
+            (b"hello hello hello".to_vec(), "98437c7b782ac27a3898e0b4b4bc2f5db19e2f88bfa993e9da97a50a27d332e4"),
+            (b"alpha,bravo,charlie\n".repeat(600), "f9115b4273133fd97a36e3e8e823f1316f72d3c0f7a832fc0d21b2d280352568"),
+            (mixed, "7ec635ecd5325f6726482fe28b5b1c6dfb898bf4f9780a9b24c0778852834179"),
+            (noise, "a188c3fcf293ab3cd8927db33e076930b964d295413275278ee0f83bc5819334"),
+        ] {
+            let encoded = zlib_compress(&data);
+            assert_eq!(inflate_raw(&encoded[2..]).unwrap().0, data);
+            let digest: String = crate::commands::archive::sha256_bytes(&encoded).iter().map(|b|format!("{b:02x}")).collect();
+            assert_eq!(digest, expected, "{} input bytes", data.len());
+        }
+    }
 
     #[test]
     fn checksum_primitives_match_standard_vectors() {

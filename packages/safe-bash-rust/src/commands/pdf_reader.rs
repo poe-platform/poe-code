@@ -25,6 +25,9 @@ impl<'a> Value<'a> {
             _ => None,
         }
     }
+    fn number(&self) -> Option<f64> {
+        std::str::from_utf8(self.word()?).ok()?.parse().ok()
+    }
     fn reference(&self) -> Option<ObjectId> {
         match self {
             Self::Ref(r) => Some(*r),
@@ -224,10 +227,14 @@ fn text(bytes: &[u8]) -> String {
 
 fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
     let mut c = Cursor(bytes);
-    let mut last = None;
+    let mut last: Option<Value<'_>> = None;
     let mut out = String::new();
     let mut in_text = false;
     let mut new_line = false;
+    let mut baseline = 0.0;
+    let mut previous_line = None;
+    let mut font_size = 12.0;
+    let mut leading = 0.0;
     loop {
         c.skip();
         if c.0.is_empty() {
@@ -237,14 +244,40 @@ fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
         match v.word() {
             Some(b"BT") => {
                 in_text = true;
+                baseline = 0.0;
                 new_line = true;
             }
             Some(b"ET") => in_text = false,
-            Some(b"Tm" | b"Td" | b"TD" | b"T*") => new_line = true,
-            Some(op @ (b"Tj" | b"TJ" | b"'" | b"\"")) if in_text => {
-                if (new_line || matches!(op, b"'" | b"\"")) && !out.is_empty() {
-                    out.push('\n')
+            Some(b"Tf") => font_size = last.as_ref()?.number()?.abs(),
+            Some(b"TL") => leading = last.as_ref()?.number()?,
+            Some(op @ (b"Tm" | b"Td" | b"TD")) => {
+                let y = last.as_ref()?.number()?;
+                if op == b"Tm" {
+                    baseline = y;
+                } else {
+                    baseline += y;
+                    if op == b"TD" {
+                        leading = -y;
+                    }
                 }
+                new_line = true;
+            }
+            Some(b"T*") => {
+                baseline -= leading;
+                new_line = true;
+            }
+            Some(op @ (b"Tj" | b"TJ" | b"'" | b"\"")) if in_text => {
+                if matches!(op, b"'" | b"\"") {
+                    baseline -= leading;
+                    new_line = true;
+                }
+                if new_line && !out.is_empty() {
+                    out.push('\n');
+                    if previous_line.is_some_and(|(y, size)| y - baseline > size * 1.9) {
+                        out.push('\n');
+                    }
+                }
+                previous_line = Some((baseline, font_size));
                 match last.take() {
                     Some(Value::String(b)) => out.push_str(&text(&b)),
                     Some(Value::Array(a)) => {
@@ -430,4 +463,17 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
         }
     }
     Some(doc)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn positioned_text_distinguishes_paragraphs_from_adjacent_lines() {
+        let stream = b"BT /F1 10 Tf 1 0 0 1 50 120 Tm (one) Tj ET
+            BT 1 0 0 1 50 108 Tm (two) Tj ET
+            BT 1 0 0 1 50 84 Tm (three) Tj 0 -12 Td (four) Tj ET";
+        assert_eq!(content_text(stream, &mut 1000).unwrap(), "one\ntwo\n\nthree\nfour");
+    }
 }

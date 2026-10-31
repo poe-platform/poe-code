@@ -9069,7 +9069,11 @@ fn cmd_media_doc(
             } else {
                 let mut plain = String::new();
                 for (_, pg) in &selected_pages {
-                    let mut t = pg.text.clone();
+                    let mut t = if layout && !raw {
+                        pg.text.replace("\n\n", "\n")
+                    } else {
+                        pg.text.clone()
+                    };
                     if urls_mode {
                         let mut extra = Vec::new();
                         for u in &pg.urls {

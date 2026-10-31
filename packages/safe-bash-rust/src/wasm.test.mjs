@@ -1,6 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
+
+test("gzip compresses repeated bytes and interoperates with an independent decoder", () => {
+  const payload = Buffer.from("a repeatable log message\n".repeat(4096));
+  const bash = new RustWasmBash({ files: { "/input": payload } });
+  try {
+    for (const level of [1, 6, 9]) {
+      const result = bash.execSync(`gzip -${level}c /input`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(gunzipSync(result.stdoutBytes), payload);
+      assert.ok(result.stdoutBytes.length < payload.length / 8);
+      assert.equal(result.stdoutBytes[8], level === 1 ? 4 : level === 9 ? 2 : 0);
+    }
+  } finally {
+    bash.dispose();
+  }
+});
 
 test("WASM Bash forceNative rejects incomplete long listings but preserves literal -l filenames", async () => {
   const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });

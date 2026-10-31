@@ -6283,7 +6283,7 @@ fn compress_for_invoked(
             }
         }
         "zstd" | "unzstd" | "zstdcat" => crate::commands::codecs::zstd_compress(data, zstd_check),
-        _ => crate::commands::codecs::gzip_compress(data),
+        _ => crate::commands::codecs::gzip_compress_level(data, level),
     }
 }
 

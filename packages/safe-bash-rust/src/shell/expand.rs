@@ -4437,53 +4437,58 @@ fn expand_glob_segments(
                 matched.push(cur_prefix.to_string());
             }
         }
-        if !visited.insert((seg_idx, cur_dir.to_string())) {
-            return;
-        }
-        let Ok(mut entries) = fs.list_dir(cur_dir) else {
-            return;
-        };
-        entries.sort();
-        for entry in entries {
-            if entry.starts_with('.') && !raw_dotglob {
+        let mut directories = vec![(cur_dir.to_owned(), cur_prefix.to_owned())];
+        while let Some((directory, prefix)) = directories.pop() {
+            if !visited.insert((seg_idx, prefix.clone())) {
                 continue;
             }
-            let child_dir = resolve_posix_path(cur_dir, &entry);
-            let child_prefix = if cur_prefix.is_empty() {
-                entry.clone()
-            } else if cur_prefix == "/" {
-                format!("/{entry}")
-            } else {
-                format!("{cur_prefix}/{entry}")
+            let Ok(entries) = fs.list_dir(&directory) else {
+                continue;
             };
-            if is_last {
-                if !want_dir || fs.is_dir(&child_dir) {
-                    matched.push(if want_dir {
-                        format!("{child_prefix}/")
-                    } else {
-                        child_prefix.clone()
-                    });
+            for entry in entries {
+                if entry == "." || entry == ".." || (entry.starts_with('.') && !raw_dotglob) {
+                    continue;
                 }
-            }
-            if fs
-                .lstat(&child_dir)
-                .is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::Directory)
-            {
-                expand_glob_segments(
-                    segments,
-                    seg_idx,
-                    &child_dir,
-                    &child_prefix,
-                    fs,
-                    dotglob,
-                    raw_dotglob,
-                    nocaseglob,
-                    globstar,
-                    extglob,
-                    want_dir,
-                    visited,
-                    matched,
-                );
+                let child_dir = resolve_posix_path(&directory, &entry);
+                let child_prefix = if prefix.is_empty() {
+                    entry
+                } else {
+                    format!("{}/{entry}", prefix.trim_end_matches('/'))
+                };
+                let Ok(stat) = fs.lstat(&child_dir) else {
+                    continue;
+                };
+                let directory = stat.kind == crate::vfs::VfsEntryKind::Directory;
+                if is_last {
+                    if !want_dir || fs.is_dir(&child_dir) {
+                        matched.push(if want_dir {
+                            format!("{child_prefix}/")
+                        } else {
+                            child_prefix.clone()
+                        });
+                    }
+                } else if directory
+                    || (!cur_prefix.is_empty() && stat.kind == crate::vfs::VfsEntryKind::Symlink)
+                {
+                    expand_glob_segments(
+                        segments,
+                        seg_idx + 1,
+                        &child_dir,
+                        &child_prefix,
+                        fs,
+                        dotglob,
+                        raw_dotglob,
+                        nocaseglob,
+                        globstar,
+                        extglob,
+                        want_dir,
+                        visited,
+                        matched,
+                    );
+                }
+                if directory {
+                    directories.push((child_dir, child_prefix));
+                }
             }
         }
         return;

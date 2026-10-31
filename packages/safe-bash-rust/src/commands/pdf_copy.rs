@@ -73,9 +73,99 @@ impl<'a> PageSource<'a> {
     pub(in super::super) fn len(&self) -> usize {
         self.pages.len()
     }
+}
 
-    pub(in super::super) fn extract(&mut self, page_index: usize, limit: usize) -> Option<Vec<u8>> {
-        let id = *self.pages.get(page_index)?;
+pub(in super::super) struct PageOutput {
+    pages: Vec<usize>,
+    bodies: Vec<Vec<u8>>,
+    limit: usize,
+    remaining: usize,
+}
+
+impl PageOutput {
+    pub(in super::super) fn new(limit: usize) -> Self {
+        Self {
+            pages: vec![],
+            bodies: vec![
+                b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
+                vec![],
+                vec![],
+            ],
+            limit,
+            remaining: limit,
+        }
+    }
+
+    pub(in super::super) fn append(
+        &mut self,
+        source: &mut PageSource<'_>,
+        selection: std::ops::Range<usize>,
+    ) -> Option<()> {
+        let mut ids = BTreeMap::new();
+        for i in selection.clone() {
+            let n = self.bodies.len() + 1;
+            ids.insert(*source.pages.get(i)?, n);
+            self.pages.push(n);
+            self.bodies.push(vec![]);
+        }
+        let mut copy = Copy {
+            objects: &mut source.objects,
+            tree: &source.tree,
+            ids,
+            output: self,
+        };
+        if copy.output.bodies[2].is_empty() {
+            let mut body = Vec::new();
+            copy.value(&source.info, &mut body, 0)?;
+            copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
+            copy.output.bodies[2] = body;
+        }
+        for i in selection {
+            let id = source.pages[i];
+            let page = copy.page(id)?;
+            let mut body = Vec::new();
+            copy.value(&page, &mut body, 0)?;
+            copy.output.remaining = copy.output.remaining.checked_sub(body.len())?;
+            copy.output.bodies[copy.ids[&id] - 1] = body;
+        }
+        Some(())
+    }
+
+    pub(in super::super) fn finish(mut self) -> Option<Vec<u8>> {
+        let mut tree =
+            format!("<<\n/Type /Pages\n/Count {}\n/Kids [ ", self.pages.len()).into_bytes();
+        for r in self.pages {
+            write!(tree, "{r} 0 R ").ok()?;
+        }
+        tree.extend_from_slice(b"]\n>>");
+        self.bodies[1] = tree;
+        let mut out = b"%PDF-1.7\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n".to_vec();
+        let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", self.bodies.len() + 1);
+        for (i, body) in self.bodies.iter().enumerate() {
+            use std::fmt::Write;
+            writeln!(xref, "{:010} 00000 n ", out.len()).ok()?;
+            writeln!(out, "{} 0 obj", i + 1).ok()?;
+            if body.len() > self.limit.checked_sub(out.len() + xref.len())? {
+                return None;
+            }
+            out.extend_from_slice(body);
+            out.extend_from_slice(b"\nendobj\n\n");
+        }
+        let offset = out.len();
+        write!(out,"{xref}trailer\n<<\n/Size {}\n/Root 1 0 R\n/Info 3 0 R\n>>\n\nstartxref\n{offset}\n%%EOF",self.bodies.len()+1).ok()?;
+        (out.len() <= self.limit).then_some(out)
+    }
+}
+
+struct Copy<'c, 'a> {
+    objects: &'c mut Objects<'a>,
+    tree: &'c BTreeSet<ObjectId>,
+    ids: BTreeMap<ObjectId, usize>,
+    output: &'c mut PageOutput,
+}
+
+impl<'a> Copy<'_, 'a> {
+    fn page(&mut self, id: ObjectId) -> Option<Value<'a>> {
         let page = self.objects.object(id)?.0;
         let mut parent = page.get(b"Parent").and_then(Value::reference);
         let Value::Dict(mut entries) = page else {
@@ -114,52 +204,10 @@ impl<'a> PageSource<'a> {
             entries.push((b"Resources", Value::Dict(vec![])));
         }
 
-        let mut copy = Copy {
-            objects: &mut self.objects,
-            tree: &self.tree,
-            ids: BTreeMap::from([(id, 4)]),
-            bodies: vec![
-                b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
-                b"<<\n/Type /Pages\n/Count 1\n/Kids [ 4 0 R ]\n>>".to_vec(),
-                vec![],
-                vec![],
-            ],
-            remaining: limit,
-        };
-        let mut body = Vec::new();
-        copy.value(&self.info, &mut body, 0)?;
-        copy.bodies[2] = body;
-        let mut body = Vec::new();
         entries.push((b"Parent", Value::Word(b"2 0 R")));
-        copy.value(&Value::Dict(entries), &mut body, 0)?;
-        copy.bodies[3] = body;
-        let mut out = b"%PDF-1.7\n%\xc2\x81\xc2\x81\xc2\x81\xc2\x81\n\n".to_vec();
-        let mut xref = format!("xref\n0 {}\n0000000000 65535 f \n", copy.bodies.len() + 1);
-        for (i, body) in copy.bodies.iter().enumerate() {
-            use std::fmt::Write;
-            writeln!(xref, "{:010} 00000 n ", out.len()).ok()?;
-            writeln!(out, "{} 0 obj", i + 1).ok()?;
-            if body.len() > limit.checked_sub(out.len() + xref.len())? {
-                return None;
-            }
-            out.extend_from_slice(body);
-            out.extend_from_slice(b"\nendobj\n\n");
-        }
-        let offset = out.len();
-        write!(out,"{xref}trailer\n<<\n/Size {}\n/Root 1 0 R\n/Info 3 0 R\n>>\n\nstartxref\n{offset}\n%%EOF",copy.bodies.len()+1).ok()?;
-        (out.len() <= limit).then_some(out)
+        Some(Value::Dict(entries))
     }
-}
 
-struct Copy<'c, 'a> {
-    objects: &'c mut Objects<'a>,
-    tree: &'c BTreeSet<ObjectId>,
-    ids: BTreeMap<ObjectId, usize>,
-    bodies: Vec<Vec<u8>>,
-    remaining: usize,
-}
-
-impl Copy<'_, '_> {
     fn value(&mut self, value: &Value<'_>, out: &mut Vec<u8>, depth: usize) -> Option<()> {
         if depth > 128 {
             return None;
@@ -206,16 +254,16 @@ impl Copy<'_, '_> {
                 } else if self.tree.contains(id) {
                     out.extend_from_slice(b"null");
                 } else {
-                    let n = self.bodies.len() + 1;
+                    let n = self.output.bodies.len() + 1;
                     self.ids.insert(*id, n);
-                    self.bodies.push(vec![]);
+                    self.output.bodies.push(vec![]);
                     let (v, mut cursor) = self.objects.object(*id)?;
                     let mut body = Vec::new();
                     self.value(&v, &mut body, depth + 1)?;
                     cursor.skip();
                     if cursor.0.starts_with(b"stream") {
                         let stream = self.objects.stream(&v, cursor)?;
-                        if stream.len() > self.remaining.checked_sub(body.len())? {
+                        if stream.len() > self.output.remaining.checked_sub(body.len())? {
                             return None;
                         }
                         body.extend_from_slice(b"\nstream\n");
@@ -224,8 +272,8 @@ impl Copy<'_, '_> {
                     } else if !cursor.0.starts_with(b"endobj") {
                         return None;
                     }
-                    self.remaining = self.remaining.checked_sub(body.len())?;
-                    self.bodies[n - 1] = body;
+                    self.output.remaining = self.output.remaining.checked_sub(body.len())?;
+                    self.output.bodies[n - 1] = body;
                     write!(out, "{n} 0 R").ok()?;
                 }
             }

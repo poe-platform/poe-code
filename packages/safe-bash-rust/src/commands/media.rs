@@ -322,6 +322,10 @@ struct PdfDoc {
 #[path = "pdf_reader.rs"]
 mod pdf_reader;
 
+fn is_legacy_pdf(bytes: &[u8]) -> bool {
+    bytes.split(|c| *c == b'\n').nth(1).is_some_and(|line| matches!(line, b"%%SAFE_PDF_V2%%" | b"%%PAGE%%"))
+}
+
 impl PdfDoc {
     fn new() -> Self {
         Self {
@@ -6192,8 +6196,13 @@ fn cmd_media_doc(
                     99,
                 );
             }
-            let mut out_doc = PdfDoc::new();
-            for (idx, src) in pos[..pos.len() - 1].iter().enumerate() {
+            let sources = &pos[..pos.len()-1];
+            let destination = pos.last().unwrap();
+            let dst = resolve_posix_path(cwd, destination);
+            let mut inputs = BTreeMap::new();
+            let mut remaining = fs.max_input_bytes();
+            for src in sources {
+                if inputs.contains_key(src) { continue; }
                 let full = resolve_posix_path(cwd, src);
                 let Ok(b) = fs.read_file(&full) else {
                     return err_out(
@@ -6209,7 +6218,35 @@ fn cmd_media_doc(
                         255,
                     );
                 }
-                let sub = PdfDoc::parse(&b);
+                let Some(left) = remaining.checked_sub(b.len()) else {
+                    return err_out("pdfunite: input byte limit exceeded\n", 255);
+                };
+                remaining = left;
+                inputs.insert(src, b);
+            }
+            let publish = |bytes: &[u8]| {
+                if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, bytes).is_err() {
+                    return err_out(&format!("I/O Error: Couldn't open file '{destination}'\n"), 255);
+                }
+                ok_out("")
+            };
+            if !inputs.values().any(|bytes| is_legacy_pdf(bytes)) {
+                let mut output = pdf_reader::PageOutput::new(crate::budget::ShellLimits::default().max_output_bytes);
+                for src in sources {
+                    let damaged = || err_out(&format!("Syntax Error: Could not merge damaged documents ('{src}')\n"), 255);
+                    let Some(mut source) = pdf_reader::PageSource::open(&inputs[src]) else { return damaged() };
+                    let pages = 0..source.len();
+                    if output.append(&mut source, pages).is_none() { return damaged(); }
+                }
+                return match output.finish() {
+                    Some(bytes) => publish(&bytes),
+                    None => err_out("pdfunite: output byte limit exceeded\n", 255),
+                };
+            }
+            let mut out_doc = PdfDoc::new();
+            for (idx, src) in sources.iter().enumerate() {
+                let b = &inputs[src];
+                let sub = PdfDoc::parse(b);
                 if sub.encrypted.is_some() {
                     return err_out(
                         &format!("Unimplemented Feature: Could not merge encrypted files ('{src}')\n"),
@@ -6244,9 +6281,7 @@ fn cmd_media_doc(
                 }
                 out_doc.pages.extend(sub.pages);
             }
-            let dst = resolve_posix_path(cwd, pos.last().unwrap());
-            let _ = fs.write_file(&dst, &out_doc.serialize());
-            ok_out("")
+            publish(&out_doc.serialize())
         }
         "pdfseparate" => {
             let mut first_p = 1usize;
@@ -6327,9 +6362,7 @@ fn cmd_media_doc(
                 return err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
             }
             let mut source = pdf_reader::PageSource::open(&b);
-            let legacy = if source.is_none() && b.split(|c| *c == b'\n').take(2).any(|line| {
-                line == b"%%SAFE_PDF_V2%%" || line == b"%%PAGE%%"
-            }) { Some(PdfDoc::parse(&b)) } else { None };
+            let legacy = if source.is_none() && is_legacy_pdf(&b) { Some(PdfDoc::parse(&b)) } else { None };
             let damaged = || err_out(&format!("Syntax Error: Could not extract page(s) from damaged file ('{}')\n", pos[0]), 99);
             let total = match (&source, &legacy) {
                 (Some(s), _) => s.len(),
@@ -6354,7 +6387,8 @@ fn cmd_media_doc(
             let mut remaining = crate::budget::ShellLimits::default().max_output_bytes;
             for pno in first_p..=end_p {
                 let bytes = if let Some(s) = &mut source {
-                    let Some(bytes) = s.extract(pno - 1, remaining) else { return damaged() };
+                    let mut output = pdf_reader::PageOutput::new(remaining);
+                    let Some(bytes) = output.append(s, pno - 1..pno).and_then(|()| output.finish()) else { return damaged() };
                     bytes
                 } else if let Some(doc) = &legacy {
                     let pg = &doc.pages[pno - 1];
@@ -13110,6 +13144,28 @@ mod media_unit_tests {
         let raw = String::from_utf8_lossy(&output);
         assert!(raw.contains("/Courier") && raw.contains("/Annots"));
         assert!(!raw.contains("excluded-page"));
+    }
+
+    #[test]
+    fn pdfunite_keeps_colliding_object_ids_separate_across_sources() {
+        let fs = MemoryVfs::new();
+        for (name, word) in [("a", "first"), ("b", "other")] {
+            let stream = format!("<< /Length 16 >>\nstream\nBT ({word}) Tj ET\nendstream");
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 /MediaBox [0 0 300 410] >>",
+                "<< /Type /Page /Parent 2 0 R /Contents 5 0 R >>",
+                "<< /Type /Page /Parent 2 0 R /Contents 5 0 R >>",
+                &stream,
+            ], "");
+            fs.write_file(&format!("/{name}.pdf"), pdf.as_bytes()).unwrap();
+        }
+        let result = cmd_media_doc("pdfunite", &media_args(&["a.pdf", "b.pdf", "merged.pdf"]), "", "/", &fs);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        let bytes = fs.read_file("/merged.pdf").unwrap();
+        let doc = pdf_reader::read(&bytes).expect("merged PDF has a valid xref and page tree");
+        assert_eq!(doc.pages.iter().map(|p| p.text.as_str()).collect::<Vec<_>>(), ["first", "first", "other", "other"]);
+        assert_eq!(String::from_utf8_lossy(&bytes).matches("\nstream\n").count(), 2);
     }
 
     #[test]

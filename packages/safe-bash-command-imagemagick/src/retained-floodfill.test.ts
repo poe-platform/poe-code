@@ -16,6 +16,32 @@ const operators = [
 async function fixture(width = 53, height = 37) {
     return sharp(Uint8Array.from({ length: width * height * 4 }, (_, i) => Math.floor(i / 4) % width < width / 2 ? (i % 4 === 3 ? 255 : 0) : (i % 4 === 3 ? 128 : 200)), { raw: { width, height, channels: 4 } }).png().toBuffer();
 }
+it.each(["buffered", "retained"])("draw color floodfill preserves enclosed white detail (%s)", async mode => {
+    const pixels = new Uint8Array(7 * 7 * 4).fill(255);
+    for (let y = 2; y <= 4; y++) for (let x = 2; x <= 4; x++) {
+        if (x === 3 && y === 3) continue;
+        pixels.fill(0, (y * 7 + x) * 4, (y * 7 + x) * 4 + 3);
+    }
+    const bytes = await sharp(pixels, { raw: { width: 7, height: 7, channels: 4 } }).png().toBuffer();
+    const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/input.png", bytes);
+    const result = await runConvertCli(["input.png", "-alpha", "set", "-fill", "none", "-draw", "color 0,0 floodfill", "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode, result.stderr).toBe(0);
+    const image = decodeImage(mode === "buffered" ? files.get("out.png")! : await fs.readFile("/out.png"));
+    for (let y = 0; y < 7; y++) for (let x = 0; x < 7; x++) {
+        const offset = (y * 7 + x) * 4;
+        if (x < 2 || x > 4 || y < 2 || y > 4) expect(image.data[offset + 3]).toBe(0);
+        else expect(image.data.slice(offset, offset + 4)).toEqual(pixels.slice(offset, offset + 4));
+    }
+});
+it.each(["buffered", "retained"])("draw floodfill follows earlier vector strokes and inline fill (%s)", async mode => {
+    const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+    const result = await runConvertCli(["-size", "7x7", "xc:white", "-fill", "blue", "-draw", "fill none stroke black stroke-width 1 rectangle 1,1 5,5 fill red color 0,0 floodfill", "out.png"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode, result.stderr).toBe(0);
+    const image = decodeImage(mode === "buffered" ? files.get("out.png")! : await fs.readFile("/out.png"));
+    expect([...image.data.slice(0, 4)]).toEqual([255, 0, 0, 255]);
+    expect([...image.data.slice((3 * 7 + 3) * 4, (3 * 7 + 3) * 4 + 4)]).toEqual([255, 255, 255, 255]);
+});
 it("preserves original floodfill pixel vectors", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {

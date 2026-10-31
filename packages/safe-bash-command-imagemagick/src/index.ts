@@ -2882,7 +2882,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 }
 
 type MagickDrawShape = { kind: "shape"; color: RgbaColor; x: number; y: number } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number });
-type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string };
+type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | { kind: "floodfill"; x: number; y: number; color: RgbaColor };
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { color } = shape;
@@ -2975,6 +2975,15 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         }
         else if (cmd === "stroke-width" || cmd === "strokewidth") {
             strokeWidth = Math.max(0, num());
+        }
+        else if (cmd === "color") {
+            const x = num(), y = num(), method = tokens[i++]?.toLowerCase();
+            if (method !== "floodfill" || !Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Color drawing requires finite coordinates and the floodfill method");
+            if (svgElements.length > 0) {
+                yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>` };
+                svgElements.length = 0;
+            }
+            yield { kind: "floodfill", x: Math.max(0, Math.min(img.width - 1, Math.round(x))), y: Math.max(0, Math.min(img.height - 1, Math.round(y))), color: parseColor(fill) };
         }
         else if (cmd === "rectangle") {
             const x0 = num();
@@ -4526,6 +4535,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 for (const step of magickDrawSteps(im, drawSpec, state)) {
                     if (!step) { yield; continue; }
                     if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step), signal);
+                    else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, undefined, step.color, state.fuzz, signal);
                     else {
                         const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
                         im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, im, [im, overlay]);
@@ -5183,6 +5193,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
                 for (const step of magickDrawSteps(image, drawing, settings)) {
                     if (!step) { await yieldTurn(signal); continue; }
                     if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step), signal);
+                    else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, undefined, step.color, settings.fuzz, signal);
                     else {
                         const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
                         image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, image, [image, overlay]);

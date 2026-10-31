@@ -15,3 +15,19 @@ it("marks only encoded IDR pictures as sync samples", () => {
   assert.ok(samples.some(sample => (sample.data[4]! & 0x1f) === 1));
   for (const sample of samples) assert.equal(sample.isKeyframe, (sample.data[4]! & 0x1f) === 5);
 });
+
+it("preserves decoded picture presentation times before a source edit offset", () => {
+  const source = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 8, fps: 10, includeAudio: false }));
+  const track = source.tracks[0]!;
+  const origin = Math.round(.2 * track.timescale);
+  const decodedVideoFrames = Array.from({ length: 8 }, (_, index) => ({
+    width: 16, height: 16, data: new Uint8Array(16 * 16 * 4).fill(index * 20),
+    ptsSeconds: .2 + index / 10, durationSeconds: .1, keyframe: true
+  }));
+  const encoded = serializeMp4({ ...source, tracks: [{ ...track, samples: [], decodedVideoFrames,
+    editList: [{ segmentDuration: source.duration, mediaTime: origin, mediaRateInteger: 1, mediaRateFraction: 0 }]
+  }] });
+  const output = parseMp4(encoded).tracks[0]!;
+  assert.equal(output.editList?.[0]?.mediaTime, origin);
+  assert.deepEqual(output.samples.map(sample => sample.pts - origin), Array.from({ length: 8 }, (_, index) => Math.round(index / 10 * track.timescale)));
+});

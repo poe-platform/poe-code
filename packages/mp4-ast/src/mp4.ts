@@ -844,13 +844,14 @@ function materializeTrackSamples(track: MediaTrack): {
     for (let i = 0; i < track.decodedVideoFrames.length; i++) {
       const frame = track.decodedVideoFrames[i]!;
       const duration = Math.max(1, Math.round(frame.durationSeconds * timescale));
+      const pts = Math.round(frame.ptsSeconds * timescale);
       const encoded = encodeH264IdrFrame(frame.data, width, height, i, refBuffer);
       detachBytesBuffer(frame.data);
       samples.push({
         data: encoded,
         dts,
-        pts: dts,
-        cts: 0,
+        pts,
+        cts: pts - dts,
         duration,
         size: encoded.byteLength,
         // The encoder emits one length-prefixed NAL unit, including predicted pictures.

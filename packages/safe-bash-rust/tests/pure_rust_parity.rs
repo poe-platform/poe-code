@@ -19,6 +19,23 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
 }
 
 #[test]
+fn canonical_paths_resume_after_cycles_and_repeated_symlinks() {
+    let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
+    fs.mkdir_all("/work/sub").unwrap();
+    fs.symlink("sub", "/work/link").unwrap();
+    fs.symlink("b", "/work/a").unwrap();
+    fs.symlink("a", "/work/b").unwrap();
+    for command in ["realpath -m", "readlink -m"] {
+        let result = shell.exec(&format!("{command} a/tail a/../link/../link/tail")).unwrap();
+        assert_eq!(result.stdout, "/work/a/tail\n/work/sub/tail\n", "{command}: {}", result.stderr);
+        assert_eq!(result.exit_code, 0);
+    }
+    let result = shell.exec("realpath -s missing/sub").unwrap();
+    assert_eq!(result.stdout, "/work/missing/sub\n");
+    assert_eq!(result.exit_code, 0);
+}
+
+#[test]
 fn pure_rust_compression_magic_bytes_and_tar_pipelines() {
     let (mut shell, vfs) = new_pure_rust_shell(BTreeMap::new());
 

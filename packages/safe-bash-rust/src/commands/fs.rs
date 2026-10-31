@@ -2631,14 +2631,26 @@ fn canonicalize_posix_path(
         return Ok(lexical);
     }
 
-    let mut queue: VecDeque<String> = raw
+    enum Pending {
+        Component(String),
+        EndLink(String),
+    }
+    let mut expanding = std::collections::BTreeSet::new();
+    let mut queue: VecDeque<Pending> = raw
         .split('/')
         .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
+        .map(|s| Pending::Component(s.to_string()))
         .collect();
     let mut cur = String::from("/");
     let mut hops = 0usize;
-    while let Some(part) = queue.pop_front() {
+    while let Some(item) = queue.pop_front() {
+        let part = match item {
+            Pending::Component(part) => part,
+            Pending::EndLink(path) => {
+                expanding.remove(&path);
+                continue;
+            }
+        };
         if part == "." {
             if mode != 'm' && (!fs.exists(&cur) || !fs.is_dir(&cur)) {
                 return Err(format!("ENOENT: no such file or directory, realpath '{raw}'"));
@@ -2668,6 +2680,13 @@ fn canonicalize_posix_path(
         if let Ok(link_t) = fs.readlink(&next)
             && !link_t.starts_with("__hardlink__:")
         {
+            if mode == 'm' {
+                if !expanding.insert(next.clone()) {
+                    cur = next;
+                    continue;
+                }
+                queue.push_front(Pending::EndLink(next));
+            }
             hops += 1;
             if hops > 40 {
                 return Err(format!("ELOOP: too many symbolic links encountered '{raw}'"));
@@ -2676,7 +2695,7 @@ fn canonicalize_posix_path(
                 cur = "/".to_string();
             }
             for seg in link_t.split('/').filter(|s| !s.is_empty()).rev() {
-                queue.push_front(seg.to_string());
+                queue.push_front(Pending::Component(seg.to_string()));
             }
             continue;
         }
@@ -2779,15 +2798,6 @@ fn canonicalize_realpath_operand(
             }
         }
         if no_symlinks {
-            if mode != 'm' && mode != 'e' {
-                let parent = crate::vfs::dirname_posix_path(&lexical);
-                if !fs.exists(&parent) {
-                    return Err(format!("ENOENT: no such file or directory, stat '{parent}'"));
-                }
-                if !fs.is_dir(&parent) {
-                    return Err(format!("ENOTDIR: not a directory, stat '{parent}'"));
-                }
-            }
             return Ok(lexical);
         }
         let next_raw = if raw != "/" && raw.ends_with('/') && lexical != "/" {

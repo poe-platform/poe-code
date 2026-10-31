@@ -2,6 +2,8 @@
 
 ImageMagick (`magick`, `convert`, `mogrify`, `composite`, `montage`, `compare`, `identify`) command-line tools for `safe-bash`, powered by `@poe-code/image-ast`.
 
+Montage supports `-label` for subsequent images and `-set label` for images already read. It accepts `-font` for command compatibility; labels use the bundled bitmap glyphs rather than host fonts.
+
 ## Quickstart
 
 ```ts

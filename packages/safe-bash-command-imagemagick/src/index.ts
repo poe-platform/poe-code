@@ -5963,13 +5963,18 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "+label") {
             label = "";
         }
+        else if (t === "-set") {
+            const property = argv[++i];
+            const value = argv[++i] ?? "";
+            if (property === "label") labels.fill(value);
+        }
         else if (t === "-pointsize") {
             state.pointsize = Math.max(1, Number(argv[++i] ?? 12));
         }
         else if (t === "-fill") {
             state.fill = parseColor(argv[++i] ?? "#000000");
         }
-        else if (t === "-mode" || t === "-title") {
+        else if (t === "-mode" || t === "-title" || t === "-font") {
             i++;
         }
         else if (!t.startsWith("-")) {

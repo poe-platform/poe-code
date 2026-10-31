@@ -853,7 +853,8 @@ function materializeTrackSamples(track: MediaTrack): {
         cts: 0,
         duration,
         size: encoded.byteLength,
-        isKeyframe: true,
+        // The encoder emits one length-prefixed NAL unit, including predicted pictures.
+        isKeyframe: (encoded[4]! & 0x1f) === 5,
         sampleDescriptionIndex: 1
       });
       dts += duration;

@@ -102,7 +102,10 @@ describe("@poe-code/mp4-ast", () => {
     );
     const sliced = sliceMp4(baseDoc, { startSeconds: 0.5, endSeconds: 1.5 });
     const vSliced = sliced.tracks.find((t) => t.type === "video")!;
-    assert.equal(vSliced.samples.length, 10);
+    // Keep the preceding IDR and predicted pictures needed to decode the visible second.
+    assert.equal(vSliced.samples.length, 15);
+    assert.equal(vSliced.editList?.[0]?.mediaTime, .5 * vSliced.timescale);
+    assert.equal(vSliced.editList?.[0]?.segmentDuration, sliced.timescale);
 
     const muxed = muxMp4([sliced], { stripAudio: true, rotation: 90 });
     const outBytes = serializeMp4(muxed);

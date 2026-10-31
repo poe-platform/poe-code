@@ -389,7 +389,9 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     );
     assert.equal(hlsRes.exitCode, 0);
     assert.equal(vfs.store.has("/seg_000.ts"), true);
-    assert.equal(vfs.store.has("/seg_001.ts"), true);
+    // There is no second IDR inside this two-second GOP.
+    assert.equal(vfs.store.has("/seg_001.ts"), false);
+    assert.match(new TextDecoder().decode(vfs.store.get("/index.m3u8")!), /#EXTINF:2\.000000,/);
 
     const rejoinRes = await runCmd(ffmpeg, ["-i", "/index.m3u8", "-c", "copy", "/rejoined.mp4"], vfs);
     assert.equal(rejoinRes.exitCode, 0);

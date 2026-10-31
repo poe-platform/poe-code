@@ -2590,7 +2590,7 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
     }
 }
 
-fn canonicalize_posix_path(
+pub(super) fn canonicalize_posix_path(
     raw: &str,
     mode: char,
     no_symlinks: bool,

@@ -13400,36 +13400,40 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut file_no = 0usize;
     let mut stdout = String::new();
 
-    let finish_piece = |piece: &mut Vec<u8>,
-                            open: &mut bool,
-                            created: &mut Vec<String>,
-                            f_no: &mut usize,
-                            out: &mut String| {
+    let input_path = (input_file != "-").then(|| resolve_posix_path(cwd, input_file));
+    let input_path = input_path.map(|path| super::fs::canonicalize_posix_path(&path, 'e', false, fs).unwrap_or(path));
+    let mut finish_piece = |piece: &mut Vec<u8>, open: &mut bool| -> Result<(), String> {
         if !*open {
-            return;
+            return Ok(());
         }
         *open = false;
         if elide && piece.is_empty() {
-            piece.clear();
-            return;
+            return Ok(());
         }
-        let suf = suffix_fn(*f_no);
-        *f_no += 1;
-        let fname = format!("{prefix}{suf}");
+        let fname = format!("{prefix}{}", suffix_fn(file_no));
         let full = resolve_posix_path(cwd, &fname);
-        let _ = fs.write_file(&full, piece);
-        created.push(full);
+        for (i, _) in full.match_indices('/').skip(1) {
+            match fs.lstat(&full[..i]) {
+                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Directory => {}
+                Ok(_) => return Err("csplit: unsafe output directory identity\n".into()),
+                Err(_) => return Err(format!("csplit: {fname}: No such file or directory\n")),
+            }
+        }
+        if fs.lstat(&full).is_ok_and(|st| st.kind != crate::vfs::VfsEntryKind::File) {
+            return Err(format!("csplit: unsafe output file '{fname}'\n"));
+        }
+        if input_path.as_ref() == Some(&full) {
+            return Err("csplit: output would overwrite the input file\n".into());
+        }
+        fs.write_file(&full, piece).map_err(|e| format!("csplit: {fname}: {e}\n"))?;
+        file_no += 1;
+        created_files.push(full);
         if !quiet {
-            out.push_str(&format!("{}\n", piece.len()));
+            stdout.push_str(&format!("{}\n", piece.len()));
         }
         piece.clear();
+        Ok(())
     };
-
-    let remove_line = |next_l: &mut usize, cur_l: &mut usize| -> Option<&'static str> {
-        let _ = (next_l, cur_l);
-        None
-    };
-    let _ = remove_line;
 
     let mut fail_msg: Option<String> = None;
     let mut forever_done = false;
@@ -13473,13 +13477,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                                 current_line = current_line.max(next_line);
                                 next_line += 1;
                             }
-                            finish_piece(
-                                &mut cur_piece,
-                                &mut piece_open,
-                                &mut created_files,
-                                &mut file_no,
-                                &mut stdout,
-                            );
+                            if let Err(err) = finish_piece(&mut cur_piece, &mut piece_open) {
+                                fail_msg = Some(err);
+                                break 'outer;
+                            }
                         }
                         forever_done = true;
                         break 'outer;
@@ -13522,13 +13523,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     }
                 }
                 if !pat.ignore {
-                    finish_piece(
-                        &mut cur_piece,
-                        &mut piece_open,
-                        &mut created_files,
-                        &mut file_no,
-                        &mut stdout,
-                    );
+                    if let Err(err) = finish_piece(&mut cur_piece, &mut piece_open) {
+                        fail_msg = Some(err);
+                        break 'outer;
+                    }
                 }
                 if pat.offset > 0 {
                     current_line = target as usize;
@@ -13554,13 +13552,10 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     next_line += 1;
                     cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(rem_l));
                 }
-                finish_piece(
-                    &mut cur_piece,
-                    &mut piece_open,
-                    &mut created_files,
-                    &mut file_no,
-                    &mut stdout,
-                );
+                if let Err(err) = finish_piece(&mut cur_piece, &mut piece_open) {
+                    fail_msg = Some(err);
+                    break 'outer;
+                }
                 if !suppress && current_line + 1 > lines.len() {
                     fail_msg = Some(format!(
                         "csplit: '{line_no}': line number out of range\n"
@@ -13577,41 +13572,25 @@ fn cmd_csplit(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         }
     }
 
-    if let Some(err) = fail_msg {
-        finish_piece(
-            &mut cur_piece,
-            &mut piece_open,
-            &mut created_files,
-            &mut file_no,
-            &mut stdout,
-        );
-        if !keep {
-            for f in &created_files {
-                let _ = fs.remove(f, false);
-            }
-        }
-        stderr.push_str(&err);
-        return BuiltinOutcome {
-            stdout,
-            stderr,
-            exit_code: 1,
-        };
-    }
-
-    if !forever_done {
+    if fail_msg.is_none() && !forever_done {
         piece_open = true;
         while next_line <= lines.len() {
             cur_piece.extend_from_slice(&crate::vfs::stream_string_to_bytes(lines[next_line - 1]));
             current_line = current_line.max(next_line);
             next_line += 1;
         }
-        finish_piece(
-            &mut cur_piece,
-            &mut piece_open,
-            &mut created_files,
-            &mut file_no,
-            &mut stdout,
-        );
+    }
+    if let Err(err) = finish_piece(&mut cur_piece, &mut piece_open) {
+        fail_msg = Some(err);
+    }
+    if let Some(err) = fail_msg {
+        if !keep {
+            for f in &created_files {
+                let _ = fs.remove(f, false);
+            }
+        }
+        stderr.push_str(&err);
+        return BuiltinOutcome { stdout, stderr, exit_code: 1 };
     }
 
     BuiltinOutcome {
@@ -21775,6 +21754,32 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn csplit_preserves_unsafe_outputs_and_rolls_back_completed_pieces() {
+        for keep in [false, true] {
+            let fs = MemoryVfs::new();
+            fs.write_file("/src", b"abc\ndef\n").unwrap();
+            fs.write_file("/other", b"preserve").unwrap();
+            fs.symlink("other", "/xx01").unwrap();
+            let mut flags = args(&["src", "2"]);
+            if keep { flags.insert(0, "-k".into()); }
+            let r = cmd_csplit(&flags, "", "/", &fs);
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "4\n", "csplit: unsafe output file 'xx01'\n"));
+            assert_eq!(fs.exists("/xx00"), keep);
+            assert_eq!(fs.read_file("/other").unwrap(), b"preserve");
+            assert_eq!(fs.readlink("/xx01").unwrap(), "other");
+        }
+        let fs = MemoryVfs::new();
+        fs.write_file("/xx00", b"a\nb\n").unwrap();
+        fs.symlink("xx00", "/alias").unwrap();
+        let r = cmd_csplit(&args(&["alias", "2"]), "", "/", &fs);
+        assert_eq!(r.stderr, "csplit: output would overwrite the input file\n");
+        assert_eq!(fs.read_file("/xx00").unwrap(), b"a\nb\n");
+        let r = cmd_csplit(&args(&["-f", "missing/x", "xx00", "2"]), "", "/", &fs);
+        assert_eq!(r.stderr, "csplit: missing/x00: No such file or directory\n");
+        assert!(!fs.exists("/missing"));
     }
 
     #[test]

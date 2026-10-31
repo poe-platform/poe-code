@@ -8051,10 +8051,12 @@ fn inspect_apply_patch_path(
     fs: &dyn SafeBashFs,
 ) -> Result<Option<crate::vfs::FileStat>, BuiltinOutcome> {
     let parts: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
-    if let Ok(root_st) = fs.lstat("/")
-        && root_st.kind == crate::vfs::VfsEntryKind::Symlink
-    {
+    let root_st = fs.lstat("/").map_err(|e| err_out(&format!("apply_patch: {e}\n"), 1))?;
+    if root_st.kind == crate::vfs::VfsEntryKind::Symlink {
         return Err(err_out("apply_patch: symlink paths are unsupported: /\n", 1));
+    }
+    if root_st.mode & 0o100 == 0 {
+        return Err(err_out(&format!("apply_patch: permission denied: {path}\n"), 1));
     }
     let mut cur = String::new();
     for (idx, seg) in parts.iter().enumerate() {
@@ -8062,7 +8064,8 @@ fn inspect_apply_patch_path(
         cur.push_str(seg);
         let st = match fs.lstat(&cur) {
             Ok(s) => s,
-            Err(_) => return Ok(None),
+            Err(e) if e.starts_with("ENOENT:") => return Ok(None),
+            Err(e) => return Err(err_out(&format!("apply_patch: {e}\n"), 1)),
         };
         if st.kind == crate::vfs::VfsEntryKind::Symlink {
             return Err(err_out(
@@ -8073,11 +8076,28 @@ fn inspect_apply_patch_path(
         if idx + 1 < parts.len() && st.kind != crate::vfs::VfsEntryKind::Directory {
             return Err(err_out(&format!("apply_patch: not a directory: {cur}\n"), 1));
         }
+        if idx + 1 < parts.len() && st.mode & 0o100 == 0 {
+            return Err(err_out(&format!("apply_patch: permission denied: {path}\n"), 1));
+        }
         if idx + 1 == parts.len() {
             return Ok(Some(st));
         }
     }
     Ok(None)
+}
+
+fn require_patch_write(path: &str, fs: &dyn SafeBashFs) -> Result<(), BuiltinOutcome> {
+    let mut target = path;
+    loop {
+        match fs.lstat(target) {
+            Ok(st) if st.mode & 0o200 != 0 => return Ok(()),
+            Ok(_) => return Err(err_out(&format!("apply_patch: permission denied: {target}\n"), 1)),
+            Err(e) if e.starts_with("ENOENT:") && target != "/" => {
+                target = target.rsplit_once('/').map(|(p, _)| p).filter(|p| !p.is_empty()).unwrap_or("/");
+            }
+            Err(e) => return Err(err_out(&format!("apply_patch: {e}\n"), 1)),
+        }
+    }
 }
 
 fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -8264,34 +8284,30 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
         return err_out("apply_patch: patch contains no file operations\n", 2);
     }
 
-    let mut seen_paths: Vec<String> = Vec::new();
-    for f in &parsed_files {
-        let mut check_list = vec![f.path.clone()];
-        if let Some(ref dest) = f.destination {
-            check_list.push(dest.clone());
-        }
-        for p in check_list {
-            for prev in &seen_paths {
-                if p == *prev
-                    || p.starts_with(&format!("{prev}/"))
-                    || prev.starts_with(&format!("{p}/"))
-                {
-                    return err_out("apply_patch: duplicate or conflicting patch paths\n", 2);
-                }
+    let mut paths = BTreeMap::new();
+    for (i, f) in parsed_files.iter().enumerate() {
+        for path in std::iter::once(&f.path).chain(f.destination.iter()) {
+            if paths.insert(path.clone(), i + 1).is_some() {
+                return err_out("apply_patch: duplicate or conflicting patch paths\n", 2);
             }
-            seen_paths.push(p);
         }
     }
-
+    for path in paths.keys() {
+        if path.match_indices('/').skip(1).any(|(i, _)| paths.contains_key(&path[..i])) {
+            return err_out("apply_patch: duplicate or conflicting patch paths\n", 2);
+        }
+    }
     let mut scopes = BTreeMap::new();
     let mut revisions = BTreeMap::new();
-    for path in seen_paths {
+    for (path, ordinal) in paths {
         let (scope, version) = match fs.patch_revision(&path) {
             Ok(v) => v, Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
         };
-        scopes.insert(path, scope);
+        scopes.insert(path, (scope, ordinal));
         revisions.entry(scope).or_insert(version);
     }
+    let mut identities = std::collections::BTreeSet::new();
+    let mut unreadable = None;
     let mut staged_ops = StagedPatchWrites::new();
     let mut summary_lines: Vec<String> = Vec::new();
 
@@ -8307,6 +8323,12 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                 &format!("apply_patch: target is not a regular file: {}\n", f.label),
                 1,
             );
+        }
+        if let Some(st) = &stat {
+            if let Some(id) = &st.identity && !identities.insert(id.clone()) {
+                return err_out("apply_patch: patch operations refer to the same backing entry\n", 1);
+            }
+            if st.mode & 0o400 == 0 && unreadable.is_none() { unreadable = Some(&f.path); }
         }
         if stat.is_none() && !matches!(f.kind, ApplyPatchFileKind::Add) {
             return err_out(&format!("apply_patch: missing target: {}\n", f.label), 1);
@@ -8324,6 +8346,17 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
                 );
             }
         }
+    }
+
+    for f in &parsed_files {
+        let target = if f.destination.is_some() || matches!(f.kind, ApplyPatchFileKind::Delete) {
+            crate::vfs::dirname_posix_path(&f.path)
+        } else { f.path.clone() };
+        if let Err(e) = require_patch_write(&target, fs) { return e; }
+        if let Some(dest) = &f.destination && let Err(e) = require_patch_write(dest, fs) { return e; }
+    }
+    if let Some(path) = unreadable {
+        return err_out(&format!("apply_patch: permission denied: {path}\n"), 1);
     }
 
     for f in parsed_files {
@@ -8509,11 +8542,19 @@ fn cmd_apply_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs)
     }
 
     for (path, data) in staged_ops {
-        let scope = scopes[&path];
+        let (scope, ordinal) = scopes[&path];
         let revision = revisions.get_mut(&scope).unwrap();
         match fs.patch_file(&path, data.as_deref(), (scope, *revision)) {
             Ok(new) => *revision = new,
-            Err(e) => return err_out(&format!("apply_patch: {e}\n"), 1),
+            Err(e) => {
+                let detail = match e.split_once(':').map(|(code, _)| code) {
+                    Some("ENOSPC") => format!("no space left on device: {path}"),
+                    Some("EFBIG") => format!("file too large: {path}"),
+                    Some("EACCES") => format!("permission denied: {path}"),
+                    _ => e,
+                };
+                return err_out(&format!("apply_patch: operation {ordinal}; prior changes may remain: {detail}\n"), 1);
+            }
         }
     }
 
@@ -10071,6 +10112,29 @@ mod tests {
         assert_eq!(patch("*** Update File: a/b/new\n*** Move to: dest").exit_code, 0);
         assert_eq!(fs.stat("/work/dest").unwrap().mode, 0o100666);
         assert!(!fs.exists("/work/a/b/new"));
+    }
+
+    #[test]
+    fn apply_patch_preflights_backing_entries_and_owner_permissions() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/d/file", b"old\n").unwrap();
+        fs.symlink("__hardlink__:/d/file", "/alias").unwrap();
+        let patch = |body: &str| cmd_apply_patch(&[], &format!("*** Begin Patch\n{body}\n*** End Patch"), "/", &fs);
+        let r = patch("*** Add File: d/file\n+new\n*** Delete File: alias");
+        assert_eq!(r.stderr, "apply_patch: patch operations refer to the same backing entry\n");
+        assert_eq!(fs.read_file("/alias").unwrap(), b"old\n");
+        fs.chmod("/d/file", 0o460).unwrap();
+        let r = patch("*** Add File: first\n+one\n*** Add File: d/file\n+two");
+        assert_eq!(r.stderr, "apply_patch: permission denied: /d/file\n");
+        assert!(!fs.exists("/first"));
+        fs.chmod("/d/file", 0o644).unwrap();
+        fs.chmod("/d", 0o555).unwrap();
+        assert_eq!(patch("*** Add File: d/file\n+old").exit_code, 0);
+        let r = patch("*** Add File: first\n+one\n*** Add File: d/file\n+changed");
+        assert_eq!(r.stderr, "apply_patch: operation 2; prior changes may remain: permission denied: /d/file\n");
+        assert_eq!(fs.read_file("/first").unwrap(), b"one\n");
+        assert_eq!(fs.read_file("/d/file").unwrap(), b"old\n");
+        assert_eq!(patch("*** Delete File: d/file").stderr, "apply_patch: permission denied: /d\n");
     }
 
     #[test]

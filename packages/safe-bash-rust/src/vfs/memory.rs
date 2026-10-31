@@ -547,11 +547,15 @@ impl SafeBashFs for MemoryVfs {
             || state.devices == Devices::Mounted || state.devices.entry(path).is_some() {
             return Err(format!("target is not a regular file: {path}"));
         }
+        let mut parent_mode = match state.nodes.get("/") {
+            Some(MemoryNode::Directory { mode, .. }) => *mode,
+            _ => return Err("missing VFS root".into()),
+        };
         let mut missing = Vec::new();
         for (i, _) in path.match_indices('/').skip(1) {
             let dir = &path[..i];
             match state.nodes.get(dir) {
-                Some(MemoryNode::Directory { .. }) => {}
+                Some(MemoryNode::Directory { mode, .. }) => { parent_mode = *mode; }
                 Some(_) => return Err(format!("not a directory: {dir}")),
                 None if state.devices.entry(dir) == Some("") => {}
                 None if state.devices.entry(dir).is_some() => return Err(format!("not a directory: {dir}")),
@@ -573,6 +577,7 @@ impl SafeBashFs for MemoryVfs {
             if matches!(state.nodes.get(&dest), Some(MemoryNode::File { data: old, .. }) if old == data) {
                 return Ok(expected.1);
             }
+            if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
             let needed = missing.len() + usize::from(!state.nodes.contains_key(&dest));
             if needed > state.limits.max_entries.saturating_sub(state.nodes.len()) {
                 return Err("ENOSPC: inode limit exceeded".into());
@@ -582,6 +587,7 @@ impl SafeBashFs for MemoryVfs {
                 state.nodes.insert(dir.to_owned(), MemoryNode::Directory { mode: 0o40777, mtime_ms: 1_700_000_000_000 });
             }
         } else {
+            if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
             if !state.nodes.contains_key(path) { return Err(format!("missing target: {path}")); }
             Self::unlink_locked(&mut state, path);
         }

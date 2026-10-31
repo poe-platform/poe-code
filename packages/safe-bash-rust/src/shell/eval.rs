@@ -8081,7 +8081,7 @@ impl<'a> EvalState<'a> {
             }
             if !self.is_fd_readable(fd_num) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { .. }) => {
+                    Some(FdTarget::File { path }) if path != "/dev/null" => {
                         return Ok(BuiltinOutcome {
                             stdout: String::new(),
                             stderr: String::new(),
@@ -8142,7 +8142,7 @@ impl<'a> EvalState<'a> {
         if !self.is_fd_readable(fd_num) && nchars != Some(0) {
             if effective_timeout.is_some_and(|t| t > 0.0) {
                 match self.fd_table.get(&fd_num) {
-                    Some(FdTarget::File { .. }) => {}
+                    Some(FdTarget::File { path }) if path != "/dev/null" => {}
                     Some(FdTarget::PipeStdout { peer_retired }) => {
                         timed_out = !*peer_retired;
                     }
@@ -16313,7 +16313,7 @@ printf 'badcmd=%d:%s\n' "$?" "$(cat e_badcmd)"
                 "",
             )
             .unwrap();
-        assert_eq!(r.stderr, "");
+        assert_eq!(r.stderr, "shell: line 11: read: descriptor readiness unavailable through this extension API\n");
         assert_eq!(r.exit_code, 0);
         assert_eq!(
             r.stdout,
@@ -16327,8 +16327,8 @@ printf 'badcmd=%d:%s\n' "$?" "$(cat e_badcmd)"
                 "t_ws=1:shell: line 8: read:  0: invalid timeout specification\n",
                 "r1=1:shell: line 9: read: descriptor readiness unavailable through this extension API\n",
                 "to1=1:shell: line 10: read: descriptor timeout observation unavailable through this extension API\n",
-                "null_t0=0\n",
-                "null_to=1:shell: line 11: read: 3: read error: Bad file descriptor\n",
+                "null_t0=1\n",
+                "null_to=1:shell: line 11: read: descriptor timeout observation unavailable through this extension API\n",
                 "pipe_fd3=yes\n",
                 "p_t0=1:<OLD>\n",
                 "p_to=142:<>\n",

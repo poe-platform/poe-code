@@ -1086,13 +1086,7 @@ impl<'a> EvalState<'a> {
                         .and_then(|s| s.parse::<u32>().ok())
                         .unwrap_or(0)
                         > 0;
-                    let code = if msg.starts_with("Syntax error:") {
-                        2
-                    } else if is_param_err && !is_subshell {
-                        127
-                    } else {
-                        1
-                    };
+                    let code = if is_param_err && !is_subshell { 127 } else { 1 };
                     last_code = code;
                     self.last_exit = code;
                     self.exit_requested = Some(code);
@@ -14830,6 +14824,25 @@ fn format_syntax_diagnostic(
     include_context: bool,
 ) -> String {
     let syn_msg = syn_msg.strip_prefix("__exit127__").unwrap_or(syn_msg);
+    if let Some(offset) = syn_msg.strip_prefix("Unsupported array-key operator at offset ")
+        && let Ok(offset) = offset.parse::<usize>()
+    {
+        if syntax_name == "shell: -c" {
+            return format!("shell: {syn_msg}\n");
+        }
+        let mut units = 0;
+        if let Some((pos, _)) = source.char_indices().find(|(_, c)| {
+            let here = units == offset;
+            units += c.len_utf16();
+            here
+        }) {
+            let line = diag_offset + 1 + source[..pos].bytes().filter(|&c| c == b'\n').count();
+            let src_line = source[..pos].rsplit('\n').next().unwrap_or("");
+            let rest = source[pos..].split('\n').next().unwrap_or("");
+            let token = rest.split_whitespace().next().unwrap_or(rest);
+            return format!("{syntax_name}: line {line}: syntax error near unexpected token `{token}'\n{syntax_name}: line {line}: `{src_line}{rest}'\n");
+        }
+    }
     if syn_msg.contains("unclosed single quote")
         || syn_msg.contains("unclosed double quote")
         || syn_msg.contains("unclosed backtick")

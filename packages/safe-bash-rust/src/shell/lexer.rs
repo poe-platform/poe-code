@@ -1350,6 +1350,19 @@ fn read_dollar_brace(
     out.push('$');
     out.push('{');
     *i += 2;
+    if chars.get(*i) == Some(&'!') {
+        let mut op = *i + 1;
+        while chars.get(op).is_some_and(|c| c.is_ascii_alphanumeric() || *c == '_') {
+            op += 1;
+        }
+        if op > *i + 1 && matches!(chars.get(op..op + 3), Some(['[', '@' | '*', ']'])) {
+            op += 3;
+            if chars.get(op).is_some_and(|c| !matches!(c, '}' | '@' | '\\')) {
+                let offset: usize = chars[..op].iter().map(|c| c.len_utf16()).sum();
+                return Err(format!("Unsupported array-key operator at offset {offset}"));
+            }
+        }
+    }
     let mut depth = 1usize;
     let mut in_sq = false;
     let mut in_dq = false;

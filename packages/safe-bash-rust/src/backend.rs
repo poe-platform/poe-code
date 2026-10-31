@@ -10,8 +10,8 @@ use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum BackendMode {
-    #[default]
     Hybrid,
+    #[default]
     NativeOnly,
     TypeScriptOnly,
 }

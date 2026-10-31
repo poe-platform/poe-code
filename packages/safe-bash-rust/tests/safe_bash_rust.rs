@@ -65,6 +65,15 @@ fn native_rust_fast_path_executes_builtins_and_updates_vfs_state() {
 }
 
 #[test]
+fn default_shell_does_not_replay_a_script_on_an_unknown_command() {
+    let (mut shell, vfs) = Shell::with_memory_fs();
+    let result = shell.exec("echo once >> /log; missing-command").unwrap();
+    assert_eq!(result.exit_code, 127);
+    assert!(!result.used_typescript_bridge);
+    assert_eq!(vfs.read_file("/log").unwrap(), b"once\n");
+}
+
+#[test]
 fn custom_rust_commands_execute_with_shared_vfs() {
     let (mut shell, vfs) = Shell::with_memory_fs();
     shell.register_command(

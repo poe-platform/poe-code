@@ -10,7 +10,7 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 | Capability | Description |
 | --- | --- |
-| `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) with `BackendMode::{Hybrid, NativeOnly, TypeScriptOnly}` |
+| `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) using native Rust by default; select `BackendMode::Hybrid` or `TypeScriptOnly` explicitly for the Node bridge |
 | `createRustWasmBash` | Node.js loader for the zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell |
 | `MemoryVfs` / `OverlayVfs` / `MountVfs` | In-memory VFS with quota limits, Copy-on-Write overlays, and path-routed virtual mounts (`/dev`) |
 | `ShellLimits` | Bounded loop iterations, command count, recursion depth, output bytes, and filesystem operations |

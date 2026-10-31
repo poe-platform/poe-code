@@ -4717,10 +4717,10 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
-        // These native command shims contain metadata-only writers, not media
-        // codecs. Run the real implementation once, at this command boundary.
+        // These native command shims contain placeholder document/media writers.
+        // Run the real implementation once, at this command boundary.
         if matches!(effective_cmd,
-            "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf"
+            "pandoc" | "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf"
             | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts"
             | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo"
             | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox"
@@ -4728,7 +4728,7 @@ impl<'a> EvalState<'a> {
             | "montage" | "compare" | "sips" | "exiftool" | "identify")
         {
             if !self.allow_unported_fallback {
-                return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; native media processing is unavailable\n"), exit_code: 1 });
+                return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; native document/media processing is unavailable\n"), exit_code: 1 });
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
             let script = std::iter::once(effective_cmd).chain(args.iter().map(String::as_str))

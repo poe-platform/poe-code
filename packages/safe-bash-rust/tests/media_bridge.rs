@@ -76,3 +76,32 @@ fn image_pipes_preserve_binary_bytes_across_the_bridge() {
         assert!(result.used_typescript_bridge);
     }
 }
+
+#[test]
+fn hybrid_pandoc_writes_wordprocessingml_and_reads_document_content() {
+    let (mut shell, fs) = fixture(BackendMode::Hybrid);
+    fs.write_file("/work/guide.md", b"# Welcome\n\nMeet Maya at 09:00.\n").unwrap();
+    let result = shell.exec("pandoc guide.md -f markdown -t docx -o guide.docx").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let document = shell.exec("unzip -p guide.docx word/document.xml").unwrap();
+    assert!(document.stdout.contains("http://schemas.openxmlformats.org/wordprocessingml/2006/main"), "{}", document.stdout);
+    assert!(document.stdout.contains("Meet Maya at 09:00."));
+    let relationships = shell.exec("unzip -p guide.docx _rels/.rels").unwrap();
+    assert!(relationships.stdout.contains("relationships/officeDocument"), "{}", relationships.stderr);
+    let text = shell.exec("pandoc guide.docx -t plain").unwrap();
+    assert_eq!(text.exit_code, 0, "{}", text.stderr);
+    assert!(text.stdout.contains("Welcome") && text.stdout.contains("Meet Maya at 09:00."), "{}", text.stdout);
+    assert!(result.used_typescript_bridge && text.used_typescript_bridge);
+}
+
+#[test]
+fn native_only_pandoc_preserves_existing_document() {
+    let (mut shell, fs) = fixture(BackendMode::NativeOnly);
+    fs.write_file("/work/guide.md", b"# Welcome\n").unwrap();
+    fs.write_file("/work/guide.docx", b"existing document").unwrap();
+    let result = shell.exec("pandoc guide.md -o guide.docx").unwrap();
+    assert_ne!(result.exit_code, 0);
+    assert!(result.stderr.contains("TypeScript"));
+    assert_eq!(fs.read_file("/work/guide.docx").unwrap(), b"existing document");
+    assert!(!result.used_typescript_bridge);
+}

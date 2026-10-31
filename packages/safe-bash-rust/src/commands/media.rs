@@ -13063,8 +13063,8 @@ mod media_unit_tests {
     fn reads_page_tree_and_text_from_classic_pdf_objects() {
         let objects = [
             "<< /Type /Catalog /Pages 2 0 R >>",
-            "<< /Type /Pages /Count 2 /Kids [4 0 R 3 0 R] /MediaBox [0 0 300 400] >>",
-            "<< /Type /Page /Parent 2 0 R /Contents 6 0 R >>",
+            "<< /Type /Pages /Count 2 /Kids [4 0 R 3 0 R] /MediaBox [0 0 300 400] /CropBox [5 6 205 306] /Rotate 90 >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 6 0 R /Rotate 0 /CropBox [0 0 10 20] >>",
             "<< /Type /Page /Parent 2 0 R /Contents 5 0 R >>",
             "<< /Length 25 >>\nstream\nBT (first \\(page\\)) Tj ET\nendstream",
             "<< /Length 24 >>\nstream\nBT [(sec) 0 (ond)] TJ ET\nendstream",
@@ -13085,6 +13085,10 @@ mod media_unit_tests {
         assert_eq!(doc.pages.len(), 2);
         assert_eq!(doc.pages[0].text, "first (page)");
         assert_eq!(doc.pages[1].text, "second");
+        assert_eq!(doc.pages[0].rot, 90);
+        assert_eq!(doc.pages[1].rot, 0);
+        assert_eq!(doc.page_media[&1].2, Some([5., 6., 205., 306.]));
+        assert_eq!(doc.page_media[&2].2, Some([0., 0., 10., 20.]));
     }
 
     #[test]

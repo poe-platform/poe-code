@@ -28,6 +28,16 @@ impl<'a> Value<'a> {
     fn number(&self) -> Option<f64> {
         std::str::from_utf8(self.word()?).ok()?.parse().ok()
     }
+    fn rectangle(&self) -> Option<[f64; 4]> {
+        let Self::Array(items) = self else {
+            return None;
+        };
+        let [x0, y0, x1, y1] = items.as_slice() else {
+            return None;
+        };
+        let rect = [x0.number()?, y0.number()?, x1.number()?, y1.number()?];
+        rect.iter().all(|v| v.is_finite()).then_some(rect)
+    }
     fn reference(&self) -> Option<ObjectId> {
         match self {
             Self::Ref(r) => Some(*r),
@@ -409,21 +419,33 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
     let mut pending = vec![(
         catalog.get(b"Pages")?.reference()?,
         [0.0, 0.0, 612.0, 792.0],
+        None,
+        0,
     )];
     let mut seen = BTreeSet::new();
-    while let Some((id, mut media)) = pending.pop() {
+    while let Some((id, mut media, mut crop, mut rotation)) = pending.pop() {
         if !seen.insert(id) {
             return None;
         }
         let node = objects.object(id)?.0;
-        if let Some(Value::Array(rect)) = node.get(b"MediaBox") {
-            if rect.len() != 4 {
-                return None;
+        for key in [b"MediaBox".as_slice(), b"CropBox", b"Rotate"] {
+            let Some(mut value) = node.get(key) else {
+                continue;
+            };
+            let resolved;
+            if let Some(id) = value.reference() {
+                resolved = objects.object(id)?.0;
+                value = &resolved;
             }
-            for (v, n) in rect.iter().zip(&mut media) {
-                *n = std::str::from_utf8(v.word()?).ok()?.parse::<f64>().ok()?;
-                if !n.is_finite() {
-                    return None;
+            match key {
+                b"MediaBox" => media = value.rectangle()?,
+                b"CropBox" => crop = Some(value.rectangle()?),
+                _ => {
+                    rotation = std::str::from_utf8(value.word()?)
+                        .ok()?
+                        .parse::<i32>()
+                        .ok()?
+                        .rem_euclid(360)
                 }
             }
         }
@@ -433,11 +455,14 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
                     return None;
                 };
                 for kid in kids.iter().rev() {
-                    pending.push((kid.reference()?, media));
+                    pending.push((kid.reference()?, media, crop, rotation));
                 }
             }
             b"/Page" => {
-                let mut page = PdfPage::default();
+                let mut page = PdfPage {
+                    rot: rotation,
+                    ..Default::default()
+                };
                 match node.get(b"Contents") {
                     Some(Value::Ref(r)) => page.text = objects.stream_text(*r)?,
                     Some(Value::Array(streams)) => {
@@ -457,7 +482,7 @@ pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
                     doc.page_h = h;
                 }
                 doc.pages.push(page);
-                doc.page_media.insert(doc.pages.len(), (w, h, None));
+                doc.page_media.insert(doc.pages.len(), (w, h, crop));
             }
             _ => return None,
         }
@@ -474,6 +499,9 @@ mod tests {
         let stream = b"BT /F1 10 Tf 1 0 0 1 50 120 Tm (one) Tj ET
             BT 1 0 0 1 50 108 Tm (two) Tj ET
             BT 1 0 0 1 50 84 Tm (three) Tj 0 -12 Td (four) Tj ET";
-        assert_eq!(content_text(stream, &mut 1000).unwrap(), "one\ntwo\n\nthree\nfour");
+        assert_eq!(
+            content_text(stream, &mut 1000).unwrap(),
+            "one\ntwo\n\nthree\nfour"
+        );
     }
 }

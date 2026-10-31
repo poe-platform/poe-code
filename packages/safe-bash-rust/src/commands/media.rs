@@ -13189,6 +13189,23 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn merge_wide_page_tree_with_shared_inherited_geometry() {
+        let count = 1024;
+        let kids = (3..count+3).map(|n| format!("{n} 0 R")).collect::<Vec<_>>().join(" ");
+        let tree = format!("<< /Type /Pages /Count {count} /Kids [{kids}] /MediaBox [4 6 304 416] >>");
+        let mut objects = vec!["<< /Type /Catalog /Pages 2 0 R >>", &tree];
+        objects.resize(count + 2, "<< /Type /Page /Parent 2 0 R >>");
+        let pdf = classic_pdf(&objects, "");
+        let mut source = pdf_reader::PageSource::open(pdf.as_bytes()).unwrap();
+        let mut dest = pdf_reader::PageOutput::new(1024*1024);
+        dest.append(&mut source, 0..count).expect("copy every page");
+        let bytes = dest.finish().unwrap();
+        let merged = pdf_reader::read(&bytes).unwrap();
+        assert_eq!(merged.pages.len(), count);
+        assert_eq!(merged.page_media[&count], (300., 410., None));
+    }
+
+    #[test]
     fn reads_page_tree_and_text_from_classic_pdf_objects() {
         let objects = [
             "<< /Type /Catalog /Pages 2 0 R >>",

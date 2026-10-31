@@ -8,6 +8,7 @@ pub(super) use pdf_copy::{PageOutput, PageSource};
 
 type ObjectId = (usize, usize);
 
+#[derive(Clone)]
 enum Value<'a> {
     Word(&'a [u8]),
     String(Vec<u8>),

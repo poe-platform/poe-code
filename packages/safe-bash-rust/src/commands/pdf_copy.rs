@@ -6,7 +6,7 @@ use std::io::Write;
 pub(in super::super) struct PageSource<'a> {
     objects: Objects<'a>,
     pages: Vec<ObjectId>,
-    tree: BTreeSet<ObjectId>,
+    tree: BTreeMap<ObjectId, Option<Value<'a>>>,
     info: Value<'a>,
 }
 
@@ -16,10 +16,10 @@ impl<'a> PageSource<'a> {
         let root = trailer.get(b"Root")?.reference()?;
         let catalog = objects.object(root)?.0;
         let mut pending = vec![catalog.get(b"Pages")?.reference()?];
-        let mut tree = BTreeSet::from([root]);
+        let mut tree = BTreeMap::from([(root, None)]);
         let mut pages = Vec::new();
         while let Some(id) = pending.pop() {
-            if !tree.insert(id) {
+            if tree.insert(id, None).is_some() {
                 return None;
             }
             let node = objects.object(id)?.0;
@@ -32,6 +32,17 @@ impl<'a> PageSource<'a> {
                     for kid in kids.iter().rev() {
                         pending.push(kid.reference()?);
                     }
+                    // Keep inheritable attributes, but never rescan a parent's Kids array per page.
+                    let Value::Dict(mut fields) = node else {
+                        return None;
+                    };
+                    fields.retain(|(key, _)| {
+                        matches!(
+                            *key,
+                            b"Parent" | b"MediaBox" | b"Resources" | b"Rotate" | b"CropBox"
+                        )
+                    });
+                    tree.insert(id, Some(Value::Dict(fields)));
                 }
                 _ => return None,
             }
@@ -159,7 +170,7 @@ impl PageOutput {
 
 struct Copy<'c, 'a> {
     objects: &'c mut Objects<'a>,
-    tree: &'c BTreeSet<ObjectId>,
+    tree: &'c BTreeMap<ObjectId, Option<Value<'a>>>,
     ids: BTreeMap<ObjectId, usize>,
     output: &'c mut PageOutput,
 }
@@ -177,16 +188,14 @@ impl<'a> Copy<'_, 'a> {
             if !seen.insert(id) || seen.len() > 128 {
                 return None;
             }
-            let ancestor = self.objects.object(id)?.0;
+            let ancestor = self.tree.get(&id)?.as_ref()?;
             parent = ancestor.get(b"Parent").and_then(Value::reference);
             let Value::Dict(fields) = ancestor else {
                 return None;
             };
             for (k, v) in fields {
-                if matches!(k, b"MediaBox" | b"Resources" | b"Rotate" | b"CropBox")
-                    && !entries.iter().any(|(key, _)| *key == k)
-                {
-                    entries.push((k, v));
+                if *k != b"Parent" && !entries.iter().any(|(key, _)| key == k) {
+                    entries.push((*k, v.clone()));
                 }
             }
         }
@@ -251,7 +260,7 @@ impl<'a> Copy<'_, 'a> {
             Value::Ref(id) => {
                 if let Some(n) = self.ids.get(id) {
                     write!(out, "{n} 0 R").ok()?;
-                } else if self.tree.contains(id) {
+                } else if self.tree.contains_key(id) {
                     out.extend_from_slice(b"null");
                 } else {
                     let n = self.output.bodies.len() + 1;

@@ -261,7 +261,6 @@ fn adts_track<'a>(
     input: &'a [u8],
     opts: &Options,
     movie_scale: u32,
-    filters: &[&str],
     index_bytes: &mut usize,
 ) -> Result<Track<'a>, &'static str> {
     let mut frames = Frames::new(input);
@@ -300,66 +299,18 @@ fn adts_track<'a>(
         s.duration = base.min(end) - dts;
         true
     });
-    let mut media_ticks = samples.iter().map(|s| s.duration).sum();
-    let mut movie_ticks = end.saturating_sub(start);
-    let mut rate = scale;
-    let mut channels = u32::from(frames.channels);
-    let mut object = frames.object;
-    let mut volume = 1.;
-    if opts.clear_samples {
-        let mut tempo = 1.;
-        for f in filters.iter().flat_map(|f| f.split(',')).map(str::trim) {
-            if let Some(s) = f.strip_prefix("atempo=") {
-                tempo *= s.parse::<f64>().unwrap_or(1.).clamp(0.25, 4.)
-            }
-            if let Some(s) = f.strip_prefix("volume=") {
-                volume *= if let Some(db) = s.strip_suffix("dB") {
-                    10f64.powf(db.parse::<f64>().unwrap_or(0.) / 20.)
-                } else {
-                    s.parse::<f64>().ok().filter(|v| *v != 0.).unwrap_or(1.)
-                }
-            }
-        }
-        let duration = if movie_ticks == 0 {
-            1.
-        } else {
-            f64::from(movie_ticks) / f64::from(scale)
-        };
-        rate = opts.rate.unwrap_or(scale);
-        channels = opts.channels.unwrap_or(channels);
-        object = 2;
-        let ticks = (duration.max(0.05) / tempo * f64::from(rate))
-            .round()
-            .max(1.) as u64;
-        let n = ticks.div_ceil(1024);
-        if n > 200_000 || n > available as u64 {
-            return Err("sample index exceeds memory budget");
-        }
-        let data = super::super::adts::silent(channels);
-        samples = (0..n)
-            .map(|i| Sample {
-                data: data.into(),
-                duration: (ticks - i * 1024).min(1024) as u32,
-                cts: 0,
-                key: true,
-                description: 1,
-            })
-            .collect();
-        media_ticks = ticks as u32;
-        if skip == 0 {
-            movie_ticks = (ticks as f64 * f64::from(scale) / f64::from(rate)).round() as u32;
-        }
-    }
+    let media_ticks = samples.iter().map(|s| s.duration).sum();
+    let movie_ticks = end.saturating_sub(start);
     *index_bytes += samples.capacity() * size_of::<Sample>();
     let movie_ticks =
         (f64::from(movie_ticks) * f64::from(movie_scale) / f64::from(scale)).round() as u32;
     Ok(Track {
         samples,
-        scale: rate,
+        scale,
         media_ticks,
         movie_ticks,
         first_dts: 0,
-        stsd: audio_entry(rate, channels, object).into(),
+        stsd: audio_entry(scale, frames.channels.into(), frames.object).into(),
         edits: if skip != 0 {
             vec![[movie_ticks, skip, 65536]]
         } else {
@@ -367,7 +318,7 @@ fn adts_track<'a>(
         },
         kind: "audio",
         enabled: true,
-        volume: (volume * 256.).round() as i32 as u32,
+        volume: 256,
         matrix: MATRIX,
         width: 0,
         height: 0,
@@ -776,17 +727,11 @@ pub(in super::super) fn remux(
     }
     let mut tracks = Vec::new();
     let mut index_bytes = 0usize;
-    for (j, i) in selected {
+    for &(j, i) in &selected {
         let (input, _, source) = &sources[j];
         let (t, trak) = match source {
             Streams::Aac { .. } => {
-                tracks.push(adts_track(
-                    input,
-                    &audio,
-                    scale,
-                    opts.audio_filters,
-                    &mut index_bytes,
-                )?);
+                tracks.push(adts_track(input, &audio, scale, &mut index_bytes)?);
                 continue;
             }
             Streams::Mp4(v) => &v[i],
@@ -1007,6 +952,92 @@ pub(in super::super) fn remux(
             handler,
             name,
         });
+    }
+    if audio.clear_samples {
+        for (track, (j, i)) in tracks.iter_mut().zip(selected) {
+            if track.kind != "audio" {
+                continue;
+            }
+            let (rate, channels) = match &sources[j].2 {
+                Streams::Mp4(v) => (v[i].0.audio_rate(), u32::from(v[i].0.channels())),
+                Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
+                Streams::Captions(_) => continue,
+            };
+            // Slicing can keep a partial first packet hidden by an edit list.
+            let duration = if range.is_none() {
+                sources[j].2.seconds(i)
+            } else if track.edits.is_empty() {
+                f64::from(track.media_ticks) / f64::from(track.scale)
+            } else {
+                (f64::from(track.movie_ticks) * f64::from(track.scale) / f64::from(scale)).round()
+                    / f64::from(track.scale)
+            };
+            let seconds = if duration == 0. {
+                f64::from(rate) / f64::from(track.scale)
+            } else {
+                duration
+            };
+            let mut tempo = 1.;
+            let mut volume = f64::from(track.volume as i16) / 256.;
+            for f in opts
+                .audio_filters
+                .iter()
+                .flat_map(|f| f.split(','))
+                .map(str::trim)
+            {
+                if let Some(s) = f.strip_prefix("atempo=") {
+                    tempo *= s
+                        .trim()
+                        .parse::<f64>()
+                        .ok()
+                        .filter(|v| *v != 0. && !v.is_nan())
+                        .unwrap_or(1.)
+                        .clamp(0.25, 4.);
+                }
+                if let Some(s) = f.strip_prefix("volume=") {
+                    let s = s.trim();
+                    volume *= if let Some(db) = s.strip_suffix("dB") {
+                        10f64.powf(db.parse::<f64>().unwrap_or(0.) / 20.)
+                    } else {
+                        s.parse::<f64>().ok().filter(|v| *v != 0.).unwrap_or(1.)
+                    }
+                }
+            }
+            let rate = opts.rate.unwrap_or(rate);
+            let channels = opts.channels.unwrap_or(channels);
+            let ticks = (seconds.max(0.05) / tempo * f64::from(rate))
+                .round()
+                .max(1.) as u64;
+            let count = ticks.div_ceil(1024);
+            index_bytes =
+                index_bytes.saturating_sub(track.samples.capacity() * size_of::<Sample>());
+            track.samples = Vec::new();
+            if count > 200_000
+                || count > (opts.limit.saturating_sub(index_bytes) / size_of::<Sample>()) as u64
+            {
+                return Err("sample index exceeds memory budget".into());
+            }
+            let data = super::super::adts::silent(channels);
+            track.samples = (0..count)
+                .map(|i| Sample {
+                    data: data.into(),
+                    duration: (ticks - i * 1024).min(1024) as u32,
+                    cts: 0,
+                    key: true,
+                    description: 1,
+                })
+                .collect();
+            index_bytes += track.samples.capacity() * size_of::<Sample>();
+            track.scale = rate;
+            track.media_ticks = ticks as u32;
+            if track.edits.is_empty() {
+                track.movie_ticks =
+                    (ticks as f64 * f64::from(scale) / f64::from(rate)).round() as u32;
+            }
+            track.volume = (volume * 256.).round() as i32 as u32;
+            track.first_dts = 0;
+            track.stsd = audio_entry(rate, channels, 2).into();
+        }
     }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();

@@ -4627,7 +4627,7 @@ fn cmd_media_doc(
                         else if real_mp4{mp4::decode_y4m(bytes,opts)}
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output || audio_output) && supported && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_output || format==Some("aac") && inputs.len()==1 || audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
+                } else if (mp4_output || subtitle_output || audio_output) && supported && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()){
                     let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
@@ -12954,6 +12954,16 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_rewrites_mp4_audio_sample_rate_channels_and_duration() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/movie.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let run=|cmd,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        let r=run("ffmpeg",&["-i","movie.mp4","-vn","-ar","48000","-ac","1","audio.mp4"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        assert_eq!(run("ffprobe",&["-show_entries","stream=sample_rate,channels,duration,nb_frames","-of","csv=p=0","audio.mp4"]).stdout,"48000,1,0.750000,36\n");
     }
 
     #[test]

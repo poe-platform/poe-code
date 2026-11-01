@@ -1,3 +1,6 @@
+#[path = "h264.rs"]
+mod h264;
+
 // Atom lengths include their own header. A zero length occupies the remainder of
 // its parent; extended lengths include the extra eight bytes used for the size.
 fn spans(mut bytes: &[u8]) -> impl Iterator<Item = (usize, &[u8; 4], &[u8])> {
@@ -378,6 +381,8 @@ struct Track<'a> {
     origin: u64,
     tag: &'a [u8; 4],
     audio: Option<AudioConfig>,
+    sequence: Option<h264::Sequence>,
+    sar: (u32, u32),
     entry: &'a [u8],
     width: u32,
     height: u32,
@@ -447,6 +452,39 @@ impl<'a> Track<'a> {
         let (tag, entry) = atoms(stsd.get(8..).unwrap_or_default())
             .next()
             .unwrap_or((if kind == "video" { b"avc1" } else { b"mp4a" }, &[]));
+        let mut sequence = None;
+        let mut sar = (1, 1);
+        if matches!(
+            tag,
+            b"avc1"
+                | b"avc3"
+                | b"hvc1"
+                | b"hev1"
+                | b"av01"
+                | b"vp09"
+                | b"vp08"
+                | b"mp4v"
+                | b"jpeg"
+                | b"mjpa"
+                | b"png "
+                | b"s263"
+        ) {
+            for (k, body) in atoms(entry.get(78..).unwrap_or_default()) {
+                match k {
+                    b"avcC" if body.get(5).is_some_and(|v| v & 31 != 0) && body.len() >= 8 => {
+                        let sps = &body[8..(8 + usize::from(u16_at(body, 6))).min(body.len())];
+                        if let Some(s) = h264::Sequence::parse(sps) {
+                            sar = s.sar;
+                            sequence = Some(s)
+                        }
+                    }
+                    b"pasp" if body.len() >= 8 => {
+                        sar = (u32_at(body, 0).max(1), u32_at(body, 4).max(1))
+                    }
+                    _ => {}
+                }
+            }
+        }
         let audio = if kind == "audio" {
             let offset = match u16_at(entry, 8) {
                 1 => 44,
@@ -572,11 +610,15 @@ impl<'a> Track<'a> {
             (header_duration as f64 * f64::from(scale) / f64::from(movie_scale)).round() as u64
         };
         let width = match fixed(dims) {
-            0 if kind == "video" => u32::from(u16_at(entry, 24)),
+            0 if kind == "video" => sequence
+                .as_ref()
+                .map_or(u32::from(u16_at(entry, 24)), |s| s.width),
             v => v,
         };
         let height = match fixed(dims + 4) {
-            0 if kind == "video" => u32::from(u16_at(entry, 26)),
+            0 if kind == "video" => sequence
+                .as_ref()
+                .map_or(u32::from(u16_at(entry, 26)), |s| s.height),
             v => v,
         };
         Ok(Self {
@@ -588,6 +630,8 @@ impl<'a> Track<'a> {
             origin,
             tag,
             audio,
+            sequence,
+            sar,
             entry,
             width,
             height,
@@ -730,7 +774,14 @@ impl<'a> Track<'a> {
             }
             if self.kind == "video" {
                 r.extend([
-                    ("pix_fmt", Str("yuv420p".into())),
+                    (
+                        "pix_fmt",
+                        Str(self
+                            .sequence
+                            .as_ref()
+                            .map_or("yuv420p", |s| s.pix_fmt)
+                            .into()),
+                    ),
                     ("pict_type", Str(if s.key { "I" } else { "P" }.into())),
                 ])
             }
@@ -765,19 +816,8 @@ impl<'a> Track<'a> {
                 .into()),
             ))
         }
-        if codec == "h264" && avc.len() >= 11 && avc[5] & 31 != 0 && u16_at(avc, 6) >= 3 {
-            let profile = match avc[9] {
-                66 if avc[10] & 64 != 0 => "Constrained Baseline".into(),
-                66 => "Baseline".into(),
-                77 => "Main".into(),
-                88 => "Extended".into(),
-                100 => "High".into(),
-                110 => "High 10".into(),
-                122 => "High 4:2:2".into(),
-                244 => "High 4:4:4 Predictive".into(),
-                v => format!("Profile {v}"),
-            };
-            r.push(("profile", Str(profile)));
+        if let Some(s) = &self.sequence {
+            r.push(("profile", Str(s.profile.clone())));
         }
         r.extend([
             ("codec_type", Str(self.kind.into())),
@@ -805,22 +845,17 @@ impl<'a> Track<'a> {
             r.push(("height", Number(h.into())))
         }
         if w != 0 {
-            r.push(("coded_width", Number((w.div_ceil(16) * 16).into())))
+            r.push(("coded_width", Number(f64::from(w.div_ceil(16)) * 16.)))
         }
         if h != 0 {
-            r.push(("coded_height", Number((h.div_ceil(16) * 16).into())))
+            r.push(("coded_height", Number(f64::from(h.div_ceil(16)) * 16.)))
         }
         if self.kind == "video" {
-            let pasp = child(children, b"pasp");
             r.extend([
                 ("has_b_frames", Number(f64::from(self.stats.b_frames))),
                 (
                     "sample_aspect_ratio",
-                    Str(format!(
-                        "{}:{}",
-                        u32_at(pasp, 0).max(1),
-                        u32_at(pasp, 4).max(1)
-                    )),
+                    Str(format!("{}:{}", self.sar.0, self.sar.1)),
                 ),
             ]);
             if w != 0 && h != 0 {
@@ -829,7 +864,14 @@ impl<'a> Track<'a> {
                     Str(media_probe::ratio(w.into(), h.into(), ':')),
                 ))
             }
-            r.push(("pix_fmt", Str("yuv420p".into())));
+            r.push((
+                "pix_fmt",
+                Str(self
+                    .sequence
+                    .as_ref()
+                    .map_or("yuv420p", |s| s.pix_fmt)
+                    .into()),
+            ));
             if let Some(level) = avc.get(3) {
                 r.push(("level", Number((*level).into())))
             }

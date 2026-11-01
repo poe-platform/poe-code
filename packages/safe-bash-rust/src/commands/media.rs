@@ -12886,6 +12886,18 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffprobe_uses_cropped_h264_dimensions_when_track_header_has_none() {
+        let fs=MemoryVfs::new();let mut mp4=include_bytes!("../../tests/fixtures/av.mp4").to_vec();
+        let tk=mp4.windows(4).position(|s|s==b"tkhd").unwrap()+4;
+        mp4[tk+76..tk+84].fill(0);
+        let avc=tk+mp4[tk..].windows(4).position(|s|s==b"avc1").unwrap()+4;
+        mp4[avc+24..avc+28].copy_from_slice(&[0,32,0,48]);
+        fs.write_file("/av.mp4",&mp4).unwrap();
+        let r=cmd_media_doc("ffprobe",&media_args(&["-select_streams","v","-show_entries","stream=width,height,sample_aspect_ratio,pix_fmt","-of","csv=p=0","av.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"6,4,1:1,yuv420p\n");
+    }
+
+    #[test]
     fn ffprobe_and_ffmpeg_use_the_mp4_decoder_specific_audio_config() {
         let fs=MemoryVfs::new();let mut mp4=include_bytes!("../../tests/fixtures/av.mp4").to_vec();
         // Change the AAC AudioSpecificConfig to HE-AAC, 48 kHz, mono; leave stsd stereo.

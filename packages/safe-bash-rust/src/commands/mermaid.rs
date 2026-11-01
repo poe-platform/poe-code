@@ -677,7 +677,7 @@ pub(super) fn layout(
     theme: &str,
     prefix: &str,
     title: Option<&str>,
-    rank_gap: f64,
+    gaps: (f64, f64),
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let Flowchart {
@@ -709,7 +709,7 @@ pub(super) fn layout(
         }
     }
     let (mut width, mut height) = match ranks::place(
-        &mut nodes, &edges, &groups, horizontal, reversed, rank_gap, limit,
+        &mut nodes, &edges, &groups, horizontal, reversed, gaps, limit,
     ) {
         Some(bounds) => bounds,
         None => return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into())),
@@ -717,7 +717,7 @@ pub(super) fn layout(
     let Some(group_order) = groups::place(&mut groups, &mut nodes, limit) else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
-    if (!groups.is_empty() || (!horizontal && rank_gap < 24.))
+    if (!groups.is_empty() || (!horizontal && gaps.0 < 24.))
         && let Err(error) = groups::verify_nodes(&nodes, horizontal, limit)
     {
         return Some(Err(error));

@@ -29195,6 +29195,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut wrapping_width = 200.;
     let mut rank_gap = None;
     let mut rank_spacing = 56.;
+    let mut node_gap = None;
+    let mut node_spacing = 32.;
     let mut cfg_theme: Option<String> = None;
     let mut cfg_width: Option<u32> = None;
     let mut cfg_height: Option<u32> = None;
@@ -29326,7 +29328,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 },
                 "rankGap" | "nodeGap" | "padding" => match v {
                     JVal::Number(n) if n.is_finite() && *n > 0.0 => {
-                        if k == "rankGap" {rank_gap = Some(*n);}
+                        match k.as_str() {
+                            "rankGap" => rank_gap = Some(*n),
+                            "nodeGap" => node_gap = Some(*n),
+                            _ => {}
+                        }
                     }
                     _ => {
                         return err_out(
@@ -29348,6 +29354,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                 match fk.as_str() {
                                     "wrappingWidth" => wrapping_width = *n,
                                     "rankSpacing" => rank_spacing = *n,
+                                    "nodeSpacing" => node_spacing = *n,
                                     _ => {}
                                 }
                             } else {
@@ -29688,7 +29695,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         acc_title = pie.title.clone();
         Some(pie.layout(&resolved_theme))
     } else if let Some(graph) = flow {
-        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), rank_gap.unwrap_or(rank_spacing), limit) {
+        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (rank_gap.unwrap_or(rank_spacing),node_gap.unwrap_or(node_spacing)), limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -38298,9 +38305,12 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
-    fn mmdc_spaces_ranks_using_the_configured_gap() {
+    fn mmdc_spaces_ranks_and_their_nodes_using_the_configured_gaps() {
         let fs=MemoryVfs::new();
         for (source,config,hash) in [
+            ("flowchart TD; A;B;C",r#"{"nodeGap":43.25}"#,"0b3531a28668719c35f1421ce21c753ae1f4e7185d20c0e73c06bb7c9adf1c93"),
+            ("flowchart BT; A-->B & C; B & C --> D",r#"{"flowchart":{"nodeSpacing":129}}"#,"b8ed208db57d9aa97ca012f696dc6f737330c7b863ad3113210bf70324915d4b"),
+            ("flowchart LR; A{Long decision}-->B & C & D; B-->E; D-->F",r#"{"nodeGap":89,"flowchart":{"nodeSpacing":20}}"#,"eca2ad94a1cc5e681105d65a9ebbc749232eebb8f30b89effe55c31af4b48951"),
             ("flowchart TD; A-->B-->C-->D",r#"{"rankGap":43.25}"#,"ba0ce444f678a96d362271d43c49df9ff1d6b784c803569d8ae96e32946453ef"),
             ("flowchart BT; subgraph Ship; A-->B; end; B-->|next|C-->D",r#"{"flowchart":{"rankSpacing":129}}"#,"2e0d731932e6658202e3ae72efd3e477e54f088ffaf1cc97cc89a7857305f14a"),
             ("flowchart LR; A-->B & C; B & C --> D",r#"{"rankGap":89,"flowchart":{"rankSpacing":20}}"#,"b93d83023d5f2cda512dcf18c35572b094491ecbf80af4615c2d29358efa4458"),

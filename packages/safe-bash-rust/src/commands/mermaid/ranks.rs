@@ -10,7 +10,7 @@ pub(super) fn place(
     groups: &[Group],
     horizontal: bool,
     reverse: bool,
-    rank_gap: f64,
+    (rank_gap, node_gap): (f64, f64),
     work: usize,
 ) -> Option<(i32, i32)> {
     if nodes.is_empty() {
@@ -136,16 +136,23 @@ pub(super) fn place(
         .iter()
         .map(|n| if horizontal { (n.h, n.w) } else { (n.w, n.h) })
         .unzip();
-    let mut gaps = vec![0; nodes.len()];
+    let node_gap = node_gap.max(36.);
+    let mut gaps = vec![0.; nodes.len()];
     let mut spans = Vec::new();
     let mut previous_diamond = 0;
     for layer in &layers {
         for pair in layer.windows(2) {
-            gaps[pair[1]] = 36
-                .max(previous_diamond + 64 - (breadth[pair[0]] + breadth[pair[1]]) / 2)
-                + 32 * crossings(groups, nodes[pair[0]].group, nodes[pair[1]].group);
+            gaps[pair[1]] =
+                node_gap.max(f64::from(
+                    previous_diamond + 64 - (breadth[pair[0]] + breadth[pair[1]]) / 2,
+                )) + f64::from(32 * crossings(groups, nodes[pair[0]].group, nodes[pair[1]].group));
         }
-        spans.push(layer.iter().map(|&i| breadth[i] + gaps[i]).sum::<i32>());
+        spans.push(
+            layer
+                .iter()
+                .map(|&i| f64::from(breadth[i]) + gaps[i])
+                .sum::<f64>(),
+        );
         previous_diamond = layer
             .iter()
             .filter(|&&i| nodes[i].shape == super::Shape::Diamond)
@@ -153,7 +160,10 @@ pub(super) fn place(
             .max()
             .unwrap_or(0);
     }
-    let full = *spans.iter().max()?.max(&200);
+    let full = spans.iter().copied().fold(200., f64::max);
+    if full > f64::from(i32::MAX / 16) {
+        return None;
+    }
     let mut center = vec![0; nodes.len()];
     let mut along = vec![0; nodes.len()];
     let mut allowance = vec![0_f64; layers.len()];
@@ -196,12 +206,12 @@ pub(super) fn place(
         if cursor + f64::from(longest) > f64::from(i32::MAX / 2) {
             return None;
         }
-        let mut offset = (full - spans[r] + 1) / 2;
+        let mut offset = ((full - spans[r]) / 2.).round();
         for &i in layer {
             along[i] = (cursor + f64::from(longest - depth[i]) / 2.).round() as i32;
             offset += gaps[i];
-            center[i] = offset + breadth[i] / 2;
-            offset += breadth[i];
+            center[i] = offset.round() as i32 + breadth[i] / 2;
+            offset += f64::from(breadth[i]);
         }
         let mut gap = if horizontal {
             rank_gap.max(64.)
@@ -241,28 +251,34 @@ pub(super) fn place(
                         (s + i64::from(center[j]) * i64::from(w), count + w)
                     });
                 if count == 0 {
-                    center[i]
+                    f64::from(center[i])
                 } else {
-                    (sum as f64 / f64::from(count) + 0.5).floor() as i32
+                    (sum as f64 / f64::from(count) + 0.5).floor()
                 }
             }));
-            let before: i64 = desired.iter().copied().map(i64::from).sum();
+            let before = desired.iter().sum::<f64>() / layer.len() as f64;
             for j in 1..desired.len() {
                 desired[j] = desired[j].max(
                     desired[j - 1]
-                        + (breadth[layer[j - 1]] + breadth[layer[j]]) / 2
-                        + 36
-                        + 32 * crossings(groups, nodes[layer[j - 1]].group, nodes[layer[j]].group),
+                        + f64::from((breadth[layer[j - 1]] + breadth[layer[j]]) / 2)
+                        + node_gap
+                        + f64::from(
+                            32 * crossings(
+                                groups,
+                                nodes[layer[j - 1]].group,
+                                nodes[layer[j]].group,
+                            ),
+                        ),
                 );
             }
-            let after: i64 = desired.iter().copied().map(i64::from).sum();
-            let shift = ((before - after) as f64 / layer.len() as f64 + 0.5).floor() as i32;
+            let after = desired.iter().sum::<f64>() / layer.len() as f64;
+            let shift = (before - after + 0.5).floor();
             for (&i, c) in layer.iter().zip(&desired) {
-                center[i] = c + shift;
+                center[i] = (c + shift + 0.5).floor() as i32;
             }
         }
     }
-    let spine = (full + 1) / 2;
+    let spine = (full / 2.).round() as i32;
     for ranks in layers.windows(3) {
         if let ([a], layer, [b]) = (ranks[0].as_slice(), &ranks[1], ranks[2].as_slice())
             && layer.len() > 1

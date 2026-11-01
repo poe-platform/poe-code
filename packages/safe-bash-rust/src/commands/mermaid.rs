@@ -109,7 +109,13 @@ fn measure(s: &str, size: f64, bold: bool) -> f64 {
 fn snap(v: f64) -> i32 {
     (v / 8.).ceil() as i32 * 8
 }
-fn text_block(text: &str, size: f64, bold: bool) -> (Vec<String>, f64) {
+fn text_block(
+    text: &str,
+    size: f64,
+    bold: bool,
+    wrapping_width: f64,
+    max_lines: usize,
+) -> Option<(Vec<String>, f64)> {
     let mut normalized = String::with_capacity(text.len());
     let mut tail = text;
     while !tail.is_empty() {
@@ -141,13 +147,21 @@ fn text_block(text: &str, size: f64, bold: bool) -> (Vec<String>, f64) {
     let width = |units: u64| (units as f64 / 1000. * size * 100.).ceil() / 100.;
     let mut widest = 0_f64;
     let space = u64::from(advance(' ', bold));
+    let mut append = |line, units| {
+        if lines.len() >= max_lines {
+            return None;
+        }
+        widest = widest.max(width(units));
+        lines.push(line);
+        Some(())
+    };
     for raw in normalized.split('\n') {
         let mut line = String::new();
         let mut units = 0;
         for word in raw.trim().split(' ') {
             let word_units: u64 = word.chars().map(|c| u64::from(advance(c, bold))).sum();
             let candidate = units + word_units + if line.is_empty() { 0 } else { space };
-            if width(candidate) <= 200. {
+            if width(candidate) <= wrapping_width {
                 if !line.is_empty() {
                     line.push(' ');
                 }
@@ -156,29 +170,32 @@ fn text_block(text: &str, size: f64, bold: bool) -> (Vec<String>, f64) {
                 continue;
             }
             if !line.is_empty() {
-                widest = widest.max(width(units));
-                lines.push(std::mem::take(&mut line));
+                append(std::mem::take(&mut line), units)?;
                 units = 0;
             }
             for c in word.chars() {
                 let add = u64::from(advance(c, bold));
-                if !line.is_empty() && width(units + add) > 200. {
-                    widest = widest.max(width(units));
-                    lines.push(std::mem::take(&mut line));
+                if !line.is_empty() && width(units + add) > wrapping_width {
+                    append(std::mem::take(&mut line), units)?;
                     units = 0;
                 }
                 line.push(c);
                 units += add;
             }
         }
-        widest = widest.max(width(units));
-        lines.push(line);
+        append(line, units)?;
     }
-    (lines, widest)
+    Some((lines, widest))
 }
-fn dimensions(n: &mut Node, horizontal: bool) {
+fn dimensions(
+    n: &mut Node,
+    horizontal: bool,
+    wrapping_width: f64,
+    remaining_lines: &mut usize,
+) -> Option<()> {
     let tallest;
-    (n.lines, tallest) = text_block(&n.label, 13., false);
+    (n.lines, tallest) = text_block(&n.label, 13., false, wrapping_width, *remaining_lines)?;
+    *remaining_lines -= n.lines.len();
     let text_height = n.lines.len() as f64 * 20.;
     (n.w, n.h) = match n.shape {
         Shape::Diamond => (
@@ -217,6 +234,7 @@ fn dimensions(n: &mut Node, horizontal: bool) {
         n.w = n.w.max(128);
         n.h = n.h.max(64);
     }
+    Some(())
 }
 const EDGE_OPS: &[&str] = &[
     "<-.->", "<-->", "<==>", "-..->", "-.->", "--->", "===>", "-.-", "-->", "---", "==>", "===",
@@ -387,14 +405,11 @@ struct Pill {
     radius: i32,
     width: f64,
     height: f64,
-    rank_width: f64,
+    rank_size: (f64, f64),
     lines: Vec<String>,
 }
 impl Pill {
-    fn new(label: &str) -> Option<Self> {
-        if label.is_empty() {
-            return None;
-        }
+    fn new(label: &str, wrapping_width: f64, max_lines: usize) -> Option<Self> {
         let short = label.len() <= 4
             && label
                 .bytes()
@@ -404,11 +419,12 @@ impl Pill {
         } else {
             (11.5, 500, 5, 18.)
         };
-        let (lines, text_width) = text_block(label, size, short);
-        let rank_width = if short {
-            measure(label, 11.5, false)
+        let (lines, text_width) = text_block(label, size, short, wrapping_width, max_lines)?;
+        let rank_size = if short {
+            let (rank_lines, w) = text_block(label, 11.5, false, wrapping_width, 4)?;
+            (w, rank_lines.len() as f64 * 16.)
         } else {
-            text_width
+            (text_width, lines.len() as f64 * 16.)
         };
         Some(Self {
             size,
@@ -416,7 +432,7 @@ impl Pill {
             radius,
             width: (text_width + pad).ceil(),
             height: lines.len() as f64 * 16. + 7.,
-            rank_width,
+            rank_size,
             lines,
         })
     }
@@ -429,12 +445,15 @@ pub(super) struct Flowchart<'a> {
     hrefs: BTreeMap<&'a str, &'a str>,
     styles: Styles<'a>,
     dir: &'a str,
+    remaining_lines: usize,
+    wrapping_width: f64,
 }
 
 pub(super) fn parse<'a>(
     lines: &'a [Statement],
     title: &mut Option<String>,
     description: &mut Option<String>,
+    wrapping_width: f64,
     limit: usize,
 ) -> Option<Result<Flowchart<'a>, String>> {
     let mut stmts = lines.iter();
@@ -474,6 +493,8 @@ pub(super) fn parse<'a>(
     let mut ids = BTreeMap::new();
     let mut edges = vec![];
     let mut label_bytes = 0usize;
+    // Each line generates a text element and a raster draw operation.
+    let mut remaining_lines = limit / 256;
     for stmt in stmts {
         let text = stmt.text.trim_end();
         let keyword = text.split_ascii_whitespace().next()?;
@@ -605,7 +626,15 @@ pub(super) fn parse<'a>(
             if edges.len().saturating_add(count) > limit / 300 || label_bytes > limit {
                 return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
             }
-            let pill = Pill::new(&label);
+            let pill = if label.is_empty() {
+                None
+            } else {
+                let Some(pill) = Pill::new(&label, wrapping_width, remaining_lines / count) else {
+                    return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+                };
+                remaining_lines -= pill.lines.len() * count;
+                Some(pill)
+            };
             for &a in &sources {
                 for &b in &targets {
                     if a == b {
@@ -638,6 +667,8 @@ pub(super) fn parse<'a>(
         hrefs,
         styles,
         dir,
+        remaining_lines,
+        wrapping_width,
     }))
 }
 
@@ -655,6 +686,8 @@ pub(super) fn layout(
         hrefs,
         mut styles,
         dir,
+        mut remaining_lines,
+        wrapping_width,
     } = graph;
     let mut pairs = BTreeMap::new();
     for &(a, b, _, _) in &edges {
@@ -670,7 +703,9 @@ pub(super) fn layout(
     let horizontal = matches!(dir, "LR" | "RL");
     let reversed = matches!(dir, "BT" | "RL");
     for n in &mut nodes {
-        dimensions(n, horizontal);
+        if dimensions(n, horizontal, wrapping_width, &mut remaining_lines).is_none() {
+            return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+        }
     }
     let (mut width, mut height) =
         match ranks::place(&mut nodes, &edges, &groups, horizontal, reversed, limit) {

@@ -161,9 +161,9 @@ pub(super) fn place(
         .filter_map(|(a, b, _, label)| {
             let label = label.as_ref()?;
             let needed = if horizontal {
-                label.rank_width + 36.
+                label.rank_size.0 + 36.
             } else {
-                label.height - 7. + 28.
+                label.rank_size.1 + 28.
             };
             (a != b).then(|| (needed, rank[*a].min(rank[*b])..rank[*a].max(rank[*b])))
         })

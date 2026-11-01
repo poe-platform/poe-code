@@ -29192,6 +29192,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         return err_out("mmdc: E_ARGUMENT: Input and output paths must not be empty\n", 2);
     }
 
+    let mut wrapping_width = 200.;
     let mut cfg_theme: Option<String> = None;
     let mut cfg_width: Option<u32> = None;
     let mut cfg_height: Option<u32> = None;
@@ -29339,7 +29340,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                                     2,
                                 );
                             }
-                            if !matches!(fv, JVal::Number(n) if n.is_finite() && *n > 0.0) {
+                            if let JVal::Number(n) = fv && n.is_finite() && *n > 0.0 {
+                                if fk == "wrappingWidth" { wrapping_width = *n; }
+                            } else {
                                 return err_out(
                                     &format!("mmdc: E_CONFIG: Configuration 'flowchart.{fk}' must be a positive number\n"),
                                     2,
@@ -29653,7 +29656,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     } else { None };
     let flow = if let Some(stmts) = &scanned {
-        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, limit) {
+        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, wrapping_width, limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
@@ -38284,6 +38287,36 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         fs.chmod("/out.svg",0o600).unwrap();
         assert_eq!(run("out.svg").exit_code,0);
         assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o600);
+    }
+
+    #[test]
+    fn mmdc_bounds_narrow_wrapping_before_replacing_output() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/config.json",br#"{"flowchart":{"wrappingWidth":1}}"#).unwrap();
+        let targets=(0..80).map(|n|format!("B{n}")).collect::<Vec<_>>().join(" & ");
+        for source in [format!("flowchart TD; A[{}]", "W".repeat(70_000)),format!("flowchart TD; A -->|{}| {targets}", "W".repeat(900))] {
+            fs.write_file("/d.svg",b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-c","/config.json","-i","-","-o","/d.svg"]),&source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.stderr,"mmdc: E_LIMIT: Render work budget exceeded\n");
+            assert_eq!(r.exit_code,1);
+            assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
+    }
+
+    #[test]
+    fn mmdc_wraps_node_and_edge_labels_at_the_configured_width() {
+        let fs=MemoryVfs::new();
+        for (source,width,path,expected) in [
+            ("flowchart TD; A-->|1..n|B", 7.5, "/out.svg", "26539233edf9cee9a3726668410dc60649a1b61d1202c64637f4c42cd854e1e8"),
+            ("flowchart LR; A[Building the deployment]-->|integration tests|B{Ready to publish?}", 37.0, "/out.png", "abe64c9710effa61162e0c1f02b0b239c328365b7c97d59665f80d04f0e68a5f"),
+            ("flowchart TD; subgraph Ship; A[版本 提升]-->|release 候選|B; end", 7.5, "/out.pdf", "00db8f44224c12dc11a62ecca35861281bf5d786d034fb65640f1cb68d70a139"),
+        ] {
+            fs.write_file("/config.json",format!(r#"{{"flowchart":{{"wrappingWidth":{width}}}}}"#).as_bytes()).unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-c","/config.json","-o",path]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let bytes=fs.read_file(path).unwrap();
+            assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),expected);
+        }
     }
 
     #[test]

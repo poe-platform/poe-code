@@ -761,8 +761,10 @@ async function applyVideoFilterChain(
           ...f,
           data: await renderBitmapTextToRgba(f.data, f.width, f.height, cueStr, {
             xExpr: "(w-text_w)/2",
-            yExpr: "h-text_h-4",
-            fontSize: 10,
+            // FFmpeg's default SRT style uses a 16-point font and 10-point
+            // vertical margin on a 288-pixel reference canvas.
+            yExpr: `h-text_h-${Math.max(4, Math.round(10 * f.height / 288))}`,
+            fontSize: 16 * f.height / 288,
             fontColor: [255, 255, 255, 255],
             drawBox: true,
             boxColor: [0, 0, 0, 180]

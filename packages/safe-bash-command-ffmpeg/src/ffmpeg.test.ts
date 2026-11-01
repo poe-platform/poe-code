@@ -455,6 +455,29 @@ it("HLS copies each video sample once and cuts at keyframes", async () => {
   assert.equal(segments.reduce((sum, [, bytes]) => sum + parseMpegTs(bytes).tracks.find(t => t.type === "video")!.samples.length, 0), 20);
 });
 
+it("scales default subtitle lettering and bottom spacing with video height", async () => {
+  for (const height of [360, 720]) {
+    const width = height * 16 / 9;
+    const source = parseMp4(createSyntheticMp4({ width, height, frameCount: 1, fps: 1, includeAudio: false }));
+    const data = new Uint8Array(width * height * 4);
+    for (let alpha = 3; alpha < data.length; alpha += 4) data[alpha] = 255;
+    const input = serializeMp4({ ...source, tracks: [{ ...source.tracks[0]!, samples: [], decodedVideoFrames: [{ width, height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true }] }] });
+    const vfs = createTestVfs({ "/input.mp4": input, "/captions.srt": "1\n00:00:00,000 --> 00:00:01,000\nHI\n" });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/input.mp4", "-vf", "subtitles=/captions.srt", "/output.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseMp4(vfs.store.get("/output.mp4")!).tracks[0]!;
+    const frame = [...decodeH264Samples(output.samples, output.codecDescriptions, width, height, output.timescale)][0]!;
+    const visibleRows = [];
+    for (let y = 0; y < height; y++) {
+      if (frame.data.subarray(y * width * 4, (y + 1) * width * 4).some((value, offset) => offset % 4 === 0 && value > 180)) visibleRows.push(y);
+    }
+    assert.ok(visibleRows.length >= height * .035, `${visibleRows.length}-pixel letters at ${height}p are too small`);
+    assert.ok(visibleRows.length <= height * .08, "Subtitle lettering should not dominate the frame");
+    assert.ok(visibleRows[0]! >= height * .75, "Subtitles should remain near the bottom");
+    assert.ok(visibleRows.at(-1)! < height * .98, "Subtitles need bottom spacing");
+  }
+});
+
 it("burns captions at presentation times through media offsets and leading empty edits", async () => {
   for (const delay of [0, .2]) {
     const source = parseMp4(createSyntheticMp4({ width: 64, height: 32, frameCount: 10, fps: 10, includeAudio: false }));

@@ -75,6 +75,7 @@ struct SourceTiming {
 pub(super) struct Scene {
     pub image: Raster,
     format: &'static str,
+    png_alpha: bool,
     timing: Option<Rc<SourceTiming>>,
 }
 
@@ -127,11 +128,14 @@ impl SceneName {
 
 impl Scene {
     pub fn encode(
-        &self,
+        mut self,
         format: &str,
         quality: f64,
         limit: usize,
     ) -> Result<Vec<u8>, &'static str> {
+        if format == "png" {
+            self.image.alpha |= self.png_alpha;
+        }
         let im = &self.image;
         if format == "gif" {
             let source = self.timing.as_ref();
@@ -317,7 +321,7 @@ fn indices(spec: &str, len: usize, limit: usize, clamp: bool) -> Result<Vec<usiz
 pub(super) fn evaluate(
     steps: &[(usize, Step)],
     end: usize,
-    transform: impl Fn(&mut Raster, Range<usize>, bool) -> Result<bool, &'static str>,
+    transform: impl Fn(&mut Raster, Range<usize>, bool) -> Result<(bool, bool), &'static str>,
     cwd: &str,
     fs: &dyn SafeBashFs,
     snapshots: &mut Snapshots,
@@ -340,6 +344,7 @@ pub(super) fn evaluate(
                 Rc::new(Scene {
                     image: im,
                     format,
+                    png_alpha: false,
                     timing,
                 }),
                 *at,
@@ -450,7 +455,10 @@ pub(super) fn evaluate(
                         continue;
                     }
                     let mut scene = (**scene).clone();
-                    if !transform(&mut scene.image, *start..*at, scene.timing.is_some())? {
+                    let (keep, alpha) =
+                        transform(&mut scene.image, *start..*at, scene.timing.is_some())?;
+                    scene.png_alpha = alpha;
+                    if !keep {
                         scene.timing = None;
                     }
                     if write {
@@ -599,6 +607,7 @@ pub(super) fn evaluate(
                     Rc::new(Scene {
                         image: out,
                         format: "png",
+                        png_alpha: false,
                         timing: None,
                     }),
                     *at,
@@ -612,7 +621,9 @@ pub(super) fn evaluate(
     for (scene, start) in stack {
         let mut scene = Rc::unwrap_or_clone(scene);
         let im = &mut scene.image;
-        if !transform(im, start..end, scene.timing.is_some())? {
+        let (keep, alpha) = transform(im, start..end, scene.timing.is_some())?;
+        scene.png_alpha = alpha;
+        if !keep {
             scene.timing = None;
         }
         retained = retained.saturating_add(im.pixels.len().saturating_mul(4));

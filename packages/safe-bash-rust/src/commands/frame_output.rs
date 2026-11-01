@@ -76,6 +76,7 @@ pub(super) fn encode(
         return Err("image exceeds memory budget");
     }
     let data = match format {
+        "heic" | "heif" | "avif" => super::heif::encode(im, format, density, limit)?,
         "jpeg" => jpeg::encode(im, quality, density, limit)?,
         "tiff" => tiff(im, density, limit)?,
         "gif" => super::gif::encode(w,h,&im.pixels,Default::default(),limit)?,

@@ -31,7 +31,7 @@ pub(super) fn destination(spec: &str) -> Option<(&'static str, &str)> {
 pub(super) fn named_destination(spec: &str) -> Option<(&'static str, &str)> {
     let format=|name:&str| match name.to_ascii_lowercase().as_str() {
         "png"=>Some("png"),"webp"=>Some("webp"),"gif"=>Some("gif"),"jpg"|"jpeg"=>Some("jpeg"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
-        "ppm"=>Some("ppm"),"pgm"=>Some("pgm"),"pbm"=>Some("pbm"),_=>None
+        "heic"=>Some("heic"),"heif"=>Some("heif"),"avif"=>Some("avif"),"ppm"=>Some("ppm"),"pgm"=>Some("pgm"),"pbm"=>Some("pbm"),_=>None
     };
     if let Some((prefix,path))=spec.split_once(':') && let Some(fmt)=format(prefix) {return Some((fmt,path));}
     let (_,ext)=spec.rsplit_once('.')?;

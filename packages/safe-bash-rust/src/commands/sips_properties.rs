@@ -146,6 +146,7 @@ pub(super) fn edit(
             "png"=>format!("Invalid PNG dimensions: {}x{}",raster.width,raster.height),
             "tiff"=>"Invalid TIFF backing dimensions".into(),
             "bmp"=>"Invalid BMP backing dimensions".into(),
+            "heic"|"heif"|"avif"=>"Invalid HEIF backing dimensions".into(),
             "jpeg"=>"JPEG dimensions exceed 16-bit frame fields".into(),
             "ppm"|"pgm"|"pbm"=>"Invalid Netpbm backing dimensions".into(),
             "webp"=>"Invalid WebP backing allocation".into(),

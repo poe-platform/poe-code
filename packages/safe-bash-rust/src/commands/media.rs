@@ -112,6 +112,8 @@ mod sips_properties;
 mod image_header;
 #[path = "gif.rs"]
 mod gif;
+#[path = "heif.rs"]
+mod heif;
 #[path = "webp.rs"]
 mod webp;
 #[path = "png_pixels.rs"]
@@ -10316,8 +10318,7 @@ fn cmd_media_doc(
                     }
                 }
                 if image.width==0 || image.height==0 {return Err("internal error");}
-                image.alpha |= matches!(channels,2|4);
-                Ok(())
+                Ok(matches!(channels,2|4))
             };
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
                 let info=matches!(dest.to_ascii_lowercase().as_str(),"info:"|"info:-");
@@ -10325,14 +10326,18 @@ fn cmd_media_doc(
                 let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
                 let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
                 let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
-                let transform=|image: &mut png_pixels::Raster|apply_pixels(image,0..ops.len(),gif_input);
+                let transform=|image: &mut png_pixels::Raster| {
+                    let channel_alpha=apply_pixels(image,0..ops.len(),gif_input)?;
+                    if dest.0=="png" {image.alpha |= channel_alpha;}
+                    Ok(())
+                };
                 let scene_name=magick_stack::SceneName::parse(dest.1);
                 let split=!adjoin || !matches!(scene_name,magick_stack::SceneName::Literal);
                 if use_stack || split {
                     let transform=|im:&mut png_pixels::Raster,range:std::ops::Range<usize>,gif| {
                         let keep_timing=!ops[range.clone()].iter().any(|op| matches!(op,PixelOp::Extent(..)));
-                        apply_pixels(im,range,gif)?;
-                        Ok(keep_timing)
+                        let channel_alpha=apply_pixels(im,range,gif)?;
+                        Ok((keep_timing,channel_alpha))
                     };
                     let target;
                     let steps=if is_mogrify {
@@ -11543,7 +11548,7 @@ fn cmd_media_doc(
                         format!("{}/{name}", opath.trim_end_matches('/'))
                     } else { opath.clone() }
                 } else { f.clone() };
-                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF") && png_pixels::still_format(&bytes).is_some() {
+                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF" | "HEIC" | "HEIF" | "AVIF") && png_pixels::still_format(&bytes).is_some() {
                     match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
                         Ok(encoded) => encoded,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
@@ -14440,6 +14445,28 @@ mod media_unit_tests {
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
         }
+    }
+
+    #[test]
+    fn convert_encodes_image_ast_heif_containers() {
+        let fs=MemoryVfs::new();
+        for (args,hash) in [
+            ("-size 7x5 xc:red o.heic","6e6a825a34efe157a8f38e8e63695ca34c56b5f7d84bef3b428150f573dd004c"),
+            ("-size 7x5 xc:red -alpha off o.heic","fa1978e12fb293b65c3b970c666baf38ea11b20f3d7803a47517aa44aa629fdc"),
+            ("-size 7x5 xc:red -grayscale Rec709Luma o.heif","9953e3164cdc5c24016f7cca768c681a75299771dec67a5a08114d636f031125"),
+            ("-size 7x5 gradient:none-red o.avif","9300b892d2408067db6c2e040fa8449b0000d4bc6a2bf0b916a9887dab90182c"),
+            ("-size 7x5 gradient:none-red -extent 9x5 o.avif","98c7d60fffecd3c7c6251ec702cf35c58c6b7d5f0ca609f0f3117e804acfae6b"),
+        ] {
+            let argv=media_args(&args.split_whitespace().collect::<Vec<_>>());
+            let r=cmd_media_doc("convert",&argv,"","/",&fs);
+            assert_eq!(r.exit_code,0,"{args}: {}",r.stderr);
+            let bytes=fs.read_file(&format!("/{}",argv.last().unwrap())).unwrap();
+            assert_eq!(hex_enc(&sha256_bytes(&bytes)),hash,"{args}");
+        }
+        assert_eq!(cmd_media_doc("convert",&media_args(&["-size","3x2","gradient:red-blue","input.png"]),"","/",&fs).exit_code,0);
+        let r=cmd_media_doc("sips",&media_args(&["-s","format","heic","-r","90","input.png","--out","turned.heic"]),"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/turned.heic").unwrap())),"90223b6f0ffcd837c5f901689974f35f879689ed810db2e1c3bab2a6f512b018");
     }
 
     #[test]

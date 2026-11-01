@@ -14,7 +14,7 @@ use std::collections::BTreeMap;
 
 // Boxes are nested directly in the output. Reserve a size word, then fill it
 // once all children have been written; sample offsets are filled at mdat.
-fn atom(out: &mut Vec<u8>, kind: &[u8; 4], body: impl FnOnce(&mut Vec<u8>)) {
+pub(in super::super) fn atom(out: &mut Vec<u8>, kind: &[u8; 4], body: impl FnOnce(&mut Vec<u8>)) {
     let start = out.len();
     out.extend_from_slice(&[0; 4]);
     out.extend_from_slice(kind);

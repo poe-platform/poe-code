@@ -36921,18 +36921,26 @@ fn ast_replacement(template: &str, m: &AstMatch) -> Result<String, String> {
     Ok(out)
 }
 
-fn apply_ast_edits(source: &str, edits: &[((usize, usize), String)]) -> Result<String, String> {
-    let mut sorted = edits.to_vec();
-    sorted.sort_by(|a, b| a.0.0.cmp(&b.0.0).then(a.0.1.cmp(&b.0.1)));
-    let mut out = String::new();
+fn apply_ast_edits(source: &str, mut edits: Vec<((usize, usize), String)>, limit: usize) -> Result<String, String> {
+    edits.sort_by(|a, b| a.0.0.cmp(&b.0.0).then(a.0.1.cmp(&b.0.1)));
+    let mut bytes = source.len() as u64;
     let mut end = 0usize;
-    for ((from, to), repl) in sorted {
+    for &((from, to), ref repl) in &edits {
         if from < end || to < from || to > source.len() {
             return Err("Invalid or overlapping edit range".to_string());
         }
         if !source.is_char_boundary(from) || !source.is_char_boundary(to) {
             return Err("Edit splits a UTF-8 character".to_string());
         }
+        bytes = bytes - (to - from) as u64 + repl.len() as u64;
+        end = to;
+    }
+    if bytes > limit as u64 {
+        return Err("output byte limit exceeded".into());
+    }
+    let mut out = String::with_capacity(bytes as usize);
+    end = 0;
+    for ((from, to), repl) in edits {
         out.push_str(&source[end..from]);
         out.push_str(&repl);
         end = to;
@@ -37251,10 +37259,16 @@ fn cmd_ast_grep(
         } else {
             opts.paths.iter().rev().map(|p| Some(resolve_posix_path(cwd, p))).collect()
         };
+        let mut remaining_output = 16 * 1024 * 1024usize;
+        let mut output = |parts: &[&str], remaining: &mut usize| -> Result<(), String> {
+            *remaining = remaining.checked_sub(parts.iter().map(|s| s.len()).sum()).ok_or("output byte limit exceeded")?;
+            for part in parts { stdout.push_str(part); }
+            Ok(())
+        };
         let mut seen = std::collections::BTreeSet::new();
         let mut count = 0usize;
         if let Some(ref jm) = opts.json && jm != "stream" {
-            stdout.push_str(if jm == "pretty" { "[\n" } else { "[" });
+            output(&[if jm == "pretty" { "[\n" } else { "[" }], &mut remaining_output)?;
         }
         while let Some(maybe_path) = pending.pop() {
             if let Some(ref path) = maybe_path {
@@ -37318,13 +37332,9 @@ fn cmd_ast_grep(
                     count += 1;
                     let (row_jval, repl_opt) = ast_json_record(&tree, &m, &file_label, &lines, rule)?;
                     if let Some(ref jm) = opts.json {
-                        if jm != "stream" && count > 1 {
-                            stdout.push_str(if jm == "compact" { "," } else { ",\n" });
-                        }
-                        stdout.push_str(&row_jval.to_raw_string(jm != "pretty", false));
-                        if jm == "stream" {
-                            stdout.push('\n');
-                        }
+                        let separator = if jm == "stream" || count == 1 { "" } else if jm == "compact" { "," } else { ",\n" };
+                        let row = row_jval.to_raw_string(jm != "pretty", false);
+                        output(&[separator, &row, if jm == "stream" { "\n" } else { "" }], &mut remaining_output)?;
                     }
                     if let Some(repl) = repl_opt
                         && last_end.is_none_or(|le| m.node.range.0 >= le)
@@ -37341,25 +37351,21 @@ fn cmd_ast_grep(
                 })?;
             }
             if !matched_lines.is_empty() {
-                stdout.push_str(&ast_text_output(&source, &file_label, &matched_lines, &opts));
-                if !edits.is_empty() {
-                    let rewritten = apply_ast_edits(&source, &edits)?;
-                    stdout.push_str(&rewritten);
-                    if !source.ends_with('\n') {
-                        stdout.push('\n');
-                    }
-                }
+                output(&[&ast_text_output(&source, &file_label, &matched_lines, &opts)], &mut remaining_output)?;
             }
-            if opts.update
-                && let Some(ref p) = maybe_path
-                && !edits.is_empty()
-            {
-                let rewritten = apply_ast_edits(&source, &edits)?;
-                fs.write_file(p, rewritten.as_bytes())?;
+            if !edits.is_empty() && (opts.json.is_none() || opts.update && maybe_path.is_some()) {
+                let rewritten = apply_ast_edits(&source, edits, remaining_output)?;
+                if opts.json.is_none() {
+                    output(&[&rewritten, if source.ends_with('\n') { "" } else { "\n" }], &mut remaining_output)?;
+                }
+                if opts.update && let Some(ref path) = maybe_path {
+                    remaining_output = remaining_output.checked_sub(rewritten.len()).ok_or("output byte limit exceeded")?;
+                    fs.write_file(path, rewritten.as_bytes())?;
+                }
             }
         }
         if let Some(ref jm) = opts.json && jm != "stream" {
-            stdout.push_str(if jm == "pretty" { "\n]\n" } else { "]\n" });
+            output(&[if jm == "pretty" { "\n]\n" } else { "]\n" }], &mut remaining_output)?;
         }
         Ok(if count > 0 { 0 } else { 1 })
     };
@@ -39356,6 +39362,19 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_counts_rewrite_previews_and_file_bytes_against_the_same_limit() {
+        let fs = MemoryVfs::new();
+        let source = b"f;f;f;";
+        fs.write_file("/a.js", source).unwrap();
+        let replacement = "x".repeat(3 * 1024 * 1024);
+        let r = try_run_structured_command("sg", &args(&["-p", "f", "-r", &replacement, "-U", "a.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (2, "sg: output byte limit exceeded\n"));
+        assert!(r.stdout.starts_with("a.js:1:f;f;f;\n") && r.stdout.ends_with(";\n"));
+        assert_eq!(r.stdout.len(), "a.js:1:f;f;f;\n".len() + 3 * (replacement.len() + 1) + 1);
+        assert_eq!(fs.read_file("/a.js").unwrap(), source);
     }
 
     #[test]

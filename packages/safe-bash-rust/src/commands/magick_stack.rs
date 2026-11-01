@@ -43,7 +43,7 @@ fn range(s: &str) -> Option<(&str, &str)> {
 }
 
 impl Modifier<'_> {
-    fn geometry(self, im: &mut Raster, kernel: Kernel, limit: usize) -> Result<(), &'static str> {
+    pub fn geometry(self, im: &mut Raster, kernel: Kernel, limit: usize) -> Result<(), &'static str> {
         match self {
             Self::Crop(g) if im.width != 0 && im.height != 0 => {
                 im.crop(Geometry::parse(g), Gravity::parse("northwest"))
@@ -281,6 +281,16 @@ impl Images {
     }
 }
 
+fn page_index(s:&str,len:usize)->usize {
+    let n=s.parse::<f64>().unwrap_or(f64::INFINITY);
+    (if n<0. {len as f64+n} else {n}).clamp(0.,len.saturating_sub(1) as f64) as usize
+}
+
+pub(super) fn first_page(spec:&str,len:usize)->usize {
+    let first=spec.split(',').next().unwrap_or(spec);
+    page_index(range(first).map_or(first,|(a,_)|a),len)
+}
+
 fn indices(spec: &str, len: usize, limit: usize, clamp: bool) -> Result<Vec<usize>, &'static str> {
     let mut out = Vec::new();
     if len == 0 {
@@ -289,10 +299,7 @@ fn indices(spec: &str, len: usize, limit: usize, clamp: bool) -> Result<Vec<usiz
     let resolve = |v: f64| if v < 0. { len as f64 + v } else { v };
     for part in spec.split(',').map(str::trim) {
         if let Some((a, b)) = range(part) {
-            let cv = |s: &str| {
-                resolve(s.parse().unwrap_or(f64::INFINITY)).clamp(0., (len - 1) as f64) as usize
-            };
-            let (a, b) = (cv(a), cv(b));
+            let (a,b)=(page_index(a,len),page_index(b,len));
             if out.len().saturating_add(a.abs_diff(b) + 1) > limit / size_of::<usize>() {
                 return Err("frame index exceeds memory budget");
             }

@@ -10847,10 +10847,9 @@ fn cmd_media_doc(
                 return err_out("compare: missing an image filename\n", 2);
             }
             let load_cmp_img = |spec: &str| -> Result<(ImageMeta, Vec<u8>), String> {
-                let lower = spec.to_ascii_lowercase();
-                if lower.starts_with("xc:") || lower.starts_with("canvas:") {
-                    let c_str = spec.split_once(':').map(|(_, r)| r).unwrap_or("white");
-                    let [r,g,b,_] = parse_color(if c_str.is_empty() { "white" } else { c_str }).map_err(|e|format!("compare: {e}\n"))?;
+                let base=magick_stack::input_spec(spec).0;
+                if let Some(canvas)=Canvas::parse(base) {
+                    let [r,g,b,_]=canvas.map_err(|e|format!("compare: {e}\n"))?.pixel(0,0,1,1);
                     let mut ex = BTreeMap::new();
                     ex.insert("__color".to_string(), format!("#{r:02x}{g:02x}{b:02x}"));
                     let m = ImageMeta {
@@ -10863,7 +10862,8 @@ fn cmd_media_doc(
                     let bytes = write_image_bytes(&m);
                     return Ok((m, bytes));
                 }
-                let full = resolve_posix_path(cwd, spec);
+                let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
+                let full = resolve_posix_path(cwd,path);
                 match fs.read_file(&full) {
                     Ok(bytes) => {
                         if bytes.is_empty() {
@@ -10886,7 +10886,18 @@ fn cmd_media_doc(
             };
             let default_null = "null:".to_string();
             let out_spec = operands.get(2).unwrap_or(&default_null);
-            let raster = |spec: &str, bytes: &[u8]| png_pixels::Raster::input(spec,bytes,fs.max_input_bytes());
+            let raster = |spec: &str, bytes: &[u8]| -> Result<Option<png_pixels::Raster>,String>{
+                let (base,modifier)=magick_stack::input_spec(spec);
+                let limit=fs.max_input_bytes();
+                let mut im=if let magick_stack::Modifier::Pages(pages)=modifier
+                    && png_pixels::still_format(bytes)==Some("gif") {
+                    let mut count=0;
+                    let _=gif::packets(bytes,|_,_|{count+=1;Ok(())});
+                    gif::decode(bytes,magick_stack::first_page(pages,count)+1,limit,|_,_|Ok(()))?
+                }else if let Some(im)=png_pixels::Raster::input(base,bytes,limit)? {im}else{return Ok(None)};
+                modifier.geometry(&mut im,magick_resize::Kernel::Lanczos3,limit)?;
+                Ok(Some(im))
+            };
             let dest=png_pixels::destination(out_spec);
             if out_spec.eq_ignore_ascii_case("null:") || dest.is_some() {
                 match (raster(&operands[0], &bytes_a),raster(&operands[1], &bytes_b)) {
@@ -14521,6 +14532,22 @@ mod media_unit_tests {
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-00.png").unwrap())),"9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f");
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-02.png").unwrap())),"862e92446a2e54553c1ccd96f66a2d90c7b3ec002fc0c59b89d58f6a725c2960");
+    }
+
+    #[test]
+    fn compare_reads_first_selected_page_and_inline_geometry() {
+        let fs=MemoryVfs::new();
+        let run=|cmd,argv:&str|cmd_media_doc(cmd,&media_args(&argv.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("convert","-size 4x2 xc:red gradient:blue-yellow xc:green -delay 9 -loop 5 a.gif").exit_code,0);
+        assert_eq!(run("convert","-size 3x2 gradient:red-blue p.png").exit_code,0);
+        for (src,metric,hash) in [
+            ("gif:a.gif[2,0]","8\n","3f008045e26b6582e28757f85362fdc7f341398f2ec81676a9c93e6c0083e7a1"),
+            ("p.png[2x1+1+0]","4\n","934ace654a8d0e6e3d848aba0e5f8ea4942de180689b4d5aae88796127cebb31"),
+        ]{
+            let r=run("compare",&format!("-metric AE {src} p.png o.png"));
+            assert_eq!((r.exit_code,r.stderr.as_str()),(1,metric));
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash);
+        }
     }
 
     #[test]

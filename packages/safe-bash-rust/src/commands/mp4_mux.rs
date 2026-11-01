@@ -706,6 +706,7 @@ struct GeneratedAudio {
     channels: u32,
     ticks: u64,
     decoded_ticks: u64,
+    period: Option<u64>,
     duration_ticks: u64,
     origin: u64,
 }
@@ -727,27 +728,27 @@ impl GeneratedAudio {
         };
         let end = end.min(total);
         let ticks = end.saturating_sub(start);
-        let start = self.origin.saturating_add(start);
-        let end = self.origin.saturating_add(end);
-        let first = start / 1024;
-        let last = if ticks == 0 {
-            first
-        } else {
-            end.div_ceil(1024)
-        };
-        if last - first > 200_000 || last - first > (available / size_of::<Sample>()) as u64 {
-            return Err("sample index exceeds memory budget".into());
-        }
         let payload = super::super::adts::silent(channels);
-        let samples = (first..last)
-            .map(|i| Sample {
+        let mut samples = Vec::new();
+        let mut at = start;
+        while at < end {
+            if samples.len() >= (available / size_of::<Sample>()).min(200_000) {
+                return Err("sample index exceeds memory budget".into());
+            }
+            let pos = self.period.map_or(at, |n| at % n);
+            let packet = 1024 - (self.origin % 1024 + pos % 1024) % 1024;
+            let duration = packet
+                .min(end - at)
+                .min(self.period.map_or(u64::MAX, |n| n - pos));
+            samples.push(Sample {
                 data: payload.into(),
-                duration: (end.min((i * 1024).saturating_add(1024)) - start.max(i * 1024)) as u32,
+                duration: duration as u32,
                 cts: 0,
                 key: true,
                 description: 1,
-            })
-            .collect();
+            });
+            at += duration;
+        }
         Ok(Track {
             samples,
             scale: rate,
@@ -1516,6 +1517,27 @@ fn read_sources<'a>(
             let clip = |n: f64| ((n.round().max(1024.) as u64).min(end)).saturating_sub(origin);
             let ticks = clip((duration * 10.).round().max(1.) / 10. * rate);
             let decoded_ticks = clip(duration * rate);
+            let duration_ticks = if seek.start.is_some() || seek.end().is_some() {
+                decoded_ticks
+            } else {
+                ticks
+            };
+            // Concatenation repeats the original AAC packet boundaries. A cut
+            // with only decoded samples first materializes new 1024-frame packets.
+            let (ticks, decoded_ticks, duration_ticks, origin, period) = if seek.loops > 0 {
+                let (period, origin) = if ticks == 0 {
+                    (decoded_ticks, 0)
+                } else {
+                    (ticks, origin)
+                };
+                let total = period
+                    .checked_mul((seek.loops as u64).saturating_add(1))
+                    .filter(|&n| n <= u64::from(u32::MAX))
+                    .ok_or("audio duration exceeds limit")?;
+                (total, total, total, origin, (period != 0).then_some(period))
+            } else {
+                (ticks, decoded_ticks, duration_ticks, origin, None)
+            };
             sources.push((
                 input,
                 &[][..],
@@ -1525,11 +1547,8 @@ fn read_sources<'a>(
                     ticks,
                     decoded_ticks,
                     origin,
-                    duration_ticks: if seek.start.is_some() || seek.end().is_some() {
-                        decoded_ticks
-                    } else {
-                        ticks
-                    },
+                    duration_ticks,
+                    period,
                 }),
             ));
             continue;

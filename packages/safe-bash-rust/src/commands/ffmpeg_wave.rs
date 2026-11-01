@@ -168,10 +168,19 @@ impl<'a> Input<'a> {
             decoded
         };
         let len = until.saturating_sub(from);
-        if cut {
-            ticks = len;
-        }
         let copies = seek.loops.saturating_add(1);
+        if cut {
+            let packet_ticks = seek
+                .end()
+                .map_or(ticks, clock)
+                .min(ticks)
+                .saturating_sub(seek.start.map_or(0, clock));
+            ticks = if copies > 1 && packet_ticks != 0 {
+                packet_ticks
+            } else {
+                len
+            };
+        }
         let total_ticks = ticks
             .checked_mul(copies)
             .ok_or("audio output exceeds memory budget")?;

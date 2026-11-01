@@ -13807,6 +13807,16 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_repeats_generated_audio_at_trimmed_packet_boundaries() {
+        let fs = MemoryVfs::new();
+        for (path,expected) in [("o.mp4","7218c339dd6c954d7adb65e35df8c6a7d56c63eb720df1ab013b48cd2d19fcf8"),("o.wav","edbe6c2001622de4171a8a7f705c8585a8009a54f103679d9a295353c69487de"),("o.aac","185f0df366bab9262df176c878177cdfb65d013dacdfe2b795b08336a74227e6")] {
+            let args=media_args(&["-ss","0.107","-to","0.242","-stream_loop","2","-f","lavfi","-i","sine=f=631:r=11025:d=0.24",path]);
+            assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{path}")).unwrap())),expected);
+        }
+    }
+
+    #[test]
     fn ffprobe_wave_reads_pcm_and_filters_requested_rows() {
         let fs = MemoryVfs::new();
         let pcm = PcmAudio { sample_rate: 8000, channels: vec![vec![0.0; 80]] };

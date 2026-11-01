@@ -122,6 +122,8 @@ mod png_pixels;
 mod magick_stack;
 #[path = "magick_coordinates.rs"]
 mod magick_coordinates;
+#[path = "magick_morphology.rs"]
+mod magick_morphology;
 #[path = "magick_filter.rs"]
 mod magick_filter;
 #[path = "magick_resize.rs"]
@@ -10089,7 +10091,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
+            enum PixelOp<'a> { Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10261,17 +10263,26 @@ fn cmd_media_doc(
                         i+=1;
                     }
                     "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
-                    "-morphology" if args.get(i+1).is_some_and(|s|{
-                        let method=s.to_ascii_lowercase();method.contains("convolve") || method.contains("correlate")
-                    }) => {
-                        i+=2;
-                        if i<args.len()-usize::from(!is_mogrify) && !args[i].starts_with(['-','+']) {
-                            match magick_filter::kernel(&args[i],fs.max_input_bytes()) {
+                    "-median" => {
+                        let size=if i+1<args.len()-usize::from(!is_mogrify){
+                            i+=1;magick_number(&args[i],0.)
+                        }else{3.};
+                        let r=(size.round()/2.).floor().max(1.) as usize;
+                        ops.push(if size.is_nan(){PixelOp::Clear}else{PixelOp::Morph("median".into(),(r,r))});i+=1;
+                    }
+                    "-morphology" | "-statistic" => {
+                        let end=args.len()-usize::from(!is_mogrify);
+                        let method=if i+1<end{i+=1;args[i].to_ascii_lowercase()}else if arg=="-statistic"{"median".into()}else{"dilate".into()};
+                        i+=1;
+                        let spec=if i<end && (arg=="-statistic" || !args[i].starts_with(['-','+'])){
+                            i+=1;args[i-1].as_str()
+                        }else if arg=="-statistic"{"3x3"}else{""};
+                        if arg=="-morphology" && (method.contains("convolve") || method.contains("correlate")){
+                            match magick_filter::kernel(spec,fs.max_input_bytes()) {
                                 Ok(weights)=>ops.push(PixelOp::Convolve(weights,0.)),
                                 Err(e)=>return err_out(&format!("magick: {e}\n"),1),
                             }
-                            i+=1;
-                        }
+                        }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
                     }
                     "-convolve" | "-edge" | "-canny" | "-emboss" | "-charcoal" | "-sketch" => {
                         let spec=if i+1<args.len()-usize::from(!is_mogrify) {i+=1;args[i].as_str()}else{"1"};
@@ -10336,6 +10347,8 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Clear=>image.pixels.fill([0;4]),
+                        PixelOp::Morph(method,radii)=>image.morphology(method,*radii,fs.max_input_bytes())?,
                         PixelOp::Convolve(weights,bias)=>image.convolve_rgb(weights,*bias,fs.max_input_bytes())?,
                         PixelOp::Sharpen(sigma)=>image.sharpen(*sigma,image.alpha || matches!(channels,2|4)),
                         PixelOp::Blur(sigma)=>image.blur(*sigma,image.alpha || matches!(channels,2|4)),
@@ -14586,10 +14599,20 @@ mod media_unit_tests {
             ("-convolve","kernel:0,-0.5,0,-0.5,3,-0.5,0,-0.5,0","2e62f1aebc90a1384747d5d11643829d951a75bacae551f161b2f8962706b9a5"),
             ("-emboss","1","620e3e4fdb5d3f0f1dcabd7c8a517b3f97e900cc8e54c7aebe9c526ae182d480"),
             ("-charcoal","3","378d4c7520d098dc90c714142245a54109df0809766c5486765174934cb05ff8"),
+            ("-median","2","3e7a1534daa9c9114d4503a50766b5821dcd54fccaa1fa1fd0bf08403a37faa0"),
+            ("-median","bad","e63ece18c92a810a89cd79ac67055f4d2a2583f92cb39680858bac575f910ad7"),
         ]{
             let r=cmd_media_doc("convert",&media_args(&["rgba.png",op,geometry,"o.png"]),"","/",&fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{op} {geometry}");
+        }
+        for (op,method,size,hash) in [
+            ("-statistic","Median","3x5","b74bad518028e20896fb9100971250e3c2b7ddf19e4fb4e64f99d9abcc394434"),
+            ("-morphology","TopHat","2x3","98d92062449ba65b6a2fb14976c75abf3c7635782655d344e5e6febaaa52dbfd"),
+        ] {
+            let r=cmd_media_doc("convert",&media_args(&["rgba.png",op,method,size,"o.png"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{op} {method} {size}");
         }
     }
 

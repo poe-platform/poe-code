@@ -1097,6 +1097,15 @@ fn cmd_rm(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     }
 }
 
+fn unlink_destination(path: &str, fs: &dyn SafeBashFs) -> Result<(), String> {
+    match fs.remove_one(path, false) {
+        Ok(()) => Ok(()),
+        Err(e) if e.starts_with("ENOENT:") => Ok(()),
+        Err(e) if e.starts_with("EISDIR:") => Err(format!("EISDIR: illegal operation on a directory '{path}'")),
+        Err(e) => Err(format!("{e}, rm '{path}'")),
+    }
+}
+
 fn copy_recursive(src: &str, dst: &str, fs: &dyn SafeBashFs) -> Result<(), String> {
     copy_recursive_ext(src, dst, fs, 'P', true)
 }
@@ -1113,7 +1122,7 @@ fn copy_recursive_ext(
         && let Ok(link_target) = fs.readlink(src)
         && !link_target.starts_with("__hardlink__:")
     {
-        let _ = fs.remove_path(dst);
+        unlink_destination(dst, fs)?;
         return fs.symlink(&link_target, dst);
     }
     let is_dir_to_copy = if preserve_link {
@@ -1157,7 +1166,7 @@ fn copy_recursive_ext(
         };
         let data = fs.read_file(&read_src)?;
         if fs.readlink(dst).is_ok() {
-            let _ = fs.remove_path(dst);
+            unlink_destination(dst, fs)?;
         }
         fs.write_file(dst, &data)?;
         if let Ok(st) = fs.stat(&read_src) {
@@ -1524,19 +1533,21 @@ fn cmd_cp(
         if target_exists && backup_mode != BackupMode::None {
             let _ = copy_recursive(&target, &backup_path(&target, backup_mode, &backup_suffix, fs), fs);
         }
+        if target_exists && (sym_link || hard_link || remove_destination && !src_is_dir && backup_mode == BackupMode::None)
+            && let Err(e) = unlink_destination(&target, fs)
+        {
+            stderr.push_str(&format!("cp: {e}\n"));
+            code = 1;
+            continue;
+        }
         let copy_res = if sym_link {
-            let _ = fs.remove_path(&target);
             fs.symlink(src_raw, &target)
         } else if hard_link {
-            let _ = fs.remove_path(&target);
             fs.symlink(&format!("__hardlink__:{src}"), &target)
         } else if attributes_only && !src_is_dir {
             if (!target_exists || remove_destination || backup_mode != BackupMode::None)
                 && !preserve_top_link
             {
-                if remove_destination && target_exists && backup_mode == BackupMode::None {
-                    let _ = fs.remove_path(&target);
-                }
                 let _ = fs.write_file(&target, &[]);
             }
             if let Ok(st) = fs.stat(&src) {
@@ -1545,10 +1556,6 @@ fn cmd_cp(
             }
             Ok(())
         } else {
-            if remove_destination && !src_is_dir && target_exists && backup_mode == BackupMode::None
-            {
-                let _ = fs.remove_path(&target);
-            }
             copy_recursive_ext(&src, &target, fs, deref_mode, true)
         };
         match copy_res {
@@ -1561,7 +1568,7 @@ fn cmd_cp(
                 }
             }
             Err(e) => {
-                stderr.push_str(&format!("cp: cannot copy '{src_raw}': {e}\n"));
+                stderr.push_str(&format!("cp: {e}\n"));
                 code = 1;
             }
         }
@@ -2453,9 +2460,7 @@ fn cmd_ln(
                 continue;
             }
             if fs.is_dir(&link_path) && fs.readlink(&link_path).is_err() {
-                stderr.push_str(&format!(
-                    "ln: '{disp_target}': cannot overwrite directory\n"
-                ));
+                stderr.push_str(&format!("ln: EISDIR: illegal operation on a directory '{link_path}'\n"));
                 code = 1;
                 continue;
             }
@@ -2471,7 +2476,11 @@ fn cmd_ln(
             if backup_mode != BackupMode::None {
                 let _ = copy_recursive(&link_path, &backup_path(&link_path, backup_mode, &backup_suffix, fs), fs);
             }
-            let _ = fs.remove_path(&link_path);
+            if let Err(e) = unlink_destination(&link_path, fs) {
+                stderr.push_str(&format!("ln: {e}\n"));
+                code = 1;
+                continue;
+            }
         }
         let stored_target = if symbolic {
             if relative {
@@ -6865,6 +6874,19 @@ mod tests {
         assert_eq!(failed.exit_code, 1);
         assert_eq!(fs.read_file("/to").unwrap(), b"new");
         assert_eq!(fs.read_file("/locked/file").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn copying_a_link_cannot_replace_a_nonempty_directory() {
+        for argv in [["-P", "/src/item", "/dst"], ["-RT", "/src", "/dst"]] {
+            let fs = MemoryVfs::new();
+            fs.write_file("/dst/item/child", b"KEEP").unwrap();
+            fs.symlink("target", "/src/item").unwrap();
+            let result = cmd_cp(&args(&argv), "", "/", &BTreeMap::new(), &fs);
+            assert_eq!(fs.read_file("/dst/item/child").unwrap(), b"KEEP");
+            assert_eq!(result.exit_code, 1);
+            assert_eq!(result.stderr, "cp: EISDIR: illegal operation on a directory '/dst/item'\n");
+        }
     }
 
     #[test]

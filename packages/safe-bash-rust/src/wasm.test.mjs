@@ -23,6 +23,21 @@ test("output budgets count the bytes written by each command and pipeline stage"
   }
 });
 
+test("tail starting at a record skips across device chunks and reads to EOF or a limit", async t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  try {
+    await assert.rejects(bash.exec("tail -n+2 /dev/zero", { limits: { maxInputBytes: 65536 } }), /maxInputBytes/);
+    const random = t.mock.method(globalThis.crypto, "getRandomValues", view => {
+      view.fill(97);
+      view[0] = 10;
+      return view;
+    });
+    await assert.rejects(bash.exec("tail -n+3 /dev/random", { limits: { maxOutputBytes: 8 } }), /maxOutputBytes/);
+    assert.equal(random.mock.callCount(), 2);
+  } finally { bash.dispose(); }
+});
+
 test("head reads device chunks until its byte or record count is satisfied", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

@@ -624,19 +624,20 @@ fn split_records_inclusive(raw: &[u8], delimiter: u8) -> Vec<&[u8]> {
     records
 }
 
-fn head_prefix<'a>(chunk: &'a [u8], remaining: &mut usize, bytes: bool, delimiter: u8) -> &'a [u8] {
+fn prefix_len(chunk: &[u8], remaining: &mut usize, bytes: bool, delimiter: u8) -> usize {
+    if *remaining == 0 { return 0; }
     if bytes {
         let n = chunk.len().min(*remaining);
         *remaining -= n;
-        return &chunk[..n];
+        return n;
     }
     for (i, &b) in chunk.iter().enumerate() {
         if b == delimiter {
             *remaining -= 1;
-            if *remaining == 0 { return &chunk[..=i]; }
+            if *remaining == 0 { return i + 1; }
         }
     }
-    chunk
+    chunk.len()
 }
 
 fn run_head_or_tail(
@@ -821,18 +822,26 @@ fn run_head_or_tail(
             header_written = true;
         }
 
-        if name == "head" && !negative {
-            let mut remaining = count;
-            if remaining == 0 { continue; }
+        let skip = name == "tail" && positive;
+        if (name == "head" && !negative) || skip {
+            let mut remaining = if skip { count.saturating_sub(1) } else { count };
+            if remaining == 0 && !skip { continue; }
+            let limits = fs.shell_limits();
+            let mut copy = |chunk: &[u8]| {
+                let offset = prefix_len(chunk, &mut remaining, bytes_mode, delimiter);
+                let selected = if skip { &chunk[offset..] } else { &chunk[..offset] };
+                if out_bytes.len().saturating_add(selected.len()) > limits.max_output_bytes {
+                    return Err(fs.limit_error("maxOutputBytes", limits.max_output_bytes));
+                }
+                out_bytes.extend_from_slice(selected);
+                Ok((skip || remaining != 0, if skip { chunk.len() } else { offset }))
+            };
             if let Some(path) = path {
-                let limit = fs.shell_limits().max_output_bytes;
+                let mut available = limits.max_input_bytes;
                 if let Err(err) = fs.read_chunks(&path, &mut |chunk| {
-                    let prefix = head_prefix(chunk, &mut remaining, bytes_mode, delimiter);
-                    if out_bytes.len().saturating_add(prefix.len()) > limit {
-                        return Err(fs.output_limit_error());
-                    }
-                    out_bytes.extend_from_slice(prefix);
-                    Ok(remaining != 0)
+                    available = available.checked_sub(chunk.len())
+                        .ok_or_else(|| fs.limit_error("maxInputBytes", limits.max_input_bytes))?;
+                    copy(chunk).map(|(more, _)| more)
                 }) {
                     if err.starts_with("EIO:") {
                         stderr.push_str(&format!("{name}: EIO: input/output error, readStream '{path}'\n"));
@@ -843,9 +852,10 @@ fn run_head_or_tail(
                 }
             } else {
                 let bytes = input.get_or_insert_with(|| stream_string_to_bytes(stdin));
-                let prefix = head_prefix(&bytes[consumed..], &mut remaining, bytes_mode, delimiter);
-                consumed += prefix.len();
-                out_bytes.extend_from_slice(prefix);
+                match copy(&bytes[consumed..]) {
+                    Ok((_, used)) => consumed += used,
+                    Err(err) => return err_out(&format!("{name}: {err}\n"), 1),
+                }
             }
             continue;
         }
@@ -872,19 +882,11 @@ fn run_head_or_tail(
             };
             out_bytes.extend_from_slice(&raw_bytes[..take]);
         } else if bytes_mode {
-            let start = if positive {
-                count.saturating_sub(1).min(raw_bytes.len())
-            } else {
-                raw_bytes.len().saturating_sub(count)
-            };
+            let start = raw_bytes.len().saturating_sub(count);
             out_bytes.extend_from_slice(&raw_bytes[start..]);
         } else {
             let records = split_records_inclusive(&raw_bytes, delimiter);
-            let start = if positive {
-                count.saturating_sub(1).min(records.len())
-            } else {
-                records.len().saturating_sub(count)
-            };
+            let start = records.len().saturating_sub(count);
             for rec in &records[start..] {
                 out_bytes.extend_from_slice(rec);
             }
@@ -21803,11 +21805,11 @@ mod tests {
     }
 
     #[test]
-    fn standalone_head_rejects_unterminated_device_input_at_the_output_limit() {
+    fn standalone_head_rejects_unterminated_device_input_at_the_input_limit() {
         let fs = MemoryVfs::new();
         let out = try_run_coreutil("head", &args(&["-n1", "/dev/zero"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_ne!(out.exit_code, 0);
-        assert!(out.stderr.contains("maxOutputBytes"));
+        assert!(out.stderr.contains("maxInputBytes"));
     }
 
     #[test]

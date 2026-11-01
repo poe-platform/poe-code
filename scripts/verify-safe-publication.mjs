@@ -109,11 +109,11 @@ export async function verifyCloudflareArtifacts(files, root) {
     return files.readFile(filename, "utf8");
   }
   const directory = path.dirname(entry.import);
+  // The generated module contains compressed bytes; its loader is exercised below.
+  await text(path.join(directory, "browser-run-code-guest.generated.js"));
   const assets = [
     [entry.import, "createCloudflarePlaywrightAdapter"],
     [entry.types, "createCloudflarePlaywrightAdapter"],
-    [path.join(directory, "browser-run-code-guest.generated.js"), "cloudflare:workers"],
-    [path.join(directory, "browser-run-code-guest.generated.js"), "browser-user-code.js"],
     [path.join(directory, "browser-codegen.generated.js"), `${provider}@${providerVersion}`],
     ["third-party/safe-playwright-cloudflare/third-party/playwright/LICENSE", "Apache License"],
     ["third-party/safe-playwright-cloudflare/third-party/playwright/NOTICE", "Microsoft Corporation"],
@@ -241,7 +241,16 @@ export async function verifyPublication({ version, source, sourceRef = "refs/hea
       await run(process.execPath, ["--input-type=module", "--eval", importSmoke], { cwd: consumer, env: { ...env, PATH: "" }, signal, timeout: 30_000 });
       if (cloudflare) await run(process.execPath, ["--input-type=module", "--eval", `
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { encodeBrowserProfile, parseBrowserProfile, restoreBrowserProfile, checkpointBrowserProfile } from "@poe-platform/safe-bash/playwright";
+const root = resolve("node_modules/@poe-platform/safe-bash");
+const manifest = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
+const guestPath = resolve(root, dirname(manifest.exports["./playwright/cloudflare"].import), "browser-run-code-guest.generated.js");
+const { loadBrowserRunCodeGuestSource } = await import(pathToFileURL(guestPath).href);
+const guest = await loadBrowserRunCodeGuestSource(AbortSignal.timeout(30_000));
+assert.ok(guest.includes("cloudflare:workers") && guest.includes("browser-user-code.js"), "Decompressed Cloudflare guest is missing source contracts");
 const profile = { state: { cookies: [], origins: [] }, tabs: ["about:blank"], selected: 0 };
 const limits = { maxBytes: 4096, maxTabs: 2 };
 assert.deepEqual(parseBrowserProfile(encodeBrowserProfile(profile, limits), limits), profile);

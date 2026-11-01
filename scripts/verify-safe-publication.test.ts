@@ -3,6 +3,7 @@ import { build } from "esbuild";
 import { execFile } from "node:child_process";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { gzipSync } from "node:zlib";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { readRegistry, runCommand, verifyCloudflareArtifacts, verifyPublication } from "./verify-safe-publication.mjs";
@@ -44,6 +45,14 @@ const names = ["safe-fs", "safe-js", "safe-bash"].map(name => `@poe-platform/${n
   }
 
 describe("published Cloudflare artifacts", () => {
+  it("accepts a compressed generated guest without searching its encoded bytes as source", async () => {
+    const { files, root } = await artifacts();
+    const guest = 'import { WorkerEntrypoint } from "cloudflare:workers"; const filename = "browser-user-code.js";';
+    await files.writeFile(join(root, "cloudflare/browser-run-code-guest.generated.js"),
+      `import { createCompressedGuestSource } from "./browser-guest-source.js";\nexport const loadBrowserRunCodeGuestSource = createCompressedGuestSource(${JSON.stringify(gzipSync(guest).toString("base64"))}, ${Buffer.byteLength(guest)});`);
+    await verifyCloudflareArtifacts(files, root);
+  });
+
   it("verifies the optional adapter, generated assets and provider notices", async () => {
     const { files, root } = await artifacts();
     await verifyCloudflareArtifacts(files, root);

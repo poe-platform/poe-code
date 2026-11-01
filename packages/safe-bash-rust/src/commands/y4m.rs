@@ -183,18 +183,30 @@ pub(super) struct Options<'a> {
     pub limit: usize,
 }
 
-impl Stream<'_> {
-    pub fn render(
-        &self,
-        seek: super::InputTime,
-        shortest: bool,
-        mut options: Options<'_>,
-        emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
-    ) -> Result<(usize, usize, u32), &'static str> {
-        let (w, h) = (self.width as usize, self.height as usize);
+// Y4M retains decoded frames and raw packets. Trims select frames by their
+// visible interval, while packets keep their original bytes and a clipped duration.
+pub(super) struct Clip<'a> {
+    pub width: usize,
+    pub height: usize,
+    fps: f64,
+    frames: Vec<&'a [u8]>,
+    first: usize,
+    pub frames_per_copy: usize,
+    pub packet_size: Option<u32>,
+    count: usize,
+    start: f64,
+    tick: u64,
+    packet_first: usize,
+    period: u64,
+    copies: usize,
+    pub origin: u64,
+}
+
+impl<'a> Stream<'a> {
+    pub fn clip(&self, seek: super::InputTime, limit: usize) -> Result<Clip<'a>, &'static str> {
         let mut frames = Vec::new();
         for f in self.frames() {
-            if frames.len() >= options.limit / size_of::<&[u8]>() {
+            if frames.len() >= limit / size_of::<&[u8]>() {
                 return Err("frame index exceeds memory budget");
             }
             frames.push(f);
@@ -209,7 +221,7 @@ impl Stream<'_> {
         let kept = (first..frames.len()).take_while(|&i| pts(i) < end).count();
         let count = kept
             .checked_mul(seek.loops.saturating_add(1))
-            .filter(|&n| n <= options.limit / size_of::<TimedFrame>())
+            .filter(|&n| n <= limit / size_of::<TimedFrame>())
             .ok_or("frame index exceeds memory budget")?;
 
         // Concatenation places each copy after the retained packets on the 90 kHz
@@ -228,43 +240,95 @@ impl Stream<'_> {
         } else {
             end_tick - start_tick / tick * tick
         };
-        let period = clip_ticks as f64 / 90000.;
-        if shortest || options.start != 0. && options.end.is_none() {
-            let seconds = if seek.loops == 0 && start_tick % tick != 0 {
-                ((end_tick.saturating_sub(start_tick) as f64 / 90.).round()) / 1000.
-            } else {
-                period * (seek.loops.saturating_add(1) as f64)
-            };
-            options.end = Some(options.end.unwrap_or(seconds).min(seconds));
+        let copies = seek.loops.saturating_add(1);
+        if clip_ticks.div_ceil(tick).saturating_mul(copies as u64)
+            > (limit / size_of::<TimedFrame>()) as u64
+        {
+            return Err("frame index exceeds memory budget");
         }
-        render_frames(
-            w,
-            h,
-            (0..count).map(|i| {
-                (
-                    (pts(first + i % kept) - start).max(0.) + (i / kept) as f64 * period,
-                    duration,
-                )
-            }),
-            options,
-            |i| {
-                Ok(decode(frames[first + i % kept], w, h, |y, u, v| {
-                    let c = y.max(0) * 298;
-                    let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
-                    [
-                        sat(c + 409 * v),
-                        sat(c - 100 * u - 208 * v),
-                        sat(c + 516 * u),
-                        255,
-                    ]
-                }))
+        Ok(Clip {
+            width: self.width as usize,
+            height: self.height as usize,
+            fps: self.fps,
+            frames,
+            first,
+            frames_per_copy: kept,
+            packet_size: (!cut).then_some(self.frame_size as u32),
+            count,
+            start,
+            tick,
+            packet_first: (start_tick / tick) as usize,
+            period: clip_ticks,
+            copies,
+            origin: if clip_ticks > 0 && copies == 1 {
+                start_tick % tick
+            } else {
+                0
             },
-            emit,
-        )?;
-        Ok((w, h, 30))
+        })
     }
 }
-
+impl<'a> Clip<'a> {
+    pub fn media_ticks(&self) -> u64 {
+        self.period.saturating_mul(self.copies as u64)
+    }
+    pub fn seconds(&self) -> f64 {
+        if self.origin != 0 {
+            ((self.period - self.origin) as f64 / 90.).round() / 1000.
+        } else {
+            self.media_ticks() as f64 / 90000.
+        }
+    }
+    pub fn times(&self) -> impl Iterator<Item = (f64, f64)> {
+        (0..self.count).map(|i| {
+            (
+                ((self.first + i % self.frames_per_copy) as f64 / self.fps - self.start).max(0.)
+                    + ((i / self.frames_per_copy) as f64 * self.period as f64) / 90000.,
+                1. / self.fps,
+            )
+        })
+    }
+    pub fn packets(&self) -> impl Iterator<Item = (&'a [u8], u32)> {
+        let n = self.period.div_ceil(self.tick) as usize;
+        (0..n * self.copies).map(move |i| {
+            let j = i % n;
+            (
+                self.frames[self.packet_first + j],
+                self.tick.min(self.period - j as u64 * self.tick) as u32,
+            )
+        })
+    }
+    pub fn raster(&self, frame: &[u8]) -> Raster {
+        decode(frame, self.width, self.height, |y, u, v| {
+            let c = y.max(0) * 298;
+            let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
+            [
+                sat(c + 409 * v),
+                sat(c - 100 * u - 208 * v),
+                sat(c + 516 * u),
+                255,
+            ]
+        })
+    }
+    pub fn image(&self, i: usize) -> Raster {
+        self.raster(self.frames[self.first + i % self.frames_per_copy])
+    }
+    pub fn render(
+        &self,
+        options: Options<'_>,
+        emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
+    ) -> Result<(usize, usize, u32), &'static str> {
+        render_frames(
+            self.width,
+            self.height,
+            self.times(),
+            options,
+            |i| Ok(self.image(i)),
+            emit,
+        )?;
+        Ok((self.width, self.height, 30))
+    }
+}
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum Buffer {
     Input(usize),

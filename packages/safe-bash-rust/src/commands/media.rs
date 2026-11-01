@@ -4434,7 +4434,7 @@ impl MediaInput {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
             Self::Bytes("image2",b)=>png_pixels::supported_still(b),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
-            Self::Images(_) | Self::Bytes("aac"|"wav"|"srt"|"webvtt",_)=>true,
+            Self::Images(_) | Self::Bytes("aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
         }
     }
@@ -4698,12 +4698,12 @@ fn cmd_media_doc(
                     }
                 } else if muxer==Some("ffmetadata") && remux_inputs {
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,limit){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if frame_output && (inputs.len()==1 && (format==Some("y4m") || supported) || remux_inputs) {
+                } else if frame_output && (inputs.len()==1 && supported || remux_inputs) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 || format==Some("wav") || real_mp4 && seek.loops>0 {
+                        if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || real_mp4 && seek.loops>0 {
                             return mp4::mux::render_mapped(&sources,&remux,frames,sequence,emit);
                         }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -4725,9 +4725,7 @@ fn cmd_media_doc(
                             mp4::mux::input_slice(input,InputTime{start:Some(start),to:end,..InputTime::default()},end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
                         } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
-                            else if format==Some("y4m") {
-                                y4m::Stream::parse(bytes).and_then(|stream|stream.render(seek,shortest,opts,emit)).map_err(str::to_owned)
-                            }else{Ok((64,64,10))}
+                            else{Ok((64,64,10))}
                     });
                     match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if (mp4_output || subtitle_output || audio_output || muxer==Some("wav")) && remux_inputs {
@@ -13751,6 +13749,24 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","x.y4m"]);
         run(&["-ss","0.015","-t","0.336","-stream_loop","2","-i","x.y4m","out.y4m"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.y4m").unwrap())), "c8b19eac74872afdea63584ae3126ddd3ef5f16027e53f8347940ded900be5f2");
+    }
+
+    #[test]
+    fn ffmpeg_muxes_y4m_pixels_and_encodes_filtered_frames() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs).exit_code, 0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","x.y4m"]);
+        for (opts, expected) in [
+            (&[][..], "61fee2af5f2dc1a0212b59b4c96e31e2d82c75bd90c0be59085142213622279e"),
+            (&["-vf","hflip"][..], "89d02c52270f1a1a76aed5e6d4e20d49fa3cfdd9892b48aedcd95cfb341e839b"),
+            (&["-ss","0.012","-t","0.234"][..], "7f04cf2a76cb66746be976c4406be2bfc1f6cb206acbab6b4960e31a0a5b47dd"),
+        ] {
+            let mut args=vec!["-y","-i","x.y4m"];
+            args.extend_from_slice(opts);
+            args.push("out.mp4");
+            run(&args);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), expected);
+        }
     }
 
     #[test]

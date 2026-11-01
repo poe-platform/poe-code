@@ -1272,6 +1272,7 @@ pub(super) fn ffmetadata(
     for (i,source) in inputs.iter().enumerate(){
         let input=match source{
             super::MediaInput::Bytes("mp4"|"mov",b)=>b,
+            super::MediaInput::Bytes("y4m",b)=>{super::y4m::Stream::parse(b)?;continue;}
             super::MediaInput::Bytes("wav",b)=>{super::ffmpeg_wave::Wave::read(b)?;continue;}
             super::MediaInput::Bytes("lavfi",_) | super::MediaInput::Images(_)=>{
                 if i==0 || !mapped{metadata.insert("encoder","@poe-code/mp4-ast".into());}

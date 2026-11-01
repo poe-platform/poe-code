@@ -179,18 +179,10 @@ impl ImageSequence {
             if bytes.len() > remaining {
                 return Err("image exceeds memory budget".into());
             }
-            let frame = if super::netpbm::signature(&bytes) {
-                super::netpbm::Netpbm::parse(&bytes, remaining)?.decode()
-            } else if super::bmp::signature(&bytes) {
-                super::bmp::Bmp::parse(&bytes, remaining)?.decode()
-            } else if !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
-                return Err("Input buffer contains unsupported image format".into());
-            } else {
-                Raster::decode(&bytes, remaining).map_err(|e| match e {
-                    "Truncated PNG chunk" | "Truncated PNG image data" => "unexpected end of file",
-                    _ => e,
-                })?
-            };
+            let frame = Raster::decode(&bytes, remaining).map_err(|e| match e {
+                "Truncated PNG chunk" | "Truncated PNG image data" => "unexpected end of file",
+                _ => e,
+            })?;
             used += frame.pixels.len() * 4 + size_of::<Raster>();
             if used > limit {
                 return Err("image exceeds memory budget".into());
@@ -219,12 +211,6 @@ impl ImageSequence {
         )?;
         Ok((w, h, 30))
     }
-}
-
-pub(super) fn supported_still(bytes: &[u8]) -> bool {
-    super::bmp::signature(bytes)
-        || super::netpbm::signature(bytes)
-        || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
 }
 
 pub(super) fn still_info(
@@ -265,15 +251,7 @@ pub(super) fn still_info(
 }
 
 pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
-    if super::netpbm::signature(bytes) {
-        return Ok(super::netpbm::Netpbm::parse(bytes, limit)?.decode());
-    }
-    let decoded = if super::bmp::signature(bytes) {
-        super::bmp::Bmp::parse(bytes, limit).map(|bmp| bmp.decode())
-    } else {
-        Raster::decode(bytes, limit)
-    };
-    Ok(match decoded {
+    Ok(match Raster::decode(bytes, limit) {
         Ok(im) => im,
         Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
         Err(_) => {

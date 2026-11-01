@@ -4373,7 +4373,7 @@ impl MediaInput {
     fn remuxable(&self)->bool {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
-            Self::Bytes("image2",b)=>frame_output::supported_still(b),
+            Self::Bytes("image2",b)=>png_pixels::supported_still(b),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
             Self::Images(_) | Self::Bytes("aac"|"srt"|"webvtt",_)=>true,
             _=>false,
@@ -5173,7 +5173,7 @@ fn cmd_media_doc(
                     return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
                 }
             }
-            let still = container == "image2" && frame_output::supported_still(&raw_bytes);
+            let still = container == "image2" && png_pixels::supported_still(&raw_bytes);
             if still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
                 let records=requested.contains("packet") || requested.contains("frame");
                 let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
@@ -13617,6 +13617,16 @@ mod media_unit_tests {
         fs.write_file("/a.png", &hex_dec("89504e470d0a1a0a0000000d494844520000000d000000090806000000e97aa66a000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000003b4944415463945170facf40226034b3f2235d53404814e99ab2f25249d7d4da5148baa6f98b6a49d7b4734f27e99a2e5f9b42baa6b71f1690ac0900dff8166cd748a1f90000000049454e44ae426082")).unwrap();
         fs.write_file("/b.png", &hex_dec("89504e470d0a1a0a0000000d4948445200000007000000050806000000899af6d8000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000006149444154639c51a6f4ff2d37cbe34f9c4c2f7f33337d67fdfb8f93effb3f71e1af7f64197b6b54debde263b9fb9687e5e13736a68f5cbffef10b7ff9232ff6e98f326357bdea8b177cacb75ef0b3dc06d1129f7eab497cfca30aa2f1ebc4672700f4c246b0d78da95f0000000049454e44ae426082")).unwrap();
         fs
+    }
+
+    #[test]
+    fn convert_flops_the_actual_pixels_from_a_portable_pixmap() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/a.ppm", b"P3\n2 1\n1\n1 0 0 0 1 0").unwrap();
+        let result = cmd_media_doc("convert", &media_args(&["a.ppm","-flop","out.png"]), "", "/", &fs);
+        assert_eq!((result.exit_code, result.stderr), (0, String::new()));
+        let bytes = fs.read_file("/out.png").unwrap();
+        assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
     }
 
     #[test]

@@ -10,6 +10,12 @@ pub(super) struct Raster {
     pub pixels: Vec<[u8; 4]>,
 }
 
+pub(super) fn supported_still(bytes: &[u8]) -> bool {
+    super::bmp::signature(bytes)
+        || super::netpbm::signature(bytes)
+        || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
+}
+
 impl Raster {
     pub(super) fn remap(&mut self, w: usize, h: usize, mut pixel: impl FnMut(&Self, usize, usize) -> [u8; 4]) {
         let mut out = Vec::with_capacity(w * h);
@@ -35,7 +41,7 @@ impl Raster {
             }));
         }
         // Other Rust codecs still emit the legacy private header in place of pixel data.
-        if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") {
+        if supported_still(bytes) {
             return Self::decode(bytes, limit).map(Some).map_err(String::from);
         }
         Ok(None)
@@ -83,10 +89,16 @@ impl Raster {
             (false, true) => super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), pixel),
         }
     }
-    pub fn decode(png: &[u8], limit: usize) -> Result<Self, &'static str> {
-        let mut input = png
+    pub fn decode(bytes: &[u8], limit: usize) -> Result<Self, &'static str> {
+        if super::netpbm::signature(bytes) {
+            return Ok(super::netpbm::Netpbm::parse(bytes, limit)?.decode());
+        }
+        if super::bmp::signature(bytes) {
+            return Ok(super::bmp::Bmp::parse(bytes, limit)?.decode());
+        }
+        let mut input = bytes
             .strip_prefix(b"\x89PNG\r\n\x1a\n")
-            .ok_or("Invalid PNG header")?;
+            .ok_or("Input buffer contains unsupported image format")?;
         let mut header = None;
         let mut density = 72;
         let mut palette = &[][..];

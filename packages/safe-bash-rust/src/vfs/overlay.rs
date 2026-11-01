@@ -115,6 +115,14 @@ impl OverlayVfs {
         Ok(())
     }
 
+    fn check_file_copy_up(&self, path: &str, st: &FileStat) -> Result<(), String> {
+        if st.nlink.map_or_else(|| self.lower.supports_hard_links(path), |n| n > 1) {
+            return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{path}'"));
+        }
+        if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{path}'")); }
+        Ok(())
+    }
+
     fn change_metadata(&self, path: &str, change: MetadataChange) -> Result<(), String> {
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
         let versions = (self.lower.generation(), self.upper.generation());
@@ -136,10 +144,7 @@ impl OverlayVfs {
             if ancestor == "/" || self.upper.lstat(&ancestor).is_ok() { break; }
             ancestor = crate::vfs::dirname_posix_path(&ancestor);
         }
-        if !dir {
-            if st.nlink.is_some_and(|n| n > 1) { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{norm}'")); }
-            if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
-        }
+        if !dir { self.check_file_copy_up(&norm, &st)?; }
         match change {
             MetadataChange::Mode(mode) => st.mode = (st.mode & !0o7777) | (mode & 0o7777),
             MetadataChange::Times(atime, mtime) => {
@@ -166,19 +171,11 @@ impl OverlayVfs {
 
     fn publish_file(&self, path: &str, data: &[u8], operation: FileWrite) -> Result<(), String> {
         let exclusive_mode = match operation { FileWrite::Create(mode) => Some(mode), _ => None };
-        let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
-            return if exclusive_mode.is_some() { Err("ENOTSUP: overlay layers do not support exclusive file creation".into()) }
-                else if operation == FileWrite::Append {
-                    let mut contents = match self.read_file(path) {
-                        Ok(bytes) => bytes,
-                        Err(e) if e.starts_with("ENOENT:") => Vec::new(),
-                        Err(e) => return Err(e),
-                    };
-                    contents.extend_from_slice(data);
-                    self.upper.write_file(&self.access_path(path, true)?, &contents)
-                } else { self.upper.write_file(&self.access_path(path, true)?, data) };
-        };
-        let versions = (lower.generation(), upper.generation());
+        let memory_layers = self.lower.memory_backend().zip(self.upper.memory_backend());
+        if exclusive_mode.is_some() && memory_layers.is_none() {
+            return Err("ENOTSUP: overlay layers do not support exclusive file creation".into());
+        }
+        let versions = (self.lower.generation(), self.upper.generation());
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
         let target = self.access_path(path, exclusive_mode.is_none())?;
         if exclusive_mode.is_some() && target != path { return Err("EAGAIN: resolved entry changed".into()); }
@@ -188,15 +185,20 @@ impl OverlayVfs {
             Err(e) if e.starts_with("ENOENT:") => None,
             Err(e) => return Err(e),
         };
-        let upper_exists = upper.lstat(&target).is_ok();
+        let upper_exists = self.upper.lstat(&target).is_ok();
         if let Some(st) = &existing {
             if st.kind != VfsEntryKind::File || st.mode & 0o170000 != 0o100000 { return Err("EISDIR: illegal operation on a directory".into()); }
             if st.mode & 0o200 == 0 { return Err("EACCES: permission denied".into()); }
-            if !upper_exists {
-                if st.nlink.is_some_and(|n| n > 1) { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{target}'")); }
-                if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{target}'")); }
-            }
+            if !upper_exists { self.check_file_copy_up(&target, st)?; }
         }
+        let Some((lower, upper)) = memory_layers else {
+            if operation == FileWrite::Append && existing.is_some() {
+                let mut contents = self.read_file(&target)?;
+                contents.extend_from_slice(data);
+                return self.upper.write_file(&target, &contents);
+            }
+            return self.upper.write_file(&target, data);
+        };
         let parent = crate::vfs::dirname_posix_path(&target);
         let mut parents = Vec::new();
         if !upper_exists {
@@ -533,6 +535,20 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn copying_up_from_a_mount_rejects_writes_that_would_split_hard_links() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/f", b"original").unwrap();
+        lower.hard_link("/f", "/alias").unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        let overlay = OverlayVfs::new(Arc::new(crate::vfs::MountVfs::new(lower)), upper.clone());
+        for result in [overlay.write_file("/f", b"new"), overlay.append_file("/f", b"+"), overlay.chmod("/f", 0o600)] {
+            assert_eq!(result.unwrap_err(), "ENOTSUP: copy-up cannot preserve hardlink identity, overlay '/f'");
+        }
+        assert!(!upper.exists("/f"));
+        assert_eq!(overlay.stat("/f").unwrap().identity, overlay.stat("/alias").unwrap().identity);
+    }
 
     #[test]
     fn timestamp_copy_up_preserves_parents_and_rejects_unsafe_copies() {

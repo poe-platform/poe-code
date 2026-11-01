@@ -4585,7 +4585,7 @@ fn cmd_media_doc(
             let y4m_output = muxer == Some("y4m");
             let mov_output = muxer == Some("mov");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
-            if mp4_output || inputs.len()==1 && (muxer==Some("aac") || y4m_output){
+            if mp4_output || muxer==Some("ffmetadata") || inputs.len()==1 && (muxer==Some("aac") || y4m_output){
                 let source=&inputs[0];
                 let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
                 let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
@@ -4595,7 +4595,7 @@ fn cmd_media_doc(
                 let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
                 let real_mp4=matches!(format,Some("mp4"|"mov")) && !bytes.as_deref().unwrap_or_default().starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
                 let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
-                if real_mp4 && mp4_output{
+                if real_mp4 && (mp4_output || muxer==Some("ffmetadata")){
                     for source in &inputs[1..]{
                         let Some(data)=read(source)else{break};
                         if !matches!(media_format::detect(&data,source,input_format),Some("mp4"|"mov")) || data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"){break}
@@ -4603,7 +4603,10 @@ fn cmd_media_doc(
                         additional.push(data);
                     }
                 }
-                let output=if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
+                let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() {
+                    let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
+                    match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
                     if !video_copy {
                         if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                         if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
@@ -4618,7 +4621,7 @@ fn cmd_media_doc(
                     let opts=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,mov:mov_output,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                     let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
                     match mp4::mux::remux(&sources,opts){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if inputs.len()==1 && !y4m_output && (format==Some("aac") || !mp4_output && real_mp4) {
+                } else if inputs.len()==1 && (mp4_output && format==Some("aac") || muxer==Some("aac") && (format==Some("aac") || real_mp4)) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || !audio_filters.is_empty());
                     let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
                     let bytes=bytes.as_deref().unwrap_or_default();
@@ -12947,6 +12950,16 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_exports_mp4_metadata_to_stdout_with_overrides() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let args = media_args(&["-i","av.mp4","-metadata","year=1997","-metadata","title=The clip","-f","ffmetadata","-"]);
+        let r = cmd_media_doc("ffmpeg",&args,"","/",&fs);
+        assert_eq!((r.exit_code,r.stdout),(0,";FFMETADATA1\ntitle=The clip\ndate=1997\nencoder=@poe-code/mp4-ast\n".to_owned()));
+        assert!(!fs.exists("/-"));
     }
 
     #[test]

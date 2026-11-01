@@ -815,19 +815,12 @@ pub(in super::super) fn remux(inputs: &[&[u8]], opts: Remux<'_>) -> Result<Vec<u
     }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();
-    for &(data, movie, ..) in &sources[..if opts.maps.is_empty() {
+    for &(_, movie, ..) in &sources[..if opts.maps.is_empty() {
         sources.len()
     } else {
         1
     }] {
-        metadata.extend(
-            super::tags(data, movie)
-                .into_iter()
-                .filter_map(|(k, v)| match v {
-                    super::Str(s) => Some((k, s)),
-                    _ => None,
-                }),
-        );
+        metadata.extend(super::text_tags(movie).map(|(k, v)| (k.to_owned(), v)));
         let chpl = child(child(movie, b"udta"), b"chpl");
         if let Some(&n) = chpl.get(8) {
             let (count, mut rest) = if n == 0 {

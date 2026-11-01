@@ -990,6 +990,11 @@ fn tags(input: &[u8], moov: &[u8]) -> Vec<(String, super::super::structured::JVa
             Str(latin(&brands[8..brands.len() / 4 * 4])),
         ))
     }
+    tags.extend(text_tags(moov).map(|(k, v)| (k.into(), Str(v))));
+    tags
+}
+
+fn text_tags(moov: &[u8]) -> impl Iterator<Item = (&'static str, String)> + '_ {
     let mut meta = child(child(moov, b"udta"), b"meta");
     if meta.is_empty() {
         meta = child(moov, b"meta")
@@ -998,7 +1003,7 @@ fn tags(input: &[u8], moov: &[u8]) -> Vec<(String, super::super::structured::JVa
         meta = &meta[4..]
     }
     let ilst = child(meta, b"ilst");
-    for (code, key) in [
+    [
         (b"\xa9nam", "title"),
         (b"\xa9ART", "artist"),
         (b"\xa9alb", "album"),
@@ -1006,7 +1011,9 @@ fn tags(input: &[u8], moov: &[u8]) -> Vec<(String, super::super::structured::JVa
         (b"\xa9cmt", "comment"),
         (b"\xa9gen", "genre"),
         (b"\xa9too", "encoder"),
-    ] {
+    ]
+    .into_iter()
+    .filter_map(move |(code, key)| {
         let mut value = None;
         for (_, item) in atoms(ilst).filter(|(k, _)| *k == code) {
             let bytes = match atoms(item).find(|(k, _)| *k == b"data") {
@@ -1020,14 +1027,11 @@ fn tags(input: &[u8], moov: &[u8]) -> Vec<(String, super::super::structured::JVa
                 value = Some(s.to_owned())
             }
         }
-        if let Some(v) = value {
-            tags.push((key.into(), Str(v)))
-        }
-    }
-    tags
+        value.map(|v| (key, v))
+    })
 }
 
-fn chapters(moov: &[u8], duration: f64) -> impl Iterator<Item = Row> + '_ {
+fn chapter_entries(moov: &[u8], duration: f64) -> impl Iterator<Item = (f64, f64, &[u8])> {
     let chpl = child(child(moov, b"udta"), b"chpl");
     let count = chpl.get(8).copied().unwrap_or(0);
     let (mut bytes, count) = if count == 0 {
@@ -1045,23 +1049,31 @@ fn chapters(moov: &[u8], duration: f64) -> impl Iterator<Item = Row> + '_ {
         } else {
             start.max(duration)
         };
-        let title = String::from_utf8_lossy(&row[9..9 + len]);
-        Some(vec![
-            ("id", Number(f64::from(id))),
-            ("time_base", Str("1/1000".into())),
-            ("start", Number((start * 1000.).round())),
-            ("start_time", Str(format!("{start:.6}"))),
-            ("end", Number((end * 1000.).round())),
-            ("end_time", Str(format!("{end:.6}"))),
-            (
-                "tags",
-                Object(vec![(
-                    "title".into(),
-                    Str(title.trim_start_matches('\u{feff}').into()),
-                )]),
-            ),
-        ])
+        Some((start, end, &row[9..9 + len]))
     })
+}
+
+fn chapters(moov: &[u8], duration: f64) -> impl Iterator<Item = Row> + '_ {
+    chapter_entries(moov, duration)
+        .enumerate()
+        .map(|(id, (start, end, title))| {
+            let title = String::from_utf8_lossy(title);
+            vec![
+                ("id", Number(id as f64)),
+                ("time_base", Str("1/1000".into())),
+                ("start", Number((start * 1000.).round())),
+                ("start_time", Str(format!("{start:.6}"))),
+                ("end", Number((end * 1000.).round())),
+                ("end_time", Str(format!("{end:.6}"))),
+                (
+                    "tags",
+                    Object(vec![(
+                        "title".into(),
+                        Str(title.trim_start_matches('\u{feff}').into()),
+                    )]),
+                ),
+            ]
+        })
 }
 
 fn read_tracks<'a>(input: &'a [u8], moov: &'a [u8]) -> Result<(Vec<Track<'a>>, f64), String> {
@@ -1080,6 +1092,59 @@ fn read_tracks<'a>(input: &'a [u8], moov: &'a [u8]) -> Result<(Vec<Track<'a>>, f
         tracks.push(t);
     }
     Ok((tracks, duration))
+}
+
+pub(super) fn ffmetadata(
+    inputs: &[&[u8]],
+    mapped: bool,
+    overrides: &std::collections::BTreeMap<String, String>,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
+    use std::fmt::Write;
+    let mut metadata = std::collections::BTreeMap::new();
+    let mut chapter_text = String::new();
+    for (i, &input) in inputs.iter().enumerate() {
+        let moov = movie(input)?;
+        let (_, duration) = read_tracks(input, moov)?;
+        if i != 0 && mapped {
+            continue;
+        }
+        metadata.extend(text_tags(moov));
+        for (start, end, title) in chapter_entries(moov, duration) {
+            let title = String::from_utf8_lossy(title);
+            writeln!(
+                chapter_text,
+                "\n[CHAPTER]\nTIMEBASE=1/1000\nSTART={}\nEND={}\ntitle={}",
+                (start * 1000.).round() as u64,
+                (end * 1000.).round() as u64,
+                title.trim_start_matches('\u{feff}')
+            )
+            .unwrap();
+            if chapter_text.len() > limit {
+                return Err("output byte limit exceeded".into());
+            }
+        }
+    }
+    let mut out = String::from(";FFMETADATA1\n");
+    for name in [
+        "title", "artist", "album", "date", "comment", "genre", "encoder",
+    ] {
+        let mut value = overrides.get(name);
+        if name == "date" {
+            value = value.or_else(|| overrides.get("year"));
+        }
+        if let Some(v) = value
+            .or_else(|| metadata.get(name))
+            .filter(|v| !v.is_empty())
+        {
+            writeln!(out, "{name}={v}").unwrap();
+        }
+    }
+    if out.len().saturating_add(chapter_text.len()) > limit {
+        return Err("output byte limit exceeded".into());
+    }
+    out.push_str(&chapter_text);
+    Ok(out.into_bytes())
 }
 
 pub(super) fn decode_y4m(input: &[u8], opts: super::y4m::Options<'_>) -> Result<Vec<u8>, String> {

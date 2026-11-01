@@ -936,8 +936,9 @@ pub extern "C" fn safe_bash_output_len(id: u32) -> usize {
 }
 
 #[unsafe(no_mangle)]
-pub extern "C" fn safe_bash_last_elapsed_ms(_id: u32) -> u32 {
-    crate::commands::virtual_clock_elapsed_ms().ceil() as u32
+pub extern "C" fn safe_bash_last_elapsed_ms(id: u32) -> u32 {
+    let Ok(map) = sessions().lock() else { return 0 };
+    map.get(&id).map_or(0, |s| s.shell.backend.last_elapsed_ms.load(std::sync::atomic::Ordering::Relaxed))
 }
 
 #[cfg(test)]

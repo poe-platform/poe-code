@@ -1046,6 +1046,7 @@ export class RustWasmBash extends WasmShell {
     }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();
+    let elapsedMs;
     let res;
     try {
       const before = options.hooks?.beforeExec ?? this.hooks?.beforeExec;
@@ -1075,16 +1076,14 @@ export class RustWasmBash extends WasmShell {
         options.signal?.throwIfAborted();
       }
       res = shell.execSync(script, stdinData);
+      elapsedMs = this.exports.safe_bash_last_elapsed_ms?.(shell.sessionId) >>> 0;
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
       shell.dispose();
     }
-    if (typeof this.exports.safe_bash_last_elapsed_ms === "function") {
-      const elapsedMs = this.exports.safe_bash_last_elapsed_ms(this.sessionId) >>> 0;
-      if (elapsedMs > 0 && res.exitCode !== 1) {
-        const waitMs = Math.min(elapsedMs, 50);
-        await new Promise((resolve) => setTimeout(resolve, waitMs));
-      }
+    if (elapsedMs > 0 && res.exitCode !== 1) {
+      const waitMs = Math.min(elapsedMs, 50);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
     }
     if (options.stdout && typeof options.stdout.write === "function" && res.stdoutBytes.byteLength > 0) {
       await options.stdout.write(res.stdoutBytes);

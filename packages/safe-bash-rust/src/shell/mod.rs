@@ -54,7 +54,7 @@ pub struct Shell {
     pub(crate) fs: Arc<dyn SafeBashFs>,
     cwd: String,
     env: BTreeMap<String, String>,
-    backend: HybridBackend,
+    pub(crate) backend: HybridBackend,
     limits: ShellLimits,
 }
 

@@ -93,6 +93,28 @@ test("head reads device chunks until its byte or record count is satisfied", asy
   } finally { bash.dispose(); }
 });
 
+test("reentrant host commands have independent SECONDS, deadlines and elapsed times", async t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  const wasm = bash.instance.exports;
+  t.mock.method(globalThis.crypto, "getRandomValues", view => {
+    assert.equal(bash.execSync("sleep 7").exitCode, 0);
+    return view.fill(0);
+  });
+  try {
+    const outer = await bash.exec("SECONDS=0; sleep 1; head -c1 /dev/random >/dev/null; echo $SECONDS");
+    assert.deepEqual([outer.exitCode, outer.stdout, outer.stderr], [0, "1\n", ""]);
+    assert.equal(wasm.safe_bash_last_elapsed_ms(bash.sessionId), 7000);
+    const timed = await bash.exec("timeout 1 bash -c 'head -c1 /dev/random >/dev/null; sleep 2; echo leaked'");
+    assert.deepEqual([timed.exitCode, timed.stdout, timed.stderr], [124, "", ""]);
+    const untouched = wasm.safe_bash_fork_session(bash.sessionId);
+    try { assert.equal(wasm.safe_bash_last_elapsed_ms(untouched), 0); }
+    finally { wasm.safe_bash_destroy_session(untouched); }
+    bash.execSync(":");
+    assert.equal(wasm.safe_bash_last_elapsed_ms(bash.sessionId), 0);
+  } finally { bash.dispose(); }
+});
+
 test("a host callback can inspect the parent session while a child is executing", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

@@ -24,6 +24,7 @@ struct TimeoutFrame {
 
 #[derive(Default)]
 struct VirtualClock {
+    evaluating: bool,
     now_ms: f64,
     next_id: u64,
     stack: Vec<TimeoutFrame>,
@@ -42,6 +43,27 @@ pub fn reset_virtual_clock() {
         clock.stack.clear();
         clock.expired_id = None;
     });
+}
+
+pub(crate) fn with_execution_clock<T>(run: impl FnOnce() -> T) -> (T, u32) {
+    struct Restore(VirtualClock);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            VIRTUAL_CLOCK.with_borrow_mut(|clock| {
+                if self.0.evaluating {
+                    std::mem::swap(clock, &mut self.0);
+                } else {
+                    clock.evaluating = false;
+                }
+            });
+        }
+    }
+    let _restore = Restore(VIRTUAL_CLOCK.replace(VirtualClock {
+        evaluating: true,
+        ..Default::default()
+    }));
+    let result = run();
+    (result, virtual_clock_elapsed_ms().ceil() as u32)
 }
 
 pub fn virtual_clock_elapsed_ms() -> f64 {

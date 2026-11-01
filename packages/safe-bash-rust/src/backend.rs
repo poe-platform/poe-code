@@ -6,8 +6,8 @@ use crate::shell::eval::{EvalError, EvalState};
 use crate::shell::parser::CommandNode;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
 use std::collections::{BTreeMap, BTreeSet};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use std::sync::{Arc, Mutex};
-use std::sync::atomic::{AtomicBool, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum BackendMode {
@@ -51,6 +51,7 @@ pub struct HybridBackend {
     commands: BTreeMap<String, RustCommand>,
     bindings: Mutex<ShellBindings>,
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
+    pub(crate) last_elapsed_ms: AtomicU32,
 }
 
 impl Clone for HybridBackend {
@@ -59,6 +60,7 @@ impl Clone for HybridBackend {
             mode: self.mode,
             provided_devices: self.provided_devices,
             commands: self.commands.clone(),
+            last_elapsed_ms: AtomicU32::default(),
             bindings: Mutex::new(self.bindings.lock().unwrap().clone()),
             used_typescript_bridge: self.used_typescript_bridge.clone(),
         }
@@ -282,10 +284,7 @@ impl HybridBackend {
     pub fn new(mode: BackendMode) -> Self {
         Self {
             mode,
-            provided_devices: false,
-            commands: BTreeMap::new(),
-            bindings: Mutex::default(),
-            used_typescript_bridge: Arc::new(AtomicBool::new(false)),
+            ..Default::default()
         }
     }
 
@@ -323,9 +322,6 @@ impl HybridBackend {
         fs: &dyn SafeBashFs,
     ) -> Option<Result<CommandResult, String>> {
         self.used_typescript_bridge.store(false, Ordering::Relaxed);
-        if script != ":" {
-            crate::commands::reset_virtual_clock();
-        }
         let budget = ExecutionBudget::new(limits.clone(), timeout_ms);
         let budgeted_fs = BudgetedFs {
             inner: fs,
@@ -340,7 +336,8 @@ impl HybridBackend {
             eval.exported_functions.clone_from(&bindings.exported_functions);
             eval.pos_args.clone_from(&bindings.positional);
         }
-        let eval_res = eval.eval_script_str(script, stdin);
+        let (eval_res, elapsed_ms) = crate::commands::with_execution_clock(|| eval.eval_script_str(script, stdin));
+        self.last_elapsed_ms.store(elapsed_ms, Ordering::Relaxed);
         if let Err(exceeded_msg) = budget.check_exceeded() {
             return Some(Err(exceeded_msg));
         }

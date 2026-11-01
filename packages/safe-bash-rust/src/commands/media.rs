@@ -95,6 +95,8 @@ mod bmp;
 mod identify;
 #[path = "netpbm.rs"]
 mod netpbm;
+#[path = "png_header.rs"]
+mod png_header;
 #[path = "png_pixels.rs"]
 mod png_pixels;
 #[path = "magick_coordinates.rs"]
@@ -237,6 +239,14 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> (ImageMeta, u8, u8,
         meta.h = im.height as u32;
         meta.fmt = "BMP".into();
         (8, if im.bpp == 32 { 4 } else { 3 }, im.density)
+    } else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") && let Ok(header) = png_header::Header::read(bytes, |_| Ok(())) {
+        let (w, h, depth, color) = header.ihdr.map_or((0, 0, 8, 6), |v| (
+            u32::from_be_bytes(v[..4].try_into().unwrap()), u32::from_be_bytes(v[4..8].try_into().unwrap()), v[8], v[9]));
+        (meta.w, meta.h) = (w, h);
+        let gray = matches!(color, 0 | 4);
+        meta.cs = if gray { "Gray" } else { "sRGB" }.into();
+        let alpha = matches!(color, 4 | 6) || header.transparency.is_some();
+        (depth, (if gray { 1 } else { 3 }) + u8::from(alpha), header.density)
     } else { (8, 3, 72) };
     (meta, depth, channels, dpi)
 }
@@ -10764,15 +10774,17 @@ fn cmd_media_doc(
                     continue;
                 }
                 let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
+                let display_depth = if depth < 8 { 1 } else { depth };
+                let space = if depth == 16 && meta.fmt == "PNG" { "sRGB" } else { &meta.cs };
                 if let Some(ref fmt_str) = fmt_opt {
                     if let Err(e) = identify::format(fmt_str, operand, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
                         return err_out(&format!("identify: {e}\n"), 1);
                     }
                 } else if verbose {
-                    let details = if netpbm::signature(&bytes) || bmp::signature(&bytes) {
+                    let details = if png_pixels::supported_still(&bytes) {
                         match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
                             Ok(image) => {
-                                let alpha = if image.alpha { "True" } else { "False" };
+                                let alpha = if matches!(channels, 2 | 4) { "True" } else { "False" };
                                 format!("  Channels: {channels}\n  Alpha: {alpha}\n  Filesize: {}B\n  Entropy: {:.4}\n", bytes.len(), image.entropy())
                             }
                             Err(reason) => {
@@ -10783,13 +10795,13 @@ fn cmd_media_doc(
                         }
                     } else { format!("  Filesize: {}B\n", bytes.len()) };
                     out.push_str(&format!(
-                        "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: {dpi}x{dpi}\n  Colorspace: {}\n  Depth: {depth}-bit\n{details}",
-                        meta.fmt, meta.w, meta.h, meta.cs
+                        "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: {dpi}x{dpi}\n  Colorspace: {}\n  Depth: {display_depth}-bit\n{details}",
+                        meta.fmt, meta.w, meta.h, space
                     ));
                 } else {
                     out.push_str(&format!(
-                        "{f} {} {}x{} {}x{}+0+0 {depth}-bit {} {}B 0.000u 0:00.000\n",
-                        meta.fmt, meta.w, meta.h, meta.w, meta.h, meta.cs, bytes.len()
+                        "{f} {} {}x{} {}x{}+0+0 {display_depth}-bit {} {}B 0.000u 0:00.000\n",
+                        meta.fmt, meta.w, meta.h, meta.w, meta.h, space, bytes.len()
                     ));
                 }
             }
@@ -11104,9 +11116,9 @@ fn cmd_media_doc(
                             "formatOptions" => "default".to_string(),
                             "dpiWidth" | "dpiHeight" => meta.exif.get(p).cloned().unwrap_or_else(|| format!("{dpi}.000")),
                             "samplesPerPixel" => channels.to_string(),
-                            "bitsPerSample" => depth.to_string(),
-                            "hasAlpha" => if channels == 4 { "yes" } else { "no" }.into(),
-                            "space" => if meta.cs == "Gray" { "Gray" } else { "RGB" }.into(),
+                            "bitsPerSample" => (if depth < 8 { 1 } else { depth }).to_string(),
+                            "hasAlpha" => if matches!(channels, 2 | 4) { "yes" } else { "no" }.into(),
+                            "space" => if meta.cs == "Gray" && !(meta.fmt == "PNG" && depth == 16) { "Gray" } else { "RGB" }.into(),
                             other => meta
                                 .exif
                                 .get(other)
@@ -13620,6 +13632,19 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn identify_and_sips_read_png_density_channels_and_transparency() {
+        let fs = MemoryVfs::new();
+        let png = pixel_png(2, 1, PngEncoding::Density(300), |x, _| if x == 0 { [0,0,0,255] } else { [255,255,255,0] });
+        fs.write_file("/x.png", &png).unwrap();
+        let r = cmd_media_doc("sips", &media_args(&["-1","-g","dpiWidth","-g","hasAlpha","-g","samplesPerPixel","x.png"]), "", "/", &fs);
+        assert_eq!(r.stdout, "x.png|dpiWidth: 300.000|hasAlpha: yes|samplesPerPixel: 4|\n");
+        let r = cmd_media_doc("identify", &media_args(&["-verbose","x.png"]), "", "/", &fs);
+        assert!(r.stdout.contains("  Resolution: 300x300\n"));
+        assert!(r.stdout.contains("  Channels: 4\n  Alpha: True\n"));
+        assert!(r.stdout.ends_with("  Entropy: 1.0000\n"));
     }
 
     #[test]

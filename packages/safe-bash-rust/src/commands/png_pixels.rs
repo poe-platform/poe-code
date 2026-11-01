@@ -108,46 +108,15 @@ impl Raster {
         if super::bmp::signature(bytes) {
             return Ok(super::bmp::Bmp::parse(bytes, limit)?.decode());
         }
-        let mut input = bytes
-            .strip_prefix(b"\x89PNG\r\n\x1a\n")
-            .ok_or("Input buffer contains unsupported image format")?;
-        let mut header = None;
-        let mut density = 72;
-        let mut palette = &[][..];
-        let mut trns = &[][..];
         let mut idat = Vec::new();
-        while input.len() >= 12 {
-            let size = u32::from_be_bytes(input[..4].try_into().unwrap()) as usize;
-            if size > input.len() - 12 {
-                return Err("Truncated PNG chunk");
-            }
-            let data = &input[8..8 + size];
-            match &input[4..8] {
-                b"IHDR" if size >= 13 => header = Some(data),
-                b"pHYs" if size >= 9 => {
-                    let x = u32::from_be_bytes(data[..4].try_into().unwrap());
-                    if x > 0 {
-                        density = if data[8] == 1 {
-                            (x as f64 * 0.0254).round().max(1.) as u32
-                        } else {
-                            x
-                        };
-                    }
-                }
-                b"PLTE" => palette = data,
-                b"tRNS" => trns = data,
-                b"IDAT" => {
-                    if size > limit - idat.len() {
-                        return Err("image exceeds memory budget");
-                    }
-                    idat.extend_from_slice(data);
-                }
-                b"IEND" => break,
-                _ => {}
-            }
-            input = &input[size + 12..];
-        }
-        let h = header.ok_or("Invalid PNG header")?;
+        let header = super::png_header::Header::read(bytes, |data| {
+            if data.len() > limit - idat.len() { return Err("image exceeds memory budget"); }
+            idat.extend_from_slice(data);
+            Ok(())
+        })?;
+        if header.truncated { return Err("Truncated PNG chunk"); }
+        let h = header.ihdr.ok_or("Invalid PNG header")?;
+        let (density, palette, trns) = (header.density, header.palette, header.transparency.unwrap_or_default());
         let width = u32::from_be_bytes(h[..4].try_into().unwrap()) as usize;
         let height = u32::from_be_bytes(h[4..8].try_into().unwrap()) as usize;
         let count = width

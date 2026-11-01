@@ -236,6 +236,10 @@ impl HybridBackend {
             .and_then(text)
             .ok_or("Session state needs cwd")?;
         let cwd = crate::vfs::normalize_posix_path(&cwd);
+        let positional = list(v.get("positionalParams"));
+        if positional.iter().map(String::len).sum::<usize>() > limits.max_expansion_bytes {
+            return Err("Shell limit exceeded: maxExpansionBytes".into());
+        }
         let exported: BTreeSet<_> = list(v.get("exported")).into_iter().collect();
         for (k, s) in string_entries(v.get("variables")).filter(|(k, _)| public_name(k)) {
             if !exported.contains(&k) {
@@ -244,7 +248,12 @@ impl HybridBackend {
             env.insert(k, s);
         }
         env.insert("PWD".into(), cwd.clone());
+        let mut alias_bytes = 0;
         for (name, val) in string_entries(v.get("aliases")) {
+            alias_bytes += name.len() + val.len();
+            if alias_bytes > limits.max_expansion_bytes {
+                return Err("Shell limit exceeded: maxExpansionBytes".into());
+            }
             env.insert(format!("__alias__{name}"), val);
         }
         for (name, arr) in entries(v.get("arrays")).filter(|(k, _)| public_name(k)) {
@@ -341,7 +350,7 @@ impl HybridBackend {
         }
         *self.bindings.lock().unwrap() = ShellBindings {
             functions,
-            positional: list(v.get("positionalParams")),
+            positional,
             exported_functions: list(v.get("exportedFunctions")).into_iter().collect(),
         };
         Ok(cwd)

@@ -64,6 +64,20 @@ test("session checkpoints retain associative key order and distinguish unassigne
   } finally { bash.dispose(); }
 });
 
+test("restored positional arguments and aliases honor the expansion byte limit", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const limits = { maxExpansionBytes: 5 };
+    for (const bindings of [{ positionalParams: ["ab", "😀"] }, { aliases: { foo: "bar" } }]) {
+      const s = bash.createSession({ cwd: "/", ...bindings });
+      await assert.rejects(s.exec(": > /x", { limits }), { name: "ShellLimitError", limit: "maxExpansionBytes" });
+      assert.equal((await bash.exec("test ! -e /x")).exitCode, 0);
+    }
+    const state = {cwd: "/", positionalParams: ["a", "😀"], aliases: {foo: "ok"}};
+    assert.equal((await bash.exec(":", {state, limits})).exitCode, 0);
+  } finally { bash.dispose(); }
+});
+
 test("session restore only parses function definitions and never runs legacy history", async () => {
   const bash = new RustWasmBash();
   try {

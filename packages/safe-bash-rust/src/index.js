@@ -566,7 +566,12 @@ class WasmShell {
     const data = this._allocBytes(encoder.encode(JSON.stringify(state)));
     try {
       const n = this.exports.safe_bash_restore_session(this.sessionId, data.ptr, data.len);
-      if (n !== 0) throw new TypeError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), n)));
+      if (n !== 0) {
+        const message = decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), n));
+        const prefix = "Shell limit exceeded: ";
+        if (message.startsWith(prefix)) throw new this.ShellLimitError(message.slice(prefix.length));
+        throw new TypeError(message);
+      }
     } finally { this._freeBytes(data); }
   }
 

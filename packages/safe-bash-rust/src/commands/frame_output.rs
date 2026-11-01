@@ -219,6 +219,11 @@ impl ImageSequence {
     }
 }
 
+pub(super) fn supported_still(bytes: &[u8]) -> bool {
+    super::netpbm::signature(bytes)
+        || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
+}
+
 pub(super) fn still_info(
     bytes: &[u8],
     limit: usize,

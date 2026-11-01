@@ -12,7 +12,8 @@ pub(super) struct Clip {
 }
 
 enum Track {
-    Y4m {
+    Video {
+        tag: &'static [u8; 4],
         width: u32,
         height: u32,
         frame_size: u64,
@@ -35,7 +36,8 @@ impl Clip {
             (stream.width, stream.height, stream.fps, stream.frame_size);
         let count = stream.frames().count();
         Ok(Self {
-            track: Track::Y4m {
+            track: Track::Video {
+                tag: b"raw ",
                 width,
                 height,
                 frame_size,
@@ -45,6 +47,22 @@ impl Clip {
             duration: count as f64 / fps,
             count,
             ticks: (90000. / fps).round().max(1.) as u64,
+        })
+    }
+    pub(super) fn still(input: &[u8], limit: usize) -> Result<Self, &'static str> {
+        let (width, height, tag) = super::frame_output::still_info(input, limit)?;
+        Ok(Self {
+            track: Track::Video {
+                tag,
+                width: width as u32,
+                height: height as u32,
+                frame_size: input.len() as u64,
+            },
+            timescale: 25,
+            ticks: 1,
+            count: 1,
+            duration: 0.04,
+            payload_bytes: input.len() as u64,
         })
     }
     pub(super) fn subtitles(
@@ -152,7 +170,7 @@ impl Clip {
             _ => (0., self.count as f64 * self.ticks as f64),
         };
         let duration = ticks / f64::from(self.timescale);
-        let rate = if self.count == 0 || !matches!(self.track, Track::Y4m { .. }) {
+        let rate = if self.count == 0 || !matches!(self.track, Track::Video { .. }) {
             "0/0".into()
         } else {
             ratio(self.timescale.into(), self.ticks, '/')
@@ -175,26 +193,42 @@ impl Clip {
                     ("codec_tag", Str(code.into())),
                 ]);
             }
-            Track::Y4m { width, height, .. } => row.extend([
-                ("codec_name", Str("rawvideo".into())),
-                ("codec_long_name", Str("raw video".into())),
-                ("codec_type", Str("video".into())),
-                ("codec_tag_string", Str("raw ".into())),
-                ("codec_tag", Str("0x72617720".into())),
-                ("width", Number(width.into())),
-                ("height", Number(height.into())),
-                ("coded_width", Number(f64::from(width.div_ceil(16)) * 16.)),
-                ("coded_height", Number(f64::from(height.div_ceil(16)) * 16.)),
-                ("has_b_frames", Number(0.)),
-                ("sample_aspect_ratio", Str("1:1".into())),
-                (
-                    "display_aspect_ratio",
-                    Str(ratio(width.into(), height.into(), ':')),
-                ),
-                ("pix_fmt", Str("yuv420p".into())),
-                ("color_range", Str("tv".into())),
-                ("color_space", Str("bt709".into())),
-            ]),
+            Track::Video {
+                tag, width, height, ..
+            } => {
+                let fourcc = std::str::from_utf8(tag).unwrap();
+                let (name, long) = match tag {
+                    b"raw " => ("rawvideo", "raw video"),
+                    b"png " => ("png", "PNG (Portable Network Graphics) image"),
+                    _ => (fourcc.trim_end(), fourcc.trim_end()),
+                };
+                row.extend([
+                    ("codec_name", Str(name.into())),
+                    ("codec_long_name", Str(long.into())),
+                    ("codec_type", Str("video".into())),
+                    ("codec_tag_string", Str(fourcc.into())),
+                    (
+                        "codec_tag",
+                        Str(format!("0x{:08x}", u32::from_be_bytes(*tag))),
+                    ),
+                    ("width", Number(width.into())),
+                    ("height", Number(height.into())),
+                    ("coded_width", Number(f64::from(width.div_ceil(16)) * 16.)),
+                    ("coded_height", Number(f64::from(height.div_ceil(16)) * 16.)),
+                    ("has_b_frames", Number(0.)),
+                    ("sample_aspect_ratio", Str("1:1".into())),
+                    (
+                        "display_aspect_ratio",
+                        Str(ratio(width.into(), height.into(), ':')),
+                    ),
+                    (
+                        "pix_fmt",
+                        Str(if tag == b"raw " { "yuv420p" } else { "rgb24" }.into()),
+                    ),
+                    ("color_range", Str("tv".into())),
+                    ("color_space", Str("bt709".into())),
+                ])
+            }
             Track::Aac { channels, .. } => row.extend([
                 ("codec_name", Str("aac".into())),
                 ("codec_long_name", Str("AAC (Advanced Audio Coding)".into())),
@@ -252,7 +286,8 @@ impl Clip {
             Track::Subtitle { webvtt: true, .. } => ("webvtt", "WebVTT subtitle"),
             Track::Subtitle { .. } => ("srt", "SubRip subtitle"),
             Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
-            Track::Y4m { .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
+            Track::Video { tag: b"raw ", .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
+            Track::Video { .. } => ("image2", "image2 sequence"),
         };
         format_row(filename, bytes, (name, long_name), 1, duration, vec![])
     }
@@ -274,7 +309,7 @@ impl Clip {
                     "audio",
                 )
             }
-            Track::Y4m { frame_size, .. } => (
+            Track::Video { frame_size, .. } => (
                 default_pts,
                 self.ticks as f64,
                 *frame_size,
@@ -306,10 +341,15 @@ impl Clip {
                     ("nb_samples", Number(1024.)),
                     ("channels", Number(channels.into())),
                 ]),
-                Track::Y4m { width, height, .. } => row.extend([
+                Track::Video {
+                    tag, width, height, ..
+                } => row.extend([
                     ("width", Number(width.into())),
                     ("height", Number(height.into())),
-                    ("pix_fmt", Str("yuv420p".into())),
+                    (
+                        "pix_fmt",
+                        Str(if tag == b"raw " { "yuv420p" } else { "rgb24" }.into()),
+                    ),
                     ("pict_type", Str("I".into())),
                 ]),
             }
@@ -390,7 +430,7 @@ impl Clip {
                     select,
                     match self.track {
                         Track::Aac { .. } => "audio",
-                        Track::Y4m { .. } => "video",
+                        Track::Video { .. } => "video",
                         Track::Subtitle { .. } => "subtitle",
                     },
                     0,

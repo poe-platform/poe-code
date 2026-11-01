@@ -4371,7 +4371,7 @@ impl MediaInput {
     fn remuxable(&self)->bool {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
-            Self::Bytes("image2",b)=>netpbm::signature(b) || b.starts_with(b"\x89PNG\r\n\x1a\n") && b.get(29..38)!=Some(b"\n__IMG__:"),
+            Self::Bytes("image2",b)=>frame_output::supported_still(b),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
             Self::Images(_) | Self::Bytes("aac"|"srt"|"webvtt",_)=>true,
             _=>false,
@@ -5171,7 +5171,8 @@ fn cmd_media_doc(
                     return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
                 }
             }
-            if real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
+            let still = container == "image2" && frame_output::supported_still(&raw_bytes);
+            if still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
                 let records=requested.contains("packet") || requested.contains("frame");
                 let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
                     writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
@@ -5180,7 +5181,9 @@ fn cmd_media_doc(
                         Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
                     };
                 }
-                let clip = if matches!(container,"srt" | "webvtt") {
+                let clip = if still {
+                    media_probe::Clip::still(&raw_bytes, fs.max_input_bytes())
+                } else if matches!(container,"srt" | "webvtt") {
                     media_probe::Clip::subtitles(&raw_bytes,container=="webvtt",records,fs.max_input_bytes())
                 } else if container == "aac" {
                     Ok(media_probe::Clip::adts(&raw_bytes, records))
@@ -13527,6 +13530,17 @@ mod media_unit_tests {
             "0,2,0\n1024,3,2\naac,48000,1,938\n4125\n");
         assert_eq!(run(&["-show_frames","-show_entries","frame=pkt_size,nb_samples,channels","-of","csv=p=0","clip"]), "2,1024,1\n3,1024,1\n");
         assert_eq!(run(&["-show_streams","-select_streams","v","-of","json=c=1","clip"]), "{\"streams\":[]}\n");
+    }
+
+    #[test]
+    fn ffprobe_reads_standalone_image_dimensions_and_packet_timing() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/still.ppm", b"P3\n2 1\n15\n15 0 0 0 15 0").unwrap();
+        let run = |opts: &[&str]| cmd_media_doc("ffprobe", &media_args(opts), "", "/", &fs).stdout;
+        assert_eq!(run(&["-show_entries", "stream=codec_name,width,height,pix_fmt,time_base:format=format_name,duration", "-of", "csv=p=0", "still.ppm"]),
+            "ppm,2,1,rgb24,1/25\nimage2,0.040000\n");
+        assert_eq!(run(&["-show_packets", "-show_frames", "-show_entries", "frame=pkt_duration,pkt_size,width,height,pix_fmt:packet=pts,duration,size,pos", "-of", "csv=p=0", "still.ppm"]),
+            "0,1,23,0\n1,23,2,1,rgb24\n");
     }
 
     #[test]

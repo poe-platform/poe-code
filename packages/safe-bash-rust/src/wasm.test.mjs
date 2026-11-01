@@ -3,6 +3,37 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq opens input files on demand and shares a cursor with inputs", async () => {
+  const bash = new RustWasmBash({ files: {
+    "/workspace/numbers": "10 20", "/workspace/start": "1", "/workspace/end": "2\n",
+    "/workspace/a": "a\r\nb", "/workspace/b": "c\n",
+  } });
+  try {
+    for (const [args, stdout] of [
+      ["-nc 'if false then inputs else 5 end' missing", "5\n"],
+      ["-nc 'def unused: inputs; 1' missing", "1\n"],
+      ["-nc 'limit(0; inputs)' missing", ""],
+      ["-nc 'first(inputs)' numbers missing", "10\n"],
+      ["-c . start end", "12\n"],
+      ["-Rc . a b", '"a\\r"\n"bc"\n'],
+      ["-nc '[first(inputs),inputs]' - - <<< '1 2'", "[1,2]\n"],
+      ["-nsc '[inputs]' </dev/null", "[[]]\n"],
+      ["-nRsc '[inputs]' </dev/null", '[""]\n'],
+    ]) {
+      const r = await bash.exec(`jq ${args}`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], args);
+    }
+    for (const [args, stdout] of [
+      [". numbers missing", "10\n"],
+      ["-nc 'try inputs catch 3' missing", ""],
+      ["-nc 'first(inputs)' start missing", ""],
+    ]) {
+      const r = await bash.exec(`jq ${args}`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [2, stdout, "jq: ENOENT: no such file or directory, readStream '/workspace/missing'\n"], args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq evaluates each condition result and emits nothing for an empty condition", async () => {
   const bash = new RustWasmBash();
   try {

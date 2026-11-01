@@ -6,7 +6,9 @@ mod csvkit_encoding;
 mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
+mod jq_input;
 mod jq_parser;
+use jq_input::JqInputs;
 mod json_format;
 use json_format::{JsonFormat, JsonStrings, escape_json_str};
 #[path = "mermaid.rs"]
@@ -15,7 +17,6 @@ use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
 };
 use std::cell::{Cell, RefCell};
-use std::collections::VecDeque;
 use std::rc::Rc;
 use std::sync::Mutex;
 
@@ -26,7 +27,7 @@ struct JqScope<'a> {
     env: &'a BTreeMap<String, String>,
     functions: BTreeMap<String, BTreeMap<usize, Rc<JqFilter<'a>>>>,
     bindings: BTreeMap<String, JVal>,
-    inputs: &'a RefCell<VecDeque<JVal>>,
+    inputs: Rc<RefCell<JqInputs<'a>>>,
     yq: Option<&'a YqDocuments<'a>>,
 }
 
@@ -98,12 +99,12 @@ impl<'a> JqScope<'a> {
             .collect())
     }
 
-    fn pop_input(&self) -> Option<JVal> {
-        let input = self.inputs.borrow_mut().pop_front()?;
+    fn pop_input(&self) -> Result<Option<JVal>, (i32, String)> {
+        let Some(input) = self.inputs.borrow_mut().next()? else { return Ok(None); };
         if let Some(yq) = self.yq {
             yq.next.set((yq.next.get() + 1).min(yq.docs.len()));
         }
-        Some(input)
+        Ok(Some(input))
     }
 
     fn yq_meta(&self) -> Option<&YqDocMeta> {
@@ -942,8 +943,8 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    let inputs = RefCell::new(VecDeque::new());
-    let mut vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: &inputs, yq };
+    let inputs = Rc::new(RefCell::new(JqInputs::new(std::iter::empty())));
+    let mut vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
@@ -953,7 +954,6 @@ fn cmd_jq_core(
         if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) { return compile_err; }
         std::borrow::Cow::Borrowed(raw_filter.as_str())
     };
-    let mut stream_inputs: Vec<JVal> = Vec::new();
     let mut deferred_xml_err: Option<(String, i32)> = None;
 
     if xml_input {
@@ -991,65 +991,11 @@ fn cmd_jq_core(
             }
             xml_vals.push(parse_xml_to_jval(&text, false));
         }
-        if slurp && !raw_input {
-            stream_inputs.push(JVal::Array(xml_vals));
-        } else {
-            stream_inputs = xml_vals;
-        }
-    } else if !null_input || !files.is_empty() || !stdin.is_empty() {
-        let mut raw_text = String::new();
-        if files.is_empty() {
-            raw_text.push_str(stdin);
-        } else {
-            for f in &files {
-                if f == "-" {
-                    raw_text.push_str(stdin);
-                } else {
-                    let full = resolve_posix_path(cwd, f);
-                    match fs.read_file(&full) {
-                        Ok(b) => raw_text.push_str(&String::from_utf8_lossy(&b)),
-                        Err(_) => {
-                            return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2);
-                        }
-                    }
-                }
-            }
-        }
-        if seq_mode {
-            raw_text = raw_text.replace('\x1e', "");
-        }
-        if raw_input {
-            if slurp {
-                stream_inputs.push(JVal::Str(raw_text));
-            } else {
-                for line in raw_text.lines() {
-                    stream_inputs.push(JVal::Str(line.to_string()));
-                }
-            }
-        } else {
-            match parse_json_stream(&raw_text) {
-                Ok(vals) => {
-                    let vals = if stream_mode {
-                        let mut streamed = Vec::new();
-                        for v in &vals {
-                            collect_jq_stream_events(v, &mut Vec::new(), &mut streamed);
-                        }
-                        streamed
-                    } else {
-                        vals
-                    };
-                    if slurp {
-                        stream_inputs.push(JVal::Array(vals));
-                    } else {
-                        stream_inputs = vals;
-                    }
-                }
-                Err(e) => return err_out(&format!("jq: parse error: {e}\n"), 4),
-            }
-        }
+        if slurp && !raw_input { xml_vals = vec![JVal::Array(xml_vals)]; }
+        *inputs.borrow_mut() = JqInputs::new(xml_vals.into_iter().map(Ok));
+    } else {
+        *inputs.borrow_mut() = jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode);
     }
-
-    *inputs.borrow_mut() = stream_inputs.into();
 
     let mut out = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1062,12 +1008,18 @@ fn cmd_jq_core(
             }
             first_null_done = true;
             JVal::Null
-        } else if let Some(v) = vars.pop_input() {
-            v
         } else {
-            break;
+            match vars.pop_input() {
+                Ok(Some(v)) => v,
+                Ok(None) => break,
+                Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("jq: {msg}\n"), exit_code },
+            }
         };
-        match eval_jq(&filter_str, &input_val, &vars) {
+        let result = eval_jq(&filter_str, &input_val, &vars);
+        if let Some(e) = inputs.borrow_mut().file_error.take() {
+            return BuiltinOutcome { stdout: out, stderr: format!("jq: {e}\n"), exit_code: 2 };
+        }
+        match result {
             Ok(results) => {
                 for r in results {
                     if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
@@ -2592,13 +2544,15 @@ fn try_eval_jq_builtin(
             return Ok(Some(vec![JVal::Str(res.to_string())]));
         }
         "input" => {
-            if let Some(v) = vars.pop_input() {
+            if let Some(v) = vars.pop_input().map_err(|(_, e)| e)? {
                 return Ok(Some(vec![v]));
             }
             return Err("break".to_string());
         }
         "inputs" => {
-            return Ok(Some(vars.inputs.take().into()));
+            let mut values = Vec::new();
+            while let Some(v) = vars.pop_input().map_err(|(_,e)| e)? { values.push(v); }
+            return Ok(Some(values));
         }
         "gmtime" => {
             let JVal::Number(n) = input else {
@@ -4677,14 +4631,9 @@ fn eval_jq_limited(
     if max_items == 0 {
         return Ok(Vec::new());
     }
-    let saved_tail = {
-        let mut queue = vars.inputs.borrow_mut();
-        if queue.len() > max_items {
-            Some(queue.split_off(max_items))
-        } else {
-            None
-        }
-    };
+    let previous = vars.inputs.borrow().remaining;
+    let limit = previous.min(max_items);
+    vars.inputs.borrow_mut().remaining = limit;
     let mut out = Vec::new();
     let mut err_opt: Option<String> = None;
     if let Some(parts) = split_jq_top(expr, ',') {
@@ -4717,9 +4666,8 @@ fn eval_jq_limited(
             Err(e) => err_opt = Some(e),
         }
     }
-    if let Some(tail) = saved_tail {
-        vars.inputs.borrow_mut().extend(tail);
-    }
+    let used = limit - vars.inputs.borrow().remaining;
+    vars.inputs.borrow_mut().remaining = previous - used;
     if let Some(e) = err_opt {
         return Err(e);
     }
@@ -6341,8 +6289,8 @@ fn cmd_yq(
             "json" | "j" => "json",
             other => other,
         };
-        let inputs = RefCell::default();
-        let mut base_vars = JqScope { env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: &inputs, yq: None };
+        let inputs = Rc::new(RefCell::new(JqInputs::new(std::iter::empty())));
+        let mut base_vars = JqScope { env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));
             let name = eval_jq(s_exp, v, &base_vars)

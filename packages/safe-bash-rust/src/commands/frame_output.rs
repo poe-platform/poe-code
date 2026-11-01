@@ -3,13 +3,73 @@ use super::png_pixels::Raster;
 #[path = "jpeg.rs"]
 mod jpeg;
 
+pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
+    Some(match name {
+        "png" | "image2" | "pgm" | "tga" => "png",
+        "tiff" | "tif" if numbered => "png",
+        "tiff" | "tif" => "tiff",
+        "jpg" | "jpeg" => "jpeg",
+        "bmp" => "bmp",
+        "ppm" => "ppm",
+        _ => return None,
+    })
+}
+
+fn tiff(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
+    let byte_count = im
+        .pixels
+        .len()
+        .checked_mul(4)
+        .ok_or("output byte limit exceeded")?;
+    let size = byte_count
+        .checked_add(218)
+        .filter(|n| *n <= limit && *n <= u32::MAX as usize)
+        .ok_or("output byte limit exceeded")?;
+    let mut out = Vec::with_capacity(size);
+    let directory = 8 + byte_count as u32;
+    let bits = directory + 2 + 15 * 12 + 4;
+    let (w, h) = (im.width as u32, im.height as u32);
+    out.extend_from_slice(b"II\x2a\x00");
+    out.extend_from_slice(&directory.to_le_bytes());
+    out.extend_from_slice(im.pixels.as_flattened());
+    out.extend_from_slice(&15u16.to_le_bytes());
+    // Classic TIFF: one uncompressed RGBA strip, straight alpha and 72 DPI.
+    for (tag, ty, count, value) in [
+        (256u16, 4u16, 1u32, w),
+        (257, 4, 1, h),
+        (258, 3, 4, bits),
+        (259, 3, 1, 1),
+        (262, 3, 1, 2),
+        (273, 4, 1, 8),
+        (274, 3, 1, 1),
+        (277, 3, 1, 4),
+        (278, 4, 1, h),
+        (279, 4, 1, byte_count as u32),
+        (282, 5, 1, bits + 8),
+        (283, 5, 1, bits + 16),
+        (284, 3, 1, 1),
+        (296, 3, 1, 2),
+        (338, 3, 1, 2),
+    ] {
+        out.extend_from_slice(&tag.to_le_bytes());
+        out.extend_from_slice(&ty.to_le_bytes());
+        out.extend_from_slice(&count.to_le_bytes());
+        out.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in [0u32, 0x00080008, 0x00080008, 72, 1, 72, 1] {
+        out.extend_from_slice(&value.to_le_bytes());
+    }
+    Ok(out)
+}
+
 fn encode(im: &Raster, format: &str, limit: usize) -> Result<Vec<u8>, &'static str> {
     let (w, h) = (im.width, im.height);
     if w.saturating_mul(h) > limit / 4 {
         return Err("image exceeds memory budget");
     }
     let data = match format {
-        "jpeg" | "jpg" => jpeg::encode(im, limit)?,
+        "jpeg" => jpeg::encode(im, limit)?,
+        "tiff" => tiff(im, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]
         }),

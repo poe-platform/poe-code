@@ -4621,8 +4621,7 @@ fn cmd_media_doc(
                 }
             }
             let ext=out_lower.rsplit_once('.').map(|(_,ext)|ext);
-            let supported_image=|f:&str|matches!(f,"png"|"bmp"|"ppm"|"jpg"|"jpeg");
-            let sequence=if ext.is_some_and(supported_image) && !matches!(output_format,Some("null"|"hls"|"dash")) {
+            let sequence=if ext.and_then(|f|frame_output::image_format(f,true)).is_some() && !matches!(output_format,Some("null"|"hls"|"dash")) {
                 match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
             }else{None};
             let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null"{None}else{match output_format {
@@ -4631,9 +4630,8 @@ fn cmd_media_doc(
             }};
             let y4m_output = muxer == Some("y4m");
             let named=output_format.map(str::to_ascii_lowercase);
-            let image_format=if muxer!=Some("image2"){None}else if sequence.is_some(){ext}else{
-                named.as_deref().or(ext).map(|f|if f=="image2"{"png"}else{f}).filter(|f|supported_image(f))
-            };
+            let image_name=if sequence.is_some(){ext}else{named.as_deref().or(ext)};
+            let image_format=image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()));
             let frame_output=y4m_output || image_format.is_some();
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
@@ -13353,6 +13351,15 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
         assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: ENOENT: no such file or directory, writeFile '/missing/im1.png'\n".to_string()));
         assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
+    fn ffmpeg_tiff_contains_a_single_rgba_strip_and_an_image_directory() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","color=c=red:s=2x1","still.tif"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let bytes=fs.read_file("/still.tif").unwrap();
+        assert_eq!(bytes.get(..18), Some(b"II\x2a\x00\x10\x00\x00\x00\xff\x00\x00\xff\xff\x00\x00\xff\x0f\x00".as_slice()));
     }
 
     #[test]

@@ -756,6 +756,7 @@ impl SafeBashFs for MemoryVfs {
         match guard.nodes.get(&resolved) {
             Some(&MemoryNode::File { ino }) => {
                 let file = guard.files.get_mut(&ino).unwrap();
+                if file.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
                 file.atime_ms = super::now_ms();
                 Ok(file.data.clone())
             }

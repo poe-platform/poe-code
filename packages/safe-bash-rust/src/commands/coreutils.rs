@@ -390,22 +390,27 @@ fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
         if f == "-" {
             raw_bytes.extend_from_slice(&take_stdin_bytes(stdin));
         } else {
-            let p = resolve_posix_path(cwd, f);
-            if let Ok(st) = fs.stat(&p)
-                && st.kind == crate::vfs::VfsEntryKind::Directory
-            {
-                stderr.push_str(&format!(
-                    "cat: EISDIR: illegal operation on a directory, readStream '{p}'\n"
-                ));
-                exit_code = 1;
-                continue;
-            }
-            match fs.read_file(&p) {
+            let p = super::fs::absolute_operand(cwd, f);
+            let result = fs.inspect_command_entry(&p, true, "capabilitiesFor")
+                .and_then(|(resolved, _)| fs.read_file(&resolved));
+            match result {
                 Ok(bytes) => raw_bytes.extend_from_slice(&bytes),
-                Err(_) => {
-                    stderr.push_str(&format!(
-                        "cat: ENOENT: no such file or directory, readStream '{p}'\n"
-                    ));
+                Err(error) => {
+                    let (reason, location) = error.split_once(", ").unwrap_or((&error, ""));
+                    let message = if p.is_empty() {
+                        "ENOENT: no such file or directory ''".to_owned()
+                    } else if location.starts_with("capabilitiesFor '") || location.starts_with("overlay '")
+                        || location.starts_with("realpath '") || reason.starts_with("EACCES:") && location.starts_with("lstat '") {
+                        error
+                    } else if reason.starts_with("ELOOP:") {
+                        format!("ELOOP: too many symbolic links encountered '{p}'")
+                    } else {
+                        let reason = if reason.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+                            else if reason.starts_with("EIO:") { "EIO: input/output error" }
+                            else { reason };
+                        format!("{reason}, readStream '{p}'")
+                    };
+                    stderr.push_str(&format!("cat: {message}\n"));
                     exit_code = 1;
                 }
             }

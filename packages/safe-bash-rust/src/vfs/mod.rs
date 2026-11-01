@@ -116,7 +116,7 @@ impl FsError {
 pub trait SafeBashFs: Send + Sync {
     /// Resolve and validate parents in traversal order. The final entry may be missing.
     fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
-        path::walk_path(path, follow_final, path::WalkPurpose::Access, |p| (None, self, p.to_owned()))
+        path::walk_path(path, follow_final, path::WalkPurpose::Access, |p| (None, self, p.to_owned()), |_| false)
     }
 
     /// Inspect a shell operand without collapsing unsearched ancestors or trailing slashes.

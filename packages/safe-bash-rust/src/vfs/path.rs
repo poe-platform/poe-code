@@ -83,6 +83,7 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     follow_final: bool,
     purpose: WalkPurpose,
     location: impl Fn(&str) -> (Option<&'a str>, &'a F, String),
+    mount_parent: impl Fn(&str) -> bool,
 ) -> Result<String, String> {
     let access = matches!(purpose, WalkPurpose::Access | WalkPurpose::OverlayAccess);
     let mut link_checks = Vec::new();
@@ -102,16 +103,21 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
     while let Some(part) = pending.pop() {
         if purpose != WalkPurpose::AllowMissingParents {
             let (mount, backend, local) = location(&current);
-            let st = backend.stat(&local).map_err(|e| if purpose == WalkPurpose::OverlayAccess {
-                format!("{}, overlay '{current}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason))
-            } else { e })?;
-            if st.kind != super::VfsEntryKind::Directory {
+            let st = match backend.stat(&local) {
+                Ok(st) => Some(st),
+                Err(e) if (e.starts_with("ENOENT:") || e.ends_with("(os error 2)")) && mount_parent(&current) => None,
+                Err(e) if purpose == WalkPurpose::OverlayAccess => {
+                    return Err(format!("{}, overlay '{current}'", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)));
+                }
+                Err(e) => return Err(e),
+            };
+            if let Some(ref st) = st && st.kind != super::VfsEntryKind::Directory {
                 if purpose == WalkPurpose::Access && mount.is_none() && st.mode & 0o170000 == 0o020000 && st.allocated_bytes == Some(0) {
                     return Err(format!("ENOTDIR: not a directory '{path}'"));
                 }
                 return Err(if purpose == WalkPurpose::OverlayAccess { format!("ENOTDIR: not a directory, overlay '{current}'") } else { "ENOTDIR: not a directory".into() });
             }
-            if st.mode & 0o100 == 0 {
+            if st.is_some_and(|st| st.mode & 0o100 == 0) {
                 if purpose == WalkPurpose::OverlayAccess { return Err(format!("EACCES: permission denied, overlay '{current}'")); }
                 if access {
                     if matches!(part.as_str(), "." | "..") { return Err("EACCES: permission denied".into()); }

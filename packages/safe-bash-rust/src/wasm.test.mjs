@@ -61,6 +61,26 @@ test("tail starting at a record skips across device chunks and reads to EOF or a
   } finally { bash.dispose(); }
 });
 
+test("cat checks access before reading aliases and preserves each filesystem's path errors", async () => {
+  for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
+    const bash = new RustWasmBash({ profile, files: {
+      "/private/entry": "inside", "/hidden": { content: "secret", mode: 0o200 }, "/visible": "ok",
+    }, symlinks: { "/alias": "/hidden", "/loop": "/loop" } });
+    const overlay = profile === "overlay-cow-fs", mounted = profile === "strict-budgets-mount-dev";
+    try {
+      const r = await bash.exec("chmod 600 /private; cat /alias /private/entry /hidden/ /loop /missing /visible");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "ok", [
+        "cat: EACCES: permission denied, " + (overlay ? "overlay '/hidden'" : "readStream '/alias'"),
+        "cat: EACCES: permission denied, " + (overlay ? "overlay '/private'" : (mounted ? "capabilitiesFor" : "lstat") + " '/private/entry'"),
+        "cat: ENOTDIR: not a directory, " + (overlay ? "overlay '/hidden'" : (mounted ? "capabilitiesFor" : "readStream") + " '/hidden/'"),
+        "cat: ELOOP: too many symbolic links encountered" + (mounted ? ", capabilitiesFor" : "") + " '/loop'",
+        "cat: ENOENT: no such file or directory, " + (overlay ? "overlay" : "readStream") + " '/missing'",
+        "",
+      ].join("\n")]);
+    } finally { bash.dispose(); }
+  }
+});
+
 test("head reads device chunks until its byte or record count is satisfied", async t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

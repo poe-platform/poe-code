@@ -41,7 +41,7 @@ impl MountVfs {
         walk_path(path, follow_final, purpose, |p| {
             let (mount, fs, local) = self.location(p);
             (Some(mount), fs, local)
-        })
+        }, |parent| self.mounts.keys().any(|m| m.strip_prefix(parent).is_some_and(|tail| tail.starts_with('/'))))
     }
 
     fn route(&self, path: &str, follow_final: bool) -> Result<(&dyn SafeBashFs, String), String> {
@@ -61,6 +61,7 @@ impl SafeBashFs for MountVfs {
             let reason = if e.starts_with("EACCES:") { "EACCES: permission denied" }
                 else if e.starts_with("ENOTDIR:") { "ENOTDIR: not a directory" }
                 else if e.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
+                else if syscall == "capabilitiesFor" && e.starts_with("ENOENT:") { "ENOENT: no such file or directory" }
                 else { return e };
             format!("{reason}, {syscall} '{path}'")
         })?;

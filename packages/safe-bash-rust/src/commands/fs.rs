@@ -7119,8 +7119,8 @@ mod tests {
         let result = copy(&["--attributes-only", "-RbT", "/src", "/dst"]);
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         assert_eq!(fs.read_file("/dst/a~").unwrap(), b"KEEP");
-        assert_eq!(fs.stat("/dst/a").unwrap().mode & 0o777, 0o200);
-        assert!(fs.read_file("/dst/a").unwrap().is_empty());
+        let st = fs.stat("/dst/a").unwrap();
+        assert_eq!((st.mode & 0o777, st.size), (0o200, 0));
     }
 
     #[test]

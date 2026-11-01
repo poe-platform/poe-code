@@ -221,7 +221,7 @@ impl SafeBashFs for RealVfs {
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
-        std::fs::read(host).map_err(|e| e.to_string())
+        std::fs::read(host).map_err(mutation_error)
     }
 
     fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {

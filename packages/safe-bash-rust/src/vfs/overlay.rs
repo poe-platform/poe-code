@@ -34,13 +34,15 @@ pub struct OverlayVfs {
 impl OverlayVfs {
     fn read_source(&self, path: &str) -> Result<(&dyn SafeBashFs, String), String> {
         let norm = self.access_path(path, true)?;
-        if self.upper.lstat(&norm).is_ok() {
-            return Ok((self.upper.as_ref(), norm));
-        }
-        if self.is_deleted(&norm) {
-            return Err(format!("ENOENT: no such file or directory, open '{norm}'"));
-        }
-        Ok((self.lower.as_ref(), norm))
+        let (fs, st) = if let Ok(st) = self.upper.lstat(&norm) {
+            (&self.upper, st)
+        } else {
+            if self.is_deleted(&norm) { return Err(format!("ENOENT: no such file or directory, overlay '{norm}'")); }
+            (&self.lower, self.lower.lstat(&norm)?)
+        };
+        if st.kind == VfsEntryKind::Directory { return Err(format!("EISDIR: illegal operation on a directory, overlay '{norm}'")); }
+        if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
+        Ok((fs.as_ref(), norm))
     }
 
     pub fn new(lower: Arc<dyn SafeBashFs>, upper: Arc<dyn SafeBashFs>) -> Self {
@@ -575,7 +577,7 @@ impl SafeBashFs for OverlayVfs {
         super::path::walk_path(path, follow_final, super::path::WalkPurpose::OverlayAccess, |p| {
             let layer = if self.upper.lstat(p).is_ok() || self.is_deleted(p) { &self.upper } else { &self.lower };
             (None, layer.as_ref(), p.to_owned())
-        })
+        }, |_| false)
     }
 
     fn stat(&self, path: &str) -> Result<FileStat, String> { self.metadata(path, true) }

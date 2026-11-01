@@ -1149,13 +1149,66 @@ fn backup_copy_target(fs: &dyn SafeBashFs, src: &str, target: &str, mode: Backup
     fs.rename(target, &backup, false).map_err(|e| format!("{e}, rename '{target}' -> '{backup}'"))
 }
 
-#[derive(Copy, Clone)]
-enum CopyPass {
-    AdmitTimestamps { missing_parent: bool },
-    Publish,
+struct CopyReport<'a> {
+    answers: Option<std::str::Lines<'a>>,
+    verbose: bool,
+    stdout: String,
+    stderr: String,
+    declined: bool,
 }
 
-fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings, pass: CopyPass, ancestors: &mut std::collections::BTreeSet<String>) -> Result<(), String> {
+fn copy_operand_text(path: &str, prompt: bool) -> String {
+    if prompt && path.contains('\'') && path.bytes().all(|b|
+        (32..127).contains(&b) && !matches!(b, b'$' | 96 | b'\\' | b'"')) {
+        return format!("\"{path}\"");
+    }
+    let mut out = String::from("'");
+    let mut escaped = false;
+    for b in path.bytes() {
+        let special = !(32..127).contains(&b);
+        if prompt && special != escaped {
+            if special { out.push_str("'$'"); }
+            else if b != b'\'' { out.push_str("''"); }
+            escaped = special;
+        }
+        match b {
+            7 if prompt => out.push_str("\\a"),
+            8 => out.push_str("\\b"),
+            9 => out.push_str("\\t"),
+            10 => out.push_str("\\n"),
+            11 => out.push_str("\\v"),
+            12 => out.push_str("\\f"),
+            13 => out.push_str("\\r"),
+            b'\'' if prompt => out.push_str("'\\''"),
+            b'\\' if !prompt => out.push_str("\\\\"),
+            32..=126 => out.push(char::from(b)),
+            _ => out.push_str(&format!("\\{b:03o}")),
+        }
+    }
+    out.push('\'');
+    out
+}
+
+impl CopyReport<'_> {
+    fn confirm(&mut self, dst: &str) -> bool {
+        let Some(lines) = self.answers.as_mut() else { return true };
+        self.stderr.push_str(&format!("cp: overwrite {}? ", copy_operand_text(dst, true)));
+        let yes = matches!(lines.next().and_then(|s| s.as_bytes().first()), Some(b'y' | b'Y'));
+        self.declined |= !yes;
+        yes
+    }
+
+    fn copied(&mut self, (src, dst): (&str, &str)) {
+        if self.verbose { self.stdout.push_str(&format!("{} -> {}\n", copy_operand_text(src, false), copy_operand_text(dst, false))); }
+    }
+}
+
+enum CopyPass<'a, 'b> {
+    AdmitTimestamps { missing_parent: bool },
+    Publish(&'a mut CopyReport<'b>),
+}
+
+fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, settings: &CopySettings, mut pass: CopyPass<'_, '_>, ancestors: &mut std::collections::BTreeSet<String>) -> Result<bool, String> {
     let source_entry = fs.access_path(src, false).map_err(|e| copy_error(&e, "lstat", src))?;
     let link = fs.lstat(&source_entry).map_err(|e| copy_error(&e, "lstat", src))?;
     let preserve_link = link.kind == VfsEntryKind::Symlink && (settings.dereference == 'P' || settings.dereference == 'H' && !ancestors.is_empty());
@@ -1182,7 +1235,11 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
     if target == source || target_stat.as_ref().is_some_and(|t| t.identity.is_some() && t.identity == st.identity) {
         return Err(format!("EINVAL: source and destination are the same file '{src}' -> '{dst}'"));
     }
-    if target_stat.as_ref().is_some_and(|t| settings.skip_existing(&st, t)) { return Ok(()); }
+    if target_stat.as_ref().is_some_and(|t| settings.skip_existing(&st, t)) { return Ok(false); }
+    if !directory && target_stat.as_ref().is_some_and(|t| t.kind != VfsEntryKind::Directory)
+        && let CopyPass::Publish(report) = &mut pass && !report.confirm(display.1) {
+        return Ok(false);
+    }
     if preserve_link {
         if settings.timestamps && !settings.archive {
             return Err(format!("ENOTSUP: operation not supported, utimes '{dst}'"));
@@ -1203,7 +1260,7 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
             return Err(format!("ENOTDIR: not a directory '{dst}'"));
         }
     } else if matches!(pass, CopyPass::AdmitTimestamps { .. }) {
-        return Ok(());
+        return Ok(false);
     }
     if !directory && target_stat.is_some() && let Some((mode, suffix)) = &settings.backup {
         backup_copy_target(fs, src, &entry, *mode, suffix)?;
@@ -1216,20 +1273,29 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
         if fs.stat(&crate::vfs::dirname_posix_path(&entry))?.mode & 0o300 != 0o300 {
             return Err(format!("EACCES: permission denied, symlink '{dst}'"));
         }
-        return fs.symlink(&text, &entry);
+        fs.symlink(&text, &entry)?;
+        if let CopyPass::Publish(report) = pass { report.copied(display); }
+        return Ok(true);
     }
     if directory {
         if !ancestors.insert(source.clone()) { return Err(format!("ELOOP: too many symbolic links encountered '{src}'")); }
         let created = target_stat.is_none();
         let mode = st.mode & 0o777;
-        let publish = matches!(pass, CopyPass::Publish);
+        let publish = matches!(pass, CopyPass::Publish(_));
         if publish && created {
             fs.mkdir_one(&target, mode | 0o700).map_err(|e| copy_error(&e, "mkdir", dst))?;
         }
-        let child_pass = if publish { pass } else { CopyPass::AdmitTimestamps { missing_parent: created } };
-        let copied = fs.list_dir(&source).map_err(|e| copy_error(&e, "readdir", src)).and_then(|names| {
+        let copied = fs.list_dir(&source).map_err(|e| copy_error(&e, "readdir", src)).and_then(|mut names| {
+            names.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
             for name in names {
-                copy_entry(&child_disp_path(src, &name), &child_disp_path(dst, &name), fs, settings, child_pass, ancestors)?;
+                let display_names = matches!(&pass, CopyPass::Publish(r) if r.verbose || r.answers.is_some())
+                    .then(|| (child_disp_path(display.0, &name), child_disp_path(display.1, &name)));
+                let child_pass = match &mut pass {
+                    CopyPass::Publish(report) => CopyPass::Publish(report),
+                    CopyPass::AdmitTimestamps { .. } => CopyPass::AdmitTimestamps { missing_parent: created },
+                };
+                let display = display_names.as_ref().map_or(("", ""), |(s, d)| (s.as_str(), d.as_str()));
+                copy_entry(&child_disp_path(src, &name), &child_disp_path(dst, &name), display, fs, settings, child_pass, ancestors)?;
             }
             Ok(())
         });
@@ -1269,8 +1335,9 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
             fs.create_file(&target, &data, st.mode & 0o7777).map_err(|e| copy_error(&e, "writeStream", dst))?;
         }
     }
-    if settings.timestamps && matches!(pass, CopyPass::Publish) { fs.set_mtime(&target, st.mtime_ms)?; }
-    Ok(())
+    if settings.timestamps && matches!(pass, CopyPass::Publish(_)) { fs.set_mtime(&target, st.mtime_ms)?; }
+    if let CopyPass::Publish(report) = pass { report.copied(display); }
+    Ok(true)
 }
 
 fn canonical_entry_identity(path: &str, follow: bool, fs: &dyn SafeBashFs) -> String {
@@ -1530,11 +1597,8 @@ fn cmd_cp(
     if (target_dir.is_some() || eff_operands.len() > 2) && !dst_is_dir {
         return err_out(&format!("cp: target '{dst_raw}' is not a directory\n"), 1);
     }
-    let mut stdout = String::new();
-    let mut stderr = String::new();
+    let mut report = CopyReport { answers: interactive.then(|| stdin.lines()), verbose, stdout: String::new(), stderr: String::new(), declined: false };
     let mut code = 0;
-    let mut declined = false;
-    let mut stdin_lines = stdin.lines();
     let mut copied_targets: BTreeMap<String, String> = BTreeMap::new();
 
     // A preserved link has no no-follow timestamp operation. Reject the whole
@@ -1544,7 +1608,7 @@ fn cmd_cp(
         for operand in sources {
             let src = absolute(operand);
             let target = if dst_is_dir { child_disp_path(&dst_base, &basename_posix_path(&src)) } else { dst_base.clone() };
-            if let Err(e) = copy_entry(&src, &target, fs, &settings, CopyPass::AdmitTimestamps { missing_parent: false }, &mut Default::default())
+            if let Err(e) = copy_entry(&src, &target, ("", ""), fs, &settings, CopyPass::AdmitTimestamps { missing_parent: false }, &mut Default::default())
                 && e.starts_with("ENOTSUP:") {
                 return err_out(&format!("cp: {e}\n"), 1);
             }
@@ -1554,19 +1618,19 @@ fn cmd_cp(
         let operand = absolute(src_raw);
         let (src, link) = match fs.inspect_command_entry(&operand, false, "lstat") {
             Ok(v) => v,
-            Err(e) => { stderr.push_str(&format!("cp: {}\n", copy_error(&e, "lstat", &operand))); code = 1; continue; }
+            Err(e) => { report.stderr.push_str(&format!("cp: {}\n", copy_error(&e, "lstat", &operand))); code = 1; continue; }
         };
         let src_is_sym = link.kind == VfsEntryKind::Symlink;
         let preserve_top_link = src_is_sym && deref_mode == 'P';
         let (phys_src, source_stat) = if src_is_sym && !preserve_top_link {
             match fs.inspect_command_entry(&src, true, "stat") {
                 Ok(v) => v,
-                Err(e) => { stderr.push_str(&format!("cp: {}\n", copy_error(&e, "stat", &operand))); code = 1; continue; }
+                Err(e) => { report.stderr.push_str(&format!("cp: {}\n", copy_error(&e, "stat", &operand))); code = 1; continue; }
             }
         } else { (src.clone(), link) };
         let src_is_dir = source_stat.kind == VfsEntryKind::Directory;
         if src_is_dir && !settings.recursive && !sym_link {
-            stderr.push_str(&format!("cp: EISDIR: omitting directory (use -R) '{src}'\n"));
+            report.stderr.push_str(&format!("cp: EISDIR: omitting directory (use -R) '{src}'\n"));
             code = 1;
             continue;
         }
@@ -1591,39 +1655,33 @@ fn cmd_cp(
         };
         let (phys_dst, dest_stat) = match destination {
             Ok(v) => v,
-            Err(e) => { stderr.push_str(&format!("cp: {}\n", copy_error(&e, "realpath", &target))); code = 1; continue; }
+            Err(e) => { report.stderr.push_str(&format!("cp: {}\n", copy_error(&e, "realpath", &target))); code = 1; continue; }
         };
         if phys_src == phys_dst || source_stat.identity.is_some() && dest_stat.as_ref().is_some_and(|t| t.identity == source_stat.identity) {
-            stderr.push_str(&format!("cp: EINVAL: source and destination are the same file '{operand}' -> '{target}'\n"));
+            report.stderr.push_str(&format!("cp: EINVAL: source and destination are the same file '{operand}' -> '{target}'\n"));
             code = 1;
             continue;
         }
         if dest_stat.as_ref().is_some_and(|t| settings.skip_existing(&source_stat, t)) { continue; }
         if no_target_dir && !src_is_dir && dest_stat.as_ref().is_some_and(|t| t.kind == VfsEntryKind::Directory) {
-            stderr.push_str(&format!("cp: EISDIR: illegal operation on a directory '{target}'\n"));
+            report.stderr.push_str(&format!("cp: EISDIR: illegal operation on a directory '{target}'\n"));
             code = 1;
             continue;
         }
         if src_is_dir && phys_dst.starts_with(&format!("{}/", phys_src.trim_end_matches('/'))) {
-            stderr.push_str(&format!(
+            report.stderr.push_str(&format!(
                 "cp: cannot copy a directory, '{src_raw}', into itself, '{disp_target}'\n"
             ));
             code = 1;
             continue;
         }
-        if interactive && !src_is_dir && target_exists && !fs.is_dir(&target) {
-            stderr.push_str(&format!("cp: overwrite '{disp_target}'? "));
-            let ans = stdin_lines.next().unwrap_or("");
-            let first = ans.bytes().next().unwrap_or(b'n');
-            if first != b'y' && first != b'Y' {
-                declined = true;
-                continue;
-            }
-        }
+        let link_mode = sym_link || hard_link;
+        if link_mode && !src_is_dir && dest_stat.as_ref().is_some_and(|t| t.kind != VfsEntryKind::Directory)
+            && !report.confirm(&disp_target) { continue; }
         if let Some(prev_src) = copied_targets.get(&phys_dst)
             && prev_src != &phys_src
         {
-            stderr.push_str(&format!(
+            report.stderr.push_str(&format!(
                 "cp: will not overwrite just-created '{disp_target}' with '{src_raw}'\n"
             ));
             code = 1;
@@ -1640,7 +1698,7 @@ fn cmd_cp(
             )
             .unwrap_or_else(|_| crate::vfs::dirname_posix_path(&target));
             if dst_parent_real != cwd_real {
-                stderr.push_str(&format!(
+                report.stderr.push_str(&format!(
                     "cp: '{src_raw}': can make relative symbolic links only in current directory\n"
                 ));
                 code = 1;
@@ -1651,34 +1709,33 @@ fn cmd_cp(
             let removal = if let Some((mode, suffix)) = &settings.backup {
                 backup_copy_target(fs, &src, &target, *mode, suffix)
             } else { unlink_destination(&target, fs) };
-            if let Err(e) = removal { stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
+            if let Err(e) = removal { report.stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
         }
         let copy_res = if sym_link {
-            fs.symlink(src_raw, &target)
+            fs.symlink(src_raw, &target).map(|()| true)
         } else if hard_link {
-            fs.symlink(&format!("__hardlink__:{src}"), &target)
+            fs.symlink(&format!("__hardlink__:{src}"), &target).map(|()| true)
         } else {
-            copy_entry(&src, &target, fs, &settings, CopyPass::Publish, &mut Default::default())
+            copy_entry(&src, &target, (src_raw, &disp_target), fs, &settings, CopyPass::Publish(&mut report), &mut Default::default())
         };
         match copy_res {
-            Ok(()) => {
+            Ok(false) => {}
+            Ok(true) => {
                 if preserve_links {
                     copied_targets.insert(phys_dst, phys_src);
                 }
-                if verbose {
-                    stdout.push_str(&format!("'{src_raw}' -> '{disp_target}'\n"));
-                }
+                if link_mode { report.copied((src_raw, &disp_target)); }
             }
             Err(e) => {
-                stderr.push_str(&format!("cp: {e}\n"));
+                report.stderr.push_str(&format!("cp: {e}\n"));
                 code = 1;
             }
         }
     }
     BuiltinOutcome {
-        stdout,
-        stderr,
-        exit_code: if declined { 1 } else { code },
+        stdout: report.stdout,
+        stderr: report.stderr,
+        exit_code: if report.declined { 1 } else { code },
     }
 }
 
@@ -7106,6 +7163,47 @@ mod tests {
         assert!(!fs.exists("/dst/z"));
         assert_eq!(copy(&["-RLp", "/src", "/new"]).exit_code, 0);
         assert_eq!(fs.read_file("/new/z").unwrap(), b"NEW");
+    }
+
+    #[test]
+    fn copy_consumes_answers_in_javascript_filename_order() {
+        let fs = MemoryVfs::new();
+        for name in ["𐀀", "\u{e000}"] {
+            fs.write_file(&format!("/src/{name}"), b"NEW").unwrap();
+            fs.write_file(&format!("/dst/{name}"), b"OLD").unwrap();
+        }
+        let r = cmd_cp(&args(&["-RTi", "/src", "/dst"]), "n\ny\n", "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.exit_code, 1);
+        assert_eq!(fs.read_file("/dst/𐀀").unwrap(), b"OLD");
+        assert_eq!(fs.read_file("/dst/\u{e000}").unwrap(), b"NEW");
+    }
+
+    #[test]
+    fn copy_messages_escape_newlines_and_non_ascii_names() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src", b"new").unwrap();
+        fs.write_file("/é\na", b"old").unwrap();
+        let r = cmd_cp(&args(&["-iv", "src", "é\na"]), "y", "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(r.stderr, r"cp: overwrite ''$'\303\251\n''a'? ");
+        assert_eq!(r.stdout, "'src' -> '\\303\\251\\na'\n");
+    }
+
+    #[test]
+    fn recursive_interactive_copy_prompts_before_backups_and_reports_only_completed_entries() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src/a", b"A").unwrap();
+        fs.write_file("/src/sub/b", b"B").unwrap();
+        fs.write_file("/dst/a", b"KEEP").unwrap();
+        fs.write_file("/dst/sub/b", b"OLD").unwrap();
+        let r = cmd_cp(&args(&["-RTibv", "src", "dst"]), "n\ny\n", "/", &BTreeMap::new(), &fs);
+        assert_eq!(r.exit_code, 1);
+        assert_eq!(r.stderr, "cp: overwrite 'dst/a'? cp: overwrite 'dst/sub/b'? ");
+        assert_eq!(r.stdout, "'src/sub/b' -> 'dst/sub/b'\n'src/sub' -> 'dst/sub'\n'src' -> 'dst'\n");
+        assert_eq!(fs.read_file("/dst/a").unwrap(), b"KEEP");
+        assert!(!fs.exists("/dst/a~"));
+        assert_eq!(fs.read_file("/dst/sub/b~").unwrap(), b"OLD");
+        assert_eq!(fs.read_file("/dst/sub/b").unwrap(), b"B");
     }
 
     #[test]

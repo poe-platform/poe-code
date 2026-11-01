@@ -2659,6 +2659,8 @@ fn probe_wav_info(bytes: &[u8]) -> Result<WavStreamInfo, String> {
     })
 }
 
+#[path = "media_format.rs"]
+mod media_format;
 #[path = "y4m.rs"]
 mod y4m;
 
@@ -5052,12 +5054,22 @@ fn cmd_media_doc(
                     }
                 }
             };
-            if audio_options && !count_frames && !count_packets && let Ok(info) = probe_wav_info(&raw_bytes) {
-                return ok_out(&format_wave_probe(&info, raw_bytes.len(), in_arg.as_deref().unwrap(), &sections, &writer, &settings));
-            }
             let name = in_arg.as_deref().unwrap();
-            let y4m_input = raw_bytes.starts_with(b"YUV4MPEG2 ") || name.split('?').next().unwrap_or(name).rsplit('.').next().is_some_and(|ext| ext.eq_ignore_ascii_case("y4m"));
-            if explicit_format.is_some_and(|f| f.eq_ignore_ascii_case("y4m") || f.eq_ignore_ascii_case("yuv4mpegpipe")) || explicit_format.is_none() && y4m_input {
+            let Some(container) = media_format::detect(&raw_bytes, name, explicit_format) else {
+                return ffprobe_err(&match explicit_format {
+                    Some(f) => format!("Unknown input format: '{f}' (AST not registered)"),
+                    None => format!("{name}: Invalid data found when processing input or format AST not registered"),
+                });
+            };
+            if container == "wav" {
+                if !raw_bytes.starts_with(b"RIFF") || raw_bytes.get(8..12) != Some(b"WAVE") {
+                    return ffprobe_err("Invalid WAV file: missing RIFF WAVE signature");
+                }
+                if audio_options && !count_frames && !count_packets && let Ok(info) = probe_wav_info(&raw_bytes) {
+                    return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
+                }
+            }
+            if container == "y4m" {
                 let opts=y4m::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
                     writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
                 return match y4m::Clip::parse(&raw_bytes).and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
@@ -12730,6 +12742,24 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffprobe_rejects_unknown_inputs_and_honors_an_explicit_demuxer() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/clip", b"YUV4MPEG2 W1 H1\n").unwrap();
+        fs.write_file("/input", b"not a video").unwrap();
+        let run = |opts: &[&str]| cmd_media_doc("ffprobe", &media_args(opts), "", "/", &fs);
+        for (args, reason) in [
+            (vec!["-f","wav","clip"], "Invalid WAV file: missing RIFF WAVE signature"),
+            (vec!["-f","bogus","input"], "Unknown input format: 'bogus' (AST not registered)"),
+            (vec!["input"], "input: Invalid data found when processing input or format AST not registered"),
+        ] {
+            let result=run(&args);
+            assert_eq!((result.exit_code,result.stdout,result.stderr),(1,String::new(),format!("ffprobe: {reason}\n")));
+        }
+        let quiet=run(&["-v","quiet","input"]);
+        assert_eq!((quiet.exit_code,quiet.stderr),(1,String::new()));
     }
 
     #[test]

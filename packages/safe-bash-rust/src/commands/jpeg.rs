@@ -142,6 +142,11 @@ pub(super) fn encode(
     jfif[8..10].copy_from_slice(&dpi);
     jfif[10..12].copy_from_slice(&dpi);
     segment(&mut out, 0xe0, &jfif);
+    if let Some(o) = im.orientation {
+        let mut payload = b"Exif\0\0".to_vec();
+        payload.extend_from_slice(&super::image_header::encode_exif(o, density));
+        segment(&mut out, 0xe1, &payload);
+    }
     let q = u32::from(quality).clamp(1, 100);
     let scale = if q < 50 { 5000 / q } else { 200 - 2 * q };
     let quant = [LUMA_QUANT, CHROMA_QUANT]

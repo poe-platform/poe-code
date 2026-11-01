@@ -7,6 +7,7 @@ pub(super) struct Raster {
     pub alpha: bool,
     pub gray: bool,
     pub density: u32,
+    pub orientation: Option<u8>,
     pub pixels: Vec<[u8; 4]>,
 }
 
@@ -49,6 +50,7 @@ impl Raster {
                 alpha: true,
                 gray: false,
                 density: 72,
+                orientation: None,
                 pixels: vec![canvas?.pixel(0, 0, 1, 1)],
             }));
         }
@@ -82,23 +84,23 @@ impl Raster {
         let pixel = |x: usize, y: usize| self.pixels[y * self.width + x];
         match (self.gray, self.alpha) {
             (true, true) => {
-                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), |x, y| {
+                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density,self.orientation), |x, y| {
                     let [v, _, _, a] = pixel(x, y);
                     [v, a]
                 })
             }
             (true, false) => {
-                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), |x, y| {
+                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density,self.orientation), |x, y| {
                     [pixel(x, y)[0]]
                 })
             }
             (false, false) => {
-                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), |x, y| {
+                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density,self.orientation), |x, y| {
                     let [r, g, b, _] = pixel(x, y);
                     [r, g, b]
                 })
             }
-            (false, true) => super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), pixel),
+            (false, true) => super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density,self.orientation), pixel),
         }
     }
     pub fn decode(bytes: &[u8], limit: usize) -> Result<Self, &'static str> {
@@ -275,6 +277,7 @@ impl Raster {
             height,
             gray: color == 4 || (color == 0 && trns.is_empty()),
             density,
+            orientation:header.orientation,
             alpha: matches!(color, 4 | 6) || !trns.is_empty(),
             pixels,
         })

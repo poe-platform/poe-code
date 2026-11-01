@@ -75,6 +75,7 @@ fn raster(width: usize, height: usize, pixels: Vec<[u8; 4]>) -> Raster {
         alpha: false,
         gray: false,
         density: 72,
+        orientation: None,
     }
 }
 

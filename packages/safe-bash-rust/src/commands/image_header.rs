@@ -52,6 +52,7 @@ pub(super) struct Png<'a> {
     pub palette: &'a [u8],
     pub transparency: Option<&'a [u8]>,
     pub density: u32,
+    pub orientation: Option<u8>,
     pub truncated: bool,
 }
 
@@ -68,6 +69,7 @@ impl<'a> Png<'a> {
             palette: &[],
             transparency: None,
             density: 72,
+            orientation: None,
             truncated: false,
         };
         while chunks.len() >= 8 {
@@ -89,8 +91,9 @@ impl<'a> Png<'a> {
                     }
                 }
                 b"eXIf" => {
-                    if let Some(dpi) = exif_density(data) {
-                        result.density = dpi;
+                    if let Some((dpi, orientation)) = exif(data) {
+                        result.density = dpi.unwrap_or(result.density);
+                        result.orientation = orientation.or(result.orientation);
                     }
                 }
                 b"PLTE" => result.palette = data,
@@ -109,7 +112,7 @@ impl<'a> Png<'a> {
     }
 }
 
-fn exif_density(data: &[u8]) -> Option<u32> {
+fn exif(data: &[u8]) -> Option<(Option<u32>, Option<u8>)> {
     let tiff = data.strip_prefix(b"Exif\0\0").unwrap_or(data);
     let little = match tiff.get(..2)? {
         b"II" => true,
@@ -138,11 +141,21 @@ fn exif_density(data: &[u8]) -> Option<u32> {
     }
     let ifd = tiff.get(u32_at(&header[4..]) as usize..)?;
     let entries = u16_at(ifd.get(..2)?);
-    let (mut resolution, mut unit) = (None, 2);
+    let (mut resolution, mut unit, mut orientation) = (None, 2, None);
     for entry in ifd[2..].chunks_exact(12).take(entries.into()) {
         let ty = u16_at(&entry[2..]);
         let offset = u32_at(&entry[8..]);
         match u16_at(entry) {
+            0x0112 => {
+                let value = if ty == 3 {
+                    u32::from(u16_at(&entry[8..]))
+                } else {
+                    offset
+                };
+                if (1..=8).contains(&value) {
+                    orientation = Some(value as u8);
+                }
+            }
             0x0128 => {
                 let units = if ty == 3 {
                     u32::from(u16_at(&entry[8..]))
@@ -164,14 +177,24 @@ fn exif_density(data: &[u8]) -> Option<u32> {
             _ => {}
         }
     }
-    resolution
+    let density = resolution
         .filter(|&n| n > 0.)
-        .map(|n| (n * if unit == 3 { 2.54 } else { 1. }).round() as u32)
+        .map(|n| (n * if unit == 3 { 2.54 } else { 1. }).round() as u32);
+    Some((density, orientation))
 }
 
-pub(super) fn jpeg(bytes: &[u8]) -> Result<(u32, u32, u8, u32), &'static str> {
+pub(super) struct Jpeg {
+    pub width: u32,
+    pub height: u32,
+    pub channels: u8,
+    pub density: u32,
+    pub orientation: Option<u8>,
+}
+
+pub(super) fn jpeg(bytes: &[u8]) -> Result<Jpeg, &'static str> {
     let mut data = &bytes[2..];
     let mut dpi = 72;
+    let mut orientation = None;
     while data.len() >= 4 {
         let Some(start) = data.iter().position(|&b| b == 255) else {
             break;
@@ -205,8 +228,9 @@ pub(super) fn jpeg(bytes: &[u8]) -> Result<(u32, u32, u8, u32), &'static str> {
                 }
             }
             0xe1 => {
-                if let Some(d) = exif_density(payload) {
-                    dpi = d;
+                if let Some((d, o)) = exif(payload) {
+                    dpi = d.unwrap_or(dpi);
+                    orientation = o.or(orientation);
                 }
             }
             0xc0..=0xc2 => {
@@ -220,11 +244,37 @@ pub(super) fn jpeg(bytes: &[u8]) -> Result<(u32, u32, u8, u32), &'static str> {
                     4 => 4,
                     _ => 3,
                 };
-                return Ok((w, h, ch, dpi));
+                return Ok(Jpeg {
+                    width: w,
+                    height: h,
+                    channels: ch,
+                    density: dpi,
+                    orientation,
+                });
             }
             _ => (),
         }
         data = &data[len..];
     }
     Err("Invalid JPEG dimensions")
+}
+
+pub(super) fn encode_exif(orientation: u8, density: u32) -> Vec<u8> {
+    let mut tiff = b"II\x2a\0\x08\0\0\0\x04\0".to_vec();
+    // Two rationals follow the four IFD entries and the next-IFD offset.
+    for (tag, ty, value) in [
+        (0x0112u16, 3u16, u32::from(orientation)),
+        (0x011a, 5, 62),
+        (0x011b, 5, 70),
+        (0x0128, 3, 2),
+    ] {
+        tiff.extend_from_slice(&tag.to_le_bytes());
+        tiff.extend_from_slice(&ty.to_le_bytes());
+        tiff.extend_from_slice(&1u32.to_le_bytes());
+        tiff.extend_from_slice(&value.to_le_bytes());
+    }
+    for value in [0, density.max(1), 1, density.max(1), 1] {
+        tiff.extend_from_slice(&value.to_le_bytes());
+    }
+    tiff
 }

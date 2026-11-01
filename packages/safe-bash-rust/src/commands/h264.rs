@@ -434,6 +434,7 @@ impl<'a> Pcm<'a> {
             alpha: false,
             gray: false,
             density: 72,
+            orientation: None,
         })
     }
 }

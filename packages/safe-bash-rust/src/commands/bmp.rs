@@ -95,6 +95,7 @@ impl<'a> Bmp<'a> {
             height: self.height,
             pixels,
             density: self.density,
+            orientation: None,
             alpha: self.bpp == 32,
             gray: false,
         }

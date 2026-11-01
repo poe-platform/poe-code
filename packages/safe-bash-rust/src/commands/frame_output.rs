@@ -249,8 +249,8 @@ pub(super) fn still_info(
     limit: usize,
 ) -> Result<(usize, usize, &'static [u8; 4]), &'static str> {
     if super::jpeg_decode::signature(bytes) {
-        let (w,h,_,_) = super::image_header::jpeg(bytes)?;
-        let (w,h)=(w as usize,h as usize);
+        let header = super::image_header::jpeg(bytes)?;
+        let (w,h)=(header.width as usize,header.height as usize);
         if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
         return Ok((w,h,b"mjpe"));
     }
@@ -299,6 +299,7 @@ pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'stati
                 alpha: true,
                 gray: false,
                 density: 72,
+                orientation: None,
                 pixels: vec![[180; 4]; w * h],
             }
         }
@@ -394,6 +395,7 @@ pub(super) fn render(
                 alpha: true,
                 gray: false,
                 density: 72,
+                orientation: None,
                 pixels: vec![[0; 4]; w * h],
             };
             encode(&blank, fmt, 85, 72, limit)?

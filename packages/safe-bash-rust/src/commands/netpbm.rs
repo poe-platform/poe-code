@@ -155,6 +155,7 @@ impl<'a> Netpbm<'a> {
             alpha: false,
             gray: !matches!(self.magic, b'3' | b'6'),
             density: 72,
+            orientation: None,
             pixels,
         }
     }

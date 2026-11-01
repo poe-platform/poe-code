@@ -252,7 +252,8 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         meta.fmt = "BMP".into();
         (8, if im.bpp == 32 { 4 } else { 3 }, im.density)
     } else if bytes.starts_with(b"\xff\xd8\xff") && bytes.get(20..29) != Some(b"\n__IMG__:") {
-        let (w, h, channels, dpi) = image_header::jpeg(bytes)?;
+        let header = image_header::jpeg(bytes)?;
+        let (w,h,channels,dpi)=(header.width,header.height,header.channels,header.density);
         (meta.w, meta.h) = (w, h);
         meta.cs = match channels { 1 => "Gray", 4 => "CMYK", _ => "sRGB" }.into();
         (8, channels, dpi)
@@ -3933,7 +3934,7 @@ fn qr_fmt_ratio(v: u8) -> String {
     }
 }
 
-pub(super) enum PngEncoding { Density(u32), SplitDensity(u32), Mermaid }
+pub(super) enum PngEncoding { Density(u32), SplitDensity(u32, Option<u8>), Mermaid }
 
 pub(super) fn pixel_png<const N: usize>(width: usize, height: usize, encoding: PngEncoding, pixel: impl Fn(usize, usize) -> [u8; N]) -> Vec<u8> {
     let mut raw = Vec::with_capacity((width * N + 1) * height);
@@ -3961,14 +3962,15 @@ pub(super) fn pixel_png<const N: usize>(width: usize, height: usize, encoding: P
     chunk(b"IHDR", &header);
     let compressed=match encoding {
         PngEncoding::Mermaid=>crate::commands::codecs::zlib_pixel_runs(&raw),
-        PngEncoding::Density(dpi)|PngEncoding::SplitDensity(dpi)=>{
+        PngEncoding::Density(dpi)|PngEncoding::SplitDensity(dpi,_)=>{
             let ppm=((dpi as f64/0.0254).round() as u32).to_be_bytes();
             let mut phys=[1;9];phys[..4].copy_from_slice(&ppm);phys[4..8].copy_from_slice(&ppm);
             chunk(b"pHYs",&phys);
+            if let PngEncoding::SplitDensity(_,Some(o))=encoding{chunk(b"eXIf",&image_header::encode_exif(o,dpi));}
             crate::commands::codecs::zlib_compress(&raw)
         }
     };
-    if matches!(encoding,PngEncoding::SplitDensity(_)) {
+    if matches!(encoding,PngEncoding::SplitDensity(..)) {
         // Stored images start the encoder with the first row filter, emitting its zlib header.
         chunk(b"IDAT", &compressed[..2]);
         for part in compressed[2..].chunks(4084) { chunk(b"IDAT", part); }
@@ -10131,7 +10133,7 @@ fn cmd_media_doc(
                     let (width,height)=(w.max(1) as usize,h.max(1) as usize);
                     if width.saturating_mul(height)>fs.max_input_bytes()/4 {return Some(err_out("magick: image exceeds memory budget\n",1));}
                     let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
-                    png_pixels::Raster {width,height,density:72,gray:false,alpha:true,pixels}
+                    png_pixels::Raster {width,height,density:72,orientation:None,gray:false,alpha:true,pixels}
                 } else {
                     match png_pixels::Raster::input(input,bytes,fs.max_input_bytes()) {
                         Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
@@ -10514,7 +10516,7 @@ fn cmd_media_doc(
             let canvas_h = rows.saturating_mul(slot_h as usize).max(1);
             if canvas_w.saturating_mul(canvas_h)>limit/4 {return err_out("montage: image exceeds memory budget\n",1);}
             if tiles.len()==n {
-                let mut sheet=png_pixels::Raster {width:canvas_w,height:canvas_h,density:72,gray:false,alpha:background[3]<255 || (border_w>0 && border_color[3]<255),pixels:vec![background;canvas_w*canvas_h]};
+                let mut sheet=png_pixels::Raster {width:canvas_w,height:canvas_h,density:72,orientation:None,gray:false,alpha:background[3]<255 || (border_w>0 && border_color[3]<255),pixels:vec![background;canvas_w*canvas_h]};
                 for (i,(tile,(tw,th))) in tiles.iter().zip(thumb_dims).enumerate() {
                     if cols==0 || i/cols>=rows {break;}
                     let dx=max_thumb_w-tw;let dy=max_thumb_h-th;
@@ -13780,6 +13782,28 @@ mod media_unit_tests {
         assert_eq!(r.stdout, "JPEG 8x5 300 cmyk");
         let r = cmd_media_doc("sips", &media_args(&["-1","-g","space","-g","hasAlpha","-g","samplesPerPixel","x"]), "", "/", &fs);
         assert_eq!(r.stdout, "x|space: CMYK|hasAlpha: no|samplesPerPixel: 4|\n");
+    }
+
+    #[test]
+    fn sips_carries_exif_orientation_across_png_and_jpeg_without_rotating_pixels() {
+        let fs=MemoryVfs::new();
+        let mut png=pixel_png(2,1,PngEncoding::Density(72),|_,_|[12,56,78]);
+        let tiff=b"MM\x00\x2a\0\0\0\x08\0\x01\x01\x12\0\x03\0\0\0\x01\0\x06\0\0\0\0\0\0";
+        let mut chunk=(tiff.len() as u32).to_be_bytes().to_vec();
+        chunk.extend_from_slice(b"eXIf");chunk.extend_from_slice(tiff);
+        chunk.extend_from_slice(&crc32_ieee(&chunk[4..]).to_be_bytes());
+        png.splice(33..33,chunk);
+        fs.write_file("/source.png",&png).unwrap();
+        let run=|args:&[&str]|cmd_media_doc("sips",&media_args(args),"","/",&fs);
+        assert_eq!(run(&["-s","format","jpeg","source.png","--out","out.jpg"]).exit_code,0);
+        let jpeg=fs.read_file("/out.jpg").unwrap();
+        assert!(jpeg.windows(6).any(|b| b==b"Exif\0\0"));
+        assert_eq!(run(&["-s","format","png","out.jpg","--out","out.png"]).exit_code,0);
+        let bytes=fs.read_file("/out.png").unwrap();
+        let offset=bytes.windows(4).position(|b| b==b"eXIf").unwrap()+4;
+        assert_eq!(&bytes[offset+18..offset+20], &[6,0]);
+        let raster=png_pixels::Raster::decode(&bytes,1024).unwrap();
+        assert_eq!((raster.width,raster.height),(2,1));
     }
 
     #[test]

@@ -240,8 +240,8 @@ impl Plane {
 }
 
 pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
-    let (w, h, _, density) = image_header::jpeg(bytes)?;
-    let (w, h) = (w as usize, h as usize);
+    let header = image_header::jpeg(bytes)?;
+    let (w, h) = (header.width as usize, header.height as usize);
     if w.saturating_mul(h) > limit / 4 {
         return Err("image exceeds memory budget");
     }
@@ -505,7 +505,8 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster> {
     Ok(Raster {
         width: w,
         height: h,
-        density,
+        density: header.density,
+        orientation: header.orientation,
         gray: planes.len() == 1,
         // CMYK is converted to opaque RGBA for the portable four-channel encoders.
         alpha: planes.len() == 4,

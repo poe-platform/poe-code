@@ -132,57 +132,69 @@ use magick_color::Canvas;
 pub(super) use magick_color::{css_named_color, parse_color};
 
 fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
-    let s = spec.trim();
-    if let Some(pct_str) = s.strip_suffix('%') {
-        let pct: f64 = pct_str.parse().unwrap_or(100.0);
-        let nw = ((w as f64) * pct / 100.0).round().max(1.0) as u32;
-        let nh = ((h as f64) * pct / 100.0).round().max(1.0) as u32;
-        return (nw, nh);
+    let units = magick_coordinates::split_offsets(spec).0;
+    let dims = units.trim_end_matches(['%', '@', '!', '<', '>', '^']);
+    let mut axes = dims.split(['x', 'X']);
+    let axis = |s: &str| {
+        s.trim_end_matches('%')
+            .trim()
+            .parse::<f64>()
+            .ok()
+            .filter(|x| x.is_finite())
+    };
+    let horizontal = axes.next().unwrap_or("");
+    let vertical = axes.next().unwrap_or("");
+    let (x, y) = (axis(horizontal), axis(vertical));
+    let (sw, sh) = (f64::from(w), f64::from(h));
+    let size = |a: f64, b: f64| (a.round().max(1.) as u32, b.round().max(1.) as u32);
+    let scaled = |k: f64| size(sw * k, sh * k);
+    let shrink = spec.contains('>');
+    let enlarge = spec.contains('<');
+    let area = spec.contains('@');
+    if area && !dims.contains(['x', 'X']) {
+        let k = (x.unwrap_or(1.).max(1.) / (sw * sh).max(1.)).sqrt();
+        return if shrink && k >= 1. || enlarge && k <= 1. {
+            (w, h)
+        } else {
+            scaled(k)
+        };
     }
-    let exact = s.contains('!');
-    let fill = s.contains('^');
-    let shrink_only = s.contains('>');
-    let enlarge_only = s.contains('<');
-    let clean = magick_coordinates::split_offsets(s).0.trim_end_matches(['!', '^', '>', '<', '@']);
-    if let Some((ws, hs)) = clean.split_once('x') {
-        let tw_opt = if ws.is_empty() { None } else { ws.parse::<u32>().ok() };
-        let th_opt = if hs.is_empty() { None } else { hs.parse::<u32>().ok() };
-        match (tw_opt, th_opt) {
-            (Some(tw), Some(th)) => {
-                if exact {
-                    return (tw.max(1), th.max(1));
-                }
-                if shrink_only && w <= tw && h <= th {
-                    return (w, h);
-                }
-                if enlarge_only && (w >= tw || h >= th) {
-                    return (w, h);
-                }
-                let sx = (tw as f64) / (w.max(1) as f64);
-                let sy = (th as f64) / (h.max(1) as f64);
-                let scale = if fill { sx.max(sy) } else { sx.min(sy) };
-                let nw = ((w as f64) * scale).round().max(1.0) as u32;
-                let nh = ((h as f64) * scale).round().max(1.0) as u32;
-                (nw, nh)
-            }
-            (Some(tw), None) => {
-                let scale = (tw as f64) / (w.max(1) as f64);
-                let nh = ((h as f64) * scale).round().max(1.0) as u32;
-                (tw.max(1), nh)
-            }
-            (None, Some(th)) => {
-                let scale = (th as f64) / (h.max(1) as f64);
-                let nw = ((w as f64) * scale).round().max(1.0) as u32;
-                (nw, th.max(1))
-            }
-            (None, None) => (w, h),
-        }
-    } else if let Ok(tw) = clean.parse::<u32>() {
-        let scale = (tw as f64) / (w.max(1) as f64);
-        let nh = ((h as f64) * scale).round().max(1.0) as u32;
-        (tw.max(1), nh)
+    if !area && spec.contains('%') {
+        let px = if horizontal.is_empty() { y } else { x };
+        let py = if vertical.is_empty() { x } else { y };
+        return size(
+            sw * (px.unwrap_or(100.) / 100.),
+            sh * (py.unwrap_or(100.) / 100.),
+        );
+    }
+    if x.is_none() && y.is_none() && !area {
+        return (w, h);
+    }
+    let (mut tw, mut th) = (x.unwrap_or(sw), y.unwrap_or(sh));
+    if area {
+        tw = x.unwrap_or(1.).max(1.);
+        th = y.unwrap_or(1.).max(1.);
+    }
+    let exact = spec.contains('!');
+    if exact {
+        (tw, th) = (tw.round().max(1.), th.round().max(1.));
+    }
+    if shrink && sw <= tw && sh <= th || enlarge && sw >= tw && sh >= th {
+        return (w, h);
+    }
+    if exact {
+        return size(tw, th);
+    }
+    let sx = tw / sw.max(1.);
+    let sy = th / sh.max(1.);
+    if spec.contains('^') {
+        scaled(sx.max(sy))
+    } else if x.is_none() && !area {
+        size(sw * sy, th)
+    } else if y.is_none() && !area {
+        size(tw, sh * sx)
     } else {
-        (w, h)
+        scaled(sx.min(sy))
     }
 }
 
@@ -14408,6 +14420,20 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_resize_resolves_missing_axes_and_geometry_modifiers() {
+        for (spec, expected) in [
+            ("8!", (8,2)), ("x5!", (3,5)), ("2X6", (2,1)),
+            ("8>", (3,2)), ("x1<", (3,2)), ("2x7<", (2,1)),
+            ("2x7^<", (11,7)), ("x1^", (3,2)), ("12@", (4,3)),
+            ("3@", (2,1)), ("4@<", (3,2)), ("24@>", (3,2)),
+            ("50x150%", (2,3)), ("25%x75%", (1,2)), ("x50%", (2,1)),
+            ("5.5x7.5", (6,4)), ("50%>", (2,1)), ("35xno%", (1,2)),
+        ] {
+            assert_eq!(apply_magick_resize_geom(3,2,spec),expected,"{spec}");
         }
     }
 

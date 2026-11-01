@@ -906,3 +906,26 @@ test("rmdir checks the parent and removes empty unreadable directories", async (
     assert.equal(bash.readText("/guard/keep"), "data");
   } finally { bash.dispose(); }
 });
+
+test("find does not run depth-first actions when directory traversal fails", async () => {
+  const bash = new RustWasmBash({files:{"/g/sub/data":"KEEP","/open/data":"OTHER"},symlinks:{"/alias":"/g/sub"}});
+  try {
+    await bash.fs.chmod("/g", 0);
+    for (const [cmd, output, error] of [
+      ["find /g", "/g\n", "EACCES: permission denied, readdir '/g'"],
+      ["find /g -maxdepth 0 -empty -o -print", "", "EACCES: permission denied, readdir '/g'"],
+      ["find /g -delete","", "EACCES: permission denied, readdir '/g'"],
+      ["find /g/../open -delete","", "EACCES: permission denied, lstat '/g/../open'"],
+      ["find -L /alias","", "EACCES: permission denied, lstat '/g/sub'"],
+    ]) {
+      const result = await bash.exec(cmd);
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr], [1,output,"find: "+error+"\n"]);
+    }
+    await bash.fs.chmod("/g", 0o400);
+    const result = await bash.exec("find /g -depth");
+    assert.deepEqual([result.exitCode,result.stdout,result.stderr], [1,"/g\n","find: EACCES: permission denied, lstat '/g/sub'\n"]);
+    await bash.fs.chmod("/g", 0o700);
+    assert.equal(bash.readText("/g/sub/data"), "KEEP");
+    assert.equal(bash.readText("/open/data"), "OTHER");
+  } finally { bash.dispose(); }
+});

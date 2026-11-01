@@ -84,7 +84,7 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     /// Inspect a shell operand without collapsing unsearched ancestors or trailing slashes.
-    fn inspect_command_entry(&self, path: &str, follow: bool) -> Result<(String, FileStat), String> {
+    fn inspect_command_entry(&self, path: &str, follow: bool, _syscall: &str) -> Result<(String, FileStat), String> {
         let entry = self.access_path(path, follow)?;
         self.lstat(&entry).map(|st| (entry, st))
     }

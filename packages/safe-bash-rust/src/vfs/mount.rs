@@ -55,14 +55,14 @@ impl SafeBashFs for MountVfs {
         self.resolve(path, follow_final, WalkPurpose::Access)
     }
 
-    fn inspect_command_entry(&self, path: &str, follow: bool) -> Result<(String, FileStat), String> {
-        // Mounted commands admit the operand through capabilitiesFor before inspecting it.
+    fn inspect_command_entry(&self, path: &str, follow: bool, syscall: &str) -> Result<(String, FileStat), String> {
+        // The mount router reports traversal failures against the original request.
         let entry = self.resolve(path, follow, WalkPurpose::Access).map_err(|e| {
             let reason = if e.starts_with("EACCES:") { "EACCES: permission denied" }
                 else if e.starts_with("ENOTDIR:") { "ENOTDIR: not a directory" }
                 else if e.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
                 else { return e };
-            format!("{reason}, capabilitiesFor '{path}'")
+            format!("{reason}, {syscall} '{path}'")
         })?;
         let (_, fs, local) = self.location(&entry);
         fs.lstat(&local).map(|st| (entry, st))

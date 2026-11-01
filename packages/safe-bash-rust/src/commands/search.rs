@@ -5395,22 +5395,30 @@ where
     quit: &'a mut bool,
 }
 
-#[allow(clippy::too_many_arguments)]
+struct FindEntry<'a> {
+    display: &'a str,
+    root: &'a str,
+    relative: &'a str,
+    path: &'a str,
+    physical: &'a str,
+    stat: &'a crate::vfs::FileStat,
+    symlink: bool,
+    depth: usize,
+}
+
 fn eval_find_pred<F>(
     pred: &FindPred,
-    disp_path: &str,
-    root_disp: &str,
-    rel_p: &str,
-    full_path: &str,
-    depth: usize,
-    st_opt: Option<&crate::vfs::FileStat>,
+    entry: &FindEntry<'_>,
     pruned: &mut bool,
     state: &mut FindEvalState<'_, F>,
-) -> bool
+) -> Result<bool, String>
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    match pred {
+    let disp_path = entry.display;
+    let full_path = entry.path;
+    let st = entry.stat;
+    Ok(match pred {
         FindPred::True | FindPred::Depth | FindPred::MaxDepth | FindPred::MinDepth => true,
         FindPred::False => false,
         FindPred::Name { pat, ignore_case } => {
@@ -5432,62 +5440,43 @@ where
             let rx = ZeroRegex::new(vec![pat.clone()], *ignore_case, false, false, true);
             rx.is_match(disp_path)
         }
-        FindPred::Type(types) => match st_opt {
-            Some(st) => types.iter().any(|t| match t {
-                'f' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) != 0o020000,
-                'c' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000,
-                'd' => st.kind == VfsEntryKind::Directory,
-                'l' => st.kind == VfsEntryKind::Symlink,
-                _ => false,
-            }),
-            None => false,
+        FindPred::Type(types) => types.iter().any(|t| match t {
+            'f' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) != 0o020000,
+            'c' => st.kind == VfsEntryKind::File && (st.mode & 0o170000) == 0o020000,
+            'd' => st.kind == VfsEntryKind::Directory,
+            'l' => st.kind == VfsEntryKind::Symlink,
+            _ => false,
+        }),
+        FindPred::Empty => match st.kind {
+            VfsEntryKind::File => st.size == 0,
+            VfsEntryKind::Directory => state.fs.read_dir(entry.physical)?.is_empty(),
+            _ => false,
         },
-        FindPred::Empty => match st_opt {
-            Some(st) => match st.kind {
-                VfsEntryKind::File => st.size == 0,
-                VfsEntryKind::Directory => state
-                    .fs
-                    .read_dir(full_path)
-                    .map(|e| e.is_empty())
-                    .unwrap_or(false),
-                _ => false,
-            },
-            None => false,
-        },
-        FindPred::Size { op, count, unit } => match st_opt {
-            Some(st) => {
-                let actual = if *unit <= 1 {
-                    st.size
-                } else if st.size == 0 {
-                    0
-                } else {
-                    st.size.div_ceil(*unit)
-                };
-                match op {
-                    1 => actual > *count,
-                    -1 => actual < *count,
-                    _ => actual == *count,
-                }
+        FindPred::Size { op, count, unit } => {
+            let actual = if *unit <= 1 {
+                st.size
+            } else if st.size == 0 {
+                0
+            } else {
+                st.size.div_ceil(*unit)
+            };
+            match op {
+                1 => actual > *count,
+                -1 => actual < *count,
+                _ => actual == *count,
             }
-            None => false,
         },
-        FindPred::Perm { mode_kind, mask } => match st_opt {
-            Some(st) => {
-                let file_mode = st.mode & 0o7777;
-                match mode_kind {
-                    '-' => (file_mode & *mask) == *mask,
-                    '/' => *mask == 0 || (file_mode & *mask) != 0,
-                    _ => file_mode == *mask,
-                }
+        FindPred::Perm { mode_kind, mask } => {
+            let file_mode = st.mode & 0o7777;
+            match mode_kind {
+                '-' => (file_mode & *mask) == *mask,
+                '/' => *mask == 0 || (file_mode & *mask) != 0,
+                _ => file_mode == *mask,
             }
-            None => false,
         },
         FindPred::Links { op, count } => {
-            if st_opt.is_none() {
-                return false;
-            }
             let entries = state.fs.export_entries().unwrap_or_default();
-            let mut canon = normalize_posix_path(full_path);
+            let mut canon = entry.physical.to_owned();
             for _ in 0..16 {
                 if let Some(ent) = entries.iter().find(|e| e.path == canon)
                     && let Some(ref t) = ent.symlink_target
@@ -5515,22 +5504,16 @@ where
             count,
             reference_ms,
             unit_ms,
-        } => match st_opt {
-            Some(st) => {
-                let diff = (*reference_ms - st.mtime_ms as i64).max(0);
-                let age = diff / *unit_ms;
-                match op {
-                    1 => age > *count,
-                    -1 => age < *count,
-                    _ => age == *count,
-                }
+        } => {
+            let diff = (*reference_ms - st.mtime_ms as i64).max(0);
+            let age = diff / *unit_ms;
+            match op {
+                1 => age > *count,
+                -1 => age < *count,
+                _ => age == *count,
             }
-            None => false,
         },
-        FindPred::Newer(ref_mtime) => match st_opt {
-            Some(st) => st.mtime_ms > *ref_mtime,
-            None => false,
-        },
+        FindPred::Newer(ref_mtime) => st.mtime_ms > *ref_mtime,
         FindPred::Prune => {
             *pruned = true;
             true
@@ -5542,15 +5525,14 @@ where
         FindPred::Delete => {
             let base = basename_posix_path(disp_path);
             if base == "." {
-                return true;
+                return Ok(true);
             }
-            let directory = st_opt.is_some_and(|st| st.kind == VfsEntryKind::Directory)
-                && state.fs.lstat(full_path).is_ok_and(|st| st.kind == VfsEntryKind::Directory);
+            let directory = entry.stat.kind == VfsEntryKind::Directory && !entry.symlink;
             if let Err(e) = state.fs.remove_one(full_path, directory) {
                 let op = if directory { "rmdir" } else { "rm" };
                 state.err.push_str(&format!("find: {e}, {op} '{full_path}'\n"));
                 *state.exit_code = 1;
-                return false;
+                return Ok(false);
             }
             true
         }
@@ -5562,7 +5544,7 @@ where
         }
         FindPred::Printf(fmt) => {
             let rendered =
-                render_find_printf(fmt, disp_path, root_disp, rel_p, st_opt, depth);
+                render_find_printf(fmt, disp_path, entry.root, entry.relative, Some(st), entry.depth);
             state.out.push_str(&rendered);
             true
         }
@@ -5581,93 +5563,24 @@ where
                 res.exit_code == 0
             }
         }
-        FindPred::Group(inner) => eval_find_pred(
-            inner, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-        ),
-        FindPred::Not(inner) => !eval_find_pred(
-            inner, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-        ),
+        FindPred::Group(inner) => eval_find_pred(inner, entry, pruned, state)?,
+        FindPred::Not(inner) => !eval_find_pred(inner, entry, pruned, state)?,
         FindPred::And(a, b) => {
-            eval_find_pred(
-                a, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-            ) && !*state.quit
-                && eval_find_pred(
-                    b, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-                )
+            eval_find_pred(a, entry, pruned, state)? && !*state.quit
+                && eval_find_pred(b, entry, pruned, state)?
         }
         FindPred::Or(a, b) => {
-            eval_find_pred(
-                a, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-            ) || (!*state.quit
-                && eval_find_pred(
-                    b, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-                ))
+            eval_find_pred(a, entry, pruned, state)? || (!*state.quit
+                && eval_find_pred(b, entry, pruned, state)?)
         }
         FindPred::Comma(a, b) => {
-            let _ = eval_find_pred(
-                a, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-            );
+            let _ = eval_find_pred(a, entry, pruned, state)?;
             if *state.quit {
-                return false;
+                return Ok(false);
             }
-            eval_find_pred(
-                b, disp_path, root_disp, rel_p, full_path, depth, st_opt, pruned, state,
-            )
+            eval_find_pred(b, entry, pruned, state)?
         }
-    }
-}
-
-fn realpath_find(path: &str, fs: &dyn SafeBashFs) -> Result<String, String> {
-    let norm = normalize_posix_path(path);
-    if norm == "/" {
-        return Ok("/".to_string());
-    }
-    let mut cur = String::new();
-    let mut queue: Vec<String> = norm
-        .split('/')
-        .filter(|s| !s.is_empty())
-        .map(|s| s.to_string())
-        .collect();
-    let mut hops = 0usize;
-    while !queue.is_empty() {
-        let seg = queue.remove(0);
-        if seg == "." {
-            continue;
-        }
-        if seg == ".." {
-            cur = crate::vfs::dirname_posix_path(if cur.is_empty() { "/" } else { &cur });
-            if cur == "/" {
-                cur.clear();
-            }
-            continue;
-        }
-        let next = format!("{cur}/{seg}");
-        if let Ok(target) = fs.readlink(&next) {
-            if !target.starts_with("__hardlink__:") {
-                hops += 1;
-                if hops > 40 {
-                    return Err("ELOOP: Too many levels of symbolic links".to_string());
-                }
-                let mut target_segs: Vec<String> = target
-                    .split('/')
-                    .filter(|s| !s.is_empty())
-                    .map(|s| s.to_string())
-                    .collect();
-                if target.starts_with('/') {
-                    cur.clear();
-                }
-                target_segs.extend(queue);
-                queue = target_segs;
-                continue;
-            }
-        }
-        cur = next;
-    }
-    if cur.is_empty() {
-        Ok("/".to_string())
-    } else {
-        Ok(cur)
-    }
+    })
 }
 
 fn cmd_find<F>(
@@ -5824,7 +5737,7 @@ where
         if *state.quit {
             break;
         }
-        let full = resolve_posix_path(state.cwd, r);
+        let full = if r.is_empty() || r.starts_with('/') { r.clone() } else { format!("{}/{r}", state.cwd.trim_end_matches('/')) };
         let mut ancestors = std::collections::BTreeSet::new();
         walk_find(
             r,
@@ -5890,59 +5803,61 @@ fn walk_find<F>(
         }
     }
 
-    let lstat_res = state.fs.lstat(full);
-    let Ok(mut st) = lstat_res else {
-        state
-            .err
-            .push_str(&format!("find: '{disp}': No such file or directory\n"));
-        *state.exit_code = 1;
-        return;
+    let inspect = |follow| state.fs.inspect_command_entry(full, follow, if follow { "stat" } else { "lstat" });
+    let report = |error: String, op: &str| {
+        if error.starts_with("ELOOP:") && !error.contains(", ") {
+            format!("find: ELOOP: too many symbolic links encountered '{full}'\n")
+        } else if error.starts_with("EACCES:") && error.contains(", lstat '") {
+            format!("find: {error}\n")
+        } else {
+            let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+                else { error.split_once(", ").map_or(error.as_str(), |(reason, _)| reason) };
+            format!("find: {reason}, {op} '{full}'\n")
+        }
     };
-
-    let is_symlink = st.kind == VfsEntryKind::Symlink;
-    let should_follow = is_symlink
-        && (follow_mode == FindFollowMode::Always
-            || (follow_mode == FindFollowMode::RootsOnly && depth == 0)
-            || disp.ends_with('/'));
-    if should_follow {
-        if let Err(e) = realpath_find(full, state.fs) {
-            state.err.push_str(&format!("find: '{disp}': {e}\n"));
+    let (mut physical, mut st) = match inspect(false) {
+        Ok(entry) => entry,
+        Err(e) => {
+            state.err.push_str(&report(e, "lstat"));
             *state.exit_code = 1;
             return;
         }
-        if let Ok(target_st) = state.fs.stat(full) {
-            st = target_st;
+    };
+    let symlink = st.kind == VfsEntryKind::Symlink;
+    if symlink && (follow_mode == FindFollowMode::Always
+        || follow_mode == FindFollowMode::RootsOnly && depth == 0) {
+        match inspect(true) {
+            Ok(entry) => (physical, st) = entry,
+            Err(e) if e.starts_with("ENOENT:") => {}
+            Err(e) => {
+                state.err.push_str(&report(e, "stat"));
+                *state.exit_code = 1;
+                return;
+            }
         }
     }
 
-    if disp.ends_with('/') && st.kind != VfsEntryKind::Directory {
-        state
-            .err
-            .push_str(&format!("find: '{disp}': ENOTDIR: Not a directory\n"));
-        *state.exit_code = 1;
-        return;
-    }
-
+    let entry = FindEntry { display: disp, root: root_disp, relative: rel, path: full, physical: &physical, stat: &st, symlink, depth };
+    let evaluate = |pruned: &mut bool, state: &mut FindEvalState<'_, F>| {
+        let result = match pred {
+            Some(p) => eval_find_pred(p, &entry, pruned, state),
+            None => Ok(true),
+        };
+        match result {
+            Ok(ok) => {
+                if ok && !explicit_action { state.out.push_str(disp); state.out.push('\n'); }
+                true
+            }
+            Err(e) => {
+                state.err.push_str(&report(e, "readdir"));
+                *state.exit_code = 1;
+                false
+            }
+        }
+    };
     let mut pruned = false;
     if !depth_first && depth >= min_depth {
-        let ok = match pred {
-            Some(p) => eval_find_pred(
-                p,
-                disp,
-                root_disp,
-                rel,
-                full,
-                depth,
-                Some(&st),
-                &mut pruned,
-                state,
-            ),
-            None => true,
-        };
-        if ok && !explicit_action {
-            state.out.push_str(disp);
-            state.out.push('\n');
-        }
+        if !evaluate(&mut pruned, state) { return; }
         if *state.quit {
             return;
         }
@@ -5952,25 +5867,23 @@ fn walk_find<F>(
         && (!pruned || depth_first)
         && max_depth.map(|max_d| depth < max_d).unwrap_or(true);
     if can_descend {
-        let physical = match realpath_find(full, state.fs) {
-            Ok(p) => p,
-            Err(e) => {
-                state.err.push_str(&format!("find: '{disp}': {e}\n"));
-                *state.exit_code = 1;
-                return;
-            }
-        };
         if ancestors.contains(&physical) {
             state.err.push_str(&format!(
-                "find: '{disp}': ELOOP: Too many levels of symbolic links\n"
+                "find: ELOOP: too many symbolic links encountered '{full}'\n"
             ));
             *state.exit_code = 1;
             return;
         }
         ancestors.insert(physical.clone());
         let parent = disp.trim_end_matches('/');
-        if let Ok(entries) = state.fs.read_dir(full) {
-            for e in entries {
+        match state.fs.read_dir(&physical) {
+            Err(e) => {
+                state.err.push_str(&report(e, "readdir"));
+                *state.exit_code = 1;
+                ancestors.remove(&physical);
+                return;
+            }
+            Ok(entries) => for e in entries {
                 if *state.quit {
                     break;
                 }
@@ -5980,7 +5893,7 @@ fn walk_find<F>(
                 } else {
                     format!("{rel}/{e}")
                 };
-                let child_full = normalize_posix_path(&format!("{full}/{e}"));
+                let child_full = format!("{}/{e}", full.trim_end_matches('/'));
                 walk_find(
                     &child_disp,
                     root_disp,
@@ -6002,24 +5915,7 @@ fn walk_find<F>(
     }
 
     if depth_first && depth >= min_depth && !*state.quit {
-        let ok = match pred {
-            Some(p) => eval_find_pred(
-                p,
-                disp,
-                root_disp,
-                rel,
-                full,
-                depth,
-                Some(&st),
-                &mut pruned,
-                state,
-            ),
-            None => true,
-        };
-        if ok && !explicit_action {
-            state.out.push_str(disp);
-            state.out.push('\n');
-        }
+        evaluate(&mut pruned, state);
     }
 }
 
@@ -7208,7 +7104,7 @@ fn walk_fd(
                 } else {
                     format!("{rel}/{e}")
                 };
-                let child_full = normalize_posix_path(&format!("{full}/{e}"));
+                let child_full = format!("{}/{e}", full.trim_end_matches('/'));
                 walk_fd(
                     &child_disp,
                     &child_rel,

@@ -402,9 +402,9 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     for t in &targets {
         let operand = if t.starts_with('/') || t.is_empty() { t.clone() } else { child_disp_path(cwd, t) };
         let result = (|| {
-            let (entry, st) = fs.inspect_command_entry(&operand, false)?;
+            let (entry, st) = fs.inspect_command_entry(&operand, false, "capabilitiesFor")?;
             if st.kind == VfsEntryKind::Symlink {
-                match fs.inspect_command_entry(&operand, true) {
+                match fs.inspect_command_entry(&operand, true, "capabilitiesFor") {
                     Ok((_, target)) if target.kind == VfsEntryKind::Directory && !dir_only && indicator != "classify" && !long => return Ok((true,entry)),
                     Err(e) if !e.starts_with("ENOENT:") && !e.starts_with("ENOTDIR:") && !e.starts_with("ELOOP:") && !e.ends_with("(os error 2)") => return Err(e),
                     _ => {}
@@ -453,7 +453,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         stderr: &mut String,
         code: &mut i32,
     ) {
-        let physical = match fs.inspect_command_entry(dir_p, true) {
+        let physical = match fs.inspect_command_entry(dir_p, true, "capabilitiesFor") {
             Ok((p, _)) => p,
             Err(e) => {
                 stderr.push_str(&format!("ls: {}\n", lookup_error(&e, dir_p)));
@@ -487,7 +487,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 }
                 for (name, path) in &children {
                     if (need_stat || classify && fs.lstat(path).is_ok_and(|s| s.kind == VfsEntryKind::File))
-                        && let Err(e) = fs.inspect_command_entry(&child_disp_path(dir_p, name), false) {
+                        && let Err(e) = fs.inspect_command_entry(&child_disp_path(dir_p, name), false, "capabilitiesFor") {
                         stderr.push_str(&format!("ls: {}\n", lookup_error(&e, path)));
                         *code = 1;
                         return;

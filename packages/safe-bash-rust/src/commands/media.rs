@@ -10083,7 +10083,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
+            enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10240,7 +10240,15 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-alpha" if i+1<args.len() => {ops.push(PixelOp::Alpha(args[i+1].to_ascii_lowercase(),background));i+=2;}
-                    "-blur" | "-sharpen" | "-threshold" | "-depth" | "-fill"
+                    "-threshold" | "-black-threshold" | "-white-threshold" => {
+                        let has_value=i+1<args.len()-usize::from(!is_mogrify);
+                        let raw=if has_value {i+=1;args[i].as_str()} else {"50%"};
+                        let value=magick_color::threshold_value(raw);
+                        ops.push(if arg=="-threshold" {PixelOp::Threshold(value.round())} else {PixelOp::ClipThreshold(value,arg=="-white-threshold")});
+                        i+=1;
+                    }
+                    "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
+                    "-blur" | "-sharpen" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
                     | "-draw" | "-annotate" | "-define"
                         if i + 1 < args.len() =>
@@ -10292,6 +10300,8 @@ fn cmd_media_doc(
                         PixelOp::Rotate(deg,bg) => {if !deg.is_finite() {return Err("Invalid rotation angle");}image.rotate(*deg,*bg,fs.max_input_bytes())?;},
                         PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
                         PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
+                        PixelOp::Threshold(value) => image.threshold(*value),
+                        PixelOp::ClipThreshold(value,white) => image.clip_threshold(*value,*white),
                         PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
                         PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
                         PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
@@ -14420,6 +14430,28 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn convert_applies_thresholds_to_colors_and_transparency() {
+        let fs=MemoryVfs::new();
+        for (args,hash) in [
+            ("-size 7x5 gradient:red-blue -threshold 50% o.gif","56206e287d8b5298062282f8ded729fe597e32434177714de8516e45b63eaae5"),
+            ("-size 7x5 gradient:none-yellow -threshold 50% o.png","bed20f91dad8866ed6da78da74c8d989fb173567fabe5379c1afafd0d2747f38"),
+            ("-size 7x5 gradient:red-blue -white-threshold 90 o.png","3dc549885d319f3c242fa73a7153c26a8b711cc5f19afd1bb56378cc363d6e17"),
+            ("-size 7x5 gradient:none-yellow -black-threshold 100 o.gif","7596af3593465855735d6c0f0c623c29b15f57513b717b57a45b455a73adebd0"),
+            ("-size 7x5 gradient:red-blue -threshold bad o.gif","fb98fba606685be10c9ed93dd0d1146cc1b8e1166f198596afee22f2fdcc4db8"),
+            ("-size 7x5 gradient:red-blue -threshold 50x o.png","df32b0ad2f982cf60451fa1d0b0ab4e5374768414193333e8d8b26a92bab0063"),
+            ("-size 7x5 gradient:none-yellow -monochrome o.gif","fb4e01ee0299286b1bd3060fb57a8e120bb111965207ba73ce5210468bf9c94f"),
+            ("-size 7x5 gradient:none-yellow -threshold 300 o.gif","fb98fba606685be10c9ed93dd0d1146cc1b8e1166f198596afee22f2fdcc4db8"),
+            ("-size 7x5 gradient:none-yellow -threshold 12.3e1 o.gif","45ae48c7d9de55d644ed1d6ec15f4502c17300ccfcd8fd47d4e9a41358d08ba0"),
+        ] {
+            let argv=media_args(&args.split_whitespace().collect::<Vec<_>>());
+            let result=cmd_media_doc("convert",&argv,"","/",&fs);
+            assert_eq!(result.exit_code,0,"{args}: {}",result.stderr);
+            let path=format!("/{}",argv.last().unwrap());
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&path).unwrap())),hash,"{args}");
         }
     }
 

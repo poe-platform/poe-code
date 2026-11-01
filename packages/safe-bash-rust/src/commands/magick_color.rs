@@ -361,6 +361,38 @@ impl Canvas {
     }
 }
 
+// Thresholds use the leading JavaScript number, even when units follow it.
+pub(super) fn threshold_value(raw: &str) -> f64 {
+    let text = raw.trim_start();
+    let unsigned = text.strip_prefix(['+', '-']).unwrap_or(text);
+    let mut rest = unsigned.trim_start_matches(|c: char| c.is_ascii_digit());
+    if let Some(fraction) = rest.strip_prefix('.') {
+        rest = fraction.trim_start_matches(|c: char| c.is_ascii_digit());
+    }
+    if let Some(exp) = rest.strip_prefix(['e', 'E']) {
+        let digits = exp.strip_prefix(['+', '-']).unwrap_or(exp);
+        let tail = digits.trim_start_matches(|c: char| c.is_ascii_digit());
+        if digits.len() > tail.len() {
+            rest = tail;
+        }
+    }
+    if let Some(tail) = unsigned.strip_prefix("Infinity") {
+        rest = tail;
+    }
+    let value = text[..text.len() - rest.len()]
+        .parse::<f64>()
+        .unwrap_or(f64::NAN);
+    if raw.ends_with('%') {
+        value / 100. * 255.
+    } else {
+        value
+    }
+}
+
+fn intensity(p: &[u8; 4]) -> f64 {
+    0.212656 * f64::from(p[0]) + 0.715158 * f64::from(p[1]) + 0.072186 * f64::from(p[2])
+}
+
 // image-ast converts through linear light and interpolates the rounded sRGB table.
 pub(super) fn gray(r: u8, g: u8, b: u8) -> u8 {
     if r == g && g == b {
@@ -425,6 +457,32 @@ pub(super) fn negate(pixel: &mut [u8; 4], channels: [bool; 4], only_gray: bool) 
 }
 
 impl super::png_pixels::Raster {
+    pub fn threshold(&mut self, value: f64) {
+        self.gray = true;
+        for p in &mut self.pixels {
+            let bit = if f64::from(gray(p[0], p[1], p[2])) >= value {
+                255
+            } else {
+                0
+            };
+            p[..3].fill(bit);
+            p[3] = if !self.alpha || f64::from(p[3]) >= value {
+                255
+            } else {
+                0
+            };
+        }
+    }
+
+    pub fn clip_threshold(&mut self, value: f64, white: bool) {
+        for p in &mut self.pixels {
+            let level = intensity(p);
+            if white && level > value || !white && level <= value {
+                p[..3].fill(if white { 255 } else { 0 });
+            }
+        }
+    }
+
     pub fn apply_alpha(&mut self, mode: &str, bg: [u8; 4], channels: &mut u8) {
         match mode {
             "remove" => {
@@ -450,10 +508,7 @@ impl super::png_pixels::Raster {
             }
             "copy" | "shape" => {
                 for p in &mut self.pixels {
-                    p[3] = (0.212656 * f64::from(p[0])
-                        + 0.715158 * f64::from(p[1])
-                        + 0.072186 * f64::from(p[2]))
-                    .round() as u8;
+                    p[3] = intensity(p).round() as u8;
                     if mode == "shape" {
                         p[..3].copy_from_slice(&bg[..3]);
                     }

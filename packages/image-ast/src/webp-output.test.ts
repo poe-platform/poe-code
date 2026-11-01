@@ -461,3 +461,56 @@ for (const short of [false, true])
     if (short) await expect(stream.next()).rejects.toThrow("Truncated image backing storage");
     else await expect(stream.next()).rejects.toBe(reason);
   });
+
+it.each([{ width: 16385, height: 1 }, { width: 1, height: 16385 }])(
+  "rejects buffered WebP dimensions that exceed the 14-bit header: %j",
+  async ({ width, height }) => {
+    const image = sharp({ create: { width, height, channels: 4, background: "red" } }).webp();
+    expect(() => image.toBufferSync()).toThrow(RangeError);
+    await expect(image.toBuffer()).rejects.toThrow(RangeError);
+  }
+);
+
+it.each([{ width: 16385, height: 1 }, { width: 1, height: 16385 }])(
+  "rejects oversized stored WebP dimensions before reading pixels: %j",
+  async ({ width, height }) => {
+    const image = raster({ ...vectors[0]!, width, height });
+    let reads = 0;
+    const stream = encodeWebpFromStorage(
+      { ...image, position: 0 },
+      {
+        allocate() { throw new Error("unexpected allocation"); },
+        async write() { throw new Error("unexpected write"); },
+        async read(position: number, length: number) {
+          reads++;
+          return image.data.subarray(position, position + length);
+        }
+      },
+      new AbortController().signal
+    );
+    await expect(stream.next()).rejects.toThrow(RangeError);
+    expect(reads).toBe(0);
+  }
+);
+
+it.each([{ width: 16384, height: 1 }, { width: 1, height: 16384 }])(
+  "preserves the maximum representable WebP dimensions: %j",
+  async ({ width, height }) => {
+    const image = raster({ ...vectors[0]!, width, height });
+    const encoded = encodeWebpImage(image);
+    expect(readWebpMetadata(encoded)).toMatchObject({ width, height });
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of encodeWebpFromStorage(
+      { ...image, position: 0 },
+      {
+        allocate() { throw new Error("unexpected allocation"); },
+        async write() { throw new Error("unexpected write"); },
+        async read(position: number, length: number) {
+          return image.data.subarray(position, position + length);
+        }
+      },
+      new AbortController().signal
+    )) chunks.push(chunk);
+    expect(Buffer.concat(chunks)).toEqual(Buffer.from(encoded));
+  }
+);

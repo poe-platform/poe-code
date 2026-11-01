@@ -14,8 +14,10 @@ export async function* encodeWebpFromStorage(
   if (
     !Number.isSafeInteger(image.width) ||
     image.width <= 0 ||
+    image.width > 16384 ||
     !Number.isSafeInteger(image.height) ||
     image.height <= 0 ||
+    image.height > 16384 ||
     !Number.isSafeInteger(image.position) ||
     image.position < 0 ||
     !Number.isSafeInteger(length) ||

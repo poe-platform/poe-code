@@ -27,8 +27,10 @@ export function createWebpEncoder(
   if (
     !Number.isSafeInteger(width) ||
     width <= 0 ||
+    width > 16384 ||
     !Number.isSafeInteger(height) ||
     height <= 0 ||
+    height > 16384 ||
     !Number.isSafeInteger(numPixels)
   )
     throw new RangeError("Invalid WebP dimensions");

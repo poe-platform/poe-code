@@ -23,7 +23,7 @@ impl RetainedFile {
         let state = self.fs.state.read().unwrap();
         let file = &state.files[&self.ino];
         FileStat {
-            nlink: Some(usize::from(file.linked) + state.extra_links.get(&self.ino).copied().unwrap_or(0)),
+            nlink: Some(usize::from(file.linked) + state.extra_links.get(&self.ino).map_or(0, |g| g.extra)),
             uid: Some(0), gid: Some(0), io_block_size: Some(65536), filesystem_type: Some("memory"),
             identity: Some(EntryIdentity::Memory(self.fs.id, self.ino)),
             allocated_bytes: None,

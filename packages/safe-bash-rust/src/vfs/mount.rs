@@ -337,6 +337,26 @@ mod tests {
     use crate::vfs::MemoryVfs;
 
     #[test]
+    fn separate_filesystems_allocate_inodes_locally_and_snapshot_links_stay_separate() {
+        let root = Arc::new(MemoryVfs::new());
+        let mounted = Arc::new(MemoryVfs::new());
+        for (fs, bytes) in [(&root, b"A"), (&mounted, b"B")] {
+            fs.write_file("/f", bytes).unwrap();
+            fs.hard_link("/f", "/alias").unwrap();
+            let Some(crate::vfs::EntryIdentity::Memory(_, ino)) = fs.stat("/f").unwrap().identity else { panic!() };
+            assert_eq!(ino, 2);
+            assert_ne!(fs.stat("/f").unwrap().identity, fs.stat("/dev/null").unwrap().identity);
+            assert_eq!(fs.stat("/dev/null").unwrap().nlink, Some(1));
+        }
+        let fs = MountVfs::new(root).with_mount("/mnt", mounted);
+        let restored = MemoryVfs::new();
+        restored.replace_entries(&fs.export_entries().unwrap()).unwrap();
+        restored.write_file("/alias", b"C").unwrap();
+        assert_eq!(restored.read_file("/f").unwrap(), b"C");
+        assert_eq!(restored.read_file("/mnt/alias").unwrap(), b"B");
+    }
+
+    #[test]
     fn snapshots_exclude_covered_files_and_cannot_overwrite_the_backing_tree() {
         let root = Arc::new(MemoryVfs::new());
         root.write_file("/data/m/covered", b"hidden").unwrap();

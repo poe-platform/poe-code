@@ -85,6 +85,7 @@ impl MemoryVfs {
         // Stage only the moved entries. No published name or open file changes
         // if any descendant fails admission, including a quota or cancellation.
         let mut staged = MemoryState {
+            next_ino: dst.next_ino,
             nodes: BTreeMap::new(),
             files: HashMap::new(),
             extra_links: HashMap::new(), child_dirs: HashMap::new(),
@@ -171,12 +172,13 @@ impl MemoryVfs {
                         ));
                     }
                     let now = super::super::now_ms();
+                    let ino = staged.allocate_ino();
                     staged.nodes.insert(
                         new_path,
                         MemoryNode::Symlink {
                             target: target.clone(),
                             ctime_bits: Arc::new(AtomicU64::new(now.to_bits())), birthtime_ms: now,
-                            ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
+                            ino,
                             mode: *mode,
                             atime_ms: *atime_ms,
                             mtime_ms: *mtime_ms,
@@ -191,7 +193,7 @@ impl MemoryVfs {
                     }
                     let ino = match existing {
                         Some(MemoryNode::Directory { ino, .. }) if suffix.is_empty() => *ino,
-                        _ => NEXT_INODE.fetch_add(1, Ordering::Relaxed),
+                        _ => staged.allocate_ino(),
                     };
                     let now = super::super::now_ms();
                     staged.insert_directory(
@@ -218,6 +220,7 @@ impl MemoryVfs {
             }
             for (parent, count) in staged.child_dirs { *dst.child_dirs.entry(parent).or_default() += count; }
             dst.parent_changed(to, super::super::now_ms());
+            dst.next_ino = staged.next_ino;
             dst.nodes.append(&mut staged.nodes);
             dst.files.extend(staged.files);
             dst.total_bytes += added;

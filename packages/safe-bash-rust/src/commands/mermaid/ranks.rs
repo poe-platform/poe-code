@@ -12,9 +12,9 @@ pub(super) fn place(
     reverse: bool,
     (rank_gap, node_gap): (f64, f64),
     work: usize,
-) -> Option<(i32, i32)> {
+) -> Option<()> {
     if nodes.is_empty() {
-        return Some((184, 144));
+        return Some(());
     }
     // Depth-first postorder excludes edges to ancestors from longest-path ranking.
     let mut state = vec![0; nodes.len()];
@@ -316,15 +316,8 @@ pub(super) fn place(
             }
         }
     }
-    let mut min_cross = i32::MAX;
-    let mut max_cross = i32::MIN;
-    for i in 0..nodes.len() {
-        min_cross = min_cross.min(center[i] - breadth[i] / 2);
-        max_cross = max_cross.max(center[i] + breadth[i] / 2);
-    }
-    let length = along.iter().zip(&depth).map(|(a, d)| a + d).max()? + 64;
-    let width = max_cross - min_cross + 64;
     let (start, offset) = if groups.is_empty() {
+        let min_cross = center.iter().zip(&breadth).map(|(c, b)| c - b / 2).min()?;
         (32, 32 - min_cross)
     } else {
         (80, 80)
@@ -337,9 +330,5 @@ pub(super) fn place(
             (cross, start + along[i])
         };
     }
-    Some(if horizontal {
-        (length, width)
-    } else {
-        (width, length)
-    })
+    Some(())
 }

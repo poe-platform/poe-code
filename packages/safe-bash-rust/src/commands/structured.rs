@@ -29197,6 +29197,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut rank_spacing = 56.;
     let mut node_gap = None;
     let mut node_spacing = 32.;
+    let mut padding = 32.;
     let mut cfg_theme: Option<String> = None;
     let mut cfg_width: Option<u32> = None;
     let mut cfg_height: Option<u32> = None;
@@ -29331,7 +29332,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         match k.as_str() {
                             "rankGap" => rank_gap = Some(*n),
                             "nodeGap" => node_gap = Some(*n),
-                            _ => {}
+                            _ => padding = *n,
                         }
                     }
                     _ => {
@@ -29693,9 +29694,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let scene = if let Some(pie) = pie {
         acc_title = pie.title.clone();
-        Some(pie.layout(&resolved_theme))
+        Some(pie.layout(&resolved_theme,padding))
     } else if let Some(graph) = flow {
-        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (rank_gap.unwrap_or(rank_spacing),node_gap.unwrap_or(node_spacing)), limit) {
+        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (rank_gap.unwrap_or(rank_spacing),node_gap.unwrap_or(node_spacing)), padding, limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -38340,6 +38341,29 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
         }
+    }
+
+    #[test]
+    fn mmdc_pads_flowcharts_and_pie_charts() {
+        let fs=MemoryVfs::new();
+        for (source,padding,path,expected) in [
+            ("flowchart TD; title Some longer chart title; A-->B", 56.5, "/d.svg","b489664b1cbf941a1670c266a63543eae1bd3f6e59ffe3e071ee5948205b3a73"),
+            ("pie title Shipping\n\"Yes\":3\n\"No\":1", 56.5, "/d.svg","1f59d968466d6a353f3f2f6f50ca265600b6e06a2aeeb1287aaf9bbe110eb440"),
+            ("flowchart LR; subgraph First; A-->B; end; B-->|passed|C", 56.5, "/d.pdf","0ddcd3e677a0986d51cd78ef879ba91f2e8df91b678094a5bc57e38f4f40dec1"),
+            ("pie showData\n\"North\":8\n\"East\":4\n\"Other\":2", 17.25, "/d.png","85e5a9fb66d8f673059432a511cebac6ca640a7e5ebbf81865e2393d5006635d"),
+        ] {
+            fs.write_file("/config.json",format!(r#"{{"padding":{padding}}}"#).as_bytes()).unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-c","/config.json","-o",path]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let bytes=fs.read_file(path).unwrap();
+            assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),expected);
+        }
+        fs.write_file("/config.json",br#"{"padding":17.25}"#).unwrap();
+        fs.write_file("/d.svg",b"previous").unwrap();
+        let r=try_run_structured_command("mmdc",&args(&["-c","/config.json","-i","-","-o","/d.svg"]),"flowchart TD; title Some longer chart title; A-->B","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,1);
+        assert_eq!(r.stderr,"mmdc: E_LIMIT: Scene geometry verification failed: Invariant 1 (node clearance): nodes 'B' and 'mmdc_title' have clearance 18.00px (< 24px)\n");
+        assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
     }
 
     #[test]

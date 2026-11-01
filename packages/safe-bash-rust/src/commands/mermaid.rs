@@ -678,6 +678,7 @@ pub(super) fn layout(
     prefix: &str,
     title: Option<&str>,
     gaps: (f64, f64),
+    padding: f64,
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let Flowchart {
@@ -708,12 +709,13 @@ pub(super) fn layout(
             return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
         }
     }
-    let (mut width, mut height) = match ranks::place(
+    if ranks::place(
         &mut nodes, &edges, &groups, horizontal, reversed, gaps, limit,
-    ) {
-        Some(bounds) => bounds,
-        None => return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into())),
-    };
+    )
+    .is_none()
+    {
+        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+    }
     let Some(group_order) = groups::place(&mut groups, &mut nodes, limit) else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
@@ -736,39 +738,43 @@ pub(super) fn layout(
     if let Err(error) = groups::verify(&groups, &group_order, &nodes, &positions, limit) {
         return Some(Err(error));
     }
-    let (mut min_x, mut min_y, mut max_x, mut max_y) =
-        (0_f64, 0_f64, f64::from(width), f64::from(height));
-    if !groups.is_empty() {
-        min_x = f64::INFINITY;
-        min_y = f64::INFINITY;
-        max_x = f64::NEG_INFINITY;
-        max_y = f64::NEG_INFINITY;
-        for [x, y, w, h] in groups
-            .iter()
-            .map(|g| g.bounds)
-            .chain(nodes.iter().map(|n| [n.x, n.y, n.w, n.h]))
-        {
-            min_x = min_x.min(f64::from(x) - 32.);
-            min_y = min_y.min(f64::from(y) - 32.);
-            max_x = max_x.max(f64::from(x + w) + 32.);
-            max_y = max_y.max(f64::from(y + h) + 32.);
-        }
+    let (mut min_x, mut min_y, mut max_x, mut max_y) = (
+        f64::INFINITY,
+        f64::INFINITY,
+        f64::NEG_INFINITY,
+        f64::NEG_INFINITY,
+    );
+    let mut include = |x: f64, y: f64, w: f64, h: f64| {
+        min_x = min_x.min(x);
+        min_y = min_y.min(y);
+        max_x = max_x.max(x + w);
+        max_y = max_y.max(y + h);
+    };
+    for [x, y, w, h] in groups
+        .iter()
+        .map(|g| g.bounds)
+        .chain(nodes.iter().map(|n| [n.x, n.y, n.w, n.h]))
+    {
+        include(x.into(), y.into(), w.into(), h.into());
     }
     for &(x, y) in waypoints.iter().flatten() {
-        min_x = min_x.min(x - 36.);
-        min_y = min_y.min(y - 36.);
-        max_x = max_x.max(x + 36.);
-        max_y = max_y.max(y + 36.);
+        include(x - 4., y - 4., 8., 8.);
     }
     for &[x, y, w, h] in positions.iter().flatten() {
-        min_x = min_x.min(x - 32.);
-        min_y = min_y.min(y - 32.);
-        max_x = max_x.max(x + w + 32.);
-        max_y = max_y.max(y + h + 32.);
+        include(x, y, w, h);
     }
-    width = (max_x - min_x).ceil() as i32;
-    height = (max_y - min_y).ceil() as i32;
-    let (dx, dy) = ((-min_x).round() as i32, (-min_y).round() as i32);
+    if !min_x.is_finite() {
+        (min_x, min_y, max_x, max_y) = (0., 0., 120., 80.);
+    }
+    if padding > f64::from(i32::MAX / 4) {
+        return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
+    }
+    let mut width = (max_x - min_x + 2. * padding).ceil();
+    let mut height = (max_y - min_y + 2. * padding).ceil();
+    let (dx, dy) = (
+        (padding - min_x + 0.5).floor() as i32,
+        (padding - min_y + 0.5).floor() as i32,
+    );
     if dx != 0 || dy != 0 {
         for n in &mut nodes {
             n.x += dx;
@@ -777,6 +783,17 @@ pub(super) fn layout(
         for p in waypoints.iter_mut().flatten() {
             p.0 = route::hundredth(p.0 + f64::from(dx));
             p.1 = route::hundredth(p.1 + f64::from(dy));
+        }
+    }
+    if title.is_some() && padding < 24. {
+        for n in &nodes {
+            let clearance = height - f64::from(n.y + n.h);
+            if clearance < 23.99 {
+                return Some(Err(format!(
+                    "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 1 (node clearance): nodes '{}' and 'mmdc_title' have clearance {clearance:.2}px (< 24px)\n",
+                    n.id
+                )));
+            }
         }
     }
     let dark = theme == "dark";
@@ -1118,15 +1135,13 @@ pub(super) fn layout(
         }
         elements.push(el);
     }
-    let mut width = f64::from(width);
-    let mut height = f64::from(height);
     if let Some(t) = title {
         let text_width = measure(t, 16., true);
-        width = width.max(text_width + 64.);
+        width = width.max(text_width + 2. * padding);
         let fill = if dark { "#1e293b" } else { "#ffffff" };
         let color = if dark { "#f8fafc" } else { "#0f172a" };
         paint.push(Paint::Box {
-            bounds: [32., height, width - 64., 24.],
+            bounds: [padding, height, width - 2. * padding, 24.],
             shape: Shape::Rect,
             shadow: None,
             style: BoxStyle {
@@ -1145,8 +1160,8 @@ pub(super) fn layout(
             color: parse_color(color).unwrap(),
             text: t.into(),
         });
-        elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="32" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-64.,width/2.,height+18.,esc(t)));
-        height += 56.;
+        elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="{padding}" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-2.*padding,width/2.,height+18.,esc(t)));
+        height += 24. + padding;
     }
     elements.extend(pills);
     paint.extend(edge_paint);

@@ -14,6 +14,7 @@ pub(super) enum Paint {
         dashed: bool,
     },
     Pie {
+        cx: f64,
         cy: f64,
         ends: Vec<(f64, [u8; 4])>,
     },
@@ -97,8 +98,8 @@ impl Frame {
     fn draw(&mut self, op: &Paint) {
         let scale = self.scale;
         match op {
-            Paint::Pie { cy, ends } => {
-                let (cx, cy, r) = (152. * scale, cy * scale, 120. * scale);
+            Paint::Pie { cx, cy, ends } => {
+                let (cx, cy, r) = (cx * scale, cy * scale, 120. * scale);
                 let (xs, ys) = self.bounds(cx - r, cy - r, cx + r, cy + r);
                 for y in ys {
                     for x in xs.clone() {

@@ -35581,6 +35581,63 @@ fn find_top_level_js_op(s: &str, start: usize, end: usize) -> Option<(usize, usi
     found
 }
 
+// In TypeScript, commas in a call's type arguments do not separate expressions.
+fn ts_generic_call_open(source: &str, start: usize, angle: usize, end: usize) -> Option<usize> {
+    let previous = source[start..angle].trim_end().as_bytes().last().copied()?;
+    if !(is_js_ident_cont(previous) || matches!(previous, b')' | b']')) {
+        return None;
+    }
+    let close = find_matching_delim(source, angle, end, b'<', b'>')?;
+    let open = skip_ws_and_comments(source, close + 1, end, true, true);
+    (open < end && source.as_bytes()[open] == b'(').then_some(open)
+}
+
+fn parse_ts_type_args(b: &mut AstBuilder<'_>, open: usize, end: usize, depth: usize) -> Option<AstCodeNode> {
+    if depth >= 64 {
+        return None;
+    }
+    let s = b.source;
+    let bytes = &s.as_bytes()[..end];
+    let mut children = vec![b.leaf("<", open, open + 1, false)];
+    let mut i = skip_ws_and_comments(s, open + 1, end, true, true);
+    loop {
+        if !is_js_ident_start(*bytes.get(i)?) {
+            return None;
+        }
+        let start = i;
+        i += 1;
+        while i < end && is_js_ident_cont(bytes[i]) { i += 1; }
+        let mut ty = b.leaf("TypeName", start, i, false);
+        i = skip_ws_and_comments(s, i, end, true, true);
+        if bytes.get(i) == Some(&b'<') {
+            let args = parse_ts_type_args(b, i, end, depth + 1)?;
+            i = args.range.1;
+            ty = b.branch("ParameterizedType", start, i, vec![ty, args]);
+            i = skip_ws_and_comments(s, i, end, true, true);
+        }
+        while bytes.get(i) == Some(&b'[') {
+            let close = skip_ws_and_comments(s, i + 1, end, true, true);
+            if bytes.get(close) != Some(&b']') { return None; }
+            let lp = b.leaf("[", i, i + 1, false);
+            let rp = b.leaf("]", close, close + 1, false);
+            ty = b.branch("ArrayType", start, close + 1, vec![ty, lp, rp]);
+            i = skip_ws_and_comments(s, close + 1, end, true, true);
+        }
+        children.push(ty);
+        match bytes.get(i)? {
+            b',' => {
+                children.push(b.leaf(",", i, i + 1, false));
+                i = skip_ws_and_comments(s, i + 1, end, true, true);
+            }
+            b'>' => {
+                children.push(b.leaf(">", i, i + 1, false));
+                return Some(b.branch("TypeArgList", open, i + 1, children));
+            }
+            _ => return None,
+        }
+    }
+}
+
 fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result<(AstCodeNode, usize), String> {
     let s = b.source;
     let bytes = s.as_bytes();
@@ -35630,7 +35687,7 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
                     p = skip_ws_and_comments(s, p + 1, close, true, true);
                     continue;
                 }
-                let elem_end = find_comma_or_end(s, p, close);
+                let elem_end = find_comma_or_end(b, p, close);
                 let (elem, _) = parse_js_expr(b, p, elem_end)?;
                 children.push(elem);
                 p = skip_ws_and_comments(s, elem_end, close, true, true);
@@ -35649,7 +35706,7 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
             let mut children = vec![b.leaf("{", i, i + 1, false)];
             let mut p = skip_ws_and_comments(s, i + 1, close, true, true);
             while p < close {
-                let prop_end = find_comma_or_end(s, p, close);
+                let prop_end = find_comma_or_end(b, p, close);
                 let prop_slice = s[p..prop_end].trim_end();
                 let prop_actual_end = p + prop_slice.len();
                 if let Some(colon_rel) = prop_slice.find(':') {
@@ -35740,6 +35797,14 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
             pos = prop_end;
             continue;
         }
+        if bytes[next] == b'<'
+            && matches!(b.language.as_str(), "typescript" | "tsx")
+            && let Some(args) = parse_ts_type_args(b, next, end, 0)
+        {
+            pos = args.range.1;
+            cur = b.branch("InstantiationExpression", cur.range.0, pos, vec![cur, args]);
+            continue;
+        }
         if bytes[next] == b'(' {
             let Some(close) = find_matching_delim(s, next, end, b'(', b')') else {
                 return Err("unclosed '(' in call".to_string());
@@ -35747,7 +35812,7 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
             let mut arg_children = vec![b.leaf("(", next, next + 1, false)];
             let mut p = skip_ws_and_comments(s, next + 1, close, true, true);
             while p < close {
-                let arg_end = find_comma_or_end(s, p, close);
+                let arg_end = find_comma_or_end(b, p, close);
                 let (arg_expr, _) = parse_js_expr(b, p, arg_end)?;
                 arg_children.push(arg_expr);
                 p = skip_ws_and_comments(s, arg_end, close, true, true);
@@ -35770,7 +35835,9 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
     Ok((cur, pos))
 }
 
-fn find_comma_or_end(s: &str, mut i: usize, end: usize) -> usize {
+fn find_comma_or_end(b: &AstBuilder<'_>, start: usize, end: usize) -> usize {
+    let s = b.source;
+    let mut i = start;
     let bytes = s.as_bytes();
     let mut depth = 0i32;
     while i < end {
@@ -35798,6 +35865,12 @@ fn find_comma_or_end(s: &str, mut i: usize, end: usize) -> usize {
             i = (i + 2).min(end);
             continue;
         }
+        if depth == 0 && bytes[i] == b'<' && matches!(b.language.as_str(), "typescript" | "tsx")
+            && let Some(open) = ts_generic_call_open(s, start, i, end)
+        {
+            i = open;
+            continue;
+        }
         if matches!(bytes[i], b'(' | b'[' | b'{') {
             depth += 1;
         } else if matches!(bytes[i], b')' | b']' | b'}') {
@@ -35810,7 +35883,9 @@ fn find_comma_or_end(s: &str, mut i: usize, end: usize) -> usize {
     end
 }
 
-fn find_stmt_end(s: &str, mut i: usize, end: usize) -> (usize, Option<usize>) {
+fn find_stmt_end(b: &AstBuilder<'_>, start: usize, end: usize) -> (usize, Option<usize>) {
+    let s = b.source;
+    let mut i = start;
     let bytes = s.as_bytes();
     let mut depth = 0i32;
     let mut jsx_depth = 0i32;
@@ -35847,6 +35922,12 @@ fn find_stmt_end(s: &str, mut i: usize, end: usize) -> (usize, Option<usize>) {
                 i += 1;
             }
             i = (i + 2).min(end);
+            continue;
+        }
+        if depth == 0 && bytes[i] == b'<' && matches!(b.language.as_str(), "typescript" | "tsx")
+            && let Some(open) = ts_generic_call_open(s, start, i, end)
+        {
+            i = open;
             continue;
         }
         if matches!(bytes[i], b'(' | b'[' | b'{') {
@@ -35911,7 +35992,7 @@ fn parse_js_function_decl(b: &mut AstBuilder<'_>, fn_start: usize, end: usize) -
     let mut param_children = vec![b.leaf("(", param_open, param_open + 1, false)];
     let mut p = skip_ws_and_comments(s, param_open + 1, param_close, true, true);
     while p < param_close {
-        let p_end = find_comma_or_end(s, p, param_close);
+        let p_end = find_comma_or_end(b, p, param_close);
         let p_slice = s[p..p_end].trim_end();
         let p_actual_end = p + p_slice.len();
         if let Some(colon_rel) = p_slice.find(':') {
@@ -35957,7 +36038,7 @@ fn parse_js_var_decl(
 ) -> Result<(AstCodeNode, usize), String> {
     let s = b.source;
     let bytes = s.as_bytes();
-    let (stmt_end, semi_pos) = find_stmt_end(s, start, end);
+    let (stmt_end, semi_pos) = find_stmt_end(b, start, end);
     let kw_leaf = b.leaf(kw, start, start + kw.len(), false);
     let mut children = vec![kw_leaf];
     let name_start = skip_ws_and_comments(s, start + kw.len(), stmt_end, true, true);
@@ -36095,7 +36176,7 @@ fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Resul
         }
         if s[i..end].starts_with("return") && (i + 6 == end || !is_js_ident_cont(bytes[i + 6])) {
             let ret_kw = b.leaf("return", i, i + 6, false);
-            let (stmt_end, semi_pos) = find_stmt_end(s, i + 6, end);
+            let (stmt_end, semi_pos) = find_stmt_end(b, i + 6, end);
             let mut children = vec![ret_kw];
             let expr_start = skip_ws_and_comments(s, i + 6, stmt_end, true, true);
             if expr_start < stmt_end {
@@ -36112,7 +36193,7 @@ fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Resul
             i = final_end;
             continue;
         }
-        let (stmt_end, semi_pos) = find_stmt_end(s, i, end);
+        let (stmt_end, semi_pos) = find_stmt_end(b, i, end);
         let (expr, _) = parse_js_expr(b, i, stmt_end)?;
         let mut children = vec![expr];
         let final_end = if let Some(sp) = semi_pos {
@@ -39155,6 +39236,19 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_matches_typescript_calls_with_nested_type_arguments() {
+        let fs = MemoryVfs::new();
+        for ext in ["ts", "tsx"] {
+            let file = format!("/input.{ext}");
+            let source = "const x = id<Map<string, number>>(a); id<T[]>(b); id(c); wrap(id<U>(v));";
+            fs.write_file(&file, source.as_bytes()).unwrap();
+            let r = try_run_structured_command("sg", &args(&["-p", "id<$T>($V)", "-r", "copy<$T>($V)", "-U", &file]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""), "{ext}");
+            assert_eq!(fs.read_file(&file).unwrap(), b"const x = copy<Map<string, number>>(a); copy<T[]>(b); id(c); wrap(copy<U>(v));");
+        }
     }
 
     #[test]

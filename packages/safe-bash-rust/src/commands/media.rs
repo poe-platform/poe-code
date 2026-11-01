@@ -2665,6 +2665,8 @@ mod video_filter;
 mod lavfi;
 #[path = "y4m.rs"]
 mod y4m;
+#[path = "subtitles.rs"]
+mod subtitles;
 #[path = "adts.rs"]
 mod adts;
 #[path = "mp4.rs"]
@@ -4585,7 +4587,8 @@ fn cmd_media_doc(
             let y4m_output = muxer == Some("y4m");
             let mov_output = muxer == Some("mov");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
-            if mp4_output || muxer==Some("ffmetadata") || inputs.len()==1 && (muxer==Some("aac") || y4m_output){
+            let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
+            if mp4_output || muxer==Some("ffmetadata") || inputs.len()==1 && (muxer==Some("aac") || y4m_output || subtitle_output){
                 let source=&inputs[0];
                 let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
                 let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
@@ -4603,7 +4606,14 @@ fn cmd_media_doc(
                         additional.push(data);
                     }
                 }
-                let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() {
+                let output=if subtitle_output && matches!(format, Some("srt"|"webvtt")) {
+                    let selected=maps.iter().fold(maps.is_empty(), |selected, map| {
+                        let spec=map.trim_end_matches('?').trim_start_matches('-');
+                        if matches!(spec,"0"|"0:0"|"0:s"|"0:s:0"){!map.starts_with('-')}else{selected}
+                    });
+                    let slice=(shortest || ss_opt.is_some() || end.is_some()).then_some((start,end));
+                    match subtitles::convert(bytes.as_deref().unwrap_or_default(),muxer==Some("webvtt"),selected && !strip_subtitles,slice,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() {
                     let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
@@ -12950,6 +12960,15 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_converts_subtitle_cues_without_changing_dialogue() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/captions.vtt", b"WEBVTT\n\nNOTE ignore\n\nid\n00:01.250 --> 00:03.5 align:left\nHello, world.  \nAgain!\n").unwrap();
+        let r = cmd_media_doc("ffmpeg",&media_args(&["-i","captions.vtt","-f","srt","-"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stdout),(0,"1\n00:00:01,250 --> 00:00:03,500\nHello, world.\nAgain!\n".into()));
+        assert!(!fs.exists("/-"));
     }
 
     #[test]

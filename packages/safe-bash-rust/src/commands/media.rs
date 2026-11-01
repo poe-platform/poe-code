@@ -10089,7 +10089,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
+            enum PixelOp<'a> { Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10261,6 +10261,33 @@ fn cmd_media_doc(
                         i+=1;
                     }
                     "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
+                    "-morphology" if args.get(i+1).is_some_and(|s|{
+                        let method=s.to_ascii_lowercase();method.contains("convolve") || method.contains("correlate")
+                    }) => {
+                        i+=2;
+                        if i<args.len()-usize::from(!is_mogrify) && !args[i].starts_with(['-','+']) {
+                            match magick_filter::kernel(&args[i],fs.max_input_bytes()) {
+                                Ok(weights)=>ops.push(PixelOp::Convolve(weights,0.)),
+                                Err(e)=>return err_out(&format!("magick: {e}\n"),1),
+                            }
+                            i+=1;
+                        }
+                    }
+                    "-convolve" | "-edge" | "-canny" | "-emboss" | "-charcoal" | "-sketch" => {
+                        let spec=if i+1<args.len()-usize::from(!is_mogrify) {i+=1;args[i].as_str()}else{"1"};
+                        let charcoal=matches!(arg.as_str(),"-charcoal"|"-sketch");
+                        let weights=match arg.as_str(){
+                            "-convolve"=>match magick_filter::kernel(spec,fs.max_input_bytes()){
+                                Ok(weights)=>weights,Err(e)=>return err_out(&format!("magick: {e}\n"),1),
+                            },
+                            "-emboss"=>vec![-2.,-1.,0.,-1.,1.,1.,0.,1.,2.],
+                            _=>vec![-1.,-1.,-1.,-1.,8.,-1.,-1.,-1.,-1.],
+                        };
+                        if charcoal{ops.push(PixelOp::Blur(1.));}
+                        ops.push(PixelOp::Convolve(weights,if arg=="-emboss"{128.}else{0.}));
+                        if charcoal{ops.push(PixelOp::Negate([true,true,true,false],false));ops.push(PixelOp::Gray);}
+                        i+=1;
+                    }
                     "-blur" | "-gaussian-blur" | "-sharpen" | "-unsharp" => {
                         let has_value=i+1<args.len()-usize::from(!is_mogrify);
                         let g=if has_value{i+=1;args[i].as_str()}else{"0x1"};
@@ -10309,6 +10336,7 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Convolve(weights,bias)=>image.convolve_rgb(weights,*bias,fs.max_input_bytes())?,
                         PixelOp::Sharpen(sigma)=>image.sharpen(*sigma,image.alpha || matches!(channels,2|4)),
                         PixelOp::Blur(sigma)=>image.blur(*sigma,image.alpha || matches!(channels,2|4)),
                         PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
@@ -14555,6 +14583,9 @@ mod media_unit_tests {
             ("-blur","9999","043d2e2033dccfbe2d9104cff923019ee250297e7d47c35909c1e61de16659fb"),
             ("-sharpen","1","3a598893d74a2a3c01d2f56c247489456b25b9af433166153e0db27e3d1a5e01"),
             ("-unsharp","2x2","754638fe5429215b20dcb64ba4994cbe400db343d5b7906abc808d24b87f933b"),
+            ("-convolve","kernel:0,-0.5,0,-0.5,3,-0.5,0,-0.5,0","2e62f1aebc90a1384747d5d11643829d951a75bacae551f161b2f8962706b9a5"),
+            ("-emboss","1","620e3e4fdb5d3f0f1dcabd7c8a517b3f97e900cc8e54c7aebe9c526ae182d480"),
+            ("-charcoal","3","378d4c7520d098dc90c714142245a54109df0809766c5486765174934cb05ff8"),
         ]{
             let r=cmd_media_doc("convert",&media_args(&["rgba.png",op,geometry,"o.png"]),"","/",&fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);

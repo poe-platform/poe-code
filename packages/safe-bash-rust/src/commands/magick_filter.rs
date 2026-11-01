@@ -209,3 +209,54 @@ impl Raster {
         );
     }
 }
+
+pub(super) fn kernel(spec: &str, limit: usize) -> Result<Vec<f64>, &'static str> {
+    let spec = spec.split_once(':').map_or(spec, |(_, s)| s);
+    let mut weights = Vec::new();
+    for word in spec
+        .split(|c: char| c.is_whitespace() || c == ',')
+        .filter(|s| !s.is_empty())
+    {
+        let value = super::magick_number(word, f64::NAN);
+        if value.is_finite() {
+            if weights.len() >= limit / size_of::<f64>() {
+                return Err("image exceeds memory budget");
+            }
+            weights.push(value);
+        }
+    }
+    Ok(weights)
+}
+
+impl Raster {
+    pub(super) fn convolve_rgb(
+        &mut self,
+        weights: &[f64],
+        bias: f64,
+        limit: usize,
+    ) -> Result<(), &'static str> {
+        if weights.is_empty() {
+            return Ok(());
+        }
+        let side = (weights.len() as f64).sqrt().round() as usize;
+        if self.pixels.len().saturating_mul(side * side) > limit.saturating_mul(64) {
+            return Err("image exceeds work budget");
+        }
+        self.remap(self.width, self.height, |im, x, y| {
+            let mut sum = [bias; 3];
+            for (ky, row) in weights.chunks(side).take(side).enumerate() {
+                let sy = (y + ky).saturating_sub(side / 2).min(im.height - 1);
+                for (kx, &w) in row.iter().enumerate() {
+                    let sx = (x + kx).saturating_sub(side / 2).min(im.width - 1);
+                    let p = im.pixels[sy * im.width + sx];
+                    for c in 0..3 {
+                        sum[c] += w * f64::from(p[c]);
+                    }
+                }
+            }
+            let [r, g, b] = sum.map(|v| if v.is_finite() { v.round() as u8 } else { 0 });
+            [r, g, b, im.pixels[y * im.width + x][3]]
+        });
+        Ok(())
+    }
+}

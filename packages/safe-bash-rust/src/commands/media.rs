@@ -12963,6 +12963,24 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn fragmented_track_headers_keep_the_duration_before_temporal_filters() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/av.mp4", include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        for (source, ticks) in [
+            (vec!["-i", "av.mp4", "-vf", "fps=50"], 750u32),
+            (vec!["-i", "av.mp4", "-frames:v", "2", "-vf", "scale=2:4"], 500),
+            (vec!["-f", "lavfi", "-i", "testsrc=s=6x4:r=6:d=1", "-frames:v", "1"], 1000),
+        ] {
+            let args = [source.as_slice(), &["-y", "-movflags", "frag_keyframe", "out.mp4"]].concat();
+            let r = cmd_media_doc("ffmpeg", &media_args(&args), "", "/", &fs);
+            assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+            let data = fs.read_file("/out.mp4").unwrap();
+            let at = data.windows(4).position(|b| b == b"tkhd").unwrap() + 24;
+            assert_eq!(&data[at..at+4], &ticks.to_be_bytes());
+        }
+    }
+
+    #[test]
     fn ffprobe_uses_cropped_h264_dimensions_when_track_header_has_none() {
         let fs=MemoryVfs::new();let mut mp4=include_bytes!("../../tests/fixtures/av.mp4").to_vec();
         let tk=mp4.windows(4).position(|s|s==b"tkhd").unwrap()+4;

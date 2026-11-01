@@ -333,6 +333,7 @@ fn encode_video(
     times: impl Iterator<Item = (f64, f64)>,
     opts: y4m::Options<'_>,
     repeated_input: bool,
+    fragmented: bool,
     image: impl FnMut(usize) -> Result<Raster, &'static str>,
 ) -> Result<(), &'static str> {
     let limit = opts.limit;
@@ -395,7 +396,9 @@ fn encode_video(
     )?;
     if !samples.is_empty() {
         track.media_ticks = ticks as u32;
-        if track.edits.is_empty() {
+        // Fragmented headers retain the track duration before encoding. Packet
+        // durations in trun describe the filtered frames independently.
+        if !fragmented && track.edits.is_empty() {
             track.movie_ticks =
                 (ticks as f64 * f64::from(movie_scale) / f64::from(track.scale)).round() as u32;
         }
@@ -462,7 +465,6 @@ fn png_track<'a>(
         u64::from(packet),
         scale,
     )?;
-    let original_duration = track.movie_ticks;
     if packet && opts.video_filters.is_empty() {
         track.samples.push(Sample {
             data: Cow::Borrowed(input),
@@ -486,11 +488,9 @@ fn png_track<'a>(
                 limit,
             },
             repeated,
+            opts.fragmented,
             |_| Ok(im.clone()),
         )?;
-    }
-    if opts.fragmented {
-        track.movie_ticks = original_duration;
     }
     Ok(track)
 }
@@ -513,7 +513,6 @@ fn sequence_track(
         (90000. / seq.fps).round().max(1.) as u64,
         scale,
     )?;
-    let original_duration = track.movie_ticks;
     encode_video(
         &mut track,
         scale,
@@ -527,13 +526,11 @@ fn sequence_track(
             limit,
         },
         repeated,
+        fragmented,
         |i| Ok(seq.frames[i].clone()),
     )?;
     if track.samples.is_empty() {
         return Err("Cannot perform %TypedArray%.prototype.set on a detached ArrayBuffer".into());
-    }
-    if fragmented {
-        track.movie_ticks = original_duration;
     }
     Ok(track)
 }
@@ -543,6 +540,7 @@ fn generated_video(
     movie_scale: u32,
     filters: &[String],
     frames: Option<u32>,
+    fragmented: bool,
     limit: usize,
 ) -> Result<Track<'static>, String> {
     let (w, h) = (video.width as usize, video.height as usize);
@@ -572,6 +570,7 @@ fn generated_video(
             limit,
         },
         false,
+        fragmented,
         |i| Ok(video.image(i)),
     )?;
     Ok(track)
@@ -1115,7 +1114,7 @@ fn materialize<'a>(
         {
             video.duration = opts.source_end.unwrap_or(video.duration);
             let limit = opts.limit.saturating_sub(admitted);
-            let track = generated_video(&video, 1000, &[], None, limit)?;
+            let track = generated_video(&video, 1000, &[], None, false, limit)?;
             bytes = Cow::Owned(write(
                 &[track],
                 1000,
@@ -1396,6 +1395,15 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
         }
         return Ok(writer.output.into_bytes());
     }
+    let temporal = opts
+        .video_filters
+        .iter()
+        .flat_map(|f| f.split(|c: char| !c.is_ascii_alphanumeric() && c != '_'))
+        .any(|word| {
+            ["fps", "select", "reverse", "trim", "tile", "setpts"]
+                .iter()
+                .any(|name| word.eq_ignore_ascii_case(name))
+        });
     let mut tracks = Vec::new();
     let mut index_bytes = 0usize;
     for (ordinal, &(j, i)) in selected.iter().enumerate() {
@@ -1416,9 +1424,14 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
                     opts.fragmented,
                     limit,
                 )?,
-                Streams::GeneratedVideo(v) => {
-                    generated_video(v, scale, opts.video_filters, opts.frames, limit)?
-                }
+                Streams::GeneratedVideo(v) => generated_video(
+                    v,
+                    scale,
+                    opts.video_filters,
+                    opts.frames,
+                    opts.fragmented,
+                    limit,
+                )?,
                 Streams::GeneratedAudio(a) => {
                     let track = a.track(&audio, scale, limit)?;
                     index_bytes += track.samples.capacity() * size_of::<Sample>();
@@ -1603,7 +1616,7 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
             }
         }
         if video
-            && opts.video_filters.is_empty()
+            && !temporal
             && let Some(n) = opts.frames
         {
             samples.truncate(n.max(1) as usize);
@@ -1676,6 +1689,7 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
                     limit,
                 },
                 false,
+                opts.fragmented,
                 |i| {
                     if decoder.next > i + 1 {
                         decoder.next = 0;

@@ -68,17 +68,6 @@ fn cubic(phase: usize) -> [i32; 4] {
     [c0, (u - c0) + d, (s - c3) - d, c3].map(|c| (c * 4096.) as i32)
 }
 impl Raster {
-    fn remap(&mut self, w: usize, h: usize, mut pixel: impl FnMut(&Self, usize, usize) -> [u8; 4]) {
-        let mut out = Vec::with_capacity(w * h);
-        for y in 0..h {
-            for x in 0..w {
-                out.push(pixel(self, x, y));
-            }
-        }
-        self.width = w;
-        self.height = h;
-        self.pixels = out;
-    }
     fn at(&self, x: isize, y: isize) -> [u8; 4] {
         self.pixels[y.clamp(0, self.height as isize - 1) as usize * self.width
             + x.clamp(0, self.width as isize - 1) as usize]

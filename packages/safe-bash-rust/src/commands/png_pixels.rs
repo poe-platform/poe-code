@@ -10,6 +10,18 @@ pub(super) struct Raster {
 }
 
 impl Raster {
+    pub(super) fn remap(&mut self, w: usize, h: usize, mut pixel: impl FnMut(&Self, usize, usize) -> [u8; 4]) {
+        let mut out = Vec::with_capacity(w * h);
+        for y in 0..h {
+            for x in 0..w {
+                out.push(pixel(self, x, y));
+            }
+        }
+        self.width = w;
+        self.height = h;
+        self.pixels = out;
+    }
+
     pub fn input(spec: &str, bytes: &[u8], limit: usize) -> Result<Option<Self>, String> {
         if let Some(canvas) = super::Canvas::parse(spec) {
             return Ok(Some(Self {

@@ -91,6 +91,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
 
 #[path = "png_pixels.rs"]
 mod png_pixels;
+#[path = "magick_coordinates.rs"]
+mod magick_coordinates;
 #[path = "magick_resize.rs"]
 mod magick_resize;
 #[path = "magick_composite.rs"]
@@ -10130,7 +10132,11 @@ fn cmd_media_doc(
             }
             let mut size_opt: Option<(u32, u32)> = None;
             use magick_resize::Kernel;
-            enum PixelOp<'a> { Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
+            use magick_coordinates::{Geometry,Gravity};
+            let mut gravity=Gravity::parse("northwest");
+            let mut background=[255;4];
+            let mut border_color=[223,223,223,255];
+            enum PixelOp<'a> { Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut kernel = Kernel::Lanczos3;
             let mut resize_spec: Option<String> = None;
@@ -10173,13 +10179,15 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-crop" if i + 1 < args.len() => {
+                        ops.push(PixelOp::Crop(Geometry::parse(&args[i+1]), gravity));
                         let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
                         if let Some((ws, hs)) = s.split_once('x') {
                             crop_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
                         }
                         i += 2;
                     }
-                    "-border" if i + 1 < args.len() => {
+                    "-border" | "-frame" if i + 1 < args.len() => {
+                        ops.push(PixelOp::Border(Geometry::parse(&args[i+1]),border_color));
                         let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
                         if let Some((ws, hs)) = s.split_once('x') {
                             border_opt = Some((ws.parse().unwrap_or(0), hs.parse().unwrap_or(0)));
@@ -10189,6 +10197,7 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-extent" if i + 1 < args.len() => {
+                        ops.push(PixelOp::Extent(Geometry::parse(&args[i+1]),gravity,background));
                         let s = args[i + 1].split(['+', '-']).next().unwrap_or("");
                         if let Some((ws, hs)) = s.split_once('x') {
                             extent_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
@@ -10196,10 +10205,14 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-rotate" if i + 1 < args.len() => {
-                        rot_deg += args[i + 1].parse::<i32>().unwrap_or(0);
+                        let angle=args[i+1].parse::<f64>().unwrap_or(f64::NAN);
+                        ops.push(PixelOp::Rotate(angle,background));
+                        rot_deg=(rot_deg+(angle%360.) as i32)%360;
                         i += 2;
                     }
                     "-transpose" | "-transverse" => {
+                        ops.push(if arg=="-transpose" {PixelOp::Flip} else {PixelOp::Flop});
+                        ops.push(PixelOp::Rotate(90.,background));
                         transpose_swaps += 1;
                         i += 1;
                     }
@@ -10234,8 +10247,13 @@ fn cmd_media_doc(
                         }
                         i += 2;
                     }
-                    "-gravity" | "-channel" | "-blur" | "-sharpen" | "-threshold"
-                    | "-quality" | "-depth" | "-background" | "-fill" | "-bordercolor"
+                    "-gravity" if i+1 < args.len() => {gravity=Gravity::parse(&args[i+1]);i+=2;}
+                    "-background" | "-bordercolor" if i+1 < args.len() => {
+                        let color=match parse_color(&args[i+1]) {Ok(c)=>c,Err(e)=>return err_out(&format!("magick: {e}\n"),1)};
+                        if arg=="-background"{background=color;}else{border_color=color;}
+                        i+=2;
+                    }
+                    "-channel" | "-blur" | "-sharpen" | "-threshold" | "-quality" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
                     | "-draw" | "-annotate" | "-alpha" | "-define"
                         if i + 1 < args.len() =>
@@ -10262,7 +10280,7 @@ fn cmd_media_doc(
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
                 let lower = dest.to_ascii_lowercase();
                 if !(lower.ends_with(".png") || lower.starts_with("png:") || dest=="-")
-                    || border_opt.is_some() || extent_opt.is_some() || crop_opt.is_some() || rot_deg!=0 || transpose_swaps!=0 || append_mode.is_some() { return None; }
+                    { return None; }
                 let mut image = if let Some(canvas) = canvas {
                     let (w,h)=size_opt.unwrap_or((1,1));
                     let (width,height)=(w.max(1) as usize,h.max(1) as usize);
@@ -10276,6 +10294,10 @@ fn cmd_media_doc(
                 };
                 for op in &ops {
                     match op {
+                        PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
+                        PixelOp::Extent(g,gravity,bg) => if let Err(e)=image.extent(*g,*gravity,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
+                        PixelOp::Border(g,bg) => if let Err(e)=image.border(*g,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
+                        PixelOp::Rotate(deg,bg) => if let Err(e)=image.rotate(*deg,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
                         PixelOp::Resize(size,kernel) => if let Err(e)=image.resize(size,*kernel,fs.max_input_bytes()) {return Some(err_out(&format!("magick: {e}\n"),1));},
                         PixelOp::Negate => for p in &mut image.pixels { for c in &mut p[..3] { *c=255-*c; } },
                         PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
@@ -10447,31 +10469,6 @@ fn cmd_media_doc(
                     }
                 };
                 apply_ops(&mut meta);
-                let stdout_png = out_rel == "png:-" || out_rel == "-";
-                if let Some(canvas) = canvas && pos_files.len() == 1
-                    && (out_full.to_ascii_lowercase().ends_with(".png") || stdout_png) {
-                    let (w,h) = (meta.w.max(1) as usize, meta.h.max(1) as usize);
-                    if (w.saturating_mul(4).saturating_add(1)).saturating_mul(h) > fs.max_input_bytes() {
-                        return err_out("magick: image exceeds memory budget\n", 1);
-                    }
-                    let pixel = |x, y| {
-                        let mut rgba = canvas.pixel(x, y, w, h);
-                        if negates_before_gray.unwrap_or(negate_count) % 2 == 1 {
-                            for c in &mut rgba[..3] { *c = 255 - *c; }
-                        }
-                        rgba
-                    };
-                    let png = if let Some(before) = negates_before_gray {
-                        pixel_png(w, h, 72, true, |x, y| {
-                            let [r,g,b,a] = pixel(x,y);
-                            let v = magick_color::gray(r,g,b);
-                            [if (negate_count-before) % 2 == 1 { 255-v } else { v }, a]
-                        })
-                    } else { pixel_png(w, h, 72, true, pixel) };
-                    if stdout_png { return ok_out(&crate::vfs::bytes_to_stream_string(&png)); }
-                    if let Err(e) = publish_magick_output(fs, &out_full, &png) { return err_out(&format!("shell: line 1: {e}\n"),1); }
-                    return ok_out("");
-                }
                 if out_full.to_ascii_lowercase().ends_with(".pdf") {
                     let mut pdf = PdfDoc::new();
                     pdf.pages.push(PdfPage {
@@ -13147,6 +13144,24 @@ mod media_unit_tests {
         fs.write_file("/a.png", &hex_dec("89504e470d0a1a0a0000000d494844520000000d000000090806000000e97aa66a000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000003b4944415463945170facf40226034b3f2235d53404814e99ab2f25249d7d4da5148baa6f98b6a49d7b4734f27e99a2e5f9b42baa6b71f1690ac0900dff8166cd748a1f90000000049454e44ae426082")).unwrap();
         fs.write_file("/b.png", &hex_dec("89504e470d0a1a0a0000000d4948445200000007000000050806000000899af6d8000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000006149444154639c51a6f4ff2d37cbe34f9c4c2f7f33337d67fdfb8f93effb3f71e1af7f64197b6b54debde263b9fb9687e5e13736a68f5cbffef10b7ff9232ff6e98f326357bdea8b177cacb75ef0b3dc06d1129f7eab497cfca30aa2f1ebc4672700f4c246b0d78da95f0000000049454e44ae426082")).unwrap();
         fs
+    }
+
+    #[test]
+    fn magick_transforms_pixel_coordinates_in_command_order() {
+        let fs = gradient_png_pair();
+        for (args, hash) in [
+            ("b.png -rotate 90 out.png", "51ebe18206eb94fa0fa5b0a4b20b107e6bd4bd62010b89a5e1c510a88843cdbd"),
+            ("b.png -rotate -14.5 out.png", "c9f1f602e785df26b922e3f36fb170a307151736c87f3a28bec140fafb57c56e"),
+            ("b.png -gravity southeast -crop 4x3+1+1 out.png", "3e6a462e99e8f5e2425629205afc249dd4aded17a37532ac0a20da254e3290fe"),
+            ("b.png -transpose -flop -crop 4x5+1+2 out.png", "6203eddc365430d502982e5334fe284500156ae92c2dd630f5599ed981baf4a0"),
+            ("b.png -extent 16x20+2+4 out.png", "58af486ceb9bf473dd1293630c55a2ffb6ce474766b7893b567a664c637012db"),
+            ("b.png -border 3x2 out.png", "9b380fbec70784cdd79168a12361faf7862cb219f0a7d9778e5501497760ec19"),
+        ] {
+            let args = media_args(&args.split_whitespace().collect::<Vec<_>>());
+            let r = cmd_media_doc("magick", &args, "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), hash, "{args:?}");
+        }
     }
 
     #[test]

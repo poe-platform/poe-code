@@ -12976,8 +12976,8 @@ mod media_unit_tests {
         assert_eq!((r.exit_code,r.stderr),(0,String::new()));
         let output=fs.read_file("/caption.mp4").unwrap();
         assert!(output.ends_with(b"mdat\0\0\0\x05Hello"));
-        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,nb_frames","-of","csv=p=0","caption.mp4"]),"","/",&fs);
-        assert_eq!(r.stdout,"mov_text,2\n");
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,duration,nb_frames","-of","csv=p=0","caption.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"mov_text,2.250000,2\n");
     }
 
     #[test]

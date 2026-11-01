@@ -508,7 +508,13 @@ impl<'a> Track<'a> {
             None
         };
         let mut stats = Stats::default();
+        let mut gap_ticks = 0;
         for s in tables.samples(input_size) {
+            // Classic timed text uses a zero-length string to clear the screen.
+            // It is a packet on the timeline but contributes no cue duration.
+            if kind == "subtitle" && s.size >= 2 && u16_at(input, s.offset) == 0 {
+                gap_ticks += u64::from(s.tick);
+            }
             stats.add(&s)
         }
         let mut defaults = Defaults {
@@ -613,8 +619,8 @@ impl<'a> Track<'a> {
                 * f64::from(scale)
                 / f64::from(movie_scale))
             .round() as u64
-        } else if stats.ticks != 0 {
-            stats.ticks
+        } else if stats.ticks > gap_ticks {
+            stats.ticks - gap_ticks
         } else if declared != 0 {
             declared
         } else {

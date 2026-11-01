@@ -805,16 +805,16 @@ impl<'a> Track<'a> {
         }
         Ok(())
     }
-    fn audio_rate(&self) -> u32 {
+    fn audio_rate(&self) -> Option<u32> {
         if let Some(a) = &self.audio
             && a.rate > 0
         {
-            return a.rate;
+            return Some(a.rate);
         }
         if self.entry.len() >= 28 {
-            ((u64::from(u32_at(self.entry, 24)) + 32768) >> 16) as u32
+            Some(((u64::from(u32_at(self.entry, 24)) + 32768) >> 16) as u32)
         } else {
-            self.scale
+            None
         }
     }
     fn extract_adts(
@@ -838,7 +838,7 @@ impl<'a> Track<'a> {
                 !trim || end > start && s.dts < end && s.dts.saturating_add(s.tick.into()) > start
             })
             .map(|s| &input[s.offset..s.offset + s.size as usize]);
-        opts.encode(self.audio_rate(), self.channels().into(), samples)
+        opts.encode(self.audio_rate().unwrap_or(44100), self.channels().into(), samples)
     }
     fn channels(&self) -> u16 {
         if let Some(a) = &self.audio {
@@ -1056,7 +1056,7 @@ impl<'a> Track<'a> {
             ]);
         } else if self.kind == "audio" {
             let channels = self.channels();
-            let rate = self.audio_rate();
+            let rate = self.audio_rate().unwrap_or(self.scale);
             let bits = if self.entry.len() >= 28 {
                 u16_at(self.entry, 18)
             } else {
@@ -1275,7 +1275,7 @@ pub(super) fn media_doc(input: &[u8]) -> Option<super::MediaDoc> {
     doc.duration = duration;
     if let Some(a) = audio {
         doc.has_audio = true;
-        doc.sample_rate = a.audio_rate();
+        doc.sample_rate = a.audio_rate().unwrap_or(a.scale);
         doc.channels = u32::from(a.channels());
     }
     doc.tags.extend(text_tags(moov).map(|(k, v)| (k.into(), v)));

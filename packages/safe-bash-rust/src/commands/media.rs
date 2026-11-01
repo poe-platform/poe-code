@@ -13942,6 +13942,9 @@ mod media_unit_tests {
         let bytes=fs.read_file("/o.wav").unwrap();
         assert_eq!(u16::from_le_bytes(bytes[22..24].try_into().unwrap()),2);
         assert_eq!(u32::from_le_bytes(bytes[24..28].try_into().unwrap()),8000);
+        run(&["-i","a.mp4","o.aac"]);
+        // ADTS defaults to 44100 Hz if the description omits a sample rate.
+        assert_eq!((fs.read_file("/o.aac").unwrap()[2]>>2)&15,4);
     }
 
     #[test]

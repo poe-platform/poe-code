@@ -2244,7 +2244,7 @@ pub(in super::super) fn remux(
                     let (track, trak) = &t[i];
                     let tk = child(trak, b"tkhd");
                     (
-                        track.audio_rate(),
+                        track.audio_rate().unwrap_or(track.scale),
                         usize::from(track.channels()),
                         f64::from(u16_at(tk, if tk.first() == Some(&1) { 48 } else { 36 }) as i16)
                             / 256.,
@@ -2744,7 +2744,7 @@ pub(in super::super) fn remux(
                 continue;
             }
             let (rate, channels) = match &sources[j].2 {
-                Streams::Mp4(v) => (v[i].0.audio_rate(), u32::from(v[i].0.channels())),
+                Streams::Mp4(v) => (v[i].0.audio_rate().unwrap_or(v[i].0.scale), u32::from(v[i].0.channels())),
                 Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
                 Streams::GeneratedAudio(a) => (a.rate, a.channels),
                 Streams::Wave(w) => (w.wav.rate, w.wav.channels as u32),

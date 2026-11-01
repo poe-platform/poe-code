@@ -1,31 +1,4 @@
-use super::{BIG_NUM_RAW, JVal};
-
-fn json_number(n: &f64) -> String {
-    if n.is_nan() {
-        return "null".to_string();
-    }
-    if n.is_infinite() {
-        return if *n > 0.0 {
-            "1.7976931348623157e+308".to_string()
-        } else {
-            "-1.7976931348623157e+308".to_string()
-        };
-    }
-    if n.abs() >= 1e15
-        && let Ok(guard) = BIG_NUM_RAW.lock()
-        && let Some(ref map) = *guard
-        && let Some(raw) = map.get(&n.to_bits())
-    {
-        return raw.clone();
-    }
-    if n.fract() == 0.0 && n.abs() < 1e15 {
-        format!("{}", *n as i64)
-    } else if (n - n.round()).abs() < 1e-11 && (n.to_bits() & 1) == 1 && n.abs() < 1e15 {
-        format!("{:.1}", n.round())
-    } else {
-        format!("{n}")
-    }
-}
+use super::JVal;
 
 #[derive(Clone, Copy)]
 pub(super) enum JsonStrings {
@@ -102,11 +75,15 @@ impl JsonFormat<'_> {
         match value {
             JVal::Null => out.push_str("null"),
             JVal::Bool(b) => out.push_str(if *b { "true" } else { "false" }),
-            JVal::Number(n) => {
+            JVal::Number(n, decimal) => {
                 if n.is_nan() {
                     color(out, "\x1b[0;90m");
                 }
-                out.push_str(&json_number(n));
+                if let Some(text) = decimal {
+                    out.push_str(text);
+                } else {
+                    out.push_str(&super::jq_number::computed(*n));
+                }
                 if n.is_nan() {
                     color(out, "\x1b[0m");
                 }

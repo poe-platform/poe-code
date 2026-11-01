@@ -184,7 +184,7 @@ pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
         "timed_thumbnails",
     ]
     .into_iter()
-    .map(|k| (k.to_owned(), Number(f64::from(enabled && k == "default"))))
+    .map(|k| (k.to_owned(), Number(f64::from(enabled && k == "default"), None)))
     .collect()
 }
 
@@ -201,7 +201,7 @@ impl Clip {
         } else {
             ratio(self.timescale as u64 * self.count as u64, ticks as u64, '/')
         };
-        let mut row = vec![("index", Number(0.)), ("id", Str("0x1".into()))];
+        let mut row = vec![("index", Number(0., None)), ("id", Str("0x1".into()))];
         match self.track {
             Track::Subtitle { webvtt, .. } => {
                 let (name, long, tag, code) = if self.count != 0 {
@@ -240,12 +240,12 @@ impl Clip {
                         "codec_tag",
                         Str(format!("0x{:08x}", u32::from_be_bytes(*tag))),
                     ),
-                    ("width", Number(width.into())),
-                    ("height", Number(height.into())),
+                    ("width", Number(width.into(), None)),
+                    ("height", Number(height.into(), None)),
                 ]);
-                if width!=0 {row.push(("coded_width",Number(f64::from(width.div_ceil(16))*16.)));}
-                if height!=0 {row.push(("coded_height",Number(f64::from(height.div_ceil(16))*16.)));}
-                row.extend([("has_b_frames",Number(0.)),("sample_aspect_ratio",Str("1:1".into()))]);
+                if width!=0 {row.push(("coded_width",Number(f64::from(width.div_ceil(16))*16., None)));}
+                if height!=0 {row.push(("coded_height",Number(f64::from(height.div_ceil(16))*16., None)));}
+                row.extend([("has_b_frames",Number(0., None)),("sample_aspect_ratio",Str("1:1".into()))]);
                 if width!=0 && height!=0 {row.push(("display_aspect_ratio",Str(ratio(width.into(),height.into(),':'))));}
                 row.extend([
                     (
@@ -265,24 +265,24 @@ impl Clip {
                 ("codec_tag", Str("0x6d703461".into())),
                 ("sample_fmt", Str("fltp".into())),
                 ("sample_rate", Str(self.timescale.to_string())),
-                ("channels", Number(channels.into())),
+                ("channels", Number(channels.into(), None)),
                 (
                     "channel_layout",
                     Str(if channels == 1 { "mono" } else { "stereo" }.into()),
                 ),
-                ("bits_per_sample", Number(16.)),
+                ("bits_per_sample", Number(16., None)),
             ]),
         }
         row.extend([
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
             ("time_base", Str(format!("1/{}", self.timescale))),
-            ("start_pts", Number(start)),
+            ("start_pts", Number(start, None)),
             (
                 "start_time",
                 Str(format!("{:.6}", start / f64::from(self.timescale))),
             ),
-            ("duration_ts", Number(ticks)),
+            ("duration_ts", Number(ticks, None)),
             ("duration", Str(format!("{duration:.6}"))),
             (
                 "bit_rate",
@@ -356,15 +356,15 @@ impl Clip {
         if frame {
             let mut row = vec![
                 ("media_type", Str(kind.into())),
-                ("stream_index", Number(0.)),
-                ("key_frame", Number(f64::from(key))),
-                ("pts", Number(pts)),
+                ("stream_index", Number(0., None)),
+                ("key_frame", Number(f64::from(key), None)),
+                ("pts", Number(pts, None)),
                 ("pts_time", time()),
-                ("pkt_dts", Number(pts)),
+                ("pkt_dts", Number(pts, None)),
                 ("pkt_dts_time", time()),
-                ("best_effort_timestamp", Number(pts)),
+                ("best_effort_timestamp", Number(pts, None)),
                 ("best_effort_timestamp_time", time()),
-                ("pkt_duration", Number(ticks)),
+                ("pkt_duration", Number(ticks, None)),
                 ("pkt_duration_time", duration),
                 ("pkt_size", Str(size.to_string())),
             ];
@@ -372,14 +372,14 @@ impl Clip {
                 Track::Subtitle { .. } => {}
                 Track::Aac { channels, .. } => row.extend([
                     ("sample_fmt", Str("fltp".into())),
-                    ("nb_samples", Number(1024.)),
-                    ("channels", Number(channels.into())),
+                    ("nb_samples", Number(1024., None)),
+                    ("channels", Number(channels.into(), None)),
                 ]),
                 Track::Video {
                     tag, width, height, ..
                 } => row.extend([
-                    ("width", Number(width.into())),
-                    ("height", Number(height.into())),
+                    ("width", Number(width.into(), None)),
+                    ("height", Number(height.into(), None)),
                     (
                         "pix_fmt",
                         Str(match tag { b"gif "=>"rgb8", b"raw "=>"yuv420p", _=>"rgb24" }.into()),
@@ -391,12 +391,12 @@ impl Clip {
         } else {
             vec![
                 ("codec_type", Str(kind.into())),
-                ("stream_index", Number(0.)),
-                ("pts", Number(pts)),
+                ("stream_index", Number(0., None)),
+                ("pts", Number(pts, None)),
                 ("pts_time", time()),
-                ("dts", Number(pts)),
+                ("dts", Number(pts, None)),
                 ("dts_time", time()),
-                ("duration", Number(ticks)),
+                ("duration", Number(ticks, None)),
                 ("duration_time", duration),
                 ("size", Str(size.to_string())),
                 ("pos", Str(pos.to_string())),
@@ -416,8 +416,8 @@ pub(super) fn format_row(
 ) -> Row {
     vec![
         ("filename", Str(filename.into())),
-        ("nb_streams", Number(tracks as f64)),
-        ("nb_programs", Number(0.)),
+        ("nb_streams", Number(tracks as f64, None)),
+        ("nb_programs", Number(0., None)),
         ("format_name", Str(name.into())),
         ("format_long_name", Str(long_name.into())),
         ("start_time", Str("0.000000".into())),
@@ -431,7 +431,7 @@ pub(super) fn format_row(
                 (bytes as f64 * 8. / duration).round().to_string()
             }),
         ),
-        ("probe_score", Number(100.)),
+        ("probe_score", Number(100., None)),
         ("tags", Object(tags)),
     ]
 }
@@ -661,10 +661,10 @@ fn text_row(
         first = false;
     }
     let mut emit = |k: &str, v: JVal, tag: bool| {
-        let numeric = matches!(v, Number(_));
+        let numeric = matches!(v, Number(_, _));
         let s = match v {
             Str(s) => s,
-            Number(_) => v.to_json_string(true, false, 0),
+            Number(_, _) => v.to_json_string(true, false, 0),
             _ => return,
         };
         if delimited {

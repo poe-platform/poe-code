@@ -208,7 +208,7 @@ pub(in super::super) fn render_office(
                 pdf = PageOutput::selected(&mut src, a - 1..b, limit)?;
             }
         }
-        if let Some(JVal::Number(v)) = option("SelectPdfVersion") {
+        if let Some(JVal::Number(v, _)) = option("SelectPdfVersion") {
             let ver = match *v {
                 15. => b"1.5",
                 16. => b"1.6",

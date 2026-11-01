@@ -1,6 +1,6 @@
 //! jq's incremental JSON input grammar. In stream mode a frame retains the
 //! current index or key, never the already-published children.
-use super::{JVal, parse_single_json_strict};
+use super::JVal;
 use std::collections::VecDeque;
 
 struct Frame {
@@ -43,7 +43,7 @@ impl Parser {
         self.frames
             .iter()
             .filter_map(|f| match &f.value {
-                JVal::Array(_) => Some(JVal::Number(f.count as f64)),
+                JVal::Array(_) => Some(JVal::Number(f.count as f64, None)),
                 _ => f.key.as_ref().map(|k| JVal::Str(k.clone())),
             })
             .collect()
@@ -297,17 +297,17 @@ impl Parser {
 
 fn number(text: &str) -> Option<JVal> {
     let number = text.split('\0').next().unwrap_or(text);
-    if let Ok(JVal::Number(n)) = parse_single_json_strict(number) {
-        Some(JVal::Number(n))
+    if let Some(v) = super::jq_number::literal(number) {
+        Some(v)
     } else if let Ok(n) = number.parse::<f64>() {
-        Some(JVal::Number(n))
+        Some(JVal::Number(n, None))
     } else {
         let name = number
             .strip_prefix(['+', '-'])
             .unwrap_or(number)
             .trim_end_matches(|c: char| c.is_ascii_digit());
         if name.eq_ignore_ascii_case("nan") || name.eq_ignore_ascii_case("snan") {
-            Some(JVal::Number(f64::NAN))
+            Some(JVal::Number(f64::NAN, None))
         } else {
             None
         }

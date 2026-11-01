@@ -11,6 +11,7 @@ use jq_generator::{eval_jq, visit_jq};
 use std::ops::ControlFlow;
 mod jq_input;
 mod jq_json;
+mod jq_number;
 mod jq_parser;
 use jq_input::JqInputs;
 mod json_format;
@@ -22,9 +23,6 @@ use crate::commands::search::{
 };
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
-use std::sync::Mutex;
-
-static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
 
 #[derive(Clone)]
 struct JqScope<'a> {
@@ -127,7 +125,7 @@ fn yq_tag(v: &JVal) -> &'static str {
     match v {
         JVal::Null => "!!null",
         JVal::Bool(_) => "!!bool",
-        JVal::Number(n) => {
+        JVal::Number(n, _) => {
             if n.fract() == 0.0 && n.is_finite() {
                 "!!int"
             } else {
@@ -369,14 +367,18 @@ fn err_out(stderr: &str, exit_code: i32) -> BuiltinOutcome {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub enum JVal {
     Null,
     Bool(bool),
-    Number(f64),
+    Number(f64, Option<Box<str>>),
     Str(String),
     Array(Vec<JVal>),
     Object(Vec<(String, JVal)>),
+}
+
+impl PartialEq for JVal {
+    fn eq(&self, other: &Self) -> bool { jval_eq(self, other) }
 }
 
 impl JVal {
@@ -388,7 +390,7 @@ impl JVal {
         match self {
             JVal::Null => "null",
             JVal::Bool(_) => "boolean",
-            JVal::Number(_) => "number",
+            JVal::Number(_, _) => "number",
             JVal::Str(_) => "string",
             JVal::Array(_) => "array",
             JVal::Object(_) => "object",
@@ -543,21 +545,7 @@ fn parse_json_value(chars: &[char], idx: &mut usize) -> Result<JVal, String> {
                 *idx += 1;
             }
             let num_str: String = chars[start..*idx].iter().collect();
-            let mut n = num_str
-                .parse::<f64>()
-                .map_err(|_| format!("invalid number '{num_str}'"))?;
-            if num_str.ends_with(".0") && n.fract() == 0.0 {
-                n = if n == 0.0 {
-                    f64::from_bits(1)
-                } else {
-                    f64::from_bits(n.to_bits() | 1)
-                };
-            } else if num_str.len() > 15 && !num_str.contains('.') && !num_str.contains('e') && !num_str.contains('E') {
-                if let Ok(mut guard) = BIG_NUM_RAW.lock() {
-                    guard.get_or_insert_with(BTreeMap::new).insert(n.to_bits(), num_str);
-                }
-            }
-            Ok(JVal::Number(n))
+            jq_number::literal(&num_str).ok_or_else(|| format!("invalid number '{num_str}'"))
         }
         other => Err(format!("unexpected character '{other}'")),
     }
@@ -1300,12 +1288,11 @@ fn eval_jq_atom(
 
     if let Some(inner) = s.strip_prefix('-')
         && !inner.is_empty()
-        && !inner.chars().next().unwrap().is_ascii_digit()
     {
         let mut out = Vec::new();
         for v in eval_jq(inner, input, vars)? {
-            if let JVal::Number(n) = v {
-                out.push(JVal::Number(-n));
+            if let JVal::Number(n, _) = v {
+                out.push(JVal::Number(-n, None));
             } else {
                 out.push(v);
             }
@@ -1821,7 +1808,7 @@ fn resolve_jq_lhs_paths(
                         JVal::Array(arr) => {
                             for idx in 0..arr.len() {
                                 let mut np = p.clone();
-                                np.push(JVal::Number(idx as f64));
+                                np.push(JVal::Number(idx as f64, None));
                                 next_paths.push(np);
                             }
                         }
@@ -1854,8 +1841,8 @@ fn resolve_jq_lhs_paths(
                     np.push(JVal::Object(vec![(
                         "__slice".to_string(),
                         JVal::Array(vec![
-                            JVal::Number(s_idx as f64),
-                            JVal::Number(e_idx as f64),
+                            JVal::Number(s_idx as f64, None),
+                            JVal::Number(e_idx as f64, None),
                         ]),
                     )]));
                     next_paths.push(np);
@@ -1863,7 +1850,7 @@ fn resolve_jq_lhs_paths(
                 paths = next_paths;
             } else if let Ok(idx_num) = inside_trim.parse::<isize>() {
                 for p in &mut paths {
-                    p.push(JVal::Number(idx_num as f64));
+                    p.push(JVal::Number(idx_num as f64, None));
                 }
             } else {
                 let idx_vals = eval_jq(inside_trim, input, vars)?;
@@ -1872,7 +1859,7 @@ fn resolve_jq_lhs_paths(
                     for iv in &idx_vals {
                         let mut np = p.clone();
                         match iv {
-                            JVal::Number(n) => np.push(JVal::Number(*n)),
+                            JVal::Number(n, _) => np.push(JVal::Number(*n, None)),
                             other => np.push(JVal::Str(other.to_raw_string(true, false))),
                         }
                         next_paths.push(np);
@@ -1887,35 +1874,27 @@ fn resolve_jq_lhs_paths(
     Ok(paths)
 }
 
-fn clean_jval_num(n: f64) -> f64 {
-    if (n - n.round()).abs() < 1e-11 && (n.to_bits() & 1) == 1 && n.abs() < 1e15 {
-        n.round()
-    } else {
-        n
-    }
-}
-
 fn apply_jq_arith(lv: &JVal, rv: &JVal, op: &str) -> Result<JVal, String> {
     match (lv, rv, op) {
         (JVal::Null, other, "+") => Ok(other.clone()),
         (other, JVal::Null, "+") => Ok(other.clone()),
-        (JVal::Number(a), JVal::Number(b), "+") => Ok(JVal::Number(clean_jval_num(*a) + clean_jval_num(*b))),
-        (JVal::Number(a), JVal::Number(b), "-") => Ok(JVal::Number(clean_jval_num(*a) - clean_jval_num(*b))),
-        (JVal::Number(a), JVal::Number(b), "*") => Ok(JVal::Number(clean_jval_num(*a) * clean_jval_num(*b))),
-        (JVal::Number(a), JVal::Number(b), "/") => {
-            let cb = clean_jval_num(*b);
+        (JVal::Number(a, _), JVal::Number(b, _), "+") => Ok(JVal::Number(*a + *b, None)),
+        (JVal::Number(a, _), JVal::Number(b, _), "-") => Ok(JVal::Number(*a - *b, None)),
+        (JVal::Number(a, _), JVal::Number(b, _), "*") => Ok(JVal::Number(*a * *b, None)),
+        (JVal::Number(a, _), JVal::Number(b, _), "/") => {
+            let cb = *b;
             if cb == 0.0 {
                 Err("division by zero".to_string())
             } else {
-                Ok(JVal::Number(clean_jval_num(*a) / cb))
+                Ok(JVal::Number(*a / cb, None))
             }
         }
-        (JVal::Number(a), JVal::Number(b), "%") => {
-            let cb = clean_jval_num(*b);
+        (JVal::Number(a, _), JVal::Number(b, _), "%") => {
+            let cb = *b;
             if cb == 0.0 {
                 Err("division by zero".to_string())
             } else {
-                Ok(JVal::Number(clean_jval_num(*a) % cb))
+                Ok(JVal::Number(*a % cb, None))
             }
         }
         (JVal::Str(a), JVal::Str(b), "+") => Ok(JVal::Str(format!("{a}{b}"))),
@@ -1971,7 +1950,7 @@ fn jval_eq(a: &JVal, b: &JVal) -> bool {
     match (a, b) {
         (JVal::Null, JVal::Null) => true,
         (JVal::Bool(x), JVal::Bool(y)) => x == y,
-        (JVal::Number(x), JVal::Number(y)) => clean_jval_num(*x) == clean_jval_num(*y),
+        (JVal::Number(x, a), JVal::Number(y, b)) => !x.is_nan() && !y.is_nan() && jq_number::compare(*x, a.as_deref(), *y, b.as_deref()).is_eq(),
         (JVal::Str(x), JVal::Str(y)) => x == y,
         (JVal::Array(x), JVal::Array(y)) => {
             x.len() == y.len() && x.iter().zip(y.iter()).all(|(xi, yi)| jval_eq(xi, yi))
@@ -1994,7 +1973,7 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
             JVal::Null => 0,
             JVal::Bool(false) => 1,
             JVal::Bool(true) => 2,
-            JVal::Number(_) => 3,
+            JVal::Number(_, _) => 3,
             JVal::Str(_) => 4,
             JVal::Array(_) => 5,
             JVal::Object(_) => 6,
@@ -2006,9 +1985,7 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
         return ra.cmp(&rb);
     }
     match (a, b) {
-        (JVal::Number(na), JVal::Number(nb)) => {
-            clean_jval_num(*na).partial_cmp(&clean_jval_num(*nb)).unwrap_or(std::cmp::Ordering::Equal)
-        }
+        (JVal::Number(x, a), JVal::Number(y, b)) => jq_number::compare(*x, a.as_deref(), *y, b.as_deref()),
         (JVal::Str(sa), JVal::Str(sb)) => sa.cmp(sb),
         (JVal::Array(aa), JVal::Array(ab)) => {
             for (x, y) in aa.iter().zip(ab.iter()) {
@@ -2066,10 +2043,10 @@ fn try_eval_jq_builtin(
             }
         }
         "documentIndex" | "di" | "document_index" => {
-            return Ok(Some(vec![JVal::Number(vars.yq_meta().map_or(0, |m| m.doc_index) as f64)]));
+            return Ok(Some(vec![JVal::Number(vars.yq_meta().map_or(0, |m| m.doc_index) as f64, None)]));
         }
         "fileIndex" | "fi" | "file_index" => {
-            return Ok(Some(vec![JVal::Number(vars.yq_meta().map_or(0, |m| m.file_index) as f64)]));
+            return Ok(Some(vec![JVal::Number(vars.yq_meta().map_or(0, |m| m.file_index) as f64, None)]));
         }
         "filename" => {
             return Ok(Some(vec![JVal::Str(vars.yq_meta().map(|m| m.filename.clone()).unwrap_or_default())]));
@@ -2103,10 +2080,10 @@ fn try_eval_jq_builtin(
                 JVal::Str(st) => st.chars().count(),
                 JVal::Array(a) => a.len(),
                 JVal::Object(o) => o.len(),
-                JVal::Number(n) => n.abs() as usize,
+                JVal::Number(n, _) => n.abs() as usize,
                 JVal::Bool(_) => 0,
             };
-            return Ok(Some(vec![JVal::Number(len as f64)]));
+            return Ok(Some(vec![JVal::Number(len as f64, None)]));
         }
         "keys" | "keys_unsorted" => {
             let keys = match input {
@@ -2117,7 +2094,7 @@ fn try_eval_jq_builtin(
                     }
                     ks.into_iter().map(JVal::Str).collect()
                 }
-                JVal::Array(a) => (0..a.len()).map(|i| JVal::Number(i as f64)).collect(),
+                JVal::Array(a) => (0..a.len()).map(|i| JVal::Number(i as f64, None)).collect(),
                 _ => Vec::new(),
             };
             return Ok(Some(vec![JVal::Array(keys)]));
@@ -2130,17 +2107,14 @@ fn try_eval_jq_builtin(
             }));
         }
         "tonumber" => {
-            let n = match input {
-                JVal::Number(n) => *n,
-                JVal::Str(st) => st.trim().parse::<f64>().map_err(|_| {
-                    format!(
-                        "Invalid numeric literal at EOF at line 1, column {} (while parsing '{st}')",
-                        st.len()
-                    )
-                })?,
-                _ => return Err("cannot be parsed as a number".to_string()),
+            let value = match input {
+                JVal::Number(_, _) => input.clone(),
+                JVal::Str(st) => jq_number::literal(st.trim()).ok_or_else(|| format!(
+                    "Invalid numeric literal at EOF at line 1, column {} (while parsing '{st}')", st.len()
+                ))?,
+                _ => return Err("cannot be parsed as a number".into()),
             };
-            return Ok(Some(vec![JVal::Number(n)]));
+            return Ok(Some(vec![value]));
         }
         "tostring" => {
             let st = match input {
@@ -2203,9 +2177,6 @@ fn try_eval_jq_builtin(
                     return Ok(Some(vec![JVal::Null]));
                 }
                 let mut acc = a[0].clone();
-                if let JVal::Number(n) = &mut acc {
-                    *n = clean_jval_num(*n);
-                }
                 for item in &a[1..] {
                     acc = apply_jq_arith(&acc, item, "+")?;
                 }
@@ -2268,7 +2239,7 @@ fn try_eval_jq_builtin(
                     .enumerate()
                     .map(|(idx, v)| {
                         JVal::Object(vec![
-                            ("key".to_string(), JVal::Number(idx as f64)),
+                            ("key".to_string(), JVal::Number(idx as f64, None)),
                             ("value".to_string(), v.clone()),
                         ])
                     })
@@ -2298,7 +2269,7 @@ fn try_eval_jq_builtin(
             }
         }
         "floor" | "ceil" | "round" | "abs" | "fabs" | "sqrt" => {
-            if let JVal::Number(n) = input {
+            if let JVal::Number(n, _) = input {
                 let res = match s {
                     "floor" => n.floor(),
                     "ceil" => n.ceil(),
@@ -2307,31 +2278,31 @@ fn try_eval_jq_builtin(
                     "sqrt" => n.sqrt(),
                     _ => *n,
                 };
-                return Ok(Some(vec![JVal::Number(res)]));
+                return Ok(Some(vec![JVal::Number(res, None)]));
             }
         }
         "isnan" => {
             return Ok(Some(vec![JVal::Bool(
-                matches!(input, JVal::Number(n) if n.is_nan()),
+                matches!(input, JVal::Number(n, _) if n.is_nan()),
             )]));
         }
         "isinfinite" => {
             return Ok(Some(vec![JVal::Bool(
-                matches!(input, JVal::Number(n) if n.is_infinite()),
+                matches!(input, JVal::Number(n, _) if n.is_infinite()),
             )]));
         }
         "isfinite" => {
             return Ok(Some(vec![JVal::Bool(
-                matches!(input, JVal::Number(n) if !n.is_infinite()),
+                matches!(input, JVal::Number(n, _) if !n.is_infinite()),
             )]));
         }
         "isnormal" => {
             return Ok(Some(vec![JVal::Bool(
-                matches!(input, JVal::Number(n) if n.is_normal()),
+                matches!(input, JVal::Number(n, _) if n.is_normal()),
             )]));
         }
-        "nan" => return Ok(Some(vec![JVal::Number(f64::NAN)])),
-        "infinite" => return Ok(Some(vec![JVal::Number(f64::INFINITY)])),
+        "nan" => return Ok(Some(vec![JVal::Number(f64::NAN, None)])),
+        "infinite" => return Ok(Some(vec![JVal::Number(f64::INFINITY, None)])),
         "trim" | "ltrim" | "rtrim" => {
             let JVal::Str(st) = input else {
                 return Err(format!("{s} requires a string"));
@@ -2351,13 +2322,13 @@ fn try_eval_jq_builtin(
             return Err("break".to_string());
         }
         "gmtime" => {
-            let JVal::Number(n) = input else {
+            let JVal::Number(n, _) = input else {
                 return Err("gmtime() requires numeric inputs".to_string());
             };
             return Ok(Some(vec![JVal::Array(jq_gmtime(*n))]));
         }
         "mktime" => {
-            return Ok(Some(vec![JVal::Number(jq_mktime(input)? as f64)]));
+            return Ok(Some(vec![JVal::Number(jq_mktime(input)? as f64, None)]));
         }
         "@csv" | "@tsv" => {
             let JVal::Array(a) = input else {
@@ -2381,7 +2352,7 @@ fn try_eval_jq_builtin(
                             );
                         }
                     }
-                    JVal::Bool(_) | JVal::Number(_) => {
+                    JVal::Bool(_) | JVal::Number(_, _) => {
                         parts.push(v.to_json_string(true, false, 0));
                     }
                     _ => {
@@ -2480,12 +2451,12 @@ fn try_eval_jq_builtin(
         }
         "utf8bytelength" => {
             if let JVal::Str(st) = input {
-                return Ok(Some(vec![JVal::Number(st.len() as f64)]));
+                return Ok(Some(vec![JVal::Number(st.len() as f64, None)]));
             }
         }
         "explode" => {
             if let JVal::Str(st) = input {
-                let cps: Vec<JVal> = st.chars().map(|c| JVal::Number((c as u32) as f64)).collect();
+                let cps: Vec<JVal> = st.chars().map(|c| JVal::Number((c as u32) as f64, None)).collect();
                 return Ok(Some(vec![JVal::Array(cps)]));
             }
             return Ok(Some(vec![explode_jval_merge_keys(input)]));
@@ -2495,7 +2466,7 @@ fn try_eval_jq_builtin(
                 let s: String = arr
                     .iter()
                     .filter_map(|v| match v {
-                        JVal::Number(n) => char::from_u32(*n as u32),
+                        JVal::Number(n, _) => char::from_u32(*n as u32),
                         _ => None,
                     })
                     .collect();
@@ -2503,13 +2474,13 @@ fn try_eval_jq_builtin(
             }
         }
         "todate" | "todateiso8601" => {
-            if let JVal::Number(n) = input {
+            if let JVal::Number(n, _) = input {
                 return Ok(Some(vec![JVal::Str(epoch_to_iso8601(*n as i64))]));
             }
         }
         "fromdate" | "fromdateiso8601" => {
             if let JVal::Str(st) = input {
-                return Ok(Some(vec![JVal::Number(iso8601_to_epoch(st) as f64)]));
+                return Ok(Some(vec![JVal::Number(iso8601_to_epoch(st) as f64, None)]));
             }
         }
         "transpose" => {
@@ -2586,7 +2557,7 @@ fn try_eval_jq_builtin(
             }));
         }
         "numbers" => {
-            return Ok(Some(if matches!(input, JVal::Number(_)) {
+            return Ok(Some(if matches!(input, JVal::Number(_, _)) {
                 vec![input.clone()]
             } else {
                 Vec::new()
@@ -2683,7 +2654,7 @@ fn try_eval_jq_builtin(
                             JVal::Array(items) => {
                                 let mut picked = Vec::new();
                                 for k in keys {
-                                    if let JVal::Number(n) = k
+                                    if let JVal::Number(n, _) = k
                                         && n >= 0.0
                                         && n.fract() == 0.0
                                         && let Some(v) = items.get(n as usize)
@@ -2708,7 +2679,7 @@ fn try_eval_jq_builtin(
                     for container in eval_jq(arg_expr, input, vars)? {
                         let res = match (&container, input) {
                             (JVal::Object(o), JVal::Str(ks)) => o.iter().any(|(ek, _)| ek == ks),
-                            (JVal::Array(a), JVal::Number(n)) => {
+                            (JVal::Array(a), JVal::Number(n, _)) => {
                                 let idx = *n as isize;
                                 idx >= 0 && (idx as usize) < a.len()
                             }
@@ -2739,7 +2710,7 @@ fn try_eval_jq_builtin(
                     if let JVal::Array(items) = input {
                         let mut width = 0usize;
                         for v in eval_jq(arg_expr, input, vars)? {
-                            if let JVal::Number(n) = v {
+                            if let JVal::Number(n, _) = v {
                                 width += (n.ceil() as isize).max(0) as usize;
                             }
                         }
@@ -2792,13 +2763,13 @@ fn try_eval_jq_builtin(
                             let mid = (lo + hi) / 2;
                             match compare_jval(&a[mid as usize], &target) {
                                 std::cmp::Ordering::Equal => {
-                                    return Ok(Some(vec![JVal::Number(mid as f64)]));
+                                    return Ok(Some(vec![JVal::Number(mid as f64, None)]));
                                 }
                                 std::cmp::Ordering::Less => lo = mid + 1,
                                 std::cmp::Ordering::Greater => hi = mid - 1,
                             }
                         }
-                        return Ok(Some(vec![JVal::Number(-(lo as f64) - 1.0)]));
+                        return Ok(Some(vec![JVal::Number(-(lo as f64) - 1.0, None)]));
                     }
                 }
                 "getpath" => {
@@ -2858,7 +2829,7 @@ fn try_eval_jq_builtin(
                         .unwrap_or(JVal::Null);
                     let res = match (input, k) {
                         (JVal::Object(o), JVal::Str(ks)) => o.iter().any(|(ek, _)| ek == &ks),
-                        (JVal::Array(a), JVal::Number(n)) => {
+                        (JVal::Array(a), JVal::Number(n, _)) => {
                             let idx = n as isize;
                             idx >= 0 && (idx as usize) < a.len()
                         }
@@ -3056,15 +3027,15 @@ fn try_eval_jq_builtin(
                     }
                     let res = match fname {
                         "indices" => JVal::Array(
-                            idxs.into_iter().map(|i| JVal::Number(i as f64)).collect(),
+                            idxs.into_iter().map(|i| JVal::Number(i as f64, None)).collect(),
                         ),
                         "index" => idxs
                             .first()
-                            .map(|&i| JVal::Number(i as f64))
+                            .map(|&i| JVal::Number(i as f64, None))
                             .unwrap_or(JVal::Null),
                         "rindex" => idxs
                             .last()
-                            .map(|&i| JVal::Number(i as f64))
+                            .map(|&i| JVal::Number(i as f64, None))
                             .unwrap_or(JVal::Null),
                         _ => JVal::Null,
                     };
@@ -3305,7 +3276,7 @@ fn try_eval_jq_builtin(
                             .into_iter()
                             .next()
                             .unwrap_or(JVal::Null);
-                        let JVal::Number(depth_f) = d_val else {
+                        let JVal::Number(depth_f, _) = d_val else {
                             return Err("flatten depth must be a number".to_string());
                         };
                         if depth_f.is_nan() || depth_f < 0.0 {
@@ -3734,7 +3705,7 @@ fn collect_jq_paths(val: &JVal, cur: &mut Vec<JVal>, out: &mut Vec<JVal>) {
     match val {
         JVal::Array(items) => {
             for (idx, item) in items.iter().enumerate() {
-                cur.push(JVal::Number(idx as f64));
+                cur.push(JVal::Number(idx as f64, None));
                 out.push(JVal::Array(cur.clone()));
                 collect_jq_paths(item, cur, out);
                 cur.pop();
@@ -3756,7 +3727,7 @@ fn extract_jq_slice_seg(seg: &JVal) -> Option<(usize, usize)> {
     if let JVal::Object(map) = seg
         && let Some((_, JVal::Array(bounds))) = map.iter().find(|(k, _)| k == "__slice")
         && bounds.len() == 2
-        && let (JVal::Number(s), JVal::Number(e)) = (&bounds[0], &bounds[1])
+        && let (JVal::Number(s, _), JVal::Number(e, _)) = (&bounds[0], &bounds[1])
     {
         return Some(((*s as isize).max(0) as usize, (*e as isize).max(0) as usize));
     }
@@ -3791,7 +3762,7 @@ fn get_jq_jval_path(val: &JVal, segs: &[JVal]) -> JVal {
             .find(|(ek, _)| ek == k)
             .map(|(_, c)| get_jq_jval_path(c, &segs[1..]))
             .unwrap_or(JVal::Null),
-        (JVal::Array(arr), JVal::Number(n)) => {
+        (JVal::Array(arr), JVal::Number(n, _)) => {
             let idx = *n as isize;
             let r = if idx < 0 {
                 (arr.len() as isize) + idx
@@ -3854,7 +3825,7 @@ fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) {
                 }
             }
         }
-        JVal::Number(n) => {
+        JVal::Number(n, _) => {
             let raw_idx = *n as isize;
             if !matches!(val, JVal::Array(_)) {
                 *val = JVal::Array(Vec::new());
@@ -3908,7 +3879,7 @@ fn delete_jq_jval_path(val: &mut JVal, segs: &[JVal]) {
                 delete_jq_jval_path(child, &segs[1..]);
             }
         }
-        (JVal::Array(arr), JVal::Number(n)) => {
+        (JVal::Array(arr), JVal::Number(n, _)) => {
             let idx = *n as isize;
             let r = if idx < 0 {
                 (arr.len() as isize) + idx
@@ -3936,14 +3907,14 @@ fn normalize_jq_path_for_delete(val: &JVal, path: &[JVal]) -> Vec<JVal> {
     let mut cur = val;
     for (i, seg) in path.iter().enumerate() {
         match (cur, seg) {
-            (JVal::Array(arr), JVal::Number(n)) => {
+            (JVal::Array(arr), JVal::Number(n, _)) => {
                 let idx = *n as isize;
                 let r = if idx < 0 {
                     (arr.len() as isize) + idx
                 } else {
                     idx
                 };
-                out.push(JVal::Number(r as f64));
+                out.push(JVal::Number(r as f64, None));
                 if r >= 0 && (r as usize) < arr.len() {
                     cur = &arr[r as usize];
                 } else {
@@ -3980,11 +3951,11 @@ fn delete_jq_paths_sorted(val: &mut JVal, paths: Vec<Vec<JVal>>) {
         for k in 0..min_len {
             if a[k] != b[k] {
                 let a_idx = match &a[k] {
-                    JVal::Number(n) => Some(*n as isize),
+                    JVal::Number(n, _) => Some(*n as isize),
                     other => extract_jq_slice_seg(other).map(|(s, _)| s as isize),
                 };
                 let b_idx = match &b[k] {
-                    JVal::Number(n) => Some(*n as isize),
+                    JVal::Number(n, _) => Some(*n as isize),
                     other => extract_jq_slice_seg(other).map(|(s, _)| s as isize),
                 };
                 if let (Some(ai), Some(bi)) = (a_idx, b_idx) {
@@ -4183,7 +4154,7 @@ fn eval_jq_path_with_root(
                         JVal::Str(ref k) => {
                             next.extend(step_field(&current, k, optional)?);
                         }
-                        JVal::Number(n) => {
+                        JVal::Number(n, _) => {
                             let idx_num = n as isize;
                             for v in &current {
                                 if let JVal::Array(a) = v {
@@ -4406,16 +4377,16 @@ fn eval_jq_match_regex(s: &str, pat: &str, flags: &str) -> Vec<JVal> {
                 Some((cs, ce)) => {
                     let cap_str: String = hay[cs..ce].iter().map(|&(_, c)| c).collect();
                     captures.push(JVal::Object(vec![
-                        ("offset".to_string(), JVal::Number(cs as f64)),
-                        ("length".to_string(), JVal::Number((ce - cs) as f64)),
+                        ("offset".to_string(), JVal::Number(cs as f64, None)),
+                        ("length".to_string(), JVal::Number((ce - cs) as f64, None)),
                         ("string".to_string(), JVal::Str(cap_str)),
                         ("name".to_string(), name_jval),
                     ]));
                 }
                 None => {
                     captures.push(JVal::Object(vec![
-                        ("offset".to_string(), JVal::Number(-1.0)),
-                        ("length".to_string(), JVal::Number(0.0)),
+                        ("offset".to_string(), JVal::Number(-1.0, None)),
+                        ("length".to_string(), JVal::Number(0.0, None)),
                         ("string".to_string(), JVal::Null),
                         ("name".to_string(), name_jval),
                     ]));
@@ -4423,10 +4394,10 @@ fn eval_jq_match_regex(s: &str, pat: &str, flags: &str) -> Vec<JVal> {
             }
         }
         out.push(JVal::Object(vec![
-            ("offset".to_string(), JVal::Number(start_char as f64)),
+            ("offset".to_string(), JVal::Number(start_char as f64, None)),
             (
                 "length".to_string(),
-                JVal::Number((end_char - start_char) as f64),
+                JVal::Number((end_char - start_char) as f64, None),
             ),
             ("string".to_string(), JVal::Str(s[mb_start..mb_end].to_string())),
             ("captures".to_string(), JVal::Array(captures)),
@@ -4484,14 +4455,14 @@ fn jq_gmtime(epoch_f: f64) -> Vec<JVal> {
     const MONTH_OFFSETS: [i64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
     let yday = MONTH_OFFSETS[(m - 1) as usize] + (if is_leap && m > 2 { 1 } else { 0 }) + (d - 1);
     vec![
-        JVal::Number(year as f64),
-        JVal::Number((m - 1) as f64),
-        JVal::Number(d as f64),
-        JVal::Number(hour as f64),
-        JVal::Number(min as f64),
-        JVal::Number(sec as f64),
-        JVal::Number(wday as f64),
-        JVal::Number(yday as f64),
+        JVal::Number(year as f64, None),
+        JVal::Number((m - 1) as f64, None),
+        JVal::Number(d as f64, None),
+        JVal::Number(hour as f64, None),
+        JVal::Number(min as f64, None),
+        JVal::Number(sec as f64, None),
+        JVal::Number(wday as f64, None),
+        JVal::Number(yday as f64, None),
     ]
 }
 
@@ -4502,7 +4473,7 @@ fn jq_mktime(val: &JVal) -> Result<i64, String> {
     let get_i = |idx: usize, def: i64| -> i64 {
         arr.get(idx)
             .and_then(|v| match v {
-                JVal::Number(n) => Some(*n as i64),
+                JVal::Number(n, _) => Some(*n as i64),
                 _ => None,
             })
             .unwrap_or(def)
@@ -4525,7 +4496,7 @@ fn jq_mktime(val: &JVal) -> Result<i64, String> {
 
 fn jq_strftime(val: &JVal, fmt: &str) -> Result<String, String> {
     let epoch = match val {
-        JVal::Number(n) => *n as i64,
+        JVal::Number(n, _) => *n as i64,
         JVal::Array(_) => jq_mktime(val)?,
         _ => return Err("strftime requires numeric or array inputs".to_string()),
     };
@@ -4533,7 +4504,7 @@ fn jq_strftime(val: &JVal, fmt: &str) -> Result<String, String> {
     let get_i = |idx: usize| -> i64 {
         tm.get(idx)
             .and_then(|v| match v {
-                JVal::Number(n) => Some(*n as i64),
+                JVal::Number(n, _) => Some(*n as i64),
                 _ => None,
             })
             .unwrap_or(0)
@@ -4737,12 +4708,12 @@ fn jq_strptime(s: &str, fmt: &str) -> Result<Vec<JVal>, String> {
     }
     if let Some(w_mon) = week_monday {
         let jan1_tm = JVal::Array(vec![
-            JVal::Number(year as f64),
-            JVal::Number(0.0),
-            JVal::Number(1.0),
-            JVal::Number(hour as f64),
-            JVal::Number(min as f64),
-            JVal::Number(sec as f64),
+            JVal::Number(year as f64, None),
+            JVal::Number(0.0, None),
+            JVal::Number(1.0, None),
+            JVal::Number(hour as f64, None),
+            JVal::Number(min as f64, None),
+            JVal::Number(sec as f64, None),
         ]);
         let jan1_epoch = jq_mktime(&jan1_tm)?;
         let jan1_wday = ((jan1_epoch.div_euclid(86400)) + 4).rem_euclid(7);
@@ -4758,12 +4729,12 @@ fn jq_strptime(s: &str, fmt: &str) -> Result<Vec<JVal>, String> {
     }
 
     let tm = JVal::Array(vec![
-        JVal::Number(year as f64),
-        JVal::Number((month - 1) as f64),
-        JVal::Number(mday as f64),
-        JVal::Number(hour as f64),
-        JVal::Number(min as f64),
-        JVal::Number(sec as f64),
+        JVal::Number(year as f64, None),
+        JVal::Number((month - 1) as f64, None),
+        JVal::Number(mday as f64, None),
+        JVal::Number(hour as f64, None),
+        JVal::Number(min as f64, None),
+        JVal::Number(sec as f64, None),
     ]);
     let epoch = jq_mktime(&tm)? - tz_offset_secs;
     Ok(jq_gmtime(epoch as f64))
@@ -4991,6 +4962,15 @@ fn split_jq_binary_right(s: &str, op: &str) -> Option<(String, String)> {
             i = skip_jq_string(&chars, i);
             continue;
         }
+        if matches!(op, "+" | "-") && c.is_ascii_digit() && (i == 0 || !(chars[i-1].is_alphanumeric() || chars[i-1] == '_')) {
+            while chars.get(i).is_some_and(|c| c.is_ascii_digit() || *c == '.') {i+=1;}
+            if matches!(chars.get(i),Some('e'|'E')) {
+                i+=1;
+                if matches!(chars.get(i),Some('+'|'-')) {i+=1;}
+                while chars.get(i).is_some_and(char::is_ascii_digit) {i+=1;}
+            }
+            continue;
+        }
         {
             if paren == 0 && bracket == 0 && brace == 0 {
                 if is_jq_kw_at(&chars, i, &['i', 'f']) {
@@ -5137,7 +5117,7 @@ fn yq_uri_decode(s: &str) -> String {
 fn write_jval_lua(val: &JVal, depth: usize, out: &mut String) {
     match val {
         JVal::Null => out.push_str("nil"),
-        JVal::Bool(_) | JVal::Number(_) | JVal::Str(_) => {
+        JVal::Bool(_) | JVal::Number(_, _) | JVal::Str(_) => {
             out.push_str(&val.to_json_string(true, false, 0));
         }
         JVal::Array(items) => {
@@ -5900,7 +5880,7 @@ fn cmd_yq(
         let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
         let mut base_vars = JqScope { env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
-            base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));
+            base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64, None));
             let name = eval_jq(s_exp, v, &base_vars)
                 .ok()
                 .and_then(|mut r| r.drain(..).next())
@@ -6281,7 +6261,6 @@ fn jval_primitive_str(val: &JVal) -> String {
     match val {
         JVal::Null => String::new(),
         JVal::Bool(b) => b.to_string(),
-        JVal::Number(n) => JVal::Number(*n).to_json_string(true, false, 0),
         JVal::Str(s) => s.clone(),
         other => other.to_json_string(true, false, 0),
     }
@@ -6523,7 +6502,7 @@ fn parse_yq_csv_to_jval(input: &str, delim: char) -> JVal {
             } else if (!cell.starts_with('0') || cell == "0" || cell.starts_with("0."))
                 && let Ok(n) = cell.parse::<f64>()
             {
-                JVal::Number(n)
+                JVal::Number(n, None)
             } else {
                 JVal::Str(cell.to_string())
             };
@@ -6552,7 +6531,7 @@ fn parse_props_to_jval(input: &str) -> JVal {
                 .split('.')
                 .map(|seg| {
                     if let Ok(idx) = seg.parse::<usize>() {
-                        JVal::Number(idx as f64)
+                        JVal::Number(idx as f64, None)
                     } else {
                         JVal::Str(seg.to_string())
                     }
@@ -6683,15 +6662,7 @@ fn jval_to_yaml(val: &JVal, indent: usize, quote_all: bool) -> String {
     match val {
         JVal::Null => "null\n".to_string(),
         JVal::Bool(b) => format!("{b}\n"),
-        JVal::Number(n) => {
-            if n.fract() == 0.0 {
-                format!("{}\n", *n as i64)
-            } else if (n - n.round()).abs() < 1e-11 && (n.to_bits() & 1) == 1 && n.abs() < 1e15 {
-                format!("{:.1}\n", n.round())
-            } else {
-                format!("{n}\n")
-            }
-        }
+        JVal::Number(_, _) => format!("{}\n", val.to_json_string(true, false, 0)),
         JVal::Str(s) => {
             if quote_all
                 || s.parse::<f64>().is_ok()
@@ -6883,7 +6854,7 @@ fn parse_toml_value(s: &str) -> JVal {
         return JVal::Bool(false);
     }
     if let Ok(n) = s.parse::<f64>() {
-        return JVal::Number(n);
+        return JVal::Number(n, None);
     }
     JVal::Str(s.to_string())
 }
@@ -6991,7 +6962,7 @@ fn parse_yaml_scalar(raw: &str, anchors: &mut BTreeMap<String, JVal>) -> JVal {
         } else if clean == "null" || clean == "~" {
             JVal::Null
         } else if !s.starts_with('"') && !s.starts_with('\'') && let Ok(n) = clean.parse::<f64>() {
-            JVal::Number(n)
+            JVal::Number(n, None)
         } else {
             JVal::Str(clean.to_string())
         }
@@ -10134,9 +10105,6 @@ fn cmd_csvgrep(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
 }
 
 fn format_csvkit_num(n: f64) -> String {
-    if (n - n.round()).abs() < 1e-11 && (n.to_bits() & 1) == 1 && n.abs() < 1e15 {
-        return format!("{:.1}", n.round());
-    }
     let rounded = (n * 1_000_000.0).round() / 1_000_000.0;
     let norm = if rounded == 0.0 { 0.0 } else { rounded };
     if norm.fract() == 0.0 && norm.abs() < 1e15 {
@@ -10838,16 +10806,10 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             return JVal::Null;
         }
         if is_csvkit_num_str(t, false)
-            && let Ok(mut n) = t.parse::<f64>()
+            && let Ok(n) = t.parse::<f64>()
         {
-            if n.fract() == 0.0 {
-                if n == 0.0 {
-                    n = f64::from_bits(1);
-                } else {
-                    n = f64::from_bits(n.to_bits() | 1);
-                }
-            }
-            return JVal::Number(n);
+            let text = (n.fract() == 0.0).then(|| format!("{n:.1}").into_boxed_str());
+            return JVal::Number(n, text);
         }
         JVal::Str(raw.to_string())
     };
@@ -10904,7 +10866,7 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
                     ("type".to_string(), JVal::Str("Point".to_string())),
                     (
                         "coordinates".to_string(),
-                        JVal::Array(vec![JVal::Number(lon), JVal::Number(lat)]),
+                        JVal::Array(vec![JVal::Number(lon, None), JVal::Number(lat, None)]),
                     ),
                 ])
             };
@@ -10932,10 +10894,10 @@ fn cmd_csvjson(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             fc.push((
                 "bbox".to_string(),
                 JVal::Array(vec![
-                    JVal::Number(min_lon),
-                    JVal::Number(min_lat),
-                    JVal::Number(max_lon),
-                    JVal::Number(max_lat),
+                    JVal::Number(min_lon, None),
+                    JVal::Number(min_lat, None),
+                    JVal::Number(max_lon, None),
+                    JVal::Number(max_lat, None),
                 ]),
             ));
         }
@@ -11640,7 +11602,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     .map(|(_, v)| match v {
                         JVal::Null => String::new(),
                         JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
-                        JVal::Number(n) => format_csvkit_num(*n),
+                        JVal::Number(n, _) => format_csvkit_num(*n),
                         _ => v.to_raw_string(true, false),
                     })
                     .unwrap_or_default();
@@ -11660,7 +11622,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         .map(|(_, v)| match v {
                             JVal::Null => String::new(),
                             JVal::Bool(b) => if *b { "True".to_string() } else { "False".to_string() },
-                            JVal::Number(n) => format_csvkit_num(*n),
+                            JVal::Number(n, _) => format_csvkit_num(*n),
                             _ => v.to_raw_string(true, false),
                         })
                         .unwrap_or_default();
@@ -11681,11 +11643,11 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                         && coords.len() >= 2
                     {
                         lon_s = match &coords[0] {
-                            JVal::Number(n) => format_csvkit_num(*n),
+                            JVal::Number(n, _) => format_csvkit_num(*n),
                             v => v.to_raw_string(true, false),
                         };
                         lat_s = match &coords[1] {
-                            JVal::Number(n) => format_csvkit_num(*n),
+                            JVal::Number(n, _) => format_csvkit_num(*n),
                             v => v.to_raw_string(true, false),
                         };
                     }
@@ -15578,7 +15540,7 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                     } else if col_numeric.get(ci).copied().unwrap_or(false)
                         && let Ok(n) = cell.parse::<f64>()
                     {
-                        entries.push((h.clone(), JVal::Number(n)));
+                        entries.push((h.clone(), JVal::Number(n, None)));
                     } else {
                         entries.push((h.clone(), JVal::Str(cell.to_string())));
                     }
@@ -15691,7 +15653,6 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                                     JVal::Null => String::new(),
                                     JVal::Str(s) => s.clone(),
                                     JVal::Bool(b) => b.to_string(),
-                                    JVal::Number(n) => JVal::Number(*n).to_json_string(true, false, 0),
                                     other => other.to_json_string(true, false, 0),
                                 })
                                 .unwrap_or_default()
@@ -19382,13 +19343,13 @@ fn deserialize_sql_db(
     triggers.clear();
     for (tname, tval) in entries {
         if tname == "__user_version__" {
-            if let JVal::Number(n) = tval {
+            if let JVal::Number(n, _) = tval {
                 *user_version = n as i64;
             }
             continue;
         }
         if tname == "__application_id__" {
-            if let JVal::Number(n) = tval {
+            if let JVal::Number(n, _) = tval {
                 *application_id = n as i64;
             }
             continue;
@@ -19540,7 +19501,7 @@ fn deserialize_sql_db(
                         }
                     }
                     "next_seq" => {
-                        if let JVal::Number(n) = fv {
+                        if let JVal::Number(n, _) = fv {
                             tbl.next_seq = n as usize;
                         }
                     }
@@ -21089,7 +21050,7 @@ fn format_sql_returning(
                 let jv = if val_s.is_empty() || val_s.eq_ignore_ascii_case("NULL") {
                     JVal::Null
                 } else if let Ok(n) = val_s.parse::<f64>() {
-                    JVal::Number(n)
+                    JVal::Number(n, None)
                 } else {
                     JVal::Str(val_s)
                 };
@@ -21755,7 +21716,7 @@ fn collect_json_tree_rows(jval: &JVal, fullkey: &str, rows: &mut Vec<Vec<String>
         JVal::Str(s) => {
             rows.push(vec![fullkey.to_string(), "text".to_string(), s.clone()]);
         }
-        JVal::Number(n) => {
+        JVal::Number(n, _) => {
             if (n - n.round()).abs() < 1e-9 {
                 rows.push(vec![
                     fullkey.to_string(),
@@ -22340,7 +22301,7 @@ fn format_sql_result_rows(
                         && is_sql_numeric_text(val_s)
                         && let Ok(n) = val_s.parse::<f64>()
                     {
-                        JVal::Number(n)
+                        JVal::Number(n, None)
                     } else {
                         JVal::Str(val_s.clone())
                     };
@@ -24277,7 +24238,7 @@ fn parse_sql_json_path(path_s: &str) -> Vec<JVal> {
                 && let Some(cb) = rem.find(']')
             {
                 if let Ok(idx) = rem[ob + 1..cb].parse::<f64>() {
-                    segs.push(JVal::Number(idx));
+                    segs.push(JVal::Number(idx, None));
                 }
                 rem = &rem[cb + 1..];
             }
@@ -24313,7 +24274,7 @@ fn parse_sql_arg_to_jval(val_s: &str, raw_expr: &str) -> JVal {
         return JVal::Null;
     }
     if is_sql_numeric_text(val_s) && let Ok(n) = val_s.parse::<f64>() {
-        return JVal::Number(n);
+        return JVal::Number(n, None);
     }
     if (val_s.starts_with('{') || val_s.starts_with('['))
         && let Ok(mut p) = parse_json_stream(val_s)
@@ -25039,7 +25000,7 @@ fn eval_sql_row_expr(
                         JVal::Object(_) => "object".to_string(),
                         JVal::Array(_) => "array".to_string(),
                         JVal::Str(_) => "text".to_string(),
-                        JVal::Number(n) => {
+                        JVal::Number(n, _) => {
                             if (n - n.round()).abs() < 1e-9 {
                                 "integer".to_string()
                             } else {
@@ -25410,7 +25371,7 @@ fn eval_sql_group_expr(expr: &str, cols: &[String], grp: &[&Vec<String>], tables
                         JVal::Object(_) => "object".to_string(),
                         JVal::Array(_) => "array".to_string(),
                         JVal::Str(_) => "text".to_string(),
-                        JVal::Number(n) => {
+                        JVal::Number(n, _) => {
                             if (n - n.round()).abs() < 1e-9 {
                                 "integer".to_string()
                             } else {
@@ -29999,7 +29960,7 @@ fn mdq_block_to_jval(b: &MdqBlock) -> JVal {
             JVal::Object(vec![(
                 "section".to_string(),
                 JVal::Object(vec![
-                    ("depth".to_string(), JVal::Number(b.level as f64)),
+                    ("depth".to_string(), JVal::Number(b.level as f64, None)),
                     ("title".to_string(), JVal::Str(b.title.clone())),
                     ("body".to_string(), JVal::Array(body)),
                 ]),
@@ -32649,7 +32610,7 @@ fn pandoc_doc_to_json(blocks: &[PandocBlock]) -> String {
                     (
                         "c".to_string(),
                         JVal::Array(vec![
-                            JVal::Number(*lvl as f64),
+                            JVal::Number(*lvl as f64, None),
                             JVal::Array(vec![
                                 JVal::Str(String::new()),
                                 JVal::Array(vec![]),
@@ -32741,7 +32702,7 @@ fn parse_pandoc_json(input: &str) -> Vec<PandocBlock> {
                     && c.len() >= 3
                 {
                     let lvl = match c.first() {
-                        Some(JVal::Number(n)) => *n as usize,
+                        Some(JVal::Number(n, _)) => *n as usize,
                         _ => 1,
                     };
                     let inlines = parse_pandoc_json_inlines(&c[2]);
@@ -36348,22 +36309,22 @@ fn ast_capture_jval(node: &AstCodeNode, lines: &[&str]) -> JVal {
                 (
                     "byteOffset".to_string(),
                     JVal::Object(vec![
-                        ("start".to_string(), JVal::Number(node.range.0 as f64)),
-                        ("end".to_string(), JVal::Number(node.range.1 as f64)),
+                        ("start".to_string(), JVal::Number(node.range.0 as f64, None)),
+                        ("end".to_string(), JVal::Number(node.range.1 as f64, None)),
                     ]),
                 ),
                 (
                     "start".to_string(),
                     JVal::Object(vec![
-                        ("line".to_string(), JVal::Number(node.start.0 as f64)),
-                        ("column".to_string(), JVal::Number(sc as f64)),
+                        ("line".to_string(), JVal::Number(node.start.0 as f64, None)),
+                        ("column".to_string(), JVal::Number(sc as f64, None)),
                     ]),
                 ),
                 (
                     "end".to_string(),
                     JVal::Object(vec![
-                        ("line".to_string(), JVal::Number(node.end.0 as f64)),
-                        ("column".to_string(), JVal::Number(ec as f64)),
+                        ("line".to_string(), JVal::Number(node.end.0 as f64, None)),
+                        ("column".to_string(), JVal::Number(ec as f64, None)),
                     ]),
                 ),
             ]),
@@ -36418,22 +36379,22 @@ fn ast_json_record(
                 (
                     "byteOffset".to_string(),
                     JVal::Object(vec![
-                        ("start".to_string(), JVal::Number(node.range.0 as f64)),
-                        ("end".to_string(), JVal::Number(node.range.1 as f64)),
+                        ("start".to_string(), JVal::Number(node.range.0 as f64, None)),
+                        ("end".to_string(), JVal::Number(node.range.1 as f64, None)),
                     ]),
                 ),
                 (
                     "start".to_string(),
                     JVal::Object(vec![
-                        ("line".to_string(), JVal::Number(node.start.0 as f64)),
-                        ("column".to_string(), JVal::Number(sc as f64)),
+                        ("line".to_string(), JVal::Number(node.start.0 as f64, None)),
+                        ("column".to_string(), JVal::Number(sc as f64, None)),
                     ]),
                 ),
                 (
                     "end".to_string(),
                     JVal::Object(vec![
-                        ("line".to_string(), JVal::Number(node.end.0 as f64)),
-                        ("column".to_string(), JVal::Number(ec as f64)),
+                        ("line".to_string(), JVal::Number(node.end.0 as f64, None)),
+                        ("column".to_string(), JVal::Number(ec as f64, None)),
                     ]),
                 ),
             ]),

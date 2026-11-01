@@ -3,6 +3,23 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq preserves numeric literals independently when their doubles are equal", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [command, stdout] of [
+      ["jq -c . <<< '[9007199254740992,9007199254740993,1.00,1e300,1e-999,-0.0]'", "[9007199254740992,9007199254740993,1.00,1E+300,1E-999,-0.0]\n"],
+      ["jq -nc '[9007199254740993 == 9007199254740992,9007199254740993 > 9007199254740992,1e-999 > 0,1e-999 == 0]'", "[false,true,true,false]\n"],
+      ["jq -nc '[1e20+0,1e-8+0,-1.200,-0.0]'", "[1e+20,1e-08,-1.2,-0]\n"],
+      ["jq -nc '[range(1.0;3.0),limit(2.0;range(3))]'", "[1.0,2,0,1]\n"],
+      ["jq -nc '[1.00|.,tonumber,abs,-.,.+0]'", "[1.00,1.00,1,-1,1]\n"],
+      ["jq -nc '[[1.00]|add]'", "[1.00]\n"],
+    ]) {
+      const r = await bash.exec(command);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], command);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq selects stream results for each nth argument and returns null for last(empty)", async () => {
   const bash = new RustWasmBash();
   try {

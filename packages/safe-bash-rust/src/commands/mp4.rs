@@ -897,15 +897,15 @@ impl<'a> Track<'a> {
                 if frame { "media_type" } else { "codec_type" },
                 Str(self.kind.into()),
             ),
-            ("stream_index", Number(self.index as f64)),
+            ("stream_index", Number(self.index as f64, None)),
         ];
         if frame {
-            r.push(("key_frame", Number(f64::from(s.key))))
+            r.push(("key_frame", Number(f64::from(s.key), None)))
         }
         r.extend([
-            ("pts", Number(pts)),
+            ("pts", Number(pts, None)),
             ("pts_time", Str(self.time(pts))),
-            (if frame { "pkt_dts" } else { "dts" }, Number(dts)),
+            (if frame { "pkt_dts" } else { "dts" }, Number(dts, None)),
             (
                 if frame { "pkt_dts_time" } else { "dts_time" },
                 Str(self.time(dts)),
@@ -913,14 +913,14 @@ impl<'a> Track<'a> {
         ]);
         if frame {
             r.extend([
-                ("best_effort_timestamp", Number(pts)),
+                ("best_effort_timestamp", Number(pts, None)),
                 ("best_effort_timestamp_time", Str(self.time(pts))),
             ])
         }
         r.extend([
             (
                 if frame { "pkt_duration" } else { "duration" },
-                Number(duration),
+                Number(duration, None),
             ),
             (
                 if frame {
@@ -942,10 +942,10 @@ impl<'a> Track<'a> {
             ])
         } else {
             if self.width != 0 {
-                r.push(("width", Number(self.width.into())))
+                r.push(("width", Number(self.width.into(), None)))
             }
             if self.height != 0 {
-                r.push(("height", Number(self.height.into())))
+                r.push(("height", Number(self.height.into(), None)))
             }
             if self.kind == "video" {
                 r.extend([
@@ -963,8 +963,8 @@ impl<'a> Track<'a> {
             if self.kind == "audio" {
                 r.extend([
                     ("sample_fmt", Str(self.sample_fmt().into())),
-                    ("nb_samples", Number(duration)),
-                    ("channels", Number(self.channels().into())),
+                    ("nb_samples", Number(duration, None)),
+                    ("channels", Number(self.channels().into(), None)),
                 ])
             }
         }
@@ -973,7 +973,7 @@ impl<'a> Track<'a> {
     fn stream(&self, counts: (bool, bool)) -> Row {
         let (codec, long_name) = self.codec();
         let mut r = vec![
-            ("index", Number(self.index as f64)),
+            ("index", Number(self.index as f64, None)),
             ("id", Str(format!("0x{:x}", self.id))),
             ("codec_name", Str(codec.into())),
             ("codec_long_name", Str(long_name.into())),
@@ -1014,20 +1014,20 @@ impl<'a> Track<'a> {
         ]);
         let (w, h) = (self.width, self.height);
         if w != 0 {
-            r.push(("width", Number(w.into())))
+            r.push(("width", Number(w.into(), None)))
         }
         if h != 0 {
-            r.push(("height", Number(h.into())))
+            r.push(("height", Number(h.into(), None)))
         }
         if w != 0 {
-            r.push(("coded_width", Number(f64::from(w.div_ceil(16)) * 16.)))
+            r.push(("coded_width", Number(f64::from(w.div_ceil(16)) * 16., None)))
         }
         if h != 0 {
-            r.push(("coded_height", Number(f64::from(h.div_ceil(16)) * 16.)))
+            r.push(("coded_height", Number(f64::from(h.div_ceil(16)) * 16., None)))
         }
         if self.kind == "video" {
             r.extend([
-                ("has_b_frames", Number(f64::from(self.stats.b_frames))),
+                ("has_b_frames", Number(f64::from(self.stats.b_frames), None)),
                 (
                     "sample_aspect_ratio",
                     Str(format!("{}:{}", self.sar.0, self.sar.1)),
@@ -1048,7 +1048,7 @@ impl<'a> Track<'a> {
                     .into()),
             ));
             if let Some(level) = avc.get(3) {
-                r.push(("level", Number((*level).into())))
+                r.push(("level", Number((*level).into(), None)))
             }
             r.extend([
                 ("color_range", Str("tv".into())),
@@ -1065,12 +1065,12 @@ impl<'a> Track<'a> {
             r.extend([
                 ("sample_fmt", Str(self.sample_fmt().into())),
                 ("sample_rate", Str(rate.to_string())),
-                ("channels", Number(channels.into())),
+                ("channels", Number(channels.into(), None)),
                 (
                     "channel_layout",
                     Str(if channels == 1 { "mono" } else { "stereo" }.into()),
                 ),
-                ("bits_per_sample", Number(bits.into())),
+                ("bits_per_sample", Number(bits.into(), None)),
             ]);
         }
         let rate = if self.kind == "video" && self.stats.ticks != 0 {
@@ -1094,9 +1094,9 @@ impl<'a> Track<'a> {
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
             ("time_base", Str(format!("1/{}", self.scale))),
-            ("start_pts", Number(self.stats.start as f64)),
+            ("start_pts", Number(self.stats.start as f64, None)),
             ("start_time", Str(self.time(self.stats.start as f64))),
-            ("duration_ts", Number(self.duration as f64)),
+            ("duration_ts", Number(self.duration as f64, None)),
             ("duration", Str(format!("{dur:.6}"))),
             (
                 "bit_rate",
@@ -1223,11 +1223,11 @@ fn chapters(moov: &[u8], duration: f64) -> impl Iterator<Item = Row> + '_ {
         .map(|(id, (start, end, title))| {
             let title = String::from_utf8_lossy(title);
             vec![
-                ("id", Number(id as f64)),
+                ("id", Number(id as f64, None)),
                 ("time_base", Str("1/1000".into())),
-                ("start", Number((start * 1000.).round())),
+                ("start", Number((start * 1000.).round(), None)),
                 ("start_time", Str(format!("{start:.6}"))),
-                ("end", Number((end * 1000.).round())),
+                ("end", Number((end * 1000.).round(), None)),
                 ("end_time", Str(format!("{end:.6}"))),
                 (
                     "tags",

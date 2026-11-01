@@ -135,13 +135,13 @@ impl ToJVal for bool {
     fn to_jval(&self) -> JVal { JVal::Bool(*self) }
 }
 impl ToJVal for u64 {
-    fn to_jval(&self) -> JVal { JVal::Number(*self as f64) }
+    fn to_jval(&self) -> JVal { JVal::Number(*self as f64, None) }
 }
 impl ToJVal for usize {
-    fn to_jval(&self) -> JVal { JVal::Number(*self as f64) }
+    fn to_jval(&self) -> JVal { JVal::Number(*self as f64, None) }
 }
 impl ToJVal for i32 {
-    fn to_jval(&self) -> JVal { JVal::Number(*self as f64) }
+    fn to_jval(&self) -> JVal { JVal::Number(*self as f64, None) }
 }
 impl ToJVal for Vec<JVal> {
     fn to_jval(&self) -> JVal { JVal::Array(self.clone()) }

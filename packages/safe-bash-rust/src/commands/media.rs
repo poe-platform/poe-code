@@ -2782,12 +2782,12 @@ fn format_wave_probe(
                 _ => format!("pcm_s{bits}le"),
             };
             vec![
-                ("index", Number(0.0)),
+                ("index", Number(0.0, None)),
                 ("codec_name", Str(codec)),
                 ("codec_type", Str("audio".into())),
                 ("sample_rate", Str(info.sample_rate.to_string())),
-                ("channels", Number(info.channels as f64)),
-                ("bits_per_sample", Number(bits as f64)),
+                ("channels", Number(info.channels as f64, None)),
+                ("bits_per_sample", Number(bits as f64, None)),
                 ("duration", duration),
                 (
                     "bit_rate",
@@ -2797,7 +2797,7 @@ fn format_wave_probe(
         } else {
             vec![
                 ("filename", Str(filename.into())),
-                ("nb_streams", Number(1.0)),
+                ("nb_streams", Number(1.0, None)),
                 ("format_name", Str("wav".into())),
                 ("duration", duration),
                 ("size", Str(size.to_string())),

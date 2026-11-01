@@ -197,10 +197,9 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             if name == "nth" && (1..=2).contains(&parts.len()) {
                 return visit_jq(&parts[0], input, vars, &mut |index| {
                     if let Some(filter) = parts.get(1) {
-                        let JVal::Number(n) = index else {
+                        let JVal::Number(n, _) = index else {
                             return Err("nth doesn't support negative indices".into());
                         };
-                        let n = super::clean_jval_num(n);
                         if n < 0.0 {
                             return Err("nth doesn't support negative indices".into());
                         }
@@ -218,7 +217,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                         selected.map_or(Ok(Continue(())), &mut *emit)
                     } else {
                         match (&index, input) {
-                            (JVal::Number(n), JVal::Array(_) | JVal::Null) if n.is_finite() => {}
+                            (JVal::Number(n, _), JVal::Array(_) | JVal::Null) if n.is_finite() => {}
                             (JVal::Str(_), JVal::Object(_) | JVal::Null) => {}
                             _ => {
                                 let detail = if matches!(&index,JVal::Str(k) if k.len()<30) {
@@ -248,8 +247,11 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                 return visit_jq(start, input, vars, &mut |a| {
                     visit_jq(end, input, vars, &mut |b| {
                         visit_jq(step, input, vars, &mut |increment| {
-                            let (JVal::Number(start), JVal::Number(stop), JVal::Number(step)) =
-                                (&a, &b, increment)
+                            let (
+                                JVal::Number(start, _),
+                                JVal::Number(stop, _),
+                                JVal::Number(step, _),
+                            ) = (&a, &b, increment)
                             else {
                                 return Err("range requires numbers".into());
                             };
@@ -257,7 +259,13 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                             while (step > 0.0 && value < *stop) || (step < 0.0 && value > *stop) {
                                 remaining =
                                     remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
-                                if emit(JVal::Number(value))?.is_break() {
+                                if emit(if value == *start {
+                                    a.clone()
+                                } else {
+                                    JVal::Number(value, None)
+                                })?
+                                .is_break()
+                                {
                                     return Ok(Break(()));
                                 }
                                 let next = value + step;
@@ -278,7 +286,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                 && let [count, filter] = parts.as_slice()
             {
                 return visit_jq(count, input, vars, &mut |n| {
-                    let JVal::Number(n) = n else {
+                    let JVal::Number(n, _) = n else {
                         return Err("limit requires a nonnegative integer".into());
                     };
                     if !(0.0..=9_007_199_254_740_991.0).contains(&n) || n.fract() != 0.0 {
@@ -365,7 +373,7 @@ fn object(
                     eval_jq(f, input, vars)?.pop()
                 }
                 Some(f)
-                    if (f.starts_with(['"', '-'])
+                    if (f.starts_with('"')
                         || f.as_bytes().first().is_some_and(u8::is_ascii_digit))
                         || matches!(f, "true" | "false" | "null") =>
                 {

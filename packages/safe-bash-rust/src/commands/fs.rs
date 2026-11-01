@@ -3591,7 +3591,7 @@ fn format_stat_field(
     precision: Option<usize>,
     numeric: bool,
     epoch: bool,
-) -> String {
+) -> Vec<u8> {
     if numeric {
         let nonzero = !text.chars().all(|c| c == '0');
         if !epoch && let Some(prec) = precision {
@@ -3624,7 +3624,7 @@ fn format_stat_field(
             } else {
                 0
             };
-            let int_part = format_stat_field(
+            let mut int_part = format_stat_field(
                 text[..dot_idx].to_string(),
                 code,
                 flags,
@@ -3638,30 +3638,26 @@ fn format_stat_field(
             } else {
                 0
             };
-            return format!("{int_part}{}{}", &text[dot_idx..], " ".repeat(trail));
+            int_part.extend_from_slice(&text.as_bytes()[dot_idx..]);
+            int_part.resize(int_part.len() + trail, b' ');
+            return int_part;
         }
     }
-    let sliced = if !numeric && let Some(prec) = precision {
-        let b = text.as_bytes();
-        String::from_utf8_lossy(&b[..b.len().min(prec)]).into_owned()
-    } else {
-        text
-    };
+    let mut sliced = text.into_bytes();
+    if !numeric && let Some(prec) = precision { sliced.truncate(prec); }
     let pad = width.saturating_sub(sliced.len());
+    if pad == 0 { return sliced; }
     if flags.contains('-') {
-        return format!("{sliced}{}", " ".repeat(pad));
+        sliced.resize(width, b' ');
+        return sliced;
     }
-    if numeric && flags.contains('0') && (epoch || precision.is_none()) && pad > 0 {
-        let pfx = if sliced.starts_with("0x") {
-            "0x"
-        } else if sliced.starts_with(['+', '-', ' ']) {
-            &sliced[..1]
-        } else {
-            ""
-        };
-        return format!("{pfx}{}{}", "0".repeat(pad), &sliced[pfx.len()..]);
+    if numeric && flags.contains('0') && (epoch || precision.is_none()) {
+        let prefix = if sliced.starts_with(b"0x") { 2 } else { usize::from(matches!(sliced.first(), Some(b'+' | b'-' | b' '))) };
+        sliced.splice(prefix..prefix, std::iter::repeat_n(b'0', pad));
+    } else {
+        sliced.splice(..0, std::iter::repeat_n(b' ', pad));
     }
-    format!("{}{sliced}", " ".repeat(pad))
+    sliced
 }
 
 fn cmd_stat(
@@ -3734,7 +3730,7 @@ fn cmd_stat(
     let limits = fs.shell_limits();
     let limit = limits.max_output_bytes.min(limits.max_memory_bytes).min(isize::MAX as usize);
     let quoting_style = env.get("QUOTING_STYLE").map(|s| s.as_str());
-    let mut out = String::new();
+    let mut out = Vec::new();
     let mut stderr = String::new();
     let mut code = 0;
 
@@ -3796,7 +3792,7 @@ fn cmd_stat(
 
                 let bytes = spec.as_bytes();
                 let mut idx = 0usize;
-                let mut rendered = String::new();
+                let mut rendered = Vec::new();
                 let error = loop {
                     if rendered.len() > limit.saturating_sub(out.len()) {
                         break Some("EFBIG: stat format output limit exceeded".into());
@@ -3823,7 +3819,7 @@ fn cmd_stat(
                             _ => None,
                         };
                         if let Some(ch) = named {
-                            rendered.push(ch);
+                            rendered.push(ch as u8);
                             idx += 2;
                             continue;
                         }
@@ -3842,17 +3838,17 @@ fn cmd_stat(
                             }
                         }
                         if off == start {
-                            rendered.push('\\');
+                            rendered.push(b'\\');
                             idx += 1;
                         } else {
-                            rendered.push((val as u8) as char);
+                            rendered.push(val as u8);
                             idx = off;
                         }
                         continue;
                     }
                     if bytes[idx] != b'%' {
                         let ch = spec[idx..].chars().next().unwrap();
-                        rendered.push(ch);
+                        rendered.extend_from_slice(&bytes[idx..idx + ch.len_utf8()]);
                         idx += ch.len_utf8();
                         continue;
                     }
@@ -4038,7 +4034,7 @@ fn cmd_stat(
                         other => break Some(format!("ENOTSUP: unsupported stat format: %{other}")),
                     };
 
-                    rendered.push_str(&format_stat_field(
+                    rendered.extend(format_stat_field(
                         val_text,
                         dir_code,
                         flags,
@@ -4048,8 +4044,8 @@ fn cmd_stat(
                         epoch_code,
                     ));
                     if let Some(lt) = link_text {
-                        rendered.push_str(" -> ");
-                        rendered.push_str(&format_stat_field(
+                        rendered.extend_from_slice(b" -> ");
+                        rendered.extend(format_stat_field(
                             lt,
                             dir_code,
                             flags,
@@ -4066,9 +4062,9 @@ fn cmd_stat(
                     if reason.starts_with("EFBIG:") { break 'operand; }
                     continue;
                 }
-                out.push_str(&rendered);
+                out.extend(rendered);
                 if !is_printf {
-                    out.push('\n');
+                    out.push(b'\n');
                 }
             }
             Err(e) => {
@@ -4078,7 +4074,7 @@ fn cmd_stat(
         }
     }
     BuiltinOutcome {
-        stdout: out,
+        stdout: crate::vfs::bytes_to_stream_string(&out),
         stderr,
         exit_code: code,
     }
@@ -7529,6 +7525,15 @@ mod tests {
             0
         );
         assert!(!vfs.exists("/work/dir"));
+    }
+
+    #[test]
+    fn stat_printf_preserves_raw_bytes_and_pads_truncated_names_by_byte_length() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/é", b"a").unwrap();
+        let got = cmd_stat(&args(&["--printf", r"\377\x80\000%3.1n|%-3.1n", "é"]), "/", &BTreeMap::new(), &fs);
+        assert_eq!(got.exit_code, 0);
+        assert_eq!(crate::vfs::stream_string_to_bytes(&got.stdout), b"\xff\x80\0  \xc3|\xc3  ");
     }
 
     #[test]

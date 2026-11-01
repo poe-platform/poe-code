@@ -2,6 +2,22 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("WASM Bash forceNative rejects incomplete long listings but preserves literal -l filenames", async () => {
+  const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });
+  await bash.fs.mkdir("/work", { recursive: true });
+  await bash.fs.writeFile("/work/-l", "twelve bytes");
+  for (const flags of ["-l", "-la", "-lh", "-g", "-o", "-n"]) {
+    const result = await bash.exec(`ls ${flags} -- -l`);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /requires the TypeScript safe-bash bridge/);
+  }
+  const result = await bash.exec("ls -- -l");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "-l\n");
+  bash.dispose();
+});
+
 test("WASM Bash forceNative executes compression codecs with genuine magic headers", async () => {
   const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });
   await bash.fs.mkdir("/work", { recursive: true });

@@ -234,4 +234,38 @@ mod tests {
         assert_eq!(res.stdout, "/workspace/proj:42");
     }
 
+    #[test]
+    fn unit_native_ls_rejects_unimplemented_long_listings() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/file.txt", b"twelve bytes").unwrap();
+        let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
+            cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
+            ..Default::default()
+        });
+        for flags in ["-l", "-la", "-ld", "-lh", "-g", "-o", "-n"] {
+            let result = shell.exec(&format!("ls {flags} file.txt")).unwrap();
+            assert_ne!(result.exit_code, 0, "{flags} silently discarded metadata");
+            assert!(result.stdout.is_empty());
+            assert!(result.stderr.contains("requires the TypeScript safe-bash bridge"));
+        }
+    }
+
+    #[test]
+    fn unit_native_ls_keeps_plain_listings_and_option_terminators() {
+        let vfs = MemoryVfs::new();
+        vfs.mkdir_all("/work").unwrap();
+        vfs.write_file("/work/-l", b"literal filename").unwrap();
+        let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
+            cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
+            ..Default::default()
+        });
+        let result = shell.exec("ls -- -l").unwrap();
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(result.stdout, "-l\n");
+        let result = shell.exec("ls -a").unwrap();
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(result.stdout, "-l\n.\n..\n");
+    }
+
 }

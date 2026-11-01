@@ -5,6 +5,34 @@ use safe_bash_rust::{
 use std::sync::Arc;
 
 #[test]
+fn hybrid_ls_long_listings_retain_metadata_without_replaying_commands() {
+    let vfs = MemoryVfs::new();
+    vfs.mkdir_all("/work").unwrap();
+    vfs.write_file("/work/sample file.txt", b"twelve bytes").unwrap();
+    vfs.chmod("/work/sample file.txt", 0o100640).unwrap();
+    let mut shell = Shell::new(Arc::new(vfs.clone()), ShellOptions {
+        cwd: Some("/work".into()), mode: BackendMode::Hybrid,
+        ..Default::default()
+    });
+    let result = shell.exec("printf once >> visits; ls -l 'sample file.txt'; printf after").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert!(result.used_typescript_bridge);
+    let listing = result.stdout.lines().next().unwrap();
+    assert!(listing.starts_with("-rw-r----- "), "{listing}");
+    assert_eq!(listing.split_whitespace().nth(4), Some("12"));
+    assert!(listing.ends_with("sample file.txt"), "{listing}");
+    assert!(result.stdout.ends_with("\nafter"));
+    assert_eq!(vfs.read_file("/work/visits").unwrap(), b"once");
+    let directory = shell.exec("ls -ld .").unwrap();
+    assert_eq!(directory.exit_code, 0, "{}", directory.stderr);
+    assert!(directory.stdout.starts_with('d'), "{}", directory.stdout);
+    assert!(directory.used_typescript_bridge);
+    let plain = shell.exec("ls 'sample file.txt'").unwrap();
+    assert_eq!(plain.stdout, "sample file.txt\n");
+    assert!(!plain.used_typescript_bridge);
+}
+
+#[test]
 fn native_rust_fast_path_executes_builtins_and_updates_vfs_state() {
     let vfs = MemoryVfs::new();
     vfs.mkdir_all("/workspace").unwrap();

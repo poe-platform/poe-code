@@ -4717,9 +4717,13 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
-        // These native command shims contain placeholder document/media writers.
-        // Run the real implementation once, at this command boundary.
-        if matches!(effective_cmd,
+        // Native ls currently implements names only. Long-listing flags must not
+        // silently discard metadata; use the existing implementation in hybrid mode.
+        let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
+            .any(|arg| arg.starts_with('-') && !arg.starts_with("--")
+                && arg.chars().skip(1).any(|flag| matches!(flag, 'l' | 'g' | 'o' | 'n')));
+        // Run unimplemented native operations once, at this command boundary.
+        if long_listing || matches!(effective_cmd,
             "pandoc" | "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf"
             | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts"
             | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo"
@@ -4728,7 +4732,8 @@ impl<'a> EvalState<'a> {
             | "montage" | "compare" | "sips" | "exiftool" | "identify")
         {
             if !self.allow_unported_fallback {
-                return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; native document/media processing is unavailable\n"), exit_code: 1 });
+                let unavailable = if long_listing { "native long listings are unavailable" } else { "native document/media processing is unavailable" };
+                return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; {unavailable}\n"), exit_code: 1 });
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;
             let script = std::iter::once(effective_cmd).chain(args.iter().map(String::as_str))

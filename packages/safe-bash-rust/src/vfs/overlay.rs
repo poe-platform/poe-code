@@ -12,6 +12,9 @@ struct DirectoryObservation {
     logical: EntryIdentity,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum FileWrite { Create(u32), Replace, Append }
+
 enum MetadataChange {
     Mode(u32),
     Times(Option<f64>, Option<f64>),
@@ -161,10 +164,19 @@ impl OverlayVfs {
         self.upper.set_times(&norm, Some(st.atime_ms), Some(st.mtime_ms))
     }
 
-    fn publish_file(&self, path: &str, data: &[u8], exclusive_mode: Option<u32>) -> Result<(), String> {
+    fn publish_file(&self, path: &str, data: &[u8], operation: FileWrite) -> Result<(), String> {
+        let exclusive_mode = match operation { FileWrite::Create(mode) => Some(mode), _ => None };
         let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) else {
             return if exclusive_mode.is_some() { Err("ENOTSUP: overlay layers do not support exclusive file creation".into()) }
-                else { self.upper.write_file(&self.access_path(path, true)?, data) };
+                else if operation == FileWrite::Append {
+                    let mut contents = match self.read_file(path) {
+                        Ok(bytes) => bytes,
+                        Err(e) if e.starts_with("ENOENT:") => Vec::new(),
+                        Err(e) => return Err(e),
+                    };
+                    contents.extend_from_slice(data);
+                    self.upper.write_file(&self.access_path(path, true)?, &contents)
+                } else { self.upper.write_file(&self.access_path(path, true)?, data) };
         };
         let versions = (lower.generation(), upper.generation());
         let whiteout_count = self.whiteouts.read().map_err(|_| "EIO: input/output error")?.len();
@@ -200,7 +212,7 @@ impl OverlayVfs {
         let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
         if whiteouts.len() != whiteout_count { return Err("EBUSY: overlay changed during write".into()); }
         let mode = exclusive_mode.unwrap_or_else(|| existing.as_ref().map_or(0o644, |st| st.mode & 0o7777));
-        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, existing.map(|st| st.atime_ms)), parents))
+        self.copy_up_directories(&parent, || upper.write_overlay_file(lower, versions, &target, data, (mode, existing.map(|st| st.atime_ms)), parents, operation == FileWrite::Append))
     }
 
     fn forget_directory(&self, path: &str) {
@@ -259,11 +271,15 @@ impl SafeBashFs for OverlayVfs {
 
     fn create_file(&self, path: &str, data: &[u8], mode: u32) -> Result<(), String> {
         if mode > 0o7777 { return Err("EINVAL: invalid argument".into()); }
-        self.publish_file(path, data, Some(mode))
+        self.publish_file(path, data, FileWrite::Create(mode))
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        self.publish_file(path, data, None)
+        self.publish_file(path, data, FileWrite::Replace)
+    }
+
+    fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.publish_file(path, data, FileWrite::Append)
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
@@ -637,6 +653,23 @@ mod tests {
         fs.write_file("/private/old", b"second").unwrap();
         assert_eq!(upper.stat("/").unwrap().mtime_ms, -1.0);
         assert_eq!(lower.read_file("/private/old").unwrap(), b"old");
+    }
+
+    #[test]
+    fn failed_append_does_not_publish_or_read_the_lower_file() {
+        let lower = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        lower.write_file("/d/f", b"old").unwrap();
+        lower.set_times("/d/f", Some(100.0), None).unwrap();
+        upper.set_max_total_bytes(4);
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        assert!(fs.append_file("/d/f", b"!!").unwrap_err().starts_with("ENOSPC:"));
+        assert!(!upper.exists("/d"));
+        assert_eq!(lower.stat("/d/f").unwrap().atime_ms, 100.0);
+        fs.append_file("/d/f", b"!").unwrap();
+        assert!(fs.append_file("/d/f", b"?").unwrap_err().starts_with("ENOSPC:"));
+        assert_eq!(upper.stat("/d/f").unwrap().atime_ms, 100.0);
+        assert_eq!(upper.read_file("/d/f").unwrap(), b"old!");
     }
 
     #[test]

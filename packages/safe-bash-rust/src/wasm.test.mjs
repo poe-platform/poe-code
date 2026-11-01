@@ -542,7 +542,9 @@ test("copyFile preserves destinations on failed copies and applies the source mo
   }
 });
 
-test("writeFile honors exclusive creation, append, permissions and cancellation", async () => {
+test("writeFile honors exclusive creation, append, permissions and cancellation", async t => {
+  let now = Date.UTC(2040, 0, 1);
+  t.mock.method(Date, "now", () => now);
   for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
     const bash = new RustWasmBash({profile, files:{"/keep":{content:"old",mode:0o640}}});
     const fs = bash.fs;
@@ -551,7 +553,10 @@ test("writeFile honors exclusive creation, append, permissions and cancellation"
         await assert.rejects(fs.writeFile("/keep", "lost", {flag}), {code:"EEXIST"});
       }
       assert.equal(bash.readText("/keep"), "old");
+      const accessed = (await fs.stat("/keep")).atimeMs;
+      now += 60_000;
       await fs.writeFile("/keep", "!", {flag:"a",mode:0o400});
+      assert.equal((await fs.stat("/keep")).atimeMs, accessed);
       assert.equal(bash.readText("/keep"), "old!");
       assert.equal((await fs.stat("/keep")).mode & 0o777, 0o640);
       await fs.symlink("new", "/link");

@@ -88,9 +88,7 @@ impl WasmSession {
         let (to, existing) = self.write_target(path, flag & 1 != 0, None)?;
         let device = existing.as_ref().is_some_and(|st| st.mode & 0o170000 == 0o020000);
         if flag & 2 != 0 && existing.is_some() && !device {
-            let mut bytes = fs.read_file(&to)?;
-            bytes.extend_from_slice(data);
-            fs.write_file(&to, &bytes)?;
+            fs.append_file(&to, data)?;
         } else {
             fs.write_file(&to, data)?;
         }

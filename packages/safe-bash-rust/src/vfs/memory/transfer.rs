@@ -148,6 +148,7 @@ impl MemoryVfs {
                                 &file.data,
                                 file.mode,
                                 None,
+                                None,
                             )?;
                             let MemoryNode::File { ino } = staged.nodes[&new_path] else {
                                 unreachable!()

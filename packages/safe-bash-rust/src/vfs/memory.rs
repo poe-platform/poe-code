@@ -384,7 +384,27 @@ impl MemoryVfs {
         })
     }
 
-    fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32, publication: Option<u64>) -> Result<(), String> {
+    fn write_bytes(&self, path: &str, data: &[u8], append: bool) -> Result<(), String> {
+        let norm = normalize_posix_path(path);
+        let mut guard = self.state.write().map_err(|e| e.to_string())?;
+        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
+        if let Some(name) = guard.devices.entry(&resolved) {
+            return match name {
+                "" => Err(format!("EISDIR: illegal operation on a directory, open '{norm}'")),
+                "urandom" if guard.devices == Devices::Mounted => Err(format!("EPERM: operation not permitted, write '{norm}'")),
+                "full" => Err("ENOSPC: no space left on device, write '/dev/full'".into()),
+                _ => Ok(()),
+            };
+        }
+        if guard.devices == Devices::Mounted { return Err(format!("ENOENT: no such file or directory, write '{norm}'")); }
+        Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
+        let (initial, suffix) = if append { (&[][..], Some(data)) } else { (data, None) };
+        Self::store_file(&mut guard, resolved, initial, 0o100644, None, suffix)?;
+        self.bump_generation();
+        Ok(())
+    }
+
+    fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32, publication: Option<u64>, suffix: Option<&[u8]>) -> Result<(), String> {
         let existing = match state.nodes.get(&resolved) {
             Some(MemoryNode::Directory { .. }) => return Err(format!("EISDIR: illegal operation on a directory, open '{resolved}'")),
             Some(MemoryNode::File { ino }) => Some(*ino),
@@ -394,28 +414,40 @@ impl MemoryVfs {
         if existing.is_none() && state.nodes.len() >= state.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".into());
         }
-        if data.len() > state.limits.max_file_bytes {
+        let new_len = if let Some(tail) = suffix {
+            existing.map_or(data.len(), |_| old_len).checked_add(tail.len()).ok_or("EFBIG: file size overflow")?
+        } else { data.len() };
+        if new_len > state.limits.max_file_bytes {
             return Err("EFBIG: file size budget exceeded".to_string());
         }
-        let next_total = state.total_bytes.saturating_sub(old_len).saturating_add(data.len());
+        let next_total = state.total_bytes.saturating_sub(old_len).saturating_add(new_len);
         if next_total > state.limits.max_total_bytes {
             return Err("ENOSPC: file system byte budget exceeded".to_string());
         }
-        state.total_bytes = next_total;
         if let Some(ino) = existing {
             let file = state.files.get_mut(&ino).unwrap();
-            file.data = data.to_vec();
+            if let Some(tail) = suffix {
+                file.data.try_reserve(tail.len()).map_err(|_| "ENOSPC: insufficient memory")?;
+                file.data.extend_from_slice(tail);
+            } else {
+                file.data = data.to_vec();
+            }
             file.publication = publication;
             file.mtime_ms = super::now_ms();
             file.ctime_ms = file.mtime_ms;
         } else {
             let ino = NEXT_INODE.fetch_add(1, Ordering::Relaxed);
             let now = super::now_ms();
-            state.files.insert(ino, MemoryFile { data: data.to_vec(), publication, mode: create_mode,
+            let mut contents = Vec::new();
+            contents.try_reserve_exact(new_len).map_err(|_| "ENOSPC: insufficient memory")?;
+            contents.extend_from_slice(data);
+            if let Some(tail) = suffix { contents.extend_from_slice(tail); }
+            state.files.insert(ino, MemoryFile { data: contents, publication, mode: create_mode,
                 atime_ms: now, mtime_ms: now, ctime_ms: now, birthtime_ms: now, opens: 0, linked: true });
             state.parent_changed(&resolved, now);
             state.nodes.insert(resolved, MemoryNode::File { ino });
         }
+        state.total_bytes = next_total;
         Ok(())
     }
 
@@ -473,13 +505,17 @@ impl MemoryVfs {
         Ok((base, upper))
     }
 
-    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>) -> Result<(), String> {
-        let (_base, mut upper) = self.overlay_layers(lower, versions)?;
+    pub(super) fn write_overlay_file(&self, lower: &Self, versions: (u64, u64), path: &str, data: &[u8], (mode, atime): (u32, Option<f64>), parents: Vec<(String, FileStat)>, append: bool) -> Result<(), String> {
+        let (base, mut upper) = self.overlay_layers(lower, versions)?;
         let creating = !upper.nodes.contains_key(path);
         if creating && parents.len() >= upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
             return Err("ENOSPC: inode limit exceeded".into());
         }
-        Self::store_file(&mut upper, path.to_owned(), data, 0o100000 | mode, None)?;
+        let initial = if append && creating && atime.is_some() {
+            let Some(MemoryNode::File { ino }) = base.nodes.get(path) else { return Err("EBUSY: lower file changed".into()); };
+            base.files[ino].data.as_slice()
+        } else if append { &[] } else { data };
+        Self::store_file(&mut upper, path.to_owned(), initial, 0o100000 | mode, None, append.then_some(data))?;
         if creating {
             let now = super::now_ms();
             if let Some(atime) = atime {
@@ -519,7 +555,7 @@ impl MemoryVfs {
             return Err("ENOSPC: inode limit exceeded".into());
         }
         if let Some(file) = file {
-            Self::store_file(&mut upper, path.to_owned(), &file.data, st.mode, None)?;
+            Self::store_file(&mut upper, path.to_owned(), &file.data, st.mode, None, None)?;
             let ino = upper.nodes[path].ino();
             let copy = upper.files.get_mut(&ino).unwrap();
             copy.atime_ms = st.atime_ms;
@@ -716,28 +752,17 @@ impl SafeBashFs for MemoryVfs {
         if !matches!(state.nodes.get(&parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o300 == 0o300) {
             return Err("EACCES: permission denied".into());
         }
-        Self::store_file(&mut state, entry, data, 0o100000 | mode, None)?;
+        Self::store_file(&mut state, entry, data, 0o100000 | mode, None, None)?;
         self.bump_generation();
         Ok(())
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        let norm = normalize_posix_path(path);
-        let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
-        if let Some(name) = guard.devices.entry(&resolved) {
-            return match name {
-                "" => Err(format!("EISDIR: illegal operation on a directory, open '{norm}'")),
-                "urandom" if guard.devices == Devices::Mounted => Err(format!("EPERM: operation not permitted, write '{norm}'")),
-                "full" => Err("ENOSPC: no space left on device, write '/dev/full'".into()),
-                _ => Ok(()),
-            };
-        }
-        if guard.devices == Devices::Mounted { return Err(format!("ENOENT: no such file or directory, write '{norm}'")); }
-        Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
-        Self::store_file(&mut guard, resolved, data, 0o100644, None)?;
-        self.bump_generation();
-        Ok(())
+        self.write_bytes(path, data, false)
+    }
+
+    fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.write_bytes(path, data, true)
     }
 
     fn patch_revision(&self, _path: &str) -> Result<(u64, u64), String> {
@@ -781,7 +806,7 @@ impl SafeBashFs for MemoryVfs {
             if needed > state.limits.max_entries.saturating_sub(state.nodes.len()) {
                 return Err("ENOSPC: inode limit exceeded".into());
             }
-            Self::store_file(&mut state, dest, data, 0o100666, None)?;
+            Self::store_file(&mut state, dest, data, 0o100666, None, None)?;
             for dir in missing {
                 state.create_directory(dir.to_owned(), 0o40777);
             }
@@ -816,7 +841,7 @@ impl SafeBashFs for MemoryVfs {
             }
         }
         let publication = NEXT_PUBLICATION.fetch_add(1, Ordering::Relaxed);
-        Self::store_file(&mut state, dest, data, 0o100666, Some(publication))?;
+        Self::store_file(&mut state, dest, data, 0o100666, Some(publication), None)?;
         self.bump_generation();
         Ok(publication)
     }
@@ -1219,7 +1244,7 @@ impl SafeBashFs for MemoryVfs {
                 continue;
             }
             if entry.kind == VfsEntryKind::File {
-                Self::store_file(&mut guard, norm.clone(), &entry.data, if entry.mode != 0 { entry.mode } else { 0o100644 }, None)?;
+                Self::store_file(&mut guard, norm.clone(), &entry.data, if entry.mode != 0 { entry.mode } else { 0o100644 }, None, None)?;
             } else {
                 let target = entry.symlink_target.clone().ok_or("EINVAL: missing symlink target")?;
                 let now = super::now_ms();
@@ -1441,7 +1466,9 @@ mod tests {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/logs").unwrap();
         vfs.write_file("/logs/app.log", b"line1\n").unwrap();
+        vfs.set_times("/logs/app.log", Some(-123.5), None).unwrap();
         vfs.append_file("/logs/app.log", b"line2\n").unwrap();
+        assert_eq!(vfs.stat("/logs/app.log").unwrap().atime_ms, -123.5);
         assert_eq!(vfs.read_file("/logs/app.log").unwrap(), b"line1\nline2\n");
         let snap = vfs.export_entries().unwrap();
         let vfs2 = MemoryVfs::new();

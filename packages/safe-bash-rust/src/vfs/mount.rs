@@ -85,6 +85,11 @@ impl SafeBashFs for MountVfs {
         fs.write_file(&rel, data)
     }
 
+    fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        let (fs, rel) = self.route(path, true)?;
+        fs.append_file(&rel, data)
+    }
+
     fn patch_revision(&self, path: &str) -> Result<(u64, u64), String> {
         let (_, fs, local) = self.location(path);
         fs.patch_revision(&local)

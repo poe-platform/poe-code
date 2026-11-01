@@ -117,6 +117,16 @@ impl RealVfs {
         Ok(current)
     }
 
+    fn write_bytes(&self, path: &str, data: &[u8], append: bool) -> Result<(), String> {
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
+        if let Some(parent) = host.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+        }
+        use std::io::Write;
+        std::fs::OpenOptions::new().write(true).append(append).truncate(!append).create(true)
+            .open(host).and_then(|mut f| f.write_all(data)).map_err(|e| e.to_string())
+    }
+
     fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
         let host = self.walk(&self.root, path, if follow { Walk::Follow } else { Walk::Entry }, false)?;
         let meta = std::fs::symlink_metadata(host).map_err(|e| e.to_string())?;
@@ -230,11 +240,11 @@ impl SafeBashFs for RealVfs {
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        let host = self.walk(&self.root, path, Walk::Follow, false)?;
-        if let Some(parent) = host.parent() {
-            std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-        }
-        std::fs::write(host, data).map_err(|e| e.to_string())
+        self.write_bytes(path, data, false)
+    }
+
+    fn append_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
+        self.write_bytes(path, data, true)
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
@@ -532,7 +542,9 @@ mod tests {
         let vfs = RealVfs::new(&tmp_root).unwrap();
         vfs.mkdir_all("/sub/tree").unwrap();
         vfs.write_file("/sub/tree/log.txt", b"a").unwrap();
+        vfs.set_times("/sub/tree/log.txt", Some(1_000.0), None).unwrap();
         vfs.append_file("/sub/tree/log.txt", b"b").unwrap();
+        assert_eq!(vfs.stat("/sub/tree/log.txt").unwrap().atime_ms, 1_000.0);
         assert_eq!(vfs.read_file("/sub/tree/log.txt").unwrap(), b"ab");
         vfs.remove("/sub", true).unwrap();
         assert!(!vfs.exists("/sub"));

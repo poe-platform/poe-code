@@ -101,7 +101,14 @@ pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
             let (_, backend, local) = location(&current);
             let st = backend.stat(&local)?;
             if st.kind != super::VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
-            if st.mode & 0o100 == 0 { return Err("EACCES: permission denied".into()); }
+            if st.mode & 0o100 == 0 {
+                if purpose == WalkPurpose::Access {
+                    let denied = if matches!(part.as_str(), "." | "..") { path.to_owned() }
+                        else { format!("{}/{part}", current.trim_end_matches('/')) };
+                    return Err(format!("EACCES: permission denied, lstat '{denied}'"));
+                }
+                return Err("EACCES: permission denied".into());
+            }
             if purpose == WalkPurpose::Rename && pending.is_empty() && matches!(part.as_str(), "." | "..") {
                 return Err("EINVAL: invalid argument".into());
             }

@@ -78,6 +78,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.access_path(path, follow_final)
     }
 
+    fn inspect_command_entry(&self, path: &str, follow: bool) -> Result<(String, crate::vfs::FileStat), String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.inspect_command_entry(path, follow)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;

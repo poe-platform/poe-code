@@ -840,3 +840,43 @@ test("readdir refuses unreadable directories and resolves ancestors before '..'"
     } finally { bash.dispose(); }
   }
 });
+
+test("ls checks search permission before following children, links or '..'", async () => {
+  const bash = new RustWasmBash({files:{"/guard/inner/secret":"data","/guard/plain":"file","/open/file":"ok"},symlinks:{"/alias":"guard/inner","/dang":"absent"}});
+  try {
+    await bash.fs.chmod("/guard", 0);
+    for (const [cmd, path] of [
+      ["ls -A /guard/inner", "/guard/inner"],
+      ["ls -d /guard/inner/secret", "/guard/inner"],
+      ["ls /guard/../open", "/guard/../open"],
+      ["ls /alias", "/guard/inner"],
+    ]) {
+      const r = await bash.exec(cmd);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr], [1,"",`ls: EACCES: permission denied, lstat '${path}'\n`]);
+    }
+    await bash.fs.chmod("/guard", 0o400);
+    assert.equal((await bash.exec("ls /guard")).stdout, "inner\nplain\n");
+    const recursive = await bash.exec("ls -R /guard");
+    assert.deepEqual([recursive.exitCode,recursive.stdout,recursive.stderr],
+      [1,"/guard:\ninner\nplain\n","ls: EACCES: permission denied, lstat '/guard/inner'\n"]);
+    const sorted = await bash.exec("ls -S /guard");
+    assert.equal(sorted.exitCode, 1);
+    assert.equal(sorted.stdout, "");
+    await bash.fs.chmod("/guard", 0o700);
+    assert.equal((await bash.exec("ls /alias")).stdout, "secret\n");
+    assert.equal((await bash.exec("ls -F /alias /dang")).stdout, "/alias@\n/dang@\n");
+  } finally { bash.dispose(); }
+});
+
+test("ls reports the original directory operand when access through an alias fails", async () => {
+  for (const profile of [undefined,"strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile,files:{"/parent/private/data":"a"},symlinks:{"/link":"parent/private"}});
+    try {
+      await bash.fs.chmod("/parent/private", 0o100);
+      assert.equal((await bash.exec("ls /link")).stderr, "ls: EACCES: permission denied, readdir '/link'\n");
+      await bash.fs.chmod("/parent", 0);
+      const detail = profile ? "capabilitiesFor '/link'" : "lstat '/parent/private'";
+      assert.equal((await bash.exec("ls /link")).stderr, "ls: EACCES: permission denied, " + detail + "\n");
+    } finally { bash.dispose(); }
+  }
+});

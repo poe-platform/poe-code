@@ -169,6 +169,8 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut recursive = false;
     let mut sort_mode = "name";
     let mut reverse = false;
+    let mut long = false;
+    let mut inode = false;
     let mut indicator = "none";
     let mut quote_name = false;
     let mut ended = false;
@@ -254,7 +256,9 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             indicator = "classify";
         } else if a == "--file-type" {
             indicator = "file-type";
-        } else if matches!(a.as_str(), "--inode" | "--dereference" | "--human-readable") {
+        } else if a == "--inode" {
+            inode = true;
+        } else if matches!(a.as_str(), "--dereference" | "--human-readable") {
         } else if a.starts_with('-') && !a.starts_with("--") && a.len() > 1 {
             for ch in a[1..].chars() {
                 match ch {
@@ -283,7 +287,9 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'F' => indicator = "classify",
                     'p' => indicator = "slash",
                     'Q' => quote_name = true,
-                    '1' | 'l' | 'h' | 'i' | 's' | 'g' | 'o' | 'n' | 'C' | 'x' | 'm' | 'k'
+                    'l' => long = true,
+                    'i' => inode = true,
+                    '1' | 'h' | 's' | 'g' | 'o' | 'n' | 'C' | 'x' | 'm' | 'k'
                     | 'q' | 'N' | 'b' | 'u' | 'c' | 'L' | 'H' => {}
                     other => return err_out(&format!("ls: invalid option -- '{other}'\n"), 2),
                 }
@@ -385,17 +391,34 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut stderr = String::new();
     let mut code = 0;
 
+    fn lookup_error(error: &str, operand: &str) -> String {
+        if error.contains(", capabilitiesFor '") || (error.starts_with("EACCES:") && error.contains(", lstat '")) { return error.to_owned(); }
+        let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+            else if error.starts_with("ENOTDIR:") { "ENOTDIR: not a directory" }
+            else if error.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" }
+            else { error.split_once(", ").map_or(error, |(reason, _)| reason) };
+        format!("{reason}, lstat '{operand}'")
+    }
     for t in &targets {
-        let p = resolve_posix_path(cwd, t);
-        if !fs.exists(&p) && fs.lstat(&p).is_err() {
-            stderr.push_str(&format!("ls: ENOENT: no such file or directory, lstat '{p}'\n"));
-            code = 1;
-            continue;
-        }
-        if dir_only || !fs.is_dir(&p) {
-            file_targets.push((t.clone(), p));
-        } else {
-            dir_targets.push((t.clone(), p));
+        let operand = if t.starts_with('/') || t.is_empty() { t.clone() } else { child_disp_path(cwd, t) };
+        let result = (|| {
+            let (entry, st) = fs.inspect_command_entry(&operand, false)?;
+            if st.kind == VfsEntryKind::Symlink {
+                match fs.inspect_command_entry(&operand, true) {
+                    Ok((_, target)) if target.kind == VfsEntryKind::Directory && !dir_only && indicator != "classify" && !long => return Ok((true,entry)),
+                    Err(e) if !e.starts_with("ENOENT:") && !e.starts_with("ENOTDIR:") && !e.starts_with("ELOOP:") && !e.ends_with("(os error 2)") => return Err(e),
+                    _ => {}
+                }
+            }
+            Ok((!dir_only && st.kind == VfsEntryKind::Directory,entry))
+        })();
+        match result {
+            Ok((true,_)) => dir_targets.push((t.clone(), operand)),
+            Ok((false,p)) => file_targets.push((t.clone(), p)),
+            Err(e) => {
+                stderr.push_str(&format!("ls: {}\n", lookup_error(&e, &operand)));
+                code = 1;
+            }
         }
     }
 
@@ -419,6 +442,8 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         show_dots: bool,
         ignore_backups: bool,
         recursive: bool,
+        need_stat: bool,
+        classify: bool,
         fs: &dyn SafeBashFs,
         sort_items: &dyn Fn(&mut Vec<(String, String)>),
         suffix_for: &dyn Fn(&str) -> &'static str,
@@ -428,6 +453,14 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         stderr: &mut String,
         code: &mut i32,
     ) {
+        let physical = match fs.inspect_command_entry(dir_p, true) {
+            Ok((p, _)) => p,
+            Err(e) => {
+                stderr.push_str(&format!("ls: {}\n", lookup_error(&e, dir_p)));
+                *code = 1;
+                return;
+            }
+        };
         if show_header {
             if *output_written {
                 out.push('\n');
@@ -435,12 +468,12 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             out.push_str(&format!("{}:\n", fmt_name(disp)));
             *output_written = true;
         }
-        match fs.list_dir(dir_p) {
+        match fs.list_dir(&physical) {
             Ok(entries) => {
                 let mut children: Vec<(String, String)> = Vec::new();
                 if show_dots {
-                    children.push((".".to_string(), dir_p.to_string()));
-                    children.push(("..".to_string(), crate::vfs::dirname_posix_path(dir_p)));
+                    children.push((".".to_string(), physical.clone()));
+                    children.push(("..".to_string(), crate::vfs::dirname_posix_path(&physical)));
                 }
                 for e in entries {
                     if !show_all && e.starts_with('.') {
@@ -449,8 +482,16 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     if ignore_backups && e.ends_with('~') {
                         continue;
                     }
-                    let pe = resolve_posix_path(dir_p, &e);
+                    let pe = child_disp_path(&physical, &e);
                     children.push((e, pe));
+                }
+                for (name, path) in &children {
+                    if (need_stat || classify && fs.lstat(path).is_ok_and(|s| s.kind == VfsEntryKind::File))
+                        && let Err(e) = fs.inspect_command_entry(&child_disp_path(dir_p, name), false) {
+                        stderr.push_str(&format!("ls: {}\n", lookup_error(&e, path)));
+                        *code = 1;
+                        return;
+                    }
                 }
                 sort_items(&mut children);
                 for (name, pe) in &children {
@@ -466,12 +507,14 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                             let child_disp = child_disp_path(disp, name);
                             list_dir_tree(
                                 &child_disp,
-                                pe,
+                                &child_disp_path(dir_p, name),
                                 true,
                                 show_all,
                                 show_dots,
                                 ignore_backups,
                                 true,
+                                need_stat,
+                                classify,
                                 fs,
                                 sort_items,
                                 suffix_for,
@@ -486,7 +529,9 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 }
             }
             Err(e) => {
-                stderr.push_str(&format!("ls: cannot open directory '{disp}': {e}\n"));
+                if e.starts_with("EACCES:") {
+                    stderr.push_str(&format!("ls: EACCES: permission denied, readdir '{dir_p}'\n"));
+                } else { stderr.push_str(&format!("ls: {e}\n")); }
                 *code = 1;
             }
         }
@@ -502,6 +547,8 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             show_dots,
             ignore_backups,
             recursive,
+            long || inode || matches!(sort_mode, "size" | "time"),
+            indicator == "classify",
             fs,
             &sort_items,
             &suffix_for,
@@ -1722,7 +1769,7 @@ fn cmd_mv(
                     return err_out(&format!("mv: {error}, lstat '{dst_base}'\n"), 1);
                 }
             }
-            Err(e) => return err_out(&format!("mv: {e}, stat '{dst_base}'\n"), 1),
+            Err(e) => return err_out(&format!("mv: {}, stat '{dst_base}'\n", e.split_once(", ").map_or(e.as_str(), |(reason, _)| reason)), 1),
         }
     };
     if target_dir.is_some() && !dst_is_dir {

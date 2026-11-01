@@ -83,6 +83,12 @@ pub trait SafeBashFs: Send + Sync {
         path::walk_path(path, follow_final, path::WalkPurpose::Access, |p| (None, self, p.to_owned()))
     }
 
+    /// Inspect a shell operand without collapsing unsearched ancestors or trailing slashes.
+    fn inspect_command_entry(&self, path: &str, follow: bool) -> Result<(String, FileStat), String> {
+        let entry = self.access_path(path, follow)?;
+        self.lstat(&entry).map(|st| (entry, st))
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
     /// Filesystem identity and revision covering a patch target and its local ancestors.

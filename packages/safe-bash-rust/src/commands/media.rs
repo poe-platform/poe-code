@@ -14156,6 +14156,15 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn image2_defaults_to_a_gray_frame_when_a_webp_has_no_dimensions() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/damaged", b"RIFF\x04\0\0\0WEBP").unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i","damaged","out.ppm"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.ppm").unwrap())), "8e533b23db363eb341303a0516a07ce1043a7c09f30521044a49d9a48f0479fa");
+    }
+
+    #[test]
     fn webp_pixels_survive_image2_input_and_output() {
         let fs = MemoryVfs::new();
         fs.write_file("/picture", &hex_dec("524946462a000000574542505650384c1e0000002f024000002f3002133003f31f28252550c836021cbad7e3142ea2ffb1bc")).unwrap();

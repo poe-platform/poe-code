@@ -252,8 +252,7 @@ pub(super) fn still_info(
     limit: usize,
 ) -> Result<(usize, usize, &'static [u8; 4]), &'static str> {
     if super::webp::signature(bytes) {
-        let h=super::webp::header(bytes)?;
-        let (w,h)=(h.width as usize,h.height as usize);
+        let (w,h)=super::webp::header(bytes).map_or((64,64), |h| (h.width as usize,h.height as usize));
         if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
         return Ok((w,h,b"webp"));
     }

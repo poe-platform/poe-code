@@ -140,7 +140,7 @@ fn json(value: Yaml) -> Value {
     }
 }
 
-pub(in super::super) fn blank(s: &str) -> impl Iterator<Item = char> + '_ {
+fn blank(s: &str) -> impl Iterator<Item = char> + '_ {
     s.encode_utf16().map(|c| match c {
         10 => '\n',
         13 => '\r',

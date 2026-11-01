@@ -277,20 +277,6 @@ const EDGE_OPS: &[&str] = &[
     "--x", "--o",
 ];
 
-pub(super) fn position(source: &str, at: &str) -> (usize, usize) {
-    // The statement and token are slices of the original UTF-8 source. Mermaid
-    // reports one-based UTF-16 columns, including indentation and the header.
-    let offset = at.as_ptr() as usize - source.as_ptr() as usize;
-    let before = &source[..offset];
-    let line = 1 + before.bytes().filter(|b| *b == b'\n').count();
-    let column = 1 + before
-        .rsplit('\n')
-        .next()
-        .unwrap_or("")
-        .encode_utf16()
-        .count();
-    (line, column)
-}
 fn identifier_len(s: &str, class: bool) -> usize {
     s.char_indices()
         .find(|&(i, c)| {

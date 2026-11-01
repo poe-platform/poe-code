@@ -10,171 +10,70 @@ pub(in super::super) struct Pie {
     total: f64,
 }
 
-fn diagnostic(source: &str, at: Option<&str>, code: &str, msg: &str) -> String {
-    if let Some(at) = at {
-        let (line, col) = super::position(source, at);
-        format!("mmdc: {code} (line {line}, column {col}): {msg}\n")
-    } else {
-        format!("mmdc: {code}: {msg}\n")
-    }
-}
-fn safe_label(source: &str, at: Option<&str>, label: String) -> Result<String, String> {
-    if let Some(message) = super::scanner::unsafe_label(&label) {
-        return Err(diagnostic(source, at, "E_UNSUPPORTED", &message));
-    }
-    Ok(label)
-}
-
 impl Pie {
     pub(in super::super) fn parse(
-        first_statement: &str,
-        source: &str,
+        stmts: &[super::Statement],
         limit: usize,
     ) -> Result<Self, String> {
+        let mut header = stmts[0].text[3..].trim();
+        let show_data = header.starts_with("showData");
+        if show_data {
+            header = header[8..].trim();
+        }
+        let title = |s: &str| -> Result<String, String> {
+            let s = s.trim();
+            if let Some(msg) = super::scanner::unsafe_label(s) {
+                return Err(format!("mmdc: E_UNSUPPORTED: {msg}\n"));
+            }
+            Ok(s.into())
+        };
         let mut pie = Self {
             title: None,
-            show_data: false,
+            show_data,
             slices: Vec::new(),
             total: 0.,
         };
-        let mut header = true;
-        let mut statement = |stmt: &str| -> Result<(), String> {
-            let stmt = stmt.trim();
-            if stmt.is_empty() {
-                return Ok(());
+        if let Some(raw) = header.strip_prefix("title ") {
+            pie.title = Some(title(raw)?);
+        } else if !header.is_empty() {
+            return Err("mmdc: E_SYNTAX: Invalid pie header\n".into());
+        }
+        for stmt in &stmts[1..] {
+            let text = stmt.text.trim_end();
+            if let Some(raw) = text.strip_prefix("title ") {
+                pie.title = Some(title(raw)?);
+                continue;
             }
-            if header {
-                header = false;
-                let mut tail = stmt.strip_prefix("pie").unwrap_or("").trim();
-                if let Some(after) = tail.strip_prefix("showData") {
-                    pie.show_data = true;
-                    tail = after.trim();
-                }
-                if let Some(title) = tail.strip_prefix("title ") {
-                    pie.title = Some(safe_label(source, None, title.trim().into())?);
-                } else if !tail.is_empty() {
-                    return Err(diagnostic(source, None, "E_SYNTAX", "Invalid pie header"));
-                }
-                return Ok(());
-            }
-            if let Some(title) = stmt.strip_prefix("title ") {
-                pie.title = Some(safe_label(source, None, title.trim().into())?);
-                return Ok(());
-            }
-            let fail = |m| diagnostic(source, Some(stmt), "E_SYNTAX", m);
-            let quote = stmt.as_bytes()[0];
+            let fail = |msg: &str| stmt.error("E_SYNTAX", text, msg);
+            let bytes = text.as_bytes();
+            let quote = bytes[0];
             if !matches!(quote, b'\'' | b'"') {
                 return Err(fail("Pie labels must be quoted"));
             }
-            let end = (1..stmt.len())
-                .find(|&i| stmt.as_bytes()[i] == quote && stmt.as_bytes()[i - 1] != b'\\')
+            let end = (1..bytes.len())
+                .find(|&i| bytes[i] == quote && bytes[i - 1] != b'\\')
                 .ok_or_else(|| fail("Invalid pie slice"))?;
-            let raw = stmt[end + 1..]
+            let raw = text[end + 1..]
                 .trim()
                 .strip_prefix(':')
                 .ok_or_else(|| fail("Invalid pie slice"))?
                 .trim();
-            let radix = if raw.starts_with("0x") || raw.starts_with("0X") {
-                16
-            } else if raw.starts_with("0o") || raw.starts_with("0O") {
-                8
-            } else if raw.starts_with("0b") || raw.starts_with("0B") {
-                2
-            } else {
-                0
-            };
-            let value = if radix == 0 {
-                raw.parse::<f64>().ok()
-            } else {
-                raw[2..]
-                    .chars()
-                    .try_fold(0., |n, c| {
-                        Some(n * f64::from(radix) + f64::from(c.to_digit(radix)?))
-                    })
-                    .filter(|_| raw.len() > 2)
-            };
-            let value = value
-                .filter(|v| v.is_finite() && *v >= 0.)
-                .ok_or_else(|| fail("Pie values must be finite nonnegative numbers"))?;
+            let value = super::number(raw);
+            if raw.is_empty() || !value.is_finite() || value < 0. {
+                return Err(fail("Pie values must be finite nonnegative numbers"));
+            }
             pie.total += value;
             if !pie.total.is_finite() {
-                return Err(diagnostic(
-                    source,
-                    None,
-                    "E_SYNTAX",
-                    "Pie total exceeds numeric range",
-                ));
+                return Err("mmdc: E_SYNTAX: Pie total exceeds numeric range\n".into());
             }
-            let mut label = String::new();
-            let mut chars = stmt[1..end].chars().peekable();
-            while let Some(c) = chars.next() {
-                if c == '\\' && matches!(chars.peek(), Some('n' | '\'' | '"' | '\\')) {
-                    let c = chars.next().unwrap();
-                    label.push(if c == 'n' { '\n' } else { c });
-                } else {
-                    label.push(c);
-                }
-            }
+            let label = super::scanner::label(&text[..=end], stmt, text)?;
             if pie.slices.len() >= limit / 256 {
-                return Err(diagnostic(source, None, "E_LIMIT", "Node limit exceeded"));
+                return Err("mmdc: E_LIMIT: Node limit exceeded\n".into());
             }
-            pie.slices
-                .push((safe_label(source, Some(stmt), label)?, value));
-            Ok(())
-        };
-        let mut quote = None;
-        let mut start = None;
-        let offset = first_statement.as_ptr() as usize - source.as_ptr() as usize;
-        for line in source[offset..].lines() {
-            let base = line.as_ptr() as usize - source.as_ptr() as usize;
-            let b = line.as_bytes();
-            let mut i = 0;
-            while i < b.len() {
-                let ch = b[i];
-                if let Some(q) = quote {
-                    if ch == b'\\' {
-                        i += 2;
-                        continue;
-                    }
-                    if ch == q {
-                        quote = None;
-                    }
-                } else if ch == b';' || (ch == b'%' && b.get(i + 1) == Some(&b'%')) {
-                    if let Some(at) = start.take() {
-                        statement(&source[at..base + i])?;
-                    }
-                    if ch == b'%' {
-                        break;
-                    }
-                } else if !ch.is_ascii_whitespace() {
-                    start.get_or_insert(base + i);
-                    if matches!(ch, b'\'' | b'"') {
-                        quote = Some(ch);
-                    }
-                }
-                i += 1;
-            }
-            if quote.is_none()
-                && let Some(at) = start.take()
-            {
-                statement(&source[at..base + b.len()])?;
-            }
-        }
-        if let Some(at) = start {
-            return Err(diagnostic(
-                source,
-                Some(&source[at..]),
-                "E_SYNTAX",
-                "Unterminated quoted string in diagram source",
-            ));
+            pie.slices.push((label, value));
         }
         if pie.total == 0. {
-            return Err(diagnostic(
-                source,
-                None,
-                "E_SYNTAX",
-                "Pie requires a positive total",
-            ));
+            return Err("mmdc: E_SYNTAX: Pie requires a positive total\n".into());
         }
         Ok(pie)
     }

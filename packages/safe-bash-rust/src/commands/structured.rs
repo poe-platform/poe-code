@@ -29366,34 +29366,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Err(e)=>return err_out(&e,if e.starts_with("mmdc: E_CONFIG:"){2}else{1}),
     };
     let mut directives = Vec::new();
-    let family = mermaid::scanner::family(&src_text);
-    let graph_family = matches!(family, "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph");
-    let statement_family = graph_family || family == "gantt";
-    let scanned = if statement_family || src_text.contains("%%{") {
-        match mermaid::scanner::scan(&src_text, &mut directives) {
-            Ok(stmts) => statement_family.then_some(stmts),
-            Err(message) => return err_out(&message, 1),
-        }
-    } else {
-        None
-    };
-    // Line-oriented families consume the original source, including its diagnostic positions.
-    let masked;
-    let src_text = if !statement_family && !directives.is_empty() {
-        let mut output = String::with_capacity(src_text.len());
-        let mut from = 0;
-        for body in &directives {
-            let at = body.as_ptr() as usize - src_text.as_ptr() as usize - 3;
-            let end = at + body.len() + 6;
-            output.push_str(&src_text[from..at]);
-            output.extend(mermaid::source::blank(&src_text[at..end]));
-            from = end;
-        }
-        output.push_str(&src_text[from..]);
-        masked = output;
-        &masked
-    } else {
-        &src_text
+    let scanned = match mermaid::scanner::scan(&src_text, &mut directives) {
+        Ok(statements) => statements,
+        Err(message) => return err_out(&message, 1),
     };
     let source_config = match metadata.directives(directives, fs.max_input_bytes()) {
         Ok(Some(value)) => mermaid::config::Config::parse(&value, true),
@@ -29413,14 +29388,28 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let source_cfg = source_config.as_ref().unwrap_or(&defaults);
     let mut acc_title = metadata.title.filter(|s|!s.is_empty());
     let mut acc_descr: Option<String> = None;
-    let mut content_lines: Vec<&str> = if let Some(stmts) = &scanned {
-        stmts.iter().map(|stmt| stmt.text.trim_end()).collect()
+    let Some(header) = scanned.first() else {
+        return err_out("mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n", 1);
+    };
+    let first_word = header.text.trim_end().split([' ', '\t', '\r', '\n']).next().unwrap_or("");
+    let graph_family = matches!(first_word,
+        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph"
+    );
+    let native_family = graph_family || matches!(first_word, "pie" | "gantt");
+    if !native_family && !matches!(first_word,
+        "sequenceDiagram" | "classDiagram" | "stateDiagram" | "stateDiagram-v2" | "erDiagram"
+    ) {
+        let reason = format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
+        return err_out(&header.error("E_UNSUPPORTED", &header.text, &reason), 1);
+    }
+    let mut content_lines: Vec<&str> = if native_family {
+        scanned.iter().map(|stmt| stmt.text.trim_end()).collect()
     } else {
         let mut in_descr_block = false;
         let mut descr_lines: Vec<String> = Vec::new();
         let mut content_lines = Vec::new();
-        for raw_line in src_text.lines() {
-            let t = raw_line.trim();
+        for stmt in &scanned {
+            let t = stmt.text.trim_end();
             if in_descr_block {
                 if let Some(before_close) = t.strip_suffix('}') {
                     if !before_close.trim().is_empty() {
@@ -29464,39 +29453,6 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         content_lines
     };
 
-    if content_lines.is_empty() {
-        return err_out("mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n", 1);
-    }
-
-    let first_stmt = &content_lines[0];
-    let first_word = first_stmt
-        .split(|c: char| c.is_whitespace() || c == ';' || c == '[' || c == '{')
-        .next()
-        .unwrap_or("");
-    const VALID_HEADERS: &[&str] = &[
-        "graph",
-        "flowchart",
-        "sequenceDiagram",
-        "classDiagram",
-        "stateDiagram",
-        "stateDiagram-v2",
-        "erDiagram",
-        "pie",
-        "gantt",
-        "journey",
-        "gitGraph",
-        "mindmap",
-        "timeline",
-    ];
-    if !VALID_HEADERS.contains(&first_word) {
-        let reason=format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
-        if let Some(stmt)=scanned.as_ref().and_then(|s|s.first()) {
-            return err_out(&stmt.error("E_UNSUPPORTED",&stmt.text,&reason),1);
-        }
-        let (line,column)=mermaid::position(src_text,first_stmt);
-        return err_out(&format!("mmdc: E_UNSUPPORTED (line {line}, column {column}): {reason}\n"),1);
-    }
-
     let width = cli_width.map(f64::from).or(cfg.width).or(source_cfg.width);
     let height = cli_height.map(f64::from).or(cfg.height).or(source_cfg.height);
     let scale = cli_scale.or(cfg.scale).unwrap_or(1.0);
@@ -29524,24 +29480,24 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 
     let limit = fs.max_input_bytes();
     let pie = if first_word == "pie" {
-        match mermaid::pie::Pie::parse(first_stmt, src_text, limit) {
+        match mermaid::pie::Pie::parse(&scanned, limit) {
             Ok(pie) => Some(pie),
             Err(message) => return err_out(&message, 1),
         }
     } else { None };
     let gantt = if first_word == "gantt" {
-        match mermaid::gantt::Gantt::parse(scanned.as_deref().unwrap_or_default(), &mut acc_title, limit) {
+        match mermaid::gantt::Gantt::parse(&scanned, &mut acc_title, limit) {
             Ok(chart) => Some(chart),
             Err(message) => return err_out(&message, 1),
         }
     } else { None };
-    let graph = if let Some(stmts) = scanned.as_ref().filter(|_| graph_family) {
-        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, cfg.wrapping_width.or(source_cfg.wrapping_width).unwrap_or(200.), limit) {
+    let graph = if graph_family {
+        match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, cfg.wrapping_width.or(source_cfg.wrapping_width).unwrap_or(200.), limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
                 content_lines.clear();
-                for stmt in stmts {
+                for stmt in &scanned {
                     match stmt.read_metadata(&mut acc_title, &mut acc_descr) {
                         Ok(false) => content_lines.push(stmt.text.trim_end()),
                         Ok(true) => (),
@@ -38301,6 +38257,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("gitGraph\ncommit id:", "svg", "mmdc: E_SYNTAX (line 2, column 1): Missing gitGraph attribute value\n"),
             ("gitGraph\ncommit id: \"<img>\"", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
             ("gitGraph\ncheckout bad", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unknown checkout branch\n"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_uses_scanned_statements_to_identify_the_diagram_family() {
+        assert_mermaid_outputs(&[
+            ("gantt[bad]\nA: 2024-01-01, 1d", "svg", "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family 'gantt[bad]'\n"),
+            ("flowchart{dir}\nA --> B", "svg", "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family 'flowchart{dir}'\n"),
+            ("bad%%tail\nA", "svg", "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family 'bad'\n"),
+            ("bad \"hi", "svg", "mmdc: E_SYNTAX (line 1, column 1): Unterminated quoted string in diagram source\n"),
+            ("; ; ;", "svg", "mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n"),
+            ("accTitle: Hi\ninvalid", "svg", "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family 'accTitle:'\n"),
+            ("gantt%%comment\nA: 2024-01-01, 1d", "svg", "f3275b41cf8d77c78eca1cf3b05c245f2b894daa8762b353c129eb0974786755"),
+            ("flowchart%%comment\nA-->B", "svg", "be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
+            ("---\ntitle: 😀\n---\n%%{init: {theme: dark}}%%  bad{family}", "svg", "mmdc: E_UNSUPPORTED (line 4, column 28): Unsupported or unrecognized Mermaid diagram family 'bad{family}'\n"),
+            ("bad foo", "svg", "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family 'bad foo'\n"),
+            (";; gitGraph\ncommit", "svg", "ff994258830ac6d7d7fe1d3d051cc95764d70568076bdffc7e88ced22c262c3a"),
+            (";pie; \"x\":1; \"y\":2", "svg", "c78cac945aff1a90697f5cc1d5d45f9764ddf2bfcfa7aea5aad56510299dfda6"),
+            ("pie\n\"A\r\nB\":2\n\"C\":1", "svg", "24c70a594020a012f5cdca432928d80d11d55e1523efd24b6b9dbda54733ffbf"),
+            ("pie\n  %% one\n    invalid", "svg", "mmdc: E_SYNTAX (line 3, column 5): Pie labels must be quoted\n"),
+            ("pie; %%{init:{theme: dark}}%% \"A\":2", "svg", "e3bf647845aa4aaf6414b269ab3a897f9b7e360ac34ff30dc6f094847bf7c3a2"),
+            ("pie; [x;z] : bad", "svg", "mmdc: E_SYNTAX (line 1, column 6): Pie labels must be quoted\n"),
         ]);
     }
 

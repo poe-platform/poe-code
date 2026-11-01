@@ -240,16 +240,13 @@ pub(super) fn run(
     };
     let fail = |e: &str| Some(err_out(&format!("magick: {e}\n"), 1));
     let kernel = Kernel::Lanczos3;
-    let steps = match [base, overlay].map(|s| magick_stack::Step::input(s, kernel)) {
-        [Ok(base), Ok(overlay)] => [(0, base), (0, overlay)],
-        [Err(e), _] | [_, Err(e)] => return fail(&e),
-    };
+    let steps = [base, overlay].map(|token| (0, magick_stack::Step::Input(token, (1, 1), kernel)));
     let mut images = match magick_stack::evaluate(
         &steps,
         0,
         |_, _, gif| Ok((true, gif)),
-        cwd,
-        fs,
+        fs.max_input_bytes(),
+        |path| fs.read_file(&super::resolve_posix_path(cwd, path)),
         &mut Default::default(),
     ) {
         Ok(images) => images?,

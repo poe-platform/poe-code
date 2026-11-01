@@ -10107,7 +10107,7 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let arg = &args[i];
-                let (base,modifier)=magick_stack::input_spec(arg);
+                let base=magick_stack::input_spec(arg).0;
                 if i + 1 < args.len() && let Some(parsed) = Canvas::parse(base) {
                     if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
                     if base.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
@@ -10115,7 +10115,7 @@ fn cmd_media_doc(
                         Ok(c) => c,
                         Err(e) => return err_out(&format!("magick: {e}\n"), 1),
                     },size_opt.unwrap_or((1,1))));
-                    if let Some((c,size))=canvas { stack_steps.push((ops.len(),magick_stack::Step::Canvas(c,size,modifier,kernel))); }
+                    stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size_opt.unwrap_or((1,1)),kernel)));
                     has_pseudo_input = true;
                     i += 1;
                     continue;
@@ -10276,7 +10276,7 @@ fn cmd_media_doc(
                     a if !a.starts_with('-') && !a.starts_with('+') =>
                     {
                         if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
-                        if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::File(base,modifier,kernel)));}
+                        if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size_opt.unwrap_or((1,1)),kernel)));}
                         pos_files.push(a.to_string());
                         i += 1;
                     }
@@ -10287,7 +10287,7 @@ fn cmd_media_doc(
             }
             let has_writes=stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Write(..)));
             let use_stack=has_writes || (!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
-                magick_stack::Step::Canvas(_,_,m,_)|magick_stack::Step::File(_,m,_)=>!matches!(m,magick_stack::Modifier::None),_=>false,
+                magick_stack::Step::Input(token,_,_)=>magick_stack::tile_pattern(token).is_some() || !matches!(magick_stack::input_spec(token).1,magick_stack::Modifier::None),_=>false,
             }))) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
             let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
                 // GIFs decode to four channels even if they did not declare transparency.
@@ -10343,12 +10343,12 @@ fn cmd_media_doc(
                     };
                     let target;
                     let steps=if is_mogrify {
-                        target=std::iter::once((0,magick_stack::Step::File(input,magick_stack::Modifier::None,kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)|magick_stack::Step::Write(..)))).collect::<Vec<_>>();
+                        target=std::iter::once((0,magick_stack::Step::Input(input,(1,1),kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)|magick_stack::Step::Write(..)))).collect::<Vec<_>>();
                         &target[..]
                     } else { &stack_steps[..] };
                     let mut snapshots=magick_stack::Snapshots::default();
                     let limit=fs.max_input_bytes();
-                    let mut images=match magick_stack::evaluate(steps,ops.len(),transform,cwd,fs,&mut snapshots) {
+                    let mut images=match magick_stack::evaluate(steps,ops.len(),transform,limit,|path|fs.read_file(&resolve_posix_path(cwd,path)),&mut snapshots) {
                         Ok(Some(images))=>images, Ok(None)=>return None,
                         Err(e)=>{
                             let saved=snapshots.publish(cwd,fs);
@@ -10708,14 +10708,15 @@ fn cmd_media_doc(
             let destination=png_pixels::destination(out_rel);
             for p in in_paths {
                 let kernel=magick_resize::Kernel::Lanczos3;
+                let base=magick_stack::input_spec(magick_stack::tile_pattern(p).unwrap_or(p)).0;
+                let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
+                let full=resolve_posix_path(cwd,path);
                 if destination.is_some() {
-                    let step=match magick_stack::Step::input(p,kernel) {
-                        Ok(step)=>step,Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1),
-                    };
+                    let step=magick_stack::Step::Input(p,(1,1),kernel);
                     match magick_stack::evaluate(&[(0,step)],0,|im,_,_|{
                         im.resize(&spec,kernel,limit)?;
                         Ok((false,false))
-                    },cwd,fs,&mut Default::default()) {
+                    },limit,|_|fs.read_file(&full),&mut Default::default()) {
                         Ok(Some(images)) if images.frames.is_empty()=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1),
                         Ok(Some(images))=>{
                             for scene in images.frames {
@@ -10731,9 +10732,6 @@ fn cmd_media_doc(
                         Ok(None)=>{}
                     }
                 }
-                let base=magick_stack::input_spec(p).0;
-                let path=png_pixels::destination(base).map_or(base,|(_,path)|path);
-                let full=resolve_posix_path(cwd,path);
                 let bytes=if Canvas::parse(base).is_some(){Vec::new()}else{
                     match fs.read_file(&full){Ok(bytes)=>bytes,Err(_)=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1)}
                 };
@@ -10847,7 +10845,7 @@ fn cmd_media_doc(
                 return err_out("compare: missing an image filename\n", 2);
             }
             let load_cmp_img = |spec: &str| -> Result<(ImageMeta, Vec<u8>), String> {
-                let base=magick_stack::input_spec(spec).0;
+                let base=magick_stack::tile_operand(spec).0;
                 if let Some(canvas)=Canvas::parse(base) {
                     let [r,g,b,_]=canvas.map_err(|e|format!("compare: {e}\n"))?.pixel(0,0,1,1);
                     let mut ex = BTreeMap::new();
@@ -10887,7 +10885,7 @@ fn cmd_media_doc(
             let default_null = "null:".to_string();
             let out_spec = operands.get(2).unwrap_or(&default_null);
             let raster = |spec: &str, bytes: &[u8]| -> Result<Option<png_pixels::Raster>,String>{
-                let (base,modifier)=magick_stack::input_spec(spec);
+                let (base,modifier,tiles)=magick_stack::tile_operand(spec);
                 let limit=fs.max_input_bytes();
                 let mut im=if let magick_stack::Modifier::Pages(pages)=modifier
                     && png_pixels::still_format(bytes)==Some("gif") {
@@ -10896,6 +10894,7 @@ fn cmd_media_doc(
                     gif::decode(bytes,magick_stack::first_page(pages,count)+1,limit,|_,_|Ok(()))?
                 }else if let Some(im)=png_pixels::Raster::input(base,bytes,limit)? {im}else{return Ok(None)};
                 modifier.geometry(&mut im,magick_resize::Kernel::Lanczos3,limit)?;
+                im.apply_tiles(&tiles,(1,1),magick_resize::Kernel::Lanczos3,limit)?;
                 Ok(Some(im))
             };
             let dest=png_pixels::destination(out_spec);
@@ -14532,6 +14531,24 @@ mod media_unit_tests {
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-00.png").unwrap())),"9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f");
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-02.png").unwrap())),"862e92446a2e54553c1ccd96f66a2d90c7b3ec002fc0c59b89d58f6a725c2960");
+    }
+
+    #[test]
+    fn magick_repeats_tile_pixels_at_the_requested_size() {
+        let fs=MemoryVfs::new();
+        let run=|cmd,args:&str|cmd_media_doc(cmd,&media_args(&args.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("convert","-size 3x2 gradient:red-blue p.png").exit_code,0);
+        assert_eq!(run("convert","-size 4x2 xc:red gradient:blue-yellow xc:green -delay 9 -loop 5 a.gif").exit_code,0);
+        for (cmd,args,status,hash) in [
+            ("convert","-size 7x5 tile:p.png o.png",0,"8e548929f9b9391e7ba19dc648c1010229807fef7ef2a3838f2872a6c5b2906d"),
+            ("composite","tile:a.gif[1] p.png o.png",0,"bafda54ae84735948fb7ac6038380ca6846364f94a09961008aae0539c075473"),
+            ("montage","tile:gradient:red-blue p.png -geometry +0+0 o.png",0,"5337e60ecd803fe42b8f64d67aeca061e2bf343d3d42701fbf0d6c7874a11905"),
+            ("compare","-metric AE tile:xc:green p.png o.png",1,"5f99cae78d1a192b037a48b96865b85b7f990584f46f44351d573c720d446c37"),
+        ] {
+            let r=run(cmd,args);
+            assert_eq!(r.exit_code,status,"{cmd} {args}: {}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{cmd} {args}");
+        }
     }
 
     #[test]

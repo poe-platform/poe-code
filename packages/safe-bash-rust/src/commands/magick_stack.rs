@@ -32,6 +32,56 @@ pub(super) fn input_spec(token: &str) -> (&str, Modifier<'_>) {
     }
 }
 
+pub(super) fn tile_pattern(token: &str) -> Option<&str> {
+    token
+        .get(..5)
+        .filter(|s| s.eq_ignore_ascii_case("tile:"))
+        .map(|_| &token[5..])
+}
+
+pub(super) fn tile_operand(mut token: &str) -> (&str, Modifier<'_>, Vec<Modifier<'_>>) {
+    let mut tiles = Vec::new();
+    loop {
+        let (base, modifier) = input_spec(token);
+        let Some(pattern) = tile_pattern(base) else {
+            return (base, modifier, tiles);
+        };
+        tiles.push(modifier);
+        token = pattern;
+    }
+}
+
+impl Raster {
+    pub(super) fn apply_tiles(
+        &mut self,
+        tiles: &[Modifier],
+        (w, h): (u32, u32),
+        kernel: Kernel,
+        limit: usize,
+    ) -> Result<(), &'static str> {
+        let (w, h) = (w as usize, h as usize);
+        for modifier in tiles.iter().rev() {
+            if w.checked_mul(h).is_none_or(|n| n > limit / 4) {
+                return Err("image exceeds memory budget");
+            }
+            if self.width == 0 || self.height == 0 {
+                return Err("Invalid stored image dimensions");
+            }
+            if (w, h) != (self.width, self.height) {
+                self.remap(w, h, |im, x, y| {
+                    im.pixels[(y % im.height) * im.width + x % im.width]
+                });
+            }
+            self.alpha = true;
+            self.gray = false;
+            self.density = 72;
+            self.orientation = None;
+            modifier.geometry(self, kernel, limit)?;
+        }
+        Ok(())
+    }
+}
+
 fn integer(s: &str) -> bool {
     let s = s.strip_prefix('-').unwrap_or(s);
     !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit())
@@ -43,7 +93,12 @@ fn range(s: &str) -> Option<(&str, &str)> {
 }
 
 impl Modifier<'_> {
-    pub fn geometry(self, im: &mut Raster, kernel: Kernel, limit: usize) -> Result<(), &'static str> {
+    pub fn geometry(
+        self,
+        im: &mut Raster,
+        kernel: Kernel,
+        limit: usize,
+    ) -> Result<(), &'static str> {
         match self {
             Self::Crop(g) if im.width != 0 && im.height != 0 => {
                 im.crop(Geometry::parse(g), Gravity::parse("northwest"))
@@ -59,21 +114,10 @@ impl Modifier<'_> {
 
 #[derive(Clone, Copy)]
 pub(super) enum Step<'a> {
-    Canvas(Canvas, (u32, u32), Modifier<'a>, Kernel),
-    File(&'a str, Modifier<'a>, Kernel),
+    Input(&'a str, (u32, u32), Kernel),
     Write(&'a str, f64, bool),
     Edit(&'a str, &'a str, usize),
     Append(bool, Gravity, [u8; 4]),
-}
-
-impl<'a> Step<'a> {
-    pub fn input(token: &'a str, kernel: Kernel) -> Result<Self, String> {
-        let (base, modifier) = input_spec(token);
-        Ok(match Canvas::parse(base) {
-            Some(canvas) => Self::Canvas(canvas?, (1, 1), modifier, kernel),
-            None => Self::File(base, modifier, kernel),
-        })
-    }
 }
 
 struct SourceTiming {
@@ -281,14 +325,14 @@ impl Images {
     }
 }
 
-fn page_index(s:&str,len:usize)->usize {
-    let n=s.parse::<f64>().unwrap_or(f64::INFINITY);
-    (if n<0. {len as f64+n} else {n}).clamp(0.,len.saturating_sub(1) as f64) as usize
+fn page_index(s: &str, len: usize) -> usize {
+    let n = s.parse::<f64>().unwrap_or(f64::INFINITY);
+    (if n < 0. { len as f64 + n } else { n }).clamp(0., len.saturating_sub(1) as f64) as usize
 }
 
-pub(super) fn first_page(spec:&str,len:usize)->usize {
-    let first=spec.split(',').next().unwrap_or(spec);
-    page_index(range(first).map_or(first,|(a,_)|a),len)
+pub(super) fn first_page(spec: &str, len: usize) -> usize {
+    let first = spec.split(',').next().unwrap_or(spec);
+    page_index(range(first).map_or(first, |(a, _)| a), len)
 }
 
 fn indices(spec: &str, len: usize, limit: usize, clamp: bool) -> Result<Vec<usize>, &'static str> {
@@ -299,7 +343,7 @@ fn indices(spec: &str, len: usize, limit: usize, clamp: bool) -> Result<Vec<usiz
     let resolve = |v: f64| if v < 0. { len as f64 + v } else { v };
     for part in spec.split(',').map(str::trim) {
         if let Some((a, b)) = range(part) {
-            let (a,b)=(page_index(a,len),page_index(b,len));
+            let (a, b) = (page_index(a, len), page_index(b, len));
             if out.len().saturating_add(a.abs_diff(b) + 1) > limit / size_of::<usize>() {
                 return Err("frame index exceeds memory budget");
             }
@@ -339,49 +383,60 @@ pub(super) fn evaluate(
     steps: &[(usize, Step)],
     end: usize,
     transform: impl Fn(&mut Raster, Range<usize>, bool) -> Result<(bool, bool), &'static str>,
-    cwd: &str,
-    fs: &dyn SafeBashFs,
+    limit: usize,
+    read_file: impl Fn(&str) -> Result<Vec<u8>, String>,
     snapshots: &mut Snapshots,
 ) -> Result<Option<Images>, String> {
-    let limit = fs.max_input_bytes();
     // Defer each image's pixel operations until the next append. Later inputs
     // don't see operations that occurred before they joined the stack.
     let mut stack: Vec<(Rc<Scene>, usize)> = Vec::new();
     let mut retained = 0usize;
     for (at, step) in steps {
         let first = stack.len();
-        let mut push = |im: Raster, format, timing| {
-            retained = retained
-                .saturating_add(im.pixels.len().saturating_mul(4))
-                .saturating_add(size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>());
-            if retained > limit {
-                return Err("image exceeds memory budget");
-            }
-            stack.push((
-                Rc::new(Scene {
-                    image: im,
-                    format,
-                    png_alpha: false,
-                    timing,
-                }),
-                *at,
-            ));
-            Ok(())
-        };
         match step {
-            Step::Canvas(canvas, size, modifier, kernel) => {
-                let mut im = canvas.raster(*size, limit)?;
-                modifier.geometry(&mut im, *kernel, limit)?;
-                push(im, "png", None)?;
-            }
-            Step::File(spec, modifier, kernel) => {
-                let path = super::png_pixels::destination(spec).map_or(*spec, |(_, path)| path);
+            Step::Input(token, size, kernel) => {
+                let (spec, modifier, tiles) = tile_operand(token);
+                let mut push = |mut im: Raster, format, timing| {
+                    modifier.geometry(&mut im, *kernel, limit)?;
+                    im.apply_tiles(&tiles, *size, *kernel, limit)?;
+                    let (format, timing) = if tiles.is_empty() {
+                        (format, timing)
+                    } else {
+                        ("png", None)
+                    };
+                    retained = retained
+                        .saturating_add(im.pixels.len().saturating_mul(4))
+                        .saturating_add(size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>());
+                    if retained > limit {
+                        return Err("image exceeds memory budget");
+                    }
+                    stack.push((
+                        Rc::new(Scene {
+                            image: im,
+                            format,
+                            png_alpha: false,
+                            timing,
+                        }),
+                        *at,
+                    ));
+                    Ok(())
+                };
+                if let Some(canvas) = Canvas::parse(spec) {
+                    let size = if spec.eq_ignore_ascii_case("null:") {
+                        (1, 1)
+                    } else {
+                        *size
+                    };
+                    push(canvas?.raster(size, limit)?, "png", None)?;
+                    continue;
+                }
+                let path = super::png_pixels::destination(spec).map_or(spec, |(_, path)| path);
                 let from_disk;
                 let bytes =
                     if let Some((_, data)) = snapshots.files.get(path).filter(|_| path != "-") {
                         data
                     } else {
-                        match fs.read_file(&resolve_posix_path(cwd, path)) {
+                        match read_file(path) {
                             Ok(data) => {
                                 from_disk = data;
                                 &from_disk
@@ -414,8 +469,7 @@ pub(super) fn evaluate(
                     unique.sort_unstable();
                     unique.dedup();
                     let source = Rc::new(SourceTiming { delays, repeat });
-                    gif::scenes(bytes, &unique, limit, |mut im| {
-                        modifier.geometry(&mut im, *kernel, limit)?;
+                    gif::scenes(bytes, &unique, limit, |im| {
                         push(im, "gif", Some(source.clone()))
                     })?;
                     if let Some(selected) = selected {
@@ -427,8 +481,7 @@ pub(super) fn evaluate(
                         );
                     }
                 } else if let Some(format) = format {
-                    let mut im = Raster::decode(bytes, limit)?;
-                    modifier.geometry(&mut im, *kernel, limit)?;
+                    let im = Raster::decode(bytes, limit)?;
                     push(im, format, None)?;
                     if let Modifier::Pages(spec) = modifier {
                         order = Some(indices(spec, 1, limit, true)?);

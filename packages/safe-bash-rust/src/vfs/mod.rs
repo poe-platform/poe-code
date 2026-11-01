@@ -29,6 +29,15 @@ pub enum EntryIdentity {
     Unix(u64, u64),
 }
 
+impl EntryIdentity {
+    pub(crate) fn same_filesystem(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Memory(a, _), Self::Memory(b, _)) | (Self::Unix(a, _), Self::Unix(b, _)) => a == b,
+            _ => false,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FileStat {
     pub nlink: usize,

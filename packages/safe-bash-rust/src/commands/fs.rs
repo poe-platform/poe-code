@@ -1116,6 +1116,8 @@ struct CopyLinks {
 
 #[derive(Default)]
 struct CopySettings {
+    one_file_system: bool,
+    root_identity: Option<EntryIdentity>,
     links: Option<CopyLinks>,
     symbolic_cwd: Option<String>,
     hard_link: bool,
@@ -1349,7 +1351,11 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         if publish && created {
             fs.mkdir_one(&target, mode | 0o700).map_err(|e| copy_error(&e, "mkdir", dst))?;
         }
-        let copied = fs.list_dir(&source).map_err(|e| copy_error(&e, "readdir", src)).and_then(|mut names| {
+        if settings.one_file_system && ancestors.len() == 1 { settings.root_identity = st.identity.clone(); }
+        let crosses_device = settings.one_file_system && ancestors.len() > 1 && settings.root_identity.as_ref()
+            .zip(st.identity.as_ref()).is_some_and(|(root, child)| !root.same_filesystem(child));
+        let children = if crosses_device { Ok(Vec::new()) } else { fs.list_dir(&source) };
+        let copied = children.map_err(|e| copy_error(&e, "readdir", src)).and_then(|mut names| {
             names.sort_unstable_by(|a, b| a.encode_utf16().cmp(b.encode_utf16()));
             for name in names {
                 let display_names = (settings.links.is_some() || settings.symbolic_cwd.is_some() || matches!(&pass, CopyPass::Publish(r) if r.verbose || r.answers.is_some()))
@@ -1515,7 +1521,7 @@ fn cmd_cp(
             } else if a == "--attributes-only" {
                 settings.attributes_only = true;
             } else if a == "--one-file-system" {
-                // -x
+                settings.one_file_system = true;
             } else if a == "--recursive" {
                 settings.recursive = true;
             } else if let Some(ctrl) = a.strip_prefix("--backup=") {
@@ -1534,7 +1540,7 @@ fn cmd_cp(
                         'i' => overwrite = Some('i'),
                         'f' => settings.force = true,
                         'p' => { settings.mode = true; settings.timestamps = true; }
-                        'x' => {}
+                        'x' => settings.one_file_system = true,
                         'u' => settings.update_only = true,
                         'l' => hard_link = true,
                         's' => sym_link = true,
@@ -4648,18 +4654,14 @@ fn cmd_du(
                     };
                     let is_dir = stat.kind == crate::vfs::VfsEntryKind::Directory;
                     if one_fs && is_dir {
-                        let device = stat.identity.as_ref().map(|id| match id {
-                            crate::vfs::EntryIdentity::Memory(dev, _) => (true, *dev),
-                            crate::vfs::EntryIdentity::Unix(dev, _) => (false, *dev),
-                        });
-                        if depth == 0 { root_device = device; }
-                        if root_device.is_none() || device.is_none() {
+                        if depth == 0 { root_device = stat.identity.clone(); }
+                        let Some((root, device)) = root_device.as_ref().zip(stat.identity.as_ref()) else {
                             failure("device identity unknown; cannot restrict traversal to one filesystem");
                             if let Some((amount, _)) = dirs.last_mut() { *amount = None; }
                             total = None;
                             continue;
-                        }
-                        if device != root_device { continue; }
+                        };
+                        if !root.same_filesystem(device) { continue; }
                     }
                     if is_dir && stat.identity.as_ref().is_some_and(|id| ancestors.contains(id)) {
                         failure("directory cycle detected");
@@ -7196,6 +7198,25 @@ mod tests {
         let r = cmd_cp(&args(&["--preserve=links", "/first", "/second", "/dst"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(r.stderr, "cp: ENOTSUP: operation not supported, cp '/dst/first'\n");
         assert!(!fs.exists("/dst/first"));
+    }
+
+    #[test]
+    fn copy_one_file_system_keeps_mount_directories_and_resets_the_boundary_per_operand() {
+        let root = MemoryVfs::new();
+        root.write_file("/src/plain", b"root").unwrap();
+        root.mkdir_all("/dst").unwrap();
+        let other = MemoryVfs::new();
+        other.write_file("/nested/data", b"mounted").unwrap();
+        let fs = crate::vfs::MountVfs::new(std::sync::Arc::new(root))
+            .with_mount("/src/volume", std::sync::Arc::new(other));
+        for flag in ["-Rx", "--one-file-system"] {
+            let r = cmd_cp(&args(&[flag, "-av", "/src", "/src/volume", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(fs.read_file("/dst/src/plain").unwrap(), b"root");
+            assert_eq!(fs.read_file("/dst/volume/nested/data").unwrap(), b"mounted");
+            assert!(fs.list_dir("/dst/src/volume").unwrap().is_empty());
+            assert!(r.stdout.contains("'/src/volume' -> '/dst/src/volume'"));
+        }
     }
 
     #[test]

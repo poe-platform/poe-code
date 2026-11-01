@@ -195,6 +195,9 @@ impl Theme<'_> {
             "shadowColor" => base("rgba(15, 23, 42, 0.06)", "rgba(0, 0, 0, 0.35)"),
             "groupSurface" => base("#f1f5f980", "#0f172a99"),
             "groupHeaderSurface" => base("#e2e8f080", "#1e293b"),
+            "noteSurface" => base("#fefce8", "#422006"),
+            "noteBorder" => base("#facc15", "#ca8a04"),
+            "noteText" => base("#713f12", "#fef08a"),
             "edgeLabelBorder" => base("#e2e8f0", "#334155"),
             "accent" => match self.mode {
                 "dark" => "#60a5fa",

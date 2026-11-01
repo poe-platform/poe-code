@@ -484,6 +484,7 @@ impl Pill {
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) struct Graph<'a> {
     edge_id: fn(usize) -> String,
+    notes: Vec<state::Note>,
     groups: Vec<Group>,
     nodes: Vec<Node>,
     edges: Vec<Edge<'static>>,
@@ -497,6 +498,7 @@ pub(super) struct Graph<'a> {
 impl Graph<'static> {
     fn core(wrapping_width: f64, limit: usize) -> Self {
         Self {
+            notes: Vec::new(),
             edge_id: |i| format!("edge_{i}"),
             dir: "LR",
             nodes: Vec::new(),
@@ -750,6 +752,7 @@ pub(super) fn parse<'a>(
         return None;
     }
     Some(Ok(Graph {
+        notes: Vec::new(),
         edge_id: |i| format!("edge_{}", i + 1),
         groups,
         nodes,
@@ -772,6 +775,7 @@ pub(super) fn layout(
     limit: usize,
 ) -> Option<Result<Scene, String>> {
     let Graph {
+        mut notes,
         edge_id,
         mut groups,
         mut nodes,
@@ -852,6 +856,9 @@ pub(super) fn layout(
     if let Err(error) = groups::verify(&groups, &group_order, &nodes, &positions, edge_id, limit) {
         return Some(Err(error));
     }
+    if let Err(e) = state::place_notes(&mut notes, &nodes, &groups, &positions, &waypoints, limit) {
+        return Some(Err(e));
+    }
     let (mut min_x, mut min_y, mut max_x, mut max_y) = (
         f64::INFINITY,
         f64::INFINITY,
@@ -875,6 +882,10 @@ pub(super) fn layout(
         include(x - 4., y - 4., 8., 8.);
     }
     for &[x, y, w, h] in positions.iter().flatten() {
+        include(x, y, w, h);
+    }
+    for n in &notes {
+        let [x, y, w, h] = n.bounds;
         include(x, y, w, h);
     }
     if !min_x.is_finite() {
@@ -1290,6 +1301,18 @@ pub(super) fn layout(
     scene.elements.extend(pills);
     scene.paint.extend(edge_paint);
     scene.paint.extend(pill_paint);
+    for (i, n) in notes.into_iter().enumerate() {
+        if let Err(e) = n.paint(
+            i + 1,
+            (dx, dy),
+            prefix,
+            theme,
+            &mut styles.budget,
+            &mut scene,
+        ) {
+            return Some(Err(e));
+        }
+    }
     Some(Ok(scene))
 }
 

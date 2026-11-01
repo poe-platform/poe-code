@@ -31,14 +31,11 @@ pub(super) fn parse(
     secondary: f64,
     limit: usize,
 ) -> Option<Result<Graph<'static>, String>> {
-    // Keep the existing rendering path for notes and composite diagrams until their layout is supported.
-    if lines[1..].iter().any(|s| {
-        s.text.trim_end().ends_with('{')
-            || s.text
-                .split_ascii_whitespace()
-                .next()
-                .is_some_and(|w| w.eq_ignore_ascii_case("note"))
-    }) {
+    // Composite transitions still use the existing rendering path.
+    if lines[1..]
+        .iter()
+        .any(|s| s.text.trim_end().ends_with('{') && !s.text.contains("-->"))
+    {
         return None;
     }
     Some(flat(lines, wrapping, secondary, limit))
@@ -54,7 +51,8 @@ fn flat(
     graph.dir = "TD";
     graph.edge_id = |i| format!("state_edge_{}", i + 1);
     let mut ids = BTreeMap::<String, usize>::new();
-    for stmt in &lines[1..] {
+    let mut stmts = lines[1..].iter();
+    while let Some(stmt) = stmts.next() {
         let text = stmt.text.trim_end();
         let fail = |s: &str| stmt.error("E_SYNTAX", text, s);
         let mut ensure = |nodes: &mut Vec<Node>,
@@ -108,6 +106,63 @@ fn flat(
                 "BT" => "BT",
                 other => return Err(fail(&format!("Invalid stateDiagram direction '{other}'"))),
             };
+        } else if kw.eq_ignore_ascii_case("note") {
+            let colon = outside(body, |s| s.starts_with(':'));
+            let header = body[..colon.unwrap_or(body.len())].trim_ascii();
+            let lower = header.to_ascii_lowercase();
+            let (left, target) = if lower.starts_with("left of ") {
+                (true, &header[8..])
+            } else if lower.starts_with("right of ") {
+                (false, &header[9..])
+            } else {
+                return Err(fail(&format!(
+                    "Invalid stateDiagram note header '{header}' (expected 'left of <State>' or 'right of <State>')"
+                )));
+            };
+            let target = ensure(&mut graph.nodes, target, None, None)?;
+            let joined;
+            let contents = if let Some(i) = colon {
+                strip_quotes(&body[i + 1..])
+            } else {
+                let mut body = Vec::new();
+                loop {
+                    let line = stmts
+                        .next()
+                        .ok_or_else(|| fail("Unclosed multi-line note block (missing 'end note')"))?
+                        .text
+                        .trim_end();
+                    if line.eq_ignore_ascii_case("end note") || line.eq_ignore_ascii_case("endnote")
+                    {
+                        break;
+                    }
+                    body.push(line);
+                }
+                joined = body.join("\n");
+                &joined
+            };
+            check_label(contents, stmt, text)?;
+            let (lines, width) =
+                super::text_block(contents, secondary, false, wrapping, graph.remaining_lines)
+                    .ok_or(BUDGET)?;
+            graph.remaining_lines = graph
+                .remaining_lines
+                .checked_sub(lines.len().max(1))
+                .ok_or(BUDGET)?;
+            if width.max(lines.len() as f64 * 16.) > f64::from(i32::MAX / 16) {
+                return Err(BUDGET.into());
+            }
+            graph.notes.push(Note {
+                target,
+                left,
+                bounds: [
+                    0.,
+                    0.,
+                    super::snap(width + 28.).max(96).into(),
+                    super::snap(lines.len() as f64 * 16. + 16.).max(36).into(),
+                ],
+                lines,
+                size: secondary,
+            });
         } else if kw.eq_ignore_ascii_case("state") {
             let mut body = body;
             let mut shape = None;
@@ -206,4 +261,136 @@ fn flat(
         }
     }
     Ok(graph)
+}
+
+const BUDGET: &str = "mmdc: E_LIMIT: Render work budget exceeded\n";
+pub(super) struct Note {
+    pub target: usize,
+    left: bool,
+    pub bounds: [f64; 4],
+    lines: Vec<String>,
+    size: f64,
+}
+
+pub(super) fn place_notes(
+    notes: &mut [Note],
+    nodes: &[Node],
+    groups: &[super::Group],
+    pills: &[Option<[f64; 4]>],
+    paths: &[Vec<super::route::Point>],
+    mut work: usize,
+) -> Result<(), String> {
+    if notes.is_empty() {
+        return Ok(());
+    }
+    let mut obstacles = Vec::new();
+    obstacles.extend(
+        nodes
+            .iter()
+            .map(|n| ([n.x, n.y, n.w, n.h].map(f64::from), 24.)),
+    );
+    obstacles.extend(groups.iter().map(|g| (g.header(), 10.)));
+    obstacles.extend(pills.iter().flatten().map(|&b| (b, 12.)));
+    for path in paths {
+        for segment in path.windows(2) {
+            let ((x, y), (a, b)) = (segment[0], segment[1]);
+            obstacles.push((
+                [
+                    x.min(a),
+                    y.min(b),
+                    (x - a).abs().max(1.),
+                    (y - b).abs().max(1.),
+                ],
+                12.,
+            ));
+        }
+    }
+    for n in notes {
+        let target = &nodes[n.target];
+        let [_, _, w, h] = n.bounds;
+        let mut x = target.x as f64
+            + if n.left {
+                -w - 32.
+            } else {
+                f64::from(target.w) + 32.
+            };
+        loop {
+            n.bounds = [x, target.y.into(), w, h];
+            work = work.checked_sub(obstacles.len()).ok_or(BUDGET)?;
+            if !obstacles
+                .iter()
+                .any(|&(b, gap)| super::labels::overlaps(n.bounds, b, gap))
+            {
+                break;
+            }
+            x += if n.left { -36. } else { 36. };
+        }
+        obstacles.push((n.bounds, 16.));
+    }
+    Ok(())
+}
+
+impl Note {
+    pub fn paint(
+        self,
+        id: usize,
+        (dx, dy): (i32, i32),
+        prefix: &str,
+        theme: &super::config::Theme,
+        budget: &mut usize,
+        scene: &mut super::Scene,
+    ) -> Result<(), String> {
+        use super::{
+            esc,
+            raster::{BoxStyle, Paint},
+        };
+        use std::fmt::Write;
+        let [x, y, w, h] = self.bounds;
+        let (x, y) = (x + f64::from(dx), y + f64::from(dy));
+        let (fill, fill_rgba) = theme.color("noteSurface");
+        let (border, stroke) = theme.color("noteBorder");
+        let (color, rgba) = theme.color("noteText");
+        let font = &theme.font;
+        let count = self.lines.iter().filter(|s| !s.is_empty()).count();
+        super::config::charge_attributes(
+            budget,
+            &[(fill, 1), (border, 1), (font, count), (color, count)],
+        )?;
+        scene.paint.push(Paint::Box {
+            bounds: [x, y, w, h],
+            shape: Shape::Rounded,
+            shadow: Some(theme.color("shadowColor").1),
+            style: BoxStyle {
+                header: None,
+                radius: 6.,
+                fill: fill_rgba,
+                border: stroke,
+                thickness: 1.25,
+            },
+        });
+        let mut el = format!(
+            r#"<g class="mmdc-note" data-id="state_note_{id}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="6" fill="{fill}" stroke="{border}" stroke-width="1.25" filter="url(#{prefix}mmdc-shadow)"/>"#
+        );
+        let size = self.size;
+        for (i, text) in self
+            .lines
+            .into_iter()
+            .enumerate()
+            .filter(|(_, s)| !s.is_empty())
+        {
+            let (x, y) = (x + 14., y + 19. + i as f64 * 16.);
+            write!(el,r#"<text x="{x}" y="{y}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="start">{}</text>"#,super::nonnegative_number(size),esc(&text)).unwrap();
+            scene.paint.push(Paint::Text {
+                start: x,
+                baseline: y,
+                size,
+                weight: 500,
+                color: rgba,
+                text,
+            });
+        }
+        el.push_str("</g>");
+        scene.elements.push(el);
+        Ok(())
+    }
 }

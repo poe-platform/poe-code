@@ -38406,6 +38406,22 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_places_state_notes_and_reports_invalid_notes() {
+        assert_mermaid_outputs(&[
+            ("stateDiagram-v2\nA --> B\nnote left of A : before\nnote right of B: after", "svg", "92daf71fb35300d50b34a52ea6e9dca21c798597dd3352ed33a5ed00a2eb6151"),
+            ("stateDiagram-v2\nstate X\nnote right of X\nhello\nworld\nend note", "svg", "3e05062ec41dfb4127ef25fb1305434e93011e3071468d3391b4cb7c2f5c424a"),
+            ("stateDiagram-v2\nnote left of A : \"a: b\"", "svg", "415f5b812c99a9d6bb8eeaae389e08bebdf575294359776de577f58f2db77e41"),
+            ("stateDiagram-v2\nnote above X: hello", "svg", "mmdc: E_SYNTAX (line 2, column 1): Invalid stateDiagram note header 'above X' (expected 'left of <State>' or 'right of <State>')\n"),
+            ("stateDiagram-v2\nnote right of B\nHello", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unclosed multi-line note block (missing 'end note')\n"),
+            ("stateDiagram-v2\nnote left of A: <img src=1>", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("stateDiagram-v2\nA --> B: Fire\nnote left of A: note one\nnote left of A: note two\nnote right of B: note three", "svg", "c77caabaaa413eaee01a98767da7f2956e2ec6bacacd8207c891998fc311b438"),
+            ("stateDiagram-v2\nA --> B: Fire\nnote left of A: note one\nnote left of A: note two\nnote right of B: note three", "png", "0137aa342c4367d5bd922b102289d1bac6abc82848881e16a82d1213339a19b0"),
+            ("stateDiagram-v2\nA --> B: Fire\nnote left of A: note one\nnote left of A: note two\nnote right of B: note three", "pdf", "870244b7c97636d9e70de5cab83291056d8f89e4d10f1a1da01b3d3535e81592"),
+            ("stateDiagram-v2\nnote left of B\nendnote", "svg", "8216286288d232475a3ee751f26315d0b64673a27aa4fbfdd4688a5ccadba7c3"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

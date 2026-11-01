@@ -5097,9 +5097,7 @@ fn cmd_media_doc(
                     None => format!("{name}: Invalid data found when processing input or format AST not registered"),
                 });
             };
-            if matches!(container,"mp4" | "mov") && !raw_bytes.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:") && let Err(reason)=mp4::movie(&raw_bytes) {
-                return ffprobe_err(reason);
-            }
+            let real_mp4=matches!(container,"mp4" | "mov") && !raw_bytes.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
             if container == "wav" {
                 if !raw_bytes.starts_with(b"RIFF") || raw_bytes.get(8..12) != Some(b"WAVE") {
                     return ffprobe_err("Invalid WAV file: missing RIFF WAVE signature");
@@ -5108,12 +5106,18 @@ fn cmd_media_doc(
                     return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
                 }
             }
-            if matches!(container, "aac" | "y4m") {
-                let clip = if container == "aac" {
-                    Ok(media_probe::Clip::adts(&raw_bytes, requested.contains("packet") || requested.contains("frame")))
-                } else { media_probe::Clip::y4m(&raw_bytes) };
+            if real_mp4 || matches!(container, "aac" | "y4m") {
+                let records=requested.contains("packet") || requested.contains("frame");
                 let opts=media_probe::ProbeOptions {show:requested, entries:entry_filter, select:select_streams.as_deref(), counts:(count_frames,count_packets),
                     writer:&writer, settings:&settings, limit:fs.shell_limits().max_output_bytes};
+                if real_mp4 {
+                    return match mp4::report(&raw_bytes,name,opts) {
+                        Ok(output)=>ok_out(&output),Err(reason)=>ffprobe_err(&reason),
+                    };
+                }
+                let clip = if container == "aac" {
+                    Ok(media_probe::Clip::adts(&raw_bytes, records))
+                } else { media_probe::Clip::y4m(&raw_bytes) };
                 return match clip.and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
                     Ok(output)=>ok_out(&output), Err(reason)=>ffprobe_err(reason),
                 };
@@ -12812,6 +12816,19 @@ mod media_unit_tests {
             let r = cmd_media_doc("ffprobe",&args,"YUV4MPEG2 W2 H2 F25:1\nFRAME\n111111","/",&fs);
             assert_eq!((r.exit_code,r.stdout,r.stderr),(0,format!("1\n{path}\n"),String::new()));
         }
+    }
+
+    #[test]
+    fn ffprobe_reads_mp4_tracks_and_samples() {
+        // Three 6x4 AVC frames at 4 fps and a stereo AAC track, from createSyntheticMp4.
+        let fs=MemoryVfs::new();
+        fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let run=|args:&[&str]| cmd_media_doc("ffprobe",&media_args(args),"","/",&fs);
+        let probe=run(&["-count_frames","-show_entries","stream=index,codec_name,width,height,duration,nb_frames,nb_read_frames:format=size,format_name","-of","csv=p=0","av.mp4"]);
+        assert_eq!((probe.exit_code,probe.stdout,probe.stderr),(0,"0,h264,6,4,0.750000,3,3\n1,aac,0.750000,33,33\n\"mov,mp4,m4a,3gp,3g2,mj2\",2883\n".into(),String::new()));
+        let packets=run(&["-show_packets","-show_entries","packet=stream_index,pts,size,pos","-of","csv=p=0","av.mp4"]);
+        assert_eq!(packets.stdout.lines().take(4).collect::<Vec<_>>(), ["0,0,395,0","0,22500,394,395","0,45000,394,789","1,0,6,0"]);
+        assert_eq!(packets.stdout.lines().count(),36);
     }
 
     #[test]

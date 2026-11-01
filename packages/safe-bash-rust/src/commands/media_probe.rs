@@ -68,15 +68,35 @@ impl Clip {
     }
 }
 
-type Row = Vec<(&'static str, JVal)>;
+pub(super) type Row = Vec<(&'static str, JVal)>;
 use JVal::{Number, Object, Str};
 
-fn ratio(a: u64, b: u64, sep: char) -> String {
+pub(super) fn ratio(a: u64, b: u64, sep: char) -> String {
     let (mut x, mut y) = (a, b);
     while y != 0 {
         (x, y) = (y, x % y);
     }
     format!("{}{sep}{}", a / x, b / x)
+}
+
+pub(super) fn disposition(enabled: bool) -> Vec<(String, JVal)> {
+    [
+        "default",
+        "dub",
+        "original",
+        "comment",
+        "lyrics",
+        "karaoke",
+        "forced",
+        "hearing_impaired",
+        "visual_impaired",
+        "clean_effects",
+        "attached_pic",
+        "timed_thumbnails",
+    ]
+    .into_iter()
+    .map(|k| (k.to_owned(), Number(f64::from(enabled && k == "default"))))
+    .collect()
 }
 
 impl Clip {
@@ -88,23 +108,6 @@ impl Clip {
         } else {
             ratio(self.timescale.into(), self.ticks, '/')
         };
-        let disposition = [
-            "default",
-            "dub",
-            "original",
-            "comment",
-            "lyrics",
-            "karaoke",
-            "forced",
-            "hearing_impaired",
-            "visual_impaired",
-            "clean_effects",
-            "attached_pic",
-            "timed_thumbnails",
-        ]
-        .into_iter()
-        .map(|k| (k.to_owned(), Number(f64::from(k == "default"))))
-        .collect();
         let mut row = vec![("index", Number(0.)), ("id", Str("0x1".into()))];
         match self.track {
             Track::Y4m { width, height, .. } => row.extend([
@@ -163,7 +166,7 @@ impl Clip {
                 }),
             ),
             ("nb_frames", Str(self.count.to_string())),
-            ("disposition", Object(disposition)),
+            ("disposition", Object(disposition(true))),
             ("tags", Object(vec![("language".into(), Str("und".into()))])),
         ]);
         if count_frames {
@@ -181,26 +184,7 @@ impl Clip {
             Track::Aac { .. } => ("aac", "raw ADTS AAC (Advanced Audio Coding)"),
             Track::Y4m { .. } => ("yuv4mpegpipe", "YUV4MPEG pipe"),
         };
-        vec![
-            ("filename", Str(filename.into())),
-            ("nb_streams", Number(1.)),
-            ("nb_programs", Number(0.)),
-            ("format_name", Str(name.into())),
-            ("format_long_name", Str(long_name.into())),
-            ("start_time", Str("0.000000".into())),
-            ("duration", Str(format!("{duration:.6}"))),
-            ("size", Str(bytes.to_string())),
-            (
-                "bit_rate",
-                Str(if duration == 0. {
-                    "0".into()
-                } else {
-                    (bytes as f64 * 8. / duration).round().to_string()
-                }),
-            ),
-            ("probe_score", Number(100.)),
-            ("tags", Object(vec![])),
-        ]
+        format_row(filename, bytes, (name, long_name), 1, duration, vec![])
     }
 
     fn record(&self, i: usize, frame: bool) -> Row {
@@ -264,6 +248,36 @@ impl Clip {
     }
 }
 
+pub(super) fn format_row(
+    filename: &str,
+    bytes: usize,
+    (name, long_name): (&str, &str),
+    tracks: usize,
+    duration: f64,
+    tags: Vec<(String, JVal)>,
+) -> Row {
+    vec![
+        ("filename", Str(filename.into())),
+        ("nb_streams", Number(tracks as f64)),
+        ("nb_programs", Number(0.)),
+        ("format_name", Str(name.into())),
+        ("format_long_name", Str(long_name.into())),
+        ("start_time", Str("0.000000".into())),
+        ("duration", Str(format!("{duration:.6}"))),
+        ("size", Str(bytes.to_string())),
+        (
+            "bit_rate",
+            Str(if duration == 0. {
+                "0".into()
+            } else {
+                (bytes as f64 * 8. / duration).round().to_string()
+            }),
+        ),
+        ("probe_score", Number(100.)),
+        ("tags", Object(tags)),
+    ]
+}
+
 pub(super) struct ProbeOptions<'a> {
     pub show: BTreeSet<&'a str>,
     pub entries: Option<&'a str>,
@@ -281,154 +295,182 @@ impl Clip {
         bytes: usize,
         opts: ProbeOptions<'_>,
     ) -> Result<String, &'static str> {
-        let mut filters = BTreeMap::new();
-        for field in opts
-            .entries
-            .unwrap_or("")
-            .split(':')
-            .filter(|s| !s.trim().is_empty())
-        {
-            let (k, v) = field.split_once('=').unwrap_or((field, ""));
-            filters.insert(
-                k.trim().to_ascii_lowercase(),
-                v.split(',')
-                    .map(str::trim)
-                    .filter(|s| !s.is_empty())
-                    .collect::<BTreeSet<_>>(),
-            );
-        }
-        let setting = |key| opts.settings.get(key).copied();
-        let json = opts.writer == "json";
-        let compact = setting("compact") == Some("1") || setting("c") == Some("1");
-        let defaults = opts.show.is_empty() && opts.entries.is_none();
-        let mut out = if json { "{".to_owned() } else { String::new() };
-        let mut first = true;
-        for (section, key) in [
-            ("program", "programs"),
-            ("packet", "packets"),
-            ("frame", "frames"),
-            ("stream", "streams"),
-            ("chapter", "chapters"),
-            ("format", "format"),
-        ] {
-            let fields = filters.get(section);
-            let tags = match section {
-                "stream" => filters.get("stream_tags"),
-                "format" => filters.get("format_tags"),
-                _ => None,
-            };
-            let requested = opts.show.contains(section);
-            if !requested
-                && (matches!(section, "frame" | "packet")
-                    || fields.is_none()
-                        && tags.is_none()
-                        && !(defaults && matches!(section, "stream" | "format")))
-            {
-                continue;
+        let counts = opts.counts;
+        let select = opts.select;
+        report(opts, |section| match section {
+            "packet" | "frame" => {
+                Box::new((0..self.count).map(move |i| self.record(i, section == "frame")))
             }
-            let count = match section {
-                "packet" | "frame" => self.count,
-                "format" => 1,
-                "stream" => usize::from(match opts.select.unwrap_or("") {
-                    "s" => false,
-                    "a" => matches!(self.track, Track::Aac { .. }),
-                    "v" => matches!(self.track, Track::Y4m { .. }),
-                    s if s.starts_with("a:") || s.starts_with("v:") => {
-                        s.starts_with('a') == matches!(self.track, Track::Aac { .. }) && {
-                            let n = s[2..].trim_start();
-                            n.strip_prefix(['+', '-'])
-                                .unwrap_or(n)
-                                .bytes()
-                                .take_while(u8::is_ascii_digit)
-                                .all(|b| b == b'0')
-                        }
-                    }
-                    s if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => {
-                        s.parse::<usize>() == Ok(0)
-                    }
-                    _ => true,
-                }),
-                _ => 0,
-            };
-            let array = section != "format";
-            if json {
-                if !first {
-                    out.push(',');
-                }
-                first = false;
-                if !compact {
-                    out.push_str("\n  ");
-                }
-                write!(out, "\"{key}\":").unwrap();
-                if !compact {
-                    out.push(' ');
-                }
-                if array {
-                    out.push('[');
-                }
-            }
-            for i in 0..count {
-                let mut row = match section {
-                    "packet" | "frame" => self.record(i, section == "frame"),
-                    "stream" => self.stream(opts.counts.0, opts.counts.1),
-                    _ => self.format(filename, bytes),
-                };
-                if fields.is_some() || tags.is_some() {
-                    row.retain_mut(|(key, value)| {
-                        if *key == "tags"
-                            && let Some(tags) = tags
-                            && let Object(values) = value
-                        {
-                            values.retain(|(k, _)| tags.is_empty() || tags.contains(k.as_str()));
-                            return true;
-                        }
-                        fields.is_some_and(|f| f.is_empty() || f.contains(key))
-                    });
-                }
-                if json {
-                    if array {
-                        if i != 0 {
-                            out.push(',');
-                        }
-                        if !compact {
-                            out.push_str("\n    ");
-                        }
-                    }
-                    let value = Object(row.into_iter().map(|(k, v)| (k.to_owned(), v)).collect());
-                    if compact {
-                        out.push_str(&value.to_json_string(true, false, 0));
+            "stream"
+                if selected(
+                    select,
+                    if matches!(self.track, Track::Aac { .. }) {
+                        "audio"
                     } else {
-                        out.push_str(&format_jval_with_indent(
-                            &value,
-                            Some(2),
-                            if array { 2 } else { 1 },
-                        ));
-                    }
-                } else {
-                    text_row(&mut out, section, i, row, opts.writer, opts.settings);
-                }
-                if out.len() > opts.limit {
-                    return Err("output byte limit exceeded");
-                }
+                        "video"
+                    },
+                    0,
+                    0,
+                ) =>
+            {
+                Box::new(std::iter::once(self.stream(counts.0, counts.1)))
             }
-            if json && array {
-                if !compact && count != 0 {
-                    out.push_str("\n  ");
-                }
-                out.push(']');
-            }
-        }
-        if json {
-            if !first && !compact {
-                out.push('\n');
-            }
-            out.push_str("}\n");
-        }
-        if out.len() > opts.limit {
-            return Err("output byte limit exceeded");
-        }
-        Ok(out)
+            "format" => Box::new(std::iter::once(self.format(filename, bytes))),
+            _ => Box::new(std::iter::empty()),
+        })
     }
+}
+
+pub(super) fn selected(select: Option<&str>, kind: &str, index: usize, ordinal: usize) -> bool {
+    let spec = select.unwrap_or("");
+    match spec {
+        "v" => kind == "video",
+        "a" => kind == "audio",
+        "s" => kind == "subtitle",
+        s if s.starts_with("a:") || s.starts_with("v:") => {
+            let digits = s[2..].trim_start();
+            let unsigned = digits.trim_start_matches(['+', '-']);
+            let n = unsigned.bytes().take_while(u8::is_ascii_digit).count();
+            let value =
+                unsigned[..n]
+                    .parse::<usize>()
+                    .unwrap_or(if n == 0 { 0 } else { usize::MAX });
+            (if s.starts_with('a') {
+                kind == "audio"
+            } else {
+                kind == "video"
+            }) && ordinal == value
+                && (!digits.starts_with('-') || value == 0)
+        }
+        s if !s.is_empty() && s.bytes().all(|b| b.is_ascii_digit()) => s.parse() == Ok(index),
+        _ => true,
+    }
+}
+
+pub(super) fn report<'a>(
+    opts: ProbeOptions<'_>,
+    rows: impl Fn(&'static str) -> Box<dyn Iterator<Item = Row> + 'a>,
+) -> Result<String, &'static str> {
+    let mut filters = BTreeMap::new();
+    for field in opts
+        .entries
+        .unwrap_or("")
+        .split(':')
+        .filter(|s| !s.trim().is_empty())
+    {
+        let (k, v) = field.split_once('=').unwrap_or((field, ""));
+        filters.insert(
+            k.trim().to_ascii_lowercase(),
+            v.split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .collect::<BTreeSet<_>>(),
+        );
+    }
+    let setting = |key| opts.settings.get(key).copied();
+    let json = opts.writer == "json";
+    let compact = setting("compact") == Some("1") || setting("c") == Some("1");
+    let defaults = opts.show.is_empty() && opts.entries.is_none();
+    let mut out = if json { "{".to_owned() } else { String::new() };
+    let mut first = true;
+    for (section, key) in [
+        ("program", "programs"),
+        ("packet", "packets"),
+        ("frame", "frames"),
+        ("stream", "streams"),
+        ("chapter", "chapters"),
+        ("format", "format"),
+    ] {
+        let fields = filters.get(section);
+        let tags = match section {
+            "stream" => filters.get("stream_tags"),
+            "format" => filters.get("format_tags"),
+            _ => None,
+        };
+        let requested = opts.show.contains(section);
+        if !requested
+            && (matches!(section, "frame" | "packet")
+                || fields.is_none()
+                    && tags.is_none()
+                    && !(defaults && matches!(section, "stream" | "format")))
+        {
+            continue;
+        }
+        let array = section != "format";
+        if json {
+            if !first {
+                out.push(',');
+            }
+            first = false;
+            if !compact {
+                out.push_str("\n  ");
+            }
+            write!(out, "\"{key}\":").unwrap();
+            if !compact {
+                out.push(' ');
+            }
+            if array {
+                out.push('[');
+            }
+        }
+        let mut count = 0;
+        for (i, mut row) in rows(section).enumerate() {
+            count += 1;
+            if fields.is_some() || tags.is_some() {
+                row.retain_mut(|(key, value)| {
+                    if *key == "tags"
+                        && let Some(tags) = tags
+                        && let Object(values) = value
+                    {
+                        values.retain(|(k, _)| tags.is_empty() || tags.contains(k.as_str()));
+                        return true;
+                    }
+                    fields.is_some_and(|f| f.is_empty() || f.contains(key))
+                });
+            }
+            if json {
+                if array {
+                    if i != 0 {
+                        out.push(',');
+                    }
+                    if !compact {
+                        out.push_str("\n    ");
+                    }
+                }
+                let value = Object(row.into_iter().map(|(k, v)| (k.to_owned(), v)).collect());
+                if compact {
+                    out.push_str(&value.to_json_string(true, false, 0));
+                } else {
+                    out.push_str(&format_jval_with_indent(
+                        &value,
+                        Some(2),
+                        if array { 2 } else { 1 },
+                    ));
+                }
+            } else {
+                text_row(&mut out, section, i, row, opts.writer, opts.settings);
+            }
+            if out.len() > opts.limit {
+                return Err("output byte limit exceeded");
+            }
+        }
+        if json && array {
+            if !compact && count != 0 {
+                out.push_str("\n  ");
+            }
+            out.push(']');
+        }
+    }
+    if json {
+        if !first && !compact {
+            out.push('\n');
+        }
+        out.push_str("}\n");
+    }
+    if out.len() > opts.limit {
+        return Err("output byte limit exceeded");
+    }
+    Ok(out)
 }
 
 fn text_row(

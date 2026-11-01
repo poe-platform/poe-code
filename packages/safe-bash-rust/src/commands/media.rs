@@ -14188,6 +14188,7 @@ mod media_unit_tests {
         let fs = MemoryVfs::new();
         fs.write_file("/picture", &hex_dec("524946462a000000574542505650384c1e0000002f024000002f3002133003f31f28252550c836021cbad7e3142ea2ffb1bc")).unwrap();
         let run = |args: &[&str]| cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs);
+        assert_eq!(cmd_media_doc("ffprobe", &media_args(&["-show_entries","stream=codec_long_name","-of","csv=p=0","picture"]),"","/",&fs).stdout,"WebP image\n");
         assert_eq!(run(&["-i", "picture", "o.ppm"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.ppm").unwrap())), "c6213c31b8dc8aa74e5163435f70b978d406d919f0f33e7d0bcb65bab89fd010");
         assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=7x5:r=2:d=1", "%02d.webp"]).exit_code, 0);

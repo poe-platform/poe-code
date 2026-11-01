@@ -199,6 +199,7 @@ impl Clip {
                 let fourcc = std::str::from_utf8(tag).unwrap();
                 let (name, long) = match tag {
                     b"mjpe" => ("mjpeg", "Motion JPEG"),
+                    b"webp" => ("webp", "WebP image"),
                     b"raw " => ("rawvideo", "raw video"),
                     b"png " => ("png", "PNG (Portable Network Graphics) image"),
                     _ => (fourcc.trim_end(), fourcc.trim_end()),

@@ -3,6 +3,20 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("xargs shares inherited stdin across batches only with an argument file", async () => {
+  const bash = new RustWasmBash({ files: { "/args": "x y" } });
+  try {
+    for (const [script, expected] of [
+      ["xargs -a /args -n1 sh -c 'head -c1'; echo; cat", "ab\ncd"],
+      ["xargs -n1 echo; echo; cat", "abcd\n\n"],
+      ["xargs -a /absent echo 2>/dev/null; cat", "abcd"],
+    ]) {
+      const r = await bash.exec(script, { stdin: "abcd" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], script);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("disabling capture still delivers bytes to sinks and hides them from result hooks", async () => {
   const bash = new RustWasmBash();
   try {

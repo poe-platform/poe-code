@@ -664,7 +664,7 @@ where
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
-    if let Some(res) = search::try_run_search_command(cmd, args, stdin, cwd, env, fs, exec_with_copy) {
+    if let Some(res) = search::try_run_search_command_with_input(cmd, args, stdin, cwd, env, fs, exec_sub) {
         return Some(res);
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {

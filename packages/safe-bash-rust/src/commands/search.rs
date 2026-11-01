@@ -17,6 +17,22 @@ pub fn try_run_search_command<F>(
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
+    try_run_search_command_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs,
+        |words, input, cwd, env| exec_sub(words, input, cwd, env))
+}
+
+pub(super) fn try_run_search_command_with_input<F>(
+    cmd: &str,
+    args: &[String],
+    stdin: &mut String,
+    cwd: &mut String,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+    mut exec_sub: F,
+) -> Option<BuiltinOutcome>
+where
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
     match cmd {
         "grep" | "egrep" | "fgrep" | "rgrep" => Some(cmd_grep(
             cmd,
@@ -5395,7 +5411,7 @@ impl<'a> FindParseContext<'a> {
 
 struct FindEvalState<'a, F>
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     cwd: &'a mut String,
     env: &'a mut BTreeMap<String, String>,
@@ -5426,7 +5442,7 @@ fn eval_find_pred<F>(
     state: &mut FindEvalState<'_, F>,
 ) -> Result<bool, String>
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let disp_path = entry.display;
     let full_path = entry.path;
@@ -5549,7 +5565,7 @@ where
             } else {
                 let cmd_args: Vec<String> =
                     cmd.iter().map(|w| w.replace("{}", disp_path)).collect();
-                let res = (state.exec_sub)(&cmd_args, "", state.cwd, state.env);
+                let res = (state.exec_sub)(&cmd_args, &mut String::new(), state.cwd, state.env);
                 state.out.push_str(&res.stdout);
                 state.err.push_str(&res.stderr);
                 res.exit_code == 0
@@ -5583,7 +5599,7 @@ fn cmd_find<F>(
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let mut follow_mode = FindFollowMode::Never;
     let mut debug_tree = false;
@@ -5752,7 +5768,7 @@ where
         if !pending.is_empty() {
             let mut cmd_args = cmd_prefix;
             cmd_args.extend(pending);
-            let res = (exec_sub)(&cmd_args, "", cwd, env);
+            let res = (exec_sub)(&cmd_args, &mut String::new(), cwd, env);
             out.push_str(&res.stdout);
             err.push_str(&res.stderr);
             if res.exit_code != 0 {
@@ -5784,7 +5800,7 @@ fn walk_find<F>(
     ancestors: &mut std::collections::BTreeSet<String>,
     state: &mut FindEvalState<'_, F>,
 ) where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     if *state.quit {
         return;
@@ -6109,7 +6125,7 @@ fn cmd_fd<F>(
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let mut extensions: Vec<String> = Vec::new();
     let mut types: Vec<char> = Vec::new();
@@ -6758,7 +6774,7 @@ where
         for (item, _, prefix_cwd) in &results {
             ls_cmd.push(format_entry_display(item, *prefix_cwd));
         }
-        let res = exec_sub(&ls_cmd, "", &mut sub_cwd, env);
+        let res = exec_sub(&ls_cmd, &mut String::new(), &mut sub_cwd, env);
         err.push_str(&res.stderr);
         return BuiltinOutcome {
             stdout: res.stdout,
@@ -6801,7 +6817,7 @@ where
                     cmd_words.push(format_entry_display(item, *prefix_cwd));
                 }
             }
-            let res = exec_sub(&cmd_words, "", &mut sub_cwd, env);
+            let res = exec_sub(&cmd_words, &mut String::new(), &mut sub_cwd, env);
             err.push_str(&res.stderr);
             return BuiltinOutcome {
                 stdout: res.stdout,
@@ -6829,7 +6845,7 @@ where
                     }
                     cmd_words.push(disp);
                 }
-                let res = exec_sub(&cmd_words, "", &mut sub_cwd, env);
+                let res = exec_sub(&cmd_words, &mut String::new(), &mut sub_cwd, env);
                 out.push_str(&res.stdout);
                 err.push_str(&res.stderr);
                 if res.exit_code != 0 {
@@ -7207,14 +7223,14 @@ enum XargsBatchMode {
 
 fn cmd_xargs<F>(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let mut delim_mode = XargsDelimMode::Whitespace;
     let mut batch_mode = XargsBatchMode::Default;
@@ -7517,14 +7533,10 @@ where
         eof_marker = None;
     }
 
-    let input_buf: String;
-    let input_str: &str = if let Some(ref af) = arg_file {
+    let input_buf = if let Some(ref af) = arg_file {
         let p = resolve_posix_path(cwd, af);
         match fs.read_file(&p) {
-            Ok(b) => {
-                input_buf = String::from_utf8_lossy(&b).into_owned();
-                &input_buf
-            }
+            Ok(b) => String::from_utf8_lossy(&b).into_owned(),
             Err(_) => {
                 return BuiltinOutcome {
                     stdout: String::new(),
@@ -7534,8 +7546,9 @@ where
             }
         }
     } else {
-        stdin
+        std::mem::take(stdin)
     };
+    let input_str = input_buf.as_str();
 
     if !matches!(
         delim_mode,
@@ -7550,7 +7563,6 @@ where
         };
     }
 
-    let mut child_stdin_first = if arg_file.is_some() { stdin } else { "" };
     let base_bytes: usize = cmd_words.iter().map(|w| w.len() + 1).sum();
     if let Some(mc) = max_chars
         && base_bytes > mc
@@ -7581,8 +7593,7 @@ where
             } else {
                 None
             };
-            let sub_in = std::mem::take(&mut child_stdin_first);
-            let res = exec_sub(invoke, sub_in, cwd, env);
+            let res = exec_sub(invoke, stdin, cwd, env);
             if let Some((sv, old)) = prev_slot {
                 if let Some(val) = old {
                     env.insert(sv, val);

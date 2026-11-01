@@ -106,15 +106,38 @@ impl SafeBashFs for MountVfs {
         fs.remove_published(&rel, publication)
     }
 
-    fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
+    fn move_across_devices(&self, source: &str, destination: &str, budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {
+        // Bind path resolution to the two backing-store versions inspected under the transfer locks.
+        let versions: BTreeMap<_, _> = std::iter::once(("/", self.root.generation()))
+            .chain(self.mounts.iter().map(|(m, fs)| (m.as_str(), fs.generation()))).collect();
         let from = self.resolve(source, false, WalkPurpose::Rename)?;
         let to = self.resolve(destination, false, WalkPurpose::Rename)?;
         if self.mounts.keys().any(|m| [from.as_str(), to.as_str()].iter().any(|p| crate::vfs::is_path_within(p, m))) {
             return Err("EBUSY: resource busy or locked".into());
         }
+        let (src_mount, src, src_path) = self.location(&from);
+        let (dst_mount, dst, dst_path) = self.location(&to);
+        let Some(src) = src.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, removeEntryConditional '{source}'")); };
+        let Some(dst) = dst.memory_backend() else { return Err(format!("ENOTSUP: operation not supported, mv '{destination}'")); };
+        src.transfer_to(dst, (&src_path, source, versions[src_mount]), (&dst_path, destination, versions[dst_mount]), budget)
+    }
+
+    fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
+        let reason = |e: String| e.split_once(", ").map_or(e.as_str(), |(code, _)| code).to_owned();
+        let from = self.resolve(source, false, WalkPurpose::Rename).map_err(reason)?;
+        let to = self.resolve(destination, false, WalkPurpose::Rename).map_err(reason)?;
+        if self.mounts.keys().any(|m| [from.as_str(), to.as_str()].iter().any(|p| crate::vfs::is_path_within(p, m))) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
         let (mount, fs, mut src) = self.location(&from);
         let (other, _, mut dest) = self.location(&to);
-        if mount != other { return Err("EXDEV: cross-device link not permitted".into()); }
+        if mount != other {
+            let st = fs.lstat(&src).map_err(reason)?;
+            if source.ends_with('/') && st.kind != crate::vfs::VfsEntryKind::Directory {
+                return Err("ENOTDIR: not a directory".into());
+            }
+            return Err("EXDEV: cross-device link not permitted".into());
+        }
         if source.ends_with('/') { src.push('/'); }
         if destination.ends_with('/') { dest.push('/'); }
         fs.rename(&src, &dest, no_replace)

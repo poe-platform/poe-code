@@ -1798,22 +1798,23 @@ fn cmd_mv(
                 backup = Some(bak);
             }
         }
-        match fs.rename(&src, &target, no_clobber) {
+        let result = match fs.rename(&src, &target, no_clobber) {
+            Err(e) if !no_clobber && e.starts_with("EXDEV:") => fs.move_across_devices(&src, &target, None),
+            Err(e) if no_clobber && e.starts_with("EEXIST:") => continue,
+            Err(e) => Err(format!("{e}, rename '{src}' -> '{target}'")),
+            ok => ok,
+        };
+        match result {
             Ok(()) => {
                 if verbose {
                     stdout.push_str(&format!("renamed '{src_raw}' -> '{disp_target}'\n"));
                 }
             }
-            Err(e) if no_clobber && e.starts_with("EEXIST:") => {}
             Err(e) => {
                 if let Some(bak) = backup && let Err(restore) = fs.rename(&bak, &target, true) {
                     stderr.push_str(&format!("mv: {restore}, restoring '{bak}' -> '{target}'\n"));
                 }
-                if !no_clobber && e.starts_with("EXDEV:") {
-                    stderr.push_str(&format!("mv: ENOTSUP: operation not supported, removeEntryConditional '{src}'\n"));
-                } else {
-                    stderr.push_str(&format!("mv: {e}, rename '{src}' -> '{target}'\n"));
-                }
+                stderr.push_str(&format!("mv: {e}\n"));
                 code = 1;
             }
         }
@@ -6779,6 +6780,47 @@ mod tests {
         let linked = cmd_mv(&args, "", "/", &BTreeMap::new(), &fs);
         assert_eq!(linked.exit_code, 0, "{}", linked.stderr);
         assert_eq!(fs.read_file("/tree/src").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn mv_across_mounts_publishes_before_removal_and_keeps_other_names() {
+        use crate::vfs::MountVfs;
+        use std::sync::Arc;
+        let root = Arc::new(MemoryVfs::new());
+        let dest = Arc::new(MemoryVfs::new());
+        let fs = MountVfs::new(root.clone()).with_mount("/mnt", dest.clone());
+        root.write_file("/tree/file", b"source").unwrap();
+        root.symlink("__hardlink__:/tree/file", "/peer").unwrap();
+        root.chmod("/tree/file", 0o640).unwrap();
+        root.symlink("file", "/tree/link").unwrap();
+        dest.write_file("/dest", b"old").unwrap();
+        dest.symlink("__hardlink__:/dest", "/old-link").unwrap();
+        let mv = |args_in: &[&str]| cmd_mv(&args(args_in), "", "/", &BTreeMap::new(), &fs);
+        dest.chmod("/dest", 0o400).unwrap();
+        root.chmod("/peer", 0o200).unwrap();
+        let denied = mv(&["-b", "/peer", "/mnt/dest"]);
+        assert_eq!(denied.stderr, "mv: EACCES: permission denied, openReadFile '/peer'\n");
+        assert!(root.exists("/peer"));
+        assert_eq!(dest.read_file("/dest").unwrap(), b"old");
+        assert!(!dest.exists("/dest~"));
+        root.chmod("/peer", 0o640).unwrap();
+        let moved = mv(&["/peer", "/mnt/dest"]);
+        assert_eq!(moved.exit_code, 0, "{}", moved.stderr);
+        assert!(!root.exists("/peer"));
+        assert_eq!(dest.read_file("/dest").unwrap(), b"source");
+        assert_eq!(dest.read_file("/old-link").unwrap(), b"old");
+        assert_eq!(dest.stat("/dest").unwrap().mode & 0o777, 0o640);
+
+        dest.set_max_file_bytes(2);
+        assert_ne!(mv(&["/tree", "/mnt/new"]).exit_code, 0);
+        assert_eq!(root.read_file("/tree/file").unwrap(), b"source");
+        assert!(!dest.exists("/new"));
+        dest.set_max_file_bytes(64);
+        let moved = mv(&["/tree", "/mnt/new"]);
+        assert_eq!(moved.exit_code, 0, "{}", moved.stderr);
+        assert!(!root.exists("/tree"));
+        assert_eq!(dest.readlink("/new/link").unwrap(), "file");
+        assert_eq!(dest.read_file("/new/file").unwrap(), b"source");
     }
 
     #[test]

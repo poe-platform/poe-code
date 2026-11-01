@@ -1,4 +1,5 @@
 mod descriptor;
+mod transfer;
 pub(crate) use descriptor::RetainedFile;
 
 use crate::vfs::path::{normalize_posix_path, parent_posix_path};
@@ -499,6 +500,7 @@ impl MemoryVfs {
 }
 
 impl SafeBashFs for MemoryVfs {
+    fn memory_backend(&self) -> Option<&MemoryVfs> { Some(self) }
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|e| e.to_string())?;
@@ -654,7 +656,10 @@ impl SafeBashFs for MemoryVfs {
             }
         });
         let from = entry(source)?;
-        if state.devices == Devices::Mounted { return Err("EROFS: read-only file system".into()); }
+        if state.devices == Devices::Mounted {
+            return Err(if state.devices.entry(&from).is_some() { "ENOTSUP: operation not supported" }
+                else { "ENOENT: no such file or directory" }.into());
+        }
         if state.devices.entry(&from).is_some() && from != "/" {
             return Err("EBUSY: resource busy or locked".into());
         }

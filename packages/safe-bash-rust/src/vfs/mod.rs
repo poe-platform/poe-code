@@ -100,6 +100,12 @@ pub trait SafeBashFs: Send + Sync {
     fn remove_published(&self, _path: &str, _publication: u64) -> Result<bool, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file removal".into())
     }
+    fn memory_backend(&self) -> Option<&MemoryVfs> { None }
+
+    fn move_across_devices(&self, source: &str, _destination: &str, _budget: Option<&crate::ExecutionBudget>) -> Result<(), String> {
+        Err(format!("ENOTSUP: operation not supported, removeEntryConditional '{source}'"))
+    }
+
     fn rename(&self, _source: &str, _destination: &str, _no_replace: bool) -> Result<(), String> {
         Err("ENOTSUP: operation not supported".into())
     }

@@ -722,3 +722,35 @@ test("mounted descriptors distinguish seekable files from streams and overlay ad
     await random.close();
   } finally { bash.dispose(); overlay.dispose(); }
 });
+
+test("mv unlinks the source only after a successful cross-device write", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev", files:{"/file":"keep", "/tree/a":"child"}});
+  try {
+    const reader = await bash.fs.open("/file", {access:"read"});
+    for (const [args, error] of [
+      ["/file/ /dev/null", "ENOTDIR: not a directory, rename '/file/' -> '/dev/null'"],
+      ["/file /dev/missing/new", "ENOENT: no such file or directory, rename '/file' -> '/dev/missing/new'"],
+      ["-b /file /dev/null", "ENOTSUP: operation not supported, rename '/dev/null' -> '/dev/null~'"],
+      ["/dev/missing /dev/new", "ENOENT: no such file or directory, rename '/dev/missing' -> '/dev/new'"],
+    ]) {
+      const failed = await bash.exec("mv " + args);
+      assert.equal(failed.stderr, "mv: " + error + "\n");
+      assert.equal(bash.readText("/file"), "keep");
+    }
+    const rejected = await bash.exec("mv /file /dev/urandom");
+    assert.equal(rejected.exitCode, 1);
+    assert.equal(rejected.stderr, "mv: EPERM: operation not permitted, writeStream '/dev/urandom'\n");
+    assert.equal(bash.readText("/file"), "keep");
+    assert.equal((await bash.exec("mv -n /file /dev/new")).exitCode, 1);
+    assert.equal((await bash.exec("mv /tree /dev/null")).exitCode, 1);
+    assert.equal(bash.readText("/tree/a"), "child");
+    const moved = await bash.exec("mv -v /file /dev/null");
+    assert.equal(moved.stdout, "renamed '/file' -> '/dev/null'\n");
+    assert.equal(moved.exitCode, 0, moved.stderr);
+    await assert.rejects(bash.fs.stat("/file"), {code:"ENOENT"});
+    const buf = Buffer.alloc(4);
+    assert.equal(await reader.read(buf, null), 4);
+    assert.equal(buf.toString(), "keep");
+    await reader.close();
+  } finally { bash.dispose(); }
+});

@@ -123,6 +123,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.remove_published(path, publication)
     }
 
+    fn move_across_devices(&self, source: &str, destination: &str, _: Option<&ExecutionBudget>) -> Result<(), String> {
+        self.budget.limits.check_path(source)?;
+        self.budget.limits.check_path(destination)?;
+        self.inner.move_across_devices(source, destination, Some(self.budget))
+    }
+
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
         self.budget.limits.check_path(source)?;
         self.budget.limits.check_path(destination)?;

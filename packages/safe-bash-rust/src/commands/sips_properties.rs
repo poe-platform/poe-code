@@ -97,10 +97,10 @@ pub(super) fn edit(
     limit: usize,
 ) -> Result<Vec<u8>, String> {
     let mut raster = super::png_pixels::Raster::decode(bytes, limit)?;
-    super::sips_geometry::transform(
+    let source=super::sips_geometry::transform(
         &mut raster,
         ops,
-        super::jpeg_decode::signature(bytes),
+        bytes,
         limit,
     )?;
     let mut props = read(bytes)?;
@@ -155,15 +155,10 @@ pub(super) fn edit(
         return Err(reason);
     }
     let mut encoded = if format == "png" {
+        raster.alpha |= source.as_deref().is_some_and(super::gif::signature);
         raster.png()
-    } else if format == "gif" && super::gif::signature(bytes) {
-        let mut first = None;
-        let repeat = super::gif::packets(bytes, |delay, _| {
-            first.get_or_insert(delay);
-            Ok(())
-        }).unwrap_or_default();
-        super::gif::encode(raster.width, raster.height, &raster.pixels,
-            super::gif::Timing { delays: first.as_slice(), repeat, explicit_delay: false }, limit)?
+    } else if format == "gif" && let Some(input)=source.as_deref().filter(|b|super::gif::signature(b)) {
+        super::gif::encode_first_frame(&raster,input,limit)?
     } else {
         super::frame_output::encode(&raster, format, f64::from(quality), raster.density, limit)?
     };

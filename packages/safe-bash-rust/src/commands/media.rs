@@ -10388,12 +10388,8 @@ fn cmd_media_doc(
                             Ok(None)=>{}, Err(e)=>return Some(fail(e)),
                         }
                     }
-                    let mut declared_alpha=false;
-                    match gif::decode(bytes,usize::MAX,fs.max_input_bytes(), |_,alpha| {declared_alpha=alpha; Ok(())}) {
-                        Ok(mut im)=>{
-                            im.alpha=declared_alpha || im.pixels.iter().any(|p| p[3]<255);
-                            im
-                        },
+                    match gif::decode(bytes,usize::MAX,fs.max_input_bytes(), |_,_| Ok(())) {
+                        Ok(im)=>im,
                         Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
                     }
                 } else {
@@ -14445,6 +14441,24 @@ mod media_unit_tests {
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
         }
+    }
+
+    #[test]
+    fn sips_reopens_gif_after_rotation_before_export() {
+        let fs=MemoryVfs::new();
+        let input=media_args(&["-size","4x2","xc:red","gradient:blue-yellow","xc:green","-delay","9","-loop","5","a.gif"]);
+        assert_eq!(cmd_media_doc("convert",&input,"","/",&fs).exit_code,0);
+        for (angle,format,hash) in [
+            ("90","heic","4ad8782c5dc449b82f121c7fbb2c0908cf1257f592b61a354f174ce2ec7ce36a"),
+            ("30","png","8e51896831f7867b5374849279b54bbdd14575ca7f381bcad54dcde9be0f6727"),
+        ] {
+            let r=cmd_media_doc("sips",&media_args(&["-s","format",format,"-r",angle,"a.gif","--out","turned"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/turned").unwrap())),hash);
+        }
+        let r=cmd_media_doc("sips",&media_args(&["-s","format","gif","-r","37","-f","horizontal","a.gif","--out","turned.gif"]),"","/",&fs);
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/turned.gif").unwrap())),"0b27f8a0a9bb8f715c4803743a4cd3999915231610cfc2b1ce983083e2af50bc");
     }
 
     #[test]

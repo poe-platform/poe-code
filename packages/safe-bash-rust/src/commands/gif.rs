@@ -19,6 +19,30 @@ pub(super) struct Timing<'a> {
     pub explicit_delay: bool,
 }
 
+pub(super) fn encode_first_frame(
+    im: &Raster,
+    input: &[u8],
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
+    let mut first = None;
+    let repeat = packets(input, |delay, _| {
+        first.get_or_insert(delay);
+        Ok(())
+    })
+    .unwrap_or_default();
+    encode(
+        im.width,
+        im.height,
+        &im.pixels,
+        Timing {
+            delays: first.as_slice(),
+            repeat,
+            explicit_delay: false,
+        },
+        limit,
+    )
+}
+
 pub(super) fn encode(
     w: usize,
     h: usize,
@@ -407,7 +431,7 @@ pub(super) fn decode(
     Ok(Raster {
         width: w,
         height: h,
-        alpha: true,
+        alpha: declared_alpha || pixels.iter().any(|p| p[3] < 255),
         gray: false,
         density: 72,
         orientation: None,

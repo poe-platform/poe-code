@@ -1,11 +1,13 @@
 use super::{magick_color::parse_color, magick_resize::Kernel, png_pixels::Raster};
+use std::borrow::Cow;
 
-pub(super) fn transform(
+pub(super) fn transform<'a>(
     raster: &mut Raster,
     ops: &[(&str, String, String)],
-    mut jpeg: bool,
+    bytes: &'a [u8],
     limit: usize,
-) -> Result<(), String> {
+) -> Result<Option<Cow<'a, [u8]>>, String> {
+    let mut source = Some(Cow::Borrowed(bytes));
     let (orig_w, orig_h) = (raster.width as f64, raster.height as f64);
     let resize = |op: &str| matches!(op, "z" | "Z" | "rw" | "rh");
     let turn = |op: &str| matches!(op, "r" | "f");
@@ -36,7 +38,8 @@ pub(super) fn transform(
         .rev()
         .find(|(op, ..)| *op == "color")
         .map(|(_, s, _)| s.trim());
-    let has_alpha = raster.alpha && !jpeg;
+    let has_alpha =
+        super::gif::signature(bytes) || raster.alpha && !super::jpeg_decode::signature(bytes);
     let background = |odd: bool, four_channels: bool| -> Result<[u8; 4], String> {
         let Some(color) = color else {
             return Ok([
@@ -72,7 +75,7 @@ pub(super) fn transform(
     let mut dims = (raster.width, raster.height);
     for (_, (op, a, b)) in actions {
         let number = |s: &str| s.parse::<f64>().unwrap().round();
-        if (dims.0==0 || dims.1==0) && (resize(op) || turn(op)) {
+        if (dims.0 == 0 || dims.1 == 0) && (resize(op) || turn(op)) {
             return Err("Invalid stored image dimensions".into());
         }
         if resize(op) {
@@ -123,7 +126,10 @@ pub(super) fn transform(
                     return Err("image exceeds memory budget".into());
                 }
                 let odd = left.fract() != 0. || top.fract() != 0.;
-                let bg = background(odd, raster.alpha)?;
+                let bg = background(
+                    odd,
+                    raster.alpha || source.as_deref().is_some_and(super::gif::signature),
+                )?;
                 raster.remap(w, h, |im, x, y| {
                     let (sx, sy) = (x as f64 + left, y as f64 + top);
                     let sample = |x: f64, y: f64| {
@@ -156,28 +162,38 @@ pub(super) fn transform(
                 });
                 if odd {
                     // The interpolated canvas is decoded from raw pixels, without source metadata.
-                    jpeg = false;
+                    raster.alpha |= source.as_deref().is_some_and(super::gif::signature);
+                    source = None;
                     raster.orientation = None;
                     raster.density = 72;
                     if raster.alpha {
                         raster.gray = false;
                     }
+                    dims = (raster.width, raster.height);
+                    continue;
                 }
             }
             _ => unreachable!(),
         }
-        if jpeg {
-            // sips encodes and reopens the image after a flip, rotation, or integer crop/pad.
-            // The lossy intermediate JPEG affects even a subsequent lossless export.
-            let bytes = super::jpeg::encode(raster, 85., raster.density, limit)?;
-            *raster = super::jpeg_decode::decode(&bytes, limit)?;
+        // A flip, rotation, or integer crop/pad encodes and reopens the image.
+        // GIF palette and timing can change at each boundary, even for a lossless final format.
+        let input = source
+            .as_deref()
+            .ok_or("Input buffer contains unsupported image format")?;
+        if super::jpeg_decode::signature(input) {
+            let encoded = super::jpeg::encode(raster, 85., raster.density, limit)?;
+            *raster = super::jpeg_decode::decode(&encoded, limit)?;
+        } else if super::gif::signature(input) {
+            let encoded = super::gif::encode_first_frame(raster, input, limit)?;
+            *raster = super::gif::decode(&encoded, 1, limit, |_, _| Ok(()))?;
+            source = Some(Cow::Owned(encoded));
         }
         dims = (raster.width, raster.height);
     }
     if dims != (raster.width, raster.height) {
         apply_resize(raster, dims, limit)?;
     }
-    Ok(())
+    Ok(source)
 }
 
 fn apply_resize(

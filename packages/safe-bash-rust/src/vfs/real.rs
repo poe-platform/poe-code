@@ -7,6 +7,13 @@ pub struct RealVfs {
     root: PathBuf,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Walk {
+    Follow,
+    Entry,
+    RenameEntry,
+}
+
 impl RealVfs {
     pub fn new(root: impl AsRef<Path>) -> Result<Self, String> {
         let canonical = std::fs::canonicalize(root.as_ref()).map_err(|e| e.to_string())?;
@@ -22,7 +29,7 @@ impl RealVfs {
         &self,
         start: &Path,
         path: &str,
-        follow_final: bool,
+        mode: Walk,
         from_link: bool,
     ) -> Result<PathBuf, String> {
         if std::fs::canonicalize(&self.root).map_err(|e| e.to_string())? != self.root {
@@ -53,7 +60,7 @@ impl RealVfs {
                 return Err("EINVAL: invalid path component".into());
             }
             current.push(&name);
-            if !follow_final && pending.is_empty() {
+            if mode != Walk::Follow && pending.is_empty() {
                 break;
             }
             match std::fs::symlink_metadata(&current) {
@@ -87,7 +94,8 @@ impl RealVfs {
                     return Err("ENOTDIR: not a directory".into());
                 }
                 Ok(_) => {}
-                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound && (mode != Walk::RenameEntry || pending.is_empty()) => {}
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Err("ENOENT: no such file or directory".into()),
                 Err(e) => return Err(e.to_string()),
             }
         }
@@ -95,7 +103,7 @@ impl RealVfs {
     }
 
     fn metadata(&self, path: &str, follow: bool) -> Result<FileStat, String> {
-        let host = self.walk(&self.root, path, follow, false)?;
+        let host = self.walk(&self.root, path, if follow { Walk::Follow } else { Walk::Entry }, false)?;
         let meta = std::fs::symlink_metadata(host).map_err(|e| e.to_string())?;
         let kind = if meta.is_file() {
             VfsEntryKind::File
@@ -151,7 +159,7 @@ impl SafeBashFs for RealVfs {
     }
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
-        let host = self.walk(&self.root, path, true, false)?;
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
         #[cfg(unix)]
         let permissions = std::os::unix::fs::PermissionsExt::from_mode(mode & 0o7777);
         #[cfg(not(unix))]
@@ -166,7 +174,7 @@ impl SafeBashFs for RealVfs {
     }
 
     fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
-        let host = self.walk(&self.root, path, true, false)?;
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
         let time = UNIX_EPOCH
             .checked_add(Duration::from_millis(mtime_ms))
             .ok_or("EOVERFLOW: modification time")?;
@@ -176,20 +184,64 @@ impl SafeBashFs for RealVfs {
     }
 
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
-        let host = self.walk(&self.root, path, true, false)?;
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
         std::fs::read(host).map_err(|e| e.to_string())
     }
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
-        let host = self.walk(&self.root, path, true, false)?;
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
         if let Some(parent) = host.parent() {
             std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
         std::fs::write(host, data).map_err(|e| e.to_string())
     }
 
+    fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
+        if source.is_empty() || destination.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+        let from = self.walk(&self.root, source, Walk::RenameEntry, false)?;
+        let to = self.walk(&self.root, destination, Walk::RenameEntry, false)?;
+        if from == self.root || to == self.root { return Err("EBUSY: resource busy or locked".into()); }
+        if [source, destination].iter().any(|p| matches!(p.trim_end_matches('/').rsplit('/').next(), Some("." | ".."))) {
+            return Err("EINVAL: invalid argument".into());
+        }
+        if (source.ends_with('/') || destination.ends_with('/')) && !std::fs::symlink_metadata(&from).is_ok_and(|m| m.is_dir()) {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        let result = if no_replace {
+            #[cfg(target_os = "linux")]
+            {
+                use std::ffi::{CString, c_char, c_int, c_uint};
+                use std::os::unix::ffi::OsStrExt;
+                unsafe extern "C" {
+                    fn renameat2(oldfd: c_int, old: *const c_char, newfd: c_int, new: *const c_char, flags: c_uint) -> c_int;
+                }
+                let from = CString::new(from.as_os_str().as_bytes()).map_err(|_| "EINVAL: invalid argument")?;
+                let to = CString::new(to.as_os_str().as_bytes()).map_err(|_| "EINVAL: invalid argument")?;
+                // Absolute paths ignore dirfd; RENAME_NOREPLACE tests and moves atomically.
+                if unsafe { renameat2(-100, from.as_ptr(), -100, to.as_ptr(), 1) } == 0 { Ok(()) }
+                else { Err(std::io::Error::last_os_error()) }
+            }
+            #[cfg(not(target_os = "linux"))]
+            return Err("ENOTSUP: operation not supported".into());
+        } else {
+            std::fs::rename(from, to)
+        };
+        use std::io::ErrorKind;
+        result.map_err(|e| match e.kind() {
+            ErrorKind::NotFound => "ENOENT: no such file or directory".into(),
+            ErrorKind::AlreadyExists => "EEXIST: file already exists".into(),
+            ErrorKind::IsADirectory => "EISDIR: illegal operation on a directory".into(),
+            ErrorKind::NotADirectory => "ENOTDIR: not a directory".into(),
+            ErrorKind::DirectoryNotEmpty => "ENOTEMPTY: directory not empty".into(),
+            ErrorKind::PermissionDenied => "EACCES: permission denied".into(),
+            ErrorKind::CrossesDevices => "EXDEV: cross-device link not permitted".into(),
+            ErrorKind::InvalidInput => "EINVAL: invalid argument".into(),
+            _ => e.to_string(),
+        })
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let host = self.walk(&self.root, path, false, false)?;
+        let host = self.walk(&self.root, path, Walk::Entry, false)?;
         if host == self.root
             || matches!(
                 path.trim_end_matches('/').rsplit('/').next(),
@@ -207,24 +259,24 @@ impl SafeBashFs for RealVfs {
     }
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
-        let host = self.walk(&self.root, path, true, false)?;
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
         std::fs::create_dir_all(host).map_err(|e| e.to_string())
     }
 
     fn exists(&self, path: &str) -> bool {
-        self.walk(&self.root, path, true, false)
+        self.walk(&self.root, path, Walk::Follow, false)
             .map(|p| p.exists())
             .unwrap_or(false)
     }
 
     fn is_dir(&self, path: &str) -> bool {
-        self.walk(&self.root, path, true, false)
+        self.walk(&self.root, path, Walk::Follow, false)
             .map(|p| p.is_dir())
             .unwrap_or(false)
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
-        let host = self.walk(&self.root, path, true, false)?;
+        let host = self.walk(&self.root, path, Walk::Follow, false)?;
         let mut names = Vec::new();
         for entry in std::fs::read_dir(host).map_err(|e| e.to_string())? {
             let entry = entry.map_err(|e| e.to_string())?;
@@ -237,7 +289,7 @@ impl SafeBashFs for RealVfs {
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         #[cfg(unix)]
         {
-            let host = self.walk(&self.root, path, false, false)?;
+            let host = self.walk(&self.root, path, Walk::Entry, false)?;
             let parent = host
                 .parent()
                 .filter(|p| p.starts_with(&self.root))
@@ -250,7 +302,7 @@ impl SafeBashFs for RealVfs {
             } else {
                 (parent, PathBuf::from(target))
             };
-            if let Err(error) = self.walk(start, target, true, true)
+            if let Err(error) = self.walk(start, target, Walk::Follow, true)
                 && !error.starts_with("ELOOP:")
             {
                 return Err(error);
@@ -266,7 +318,7 @@ impl SafeBashFs for RealVfs {
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
-        let host = self.walk(&self.root, path, false, false)?;
+        let host = self.walk(&self.root, path, Walk::Entry, false)?;
         let target = std::fs::read_link(host).map_err(|e| e.to_string())?;
         if target.is_absolute() {
             let relative = target
@@ -327,11 +379,22 @@ mod tests {
             assert!(!vfs.exists("/outside"));
             assert!(vfs.write_file("/outside/never-created", b"x").is_err());
             assert!(vfs.readlink("/outside").is_err());
+            assert!(vfs.rename("/nested/dir/hello.txt", "/outside/never-created", false).is_err());
             vfs.remove_path("/outside").unwrap();
             vfs.symlink("nested/dir", "/alias").unwrap();
             assert_eq!(vfs.list_dir("/alias/..").unwrap(), vec!["dir"]);
         }
 
+        assert!(vfs.rename("/", "/moved", false).is_err());
+        assert!(vfs.rename("/nested/dir/hello.txt", "/absent/../moved", false).is_err());
+        #[cfg(target_os = "linux")]
+        {
+            vfs.write_file("/occupied", b"keep").unwrap();
+            assert!(vfs.rename("/nested/dir/hello.txt", "/occupied", true).unwrap_err().starts_with("EEXIST:"));
+            assert_eq!(vfs.read_file("/occupied").unwrap(), b"keep");
+            vfs.rename("/nested/dir/hello.txt", "/moved", true).unwrap();
+            vfs.rename("/moved", "/nested/dir/hello.txt", false).unwrap();
+        }
         assert!(vfs.remove_path("/").is_err());
         vfs.remove_path("/nested/dir/hello.txt").unwrap();
         assert!(!vfs.exists("/nested/dir/hello.txt"));

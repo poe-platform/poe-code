@@ -146,11 +146,13 @@ test("jq evaluates each condition result and emits nothing for an empty conditio
   const bash = new RustWasmBash();
   try {
     for (const [filter, stdout] of [
+      ["if (true,first(inputs)) then first(inputs) else 0 end", "1\n3\n"],
+      ['first(if (true,error("late")) then 7 else 0 end)', "7\n"],
       ["if empty then 1 else 2 end", ""],
       ['if (true,false,true) then "a" elif (false,true) then "b" else "c" end', '"a"\n"c"\n"b"\n"a"\n'],
       ["if (null,true,false) then 9 end", "null\n9\nnull\n"],
     ]) {
-      const r = await bash.exec(`jq -nc '${filter}'`);
+      const r = await bash.exec(`jq -nc '${filter}' <<< '1 2 3'`);
       assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""]);
     }
   } finally { bash.dispose(); }

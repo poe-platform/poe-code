@@ -1115,9 +1115,6 @@ fn eval_jq_atom(
         return Err(format!("__jq_break:{}", lbl.trim()));
     }
 
-    if is_jq_if_expr(s) {
-        return eval_jq_if(s, input, vars);
-    }
     if let Some(rest) = s.strip_prefix("reduce ") {
         if let Some((stream_expr, after_as)) = rest.split_once(" as $")
             && let Some(open_p) = after_as.find('(')
@@ -1535,11 +1532,7 @@ fn is_jq_if_expr(s: &str) -> bool {
     if_depth == 0
 }
 
-fn eval_jq_if(
-    s: &str,
-    input: &JVal,
-    vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
+fn jq_if_clauses(s: &str) -> (Vec<(String, String)>, Option<String>) {
     let body = s[2..s.len() - 3].trim();
     let chars: Vec<char> = body.chars().collect();
     let mut paren = 0i32;
@@ -1613,30 +1606,7 @@ fn eval_jq_if(
         None
     };
 
-    // Each false result starts a fresh evaluation of the next elif; an empty
-    // condition produces no branch. Keep those evaluations in output order.
-    let fallback = else_branch.as_deref().unwrap_or(".").trim();
-    let Some((condition, _)) = clauses.first() else { return eval_jq(fallback, input, vars); };
-    let mut pending = vec![eval_jq(condition.trim(), input, vars)?.into_iter()];
-    let mut out = Vec::new();
-    let mut steps = 0;
-    let max_steps = crate::ShellLimits::default().max_loop_iterations;
-    while !pending.is_empty() {
-        let next = pending.len();
-        let results = &mut pending[next - 1];
-        let Some(condition) = results.next() else { pending.pop(); continue };
-        steps += 1;
-        if steps > max_steps { return Err("maxSteps limit exceeded".into()); }
-        if condition.is_truthy() {
-            out.extend(eval_jq(clauses[next - 1].1.trim(), input, vars)?);
-        } else if let Some((condition, _)) = clauses.get(next) {
-            let values = eval_jq(condition.trim(), input, vars)?;
-            pending.push(values.into_iter());
-        } else {
-            out.extend(eval_jq(fallback, input, vars)?);
-        }
-    }
-    Ok(out)
+    (clauses, else_branch)
 }
 
 fn eval_jq_object_construct(

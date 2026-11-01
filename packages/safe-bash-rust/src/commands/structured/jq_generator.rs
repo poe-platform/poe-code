@@ -126,6 +126,21 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
         return visit_jq(&s[1..s.len() - 1], input, vars, emit);
     }
+    if s.starts_with("if") && super::is_jq_if_expr(s) {
+        let (clauses, fallback) = super::jq_if_clauses(s);
+        if clauses.len() > 128 {
+            return Err("maxAstDepth limit exceeded".into());
+        }
+        let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+        return conditional(
+            &clauses,
+            fallback.as_deref().unwrap_or("."),
+            input,
+            vars,
+            &mut remaining,
+            emit,
+        );
+    }
     if !vars.functions.is_empty() || s.starts_with("range") || s.starts_with("limit") {
         let (name, args) = s
             .find('(')
@@ -225,6 +240,27 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         }
     }
     Ok(Continue(()))
+}
+
+fn conditional(
+    clauses: &[(String, String)],
+    fallback: &str,
+    input: &JVal,
+    vars: &JqScope<'_>,
+    remaining: &mut usize,
+    emit: &mut Emit<'_>,
+) -> Flow {
+    let Some(((condition, yes), tail)) = clauses.split_first() else {
+        return visit_jq(fallback, input, vars, emit);
+    };
+    visit_jq(condition, input, vars, &mut |value| {
+        *remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+        if value.is_truthy() {
+            visit_jq(yes, input, vars, emit)
+        } else {
+            conditional(tail, fallback, input, vars, remaining, emit)
+        }
+    })
 }
 
 fn pipeline(stages: &[String], input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) -> Flow {

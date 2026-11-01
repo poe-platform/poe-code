@@ -10283,11 +10283,7 @@ fn cmd_media_doc(
                         PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width){row.reverse();},
                     }
                 }
-                let data=image.png();
-                let path=if lower.starts_with("png:") {&dest[4..]}else{dest};
-                Some(if path=="-" {ok_out(&crate::vfs::bytes_to_stream_string(&data))}
-                    else if let Err(e)=publish_magick_output(fs,&resolve_posix_path(cwd,path),&data) {err_out(&format!("shell: line 1: {e}\n"),1)}
-                    else {ok_out("")})
+                Some(image.publish(dest,cwd,fs))
             };
             let apply_ops = |meta: &mut ImageMeta| {
                 if let Some(ref rspec) = resize_spec {
@@ -10561,6 +10557,9 @@ fn cmd_media_doc(
             let mut pad_x = 2u32;
             let mut pad_y = 2u32;
             let mut border_w = 0u32;
+            let mut background = [255;4];
+            let mut border_color = [223,223,223,255];
+            let mut gravity = String::from("northwest");
             let mut operands: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -10610,12 +10609,14 @@ fn cmd_media_doc(
                         border_w = b.parse().unwrap_or(0);
                         i += 2;
                     }
-                    "-background" | "-bordercolor" | "-fill" | "-label" | "-title" | "-font"
-                    | "-pointsize" | "-gravity" | "-quality" | "-mode"
-                        if i + 1 < args.len() =>
-                    {
-                        i += 2;
+                    "-background" | "-bordercolor" if i+1 < args.len() => {
+                        let c=match parse_color(&args[i+1]) {Ok(c)=>c,Err(e)=>return err_out(&format!("montage: {e}\n"),1)};
+                        if args[i]=="-background" {background=c;} else {border_color=c;}
+                        i+=2;
                     }
+                    "-gravity" if i+1 < args.len() => {gravity=args[i+1].to_ascii_lowercase().replace(['-','_',' '],"");i+=2;}
+                    "-fill" | "-label" | "-title" | "-font" | "-pointsize" | "-quality" | "-mode"
+                        if i + 1 < args.len() => {i+=2;}
                     a if a.starts_with('-') => {
                         i += 1;
                     }
@@ -10630,29 +10631,29 @@ fn cmd_media_doc(
             }
             let in_paths = &operands[..operands.len() - 1];
             let out_rel = operands.last().unwrap();
-            let mut thumb_dims: Vec<(u32, u32)> = Vec::new();
+            let mut thumb_dims = Vec::new();
+            let mut tiles=Vec::new();
+            let limit=fs.max_input_bytes();
+            let mut retained=0;
+            let spec=format!("{}x{}",cell_w.map(|v|v.to_string()).unwrap_or_default(),cell_h.map(|v|v.to_string()).unwrap_or_default());
+            let png=out_rel.to_ascii_lowercase().ends_with(".png") || out_rel.to_ascii_lowercase().starts_with("png:") || out_rel=="-";
             for p in in_paths {
-                let full = resolve_posix_path(cwd, p);
-                let Ok(bytes) = fs.read_file(&full) else {
-                    return err_out(
-                        &format!("montage: unable to open image '{p}': No such file or directory\n"),
-                        1,
-                    );
+                let path=p.strip_prefix("png:").unwrap_or(p);
+                let full=resolve_posix_path(cwd,path);
+                let bytes=if Canvas::parse(p).is_some(){Vec::new()}else{
+                    match fs.read_file(&full){Ok(bytes)=>bytes,Err(_)=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1)}
                 };
-                let meta = read_image_meta(&bytes, &full);
-                let (mut tw, mut th) = if cell_w.is_some() || cell_h.is_some() {
-                    let gspec = format!(
-                        "{}{}",
-                        cell_w.map(|v| v.to_string()).unwrap_or_default(),
-                        cell_h.map(|v| format!("x{v}")).unwrap_or_default()
-                    );
-                    apply_magick_resize_geom(meta.w, meta.h, &gspec)
-                } else {
-                    (meta.w, meta.h)
+                let (tw,th)=match if png {png_pixels::Raster::input(p,&bytes,limit)} else {Ok(None)} {
+                    Ok(Some(mut image))=>{
+                        if let Err(e)=image.resize(&spec,magick_resize::Kernel::Lanczos3,limit){return err_out(&format!("montage: {e}\n"),1);}
+                        let (w,h)=(image.width as u32,image.height as u32);
+                        if image.pixels.len()>limit/4-retained {return err_out("montage: image exceeds memory budget\n",1);}
+                        retained+=image.pixels.len();tiles.push(image);(w,h)
+                    }
+                    Ok(None)=>{let meta=read_image_meta(&bytes,&full);apply_magick_resize_geom(meta.w,meta.h,&spec)}
+                    Err(e)=>return err_out(&format!("montage: improper image header '{p}': {e}\n"),1)
                 };
-                tw += border_w * 2;
-                th += border_w * 2;
-                thumb_dims.push((tw, th));
+                thumb_dims.push((tw.saturating_add(border_w.saturating_mul(2)),th.saturating_add(border_w.saturating_mul(2))));
             }
             let n = thumb_dims.len();
             let cols = tile_cols.unwrap_or_else(|| {
@@ -10671,15 +10672,36 @@ fn cmd_media_doc(
                 .iter()
                 .map(|(_, h)| *h)
                 .fold(cell_h.unwrap_or(0), u32::max);
-            let slot_w = max_thumb_w + pad_x * 2;
-            let slot_h = max_thumb_h + pad_y * 2;
-            let canvas_w = ((cols as u32) * slot_w).max(1);
-            let canvas_h = ((rows as u32) * slot_h).max(1);
+            let slot_w = max_thumb_w.saturating_add(pad_x.saturating_mul(2));
+            let slot_h = max_thumb_h.saturating_add(pad_y.saturating_mul(2));
+            let canvas_w = cols.saturating_mul(slot_w as usize).max(1);
+            let canvas_h = rows.saturating_mul(slot_h as usize).max(1);
+            if canvas_w.saturating_mul(canvas_h)>limit/4 {return err_out("montage: image exceeds memory budget\n",1);}
+            if tiles.len()==n {
+                let mut sheet=png_pixels::Raster {width:canvas_w,height:canvas_h,density:72,gray:false,alpha:background[3]<255 || (border_w>0 && border_color[3]<255),pixels:vec![background;canvas_w*canvas_h]};
+                for (i,(tile,(tw,th))) in tiles.iter().zip(thumb_dims).enumerate() {
+                    if cols==0 || i/cols>=rows {break;}
+                    let dx=max_thumb_w-tw;let dy=max_thumb_h-th;
+                    let ox=match gravity.as_str() {"northwest"|"west"|"southwest"=>0,"northeast"|"east"|"southeast"=>dx,_=>dx/2};
+                    let oy=match gravity.as_str() {"northwest"|"north"|"northeast"=>0,"southwest"|"south"|"southeast"=>dy,_=>dy/2};
+                    let left=(i%cols)*slot_w as usize+(pad_x+ox) as usize;
+                    let top=(i/cols)*slot_h as usize+(pad_y+oy) as usize;
+                    for y in 0..th {for x in 0..tw {
+                        let src=if y>=border_w && y<th-border_w && x>=border_w && x<tw-border_w {
+                            tile.pixels[(y-border_w) as usize*tile.width+(x-border_w) as usize]
+                        }else{border_color};
+                        sheet.alpha |= src[3]<255;
+                        let d=&mut sheet.pixels[(top+y as usize)*canvas_w+left+x as usize];
+                        *d=magick_composite::blend(src,*d,"over",1.,1.);
+                    }}
+                }
+                return sheet.publish(out_rel,cwd,fs);
+            }
             let out_full = resolve_posix_path(cwd, out_rel);
             let out_meta = ImageMeta {
                 fmt: format_from_path(&out_full).to_string(),
-                w: canvas_w,
-                h: canvas_h,
+                w: canvas_w as u32,
+                h: canvas_h as u32,
                 cs: "sRGB".to_string(),
                 exif: BTreeMap::new(),
             };
@@ -13139,6 +13161,20 @@ mod media_unit_tests {
             let r = cmd_media_doc("magick", &media_args(&[name,"-filter",kernel,"-resize",size,"out.png"]), "", "/", &fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),hash,"{name} {kernel} {size}");
+        }
+    }
+
+    #[test]
+    fn montage_paints_png_tiles_with_borders_padding_and_transparency() {
+        let fs = gradient_png_pair();
+        for (args, hash) in [
+            ("-geometry 6x7+2+1 a.png b.png out.png", "d541dddcb9fd5423bc0d7f7c77c5925b6310831308cf3166313da223fa3dcf78"),
+            ("-tile x2 -border 2 -bordercolor none a.png b.png out.png", "062c8a936d7623b73a9be16b149bdd83ce3f19b67d56a435aedc2e512117dba6"),
+            ("-gravity southeast -background none a.png b.png out.png", "ffb04487e1d64cd93fec6dc9d6c95ee57971861e830b59175f4463edb5ba29d1"),
+        ] {
+            let r = cmd_media_doc("montage", &media_args(&args.split_whitespace().collect::<Vec<_>>()), "", "/", &fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),hash,"{args}");
         }
     }
 

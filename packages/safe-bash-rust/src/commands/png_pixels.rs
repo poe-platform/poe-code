@@ -27,6 +27,26 @@ impl Raster {
         }
         Ok(None)
     }
+    pub fn publish(
+        &self,
+        dest: &str,
+        cwd: &str,
+        fs: &dyn super::SafeBashFs,
+    ) -> super::BuiltinOutcome {
+        let bytes = self.png();
+        let path = dest
+            .get(..4)
+            .filter(|p| p.eq_ignore_ascii_case("png:"))
+            .map_or(dest, |_| &dest[4..]);
+        if path == "-" {
+            return super::ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
+        }
+        match super::publish_magick_output(fs, &super::resolve_posix_path(cwd, path), &bytes) {
+            Ok(()) => super::ok_out(""),
+            Err(e) => super::err_out(&format!("shell: line 1: {e}\n"), 1),
+        }
+    }
+
     pub fn png(&self) -> Vec<u8> {
         let pixel = |x: usize, y: usize| self.pixels[y * self.width + x];
         match (self.gray, self.alpha) {

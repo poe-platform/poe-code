@@ -1,9 +1,6 @@
-use super::{
-    BuiltinOutcome, SafeBashFs, err_out, ok_out, png_pixels::Raster, publish_magick_output,
-    resolve_posix_path,
-};
+use super::{BuiltinOutcome, SafeBashFs, err_out, png_pixels::Raster, resolve_posix_path};
 
-fn blend(s: [u8; 4], mut d: [u8; 4], mode: &str, ws: f64, wd: f64) -> [u8; 4] {
+pub(super) fn blend(s: [u8; 4], mut d: [u8; 4], mode: &str, ws: f64, wd: f64) -> [u8; 4] {
     let sa = f64::from(s[3]) / 255.;
     let da = f64::from(d[3]) / 255.;
     let (mut u, mut v, mut divide, mut alpha) = (sa, da * (1. - sa), true, sa + da * (1. - sa));
@@ -326,17 +323,5 @@ pub(super) fn run(
             | "softlight"
             | "saturate"
     ) || base.pixels.iter().any(|p| p[3] < 255);
-    let png = base.png();
-    let path = if dest_lower.starts_with("png:") {
-        &dest[4..]
-    } else {
-        dest
-    };
-    Some(if path == "-" {
-        ok_out(&crate::vfs::bytes_to_stream_string(&png))
-    } else if let Err(e) = publish_magick_output(fs, &resolve_posix_path(cwd, path), &png) {
-        err_out(&format!("shell: line 1: {e}\n"), 1)
-    } else {
-        ok_out("")
-    })
+    Some(base.publish(dest, cwd, fs))
 }

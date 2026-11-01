@@ -6,6 +6,9 @@ mod csvkit_encoding;
 mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
+mod jq_generator;
+use jq_generator::{eval_jq, visit_jq};
+use std::ops::ControlFlow;
 mod jq_input;
 mod jq_json;
 mod jq_parser;
@@ -62,10 +65,8 @@ impl<'a> JqScope<'a> {
         }));
     }
 
-    fn call<T>(
-        &self, name: &str, arguments: Option<&str>, input: &JVal,
-        evaluate: fn(&str, &JVal, &Self) -> Result<Vec<T>, String>,
-    ) -> Result<Option<Vec<T>>, String> {
+    fn invocation(&self, name: &str, arguments: Option<&str>, input: &JVal)
+        -> Result<Option<(Rc<JqFilter<'a>>, Vec<Self>)>, String> {
         let Some(overloads) = self.functions.get(name) else { return Ok(None) };
         let args = arguments.filter(|s| !s.trim().is_empty()).map_or_else(Vec::new, |s| split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()]));
         let Some(filter) = overloads.get(&args.len()) else { return Ok(None) };
@@ -88,9 +89,7 @@ impl<'a> JqScope<'a> {
                 }
             }
         }
-        let mut out = Vec::new();
-        for scope in scopes { out.extend(evaluate(&filter.body, input, &scope)?); }
-        Ok(Some(out))
+        Ok(Some((filter.clone(), scopes)))
     }
 
     fn environment(&self) -> JVal {
@@ -1022,40 +1021,37 @@ fn cmd_jq_core(
                 Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {msg}\n"), exit_code },
             }
         };
-        let result = eval_jq(&filter_str, &input_val, &vars);
+        let mut invocation_last = None;
+        let emitted = visit_jq(&filter_str, &input_val, &vars, &mut |r| {
+            if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
+                return Err("Cannot dump a string containing NUL with --raw-output0 option".into());
+            }
+            invocation_last = Some(r.is_truthy());
+            let raw_string = raw_output && matches!(r, JVal::Str(_));
+            if seq_mode && !raw_string { out.push('\x1e'); }
+            if raw_string && !ascii_output && let JVal::Str(ref s) = r {
+                out.push_str(s);
+            } else {
+                JsonFormat {
+                    indent: &indent,
+                    strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
+                    color: color && !monochrome && !raw_string,
+                    sort_keys,
+                }.write(&r, 0, &mut out);
+            }
+            if raw_output0 {
+                out.push('\0');
+            } else if !join_output {
+                out.push('\n');
+            }
+            Ok(ControlFlow::Continue(()))
+        });
         stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
         if let Some(e) = inputs.borrow_mut().file_error.take() {
             return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {e}\n"), exit_code: 2 };
         }
-        let mut invocation_last = None;
-        let emitted = result.and_then(|results| {
-            for r in results {
-                if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
-                    return Err("Cannot dump a string containing NUL with --raw-output0 option".into());
-                }
-                invocation_last = Some(r.is_truthy());
-                let raw_string = raw_output && matches!(r, JVal::Str(_));
-                if seq_mode && !raw_string { out.push('\x1e'); }
-                if raw_string && !ascii_output && let JVal::Str(ref s) = r {
-                    out.push_str(s);
-                } else {
-                    JsonFormat {
-                        indent: &indent,
-                        strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
-                        color: color && !monochrome && !raw_string,
-                        sort_keys,
-                    }.write(&r, 0, &mut out);
-                }
-                if raw_output0 {
-                    out.push('\0');
-                } else if !join_output {
-                    out.push('\n');
-                }
-            }
-            Ok(())
-        });
         match emitted {
-            Ok(()) => {
+            Ok(_) => {
                 last_truthy = invocation_last.or(last_truthy);
                 status = if !exit_status { 0 } else { match last_truthy { Some(true) => 0, Some(false) => 1, None => 4 } };
             }
@@ -1085,7 +1081,7 @@ fn cmd_jq_core(
     }
 }
 
-fn eval_jq(
+fn eval_jq_atom(
     expr: &str,
     input: &JVal,
     vars: &JqScope<'_>,
@@ -1094,24 +1090,6 @@ fn eval_jq(
     if s.is_empty() || s == "." {
         return Ok(vec![input.clone()]);
     }
-    if let Some(def_rest) = s.strip_prefix("def ")
-        && let Some((sig_and_body, after_semi)) = split_jq_def_semi(def_rest)
-        && let Some((sig, body)) = sig_and_body.split_once(':')
-    {
-        let sig = sig.trim();
-        let (fname, param) = if let Some(open) = sig.find('(')
-            && sig.ends_with(')')
-        {
-            (sig[..open].trim(), sig[open + 1..sig.len() - 1].trim())
-        } else {
-            (sig, "")
-        };
-        let mut next_vars = vars.clone();
-        let params = param.split(';').map(str::trim).filter(|p| !p.is_empty()).map(str::to_owned).collect();
-        next_vars.define(fname, params, body.trim(), vars.clone(), true);
-        return eval_jq(after_semi.trim(), input, &next_vars);
-    }
-
     if let Some(rest) = s.strip_prefix("label $")
         && let Some((lbl_name, body_expr)) = split_jq_binary(rest, "|")
     {
@@ -1135,82 +1113,6 @@ fn eval_jq(
     }
     if let Some(lbl) = s.strip_prefix("break $") {
         return Err(format!("__jq_break:{}", lbl.trim()));
-    }
-
-    if let Some(pipes) = split_jq_top(s, '|') {
-        if pipes.len() == 2 && vars.yq.is_some() {
-            let p0 = pipes[0].trim();
-            let p1 = pipes[1].trim();
-            if matches!(p1, "anchor" | "alias" | "style") && p0.starts_with('.') {
-                return Ok(vec![JVal::Str(vars.yq_path_meta(p1, p0))]);
-            }
-        }
-        let mut current = vec![(input.clone(), vars.clone())];
-        for (stage_idx, stage) in pipes.iter().enumerate() {
-            let st_trim = stage.trim();
-            if st_trim.starts_with("def ") {
-                let joined = pipes[stage_idx..].join(" | ");
-                let mut next = Vec::new();
-                for (item, item_vars) in &current {
-                    for out_item in eval_jq(&joined, item, item_vars)? {
-                        next.push((out_item, item_vars.clone()));
-                    }
-                }
-                current = next;
-                break;
-            }
-            if let Some((val_expr, pat_part)) = split_jq_binary_right(st_trim, " as ") {
-                let pat = pat_part.trim();
-                if !pat.contains('(')
-                    && ((pat.starts_with('$') && !pat.contains(' '))
-                        || pat.starts_with('[')
-                        || pat.starts_with('{'))
-                {
-                    let mut next = Vec::new();
-                    for (item, item_vars) in &current {
-                        for v in eval_jq(&val_expr, item, item_vars)? {
-                            let mut nv = item_vars.clone();
-                            bind_jq_alternatives(pat, &v, &mut nv.bindings);
-                            next.push((item.clone(), nv));
-                        }
-                    }
-                    current = next;
-                    continue;
-                }
-            }
-            let mut next = Vec::new();
-            for (item, item_vars) in &current {
-                for out_item in eval_jq(stage, item, item_vars)? {
-                    next.push((out_item, item_vars.clone()));
-                }
-            }
-            current = next;
-        }
-        return Ok(current.into_iter().map(|(v, _)| v).collect());
-    }
-
-    if let Some(rest) = s.strip_prefix("try ") {
-        if let Some((try_expr, catch_expr)) = split_jq_binary(rest, " catch ") {
-            return match eval_jq(try_expr.trim(), input, vars) {
-                Ok(vals) => Ok(vals),
-                Err(err_msg) => {
-                    if err_msg.starts_with("__jq_break:") {
-                        return Err(err_msg);
-                    }
-                    let err_val = if let Some(json_str) = err_msg.strip_prefix("__jq_err:") {
-                        parse_json_stream(json_str)
-                            .ok()
-                            .and_then(|mut v| v.pop())
-                            .unwrap_or(JVal::Str(json_str.to_string()))
-                    } else {
-                        JVal::Str(err_msg)
-                    };
-                    eval_jq(catch_expr.trim(), &err_val, vars)
-                }
-            };
-        } else {
-            return Ok(eval_jq(rest.trim(), input, vars).unwrap_or_default());
-        }
     }
 
     if is_jq_if_expr(s) {
@@ -1298,24 +1200,6 @@ fn eval_jq(
                 return Ok(out);
             }
         }
-    }
-
-    if let Some(commas) = split_jq_top(s, ',') {
-        let mut out = Vec::new();
-        for part in commas {
-            match eval_jq(&part, input, vars) {
-                Ok(vals) => out.extend(vals),
-                Err(e) if e.starts_with("__jq_break:") => {
-                    let lbl_part = e.split("::").next().unwrap_or(&e);
-                    return Err(format!(
-                        "{lbl_part}::{}",
-                        JVal::Array(out).to_json_string(true, false, 0)
-                    ));
-                }
-                Err(e) => return Err(e),
-            }
-        }
-        return Ok(out);
     }
 
     for update_op in ["|=", "//=", "+=", "-=", "*=", "/=", "%=", "="] {
@@ -1439,9 +1323,6 @@ fn eval_jq(
         return Ok(eval_jq(inner, input, vars).unwrap_or_default());
     }
 
-    if s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
-        return eval_jq(&s[1..s.len() - 1], input, vars);
-    }
 
     if s.starts_with('[') && s.ends_with(']') && is_matching_outer_delim(s, '[', ']') {
         let inner = s[1..s.len() - 1].trim();
@@ -1895,7 +1776,9 @@ fn resolve_jq_lhs_paths(
     }
     let (name, args) = s.strip_suffix(')').and_then(|s| s.split_once('('))
         .map_or((s, None), |(name, args)| (name.trim(), Some(args)));
-    if let Some(paths) = vars.call(name, args, input, resolve_jq_lhs_paths)? {
+    if let Some((filter, scopes)) = vars.invocation(name, args, input)? {
+        let mut paths = Vec::new();
+        for scope in scopes { paths.extend(resolve_jq_lhs_paths(&filter.body, input, &scope)?); }
         return Ok(paths);
     }
     if s == ".." || s == "recurse" {
@@ -2245,7 +2128,6 @@ fn try_eval_jq_builtin(
         }
         return Ok(Some(out));
     }
-    if let Some(result) = vars.call(s, None, input, eval_jq)? { return Ok(Some(result)); }
     match s {
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),
@@ -2554,11 +2436,6 @@ fn try_eval_jq_builtin(
             }
             return Err("break".to_string());
         }
-        "inputs" => {
-            let mut values = Vec::new();
-            while let Some(v) = vars.pop_input().map_err(|(_,e)| e)? { values.push(v); }
-            return Ok(Some(values));
-        }
         "gmtime" => {
             let JVal::Number(n) = input else {
                 return Err("gmtime() requires numeric inputs".to_string());
@@ -2852,7 +2729,6 @@ fn try_eval_jq_builtin(
         if s.ends_with(')') {
             let fname = s[..open].trim();
             let arg_expr = s[open + 1..s.len() - 1].trim();
-            if let Some(result) = vars.call(fname, Some(arg_expr), input, eval_jq)? { return Ok(Some(result)); }
             match fname {
                 "delpaths" => {
                     let mut updated = input.clone();
@@ -4608,46 +4484,11 @@ fn eval_jq_limited(
     if max_items == 0 {
         return Ok(Vec::new());
     }
-    let previous = vars.inputs.borrow().remaining;
-    let limit = previous.min(max_items);
-    vars.inputs.borrow_mut().remaining = limit;
     let mut out = Vec::new();
-    let mut err_opt: Option<String> = None;
-    if let Some(parts) = split_jq_top(expr, ',') {
-        for part in parts {
-            if out.len() >= max_items {
-                break;
-            }
-            match eval_jq(part.trim(), input, vars) {
-                Ok(mut items) => {
-                    let rem = max_items - out.len();
-                    if items.len() > rem {
-                        items.truncate(rem);
-                    }
-                    out.extend(items);
-                }
-                Err(e) => {
-                    err_opt = Some(e);
-                    break;
-                }
-            }
-        }
-    } else {
-        match eval_jq(expr, input, vars) {
-            Ok(mut items) => {
-                if items.len() > max_items {
-                    items.truncate(max_items);
-                }
-                out = items;
-            }
-            Err(e) => err_opt = Some(e),
-        }
-    }
-    let used = limit - vars.inputs.borrow().remaining;
-    vars.inputs.borrow_mut().remaining = previous - used;
-    if let Some(e) = err_opt {
-        return Err(e);
-    }
+    let _ = visit_jq(expr, input, vars, &mut |value| {
+        out.push(value);
+        Ok(if out.len() == max_items { ControlFlow::Break(()) } else { ControlFlow::Continue(()) })
+    })?;
     Ok(out)
 }
 
@@ -5184,20 +5025,18 @@ fn is_matching_outer_delim(s: &str, open: char, close: char) -> bool {
         return false;
     }
     let mut depth = 0i32;
-    let mut q = false;
-    for (i, &c) in chars.iter().enumerate() {
-        if c == '"' && (i == 0 || chars[i - 1] != '\\') {
-            q = !q;
-        } else if !q {
-            if c == open {
-                depth += 1;
-            } else if c == close {
-                depth -= 1;
-                if depth == 0 && i + 1 < chars.len() {
-                    return false;
-                }
-            }
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] == '"' {
+            i = skip_jq_string(&chars, i);
+            continue;
         }
+        if chars[i] == open { depth += 1; }
+        if chars[i] == close {
+            depth -= 1;
+            if depth == 0 { return i + 1 == chars.len(); }
+        }
+        i += 1;
     }
     depth == 0
 }

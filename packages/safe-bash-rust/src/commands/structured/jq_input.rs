@@ -4,7 +4,6 @@ use std::borrow::Cow;
 pub(super) struct JqInputs<'a> {
     reader: Reader<'a>,
     pub warnings: String,
-    pub remaining: usize,
     pub file_error: Option<String>,
 }
 
@@ -17,7 +16,6 @@ impl JqInputs<'_> {
     pub fn documents(values: Vec<JVal>) -> Self {
         Self {
             reader: Reader::Documents(values.into_iter()),
-            remaining: usize::MAX,
             file_error: None,
             warnings: String::new(),
         }
@@ -45,9 +43,6 @@ impl JqInputs<'_> {
     }
 
     pub fn next(&mut self) -> Result<Option<JVal>, (i32, String)> {
-        if self.remaining == 0 {
-            return Ok(None);
-        }
         let result = match &mut self.reader {
             Reader::Documents(docs) => Ok(docs.next()),
             Reader::Files(values) => {
@@ -59,10 +54,6 @@ impl JqInputs<'_> {
             }
         };
         match result {
-            Ok(Some(v)) => {
-                self.remaining -= 1;
-                Ok(Some(v))
-            }
             Err((2, e)) => {
                 self.file_error = Some(e.clone());
                 Err((2, e))
@@ -282,7 +273,6 @@ pub(super) fn files<'a>(
     };
     JqInputs {
         reader: Reader::Files(Box::new(values)),
-        remaining: usize::MAX,
         file_error: None,
         warnings: String::new(),
     }

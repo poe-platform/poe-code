@@ -3,6 +3,28 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq stops input generators after producing enough output and preserves results before errors", async () => {
+  const bash = new RustWasmBash({ files: { "/workspace/items": "1 2 3 4\n", "/workspace/good": "7 8" } });
+  try {
+    for (const [filter, stdout] of [
+      ["[limit(1; inputs | select(.>2)),inputs]", "[3,4]\n"],
+      ["def filtered: inputs|select(.>2); [first(filtered),inputs]", "[3,4]\n"],
+      ["def by(f): inputs|select(f); [first(by(.>2)),inputs]", "[3,4]\n"],
+      ["def f($x): $x; f(2)+f(3)", "5\n"],
+      ["[limit(1;[inputs]),inputs]", "[[1,2,3,4]]\n"],
+      ["(inputs | select(. > 1)) as $x | [$x,first(inputs)]", "[2,3]\n[4]\n"],
+      ['try (1,error("bad")) catch "caught"', '1\n"caught"\n'],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}' items`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], filter);
+    }
+    const error = await bash.exec(`jq -nc '1,error("bad")'`);
+    assert.deepEqual([error.exitCode, error.stdout, error.stderr], [5, "1\n", "jq: error (at <unknown>): bad\n"]);
+    const missing = await bash.exec("jq -nc inputs good missing");
+    assert.deepEqual([missing.exitCode, missing.stdout, missing.stderr], [2, "7\n", "jq: ENOENT: no such file or directory, readStream '/workspace/missing'\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq reports runtime errors at the input record and resumes at the next value", async () => {
   const bash = new RustWasmBash({ files: {
     "/workspace/a": "1\n2\n", "/workspace/b": "3 4", "/workspace/x": "1 2 3\n", "/workspace/bad": "oops",

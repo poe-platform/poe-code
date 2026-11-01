@@ -1305,18 +1305,6 @@ fn parse_arith_prefix(
         }
         ArithTok::Ident(name) => {
             *pos += 1;
-            if let Some((ArithTok::Op(op), _)) = tokens.get(*pos)
-                && (op == "++" || op == "--")
-            {
-                let op_s = op.clone();
-                *pos += 1;
-                return Ok(ArithNode::Unary {
-                    op: op_s,
-                    arg: Box::new(ArithNode::Var(name, start)),
-                    prefix: false,
-                    start,
-                });
-            }
             Ok(ArithNode::Var(name, start))
         }
         ArithTok::LParen => {
@@ -1329,15 +1317,10 @@ fn parse_arith_prefix(
                 return Err(("Expected ')' in arithmetic expression".to_string(), start));
             }
             *pos += 1;
-            if let Some((ArithTok::Op(op), op_off)) = tokens.get(*pos)
-                && (op == "++" || op == "--")
-            {
-                return Err((
-                    "Arithmetic increment/decrement requires a variable".to_string(),
-                    *op_off,
-                ));
+            match inner {
+                ArithNode::Var(name, _) => Ok(ArithNode::Var(name, start)),
+                other => Ok(ArithNode::Group(Box::new(other), start)),
             }
-            Ok(ArithNode::Group(Box::new(inner), start))
         }
         ArithTok::Op(op) if matches!(op.as_str(), "+" | "-" | "!" | "~" | "++" | "--") => {
             *pos += 1;
@@ -1345,7 +1328,7 @@ fn parse_arith_prefix(
             if (op == "++" || op == "--") && !matches!(arg, ArithNode::Var(_, _)) {
                 return Err((
                     "Arithmetic increment/decrement requires a variable".to_string(),
-                    start,
+                    tokens.get(*pos).map_or(usize::MAX, |t| t.1),
                 ));
             }
             Ok(ArithNode::Unary {
@@ -1367,10 +1350,17 @@ fn parse_arith_expr(
     let mut left = parse_arith_prefix(tokens, pos)?;
     while let Some((ArithTok::Op(op), op_off)) = tokens.get(*pos) {
         if op == "++" || op == "--" {
-            return Err((
-                "Arithmetic increment/decrement requires a variable".to_string(),
-                *op_off,
-            ));
+            if !matches!(left, ArithNode::Var(_, _)) {
+                return Err(("Arithmetic increment/decrement requires a variable".to_string(), *op_off));
+            }
+            *pos += 1;
+            left = ArithNode::Unary {
+                op: op.clone(),
+                start: left.start(),
+                arg: Box::new(left),
+                prefix: false,
+            };
+            continue;
         }
         let Some((prec, right_assoc)) = arith_op_info(op.as_str()) else {
             break;
@@ -1398,19 +1388,19 @@ fn parse_arith_expr(
             continue;
         }
         let next_min = if right_assoc { prec } else { prec + 1 };
-        let right = parse_arith_expr(tokens, pos, next_min)?;
         if is_arith_assign_op(&op_s) {
             let ArithNode::Var(target, _) = left else {
-                return Err(("Arithmetic assignment requires a variable".to_string(), op_pos));
+                return Err(("Arithmetic assignment requires a variable".to_string(), tokens.get(*pos).map_or(usize::MAX, |t| t.1)));
             };
             left = ArithNode::Assign {
                 op: op_s,
                 target,
-                right: Box::new(right),
+                right: Box::new(parse_arith_expr(tokens, pos, next_min)?),
                 start,
             };
             continue;
         }
+        let right = parse_arith_expr(tokens, pos, next_min)?;
         left = ArithNode::Binary {
             op: op_s,
             left: Box::new(left),
@@ -4711,6 +4701,21 @@ fn bash_lowercase_mode(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn arithmetic_assignment_targets_follow_parentheses_and_report_the_parser_cursor() {
+        let mut env = BTreeMap::new();
+        for (expr, value) in [("((i))=2", 2), ("(i)++", 2), ("++(i)", 4), ("(a[1])+=i", 4)] {
+            assert_eq!(eval_arith_formatted(expr, &mut env), Ok(value), "{expr}");
+        }
+        for (expr, token) in [
+            ("(a[0]+1)=2", "2"), ("1+=  42", "42"), ("1=2+", "2+"), ("1=", "="),
+            ("++(i+1) + 3", "+ 3"), ("++2", "2"), ("(i++)++", "++"),
+        ] {
+            let expected = format!("{expr}: arithmetic syntax error in expression (error token is \"{token}\")");
+            assert_eq!(eval_arith_formatted(expr, &mut env), Err(expected), "{expr}");
+        }
+    }
 
     #[test]
     fn unit_arithmetic_parameter_expansion_and_glob_matching() {

@@ -37,7 +37,7 @@ impl RetainedFile {
     pub(crate) fn read(&self, offset: u64, size: usize) -> Vec<u8> {
         let mut state = self.fs.state.write().unwrap();
         let file = state.files.get_mut(&self.ino).unwrap();
-        file.atime_ms = 1_700_000_000_000.0;
+        file.atime_ms = crate::vfs::now_ms();
         let data = &file.data;
         let start = offset.min(data.len() as u64) as usize;
         data[start..start.saturating_add(size).min(data.len())].to_vec()
@@ -83,7 +83,7 @@ impl RetainedFile {
             file.data.shrink_to_fit();
         }
         file.publication = None;
-        file.mtime_ms = 1_700_000_000_000.0;
+        file.mtime_ms = crate::vfs::now_ms();
         state.total_bytes = total;
         self.fs.bump_generation();
         Ok(())

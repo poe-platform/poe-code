@@ -5630,7 +5630,7 @@ where
         roots.push(".".to_string());
     }
 
-    let now_ms = 1_700_000_000_000i64;
+    let now_ms = crate::vfs::now_ms() as i64;
 
     let mut pctx = FindParseContext {
         args,
@@ -6052,7 +6052,7 @@ fn parse_fd_time_ms(spec: &str) -> Option<u64> {
             "w" | "week" | "weeks" => n * 7 * 86_400_000,
             _ => return None,
         };
-        let now_ms = 1_700_000_000_000u64;
+        let now_ms = crate::vfs::now_ms() as u64;
         return Some(now_ms.saturating_sub(dur_ms));
     }
     if s.len() >= 10 && s.as_bytes().get(4) == Some(&b'-') && s.as_bytes().get(7) == Some(&b'-') {

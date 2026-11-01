@@ -2195,7 +2195,7 @@ fn cmd_touch(
                 let _ = fs.chmod(&p, mode);
             } else { continue; }
         }
-        let now = 1_700_000_000_000.0;
+        let now = crate::vfs::now_ms();
         if let Err(e) = fs.set_times(&p, touch_a.then(|| ref_atime.unwrap_or(now)), touch_m.then(|| ref_mtime.unwrap_or(now))) {
             return err_out(&format!("touch: {e}\n"), 1);
         }
@@ -6839,11 +6839,11 @@ mod tests {
         let touched = cmd_touch(&args(&["-a", "-t", "200001010000", "/clock"]), "/", &BTreeMap::new(), &first);
         assert_eq!(touched.exit_code, 0, "{}", touched.stderr);
         let listing = |fs: &MemoryVfs, path| cmd_ls(&args(&["-lu", path]), "/", fs).stdout;
-        assert!(listing(&second, "/clock").contains("2023-11-14 22:13"));
+        assert_eq!(second.stat("/clock").unwrap().atime_ms, second.stat("/clock").unwrap().mtime_ms);
         assert!(listing(&first, "/alias").contains("2000-01-01 00:00"));
         first.remove_one("/clock", false).unwrap();
         first.write_file("/clock", b"new").unwrap();
-        assert!(listing(&first, "/clock").contains("2023-11-14 22:13"));
+        assert_eq!(first.stat("/clock").unwrap().atime_ms, first.stat("/clock").unwrap().mtime_ms);
     }
 
     #[test]

@@ -36,6 +36,7 @@ function createWasmInstance() {
   }
   const instance = new WebAssembly.Instance(compiledWasmModule, {
     safe_bash: {
+      wall_clock_ms: () => Date.now(),
       fill_random_bytes(ptr, len) {
         try {
           globalThis.crypto.getRandomValues(new Uint8Array(instance.exports.memory.buffer, ptr >>> 0, len >>> 0));

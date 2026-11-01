@@ -16,6 +16,21 @@ pub use path::{
 #[cfg(not(target_arch = "wasm32"))]
 pub use real::RealVfs;
 
+pub(crate) fn now_ms() -> f64 {
+    #[cfg(target_arch = "wasm32")]
+    {
+        #[link(wasm_import_module = "safe_bash")]
+        unsafe extern "C" { fn wall_clock_ms() -> f64; }
+        unsafe { wall_clock_ms() }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        use std::time::{SystemTime, UNIX_EPOCH};
+        SystemTime::now().duration_since(UNIX_EPOCH)
+            .map(|d| d.as_millis() as f64).unwrap_or_else(|e| -(e.duration().as_millis() as f64))
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VfsEntryKind {
     File,

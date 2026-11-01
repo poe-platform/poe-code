@@ -27,6 +27,11 @@ enum MemoryNode {
 }
 
 impl MemoryNode {
+    fn directory(mode: u32) -> Self {
+        let now = super::now_ms();
+        Self::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode, atime_ms: now, mtime_ms: now }
+    }
+
     fn ino(&self) -> u64 {
         match self { Self::File { ino } | Self::Symlink { ino, .. } | Self::Directory { ino, .. } => *ino }
     }
@@ -210,11 +215,7 @@ impl MemoryVfs {
         let mut nodes = BTreeMap::new();
         nodes.insert(
             "/".to_string(),
-            MemoryNode::Directory {
-                ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                mode: 0o40755,
-                atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0,
-            },
+            MemoryNode::directory(0o40755),
         );
         Self {
             id: NEXT_FS_ID.fetch_add(1, Ordering::Relaxed),
@@ -368,11 +369,12 @@ impl MemoryVfs {
             let file = state.files.get_mut(&ino).unwrap();
             file.data = data.to_vec();
             file.publication = publication;
-            file.mtime_ms = 1_700_000_000_000.0;
+            file.mtime_ms = super::now_ms();
         } else {
             let ino = NEXT_INODE.fetch_add(1, Ordering::Relaxed);
+            let now = super::now_ms();
             state.files.insert(ino, MemoryFile { data: data.to_vec(), publication, mode: create_mode,
-                atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0, opens: 0, linked: true });
+                atime_ms: now, mtime_ms: now, opens: 0, linked: true });
             state.nodes.insert(resolved, MemoryNode::File { ino });
         }
         Ok(())
@@ -437,7 +439,7 @@ impl MemoryVfs {
         }
         Self::store_file(&mut upper, path.to_owned(), data, 0o100000 | mode, None)?;
         for (parent, mode) in parents {
-            upper.insert_directory(parent, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode, atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0 });
+            upper.insert_directory(parent, MemoryNode::directory(mode));
         }
         self.bump_generation();
         Ok(())
@@ -474,7 +476,7 @@ impl MemoryVfs {
             upper.insert_directory(parent.to_owned(), MemoryNode::Directory {
                 ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode,
                 atime_ms: if parent == path { atime } else { previous_atime },
-                mtime_ms: if parent == path { mtime } else { 1_700_000_000_000.0 },
+                mtime_ms: if parent == path { mtime } else { super::now_ms() },
             });
         }
         self.bump_generation();
@@ -599,11 +601,7 @@ impl MemoryVfs {
                     }
                     state.insert_directory(
                         resolved,
-                        MemoryNode::Directory {
-                            ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                            mode: 0o40777,
-                            atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0,
-                        },
+                        MemoryNode::directory(0o40777),
                     );
                 }
             }
@@ -636,7 +634,7 @@ impl SafeBashFs for MemoryVfs {
         match guard.nodes.get(&resolved) {
             Some(&MemoryNode::File { ino }) => {
                 let file = guard.files.get_mut(&ino).unwrap();
-                file.atime_ms = 1_700_000_000_000.0;
+                file.atime_ms = super::now_ms();
                 Ok(file.data.clone())
             }
             Some(MemoryNode::Directory { .. }) => {
@@ -727,7 +725,7 @@ impl SafeBashFs for MemoryVfs {
             }
             Self::store_file(&mut state, dest, data, 0o100666, None)?;
             for dir in missing {
-                state.insert_directory(dir.to_owned(), MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode: 0o40777, atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0 });
+                state.insert_directory(dir.to_owned(), MemoryNode::directory(0o40777));
             }
         } else {
             if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
@@ -855,8 +853,7 @@ impl SafeBashFs for MemoryVfs {
             None => return Err("ENOENT: no such file or directory".into()),
         }
         if state.nodes.len() >= state.limits.max_entries { return Err("ENOSPC: inode limit exceeded".into()); }
-        state.insert_directory(path, MemoryNode::Directory { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-            mode: 0o40000 | (mode & 0o7777), atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0 });
+        state.insert_directory(path, MemoryNode::directory(0o40000 | (mode & 0o7777)));
         self.bump_generation();
         Ok(())
     }
@@ -881,11 +878,7 @@ impl SafeBashFs for MemoryVfs {
                 }
                 guard.insert_directory(
                     resolved,
-                    MemoryNode::Directory {
-                        ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                        mode: 0o40777,
-                        atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0,
-                    },
+                    MemoryNode::directory(0o40777),
                 );
             }
         }
@@ -960,7 +953,7 @@ impl SafeBashFs for MemoryVfs {
             }
         }
         if let Some(MemoryNode::Directory { atime_ms, .. }) = guard.nodes.get_mut(&resolved) {
-            *atime_ms = 1_700_000_000_000.0;
+            *atime_ms = super::now_ms();
         }
         Ok(children)
     }
@@ -999,13 +992,14 @@ impl SafeBashFs for MemoryVfs {
         if guard.nodes.len() >= guard.limits.max_entries {
             return Err("ENOSPC: inode limit exceeded".to_string());
         }
+        let now = super::now_ms();
         guard.nodes.insert(
             resolved,
             MemoryNode::Symlink {
                 ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                 target: Arc::from(target),
                 mode: 0o120777,
-                atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0,
+                atime_ms: now, mtime_ms: now,
             },
         );
         self.bump_generation();
@@ -1136,11 +1130,7 @@ impl SafeBashFs for MemoryVfs {
             total_bytes: retained_bytes, limits: current.limits.clone() };
         guard.insert_directory(
             "/".to_string(),
-            MemoryNode::Directory {
-                ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                mode: 0o40755,
-                atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0,
-            },
+            MemoryNode::directory(0o40755),
         );
         for entry in entries {
             if entry.kind == VfsEntryKind::Directory {
@@ -1148,11 +1138,7 @@ impl SafeBashFs for MemoryVfs {
                 Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
                 guard.insert_directory(
                     norm,
-                    MemoryNode::Directory {
-                        ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                        mode: if entry.mode != 0 { entry.mode } else { 0o40755 },
-                        atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0,
-                    },
+                    MemoryNode::directory(if entry.mode != 0 { entry.mode } else { 0o40755 }),
                 );
             }
         }
@@ -1169,8 +1155,9 @@ impl SafeBashFs for MemoryVfs {
                 Self::store_file(&mut guard, norm.clone(), &entry.data, if entry.mode != 0 { entry.mode } else { 0o100644 }, None)?;
             } else {
                 let target = entry.symlink_target.clone().ok_or("EINVAL: missing symlink target")?;
+                let now = super::now_ms();
                 guard.nodes.insert(norm.clone(), MemoryNode::Symlink { ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, atime_ms: 1_700_000_000_000.0, mtime_ms: 1_700_000_000_000.0 });
+                    target: target.into(), mode: if entry.mode != 0 { entry.mode } else { 0o120777 }, atime_ms: now, mtime_ms: now });
             }
             if let Some(group) = entry.link_group { groups.insert(group, guard.nodes[&norm].clone()); }
         }

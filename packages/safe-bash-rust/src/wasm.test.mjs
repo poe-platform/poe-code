@@ -1090,3 +1090,27 @@ test("fs.utimes preserves both timestamps on the inode and propagates failures",
     assert.equal((await bash.fs.stat("/file")).mtimeMs, mtimeMs);
   } finally { bash.dispose(); }
 });
+
+test("memory file timestamps use the host clock when created, read, written and touched", async t => {
+  let now = Date.UTC(2040, 0, 1);
+  t.mock.method(Date, "now", () => now);
+  const bash = new RustWasmBash({files:{"/file":"a"}});
+  try {
+    const times = async () => {
+      const st = await bash.fs.stat("/file");
+      return [st.atimeMs, st.mtimeMs];
+    };
+    const created = now;
+    assert.deepEqual(await times(), [created, created]);
+    now += 500;
+    await bash.fs.writeFile("/file", new Uint8Array([1]));
+    assert.deepEqual(await times(), [created, now]);
+    const written = now;
+    now += 900;
+    await bash.fs.readFile("/file");
+    assert.deepEqual(await times(), [now, written]);
+    now += 1000;
+    assert.equal(bash.execSync("touch /file").exitCode, 0);
+    assert.deepEqual(await times(), [now, now]);
+  } finally { bash.dispose(); }
+});

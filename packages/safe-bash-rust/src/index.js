@@ -40,7 +40,9 @@ function createWasmInstance() {
       wall_clock_ms: () => Date.now(),
       fill_random_bytes(ptr, len) {
         try {
-          globalThis.crypto.getRandomValues(new Uint8Array(instance.exports.memory.buffer, ptr >>> 0, len >>> 0));
+          const bytes = new Uint8Array(len >>> 0);
+          globalThis.crypto.getRandomValues(bytes);
+          new Uint8Array(instance.exports.memory.buffer, ptr >>> 0, bytes.length).set(bytes);
           return 0;
         } catch {
           return -1;

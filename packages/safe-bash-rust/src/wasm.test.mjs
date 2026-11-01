@@ -129,6 +129,42 @@ test("a host callback can inspect the parent session while a child is executing"
   } finally { bash.dispose(); }
 });
 
+test("random device reads allow the entropy source to access the shared filesystem", async t => {
+  const bash = new RustWasmBash({ deviceView: "provided", files: { "/workspace/value": "ok" } });
+  bash.mountDevices();
+  let observed;
+  t.mock.method(globalThis.crypto, "getRandomValues", view => {
+    observed = bash.readText("/dev/null") + bash.readText("/workspace/value");
+    return view.fill(0x61);
+  });
+  try {
+    const command = await bash.exec("dd if=/dev/random of=/dev/null bs=1 count=1 status=none");
+    assert.deepEqual([command.exitCode, command.stderr, observed], [0, "", "ok"]);
+    observed = undefined;
+    const fd = await bash.fs.open("/dev/urandom", { access: "read" });
+    try {
+      const bytes = new Uint8Array(3);
+      assert.equal(await fd.read(bytes, null), 3);
+      assert.deepEqual([...bytes], [97, 97, 97]);
+      assert.equal(observed, "ok");
+      assert.equal(await fd.getPosition(), 3);
+    } finally { await fd.close(); }
+  } finally { bash.dispose(); }
+});
+
+test("entropy reads survive WASM memory growth inside the host callback", t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  t.mock.method(globalThis.crypto, "getRandomValues", view => {
+    bash.exports.memory.grow(1);
+    return view.fill(97);
+  });
+  try {
+    const result = bash.execSync("head -c3 /dev/urandom");
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "aaa", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("a running command cannot restore its session after a host callback destroys it", t => {
   const bash = new RustWasmBash({ deviceView: "provided" });
   bash.mountDevices();

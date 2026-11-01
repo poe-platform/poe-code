@@ -748,6 +748,7 @@ impl SafeBashFs for MemoryVfs {
             return Ok(vec![0u8; 65536]);
         }
         if matches!(device, Some("urandom" | "random")) {
+            drop(guard);
             let mut buf = vec![0u8; 4096];
             fill_random(&mut buf)?;
             return Ok(buf);

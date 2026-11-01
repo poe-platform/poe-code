@@ -139,6 +139,19 @@ pub unsafe extern "C" fn safe_bash_descriptor(
 ) -> f64 {
     let mut map = sessions().lock().unwrap();
     let Some(sess) = map.get_mut(&id) else { return -1.0 };
+    let random_bytes = if op == 0 && sess.descriptors.get(&fd).is_some_and(|d|
+        d.flags & READ != 0 && matches!(&d.target, Target::Device { name, .. } if name == "urandom" || name == "random")
+    ) {
+        // Host entropy can reenter this instance, including closing the descriptor.
+        drop(map);
+        let mut bytes = vec![0; len];
+        let result = bytes.chunks_mut(65536).try_for_each(fill_random).map(|()| bytes);
+        map = sessions().lock().unwrap();
+        Some(result)
+    } else {
+        None
+    };
+    let Some(sess) = map.get_mut(&id) else { return -1.0 };
     let result: Result<u64, String> = (|| {
         let d = sess.descriptors.get_mut(&fd).ok_or("EBADF")?;
         let sequential = position == -1.0;
@@ -151,15 +164,10 @@ pub unsafe extern "C" fn safe_bash_descriptor(
                 let bytes = match &d.target {
                     Target::Regular(file) => file.read(offset, len),
                     Target::Device { name, .. } if name == "null" => Vec::new(),
-                    Target::Device { name, .. } => {
-                        let mut out = vec![0; len];
-                        if name != "zero" {
-                            for chunk in out.chunks_mut(65536) {
-                                fill_random(chunk)?;
-                            }
-                        }
-                        out
-                    }
+                    Target::Device { .. } => match random_bytes {
+                        Some(result) => result?,
+                        None => vec![0; len],
+                    },
                 };
                 let n = bytes.len() as u64;
                 if sequential {

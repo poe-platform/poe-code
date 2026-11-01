@@ -4757,7 +4757,7 @@ enum FindPred {
     Size { op: i8, count: usize, unit: usize },
     Perm { mode_kind: char, mask: u32 },
     Links { op: i8, count: usize },
-    Time { op: i8, count: i64, reference_ms: i64, unit_ms: i64 },
+    Time { op: i8, stamp: fn(&crate::vfs::FileStat) -> f64, reference_ms: i64, unit_ms: i64 },
     Newer(f64),
     Prune,
     Quit,
@@ -5271,21 +5271,34 @@ impl<'a> FindParseContext<'a> {
                         .map_err(|m| (2, format!("{m}\n")))?;
                 FindPred::Links { op, count }
             }
-            "-mtime" | "-atime" | "-ctime" | "-mmin" | "-amin" | "-cmin" => {
+            "-mtime" | "-mmin" | "-amin" | "-cmin" => {
                 let raw = take_arg(self, tok)?;
-                let (op, count) =
-                    parse_signed_count_strict(raw, &format!("find: invalid time '{raw}'"))
-                        .map_err(|m| (2, format!("{m}\n")))?;
-                let unit_ms = if tok.ends_with("min") {
-                    60_000i64
-                } else {
-                    86_400_000i64
+                let (op, digits) = match raw.as_bytes().first() {
+                    Some(b'+') => (1, &raw[1..]),
+                    Some(b'-') => (-1, &raw[1..]),
+                    _ => (0, raw),
                 };
+                if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
+                    return Err((2, format!("find: invalid time '{raw}'\n")));
+                }
+                const MAX_SAFE: i128 = (1 << 53) - 1;
+                let count = digits.parse::<i128>().ok().filter(|&n| n <= MAX_SAFE)
+                    .ok_or_else(|| (2, format!("find: invalid number '{digits}'\n")))?;
+                let (unit, adjustment) = if tok == "-mtime" {
+                    (86_400_000, if op == -1 { 1000 } else { 86_400_000 })
+                } else { (60_000, 0) };
+                let offset = count * unit;
+                let reference = i128::from(self.reference_ms) - adjustment - offset;
+                if offset > MAX_SAFE || reference.abs() > MAX_SAFE || (reference + unit).abs() > MAX_SAFE {
+                    return Err((2, format!("find: invalid time '{raw}': comparison is out of range\n")));
+                }
                 FindPred::Time {
-                    op,
-                    count: count as i64,
-                    reference_ms: self.reference_ms,
-                    unit_ms,
+                    op, reference_ms: reference as i64, unit_ms: unit as i64,
+                    stamp: match tok {
+                        "-amin" => |st| st.atime_ms,
+                        "-cmin" => |st| st.ctime_ms.unwrap_or(st.mtime_ms),
+                        _ => |st| st.mtime_ms,
+                    },
                 }
             }
             "-newer" => {
@@ -5482,17 +5495,12 @@ where
                 _ => nlinks == *count,
             }
         }
-        FindPred::Time {
-            op,
-            count,
-            reference_ms,
-            unit_ms,
-        } => {
-            let age = ((*reference_ms as f64 - st.mtime_ms).max(0.0) / *unit_ms as f64).floor() as i64;
+        FindPred::Time { op, stamp, reference_ms, unit_ms } => {
+            let delta = stamp(st) - *reference_ms as f64;
             match op {
-                1 => age > *count,
-                -1 => age < *count,
-                _ => age == *count,
+                1 => delta < 0.0,
+                -1 => delta > 0.0,
+                _ => delta > 0.0 && delta <= *unit_ms as f64,
             }
         },
         FindPred::Newer(ref_mtime) => st.mtime_ms > *ref_mtime,

@@ -1143,3 +1143,27 @@ test("chmod changes inode status time without changing modification or birth tim
     assert.match(bash.execSync("ls -lc /f").stdout, /2040-01-02 00:00 \/f\n$/);
   } finally { bash.dispose(); }
 });
+
+test("find compares the requested inode time at exact minute and day boundaries", async t => {
+  const now = Date.UTC(2040, 0, 1);
+  t.mock.method(Date, "now", () => now);
+  const bash = new RustWasmBash({ files: { "/f": "x" } });
+  try {
+    await bash.fs.utimes("/f", now + 60_000, now - 60_000);
+    for (const [predicate, matches] of [
+      ["-amin 0", true], ["-amin -0", true], ["-mmin 1", false],
+      ["-mmin 2", true], ["-cmin 0", false], ["-mtime 0", true],
+    ]) {
+      const result = bash.execSync("find /f " + predicate);
+      assert.deepEqual([result.exitCode, result.stdout], [0, matches ? "/f\n" : ""], predicate);
+    }
+    for (const [predicate, diagnostic] of [
+      ["-atime 0", "unsupported expression '-atime'"],
+      ["-mmin 9007199254740991", "invalid time '9007199254740991': comparison is out of range"],
+      ["-mtime +9007199254740992", "invalid number '9007199254740992'"],
+    ]) {
+      const result = bash.execSync("find /f " + predicate);
+      assert.deepEqual([result.exitCode, result.stderr], [2, "find: " + diagnostic + "\n"]);
+    }
+  } finally { bash.dispose(); }
+});

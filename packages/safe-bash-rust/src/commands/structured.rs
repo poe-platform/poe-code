@@ -29378,11 +29378,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let first_word = header.text.split([' ', '\t', '\r', '\n']).next().unwrap_or("");
     let graph_family = matches!(first_word,
-        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2"
+        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2" | "erDiagram"
     );
     let native_family = graph_family || matches!(first_word, "pie" | "gantt");
     if !native_family && !matches!(first_word,
-        "sequenceDiagram" | "classDiagram" | "erDiagram"
+        "sequenceDiagram" | "classDiagram"
     ) {
         let reason = format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
         return err_out(&header.error("E_UNSUPPORTED", &header.text, &reason), 1);
@@ -38451,6 +38451,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("stateDiagram-v2\nstate __state_start_1\nstate G {\n[*] --> S\n}\nG --> X", "png", "5aa83fe0417f65c0a576c3874753ad423d9cb380ac3936517fad0d6ba9702b87"),
             ("stateDiagram-v2\nstate Q <<choice>>\nstate Q <<fork>>\nQ --> Next", "svg", "85f1210ea9f03f0bd88899caa160f1829747c043b0cd0b2d0f75fa6a2b72aa5c"),
             ("stateDiagram-v2\nstate Q <<choice>>\nstate Q <<fork>>\nQ --> Next", "png", "dae0f6af0f534deb3b133c56a63c37583831801e4461155c5adea14dbdbaffd4"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_er_entity_headers_and_validates_declarations() {
+        assert_mermaid_outputs(&[
+            ("erDiagram\n\"A[B\"[\"Alias\"]", "svg", "964d5f5e66dada1689d7b827f594734014e64a6bae71dcadbb718bf2f760885f"),
+            ("erDiagram\n", "svg", "d694ec7ec087889c914a89cc3a2aeb8b2e0d2214ef44f73dd1e92665ffa4b906"),
+            ("erDiagram\nPERSON", "svg", "304949bf15353a4b9b2519b10382a64217b7c61c63cd1915d780b19caab1688a"),
+            ("erDiagram\nPERSON { }", "svg", "304949bf15353a4b9b2519b10382a64217b7c61c63cd1915d780b19caab1688a"),
+            ("erDiagram\nperson[\"Customer account\"]", "svg", "6a4a08134a254496bd4b28ee6ad6a8bd3c3bed06fc34cd5c8f2fd2d9111581de"),
+            ("erDiagram\nperson[\"Customer account\"]", "png", "f3c7f99a6debc504256efffbdad156c7dae4367a2ae334788731fbecafeca77c"),
+            ("erDiagram\nperson[\"Customer account\"]", "pdf", "1cd7a7aa7b09afc759063c8717592c4fe48545790e0cadca166b2ebf62d2c90f"),
+            ("erDiagram\n\"Item ID\"", "svg", "d7c6d5f638a7b249b42f6e5b2ead6fe3f2a9d0a45a11127539e4cfd853b91623"),
+            ("erDiagram\nP [\"Person\"] { }", "svg", "c0cfaf0a6df36b30fb6fc3abb185ef2da64fabec729896f53b8e332d206c75b8"),
+            ("erDiagram\ndirection BT\nX\nY", "svg", "fef6bd15d9ea93fd06739051515faf163e7962091c9d05e2ff60c8718dab6b89"),
+            ("erDiagram\ninvalid statement", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement 'invalid statement'\n"),
+            ("erDiagram\ndirection XX", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement 'direction XX'\n"),
+            ("erDiagram\nPERSON {\nlonely\n}", "svg", "mmdc: E_SYNTAX (line 3, column 1): Invalid ER attribute declaration 'lonely'\n"),
+            ("erDiagram\nPERSON {\n int id", "svg", "mmdc: E_SYNTAX (line 3, column 2): Unclosed entity block 'PERSON'\n"),
+            ("erDiagram\nX[\"<img>\"]", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("erDiagram\n}", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement '}'\n"),
         ]);
     }
 

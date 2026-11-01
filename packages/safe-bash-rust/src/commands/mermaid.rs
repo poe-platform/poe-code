@@ -4,6 +4,8 @@ use std::{collections::BTreeMap, fmt::Write};
 
 #[path = "mermaid/config.rs"]
 pub(super) mod config;
+#[path = "mermaid/er.rs"]
+mod er;
 #[path = "mermaid/gantt.rs"]
 pub(super) mod gantt;
 #[path = "mermaid/git_graph.rs"]
@@ -81,6 +83,7 @@ enum Shape {
     Stadium,
     StateStart,
     StateEnd,
+    Entity,
     Circle,
     Diamond,
     Cylinder,
@@ -242,13 +245,23 @@ fn dimensions(
         return Some(());
     }
     let tallest;
-    (n.lines, tallest) = text_block(&n.label, font_size, false, wrapping_width, *remaining_lines)?;
+    (n.lines, tallest) = text_block(
+        &n.label,
+        font_size,
+        n.shape == Shape::Entity,
+        wrapping_width,
+        *remaining_lines,
+    )?;
     *remaining_lines -= n.lines.len();
     let text_height = n.lines.len() as f64 * line_height;
     if tallest.max(text_height) > f64::from(i32::MAX / 16) {
         return None;
     }
     (n.w, n.h) = match n.shape {
+        Shape::Entity => (
+            snap(tallest + 36.).max(128),
+            snap((text_height + 16.).max(36.) + 12.).max(48),
+        ),
         Shape::Diamond => (
             snap((tallest + 36.) * 1.68).max(120),
             snap((text_height + 22.) * 1.68).max(72),
@@ -268,6 +281,7 @@ fn dimensions(
     };
     n.radius = match n.shape {
         Shape::Circle | Shape::Stadium => f64::from(n.h / 2),
+        Shape::Entity => 8.,
         Shape::Diamond => 4.,
         Shape::Rounded => 12.,
         _ => corner,
@@ -535,6 +549,9 @@ pub(super) fn parse<'a>(
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
+    if keyword == "erDiagram" {
+        return er::parse(lines, wrapping_width, limit).transpose();
+    }
     if matches!(keyword, "stateDiagram" | "stateDiagram-v2") {
         return Some(state::parse(lines, wrapping_width, secondary_size, limit));
     }
@@ -1158,8 +1175,11 @@ pub(super) fn layout(
             });
             continue;
         }
-        let accented =
-            n.accent || !matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine);
+        let accented = n.accent
+            || !matches!(
+                n.shape,
+                Shape::Rect | Shape::Rounded | Shape::Subroutine | Shape::Entity
+            );
         let styled = styles.node(&n.id);
         let (fill, fill_rgba) = styled
             .fill
@@ -1190,12 +1210,23 @@ pub(super) fn layout(
         }
         let thickness = styled.width.unwrap_or(stroke_width);
         let radius = n.radius;
+        let header = (n.shape == Shape::Entity).then(|| {
+            (
+                (n.lines.len() as f64 * line_height + 16.).max(36.),
+                theme.color("groupHeaderSurface"),
+            )
+        });
+        if let Some((_, (color, _))) = header
+            && let Err(e) = config::charge_attributes(&mut styles.budget, &[(color, 1)])
+        {
+            return Some(Err(e));
+        }
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
             shape: n.shape,
             shadow: Some(shadow),
             style: BoxStyle {
-                header: None,
+                header: header.map(|(h, (_, rgba))| (h, rgba)),
                 radius,
                 fill: fill_rgba,
                 border: border_rgba,
@@ -1213,6 +1244,11 @@ pub(super) fn layout(
         );
         let mut el = format!(r#"<g class="mmdc-node" data-id="{}">"#, esc(&n.id));
         match n.shape {
+            Shape::Entity => {
+                let (hh, (color, _)) = header?;
+                let clip = format!("{prefix}mmdc-node-clip-{}", n.order);
+                write!(el,r##"<defs><clipPath id="{clip}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8"/></clipPath></defs><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{fill}" filter="url(#{prefix}mmdc-shadow)"/><rect x="{x}" y="{y}" width="{w}" height="{hh}" fill="{color}" clip-path="url(#{clip})"/><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="none" stroke="{border}" stroke-width="{thickness}"/>"##).ok()?;
+            }
             Shape::Cylinder => {
                 let rx = w / 2;
                 let ry = ((f64::from(w) * 0.075).round() as i32).clamp(9, 11);
@@ -1265,8 +1301,10 @@ pub(super) fn layout(
                 write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,divider).ok()?;
             }
         }
+        let bold = header.is_some();
+        let weight = if bold { 600 } else { 500 };
         let first_y = f64::from(y)
-            + (f64::from(h) - n.lines.len() as f64 * line_height) / 2.
+            + (header.map_or(f64::from(h), |(hh, _)| hh) - n.lines.len() as f64 * line_height) / 2.
             + font_size
             + 1.
             + if n.shape == Shape::Cylinder { 8. } else { 0. };
@@ -1278,14 +1316,14 @@ pub(super) fn layout(
         {
             let baseline = (first_y + i as f64 * line_height + 0.5).floor();
             paint.push(Paint::Text {
-                start: f64::from(cx) - measure(line, font_size, false) / 2.,
+                start: f64::from(cx) - measure(line, font_size, bold) / 2.,
                 baseline,
                 size: font_size,
-                weight: 500,
+                weight,
                 color: text_rgba,
                 text: line.clone(),
             });
-            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(font_size),esc(line)).ok()?;
+            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(font_size),esc(line)).ok()?;
         }
         el.push_str("</g>");
         if let Some(href) = hrefs.get(n.id.as_str()) {

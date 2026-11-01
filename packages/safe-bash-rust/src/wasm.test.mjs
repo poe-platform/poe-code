@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq assignments use one right-hand value for every path and delete empty updates", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, values] of [
+      ["{} | (.a,.b) = (1,2)", [{a:1,b:1},{a:2,b:2}]],
+      ["{} | (.a,.b) = first(inputs)", [{a:1,b:1}]],
+      ["{x:3} | .x += (2,4)", [{x:5},{x:7}]],
+      ["{x:5} | .x //= (1,2)", [{x:5},{x:5}]],
+      ["{x:5} | .x = empty", []],
+      ["{x:5} | .x |= empty", [{}]],
+      ["[0,1,2,3,4] | (.[1],.[3],.[1]) |= empty", [[0,2,4]]],
+      ['{x:42} | .x |= (1,error("late"))', [{x:1}]],
+      ["first(.x = inputs),inputs", [{x:1},2,3]],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}' <<< '1 2 3'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, values.map(v => JSON.stringify(v) + "\n").join(""), ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq labels stop the right generator and expose the break value to catch", async () => {
   const bash = new RustWasmBash();
   try {

@@ -162,13 +162,46 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                 }
             });
         }
-        if matches!(op, "=" | "|=" | "+=" | "-=" | "*=" | "/=" | "%=" | "//=") {
-            for v in super::eval_jq_update(left, op, right, input, vars)? {
-                if emit(v)?.is_break() {
-                    return Ok(Break(()));
+        if op == "|=" {
+            let mut updated = input.clone();
+            let mut deletions = Vec::new();
+            for path in super::resolve_jq_lhs_paths(left, input, vars)? {
+                let old = super::get_jq_jval_path(&updated, &path);
+                let mut first = None;
+                let _ = visit_jq(right, &old, vars, &mut |v| {
+                    first = Some(v);
+                    Ok(Break(()))
+                })?;
+                if let Some(new) = first {
+                    super::set_jq_jval_path(&mut updated, &path, new);
+                } else {
+                    deletions.push(path);
                 }
             }
-            return Ok(Continue(()));
+            super::delete_jq_paths_sorted(&mut updated, deletions);
+            return emit(updated);
+        }
+        if matches!(op, "=" | "+=" | "-=" | "*=" | "/=" | "%=" | "//=") {
+            return visit_jq(right, input, vars, &mut |rhs| {
+                let mut updated = input.clone();
+                for path in super::resolve_jq_lhs_paths(left, input, vars)? {
+                    let value = if op == "=" {
+                        rhs.clone()
+                    } else {
+                        let old = super::get_jq_jval_path(&updated, &path);
+                        if op == "//=" {
+                            if old.is_truthy() {
+                                continue;
+                            }
+                            rhs.clone()
+                        } else {
+                            super::apply_jq_arith(&old, &rhs, &op[..1])?
+                        }
+                    };
+                    super::set_jq_jval_path(&mut updated, &path, value);
+                }
+                emit(updated)
+            });
         }
         let mut remaining = crate::ShellLimits::default().max_loop_iterations;
         return visit_jq(right, input, vars, &mut |r| {

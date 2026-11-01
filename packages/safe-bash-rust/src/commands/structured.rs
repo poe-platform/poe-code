@@ -1380,53 +1380,6 @@ fn jq_if_clauses(s: &str) -> (Vec<(String, String)>, Option<String>) {
     (clauses, else_branch)
 }
 
-fn eval_jq_update(
-    lhs: &str,
-    op: &str,
-    rhs: &str,
-    input: &JVal,
-    vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
-    let paths = resolve_jq_lhs_paths(lhs, input, vars)?;
-    if paths.is_empty() {
-        return Ok(vec![input.clone()]);
-    }
-    let mut updated = input.clone();
-    for p in paths {
-        let cur_val = get_jq_jval_path(&updated, &p);
-        let new_val = match op {
-            "|=" => eval_jq(rhs, &cur_val, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null),
-            "=" => eval_jq(rhs, &updated, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null),
-            "//=" => {
-                if cur_val.is_truthy() {
-                    cur_val
-                } else {
-                    eval_jq(rhs, &updated, vars)?
-                        .into_iter()
-                        .next()
-                        .unwrap_or(JVal::Null)
-                }
-            }
-            "+=" | "-=" | "*=" | "/=" | "%=" => {
-                let rv = eval_jq(rhs, &updated, vars)?
-                    .into_iter()
-                    .next()
-                    .unwrap_or(JVal::Null);
-                apply_jq_arith(&cur_val, &rv, &op[..1])?
-            }
-            _ => cur_val,
-        };
-        set_jq_jval_path(&mut updated, &p, new_val);
-    }
-    Ok(vec![updated])
-}
-
 fn resolve_jq_lhs_paths(
     lhs: &str,
     input: &JVal,

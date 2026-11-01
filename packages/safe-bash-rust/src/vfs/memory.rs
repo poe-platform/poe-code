@@ -1,18 +1,15 @@
+mod descriptor;
+pub(crate) use descriptor::RetainedFile;
+
 use crate::vfs::path::{normalize_posix_path, parent_posix_path};
 use crate::vfs::{EntryIdentity, FileStat, FsError, FsErrorCode, SafeBashFs, VfsEntryKind, VfsFileEntry};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, RwLock};
 
 #[derive(Debug, Clone)]
 enum MemoryNode {
-    File {
-        ino: u64,
-        data: Vec<u8>,
-        publication: Option<u64>,
-        mode: u32,
-        mtime_ms: u64,
-    },
+    File { ino: u64 },
     Directory {
         ino: u64,
         mode: u32,
@@ -26,12 +23,22 @@ enum MemoryNode {
     },
 }
 
+#[derive(Debug)]
+struct MemoryFile {
+    data: Vec<u8>,
+    publication: Option<u64>,
+    mode: u32,
+    mtime_ms: u64,
+    opens: usize,
+    linked: bool,
+}
+
 static NEXT_PUBLICATION: AtomicU64 = AtomicU64::new(1);
 // Virtual devices use fixed inode numbers 1 through 6.
 static NEXT_INODE: AtomicU64 = AtomicU64::new(7);
 static NEXT_FS_ID: AtomicU64 = AtomicU64::new(1);
 
-fn fill_random(bytes: &mut [u8]) -> Result<(), String> {
+pub(crate) fn fill_random(bytes: &mut [u8]) -> Result<(), String> {
     #[cfg(target_arch = "wasm32")]
     {
         #[link(wasm_import_module = "safe_bash")]
@@ -120,6 +127,7 @@ impl Devices {
 struct MemoryState {
     devices: Devices,
     nodes: BTreeMap<String, MemoryNode>,
+    files: HashMap<u64, MemoryFile>,
     total_bytes: usize,
     limits: MemoryVfsLimits,
 }
@@ -155,6 +163,8 @@ impl MemoryVfs {
         }
     }
 
+    pub(crate) fn max_entries(&self) -> usize { self.state.read().unwrap().limits.max_entries }
+
     pub fn set_max_entries(&self, max_entries: usize) {
         if let Ok(mut guard) = self.state.write() {
             guard.limits.max_entries = max_entries;
@@ -180,6 +190,7 @@ impl MemoryVfs {
             state: Arc::new(RwLock::new(MemoryState {
                 devices: Devices::Extended,
                 nodes,
+                files: HashMap::new(),
                 total_bytes: 0,
                 limits,
             })),
@@ -288,7 +299,10 @@ impl MemoryVfs {
             else { (VfsEntryKind::File, 0, 0o20666, 0, ino) }
         } else {
             match state.nodes.get(&resolved) {
-                Some(MemoryNode::File { ino, data, mode, mtime_ms, .. }) => (VfsEntryKind::File, data.len(), *mode, *mtime_ms, *ino),
+                Some(MemoryNode::File { ino }) => {
+                    let file = &state.files[ino];
+                    (VfsEntryKind::File, file.data.len(), file.mode, file.mtime_ms, *ino)
+                }
                 Some(MemoryNode::Directory { ino, mode, mtime_ms }) => (VfsEntryKind::Directory, 0, *mode, *mtime_ms, *ino),
                 Some(MemoryNode::Symlink { ino, target, mode, mtime_ms }) => (VfsEntryKind::Symlink, target.len(), *mode, *mtime_ms, *ino),
                 None => return Err(format!("ENOENT: no such file or directory, {} '{}'", if follow { "stat" } else { "lstat" }, normalize_posix_path(path))),
@@ -303,20 +317,14 @@ impl MemoryVfs {
     }
 
     fn store_file(state: &mut MemoryState, resolved: String, data: &[u8], create_mode: u32, publication: Option<u64>) -> Result<(), String> {
-        let existing_info = match state.nodes.get(&resolved) {
-            Some(MemoryNode::Directory { .. }) => {
-                return Err(format!(
-                    "EISDIR: illegal operation on a directory, open '{resolved}'"
-                ));
-            }
-            Some(MemoryNode::File { data: old, mode, ino, .. }) => Some((old.len(), *mode, *ino)),
+        let existing = match state.nodes.get(&resolved) {
+            Some(MemoryNode::Directory { .. }) => return Err(format!("EISDIR: illegal operation on a directory, open '{resolved}'")),
+            Some(MemoryNode::File { ino }) => Some(*ino),
             _ => None,
         };
-
-        let old_len = existing_info.map(|(l, _, _)| l).unwrap_or(0);
-        let mode = existing_info.map(|(_, m, _)| m).unwrap_or(create_mode);
-        if existing_info.is_none() && state.nodes.len() >= state.limits.max_entries {
-            return Err("ENOSPC: inode limit exceeded".to_string());
+        let old_len = existing.map_or(0, |ino| state.files[&ino].data.len());
+        if existing.is_none() && state.nodes.len() >= state.limits.max_entries {
+            return Err("ENOSPC: inode limit exceeded".into());
         }
         if data.len() > state.limits.max_file_bytes {
             return Err("EFBIG: file size budget exceeded".to_string());
@@ -326,16 +334,17 @@ impl MemoryVfs {
             return Err("ENOSPC: file system byte budget exceeded".to_string());
         }
         state.total_bytes = next_total;
-        state.nodes.insert(
-            resolved,
-            MemoryNode::File {
-                ino: existing_info.map_or_else(|| NEXT_INODE.fetch_add(1, Ordering::Relaxed), |(_, _, ino)| ino),
-                data: data.to_vec(),
-                publication,
-                mode,
-                mtime_ms: 1_700_000_000_000,
-            },
-        );
+        if let Some(ino) = existing {
+            let file = state.files.get_mut(&ino).unwrap();
+            file.data = data.to_vec();
+            file.publication = publication;
+            file.mtime_ms = 1_700_000_000_000;
+        } else {
+            let ino = NEXT_INODE.fetch_add(1, Ordering::Relaxed);
+            state.files.insert(ino, MemoryFile { data: data.to_vec(), publication, mode: create_mode,
+                mtime_ms: 1_700_000_000_000, opens: 0, linked: true });
+            state.nodes.insert(resolved, MemoryNode::File { ino });
+        }
         Ok(())
     }
 
@@ -344,9 +353,9 @@ impl MemoryVfs {
             let parent = parent_posix_path(link).unwrap_or_else(|| "/".into());
             let target = crate::vfs::resolve_posix_path(&parent, target);
             if let Ok(dest) = Self::resolve_symlinks_locked(state, &target, true)
-                && let Some(MemoryNode::File { publication, .. }) = state.nodes.get_mut(&dest)
+                && let Some(MemoryNode::File { ino }) = state.nodes.get(&dest)
             {
-                *publication = None;
+                state.files.get_mut(ino).unwrap().publication = None;
             }
         }
     }
@@ -370,7 +379,7 @@ impl MemoryVfs {
                     Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?,
                 _ => resolved.clone(),
             };
-            if !matches!(guard.nodes.get(&dest), Some(MemoryNode::File { publication: Some(id), .. }) if *id == expected) {
+            if !matches!(guard.nodes.get(&dest), Some(MemoryNode::File { ino }) if guard.files[ino].publication == Some(expected)) {
                 return Ok(false);
             }
         }
@@ -397,7 +406,7 @@ impl MemoryVfs {
 
     fn unlink_locked(guard: &mut MemoryState, k: &str) {
         match guard.nodes.remove(k) {
-            Some(MemoryNode::File { ino, data, mode, mtime_ms, .. }) => {
+            Some(MemoryNode::File { ino }) => {
                 let hl_marker = format!("__hardlink__:{k}");
                 let survivor = guard
                     .nodes
@@ -418,18 +427,14 @@ impl MemoryVfs {
                             *target = new_marker.clone();
                         }
                     }
-                    guard.nodes.insert(
-                        surv_key,
-                        MemoryNode::File {
-                            ino,
-                            data,
-                            publication: None,
-                            mode,
-                            mtime_ms,
-                        },
-                    );
+                    guard.files.get_mut(&ino).unwrap().publication = None;
+                    guard.nodes.insert(surv_key, MemoryNode::File { ino });
                 } else {
-                    guard.total_bytes = guard.total_bytes.saturating_sub(data.len());
+                    let file = guard.files.get_mut(&ino).unwrap();
+                    file.linked = false;
+                    if file.opens == 0 {
+                        guard.total_bytes -= guard.files.remove(&ino).unwrap().data.len();
+                    }
                 }
             }
             Some(MemoryNode::Symlink { target: removed_target, .. })
@@ -514,7 +519,7 @@ impl SafeBashFs for MemoryVfs {
             return Ok(buf);
         }
         match guard.nodes.get(&resolved) {
-            Some(MemoryNode::File { data, .. }) => Ok(data.clone()),
+            Some(MemoryNode::File { ino }) => Ok(guard.files[ino].data.clone()),
             Some(MemoryNode::Directory { .. }) => {
                 Err(format!("EISDIR: illegal operation on a directory, read '{norm}'"))
             }
@@ -584,7 +589,7 @@ impl SafeBashFs for MemoryVfs {
             _ => return Err(format!("target is not a regular file: {path}")),
         };
         if let Some(data) = bytes {
-            if matches!(state.nodes.get(&dest), Some(MemoryNode::File { data: old, .. }) if old == data) {
+            if matches!(state.nodes.get(&dest), Some(MemoryNode::File { ino }) if state.files[ino].data == data) {
                 return Ok(expected.1);
             }
             if parent_mode & 0o300 != 0o300 { return Err(format!("EACCES: {path}")); }
@@ -855,9 +860,11 @@ impl SafeBashFs for MemoryVfs {
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get_mut(&resolved) {
-            Some(MemoryNode::File { mode: m, publication, .. }) => {
-                *publication = None;
-                *m = 0o100000 | (mode & 0o7777);
+            Some(MemoryNode::File { ino }) => {
+                let ino = *ino;
+                let file = guard.files.get_mut(&ino).unwrap();
+                file.publication = None;
+                file.mode = 0o100000 | (mode & 0o7777);
             }
             Some(MemoryNode::Directory { mode: m, .. }) => {
                 *m = 0o040000 | (mode & 0o7777);
@@ -876,9 +883,11 @@ impl SafeBashFs for MemoryVfs {
         let mut guard = self.state.write().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         match guard.nodes.get_mut(&resolved) {
-            Some(MemoryNode::File { mtime_ms: m, publication, .. }) => {
-                *publication = None;
-                *m = mtime_ms;
+            Some(MemoryNode::File { ino }) => {
+                let ino = *ino;
+                let file = guard.files.get_mut(&ino).unwrap();
+                file.publication = None;
+                file.mtime_ms = mtime_ms;
             }
             Some(MemoryNode::Directory { mtime_ms: m, .. })
             | Some(MemoryNode::Symlink { mtime_ms: m, .. }) => {
@@ -915,13 +924,14 @@ impl SafeBashFs for MemoryVfs {
                         mode: *mode,
                     });
                 }
-                MemoryNode::File { data, mode, .. } => {
+                MemoryNode::File { ino } => {
+                    let file = &guard.files[ino];
                     out.push(VfsFileEntry {
                         path: path.clone(),
                         kind: VfsEntryKind::File,
-                        data: data.clone(),
+                        data: file.data.clone(),
                         symlink_target: None,
-                        mode: *mode,
+                        mode: file.mode,
                     });
                 }
                 MemoryNode::Symlink { target, mode, .. } => {
@@ -939,9 +949,10 @@ impl SafeBashFs for MemoryVfs {
     }
 
     fn replace_entries(&self, entries: &[VfsFileEntry]) -> Result<(), String> {
-        let mut guard = self.state.write().map_err(|e| e.to_string())?;
-        guard.nodes.clear();
-        guard.total_bytes = 0;
+        let mut current = self.state.write().map_err(|e| e.to_string())?;
+        let retained_bytes = current.files.values().filter(|f| f.opens != 0).map(|f| f.data.len()).sum();
+        let mut guard = MemoryState { devices: current.devices, nodes: BTreeMap::new(), files: HashMap::new(),
+            total_bytes: retained_bytes, limits: current.limits.clone() };
         guard.nodes.insert(
             "/".to_string(),
             MemoryNode::Directory {
@@ -953,7 +964,7 @@ impl SafeBashFs for MemoryVfs {
         for entry in entries {
             if entry.kind == VfsEntryKind::Directory {
                 let norm = normalize_posix_path(&entry.path);
-                let _ = Self::ensure_parent_dirs_locked(&mut guard, &norm);
+                Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
                 guard.nodes.insert(
                     norm,
                     MemoryNode::Directory {
@@ -967,18 +978,8 @@ impl SafeBashFs for MemoryVfs {
         for entry in entries {
             if entry.kind == VfsEntryKind::File {
                 let norm = normalize_posix_path(&entry.path);
-                let _ = Self::ensure_parent_dirs_locked(&mut guard, &norm);
-                guard.total_bytes = guard.total_bytes.saturating_add(entry.data.len());
-                guard.nodes.insert(
-                    norm,
-                    MemoryNode::File {
-                        ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
-                        data: entry.data.clone(),
-                        publication: None,
-                        mode: if entry.mode != 0 { entry.mode } else { 0o100644 },
-                        mtime_ms: 1_700_000_000_000,
-                    },
-                );
+                Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
+                Self::store_file(&mut guard, norm, &entry.data, if entry.mode != 0 { entry.mode } else { 0o100644 }, None)?;
             }
         }
         for entry in entries {
@@ -986,7 +987,7 @@ impl SafeBashFs for MemoryVfs {
                 && let Some(target) = entry.symlink_target.as_deref()
             {
                 let norm = normalize_posix_path(&entry.path);
-                let _ = Self::ensure_parent_dirs_locked(&mut guard, &norm);
+                Self::ensure_parent_dirs_locked(&mut guard, &norm).map_err(|e| e.message)?;
                 guard.nodes.insert(
                     norm,
                     MemoryNode::Symlink {
@@ -998,6 +999,11 @@ impl SafeBashFs for MemoryVfs {
                 );
             }
         }
+        for (ino, mut file) in current.files.drain().filter(|(_, f)| f.opens != 0) {
+            file.linked = false;
+            guard.files.insert(ino, file);
+        }
+        *current = guard;
         self.bump_generation();
         Ok(())
     }

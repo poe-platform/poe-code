@@ -44,6 +44,23 @@ export interface WasmFileStat {
   readonly isSymbolicLink: boolean;
 }
 
+export interface WasmFileDescriptor {
+  readonly capabilities: {
+    readonly positionedRead: boolean; readonly positionedWrite: boolean; readonly truncate: boolean;
+    readonly position: true; readonly synchronization: "volatile" | "none"; readonly noFollow?: boolean;
+    readonly readObservation?: boolean; readonly openTruncate?: boolean;
+    readonly positionedAppendWrite?: boolean; readonly delegateZeroLengthWrite?: boolean;
+  };
+  stat(options?: {signal?: AbortSignal}): Promise<WasmFileStat>;
+  getPosition(options?: {signal?: AbortSignal}): Promise<number>;
+  probeRead(options?: {signal?: AbortSignal}): Promise<"ready" | "blocked" | "unknown">;
+  read(buffer: Uint8Array, position: number | null, options?: {signal?: AbortSignal}): Promise<number>;
+  write(buffer: Uint8Array, position: number | null, options?: {signal?: AbortSignal}): Promise<number>;
+  truncate(length: number, options?: {signal?: AbortSignal}): Promise<void>;
+  sync(dataOnly: boolean, options?: {signal?: AbortSignal}): Promise<void>;
+  close(options?: {signal?: AbortSignal}): Promise<void>;
+}
+
 export class WasmFileSystem {
   constructor(bash: RustWasmBash);
   readFile(filePath: string, options?: { maxBytes?: number; signal?: AbortSignal }): Promise<Uint8Array>;
@@ -60,7 +77,11 @@ export class WasmFileSystem {
   rmdir(dirPath: string, options?: { signal?: AbortSignal }): Promise<void>;
   utimes(filePath: string, atime: Date | number, mtime: Date | number): Promise<void>;
   realpath(filePath: string, options?: { signal?: AbortSignal }): Promise<string>;
-  open(filePath: string, flags?: string | number, mode?: number): Promise<unknown>;
+  open(filePath: string, options: {
+    access: "read" | "write" | "readwrite"; creation?: "never" | "ifMissing" | "exclusive";
+    truncate?: boolean; append?: boolean; mode?: number; exactMode?: boolean; noFollow?: boolean;
+    synchronization?: "data" | "all"; signal?: AbortSignal;
+  }): Promise<WasmFileDescriptor>;
   rename(oldPath: string, newPath: string, options?: { noReplace?: boolean; signal?: AbortSignal }): Promise<void>;
   copyFile(srcPath: string, destPath: string, options?: { exclusive?: boolean; signal?: AbortSignal }): Promise<void>;
   statfs(targetPath?: string): Promise<Record<string, number>>;

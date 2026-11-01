@@ -53,6 +53,81 @@ export class ShellLimitError extends Error {
   }
 }
 
+function wasmDescriptor(bash, path, fd, kind, access, append) {
+  const device = kind !== 0, mounted = kind === 2;
+  const capabilities = Object.freeze({
+    ...(!mounted && { noFollow:true }), position:true, positionedRead:access !== "write",
+    positionedWrite:access !== "read" && (!append || device), truncate:kind !== 1 && access !== "read",
+    synchronization:kind === 1 ? "none" : "volatile",
+    ...(device && { openTruncate:true, positionedAppendWrite:access !== "read", delegateZeroLengthWrite:access !== "read" }),
+    ...(mounted && { readObservation:true }),
+  });
+  let pending = Promise.resolve(), closing;
+  function run(syscall, options, action) {
+    const signal = options?.signal;
+    try {
+      signal?.throwIfAborted();
+      if (closing) throw fsOperationError("EBADF", syscall, path);
+    } catch (error) { return Promise.reject(error); }
+    const result = pending.then(() => { signal?.throwIfAborted(); return action(); });
+    pending = result.then(() => {}, () => {});
+    return result;
+  }
+  function call(syscall, op, position = 0, ptr = 0, length = 0) {
+    const rc = bash.exports.safe_bash_descriptor(bash.sessionId, fd, op, position, ptr, length);
+    if (rc < 0) {
+      const code = rc === -1 ? "EBADF" : decoder.decode(new Uint8Array(bash.exports.memory.buffer, bash.exports.safe_bash_output_ptr(bash.sessionId), -rc));
+      throw fsOperationError(code, syscall, path);
+    }
+    return rc;
+  }
+  function checkBuffer(buffer, position, syscall) {
+    if (syscall === "read" ? access === "write" : access === "read") throw fsOperationError("EBADF", syscall, path);
+    if (!(buffer instanceof Uint8Array) || position !== null && (!Number.isSafeInteger(position) || position < 0)) {
+      throw fsOperationError("EINVAL", syscall, path);
+    }
+  }
+  return {
+    capabilities,
+    stat: options => run("fstat", options, () => {
+      const size = call("fstat", 3);
+      return bash._decodeStat(bash.exports.safe_bash_output_ptr(bash.sessionId), size);
+    }),
+    getPosition: options => run("getPosition", options, () => call("getPosition", 4)),
+    probeRead: options => run("probeRead", options, () => { call("probeRead", 5); return "ready"; }),
+    read: (buffer, position, options) => run("read", options, async () => {
+      checkBuffer(buffer, position, "read");
+      let offset = 0;
+      while (offset < buffer.length) {
+        const length = mounted ? Math.min(65536, buffer.length - offset) : buffer.length;
+        const n = call("read", 0, position === null ? -1 : position + offset, 0, length);
+        buffer.set(new Uint8Array(bash.exports.memory.buffer, bash.exports.safe_bash_output_ptr(bash.sessionId), n), offset);
+        offset += n;
+        if (n < length || offset === buffer.length) break;
+        await new Promise(resolve => setImmediate(resolve));
+        options?.signal?.throwIfAborted();
+      }
+      return offset;
+    }),
+    write: (buffer, position, options) => run("write", options, () => {
+      checkBuffer(buffer, position, "write");
+      const data = device ? {ptr:0, len:buffer.length} : bash._allocBytes(buffer);
+      try { return call("write", 1, position ?? -1, data.ptr, data.len); }
+      finally { if (!device) bash._freeBytes(data); }
+    }),
+    truncate: (length, options) => run("ftruncate", options, () => {
+      if (access === "read") throw fsOperationError("EBADF", "ftruncate", path);
+      if (!Number.isSafeInteger(length) || length < 0) throw fsOperationError("EINVAL", "ftruncate", path);
+      call("ftruncate", 2, length);
+    }),
+    sync: (dataOnly, options) => run(dataOnly ? "fdatasync" : "fsync", options, () => {
+      if (typeof dataOnly !== "boolean") throw fsOperationError("EINVAL", "fsync", path);
+      call(dataOnly ? "fdatasync" : "fsync", 6);
+    }),
+    close: () => closing ??= pending.then(() => { try { call("close", 7); } finally { bash = undefined; } }),
+  };
+}
+
 export class WasmFileSystem {
   constructor(bash) {
     this.bash = bash;
@@ -283,7 +358,34 @@ export class WasmFileSystem {
         return this.bash._companion.fs.open(filePath, options);
       }
     }
-    throw new Error("open not supported without companion");
+    const signal = options?.signal;
+    signal?.throwIfAborted();
+    const {access, creation = "never", truncate = false, append = false, mode = 0o666, noFollow = false, exactMode = false, synchronization} = options ?? {};
+    const invalid = !["read", "write", "readwrite"].includes(access) || !["never", "ifMissing", "exclusive"].includes(creation)
+      || ![truncate, append, noFollow, exactMode].every(v => typeof v === "boolean")
+      || access === "read" && (truncate || append) || !Number.isInteger(mode) || mode < 0 || mode > 0o7777
+      || synchronization !== undefined && !["data", "all"].includes(synchronization)
+      || Object.keys(options).some(k => !["access","creation","truncate","append","mode","exactMode","noFollow","synchronization","signal"].includes(k));
+    const flags = (access !== "write" ? 1 : 0) | (access !== "read" ? 2 : 0) | (creation === "ifMissing" ? 4 : 0)
+      | (creation === "exclusive" ? 8 : 0) | (truncate ? 16 : 0) | (append ? 32 : 0) | (noFollow ? 64 : 0) | (synchronization ? 128 : 0);
+    const bash = this.bash;
+    const path = bash._allocBytes(encoder.encode(filePath));
+    try {
+      const fd = bash.exports.safe_bash_open(bash.sessionId, path.ptr, path.len, invalid ? 256 : flags, invalid ? 0 : mode);
+      const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+      if (fd === -1) throw new Error("Wasm session unavailable");
+      if (fd < 0) {
+        const error = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -fd));
+        throw fsOperationError(error, "open", error.slice(error.indexOf(":") + 1));
+      }
+      const [kind, prependRoot] = new Uint8Array(bash.exports.memory.buffer, ptr, 2);
+      const descriptor = wasmDescriptor(bash, prependRoot ? "/" + filePath : filePath, fd, kind, access, append);
+      if (signal) {
+        await Promise.resolve();
+        if (signal.aborted) { await descriptor.close(); signal.throwIfAborted(); }
+      }
+      return descriptor;
+    } finally { bash._freeBytes(path); }
   }
 
   async rename(oldPath, newPath, options) {
@@ -585,30 +687,34 @@ export class RustWasmBash {
         const error = decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, -len));
         throw fsOperationError(error, follow ? "stat" : "lstat", error.slice(error.indexOf(":") + 1));
       }
-      const view = new DataView(this.exports.memory.buffer, outPtr, len);
-      const kindCode = view.getUint32(0, true);
-      const size = view.getUint32(4, true);
-      const mode = view.getUint32(8, true);
-      const mtimeMs = Number(view.getBigUint64(12, true));
-      const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
-      const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
-      const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
-      return {
-        ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope: this.#identityScope } : {}),
-        type,
-        size,
-        mode,
-        uid: 0,
-        gid: 0,
-        mtime: new Date(mtimeMs),
-        mtimeMs,
-        isFile: type === "file",
-        isDirectory: type === "directory",
-        isSymbolicLink: type === "symlink",
-      };
+      return this._decodeStat(outPtr, len);
     } finally {
       this._freeBytes(p);
     }
+  }
+
+  _decodeStat(outPtr, len) {
+    const view = new DataView(this.exports.memory.buffer, outPtr, len);
+    const kindCode = view.getUint32(0, true);
+    const size = view.getUint32(4, true);
+    const mode = view.getUint32(8, true);
+    const mtimeMs = Number(view.getBigUint64(12, true));
+    const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
+    const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
+    const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
+    return {
+      ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope: this.#identityScope } : {}),
+      type,
+      size,
+      mode,
+      uid: 0,
+      gid: 0,
+      mtime: new Date(mtimeMs),
+      mtimeMs,
+      isFile: type === "file",
+      isDirectory: type === "directory",
+      isSymbolicLink: type === "symlink",
+    };
   }
 
   readdir(dirPath) {

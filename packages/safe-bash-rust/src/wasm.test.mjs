@@ -645,3 +645,80 @@ test("stat and lstat resolve parents before '..' and report inaccessible entries
     await assert.rejects(bash.fs.stat("missing"), {code:"ENOENT",syscall:"stat",path:"/missing"});
   } finally { bash.dispose(); }
 });
+
+test("open descriptors retain the file across rename, unlink, and replacement", async () => {
+  const bash = new RustWasmBash({files:{"/entry":"first"}});
+  const fs = bash.fs;
+  try {
+    const reader = await fs.open("/entry", {access:"read"});
+    const writer = await fs.open("/entry", {access:"readwrite"});
+    const original = await reader.stat();
+    await fs.rename("/entry", "/renamed");
+    await fs.writeFile("/entry", "replacement");
+    await fs.writeFile("/renamed", "changed");
+    await fs.unlink("/renamed");
+    assert.equal(await writer.write(Buffer.from("!"), 7), 1);
+    assert.equal(await writer.getPosition(), 0);
+    const buf = Buffer.alloc(16, 63);
+    assert.equal(await reader.read(buf, null), 8);
+    assert.equal(buf.toString(), "changed!????????");
+    assert.equal(await reader.getPosition(), 8);
+    assert.equal((await reader.stat()).ino, original.ino);
+    assert.equal(await reader.read(buf, null), 0);
+    await writer.truncate(2);
+    assert.equal((await reader.stat()).size, 2);
+    assert.equal(bash.readText("/entry"), "replacement");
+    await assert.rejects(reader.write(buf, null), {code:"EBADF"});
+    await reader.close();
+    await assert.rejects(reader.read(buf, 0), {code:"EBADF"});
+    await writer.close();
+  } finally { bash.dispose(); }
+});
+
+test("descriptor append, sparse writes, cancellation and close preserve cursor ordering", async () => {
+  const bash = new RustWasmBash({files:{"/entry":"a"}, symlinks:{"/link":"entry"}});
+  try {
+    const fs = bash.fs;
+    await assert.rejects(fs.open("/link", {access:"write",creation:"exclusive"}), {code:"EEXIST"});
+    await assert.rejects(fs.open("/link", {access:"read",noFollow:true}), {code:"ELOOP"});
+    const fd = await fs.open("/entry", {access:"readwrite", append:true});
+    await fs.writeFile("/entry", "ab");
+    await assert.rejects(fd.write(Buffer.from("x"), 0), {code:"EINVAL"});
+    assert.equal(await fd.write(Buffer.from("c"), null), 1);
+    assert.equal(await fd.getPosition(), 3);
+    const controller = new AbortController();
+    const first = fd.write(Buffer.from("d"), null);
+    const skipped = fd.write(Buffer.from("x"), null, {signal:controller.signal});
+    controller.abort();
+    const closed = fd.close();
+    assert.equal(await first, 1);
+    await assert.rejects(skipped, {name:"AbortError"});
+    await closed;
+    assert.equal(bash.readText("/entry"), "abcd");
+
+    const sparse = await fs.open("/new", {access:"readwrite",creation:"exclusive",mode:0o600});
+    await sparse.write(Buffer.from("z"), 3);
+    assert.deepEqual([...await fs.readFile("/new")], [0,0,0,122]);
+    assert.equal(await sparse.getPosition(), 0);
+    await sparse.close();
+  } finally { bash.dispose(); }
+});
+
+test("mounted descriptors distinguish seekable files from streams and overlay admission", async () => {
+  const bash = new RustWasmBash({profile:"strict-budgets-mount-dev"});
+  const overlay = new RustWasmBash({profile:"overlay-cow-fs"});
+  try {
+    await assert.rejects(overlay.fs.open("/absent", {}), {code:"ENOTSUP"});
+    await assert.rejects(bash.fs.open("/dev/missing", {access:"readwrite",creation:"ifMissing",noFollow:true}), {code:"ENOTSUP"});
+    const fd = await bash.fs.open("/dev/zero", {access:"readwrite"});
+    const buf = Buffer.alloc(65537, 0xff);
+    assert.equal(await fd.read(buf, null), buf.length);
+    assert.equal(await fd.getPosition(), buf.length);
+    assert.equal(await fd.probeRead(), "ready");
+    assert.ok(buf.every(b => b === 0));
+    await fd.close();
+    const random = await bash.fs.open("/dev/urandom", {access:"write"});
+    await assert.rejects(random.write(new Uint8Array(), null), {code:"EPERM"});
+    await random.close();
+  } finally { bash.dispose(); overlay.dispose(); }
+});

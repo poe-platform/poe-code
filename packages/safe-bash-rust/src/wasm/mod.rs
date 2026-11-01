@@ -1,3 +1,4 @@
+mod descriptor;
 use crate::backend::BackendMode;
 use crate::budget::ShellLimits;
 use crate::fs::{FileStat, MemoryVfs, MountVfs, OverlayVfs, SafeBashFs, VfsEntryKind};
@@ -12,6 +13,8 @@ enum Profile { Memory, Overlay, Devices }
 struct WasmSession {
     shell: Shell,
     memory_vfs: MemoryVfs,
+    descriptors: BTreeMap<u32, descriptor::Descriptor>,
+    next_descriptor: u32,
     profile: Profile,
     last_output_buf: Vec<u8>,
 }
@@ -131,6 +134,8 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
         WasmSession {
             shell,
             memory_vfs: vfs,
+            descriptors: BTreeMap::new(),
+            next_descriptor: 1,
             profile: Profile::Memory,
             last_output_buf: Vec::new(),
         },
@@ -494,6 +499,24 @@ pub unsafe extern "C" fn safe_bash_set_mtime(
     }
 }
 
+fn stat_bytes(st: FileStat) -> Vec<u8> {
+    let kind_code: u32 = match st.kind {
+        VfsEntryKind::File => 0,
+        VfsEntryKind::Directory => 1,
+        VfsEntryKind::Symlink => 2,
+    };
+    let mut buf = Vec::with_capacity(36);
+    buf.extend_from_slice(&kind_code.to_le_bytes());
+    buf.extend_from_slice(&(st.size as u32).to_le_bytes());
+    buf.extend_from_slice(&st.mode.to_le_bytes());
+    buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
+    if let Some(crate::vfs::EntryIdentity::Memory(dev, ino)) = st.identity {
+        buf.extend_from_slice(&dev.to_le_bytes());
+        buf.extend_from_slice(&ino.to_le_bytes());
+    }
+    buf
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_stat(
     id: u32,
@@ -514,21 +537,7 @@ pub unsafe extern "C" fn safe_bash_stat(
     let res = fs.access_path(path, follow != 0).and_then(|p| fs.lstat(&p));
     match res {
         Ok(st) => {
-            let kind_code: u32 = match st.kind {
-                VfsEntryKind::File => 0,
-                VfsEntryKind::Directory => 1,
-                VfsEntryKind::Symlink => 2,
-            };
-            let mut buf = Vec::with_capacity(36);
-            buf.extend_from_slice(&kind_code.to_le_bytes());
-            buf.extend_from_slice(&(st.size as u32).to_le_bytes());
-            buf.extend_from_slice(&st.mode.to_le_bytes());
-            buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
-            if let Some(crate::vfs::EntryIdentity::Memory(dev, ino)) = st.identity {
-                buf.extend_from_slice(&dev.to_le_bytes());
-                buf.extend_from_slice(&ino.to_le_bytes());
-            }
-            sess.last_output_buf = buf;
+            sess.last_output_buf = stat_bytes(st);
             sess.last_output_buf.len() as i32
         }
         Err(e) => {

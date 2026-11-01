@@ -186,7 +186,9 @@ pub(super) struct Options<'a> {
 impl Stream<'_> {
     pub fn render(
         &self,
-        options: Options<'_>,
+        seek: super::InputTime,
+        shortest: bool,
+        mut options: Options<'_>,
         emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
     ) -> Result<(usize, usize, u32), &'static str> {
         let (w, h) = (self.width as usize, self.height as usize);
@@ -197,13 +199,56 @@ impl Stream<'_> {
             }
             frames.push(f);
         }
+        let duration = 1. / self.fps;
+        let start = seek.start.unwrap_or(0.).max(0.);
+        let end = seek.end().unwrap_or(frames.len() as f64 / self.fps);
+        let pts = |i: usize| i as f64 / self.fps;
+        let first = (0..frames.len())
+            .find(|&i| pts(i) + duration > start)
+            .unwrap_or(frames.len());
+        let kept = (first..frames.len()).take_while(|&i| pts(i) < end).count();
+        let count = kept
+            .checked_mul(seek.loops.saturating_add(1))
+            .filter(|&n| n <= options.limit / size_of::<TimedFrame>())
+            .ok_or("frame index exceeds memory budget")?;
+
+        // Concatenation places each copy after the retained packets on the 90 kHz
+        // clock. The first packet may start before the requested cut.
+        let tick = (90000. / self.fps).round().max(1.) as u64;
+        let total_ticks = (frames.len() as u64).saturating_mul(tick);
+        let cut = seek.start.is_some() || seek.end().is_some();
+        let start_tick = (start * 90000.).round() as u64;
+        let end_tick = if cut {
+            ((end * 90000.).round() as u64).min(total_ticks)
+        } else {
+            total_ticks
+        };
+        let clip_ticks = if start_tick >= end_tick {
+            0
+        } else {
+            end_tick - start_tick / tick * tick
+        };
+        let period = clip_ticks as f64 / 90000.;
+        if shortest || options.start != 0. && options.end.is_none() {
+            let seconds = if seek.loops == 0 && start_tick % tick != 0 {
+                ((end_tick.saturating_sub(start_tick) as f64 / 90.).round()) / 1000.
+            } else {
+                period * (seek.loops.saturating_add(1) as f64)
+            };
+            options.end = Some(options.end.unwrap_or(seconds).min(seconds));
+        }
         render_frames(
             w,
             h,
-            (0..frames.len()).map(|i| (i as f64 / self.fps, 1. / self.fps)),
+            (0..count).map(|i| {
+                (
+                    (pts(first + i % kept) - start).max(0.) + (i / kept) as f64 * period,
+                    duration,
+                )
+            }),
             options,
             |i| {
-                Ok(decode(frames[i], w, h, |y, u, v| {
+                Ok(decode(frames[first + i % kept], w, h, |y, u, v| {
                     let c = y.max(0) * 298;
                     let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
                     [

@@ -4725,9 +4725,8 @@ fn cmd_media_doc(
                             mp4::mux::input_slice(input,InputTime{start:Some(start),to:end,..InputTime::default()},end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
                         } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
-                            else if format==Some("y4m") {let s=seek.start.unwrap_or(0.);
-                                let end=match (seek.end(),end.map(|v|v+s)) {(Some(a),Some(b))=>Some(a.min(b)),(a,b)=>a.or(b)};
-                                y4m::Stream::parse(bytes).and_then(|stream|stream.render(y4m::Options{start:start+s,end,..opts},emit)).map_err(str::to_owned)
+                            else if format==Some("y4m") {
+                                y4m::Stream::parse(bytes).and_then(|stream|stream.render(seek,shortest,opts,emit)).map_err(str::to_owned)
                             }else{Ok((64,64,10))}
                     });
                     match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
@@ -13743,6 +13742,15 @@ mod media_unit_tests {
         run(&["-i","a.mp4","-i","v.mp4","av.mp4"]);
         run(&["-stream_loop","8","-i","av.mp4","out.mp4"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), "82a63090736b3ac011807f2d450d659e9fbfb1abc78e4027bc44fa3244a271ca");
+    }
+
+    #[test]
+    fn ffmpeg_repeats_decoded_y4m_frames_after_input_trim() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs).exit_code, 0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","x.y4m"]);
+        run(&["-ss","0.015","-t","0.336","-stream_loop","2","-i","x.y4m","out.y4m"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.y4m").unwrap())), "c8b19eac74872afdea63584ae3126ddd3ef5f16027e53f8347940ded900be5f2");
     }
 
     #[test]

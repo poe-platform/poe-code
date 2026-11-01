@@ -6,6 +6,8 @@ use std::{collections::BTreeMap, fmt::Write};
 pub(super) mod config;
 #[path = "mermaid/gantt.rs"]
 pub(super) mod gantt;
+#[path = "mermaid/git_graph.rs"]
+mod git_graph;
 #[path = "mermaid/groups.rs"]
 mod groups;
 #[path = "mermaid/linear.rs"]
@@ -517,6 +519,9 @@ pub(super) fn parse<'a>(
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
+    if keyword == "gitGraph" {
+        return Some(git_graph::parse(lines, wrapping_width, limit));
+    }
     if keyword == "mindmap" {
         return Some(mindmap::parse(lines, wrapping_width, limit));
     }

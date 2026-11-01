@@ -29367,7 +29367,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let mut directives = Vec::new();
     let family = mermaid::scanner::family(&src_text);
-    let graph_family = matches!(family, "flowchart" | "graph" | "timeline" | "journey" | "mindmap");
+    let graph_family = matches!(family, "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph");
     let statement_family = graph_family || family == "gantt";
     let scanned = if statement_family || src_text.contains("%%{") {
         match mermaid::scanner::scan(&src_text, &mut directives) {
@@ -38280,6 +38280,27 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("mindmap\nRoot\n  child()", "svg", "mmdc: E_SYNTAX (line 3, column 3): Empty mindmap node\n"),
             ("mindmap\nRoot; child", "svg", "d51e94ab0fe55529a4a710368e1d329cc33cde3e73066f332cfff1e58ab23ce0"),
             ("mindmap\nRoot\n  ::icon(fa fa-book)", "svg", "mmdc: E_UNSUPPORTED (line 3, column 3): Mindmap icons and CSS classes are unsupported\n"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_gitgraph_branches_and_validates_history() {
+        assert_mermaid_outputs(&[
+            ("gitGraph\nwork", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported gitGraph command 'work'\n"),
+            ("gitGraph\nbranch main", "svg", "mmdc: E_SYNTAX (line 2, column 1): Invalid or duplicate branch\n"),
+            ("gitGraph\ncommit key: value", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unknown commit attribute\n"),
+            ("gitGraph\ncheckout main\ncommit", "svg", "ff994258830ac6d7d7fe1d3d051cc95764d70568076bdffc7e88ced22c262c3a"),
+            ("gitGraph\ncommit id: a\nbranch other\ncommit id: b\nswitch main\ncherry-pick id: b", "svg", "f599f66a6d992b38c253e41b52a8b8a18ce111342e0d3c712105993a4de33d77"),
+            ("gitGraph\ncommit\nbranch feature order: 1\ncommit id: \"one\" tag: \"v 1\" type: HIGHLIGHT\ncheckout main\ncommit type: REVERSE\nmerge feature id: ship", "svg", "c1b08162191cd72bb7deeb87557e3a9ea489a7c56c80674df7d3cf74bde3c229"),
+            ("gitGraph\ncommit\nbranch feature order: 1\ncommit id: \"one\" tag: \"v 1\" type: HIGHLIGHT\ncheckout main\ncommit type: REVERSE\nmerge feature id: ship", "png", "4f01d061d63a2dce9ee7e09b242f71bc203b513f0c210617b12af4e230b24dde"),
+            ("gitGraph\ncommit\nbranch feature order: 1\ncommit id: \"one\" tag: \"v 1\" type: HIGHLIGHT\ncheckout main\ncommit type: REVERSE\nmerge feature id: ship", "pdf", "869c218456fca3327ab250f41361a7485c578ab451d86682c5b471509aabc9d3"),
+            ("gitGraph\ncommit id: init\nbranch next\ncommit id: new\ncheckout main\ncherry-pick id: new tag: work", "svg", "87323284ffb04b94771af49724cd983fc4687aad3aeec3d6ee4e5828e40e7336"),
+            ("gitGraph\ncommit id: init\nbranch new\nmerge main", "svg", "mmdc: E_SYNTAX (line 4, column 1): Invalid merge or cherry-pick target\n"),
+            ("gitGraph\ncommit type: red", "svg", "mmdc: E_SYNTAX (line 2, column 1): Invalid commit type\n"),
+            ("gitGraph\ncommit id: one\ncommit id: one", "svg", "mmdc: E_SYNTAX (line 3, column 1): Duplicate node 'one'\n"),
+            ("gitGraph\ncommit id:", "svg", "mmdc: E_SYNTAX (line 2, column 1): Missing gitGraph attribute value\n"),
+            ("gitGraph\ncommit id: \"<img>\"", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("gitGraph\ncheckout bad", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unknown checkout branch\n"),
         ]);
     }
 

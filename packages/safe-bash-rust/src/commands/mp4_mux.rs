@@ -391,6 +391,87 @@ pub(in super::super) fn adts(
     )
 }
 
+pub(in super::super) fn subtitles(
+    input: &[u8],
+    selected: bool,
+    opts: Remux<'_>,
+) -> Result<Vec<u8>, &'static str> {
+    let text = String::from_utf8_lossy(input);
+    let mut tracks = Vec::new();
+    if selected {
+        let slice = (opts.shortest || opts.start.is_some() || opts.end.is_some())
+            .then_some((opts.start.unwrap_or(0.).max(0.), opts.end));
+        let mut samples = Vec::new();
+        let (mut ticks, mut skip, mut first_dts) = (0u64, 0, 0);
+        for (data, duration, preroll, start) in super::super::subtitles::packets(&text, slice) {
+            if samples.len() >= opts.limit / size_of::<Sample>() {
+                return Err("sample index exceeds memory budget");
+            }
+            if samples.is_empty() {
+                skip = preroll as u32;
+                if slice.is_none() {
+                    first_dts = start.max(0) as u64;
+                }
+            }
+            ticks = ticks.saturating_add(duration as u64);
+            samples.push(Sample {
+                data: data.into(),
+                duration: duration as u32,
+                cts: 0,
+                key: true,
+                description: 1,
+            });
+        }
+        let ticks = ticks as u32;
+        let movie_ticks = ticks.saturating_sub(skip);
+        let mut stsd = Vec::new();
+        words(&mut stsd, &[0, 1]);
+        atom(&mut stsd, b"tx3g", |b| {
+            words(b, &[0, 1, 0]);
+            b.extend_from_slice(&[1, 255, 0, 0, 0, 255]); // justification and background color
+            words(b, &[0, 0, 0, 0x00010010, 0xffffffff]); // text box and default style
+            atom(b, b"ftab", |b| {
+                b.extend_from_slice(b"\0\x01\0\x01\x05Serif")
+            });
+        });
+        tracks.push(Track {
+            samples,
+            scale: 1000,
+            media_ticks: ticks,
+            movie_ticks,
+            first_dts,
+            stsd: stsd.into(),
+            edits: if skip > 0 {
+                vec![[movie_ticks, skip, 65536]]
+            } else {
+                vec![]
+            },
+            kind: "subtitle",
+            enabled: true,
+            volume: 0,
+            matrix: MATRIX,
+            width: 0,
+            height: 0,
+            language: 0x55c4,
+            handler: *b"sbtl",
+            name: b"SubtitleHandler",
+        });
+    }
+    write(
+        &tracks,
+        1000,
+        if opts.mov {
+            b"qt  \0\0\x02\0qt  "
+        } else {
+            b"isom\0\0\x02\0isomiso2avc1mp41"
+        },
+        opts.metadata,
+        &[],
+        opts.fragmented,
+        opts.limit,
+    )
+}
+
 fn write(
     tracks: &[Track<'_>],
     scale: u32,

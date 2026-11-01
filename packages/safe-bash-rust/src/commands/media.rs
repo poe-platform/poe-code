@@ -4606,13 +4606,18 @@ fn cmd_media_doc(
                         additional.push(data);
                     }
                 }
-                let output=if subtitle_output && matches!(format, Some("srt"|"webvtt")) {
+                let remux=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,mov:mov_output,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
+                let output=if inputs.len()==1 && (subtitle_output || mp4_output) && matches!(format, Some("srt"|"webvtt")) {
                     let selected=maps.iter().fold(maps.is_empty(), |selected, map| {
                         let spec=map.trim_end_matches('?').trim_start_matches('-');
                         if matches!(spec,"0"|"0:0"|"0:s"|"0:s:0"){!map.starts_with('-')}else{selected}
                     });
                     let slice=(shortest || ss_opt.is_some() || end.is_some()).then_some((start,end));
-                    match subtitles::convert(bytes.as_deref().unwrap_or_default(),muxer==Some("webvtt"),selected && !strip_subtitles,slice,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                    let input=bytes.as_deref().unwrap_or_default();
+                    let result=if mp4_output {
+                        mp4::mux::subtitles(input,selected && !strip_subtitles,remux)
+                    }else{subtitles::convert(input,muxer==Some("webvtt"),selected && !strip_subtitles,slice,fs.max_input_bytes())};
+                    match result{Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() {
                     let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
@@ -4628,9 +4633,8 @@ fn cmd_media_doc(
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if mp4_output && real_mp4 && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
-                    let opts=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,mov:mov_output,fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                     let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
-                    match mp4::mux::remux(&sources,opts){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                    match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if inputs.len()==1 && (mp4_output && format==Some("aac") || muxer==Some("aac") && (format==Some("aac") || real_mp4)) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || !audio_filters.is_empty());
                     let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
@@ -12962,6 +12966,18 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_muxes_subrip_cues_with_lengths_and_gap_samples() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/input.srt",b"1\n00:00:01,250 --> 00:00:03,500\nHello\n").unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","input.srt","-c","copy","caption.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let output=fs.read_file("/caption.mp4").unwrap();
+        assert!(output.ends_with(b"mdat\0\0\0\x05Hello"));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=codec_name,nb_frames","-of","csv=p=0","caption.mp4"]),"","/",&fs);
+        assert_eq!(r.stdout,"mov_text,2\n");
     }
 
     #[test]

@@ -85,6 +85,43 @@ pub(super) fn samples(text: &str) -> impl Iterator<Item = (Cue, bool)> + '_ {
     })
 }
 
+// Keep the portion of the first packet before a cut. MP4 hides it with an edit list.
+pub(super) fn packets(
+    text: &str,
+    slice: Option<(f64, Option<f64>)>,
+) -> impl Iterator<Item = (Vec<u8>, i64, i64, i64)> + '_ {
+    let range = slice.map(|(start, end)| {
+        let length = cues(text)
+            .map(|c| c.start.saturating_add(c.duration))
+            .max()
+            .unwrap_or(0);
+        (
+            (start * 1000.).round() as i64,
+            end.map_or(length, |s| ((s * 1000.).round() as i64).min(length)),
+        )
+    });
+    samples(text).filter_map(move |(c, wrap)| {
+        let mut duration = c.duration;
+        let mut skip = 0;
+        if let Some((start, end)) = range {
+            if end <= start || c.start >= end || c.start.saturating_add(duration) <= start {
+                return None;
+            }
+            duration = duration.min(end.saturating_sub(c.start));
+            skip = start.saturating_sub(c.start).max(0);
+        }
+        let data = if wrap {
+            let mut b = Vec::with_capacity(c.text.len() + 2);
+            b.extend_from_slice(&(c.text.len() as u16).to_be_bytes());
+            b.extend_from_slice(c.text.as_bytes());
+            b
+        } else {
+            c.text.into_bytes()
+        };
+        Some((data, duration, skip, c.start))
+    })
+}
+
 fn timestamp(out: &mut String, ms: i64, sep: char) {
     let ms = ms.max(0);
     write!(
@@ -131,27 +168,9 @@ pub(super) fn convert(
         Ok(())
     };
     if selected {
-        if let Some((start, end)) = slice {
-            let length = cues(&text)
-                .map(|c| c.start.saturating_add(c.duration))
-                .max()
-                .unwrap_or(0);
-            let start = (start * 1000.).round() as i64;
-            let end = end.map_or(length, |s| ((s * 1000.).round() as i64).min(length));
+        if slice.is_some() {
             let mut dts = 0i64;
-            for (c, wrap) in samples(&text) {
-                if end <= start || c.start >= end {
-                    break;
-                }
-                if c.start.saturating_add(c.duration) <= start {
-                    continue;
-                }
-                let duration = c.duration.min(end.saturating_sub(c.start));
-                let mut body = Vec::new();
-                if wrap {
-                    body.extend_from_slice(&(c.text.len() as u16).to_be_bytes());
-                }
-                body.extend_from_slice(c.text.as_bytes());
+            for (body, duration, _, _) in packets(&text, slice) {
                 emit(dts, duration, String::from_utf8_lossy(&body).trim())?;
                 dts = dts.saturating_add(duration);
             }

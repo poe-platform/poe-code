@@ -126,8 +126,8 @@ pub(super) fn compare(
         let path = dest.split_once(':').map_or(dest, |(_, p)| p);
         if path == "-" {
             stdout = crate::vfs::bytes_to_stream_string(&data);
-        } else if let Err(e) = fs.write_file(&resolve_posix_path(cwd, path), &data) {
-            return err_out(&format!("compare: {e}\n"), 2);
+        } else if let Err(e) = super::publish_magick_output(fs, &resolve_posix_path(cwd, path), &data) {
+            return err_out(&format!("shell: line 1: {e}\n"), 1);
         }
     }
     BuiltinOutcome {

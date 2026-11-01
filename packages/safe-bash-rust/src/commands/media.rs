@@ -300,6 +300,38 @@ mod wkhtmltopdf;
 #[path = "pdf_reader.rs"]
 mod pdf_reader;
 
+fn publish_magick_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
+    use crate::vfs::{VfsEntryKind, dirname_posix_path};
+    let version = fs.generation();
+    let mut target = path.to_owned();
+    for _ in 0..=40 {
+        let parent = dirname_posix_path(&target);
+        let stat = fs.stat(&parent)?;
+        if stat.kind != VfsEntryKind::Directory {
+            return Err(format!("ENOTDIR: not a directory, lstat '{target}'"));
+        }
+        if let Ok(entry) = fs.lstat(&target) {
+            match entry.kind {
+                VfsEntryKind::Symlink => {
+                    target = resolve_posix_path(&parent, &fs.readlink(&target)?);
+                    continue;
+                }
+                VfsEntryKind::Directory => return Err(format!("EISDIR: illegal operation on a directory, writeFile '{target}'")),
+                VfsEntryKind::File => {}
+            }
+        }
+        if stat.mode & 0o300 != 0o300 {
+            return Err(format!("EACCES: permission denied, writeFile '{target}'"));
+        }
+        return match fs.publish_file(&target, bytes, &[], version) {
+            Ok(_) => Ok(()),
+            Err(e) if e.starts_with("UNSUPPORTED_CAPABILITY:") => fs.write_file(&target, bytes),
+            Err(e) => Err(e),
+        };
+    }
+    Err(format!("ELOOP: too many symbolic links encountered, writeFile '{path}'"))
+}
+
 fn write_regular_output(fs: &dyn SafeBashFs, cwd: &str, name: &str, bytes: &[u8]) -> bool {
     let path = resolve_posix_path(cwd, name);
     fs.is_dir(&crate::vfs::dirname_posix_path(&path))
@@ -10387,7 +10419,7 @@ fn cmd_media_doc(
                         })
                     } else { pixel_png(w, h, 72, true, pixel) };
                     if stdout_png { return ok_out(&crate::vfs::bytes_to_stream_string(&png)); }
-                    if let Err(e) = fs.write_file(&out_full, &png) { return err_out(&format!("magick: {e}\n"),1); }
+                    if let Err(e) = publish_magick_output(fs, &out_full, &png) { return err_out(&format!("shell: line 1: {e}\n"),1); }
                     return ok_out("");
                 }
                 if out_full.to_ascii_lowercase().ends_with(".pdf") {
@@ -13021,6 +13053,26 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn magick_png_output_honors_parent_and_existing_file_mode() {
+        let fs = MemoryVfs::new();
+        let write = |path: &str| cmd_media_doc("magick", &media_args(&["xc:red", path]), "", "/", &fs);
+        assert_eq!(write("missing/im.png").stderr, "shell: line 1: ENOENT: no such file or directory, stat '/missing'\n");
+        assert!(!fs.exists("/missing"));
+        fs.mkdir_all("/dir.png").unwrap();
+        assert_eq!(write("dir.png").exit_code, 1);
+        fs.symlink("/new.png", "/link.png").unwrap();
+        assert_eq!(write("link.png").exit_code,0);
+        assert_eq!(fs.stat("/new.png").unwrap().mode & 0o777, 0o666);
+        fs.chmod("/new.png", 0o600).unwrap();
+        assert_eq!(write("link.png").exit_code,0);
+        assert_eq!(fs.stat("/new.png").unwrap().mode & 0o777, 0o600);
+        assert_eq!(fs.readlink("/link.png").unwrap(), "/new.png");
+        fs.chmod("/dir.png", 0o555).unwrap();
+        assert_eq!(write("dir.png/nested.png").exit_code,1);
+        assert!(!fs.exists("/dir.png/nested.png"));
     }
 
     #[test]

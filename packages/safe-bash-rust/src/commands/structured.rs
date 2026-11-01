@@ -36734,60 +36734,71 @@ fn collect_ast_siblings<'a>(root: &'a AstCodeNode, node: &'a AstCodeNode, previo
     out
 }
 
+fn compile_ast_patterns<'a>(
+    pattern: &'a AstPattern,
+    language: &str,
+    compiled: &mut BTreeMap<&'a str, AstCodeNode>,
+) -> Result<(), String> {
+    let text = match pattern {
+        AstPattern::Text(text) => Some(text.as_str()),
+        AstPattern::Rule(rule) => rule.pattern.as_deref(),
+    };
+    if let Some(text) = text
+        && let std::collections::btree_map::Entry::Vacant(entry) = compiled.entry(text)
+    {
+        entry.insert(ast_pattern_node(text, language)?);
+    }
+    if let AstPattern::Rule(rule) = pattern {
+        for child in rule.all.iter().chain(&rule.any).chain(&rule.not)
+            .chain(&rule.inside).chain(&rule.has).chain(&rule.follows).chain(&rule.precedes)
+        {
+            compile_ast_patterns(child, language, compiled)?;
+        }
+    }
+    Ok(())
+}
+
 fn eval_ast_pattern(
     pattern: &AstPattern,
-    language: &str,
+    compiled: &BTreeMap<&str, AstCodeNode>,
     root: &AstCodeNode,
     node: &AstCodeNode,
     captures: &BTreeMap<String, AstCapture>,
     source: &str,
-) -> Result<Option<BTreeMap<String, AstCapture>>, String> {
+) -> Option<BTreeMap<String, AstCapture>> {
     match pattern {
-        AstPattern::Text(pat_str) => {
-            let pat_node = ast_pattern_node(pat_str, language)?;
-            Ok(ast_structural(&pat_node, node, captures, source))
-        }
+        AstPattern::Text(text) => ast_structural(&compiled[text.as_str()], node, captures, source),
         AstPattern::Rule(spec) => {
             let mut state = captures.clone();
             if let Some(ref pat_str) = spec.pattern {
-                let pat_node = ast_pattern_node(pat_str, language)?;
-                let Some(next) = ast_structural(&pat_node, node, &state, source) else {
-                    return Ok(None);
-                };
-                state = next;
+                state = ast_structural(&compiled[pat_str.as_str()], node, &state, source)?;
             }
             if let Some(ref k) = spec.kind && &node.kind != k {
-                return Ok(None);
+                return None;
             }
             if let Some(ref rx_str) = spec.regex {
                 let rx = ZeroRegex::new(vec![rx_str.clone()], false, false, false, false);
                 if !rx.is_match(&node.text) {
-                    return Ok(None);
+                    return None;
                 }
             }
             for sub in &spec.all {
-                let Some(next) = eval_ast_pattern(sub, language, root, node, &state, source)? else {
-                    return Ok(None);
-                };
-                state = next;
+                state = eval_ast_pattern(sub, compiled, root, node, &state, source)?;
             }
             if !spec.any.is_empty() {
                 let mut matched_any = None;
                 for sub in &spec.any {
-                    if let Some(next) = eval_ast_pattern(sub, language, root, node, &state, source)? {
+                    if let Some(next) = eval_ast_pattern(sub, compiled, root, node, &state, source) {
                         matched_any = Some(next);
                         break;
                     }
                 }
-                let Some(next) = matched_any else {
-                    return Ok(None);
-                };
-                state = next;
+                state = matched_any?;
             }
             if let Some(ref neg) = spec.not
-                && eval_ast_pattern(neg, language, root, node, &state, source)?.is_some()
+                && eval_ast_pattern(neg, compiled, root, node, &state, source).is_some()
             {
-                return Ok(None);
+                return None;
             }
             if let Some(ref inside_pat) = spec.inside {
                 let mut matched_rel = None;
@@ -36795,15 +36806,12 @@ fn eval_ast_pattern(
                     if anc.trivia {
                         continue;
                     }
-                    if let Some(next) = eval_ast_pattern(inside_pat, language, root, anc, &state, source)? {
+                    if let Some(next) = eval_ast_pattern(inside_pat, compiled, root, anc, &state, source) {
                         matched_rel = Some(next);
                         break;
                     }
                 }
-                let Some(next) = matched_rel else {
-                    return Ok(None);
-                };
-                state = next;
+                state = matched_rel?;
             }
             if let Some(ref has_pat) = spec.has {
                 let mut desc = Vec::new();
@@ -36815,15 +36823,12 @@ fn eval_ast_pattern(
                     if d.trivia {
                         continue;
                     }
-                    if let Some(next) = eval_ast_pattern(has_pat, language, root, d, &state, source)? {
+                    if let Some(next) = eval_ast_pattern(has_pat, compiled, root, d, &state, source) {
                         matched_rel = Some(next);
                         break;
                     }
                 }
-                let Some(next) = matched_rel else {
-                    return Ok(None);
-                };
-                state = next;
+                state = matched_rel?;
             }
             if let Some(ref follows_pat) = spec.follows {
                 let mut matched_rel = None;
@@ -36831,15 +36836,12 @@ fn eval_ast_pattern(
                     if sib.trivia {
                         continue;
                     }
-                    if let Some(next) = eval_ast_pattern(follows_pat, language, root, &sib, &state, source)? {
+                    if let Some(next) = eval_ast_pattern(follows_pat, compiled, root, &sib, &state, source) {
                         matched_rel = Some(next);
                         break;
                     }
                 }
-                let Some(next) = matched_rel else {
-                    return Ok(None);
-                };
-                state = next;
+                state = matched_rel?;
             }
             if let Some(ref precedes_pat) = spec.precedes {
                 let mut matched_rel = None;
@@ -36847,17 +36849,14 @@ fn eval_ast_pattern(
                     if sib.trivia {
                         continue;
                     }
-                    if let Some(next) = eval_ast_pattern(precedes_pat, language, root, &sib, &state, source)? {
+                    if let Some(next) = eval_ast_pattern(precedes_pat, compiled, root, &sib, &state, source) {
                         matched_rel = Some(next);
                         break;
                     }
                 }
-                let Some(next) = matched_rel else {
-                    return Ok(None);
-                };
-                state = next;
+                state = matched_rel?;
             }
-            Ok(Some(state))
+            Some(state)
         }
     }
 }
@@ -36867,9 +36866,8 @@ fn ast_find_matches(
     pattern: &AstPattern,
     source: &str,
 ) -> Result<Vec<AstMatch>, String> {
-    if let AstPattern::Text(pat_str) = pattern {
-        let _ = ast_pattern_node(pat_str, &root.language)?;
-    }
+    let mut compiled = BTreeMap::new();
+    compile_ast_patterns(pattern, &root.language, &mut compiled)?;
     let mut nodes = Vec::new();
     walk_ast_nodes(root, &mut nodes);
     let mut out = Vec::new();
@@ -36878,7 +36876,7 @@ fn ast_find_matches(
             continue;
         }
         let empty = BTreeMap::new();
-        if let Some(captures) = eval_ast_pattern(pattern, &root.language, root, n, &empty, source)? {
+        if let Some(captures) = eval_ast_pattern(pattern, &compiled, root, n, &empty, source) {
             out.push(AstMatch {
                 node: n.clone(),
                 captures,
@@ -39345,6 +39343,16 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_rejects_invalid_nested_patterns_before_matching_kind() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/input.js", b"f(a);\n").unwrap();
+        let rule = "id: nested\nlanguage: js\nrule:\n  kind: ClassBody\n  has:\n    pattern: f($X +)\nfix: gone";
+        let r = try_run_structured_command("sg", &args(&["scan", "--inline-rules", rule, "--json=compact", "-U", "input.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "[", "sg: Invalid javascript pattern: f($X +)\n"));
+        assert_eq!(fs.read_file("/input.js").unwrap(), b"f(a);\n");
     }
 
     #[test]

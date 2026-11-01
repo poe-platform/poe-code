@@ -3,6 +3,20 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq accepts if as an unquoted object key beside conditional values", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, expected] of [
+      ["{if:if true then 1 else 3 end,end:4}", '{"if":1,"end":4}\n'],
+      ['{"if":"yes","end":2} | {if,end}', '{"if":"yes","end":2}\n'],
+      ["{if: (1,2), end: 3}", '{"if":1,"end":3}\n{"if":2,"end":3}\n'],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq field access visits every base and respects optional and quoted keys", async () => {
   const bash = new RustWasmBash();
   try {

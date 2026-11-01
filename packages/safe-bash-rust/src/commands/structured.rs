@@ -1121,7 +1121,11 @@ fn is_jq_kw_at(chars: &[char], i: usize, kw: &[char]) -> bool {
     let next_ok = i + kw.len() == chars.len()
         || !(chars[i + kw.len()].is_ascii_alphanumeric()
             || chars[i + kw.len()] == '_');
-    prev_ok && next_ok
+    // An unquoted object key named "if" has no condition before its separator.
+    prev_ok && next_ok && !(kw == ['i', 'f'] && matches!(
+        chars[i + kw.len()..].iter().find(|c| !c.is_whitespace()),
+        None | Some(':' | ',' | '}')
+    ))
 }
 
 fn is_jq_if_expr(s: &str) -> bool {

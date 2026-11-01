@@ -168,8 +168,8 @@ pub(super) fn waypoints(
     groups: &[Group],
     edges: &[Edge],
     pairs: &BTreeMap<(usize, usize), usize>,
-    horizontal: bool,
-    reverse: bool,
+    (horizontal, reverse): (bool, bool),
+    first_edge_id: usize,
     mut work: usize,
 ) -> Option<Routes> {
     let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
@@ -561,7 +561,7 @@ pub(super) fn waypoints(
         {
             collision = Some(format!(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 6 (edge-node intersection): edge \"edge_{}\" ({}->{}) segment [{k}] intersects unrelated node \"{}\"\n",
-                i + 1,
+                i + first_edge_id,
                 nodes[a].id,
                 nodes[b].id,
                 other.id

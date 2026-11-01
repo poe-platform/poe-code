@@ -1,4 +1,4 @@
-// Flowchart parsing and layout.
+// Mermaid diagram parsing and graph layout.
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
 
@@ -8,6 +8,8 @@ pub(super) mod config;
 pub(super) mod gantt;
 #[path = "mermaid/groups.rs"]
 mod groups;
+#[path = "mermaid/linear.rs"]
+mod linear;
 use groups::Group;
 
 #[path = "mermaid/labels.rs"]
@@ -97,6 +99,30 @@ fn advance(c: char, bold: bool) -> u32 {
     };
     let n = if bold { 4 } else { 2 };
     u16::from_le_bytes([r[n], r[n + 1]]) as u32
+}
+fn number(text: &str) -> f64 {
+    let text = text.trim();
+    if text.is_empty() {
+        return 0.;
+    }
+    for (radix, prefix) in [(16, "0x"), (8, "0o"), (2, "0b")] {
+        if text
+            .get(..2)
+            .is_some_and(|p| p.eq_ignore_ascii_case(prefix))
+        {
+            let digits = &text[2..];
+            if digits.is_empty() {
+                return f64::NAN;
+            }
+            return digits
+                .chars()
+                .try_fold(0., |n, c| {
+                    Some(n * f64::from(radix) + f64::from(c.to_digit(radix)?))
+                })
+                .unwrap_or(f64::NAN);
+        }
+    }
+    text.parse().unwrap_or(f64::NAN)
 }
 // ECMAScript switches to exponent notation at these bounds for SVG attributes and labels.
 fn nonnegative_number(value: f64) -> String {
@@ -444,7 +470,8 @@ impl Pill {
     }
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
-pub(super) struct Flowchart<'a> {
+pub(super) struct Graph<'a> {
+    first_edge_id: usize,
     groups: Vec<Group>,
     nodes: Vec<Node>,
     edges: Vec<Edge<'static>>,
@@ -461,11 +488,14 @@ pub(super) fn parse<'a>(
     description: &mut Option<String>,
     wrapping_width: f64,
     limit: usize,
-) -> Option<Result<Flowchart<'a>, String>> {
+) -> Option<Result<Graph<'a>, String>> {
     let mut stmts = lines.iter();
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
+    if matches!(keyword, "timeline" | "journey") {
+        return Some(linear::parse(keyword, lines, title, wrapping_width, limit));
+    }
     if !matches!(keyword, "graph" | "flowchart") {
         return None;
     }
@@ -666,7 +696,8 @@ pub(super) fn parse<'a>(
     if nodes.len() > limit / 300 {
         return None;
     }
-    Some(Ok(Flowchart {
+    Some(Ok(Graph {
+        first_edge_id: 1,
         groups,
         nodes,
         edges,
@@ -679,7 +710,7 @@ pub(super) fn parse<'a>(
 }
 
 pub(super) fn layout(
-    graph: Flowchart<'_>,
+    graph: Graph<'_>,
     theme: &str,
     prefix: &str,
     title: Option<&str>,
@@ -687,7 +718,8 @@ pub(super) fn layout(
     padding: f64,
     limit: usize,
 ) -> Option<Result<Scene, String>> {
-    let Flowchart {
+    let Graph {
+        first_edge_id,
         mut groups,
         mut nodes,
         edges,
@@ -733,7 +765,15 @@ pub(super) fn layout(
     let Some(route::Routes {
         paths: mut waypoints,
         intersection,
-    }) = route::waypoints(&nodes, &groups, &edges, &pairs, horizontal, reversed, limit)
+    }) = route::waypoints(
+        &nodes,
+        &groups,
+        &edges,
+        &pairs,
+        (horizontal, reversed),
+        first_edge_id,
+        limit,
+    )
     else {
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     };
@@ -845,7 +885,9 @@ pub(super) fn layout(
         let prev = points[points.len() - 2];
         let start_angle = (y - next.1).atan2(x - next.0);
         let angle = (ey - prev.1).atan2(ex - prev.0);
-        if let Some(message) = route::attachment_error(&points, &nodes[a], &nodes[b], idx + 1) {
+        if let Some(message) =
+            route::attachment_error(&points, &nodes[a], &nodes[b], idx + first_edge_id)
+        {
             return Some(Err(format!(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 {message}\n"
             )));
@@ -885,7 +927,7 @@ pub(super) fn layout(
         let stroke = nonnegative_number(stroke);
         let mut el = format!(
             r#"<g class="mmdc-edge" data-id="edge_{}"><path d="{path}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
-            idx + 1
+            idx + first_edge_id
         );
         let degrees = |angle: f64| ((angle.to_degrees() * 100. + 0.5).floor()) / 100.;
         for (show, ex, ey, angle) in [(start_arrow, x, y, start_angle), (arrow, ex, ey, angle)] {

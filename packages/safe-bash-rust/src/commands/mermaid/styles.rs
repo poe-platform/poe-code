@@ -1,4 +1,5 @@
 use super::Statement;
+use super::number;
 use crate::commands::archive::{css_named_color, parse_color};
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -50,31 +51,6 @@ impl<'a> Style<'a> {
         }
         Ok(result)
     }
-}
-
-fn number(text: &str) -> f64 {
-    let text = text.trim();
-    if text.is_empty() {
-        return 0.;
-    }
-    for (radix, prefix) in [(16, "0x"), (8, "0o"), (2, "0b")] {
-        if text
-            .get(..2)
-            .is_some_and(|p| p.eq_ignore_ascii_case(prefix))
-        {
-            let digits = &text[2..];
-            if digits.is_empty() {
-                return f64::NAN;
-            }
-            return digits
-                .chars()
-                .try_fold(0., |n, c| {
-                    Some(n * f64::from(radix) + f64::from(c.to_digit(radix)?))
-                })
-                .unwrap_or(f64::NAN);
-        }
-    }
-    text.parse().unwrap_or(f64::NAN)
 }
 
 pub(in super::super) fn css_color(raw: &str) -> Result<Color<'_>, String> {

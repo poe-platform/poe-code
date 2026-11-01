@@ -10,7 +10,7 @@ use std::fmt::Write;
 #[derive(Default)]
 pub(super) struct Group {
     pub id: String,
-    label: String,
+    pub label: String,
     pub parent: Option<usize>,
     pub depth: usize,
     pub root: usize,

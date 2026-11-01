@@ -29367,8 +29367,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let mut directives = Vec::new();
     let family = mermaid::scanner::family(&src_text);
-    let flowchart = matches!(family, "flowchart" | "graph");
-    let statement_family = flowchart || family == "gantt";
+    let graph_family = matches!(family, "flowchart" | "graph" | "timeline" | "journey");
+    let statement_family = graph_family || family == "gantt";
     let scanned = if statement_family || src_text.contains("%%{") {
         match mermaid::scanner::scan(&src_text, &mut directives) {
             Ok(stmts) => statement_family.then_some(stmts),
@@ -29535,7 +29535,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             Err(message) => return err_out(&message, 1),
         }
     } else { None };
-    let flow = if let Some(stmts) = scanned.as_ref().filter(|_| flowchart) {
+    let graph = if let Some(stmts) = scanned.as_ref().filter(|_| graph_family) {
         match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, cfg.wrapping_width.or(source_cfg.wrapping_width).unwrap_or(200.), limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
@@ -29571,7 +29571,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Some(pie.layout(&resolved_theme,cfg.padding.or(source_cfg.padding).unwrap_or(32.)))
     } else if let Some(chart) = gantt {
         Some(chart.layout(&resolved_theme, cfg.padding.or(source_cfg.padding).unwrap_or(32.), acc_title.as_deref()))
-    } else if let Some(graph) = flow {
+    } else if let Some(graph) = graph {
         match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (cfg.rank_gap.or(source_cfg.rank_gap).unwrap_or(56.),cfg.node_gap.or(source_cfg.node_gap).unwrap_or(32.)), cfg.padding.or(source_cfg.padding).unwrap_or(32.), limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
@@ -38225,8 +38225,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
 
     #[test]
     fn mmdc_renders_gantt_schedules_and_rejects_invalid_tasks_before_publication() {
-        let fs = MemoryVfs::new();
-        for (source, format, expected) in [
+        assert_mermaid_outputs(&[
             ("gantt\ndateFormat YYYY-MM-DD\nsection Develop\nBuild: done, build, 2024-01-31, 2d\nTest: crit, test, after build, 8h\nsection Publish\nRelease: milestone, rel, after build test, 0d", "svg", "110698603b1bc11085052f2b64a6dd75752003612374bd02dc1e53bdfcbcbb57"),
             ("gantt\ndateFormat YYYY-MM-DD\nsection Develop\nBuild: done, build, 2024-01-31, 2d\nTest: crit, test, after build, 8h\nsection Publish\nRelease: milestone, rel, after build test, 0d", "png", "4dba628e7431acd413969d787da7214b366cda85211e1f15751ecb049a6982b9"),
             ("gantt\ndateFormat YYYY-MM-DD\nsection Develop\nBuild: done, build, 2024-01-31, 2d\nTest: crit, test, after build, 8h\nsection Publish\nRelease: milestone, rel, after build test, 0d", "pdf", "c4180cc88234c8c3e636ef76bc1a41d8a51247f06938454de954186dd5211ba6"),
@@ -38242,7 +38241,32 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("gantt\nA: 2024-01-01, -2d", "svg", "mmdc: E_SYNTAX (line 2, column 1): Gantt requires valid dates, dependencies, and nonnegative durations\n"),
             ("gantt\ntitle Report\nsection Empty", "svg", "mmdc: E_SYNTAX: gantt requires data\n"),
             ("gantt\nA task with no dates", "svg", "mmdc: E_SYNTAX (line 2, column 1): Gantt task requires a label and schedule\n"),
-        ] {
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_journey_and_timeline_sections_and_events() {
+        assert_mermaid_outputs(&[
+            ("timeline\ntitle A history\nsection Era 1\n2024 : New beginning : event 2\n: follow up\nsection Era 2\n2025 : Deliver", "svg", "3542a00dbe3a730ef90c0055b1fdb4953f5dd8ac4b6d643456feaa9d609aaedc"),
+            ("timeline\ntitle A history\nsection Era 1\n2024 : New beginning : event 2\n: follow up\nsection Era 2\n2025 : Deliver", "png", "99f08c2b317d01805e23c3fb702c71c3d4c935a710bc781cdb3e8ba344f79e8a"),
+            ("timeline\ntitle A history\nsection Era 1\n2024 : New beginning : event 2\n: follow up\nsection Era 2\n2025 : Deliver", "pdf", "079f90f3a362c6a5ed8d593d921bb76325ca67315576e49c38f96b1413d4d863"),
+            ("timeline\n: first", "svg", "mmdc: E_SYNTAX (line 2, column 1): Timeline event requires a period\n"),
+            ("timeline\n2024: ", "svg", "mmdc: E_SYNTAX (line 2, column 1): Empty timeline event\n"),
+            ("timeline\n", "svg", "mmdc: E_SYNTAX: timeline requires data\n"),
+            ("timeline\nsection <img>\nA : event", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("journey\ntitle Release\nsection Develop\nBuild app: 3: Me, Sam\nTest: 5: Alice\nsection Ship\nPublish: 1", "svg", "c858c82d125363effb2cc8b197e10bb5a7bdaddc74b691607e085331dbe50c7c"),
+            ("journey\ntitle Release\nsection Develop\nBuild app: 3: Me, Sam\nTest: 5: Alice\nsection Ship\nPublish: 1", "png", "22ce9d8d3138560e538a5ad871d5b681a6876a5c20a812078b0c16311f491015"),
+            ("journey\ntitle Release\nsection Develop\nBuild app: 3: Me, Sam\nTest: 5: Alice\nsection Ship\nPublish: 1", "pdf", "8d4b5f1f6044cea1752f5a8f8b8e1608349515d62bc00a1b75d045aff6cfedc1"),
+            ("journey\nReview: 0x3", "svg", "8c862a2f104786dd008c2fdf579ce6fd343b2f823a3f979799a536b088deea18"),
+            ("journey\nReview: 0", "svg", "mmdc: E_SYNTAX (line 2, column 1): Journey tasks require a score from 1 to 5\n"),
+            ("journey\njob: 3: <svg>", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<svg' in diagram label\n"),
+            ("journey\n", "svg", "mmdc: E_SYNTAX: journey requires data\n"),
+        ]);
+    }
+
+    fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
+        let fs = MemoryVfs::new();
+        for &(source, format, expected) in cases {
             let path = format!("/chart.{format}");
             fs.write_file(&path, b"previous").unwrap();
             let result = try_run_structured_command("mmdc", &args(&["-i", "-", "-o", &path]), source, "/", &BTreeMap::new(), &fs).unwrap();

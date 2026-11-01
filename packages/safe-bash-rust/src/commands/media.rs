@@ -10134,21 +10134,19 @@ fn cmd_media_doc(
                 let base=magick_stack::input_spec(arg).0;
                 if i + 1 < args.len() && let Some(parsed) = Canvas::parse(base) {
                     if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
-                    if base.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
+                    let size=if base.eq_ignore_ascii_case("null:"){(1,1)}else{size_opt.unwrap_or((1,1))};
                     canvas = Some((match parsed {
                         Ok(c) => c,
                         Err(e) => return err_out(&format!("magick: {e}\n"), 1),
-                    },size_opt.unwrap_or((1,1))));
-                    stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size_opt.unwrap_or((1,1)),kernel)));
+                    },size));
+                    stack_steps.push((ops.len(),magick_stack::Step::Input(arg,size,kernel)));
                     has_pseudo_input = true;
                     i += 1;
                     continue;
                 }
                 match args[i].as_str() {
                     "-size" if i + 1 < args.len() => {
-                        if let Some((ws, hs)) = args[i + 1].split_once('x') {
-                            size_opt = Some((ws.parse().unwrap_or(32), hs.parse().unwrap_or(32)));
-                        }
+                        size_opt=Some(Geometry::canvas_size(&args[i+1]));
                         i += 2;
                     }
                     "-resize" | "-scale" | "-sample" | "-thumbnail" if i + 1 < args.len() => {
@@ -14691,6 +14689,19 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&["rgba.png",op,method,size,"o.png"]),"","/",&fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{op} {method} {size}");
+        }
+    }
+
+    #[test]
+    fn convert_parses_canvas_geometry_and_keeps_size_after_null_input() {
+        let fs=MemoryVfs::new();
+        for (spec,hash) in [
+            ("7","fe218f8383d33875f400f19d02adcd25dcb25b1fb136352e266c1e05adf4bdb7"),
+            ("3x2%","c7d9a5bb159a0f5a8505ee116290c0aee6ab2da9c138c1889e829912f1437da9"),
+        ]{
+            let r=cmd_media_doc("convert",&media_args(&["-size",spec,"null:","gradient:red-blue","-append","o.png"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash);
         }
     }
 

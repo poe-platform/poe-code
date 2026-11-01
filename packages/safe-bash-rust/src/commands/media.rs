@@ -4246,9 +4246,10 @@ fn parse_lavfi_input_doc(inp: &str) -> Option<MediaDoc> {
         || inp == "anoisesrc"
         || inp == "anullsrc"
     {
-        let mut sr = 16000u32;
+        let default_rate = if inp.starts_with("anoisesrc") { 16000 } else { 44100 };
+        let mut sr = default_rate;
         let mut d = 1.0f64;
-        let mut ch = 1u32;
+        let mut ch = if inp.starts_with("anullsrc") { 2 } else { 1 };
         let params = inp
             .split_once('=')
             .map(|(_, rest)| if rest.contains('=') { rest } else { inp })
@@ -4256,11 +4257,11 @@ fn parse_lavfi_input_doc(inp: &str) -> Option<MediaDoc> {
         for part in params.split(':') {
             if let Some((k, v)) = part.split_once('=') {
                 if k == "sample_rate" || k == "r" {
-                    sr = v.parse().unwrap_or(16000);
+                    sr = v.parse().ok().filter(|&v|v!=0).unwrap_or(default_rate);
                 } else if k == "duration" || k == "d" {
                     d = v.parse().unwrap_or(1.0);
                 } else if k == "channel_layout" || k == "cl" {
-                    ch = if v == "stereo" { 2 } else { 1 };
+                    ch = if v == "mono" { 1 } else { 2 };
                 }
             }
         }
@@ -4597,8 +4598,9 @@ fn cmd_media_doc(
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (inputs.len()==1 && (y4m_output || mp4_output) && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
+                let generated_audio=(inputs.len()==1 && (mp4_output || audio_output) && input_format==Some("lavfi") && matches!(source.split('=').next(),Some("sine"|"anullsrc"))).then(||parse_lavfi_input_doc(source)).flatten();
                 let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
-                let bytes=if generator.is_some(){None}else{read(source)};
+                let bytes=if generator.is_some() || generated_audio.is_some(){None}else{read(source)};
                 let start=ss_opt.unwrap_or(0.).max(0.);
                 let end=to_opt.or_else(||t_opt.map(|t|start+t));
                 let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
@@ -4623,6 +4625,8 @@ fn cmd_media_doc(
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 let output=if mp4_output && let Some(video)=generator.as_ref() {
                     match mp4::mux::lavfi(video,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if let Some(audio)=generated_audio {
+                    match mp4::mux::lavfi_audio(audio.sample_rate,audio.channels,audio.duration,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
@@ -13254,6 +13258,15 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"h264,12,8,3\naac,33\n");
         let r=run(&["-i","out.mp4","-frames:v","1","-f","yuv4mpegpipe","pipe:1"]);
         assert!(crate::vfs::stream_string_to_bytes(&r.stdout).starts_with(b"YUV4MPEG2 W12 H8"));
+    }
+
+    #[test]
+    fn ffmpeg_muxes_lavfi_audio_as_aac_packets_with_a_partial_last_packet() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","sine=f=880:r=8000:d=0.17","v.m4a"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_packets","-show_entries","packet=pts,duration,size","-of","csv=p=0","v.m4a"]),"","/",&fs);
+        assert_eq!(r.stdout,"0,1024,7\n1024,576,7\n");
     }
 
     #[test]

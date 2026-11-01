@@ -411,6 +411,85 @@ pub(in super::super) fn lavfi(
         },
         |i| Ok(video.image(i)),
     )?;
+    write_generated(track, opts, sliced)
+}
+
+pub(in super::super) fn lavfi_audio(
+    rate: u32,
+    channels: u32,
+    duration: f64,
+    mut opts: Remux<'_>,
+) -> Result<Vec<u8>, String> {
+    // lavfi uses a 10 fps synthetic movie for its AAC packet table. Decoded
+    // audio has the requested duration, which matters if a slice is resampled.
+    let duration = opts.end.unwrap_or(duration);
+    let rate_f = f64::from(rate);
+    let packet_ticks = ((duration * 10.).round().max(1.) / 10. * rate_f)
+        .round()
+        .max(1024.) as u64;
+    let raw_ticks = (duration * rate_f).round().max(1024.) as u64;
+    let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
+    let start = (opts.start.take().unwrap_or(0.) * rate_f).round() as u64;
+    let end = opts
+        .end
+        .take()
+        .map_or(packet_ticks, |e| (e * rate_f).round() as u64);
+    opts.shortest = false;
+    let transcode =
+        opts.rate.is_some() || opts.channels.is_some() || !opts.audio_filters.is_empty();
+    let total = if sliced && transcode {
+        raw_ticks
+    } else {
+        packet_ticks
+    };
+    let end = end.min(total);
+    let ticks = end.saturating_sub(start);
+    let first = start / 1024;
+    let last = if ticks == 0 {
+        first
+    } else {
+        end.div_ceil(1024)
+    };
+    if last - first > 200_000 || last - first > (opts.limit / size_of::<Sample>()) as u64 {
+        return Err("sample index exceeds memory budget".into());
+    }
+    let payload = super::super::adts::silent(channels);
+    let samples = (first..last)
+        .map(|i| Sample {
+            data: payload.into(),
+            duration: (end.min((i * 1024).saturating_add(1024)) - start.max(i * 1024)) as u32,
+            cts: 0,
+            key: true,
+            description: 1,
+        })
+        .collect();
+    let track = Track {
+        samples,
+        scale: rate,
+        media_ticks: ticks as u32,
+        movie_ticks: (ticks as f64 / rate_f * 1000.).round() as u32,
+        first_dts: 0,
+        stsd: audio_entry(rate, channels, 2).into(),
+        edits: vec![],
+        kind: "audio",
+        enabled: true,
+        volume: 256,
+        matrix: MATRIX,
+        width: 0,
+        height: 0,
+        language: 0x55c4,
+        handler: *b"soun",
+        name: b"SoundHandler",
+    };
+    let remux = transcode || opts.format == "aac";
+    write_generated(track, opts, remux)
+}
+
+fn write_generated(
+    track: Track<'_>,
+    opts: Remux<'_>,
+    remux_output: bool,
+) -> Result<Vec<u8>, String> {
     let mut metadata = opts.metadata.clone();
     metadata
         .entry("encoder".to_owned())
@@ -421,12 +500,14 @@ pub(in super::super) fn lavfi(
     } else {
         b"isom\0\0\x02\0isomiso2avc1mp41"
     };
-    if sliced || !opts.maps.is_empty() || opts.rotation.is_some() {
+    if remux_output || !opts.maps.is_empty() || opts.rotation.is_some() {
         let input = write(&[track], 1000, brand, &metadata, &[], false, opts.limit)?;
         return remux(&[("mp4", &input)], opts);
     }
     write(
-        if opts.strip_video {
+        if (track.kind == "video" && opts.strip_video)
+            || (track.kind == "audio" && opts.strip_audio)
+        {
             &[]
         } else {
             std::slice::from_ref(&track)

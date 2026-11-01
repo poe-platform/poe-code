@@ -11,6 +11,25 @@ test("yq properties retain numeric path components as keys and replace scalar pa
   } finally { bash.dispose(); }
 });
 
+test("jq validates array indexes and slice replacements before growing a path", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, message] of [
+      ["[1] | .[-3]=9", "array index out of bounds"],
+      ["2 | .x=4", 'Cannot index number with string "x"'],
+      ["{} | .[2]=5", "Cannot index object with number"],
+      ["[1,2] | .[0:1]=3", "slice assignment requires an array value"],
+      ["setpath([false];42)", "Cannot index null with boolean"],
+      ["setpath([-1];9)", "Out of bounds negative array index"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", `jq: error (at <unknown>): ${message}\n`], filter);
+    }
+    const limit = await bash.exec("jq -nc 'try setpath([1e100];42) catch 5'");
+    assert.deepEqual([limit.exitCode, limit.stdout, limit.stderr], [5, "", "jq: maxCollectionSize limit exceeded\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq assignments use one right-hand value for every path and delete empty updates", async () => {
   const bash = new RustWasmBash();
   try {

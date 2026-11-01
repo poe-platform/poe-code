@@ -1040,6 +1040,9 @@ fn cmd_jq_core(
                 status = if !exit_status { 0 } else { match last_truthy { Some(true) => 0, Some(false) => 1, None => 4 } };
             }
             Err(e) => {
+                if let Some(limit) = e.strip_prefix("__jq_limit:") {
+                    return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {limit} limit exceeded\n"), exit_code: 5 };
+                }
                 let error = e.strip_prefix("__jq_err:").and_then(|s| parse_single_json_strict(s).ok())
                     .map(|value| value.to_raw_string(true, false)).unwrap_or(e);
                 let place = inputs.borrow_mut().location();
@@ -1092,7 +1095,10 @@ fn eval_jq_atom(
         && !inner.is_empty()
         && !inner.starts_with('.')
     {
-        return Ok(eval_jq(inner, input, vars).unwrap_or_default());
+        return match eval_jq(inner, input, vars) {
+            Err(e) if !e.starts_with("__jq_limit:") => Ok(Vec::new()),
+            other => other,
+        };
     }
 
 
@@ -2408,7 +2414,7 @@ fn try_eval_jq_builtin(
                     let mut res = JVal::Null;
                     for p in resolve_jq_lhs_paths(arg_expr, input, vars)? {
                         let val = get_jq_jval_path(input, &p);
-                        set_jq_jval_path(&mut res, &p, val);
+                        set_jq_jval_path(&mut res, &p, val)?;
                     }
                     return Ok(Some(vec![res]));
                 }
@@ -2528,7 +2534,13 @@ fn try_eval_jq_builtin(
                                 .into_iter()
                                 .next()
                                 .unwrap_or(JVal::Null);
-                            set_jq_jval_path(&mut updated, &segs, nv);
+                            set_jq_jval_path(&mut updated, &segs, nv).map_err(|e| {
+                                if e == "array index out of bounds" {
+                                    "Out of bounds negative array index".into()
+                                } else {
+                                    e
+                                }
+                            })?;
                         }
                         return Ok(Some(vec![updated]));
                     }
@@ -3517,75 +3529,97 @@ fn get_jq_jval_path(val: &JVal, segs: &[JVal]) -> JVal {
     }
 }
 
-fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) {
-    if segs.is_empty() {
+fn set_jq_jval_path(val: &mut JVal, segs: &[JVal], new_val: JVal) -> Result<(), String> {
+    let Some((key, tail)) = segs.split_first() else {
         *val = new_val;
-        return;
+        return Ok(());
+    };
+    if segs.len() > 256 {
+        return Err("__jq_limit:maxDepth".into());
     }
-    if let Some((s, e)) = extract_jq_slice_seg(&segs[0]) {
-        if let JVal::Array(arr) = val {
-            let s_idx = s.min(arr.len());
-            let e_idx = e.min(arr.len()).max(s_idx);
-            if segs.len() == 1 {
-                let rep = match new_val {
-                    JVal::Array(items) => items,
-                    other => vec![other],
-                };
-                arr.splice(s_idx..e_idx, rep);
-            } else {
-                let mut sub = JVal::Array(arr[s_idx..e_idx].to_vec());
-                set_jq_jval_path(&mut sub, &segs[1..], new_val);
-                if let JVal::Array(rep) = sub {
-                    arr.splice(s_idx..e_idx, rep);
-                }
-            }
+    if let Some((s, e)) = extract_jq_slice_seg(key) {
+        if matches!(val, JVal::Null) {
+            *val = JVal::Array(Vec::new());
         }
-        return;
+        let JVal::Array(arr) = val else {
+            return Err("slice assignment requires an array".into());
+        };
+        let start = s.min(arr.len());
+        let end = e.clamp(start, arr.len());
+        let replacement = if tail.is_empty() {
+            new_val
+        } else {
+            let mut sub = JVal::Array(arr[start..end].to_vec());
+            set_jq_jval_path(&mut sub, tail, new_val)?;
+            sub
+        };
+        let JVal::Array(items) = replacement else {
+            return Err("slice assignment requires an array value".into());
+        };
+        arr.splice(start..end, items);
+        return Ok(());
     }
-    match &segs[0] {
-        JVal::Str(k) => {
-            if !matches!(val, JVal::Object(_)) {
+    match key {
+        JVal::Str(k) if matches!(val, JVal::Object(_) | JVal::Null) => {
+            if matches!(val, JVal::Null) {
                 *val = JVal::Object(Vec::new());
             }
-            if let JVal::Object(map) = val {
-                if segs.len() == 1 {
-                    if let Some(pos) = map.iter().position(|(ek, _)| ek == k) {
-                        map[pos].1 = new_val;
-                    } else {
-                        map.push((k.clone(), new_val));
-                    }
-                } else if let Some(pos) = map.iter().position(|(ek, _)| ek == k) {
-                    set_jq_jval_path(&mut map[pos].1, &segs[1..], new_val);
-                } else {
-                    let mut child = JVal::Null;
-                    set_jq_jval_path(&mut child, &segs[1..], new_val);
-                    map.push((k.clone(), child));
-                }
+            let JVal::Object(map) = val else {
+                unreachable!()
+            };
+            if let Some((_, child)) = map.iter_mut().find(|(name, _)| name == k) {
+                set_jq_jval_path(child, tail, new_val)?;
+            } else {
+                let mut child = JVal::Null;
+                set_jq_jval_path(&mut child, tail, new_val)?;
+                map.push((k.clone(), child));
             }
         }
-        JVal::Number(n, _) => {
-            let raw_idx = *n as isize;
-            if !matches!(val, JVal::Array(_)) {
+        JVal::Number(n, _) if n.is_finite() && matches!(val, JVal::Array(_) | JVal::Null) => {
+            let len = match val {
+                JVal::Array(arr) => arr.len(),
+                _ => 0,
+            };
+            let mut index = n.trunc();
+            if index < 0.0 {
+                index += len as f64;
+            }
+            if index < 0.0 {
+                return Err("array index out of bounds".into());
+            }
+            // Check before converting to a platform-sized index or allocating padding.
+            if index >= (crate::ShellLimits::default().max_memory_bytes / size_of::<JVal>()) as f64
+            {
+                return Err("__jq_limit:maxCollectionSize".into());
+            }
+            let index = index as usize;
+            if matches!(val, JVal::Null) {
                 *val = JVal::Array(Vec::new());
             }
-            if let JVal::Array(arr) = val {
-                let idx = if raw_idx < 0 {
-                    ((arr.len() as isize) + raw_idx).max(0) as usize
-                } else {
-                    raw_idx as usize
-                };
-                while arr.len() <= idx {
-                    arr.push(JVal::Null);
-                }
-                if segs.len() == 1 {
-                    arr[idx] = new_val;
-                } else {
-                    set_jq_jval_path(&mut arr[idx], &segs[1..], new_val);
-                }
+            let JVal::Array(arr) = val else {
+                unreachable!()
+            };
+            if index >= len {
+                arr.try_reserve_exact(index + 1 - len)
+                    .map_err(|_| "__jq_limit:maxCollectionSize")?;
+                arr.resize(index + 1, JVal::Null);
             }
+            set_jq_jval_path(&mut arr[index], tail, new_val)?;
         }
-        _ => {}
+        _ => {
+            let detail = if matches!(key,JVal::Str(k) if k.len()<30) {
+                format!(" {}", key.to_json_string(true, false, 0))
+            } else {
+                String::new()
+            };
+            return Err(format!(
+                "Cannot index {} with {}{detail}",
+                val.type_name(),
+                key.type_name()
+            ));
+        }
     }
+    Ok(())
 }
 
 fn delete_jq_jval_path(val: &mut JVal, segs: &[JVal]) {
@@ -24813,7 +24847,7 @@ fn eval_sql_row_expr(
                     let val_s = eval_sql_row_expr(args[ai + 1], cols, row, tables);
                     let segs = parse_sql_json_path(&path_s);
                     let new_jv = parse_sql_arg_to_jval(&val_s, args[ai + 1]);
-                    set_jq_jval_path(&mut jval, &segs, new_jv);
+                    if set_jq_jval_path(&mut jval, &segs, new_jv).is_err() { return String::new(); }
                     ai += 2;
                 }
                 return jval.to_json_string(true, false, 0);

@@ -173,7 +173,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                     Ok(Break(()))
                 })?;
                 if let Some(new) = first {
-                    super::set_jq_jval_path(&mut updated, &path, new);
+                    super::set_jq_jval_path(&mut updated, &path, new)?;
                 } else {
                     deletions.push(path);
                 }
@@ -198,7 +198,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                             super::apply_jq_arith(&old, &rhs, &op[..1])?
                         }
                     };
-                    super::set_jq_jval_path(&mut updated, &path, value);
+                    super::set_jq_jval_path(&mut updated, &path, value)?;
                 }
                 emit(updated)
             });
@@ -467,7 +467,9 @@ fn protected(
         return Err(e);
     }
     match result {
-        Err(e) if vars.inputs.borrow().file_error.is_none() => handle(e, emit),
+        Err(e) if !e.starts_with("__jq_limit:") && vars.inputs.borrow().file_error.is_none() => {
+            handle(e, emit)
+        }
         other => other,
     }
 }

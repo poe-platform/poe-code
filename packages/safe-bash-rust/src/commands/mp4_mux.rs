@@ -1893,6 +1893,49 @@ fn stack_frames(
     Ok(StackedFrames { frames, geometry })
 }
 
+fn cut_packets<'a>(
+    t: &'a super::Track<'_>,
+    input_len: usize,
+    range: Option<(f64, Option<f64>)>,
+) -> (usize, u64, u64, impl Iterator<Item = super::Sample> + 'a) {
+    let (mut first, mut start, mut end) = (0, 0, u64::MAX);
+    if let Some((from, to)) = range {
+        let scale = f64::from(t.scale);
+        start = t.origin.saturating_add((from * scale).round() as u64);
+        end = t.origin.saturating_add(
+            to.map_or(t.duration, |s| ((s * scale).round() as u64).min(t.duration)),
+        );
+        let mut key = None;
+        first = t
+            .samples(input_len)
+            .enumerate()
+            .find_map(|(i, s)| {
+                if s.key {
+                    key = Some(i);
+                }
+                (end > start && s.dts < end && s.dts.saturating_add(u64::from(s.tick)) > start)
+                    .then_some(if t.kind == "video" {
+                        key.unwrap_or(i)
+                    } else {
+                        i
+                    })
+            })
+            .unwrap_or(t.stats.count);
+    }
+    (
+        first,
+        start,
+        end,
+        t.samples(input_len)
+            .skip(first)
+            .take_while(move |s| s.dts < end)
+            .map(move |mut s| {
+                s.tick = u64::from(s.tick).min(end - s.dts) as u32;
+                s
+            }),
+    )
+}
+
 pub(in super::super) fn remux(
     inputs: &[MediaInput],
     mut opts: Remux<'_>,
@@ -1946,9 +1989,31 @@ pub(in super::super) fn remux(
     if opts.format == "wav" {
         let seconds = selected
             .iter()
-            .map(|&(j, i)| sources[j].2.seconds(i))
+            .map(|&(j, i)| {
+                let (bytes, _, stream) = &sources[j];
+                let seconds = stream.seconds(i);
+                let Some((from, to)) = range else {
+                    return seconds;
+                };
+                let Streams::Mp4(tracks) = stream else {
+                    return (to.unwrap_or(seconds).min(seconds) - from).max(0.);
+                };
+                let t = &tracks[i].0;
+                let (_, start, end, mut packets) = cut_packets(t, bytes.len(), range);
+                let Some(first) = packets.next() else {
+                    return 0.;
+                };
+                let ticks = u64::from(first.tick) + packets.map(|s| u64::from(s.tick)).sum::<u64>();
+                if first.dts >= start {
+                    return ticks as f64 / f64::from(t.scale);
+                }
+                let visible = end
+                    .min(first.dts.saturating_add(ticks))
+                    .saturating_sub(start);
+                let segment = (visible as f64 * f64::from(scale) / f64::from(t.scale)).round();
+                (segment * f64::from(t.scale) / f64::from(scale)).round() / f64::from(t.scale)
+            })
             .fold(0., f64::max);
-        let seconds = (end.unwrap_or(seconds).min(seconds) - opts.start.unwrap_or(0.)).max(0.);
         let mut rate = 44100;
         let mut channels = 2;
         opts.end = end;
@@ -2225,49 +2290,16 @@ pub(in super::super) fn remux(
         let mut samples = Vec::with_capacity(count);
         let mut first_dts = 0;
         let mut begin = 0;
-        let sliced = opts.start.is_some() || opts.end.is_some() || shortest.is_some();
-        let start = t
-            .origin
-            .saturating_add((opts.start.unwrap_or(0.) * f64::from(t.scale)).round() as u64);
-        let end = t.origin.saturating_add(
-            shortest
-                .map(|secs| secs.min(opts.end.unwrap_or(secs)))
-                .or(opts.end)
-                .map_or(t.duration, |s| {
-                    ((s * f64::from(t.scale)).round() as u64).min(t.duration)
-                }),
-        );
-        let mut first = 0;
-        if sliced {
-            let mut key = None;
-            first = t
-                .samples(input.len())
-                .enumerate()
-                .find_map(|(i, s)| {
-                    if s.key {
-                        key = Some(i);
-                    }
-                    (end > start && s.dts < end && s.dts.saturating_add(u64::from(s.tick)) > start)
-                        .then_some(if video { key.unwrap_or(i) } else { i })
-                })
-                .unwrap_or(t.stats.count);
-        }
-        for s in t.samples(input.len()).take(count).skip(first) {
-            if sliced && s.dts >= end {
-                break;
-            }
+        let sliced = range.is_some();
+        let (first, start, end, packets) = cut_packets(t, input.len(), range);
+        for s in packets.take(count) {
             if samples.is_empty() {
                 first_dts = if sliced { 0 } else { s.dts };
                 begin = s.dts;
             }
             samples.push(Sample {
                 data: input[s.offset..s.offset + s.size as usize].into(),
-                duration: if sliced {
-                    s.tick
-                        .min(end.saturating_sub(s.dts).min(u64::from(u32::MAX)) as u32)
-                } else {
-                    s.tick
-                },
+                duration: s.tick,
                 key: s.key,
                 cts: (s.pts - i128::from(s.dts)) as i64,
                 description: s.description,
@@ -2303,8 +2335,10 @@ pub(in super::super) fn remux(
             }
             edits.clear();
             if !samples.is_empty() && begin < start {
+                let ticks = samples.iter().map(|s| u64::from(s.duration)).sum::<u64>();
+                let visible = end.min(begin.saturating_add(ticks)).saturating_sub(start);
                 edits.push([
-                    ((end - start) as f64 * f64::from(scale) / f64::from(t.scale)).round() as u32,
+                    (visible as f64 * f64::from(scale) / f64::from(t.scale)).round() as u32,
                     (start - begin) as u32,
                     65536,
                 ]);

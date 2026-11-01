@@ -13882,6 +13882,18 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_clamps_a_cut_to_the_last_available_packet() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
+        run(&["-i","a.mp4","-ss","0.2","-t","0.65","edit.mp4"]);
+        run(&["-i","edit.mp4","-i","b.y4m","-filter_complex","hstack","stack.mp4"]);
+        run(&["-i","stack.mp4","-ss","0.1","-t","0.22","cut.wav"]);
+        assert_eq!(fs.read_file("/cut.wav").unwrap().len(), 35324);
+    }
+
+    #[test]
     fn ffprobe_wave_reads_pcm_and_filters_requested_rows() {
         let fs = MemoryVfs::new();
         let pcm = PcmAudio { sample_rate: 8000, channels: vec![vec![0.0; 80]] };

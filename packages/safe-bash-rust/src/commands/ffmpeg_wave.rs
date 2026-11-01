@@ -55,7 +55,7 @@ impl<'a> Wave<'a> {
     pub fn stride(&self) -> usize {
         (self.channels * usize::from(self.bits / 8)).max(1)
     }
-    fn sample(&self, frame: usize, ch: usize) -> f32 {
+    pub(super) fn sample(&self, frame: usize, ch: usize) -> f32 {
         let width = usize::from(self.bits / 8);
         let pos = frame * self.stride() + ch * width;
         let b = &self.data[pos..];

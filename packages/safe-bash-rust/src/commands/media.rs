@@ -4721,7 +4721,7 @@ fn cmd_media_doc(
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                     if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                 }
-                let mut decoded=mp4::mux::DecodedConcat{video:(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some())).then(BTreeMap::new)};
+                let mut decoded=mp4::mux::DecodedConcat::new(!strip_video && (frame_output || !vf_flags.is_empty() || vframes_opt.is_some() || ss_opt.is_some() || end.is_some()),!strip_audio && muxer==Some("wav"));
                 let mut remux=mp4::mux::Remux{composition,concat:concat.then_some(&mut decoded),rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 // Cutting a graph first materializes its decoded frames as AVC. Let the
                 // packet slicer handle keyframes, partial samples, and edit lists.
@@ -13905,6 +13905,19 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
         run(&["-i","a.mp4","-i","b.y4m","-filter_complex","concat=n=2:v=1:a=0","o.y4m"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "b5e04cd714a2e692a3170253e1b815057bad55ddf37a2ff59e18163897d65b79");
+    }
+
+    #[test]
+    fn ffmpeg_concat_resamples_pcm_segments_into_the_first_audio_format() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","sine=r=8000:d=0.2","s.wav"]);
+        run(&["-f","lavfi","-i","sine=r=12000:d=0.31","s2.wav"]);
+        run(&["-i","s2.wav","-ac","2","s3.wav"]);
+        run(&["-i","s.wav","-i","s3.wav","-filter_complex","concat=n=2","o.wav"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.wav").unwrap())), "3e3ef2ca4ef15ad24420095c5aaa6b749aec883f3cd6f6b08f9b64d2d4e386f8");
+        run(&["-stream_loop","1","-f","lavfi","-i","sine=r=11025:d=0.17","-i","s.wav","-filter_complex","concat=n=2","loop.wav"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/loop.wav").unwrap())), "50458d1380abdffc8d6be359177bb38f6348e4bb23d83567b0fdd5540b5b56c1");
     }
 
     #[test]

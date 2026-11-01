@@ -708,6 +708,7 @@ struct GeneratedAudio {
     channels: u32,
     ticks: u64,
     decoded_ticks: u64,
+    decoded_per_copy: u64,
     period: Option<u64>,
     duration_ticks: u64,
     origin: u64,
@@ -1639,6 +1640,7 @@ fn read_sources<'a>(
             let clip = |n: f64| ((n.round().max(1024.) as u64).min(end)).saturating_sub(origin);
             let ticks = clip((duration * 10.).round().max(1.) / 10. * rate);
             let decoded_ticks = clip(duration * rate);
+            let decoded_per_copy = decoded_ticks;
             let duration_ticks = if seek.start.is_some() || seek.end().is_some() {
                 decoded_ticks
             } else {
@@ -1668,6 +1670,7 @@ fn read_sources<'a>(
                     channels: a.channels,
                     ticks,
                     decoded_ticks,
+                    decoded_per_copy,
                     origin,
                     duration_ticks,
                     period,
@@ -2235,6 +2238,9 @@ pub(in super::super) fn remux(
             .iter()
             .find(|&&(j, i)| sources[j].2.kind(i) == "audio")
         {
+            if let Some(pcm) = opts.concat.as_deref().and_then(|c| c.audio.get(&i)) {
+                return ffmpeg_wave::Input::Wave(pcm.wave()).render(InputTime::default(), &opts);
+            }
             let (bytes, _, stream) = &sources[j];
             let seek = opts.input_times.get(j).copied().unwrap_or_default();
             let volume;
@@ -2311,6 +2317,10 @@ pub(in super::super) fn remux(
                         .map_err(str::to_owned);
                 }
                 Streams::Mp4(v) if v[i].0.kind == "audio" => {
+                    if let Some(pcm) = opts.concat.as_deref().and_then(|c| c.audio.get(&i)) {
+                        audio.rate.get_or_insert(pcm.rate);
+                        audio.channels.get_or_insert(pcm.channels as u32);
+                    }
                     return v[i].0.extract_adts(input, &audio).map_err(str::to_owned);
                 }
                 Streams::Aac { rate, channels, .. } => {
@@ -2517,6 +2527,7 @@ pub(in super::super) fn remux(
         let mut first_dts = 0;
         let mut begin = 0;
         let sliced = range.is_some();
+        let pcm = opts.concat.as_deref().and_then(|c| c.audio.get(&i));
         let (first, start, end, packets) = cut_packets(t, input.len(), range);
         for s in packets.take(count) {
             if samples.is_empty() {
@@ -2525,7 +2536,12 @@ pub(in super::super) fn remux(
             }
             samples.push(Sample {
                 data: input[s.offset..s.offset + s.size as usize].into(),
-                duration: s.tick,
+                duration: if sliced && pcm.is_some() {
+                    s.tick
+                        .saturating_sub(start.saturating_sub(s.dts).min(u64::from(u32::MAX)) as u32)
+                } else {
+                    s.tick
+                },
                 key: s.key,
                 cts: (s.pts - i128::from(s.dts)) as i64,
                 description: s.description,
@@ -2561,7 +2577,7 @@ pub(in super::super) fn remux(
                 sample.key = true;
             }
             edits.clear();
-            if !samples.is_empty() && begin < start {
+            if !samples.is_empty() && begin < start && pcm.is_none() {
                 let ticks = samples.iter().map(|s| u64::from(s.duration)).sum::<u64>();
                 let visible = end.min(begin.saturating_add(ticks)).saturating_sub(start);
                 edits.push([
@@ -2750,20 +2766,25 @@ pub(in super::super) fn remux(
             if track.kind != "audio" {
                 continue;
             }
-            let (rate, channels) = match &sources[j].2 {
-                Streams::Mp4(v) => (
-                    v[i].0.audio_rate().unwrap_or(v[i].0.scale),
-                    u32::from(v[i].0.channels()),
-                ),
-                Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
-                Streams::GeneratedAudio(a) => (a.rate, a.channels),
-                Streams::Wave(w) => (w.wav.rate, w.wav.channels as u32),
-                Streams::Y4m(_)
-                | Streams::Still(_)
-                | Streams::Images(_)
-                | Streams::GeneratedVideo(_)
-                | Streams::Captions(_) => continue,
-            };
+            let (rate, channels) =
+                if let Some(pcm) = opts.concat.as_deref().and_then(|c| c.audio.get(&i)) {
+                    (pcm.rate, pcm.channels as u32)
+                } else {
+                    match &sources[j].2 {
+                        Streams::Mp4(v) => (
+                            v[i].0.audio_rate().unwrap_or(v[i].0.scale),
+                            u32::from(v[i].0.channels()),
+                        ),
+                        Streams::Aac { rate, channels, .. } => (*rate, u32::from(*channels)),
+                        Streams::GeneratedAudio(a) => (a.rate, a.channels),
+                        Streams::Wave(w) => (w.wav.rate, w.wav.channels as u32),
+                        Streams::Y4m(_)
+                        | Streams::Still(_)
+                        | Streams::Images(_)
+                        | Streams::GeneratedVideo(_)
+                        | Streams::Captions(_) => continue,
+                    }
+                };
             // Slicing can keep a partial first packet hidden by an edit list.
             let duration = if range.is_none() {
                 sources[j].2.seconds(i)

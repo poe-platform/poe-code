@@ -1,15 +1,107 @@
 use super::super::{atoms, child, esds, u16_at, u32_at};
-use super::{Source, Streams, Track, atom};
+use super::{Raster, Source, Streams, Track, atom, ffmpeg_wave, frame_output};
 use std::collections::{BTreeMap, HashMap};
 
-use super::{Raster, frame_output};
-
-#[derive(Default)]
 pub(in super::super::super) struct DecodedConcat {
-    pub(in super::super::super) video: Option<BTreeMap<usize, VideoFrames>>,
+    pub(super) video: Option<BTreeMap<usize, VideoFrames>>,
+    pub(super) audio: BTreeMap<usize, Pcm>,
+    export_pcm: bool,
+}
+impl DecodedConcat {
+    pub(in super::super::super) fn new(video: bool, export_pcm: bool) -> Self {
+        Self {
+            video: video.then(BTreeMap::new),
+            audio: BTreeMap::new(),
+            export_pcm,
+        }
+    }
+}
+pub(super) struct Pcm {
+    pub(super) rate: u32,
+    pub(super) channels: usize,
+    bytes: Vec<u8>,
+}
+impl Pcm {
+    pub(super) fn wave(&self) -> ffmpeg_wave::Wave<'_> {
+        ffmpeg_wave::Wave {
+            rate: self.rate,
+            channels: self.channels,
+            bits: 32,
+            tag: 3,
+            data: &self.bytes,
+        }
+    }
+    fn resize(&mut self, frames: usize, remaining: &mut usize) -> Result<(), String> {
+        let len = frames
+            .checked_mul(self.channels)
+            .and_then(|n| n.checked_mul(4))
+            .ok_or("audio output exceeds memory budget")?;
+        *remaining = remaining
+            .checked_sub(len.saturating_sub(self.bytes.len()))
+            .ok_or("audio output exceeds memory budget")?;
+        self.bytes.resize(len, 0);
+        Ok(())
+    }
+    fn append(
+        &mut self,
+        offset: f64,
+        (rate, channels): (u32, usize),
+        frames: usize,
+        remaining: &mut usize,
+        work: &mut usize,
+        sample: impl Fn(usize, usize) -> f32,
+    ) -> Result<(), String> {
+        let count = (frames as f64 * f64::from(self.rate) / f64::from(rate)).round() as usize;
+        if count == 0 {
+            return Ok(());
+        }
+        // Downmixing reads every source channel for each interpolated sample.
+        let per_frame = if self.channels == 1 {
+            channels
+        } else {
+            self.channels
+        };
+        *work = work
+            .checked_sub(count.saturating_mul(per_frame))
+            .ok_or("audio resampling work limit exceeded")?;
+        let start = (offset * f64::from(self.rate)).round() as usize;
+        let end = start
+            .checked_add(count)
+            .ok_or("audio output exceeds memory budget")?;
+        let stride = self.channels * 4;
+        if self.bytes.len() / stride < end {
+            self.resize(end, remaining)?;
+        }
+        for (i, frame) in self.bytes[start * stride..end * stride]
+            .chunks_exact_mut(stride)
+            .enumerate()
+        {
+            let pos = i as f64 * f64::from(rate) / f64::from(self.rate);
+            let left = (pos as usize).min(frames - 1);
+            let right = (left + 1).min(frames - 1);
+            let blend = pos - left as f64;
+            let value = |c| {
+                let a = f64::from(sample(left, c));
+                if blend == 0. {
+                    a
+                } else {
+                    a + (f64::from(sample(right, c)) - a) * blend
+                }
+            };
+            for (c, out) in frame.chunks_exact_mut(4).enumerate() {
+                let v = if self.channels == 1 && channels > 1 {
+                    (0..channels).map(value).sum::<f64>() / channels as f64
+                } else {
+                    value(c % channels)
+                };
+                out.copy_from_slice(&(v as f32).to_le_bytes());
+            }
+        }
+        Ok(())
+    }
 }
 #[derive(Default)]
-pub(in super::super::super) struct VideoFrames(Vec<(f64, f64, Raster)>);
+pub(super) struct VideoFrames(Vec<(f64, f64, Raster)>);
 impl VideoFrames {
     pub(super) fn visible(&self, start: f64, end: Option<f64>) -> &[(f64, f64, Raster)] {
         let from = self.0.partition_point(|f| f.0 + f.1 <= start);
@@ -95,6 +187,7 @@ pub(super) fn join<'a>(
 ) -> Result<Vec<Track<'a>>, String> {
     let mut tracks = tracks.into_iter();
     let mut remaining = limit;
+    let mut audio_work = limit.saturating_mul(8);
     let mut slots: Vec<Track<'a>> = Vec::new();
     let mut descriptions = Vec::new();
     let mut decoded = BTreeMap::new();
@@ -145,8 +238,58 @@ pub(super) fn join<'a>(
                     );
                 }
             }
+            let offset = f64::from(t.media_ticks) / f64::from(t.scale);
+            match source {
+                Streams::Wave(w) => {
+                    let pcm = retained.audio.entry(slot).or_insert_with(|| Pcm {
+                        rate: w.wav.rate,
+                        channels: w.wav.channels,
+                        bytes: vec![],
+                    });
+                    if retained.export_pcm {
+                        pcm.append(
+                            offset,
+                            (w.wav.rate, w.wav.channels),
+                            w.ticks as usize,
+                            &mut remaining,
+                            &mut audio_work,
+                            |i, c| w.wav.sample((w.start + i as u64 % w.length) as usize, c),
+                        )?;
+                    }
+                }
+                Streams::GeneratedAudio(a) => {
+                    let pcm = retained.audio.entry(slot).or_insert_with(|| Pcm {
+                        rate: a.rate,
+                        channels: a.channels as usize,
+                        bytes: vec![],
+                    });
+                    if retained.export_pcm
+                        && let Some(ffmpeg_wave::Input::Generated { frequency, .. }) =
+                            ffmpeg_wave::Input::parse("lavfi", sources[j].0)?
+                    {
+                        pcm.append(
+                            offset,
+                            (a.rate, a.channels as usize),
+                            a.decoded_ticks as usize,
+                            &mut remaining,
+                            &mut audio_work,
+                            |i, _| {
+                                let index = a.period.map_or(i as u64, |p| i as u64 % p);
+                                if index >= a.decoded_per_copy {
+                                    return 0.;
+                                }
+                                let pos = a.origin + index;
+                                ((2. * std::f64::consts::PI * frequency * pos as f64
+                                    / f64::from(a.rate))
+                                .sin()
+                                    * 0.5) as f32
+                            },
+                        )?;
+                    }
+                }
+                _ => {}
+            }
             if let Some(frames) = retained.video.as_mut() {
-                let offset = f64::from(t.media_ticks) / f64::from(t.scale);
                 let mut retain = |pts: f64, duration: f64, image: Raster| -> Result<(), String> {
                     remaining = remaining
                         .checked_sub(image.pixels.len() * 4 + size_of::<(f64, f64, Raster)>())
@@ -232,9 +375,36 @@ pub(super) fn join<'a>(
             }
         }
     }
-    for t in &mut slots {
+    for (i, t) in slots.iter_mut().enumerate() {
+        if retained.export_pcm
+            && let Some(pcm) = retained.audio.get_mut(&i)
+        {
+            pcm.resize(
+                (f64::from(t.media_ticks) / f64::from(t.scale) * f64::from(pcm.rate)).round()
+                    as usize,
+                &mut remaining,
+            )?;
+        }
         t.movie_ticks =
             (f64::from(t.media_ticks) * f64::from(movie_scale) / f64::from(t.scale)).round() as u32;
     }
     Ok(slots)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn upsampling_many_channels_charges_for_each_mixed_sample() {
+        let mut pcm = Pcm {
+            rate: 64,
+            channels: 1,
+            bytes: Vec::new(),
+        };
+        assert_eq!(
+            pcm.append(0., (1, 512), 1, &mut 512, &mut 4096, |_, _| 0.),
+            Err("audio resampling work limit exceeded".into())
+        );
+    }
 }

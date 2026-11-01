@@ -946,7 +946,7 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    let inputs = Rc::new(RefCell::new(JqInputs::new(std::iter::empty())));
+    let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
     let mut vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
@@ -995,12 +995,13 @@ fn cmd_jq_core(
             xml_vals.push(parse_xml_to_jval(&text, false));
         }
         if slurp && !raw_input { xml_vals = vec![JVal::Array(xml_vals)]; }
-        *inputs.borrow_mut() = JqInputs::new(xml_vals.into_iter().map(Ok));
+        *inputs.borrow_mut() = JqInputs::documents(xml_vals);
     } else {
         *inputs.borrow_mut() = jq_input::files(files, stdin, cwd, fs, raw_input, slurp, seq_mode, stream_mode, stream_errors);
     }
 
     let mut out = String::new();
+    let mut stderr = String::new();
     let mut last_truthy: Option<bool> = None;
     let mut first_null_done = false;
 
@@ -1012,15 +1013,18 @@ fn cmd_jq_core(
             first_null_done = true;
             JVal::Null
         } else {
-            match vars.pop_input() {
+            let next = vars.pop_input();
+            stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
+            match next {
                 Ok(Some(v)) => v,
                 Ok(None) => break,
-                Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("jq: {msg}\n"), exit_code },
+                Err((exit_code, msg)) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {msg}\n"), exit_code },
             }
         };
         let result = eval_jq(&filter_str, &input_val, &vars);
+        stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
         if let Some(e) = inputs.borrow_mut().file_error.take() {
-            return BuiltinOutcome { stdout: out, stderr: format!("jq: {e}\n"), exit_code: 2 };
+            return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {e}\n"), exit_code: 2 };
         }
         match result {
             Ok(results) => {
@@ -1030,7 +1034,7 @@ fn cmd_jq_core(
                         return BuiltinOutcome {
                             stdout: out,
                             stderr: format!(
-                                "jq: error (at {loc}): Cannot dump a string containing NUL with --raw-output0 option\n"
+                                "{stderr}jq: error (at {loc}): Cannot dump a string containing NUL with --raw-output0 option\n"
                             ),
                             exit_code: 5,
                         };
@@ -1055,7 +1059,7 @@ fn cmd_jq_core(
                     }
                 }
             }
-            Err(e) => return err_out(&format!("jq: error: {e}\n"), 5),
+            Err(e) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: error: {e}\n"), exit_code: 5 },
         }
     }
 
@@ -1078,7 +1082,7 @@ fn cmd_jq_core(
     };
     BuiltinOutcome {
         stdout: out,
-        stderr: String::new(),
+        stderr,
         exit_code: code,
     }
 }
@@ -6264,7 +6268,7 @@ fn cmd_yq(
             "json" | "j" => "json",
             other => other,
         };
-        let inputs = Rc::new(RefCell::new(JqInputs::new(std::iter::empty())));
+        let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
         let mut base_vars = JqScope { env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));

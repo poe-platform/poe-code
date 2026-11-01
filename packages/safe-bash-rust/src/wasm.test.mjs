@@ -3,6 +3,25 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq resynchronizes JSON sequences at record separators and preserves warnings", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [flags, text, stdout, stderr] of [
+      ["", "123\n", "", ""],
+      ["", "noise\n\x1e1\n\x1e2", "\x1e1\n", "jq: ignoring parse error: Potentially truncated top-level numeric value at EOF at line 3, column 2\n"],
+      ["", "\x1e1\x1e[2]\n", "\x1e[2]\n", "jq: ignoring parse error: Potentially truncated top-level numeric value at line 1, column 3\n"],
+      ["", "\x1e[1,\x1e3\n", "\x1e3\n", ""],
+      ["", "\x1e[1\x1e3\n", "\x1e3\n", "jq: ignoring parse error: Truncated value at line 1, column 4\n"],
+      ["", "\x1ebad\n\x1e{}\n", "\x1e{}\n", "jq: ignoring parse error: Invalid numeric literal at line 2, column 0 (need RS to resync)\n"],
+      ["--stream-errors", "\x1e[1,]\n\x1e[2]\n", '\x1e[[0],1]\n\x1e["Expected another array element at line 1, column 5",[1]]\n\x1e[[0],2]\n\x1e[[0]]\n', ""],
+    ]) {
+      await bash.fs.writeFile("/workspace/data", new TextEncoder().encode(text));
+      const r = await bash.exec(`jq -c --seq ${flags} . data`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, stderr], text);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq emits JSON stream events before a container closes and reports parse errors at byte positions", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/prefix": "[10," } });
   try {

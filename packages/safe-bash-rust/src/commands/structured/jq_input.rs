@@ -2,17 +2,24 @@ use super::{JVal, SafeBashFs, jq_json::Parser, read_stream_diag, resolve_posix_p
 use std::borrow::Cow;
 
 pub(super) struct JqInputs<'a> {
-    reader: Box<dyn Iterator<Item = Result<JVal, (i32, String)>> + 'a>,
+    reader: Reader<'a>,
+    pub warnings: String,
     pub remaining: usize,
     pub file_error: Option<String>,
 }
 
-impl<'a> JqInputs<'a> {
-    pub fn new(reader: impl Iterator<Item = Result<JVal, (i32, String)>> + 'a) -> Self {
+enum Reader<'a> {
+    Documents(std::vec::IntoIter<JVal>),
+    Files(Box<Values<'a>>),
+}
+
+impl JqInputs<'_> {
+    pub fn documents(values: Vec<JVal>) -> Self {
         Self {
-            reader: Box::new(reader),
+            reader: Reader::Documents(values.into_iter()),
             remaining: usize::MAX,
             file_error: None,
+            warnings: String::new(),
         }
     }
 
@@ -20,7 +27,17 @@ impl<'a> JqInputs<'a> {
         if self.remaining == 0 {
             return Ok(None);
         }
-        match self.reader.next().transpose() {
+        let result = match &mut self.reader {
+            Reader::Documents(docs) => Ok(docs.next()),
+            Reader::Files(values) => {
+                let result = values.pull(&mut self.warnings);
+                if result.is_err() {
+                    values.done = true;
+                }
+                result
+            }
+        };
+        match result {
             Ok(Some(v)) => {
                 self.remaining -= 1;
                 Ok(Some(v))
@@ -72,6 +89,7 @@ struct Values<'a> {
     sequence: bool,
     parser: Parser,
     stream_errors: bool,
+    stream: bool,
     failed: bool,
     line: usize,
     column: usize,
@@ -80,7 +98,7 @@ struct Values<'a> {
 }
 
 impl Values<'_> {
-    fn value(&mut self) -> Result<Option<JVal>, (i32, String)> {
+    fn value(&mut self, warnings: &mut String) -> Result<Option<JVal>, (i32, String)> {
         if self.raw {
             let mut line = Vec::new();
             while let Some(b) = self.bytes.peek()? {
@@ -102,7 +120,8 @@ impl Values<'_> {
                 return Ok(None);
             }
             let byte = self.bytes.peek()?;
-            let parsed = if let Some(b) = byte {
+            let separator = self.sequence && byte == Some(0x1e);
+            if let Some(b) = byte {
                 self.bytes.at += 1;
                 if b == b'\n' {
                     self.line += 1;
@@ -110,61 +129,74 @@ impl Values<'_> {
                 } else {
                     self.column += 1;
                 }
-                if self.sequence && b == 0x1e {
-                    continue;
-                }
-                if self.failed {
-                    if b == b'\n' {
-                        self.parser = Parser::new(true, self.line, self.column);
-                        self.failed = false;
-                    }
-                    continue;
-                }
-                self.parser.feed(b)
             } else {
                 self.eof = true;
-                if self.failed {
-                    return Ok(None);
-                }
-                self.parser.finish()
-            };
-            if let Err(detail) = parsed {
-                self.parser.events.clear();
-                let message = if detail == "Malformed BOM" {
-                    detail.into()
-                } else {
-                    format!(
-                        "{detail} at line {}, column {}",
-                        self.parser.line, self.parser.column
-                    )
+            }
+            let mut reported = None;
+            if !self.failed {
+                let parsed = match byte {
+                    Some(b) if !separator => self.parser.feed(b),
+                    _ => self.parser.finish(self.sequence, self.eof),
                 };
-                if self.stream_errors {
-                    let path = self.parser.path();
-                    self.failed = true;
-                    if byte == Some(b'\n') {
-                        self.parser = Parser::new(true, self.line, self.column);
-                        self.failed = false;
+                if let Err(detail) = parsed {
+                    self.parser.events.clear();
+                    let (line, column) = if detail.starts_with("Potentially truncated")
+                        || detail == "Truncated value"
+                    {
+                        (self.line, self.column)
+                    } else {
+                        (self.parser.line, self.parser.column)
+                    };
+                    let message = if detail == "Malformed BOM" {
+                        detail.into()
+                    } else {
+                        format!("{detail} at line {line}, column {column}")
+                    };
+                    if self.stream_errors {
+                        reported = Some(JVal::Array(vec![
+                            JVal::Str(message),
+                            JVal::Array(self.parser.path()),
+                        ]));
+                    } else if self.sequence {
+                        use std::fmt::Write;
+                        writeln!(
+                            warnings,
+                            "jq: ignoring parse error: {message}{}",
+                            if separator || self.eof {
+                                ""
+                            } else {
+                                " (need RS to resync)"
+                            }
+                        )
+                        .unwrap();
+                    } else {
+                        return Err((5, format!("parse error: {message}")));
                     }
-                    return Ok(Some(JVal::Array(vec![
-                        JVal::Str(message),
-                        JVal::Array(path),
-                    ])));
+                    self.failed = true;
                 }
-                return Err((5, format!("parse error: {message}")));
+            }
+            if separator || (!self.sequence && self.failed && byte == Some(b'\n')) {
+                let events = std::mem::take(&mut self.parser.events);
+                self.parser = Parser::new(self.stream, self.line, self.column);
+                self.parser.events = events;
+                self.failed = false;
+            }
+            if reported.is_some() {
+                return Ok(reported);
             }
         }
     }
-    fn pull(&mut self) -> Result<Option<JVal>, (i32, String)> {
+    fn pull(&mut self, warnings: &mut String) -> Result<Option<JVal>, (i32, String)> {
         if self.done {
             return Ok(None);
         }
         if self.slurp {
             self.done = true;
             if self.raw {
-                return self.value();
+                return self.value(warnings);
             }
             let mut all = Vec::new();
-            while let Some(v) = self.value()? {
+            while let Some(v) = self.value(warnings)? {
                 all.push(v);
             }
             return Ok(Some(JVal::Array(all)));
@@ -172,7 +204,7 @@ impl Values<'_> {
         if self.raw && self.bytes.peek()?.is_none() {
             return Ok(None);
         }
-        self.value()
+        self.value(warnings)
     }
 }
 
@@ -190,7 +222,7 @@ pub(super) fn files<'a>(
     if files.is_empty() {
         files.push("-".into());
     }
-    let mut values = Values {
+    let values = Values {
         bytes: Bytes {
             files: files.into_iter(),
             stdin: Some(stdin.as_bytes()),
@@ -204,17 +236,17 @@ pub(super) fn files<'a>(
         sequence,
         parser: Parser::new(stream, 1, 0),
         stream_errors,
-        failed: false,
+        stream,
+        failed: sequence,
         line: 1,
         column: 0,
         eof: false,
         done: false,
     };
-    JqInputs::new(std::iter::from_fn(move || {
-        let r = values.pull();
-        if r.is_err() {
-            values.done = true;
-        }
-        r.transpose()
-    }))
+    JqInputs {
+        reader: Reader::Files(Box::new(values)),
+        remaining: usize::MAX,
+        file_error: None,
+        warnings: String::new(),
+    }
 }

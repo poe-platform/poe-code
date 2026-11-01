@@ -78,23 +78,7 @@ impl Parser {
                     "Invalid literal"
                 });
             }
-            _ => {
-                let number = text.split('\0').next().unwrap_or(text);
-                if let Ok(JVal::Number(n)) = parse_single_json_strict(number) {
-                    JVal::Number(n)
-                } else if let Ok(n) = number.parse::<f64>() {
-                    JVal::Number(n)
-                } else {
-                    let name = number
-                        .trim_start_matches(['+', '-'])
-                        .trim_end_matches(|c: char| c.is_ascii_digit());
-                    if name.eq_ignore_ascii_case("nan") || name.eq_ignore_ascii_case("snan") {
-                        JVal::Number(f64::NAN)
-                    } else {
-                        return Err(invalid);
-                    }
-                }
-            }
+            _ => number(text).ok_or(invalid)?,
         };
         self.token.clear();
         self.accept(value)
@@ -277,7 +261,28 @@ impl Parser {
         self.done();
         Ok(())
     }
-    pub fn finish(&mut self) -> Result<(), &'static str> {
+    pub fn finish(&mut self, sequence: bool, eof: bool) -> Result<(), &'static str> {
+        if sequence {
+            if !self.quoted
+                && self.frames.is_empty()
+                && std::str::from_utf8(&self.token)
+                    .ok()
+                    .and_then(number)
+                    .is_some()
+            {
+                return Err(if eof {
+                    "Potentially truncated top-level numeric value at EOF"
+                } else {
+                    "Potentially truncated top-level numeric value"
+                });
+            }
+            if !eof && !self.frames.is_empty() && !self.quoted && self.token.is_empty() {
+                return Ok(());
+            }
+            if !eof && (self.quoted || (!self.token.is_empty() && !self.frames.is_empty())) {
+                return Err("Truncated value");
+            }
+        }
         if self.quoted {
             return Err("Unfinished string at EOF");
         }
@@ -287,6 +292,25 @@ impl Parser {
         }
         self.done();
         Ok(())
+    }
+}
+
+fn number(text: &str) -> Option<JVal> {
+    let number = text.split('\0').next().unwrap_or(text);
+    if let Ok(JVal::Number(n)) = parse_single_json_strict(number) {
+        Some(JVal::Number(n))
+    } else if let Ok(n) = number.parse::<f64>() {
+        Some(JVal::Number(n))
+    } else {
+        let name = number
+            .strip_prefix(['+', '-'])
+            .unwrap_or(number)
+            .trim_end_matches(|c: char| c.is_ascii_digit());
+        if name.eq_ignore_ascii_case("nan") || name.eq_ignore_ascii_case("snan") {
+            Some(JVal::Number(f64::NAN))
+        } else {
+            None
+        }
     }
 }
 

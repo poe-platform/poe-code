@@ -12,11 +12,18 @@ pub(super) fn dimensions(bytes: &[u8]) -> Result<(u32, u32), &'static str> {
     Ok((dim(6), dim(8)))
 }
 
+#[derive(Default)]
+pub(super) struct Timing<'a> {
+    pub delays: &'a [u16],
+    pub repeat: Option<u16>,
+    pub explicit_delay: bool,
+}
+
 pub(super) fn encode(
     w: usize,
     h: usize,
     pixels: &[[u8; 4]],
-    delays: Option<&[u16]>,
+    timing: Timing,
     limit: usize,
 ) -> Result<Vec<u8>, &'static str> {
     if !(1..=65535).contains(&w) || !(1..=65535).contains(&h) {
@@ -62,9 +69,10 @@ pub(super) fn encode(
         .div_ceil(8);
     let frames = pixels.len() / n;
     let animated = frames > 1;
-    let gce = delays.is_some() || pixels.iter().any(|p| p[3] < 128);
+    let repeat = timing.repeat.or(animated.then_some(0));
+    let gce = animated || timing.explicit_delay || pixels.iter().any(|p| p[3] < 128);
     let size = 782usize
-        .saturating_add(usize::from(animated) * 19)
+        .saturating_add(usize::from(repeat.is_some()) * 19)
         .saturating_add(frames.saturating_mul(usize::from(gce) * 8 + 12 + len + len.div_ceil(255)));
     if size > limit {
         return Err("output byte limit exceeded");
@@ -75,13 +83,18 @@ pub(super) fn encode(
     out.extend_from_slice(&dims);
     out.extend_from_slice(&[247, 0, 0]);
     out.extend_from_slice(palette.as_flattened());
-    if animated {
-        out.extend_from_slice(b"\x21\xff\x0bNETSCAPE2.0\x03\x01\0\0\0");
+    if let Some(repeat) = repeat {
+        out.extend_from_slice(b"\x21\xff\x0bNETSCAPE2.0\x03\x01");
+        out.extend_from_slice(&repeat.to_le_bytes());
+        out.push(0);
     }
     for (index, frame) in pixels.chunks_exact(n).enumerate() {
         if gce {
-            let delay = delays
-                .map_or(0, |v| v.get(index).copied().unwrap_or(10))
+            let delay = timing
+                .delays
+                .get(index)
+                .copied()
+                .unwrap_or(if animated { 10 } else { 0 })
                 .to_le_bytes();
             out.extend_from_slice(&[
                 33,
@@ -257,7 +270,7 @@ pub(super) fn decode(
     bytes: &[u8],
     last: bool,
     limit: usize,
-    mut visit: impl FnMut(&[[u8; 4]]),
+    mut visit: impl FnMut(&[[u8; 4]]) -> Result<(), &'static str>,
 ) -> Result<Raster, &'static str> {
     let (w, h) = dimensions(bytes)?;
     let (w, h) = (w as usize, h as usize);
@@ -370,7 +383,7 @@ pub(super) fn decode(
                         }
                     }
                 })?;
-                visit(&pixels);
+                visit(&pixels)?;
                 if !last {
                     break;
                 }
@@ -398,26 +411,100 @@ pub(super) fn decode(
     })
 }
 
+pub(super) fn edit_frames(
+    bytes: &[u8],
+    limit: usize,
+    inherit_timing: bool,
+    mut transform: impl FnMut(&mut Raster) -> Result<(), &'static str>,
+) -> Result<Option<Vec<u8>>, &'static str> {
+    let (w, h) = dimensions(bytes)?;
+    let mut delays = Vec::new();
+    let repeat = packets(bytes, |delay, _| {
+        if delays.len() >= limit / size_of::<u16>() {
+            return Err("image exceeds memory budget");
+        }
+        delays.push(delay);
+        Ok(())
+    });
+    // The image decoder also accepts incomplete streams with no complete packets.
+    let repeat = match repeat {
+        Ok(value) if !delays.is_empty() && w != 0 && h != 0 => value,
+        Err(e @ "image exceeds memory budget") => return Err(e),
+        _ => return Ok(None),
+    };
+    let mut pixels = Vec::new();
+    let mut dims = (w as usize, h as usize);
+    decode(bytes, true, limit, |rgba| {
+        let mut frame = Raster {
+            width: w as usize,
+            height: h as usize,
+            density: 72,
+            alpha: true,
+            gray: false,
+            orientation: None,
+            pixels: rgba.to_vec(),
+        };
+        transform(&mut frame)?;
+        if frame.pixels.len().saturating_add(pixels.len()) > limit / 4 {
+            return Err("image exceeds memory budget");
+        }
+        dims = (frame.width, frame.height);
+        pixels.extend(frame.pixels);
+        Ok(())
+    })?;
+    encode(
+        dims.0,
+        dims.1,
+        &pixels,
+        if inherit_timing {
+            Timing {
+                delays: &delays,
+                repeat,
+                explicit_delay: false,
+            }
+        } else {
+            Timing::default()
+        },
+        limit,
+    )
+    .map(Some)
+}
+
 // A GIF packet starts after the preceding image and includes every extension
 // before the next image. The final packet also owns the trailer.
 pub(super) fn packets(
     bytes: &[u8],
     mut frame: impl FnMut(u16, usize) -> Result<(), &'static str>,
-) -> Result<(), &'static str> {
+) -> Result<Option<u16>, &'static str> {
     let mut input = bytes.get(13..).ok_or("Invalid GIF header")?;
     palette(&mut input, bytes[10]);
     let mut delay = 10;
+    let mut repeat = None;
+    let mut frames = 0;
     while let Some((&marker, rest)) = input.split_first() {
         input = rest;
         match marker {
             59 => break,
             33 => {
-                if byte(&mut input) == 249
+                let label = byte(&mut input);
+                if label == 249
                     && input
                         .first()
                         .is_some_and(|&n| n >= 4 && (n as usize) < input.len())
                 {
                     delay = u16::from_le_bytes([input[2], input[3]]);
+                } else if label == 255 {
+                    let mut parts = blocks(input);
+                    if parts
+                        .next()
+                        .is_some_and(|p| p.starts_with(b"NETSCAPE") || p.starts_with(b"ANIMEXTS"))
+                    {
+                        for p in parts {
+                            if let [1, lo, hi, ..] = p {
+                                repeat = Some(u16::from_le_bytes([*lo, *hi]));
+                            }
+                        }
+                    }
                 }
             }
             44 => {
@@ -437,11 +524,12 @@ pub(super) fn packets(
             }
         }
         if marker == 44 {
+            frames += 1;
             frame(delay, bytes.len() - input.len())?;
             delay = 10;
         }
     }
-    Ok(())
+    Ok(repeat.or((frames > 1).then_some(0)))
 }
 
 pub(super) struct Frame {
@@ -495,6 +583,7 @@ impl Animation {
             if let Some(frame) = slots.next() {
                 frame.pixels = pixels.to_vec();
             }
+            Ok(())
         })?;
         let start = seek.start.unwrap_or(0.).max(0.);
         let end = seek.end().unwrap_or(ticks as f64 / 100.);

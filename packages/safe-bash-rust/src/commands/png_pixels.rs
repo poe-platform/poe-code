@@ -85,10 +85,14 @@ impl Raster {
                 Ok(data)=>data,Err(e)=>return super::err_out(&format!("magick: {e}\n"),1),
             }
         };
+        Self::publish_bytes(&bytes,path,cwd,fs)
+    }
+
+    pub fn publish_bytes(bytes: &[u8], path: &str, cwd: &str, fs: &dyn super::SafeBashFs) -> super::BuiltinOutcome {
         if path == "-" {
-            return super::ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
+            return super::ok_out(&crate::vfs::bytes_to_stream_string(bytes));
         }
-        match super::publish_magick_output(fs, &super::resolve_posix_path(cwd, path), &bytes) {
+        match super::publish_magick_output(fs, &super::resolve_posix_path(cwd, path), bytes) {
             Ok(()) => super::ok_out(""),
             Err(e) => super::err_out(&format!("shell: line 1: {e}\n"), 1),
         }
@@ -118,7 +122,7 @@ impl Raster {
         }
     }
     pub fn decode(bytes: &[u8], limit: usize) -> Result<Self, &'static str> {
-        if super::gif::signature(bytes) { return super::gif::decode(bytes,false,limit, |_| {}); }
+        if super::gif::signature(bytes) { return super::gif::decode(bytes,false,limit, |_| Ok(())); }
         if super::webp::signature(bytes) { return super::webp::decode(bytes,limit); }
         if super::jpeg_decode::signature(bytes) {return super::jpeg_decode::decode(bytes,limit);}
         if super::netpbm::signature(bytes) {

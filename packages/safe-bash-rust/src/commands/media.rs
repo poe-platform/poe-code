@@ -10215,6 +10215,31 @@ fn cmd_media_doc(
             }
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
                 let dest=png_pixels::destination(dest)?;
+                let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
+                let transform = |image: &mut png_pixels::Raster| {
+                    for op in &ops {
+                        if image.width==0 || image.height==0 {
+                            match op {
+                                PixelOp::Extent(..) | PixelOp::Negate => {}
+                                PixelOp::Crop(..) => return Err("internal error"),
+                                _ => return Err("Invalid stored image dimensions"),
+                            }
+                        }
+                        match op {
+                            PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
+                            PixelOp::Extent(g,gravity,bg) => image.extent(*g,*gravity,*bg,fs.max_input_bytes())?,
+                            PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
+                            PixelOp::Rotate(deg,bg) => image.rotate(*deg,*bg,fs.max_input_bytes())?,
+                            PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
+                            PixelOp::Negate => for p in &mut image.pixels { for c in &mut p[..3] { *c=255-*c; } },
+                            PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
+                            PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
+                            PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
+                        }
+                    }
+                    if image.width==0 || image.height==0 {return Err("internal error");}
+                    Ok(())
+                };
                 let mut image = if let Some(canvas) = canvas {
                     let (w,h)=size_opt.unwrap_or((1,1));
                     let (width,height)=(w.max(1) as usize,h.max(1) as usize);
@@ -10222,7 +10247,15 @@ fn cmd_media_doc(
                     let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
                     png_pixels::Raster {width,height,density:72,orientation:None,gray:false,alpha:true,pixels}
                 } else if gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
-                    match gif::decode(bytes,true,fs.max_input_bytes(), |_| {}) {
+                    if dest.0 == "gif" {
+                        // Extent composites each scene onto a new canvas with default timing.
+                        let inherit_timing = !ops.iter().any(|op| matches!(op,PixelOp::Extent(..)));
+                        match gif::edit_frames(bytes,fs.max_input_bytes(),inherit_timing,transform) {
+                            Ok(Some(data))=>return Some(png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs)),
+                            Ok(None)=>{}, Err(e)=>return Some(fail(e)),
+                        }
+                    }
+                    match gif::decode(bytes,true,fs.max_input_bytes(), |_| Ok(())) {
                         Ok(im)=>im,Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1)),
                     }
                 } else {
@@ -10230,27 +10263,7 @@ fn cmd_media_doc(
                         Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
                     }
                 };
-                for op in &ops {
-                    if image.width==0 || image.height==0 {
-                        match op {
-                            PixelOp::Extent(..) | PixelOp::Negate => {}
-                            PixelOp::Crop(..) => return Some(err_out("shell: line 1: internal error\n",1)),
-                            _ => return Some(err_out("magick: Invalid stored image dimensions\n",1)),
-                        }
-                    }
-                    match op {
-                        PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
-                        PixelOp::Extent(g,gravity,bg) => if let Err(e)=image.extent(*g,*gravity,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
-                        PixelOp::Border(g,bg) => if let Err(e)=image.border(*g,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
-                        PixelOp::Rotate(deg,bg) => if let Err(e)=image.rotate(*deg,*bg,fs.max_input_bytes()){return Some(err_out(&format!("magick: {e}\n"),1));},
-                        PixelOp::Resize(size,kernel) => if let Err(e)=image.resize(size,*kernel,fs.max_input_bytes()) {return Some(err_out(&format!("magick: {e}\n"),1));},
-                        PixelOp::Negate => for p in &mut image.pixels { for c in &mut p[..3] { *c=255-*c; } },
-                        PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
-                        PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
-                        PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
-                    }
-                }
-                if image.width==0 || image.height==0 {return Some(err_out("shell: line 1: internal error\n",1));}
+                if let Err(e)=transform(&mut image){return Some(fail(e));}
                 Some(image.publish(dest,quality,cwd,fs))
             };
             let apply_ops = |meta: &mut ImageMeta| {
@@ -14273,6 +14286,21 @@ mod media_unit_tests {
         let r=cmd_media_doc("convert",&media_args(&["anim","-flop","out.png"]),"","/",&fs);
         assert_eq!(r.exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),"b42039e70d78d673a4a66b520cd59e36f16ccf0a8480bd415b0f0c9d249f3f91");
+    }
+
+    #[test]
+    fn gif_image_editors_preserve_animation_metadata() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/anim.gif",&hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021ff0b4e45545343415045322e30030103000021f904000a0000002c00000000030002000008090001082010604081800021f904010a0006002c01000000020002008200458a11569bee3378ff4489dc2166ed32770000000000000807000510185020200021f904010a0006002c01000000020002008200458a11569bff448910559afe43880f5499000000000000080700051018502020003b")).unwrap();
+        for (cmd,args,hash) in [
+            ("sips",vec!["-s","format","gif","anim.gif","--out","out.gif"],"58f9772e13c45a3da958489535d23412f3aa67024bb335c6bb6ea32a4e72a2f5"),
+            ("convert",vec!["anim.gif","-extent","6x5","out.gif"],"f7dd76b57f7abf8ae9eab47449f69bcace8267825d9fbc326f2993aa91f047d9"),
+            ("convert",vec!["anim.gif","-flop","out.gif"],"075222b27dd5f3d4d9167ac87faf0879288270b94628d5f43b86dd2113dcef23"),
+        ] {
+            let r=cmd_media_doc(cmd,&media_args(&args),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.gif").unwrap())),hash,"{cmd}");
+        }
     }
 
     #[test]

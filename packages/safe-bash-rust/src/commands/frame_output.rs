@@ -78,7 +78,7 @@ pub(super) fn encode(
     let data = match format {
         "jpeg" => jpeg::encode(im, quality, density, limit)?,
         "tiff" => tiff(im, density, limit)?,
-        "gif" => super::gif::encode(w,h,&im.pixels,None,limit)?,
+        "gif" => super::gif::encode(w,h,&im.pixels,Default::default(),limit)?,
         "webp" => super::webp::encode(im, density, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]
@@ -444,7 +444,7 @@ pub(super) fn render(
             if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget".into());}
             gif_pixels.resize(w*h,[0;4]);
         }
-        return Ok(Some(super::gif::encode(w,h,&gif_pixels,Some(&delays),limit)?));
+        return Ok(Some(super::gif::encode(w,h,&gif_pixels,super::gif::Timing { delays:&delays, explicit_delay:true, repeat:None },limit)?));
     }
     if data.is_empty() {
         data = if let Some(fmt) = image_format {

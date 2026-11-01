@@ -155,6 +155,14 @@ pub(super) fn edit(
     }
     let mut encoded = if format == "png" {
         raster.png()
+    } else if format == "gif" && super::gif::signature(bytes) {
+        let mut first = None;
+        let repeat = super::gif::packets(bytes, |delay, _| {
+            first.get_or_insert(delay);
+            Ok(())
+        }).unwrap_or_default();
+        super::gif::encode(raster.width, raster.height, &raster.pixels,
+            super::gif::Timing { delays: first.as_slice(), repeat, explicit_delay: false }, limit)?
     } else {
         super::frame_output::encode(&raster, format, f64::from(quality), raster.density, limit)?
     };

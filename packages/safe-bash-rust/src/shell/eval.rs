@@ -2668,7 +2668,7 @@ impl<'a> EvalState<'a> {
                     sync_array_metadata(&resolved, self.env);
                 }
             }
-            let mut next_idx: i64 = if append {
+            let mut next_idx: i64 = if append && !is_assoc {
                 let prefix = format!("{resolved}[");
                 self.env
                     .keys()
@@ -16246,6 +16246,7 @@ hash -l
     #[test]
     fn compound_array_entries_preserve_subscripts_and_word_boundaries() {
         for (script, expected) in [
+            (r#"declare -A a=([9223372036854775807]=first); a+=([key]=second); echo "${!a[@]}:${a[@]}""#, "9223372036854775807 key:first second\n"),
             (r#"declare -A a; a=([x]=$(echo one two) [y]=$((4 << 2))); printf "<%s>\n" "${a[@]}""#, "<one two>\n<16>\n"),
             (r#"a=(${v:-one two} "$(echo "three four")" `echo five six`); printf "<%s>\n" "${a[@]}""#, "<one>\n<two>\n<three four>\n<five>\n<six>\n"),
             (r#"a=([0]=10 [a[0] + 1]=20); echo "${!a[@]}:${a[@]}""#, "0 11:10 20\n"),

@@ -184,6 +184,23 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
+    let mut map = sessions().lock().unwrap();
+    let Some(parent) = map.get(&parent_id) else { return 0 };
+    let id = map.keys().next_back().copied().unwrap_or(0) + 1;
+    let child = WasmSession {
+        shell: parent.shell.clone(),
+        memory_vfs: parent.memory_vfs.clone(),
+        descriptors: BTreeMap::new(),
+        next_descriptor: 1,
+        profile: parent.profile,
+        last_output_buf: Vec::new(),
+    };
+    map.insert(id, child);
+    id
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
     let Ok(mut map) = sessions().lock() else {
         return -1;

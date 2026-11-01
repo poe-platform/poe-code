@@ -34,6 +34,7 @@ pub struct ExecOutput {
     pub used_typescript_bridge: bool,
 }
 
+#[derive(Clone)]
 pub struct Shell {
     pub(crate) fs: Arc<dyn SafeBashFs>,
     cwd: String,

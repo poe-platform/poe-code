@@ -503,7 +503,143 @@ const SAFE_DETERMINISTIC_CMDS = new Set([
   "mkdir",
 ]);
 
-export class RustWasmBash {
+class WasmShell {
+  constructor(exports, sessionId, cwd, env, limitError) {
+    this.exports = exports;
+    this.sessionId = sessionId;
+    this.state = { cwd, env: { ...env }, vars: {}, functions: {} };
+    this.ShellLimitError = limitError;
+  }
+
+  _allocBytes(bytes) {
+    const len = bytes.byteLength;
+    if (len === 0) {
+      return { ptr: 0, len: 0 };
+    }
+    const ptr = this.exports.safe_bash_alloc(len);
+    const mem = new Uint8Array(this.exports.memory.buffer, ptr, len);
+    mem.set(bytes);
+    return { ptr, len };
+  }
+
+  _freeBytes({ ptr, len }) {
+    if (ptr !== 0 && len > 0) {
+      this.exports.safe_bash_dealloc(ptr, len);
+    }
+  }
+
+  setLimits(limits) {
+    if (!limits || typeof limits !== "object" || !this.exports.safe_bash_set_limit) {
+      return;
+    }
+    for (const [k, v] of Object.entries(limits)) {
+      if (typeof v === "number" && Number.isFinite(v) && v >= 0) {
+        const kb = this._allocBytes(encoder.encode(k));
+        try {
+          this.exports.safe_bash_set_limit(this.sessionId, kb.ptr, kb.len, Math.trunc(v));
+        } finally {
+          this._freeBytes(kb);
+        }
+      }
+    }
+  }
+
+  setEnv(key, value) {
+    if (key === "__cwd") {
+      this.state.cwd = value;
+      this.state.env.PWD = value;
+    } else {
+      this.state.env[key] = value;
+    }
+    const k = this._allocBytes(encoder.encode(key));
+    const v = this._allocBytes(encoder.encode(value));
+    try {
+      this.exports.safe_bash_set_env(this.sessionId, k.ptr, k.len, v.ptr, v.len);
+    } finally {
+      this._freeBytes(k);
+      this._freeBytes(v);
+    }
+  }
+
+  execSync(script, stdin = "") {
+    if (!this.sessionId) throw new Error("Shell session is disposed");
+    const s = this._allocBytes(encoder.encode(script));
+    const i = this._allocBytes(typeof stdin === "string" ? encoder.encode(stdin) : stdin);
+    try {
+      this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr, i.len);
+      const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
+      const outLen = this.exports.safe_bash_output_len(this.sessionId);
+      if (outLen < 16) {
+        const empty = new Uint8Array(0);
+        return {
+          stdout: "",
+          stderr: "",
+          stdoutBytes: empty,
+          stderrBytes: empty,
+          exitCode: 1,
+          cwd: this.state.cwd,
+          env: this.state.env,
+        };
+      }
+      const view = new DataView(this.exports.memory.buffer, outPtr, outLen);
+      const exitCode = view.getInt32(0, true);
+      const stdoutLen = view.getUint32(4, true);
+      const stderrLen = view.getUint32(8, true);
+      const cwdLen = view.getUint32(12, true);
+      let offset = outPtr + 16;
+      const stdoutBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stdoutLen));
+      const stdout = decoder.decode(stdoutBytes);
+      offset += stdoutLen;
+      const stderrBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stderrLen));
+      const stderr = decoder.decode(stderrBytes);
+      offset += stderrLen;
+      const cwd = decoder.decode(new Uint8Array(this.exports.memory.buffer, offset, cwdLen));
+      this.state.cwd = cwd;
+      if (exitCode === -124) {
+        const m = /Shell limit exceeded: (\w+)/.exec(stderr);
+        if (m) {
+          throw new this.ShellLimitError(m[1]);
+        }
+        throw new Error(stderr.trim() || "Execution aborted");
+      }
+      return {
+        stdout,
+        stderr,
+        stdoutBytes,
+        stderrBytes,
+        exitCode,
+        cwd,
+        env: this.state.env,
+      };
+    } catch (err) {
+      if (err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
+        throw err;
+      }
+      const msg = err instanceof Error ? err.message : String(err);
+      const stderrBytes = encoder.encode(msg + "\n");
+      return {
+        stdout: "",
+        stderr: msg + "\n",
+        stdoutBytes: new Uint8Array(0),
+        stderrBytes,
+        exitCode: 1,
+        cwd: this.state.cwd,
+        env: this.state.env,
+      };
+    }
+  }
+
+  dispose() {
+    if (this.sessionId) {
+      this.exports.safe_bash_destroy_session(this.sessionId);
+      this.sessionId = 0;
+    }
+  }
+}
+
+export class RustWasmBash extends WasmShell {
+  #sessions = new Set();
+
   #identityScopes = new Map();
   #releasedScopes = new FinalizationRegistry(scope => {
     if (!this.#identityScopes.get(scope)?.deref()) this.#identityScopes.delete(scope);
@@ -512,25 +648,17 @@ export class RustWasmBash {
     if (options.deviceView !== undefined && !["provided", "default"].includes(options.deviceView)) {
       throw new TypeError("deviceView must be default or provided");
     }
-    this.instance = createWasmInstance();
-    this.exports = this.instance.exports;
-    this.sessionId = this.exports.safe_bash_create_session();
+    const instance = createWasmInstance();
+    super(instance.exports, instance.exports.safe_bash_create_session(), options.cwd ?? "/workspace", options.env, options.ShellLimitError ?? ShellLimitError);
+    this.instance = instance;
     this.shell = this;
     this.fs = new WasmFileSystem(this);
     this.forceNative = options.forceNative ?? true;
-    this.ShellLimitError = options.ShellLimitError ?? ShellLimitError;
     this.companionFactory = options.companionFactory ?? null;
     this.companionSeed = options.companionSeed ?? null;
     this._companion = null;
     this._companionSyncPromise = null;
     this._history = [];
-    this._baseLimits = { ...(options.limits ?? {}) };
-    this.state = {
-      cwd: options.cwd ?? "/workspace",
-      env: { ...(options.env ?? {}) },
-      vars: {},
-      functions: {},
-    };
 
     const providedDevices = options.deviceView === "provided" || options.profile === "strict-budgets-mount-dev";
     if (providedDevices) {
@@ -602,23 +730,6 @@ export class RustWasmBash {
   mountDevices() {
     if (this.exports.safe_bash_configure_profile(this.sessionId, 3) !== 0) {
       throw new Error("Unable to mount virtual devices");
-    }
-  }
-
-  _allocBytes(bytes) {
-    const len = bytes.byteLength;
-    if (len === 0) {
-      return { ptr: 0, len: 0 };
-    }
-    const ptr = this.exports.safe_bash_alloc(len);
-    const mem = new Uint8Array(this.exports.memory.buffer, ptr, len);
-    mem.set(bytes);
-    return { ptr, len };
-  }
-
-  _freeBytes({ ptr, len }) {
-    if (ptr !== 0 && len > 0) {
-      this.exports.safe_bash_dealloc(ptr, len);
     }
   }
 
@@ -834,107 +945,10 @@ export class RustWasmBash {
     }
   }
 
-  setLimits(limits) {
-    if (!limits || typeof limits !== "object" || !this.exports.safe_bash_set_limit) {
-      return;
-    }
-    for (const [k, v] of Object.entries(limits)) {
-      if (typeof v === "number" && Number.isFinite(v) && v >= 0) {
-        const kb = this._allocBytes(encoder.encode(k));
-        try {
-          this.exports.safe_bash_set_limit(this.sessionId, kb.ptr, kb.len, Math.trunc(v));
-        } finally {
-          this._freeBytes(kb);
-        }
-      }
-    }
-  }
-
-  setEnv(key, value) {
-    if (key === "__cwd") {
-      this.state.cwd = value;
-      this.state.env.PWD = value;
-    } else {
-      this.state.env[key] = value;
-    }
-    const k = this._allocBytes(encoder.encode(key));
-    const v = this._allocBytes(encoder.encode(value));
-    try {
-      this.exports.safe_bash_set_env(this.sessionId, k.ptr, k.len, v.ptr, v.len);
-    } finally {
-      this._freeBytes(k);
-      this._freeBytes(v);
-    }
-  }
-
-  execSync(script, stdin = "") {
-    const s = this._allocBytes(encoder.encode(script));
-    const i = this._allocBytes(typeof stdin === "string" ? encoder.encode(stdin) : stdin);
-    try {
-      this.exports.safe_bash_exec(this.sessionId, s.ptr, s.len, i.ptr, i.len);
-      const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
-      const outLen = this.exports.safe_bash_output_len(this.sessionId);
-      if (outLen < 16) {
-        const empty = new Uint8Array(0);
-        return {
-          stdout: "",
-          stderr: "",
-          stdoutBytes: empty,
-          stderrBytes: empty,
-          exitCode: 1,
-          cwd: this.state.cwd,
-          env: this.state.env,
-        };
-      }
-      const view = new DataView(this.exports.memory.buffer, outPtr, outLen);
-      const exitCode = view.getInt32(0, true);
-      const stdoutLen = view.getUint32(4, true);
-      const stderrLen = view.getUint32(8, true);
-      const cwdLen = view.getUint32(12, true);
-      let offset = outPtr + 16;
-      const stdoutBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stdoutLen));
-      const stdout = decoder.decode(stdoutBytes);
-      offset += stdoutLen;
-      const stderrBytes = new Uint8Array(this.exports.memory.buffer.slice(offset, offset + stderrLen));
-      const stderr = decoder.decode(stderrBytes);
-      offset += stderrLen;
-      const cwd = decoder.decode(new Uint8Array(this.exports.memory.buffer, offset, cwdLen));
-      this.state.cwd = cwd;
-      if (exitCode === -124) {
-        const m = /Shell limit exceeded: (\w+)/.exec(stderr);
-        if (m) {
-          throw new this.ShellLimitError(m[1]);
-        }
-        throw new Error(stderr.trim() || "Execution aborted");
-      }
-      return {
-        stdout,
-        stderr,
-        stdoutBytes,
-        stderrBytes,
-        exitCode,
-        cwd,
-        env: this.state.env,
-      };
-    } catch (err) {
-      if (err instanceof ShellLimitError || err instanceof this.ShellLimitError) {
-        throw err;
-      }
-      this.instance = createWasmInstance();
-      this.exports = this.instance.exports;
-      this.sessionId = this.exports.safe_bash_create_session();
-      const msg = err instanceof Error ? err.message : String(err);
-      const stderrBytes = encoder.encode(msg + "\n");
-      return {
-        stdout: "",
-        stderr: msg + "\n",
-        stdoutBytes: new Uint8Array(0),
-        stderrBytes,
-        exitCode: 1,
-        cwd: this.state.cwd,
-        env: this.state.env,
-      };
-    }
+  #forkShell() {
+    const id = this.exports.safe_bash_fork_session(this.sessionId);
+    if (!id) throw new Error("Shell is disposed");
+    return new WasmShell(this.exports, id, this.state.cwd, this.state.env, this.ShellLimitError);
   }
 
   async exec(script, options = {}) {
@@ -968,44 +982,6 @@ export class RustWasmBash {
         });
       }
     }
-    if (options.env) {
-      for (const [k, v] of Object.entries(options.env)) {
-        if (v !== undefined) this.setEnv(k, v);
-      }
-    }
-    const tempEnvKeys = [];
-    const setTempEnv = (k, v) => {
-      tempEnvKeys.push([k, this.state.env[k]]);
-      this.setEnv(k, String(v));
-    };
-    const prevCwd = options.cwd !== undefined ? this.state.cwd : undefined;
-    if (options.cwd !== undefined) {
-      this.setEnv("__cwd", String(options.cwd));
-    }
-    if (options.capabilities?.predicateIdentity) {
-      const pi = options.capabilities.predicateIdentity;
-      if (pi.effectiveUid !== undefined) setTempEnv("__euid", pi.effectiveUid);
-      if (pi.effectiveGid !== undefined) setTempEnv("__egid", pi.effectiveGid);
-    }
-    const resetLimits = {};
-    if (options.limits) {
-      const sharedKeys = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxPipelineBytes", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"];
-      if (sharedKeys.some((k) => options.limits[k] !== undefined && options.limits[k] !== Infinity)) {
-        setTempEnv("__has_finite_shared_quota", "1");
-      }
-      for (const [k, v] of Object.entries(options.limits)) {
-        if (typeof v === "number") {
-          resetLimits[k] = this._baseLimits[k] ?? 100000;
-        }
-      }
-      this.setLimits(options.limits);
-      if (options.limits.commandLimits?.split?.maxFiles !== undefined) {
-        setTempEnv("__limit_split_max_files", options.limits.commandLimits.split.maxFiles);
-      }
-      if (options.limits.commandLimits?.htmlToMarkdown?.maxInputBytes !== undefined) {
-        setTempEnv("__limit_html_to_markdown_max_input_bytes", options.limits.commandLimits.htmlToMarkdown.maxInputBytes);
-      }
-    }
     let stdinData = options.stdin ?? "";
     if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
       const chunks = [];
@@ -1023,24 +999,30 @@ export class RustWasmBash {
       }
       stdinData = merged;
     }
+    options.signal?.throwIfAborted();
+    const shell = this.#forkShell();
     let res;
     try {
-      res = this.execSync(script, stdinData);
+      for (const [name, value] of Object.entries(options.env ?? {})) {
+        shell.setEnv(name, value);
+      }
+      if (options.cwd !== undefined) shell.setEnv("__cwd", options.cwd);
+      const pi = options.capabilities?.predicateIdentity;
+      if (pi?.effectiveUid !== undefined) shell.setEnv("__euid", String(pi.effectiveUid));
+      if (pi?.effectiveGid !== undefined) shell.setEnv("__egid", String(pi.effectiveGid));
+      if (options.limits) {
+        const { maxVfsBytes, maxBytes, maxFileBytes, maxFiles, ...limits } = options.limits;
+        shell.setLimits(limits);
+        const sharedKeys = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxPipelineBytes", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"];
+        if (sharedKeys.some(k => limits[k] !== undefined && limits[k] !== Infinity)) shell.setEnv("__has_finite_shared_quota", "1");
+        const split = limits.commandLimits?.split?.maxFiles;
+        const html = limits.commandLimits?.htmlToMarkdown?.maxInputBytes;
+        if (split !== undefined) shell.setEnv("__limit_split_max_files", String(split));
+        if (html !== undefined) shell.setEnv("__limit_html_to_markdown_max_input_bytes", String(html));
+      }
+      res = shell.execSync(script, stdinData);
     } finally {
-      if (prevCwd !== undefined) {
-        this.setEnv("__cwd", prevCwd);
-      }
-      if (Object.keys(resetLimits).length > 0) {
-        this.setLimits(resetLimits);
-      }
-      for (const [k, oldVal] of tempEnvKeys) {
-        if (oldVal === undefined) {
-          delete this.state.env[k];
-          this.setEnv(k, "");
-        } else {
-          this.setEnv(k, oldVal);
-        }
-      }
+      shell.dispose();
     }
     if (typeof this.exports.safe_bash_last_elapsed_ms === "function") {
       const elapsedMs = this.exports.safe_bash_last_elapsed_ms(this.sessionId) >>> 0;
@@ -1169,22 +1151,27 @@ export class RustWasmBash {
         set state(val) {
           inner.state = val;
         },
+        dispose() { return inner.dispose(); },
         async exec(script, opts) {
           await self._ensureCompanionSynced();
           return opts === undefined ? inner.exec(script) : inner.exec(script, opts);
         },
       };
     }
+    const self = this.#forkShell();
+    this.#sessions.add(self);
+    const owner = this;
     if (initialState && initialState.rawHistory) {
-      for (const cmd of initialState.rawHistory) {
-        this.execSync(cmd);
-      }
+      for (const cmd of initialState.rawHistory) self.execSync(cmd);
     }
-    const self = this;
     let history = initialState?.rawHistory ? [...initialState.rawHistory] : [];
     let lastStatus = typeof initialState?.status === "number" ? initialState.status : 0;
     let lastUmask = typeof initialState?.umask === "number" ? initialState.umask : 0o022;
     return {
+      async dispose() {
+        self.dispose();
+        owner.#sessions.delete(self);
+      },
       get state() {
         return {
           ...self.state,
@@ -1244,10 +1231,9 @@ export class RustWasmBash {
     if (this._companion) {
       void this._companion.shell.dispose();
     }
-    if (this.sessionId !== 0) {
-      this.exports.safe_bash_destroy_session(this.sessionId);
-      this.sessionId = 0;
-    }
+    for (const shell of this.#sessions) shell.dispose();
+    this.#sessions.clear();
+    super.dispose();
   }
 }
 

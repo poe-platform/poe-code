@@ -124,7 +124,7 @@ export class RustWasmBash {
   readdir(dirPath: string): string[];
   setEnv(key: string, value: string): void;
   execSync(script: string, stdin?: string | Uint8Array): RustWasmExecResult;
-  exec(script: string, options?: { stdin?: string | Uint8Array; env?: Record<string, string> }): Promise<RustWasmExecResult>;
+  exec(script: string, options?: { stdin?: string | Uint8Array; cwd?: string; env?: Record<string, string> }): Promise<RustWasmExecResult>;
   createSession(initialState?: { rawHistory?: readonly string[] }): {
     readonly state: {
       cwd: string;
@@ -134,6 +134,7 @@ export class RustWasmBash {
       rawHistory: string[];
     };
     exec(script: string, options?: { stdin?: string | Uint8Array; cwd?: string; env?: Readonly<Record<string, string>> }): Promise<RustWasmExecResult>;
+    dispose(): Promise<void>;
   };
   dispose(): void;
 }

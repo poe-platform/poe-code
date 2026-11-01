@@ -3,6 +3,30 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("ordinary calls isolate shell state while sharing filesystem changes", async () => {
+  const bash = new RustWasmBash({ cwd: "/work", env: { BASE: "initial" }, directories: ["/work/sub"] });
+  try {
+    const r = await bash.exec('pwd; printf "%s" "$BASE" > file; export BASE=changed EXTRA=yes; f() { echo body; }; cd /', { cwd: "/work/sub", env: { BASE: "override" } });
+    assert.equal(r.stdout, "/work/sub\n");
+    assert.equal(r.cwd, "/");
+    const next = await bash.exec('pwd; echo "$BASE/${EXTRA-unset}"; cat sub/file; command -v f');
+    assert.equal(next.stdout, "/work\ninitial/unset\noverride");
+    assert.equal(next.exitCode, 1);
+  } finally { bash.dispose(); }
+});
+
+test("explicit sessions share files but start with separate shell state", async () => {
+  const bash = new RustWasmBash({ cwd: "/work", env: { BASE: "initial" } });
+  try {
+    const a = bash.createSession();
+    const b = bash.createSession();
+    await a.exec("export BASE=first; printf file > shared");
+    assert.equal((await b.exec('echo "$BASE"; cat shared')).stdout, "initial\nfile");
+    assert.equal((await bash.exec('echo "$BASE"')).stdout, "initial\n");
+    assert.equal((await a.exec('echo "$BASE"')).stdout, "first\n");
+  } finally { bash.dispose(); }
+});
+
 test("explicit sessions retain the working directory and environment resulting from each turn", async () => {
   const bash = new RustWasmBash({ cwd: "/work", env: { EXISTING: "base" }, directories: ["/work/sub"] });
   try {

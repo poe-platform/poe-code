@@ -45,6 +45,17 @@ pub struct HybridBackend {
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
 }
 
+impl Clone for HybridBackend {
+    fn clone(&self) -> Self {
+        Self {
+            mode: self.mode,
+            provided_devices: self.provided_devices,
+            commands: self.commands.clone(),
+            functions: Mutex::new(self.functions.lock().unwrap().clone()),
+        }
+    }
+}
+
 fn jstr(s: &str) -> Vec<u16> {
     s.encode_utf16().collect()
 }

@@ -5607,7 +5607,7 @@ fn cmd_tar(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
                                 diff_out.push_str(&format!("{}: Mode differs\n", entry.name));
                                 diff_code = 1;
                             }
-                            if (st.mtime_ms / 1000) != entry.mtime {
+                            if ((st.mtime_ms / 1000.0) as u64) != entry.mtime {
                                 diff_out.push_str(&format!("{}: Mod time differs\n", entry.name));
                                 diff_code = 1;
                             }
@@ -5866,7 +5866,7 @@ fn collect_tar_entries(
     }
     if let Ok(target) = fs.readlink(&full) {
         if !dereference {
-            let mtime = fs.stat(&full).map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
+            let mtime = fs.stat(&full).map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
             out.push(TarEntry {
                 name: stored_rel.to_string(),
                 typeflag: b'2',
@@ -5884,7 +5884,7 @@ fn collect_tar_entries(
         if let Ok(bytes) = fs.read_file(&resolved_target) {
             let st = fs.stat(&resolved_target).ok();
             let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o644);
-            let mtime = st.as_ref().map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
+            let mtime = st.as_ref().map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
             out.push(TarEntry {
                 name: stored_rel.to_string(),
                 typeflag: b'0',
@@ -5901,7 +5901,7 @@ fn collect_tar_entries(
     if fs.is_dir(&full) {
         let st = fs.stat(&full).ok();
         let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o755);
-        let mtime = st.as_ref().map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
+        let mtime = st.as_ref().map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
         if (!clean_rel.is_empty() && clean_rel != ".") || (stored_rel == "." && sort_by_name) {
             out.push(TarEntry {
                 name: format!("{}/", stored_rel.trim_end_matches('/')),
@@ -5949,7 +5949,7 @@ fn collect_tar_entries(
     } else if let Ok(bytes) = fs.read_file(&full) {
         let st = fs.stat(&full).ok();
         let mode = st.as_ref().map(|s| s.mode & 0o7777).unwrap_or(0o644);
-        let mtime = st.as_ref().map(|s| s.mtime_ms / 1000).unwrap_or(1700000000);
+        let mtime = st.as_ref().map(|s| (s.mtime_ms / 1000.0) as u64).unwrap_or(1700000000);
         out.push(TarEntry {
             name: stored_rel.to_string(),
             typeflag: b'0',

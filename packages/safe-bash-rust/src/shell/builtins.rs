@@ -3651,7 +3651,7 @@ mod tests {
         let mut env = BTreeMap::new();
         let mut test = |op| eval_test_unary_predicate(op, "/file", "/", &mut env, &fs);
         assert!(!test("-N"));
-        fs.set_times("/file", Some(10), Some(20)).unwrap();
+        fs.set_times("/file", Some(10.0), Some(20.0)).unwrap();
         assert!(test("-s"));
         assert!(test("-N"));
         fs.read_file("/file").unwrap();

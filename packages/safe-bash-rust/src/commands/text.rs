@@ -10106,7 +10106,7 @@ mod tests {
         fs.chmod("/work/a/b/new", 0o751).unwrap();
         fs.set_mtime("/work/a/b/new", 42).unwrap();
         assert_eq!(patch("*** Add File: a/b/new\n+one").exit_code, 0);
-        assert_eq!(fs.stat("/work/a/b/new").unwrap().mtime_ms, 42);
+        assert_eq!(fs.stat("/work/a/b/new").unwrap().mtime_ms, 42.0);
         assert_eq!(patch("*** Add File: a/b/new\n+two").exit_code, 0);
         assert_eq!(fs.stat("/work/a/b/new").unwrap().mode, 0o100751);
         assert_eq!(patch("*** Update File: a/b/new\n*** Move to: dest").exit_code, 0);

@@ -40,6 +40,7 @@ export interface WasmFileStat {
   readonly mode: number;
   readonly mtime: Date;
   readonly mtimeMs: number;
+  readonly atimeMs: number;
   readonly isFile: boolean;
   readonly isDirectory: boolean;
   readonly isSymbolicLink: boolean;
@@ -76,7 +77,7 @@ export class WasmFileSystem {
   unlink(filePath: string, options?: { signal?: AbortSignal }): Promise<void>;
   rm(filePath: string, options?: { recursive?: boolean; force?: boolean; signal?: AbortSignal }): Promise<void>;
   rmdir(dirPath: string, options?: { signal?: AbortSignal }): Promise<void>;
-  utimes(filePath: string, atime: Date | number, mtime: Date | number): Promise<void>;
+  utimes(filePath: string, atime: Date | number, mtime: Date | number, options?: { signal?: AbortSignal }): Promise<void>;
   realpath(filePath: string, options?: { signal?: AbortSignal }): Promise<string>;
   open(filePath: string, options: {
     access: "read" | "write" | "readwrite"; creation?: "never" | "ifMissing" | "exclusive";

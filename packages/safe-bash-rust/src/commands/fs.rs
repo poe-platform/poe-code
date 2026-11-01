@@ -333,7 +333,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         path: String,
         mode: u32,
         stat: Option<FileStat>,
-        time: u64,
+        time: f64,
     }
     let fmt_name = |name: &str| -> String {
         let mut text = String::with_capacity(name.len() + 2);
@@ -376,7 +376,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         if sort_mode == "none" { return; }
         if sort_mode != "name" || !lexical { entries.sort_by(|a,b| {
             (match sort_mode {
-                "time" => b.time.cmp(&a.time),
+                "time" => b.time.partial_cmp(&a.time).unwrap_or(std::cmp::Ordering::Equal),
                 "size" => b.stat.as_ref().unwrap().size.cmp(&a.stat.as_ref().unwrap().size),
                 "version" => natural_version_cmp(&a.name, &b.name),
                 "ext" => file_ext_key(&a.name).encode_utf16().cmp(file_ext_key(&b.name).encode_utf16()),
@@ -412,7 +412,8 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 let tenths = (bytes * 10).div_ceil(scale);
                 if tenths < 100 { format!("{}.{}{unit}", tenths / 10, tenths % 10) } else { format!("{}{unit}", bytes.div_ceil(scale)) }
             } else { st.size.to_string() };
-            write!(row, "{kind}{} {} 0 0 {size} {} ", format_perm_9(st.mode), st.nlink, &format_iso_stat_timestamp(entry.time)[..16]).unwrap();
+            let date = format_iso_stat_timestamp(entry.time.trunc()).ok_or("internal error")?;
+            write!(row, "{kind}{} {} 0 0 {size} {} ", format_perm_9(st.mode), st.nlink, &date[..16]).unwrap();
         }
         row.push_str(&fmt_name(&entry.name));
         if long && entry.mode & 0o170000 == 0o120000 {
@@ -483,7 +484,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     };
                     children.push(if needs_stat || follow && mode == 0o120000 || indicator == "classify" && mode == 0o100000 {
                         inspect(path, name, false)?
-                    } else { Entry { name, path, mode, stat: None, time: 0 } });
+                    } else { Entry { name, path, mode, stat: None, time: 0.0 } });
                 }
                 order(&mut children, true);
                 for child in &children { render(child, &mut out)?; }
@@ -1982,8 +1983,8 @@ fn cmd_touch(
     let mut has_d = false;
     let mut has_t = false;
     let mut ref_file: Option<String> = None;
-    let mut ref_mtime: Option<u64> = None;
-    let mut ref_atime: Option<u64> = None;
+    let mut ref_mtime: Option<f64> = None;
+    let mut ref_atime: Option<f64> = None;
     let mut operands: Vec<String> = Vec::new();
     let mut ended = false;
     let umask_val = env
@@ -2023,8 +2024,8 @@ fn cmd_touch(
                     1,
                 );
             };
-            ref_mtime = Some(ts);
-            ref_atime = Some(ts);
+            ref_mtime = Some(ts as f64);
+            ref_atime = Some(ts as f64);
             i += 2;
             continue;
         }
@@ -2033,8 +2034,8 @@ fn cmd_touch(
             let Some(ts) = parse_touch_date_checked(ds) else {
                 return err_out(&format!("touch: unsupported or invalid date: {ds}\n"), 1);
             };
-            ref_mtime = Some(ts);
-            ref_atime = Some(ts);
+            ref_mtime = Some(ts as f64);
+            ref_atime = Some(ts as f64);
             i += 1;
             continue;
         }
@@ -2046,8 +2047,8 @@ fn cmd_touch(
                     1,
                 );
             };
-            ref_mtime = Some(ts);
-            ref_atime = Some(ts);
+            ref_mtime = Some(ts as f64);
+            ref_atime = Some(ts as f64);
             i += 2;
             continue;
         }
@@ -2125,8 +2126,8 @@ fn cmd_touch(
                                 1,
                             );
                         };
-                        ref_mtime = Some(ts);
-                        ref_atime = Some(ts);
+                        ref_mtime = Some(ts as f64);
+                        ref_atime = Some(ts as f64);
                         break;
                     }
                     't' => {
@@ -2146,8 +2147,8 @@ fn cmd_touch(
                                 1,
                             );
                         };
-                        ref_mtime = Some(ts);
-                        ref_atime = Some(ts);
+                        ref_mtime = Some(ts as f64);
+                        ref_atime = Some(ts as f64);
                         break;
                     }
                     ch => return err_out(&format!("touch: invalid option -- '{ch}'\n"), 2),
@@ -2194,7 +2195,7 @@ fn cmd_touch(
                 let _ = fs.chmod(&p, mode);
             } else { continue; }
         }
-        let now = 1_700_000_000_000;
+        let now = 1_700_000_000_000.0;
         if let Err(e) = fs.set_times(&p, touch_a.then(|| ref_atime.unwrap_or(now)), touch_m.then(|| ref_mtime.unwrap_or(now))) {
             return err_out(&format!("touch: {e}\n"), 1);
         }
@@ -3510,32 +3511,40 @@ fn epoch_days_to_civil(z: i64) -> (i64, i64, i64) {
     (y + if m <= 2 { 1 } else { 0 }, m, d)
 }
 
-fn format_iso_stat_timestamp(ms: u64) -> String {
-    let secs = (ms / 1000) as i64;
-    let nanos = (ms % 1000) * 1_000_000;
-    let days = secs.div_euclid(86400);
-    let rem = secs.rem_euclid(86400);
-    let hh = rem / 3600;
-    let mm = (rem % 3600) / 60;
-    let ss = rem % 60;
-    let (y, m, d) = epoch_days_to_civil(days);
-    format!("{y:04}-{m:02}-{d:02} {hh:02}:{mm:02}:{ss:02}.{nanos:09} +0000")
+// Use the decimal milliseconds reported by stat, before converting to seconds.
+// Multiplication in binary floating point can change the last decimal places.
+fn stat_seconds(ms: f64) -> (String, String) {
+    let text = ms.abs().to_string();
+    let (integer, fraction) = text.split_once('.').unwrap_or((&text, ""));
+    let padded = format!("{integer:0>4}");
+    let (seconds, millis) = padded.split_at(padded.len() - 3);
+    (seconds.to_owned(), format!("{millis}{fraction}"))
 }
 
-fn format_epoch_stat(ms: u64, precision: usize) -> String {
-    let secs = ms / 1000;
-    let rem_ms = ms % 1000;
-    if precision == 0 {
-        secs.to_string()
-    } else {
-        let ms_str = format!("{rem_ms:03}");
-        let frac = if precision <= 3 {
-            ms_str[..precision].to_string()
-        } else {
-            format!("{ms_str}{}", "0".repeat(precision - 3))
-        };
-        format!("{secs}.{frac}")
-    }
+fn format_iso_stat_timestamp(ms: f64) -> Option<String> {
+    if !(-8_640_000_000_000_000.0..=8_640_000_000_000_000.0).contains(&ms) { return None; }
+    let ns = if ms.fract() == 0.0 { ms as i128 * 1_000_000 } else {
+        let (seconds, frac) = stat_seconds(ms);
+        let value = seconds.parse::<i128>().ok()? * 1_000_000_000
+            + format!("{:0<9}", &frac[..frac.len().min(9)]).parse::<i128>().ok()?
+            + i128::from(frac.as_bytes().get(9).is_some_and(|b| *b >= b'5'));
+        if ms < 0.0 { -value } else { value }
+    };
+    let secs = ns.div_euclid(1_000_000_000) as i64;
+    let nanos = ns.rem_euclid(1_000_000_000);
+    let (y, m, d) = epoch_days_to_civil(secs.div_euclid(86400));
+    let rem = secs.rem_euclid(86400);
+    let year = if (0..=9999).contains(&y) { format!("{y:04}") } else { format!("{y:+07}") };
+    Some(format!("{year}-{m:02}-{d:02} {:02}:{:02}:{:02}.{nanos:09} +0000", rem/3600, rem/60%60, rem%60))
+}
+
+fn format_epoch_stat(ms: f64, precision: usize) -> String {
+    let (mut seconds, frac) = stat_seconds(ms);
+    let count = frac.len().min(precision).min(9);
+    let fraction = &frac[..count];
+    if ms < 0.0 && fraction.bytes().all(|b| b == b'0') { seconds = (ms / 1000.0).floor().abs().to_string(); }
+    let sign = if ms < 0.0 { "-" } else { "" };
+    if precision == 0 { format!("{sign}{seconds}") } else { format!("{sign}{seconds}.{fraction:0<precision$}") }
 }
 
 fn quote_stat_name(text: &str, style: Option<&str>) -> String {
@@ -3755,7 +3764,7 @@ fn cmd_stat(
     let mut stderr = String::new();
     let mut code = 0;
 
-    for t in targets {
+    'operand: for t in targets {
         let p = resolve_posix_path(cwd, &t);
         let st_res = if deref || filesystem { fs.stat(&p) } else { fs.lstat(&p) };
         match st_res {
@@ -3938,8 +3947,15 @@ fn cmd_stat(
                             numeric = true;
                             format_epoch_stat(st.mtime_ms, precision.unwrap_or(0))
                         }
-                        "x" => format_iso_stat_timestamp(st.atime_ms),
-                        "y" | "z" | "w" => format_iso_stat_timestamp(st.mtime_ms),
+                        "x" | "y" | "z" | "w" => {
+                            let ms = if dir_code == "x" { st.atime_ms } else { st.mtime_ms };
+                            let Some(timestamp) = format_iso_stat_timestamp(ms) else {
+                                stderr.push_str("stat: EIO: invalid filesystem timestamp\n");
+                                code = 1;
+                                continue 'operand;
+                            };
+                            timestamp
+                        }
                         "bsdType" => match st.kind {
                             VfsEntryKind::Directory => "Directory".to_string(),
                             VfsEntryKind::Symlink => "Symbolic Link".to_string(),
@@ -7064,7 +7080,7 @@ mod tests {
             let result = copy(&argv);
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
             let st = fs.stat("/dst/a").unwrap();
-            assert_eq!((st.mode & 0o777, st.mtime_ms), (0o400, 5678));
+            assert_eq!((st.mode & 0o777, st.mtime_ms), (0o400, 5678.0));
             assert_eq!(fs.read_file("/dst/a").unwrap(), b"KEEP");
         }
         let result = copy(&["--attributes-only", "-RbT", "/src", "/dst"]);

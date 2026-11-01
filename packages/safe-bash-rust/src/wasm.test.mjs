@@ -1074,3 +1074,19 @@ test("overlay removal resolves every ancestor before changing either layer", asy
     assert.equal((await bash.fs.lstat("/link")).type, "symlink");
   } finally { bash.dispose(); }
 });
+
+test("fs.utimes preserves both timestamps on the inode and propagates failures", async () => {
+  const bash = new RustWasmBash({files:{"/file":"keep"}});
+  try {
+    await bash.fs.link("/file", "/alias");
+    bash.symlink("/file", "/sym");
+    await bash.fs.utimes("/sym", -1250.25, 1700000000123.456);
+    const {atimeMs, mtimeMs} = await bash.fs.stat("/alias");
+    assert.deepEqual([atimeMs, mtimeMs], [-1250.25, 1700000000123.456]);
+    assert.equal(bash.execSync("stat -c '%.9X %.9Y' /file").stdout, "-1.250250000 1700000000.123456000\n");
+    await assert.rejects(bash.fs.utimes("/missing", NaN, 0), {code:"EINVAL", syscall:"utimes", path:"/missing"});
+    await assert.rejects(bash.fs.utimes("/missing", 1, 2), {code:"ENOENT", syscall:"utimes", path:"/missing"});
+    await assert.rejects(bash.fs.utimes("/file", 1, 2, {signal:AbortSignal.abort()}), {name:"AbortError"});
+    assert.equal((await bash.fs.stat("/file")).mtimeMs, mtimeMs);
+  } finally { bash.dispose(); }
+});

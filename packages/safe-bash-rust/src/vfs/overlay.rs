@@ -407,7 +407,10 @@ impl SafeBashFs for OverlayVfs {
         self.upper.chmod(&norm, mode)
     }
 
-    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
+    fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
+        if atime_ms.is_some_and(|t| !t.is_finite()) || mtime_ms.is_some_and(|t| !t.is_finite()) {
+            return Err(format!("EINVAL: invalid argument, utimes '{path}'"));
+        }
         let norm = self.access_path(path, true)?;
         let mut atime = atime_ms;
         let mut mtime = mtime_ms;

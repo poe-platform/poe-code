@@ -18944,7 +18944,7 @@ fn cmd_install(
         if fs.write_file(&dst, &src_bytes).is_ok() {
             let _ = fs.chmod(&dst, 0o100000 | target_mode);
             if preserve_ts && let Ok(st) = fs.stat(&src) {
-                let _ = fs.set_mtime(&dst, st.mtime_ms);
+                let _ = fs.set_times(&dst, None, Some(st.mtime_ms));
             }
             if verbose {
                 if let Some(bd) = backup_display {
@@ -20635,7 +20635,7 @@ fn cmd_dos2unix(
                 {
                     let _ = fs.write_file(&out_p, &conv);
                     if keep_date && let Some(ms) = orig_mtime {
-                        let _ = fs.set_mtime(&out_p, ms);
+                        let _ = fs.set_times(&out_p, None, Some(ms));
                     }
                 }
             }
@@ -20663,7 +20663,7 @@ fn cmd_dos2unix(
         {
             let _ = fs.write_file(&p, &conv);
             if keep_date && let Some(ms) = orig_mtime {
-                let _ = fs.set_mtime(&p, ms);
+                let _ = fs.set_times(&p, None, Some(ms));
             }
         }
     }

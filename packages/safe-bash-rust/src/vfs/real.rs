@@ -148,6 +148,10 @@ impl RealVfs {
         };
         #[cfg(not(unix))]
         let (identity, allocated_bytes, nlink) = (None, None, 1);
+        let timestamp = |time: std::time::SystemTime| {
+            let millis = |d: Duration| d.as_secs() as f64 * 1000.0 + d.subsec_nanos() as f64 / 1e6;
+            time.duration_since(UNIX_EPOCH).map(millis).unwrap_or_else(|e| -millis(e.duration()))
+        };
         Ok(FileStat {
             nlink,
             identity,
@@ -155,13 +159,8 @@ impl RealVfs {
             kind,
             mode,
             size: meta.len().try_into().map_err(|_| "EOVERFLOW: file size")?,
-            atime_ms: meta.accessed().map_err(|e| e.to_string())?.duration_since(UNIX_EPOCH).unwrap_or_default().as_millis() as u64,
-            mtime_ms: meta
-                .modified()
-                .map_err(|e| e.to_string())?
-                .duration_since(UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_millis() as u64,
+            atime_ms: timestamp(meta.accessed().map_err(|e| e.to_string())?),
+            mtime_ms: timestamp(meta.modified().map_err(|e| e.to_string())?),
         })
     }
 }
@@ -190,9 +189,12 @@ impl SafeBashFs for RealVfs {
         std::fs::set_permissions(host, permissions).map_err(|e| e.to_string())
     }
 
-    fn set_times(&self, path: &str, atime_ms: Option<u64>, mtime_ms: Option<u64>) -> Result<(), String> {
+    fn set_times(&self, path: &str, atime_ms: Option<f64>, mtime_ms: Option<f64>) -> Result<(), String> {
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
-        let time = |ms| UNIX_EPOCH.checked_add(Duration::from_millis(ms)).ok_or("EOVERFLOW: file timestamp");
+        let time = |ms: f64| {
+            let duration = Duration::try_from_secs_f64(ms.abs() / 1000.0).map_err(|_| "EOVERFLOW: file timestamp")?;
+            if ms < 0.0 { UNIX_EPOCH.checked_sub(duration) } else { UNIX_EPOCH.checked_add(duration) }.ok_or("EOVERFLOW: file timestamp")
+        };
         let mut times = std::fs::FileTimes::new();
         if let Some(ms) = atime_ms { times = times.set_accessed(time(ms)?); }
         if let Some(ms) = mtime_ms { times = times.set_modified(time(ms)?); }
@@ -503,7 +505,7 @@ mod tests {
             assert_eq!(metadata.permissions().mode() & 0o7777, 0o610);
             let stat = vfs.stat("/alias").unwrap();
             assert_eq!(stat.mode, 0o100610);
-            assert_eq!(stat.mtime_ms, 1_600_000_001_234);
+            assert_eq!(stat.mtime_ms, 1_600_000_001_234.0);
             assert_eq!(
                 vfs.lstat("/alias").unwrap().kind,
                 crate::VfsEntryKind::Symlink

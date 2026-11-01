@@ -4758,7 +4758,7 @@ enum FindPred {
     Perm { mode_kind: char, mask: u32 },
     Links { op: i8, count: usize },
     Time { op: i8, count: i64, reference_ms: i64, unit_ms: i64 },
-    Newer(u64),
+    Newer(f64),
     Prune,
     Quit,
     Delete,
@@ -5488,8 +5488,7 @@ where
             reference_ms,
             unit_ms,
         } => {
-            let diff = (*reference_ms - st.mtime_ms as i64).max(0);
-            let age = diff / *unit_ms;
+            let age = ((*reference_ms as f64 - st.mtime_ms).max(0.0) / *unit_ms as f64).floor() as i64;
             match op {
                 1 => age > *count,
                 -1 => age < *count,
@@ -6984,12 +6983,12 @@ fn walk_fd(
             }
 
             if matches && let Some(min_ms) = cfg.changed_within_ms {
-                if st.mtime_ms < min_ms {
+                if st.mtime_ms < min_ms as f64 {
                     matches = false;
                 }
             }
             if matches && let Some(max_ms) = cfg.changed_before_ms {
-                if st.mtime_ms > max_ms {
+                if st.mtime_ms > max_ms as f64 {
                     matches = false;
                 }
             }

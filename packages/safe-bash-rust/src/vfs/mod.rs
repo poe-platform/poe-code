@@ -40,7 +40,7 @@ impl EntryIdentity {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FileStat {
     pub nlink: usize,
     pub allocated_bytes: Option<u64>,
@@ -48,8 +48,8 @@ pub struct FileStat {
     pub kind: VfsEntryKind,
     pub size: usize,
     pub mode: u32,
-    pub atime_ms: u64,
-    pub mtime_ms: u64,
+    pub atime_ms: f64,
+    pub mtime_ms: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -206,8 +206,8 @@ pub trait SafeBashFs: Send + Sync {
                 kind: VfsEntryKind::Directory,
                 size: 0,
                 mode: 0o40755,
-                atime_ms: 1_700_000_000_000,
-                mtime_ms: 1_700_000_000_000,
+                atime_ms: 1_700_000_000_000.0,
+                mtime_ms: 1_700_000_000_000.0,
             });
         }
         if let Ok(data) = self.read_file(&norm) {
@@ -218,8 +218,8 @@ pub trait SafeBashFs: Send + Sync {
                 kind: VfsEntryKind::File,
                 size: data.len(),
                 mode: 0o100644,
-                atime_ms: 1_700_000_000_000,
-                mtime_ms: 1_700_000_000_000,
+                atime_ms: 1_700_000_000_000.0,
+                mtime_ms: 1_700_000_000_000.0,
             });
         }
         Err(format!("ENOENT: no such file or directory, stat '{norm}'"))
@@ -235,8 +235,8 @@ pub trait SafeBashFs: Send + Sync {
                 kind: VfsEntryKind::Symlink,
                 size: target.len(),
                 mode: 0o120777,
-                atime_ms: 1_700_000_000_000,
-                mtime_ms: 1_700_000_000_000,
+                atime_ms: 1_700_000_000_000.0,
+                mtime_ms: 1_700_000_000_000.0,
             });
         }
         self.stat(&norm)
@@ -247,10 +247,10 @@ pub trait SafeBashFs: Send + Sync {
     }
 
     fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
-        self.set_times(path, None, Some(mtime_ms))
+        self.set_times(path, None, Some(mtime_ms as f64))
     }
 
-    fn set_times(&self, _path: &str, _atime_ms: Option<u64>, _mtime_ms: Option<u64>) -> Result<(), String> {
+    fn set_times(&self, _path: &str, _atime_ms: Option<f64>, _mtime_ms: Option<f64>) -> Result<(), String> {
         Err("ENOTSUP: setting timestamps is unsupported".into())
     }
 

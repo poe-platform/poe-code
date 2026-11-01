@@ -556,23 +556,31 @@ pub unsafe extern "C" fn safe_bash_chmod(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn safe_bash_set_mtime(
-    id: u32,
-    path_ptr: *const u8,
-    path_len: usize,
-    mtime_ms: u64,
+pub unsafe extern "C" fn safe_bash_set_times(
+    id: u32, path_ptr: *const u8, path_len: usize, atime: f64, mtime: f64, both: bool,
 ) -> i32 {
     let path = unsafe { str_from_raw(path_ptr, path_len) };
-    let Ok(map) = sessions().lock() else {
-        return -1;
-    };
-    let Some(sess) = map.get(&id) else {
-        return -1;
-    };
-    if sess.shell.fs.set_mtime(path, mtime_ms).is_ok() {
-        0
-    } else {
-        -1
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let fs = &sess.shell.fs;
+    let res = (|| {
+        let valid = mtime.is_finite() && (!both || atime.is_finite());
+        if sess.profile != Profile::Devices && !valid { return Err("EINVAL: invalid argument".into()); }
+        let p = fs.access_path(path, true)?;
+        if sess.profile == Profile::Devices {
+            fs.lstat(&p)?;
+            if p == "/dev" || p.starts_with("/dev/") { return Err("ENOTSUP: operation not supported".into()); }
+            if !valid { return Err("EINVAL: invalid argument".into()); }
+        }
+        fs.set_times(&p, both.then_some(atime), Some(mtime))
+    })();
+    match res {
+        Ok(()) => 0,
+        Err(e) if sess.profile == Profile::Overlay && (e.starts_with("EINVAL:") || path.is_empty()) => {
+            sess.last_output_buf = format!("{}:overlay::{path}", e.split(':').next().unwrap()).into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
+        Err(e) => sess.read_error(&e, "utimes", path, None, None),
     }
 }
 
@@ -582,11 +590,12 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         VfsEntryKind::Directory => 1,
         VfsEntryKind::Symlink => 2,
     };
-    let mut buf = Vec::with_capacity(40);
+    let mut buf = Vec::with_capacity(48);
     buf.extend_from_slice(&kind_code.to_le_bytes());
     buf.extend_from_slice(&(st.size as u32).to_le_bytes());
     buf.extend_from_slice(&st.mode.to_le_bytes());
     buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
+    buf.extend_from_slice(&st.atime_ms.to_le_bytes());
     use crate::vfs::EntryIdentity;
     if let Some(EntryIdentity::Memory(dev, ino) | EntryIdentity::OverlayDirectory { dev, ino, .. }) = st.identity {
         buf.extend_from_slice(&dev.to_le_bytes());

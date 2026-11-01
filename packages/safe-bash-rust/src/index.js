@@ -339,20 +339,21 @@ export class WasmFileSystem {
     }
   }
 
-  async utimes(filePath, atime, mtime) {
+  async utimes(filePath, atime, mtime, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.utimes) {
-        return this.bash._companion.fs.utimes(filePath, atime, mtime);
+        return this.bash._companion.fs.utimes(filePath, atime, mtime, options);
       }
     }
+    this.bash._setTimes(filePath, atime, mtime, true);
     if (this.bash.companionFactory && !this.bash.forceNative) {
       this.bash._history.push({
         type: "fs",
         run: (fs) => (fs.utimes ? fs.utimes(filePath, atime, mtime) : Promise.resolve()),
       });
     }
-    this.bash.setMtime(filePath, mtime);
   }
 
   async realpath(filePath, options) {
@@ -719,10 +720,19 @@ export class RustWasmBash {
   }
 
   setMtime(filePath, mtime) {
-    const ms = mtime instanceof Date ? mtime.getTime() : Number(mtime);
+    this._setTimes(filePath, 0, mtime, false);
+  }
+
+  _setTimes(filePath, atime, mtime, both) {
+    const millis = value => value instanceof Date ? value.getTime() : typeof value === "number" ? value : NaN;
     const p = this._allocBytes(encoder.encode(filePath));
     try {
-      this.exports.safe_bash_set_mtime(this.sessionId, p.ptr, p.len, BigInt(Math.trunc(ms)));
+      const rc = this.exports.safe_bash_set_times(this.sessionId, p.ptr, p.len, millis(atime), millis(mtime), both);
+      if (rc === -1) throw new Error("Wasm session unavailable");
+      if (rc < 0) {
+        const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+        throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -rc)));
+      }
     } finally {
       this._freeBytes(p);
     }
@@ -749,13 +759,14 @@ export class RustWasmBash {
     const kindCode = view.getUint32(0, true);
     const size = view.getUint32(4, true);
     const mode = view.getUint32(8, true);
-    const mtimeMs = Number(view.getBigUint64(12, true));
+    const mtimeMs = view.getFloat64(12, true);
+    const atimeMs = view.getFloat64(20, true);
     const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
-    const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
-    const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
+    const dev = len >= 44 ? Number(view.getBigUint64(28, true)) : undefined;
+    const ino = len >= 44 ? Number(view.getBigUint64(36, true)) : undefined;
     let identityScope = this.#identityScope;
-    if (len >= 48) {
-      const scope = view.getBigUint64(40, true);
+    if (len >= 56) {
+      const scope = view.getBigUint64(48, true);
       identityScope = this.#directoryScopes.get(scope)?.deref();
       if (!identityScope) {
         identityScope = Symbol("overlay directory");
@@ -764,7 +775,7 @@ export class RustWasmBash {
       }
     }
     return {
-      ...(len >= 40 ? { nlink: view.getUint32(36, true) } : {}),
+      ...(len >= 48 ? { nlink: view.getUint32(44, true) } : {}),
       ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope } : {}),
       type,
       size,
@@ -773,6 +784,7 @@ export class RustWasmBash {
       gid: 0,
       mtime: new Date(mtimeMs),
       mtimeMs,
+      atimeMs,
       isFile: type === "file",
       isDirectory: type === "directory",
       isSymbolicLink: type === "symlink",

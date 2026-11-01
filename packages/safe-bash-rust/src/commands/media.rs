@@ -4423,6 +4423,10 @@ fn apply_vf_chain_to_doc(doc: &mut MediaDoc, vf_chain: &str) {
     }
 }
 
+fn media_stdin(name: &str) -> bool {
+    matches!(name, "-" | "pipe:" | "pipe:0" | "/dev/stdin" | "/dev/fd/0")
+}
+
 fn cmd_media_doc(
     cmd: &str,
     args: &[String],
@@ -4592,7 +4596,7 @@ fn cmd_media_doc(
             if let [source] = inputs.as_slice()
                 && output_format.map_or_else(|| out_lower.ends_with(".aac"), |f| f.eq_ignore_ascii_case("aac"))
             {
-                let bytes = if matches!(source.as_str(), "-" | "pipe:" | "pipe:0" | "/dev/stdin" | "/dev/fd/0") {
+                let bytes = if media_stdin(source) {
                     Some(crate::vfs::stream_string_to_bytes(stdin))
                 } else { fs.read_file(&resolve_posix_path(cwd,source)).ok() };
                 if let Some(bytes) = bytes && media_format::detect(&bytes,source,input_format) == Some("aac") {
@@ -5027,9 +5031,9 @@ fn cmd_media_doc(
                     }
                 }
             }
-            if in_arg.is_none() {
+            let Some(name) = in_arg.as_deref() else {
                 return ffprobe_err("must specify an input file");
-            }
+            };
             let mut fmt_parts = of_fmt.split(':');
             let head = fmt_parts.next().unwrap_or("default");
             let mut params: Vec<&str> = fmt_parts.collect();
@@ -5073,29 +5077,26 @@ fn cmd_media_doc(
                     return ffprobe_err(&format!("Unsupported writer option {key}"));
                 }
             }
-            let (raw_bytes, path_str) = match in_arg.as_deref() {
-                Some("pipe:0") | Some("-") | None => {
-                    (crate::vfs::stream_string_to_bytes(stdin), "pipe:0".to_string())
+            let from_stdin = media_stdin(name);
+            let (raw_bytes, path_str) = if from_stdin {
+                (crate::vfs::stream_string_to_bytes(stdin), "pipe:0".to_string())
+            } else {
+                let full = resolve_posix_path(cwd, name);
+                if fs.is_dir(&full) {
+                    return ffprobe_err(&format!(
+                        "EISDIR: illegal operation on a directory, openReadFile '{full}'"
+                    ));
                 }
-                Some(p) => {
-                    let full = resolve_posix_path(cwd, p);
-                    if fs.is_dir(&full) {
+                match fs.read_file(&full) {
+                    Ok(b) => (b, full),
+                    Err(_) => {
                         return ffprobe_err(&format!(
-                            "EISDIR: illegal operation on a directory, openReadFile '{full}'"
+                            "ENOENT: no such file or directory, openReadFile '{full}'"
                         ));
-                    }
-                    match fs.read_file(&full) {
-                        Ok(b) => (b, full),
-                        Err(_) => {
-                            return ffprobe_err(&format!(
-                                "ENOENT: no such file or directory, openReadFile '{full}'"
-                            ));
-                        }
                     }
                 }
             };
-            let name = in_arg.as_deref().unwrap();
-            if raw_bytes.is_empty() && !matches!(name, "-" | "pipe:0") && explicit_format.is_none_or(str::is_empty) {
+            if raw_bytes.is_empty() && !from_stdin && explicit_format.is_none_or(str::is_empty) {
                 return ffprobe_err(&format!("EINVAL: invalid argument, read '{path_str}'"));
             }
             let Some(container) = media_format::detect(&raw_bytes, name, explicit_format) else {
@@ -12806,6 +12807,16 @@ mod media_unit_tests {
         }
         let quiet=run(&["-v","quiet","input"]);
         assert_eq!((quiet.exit_code,quiet.stderr),(1,String::new()));
+    }
+
+    #[test]
+    fn ffprobe_accepts_standard_input_aliases_and_preserves_the_spelling() {
+        let fs = MemoryVfs::new();
+        for path in ["pipe:", "/dev/fd/0", "/dev/stdin", "-", "pipe:0"] {
+            let args = media_args(&["-show_entries","format=filename:stream=nb_frames","-of","csv=p=0","-i",path]);
+            let r = cmd_media_doc("ffprobe",&args,"YUV4MPEG2 W2 H2 F25:1\nFRAME\n111111","/",&fs);
+            assert_eq!((r.exit_code,r.stdout,r.stderr),(0,format!("1\n{path}\n"),String::new()));
+        }
     }
 
     #[test]

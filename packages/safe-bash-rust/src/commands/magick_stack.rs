@@ -6,7 +6,7 @@ use super::{
     png_pixels::Raster,
     resolve_posix_path,
 };
-use std::{ops::Range, rc::Rc};
+use std::{collections::HashMap, ops::Range, rc::Rc};
 
 #[derive(Clone, Copy)]
 pub(super) enum Modifier<'a> {
@@ -61,6 +61,7 @@ impl Modifier<'_> {
 pub(super) enum Step<'a> {
     Canvas(Canvas, (u32, u32), Modifier<'a>, Kernel),
     File(&'a str, Modifier<'a>, Kernel),
+    Write(&'a str, f64, bool),
     Edit(&'a str, &'a str, usize),
     Append(bool, Gravity, [u8; 4]),
 }
@@ -73,6 +74,7 @@ struct SourceTiming {
 #[derive(Clone)]
 pub(super) struct Scene {
     pub image: Raster,
+    format: &'static str,
     timing: Option<Rc<SourceTiming>>,
 }
 
@@ -123,59 +125,98 @@ impl SceneName {
     }
 }
 
+impl Scene {
+    pub fn encode(
+        &self,
+        format: &str,
+        quality: f64,
+        limit: usize,
+    ) -> Result<Vec<u8>, &'static str> {
+        let im = &self.image;
+        if format == "gif" {
+            let source = self.timing.as_ref();
+            gif::encode(
+                im.width,
+                im.height,
+                &im.pixels,
+                gif::Timing {
+                    delays: source.map_or(&[][..], |s| s.delays.as_slice()),
+                    repeat: source.and_then(|s| s.repeat),
+                    explicit_delay: false,
+                },
+                limit,
+            )
+        } else if format == "png" {
+            Ok(im.png())
+        } else {
+            super::frame_output::encode(im, format, quality, im.density, limit)
+        }
+    }
+}
+
+// A later input sees the most recent encoding for its exact operand. Files are
+// published in first-write order, including on a subsequent pixel-operation error.
+#[derive(Default)]
+pub(super) struct Snapshots {
+    files: HashMap<String, (usize, Vec<u8>)>,
+    size: usize,
+}
+
+impl Snapshots {
+    pub fn stage(
+        &mut self,
+        path: String,
+        bytes: Vec<u8>,
+        limit: usize,
+    ) -> Result<(), &'static str> {
+        let (order, previous) = self
+            .files
+            .get(&path)
+            .map_or((self.files.len(), 0), |(index, data)| {
+                (*index, data.len() + path.len())
+            });
+        let size = (self.size - previous)
+            .saturating_add(path.len())
+            .saturating_add(bytes.len());
+        if size > limit {
+            return Err("output byte limit exceeded");
+        }
+        self.files.insert(path, (order, bytes));
+        self.size = size;
+        Ok(())
+    }
+
+    pub fn publish(self, cwd: &str, fs: &dyn SafeBashFs) -> super::BuiltinOutcome {
+        let mut files = self.files.into_iter().collect::<Vec<_>>();
+        files.sort_unstable_by_key(|(_, (order, _))| *order);
+        for (path, (_, bytes)) in files {
+            if let Err(e) =
+                super::publish_magick_output(fs, &resolve_posix_path(cwd, &path), &bytes)
+            {
+                return super::err_out(&format!("shell: line 1: {e}\n"), 1);
+            }
+        }
+        super::ok_out("")
+    }
+}
+
 impl Images {
-    pub fn split(
+    pub fn stage_split(
         self,
         name: SceneName,
         (format, path): (&str, &str),
         quality: f64,
-        cwd: &str,
-        fs: &dyn SafeBashFs,
-    ) -> super::BuiltinOutcome {
-        let limit = fs.max_input_bytes();
-        let mut outputs = Vec::with_capacity(self.frames.len());
-        let mut remaining = limit;
+        limit: usize,
+        snapshots: &mut Snapshots,
+    ) -> Result<(), &'static str> {
         for (index, scene) in self.frames.into_iter().enumerate() {
-            let im = scene.image;
-            let path = match name.filename(path, index, remaining) {
-                Ok(path) => path,
-                Err(e) => return super::err_out(&format!("magick: {e}\n"), 1),
-            };
-            let bytes = if format == "gif" {
-                let source = scene.timing.as_ref();
-                gif::encode(
-                    im.width,
-                    im.height,
-                    &im.pixels,
-                    gif::Timing {
-                        delays: source.map_or(&[][..], |s| s.delays.as_slice()),
-                        repeat: source.and_then(|s| s.repeat),
-                        explicit_delay: false,
-                    },
-                    remaining,
-                )
-            } else if format == "png" {
-                Ok(im.png())
-            } else {
-                super::frame_output::encode(&im, format, quality, im.density, limit)
-            };
-            let bytes = match bytes {
-                Ok(b) => b,
-                Err(e) => return super::err_out(&format!("magick: {e}\n"), 1),
-            };
-            let Some(left) = remaining.checked_sub(path.len().saturating_add(bytes.len())) else {
-                return super::err_out("magick: output byte limit exceeded\n", 1);
-            };
-            remaining = left;
-            outputs.push((path, bytes));
+            snapshots.stage(
+                name.filename(path, index, limit)?,
+                scene.encode(format, quality, limit)?,
+                limit,
+            )?;
         }
-        for (path, bytes) in outputs {
-            let result = Raster::publish_bytes(&bytes, &path, cwd, fs);
-            if result.exit_code != 0 {
-                return result;
-            }
-        }
-        super::ok_out("")
+        Ok(())
     }
     pub fn gif(
         self,
@@ -187,6 +228,7 @@ impl Images {
         let Scene {
             mut image,
             timing: source,
+            ..
         } = frames.next().ok_or("internal error")?;
         let (w, h) = (image.width, image.height);
         if (frames.len() + 1).saturating_mul(image.pixels.len()) > limit / 4 {
@@ -278,6 +320,7 @@ pub(super) fn evaluate(
     transform: impl Fn(&mut Raster, Range<usize>, bool) -> Result<bool, &'static str>,
     cwd: &str,
     fs: &dyn SafeBashFs,
+    snapshots: &mut Snapshots,
 ) -> Result<Option<Images>, String> {
     let limit = fs.max_input_bytes();
     // Defer each image's pixel operations until the next append. Later inputs
@@ -286,31 +329,50 @@ pub(super) fn evaluate(
     let mut retained = 0usize;
     for (at, step) in steps {
         let first = stack.len();
-        let mut push = |im: Raster, timing| {
+        let mut push = |im: Raster, format, timing| {
             retained = retained
                 .saturating_add(im.pixels.len().saturating_mul(4))
                 .saturating_add(size_of::<Scene>() + size_of::<(Rc<Scene>, usize)>());
             if retained > limit {
                 return Err("image exceeds memory budget");
             }
-            stack.push((Rc::new(Scene { image: im, timing }), *at));
+            stack.push((
+                Rc::new(Scene {
+                    image: im,
+                    format,
+                    timing,
+                }),
+                *at,
+            ));
             Ok(())
         };
         match step {
             Step::Canvas(canvas, size, modifier, kernel) => {
                 let mut im = canvas.raster(*size, limit)?;
                 modifier.geometry(&mut im, *kernel, limit)?;
-                push(im, None)?;
+                push(im, "png", None)?;
             }
             Step::File(spec, modifier, kernel) => {
                 let path = super::png_pixels::destination(spec).map_or(*spec, |(_, path)| path);
-                let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, path)) else {
-                    return Ok(None);
-                };
+                let from_disk;
+                let bytes =
+                    if let Some((_, data)) = snapshots.files.get(path).filter(|_| path != "-") {
+                        data
+                    } else {
+                        match fs.read_file(&resolve_posix_path(cwd, path)) {
+                            Ok(data) => {
+                                from_disk = data;
+                                &from_disk
+                            }
+                            Err(e) if e.starts_with("ENOENT") => continue,
+                            Err(_) => return Ok(None),
+                        }
+                    };
                 let mut order = None;
-                if gif::signature(&bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
+                let format = super::png_pixels::still_format(bytes);
+                if format == Some("gif") {
                     let mut delays = Vec::new();
-                    let repeat = match gif::packets(&bytes, |delay, _| {
+                    let repeat = match gif::packets(bytes, |delay, _| {
                         if delays.len() >= limit / size_of::<u16>() {
                             return Err("image exceeds memory budget");
                         }
@@ -330,9 +392,9 @@ pub(super) fn evaluate(
                     unique.sort_unstable();
                     unique.dedup();
                     let source = Rc::new(SourceTiming { delays, repeat });
-                    gif::scenes(&bytes, &unique, limit, |mut im| {
+                    gif::scenes(bytes, &unique, limit, |mut im| {
                         modifier.geometry(&mut im, *kernel, limit)?;
-                        push(im, Some(source.clone()))
+                        push(im, "gif", Some(source.clone()))
                     })?;
                     if let Some(selected) = selected {
                         order = Some(
@@ -342,9 +404,10 @@ pub(super) fn evaluate(
                                 .collect::<Vec<_>>(),
                         );
                     }
-                } else if let Some(mut im) = Raster::input(path, &bytes, limit)? {
+                } else if let Some(format) = format {
+                    let mut im = Raster::decode(bytes, limit)?;
                     modifier.geometry(&mut im, *kernel, limit)?;
-                    push(im, None)?;
+                    push(im, format, None)?;
                     if let Modifier::Pages(spec) = modifier {
                         order = Some(indices(spec, 1, limit, true)?);
                     }
@@ -366,6 +429,46 @@ pub(super) fn evaluate(
                         let scene = scenes.get(idx).ok_or("Invalid frame index")?;
                         stack.push(scene.clone());
                     }
+                }
+            }
+            Step::Write(spec, quality, adjoin) => {
+                let Some((top, _)) = stack.last() else {
+                    continue;
+                };
+                if spec.is_empty() || spec.eq_ignore_ascii_case("null:") {
+                    continue;
+                }
+                let (format, path) =
+                    super::png_pixels::named_destination(spec).unwrap_or((top.format, *spec));
+                let name = SceneName::parse(path);
+                let split = stack.len() > 1 && (!adjoin || !matches!(name, SceneName::Literal));
+                let mut writes = Vec::new();
+                let mut size = 0usize;
+                for (index, (scene, start)) in stack.iter().enumerate() {
+                    let write = split || index + 1 == stack.len();
+                    if !write && start == at {
+                        continue;
+                    }
+                    let mut scene = (**scene).clone();
+                    if !transform(&mut scene.image, *start..*at, scene.timing.is_some())? {
+                        scene.timing = None;
+                    }
+                    if write {
+                        let path = if split {
+                            name.filename(path, index, limit)?
+                        } else {
+                            path.to_owned()
+                        };
+                        let bytes = scene.encode(format, *quality, limit)?;
+                        size = size.saturating_add(path.len()).saturating_add(bytes.len());
+                        if size > limit {
+                            return Err("output byte limit exceeded".into());
+                        }
+                        writes.push((path, bytes));
+                    }
+                }
+                for (path, bytes) in writes {
+                    snapshots.stage(path, bytes, limit)?;
                 }
             }
             Step::Edit(op, spec, count) if !stack.is_empty() => {
@@ -495,6 +598,7 @@ pub(super) fn evaluate(
                 stack.push((
                     Rc::new(Scene {
                         image: out,
+                        format: "png",
                         timing: None,
                     }),
                     *at,

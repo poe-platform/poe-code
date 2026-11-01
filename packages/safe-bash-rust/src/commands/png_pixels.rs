@@ -11,23 +11,31 @@ pub(super) struct Raster {
     pub pixels: Vec<[u8; 4]>,
 }
 
-pub(super) fn supported_still(bytes: &[u8]) -> bool {
-    super::jpeg_decode::signature(bytes) || super::bmp::signature(bytes) || super::tiff::signature(bytes)
-        || super::netpbm::signature(bytes)
-        || super::gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:")
-        || super::webp::signature(bytes) && !bytes[12..].starts_with(b"\n__IMG__:")
-        || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
+pub(super) fn still_format(bytes: &[u8]) -> Option<&'static str> {
+    if super::jpeg_decode::signature(bytes) { Some("jpeg") }
+    else if super::bmp::signature(bytes) { Some("bmp") }
+    else if super::tiff::signature(bytes) { Some("tiff") }
+    else if super::netpbm::signature(bytes) { Some(match bytes[1] {
+        b'1'|b'4' => "pbm", b'2'|b'5' => "pgm", _ => "ppm",
+    }) }
+    else if super::gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") { Some("gif") }
+    else if super::webp::signature(bytes) && !bytes[12..].starts_with(b"\n__IMG__:") { Some("webp") }
+    else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") { Some("png") }
+    else { None }
 }
 
 pub(super) fn destination(spec: &str) -> Option<(&'static str, &str)> {
+    named_destination(spec).or_else(|| (spec=="-" || spec.rsplit_once('.').is_some_and(|(_,ext)| ext.eq_ignore_ascii_case("pnm"))).then_some(("png",spec)))
+}
+
+pub(super) fn named_destination(spec: &str) -> Option<(&'static str, &str)> {
     let format=|name:&str| match name.to_ascii_lowercase().as_str() {
         "png"=>Some("png"),"webp"=>Some("webp"),"gif"=>Some("gif"),"jpg"|"jpeg"=>Some("jpeg"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
         "ppm"=>Some("ppm"),"pgm"=>Some("pgm"),"pbm"=>Some("pbm"),_=>None
     };
     if let Some((prefix,path))=spec.split_once(':') && let Some(fmt)=format(prefix) {return Some((fmt,path));}
-    if spec=="-" {return Some(("png",spec));}
     let (_,ext)=spec.rsplit_once('.')?;
-    Some((if ext.eq_ignore_ascii_case("pnm") {"png"} else {format(ext)?},spec))
+    Some((format(ext)?,spec))
 }
 
 impl Raster {
@@ -68,7 +76,7 @@ impl Raster {
             }));
         }
         // Other Rust codecs still emit the legacy private header in place of pixel data.
-        if supported_still(bytes) {
+        if still_format(bytes).is_some() {
             return Self::decode(bytes, limit).map(Some).map_err(String::from);
         }
         Ok(None)

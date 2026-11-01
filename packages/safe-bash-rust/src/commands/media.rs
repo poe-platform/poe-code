@@ -4475,7 +4475,7 @@ impl MediaInput {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
             Self::Bytes("gif",b)=>gif::signature(b) && !b[6..].starts_with(b"\n__MEDIA__:") && !b[6..].starts_with(b"\n__IMG__:"),
-            Self::Bytes("image2",b)=>png_pixels::supported_still(b),
+            Self::Bytes("image2",b)=>png_pixels::still_format(b).is_some(),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
             Self::Images(_) | Self::Bytes("aac"|"wav"|"y4m"|"srt"|"webvtt",_)=>true,
             _=>false,
@@ -5323,7 +5323,7 @@ fn cmd_media_doc(
                     return ok_out(&format_wave_probe(&info, raw_bytes.len(), name, &sections, &writer, &settings));
                 }
             }
-            let still = container == "image2" && png_pixels::supported_still(&raw_bytes);
+            let still = container == "image2" && png_pixels::still_format(&raw_bytes).is_some();
             let gif = container=="gif" && !raw_bytes.get(6..).is_some_and(|v| v.starts_with(b"\n__MEDIA__:") || v.starts_with(b"\n__IMG__:"));
             if gif || still || real_mp4 || matches!(container, "aac" | "y4m" | "srt" | "webvtt") {
                 let records=requested.contains("packet") || requested.contains("frame");
@@ -10232,6 +10232,13 @@ fn cmd_media_doc(
                         i+=2;
                     }
                     "-quality" if i+1<args.len()=>{quality=magick_number(&args[i+1],1.);i+=2;}
+                    "-write" | "+write" => {
+                        if i+1<args.len()-usize::from(!is_mogrify) {
+                            i+=1;
+                            stack_steps.push((ops.len(),magick_stack::Step::Write(&args[i],quality,adjoin)));
+                        }
+                        i+=1;
+                    }
                     "-adjoin" | "+adjoin" => {adjoin=arg=="-adjoin";i+=1;}
                     "-delay" | "-loop" if i+1<args.len() => {
                         let n=magick_number(&args[i+1],0.);
@@ -10274,7 +10281,8 @@ fn cmd_media_doc(
                     }
                 }
             }
-            let use_stack=(!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
+            let has_writes=stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Write(..)));
+            let use_stack=has_writes || (!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
                 magick_stack::Step::Canvas(_,_,m,_)|magick_stack::Step::File(_,m,_)=>!matches!(m,magick_stack::Modifier::None),_=>false,
             }))) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
             let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
@@ -10312,7 +10320,8 @@ fn cmd_media_doc(
                 Ok(())
             };
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
-                let dest=png_pixels::destination(dest)?;
+                let info=matches!(dest.to_ascii_lowercase().as_str(),"info:"|"info:-");
+                let dest=png_pixels::destination(dest).or_else(||has_writes.then_some(("png",dest)))?;
                 let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
                 let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
                 let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
@@ -10327,20 +10336,41 @@ fn cmd_media_doc(
                     };
                     let target;
                     let steps=if is_mogrify {
-                        target=std::iter::once((0,magick_stack::Step::File(input,magick_stack::Modifier::None,kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)))).collect::<Vec<_>>();
+                        target=std::iter::once((0,magick_stack::Step::File(input,magick_stack::Modifier::None,kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)|magick_stack::Step::Write(..)))).collect::<Vec<_>>();
                         &target[..]
                     } else { &stack_steps[..] };
-                    let mut images=match magick_stack::evaluate(steps,ops.len(),transform,cwd,fs) {
-                        Ok(Some(images))=>images, Ok(None)=>return None, Err(e)=>return Some(fail(&e)),
+                    let mut snapshots=magick_stack::Snapshots::default();
+                    let limit=fs.max_input_bytes();
+                    let mut images=match magick_stack::evaluate(steps,ops.len(),transform,cwd,fs,&mut snapshots) {
+                        Ok(Some(images))=>images, Ok(None)=>return None,
+                        Err(e)=>{
+                            let saved=snapshots.publish(cwd,fs);
+                            return Some(if saved.exit_code==0 {fail(&e)} else {saved});
+                        }
                     };
-                    if images.frames.is_empty() {return Some(fail(&format!("no images defined '{}'",dest.1)));}
-                    if split && images.frames.len()>1 {return Some(images.split(scene_name,dest,quality,cwd,fs));}
-                    if dest.0=="gif" {
-                        return Some(match images.gif(timing,kernel,fs.max_input_bytes()) {
-                            Ok(bytes)=>png_pixels::Raster::publish_bytes(&bytes,dest.1,cwd,fs),Err(e)=>fail(e),
-                        });
+                    if images.frames.is_empty() {
+                        let saved=snapshots.publish(cwd,fs);
+                        return Some(if saved.exit_code==0 {fail(&format!("no images defined '{}'",dest.1))} else {saved});
                     }
-                    return Some(images.frames.pop()?.image.publish(dest,quality,cwd,fs));
+                    if info {
+                        let text=images.frames.iter().map(|s|format!("{}x{} sRGB 8-bit\n",s.image.width,s.image.height)).collect::<String>();
+                        let saved=snapshots.publish(cwd,fs);
+                        return Some(if saved.exit_code==0 {ok_out(&text)} else {saved});
+                    }
+                    if split && images.frames.len()>1 {
+                        if let Err(e)=images.stage_split(scene_name,dest,quality,limit,&mut snapshots) {return Some(fail(e));}
+                        return Some(snapshots.publish(cwd,fs));
+                    }
+                    let bytes=if dest.0=="gif" {images.gif(timing,kernel,limit)}
+                        else {images.frames.pop()?.encode(dest.0,quality,limit)};
+                    let bytes=match bytes {Ok(b)=>b,Err(e)=>return Some(fail(e))};
+                    if !has_writes {return Some(png_pixels::Raster::publish_bytes(&bytes,dest.1,cwd,fs));}
+                    if dest.1=="-" {
+                        let saved=snapshots.publish(cwd,fs);
+                        return Some(if saved.exit_code==0 {png_pixels::Raster::publish_bytes(&bytes,"-",cwd,fs)} else {saved});
+                    }
+                    if let Err(e)=snapshots.stage(dest.1.to_owned(),bytes,limit) {return Some(fail(e));}
+                    return Some(snapshots.publish(cwd,fs));
                 }
                 let mut image = if let Some((canvas,size)) = canvas {
                     match canvas.raster(size,fs.max_input_bytes()) { Ok(im)=>im,Err(e)=>return Some(fail(e)) }
@@ -10426,36 +10456,18 @@ fn cmd_media_doc(
                     };
                     let mut meta = read_image_meta(&bytes, &full);
                     apply_ops(&mut meta);
-                    let dst_full = if mogrify_format.is_some() || mogrify_path.is_some() {
-                        let fname = full.rsplit('/').next().unwrap_or(&full);
-                        let (stem, orig_ext) = match fname.rsplit_once('.') {
-                            Some((s, e)) if !s.is_empty() => (s, Some(e)),
-                            _ => (fname, None),
-                        };
-                        let ext = mogrify_format
-                            .as_deref()
-                            .or(orig_ext)
-                            .unwrap_or("png");
-                        let new_fname = if mogrify_format.is_some() || orig_ext.is_some() {
-                            format!("{stem}.{ext}")
-                        } else {
-                            stem.to_string()
-                        };
-                        let target_dir = if let Some(ref mp) = mogrify_path {
-                            resolve_posix_path(cwd, mp)
-                        } else if let Some((parent, _)) = full.rsplit_once('/') {
-                            if parent.is_empty() { "/".to_string() } else { parent.to_string() }
-                        } else {
-                            cwd.to_string()
-                        };
-                        resolve_posix_path(&target_dir, &new_fname)
-                    } else {
-                        full.clone()
-                    };
+                    let dest = if mogrify_format.is_some() || mogrify_path.is_some() {
+                        let (parent, name)=f.rsplit_once('/').unwrap_or(("",f));
+                        let (stem, extension)=name.rsplit_once('.').unwrap_or((name,"png"));
+                        let extension=mogrify_format.as_deref().unwrap_or(extension);
+                        let dir=mogrify_path.as_deref().unwrap_or(parent).trim_end_matches('/');
+                        if dir.is_empty() {format!("{stem}.{extension}")} else {format!("{dir}/{stem}.{extension}")}
+                    } else { f.clone() };
+                    let dst_full=resolve_posix_path(cwd,&dest);
                     if mogrify_format.is_some() {
-                        meta.fmt = format_from_path(&dst_full).to_string();
+                        meta.fmt = format_from_path(&dest).to_string();
                     }
-                    if let Some(out) = raster_output(&full, &bytes, &dst_full) {
+                    if let Some(out) = raster_output(&full, &bytes, &dest) {
                         if out.exit_code!=0 {return out;}
                         continue;
                     }
@@ -10470,8 +10482,14 @@ fn cmd_media_doc(
             if pos_files.len() == 1 && !has_pseudo_input {
                 return err_out(&format!("magick: no images defined '{}'\n", pos_files[0]), 1);
             }
-            if pos_files.len() >= 2 {
-                let out_rel = pos_files.last().unwrap();
+            if let Some(out_rel) = pos_files.last() {
+                let out_full = resolve_posix_path(cwd, out_rel);
+                if use_stack || canvas.is_some() && pos_files.len()==1 {
+                    if let Some(out)=raster_output("", &[], out_rel) {return out;}
+                } else if !has_pseudo_input && pos_files.len()==2 {
+                    let path=png_pixels::destination(&pos_files[0]).map_or(pos_files[0].as_str(), |(_, path)| path);
+                    if let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) && let Some(out)=raster_output(path,&bytes,out_rel) {return out;}
+                }
                 for in_rel in &pos_files[..pos_files.len() - 1] {
                     if in_rel != "-" && !in_rel.contains(':') {
                         let clean_in = magick_stack::input_spec(in_rel).0;
@@ -10480,15 +10498,6 @@ fn cmd_media_doc(
                             return err_out(&format!("magick: no images defined '{out_rel}'\n"), 1);
                         }
                     }
-                }
-            }
-            if let Some(out_rel) = pos_files.last() {
-                let out_full = resolve_posix_path(cwd, out_rel);
-                if use_stack || canvas.is_some() && pos_files.len()==1 {
-                    if let Some(out)=raster_output("", &[], out_rel) {return out;}
-                } else if !has_pseudo_input && pos_files.len()==2 {
-                    let path=png_pixels::destination(&pos_files[0]).map_or(pos_files[0].as_str(), |(_, path)| path);
-                    if let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) && let Some(out)=raster_output(path,&bytes,out_rel) {return out;}
                 }
                 let mut meta = if let Some(vertical) = append_mode
                     && pos_files.len() >= 2
@@ -11027,7 +11036,7 @@ fn cmd_media_doc(
                         return err_out(&format!("identify: {e}\n"), 1);
                     }
                 } else if verbose {
-                    let details = if png_pixels::supported_still(&bytes) {
+                    let details = if png_pixels::still_format(&bytes).is_some() {
                         match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
                             Ok(image) => {
                                 let alpha = if meta.has_alpha(channels) { "True" } else { "False" };
@@ -11534,7 +11543,7 @@ fn cmd_media_doc(
                         format!("{}/{name}", opath.trim_end_matches('/'))
                     } else { opath.clone() }
                 } else { f.clone() };
-                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF") && png_pixels::supported_still(&bytes) {
+                let encoded = if matches!(meta.fmt.as_str(), "PNG" | "JPEG" | "TIFF" | "BMP" | "PPM" | "PGM" | "PBM" | "WEBP" | "GIF") && png_pixels::still_format(&bytes).is_some() {
                     match sips_properties::edit(&meta.fmt.to_ascii_lowercase(), &bytes, &ops, fs.max_input_bytes()) {
                         Ok(encoded) => encoded,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
@@ -14431,6 +14440,25 @@ mod media_unit_tests {
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
         }
+    }
+
+    #[test]
+    fn convert_writes_snapshots_in_pipeline_order() {
+        let fs=MemoryVfs::new();
+        let run=|args:&str|cmd_media_doc("convert",&media_args(&args.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        let hash=|path:&str|hex_enc(&sha256_bytes(&fs.read_file(path).unwrap()));
+        let result=run("-size 7x5 xc:red xc:blue -write frame-%02d.png -reverse out.gif");
+        assert_eq!(result.exit_code,0,"{}",result.stderr);
+        assert_eq!(hash("/frame-00.png"),"00b2733061ffe79bb54fe2e07369acee92196844febc9530ae1b0307b9e01bfe");
+        assert_eq!(hash("/frame-01.png"),"80c5c8dd9940360daa7102624640cfb92ab313ed804f6ffc8c7468a78ade6e16");
+        assert_eq!(hash("/out.gif"),"2af26716fcf566bcd8bb6cb14afd5a9bc077e36c47d2cc2ddd30847ea682c65e");
+        let result=run("-size 7x5 xc:red xc:blue +write middle.png middle.png -append out.gif");
+        assert_eq!(result.exit_code,0,"{}",result.stderr);
+        assert_eq!(hash("/out.gif"),"4a4866c47f48d441e7e85f045bfdd2a8a22831550694ec47075f6c4eafb27de1");
+        let result=run("-size 7x5 xc:red xc:blue -write saved.png -rotate bad failed.gif");
+        assert_eq!(result.stderr,"magick: Invalid rotation angle\n");
+        assert_eq!(hash("/saved.png"),hash("/frame-01.png"));
+        assert!(fs.read_file("/failed.gif").is_err());
     }
 
     #[test]

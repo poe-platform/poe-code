@@ -159,6 +159,14 @@ impl RealVfs {
             kind,
             mode,
             size: meta.len().try_into().map_err(|_| "EOVERFLOW: file size")?,
+            #[cfg(unix)]
+            ctime_ms: {
+                use std::os::unix::fs::MetadataExt;
+                Some(meta.ctime() as f64 * 1000.0 + meta.ctime_nsec() as f64 / 1e6)
+            },
+            #[cfg(not(unix))]
+            ctime_ms: None,
+            birthtime_ms: meta.created().ok().map(timestamp),
             atime_ms: timestamp(meta.accessed().map_err(|e| e.to_string())?),
             mtime_ms: timestamp(meta.modified().map_err(|e| e.to_string())?),
         })

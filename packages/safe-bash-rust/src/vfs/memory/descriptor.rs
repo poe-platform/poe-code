@@ -31,6 +31,7 @@ impl RetainedFile {
             mode: file.mode,
             atime_ms: file.atime_ms,
             mtime_ms: file.mtime_ms,
+            ctime_ms: Some(file.ctime_ms), birthtime_ms: Some(file.birthtime_ms),
         }
     }
 
@@ -84,6 +85,7 @@ impl RetainedFile {
         }
         file.publication = None;
         file.mtime_ms = crate::vfs::now_ms();
+        file.ctime_ms = file.mtime_ms;
         state.total_bytes = total;
         self.fs.bump_generation();
         Ok(())

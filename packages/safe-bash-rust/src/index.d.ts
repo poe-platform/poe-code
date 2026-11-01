@@ -41,6 +41,8 @@ export interface WasmFileStat {
   readonly mtime: Date;
   readonly mtimeMs: number;
   readonly atimeMs: number;
+  readonly ctimeMs?: number;
+  readonly birthtimeMs?: number;
   readonly isFile: boolean;
   readonly isDirectory: boolean;
   readonly isSymbolicLink: boolean;

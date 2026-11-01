@@ -65,6 +65,8 @@ pub struct FileStat {
     pub mode: u32,
     pub atime_ms: f64,
     pub mtime_ms: f64,
+    pub ctime_ms: Option<f64>,
+    pub birthtime_ms: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -223,6 +225,7 @@ pub trait SafeBashFs: Send + Sync {
                 mode: 0o40755,
                 atime_ms: 1_700_000_000_000.0,
                 mtime_ms: 1_700_000_000_000.0,
+                ctime_ms: None, birthtime_ms: None,
             });
         }
         if let Ok(data) = self.read_file(&norm) {
@@ -235,6 +238,7 @@ pub trait SafeBashFs: Send + Sync {
                 mode: 0o100644,
                 atime_ms: 1_700_000_000_000.0,
                 mtime_ms: 1_700_000_000_000.0,
+                ctime_ms: None, birthtime_ms: None,
             });
         }
         Err(format!("ENOENT: no such file or directory, stat '{norm}'"))
@@ -252,6 +256,7 @@ pub trait SafeBashFs: Send + Sync {
                 mode: 0o120777,
                 atime_ms: 1_700_000_000_000.0,
                 mtime_ms: 1_700_000_000_000.0,
+                ctime_ms: None, birthtime_ms: None,
             });
         }
         self.stat(&norm)

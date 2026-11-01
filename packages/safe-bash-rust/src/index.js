@@ -762,12 +762,13 @@ export class RustWasmBash {
     const mode = view.getUint32(8, true);
     const mtimeMs = view.getFloat64(12, true);
     const atimeMs = view.getFloat64(20, true);
+    const ctimeMs = view.getFloat64(28, true), birthtimeMs = view.getFloat64(36, true);
     const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
-    const dev = len >= 44 ? Number(view.getBigUint64(28, true)) : undefined;
-    const ino = len >= 44 ? Number(view.getBigUint64(36, true)) : undefined;
+    const dev = len >= 60 ? Number(view.getBigUint64(44, true)) : undefined;
+    const ino = len >= 60 ? Number(view.getBigUint64(52, true)) : undefined;
     let identityScope = this.#identityScope;
-    if (len >= 56) {
-      const scope = view.getBigUint64(48, true);
+    if (len >= 72) {
+      const scope = view.getBigUint64(64, true);
       identityScope = this.#directoryScopes.get(scope)?.deref();
       if (!identityScope) {
         identityScope = Symbol("overlay directory");
@@ -776,7 +777,7 @@ export class RustWasmBash {
       }
     }
     return {
-      ...(len >= 48 ? { nlink: view.getUint32(44, true) } : {}),
+      ...(len >= 64 ? { nlink: view.getUint32(60, true) } : {}),
       ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope } : {}),
       type,
       size,
@@ -786,6 +787,8 @@ export class RustWasmBash {
       mtime: new Date(mtimeMs),
       mtimeMs,
       atimeMs,
+      ...(Number.isFinite(ctimeMs) ? { ctimeMs } : {}),
+      ...(Number.isFinite(birthtimeMs) ? { birthtimeMs } : {}),
       isFile: type === "file",
       isDirectory: type === "directory",
       isSymbolicLink: type === "symlink",

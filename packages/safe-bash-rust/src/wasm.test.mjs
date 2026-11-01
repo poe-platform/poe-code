@@ -1127,3 +1127,19 @@ test("date uses the host clock and prefers an existing numeric reference over ep
     assert.equal(bash.execSync("date -r 999999999999999999999999 +%s").stderr, "date: date is outside the supported range\n");
   } finally { bash.dispose(); }
 });
+
+test("chmod changes inode status time without changing modification or birth time", async t => {
+  const birth = Date.UTC(2040, 0, 1);
+  let now = birth;
+  t.mock.method(Date, "now", () => now);
+  const bash = new RustWasmBash({files:{"/f":"x"}});
+  try {
+    await bash.fs.link("/f", "/g");
+    now += 86_400_000;
+    await bash.fs.chmod("/g", 0o600);
+    const st = await bash.fs.stat("/f");
+    assert.deepEqual([st.birthtimeMs, st.mtimeMs, st.ctimeMs], [birth, birth, now]);
+    assert.equal(bash.execSync("stat -c '%W %Y %Z' /g").stdout, "2208988800 2208988800 2209075200\n");
+    assert.match(bash.execSync("ls -lc /f").stdout, /2040-01-02 00:00 \/f\n$/);
+  } finally { bash.dispose(); }
+});

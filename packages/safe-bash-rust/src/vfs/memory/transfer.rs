@@ -169,10 +169,12 @@ impl MemoryVfs {
                             "ENOTSUP: operation not supported, mv '{display_to}'"
                         ));
                     }
+                    let now = super::super::now_ms();
                     staged.nodes.insert(
                         new_path,
                         MemoryNode::Symlink {
                             target: target.clone(),
+                            ctime_bits: Arc::new(AtomicU64::new(now.to_bits())), birthtime_ms: now,
                             ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                             mode: *mode,
                             atime_ms: *atime_ms,
@@ -190,10 +192,12 @@ impl MemoryVfs {
                         Some(MemoryNode::Directory { ino, .. }) if suffix.is_empty() => *ino,
                         _ => NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                     };
+                    let now = super::super::now_ms();
                     staged.insert_directory(
                         new_path,
                         MemoryNode::Directory {
                             ino,
+                            ctime_ms: now, birthtime_ms: now,
                             mode: *mode,
                             atime_ms: *atime_ms,
                             mtime_ms: *mtime_ms,
@@ -212,6 +216,7 @@ impl MemoryVfs {
                 Self::unlink_locked(&mut dst, to);
             }
             for (parent, count) in staged.child_dirs { *dst.child_dirs.entry(parent).or_default() += count; }
+            dst.parent_changed(to, super::super::now_ms());
             dst.nodes.append(&mut staged.nodes);
             dst.files.extend(staged.files);
             dst.total_bytes += added;

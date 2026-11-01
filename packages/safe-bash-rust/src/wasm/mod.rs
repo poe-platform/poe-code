@@ -590,12 +590,14 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         VfsEntryKind::Directory => 1,
         VfsEntryKind::Symlink => 2,
     };
-    let mut buf = Vec::with_capacity(48);
+    let mut buf = Vec::with_capacity(64);
     buf.extend_from_slice(&kind_code.to_le_bytes());
     buf.extend_from_slice(&(st.size as u32).to_le_bytes());
     buf.extend_from_slice(&st.mode.to_le_bytes());
     buf.extend_from_slice(&st.mtime_ms.to_le_bytes());
     buf.extend_from_slice(&st.atime_ms.to_le_bytes());
+    buf.extend_from_slice(&st.ctime_ms.unwrap_or(f64::NAN).to_le_bytes());
+    buf.extend_from_slice(&st.birthtime_ms.unwrap_or(f64::NAN).to_le_bytes());
     use crate::vfs::EntryIdentity;
     if let Some(EntryIdentity::Memory(dev, ino) | EntryIdentity::OverlayDirectory { dev, ino, .. }) = st.identity {
         buf.extend_from_slice(&dev.to_le_bytes());

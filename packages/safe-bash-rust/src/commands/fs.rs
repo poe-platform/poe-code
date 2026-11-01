@@ -369,7 +369,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                 _ => {}
             }
         }
-        let time = if time_key == "atime" { st.atime_ms } else { st.mtime_ms };
+        let time = match time_key { "atime" => st.atime_ms, "ctime" => st.ctime_ms.ok_or("ENOTSUP: filesystem does not expose ctime")?, _ => st.mtime_ms };
         Ok(Entry { name, path, mode: st.mode, stat: Some(st), time })
     };
     let order = |entries: &mut [Entry], lexical: bool| {
@@ -3944,22 +3944,29 @@ fn cmd_stat(
                     let mut link_text: Option<String> = None;
                     let mut numeric = false;
                     let val_text = match dir_code {
-                        "X" => {
-                            numeric = true;
-                            format_epoch_stat(st.atime_ms, precision.unwrap_or(0))
-                        }
-                        "Y" | "Z" | "W" => {
-                            numeric = true;
-                            format_epoch_stat(st.mtime_ms, precision.unwrap_or(0))
-                        }
-                        "x" | "y" | "z" | "w" => {
-                            let ms = if dir_code == "x" { st.atime_ms } else { st.mtime_ms };
-                            let Some(timestamp) = format_iso_stat_timestamp(ms) else {
-                                stderr.push_str("stat: EIO: invalid filesystem timestamp\n");
+                        "X" | "Y" | "Z" | "W" | "x" | "y" | "z" | "w" => {
+                            let ms = match dir_code {
+                                "X" | "x" => Some(st.atime_ms),
+                                "Y" | "y" => Some(st.mtime_ms),
+                                "Z" | "z" => st.ctime_ms,
+                                _ => st.birthtime_ms,
+                            };
+                            let Some(ms) = ms else {
+                                stderr.push_str(&format!("stat: ENOTSUP: filesystem does not expose {dir_code}, stat\n"));
                                 code = 1;
                                 continue 'operand;
                             };
-                            timestamp
+                            if epoch_code {
+                                numeric = true;
+                                format_epoch_stat(ms, precision.unwrap_or(0))
+                            } else {
+                                let Some(timestamp) = format_iso_stat_timestamp(ms) else {
+                                    stderr.push_str("stat: EIO: invalid filesystem timestamp\n");
+                                    code = 1;
+                                    continue 'operand;
+                                };
+                                timestamp
+                            }
                         }
                         "bsdType" => match st.kind {
                             VfsEntryKind::Directory => "Directory".to_string(),

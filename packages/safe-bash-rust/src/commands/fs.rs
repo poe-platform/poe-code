@@ -194,7 +194,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         if a == "--sort" || a.starts_with("--sort=") {
             let sel = if a == "--sort" {
                 if i + 1 >= args.len() {
-                    return err_out("ls: option '--sort' requires an argument\n", 2);
+                    return err_out("ls: --sort requires 'time' or 'size'\n", 2);
                 }
                 i += 1;
                 args[i].as_str()
@@ -227,11 +227,11 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
             let matches: Vec<&str> = styles
                 .iter()
                 .copied()
-                .filter(|s| !sel.is_empty() && s.starts_with(sel))
+                .filter(|s| s.starts_with(sel))
                 .collect();
             if matches.len() != 1 {
                 return err_out(
-                    &format!("ls: invalid argument '{sel}' for '--indicator-style'\n"),
+                    &format!("ls: {} argument '{sel}' for '--indicator-style'\nValid arguments are:\n  - 'none'\n  - 'slash'\n  - 'file-type'\n  - 'classify'\nTry 'ls --help' for more information.\n", if matches.is_empty() { "invalid" } else { "ambiguous" }),
                     1,
                 );
             }
@@ -292,8 +292,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
                     'Q' => quote_name = true,
                     'l' => long = true,
                     'i' => inode = true,
-                    '1' | 'h' | 's' | 'g' | 'o' | 'n' | 'C' | 'x' | 'm' | 'k'
-                    | 'q' | 'N' | 'b' | 'u' | 'c' | 'L' | 'H' => {}
+                    '1' | 'h' | 'u' | 'c' | 'L' => {}
                     other => return err_out(&format!("ls: invalid option -- '{other}'\n"), 2),
                 }
             }
@@ -6901,6 +6900,17 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ls_rejects_unsupported_options_before_listing() {
+        let fs = MemoryVfs::new();
+        for ch in "sgonCxmkqNbH".chars() {
+            let result = cmd_ls(&[format!("-l{ch}"), "missing".into()], "/", &fs);
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr), (2, "", format!("ls: invalid option -- '{ch}'\n")));
+        }
+        assert_eq!(cmd_ls(&args(&["--sort"]), "/", &fs).stderr, "ls: --sort requires 'time' or 'size'\n");
+        assert_eq!(cmd_ls(&args(&["--indicator-style="]), "/", &fs).stderr, "ls: ambiguous argument '' for '--indicator-style'\nValid arguments are:\n  - 'none'\n  - 'slash'\n  - 'file-type'\n  - 'classify'\nTry 'ls --help' for more information.\n");
     }
 
     #[test]

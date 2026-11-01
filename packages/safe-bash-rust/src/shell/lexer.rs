@@ -1,3 +1,6 @@
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DupOrigin { Default, Explicit, Pipeline }
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
     Word(String),
@@ -18,11 +21,13 @@ pub enum Token {
     RedirectHereDoc {
         fd: u32,
         delimiter: String,
+        spelling: String,
+        strip_tabs: bool,
         quoted: bool,
         body: String,
         eof_warning: Option<String>,
     },
-    RedirectDupOut(u32, bool),
+    RedirectDupOut(u32, DupOrigin),
     RedirectDupIn(u32),
     RedirectBothOut,
     RedirectBothAppend,
@@ -359,7 +364,7 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0usize;
     let mut current = String::new();
-    let mut pending_heredocs: Vec<(usize, u32, String, bool, bool, usize)> = Vec::new();
+    let mut pending_heredocs: Vec<(usize, usize)> = Vec::new();
     let mut in_double_bracket = false;
     let mut after_regex_op = false;
     let mut after_pat_op = false;
@@ -440,7 +445,8 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                 i += 1;
                 if !pending_heredocs.is_empty() {
                     let drains = std::mem::take(&mut pending_heredocs);
-                    for (tok_idx, fd, delim, quoted, strip_tabs, delim_offset) in drains {
+                    for (tok_idx, delim_offset) in drains {
+                        let Token::RedirectHereDoc { delimiter: delim, quoted, strip_tabs, body: stored_body, eof_warning: warning, .. } = &mut tokens[tok_idx] else { unreachable!() };
                         let mut body = String::new();
                         let mut found = false;
                         while i < chars.len() {
@@ -448,7 +454,7 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                             while i < chars.len() {
                                 let cur_c = chars[i];
                                 i += 1;
-                                if !quoted && cur_c == '\\' && i < chars.len() {
+                                if !*quoted && cur_c == '\\' && i < chars.len() {
                                     let next_c = chars[i];
                                     i += 1;
                                     if next_c != '\n' {
@@ -461,12 +467,12 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                                     line.push(cur_c);
                                 }
                             }
-                            let check = if strip_tabs {
+                            let check = if *strip_tabs {
                                 line.trim_start_matches('\t')
                             } else {
                                 line.as_str()
                             };
-                            if check == delim {
+                            if check == delim.as_str() {
                                 found = true;
                                 break;
                             }
@@ -480,13 +486,8 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                         } else {
                             None
                         };
-                        tokens[tok_idx] = Token::RedirectHereDoc {
-                            fd,
-                            delimiter: delim,
-                            quoted,
-                            body,
-                            eof_warning,
-                        };
+                        *stored_body = body;
+                        *warning = eof_warning;
                     }
                 }
                 if !in_double_bracket {
@@ -906,7 +907,7 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                     }
                 } else if i + 1 < chars.len() && chars[i + 1] == '&' {
                     i += 2;
-                    tokens.push(Token::RedirectDupOut(2, true));
+                    tokens.push(Token::RedirectDupOut(2, DupOrigin::Pipeline));
                     tokens.push(Token::Word("1".to_string()));
                     tokens.push(Token::Pipe);
                 } else {
@@ -997,7 +998,7 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                     tokens.push(Token::RedirectClobber(fd));
                 } else if i < chars.len() && chars[i] == '&' {
                     i += 1;
-                    tokens.push(Token::RedirectDupOut(fd, explicit_fd));
+                    tokens.push(Token::RedirectDupOut(fd, if explicit_fd { DupOrigin::Explicit } else { DupOrigin::Default }));
                 } else {
                     tokens.push(Token::RedirectOut(fd));
                 }
@@ -1038,19 +1039,14 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                         let tok_idx = tokens.len();
                         tokens.push(Token::RedirectHereDoc {
                             fd,
-                            delimiter: clean_delim.clone(),
+                            delimiter: clean_delim,
+                            spelling: raw_delim,
+                            strip_tabs,
                             quoted,
                             body: String::new(),
                             eof_warning: None,
                         });
-                        pending_heredocs.push((
-                            tok_idx,
-                            fd,
-                            clean_delim,
-                            quoted,
-                            strip_tabs,
-                            delim_offset,
-                        ));
+                        pending_heredocs.push((tok_idx, delim_offset));
                     }
                 } else if i < chars.len() && chars[i] == '&' {
                     i += 1;
@@ -1131,16 +1127,10 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
     }
 
     if !pending_heredocs.is_empty() {
-        for (tok_idx, fd, delim, quoted, _strip_tabs, delim_offset) in pending_heredocs {
-            tokens[tok_idx] = Token::RedirectHereDoc {
-                fd,
-                delimiter: delim.clone(),
-                quoted,
-                body: String::new(),
-                eof_warning: Some(format!(
-                    "here-document at offset {delim_offset} delimited by end-of-file (wanted {delim:?})"
-                )),
-            };
+        for (tok_idx, delim_offset) in pending_heredocs {
+            if let Token::RedirectHereDoc { delimiter, eof_warning, .. } = &mut tokens[tok_idx] {
+                *eof_warning = Some(format!("here-document at offset {delim_offset} delimited by end-of-file (wanted {delimiter:?})"));
+            }
         }
     }
 
@@ -1510,14 +1500,14 @@ mod tests {
         )));
         assert!(tokens.contains(&Token::Pipe));
         assert!(tokens.contains(&Token::RedirectAppend(1)));
-        assert!(tokens.contains(&Token::RedirectDupOut(2, true)));
+        assert!(tokens.contains(&Token::RedirectDupOut(2, DupOrigin::Explicit)));
     }
 
     #[test]
     fn unit_tokenize_here_string_arithmetic_for_and_fd_redirections() {
         let tokens = tokenize_shell("for ((i=0; i<3; i++)); do cat <<< \"val=$i\" 3>&2 2>/dev/null; done").unwrap();
         assert!(tokens.iter().any(|t| matches!(t, Token::RedirectHereString(0))));
-        assert!(tokens.contains(&Token::RedirectDupOut(3, true)));
+        assert!(tokens.contains(&Token::RedirectDupOut(3, DupOrigin::Explicit)));
         assert!(tokens.contains(&Token::RedirectOut(2)));
         assert!(tokens.contains(&Token::LParen));
         assert!(tokens.contains(&Token::RParen));

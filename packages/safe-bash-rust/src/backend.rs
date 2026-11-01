@@ -2,7 +2,7 @@ use crate::budget::{ExecutionBudget, ShellLimits};
 use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry};
 use crate::vfs::FileStat;
 use crate::shell::eval::{EvalError, EvalState};
-use crate::shell::parser::Script;
+use crate::shell::parser::CommandNode;
 use mcp_protocol_rust::json::{Limits, Value, parse, stringify};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex};
@@ -41,7 +41,7 @@ pub struct HybridBackend {
     pub mode: BackendMode,
     pub(crate) provided_devices: bool,
     commands: BTreeMap<String, RustCommand>,
-    functions: Mutex<BTreeMap<String, Script>>,
+    functions: Mutex<BTreeMap<String, CommandNode>>,
     pub(crate) used_typescript_bridge: Arc<AtomicBool>,
 }
 
@@ -51,6 +51,7 @@ impl Clone for HybridBackend {
             mode: self.mode,
             provided_devices: self.provided_devices,
             commands: self.commands.clone(),
+            used_typescript_bridge: self.used_typescript_bridge.clone(),
             functions: Mutex::new(self.functions.lock().unwrap().clone()),
         }
     }

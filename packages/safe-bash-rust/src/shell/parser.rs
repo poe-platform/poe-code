@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
-use crate::shell::lexer::{Token, tokenize_shell_with_extglob};
+use crate::shell::lexer::{DupOrigin, Token, tokenize_shell_with_extglob};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RedirectKind {
@@ -12,12 +12,15 @@ pub enum RedirectKind {
     HereDoc {
         fd: u32,
         quoted: bool,
+        delimiter: String,
+        spelling: String,
+        strip_tabs: bool,
         eof_warning: Option<String>,
         doc_line: usize,
     },
     DupOut {
         fd: u32,
-        explicit_fd: bool,
+        origin: DupOrigin,
         raw_move: bool,
     },
     DupIn {
@@ -102,7 +105,7 @@ pub enum CommandNode {
     },
     FuncDef {
         name: String,
-        body: Script,
+        body: Box<CommandNode>,
     },
 }
 
@@ -1012,7 +1015,7 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
             }
             Token::RedirectHereDoc {
                 fd,
-                quoted,
+                quoted, delimiter, spelling, strip_tabs,
                 body,
                 eof_warning,
                 ..
@@ -1027,23 +1030,22 @@ fn parse_trailing_redirects(tokens: &[Token], pos: &mut usize) -> Result<Vec<Red
                 Redirect {
                     kind: RedirectKind::HereDoc {
                         fd: f,
-                        quoted: q,
+                        quoted: q, delimiter: delimiter.clone(), spelling: spelling.clone(), strip_tabs: *strip_tabs,
                         eof_warning: w,
                         doc_line,
                     },
                     target: b,
                 }
             }
-            Token::RedirectDupOut(fd, explicit_fd) => {
+            Token::RedirectDupOut(fd, origin) => {
                 let f = *fd;
-                let exp_fd = *explicit_fd;
                 *pos += 1;
                 let target = expect_word(tokens, pos)?;
                 let raw_move = is_raw_move_word(&target);
                 Redirect {
                     kind: RedirectKind::DupOut {
                         fd: f,
-                        explicit_fd: exp_fd,
+                        origin: *origin,
                         raw_move,
                     },
                     target,
@@ -1471,58 +1473,9 @@ fn parse_command(tokens: &[Token], pos: &mut usize, stops: &[&str]) -> Result<Op
     if let Some((fn_name, next_pos)) = func_header {
         *pos = next_pos;
         skip_newlines(tokens, pos);
-        if is_stop_word(tokens.get(*pos), &["{"]) {
-            *pos += 1;
-            let mut body = parse_tokens(tokens, pos, &["}"])?;
-            if !is_stop_word(tokens.get(*pos), &["}"]) {
-                return Err("Syntax error: expected `}` in function definition".to_string());
-            }
-            *pos += 1;
-            let fn_redirects = parse_trailing_redirects(tokens, pos)?;
-            if !fn_redirects.is_empty() {
-                body = Script {
-                    lists: vec![AndOrList {
-                        first: Pipeline {
-                            negated: false,
-                            commands: vec![CommandNode::Group {
-                                body,
-                                redirects: fn_redirects,
-                            }],
-                        },
-                        rest: Vec::new(),
-                        background: false,
-                    }],
-                };
-            }
-            return Ok(Some(CommandNode::FuncDef {
-                name: fn_name,
-                body,
-            }));
-        } else if matches!(tokens.get(*pos), Some(Token::LParen)) {
-            *pos += 1;
-            let sub_body = parse_tokens(tokens, pos, &[])?;
-            if !matches!(tokens.get(*pos), Some(Token::RParen)) {
-                return Err("Syntax error: expected `)` in function definition".to_string());
-            }
-            *pos += 1;
-            let fn_redirects = parse_trailing_redirects(tokens, pos)?;
-            let body = Script {
-                lists: vec![AndOrList {
-                    first: Pipeline {
-                        negated: false,
-                        commands: vec![CommandNode::Subshell {
-                            body: sub_body,
-                            redirects: fn_redirects,
-                        }],
-                    },
-                    rest: Vec::new(),
-                    background: false,
-                }],
-            };
-            return Ok(Some(CommandNode::FuncDef {
-                name: fn_name,
-                body,
-            }));
+        if is_stop_word(tokens.get(*pos), &["{"]) || matches!(tokens.get(*pos), Some(Token::LParen)) {
+            let body = parse_command(tokens, pos, stops)?.expect("compound function body");
+            return Ok(Some(CommandNode::FuncDef { name: fn_name, body: Box::new(body) }));
         }
     }
 

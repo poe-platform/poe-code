@@ -14,6 +14,7 @@ use crate::shell::expand::{
     sync_array_metadata, sync_getopts_env,
     try_resolve_unquoted_alternate_operand, write_dynamic_variable,
 };
+use crate::shell::lexer::DupOrigin;
 use crate::shell::parser::{
     AndOrList, CaseTerminator, CommandNode, ListOp, Pipeline, Redirect, RedirectKind, Script,
     SimpleCommand, is_incomplete_shell_unit_with_extglob,
@@ -60,7 +61,7 @@ pub struct EvalState<'a> {
     pub fs: &'a dyn SafeBashFs,
     pub budget: &'a ExecutionBudget,
     pub custom_commands: &'a BTreeMap<String, RustCommand>,
-    pub functions: BTreeMap<String, Script>,
+    pub functions: BTreeMap<String, CommandNode>,
     pub exported_functions: BTreeSet<String>,
     pub func_stack: Vec<String>,
     pub caller_frames: Vec<CallerFrame>,
@@ -1500,19 +1501,7 @@ impl<'a> EvalState<'a> {
     ) -> Result<BuiltinOutcome, EvalError> {
         if self.async_default_stdin {
             let prev_async = std::mem::replace(&mut self.async_default_stdin, false);
-            let redirects: &[Redirect] = match node {
-                CommandNode::Simple(s) => &s.redirects,
-                CommandNode::Subshell { redirects, .. }
-                | CommandNode::Group { redirects, .. }
-                | CommandNode::If { redirects, .. }
-                | CommandNode::ForIn { redirects, .. }
-                | CommandNode::Select { redirects, .. }
-                | CommandNode::ForArith { redirects, .. }
-                | CommandNode::While { redirects, .. }
-                | CommandNode::Case { redirects, .. }
-                | CommandNode::ArithCommand { redirects, .. } => redirects,
-                CommandNode::FuncDef { .. } => &[],
-            };
+            let redirects = command_redirects(node);
             let redirects_fd0 = redirects.iter().any(|r| {
                 matches!(
                     r.kind,
@@ -2440,7 +2429,7 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     });
                 }
-                self.functions.insert(name.clone(), body.clone());
+                self.functions.insert(name.clone(), (**body).clone());
                 if let Some(ref src) = self.script_name {
                     self.env.insert(format!("__func_src__{name}"), src.clone());
                 } else {
@@ -3661,7 +3650,10 @@ impl<'a> EvalState<'a> {
                 let _ = self.return_requested.take();
                 Ok(fn_dbg_out)
             } else {
-                let mut r = self.eval_script(&func_body, stdin);
+                let mut r = match &func_body {
+                    CommandNode::Group { body, redirects } if redirects.is_empty() => self.eval_script(body, stdin),
+                    cmd => self.eval_command_node(cmd, stdin),
+                };
                 if let Ok(ref mut o) = r {
                     if !fn_dbg_out.stdout.is_empty() || !fn_dbg_out.stderr.is_empty() {
                         o.stdout = format!("{}{}", fn_dbg_out.stdout, o.stdout);
@@ -9332,7 +9324,7 @@ impl<'a> EvalState<'a> {
                     let target = fields.into_iter().next().unwrap();
                     let file_operand = match r.kind {
                         RedirectKind::DupIn { .. } => false,
-                        RedirectKind::DupOut { explicit_fd, .. } => !explicit_fd && target != "-"
+                        RedirectKind::DupOut { origin, .. } => origin == DupOrigin::Default && target != "-"
                             && !target.trim_end_matches('-').bytes().all(|b| b.is_ascii_digit()),
                         _ => true,
                     };
@@ -10127,7 +10119,7 @@ impl<'a> EvalState<'a> {
                 }
                 RedirectKind::DupOut {
                     fd,
-                    explicit_fd,
+                    origin,
                     raw_move,
                 } => {
                     let target = match expand_redir_target(self, &r.target)? {
@@ -10166,7 +10158,7 @@ impl<'a> EvalState<'a> {
                         };
                         let is_digits = !src_str.is_empty()
                             && src_str.chars().all(|c| c.is_ascii_digit());
-                        if !is_digits && !*explicit_fd {
+                        if !is_digits && *origin == DupOrigin::Default {
                             let full = resolve_posix_path(self.cwd, &target);
                             if let Some(mut err_out) =
                                 self.check_redirect_parent_dir(&full, &target)
@@ -15466,25 +15458,8 @@ fn is_valid_shell_ident(s: &str) -> bool {
     chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
-fn format_function_display(name: &str, body: &Script) -> String {
-    if body.lists.len() == 1
-        && body.lists[0].rest.is_empty()
-        && body.lists[0].first.commands.len() == 1
-        && matches!(
-            body.lists[0].first.commands[0],
-            CommandNode::Subshell { .. } | CommandNode::Group { .. }
-        )
-    {
-        format!(
-            "{name} () \n{}\n",
-            format_command_node(&body.lists[0].first.commands[0], "")
-        )
-    } else {
-        format!(
-            "{name} () \n{{ \n    {}\n}}\n",
-            format_script_node(body, "    ", false)
-        )
-    }
+fn format_function_display(name: &str, body: &CommandNode) -> String {
+    format!("{name} () \n{}\n", format_command_node(body, ""))
 }
 
 fn format_script_node(script: &Script, indent: &str, terminate: bool) -> String {
@@ -15510,17 +15485,33 @@ fn format_script_node(script: &Script, indent: &str, terminate: bool) -> String 
 
 fn format_pipeline_node(pipe: &Pipeline, indent: &str) -> String {
     let prefix = if pipe.negated { "! " } else { "" };
-    let cmds: Vec<String> = pipe
-        .commands
-        .iter()
-        .map(|c| format_command_node(c, indent))
-        .collect();
-    format!("{prefix}{}", cmds.join(" | "))
+    let mut text = prefix.to_owned();
+    for (i, cmd) in pipe.commands.iter().enumerate() {
+        text.push_str(&format_command_node(cmd, indent));
+        if i + 1 < pipe.commands.len() {
+            let both = command_redirects(cmd).iter().any(|r| matches!(r.kind, RedirectKind::DupOut { origin: DupOrigin::Pipeline, .. }));
+            text.push_str(if both { " |& " } else { " | " });
+        }
+    }
+    text
+}
+
+fn command_redirects(cmd: &CommandNode) -> &[Redirect] {
+    match cmd {
+        CommandNode::Simple(s) => &s.redirects,
+        CommandNode::FuncDef { .. } => &[],
+        CommandNode::Subshell { redirects, .. } | CommandNode::Group { redirects, .. } |
+        CommandNode::If { redirects, .. } | CommandNode::ForIn { redirects, .. } |
+        CommandNode::ForArith { redirects, .. } | CommandNode::While { redirects, .. } |
+        CommandNode::ArithCommand { redirects, .. } | CommandNode::Select { redirects, .. } |
+        CommandNode::Case { redirects, .. } => redirects,
+    }
 }
 
 fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
+    use std::fmt::Write;
     let nested = format!("{indent}    ");
-    match cmd {
+    let mut text = match cmd {
         CommandNode::Simple(s) => {
             let mut tokens = Vec::new();
             for (k, v, app) in &s.assignments {
@@ -15533,10 +15524,10 @@ fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
             format!("( {} )", format_script_node(body, indent, false))
         }
         CommandNode::Group { body, .. } => {
-            format!("{{\n{nested}{}\n{indent}}}", format_script_node(body, &nested, false))
+            format!("{{ \n{nested}{}\n{indent}}}", format_script_node(body, &nested, false))
         }
         CommandNode::ArithCommand { expr, .. } => format!("(( {expr} ))"),
-        CommandNode::FuncDef { name, body } => format_function_display(name, body),
+        CommandNode::FuncDef { name, body } => format!("{name} () \n{indent}{}", format_command_node(body, indent)),
         CommandNode::If {
             branches,
             else_branch,
@@ -15623,7 +15614,31 @@ fn format_command_node(cmd: &CommandNode, indent: &str) -> String {
                 .collect();
             format!("case {word} in\n{}\n{indent}esac", arm_strs.join("\n"))
         }
+    };
+    for r in command_redirects(cmd) {
+        let (fd, operator, target) = match &r.kind {
+            RedirectKind::Out(fd) => (*fd, ">", &r.target),
+            RedirectKind::Append(fd) => (*fd, ">>", &r.target),
+            RedirectKind::Clobber(fd) => (*fd, ">|", &r.target),
+            RedirectKind::In(fd) => (*fd, "<", &r.target),
+            RedirectKind::ReadWrite(fd) => (*fd, "<>", &r.target),
+            RedirectKind::HereString(fd) => (*fd, "<<<", &r.target),
+            RedirectKind::HereDoc { fd, spelling, strip_tabs, .. } => (*fd, if *strip_tabs {"<<-"} else {"<<"}, spelling),
+            RedirectKind::DupOut { origin: DupOrigin::Pipeline, .. } => continue,
+            RedirectKind::DupOut { fd, .. } => (*fd, ">&", &r.target),
+            RedirectKind::DupIn { fd, .. } => (*fd, "<&", &r.target),
+            RedirectKind::BothOut => (1, "&>", &r.target),
+            RedirectKind::BothAppend => (1, "&>>", &r.target),
+        };
+        text.push(' ');
+        if fd != u32::from(!operator.starts_with('<')) { write!(text, "{fd}").unwrap(); }
+        write!(text, "{operator} {target}").unwrap();
+        if matches!(r.kind, RedirectKind::DupIn { raw_move: true, .. } | RedirectKind::DupOut { raw_move: true, .. }) { text.push('-'); }
+        if let RedirectKind::HereDoc { delimiter, .. } = &r.kind {
+            write!(text, "\n{}{delimiter}\n", r.target).unwrap();
+        }
     }
+    text
 }
 
 #[cfg(test)]
@@ -15812,6 +15827,22 @@ mod tests {
             type_out.stdout,
             "keyword\nfunction\nbuiltin\nfile\nfn_d is a function\nfn_d () \n{ \n    echo d\n}\n"
         );
+    }
+
+    #[test]
+    fn declared_functions_display_redirections_and_here_document_delimiters() {
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        for (definition, expected) in [
+            ("f() { cat <input >>log 2>&1; }", "cat < input >> log 2>& 1"),
+            ("f() { { echo nested; } >dest; }", "{ \n        echo nested\n    } > dest"),
+            ("f() { echo hi |& cat; }", "echo hi |& cat"),
+            ("f() { printf hi | cat >out; }", "printf hi | cat > out"),
+            ("f() { cat <<'E';\nliteral $arg\nE\n}", "cat << 'E'\nliteral $arg\nE\n"),
+            ("f() { while false; do :; done 2>err; }", "while false; do\n        :;\n    done 2> err"),
+        ] {
+            let res = shell.exec(&format!("{definition}; declare -f f")).unwrap();
+            assert_eq!(res.stdout, format!("f () \n{{ \n    {expected}\n}}\n"), "{definition}");
+        }
     }
 
     #[test]

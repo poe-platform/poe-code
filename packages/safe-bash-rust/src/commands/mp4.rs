@@ -1,6 +1,7 @@
 // Atom lengths include their own header. A zero length occupies the remainder of
 // its parent; extended lengths include the extra eight bytes used for the size.
-fn atoms(mut bytes: &[u8]) -> impl Iterator<Item = (&[u8; 4], &[u8])> {
+fn spans(mut bytes: &[u8]) -> impl Iterator<Item = (usize, &[u8; 4], &[u8])> {
+    let total = bytes.len();
     std::iter::from_fn(move || {
         let kind: &[u8; 4] = bytes.get(4..8)?.try_into().ok()?;
         let (len, mut header) = match u32::from_be_bytes(bytes[..4].try_into().ok()?) {
@@ -17,12 +18,17 @@ fn atoms(mut bytes: &[u8]) -> impl Iterator<Item = (&[u8; 4], &[u8])> {
             header += 16;
         }
         let payload = &bytes[header..end];
+        let offset = total - bytes.len();
         bytes = &bytes[end..];
-        Some((kind, payload))
+        Some((offset, kind, payload))
     })
 }
 
-pub(super) fn movie(input: &[u8]) -> Result<&[u8], &'static str> {
+fn atoms(bytes: &[u8]) -> impl Iterator<Item = (&[u8; 4], &[u8])> {
+    spans(bytes).map(|(_, k, v)| (k, v))
+}
+
+fn movie(input: &[u8]) -> Result<&[u8], &'static str> {
     atoms(input)
         .find_map(|(kind, payload)| (kind == b"moov").then_some(payload))
         .ok_or("Invalid MP4/ISOBMFF file: missing 'moov' atom")
@@ -62,7 +68,7 @@ fn rows(b: &[u8], width: usize) -> impl Iterator<Item = &[u8]> + Clone {
 struct Sample {
     tick: u32,
     dts: u64,
-    pts: i64,
+    pts: i128,
     size: u64,
     pos: u64,
     key: bool,
@@ -151,7 +157,7 @@ impl Tables<'_> {
             let sample = Sample {
                 tick: delta,
                 dts,
-                pts: dts as i64 + cts,
+                pts: i128::from(dts) + i128::from(cts),
                 size,
                 pos,
                 key,
@@ -168,6 +174,118 @@ impl Tables<'_> {
     }
 }
 
+// A trun stores only fields enabled by its flags. The others come from tfhd or trex.
+#[derive(Clone, Copy)]
+struct Defaults {
+    duration: u32,
+    size: u32,
+    flags: u32,
+}
+struct Run<'a> {
+    trun: &'a [u8],
+    defaults: Defaults,
+    base: u64,
+    dts: u64,
+    pos: u64,
+}
+fn next_word(b: &[u8], cursor: &mut usize) -> u32 {
+    let v = u32_at(b, *cursor);
+    *cursor += 4;
+    v
+}
+impl Run<'_> {
+    fn samples(&self, input_size: usize, video: bool) -> impl Iterator<Item = Sample> + '_ {
+        let flags = u32_at(self.trun, 0) & 0xff_ffff;
+        let mut i = 8;
+        let mut off = i128::from(self.base);
+        if flags & 1 != 0 {
+            off += i128::from(next_word(self.trun, &mut i) as i32)
+        }
+        let first_flags = if flags & 4 != 0 {
+            next_word(self.trun, &mut i)
+        } else {
+            self.defaults.flags
+        };
+        let (mut dts, mut pos) = (self.dts, self.pos);
+        (0..u32_at(self.trun, 4)).map(move |n| {
+            let tick = if flags & 0x100 != 0 {
+                next_word(self.trun, &mut i)
+            } else {
+                self.defaults.duration
+            };
+            let declared = if flags & 0x200 != 0 {
+                next_word(self.trun, &mut i)
+            } else {
+                self.defaults.size
+            };
+            let sample_flags = if flags & 0x400 != 0 {
+                next_word(self.trun, &mut i)
+            } else if n == 0 {
+                first_flags
+            } else {
+                self.defaults.flags
+            };
+            let cts = if flags & 0x800 != 0 {
+                let c = next_word(self.trun, &mut i);
+                if self.trun[0] == 1 {
+                    i128::from(c as i32)
+                } else {
+                    i128::from(c)
+                }
+            } else {
+                0
+            };
+            let offset = off.clamp(0, input_size as i128) as u64;
+            let size = (input_size as u64 - offset).min(declared.into());
+            let key = (sample_flags >> 24) & 3 == 2
+                || (sample_flags & 0x10000 == 0 && (n == 0 || !video));
+            let s = Sample {
+                tick,
+                dts,
+                pts: i128::from(dts) + cts,
+                size,
+                pos,
+                key,
+            };
+            dts = dts.saturating_add(tick.into());
+            pos += size;
+            off += i128::from(declared);
+            s
+        })
+    }
+}
+
+#[derive(Default)]
+struct Stats {
+    count: usize,
+    ticks: u64,
+    bytes: u64,
+    start: i128,
+    b_frames: bool,
+    media_end: i128,
+}
+impl Stats {
+    fn add(&mut self, s: &Sample) {
+        if self.count == 0 {
+            self.start = s.pts
+        }
+        self.count += 1;
+        self.ticks += u64::from(s.tick);
+        self.bytes += s.size;
+        self.b_frames |= s.pts != i128::from(s.dts);
+        self.media_end = self.media_end.max(s.pts + i128::from(s.tick));
+    }
+}
+fn check_samples(n: usize) -> Result<(), String> {
+    if n > 200_000 {
+        Err(format!(
+            "Resource limit exceeded for maxSamplesPerTrack: {n} exceeds maximum allowed 200000"
+        ))
+    } else {
+        Ok(())
+    }
+}
+
 struct Track<'a> {
     index: usize,
     id: u32,
@@ -181,11 +299,8 @@ struct Track<'a> {
     enabled: bool,
     language: String,
     handler: &'a [u8],
-    count: usize,
-    ticks: u64,
-    bytes: u64,
-    start: i64,
-    b_frames: bool,
+    stats: Stats,
+    runs: Vec<Run<'a>>,
     tables: Tables<'a>,
 }
 fn header_time(b: &[u8], fallback: u32) -> (u32, u64) {
@@ -202,12 +317,17 @@ impl<'a> Track<'a> {
         trak: &'a [u8],
         index: usize,
         movie_scale: u32,
-        input_size: usize,
+        input: &'a [u8],
+        mvex: &[u8],
     ) -> Result<Self, String> {
+        let input_size = input.len();
         let tk = child(trak, b"tkhd");
         let long = tk.first() == Some(&1);
         let i = if long { 20 } else { 12 };
-        let id = u32_at(tk, i);
+        let id = match u32_at(tk, i) {
+            0 => index as u32 + 1,
+            x => x,
+        };
         let header_duration = wide(tk, i + 8, long);
         let dims = if long { 88 } else { 76 };
         let fixed = |i| ((u64::from(u32_at(tk, i)) + 32768) >> 16) as u32;
@@ -237,34 +357,110 @@ impl<'a> Track<'a> {
         let stbl = child(child(mdia, b"minf"), b"stbl");
         let tables = Tables::read(stbl);
         let n = u32_at(tables.sizes, 8);
-        if n > 200_000 {
-            return Err(format!(
-                "Resource limit exceeded for maxSamplesPerTrack: {n} exceeds maximum allowed 200000"
-            ));
-        }
+        check_samples(n as usize)?;
         let stsd = child(stbl, b"stsd");
         let (tag, entry) = atoms(stsd.get(8..).unwrap_or_default())
             .next()
             .unwrap_or((if kind == "video" { b"avc1" } else { b"mp4a" }, &[]));
-        let (mut count, mut ticks, mut bytes, mut start, mut b_frames) = (0, 0, 0, 0, false);
+        let mut stats = Stats::default();
         for s in tables.samples(input_size) {
-            if count == 0 {
-                start = s.pts
+            stats.add(&s)
+        }
+        let mut defaults = Defaults {
+            duration: if kind == "video" { 3000 } else { 1024 },
+            size: 0,
+            flags: 0,
+        };
+        for (_, trex) in
+            atoms(mvex).filter(|(k, v)| *k == b"trex" && v.len() >= 24 && u32_at(v, 4) == id)
+        {
+            defaults = Defaults {
+                duration: match u32_at(trex, 12) {
+                    0 => 1024,
+                    x => x,
+                },
+                size: u32_at(trex, 16),
+                flags: u32_at(trex, 20),
+            };
+        }
+        let mut runs = Vec::new();
+        let mut dts = stats.ticks;
+        let mut fragmented = false;
+        for (offset, _, moof) in spans(input).filter(|(_, k, _)| *k == b"moof") {
+            fragmented = true;
+            for (_, traf) in atoms(moof).filter(|(k, _)| *k == b"traf") {
+                let h = child(traf, b"tfhd");
+                if h.len() < 8 || u32_at(h, 4) != id {
+                    continue;
+                }
+                let flags = u32_at(h, 0);
+                let mut at = 8;
+                let base = if flags & 1 != 0 {
+                    at += 8;
+                    wide(h, 8, true)
+                } else {
+                    offset as u64
+                };
+                if flags & 2 != 0 {
+                    at += 4
+                }
+                let mut header = defaults;
+                if flags & 8 != 0 {
+                    header.duration = next_word(h, &mut at)
+                }
+                if flags & 16 != 0 {
+                    header.size = next_word(h, &mut at)
+                }
+                if flags & 32 != 0 {
+                    header.flags = next_word(h, &mut at)
+                }
+                let tfdt = child(traf, b"tfdt");
+                if tfdt.len() >= 8 {
+                    dts = wide(tfdt, 4, tfdt[0] == 1)
+                }
+                for (_, trun) in atoms(traf).filter(|(k, v)| *k == b"trun" && u32_at(v, 4) != 0) {
+                    check_samples(stats.count.saturating_add(u32_at(trun, 4) as usize))?;
+                    let run = Run {
+                        trun,
+                        defaults: header,
+                        base,
+                        dts,
+                        pos: stats.bytes,
+                    };
+                    for s in run.samples(input_size, kind == "video") {
+                        dts = s.dts.saturating_add(s.tick.into());
+                        stats.add(&s)
+                    }
+                    runs.push(run);
+                }
             }
-            count += 1;
-            ticks += u64::from(s.tick);
-            bytes += s.size;
-            b_frames |= s.pts != s.dts as i64
         }
         let elst = child(child(trak, b"edts"), b"elst");
         let v1 = elst.first() == Some(&1);
         let mut edits = rows(elst, if v1 { 20 } else { 12 }).peekable();
         let duration = if edits.peek().is_some() {
-            (edits.map(|r| wide(r, 0, v1) as f64).sum::<f64>() * f64::from(scale)
+            (edits
+                .map(|r| {
+                    let seg = wide(r, 0, v1) as f64;
+                    let media_time = if v1 {
+                        i128::from(wide(r, 8, true) as i64)
+                    } else {
+                        i128::from(u32_at(r, 4) as i32)
+                    };
+                    if fragmented && seg == 0. && media_time >= 0 {
+                        ((stats.media_end - media_time).max(0) as f64 * f64::from(movie_scale)
+                            / f64::from(scale))
+                        .round()
+                    } else {
+                        seg
+                    }
+                })
+                .sum::<f64>()
+                * f64::from(scale)
                 / f64::from(movie_scale))
             .round() as u64
-        } else if ticks != 0 {
-            ticks
+        } else if stats.ticks != 0 {
+            stats.ticks
         } else if declared != 0 {
             declared
         } else {
@@ -280,7 +476,7 @@ impl<'a> Track<'a> {
         };
         Ok(Self {
             index,
-            id: if id == 0 { index as u32 + 1 } else { id },
+            id,
             kind,
             scale,
             duration,
@@ -291,11 +487,8 @@ impl<'a> Track<'a> {
             enabled: tk.len() < 24 || tk[3] & 1 != 0,
             language,
             handler,
-            count,
-            ticks,
-            bytes,
-            start,
-            b_frames,
+            stats,
+            runs,
             tables,
         })
     }
@@ -475,7 +668,7 @@ impl<'a> Track<'a> {
         if self.kind == "video" {
             let pasp = child(children, b"pasp");
             r.extend([
-                ("has_b_frames", Number(f64::from(self.b_frames))),
+                ("has_b_frames", Number(f64::from(self.stats.b_frames))),
                 (
                     "sample_aspect_ratio",
                     Str(format!(
@@ -520,8 +713,12 @@ impl<'a> Track<'a> {
                 ("bits_per_sample", Number(bits.into())),
             ]);
         }
-        let rate = if self.kind == "video" && self.ticks != 0 {
-            media_probe::ratio(self.count as u64 * u64::from(self.scale), self.ticks, '/')
+        let rate = if self.kind == "video" && self.stats.ticks != 0 {
+            media_probe::ratio(
+                self.stats.count as u64 * u64::from(self.scale),
+                self.stats.ticks,
+                '/',
+            )
         } else {
             "0/0".into()
         };
@@ -537,8 +734,8 @@ impl<'a> Track<'a> {
             ("r_frame_rate", Str(rate.clone())),
             ("avg_frame_rate", Str(rate)),
             ("time_base", Str(format!("1/{}", self.scale))),
-            ("start_pts", Number(self.start as f64)),
-            ("start_time", Str(self.time(self.start as f64))),
+            ("start_pts", Number(self.stats.start as f64)),
+            ("start_time", Str(self.time(self.stats.start as f64))),
             ("duration_ts", Number(self.duration as f64)),
             ("duration", Str(format!("{dur:.6}"))),
             (
@@ -546,10 +743,10 @@ impl<'a> Track<'a> {
                 Str(if dur == 0. {
                     "0".into()
                 } else {
-                    (self.bytes as f64 * 8. / dur).round().to_string()
+                    (self.stats.bytes as f64 * 8. / dur).round().to_string()
                 }),
             ),
-            ("nb_frames", Str(self.count.to_string())),
+            ("nb_frames", Str(self.stats.count.to_string())),
             (
                 "disposition",
                 Object(media_probe::disposition(self.enabled)),
@@ -557,10 +754,10 @@ impl<'a> Track<'a> {
             ("tags", Object(tags)),
         ]);
         if counts.0 {
-            r.push(("nb_read_frames", Str(self.count.to_string())))
+            r.push(("nb_read_frames", Str(self.stats.count.to_string())))
         }
         if counts.1 {
-            r.push(("nb_read_packets", Str(self.count.to_string())))
+            r.push(("nb_read_packets", Str(self.stats.count.to_string())))
         }
         r
     }
@@ -680,13 +877,14 @@ pub(super) fn report(
     let (scale, ticks) = header_time(child(moov, b"mvhd"), 1000);
     let mut tracks = Vec::new();
     let mut duration = ticks as f64 / f64::from(scale);
+    let mvex = child(moov, b"mvex");
     for (_, trak) in atoms(moov).filter(|(k, _)| *k == b"trak") {
         if tracks.len() == 32 {
             return Err(
                 "Resource limit exceeded for maxStreams: 33 exceeds maximum allowed 32".into(),
             );
         }
-        let t = Track::parse(trak, tracks.len(), scale, input.len())?;
+        let t = Track::parse(trak, tracks.len(), scale, input, mvex)?;
         duration = duration.max(t.duration as f64 / f64::from(t.scale));
         tracks.push(t);
     }
@@ -721,6 +919,11 @@ pub(super) fn report(
         "frame" | "packet" => Box::new(tracks.iter().flat_map(move |t| {
             t.tables
                 .samples(input.len())
+                .chain(
+                    t.runs
+                        .iter()
+                        .flat_map(|r| r.samples(input.len(), t.kind == "video")),
+                )
                 .map(move |s| t.record(s, section == "frame"))
         })),
         _ => Box::new(std::iter::empty()),

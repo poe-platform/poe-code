@@ -12819,6 +12819,21 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffprobe_replays_fragment_offsets_flags_and_decode_times() {
+        fn atom(name:&[u8;4],payload:&[u8])->Vec<u8>{
+            [((8+payload.len()) as u32).to_be_bytes().as_slice(),name,payload].concat()
+        }
+        let words=|values:&[u32]|values.iter().flat_map(|v|v.to_be_bytes()).collect::<Vec<_>>();
+        let mvex=atom(b"mvex",&atom(b"trex",&words(&[0,1,1,20,3,0])));
+        let moov=atom(b"moov",&[atom(b"trak",&[]),mvex].concat());
+        let traf=atom(b"traf",&[atom(b"tfhd",&words(&[0,1])),atom(b"tfdt",&words(&[1<<24,1,0])),
+            atom(b"trun",&words(&[(1<<24)|0xc00,2,0x02000000,(-2i32) as u32,0x01010000,4]))].concat());
+        let fs=MemoryVfs::new();fs.write_file("/frag.mp4",&[moov,atom(b"moof",&traf)].concat()).unwrap();
+        let r=cmd_media_doc("ffprobe",&media_args(&["-show_packets","-show_entries","packet=pts,dts,duration,size,pos,flags","-of","csv=p=0","frag.mp4"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stdout,r.stderr),(0,"4294967294,4294967296,20,3,0,K_\n4294967320,4294967316,20,3,3,__\n".into(),String::new()));
+    }
+
+    #[test]
     fn ffprobe_mp4_chapters_use_the_next_start_or_the_movie_duration() {
         // moov/udta/chpl, two titles with start times in 100-nanosecond ticks.
         let mut clip=b"\0\0\0\0moov\0\0\0\0udta\0\0\0\0chpl".to_vec();

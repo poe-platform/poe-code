@@ -149,6 +149,7 @@ impl<'a> EvalState<'a> {
         let nounset = env.get("__set_nounset").map(|v| v == "1").unwrap_or(false);
         let pipefail = env.get("__set_pipefail").map(|v| v == "1").unwrap_or(false);
         let noclobber = env.get("__set_noclobber").map(|v| v == "1").unwrap_or(false);
+        let noexec = env.get("__set_noexec").is_some_and(|v| v == "1");
         let last_exit = env
             .get("__last_exit")
             .and_then(|v| v.parse::<i32>().ok())
@@ -201,7 +202,7 @@ impl<'a> EvalState<'a> {
             nounset,
             pipefail,
             noclobber,
-            noexec: false,
+            noexec,
             xtrace: false,
             in_condition: false,
             in_trap: false,

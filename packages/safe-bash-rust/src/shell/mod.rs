@@ -185,6 +185,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn noexec_prevents_writes_on_later_shell_turns() {
+        let (mut shell, fs) = Shell::with_memory_fs();
+        shell.exec("set -n").unwrap();
+        let result = shell.exec("echo data > /should-not-exist").unwrap();
+        assert_eq!(result.exit_code, 0);
+        assert!(!fs.exists("/should-not-exist"));
+    }
+
+    #[test]
     fn positional_arguments_and_exported_functions_survive_shell_turns() {
         let (mut shell, _) = Shell::with_memory_fs();
         shell.exec("set -- alpha 'two words'; f() { echo child; }; export -f f").unwrap();

@@ -311,6 +311,29 @@ fn parse_group<'a>(
         rest = next;
     }
 }
+fn interaction_href(source: &str) -> Result<Option<&str>, String> {
+    let text = source.trim();
+    let text = text.strip_prefix("href ").map(str::trim).unwrap_or(text);
+    let Some(quote) = text.chars().next().filter(|q| matches!(q, '\'' | '"')) else {
+        return Ok(None);
+    };
+    let tail = &text[1..];
+    let Some(end) = tail
+        .match_indices(quote)
+        .find_map(|(i, _)| (!tail[..i].ends_with('\\')).then_some(i))
+    else {
+        return Err("mmdc: E_SYNTAX: Unclosed link URL\n".into());
+    };
+    let href = &tail[..end];
+    if let Some((scheme, _)) = href.split_once(':')
+        && !["http", "https", "mailto"]
+            .iter()
+            .any(|s| s.eq_ignore_ascii_case(scheme))
+    {
+        return Err("mmdc: E_UNSUPPORTED: Unsupported link URL scheme\n".into());
+    }
+    Ok(Some(href))
+}
 type Edge<'a> = (usize, usize, &'a str, Option<Pill>);
 #[derive(Clone)]
 struct Pill {
@@ -390,6 +413,7 @@ pub(super) fn layout(
             )));
         }
     }
+    let mut hrefs = BTreeMap::new();
     let mut nodes = Vec::new();
     let mut ids = BTreeMap::new();
     let mut edges = vec![];
@@ -414,9 +438,27 @@ pub(super) fn layout(
             dir = value;
             continue;
         }
+        if matches!(keyword, "click" | "callback") {
+            if let Err(error) = scanner::check_label(text, stmt, text) {
+                return Some(Err(error));
+            }
+            if keyword == "click" {
+                let rest = text[keyword.len()..].trim();
+                if let Some(id) = rest.split_ascii_whitespace().next() {
+                    match interaction_href(&rest[id.len()..]) {
+                        Ok(Some(href)) => {
+                            hrefs.insert(id, href);
+                        }
+                        Ok(None) => {}
+                        Err(error) => return Some(Err(error)),
+                    }
+                }
+            }
+            continue;
+        }
         if matches!(
             keyword,
-            "subgraph" | "class" | "style" | "classDef" | "linkStyle" | "click" | "callback"
+            "subgraph" | "class" | "style" | "classDef" | "linkStyle"
         ) {
             return None;
         }
@@ -828,6 +870,9 @@ pub(super) fn layout(
             }
         }
         el.push_str("</g>");
+        if let Some(href) = hrefs.get(n.id.as_str()) {
+            el = format!(r#"<a href="{}">{el}</a>"#, esc(href));
+        }
         elements.push(el);
     }
     let mut width = f64::from(width);

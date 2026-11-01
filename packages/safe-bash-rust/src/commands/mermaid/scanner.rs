@@ -188,6 +188,11 @@ pub(super) fn label(raw: &str, stmt: &Statement, token: &str) -> Result<String, 
     } else {
         text.push_str(raw);
     }
+    check_label(&text, stmt, token)?;
+    Ok(text)
+}
+
+pub(super) fn check_label(text: &str, stmt: &Statement, token: &str) -> Result<(), String> {
     let lower = text.to_ascii_lowercase();
     for forbidden in [
         "<script",
@@ -210,5 +215,5 @@ pub(super) fn label(raw: &str, stmt: &Statement, token: &str) -> Result<String, 
             ));
         }
     }
-    Ok(text)
+    Ok(())
 }

@@ -38248,7 +38248,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let fs = MemoryVfs::new();
         for (source,hash) in [
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
-            ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5")
+            ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
+            ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")
         ] {
             let r = try_run_structured_command("mmdc", &args(&["-i","-","-o","a.svg"]), source, "/", &BTreeMap::new(), &fs).unwrap();
             assert_eq!(r.exit_code,0,"{}",r.stderr);

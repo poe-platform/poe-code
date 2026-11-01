@@ -203,9 +203,6 @@ pub(super) fn layout(
             let (op, tail, label) = if let Some(op) =
                 EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
             {
-                if matches!(op, "--x" | "--o") {
-                    return None;
-                }
                 let tail = rest[op.len()..].trim_start();
                 if let Some(tail) = tail.strip_prefix('|') {
                     let Some((label, tail)) = tail.split_once('|') else {
@@ -375,6 +372,11 @@ pub(super) fn layout(
             if show {
                 write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
             }
+        }
+        match op {
+            "--o" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="{edge}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>"#).ok()?,
+            "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
+            _ => {}
         }
         if !label.is_empty() {
             let short = label.len() <= 4

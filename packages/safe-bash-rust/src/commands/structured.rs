@@ -11,10 +11,17 @@ mod mermaid;
 use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
 };
+use std::cell::RefCell;
+use std::collections::VecDeque;
 use std::sync::Mutex;
 
 static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
-static JQ_SHARED_INPUTS: Mutex<Vec<JVal>> = Mutex::new(Vec::new());
+
+#[derive(Clone)]
+struct JqScope<'a> {
+    bindings: BTreeMap<String, JVal>,
+    inputs: &'a RefCell<VecDeque<JVal>>,
+}
 
 #[derive(Clone, Default)]
 struct YqDocMeta {
@@ -230,27 +237,15 @@ fn extract_yaml_doc_meta(
     }
 }
 
-fn pop_jq_shared_input() -> Option<JVal> {
-    let mut guard = JQ_SHARED_INPUTS.lock().ok()?;
-    if guard.is_empty() {
-        None
-    } else {
-        if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock()
-            && yq_state.active
-            && !yq_state.queue.is_empty()
-        {
-            yq_state.current = yq_state.queue.remove(0);
-        }
-        Some(guard.remove(0))
+fn pop_jq_input(inputs: &RefCell<VecDeque<JVal>>) -> Option<JVal> {
+    let input = inputs.borrow_mut().pop_front()?;
+    if let Ok(mut yq_state) = YQ_RUNTIME_STATE.lock()
+        && yq_state.active
+        && !yq_state.queue.is_empty()
+    {
+        yq_state.current = yq_state.queue.remove(0);
     }
-}
-
-fn drain_jq_shared_inputs() -> Vec<JVal> {
-    if let Ok(mut guard) = JQ_SHARED_INPUTS.lock() {
-        std::mem::take(&mut *guard)
-    } else {
-        Vec::new()
-    }
+    Some(input)
 }
 use crate::shell::builtins::BuiltinOutcome;
 use crate::vfs::{SafeBashFs, resolve_posix_path};
@@ -1114,9 +1109,8 @@ fn cmd_jq_core(
         }
     }
 
-    if let Ok(mut guard) = JQ_SHARED_INPUTS.lock() {
-        *guard = stream_inputs;
-    }
+    let inputs = RefCell::new(VecDeque::from(stream_inputs));
+    let vars = JqScope { bindings: vars, inputs: &inputs };
 
     let mut out = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1129,7 +1123,7 @@ fn cmd_jq_core(
             }
             first_null_done = true;
             JVal::Null
-        } else if let Some(v) = pop_jq_shared_input() {
+        } else if let Some(v) = pop_jq_input(vars.inputs) {
             v
         } else {
             break;
@@ -1195,7 +1189,7 @@ fn cmd_jq_core(
 fn eval_jq(
     expr: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     let s = expr.trim();
     if s.is_empty() || s == "." {
@@ -1214,13 +1208,13 @@ fn eval_jq(
             (sig, "")
         };
         let mut next_vars = vars.clone();
-        let lex_entries: Vec<(String, JVal)> = vars
+        let lex_entries: Vec<(String, JVal)> = vars.bindings
             .iter()
             .filter(|(k, _)| !k.starts_with("__lex_") && *k != "ARGS")
             .map(|(k, v)| (k.clone(), v.clone()))
             .collect();
-        next_vars.insert(format!("__lex_{fname}"), JVal::Object(lex_entries));
-        next_vars.insert(
+        next_vars.bindings.insert(format!("__lex_{fname}"), JVal::Object(lex_entries));
+        next_vars.bindings.insert(
             format!("__def_{fname}"),
             JVal::Str(format!("{param}::{}", body.trim())),
         );
@@ -1262,8 +1256,7 @@ fn eval_jq(
                 }
             }
         }
-        let mut current: Vec<(JVal, BTreeMap<String, JVal>)> =
-            vec![(input.clone(), vars.clone())];
+        let mut current = vec![(input.clone(), vars.clone())];
         for (stage_idx, stage) in pipes.iter().enumerate() {
             let st_trim = stage.trim();
             if st_trim.starts_with("def ") {
@@ -1288,7 +1281,7 @@ fn eval_jq(
                     for (item, item_vars) in &current {
                         for v in eval_jq(&val_expr, item, item_vars)? {
                             let mut nv = item_vars.clone();
-                            bind_jq_alternatives(pat, &v, &mut nv);
+                            bind_jq_alternatives(pat, &v, &mut nv.bindings);
                             next.push((item.clone(), nv));
                         }
                     }
@@ -1350,7 +1343,7 @@ fn eval_jq(
                 let items = eval_jq(stream_expr.trim(), input, vars)?;
                 for item in items {
                     let mut step_vars = vars.clone();
-                    step_vars.insert(var_name.to_string(), item);
+                    step_vars.bindings.insert(var_name.to_string(), item);
                     acc = eval_jq(update_expr.trim(), &acc, &step_vars)?
                         .into_iter()
                         .next()
@@ -1378,7 +1371,7 @@ fn eval_jq(
                 let mut out = Vec::new();
                 for item in items {
                     let mut step_vars = vars.clone();
-                    step_vars.insert(var_name.to_string(), item);
+                    step_vars.bindings.insert(var_name.to_string(), item);
                     let step_res = match eval_jq(parts[1].trim(), &acc, &step_vars) {
                         Ok(v) => v,
                         Err(e) if e.starts_with("__jq_break:") => {
@@ -1585,7 +1578,7 @@ fn eval_jq(
         }
         let vname = &var_name[..id_end];
         let rest = &var_name[id_end..];
-        if let Some(v) = vars.get(vname) {
+        if let Some(v) = vars.bindings.get(vname) {
             if rest.is_empty() {
                 return Ok(vec![v.clone()]);
             }
@@ -1650,20 +1643,20 @@ fn eval_jq(
     if let Some(res) = try_eval_jq_builtin(s, input, vars)? {
         return Ok(res);
     }
-    if let Some(JVal::Str(def_spec)) = vars.get(&format!("__def_{s}"))
+    if let Some(JVal::Str(def_spec)) = vars.bindings.get(&format!("__def_{s}"))
         && let Some((_param, body)) = def_spec.split_once("::")
     {
         let mut call_vars = vars.clone();
-        if let Some(JVal::Object(lex)) = vars.get(&format!("__lex_{s}")) {
+        if let Some(JVal::Object(lex)) = vars.bindings.get(&format!("__lex_{s}")) {
             for (k, v) in lex {
-                call_vars.insert(k.clone(), v.clone());
+                call_vars.bindings.insert(k.clone(), v.clone());
             }
         }
         return eval_jq(body, input, &call_vars);
     }
 
     if let Some(env_var) = s.strip_prefix("env.") {
-        return Ok(vec![vars.get(env_var).cloned().unwrap_or(JVal::Str(String::new()))]);
+        return Ok(vec![vars.bindings.get(env_var).cloned().unwrap_or(JVal::Str(String::new()))]);
     }
     if let Some(open_p) = s.find('(')
         && !s.starts_with('(')
@@ -1777,7 +1770,7 @@ fn is_jq_if_expr(s: &str) -> bool {
 fn eval_jq_if(
     s: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     let body = s[2..s.len() - 3].trim();
     let chars: Vec<char> = body.chars().collect();
@@ -1871,7 +1864,7 @@ fn eval_jq_if(
 fn eval_jq_object_construct(
     inner: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     let fields = split_jq_top(inner, ',').unwrap_or_else(|| {
         if inner.trim().is_empty() {
@@ -1925,7 +1918,7 @@ fn eval_jq_update(
     op: &str,
     rhs: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     let paths = resolve_jq_lhs_paths(lhs, input, vars)?;
     if paths.is_empty() {
@@ -1970,7 +1963,7 @@ fn eval_jq_update(
 fn resolve_jq_lhs_paths(
     lhs: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<Vec<JVal>>, String> {
     let mut s = lhs.trim();
     while s.starts_with('(') && s.ends_with(')') && is_matching_outer_delim(s, '(', ')') {
@@ -2334,7 +2327,7 @@ fn compare_jval(a: &JVal, b: &JVal) -> std::cmp::Ordering {
 fn try_eval_jq_builtin(
     s: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Option<Vec<JVal>>, String> {
     if let Some(stem) = s.strip_suffix("[]")
         && !stem.is_empty()
@@ -2653,13 +2646,13 @@ fn try_eval_jq_builtin(
             return Ok(Some(vec![JVal::Str(res.to_string())]));
         }
         "input" => {
-            if let Some(v) = pop_jq_shared_input() {
+            if let Some(v) = pop_jq_input(vars.inputs) {
                 return Ok(Some(vec![v]));
             }
             return Err("break".to_string());
         }
         "inputs" => {
-            return Ok(Some(drain_jq_shared_inputs()));
+            return Ok(Some(vars.inputs.take().into()));
         }
         "gmtime" => {
             let JVal::Number(n) = input else {
@@ -3840,7 +3833,7 @@ fn try_eval_jq_builtin(
                 }
                 "strenv" => {
                     let vname = arg_expr.trim().trim_matches('"').trim_matches('\'');
-                    let val = match vars.get(vname) {
+                    let val = match vars.bindings.get(vname) {
                         Some(JVal::Str(s)) => s.clone(),
                         Some(other) => other.to_raw_string(true, false),
                         None => String::new(),
@@ -3849,7 +3842,7 @@ fn try_eval_jq_builtin(
                 }
                 "env" => {
                     let vname = arg_expr.trim().trim_matches('"').trim_matches('\'');
-                    let val = match vars.get(vname) {
+                    let val = match vars.bindings.get(vname) {
                         Some(JVal::Str(s)) => parse_yaml_scalar(s, &mut BTreeMap::new()),
                         Some(other) => other.clone(),
                         None => JVal::Null,
@@ -3866,15 +3859,15 @@ fn try_eval_jq_builtin(
                     return Ok(Some(out));
                 }
                 other => {
-                    if let Some(JVal::Str(def_spec)) = vars.get(&format!("__def_{other}"))
+                    if let Some(JVal::Str(def_spec)) = vars.bindings.get(&format!("__def_{other}"))
                         && let Some((param, body)) = def_spec.split_once("::")
                     {
                         let params: Vec<&str> = param.split(';').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
                         let args: Vec<String> = split_jq_top(arg_expr, ';').unwrap_or_else(|| vec![arg_expr.to_string()]);
                         let mut base_vars = vars.clone();
-                        if let Some(JVal::Object(lex)) = vars.get(&format!("__lex_{other}")) {
+                        if let Some(JVal::Object(lex)) = vars.bindings.get(&format!("__lex_{other}")) {
                             for (k, v) in lex {
-                                base_vars.insert(k.clone(), v.clone());
+                                base_vars.bindings.insert(k.clone(), v.clone());
                             }
                         }
                         let mut expanded = body.to_string();
@@ -3891,13 +3884,13 @@ fn try_eval_jq_builtin(
                         if val_param_streams.is_empty() {
                             return eval_jq(&expanded, input, &base_vars).map(Some);
                         }
-                        let mut env_combos: Vec<BTreeMap<String, JVal>> = vec![base_vars];
+                        let mut env_combos = vec![base_vars];
                         for (vname, avs) in val_param_streams {
                             let mut next_combos = Vec::new();
                             for env_map in &env_combos {
                                 for av in &avs {
                                     let mut nm = env_map.clone();
-                                    nm.insert(vname.clone(), av.clone());
+                                    nm.bindings.insert(vname.clone(), av.clone());
                                     next_combos.push(nm);
                                 }
                             }
@@ -3932,7 +3925,7 @@ fn flatten_jval(items: &[JVal], depth: usize, out: &mut Vec<JVal>) {
 fn walk_jval(
     val: &JVal,
     f_expr: &str,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<JVal, String> {
     let stepped = match val {
         JVal::Array(items) => {
@@ -4107,7 +4100,7 @@ fn collect_jq_recurse_filter_cond(
     val: &JVal,
     f_expr: &str,
     cond_expr: Option<&str>,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
     out: &mut Vec<JVal>,
 ) -> Result<(), String> {
     if let Some(ce) = cond_expr {
@@ -4591,7 +4584,7 @@ fn replace_jq_ident(body: &str, ident: &str, replacement: &str) -> String {
 fn eval_jq_path(
     path: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     eval_jq_path_with_root(path, input, input, vars)
 }
@@ -4600,7 +4593,7 @@ fn eval_jq_path_with_root(
     path: &str,
     input: &JVal,
     dot_input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     let mut current = vec![input.clone()];
     let chars: Vec<char> = path.chars().collect();
@@ -4848,18 +4841,19 @@ fn eval_jq_limited(
     expr: &str,
     max_items: usize,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     if max_items == 0 {
         return Ok(Vec::new());
     }
-    let saved_tail = JQ_SHARED_INPUTS.lock().ok().and_then(|mut queue| {
+    let saved_tail = {
+        let mut queue = vars.inputs.borrow_mut();
         if queue.len() > max_items {
             Some(queue.split_off(max_items))
         } else {
             None
         }
-    });
+    };
     let mut out = Vec::new();
     let mut err_opt: Option<String> = None;
     if let Some(parts) = split_jq_top(expr, ',') {
@@ -4892,10 +4886,8 @@ fn eval_jq_limited(
             Err(e) => err_opt = Some(e),
         }
     }
-    if let Some(tail) = saved_tail
-        && let Ok(mut queue) = JQ_SHARED_INPUTS.lock()
-    {
-        queue.extend(tail);
+    if let Some(tail) = saved_tail {
+        vars.inputs.borrow_mut().extend(tail);
     }
     if let Some(e) = err_opt {
         return Err(e);
@@ -4906,7 +4898,7 @@ fn eval_jq_limited(
 fn parse_jq_regex_args(
     arg: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<(String, String), String> {
     if let Some((pat_expr, flags_expr)) = split_jq_binary(arg, ";") {
         let pat = eval_jq(pat_expr.trim(), input, vars)?
@@ -5061,7 +5053,7 @@ fn eval_jq_splits_regex(
     s: &str,
     arg_expr: &str,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<JVal>, String> {
     let (pat, flags) = parse_jq_regex_args(arg_expr, input, vars)?;
     let (clean_pat, _) = parse_jq_regex_groups(&pat);
@@ -6532,8 +6524,10 @@ fn cmd_yq(
         for (k, v) in env {
             base_vars.insert(k.clone(), JVal::Str(v.clone()));
         }
+        let inputs = RefCell::default();
+        let mut base_vars = JqScope { bindings: base_vars, inputs: &inputs };
         for (idx, v) in vals.iter().enumerate() {
-            base_vars.insert("index".to_string(), JVal::Number(idx as f64));
+            base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));
             let name = eval_jq(s_exp, v, &base_vars)
                 .ok()
                 .and_then(|mut r| r.drain(..).next())
@@ -29497,7 +29491,7 @@ fn eval_jq_interpolated_strings_with_fmt(
     inner: &str,
     fmt_opt: Option<&str>,
     input: &JVal,
-    vars: &BTreeMap<String, JVal>,
+    vars: &JqScope<'_>,
 ) -> Result<Vec<String>, String> {
     let chars: Vec<char> = inner.chars().collect();
     let mut i = 0usize;
@@ -37589,6 +37583,27 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn concurrent_jq_commands_read_only_their_own_input() {
+        let start = std::sync::Barrier::new(4);
+        std::thread::scope(|scope| {
+            let mut jobs = Vec::new();
+            for value in ["a", "b", "c", "d"] {
+                let start = &start;
+                jobs.push(scope.spawn(move || {
+                    let input = format!("\"{value}\"\n").repeat(1024);
+                    let fs = MemoryVfs::new();
+                    start.wait();
+                    let r = cmd_jq_with_env(&args(&["-r", "."]), &input, "/", &BTreeMap::new(), &fs);
+                    assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+                    assert_eq!(r.stdout.lines().count(), 1024);
+                    assert!(r.stdout.lines().all(|line| line == value));
+                }));
+            }
+            for job in jobs { job.join().unwrap(); }
+        });
     }
 
     #[test]

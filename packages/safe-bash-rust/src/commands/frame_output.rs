@@ -254,22 +254,20 @@ pub(super) fn still_info(
         if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
         return Ok((w,h,b"mjpe"));
     }
-    if super::tiff::signature(bytes) {
-        let image = super::tiff::Tiff::parse(bytes, limit)?;
-        return Ok((image.width, image.height, b"tiff"));
-    }
     if super::netpbm::signature(bytes) {
         let image = super::netpbm::Netpbm::parse(bytes, limit)?;
         return Ok((image.width, image.height, image.codec()));
     }
-    if super::bmp::signature(bytes) {
-        return match super::bmp::Bmp::parse(bytes, limit) {
-            Ok(image) => Ok((image.width, image.height, b"bmp ")),
-            Err("Offset is outside the bounds of the DataView") if limit < 64 * 64 * 4 => {
-                Err("image exceeds memory budget")
-            }
-            Err("Offset is outside the bounds of the DataView") => Ok((64, 64, b"png ")),
-            Err(reason) => Err(reason),
+    let header=if super::bmp::signature(bytes) {
+        Some(super::bmp::Bmp::parse(bytes,limit).map(|im|(im.width,im.height,b"bmp ")))
+    }else if super::tiff::signature(bytes) {
+        Some(super::tiff::Tiff::parse(bytes,limit).map(|im|(im.width,im.height,b"tiff")))
+    }else{None};
+    if let Some(header)=header {
+        return match header {
+            Err("Offset is outside the bounds of the DataView") if limit < 64*64*4 => Err("image exceeds memory budget"),
+            Err("Offset is outside the bounds of the DataView") => Ok((64,64,b"png ")),
+            other => other,
         };
     }
     // image2 retains the PNG dimensions for a damaged image.

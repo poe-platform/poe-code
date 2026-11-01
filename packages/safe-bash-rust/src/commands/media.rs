@@ -13926,6 +13926,19 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn image2_uses_the_default_frame_for_a_truncated_tiff_directory() {
+        let fs=MemoryVfs::new();
+        for bytes in [b"II*\0".as_slice(),b"MM\0*\xff\xff\xff\xff"] {
+            fs.write_file("/b.tif",bytes).unwrap();
+            let run=|cmd:&str,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+            assert_eq!(run("ffprobe",&["-show_entries","stream=codec_name,width,height","-of","csv=p=0","b.tif"]).stdout,"png,64,64\n");
+            assert_eq!(run("ffmpeg",&["-y","-i","b.tif","b.ppm"]).exit_code,0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/b.ppm").unwrap())),"8e533b23db363eb341303a0516a07ce1043a7c09f30521044a49d9a48f0479fa");
+            assert_eq!(run("identify",&["b.tif"]).exit_code,1);
+        }
+    }
+
+    #[test]
     fn tiff_still_roundtrips_pixels_dimensions_and_codec() {
         let fs=MemoryVfs::new();
         let run=|cmd:&str,args:&[&str]| {

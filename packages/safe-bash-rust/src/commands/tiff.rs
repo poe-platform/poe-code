@@ -2,8 +2,7 @@ use super::png_pixels::Raster;
 use std::borrow::Cow;
 
 pub(super) fn signature(bytes: &[u8]) -> bool {
-    bytes.len() >= 8
-        && matches!(bytes.get(..4), Some(b"II*\0" | b"MM\0*"))
+    matches!(bytes.get(..4), Some(b"II*\0" | b"MM\0*"))
         && bytes.get(8..17) != Some(b"\n__IMG__:")
 }
 
@@ -201,7 +200,7 @@ impl<'a> Tiff<'a> {
         };
         let (width, height) = (get(256, 0), get(257, 0));
         if width == 0 || height == 0 {
-            return Err("invalid image dimensions");
+            return Err("Invalid TIFF dimensions");
         }
         if width.saturating_mul(height) > limit / 4 {
             return Err("image exceeds memory budget");

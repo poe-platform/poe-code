@@ -17001,7 +17001,7 @@ fn cmd_shuf(
                 return ok_out(include_str!("help/shuf.txt"));
             }
             if selected.1 == "version" {
-                return ok_out("shuf (GNU coreutils) 9.5\n");
+                return ok_out("shuf (virtual-bash, GNU coreutils 9.7 profile)\n");
             }
             if !selected.2 && eq_val.is_some() {
                 return err_out(
@@ -18589,7 +18589,7 @@ fn cmd_install(
                 return ok_out(include_str!("help/install.txt"));
             }
             if key == "version" {
-                return ok_out("install (Sandbox VFS-ish/GNU coreutils) 9.7\n");
+                return ok_out("install (safe-bash; GNU coreutils 9.7 target)\n");
             }
             if eq_val.is_some() && !req_arg && !opt_arg {
                 return err_out(

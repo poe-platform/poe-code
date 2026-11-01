@@ -19,6 +19,28 @@ fn new_pure_rust_shell(env: BTreeMap<String, String>) -> (Shell, MemoryVfs) {
 }
 
 #[test]
+fn version_flags_follow_each_command_provider() {
+    let (mut shell, _) = new_pure_rust_shell(BTreeMap::new());
+    for (command, version) in [
+        ("shuf", "virtual-bash, GNU coreutils 9.7 profile"),
+        ("install", "safe-bash; GNU coreutils 9.7 target"),
+        ("sqlite3", "3.45.0 2024-01-15"),
+        ("qpdf", "11.9.1 (@poe-code/pdf-ast)"),
+        ("wkhtmltopdf", "Qt compatibility unqualified"),
+    ] {
+        let result = shell.exec(&format!("{command} --version")).unwrap();
+        assert_eq!(result.exit_code, 0, "{command}: {}", result.stderr);
+        assert!(result.stdout.contains(version), "{command}: {}", result.stdout);
+    }
+    for (command, code) in [("mogrify", 0), ("compare", 2), ("montage", 1), ("composite", 1)] {
+        let result = shell.exec(&format!("{command} --version")).unwrap();
+        assert_eq!(result.exit_code, code, "{command}: {}", result.stderr);
+        assert!(result.stdout.is_empty());
+        if code != 0 { assert_eq!(result.stderr, format!("{command}: missing an image filename\n")); }
+    }
+}
+
+#[test]
 fn redirected_pipeline_writes_before_the_next_command() {
     let (mut shell, fs) = new_pure_rust_shell(BTreeMap::new());
     let result = shell.exec("(printf A | cat; cat output >&2; printf B) > output").unwrap();

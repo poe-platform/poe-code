@@ -20178,6 +20178,8 @@ fn cmd_sqlite3(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let mut i = 0usize;
     while i < args.len() {
         match args[i].as_str() {
+            "--" => { positional.extend_from_slice(&args[i + 1..]); break; }
+            "-version" | "--version" => return ok_out("3.45.0 2024-01-15 17:01:13 1066602b2b1976fe58b5150777cced894af17c803e068f5918390d6915b46e1d\n"),
             "-help" | "--help" => return ok_out(include_str!("help/sqlite3.txt")),
             "-csv" => {
                 mode = "csv".to_string();

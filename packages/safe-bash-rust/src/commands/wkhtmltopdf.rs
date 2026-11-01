@@ -34,7 +34,7 @@ pub(super) fn wkhtmltopdf(
                 i += 1;
             }
             "-V" | "--version" => {
-                information = Some("wkhtmltopdf 0.12.6 (safe-bash html-to-pdf)\n");
+                information = Some("wkhtmltopdf safe static adapter (source 024b2b2bb459dd904d15b911d04c6df4ff2c9031; Qt compatibility unqualified)\n");
                 i += 1;
             }
             "-h" | "-help" | "--help" => {

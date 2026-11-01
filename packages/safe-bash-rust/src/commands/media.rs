@@ -5939,7 +5939,7 @@ fn cmd_media_doc(
         }
         "qpdf" => {
             if args.iter().any(|a| a == "--version") {
-                return ok_out("qpdf version 11.9.0 (safe-bash pdf-ast)\n");
+                return ok_out("qpdf version 11.9.1 (@poe-code/pdf-ast)\n");
             }
             if args.iter().any(|a| a == "--help" || a == "-h" || a.starts_with("--help=")) {
                 return ok_out("Usage: qpdf [options] infile [outfile]\n");
@@ -9762,7 +9762,7 @@ fn cmd_media_doc(
                 if a == "--" {
                     break;
                 }
-                if a == "-version" || a == "--version" {
+                if !is_mogrify && (a == "-version" || a == "--version") {
                     return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
                 }
                 if a == "-help" || a == "--help" || a == "-h" {
@@ -10137,9 +10137,6 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
-                    "-version" | "--version" => {
-                        return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
-                    }
                     "-gravity" | "-geometry" | "-compose" | "-background" | "-quality"
                     | "-define" | "-dissolve" | "-blend" | "-watermark"
                         if i + 1 < args.len() =>
@@ -10203,9 +10200,6 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
-                    "-version" | "--version" => {
-                        return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
-                    }
                     "-tile" if i + 1 < args.len() => {
                         let t = &args[i + 1];
                         if let Some((cs, rs)) = t.split_once('x') {
@@ -10359,9 +10353,6 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 match args[i].as_str() {
-                    "-version" | "--version" => {
-                        return ok_out("Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n");
-                    }
                     "-help" | "--help" | "-h" => {
                         return ok_out("Usage: compare [-metric AE|MAE|MSE|RMSE|PSNR|SSIM|PAE|NCC] [-fuzz value%] [-highlight-color color] [-lowlight-color color] reference.png candidate.png diff.png\n");
                     }

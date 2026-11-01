@@ -10,12 +10,31 @@ pub(super) struct Geometry {
     subdivide: bool,
 }
 
+// ImageMagick offsets are one or two signed decimal numbers after the dimensions.
+pub(super) fn split_offsets(spec: &str) -> (&str, &str) {
+    let units = spec.trim().trim_end_matches(['%', '@', '!', '<', '>', '^']);
+    if let Some(at) = units.find(['+', '-']) {
+        let offset = &units[at..];
+        let mut parts = offset[1..].split(['+', '-']);
+        let decimal = |s: &str| {
+            let digits = |s: &str| !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit());
+            s.split_once('.')
+                .map_or_else(|| digits(s), |(a, b)| digits(a) && digits(b))
+        };
+        if parts.next().is_some_and(decimal)
+            && parts.next().is_none_or(decimal)
+            && parts.next().is_none()
+        {
+            return (&units[..at], offset);
+        }
+    }
+    (units, "")
+}
+
 impl Geometry {
     pub fn parse(spec: &str) -> Self {
         let raw = spec.trim();
-        let units = raw.trim_end_matches(['%', '@', '!', '<', '>', '^']);
-        let split = units.find(['+', '-']).unwrap_or(units.len());
-        let (dims, offset) = units.split_at(split);
+        let (dims, offset) = split_offsets(raw);
         let mut starts = offset.match_indices(['+', '-']).map(|(i, _)| i).peekable();
         let mut offset_number = || {
             starts

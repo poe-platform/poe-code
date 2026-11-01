@@ -1,13 +1,66 @@
 use super::{
-    SafeBashFs, gif, magick_color::Canvas, magick_coordinates::Gravity, png_pixels::Raster,
+    SafeBashFs, gif,
+    magick_color::Canvas,
+    magick_coordinates::{Geometry, Gravity},
+    magick_resize::Kernel,
+    png_pixels::Raster,
     resolve_posix_path,
 };
 use std::{ops::Range, rc::Rc};
 
 #[derive(Clone, Copy)]
+pub(super) enum Modifier<'a> {
+    None,
+    Pages(&'a str),
+    Crop(&'a str),
+    Resize(&'a str),
+}
+
+pub(super) fn input_spec(token: &str) -> (&str, Modifier<'_>) {
+    let Some((base, spec)) = token.strip_suffix(']').and_then(|s| s.rsplit_once('[')) else {
+        return (token, Modifier::None);
+    };
+    if spec.is_empty() || spec.contains(']') {
+        return (token, Modifier::None);
+    }
+    if spec.split(',').all(integer) || range(spec).is_some() {
+        (base, Modifier::Pages(spec))
+    } else if !super::magick_coordinates::split_offsets(spec).1.is_empty() {
+        (base, Modifier::Crop(spec))
+    } else {
+        (base, Modifier::Resize(spec))
+    }
+}
+
+fn integer(s: &str) -> bool {
+    let s = s.strip_prefix('-').unwrap_or(s);
+    !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit())
+}
+fn range(s: &str) -> Option<(&str, &str)> {
+    let (i, _) = s.char_indices().skip(1).find(|(_, c)| *c == '-')?;
+    let (a, b) = (&s[..i], &s[i + 1..]);
+    (integer(a) && integer(b)).then_some((a, b))
+}
+
+impl Modifier<'_> {
+    fn geometry(self, im: &mut Raster, kernel: Kernel, limit: usize) -> Result<(), &'static str> {
+        match self {
+            Self::Crop(g) if im.width != 0 && im.height != 0 => {
+                im.crop(Geometry::parse(g), Gravity::parse("northwest"))
+            }
+            Self::Crop(_) => return Err("internal error"),
+            Self::Resize(g) if im.width != 0 && im.height != 0 => im.resize(g, kernel, limit)?,
+            Self::Resize(_) => return Err("Invalid stored image dimensions"),
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Copy)]
 pub(super) enum Step<'a> {
-    Canvas(Canvas, (u32, u32)),
-    File(&'a str),
+    Canvas(Canvas, (u32, u32), Modifier<'a>, Kernel),
+    File(&'a str, Modifier<'a>, Kernel),
     Edit(&'a str, &'a str, usize),
     Append(bool, Gravity, [u8; 4]),
 }
@@ -172,34 +225,27 @@ impl Images {
     }
 }
 
-fn indices(spec: &str, len: usize, limit: usize) -> Result<Vec<usize>, &'static str> {
+fn indices(spec: &str, len: usize, limit: usize, clamp: bool) -> Result<Vec<usize>, &'static str> {
     let mut out = Vec::new();
     if len == 0 {
         return Ok(out);
     }
     let resolve = |v: f64| if v < 0. { len as f64 + v } else { v };
     for part in spec.split(',').map(str::trim) {
-        let integer = |s: &str| {
-            let s = s.strip_prefix('-').unwrap_or(s);
-            !s.is_empty() && s.bytes().all(|c| c.is_ascii_digit())
-        };
-        if let Some((offset, _)) = part.char_indices().skip(1).find(|(_, c)| *c == '-') {
-            let (a, b) = (&part[..offset], &part[offset + 1..]);
-            if integer(a) && integer(b) {
-                let cv = |s: &str| {
-                    resolve(s.parse().unwrap_or(f64::INFINITY)).clamp(0., (len - 1) as f64) as usize
-                };
-                let (a, b) = (cv(a), cv(b));
-                if out.len().saturating_add(a.abs_diff(b) + 1) > limit / size_of::<usize>() {
-                    return Err("frame index exceeds memory budget");
-                }
-                if a <= b {
-                    out.extend(a..=b);
-                } else {
-                    out.extend((b..=a).rev());
-                }
-                continue;
+        if let Some((a, b)) = range(part) {
+            let cv = |s: &str| {
+                resolve(s.parse().unwrap_or(f64::INFINITY)).clamp(0., (len - 1) as f64) as usize
+            };
+            let (a, b) = (cv(a), cv(b));
+            if out.len().saturating_add(a.abs_diff(b) + 1) > limit / size_of::<usize>() {
+                return Err("frame index exceeds memory budget");
             }
+            if a <= b {
+                out.extend(a..=b);
+            } else {
+                out.extend((b..=a).rev());
+            }
+            continue;
         }
         let prefix = part.strip_prefix(['+', '-']).unwrap_or(part);
         let digits = prefix.bytes().take_while(u8::is_ascii_digit).count();
@@ -211,6 +257,11 @@ fn indices(spec: &str, len: usize, limit: usize) -> Result<Vec<usize>, &'static 
                 .parse()
                 .unwrap_or(f64::INFINITY),
         );
+        let index = if clamp {
+            index.clamp(0., (len - 1) as f64)
+        } else {
+            index
+        };
         if (0. ..len as f64).contains(&index) {
             if out.len() >= limit / size_of::<usize>() {
                 return Err("frame index exceeds memory budget");
@@ -234,6 +285,7 @@ pub(super) fn evaluate(
     let mut stack: Vec<(Rc<Scene>, usize)> = Vec::new();
     let mut retained = 0usize;
     for (at, step) in steps {
+        let first = stack.len();
         let mut push = |im: Raster, timing| {
             retained = retained
                 .saturating_add(im.pixels.len().saturating_mul(4))
@@ -245,12 +297,17 @@ pub(super) fn evaluate(
             Ok(())
         };
         match step {
-            Step::Canvas(canvas, size) => push(canvas.raster(*size, limit)?, None)?,
-            Step::File(spec) => {
-                let path = spec.strip_prefix("png:").unwrap_or(spec);
+            Step::Canvas(canvas, size, modifier, kernel) => {
+                let mut im = canvas.raster(*size, limit)?;
+                modifier.geometry(&mut im, *kernel, limit)?;
+                push(im, None)?;
+            }
+            Step::File(spec, modifier, kernel) => {
+                let path = super::png_pixels::destination(spec).map_or(*spec, |(_, path)| path);
                 let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, path)) else {
                     return Ok(None);
                 };
+                let mut order = None;
                 if gif::signature(&bytes) && !bytes[6..].starts_with(b"\n__IMG__:") {
                     let mut delays = Vec::new();
                     let repeat = match gif::packets(&bytes, |delay, _| {
@@ -264,12 +321,51 @@ pub(super) fn evaluate(
                         Err(e @ "image exceeds memory budget") => return Err(e.into()),
                         Err(_) => None,
                     };
+                    let selected = if let Modifier::Pages(spec) = modifier {
+                        Some(indices(spec, delays.len().max(1), limit, true)?)
+                    } else {
+                        None
+                    };
+                    let mut unique = selected.clone().unwrap_or_default();
+                    unique.sort_unstable();
+                    unique.dedup();
                     let source = Rc::new(SourceTiming { delays, repeat });
-                    gif::scenes(&bytes, limit, |im| push(im, Some(source.clone())))?;
-                } else if let Some(im) = Raster::input(path, &bytes, limit)? {
+                    gif::scenes(&bytes, &unique, limit, |mut im| {
+                        modifier.geometry(&mut im, *kernel, limit)?;
+                        push(im, Some(source.clone()))
+                    })?;
+                    if let Some(selected) = selected {
+                        order = Some(
+                            selected
+                                .into_iter()
+                                .map(|idx| unique.binary_search(&idx).unwrap())
+                                .collect::<Vec<_>>(),
+                        );
+                    }
+                } else if let Some(mut im) = Raster::input(path, &bytes, limit)? {
+                    modifier.geometry(&mut im, *kernel, limit)?;
                     push(im, None)?;
+                    if let Modifier::Pages(spec) = modifier {
+                        order = Some(indices(spec, 1, limit, true)?);
+                    }
                 } else {
                     return Ok(None);
+                }
+                if let Some(order) = order {
+                    let scenes = stack.split_off(first);
+                    retained = retained.saturating_add(
+                        order
+                            .len()
+                            .saturating_sub(scenes.len())
+                            .saturating_mul(size_of::<(Rc<Scene>, usize)>()),
+                    );
+                    if retained > limit {
+                        return Err("image exceeds memory budget".into());
+                    }
+                    for idx in order {
+                        let scene = scenes.get(idx).ok_or("Invalid frame index")?;
+                        stack.push(scene.clone());
+                    }
                 }
             }
             Step::Edit(op, spec, count) if !stack.is_empty() => {
@@ -302,7 +398,7 @@ pub(super) fn evaluate(
                     }
                     "+delete" | "-delete" => {
                         let mut remove = vec![false; len];
-                        for i in indices(spec, len, limit)? {
+                        for i in indices(spec, len, limit, false)? {
                             remove[i] = true;
                         }
                         for ((scene, start), drop) in
@@ -326,7 +422,7 @@ pub(super) fn evaluate(
                         }
                     }
                     _ if *count > 0 => {
-                        let selected = indices(spec, len, limit)?;
+                        let selected = indices(spec, len, limit, false)?;
                         if !selected.is_empty() {
                             retained = retained.saturating_add(
                                 selected

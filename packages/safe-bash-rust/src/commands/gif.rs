@@ -269,7 +269,7 @@ fn indices(
 
 pub(super) fn decode(
     bytes: &[u8],
-    last: bool,
+    mut remaining_frames: usize,
     limit: usize,
     mut visit: impl FnMut(&[[u8; 4]], bool) -> Result<(), &'static str>,
 ) -> Result<Raster, &'static str> {
@@ -342,7 +342,7 @@ pub(super) fn decode(
                         std::mem::swap(&mut saved, &mut pixels);
                     }
                 }
-                if last {
+                if remaining_frames > 1 {
                     work = work
                         .checked_sub(n.saturating_add(if disposal == 3 { count } else { 0 }))
                         .ok_or("GIF pixel work limit exceeded")?;
@@ -387,7 +387,8 @@ pub(super) fn decode(
                 })?;
                 declared_alpha |= transparent.is_some();
                 visit(&pixels, declared_alpha)?;
-                if !last {
+                remaining_frames -= 1;
+                if remaining_frames == 0 {
                     break;
                 }
                 loop {
@@ -416,12 +417,20 @@ pub(super) fn decode(
 
 pub(super) fn scenes(
     bytes: &[u8],
+    pages: &[usize],
     limit: usize,
     mut visit: impl FnMut(Raster) -> Result<(), &'static str>,
 ) -> Result<(), &'static str> {
     let (w, h) = dimensions(bytes)?;
-    let mut seen = false;
-    let last = decode(bytes, true, limit, |rgba, declared_alpha| {
+    let mut seen = 0;
+    let frames = pages.last().map_or(usize::MAX, |last| last + 1);
+    let last = decode(bytes, frames, limit, |rgba, declared_alpha| {
+        let page = seen;
+        seen += 1;
+        if !pages.is_empty() && pages.binary_search(&page).is_err() {
+            return Ok(());
+        }
+
         let frame = Raster {
             width: w as usize,
             height: h as usize,
@@ -431,10 +440,9 @@ pub(super) fn scenes(
             orientation: None,
             pixels: rgba.to_vec(),
         };
-        seen = true;
         visit(frame)
     })?;
-    if !seen {
+    if seen == 0 {
         visit(last)?;
     }
     Ok(())
@@ -464,7 +472,7 @@ pub(super) fn edit_frames(
     };
     let mut pixels = Vec::new();
     let mut dims = (w as usize, h as usize);
-    scenes(bytes, limit, |mut frame| {
+    scenes(bytes, &[], limit, |mut frame| {
         transform(&mut frame)?;
         if frame.pixels.len().saturating_add(pixels.len()) > limit / 4 {
             return Err("image exceeds memory budget");
@@ -600,7 +608,7 @@ impl Animation {
             .ok_or("Cannot read properties of undefined (reading 'byteLength')")?
             .end = bytes.len();
         let mut slots = frames.iter_mut();
-        decode(bytes, true, *remaining, |pixels, _| {
+        decode(bytes, usize::MAX, *remaining, |pixels, _| {
             if let Some(frame) = slots.next() {
                 frame.pixels = pixels.to_vec();
             }

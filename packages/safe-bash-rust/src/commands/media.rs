@@ -143,11 +143,7 @@ fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
     let fill = s.contains('^');
     let shrink_only = s.contains('>');
     let enlarge_only = s.contains('<');
-    let clean = s
-        .trim_end_matches(['!', '^', '>', '<', '@'])
-        .split(['+', '-'])
-        .next()
-        .unwrap_or("");
+    let clean = magick_coordinates::split_offsets(s).0.trim_end_matches(['!', '^', '>', '<', '@']);
     if let Some((ws, hs)) = clean.split_once('x') {
         let tw_opt = if ws.is_empty() { None } else { ws.parse::<u32>().ok() };
         let th_opt = if hs.is_empty() { None } else { hs.parse::<u32>().ok() };
@@ -10095,14 +10091,15 @@ fn cmd_media_doc(
             let mut i = 0usize;
             while i < args.len() {
                 let arg = &args[i];
-                if i + 1 < args.len() && let Some(parsed) = Canvas::parse(arg) {
+                let (base,modifier)=magick_stack::input_spec(arg);
+                if i + 1 < args.len() && let Some(parsed) = Canvas::parse(base) {
                     if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
-                    if arg.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
+                    if base.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
                     canvas = Some((match parsed {
                         Ok(c) => c,
                         Err(e) => return err_out(&format!("magick: {e}\n"), 1),
                     },size_opt.unwrap_or((1,1))));
-                    if let Some((c,size))=canvas { stack_steps.push((ops.len(),magick_stack::Step::Canvas(c,size))); }
+                    if let Some((c,size))=canvas { stack_steps.push((ops.len(),magick_stack::Step::Canvas(c,size,modifier,kernel))); }
                     has_pseudo_input = true;
                     i += 1;
                     continue;
@@ -10248,7 +10245,7 @@ fn cmd_media_doc(
                     a if !a.starts_with('-') && !a.starts_with('+') =>
                     {
                         if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
-                        if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::File(a)));}
+                        if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::File(base,modifier,kernel)));}
                         pos_files.push(a.to_string());
                         i += 1;
                     }
@@ -10257,7 +10254,9 @@ fn cmd_media_doc(
                     }
                 }
             }
-            let use_stack=(!is_mogrify && stack_steps.len()>1) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
+            let use_stack=(!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
+                magick_stack::Step::Canvas(_,_,m,_)|magick_stack::Step::File(_,m,_)=>!matches!(m,magick_stack::Modifier::None),_=>false,
+            }))) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
             let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
                 // GIFs decode to four channels even if they did not declare transparency.
                 let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
@@ -10306,7 +10305,7 @@ fn cmd_media_doc(
                     };
                     let target;
                     let steps=if is_mogrify {
-                        target=std::iter::once((0,magick_stack::Step::File(input))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)))).collect::<Vec<_>>();
+                        target=std::iter::once((0,magick_stack::Step::File(input,magick_stack::Modifier::None,kernel))).chain(stack_steps.iter().copied().filter(|(_,s)|matches!(s,magick_stack::Step::Edit(..)|magick_stack::Step::Append(..)))).collect::<Vec<_>>();
                         &target[..]
                     } else { &stack_steps[..] };
                     let mut images=match magick_stack::evaluate(steps,ops.len(),transform,cwd,fs) {
@@ -10333,7 +10332,7 @@ fn cmd_media_doc(
                         }
                     }
                     let mut declared_alpha=false;
-                    match gif::decode(bytes,true,fs.max_input_bytes(), |_,alpha| {declared_alpha=alpha; Ok(())}) {
+                    match gif::decode(bytes,usize::MAX,fs.max_input_bytes(), |_,alpha| {declared_alpha=alpha; Ok(())}) {
                         Ok(mut im)=>{
                             im.alpha=declared_alpha || im.pixels.iter().any(|p| p[3]<255);
                             im
@@ -10453,7 +10452,7 @@ fn cmd_media_doc(
                 let out_rel = pos_files.last().unwrap();
                 for in_rel in &pos_files[..pos_files.len() - 1] {
                     if in_rel != "-" && !in_rel.contains(':') {
-                        let clean_in = in_rel.split('[').next().unwrap_or(in_rel.as_str());
+                        let clean_in = magick_stack::input_spec(in_rel).0;
                         let in_full = resolve_posix_path(cwd, clean_in);
                         if fs.is_dir(&in_full) || fs.read_file(&in_full).is_err() {
                             return err_out(&format!("magick: no images defined '{out_rel}'\n"), 1);
@@ -10466,7 +10465,7 @@ fn cmd_media_doc(
                 if use_stack || canvas.is_some() && pos_files.len()==1 {
                     if let Some(out)=raster_output("", &[], out_rel) {return out;}
                 } else if !has_pseudo_input && pos_files.len()==2 {
-                    let path=pos_files[0].strip_prefix("png:").unwrap_or(&pos_files[0]);
+                    let path=png_pixels::destination(&pos_files[0]).map_or(pos_files[0].as_str(), |(_, path)| path);
                     if let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) && let Some(out)=raster_output(path,&bytes,out_rel) {return out;}
                 }
                 let mut meta = if let Some(vertical) = append_mode
@@ -14409,6 +14408,44 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn convert_selects_input_pages_and_reads_inline_geometry() {
+        let fs=MemoryVfs::new();
+        let run=|s:&str|cmd_media_doc("convert",&media_args(&s.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("-size 4x2 xc:red gradient:blue-yellow xc:green -delay 9 -loop 5 a.gif").exit_code,0);
+        assert_eq!(run("-size 3x2 gradient:red-blue p.png").exit_code,0);
+        let mut damaged=fs.read_file("/a.gif").unwrap();
+        let second=damaged.windows(3).enumerate().filter(|(_,b)|*b==[33,249,4]).nth(1).unwrap().0+8;
+        assert_eq!(damaged[second],44);
+        damaged[second+5..second+9].fill(255);
+        fs.write_file("/damaged.gif",&damaged).unwrap();
+        assert_eq!(run("damaged.gif[0] first.png").exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/first.png").unwrap())),"0c1aae4c7011704567265408c11d2accff112c26fec421bf02b597daa89c9e7e");
+        for (cmd,hash) in [
+            ("-size 3x4 png:p.png[4x2-bad] -flop o.png","a9acd9e978a30667d3ebed0f0634311fe6b6fe79de439bd9cbff09ef371ca25b"),
+            ("-size 3x4 png:p.png[4x2+3+bad] -flop o.png","a9acd9e978a30667d3ebed0f0634311fe6b6fe79de439bd9cbff09ef371ca25b"),
+            ("-size 3x4 png:p.png[bad-2x3] -flop o.png","66813b21c84d48497037317cda10390000b72674aa460edbe3ab2944450685bd"),
+            ("-size 3x4 gif:a.gif o.gif","11611e7ab6edbcf8fd62c9faa3720674f716851e801645ad78bc76a82f4944bb"),
+            ("-size 3x4 tiff:p.png o.gif","29d84a2fa01b009e125f6bccd882266c141497ebe987ca2a67fe3af3c638fb48"),
+            ("-size 3x4 a.gif[0] o.gif","ced756a47d160c581e57027bd62459333177d44f7f2dbaff5994103112e25bc1"),
+            ("-size 3x4 a.gif[1] -flop o.png","9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f"),
+            ("-size 3x4 a.gif[-1] o.gif","5bd9b0d504dc721ebce2253ff1ae91f8a5ec74bc4b6950f1c5a4a93253da9903"),
+            ("-size 3x4 a.gif[1,0,1] -flop o.png","9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f"),
+            ("-size 3x4 a.gif[2-0] o.gif","f24e76fd844e5ce005439e725b20077d5ffbcb8e6aef0924588d617b886e216c"),
+            ("-size 3x4 a.gif[2x3!] -flop o.png","63abc1ecd3aae1b97d2603457f9801a1f3e5ae1e01deb9749ef2d3590c7c9f6d"),
+            ("-size 3x4 a.gif[2x1+1+1] o.gif","60386cd6868c95d289159314b46a71ba4f24e67ae43fcc6269d51cad8a3568f5"),
+            ("-size 3x4 a.gif[2x1-1-2] o.gif","3244649848df61f135a2d0b6b636393693987b002cd1edb1c787bfb415293b76"),
+            ("-size 3x4 p.png[1,0,1] o.gif","f381ef1094235814ef68ee557f1bff625d5530810deef146d59ce01ab4453eef"),
+            ("-size 3x4 xc:red[2x3!] -flop o.png","5113afd9d08da0b2e993d8ea14ee3076d32483bac1edaea9519dce2f96cba92c"),
+            ("-size 3x4 gradient:blue-yellow[1,0,1] -flop o.png","23ddd41c6210ed93851ddad4660d88cdcd203ed41eb1dd54ae429d39d162e3ee"),
+            ("-size 3x4 gradient:blue-yellow[notgeometry] o.gif","af0a0013d43b114cc729612902b3bb4c7f73189a7d14db417d6121bfd7b21b16")
+        ] {
+            assert_eq!(run(cmd).exit_code,0,"{cmd}");
+            let path=format!("/{}",cmd.split_whitespace().last().unwrap());
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&path).unwrap())),hash,"{cmd}");
         }
     }
 

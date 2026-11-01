@@ -29486,7 +29486,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     } else { None };
     let graph = if graph_family {
-        match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, wrapping_width, limit) {
+        match mermaid::parse(&scanned, &mut acc_title, &mut acc_descr, wrapping_width, num_token("secondaryFontSize").unwrap_or(11.5), limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
@@ -38365,6 +38365,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
                 assert_eq!(fs.read_file("/chart.svg").unwrap(), b"previous");
             }
         }
+    }
+
+    #[test]
+    fn mmdc_renders_theme_geometry_for_nodes_labels_and_connectors() {
+        assert_mermaid_outputs(&[
+            ("%%{init: {\"theme\":{\"light\":{\"fontSize\":16.25}}}}%%\nflowchart TD; title Sizes; A[Review the summer release] -->|on request| B{Ship?}; B --> C & D & E & F & G", "svg", "6071cb50db15a99a1e0b536af1b0c33b3650840de46739489063df9759e1fd84"),
+            ("%%{init: {\"theme\":{\"light\":{\"fontSize\":16.25}}}}%%\nflowchart TD; title Sizes; A[Review the summer release] -->|on request| B{Ship?}; B --> C & D & E & F & G", "png", "127b8c1b635d635c4eadb46e5f1bf5f0bc7f310b10c421192391f216d668a11d"),
+            ("%%{init: {\"theme\":{\"light\":{\"fontSize\":16.25}}}}%%\nflowchart TD; title Sizes; A[Review the summer release] -->|on request| B{Ship?}; B --> C & D & E & F & G", "pdf", "272bcb5b122184029cd49276fd25ae2781474196b354efc58fcbe299c239fa8c"),
+            ("%%{init: {\"theme\":{\"light\":{\"secondaryFontSize\":15.5}}}}%%\nflowchart TD; title Sizes; A[Review the summer release] -->|on request| B{Ship?}; B --> C & D & E & F & G", "svg", "9339dc31013b2997fd9a6bfe6bebbb6ef44a4ae5ececbf14b09b32291dcc3ef9"),
+            ("%%{init: {\"theme\":{\"light\":{\"lineHeight\":25.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "svg", "70dee28e62d502395b28d506b6d22b82834838137d3e567070ea6edfb39f9789"),
+            ("%%{init: {\"theme\":{\"light\":{\"strokeWidth\":3.125}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "svg", "5b40f86e2d7543431ed704a0b8860fcb405d39a41a41d614c03fe182efe16e6e"),
+            ("%%{init: {\"theme\":{\"light\":{\"strokeWidth\":3.125}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "png", "359b084babd12fd3674632ac9cd0d53e6e5663d03d07a5244ebb37e93d935d6a"),
+            ("%%{init: {\"theme\":{\"light\":{\"strokeWidth\":3.125}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "pdf", "c9e832ce8d278f64ab9e241801e9e9f044099d6bae83bfdf07be0b7d2a4106ec"),
+            ("%%{init: {\"theme\":{\"light\":{\"cornerRadius\":21.75}}}}%%\nflowchart TD; title Sizes; A[Review the summer release] -->|on request| B{Ship?}; B --> C & D & E & F & G", "svg", "7e00ca36aea785b41bd79ec4102e9bfd43657d0156c9d18cdaa2e9997ac6e2ef"),
+            ("%%{init: {\"theme\":{\"light\":{\"elbowRadius\":3.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "svg", "bdb0550d32e4e3ec3bd694752c5d00e8c2fa919a825bf8a5a57e7e7201a181b5"),
+            ("%%{init: {\"theme\":{\"light\":{\"elbowRadius\":3.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "png", "953f5ae4cb4a29ff2474b53841ba61fef6f86f987367dc5d11a7070f7e1ae3c1"),
+            ("%%{init: {\"theme\":{\"light\":{\"elbowRadius\":3.5}}}}%%\nflowchart LR; A[(Store)] -->|*| B[[Queue]]; B-->C([Done]); C-->C", "pdf", "da8f01bef66901d56b805c7734e8cca917bef00a7d0ab8c545e537784a6c7f0c"),
+        ]);
     }
 
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {

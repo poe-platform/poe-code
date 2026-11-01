@@ -23,7 +23,7 @@ fn towards(a: Point, b: Point, dist: f64) -> Point {
     )
 }
 impl Route {
-    pub fn rounded(points: &mut [Point], start_arrow: bool, end_arrow: bool) -> Self {
+    pub fn rounded(points: &mut [Point], start_arrow: bool, end_arrow: bool, elbow: f64) -> Self {
         let last = points.len() - 1;
         for (i, j, arrow) in [(0, 1, start_arrow), (last, last - 1, end_arrow)] {
             if arrow && (points[i].0 - points[j].0).hypot(points[i].1 - points[j].1) > 7.8 {
@@ -33,7 +33,7 @@ impl Route {
         let mut segments = Vec::new();
         for triple in points.windows(3) {
             let (a, b, c) = (triple[0], triple[1], triple[2]);
-            let r = 10_f64
+            let r = elbow
                 .min((a.0 - b.0).hypot(a.1 - b.1) * 0.45)
                 .min((c.0 - b.0).hypot(c.1 - b.1) * 0.45);
             if r < 1. {
@@ -102,7 +102,7 @@ fn port(
     } else {
         (w / 2., h / 2.)
     };
-    let allowance = (f64::from(node.radius) + 4.).min(w.min(h) * 0.3);
+    let allowance = (node.radius + 4.).min(w.min(h) * 0.3);
     let spacing = if count < 2 {
         0.
     } else {

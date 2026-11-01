@@ -59,7 +59,7 @@ struct Node {
     to: Vec<usize>,
     loops: usize,
     parallel: bool,
-    radius: i32,
+    radius: f64,
 }
 impl Node {
     fn center(&self, x: bool) -> i32 {
@@ -228,11 +228,17 @@ fn dimensions(
     horizontal: bool,
     wrapping_width: f64,
     remaining_lines: &mut usize,
+    font_size: f64,
+    line_height: f64,
+    corner: f64,
 ) -> Option<()> {
     let tallest;
-    (n.lines, tallest) = text_block(&n.label, 13., false, wrapping_width, *remaining_lines)?;
+    (n.lines, tallest) = text_block(&n.label, font_size, false, wrapping_width, *remaining_lines)?;
     *remaining_lines -= n.lines.len();
-    let text_height = n.lines.len() as f64 * 20.;
+    let text_height = n.lines.len() as f64 * line_height;
+    if tallest.max(text_height) > f64::from(i32::MAX / 16) {
+        return None;
+    }
     (n.w, n.h) = match n.shape {
         Shape::Diamond => (
             snap((tallest + 36.) * 1.68).max(120),
@@ -252,10 +258,10 @@ fn dimensions(
         _ => (snap(tallest + 36.).max(88), snap(text_height + 22.).max(40)),
     };
     n.radius = match n.shape {
-        Shape::Circle | Shape::Stadium => n.h / 2,
-        Shape::Diamond => 4,
-        Shape::Rounded => 12,
-        _ => 8,
+        Shape::Circle | Shape::Stadium => f64::from(n.h / 2),
+        Shape::Diamond => 4.,
+        Shape::Rounded => 12.,
+        _ => corner,
     };
     let degree = n.from.len().max(n.to.len());
     if degree > 4 {
@@ -431,7 +437,12 @@ struct Pill {
     lines: Vec<String>,
 }
 impl Pill {
-    fn new(label: &str, wrapping_width: f64, max_lines: usize) -> Option<Self> {
+    fn new(
+        label: &str,
+        wrapping_width: f64,
+        secondary_size: f64,
+        max_lines: usize,
+    ) -> Option<Self> {
         let short = label.len() <= 4
             && label
                 .bytes()
@@ -439,15 +450,18 @@ impl Pill {
         let (size, weight, radius, pad) = if short {
             (11., 600, 4, 16.)
         } else {
-            (11.5, 500, 5, 18.)
+            (secondary_size, 500, 5, 18.)
         };
         let (lines, text_width) = text_block(label, size, short, wrapping_width, max_lines)?;
         let rank_size = if short {
-            let (rank_lines, w) = text_block(label, 11.5, false, wrapping_width, 4)?;
+            let (rank_lines, w) = text_block(label, secondary_size, false, wrapping_width, 4)?;
             (w, rank_lines.len() as f64 * 16.)
         } else {
             (text_width, lines.len() as f64 * 16.)
         };
+        if text_width.max(rank_size.0) > f64::from(i32::MAX / 16) {
+            return None;
+        }
         Some(Self {
             size,
             weight,
@@ -499,6 +513,7 @@ pub(super) fn parse<'a>(
     title: &mut Option<String>,
     description: &mut Option<String>,
     wrapping_width: f64,
+    secondary_size: f64,
     limit: usize,
 ) -> Option<Result<Graph<'a>, String>> {
     let mut stmts = lines.iter();
@@ -683,7 +698,12 @@ pub(super) fn parse<'a>(
             let pill = if label.is_empty() {
                 None
             } else {
-                let Some(pill) = Pill::new(&label, wrapping_width, remaining_lines / count) else {
+                let Some(pill) = Pill::new(
+                    &label,
+                    wrapping_width,
+                    secondary_size,
+                    remaining_lines / count,
+                ) else {
                     return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
                 };
                 remaining_lines -= pill.lines.len() * count;
@@ -760,8 +780,23 @@ pub(super) fn layout(
     }
     let horizontal = matches!(dir, "LR" | "RL");
     let reversed = matches!(dir, "BT" | "RL");
+    let font_size = theme.numbers.get("fontSize").copied().unwrap_or(13.);
+    let line_height = theme.numbers.get("lineHeight").copied().unwrap_or(20.);
+    let corner = theme.numbers.get("cornerRadius").copied().unwrap_or(8.);
+    let elbow = theme.numbers.get("elbowRadius").copied().unwrap_or(10.);
+    let stroke_width = theme.numbers.get("strokeWidth").copied().unwrap_or(1.25);
     for n in &mut nodes {
-        if dimensions(n, horizontal, wrapping_width, &mut remaining_lines).is_none() {
+        if dimensions(
+            n,
+            horizontal,
+            wrapping_width,
+            &mut remaining_lines,
+            font_size,
+            line_height,
+            corner,
+        )
+        .is_none()
+        {
             return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
         }
     }
@@ -921,13 +956,13 @@ pub(super) fn layout(
         let start_arrow = op.starts_with('<');
         let stroke = styled
             .width
-            .unwrap_or(if op.contains("==") { 2.25 } else { 1.25 });
+            .unwrap_or(stroke_width + f64::from(u8::from(op.contains("=="))));
         let dash = if op.contains('.') {
             r#" stroke-dasharray="5 4""#
         } else {
             ""
         };
-        let route = route::Route::rounded(&mut points, start_arrow, arrow);
+        let route = route::Route::rounded(&mut points, start_arrow, arrow, elbow);
         let path = route.svg();
         edge_paint.push(Paint::Edge {
             route,
@@ -1031,7 +1066,7 @@ pub(super) fn layout(
             let cx = (left + w / 2.).round();
             for (i, text) in lines.into_iter().enumerate().filter(|(_, t)| !t.is_empty()) {
                 let baseline = top + if short { 14. } else { 15. } + i as f64 * 16.;
-                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&text)).ok()?;
+                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(size),esc(&text)).ok()?;
                 pill_paint.push(Paint::Text {
                     start: cx - measure(&text, size, short) / 2.,
                     baseline,
@@ -1083,7 +1118,7 @@ pub(super) fn layout(
         ) {
             return Some(Err(e));
         }
-        let thickness = styled.width.unwrap_or(1.25);
+        let thickness = styled.width.unwrap_or(stroke_width);
         let radius = n.radius;
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
@@ -1091,7 +1126,7 @@ pub(super) fn layout(
             shadow: Some(shadow),
             style: BoxStyle {
                 header: None,
-                radius: radius.into(),
+                radius,
                 fill: fill_rgba,
                 border: border_rgba,
                 thickness,
@@ -1139,7 +1174,7 @@ pub(super) fn layout(
                 write!(el, r#"<path d="{path}" {style}/>"#).ok()?;
             }
             _ => {
-                let rx = radius;
+                let rx = nonnegative_number(radius);
                 write!(
                     el,
                     r#"<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" {style}/>"#
@@ -1160,20 +1195,27 @@ pub(super) fn layout(
                 write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,divider).ok()?;
             }
         }
-        let first_y =
-            cy - (n.lines.len() as i32) * 10 + 14 + if n.shape == Shape::Cylinder { 8 } else { 0 };
-        for (i, line) in n.lines.iter().enumerate() {
-            if !line.is_empty() {
-                paint.push(Paint::Text {
-                    start: f64::from(cx) - measure(line, 13., false) / 2.,
-                    baseline: f64::from(first_y + i as i32 * 20),
-                    size: 13.,
-                    weight: 500,
-                    color: text_rgba,
-                    text: line.clone(),
-                });
-                write!(el,r#"<text x="{cx}" y="{}" fill="{color}" font-family="{font}" font-size="13" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,first_y+i as i32*20,esc(line)).ok()?;
-            }
+        let first_y = f64::from(y)
+            + (f64::from(h) - n.lines.len() as f64 * line_height) / 2.
+            + font_size
+            + 1.
+            + if n.shape == Shape::Cylinder { 8. } else { 0. };
+        for (i, line) in n
+            .lines
+            .iter()
+            .enumerate()
+            .filter(|(_, line)| !line.is_empty())
+        {
+            let baseline = (first_y + i as f64 * line_height + 0.5).floor();
+            paint.push(Paint::Text {
+                start: f64::from(cx) - measure(line, font_size, false) / 2.,
+                baseline,
+                size: font_size,
+                weight: 500,
+                color: text_rgba,
+                text: line.clone(),
+            });
+            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(font_size),esc(line)).ok()?;
         }
         el.push_str("</g>");
         if let Some(href) = hrefs.get(n.id.as_str()) {

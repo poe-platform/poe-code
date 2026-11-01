@@ -1889,11 +1889,21 @@ export function buildProbeResultFromDoc(
     const track = doc.tracks[idx]!;
     const materialized = materializeTrackSamples(track);
     const desc = materialized.codecDescriptions[0];
+    let firstPts = materialized.samples[0]?.pts ?? 0;
+    if (track.editList?.length) {
+      // Edits place media on the movie timeline; only leading empty edits delay it.
+      let delay = 0;
+      for (const edit of track.editList) {
+        if (edit.mediaTime >= 0) break;
+        delay += edit.segmentDuration;
+      }
+      firstPts = Math.round(delay * track.timescale / Math.max(1, doc.timescale));
+    }
     const stream = buildProbeStream(track, desc, {
       totalBytes: materialized.samples.reduce((total, sample) => total + sample.size, 0),
       count: materialized.samples.length,
       ticks: materialized.samples.reduce((total, sample) => total + sample.duration, 0),
-      firstPts: materialized.samples[0]?.pts ?? 0,
+      firstPts,
       hasCts: materialized.samples.some(sample => sample.cts !== 0)
     }, idx, doc.containerFormat);
     streams.push(stream);

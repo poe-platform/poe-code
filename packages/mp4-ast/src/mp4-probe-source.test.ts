@@ -38,3 +38,38 @@ it('source aggregates preserve composition offsets, edit duration and handler te
     assert.deepEqual(await resident(await api.probeMp4Source(source,{syncSamples})),api.probeMp4(bytes));
   }
 });
+
+for (const reader of ['resident', 'source']) {
+  for (const fragmented of [false, true]) {
+    it(`${reader} stream starts use the edit presentation timeline: fragmented=${fragmented}`, async () => {
+      const base = api.parseMp4(api.createSyntheticMp4({ width: 16, height: 16, fps: 10, frameCount: 10, includeAudio: true }));
+      for (const movieTimescale of [1000, 768000]) {
+        for (const scenario of ['no edits', 'encoder lead-in', 'trim', 'delay', 'two delays']) {
+          const tracks = base.tracks.map(track => {
+            const offset = track.type === 'video' ? track.timescale / 5 : 0;
+            const edit = (duration: number, mediaTime: number) => ({ segmentDuration: Math.round(duration * movieTimescale), mediaTime, mediaRateInteger: 1, mediaRateFraction: 0 });
+            const mediaTime = scenario === 'trim' ? track.timescale / 2 : track.type === 'audio' ? 1024 : offset;
+            const editList = scenario === 'no edits' ? undefined : [
+              ...(scenario === 'delay' ? [edit(0.75, -1)] : scenario === 'two delays' ? [edit(0.25, -1), edit(0.5, -1)] : []),
+              edit(1, mediaTime)
+            ];
+            return { ...track, editList, samples: track.samples.map(sample => ({ ...sample, pts: sample.pts + offset, cts: sample.cts + offset })) };
+          });
+          const bytes = api.serializeMp4({ ...base, timescale: movieTimescale, tracks }, { fragmented });
+          const probe = reader === 'resident' ? api.probeMp4(bytes) : await api.probeMp4Source({
+            size: bytes.length,
+            async read(offset, length) { assert.ok(length <= 16384); return bytes.slice(offset, offset + Math.min(length, 31)); }
+          }, { syncSamples });
+          let index = 0;
+          for await (const stream of probe.streams) {
+            const track = tracks[index++]!;
+            const start = scenario === 'no edits' ? track.samples[0]!.pts : scenario.includes('delay') ? Math.round(track.timescale * 0.75) : 0;
+            assert.equal(stream.start_pts, start, `${scenario}: ${track.type}, movie scale ${movieTimescale}`);
+            assert.equal(stream.start_time, (start / track.timescale).toFixed(6));
+          }
+          assert.equal(index, tracks.length);
+        }
+      }
+    });
+  }
+}

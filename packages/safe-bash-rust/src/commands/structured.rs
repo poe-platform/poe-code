@@ -1775,20 +1775,30 @@ fn eval_jq_if(
         None
     };
 
-    for (cond_s, then_s) in clauses {
-        let cond_val = eval_jq(cond_s.trim(), input, vars)?
-            .first()
-            .map(|v| v.is_truthy())
-            .unwrap_or(false);
-        if cond_val {
-            return eval_jq(then_s.trim(), input, vars);
+    // Each false result starts a fresh evaluation of the next elif; an empty
+    // condition produces no branch. Keep those evaluations in output order.
+    let fallback = else_branch.as_deref().unwrap_or(".").trim();
+    let Some((condition, _)) = clauses.first() else { return eval_jq(fallback, input, vars); };
+    let mut pending = vec![eval_jq(condition.trim(), input, vars)?.into_iter()];
+    let mut out = Vec::new();
+    let mut steps = 0;
+    let max_steps = crate::ShellLimits::default().max_loop_iterations;
+    while !pending.is_empty() {
+        let next = pending.len();
+        let results = &mut pending[next - 1];
+        let Some(condition) = results.next() else { pending.pop(); continue };
+        steps += 1;
+        if steps > max_steps { return Err("maxSteps limit exceeded".into()); }
+        if condition.is_truthy() {
+            out.extend(eval_jq(clauses[next - 1].1.trim(), input, vars)?);
+        } else if let Some((condition, _)) = clauses.get(next) {
+            let values = eval_jq(condition.trim(), input, vars)?;
+            pending.push(values.into_iter());
+        } else {
+            out.extend(eval_jq(fallback, input, vars)?);
         }
     }
-    if let Some(else_s) = else_branch {
-        eval_jq(else_s.trim(), input, vars)
-    } else {
-        Ok(vec![input.clone()])
-    }
+    Ok(out)
 }
 
 fn eval_jq_object_construct(

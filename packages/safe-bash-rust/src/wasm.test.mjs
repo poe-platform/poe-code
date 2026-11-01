@@ -3,6 +3,20 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq evaluates each condition result and emits nothing for an empty condition", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout] of [
+      ["if empty then 1 else 2 end", ""],
+      ['if (true,false,true) then "a" elif (false,true) then "b" else "c" end', '"a"\n"c"\n"b"\n"a"\n'],
+      ["if (null,true,false) then 9 end", "null\n9\nnull\n"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""]);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq keeps the first named argument and skips duplicate file operands", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/values": "42" } });
   try {

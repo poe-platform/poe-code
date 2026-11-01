@@ -201,10 +201,17 @@ impl Stream<'_> {
     }
 }
 
+#[derive(Clone, Copy)]
+struct TimedFrame {
+    index: usize,
+    pts: f64,
+    duration: f64,
+}
+
 pub(super) fn encode(
     w: usize,
     h: usize,
-    mut fps: f64,
+    fps: f64,
     count: usize,
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
@@ -214,11 +221,21 @@ pub(super) fn encode(
     if opts.no_video {
         return Ok(header(64, 64, 10));
     }
-    let mut ids: Vec<usize> = (0..count)
-        .filter(|i| {
-            (*i + 1) as f64 / fps > opts.start && opts.end.is_none_or(|t| (*i as f64 / fps) < t)
-        })
-        .collect();
+    let duration = 1. / fps;
+    let mut frames = Vec::new();
+    for index in 0..count {
+        let pts = index as f64 / fps;
+        if pts + duration > opts.start && opts.end.is_none_or(|t| pts < t) {
+            if frames.len() >= opts.limit / size_of::<TimedFrame>() {
+                return Err("frame index exceeds memory budget");
+            }
+            frames.push(TimedFrame {
+                index,
+                pts: (pts - opts.start).max(0.),
+                duration,
+            });
+        }
+    }
     let mut ops = Vec::new();
     for stage in opts
         .filters
@@ -228,22 +245,54 @@ pub(super) fn encode(
     {
         let (key, arg) = stage.split_once('=').unwrap_or((stage, ""));
         match key {
-            "reverse" => ids.reverse(),
-            "fps" if !ids.is_empty() => {
+            "reverse" | "setpts" => {
+                let mut factor = 1.;
+                if key == "reverse" {
+                    frames.reverse();
+                } else {
+                    let expr = arg.trim_start_matches("expr=").trim().to_ascii_uppercase();
+                    if let Some(mult) = expr
+                        .strip_suffix("PTS")
+                        .and_then(|s| s.trim_end().strip_suffix('*'))
+                    {
+                        factor = mult.trim().parse().ok().filter(|v| *v != 0.).unwrap_or(1.);
+                    } else if let Some(div) = expr
+                        .strip_prefix("PTS")
+                        .and_then(|s| s.trim_start().strip_prefix('/'))
+                    {
+                        factor = 1. / div.trim().parse().ok().filter(|v| *v != 0.).unwrap_or(1.);
+                    }
+                }
+                let mut pts = 0.;
+                for f in &mut frames {
+                    f.pts = pts;
+                    if key == "setpts" {
+                        f.duration = (f.duration * factor).max(0.001);
+                    }
+                    pts += f.duration;
+                }
+            }
+            "fps" if !frames.is_empty() => {
                 let rate = arg
                     .trim_start_matches("fps=")
                     .parse::<f64>()
                     .ok()
                     .filter(|v| *v > 0.)
                     .unwrap_or(25.);
-                let n = (ids.len() as f64 / fps * rate).round().max(1.) as usize;
-                if n > opts.limit / size_of::<usize>() {
+                let total: f64 = frames.iter().map(|f| f.duration).sum();
+                let n = (total * rate).round().max(1.) as usize;
+                if n > opts.limit / size_of::<TimedFrame>() {
                     return Err("frame index exceeds memory budget");
                 }
-                ids = (0..n)
-                    .map(|i| ids[(i as u64 * ids.len() as u64 / n as u64) as usize])
+                frames = (0..n)
+                    .map(|i| TimedFrame {
+                        index: frames
+                            [((i as f64 / n as f64) * frames.len() as f64).floor() as usize]
+                            .index,
+                        pts: i as f64 / rate,
+                        duration: 1. / rate,
+                    })
                     .collect();
-                fps = rate;
             }
             "trim" => {
                 let mut start = 0.;
@@ -262,28 +311,29 @@ pub(super) fn encode(
                         }
                     }
                 }
-                let mut i = 0;
-                ids.retain(|_| {
-                    let pts = i as f64 / fps;
-                    i += 1;
-                    pts + 1. / fps > start && pts < duration.map_or(end, |d| start + d)
+                let end = duration.map_or(end, |d| start + d);
+                frames.retain_mut(|f| {
+                    let keep = f.pts + f.duration > start && f.pts < end;
+                    f.pts = (f.pts - start).max(0.);
+                    keep
                 });
             }
             _ => ops.push(super::video_filter::Filter::new(key, arg)),
         }
     }
     if let Some(n) = opts.frames {
-        ids.truncate(n.max(1) as usize);
+        frames.truncate(n.max(1) as usize);
     }
-    if ids.is_empty() {
+    if frames.is_empty() {
         return Ok(header(w, h, 30));
     }
     if w.saturating_mul(h) > opts.limit / 4 {
         return Err("image exceeds memory budget");
     }
     let mut out = Vec::new();
-    for id in ids {
-        let mut im = image(id)?;
+    let fps = 1. / frames[0].duration;
+    for frame in frames {
+        let mut im = image(frame.index)?;
         for op in &ops {
             op.apply(&mut im, opts.limit)?;
         }

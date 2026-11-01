@@ -4426,7 +4426,7 @@ fn cmd_media_doc(
             let mut fc_flag = String::new();
             let mut ar_opt: Option<u32> = None;
             let mut ac_opt: Option<u32> = None;
-            let mut framerate_opt: Option<u32> = None;
+            let (mut input_fps,mut output_fps)=(None,None);
             let mut ss_opt: Option<f64> = None;
             let mut to_opt: Option<f64> = None;
             let mut t_opt: Option<f64> = None;
@@ -4484,7 +4484,8 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-framerate" | "-r" if i + 1 < args.len() => {
-                        framerate_opt = args[i + 1].parse::<f64>().ok().map(|v| v.round() as u32);
+                        let fps=args[i+1].parse::<f64>().ok().filter(|v|v.is_finite() && *v!=0.).unwrap_or(25.);
+                        if args[i+2..].iter().any(|a|a=="-i"){input_fps=Some(fps);}else{output_fps=Some(fps);}
                         i += 2;
                     }
                     "-ss" if i + 1 < args.len() => {
@@ -4582,7 +4583,7 @@ fn cmd_media_doc(
                 let output=if y4m_output && (generator.is_some() || format==Some("y4m")) {
                     if !video_copy {
                         if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
-                        if let Some(fps)=framerate_opt {vf_flags.push(format!("fps={fps}"));}
+                        if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                     }
                     let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
                     let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some())}
@@ -4659,8 +4660,8 @@ fn cmd_media_doc(
                         }
                     }
                     doc.nb_frames = count.max(1);
-                    if let Some(fr) = framerate_opt {
-                        doc.fps = fr;
+                    if let Some(fr) = input_fps {
+                        doc.fps = fr.round() as u32;
                     }
                     doc.duration = (doc.nb_frames as f64) / (doc.fps.max(1) as f64);
                     parsed_input_docs.push(doc.clone());
@@ -4801,8 +4802,8 @@ fn cmd_media_doc(
             if let Some(ch) = ac_opt {
                 doc.channels = ch;
             }
-            if let Some(fr) = framerate_opt {
-                doc.fps = fr;
+            if let Some(fr) = output_fps {
+                doc.fps = fr.round() as u32;
                 doc.nb_frames = ((doc.fps as f64) * doc.duration).round().max(1.0) as u32;
             }
             if let Some(dur) = t_opt {
@@ -12852,6 +12853,26 @@ mod media_unit_tests {
         let args = media_args(&["-n","-y","-i","-","out.aac"]);
         assert_eq!(cmd_media_doc("ffmpeg",&args,&input,"/",&fs).exit_code,0);
         assert_eq!(fs.read_file("/out.aac").unwrap(),crate::vfs::stream_string_to_bytes(&input));
+    }
+
+    #[test]
+    fn ffmpeg_retains_frame_times_across_trims_and_rate_changes() {
+        let fs=MemoryVfs::new();
+        let mut clip=b"YUV4MPEG2 W1 H1 F4:1\n".to_vec();
+        for y in [30,50,70,90,110]{ clip.extend(b"FRAME\n");clip.extend([y,128,128]); }
+        fs.write_file("/in",&clip).unwrap();
+        for (args,rate,luma) in [
+            (vec!["-i","in","-r","2.5"],3,vec![30,50,90]),
+            (vec!["-i","in","-vf","setpts=PTS/2,fps=4"],4,vec![30,50,90]),
+            (vec!["-i","in","-vf","trim=start=0.2:duration=0.5,trim=start=0.47:end=0.6"],4,vec![70]),
+            (vec!["-r","2.5","-i","in"],4,vec![30,50,70,90,110]),
+        ] {
+            let cmd=[&["-y"][..],args.as_slice(),&["o.y4m"]].concat();
+            assert_eq!(cmd_media_doc("ffmpeg",&media_args(&cmd),"","/",&fs).exit_code,0);
+            let mut expected=format!("YUV4MPEG2 W1 H1 F{rate}:1 Ip A1:1 C420jpeg\n").into_bytes();
+            for y in luma {expected.extend(b"FRAME\n");expected.extend([y,128,128]);}
+            assert_eq!(fs.read_file("/o.y4m").unwrap(),expected,"{args:?}");
+        }
     }
 
     #[test]

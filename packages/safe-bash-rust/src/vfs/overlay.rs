@@ -519,6 +519,23 @@ mod tests {
     }
 
     #[test]
+    fn copying_up_timestamps_updates_the_root_and_existing_parent_once() {
+        let lower = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        lower.write_file("/pre/dir/file", b"x").unwrap();
+        upper.mkdir_all("/pre").unwrap();
+        let fs = OverlayVfs::new(lower, upper.clone());
+        for path in ["/", "/pre"] { upper.set_times(path, None, Some(-1.0)).unwrap(); }
+        fs.set_times("/pre/dir/file", Some(10.0), Some(20.0)).unwrap();
+        for path in ["/", "/pre"] {
+            assert!(fs.stat(path).unwrap().mtime_ms > 0.0, "{path}");
+            upper.set_times(path, None, Some(-1.0)).unwrap();
+        }
+        fs.set_times("/pre/dir/file", None, Some(30.0)).unwrap();
+        for path in ["/", "/pre"] { assert_eq!(fs.stat(path).unwrap().mtime_ms, -1.0, "{path}"); }
+    }
+
+    #[test]
     fn direct_reads_through_a_confirmed_lower_link_use_the_visible_file_and_directory() {
         let lower = Arc::new(MemoryVfs::new());
         lower.write_file("/dir/file", b"lower").unwrap();

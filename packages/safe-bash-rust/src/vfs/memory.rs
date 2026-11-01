@@ -169,7 +169,11 @@ struct MemoryState {
 impl MemoryState {
     fn parent_changed(&mut self, path: &str, now: f64) {
         let parent = path.rsplit_once('/').map_or("/", |(p, _)| if p.is_empty() { "/" } else { p });
-        if let Some(MemoryNode::Directory { mtime_ms, ctime_ms, .. }) = self.nodes.get_mut(parent) {
+        self.directory_changed(parent, now);
+    }
+
+    fn directory_changed(&mut self, path: &str, now: f64) {
+        if let Some(MemoryNode::Directory { mtime_ms, ctime_ms, .. }) = self.nodes.get_mut(path) {
             *mtime_ms = now;
             *ctime_ms = now;
         }
@@ -511,7 +515,10 @@ impl MemoryVfs {
             copy.mtime_ms = mtime;
         }
         let now = super::now_ms();
+        // Publishing a staged copy changes the upper root, even for a nested destination.
+        upper.directory_changed("/", now);
         for (parent, mode, previous_atime) in directories {
+            upper.parent_changed(parent, now);
             upper.insert_directory(parent.to_owned(), MemoryNode::Directory {
                 ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode,
                 atime_ms: if parent == path { atime } else { previous_atime },

@@ -10071,7 +10071,7 @@ fn cmd_media_doc(
             let mut background=[255;4];
             let mut border_color=[223,223,223,255];
             let mut quality=92.;
-            enum PixelOp<'a> { Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
+            enum PixelOp<'a> { Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut kernel = Kernel::Lanczos3;
             let mut resize_spec: Option<String> = None;
@@ -10112,6 +10112,16 @@ fn cmd_media_doc(
                         ops.push(PixelOp::Resize(&args[i+1], if arg=="-sample" {Kernel::Nearest} else {kernel}));
                         resize_spec = Some(args[i + 1].clone());
                         i += 2;
+                    }
+                    "-roll" | "-splice" | "-chop" | "-shave" if i+1<args.len() => {
+                        let g=Geometry::parse(&args[i+1]);
+                        ops.push(match arg.as_str() {
+                            "-roll" => PixelOp::Roll(g),
+                            "-splice" => PixelOp::Splice(g,gravity,background),
+                            "-chop" => PixelOp::Chop(g,gravity),
+                            _ => PixelOp::Shave(g),
+                        });
+                        i+=2;
                     }
                     "-crop" if i + 1 < args.len() => {
                         ops.push(PixelOp::Crop(Geometry::parse(&args[i+1]), gravity));
@@ -10220,12 +10230,16 @@ fn cmd_media_doc(
                     for op in &ops {
                         if image.width==0 || image.height==0 {
                             match op {
-                                PixelOp::Extent(..) | PixelOp::Negate => {}
+                                PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate => {}
                                 PixelOp::Crop(..) => return Err("internal error"),
                                 _ => return Err("Invalid stored image dimensions"),
                             }
                         }
                         match op {
+                            PixelOp::Roll(g) => image.roll(*g),
+                            PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
+                            PixelOp::Chop(g,gravity) => image.chop(*g,*gravity),
+                            PixelOp::Shave(g) => image.shave(*g),
                             PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
                             PixelOp::Extent(g,gravity,bg) => image.extent(*g,*gravity,*bg,fs.max_input_bytes())?,
                             PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
@@ -14300,6 +14314,31 @@ mod media_unit_tests {
             let r=cmd_media_doc(cmd,&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.gif").unwrap())),hash,"{cmd}");
+        }
+    }
+
+    #[test]
+    fn magick_roll_chop_splice_and_shave_match_reference_pixels() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/a.gif",&hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021f904000a0000002c0000000003000200000809000108201060408180003b")).unwrap();
+        fs.write_file("/empty.gif",&hex_dec("474946383961000000000000003b")).unwrap();
+        let empty=cmd_media_doc("convert",&media_args(&["empty.gif","-splice","2x0","o.gif"]),"","/",&fs);
+        assert_eq!(empty.stderr,"magick: Invalid generated resource dimensions\n");
+        for (options,hash) in [
+            (&["-roll","+1-1"][..],"f5f90ed4df8bf8982a40fdcd3dc330236d625368440d19b62f3e589511d70bbf"),
+            (&["-roll","4x6"][..],"ad77504d196739dd029118b3ce323c8c14724787c08da41ee27af2ecd1bd6e5d"),
+            (&["-roll","-99+87"][..],"014aa657a9c715e094c1d90ac07fec8e3ddab0f6a0e13d2ff2e232e8b56769ad"),
+            (&["-chop","1x1+1+1"][..],"bea0b6d8e95340b4d508aab4bfff1e5cb04984902a3a4b8c106963d7d1590085"),
+            (&["-chop","99x99"][..],"2ce935acf66fdc26782ab4e64e63a56d40ac1086ffd82b861df8e9b1d6e65ab7"),
+            (&["-gravity","center","-chop","1x1"][..],"310df51af872e370e2e04c1a2a5a35de2ab01a3eceb7edd1578c9cd590777802"),
+            (&["-background","red","-splice","2x1+1+1"][..],"af86cc8e5d0630e69b16624f29e5221b7df75b38696b5e18a81810b5b7b21667"),
+            (&["-gravity","southeast","-splice","1x2"][..],"4229f8d332cbfd1769bb5b996123a582213db351a7f2da34654d81d5d60ccd80"),
+            (&["-shave","2x1"][..],"0fab25070a4ac01d74730097e550160510e5ce758c365a1f6969dc94ed1d308b")
+        ] {
+            let args=[&["a.gif"][..],options,&["o.gif"]].concat();
+            let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
         }
     }
 

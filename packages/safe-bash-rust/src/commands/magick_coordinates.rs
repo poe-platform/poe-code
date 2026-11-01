@@ -84,6 +84,95 @@ fn bounded(w: usize, h: usize, limit: usize) -> Result<(), &'static str> {
 }
 
 impl Raster {
+    pub fn roll(&mut self, g: Geometry) {
+        if self.width == 0 || self.height == 0 {
+            return;
+        }
+        let shift = |off, dim: Option<f64>, n| {
+            let v = if off == 0. { dim.unwrap_or(0.) } else { off };
+            (v + 0.5).floor().rem_euclid(n as f64) as usize
+        };
+        let dx = shift(g.x, g.width, self.width);
+        let dy = shift(g.y, g.height, self.height);
+        self.pixels.rotate_right(dy * self.width);
+        if dx != 0 {
+            for row in self.pixels.chunks_exact_mut(self.width) {
+                row.rotate_right(dx);
+            }
+        }
+    }
+
+    pub fn splice(
+        &mut self,
+        g: Geometry,
+        gravity: Gravity,
+        bg: [u8; 4],
+        limit: usize,
+    ) -> Result<(), &'static str> {
+        let axis = |n: usize, dim: Option<f64>, off: f64, gravity: i8| {
+            let gap = dim.unwrap_or(0.).round().max(0.) as usize;
+            let base = if gravity == 0 {
+                (n / 2) as f64
+            } else if gravity == 1 {
+                n as f64
+            } else {
+                0.
+            };
+            let at = (base + if gravity == 1 { -off } else { off } + 0.5)
+                .floor()
+                .clamp(0., n as f64) as usize;
+            (at, gap)
+        };
+        let (left, sw) = axis(self.width, g.width, g.x, gravity.0);
+        let (top, sh) = axis(self.height, g.height, g.y, gravity.1);
+        let w = self.width.saturating_add(sw);
+        let h = self.height.saturating_add(sh);
+        bounded(w, h, limit)?;
+        if w == 0 || h == 0 {
+            return Err("Invalid generated resource dimensions");
+        }
+        self.remap(w, h, |im, x, y| {
+            if (left..left + sw).contains(&x) || (top..top + sh).contains(&y) {
+                return bg;
+            }
+            let sx = if x < left { x } else { x - sw };
+            let sy = if y < top { y } else { y - sh };
+            im.pixels[sy * im.width + sx]
+        });
+        self.alpha = true;
+        Ok(())
+    }
+
+    pub fn chop(&mut self, g: Geometry, gravity: Gravity) {
+        let cut = |n: usize, dim: Option<f64>, off: f64, gravity| {
+            let size = dim.unwrap_or(0.).round().max(0.);
+            let at = Gravity::axis(n as f64 - size, off, gravity).trunc();
+            if at + size < 0. || at > n as f64 {
+                return None;
+            }
+            let start = at.max(0.) as usize;
+            let end = (at + size).clamp(0., n as f64) as usize;
+            (end - start < n).then_some((start, end - start))
+        };
+        if let (Some((left, sw)), Some((top, sh))) = (
+            cut(self.width, g.width, g.x, gravity.0),
+            cut(self.height, g.height, g.y, gravity.1),
+        ) {
+            self.remap(self.width - sw, self.height - sh, |im, x, y| {
+                im.pixels
+                    [(y + usize::from(y >= top) * sh) * im.width + x + usize::from(x >= left) * sw]
+            });
+        }
+    }
+
+    pub fn shave(&mut self, g: Geometry) {
+        let left = (g.width.unwrap_or(0.).round() as usize).min((self.width - 1) / 2);
+        let top = (g.height.or(g.width).unwrap_or(0.).round() as usize).min((self.height - 1) / 2);
+        self.remap(self.width - 2 * left, self.height - 2 * top, |im, x, y| {
+            im.pixels[(y + top) * im.width + x + left]
+        });
+    }
+
     pub fn crop(&mut self, g: Geometry, gravity: Gravity) {
         let (w, h) = (self.width as f64, self.height as f64);
         let (left, top, right, bottom) = if g.subdivide {

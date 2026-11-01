@@ -179,6 +179,7 @@ pub(in super::super) struct Theme<'a> {
     pub numbers: BTreeMap<&'a str, f64>,
     colors: BTreeMap<&'a str, (String, [u8; 4])>,
     pub font: String,
+    pub mono_font: String,
 }
 
 impl Theme<'_> {
@@ -193,6 +194,13 @@ impl Theme<'_> {
             "border" | "groupBorder" => base("#cbd5e1", "#334155"),
             "edge" => base("#64748b", "#94a3b8"),
             "shadowColor" => base("rgba(15, 23, 42, 0.06)", "rgba(0, 0, 0, 0.35)"),
+            "mutedText" => base("#475569", "#94a3b8"),
+            "accentSurface" => match self.mode {
+                "dark" => "#172554",
+                "forest" => "#dcfce7",
+                "neutral" => "#e2e8f0",
+                _ => "#eff6ff",
+            },
             "groupSurface" => base("#f1f5f980", "#0f172a99"),
             "groupHeaderSurface" => base("#e2e8f080", "#1e293b"),
             "noteSurface" => base("#fefce8", "#422006"),
@@ -273,6 +281,7 @@ pub(in super::super) fn theme_tokens<'a>(
         colors: BTreeMap::new(),
         numbers: BTreeMap::new(),
         font: super::FONT.into(),
+        mono_font: "&#39;JetBrains Mono&#39;, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace".into(),
     };
     for key in order {
         let val = values[key];
@@ -330,6 +339,8 @@ pub(in super::super) fn theme_tokens<'a>(
                 }
                 if key == "fontFamily" {
                     theme.font = super::esc(&font);
+                } else {
+                    theme.mono_font = super::esc(&font);
                 }
             }
             // Inherited Object properties are present in the default JS token object,

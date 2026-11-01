@@ -579,6 +579,7 @@ impl Note {
             let (x, y) = (x + 14., y + 19. + i as f64 * 16.);
             write!(el,r#"<text x="{x}" y="{y}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="start">{}</text>"#,super::nonnegative_number(size),esc(&text)).unwrap();
             scene.paint.push(Paint::Text {
+                mono: false,
                 start: x,
                 baseline: y,
                 size,

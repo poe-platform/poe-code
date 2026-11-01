@@ -121,6 +121,7 @@ impl Group {
             let ly = y + 21;
             write!(el,r#"<text x="{lx}" y="{ly}" fill="{color}" font-family="{font}" font-size="12" font-weight="600" letter-spacing="0.025em" text-anchor="start">{}</text>"#,esc(&self.label)).unwrap();
             paint.push(Paint::Text {
+                mono: false,
                 start: lx,
                 baseline: ly.into(),
                 size: 12.,

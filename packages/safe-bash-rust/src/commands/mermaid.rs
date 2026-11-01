@@ -55,6 +55,7 @@ struct Node {
     label: String,
     shape: Shape,
     accent: bool,
+    attributes: Vec<er::Attribute>,
     lines: Vec<String>,
     w: i32,
     h: i32,
@@ -236,7 +237,7 @@ fn dimensions(
     horizontal: bool,
     wrapping_width: f64,
     remaining_lines: &mut usize,
-    font_size: f64,
+    (font_size, secondary): (f64, f64),
     line_height: f64,
     corner: f64,
 ) -> Option<()> {
@@ -258,10 +259,18 @@ fn dimensions(
         return None;
     }
     (n.w, n.h) = match n.shape {
-        Shape::Entity => (
-            snap(tallest + 36.).max(128),
-            snap((text_height + 16.).max(36.) + 12.).max(48),
-        ),
+        Shape::Entity => {
+            let width = n
+                .attributes
+                .iter()
+                .map(|a| a.width(secondary))
+                .fold(tallest + 36., f64::max);
+            let height = (text_height + 16.).max(36.) + 12. + n.attributes.len() as f64 * 22.;
+            if width.max(height) > f64::from(i32::MAX / 16) {
+                return None;
+            }
+            (snap(width).max(128), snap(height).max(48))
+        }
         Shape::Diamond => (
             snap((tallest + 36.) * 1.68).max(120),
             snap((text_height + 22.) * 1.68).max(72),
@@ -822,13 +831,18 @@ pub(super) fn layout(
     let corner = theme.numbers.get("cornerRadius").copied().unwrap_or(8.);
     let elbow = theme.numbers.get("elbowRadius").copied().unwrap_or(10.);
     let stroke_width = theme.numbers.get("strokeWidth").copied().unwrap_or(1.25);
+    let secondary = theme
+        .numbers
+        .get("secondaryFontSize")
+        .copied()
+        .unwrap_or(11.5);
     for n in &mut nodes {
         if dimensions(
             n,
             horizontal,
             wrapping_width,
             &mut remaining_lines,
-            font_size,
+            (font_size, secondary),
             line_height,
             corner,
         )
@@ -1112,6 +1126,7 @@ pub(super) fn layout(
                 let baseline = top + if short { 14. } else { 15. } + i as f64 * 16.;
                 write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(size),esc(&text)).ok()?;
                 pill_paint.push(Paint::Text {
+                    mono: false,
                     start: cx - measure(&text, size, short) / 2.,
                     baseline,
                     size,
@@ -1301,6 +1316,24 @@ pub(super) fn layout(
                 write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,divider).ok()?;
             }
         }
+        let rows = if let Some((hh, _)) = header
+            && !n.attributes.is_empty()
+        {
+            match er::paint_attributes(
+                &n,
+                hh,
+                theme,
+                secondary,
+                &mut el,
+                &mut paint,
+                &mut styles.budget,
+            ) {
+                Ok(rows) => Some(rows),
+                Err(e) => return Some(Err(e)),
+            }
+        } else {
+            None
+        };
         let bold = header.is_some();
         let weight = if bold { 600 } else { 500 };
         let first_y = f64::from(y)
@@ -1316,6 +1349,7 @@ pub(super) fn layout(
         {
             let baseline = (first_y + i as f64 * line_height + 0.5).floor();
             paint.push(Paint::Text {
+                mono: false,
                 start: f64::from(cx) - measure(line, font_size, bold) / 2.,
                 baseline,
                 size: font_size,
@@ -1324,6 +1358,10 @@ pub(super) fn layout(
                 text: line.clone(),
             });
             write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(font_size),esc(line)).ok()?;
+        }
+        if let Some((text, ops)) = rows {
+            el.push_str(&text);
+            paint.extend(ops);
         }
         el.push_str("</g>");
         if let Some(href) = hrefs.get(n.id.as_str()) {
@@ -1414,6 +1452,7 @@ impl Scene {
             },
         });
         self.paint.push(Paint::Text {
+            mono: false,
             start: (width - text_width) / 2.,
             baseline: height + 18.,
             size: 16.,

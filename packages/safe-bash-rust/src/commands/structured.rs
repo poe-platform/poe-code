@@ -38476,6 +38476,23 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_renders_er_attributes_with_types_and_key_badges() {
+        assert_mermaid_outputs(&[
+            ("erDiagram\nTABLE {\nint id PK\nstring code UK\nuuid ref FK\n}", "svg", "2c78a35861b6ea790c418501659802a6c4a0225babda78410fc68b05e0d769b6"),
+            ("erDiagram\nTABLE {\nint id PK\nstring code UK\nuuid ref FK\n}", "png", "ecaec2191e41b326c446f2cb846c08aed4900e159efbd10516a4006e57ad61b5"),
+            ("erDiagram\nTABLE {\nint id PK\nstring code UK\nuuid ref FK\n}", "pdf", "9ca6bdf536fa388eb1b1b95ed65d62aea2048eb5255c77af9f8dc919f1220711"),
+            ("erDiagram\n\"A\" {\nboolean enabled\nstring fullName \"comment\"\n}", "svg", "e2298a2e084cace2c3b6e6c483e2a339f762bfbcd87d3f5ef3b243e1c07ea2d4"),
+            ("erDiagram\nDATA {\ncurrencyCustomType exceedingly_long_column_name UK\n}", "svg", "2529cf44d8d01ad60e8ca502fae6290a300c547be8e57b333fc1b25cdea4c3c5"),
+            ("%%{init: {\"theme\": {\"light\": {\"monospaceFontFamily\": \"Fira Code\", \"secondaryFontSize\": 14.5, \"mutedText\": \"teal\", \"accentSurface\": \"pink\"}}}}%%\nerDiagram\nK {\n bigInt id PK,FK\n}", "svg", "8aa93f64d6250e470089ff11d29d81b4be690d3182d653fd5337775b2825b27a"),
+            ("erDiagram\nW {\n値 名 PK\ntext üé名\n}", "svg", "dc84aa2a7aba12f9fff5adae796afab2d9cc81c24a8545e05bfc8bd729bb8fad"),
+            ("erDiagram\nW {\n値 名 PK\ntext üé名\n}", "png", "628badde26ad09ac11ed36012a0aa90ceaaf972c8ccc52154129fa5d1532c65f"),
+            ("erDiagram\nW {\n値 名 PK\ntext üé名\n}", "pdf", "99b4d2ff011226d216a25534e33f29439fd573e2f994e55612f0ba9cb6b6fae5"),
+            ("erDiagram\nR {\n id A other,UK,PK\n text value extra\n}", "svg", "518e81669f3a1eba4c9133bab19e53035a7aff7bca5f7fd72713d26ce507d408"),
+            ("erDiagram\nA {\nstr first\n}\nB {\nint second FK\n}", "svg", "bb8268fe3521bc6455841a0de96f531a5abf12b654c6303e3a5ec709b6724755"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

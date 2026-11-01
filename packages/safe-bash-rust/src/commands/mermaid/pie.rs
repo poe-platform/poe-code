@@ -167,6 +167,7 @@ impl Pie {
                 },
             });
             paint.push(Paint::Text {
+                mono: false,
                 start: text_x,
                 baseline: y + 17.,
                 size: 13.,
@@ -181,6 +182,7 @@ impl Pie {
         if let Some(t) = title {
             let (color, text_rgba) = theme.color("text");
             paint.push(Paint::Text {
+                mono: false,
                 start: (width - title_width) / 2.,
                 baseline: padding + 13.,
                 size: 16.,

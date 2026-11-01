@@ -32,6 +32,7 @@ pub(super) enum Paint {
         dashed: bool,
     },
     Text {
+        mono: bool,
         start: f64,
         baseline: f64,
         size: f64,
@@ -151,6 +152,7 @@ impl Frame {
                 dashed,
             } => self.path(points, scale, *fill, *stroke, *width, *dashed),
             Paint::Text {
+                mono,
                 start,
                 baseline,
                 size,
@@ -165,13 +167,18 @@ impl Frame {
                     self.glyph(
                         c,
                         *weight >= 600,
+                        *mono,
                         left,
                         baseline * scale,
                         unit,
                         boost,
                         *color,
                     );
-                    left += f64::from(advance(c, *weight >= 600)) * unit;
+                    left += f64::from(if *mono {
+                        super::er::mono_advance(c)
+                    } else {
+                        advance(c, *weight >= 600)
+                    }) * unit;
                 }
             }
         }
@@ -181,15 +188,24 @@ impl Frame {
         &mut self,
         c: char,
         bold: bool,
+        mono: bool,
         left: f64,
         baseline: f64,
         unit: f64,
         boost: f64,
         color: [u8; 4],
     ) {
-        let data = include_bytes!("outlines.bin");
+        let data: &[u8] = if mono {
+            super::er::MONO
+        } else {
+            include_bytes!("outlines.bin")
+        };
         let idx = super::glyph_index(c);
-        let ptr = (idx * 2 + usize::from(bold)) * 4;
+        let ptr = if mono {
+            idx * 6
+        } else {
+            (idx * 2 + usize::from(bold)) * 4
+        };
         let mut pos = u32::from_le_bytes(data[ptr..ptr + 4].try_into().unwrap()) as usize;
         let word = |p: &mut usize| {
             let v = i16::from_le_bytes(data[*p..*p + 2].try_into().unwrap());

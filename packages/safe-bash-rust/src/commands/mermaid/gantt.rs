@@ -232,6 +232,7 @@ impl Gantt {
             let anchor = if right { "end" } else { "start" };
             scene.elements.push(format!(r#"<g class="mmdc-node" data-id="{}"><rect x="{x}" y="{y}" width="{w}" height="24" rx="0" fill="transparent" stroke="transparent" stroke-width="0"/><text x="{tx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="13" font-weight="400" letter-spacing="0.025em" text-anchor="{anchor}">{}</text></g>"#,esc(id),esc(value)));
             scene.paint.push(Paint::Text {
+                mono: false,
                 start: if right {
                     tx - measure(value, 13., false)
                 } else {

@@ -2147,11 +2147,6 @@ fn try_eval_jq_builtin(
                 return Ok(Some(acc.into_iter().map(JVal::Array).collect()));
             }
         }
-        ".." | "recurse" => {
-            let mut out = Vec::new();
-            collect_jq_recurse(input, &mut out);
-            return Ok(Some(out));
-        }
         "objects" => {
             return Ok(Some(if matches!(input, JVal::Object(_)) {
                 vec![input.clone()]
@@ -2927,15 +2922,6 @@ fn try_eval_jq_builtin(
                     };
                     return Ok(Some(vec![val]));
                 }
-                "recurse" => {
-                    let mut out = Vec::new();
-                    if let Some((f_e, cond_e)) = split_jq_binary(arg_expr, ";") {
-                        collect_jq_recurse_filter_cond(input, f_e.trim(), Some(cond_e.trim()), vars, &mut out)?;
-                    } else {
-                        collect_jq_recurse_filter_cond(input, arg_expr, None, vars, &mut out)?;
-                    }
-                    return Ok(Some(out));
-                }
                 _ => {}
             }
         }
@@ -3102,32 +3088,6 @@ fn try_bind_jq_pattern(
     false
 }
 
-fn collect_jq_recurse_filter_cond(
-    val: &JVal,
-    f_expr: &str,
-    cond_expr: Option<&str>,
-    vars: &JqScope<'_>,
-    out: &mut Vec<JVal>,
-) -> Result<(), JqFault> {
-    if let Some(ce) = cond_expr {
-        let ok = eval_jq(ce, val, vars)?
-            .first()
-            .map(|v| v.is_truthy())
-            .unwrap_or(false);
-        if !ok {
-            return Ok(());
-        }
-    }
-    out.push(val.clone());
-    let children = eval_jq(f_expr, val, vars)?;
-    for child in children {
-        if !matches!(child, JVal::Null) {
-            collect_jq_recurse_filter_cond(&child, f_expr, cond_expr, vars, out)?;
-        }
-    }
-    Ok(())
-}
-
 fn jval_contains(haystack: &JVal, needle: &JVal) -> bool {
     match (haystack, needle) {
         (JVal::Str(a), JVal::Str(b)) => a.contains(b.as_str()),
@@ -3206,23 +3166,6 @@ fn iso8601_to_epoch(s: &str) -> i64 {
     let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
     let days = era * 146097 + doe - 719468;
     days * 86400 + hh * 3600 + mm * 60 + ss
-}
-
-fn collect_jq_recurse(val: &JVal, out: &mut Vec<JVal>) {
-    out.push(val.clone());
-    match val {
-        JVal::Array(items) => {
-            for item in items {
-                collect_jq_recurse(item, out);
-            }
-        }
-        JVal::Object(entries) => {
-            for (_, v) in entries {
-                collect_jq_recurse(v, out);
-            }
-        }
-        _ => {}
-    }
 }
 
 fn collect_jq_paths(val: &JVal, cur: &mut Vec<JVal>, out: &mut Vec<JVal>) {

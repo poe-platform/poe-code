@@ -348,7 +348,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
     }
     if !vars.functions.is_empty()
         || s.ends_with(')')
-        || matches!(s, "error" | "halt" | "halt_error")
+        || matches!(s, "error" | "halt" | "halt_error" | ".." | "recurse")
     {
         let (name, args) = s
             .find('(')
@@ -375,6 +375,7 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
             });
         }
         match (name, args.filter(|arg| !arg.trim().is_empty())) {
+            (".." | "recurse", None) => return descendants(input, emit),
             ("error", None) => return Err(JqFault::Error(input.clone())),
             ("error", Some(filter)) => {
                 return visit_jq(filter, input, vars, &mut |v| Err(JqFault::Error(v)));
@@ -450,10 +451,14 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         if let Some(args) = args
             && matches!(
                 name,
-                "range" | "limit" | "first" | "last" | "isempty" | "nth"
+                "range" | "limit" | "first" | "last" | "isempty" | "nth" | "recurse"
             )
         {
             let parts = split_jq_top(args, ';').unwrap_or_else(|| vec![args.to_owned()]);
+            if name == "recurse" && (1..=2).contains(&parts.len()) {
+                let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+                return recurse(input, &parts[0], parts.get(1).map(String::as_str), vars, &mut remaining, emit);
+            }
             if let [filter] = parts.as_slice()
                 && matches!(name, "first" | "last" | "isempty")
             {
@@ -597,6 +602,42 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         }
     }
     Ok(Continue(()))
+}
+
+fn descendants(root: &JVal, emit: &mut Emit<'_>) -> Flow {
+    if emit(root.clone())?.is_break() { return Ok(Break(())); }
+    let mut path = vec![(root, 0)];
+    while let Some((node, index)) = path.last_mut() {
+        let child = match node {
+            JVal::Array(items) => items.get(*index),
+            JVal::Object(fields) => fields.get(*index).map(|(_, v)| v),
+            _ => None,
+        };
+        if let Some(child) = child {
+            if emit(child.clone())?.is_break() { return Ok(Break(())); }
+            *index += 1;
+            path.push((child, 0));
+        } else {
+            path.pop();
+        }
+    }
+    Ok(Continue(()))
+}
+
+fn recurse(value: &JVal, update: &str, condition: Option<&str>, vars: &JqScope<'_>, remaining: &mut usize, emit: &mut Emit<'_>) -> Flow {
+    vars.check_stack()?;
+    *remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
+    if emit(value.clone())?.is_break() { return Ok(Break(())); }
+    visit_jq(update, value, vars, &mut |child| {
+        if let Some(test) = condition {
+            visit_jq(test, &child, vars, &mut |result| {
+                if result.is_truthy() { recurse(&child, update, condition, vars, remaining, emit) }
+                else { Ok(Continue(())) }
+            })
+        } else {
+            recurse(&child, update, None, vars, remaining, emit)
+        }
+    })
 }
 
 fn iterate(value: &JVal, emit: &mut Emit<'_>) -> Flow {

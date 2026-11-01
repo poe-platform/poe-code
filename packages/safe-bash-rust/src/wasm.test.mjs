@@ -290,6 +290,24 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("jq recurse emits each node before requesting children and preserves suspended sibling streams", () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, expected] of [
+      ['first(recurse(error("late")))', "null"],
+      ["[0|recurse(.+1; . < 0)]", "[0]"],
+      ["[limit(3; 7|recurse(null))]", "[7,null,null]"],
+      ["[0|recurse(.+1; (. < 2,. < 2))]", "[0,1,1]"],
+      ['[try (0|recurse(if . == 0 then (1,error("after")) else empty end)) catch .]', '[0,1,"after"]'],
+      ["[limit(2;recurse(inputs)),inputs]", "[null,1,2,3]"],
+      ["[def recurse(f): 9; recurse(.)]", "[9]"],
+    ]) {
+      const r = bash.execSync("jq -nc '" + filter + "'", "1 2 3");
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected + "\n", ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq accepts leading decimal points in numeric filters and arithmetic operands", () => {
   const bash = new RustWasmBash();
   try {

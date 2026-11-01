@@ -626,6 +626,81 @@ impl SafeBashFs for MemoryVfs {
         Ok(publication)
     }
 
+    fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
+        let mut state = self.state.write().map_err(|_| "EIO: input/output error")?;
+        let entry = |path| super::path::rename_entry(path, state.limits.max_symlink_hops, |parent| {
+            match state.nodes.get(parent) {
+                Some(MemoryNode::Directory { mode, .. }) if mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
+                Some(MemoryNode::Directory { .. }) => Ok(None),
+                Some(MemoryNode::Symlink { target, .. }) if !target.starts_with("__hardlink__:") => Ok(Some(target.clone())),
+                Some(_) => Err("ENOTDIR: not a directory".into()),
+                None if state.devices.entry(parent).is_some_and(|n| !n.is_empty()) => Err("ENOTDIR: not a directory".into()),
+                None => Err("ENOENT: no such file or directory".into()),
+            }
+        });
+        let from = entry(source)?;
+        if state.devices == Devices::Mounted { return Err("EROFS: read-only file system".into()); }
+        if state.devices.entry(&from).is_some() && from != "/" {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let node = state.nodes.get(&from).ok_or("ENOENT: no such file or directory")?;
+        let is_dir = matches!(node, MemoryNode::Directory { .. });
+        if source.ends_with('/') && !is_dir { return Err("ENOTDIR: not a directory".into()); }
+        let to = entry(destination)?;
+        if from == "/" || to == "/" || state.devices.entry(&to).is_some() {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let target = state.nodes.get(&to);
+        let target_dir = matches!(target, Some(MemoryNode::Directory { .. }));
+        if destination.ends_with('/') && (!is_dir || (target.is_some() && !target_dir)) {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        if no_replace && target.is_some() { return Err("EEXIST: file already exists".into()); }
+        let file_identity = |path: &str| match state.nodes.get(path) {
+            Some(MemoryNode::Symlink { target, .. }) if target.starts_with("__hardlink__:") =>
+                Self::resolve_symlinks_locked(&state, path, true).ok(),
+            Some(MemoryNode::File { .. }) => Some(path.to_owned()),
+            _ => None,
+        };
+        if from == to || file_identity(&from).is_some_and(|p| Some(p) == file_identity(&to)) {
+            return Ok(());
+        }
+        let prefix = format!("{from}/");
+        if is_dir && to.starts_with(&prefix) { return Err("EINVAL: invalid argument".into()); }
+        for path in [&from, &to] {
+            let parent = parent_posix_path(path).unwrap();
+            if let Some(MemoryNode::Directory { mode, .. }) = state.nodes.get(&parent)
+                && mode & 0o300 != 0o300 { return Err("EACCES: permission denied".into()); }
+        }
+        if target.is_some() {
+            if !is_dir && target_dir { return Err("EISDIR: illegal operation on a directory".into()); }
+            if is_dir && !target_dir { return Err("ENOTDIR: not a directory".into()); }
+            let children = format!("{to}/");
+            if target_dir && state.nodes.range(children.clone()..).next().is_some_and(|(k, _)| k.starts_with(&children)) {
+                return Err("ENOTEMPTY: directory not empty".into());
+            }
+            Self::unlink_locked(&mut state, &to);
+        }
+        let mut paths = vec![from.clone()];
+        if is_dir {
+            paths.extend(state.nodes.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)).map(|(k, _)| k.clone()));
+        }
+        for old in paths {
+            let node = state.nodes.remove(&old).unwrap();
+            state.nodes.insert(format!("{to}{}", &old[from.len()..]), node);
+        }
+        for node in state.nodes.values_mut() {
+            if let MemoryNode::Symlink { target, .. } = node
+                && let Some(path) = target.strip_prefix("__hardlink__:")
+                && (path == from || path.starts_with(&prefix))
+            {
+                *target = format!("__hardlink__:{to}{}", &path[from.len()..]);
+            }
+        }
+        self.bump_generation();
+        Ok(())
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
         self.remove_entry(path, None).map(|_| ())
     }

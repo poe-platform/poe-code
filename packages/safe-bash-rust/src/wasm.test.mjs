@@ -380,3 +380,70 @@ test("random devices use the host entropy source and fail if it is unavailable",
     assert.equal(failed.stdoutBytes.length, 0);
   } finally { bash.dispose(); }
 });
+
+test("Wasm rename moves entries and preserves both paths on failure", async () => {
+  const bash = new RustWasmBash({ files: { "/src/file": "source", "/other": "keep" } });
+  const fs = bash.fs;
+  try {
+    await fs.chmod("/src/file", 0o640);
+    await fs.symlink("missing", "/src/link");
+    await fs.rename("/src/file", "/src/file");
+    assert.equal(bash.readText("/src/file"), "source");
+    await assert.rejects(fs.rename("/src/file", "/other", { noReplace: true }), { code: "EEXIST" });
+    await assert.rejects(fs.rename("/src", "/src/child"), { code: "EINVAL" });
+    await assert.rejects(fs.rename("/src/file", "/other", { signal: AbortSignal.abort() }), { name: "AbortError" });
+    assert.equal(bash.readText("/other"), "keep");
+    await fs.rename("/src", "/moved");
+    assert.equal(bash.readText("/moved/file"), "source");
+    assert.equal((await fs.stat("/moved/file")).mode & 0o777, 0o640);
+    await fs.rename("/moved/link", "/other");
+    assert.equal(await fs.readlink("/other"), "missing");
+    await assert.rejects(fs.lstat("/src"), { code: "ENOENT" });
+  } finally {
+    bash.dispose();
+  }
+});
+
+test("overlay rename moves the merged tree without resurrecting hidden children", async () => {
+  const bash = new RustWasmBash({
+    profile: "overlay-cow-fs",
+    files: { "/dir/a": "lower", "/dir/nested/b": "child", "/dir/deleted": "hidden", "/target/old": "old" },
+  });
+  const fs = bash.fs;
+  try {
+    await fs.writeFile("/dir/a", "upper");
+    await fs.unlink("/dir/deleted");
+    await fs.unlink("/target/old");
+    await fs.symlink("missing", "/dir/link");
+    await assert.rejects(fs.rename("/dir", "/target", { noReplace: true }), { code: "EEXIST" });
+    await fs.rename("/dir", "/target");
+    assert.equal(bash.readText("/target/a"), "upper");
+    assert.equal(bash.readText("/target/nested/b"), "child");
+    assert.equal(await fs.readlink("/target/link"), "missing");
+    for (const path of ["/dir", "/target/deleted", "/target/old"]) {
+      await assert.rejects(fs.lstat(path), { code: "ENOENT" });
+    }
+  } finally {
+    bash.dispose();
+  }
+});
+
+test("rename preserves hard links and rejects moves across a mount", async () => {
+  const bash = new RustWasmBash({ files: { "/dir/file": "source", "/other": "target" } });
+  const fs = bash.fs;
+  try {
+    assert.equal(bash.execSync("ln /dir/file /alias; ln /other /saved").exitCode, 0);
+    await fs.rename("/dir", "/tree");
+    await fs.rename("/tree/file", "/alias");
+    await fs.rename("/tree/file", "/other");
+    assert.equal(bash.readText("/alias"), "source");
+    assert.equal(bash.readText("/saved"), "target");
+    bash.mountDevices();
+    await assert.rejects(fs.rename("/other", "/dev/new"), { code: "EXDEV" });
+    await assert.rejects(fs.rename("/other/../other", "/alias"), { code: "ENOTDIR" });
+    await fs.rename("/other", "/renamed");
+    assert.equal(bash.readText("/alias"), "source");
+  } finally {
+    bash.dispose();
+  }
+});

@@ -39,7 +39,7 @@ impl MountVfs {
 
     // Absolute link targets are rooted at their own mount. Once a link is
     // followed, neither ".." nor the remaining path may enter another mount.
-    fn resolve(&self, path: &str, follow_final: bool) -> Result<String, String> {
+    fn resolve(&self, path: &str, follow_final: bool, require_parents: bool) -> Result<String, String> {
         let mut current = "/".to_string();
         let mut pending: Vec<String> = path
             .split('/')
@@ -49,7 +49,17 @@ impl MountVfs {
             .collect();
         let mut boundary = None;
         let mut links = 0;
+        if require_parents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
         while let Some(part) = pending.pop() {
+            if require_parents {
+                let (_, backend, local) = self.location(&current);
+                let st = backend.stat(&local)?;
+                if st.kind != crate::vfs::VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
+                if st.mode & 0o100 == 0 { return Err("EACCES: permission denied".into()); }
+                if pending.is_empty() && matches!(part.as_str(), "." | "..") {
+                    return Err("EINVAL: invalid argument".into());
+                }
+            }
             if part == "." {
                 continue;
             }
@@ -98,7 +108,7 @@ impl MountVfs {
     }
 
     fn route(&self, path: &str, follow_final: bool) -> Result<(&dyn SafeBashFs, String), String> {
-        let (_, fs, local) = self.location(&self.resolve(path, follow_final)?);
+        let (_, fs, local) = self.location(&self.resolve(path, follow_final, false)?);
         Ok((fs, local))
     }
 }
@@ -155,8 +165,22 @@ impl SafeBashFs for MountVfs {
         fs.remove_published(&rel, publication)
     }
 
+    fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
+        let from = self.resolve(source, false, true)?;
+        let to = self.resolve(destination, false, true)?;
+        if self.mounts.keys().any(|m| [from.as_str(), to.as_str()].iter().any(|p| crate::vfs::is_path_within(p, m))) {
+            return Err("EBUSY: resource busy or locked".into());
+        }
+        let (mount, fs, mut src) = self.location(&from);
+        let (other, _, mut dest) = self.location(&to);
+        if mount != other { return Err("EXDEV: cross-device link not permitted".into()); }
+        if source.ends_with('/') { src.push('/'); }
+        if destination.ends_with('/') { dest.push('/'); }
+        fs.rename(&src, &dest, no_replace)
+    }
+
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let resolved = self.resolve(path, false)?;
+        let resolved = self.resolve(path, false, false)?;
         if self
             .mounts
             .keys()
@@ -184,7 +208,7 @@ impl SafeBashFs for MountVfs {
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
-        let parent = self.resolve(path, true)?;
+        let parent = self.resolve(path, true, false)?;
         let (_, fs, rel) = self.location(&parent);
         let mut entries = fs.list_dir(&rel)?;
         for mount in self.mounts.keys() {

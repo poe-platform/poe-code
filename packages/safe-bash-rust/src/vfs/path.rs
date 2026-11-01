@@ -68,6 +68,39 @@ pub fn dirname_posix_path(path: &str) -> String {
     }
 }
 
+// Resolve parents before interpreting "..", without following the entry being moved.
+pub(super) fn rename_entry(
+    path: &str,
+    max_hops: usize,
+    parent_link: impl Fn(&str) -> Result<Option<String>, String>,
+) -> Result<String, String> {
+    if path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+    if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
+    let mut parts: Vec<_> = path.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned).collect();
+    let mut current = String::from("/");
+    let mut hops = 0;
+    while let Some(part) = parts.pop() {
+        if let Some(target) = parent_link(&current)? {
+            hops += 1;
+            if hops > max_hops { return Err("ELOOP: too many symbolic links encountered".into()); }
+            current = if target.starts_with('/') { "/".into() } else { dirname_posix_path(&current) };
+            parts.push(part);
+            parts.extend(target.split('/').filter(|s| !s.is_empty()).rev().map(str::to_owned));
+            continue;
+        }
+        match part.as_str() {
+            "." | ".." if parts.is_empty() => return Err("EINVAL: invalid argument".into()),
+            "." => {}
+            ".." => current = dirname_posix_path(&current),
+            _ => {
+                if current != "/" { current.push('/'); }
+                current.push_str(&part);
+            }
+        }
+    }
+    Ok(current)
+}
+
 pub fn is_path_within(root: &str, candidate: &str) -> bool {
     let r = normalize_posix_path(root);
     let c = normalize_posix_path(candidate);

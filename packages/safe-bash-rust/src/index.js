@@ -247,15 +247,31 @@ export class WasmFileSystem {
   }
 
   async rename(oldPath, newPath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion || (this.bash.companionFactory && !this.bash.forceNative)) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.rename) {
         return this.bash._companion.fs.rename(oldPath, newPath, options);
       }
     }
-    const bytes = this.bash.readFile(oldPath);
-    this.bash.writeFile(newPath, bytes);
-    this.bash.removePath(oldPath);
+    const bash = this.bash;
+    const src = bash._allocBytes(encoder.encode(oldPath));
+    try {
+      const dst = bash._allocBytes(encoder.encode(newPath));
+      try {
+        const rc = bash.exports.safe_bash_rename(bash.sessionId, src.ptr, src.len, dst.ptr, dst.len, options?.noReplace === true);
+        if (rc === -1) throw new Error("Wasm session unavailable");
+        if (rc < 0) {
+          const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+          const message = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, -rc));
+          throw Object.assign(fsErr(message.split(":", 1)[0], message), { name: "FsError", syscall: "rename", path: oldPath, dest: newPath });
+        }
+      } finally {
+        bash._freeBytes(dst);
+      }
+    } finally {
+      bash._freeBytes(src);
+    }
   }
 
   async copyFile(srcPath, destPath, options) {

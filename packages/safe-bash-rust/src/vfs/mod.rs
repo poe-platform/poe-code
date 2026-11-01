@@ -95,6 +95,9 @@ pub trait SafeBashFs: Send + Sync {
     fn remove_published(&self, _path: &str, _publication: u64) -> Result<bool, String> {
         Err("UNSUPPORTED_CAPABILITY: VFS requires conditional file removal".into())
     }
+    fn rename(&self, _source: &str, _destination: &str, _no_replace: bool) -> Result<(), String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
     fn remove_path(&self, path: &str) -> Result<(), String>;
     fn mkdir_all(&self, path: &str) -> Result<(), String>;
     fn exists(&self, path: &str) -> bool;

@@ -1,5 +1,5 @@
 use crate::vfs::path::normalize_posix_path;
-use crate::vfs::{FileStat, SafeBashFs, VfsFileEntry};
+use crate::vfs::{FileStat, SafeBashFs, VfsEntryKind, VfsFileEntry};
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, RwLock};
 
@@ -42,17 +42,13 @@ impl OverlayVfs {
         false
     }
 
-    fn clear_whiteout(&self, norm: &str) {
-        if let Ok(mut guard) = self.whiteouts.write() {
-            guard.remove(norm);
-        }
-    }
+
 }
 
 impl SafeBashFs for OverlayVfs {
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let norm = normalize_posix_path(path);
-        if self.upper.exists(&norm) {
+        if self.upper.lstat(&norm).is_ok() {
             return self.upper.read_file(&norm);
         }
         if self.is_deleted(&norm) {
@@ -63,8 +59,84 @@ impl SafeBashFs for OverlayVfs {
 
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        self.clear_whiteout(&norm);
         self.upper.write_file(&norm, data)
+    }
+
+    fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
+        let entry = |path| super::path::rename_entry(path, 40, |parent| {
+            let stat = self.lstat(parent)?;
+            match stat.kind {
+                VfsEntryKind::Directory if stat.mode & 0o100 == 0 => Err("EACCES: permission denied".into()),
+                VfsEntryKind::Directory => Ok(None),
+                VfsEntryKind::Symlink => self.readlink(parent).map(Some),
+                VfsEntryKind::File => Err("ENOTDIR: not a directory".into()),
+            }
+        });
+        let from = entry(source)?;
+        let original = self.lstat(&from)?;
+        let to = entry(destination)?;
+        let target = match self.lstat(&to) {
+            Ok(st) => Some(st),
+            Err(e) if e.starts_with("ENOENT:") => None,
+            Err(e) => return Err(e),
+        };
+        if from == "/" || to == "/" || original.mode & 0o170000 == 0o020000
+            || target.as_ref().is_some_and(|t| t.mode & 0o170000 == 0o020000)
+        { return Err("EBUSY: resource busy or locked".into()); }
+        if (source.ends_with('/') || destination.ends_with('/')) && original.kind != VfsEntryKind::Directory {
+            return Err("ENOTDIR: not a directory".into());
+        }
+        if no_replace && target.is_some() { return Err("EEXIST: file already exists".into()); }
+        if from == to || target.as_ref().is_some_and(|t| original.identity.is_some() && t.identity == original.identity) {
+            return Ok(());
+        }
+        if original.kind == VfsEntryKind::Directory && crate::vfs::is_path_within(&from, &to) {
+            return Err("EINVAL: invalid argument".into());
+        }
+        for p in [&from, &to] {
+            if self.stat(&crate::vfs::dirname_posix_path(p))?.mode & 0o300 != 0o300 {
+                return Err("EACCES: permission denied".into());
+            }
+        }
+        if let Some(target) = target {
+            match (original.kind, target.kind) {
+                (VfsEntryKind::Directory, VfsEntryKind::Directory) => {
+                    if !self.list_dir(&to)?.is_empty() { return Err("ENOTEMPTY: directory not empty".into()); }
+                }
+                (VfsEntryKind::Directory, _) => return Err("ENOTDIR: not a directory".into()),
+                (_, VfsEntryKind::Directory) => return Err("EISDIR: illegal operation on a directory".into()),
+                _ => {}
+            }
+        }
+
+        // Bring only the visible source subtree into the writable layer. A
+        // lower file must remain readable through the original path until commit.
+        let mut pending = vec![from.clone()];
+        while let Some(path) = pending.pop() {
+            let stat = self.lstat(&path)?;
+            if self.upper.lstat(&path).is_err() {
+                match stat.kind {
+                    VfsEntryKind::File => self.upper.write_file(&path, &self.lower.read_file(&path)?)?,
+                    VfsEntryKind::Directory => self.upper.mkdir_all(&path)?,
+                    VfsEntryKind::Symlink => self.upper.symlink(&self.lower.readlink(&path)?, &path)?,
+                }
+                if stat.kind != VfsEntryKind::Symlink {
+                    self.upper.chmod(&path, stat.mode)?;
+                    self.upper.set_mtime(&path, stat.mtime_ms)?;
+                }
+            }
+            if stat.kind == VfsEntryKind::Directory {
+                for child in self.list_dir(&path)? {
+                    pending.push(format!("{path}/{child}"));
+                }
+            }
+        }
+        self.upper.mkdir_all(&crate::vfs::dirname_posix_path(&to))?;
+        let mut whiteouts = self.whiteouts.write().map_err(|_| "EIO: input/output error")?;
+        self.upper.rename(&from, &to, no_replace)?;
+        whiteouts.insert(from);
+        whiteouts.insert(to);
+        Ok(())
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
@@ -82,24 +154,16 @@ impl SafeBashFs for OverlayVfs {
 
     fn mkdir_all(&self, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        self.clear_whiteout(&norm);
         self.upper.mkdir_all(&norm)
     }
 
     fn exists(&self, path: &str) -> bool {
-        let norm = normalize_posix_path(path);
-        if self.upper.exists(&norm) {
-            return true;
-        }
-        if self.is_deleted(&norm) {
-            return false;
-        }
-        self.lower.exists(&norm)
+        self.stat(path).is_ok()
     }
 
     fn is_dir(&self, path: &str) -> bool {
         let norm = normalize_posix_path(path);
-        if self.upper.exists(&norm) {
+        if self.upper.lstat(&norm).is_ok() {
             return self.upper.is_dir(&norm);
         }
         if self.is_deleted(&norm) {
@@ -138,13 +202,12 @@ impl SafeBashFs for OverlayVfs {
 
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        self.clear_whiteout(&norm);
         self.upper.symlink(target, &norm)
     }
 
     fn readlink(&self, path: &str) -> Result<String, String> {
         let norm = normalize_posix_path(path);
-        if self.upper.exists(&norm) {
+        if self.upper.lstat(&norm).is_ok() {
             return self.upper.readlink(&norm);
         }
         if self.is_deleted(&norm) {
@@ -155,7 +218,7 @@ impl SafeBashFs for OverlayVfs {
 
     fn stat(&self, path: &str) -> Result<FileStat, String> {
         let norm = normalize_posix_path(path);
-        if self.upper.exists(&norm) {
+        if self.upper.lstat(&norm).is_ok() {
             return self.upper.stat(&norm);
         }
         if self.is_deleted(&norm) {
@@ -166,7 +229,7 @@ impl SafeBashFs for OverlayVfs {
 
     fn lstat(&self, path: &str) -> Result<FileStat, String> {
         let norm = normalize_posix_path(path);
-        if self.upper.exists(&norm) {
+        if self.upper.lstat(&norm).is_ok() {
             return self.upper.lstat(&norm);
         }
         if self.is_deleted(&norm) {
@@ -177,7 +240,7 @@ impl SafeBashFs for OverlayVfs {
 
     fn chmod(&self, path: &str, mode: u32) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        if !self.upper.exists(&norm) {
+        if !self.upper.lstat(&norm).is_ok() {
             if self.is_deleted(&norm) || !self.lower.exists(&norm) {
                 return Err(format!("ENOENT: no such file or directory, chmod '{norm}'"));
             }
@@ -193,7 +256,7 @@ impl SafeBashFs for OverlayVfs {
 
     fn set_mtime(&self, path: &str, mtime_ms: u64) -> Result<(), String> {
         let norm = normalize_posix_path(path);
-        if !self.upper.exists(&norm) {
+        if !self.upper.lstat(&norm).is_ok() {
             if self.is_deleted(&norm) || !self.lower.exists(&norm) {
                 return Err(format!("ENOENT: no such file or directory, utime '{norm}'"));
             }

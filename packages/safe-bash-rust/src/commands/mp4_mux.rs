@@ -2340,12 +2340,11 @@ pub(in super::super) fn remux(
         for (j, i) in selected {
             match &sources[j].2 {
                 Streams::Mp4(v) if v[i].0.kind == "subtitle" => {
-                    let seek = opts.input_times.get(j).copied().unwrap_or_default();
                     v[i].0.write_subtitles(
                         sources[j].0,
                         &mut writer,
                         range,
-                        seek.start.is_some() || seek.end().is_some(),
+                        matches!(data[j], Cow::Owned(_)) || opts.concat.as_deref().is_some_and(|c| c.joined),
                     )?
                 }
                 Streams::Captions(text) => {

@@ -5,6 +5,7 @@ use std::collections::{BTreeMap, HashMap};
 pub(in super::super::super) struct DecodedConcat {
     pub(super) video: Option<BTreeMap<usize, VideoFrames>>,
     pub(super) audio: BTreeMap<usize, Pcm>,
+    pub(super) joined: bool,
     export_pcm: bool,
 }
 impl DecodedConcat {
@@ -12,6 +13,7 @@ impl DecodedConcat {
         Self {
             video: video.then(BTreeMap::new),
             audio: BTreeMap::new(),
+            joined: false,
             export_pcm,
         }
     }
@@ -388,6 +390,7 @@ pub(super) fn join<'a>(
         t.movie_ticks =
             (f64::from(t.media_ticks) * f64::from(movie_scale) / f64::from(t.scale)).round() as u32;
     }
+    retained.joined = true;
     Ok(slots)
 }
 

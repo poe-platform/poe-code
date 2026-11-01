@@ -13908,6 +13908,24 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_exports_materialized_subtitle_packets_after_concat_or_loop() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        let cue=b"1\n00:00:00,000 --> 00:00:00,350\nhello\n";
+        fs.write_file("/s.srt",cue).unwrap();
+        run(&["-i","s.srt","sub.mp4"]);
+        run(&["-i","sub.mp4","-filter_complex","concat=n=1","one.srt"]);
+        assert_eq!(fs.read_file("/one.srt").unwrap(),cue);
+        run(&["-i","s.srt","-i","sub.mp4","-filter_complex","concat=n=2","joined.srt"]);
+        let packed=b"1\n00:00:00,000 --> 00:00:00,350\n\0\x05hello\n\n2\n00:00:00,350 --> 00:00:00,700\n\0\x05hello\n";
+        assert_eq!(fs.read_file("/joined.srt").unwrap(),packed);
+        run(&["-stream_loop","1","-i","sub.mp4","loop.srt"]);
+        assert_eq!(fs.read_file("/loop.srt").unwrap(),packed);
+        run(&["-i","s.srt","-i","sub.mp4","-filter_complex","concat=n=2","-ss","0.035","-t","0.39","cut.vtt"]);
+        assert_eq!(fs.read_file("/cut.vtt").unwrap(),b"WEBVTT\n\n00:00:00.000 --> 00:00:00.350\n\0\x05hello\n\n00:00:00.350 --> 00:00:00.425\n\0\x05hello\n");
+    }
+
+    #[test]
     fn ffmpeg_concat_resamples_pcm_segments_into_the_first_audio_format() {
         let fs = MemoryVfs::new();
         let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);

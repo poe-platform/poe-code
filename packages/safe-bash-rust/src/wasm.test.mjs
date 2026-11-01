@@ -3,6 +3,16 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("env and timeout leave the child's unread stdin for the caller", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const wrapper of ["env X=y", "timeout 1", "env timeout 1 env"]) {
+      const r = await bash.exec(wrapper + " head -c2; echo; cat", { stdin: "abcd" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "ab\ncd", ""], wrapper);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("text utilities consume stdin once across operands and shell commands", async () => {
   const bash = new RustWasmBash();
   try {

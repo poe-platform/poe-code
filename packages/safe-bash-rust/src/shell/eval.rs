@@ -4874,8 +4874,7 @@ impl<'a> EvalState<'a> {
                         exit_code: 1,
                     };
                 }
-                let mut sub_in = sub_stdin.to_string();
-                let res = sub_eval.dispatch_words(sub_words, &mut sub_in, false);
+                let res = sub_eval.dispatch_words(sub_words, sub_stdin, false);
                 sub_eval.budget.leave_substitution();
                 let mut out = match res {
                     Ok(o) => o,

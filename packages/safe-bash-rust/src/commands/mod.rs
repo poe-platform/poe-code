@@ -623,12 +623,13 @@ pub fn try_run_command<F>(
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
-    exec_sub: F,
+    mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
     F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
-    try_run_command_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs, exec_sub)
+    try_run_command_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs,
+        |words, input, cwd, env| exec_sub(words, input, cwd, env))
 }
 
 pub(crate) fn try_run_command_with_input<F>(
@@ -641,7 +642,7 @@ pub(crate) fn try_run_command_with_input<F>(
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     if cmd == "env" {
         return Some(run_env_command(args, stdin, cwd, env, fs, exec_sub));
@@ -651,7 +652,10 @@ where
         return Some(run_timeout_command(args, stdin, cwd, env, exec_sub));
     }
 
-    if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_sub) {
+    let mut exec_with_copy = |words: &[String], input: &str, cwd: &mut String, env: &mut BTreeMap<String, String>| {
+        exec_sub(words, &mut input.to_owned(), cwd, env)
+    };
+    if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_with_copy) {
         return Some(res);
     }
     if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, stdin, cwd, env, fs) {
@@ -660,7 +664,7 @@ where
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
-    if let Some(res) = search::try_run_search_command(cmd, args, stdin, cwd, env, fs, exec_sub) {
+    if let Some(res) = search::try_run_search_command(cmd, args, stdin, cwd, env, fs, exec_with_copy) {
         return Some(res);
     }
     if let Some(res) = text::try_run_text_command(cmd, args, stdin, cwd, env, fs) {
@@ -853,14 +857,14 @@ fn parse_env_options(
 
 fn run_env_command<F>(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
     mut exec_sub: F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     if args.first().map(|s| s.as_str()) == Some("--help") {
         return BuiltinOutcome {
@@ -1250,13 +1254,13 @@ fn split_env_string(
 
 fn run_timeout_command<F>(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     mut exec_sub: F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let mut idx = 0usize;
     let mut sig_num = 15i32;
@@ -1520,7 +1524,7 @@ mod tests {
             "1s".to_string(),
             "work".to_string(),
         ];
-        let out = run_timeout_command(&args, "", &mut cwd, &mut env, |sub_words, stdin, sub_cwd, sub_env| {
+        let out = run_timeout_command(&args, &mut String::new(), &mut cwd, &mut env, |sub_words, stdin, sub_cwd, sub_env| {
             // Inner timeout call
             let inner_args: Vec<String> = sub_words[1..].to_vec();
             run_timeout_command(&inner_args, stdin, sub_cwd, sub_env, |_, _, _, env2| {
@@ -1553,7 +1557,7 @@ mod tests {
             "0.05s".to_string(),
             "slow".to_string(),
         ];
-        let out_ps = run_timeout_command(&args_ps, "", &mut cwd, &mut env, |_, _, _, sub_env| {
+        let out_ps = run_timeout_command(&args_ps, &mut String::new(), &mut cwd, &mut env, |_, _, _, sub_env| {
             advance_virtual_clock(200.0, sub_env);
             BuiltinOutcome {
                 stdout: String::new(),
@@ -1603,7 +1607,7 @@ mod tests {
         let mut cwd = "/".to_string();
         let mut env = BTreeMap::new();
         let args = vec!["not_a_duration".to_string(), "echo".to_string()];
-        let out = run_timeout_command(&args, "", &mut cwd, &mut env, |_, _, _, _| BuiltinOutcome {
+        let out = run_timeout_command(&args, &mut String::new(), &mut cwd, &mut env, |_, _, _, _| BuiltinOutcome {
             stdout: String::new(),
             stderr: String::new(),
             exit_code: 0,
@@ -1622,7 +1626,7 @@ mod tests {
 
         let bad_unset = run_env_command(
             &["-u".into(), "A=B".into()],
-            "",
+            &mut String::new(),
             &mut cwd,
             &mut env,
             &vfs,
@@ -1636,7 +1640,7 @@ mod tests {
 
         let null_cmd = run_env_command(
             &["-0".into(), "echo".into(), "hi".into()],
-            "",
+            &mut String::new(),
             &mut cwd,
             &mut env,
             &vfs,
@@ -1650,7 +1654,7 @@ mod tests {
 
         let enotdir = run_env_command(
             &["-C".into(), "/work/file.txt".into(), "pwd".into()],
-            "",
+            &mut String::new(),
             &mut cwd,
             &mut env,
             &vfs,
@@ -1672,7 +1676,7 @@ mod tests {
                 "echo".into(),
                 "ok".into(),
             ],
-            "",
+            &mut String::new(),
             &mut cwd,
             &mut env,
             &vfs,

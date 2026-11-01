@@ -31,6 +31,8 @@ struct JqScope<'a> {
     bindings: BTreeMap<String, JVal>,
     inputs: Rc<RefCell<JqInputs<'a>>>,
     yq: Option<&'a YqDocuments<'a>>,
+    labels: BTreeMap<String, usize>,
+    next_label: Rc<Cell<usize>>,
 }
 
 struct JqFilter<'a> {
@@ -928,7 +930,7 @@ fn cmd_jq_core(
         filter.unwrap_or_else(|| ".".to_string())
     };
     let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
-    let mut vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
+    let mut vars = JqScope { labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: vars, inputs: inputs.clone(), yq };
     let filter_str = if (!xml_input && yq.is_none()) || !lib_dirs.is_empty() {
         match jq_parser::compile(&raw_filter, &mut vars, &lib_dirs, cwd, fs) {
             Ok(filter) => filter,
@@ -1072,31 +1074,6 @@ fn eval_jq_atom(
     if s.is_empty() || s == "." {
         return Ok(vec![input.clone()]);
     }
-    if let Some(rest) = s.strip_prefix("label $")
-        && let Some((lbl_name, body_expr)) = split_jq_binary(rest, "|")
-    {
-        let lbl = lbl_name.trim();
-        match eval_jq(body_expr.trim(), input, vars) {
-            Ok(vals) => return Ok(vals),
-            Err(e) => {
-                let prefix = format!("__jq_break:{lbl}");
-                if let Some(after) = e.strip_prefix(&prefix) {
-                    if let Some(json_str) = after.strip_prefix("::")
-                        && let Ok(mut parsed) = parse_json_stream(json_str)
-                        && let Some(JVal::Array(items)) = parsed.pop()
-                    {
-                        return Ok(items);
-                    }
-                    return Ok(Vec::new());
-                }
-                return Err(e);
-            }
-        }
-    }
-    if let Some(lbl) = s.strip_prefix("break $") {
-        return Err(format!("__jq_break:{}", lbl.trim()));
-    }
-
     if let Some(inner) = s.strip_prefix('-')
         && !inner.is_empty()
     {
@@ -5677,7 +5654,7 @@ fn cmd_yq(
             other => other,
         };
         let inputs = Rc::new(RefCell::new(JqInputs::documents(Vec::new())));
-        let mut base_vars = JqScope { env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
+        let mut base_vars = JqScope { labels: Default::default(), next_label: Default::default(), env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: inputs.clone(), yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64, None));
             let name = eval_jq(s_exp, v, &base_vars)

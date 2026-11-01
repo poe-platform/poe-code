@@ -941,8 +941,7 @@ impl Modules<'_> {
                 let mut child = JqScope {
                     functions: Default::default(),
                     bindings: scope.bindings.clone(),
-                    inputs: scope.inputs.clone(),
-                    ..*scope
+                    ..scope.clone()
                 };
                 self.compile(contents, &mut child)?;
                 self.active.pop();

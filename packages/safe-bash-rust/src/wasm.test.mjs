@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq labels stop the right generator and expose the break value to catch", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, stdout] of [
+      ["-nc 'label $x | [(1,break $x)],2'", ""],
+      ["-nc 'label $outer | (label $out | 1,break $outer),2'", "1\n"],
+      ["-nc '[label $x | (label $x | 1,break $x),2]'", "[1,2]\n"],
+      ["-c 'label $x | try break $x catch .__jq' <<< '1 2 3'", "0\n1\n2\n"],
+      ["-nc 'label $x | try break $x catch error(.)'", ""],
+      ["-nc 'label $x | 1,error({__jq:0}),2'", "1\n"],
+      ["-nc '[first(label $x | inputs),inputs]' <<< '1 2 3'", "[1,2,3]\n"],
+    ]) {
+      const r = await bash.exec(`jq ${args}`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], args);
+    }
+    const err = await bash.exec(`jq -nc 'label $x | 1,error("bad")'`);
+    assert.deepEqual([err.exitCode, err.stdout, err.stderr], [5, "1\n", "jq: error (at <unknown>): bad\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq reduce and foreach interleave their initial, source and update streams", async () => {
   const bash = new RustWasmBash();
   try {

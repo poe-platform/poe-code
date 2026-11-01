@@ -11,28 +11,11 @@ type Emit<'a> = dyn FnMut(JVal) -> Flow + 'a;
 
 pub(super) fn eval_jq(expr: &str, input: &JVal, vars: &JqScope<'_>) -> Result<Vec<JVal>, String> {
     let mut out = Vec::new();
-    let result = visit_jq(expr, input, vars, &mut |value| {
+    let _ = visit_jq(expr, input, vars, &mut |value| {
         out.push(value);
         Ok(Continue(()))
-    });
-    match result {
-        Err(e) if e.starts_with("__jq_break:") && !out.is_empty() => {
-            let label = if let Some((label, tail)) = e.split_once("::") {
-                if let Ok(JVal::Array(values)) = parse_single_json_strict(tail) {
-                    out.extend(values);
-                }
-                label
-            } else {
-                &e
-            };
-            Err(format!(
-                "{label}::{}",
-                JVal::Array(out).to_json_string(true, false, 0)
-            ))
-        }
-        Err(e) => Err(e),
-        Ok(_) => Ok(out),
-    }
+    })?;
+    Ok(out)
 }
 
 pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) -> Flow {
@@ -63,8 +46,26 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         return visit_jq(after_semi.trim(), input, &next_vars, emit);
     }
 
-    if !s.starts_with("label $")
-        && s.contains('|')
+    if let Some(rest) = s
+        .strip_prefix("label")
+        .and_then(|s| s.trim_start().strip_prefix('$'))
+        && let Some((name, body)) = rest.split_once('|')
+    {
+        let target = vars.next_label.get();
+        vars.next_label.set(target + 1);
+        let mut bound = vars.clone();
+        bound.labels.insert(name.trim().into(), target);
+        return protected(body, input, &bound, emit, |e, _| {
+            let matched = e
+                .strip_prefix("__jq_err:")
+                .and_then(|json| parse_single_json_strict(json).ok())
+                .is_some_and(|v| {
+                    v == JVal::Object(vec![("__jq".into(), JVal::Number(target as f64, None))])
+                });
+            if matched { Ok(Continue(())) } else { Err(e) }
+        });
+    }
+    if s.contains('|')
         && let Some(pipes) = split_jq_top(s, '|')
     {
         if pipes.len() == 2
@@ -82,38 +83,19 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if let Some(rest) = s.strip_prefix("try ") {
         let pair = split_jq_binary(rest, " catch ");
         let body = pair.as_ref().map_or(rest, |(body, _)| body);
-        // A catch handles this generator's errors, never a consumer's error.
-        let mut downstream = None;
-        let result = visit_jq(body, input, vars, &mut |v| match emit(v) {
-            Err(e) => {
-                downstream = Some(e);
-                Ok(Break(()))
+        return protected(body, input, vars, emit, |e, emit| {
+            if let Some((_, handler)) = &pair {
+                let value = e
+                    .strip_prefix("__jq_err:")
+                    .and_then(|s| parse_single_json_strict(s).ok())
+                    .unwrap_or(JVal::Str(e));
+                visit_jq(handler, &value, vars, emit)
+            } else {
+                Ok(Continue(()))
             }
-            r => r,
         });
-        if let Some(e) = downstream {
-            return Err(e);
-        }
-        return match result {
-            Err(e) if e.starts_with("__jq_break:") || vars.inputs.borrow().file_error.is_some() => {
-                Err(e)
-            }
-            Err(e) => {
-                if let Some((_, handler)) = pair {
-                    let value = e
-                        .strip_prefix("__jq_err:")
-                        .and_then(|s| parse_single_json_strict(s).ok())
-                        .unwrap_or(JVal::Str(e));
-                    visit_jq(&handler, &value, vars, emit)
-                } else {
-                    Ok(Continue(()))
-                }
-            }
-            r => r,
-        };
     }
-    if !s.starts_with("label $")
-        && s.contains(',')
+    if s.contains(',')
         && let Some(parts) = split_jq_top(s, ',')
     {
         for part in parts {
@@ -154,9 +136,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             emit,
         );
     }
-    if !s.starts_with("label $")
-        && let Some((left, op, right)) = super::jq_parser::binary(s)
-    {
+    if let Some((left, op, right)) = super::jq_parser::binary(s) {
         if op == "//" {
             let mut found = false;
             let flow = visit_jq(left, input, vars, &mut |v| {
@@ -411,6 +391,13 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             }
         }
     }
+    if let Some(name) = s
+        .strip_prefix("break")
+        .and_then(|s| s.trim_start().strip_prefix('$'))
+        && let Some(id) = vars.labels.get(name.trim())
+    {
+        return Err(format!("__jq_err:{{\"__jq\":{id}}}"));
+    }
     if s == "inputs" {
         while let Some(value) = vars.pop_input().map_err(|(_, e)| e)? {
             if emit(value)?.is_break() {
@@ -425,6 +412,31 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
         }
     }
     Ok(Continue(()))
+}
+
+// Catch failures in this filter. A failure raised by its consumer belongs outside the handler.
+fn protected(
+    body: &str,
+    input: &JVal,
+    vars: &JqScope<'_>,
+    emit: &mut Emit<'_>,
+    handle: impl FnOnce(String, &mut Emit<'_>) -> Flow,
+) -> Flow {
+    let mut downstream = None;
+    let result = visit_jq(body, input, vars, &mut |v| match emit(v) {
+        Err(e) => {
+            downstream = Some(e);
+            Ok(Break(()))
+        }
+        other => other,
+    });
+    if let Some(e) = downstream {
+        return Err(e);
+    }
+    match result {
+        Err(e) if vars.inputs.borrow().file_error.is_none() => handle(e, emit),
+        other => other,
+    }
 }
 
 fn object(

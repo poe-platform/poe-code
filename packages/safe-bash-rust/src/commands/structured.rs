@@ -35509,14 +35509,15 @@ fn parse_jsx_element(b: &mut AstBuilder<'_>, i: usize, end: usize) -> Result<(As
     }
 }
 
-fn find_top_level_js_op(s: &str, start: usize, end: usize) -> Option<(usize, usize)> {
+fn find_top_level_js_op(s: &str, start: usize, end: usize) -> Option<(usize, usize, &'static str)> {
     let bytes = s.as_bytes();
     if start < end && bytes[start] == b'<' {
         return None;
     }
     let mut depth = 0i32;
     let mut i = start;
-    let mut found: Option<(usize, usize)> = None;
+    let mut found = None;
+    let mut lowest = u8::MAX;
     while i < end {
         if bytes[i] == b'"' || bytes[i] == b'\'' || bytes[i] == b'`' {
             let q = bytes[i];
@@ -35559,10 +35560,23 @@ fn find_top_level_js_op(s: &str, start: usize, end: usize) -> Option<(usize, usi
             i += 1;
             continue;
         }
-        if depth == 0 && matches!(bytes[i], b'+' | b'-' | b'*' | b'/') {
-            found = Some((i, i + 1));
+        if depth == 0 {
+            let (precedence, width, kind) = match &bytes[i..end] {
+                [b'=' | b'!', b'=', b'=', ..] => (1, 3, "CompareOp"),
+                [b'=' | b'!', b'=', ..] => (1, 2, "CompareOp"),
+                [b'+' | b'-', ..] => (2, 1, "ArithOp"),
+                [b'*' | b'/' | b'%', ..] => (3, 1, "ArithOp"),
+                _ => { i += 1; continue; }
+            };
+            // Left-associative operators split at the rightmost lowest precedence.
+            if precedence <= lowest {
+                lowest = precedence;
+                found = Some((i, i + width, kind));
+            }
+            i += width;
+        } else {
+            i += 1;
         }
-        i += 1;
     }
     found
 }
@@ -35577,12 +35591,12 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
     if i >= end {
         return Err("empty js expression".to_string());
     }
-    if let Some((op_start, op_end)) = find_top_level_js_op(s, i, end)
+    if let Some((op_start, op_end, kind)) = find_top_level_js_op(s, i, end)
         && op_start > i
         && op_end < end
     {
         let (lhs, _) = parse_js_expr(b, i, op_start)?;
-        let op_leaf = b.leaf("ArithOp", op_start, op_end, false);
+        let op_leaf = b.leaf(kind, op_start, op_end, false);
         let (rhs, _) = parse_js_expr(b, op_end, end)?;
         let start = lhs.range.0;
         let stop = rhs.range.1;
@@ -39143,6 +39157,19 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_rewrites_only_equal_capture_operands() {
+        let fs = MemoryVfs::new();
+        for op in ["===", "!==", "==", "!="] {
+            let source = format!("a {op} a; a {op} b; obj.x {op} obj.x; (a + b * c) {op} (a + b * c);\n");
+            fs.write_file("/code.js", source.as_bytes()).unwrap();
+            let pattern = format!("$X {op} $X");
+            let result = try_run_structured_command("sg", &args(&["-p", &pattern, "-r", "same($X)", "-U", "code.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(fs.read_file("/code.js").unwrap(), format!("same(a); a {op} b; same(obj.x); same((a + b * c));\n").as_bytes());
+        }
     }
 
     #[test]

@@ -37195,15 +37195,38 @@ fn cmd_ast_grep(
             stdout.push_str(AST_GREP_HELP);
             return Ok(0);
         }
+        let mut remaining_input = 8 * 1024 * 1024usize;
+        let read = |path: Option<&str>, remaining: &mut usize| -> Result<String, String> {
+            let too_large = || match path {
+                Some(p) => format!("EFBIG: file too large, readFile '{p}'"),
+                None => "EFBIG: output exceeds maxBytes, collectBytes".into(),
+            };
+            let bytes = if let Some(p) = path {
+                if fs.stat(p).is_ok_and(|st| st.size > *remaining) {
+                    return Err(too_large());
+                }
+                fs.read_file(p).map_err(|e| {
+                    if e.starts_with("ENOENT:") {
+                        format!("ENOENT: no such file or directory, readFile '{p}'")
+                    } else if e.starts_with("EISDIR:") {
+                        format!("EISDIR: illegal operation on a directory, readFile '{p}'")
+                    } else { e }
+                })?
+            } else {
+                crate::vfs::stream_string_to_bytes(stdin)
+            };
+            *remaining = remaining.checked_sub(bytes.len()).ok_or_else(too_large)?;
+            String::from_utf8(bytes).map_err(|_| "The encoded data was not valid for encoding utf-8".into())
+        };
         let rules: Vec<AstSearchRule> = if opts.scan {
             let mut rs = Vec::new();
             if let Some(ref rf) = opts.rule_file {
                 let full = resolve_posix_path(cwd, rf);
-                let bytes = fs.read_file(&full)?;
-                let text = String::from_utf8(bytes).map_err(|e| e.to_string())?;
+                let text = read(Some(&full), &mut remaining_input)?;
                 rs.extend(parse_ast_grep_rules(&text)?);
             }
             if let Some(ref ir) = opts.inline_rules {
+                remaining_input = remaining_input.checked_sub(ir.len()).ok_or("input byte limit exceeded")?;
                 rs.extend(parse_ast_grep_rules(ir)?);
             }
             if rs.is_empty() {
@@ -37282,13 +37305,7 @@ fn cmd_ast_grep(
             if relevant.is_empty() {
                 continue;
             }
-            let source = match maybe_path {
-                None => stdin.to_string(),
-                Some(ref p) => {
-                    let bytes = fs.read_file(p)?;
-                    String::from_utf8(bytes).map_err(|e| e.to_string())?
-                }
-            };
+            let source = read(maybe_path.as_deref(), &mut remaining_input)?;
             let file_label = match maybe_path {
                 None => "STDIN".to_string(),
                 Some(ref p) => relative_to_cwd(cwd, p),
@@ -39342,6 +39359,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_checks_input_bytes_before_decoding_or_rewriting() {
+        let fs = MemoryVfs::new();
+        let bad = b"f(a);\xff";
+        fs.write_file("/bad.js", bad).unwrap();
+        fs.write_file("/rule.yml", bad).unwrap();
+        let stdin = crate::vfs::bytes_to_stream_string(bad);
+        for (argv, stdout) in [
+            (vec!["-p", "f($X)", "-r", "g", "-U", "--json=compact", "bad.js"], "["),
+            (vec!["scan", "-r", "rule.yml"], ""),
+            (vec!["-p", "x", "-l", "js", "--stdin", "--json=compact"], "["),
+        ] {
+            let r = try_run_structured_command("sg", &args(&argv), &stdin, "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, stdout, "sg: The encoded data was not valid for encoding utf-8\n"));
+        }
+        assert_eq!(fs.read_file("/bad.js").unwrap(), bad);
+        // The inline rule also consumes the command's 8 MiB allowance.
+        fs.write_file("/large.js", &vec![0xff; 8 * 1024 * 1024]).unwrap();
+        let r = try_run_structured_command("sg", &args(&["scan", "--inline-rules", "id: x\nlanguage: js\nrule:\n  pattern: x", "large.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (2, "sg: EFBIG: file too large, readFile '/large.js'\n"));
     }
 
     #[test]

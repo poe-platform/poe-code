@@ -430,13 +430,17 @@ use deflate_encoder::deflate;
 
 pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
     let mut out = deflate(data, 6, vec![0x78, 0x9c]);
+    out.extend_from_slice(&adler32(data).to_be_bytes());
+    out
+}
+
+pub(super) fn adler32(data: &[u8]) -> u32 {
     let (mut a, mut b) = (1u32, 0u32);
     for chunk in data.chunks(5552) {
         for &x in chunk { a += u32::from(x); b += a; }
         a %= 65521; b %= 65521;
     }
-    out.extend_from_slice(&((b << 16) | a).to_be_bytes());
-    out
+    (b << 16) | a
 }
 
 pub fn gzip_decompress(data: &[u8]) -> Result<Vec<u8>, String> {

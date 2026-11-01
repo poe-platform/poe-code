@@ -89,6 +89,10 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
+#[path = "png_pixels.rs"]
+mod png_pixels;
+#[path = "magick_compare.rs"]
+mod magick_compare;
 #[path = "magick_color.rs"]
 mod magick_color;
 use magick_color::{Canvas, parse_color};
@@ -10600,7 +10604,9 @@ fn cmd_media_doc(
                 return list_out;
             }
             let mut metric = "rmse".to_string();
-            let mut fuzz_pct = 0.0f64;
+            let mut options = magick_compare::Options {
+                fuzz: 0., highlight: [241,0,30,255], lowlight: None, compose_src: false, threshold: None, density: 72,
+            };
             let mut operands: Vec<String> = Vec::new();
             let mut i = 0usize;
             while i < args.len() {
@@ -10616,15 +10622,24 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-fuzz" if i + 1 < args.len() => {
-                        let f = args[i + 1].trim_end_matches('%');
-                        fuzz_pct = f.parse::<f64>().unwrap_or(0.0);
-                        i += 2;
+                        let value = &args[i+1];
+                        options.fuzz = if let Some(pct) = value.strip_suffix('%') { pct.parse::<f64>().unwrap_or(f64::NAN)/100.0*255.0 }
+                            else { value.parse().unwrap_or(f64::NAN) };
+                        i+=2;
                     }
-                    "-highlight-color" | "-lowlight-color" | "-compose"
-                    | "-dissimilarity-threshold" | "-quality" | "-density"
-                        if i + 1 < args.len() =>
-                    {
-                        i += 2;
+                    "-highlight-color" | "-lowlight-color" if i + 1 < args.len() => {
+                        let color = match parse_color(&args[i+1]) { Ok(color) => color, Err(e) => return err_out(&format!("compare: {e}\n"), 2) };
+                        if args[i]=="-highlight-color" { options.highlight=color; } else { options.lowlight=Some(color); }
+                        i+=2;
+                    }
+                    "-compose" | "-dissimilarity-threshold" | "-density" | "-quality" | "-format" | "-alpha" | "-channel" if i+1 < args.len() => {
+                        let value=&args[i+1];
+                        match args[i].as_str() {
+                            "-compose" => options.compose_src |= matches!(value.to_ascii_lowercase().as_str(),"src"|"source"|"copy"),
+                            "-density" => options.density=value.split('x').next().and_then(|v|v.parse::<f64>().ok()).unwrap_or(72.).round().max(1.) as u32,
+                            "-dissimilarity-threshold" => options.threshold=Some(value.parse().unwrap_or(f64::NAN)), _=>{}
+                        }
+                        i+=2;
                     }
                     a if a.starts_with('-') && a != "-" => {
                         i += 1;
@@ -10678,6 +10693,24 @@ fn cmd_media_doc(
             };
             let default_null = "null:".to_string();
             let out_spec = operands.get(2).unwrap_or(&default_null);
+            // A few unmigrated writers still return private header-only images.
+            // Decode production PNGs and generated inputs before the legacy metadata path.
+            let raster = |spec: &str, bytes: &[u8]| -> Result<Option<png_pixels::Raster>, String> {
+                if let Some(canvas) = Canvas::parse(spec) {
+                    return Ok(Some(png_pixels::Raster {width:1,height:1,alpha:true,pixels:vec![canvas?.pixel(0,0,1,1)]}));
+                }
+                if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38)!=Some(b"\n__IMG__:") {
+                    return png_pixels::Raster::decode(bytes,fs.max_input_bytes()).map(Some).map_err(String::from);
+                }
+                Ok(None)
+            };
+            if out_spec.eq_ignore_ascii_case("null:") || out_spec=="-" || out_spec.to_ascii_lowercase().starts_with("png:") || out_spec.to_ascii_lowercase().ends_with(".png") {
+                match (raster(&operands[0], &bytes_a),raster(&operands[1], &bytes_b)) {
+                    (Ok(Some(a)), Ok(Some(b))) => return magick_compare::compare([&a,&b],&metric,&options,out_spec,cwd,fs),
+                    (Err(e),_) | (_,Err(e)) => return err_out(&format!("compare: improper image header: {e}\n"),2),
+                    _ => {}
+                }
+            }
             let width = meta_a.w.max(meta_b.w);
             let height = meta_a.h.max(meta_b.h);
             let color_a = meta_a.exif.get("__color").map(|s| s.as_str()).unwrap_or("");
@@ -10688,7 +10721,7 @@ fn cmd_media_doc(
                 .abs()
                 .max((ga as i32 - gb as i32).abs())
                 .max((ba as i32 - bb as i32).abs()) as f64;
-            let fuzz_abs = (fuzz_pct / 100.0) * 255.0;
+            let fuzz_abs = options.fuzz;
             let same_pixels = (bytes_a == bytes_b)
                 || (meta_a.w == meta_b.w
                     && meta_a.h == meta_b.h
@@ -12988,6 +13021,17 @@ mod media_unit_tests {
         assert_eq!(probe(&["-show_entries", "format=size:stream=channels,codec_name", "-of", "csv:p=0", "tone"]),
             format!("pcm_s24le,1\n{}\n", bytes.len()));
         assert_eq!(probe(&["-of", "json", "tone"]), "{}\n");
+    }
+
+    #[test]
+    fn compare_measures_alpha_and_missing_pixels_in_production_pngs() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/a.png", &hex_dec("89504e470d0a1a0a0000000d494844520000000d000000090806000000e97aa66a000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000003b4944415463945170facf40226034b3f2235d53404814e99ab2f25249d7d4da5148baa6f98b6a49d7b4734f27e99a2e5f9b42baa6b71f1690ac0900dff8166cd748a1f90000000049454e44ae426082")).unwrap();
+        fs.write_file("/b.png", &hex_dec("89504e470d0a1a0a0000000d4948445200000007000000050806000000899af6d8000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000006149444154639c51a6f4ff2d37cbe34f9c4c2f7f33337d67fdfb8f93effb3f71e1af7f64197b6b54debde263b9fb9687e5e13736a68f5cbffef10b7ff9232ff6e98f326357bdea8b177cacb75ef0b3dc06d1129f7eab497cfca30aa2f1ebc4672700f4c246b0d78da95f0000000049454e44ae426082")).unwrap();
+        let r = cmd_media_doc("compare", &media_args(&["-metric", "MAE", "a.png", "b.png", "diff.png"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 1);
+        assert_eq!(r.stderr, "34700.969532 (0.529503)\n");
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/diff.png").unwrap())), "9e143216e78f79c42afa796024db6ace525dd2a37723ea9dfc258754066f253f");
     }
 
     #[test]

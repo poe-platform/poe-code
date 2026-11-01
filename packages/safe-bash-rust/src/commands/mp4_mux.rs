@@ -1593,7 +1593,10 @@ fn read_sources<'a>(
     Ok(sources)
 }
 
-fn mapped_tracks(sources: &[Source<'_>], opts: &Remux<'_>) -> Result<Vec<(usize, usize)>, String> {
+fn mapped_tracks(
+    sources: &[Source<'_>],
+    opts: &Remux<'_>,
+) -> Result<(Vec<(usize, usize)>, Option<f64>), String> {
     let mut selected = select_tracks(
         opts.maps,
         sources.len(),
@@ -1609,7 +1612,30 @@ fn mapped_tracks(sources: &[Source<'_>], opts: &Remux<'_>) -> Result<Vec<(usize,
     if selected.len() > 32 {
         return Err("output stream count exceeds limit".into());
     }
-    Ok(selected)
+    let shortest = opts
+        .shortest
+        .then(|| {
+            selected
+                .iter()
+                .map(|&(j, i)| sources[j].2.seconds(i))
+                .reduce(f64::min)
+        })
+        .flatten();
+    for &(j, _) in &selected {
+        if let Streams::Y4m(clip) = &sources[j].2 {
+            if let Some(end) = shortest {
+                clip.check_slice(0., end)?;
+            }
+            if opts.start.is_some() || opts.end.is_some() {
+                let duration = shortest.unwrap_or(clip.seconds());
+                clip.check_slice(
+                    opts.start.unwrap_or(0.),
+                    opts.end.unwrap_or(duration).min(duration),
+                )?;
+            }
+        }
+    }
+    Ok((selected, shortest))
 }
 
 pub(in super::super) fn render_mapped(
@@ -1621,7 +1647,7 @@ pub(in super::super) fn render_mapped(
 ) -> Result<(usize, usize, u32), String> {
     let data = materialize(inputs, opts)?;
     let sources = read_sources(inputs, &data, opts)?;
-    let selected = mapped_tracks(&sources, opts)?;
+    let (selected, shortest) = mapped_tracks(&sources, opts)?;
     let Some(&(j, i)) = selected
         .iter()
         .find(|&&(j, i)| sources[j].2.kind(i) == "video")
@@ -1630,12 +1656,9 @@ pub(in super::super) fn render_mapped(
     };
     let (input, _, streams) = &sources[j];
     let durations = selected.iter().map(|&(j, i)| sources[j].2.seconds(i));
-    let duration = if opts.shortest {
-        durations.reduce(f64::min)
-    } else {
-        durations.reduce(f64::max)
-    }
-    .unwrap_or(0.);
+    let duration = shortest
+        .or_else(|| durations.reduce(f64::max))
+        .unwrap_or(0.);
     let cut = opts.shortest || opts.start.is_some() || opts.end.is_some();
     let options = y4m::Options {
         start: opts.start.unwrap_or(0.).max(0.),
@@ -1679,15 +1702,13 @@ pub(in super::super) fn remux(
         Streams::Still(_) => 25,
         _ => header_time(child(moov, b"mvhd"), 1000).0,
     };
-    let selected = mapped_tracks(&sources, &opts)?;
-    let shortest = if opts.shortest {
-        selected
-            .iter()
-            .map(|&(j, i)| sources[j].2.seconds(i))
-            .reduce(f64::min)
-    } else {
-        None
-    };
+    let (selected, shortest) = mapped_tracks(&sources, &opts)?;
+    if opts.format == "null" {
+        return Ok(Vec::new());
+    }
+    if opts.format == "ffmetadata" {
+        return super::ffmetadata(inputs, !opts.maps.is_empty(), opts.metadata, opts.limit);
+    }
     let end = shortest.map(|s| s.min(opts.end.unwrap_or(s))).or(opts.end);
     let range =
         (opts.start.is_some() || end.is_some()).then_some((opts.start.unwrap_or(0.).max(0.), end));

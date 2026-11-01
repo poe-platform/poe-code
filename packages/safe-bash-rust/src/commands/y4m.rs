@@ -183,6 +183,17 @@ pub(super) struct Options<'a> {
     pub limit: usize,
 }
 
+fn raw_rgb(y: i32, u: i32, v: i32) -> [u8; 4] {
+    let c = y.max(0) * 298;
+    let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
+    [
+        sat(c + 409 * v),
+        sat(c - 100 * u - 208 * v),
+        sat(c + 516 * u),
+        255,
+    ]
+}
+
 // Y4M retains decoded frames and raw packets. Trims select frames by their
 // visible interval, while packets keep their original bytes and a clipped duration.
 pub(super) struct Clip<'a> {
@@ -246,7 +257,7 @@ impl<'a> Stream<'a> {
         {
             return Err("frame index exceeds memory budget");
         }
-        Ok(Clip {
+        let clip = Clip {
             width: self.width as usize,
             height: self.height as usize,
             fps: self.fps,
@@ -265,10 +276,44 @@ impl<'a> Stream<'a> {
             } else {
                 0
             },
-        })
+        };
+        if cut && clip.period > 0 {
+            clip.check_packet(clip.packet_first)?;
+        }
+        Ok(clip)
     }
 }
 impl<'a> Clip<'a> {
+    // sliceMp4 tests the fifth payload byte when promoting its first packet,
+    // including raw RGBA packets. Here that byte is the second pixel's red channel.
+    fn check_packet(&self, index: usize) -> Result<(), &'static str> {
+        let pixels = self.width * self.height;
+        if pixels < 2 {
+            return Ok(());
+        }
+        let data = self.frames[index];
+        let chroma = (data.len() - pixels) / 2;
+        let red = raw_rgb(
+            i32::from(data[1]) - 16,
+            i32::from(data[pixels]) - 128,
+            i32::from(data[pixels + chroma]) - 128,
+        )[0];
+        if red & 31 == 1 {
+            Err("H.264 packet decode failed (-1094995529)")
+        } else {
+            Ok(())
+        }
+    }
+    pub fn check_slice(&self, start: f64, end: f64) -> Result<(), &'static str> {
+        let from = self.origin.saturating_add((start * 90000.).round() as u64);
+        let until = self
+            .origin
+            .saturating_add((end.min(self.seconds()) * 90000.).round() as u64);
+        if from < until && from < self.media_ticks() {
+            self.check_packet(self.packet_first + ((from % self.period) / self.tick) as usize)?;
+        }
+        Ok(())
+    }
     pub fn media_ticks(&self) -> u64 {
         self.period.saturating_mul(self.copies as u64)
     }
@@ -299,16 +344,7 @@ impl<'a> Clip<'a> {
         })
     }
     pub fn raster(&self, frame: &[u8]) -> Raster {
-        decode(frame, self.width, self.height, |y, u, v| {
-            let c = y.max(0) * 298;
-            let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
-            [
-                sat(c + 409 * v),
-                sat(c - 100 * u - 208 * v),
-                sat(c + 516 * u),
-                255,
-            ]
-        })
+        decode(frame, self.width, self.height, raw_rgb)
     }
     pub fn image(&self, i: usize) -> Raster {
         self.raster(self.frames[self.first + i % self.frames_per_copy])

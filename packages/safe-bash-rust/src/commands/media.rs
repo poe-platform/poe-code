@@ -4636,7 +4636,7 @@ fn cmd_media_doc(
             let sequence=if ext.and_then(|f|frame_output::image_format(f,true)).is_some() && !matches!(output_format,Some("null"|"hls"|"dash")) {
                 match frame_output::sequence(&out_rel){Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
             }else{None};
-            let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null"{None}else{match output_format {
+            let muxer = if sequence.is_some(){Some("image2")}else if out_rel=="/dev/null" || output_format==Some("null"){Some("null")}else{match output_format {
                 Some(name) => media_format::by_name(name),
                 None => media_format::by_filename(&out_rel),
             }};
@@ -4648,7 +4648,7 @@ fn cmd_media_doc(
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-            if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata")) || frame_output{
+            if mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null")) || frame_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4696,8 +4696,6 @@ fn cmd_media_doc(
                     match ffmpeg_wave::Input::parse(format.unwrap_or(""),bytes).map_err(str::to_owned).and_then(|input|input.map(|a|a.render(input_times[0],&remux)).transpose()){
                         Ok(data)=>data, Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }
-                } else if muxer==Some("ffmetadata") && remux_inputs {
-                    match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,limit){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if frame_output && (inputs.len()==1 && supported || remux_inputs) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
@@ -4728,10 +4726,11 @@ fn cmd_media_doc(
                             else{Ok((64,64,10))}
                     });
                     match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output || audio_output || muxer==Some("wav")) && remux_inputs {
+                } else if (mp4_output || subtitle_output || audio_output || matches!(muxer,Some("wav"|"ffmetadata"|"null"))) && remux_inputs {
                     match mp4::mux::remux(&sources,remux,0){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
                 if let Some(output)=output {
+                    if muxer==Some("null"){return ok_out("");}
                     if stdout {
                         return ok_out(&crate::vfs::bytes_to_stream_string(&output));
                     }
@@ -13766,6 +13765,20 @@ mod media_unit_tests {
             args.push("out.mp4");
             run(&args);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), expected);
+        }
+    }
+
+    #[test]
+    fn ffmpeg_reports_packet_promotion_failure_when_slicing_raw_video() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/raw.y4m", b"YUV4MPEG2 W2 H1 F25:1\nFRAME\n\x11\x11\x80\x80").unwrap();
+        for output in ["v.mp4","v.y4m","a.wav","a.aac","tags.ffmetadata","null.bin"] {
+            let mut args=media_args(&["-i","raw.y4m","-t","0.02"]);
+            if output=="null.bin" {args.extend(media_args(&["-f","null"]));}
+            args.push(output.into());
+            let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
+            assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: H.264 packet decode failed (-1094995529)\n".into()));
+            assert!(!fs.exists(&format!("/{output}")));
         }
     }
 

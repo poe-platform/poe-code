@@ -1107,6 +1107,8 @@ fn unlink_destination(path: &str, fs: &dyn SafeBashFs) -> Result<(), String> {
 
 #[derive(Default)]
 struct CopySettings {
+    attributes_only: bool,
+    archive: bool,
     dereference: char,
     mode: bool,
     timestamps: bool,
@@ -1159,6 +1161,14 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
     if target == source || target_stat.as_ref().is_some_and(|t| t.identity.is_some() && t.identity == st.identity) {
         return Err(format!("EINVAL: source and destination are the same file '{src}' -> '{dst}'"));
     }
+    if preserve_link {
+        if settings.timestamps && !settings.archive {
+            return Err(format!("ENOTSUP: operation not supported, utimes '{dst}'"));
+        }
+        if settings.attributes_only && target_stat.is_some() && settings.backup.is_none() && !replace {
+            return Err(format!("EEXIST: file already exists, symlink '{dst}'"));
+        }
+    }
     if !directory && target_stat.as_ref().is_some_and(|t| t.kind == VfsEntryKind::Directory) {
         return Err(format!("EISDIR: illegal operation on a directory '{dst}'"));
     }
@@ -1198,6 +1208,15 @@ fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings
             fs.chmod(&target, mode)?;
         }
         copied?;
+    } else if settings.attributes_only {
+        if replace && target_stat.is_some() {
+            unlink_destination(&entry, fs)?;
+            target_stat = None;
+        }
+        if target_stat.is_none() {
+            fs.create_file(&target, &[], st.mode & 0o777).map_err(|e| copy_error(&e, "writeFile", dst))?;
+        }
+        if settings.mode { fs.chmod(&target, st.mode & 0o7777)?; }
     } else {
         if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source}'")); }
         if replace || settings.force && target_stat.as_ref().is_some_and(|t| t.mode & 0o200 == 0 && t.mode & 0o170000 != 0o020000) {
@@ -1267,7 +1286,6 @@ fn cmd_cp(
     let mut deref_opt: Option<char> = None;
     let mut settings = CopySettings::default();
     let mut remove_destination = false;
-    let mut attributes_only = false;
     let mut preserve_links = false;
     let mut i = 0usize;
     while i < args.len() {
@@ -1314,6 +1332,7 @@ fn cmd_cp(
             } else if a == "--no-dereference" {
                 deref_opt = Some('P');
             } else if a == "--archive" {
+                settings.archive = true;
                 recursive = true;
                 deref_opt = Some('P');
                 preserve_links = true;
@@ -1346,7 +1365,7 @@ fn cmd_cp(
             } else if a == "--remove-destination" {
                 remove_destination = true;
             } else if a == "--attributes-only" {
-                attributes_only = true;
+                settings.attributes_only = true;
             } else if a == "--one-file-system" {
                 // -x
             } else if a == "--recursive" {
@@ -1402,6 +1421,7 @@ fn cmd_cp(
                         }
                         'r' | 'R' => recursive = true,
                         'a' => {
+                            settings.archive = true;
                             recursive = true;
                             deref_opt = Some('P');
                             preserve_links = true;
@@ -1596,31 +1616,16 @@ fn cmd_cp(
                 continue;
             }
         }
-        if target_exists && (sym_link || hard_link || attributes_only && !src_is_dir) {
+        if target_exists && (sym_link || hard_link) {
             let removal = if let Some((mode, suffix)) = &settings.backup {
                 backup_copy_target(fs, &src, &target, *mode, suffix)
-            } else if sym_link || hard_link || remove_destination { unlink_destination(&target, fs) } else { Ok(()) };
+            } else { unlink_destination(&target, fs) };
             if let Err(e) = removal { stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
         }
         let copy_res = if sym_link {
             fs.symlink(src_raw, &target)
         } else if hard_link {
             fs.symlink(&format!("__hardlink__:{src}"), &target)
-        } else if attributes_only && !src_is_dir {
-            if (!target_exists || remove_destination || backup_mode != BackupMode::None)
-                && !preserve_top_link
-            {
-                if let Err(e) = fs.create_file(&target, &[], source_stat.mode & 0o777) {
-                    stderr.push_str(&format!("cp: {}\n", copy_error(&e, "writeFile", &target)));
-                    code = 1;
-                    continue;
-                }
-            }
-            if let Ok(st) = fs.stat(&src) {
-                let _ = fs.chmod(&target, st.mode);
-                let _ = fs.set_mtime(&target, st.mtime_ms);
-            }
-            Ok(())
         } else {
             copy_entry(&src, &target, fs, &settings, &mut Default::default())
         };
@@ -7024,6 +7029,45 @@ mod tests {
         assert_eq!(fs.read_file("/dst/a~").unwrap(), b"OLD");
         assert!(!fs.exists("/dst~"));
         assert_eq!(fs.read_file("/dst/a").unwrap(), b"NEW");
+    }
+
+    #[test]
+    fn attributes_only_keeps_existing_contents_and_does_not_read_source_data() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src/a", b"NEW").unwrap();
+        fs.write_file("/dst/a", b"KEEP").unwrap();
+        fs.chmod("/src/a", 0o200).unwrap();
+        fs.chmod("/dst/a", 0o400).unwrap();
+        fs.set_mtime("/src/a", 1234).unwrap();
+        fs.set_mtime("/dst/a", 5678).unwrap();
+        let copy = |argv: &[&str]| cmd_cp(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        for argv in [["--attributes-only", "-f", "/src/a", "/dst/a"], ["--attributes-only", "-RT", "/src", "/dst"]] {
+            let result = copy(&argv);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let st = fs.stat("/dst/a").unwrap();
+            assert_eq!((st.mode & 0o777, st.mtime_ms), (0o400, 5678));
+            assert_eq!(fs.read_file("/dst/a").unwrap(), b"KEEP");
+        }
+        let result = copy(&["--attributes-only", "-RbT", "/src", "/dst"]);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(fs.read_file("/dst/a~").unwrap(), b"KEEP");
+        assert_eq!(fs.stat("/dst/a").unwrap().mode & 0o777, 0o200);
+        assert!(fs.read_file("/dst/a").unwrap().is_empty());
+    }
+
+    #[test]
+    fn attributes_only_copies_symlinks_without_mutating_their_referents() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/file", b"KEEP").unwrap();
+        fs.symlink("file", "/src").unwrap();
+        let copy = |argv: &[&str]| cmd_cp(&args(argv), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(copy(&["--attributes-only", "-P", "/src", "/file"]).stderr, "cp: EEXIST: file already exists, symlink '/file'\n");
+        assert_eq!(copy(&["--attributes-only", "-Ppb", "/src", "/file"]).stderr, "cp: ENOTSUP: operation not supported, utimes '/file'\n");
+        assert!(!fs.exists("/file~"));
+        assert_eq!(fs.read_file("/file").unwrap(), b"KEEP");
+        let result = copy(&["--attributes-only", "-ab", "/src", "/dst"]);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(fs.readlink("/dst").unwrap(), "file");
     }
 
     #[test]

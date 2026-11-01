@@ -4703,7 +4703,7 @@ fn cmd_media_doc(
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
-                        if inputs.len()>1 || format==Some("wav") {
+                        if inputs.len()>1 || format==Some("wav") || real_mp4 && seek.loops>0 {
                             return mp4::mux::render_mapped(&sources,&remux,frames,sequence,emit);
                         }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
@@ -4713,16 +4713,16 @@ fn cmd_media_doc(
                         else if let MediaInput::Images(seq)=input {
                             let input_cut=seek.start.is_some() || seek.end().is_some();
                             if input_cut || shortest || ss_opt.is_some() || end.is_some(){
-                                let movie=mp4::mux::input_slice(input,seek.start,seek.end(),None,limit)?;
+                                let movie=mp4::mux::input_slice(input,seek,None,limit)?;
                                 let end=if input_cut{end}else{Some(end.unwrap_or(seq.template_duration()).min(seq.template_duration()))};
                                 mp4::render_video(&movie,y4m::Options{end,..opts},&maps,sequence,emit)
                             }else{seq.render(opts,emit).map_err(str::to_owned)}
                         }
                         else if still_input {frame_output::render_still(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
-                            mp4::mux::input_slice(input,seek.start,seek.end(),seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
+                            mp4::mux::input_slice(input,seek,seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
                         }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
-                            mp4::mux::input_slice(input,Some(start),end,end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
+                            mp4::mux::input_slice(input,InputTime{start:Some(start),to:end,..InputTime::default()},end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
                         } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
                             else if format==Some("y4m") {let s=seek.start.unwrap_or(0.);
@@ -4732,7 +4732,7 @@ fn cmd_media_doc(
                     });
                     match result {Ok(Some(data))=>Some(data),Ok(None)=>return ok_out(""),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if (mp4_output || subtitle_output || audio_output || muxer==Some("wav")) && remux_inputs {
-                    match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                    match mp4::mux::remux(&sources,remux,0){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else {None};
                 if let Some(output)=output {
                     if stdout {
@@ -13713,6 +13713,36 @@ mod media_unit_tests {
         assert_eq!(run(&["-f", "lavfi", "-i", "sine=f=631:r=8000:d=0.25", "audio.mp4"]).exit_code, 0);
         assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=8x6:r=4:d=1", "-i", "audio.mp4", "-map", "1:a", "-af", "volume=0.3,atempo=2,areverse", "-ar", "11025", "-ac", "2", "out.wav"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.wav").unwrap())), "30e61cbf00936a82b3c286a4790128481a8b36398b43fb77f071f3e553fbfbfe");
+    }
+
+    #[test]
+    fn ffmpeg_repeats_trimmed_movie_packets_and_aligns_audio_at_loop_boundaries() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs).exit_code, 0);
+        run(&["-f", "lavfi", "-i", "testsrc=s=8x6:r=4:d=1", "v.mp4"]);
+        run(&["-f", "lavfi", "-i", "sine=f=631:r=8000:d=0.25", "a.mp4"]);
+        run(&["-i", "a.mp4", "-i", "v.mp4", "av.mp4"]);
+        for (seek, expected) in [
+            (vec![], "7da559ead5b263707e8e664b4bff17653bc5eb0eefb781ee0adf5cfb0a9eda97"),
+            (vec!["-ss","0.125","-t","0.125"], "d0d909b3b4808f3f9595b097f8ea9275f81f6ff6c48ea1ac1a022d78096b3ce1"),
+        ] {
+            let mut args = vec!["-y"];
+            args.extend(seek);
+            args.extend(["-stream_loop", "2", "-i", "av.mp4", "out.mp4"]);
+            run(&args);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), expected);
+        }
+    }
+
+    #[test]
+    fn ffmpeg_rounds_each_loop_boundary_on_the_audio_tracks_own_clock() {
+        let fs = MemoryVfs::new();
+        let run = |args: &[&str]| assert_eq!(cmd_media_doc("ffmpeg", &media_args(args), "", "/", &fs).exit_code, 0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=7:d=0.85","v.mp4"]);
+        run(&["-f","lavfi","-i","sine=f=631:r=11025:d=0.75","a.mp4"]);
+        run(&["-i","a.mp4","-i","v.mp4","av.mp4"]);
+        run(&["-stream_loop","8","-i","av.mp4","out.mp4"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.mp4").unwrap())), "82a63090736b3ac011807f2d450d659e9fbfb1abc78e4027bc44fa3244a271ca");
     }
 
     #[test]

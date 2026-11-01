@@ -108,6 +108,7 @@ fn tags(out: &mut Vec<u8>, metadata: &BTreeMap<String, String>, chapters: &[u8])
         })
     });
 }
+#[derive(Clone)]
 struct Sample<'a> {
     data: Cow<'a, [u8]>,
     duration: u32,
@@ -902,6 +903,84 @@ fn subtitle_track(
     })
 }
 
+// concatMp4 normalizes video to 90 kHz, drops edit lists, and extends the
+// final packet of shorter tracks at each boundary before the next copy starts.
+fn repeat_tracks(
+    tracks: &mut [Track<'_>],
+    loops: usize,
+    movie_scale: u32,
+    limit: usize,
+) -> Result<(), &'static str> {
+    let copies = loops
+        .checked_add(1)
+        .ok_or("sample index exceeds memory budget")?;
+    let mut remaining = limit;
+    let mut clip_ticks = Vec::with_capacity(tracks.len());
+    for t in tracks.iter_mut() {
+        let cost = t
+            .samples
+            .iter()
+            .map(|s| size_of::<Sample>() + s.data.len())
+            .try_fold(0usize, usize::checked_add)
+            .and_then(|n| n.checked_mul(copies))
+            .ok_or("output byte limit exceeded")?;
+        remaining = remaining
+            .checked_sub(cost)
+            .ok_or("output byte limit exceeded")?;
+        if t.samples.len().saturating_mul(copies) > 200_000 {
+            return Err("sample index exceeds memory budget");
+        }
+        let target = if t.kind == "video" { 90000 } else { t.scale };
+        let ratio = f64::from(target) / f64::from(t.scale);
+        let mut ticks = 0u32;
+        for s in &mut t.samples {
+            s.duration = (f64::from(s.duration) * ratio).round().max(1.) as u32;
+            s.cts = (s.cts as f64 * ratio + 0.5).floor() as i64;
+            ticks = ticks
+                .checked_add(s.duration)
+                .ok_or("track duration exceeds limit")?;
+        }
+        t.scale = target;
+        t.media_ticks = ticks;
+        clip_ticks.push(ticks);
+        t.first_dts = 0;
+        t.edits.clear();
+        t.movie_ticks = 0;
+        let n = t.samples.len();
+        if n != 0 {
+            t.samples.reserve_exact(n * loops);
+            for _ in 0..loops {
+                t.samples.extend_from_within(..n);
+            }
+        }
+    }
+    if tracks.iter().all(|t| t.samples.is_empty()) {
+        return Ok(());
+    }
+    for copy in 1..copies {
+        let boundary = tracks
+            .iter()
+            .map(|t| f64::from(t.media_ticks) / f64::from(t.scale))
+            .fold(0., f64::max);
+        for (t, &clip) in tracks.iter_mut().zip(&clip_ticks) {
+            if t.samples.is_empty() {
+                continue;
+            }
+            let end = (boundary * f64::from(t.scale)).round() as u64;
+            let padding = end.saturating_sub(u64::from(t.media_ticks));
+            t.media_ticks =
+                u32::try_from(end + u64::from(clip)).map_err(|_| "track duration exceeds limit")?;
+            let last = copy * (t.samples.len() / copies) - 1;
+            t.samples[last].duration += padding as u32;
+        }
+    }
+    for t in tracks {
+        t.movie_ticks =
+            (f64::from(t.media_ticks) / f64::from(t.scale) * f64::from(movie_scale)).round() as u32;
+    }
+    Ok(())
+}
+
 fn write(
     tracks: &[Track<'_>],
     scale: u32,
@@ -1157,16 +1236,15 @@ pub(in super::super) fn select_tracks(
 
 pub(in super::super) fn input_slice(
     input: &MediaInput,
-    start: Option<f64>,
-    end: Option<f64>,
+    seek: InputTime,
     source_end: Option<f64>,
     limit: usize,
 ) -> Result<Vec<u8>, String> {
     remux(
         std::slice::from_ref(input),
         Remux {
-            start,
-            end,
+            start: seek.start,
+            end: seek.end(),
             source_end,
             input_times: &[],
             limit,
@@ -1185,6 +1263,7 @@ pub(in super::super) fn input_slice(
             metadata: &BTreeMap::new(),
             rotation: None,
         },
+        seek.loops,
     )
 }
 
@@ -1207,15 +1286,16 @@ fn materialize<'a>(
                 Some(b"sine" | b"anullsrc")
             );
         let mut bytes = Cow::Borrowed(input);
-        if (seek.start.is_some() || seek.end().is_some())
+        if (seek.start.is_some()
+            || seek.end().is_some()
+            || seek.loops > 0 && matches!(format, "mp4" | "mov" | "aac"))
             && !audio
             && format != "wav"
             && !matches!(source, MediaInput::Bytes("image2", _))
         {
             bytes = Cow::Owned(input_slice(
                 source,
-                seek.start,
-                seek.end(),
+                seek,
                 seek.generation_end(opts.source_end),
                 opts.limit.saturating_sub(admitted),
             )?);
@@ -1446,6 +1526,7 @@ pub(in super::super) fn render_mapped(
 pub(in super::super) fn remux(
     inputs: &[MediaInput],
     mut opts: Remux<'_>,
+    loops: usize,
 ) -> Result<Vec<u8>, String> {
     use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
     let data = materialize(inputs, &opts)?;
@@ -2013,6 +2094,9 @@ pub(in super::super) fn remux(
             track.first_dts = 0;
             track.stsd = audio_entry(rate, channels, 2).into();
         }
+    }
+    if loops != 0 {
+        repeat_tracks(&mut tracks, loops, scale, opts.limit)?;
     }
     let mut metadata = BTreeMap::new();
     let mut chapters = Vec::new();

@@ -7422,18 +7422,13 @@ impl<'a> EvalState<'a> {
         let mut decl_stderr = String::new();
         let mut decl_status = 0;
         for op in operands {
-            let (var_name, val_opt, append) = match parse_assignment_lhs_rhs(&op) {
+            let (base_name, val_opt, append) = match parse_assignment_lhs_rhs(&op) {
                 Some((k, v, app)) => (k.to_string(), Some(v.to_string()), app),
                 None => (op.clone(), None, false),
             };
-            let base_name = var_name
-                .split_once('[')
-                .map(|(b, _)| b)
-                .unwrap_or(&var_name)
-                .to_string();
-
             if !is_valid_shell_ident(&base_name) {
-                decl_stderr.push_str(&format!("{}{cmd}: `{op}': not a valid identifier\n", self.diag_prefix()));
+                let label = if cmd == "typeset" { "declare" } else { cmd };
+                decl_stderr.push_str(&format!("{}{label}: `{op}': not a valid identifier\n", self.diag_prefix()));
                 decl_status = 1;
                 continue;
             }
@@ -7583,7 +7578,7 @@ impl<'a> EvalState<'a> {
             }
 
             if let Some(v) = val_opt {
-                self.assign_variable(&var_name, &v, append)?;
+                self.assign_variable(&base_name, &v, append)?;
             } else if is_indexed || is_assoc {
                 sync_array_metadata(&base_name, self.env);
             } else if is_local
@@ -16048,6 +16043,20 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn declaration_operands_require_a_variable_name_before_assignment() {
+        for (command, label) in [
+            ("declare", "declare"), ("typeset", "declare"), ("declare -a", "declare"),
+            ("local", "local"), ("export", "export"), ("readonly -a", "readonly"),
+        ] {
+            let script = format!(r#"i=0; a=(keep); f() {{ {command} 'a[i++]=bad' ok=yes; echo "$?:$i:${{a[@]}}:$ok"; }}; f"#);
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(&script).unwrap();
+            assert_eq!(r.stdout, "1:0:keep:yes\n", "{command}");
+            assert_eq!(r.stderr, format!("shell: line 1: {label}: `a[i++]=bad': not a valid identifier\n"), "{command}");
+        }
     }
 
     #[test]

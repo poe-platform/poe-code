@@ -3,6 +3,14 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq rejects invalid UTF-8 in program files before opening data files", async () => {
+  const bash = new RustWasmBash({ files: { "/workspace/filter.jq": Uint8Array.of(34, 255, 34) } });
+  try {
+    const r = await bash.exec("jq -f filter.jq missing");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [3, "", "jq: program file is not valid UTF-8\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq emits exact JSON bytes for ASCII, indentation, color, and sequence options", async () => {
   const bash = new RustWasmBash();
   try {

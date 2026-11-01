@@ -939,7 +939,10 @@ fn cmd_jq_core(
     let raw_filter = if let Some(pf) = program_file {
         let full = resolve_posix_path(cwd, &pf);
         match fs.read_file(&full) {
-            Ok(b) => String::from_utf8_lossy(&b).into_owned(),
+            Ok(bytes) => match String::from_utf8(bytes) {
+                Ok(source) => source,
+                Err(_) => return err_out("jq: program file is not valid UTF-8\n", 3),
+            },
             Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
         }
     } else {

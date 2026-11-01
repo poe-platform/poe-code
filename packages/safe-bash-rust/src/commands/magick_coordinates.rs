@@ -32,6 +32,8 @@ pub(super) fn split_offsets(spec: &str) -> (&str, &str) {
 }
 
 impl Geometry {
+    pub fn sigma(self) -> f64 { self.height.or(self.width).unwrap_or(1.).max(0.3) }
+
     pub fn parse(spec: &str) -> Self {
         let raw = spec.trim();
         let (dims, offset) = split_offsets(raw);

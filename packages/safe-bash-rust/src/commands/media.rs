@@ -122,6 +122,8 @@ mod png_pixels;
 mod magick_stack;
 #[path = "magick_coordinates.rs"]
 mod magick_coordinates;
+#[path = "magick_filter.rs"]
+mod magick_filter;
 #[path = "magick_resize.rs"]
 mod magick_resize;
 #[path = "magick_composite.rs"]
@@ -10087,7 +10089,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
+            enum PixelOp<'a> { Blur(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10259,7 +10261,12 @@ fn cmd_media_doc(
                         i+=1;
                     }
                     "-monochrome" => {ops.push(PixelOp::Gray);ops.push(PixelOp::Threshold(128.));i+=1;}
-                    "-blur" | "-sharpen" | "-depth" | "-fill"
+                    "-blur" | "-gaussian-blur" => {
+                        let has_value=i+1<args.len()-usize::from(!is_mogrify);
+                        let g=if has_value{i+=1;args[i].as_str()}else{"0x1"};
+                        ops.push(PixelOp::Blur(Geometry::parse(g).sigma()));i+=1;
+                    }
+                    "-sharpen" | "-depth" | "-fill"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
                     | "-draw" | "-annotate" | "-define"
                         if i + 1 < args.len() =>
@@ -10301,6 +10308,7 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Blur(sigma)=>image.blur(*sigma,image.alpha || matches!(channels,2|4)),
                         PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
                         PixelOp::Roll(g) => image.roll(*g),
                         PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
@@ -14531,6 +14539,23 @@ mod media_unit_tests {
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-00.png").unwrap())),"9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f");
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-02.png").unwrap())),"862e92446a2e54553c1ccd96f66a2d90c7b3ec002fc0c59b89d58f6a725c2960");
+    }
+
+    #[test]
+    fn convert_blurs_translucent_pixels_with_clamped_edges() {
+        let fs=MemoryVfs::new();
+        let im=png_pixels::Raster{width:9,height:7,gray:false,alpha:true,density:240,orientation:Some(6),
+            pixels:(0..63).map(|i|std::array::from_fn(|j|((i*4+j)*43) as u8)).collect()};
+        fs.write_file("/rgba.png",&im.png()).unwrap();
+        for (op,geometry,hash) in [
+            ("-blur","1","e504e5a46010a2c9a344bd2aba123d9ea9473cdc71089ed28fcd0ae610fd0532"),
+            ("-gaussian-blur","100x1.7","c27301fc3cf15b6a78bf8e2561602b789c084f3c8a0647349d584faa37eb33ec"),
+            ("-blur","9999","043d2e2033dccfbe2d9104cff923019ee250297e7d47c35909c1e61de16659fb"),
+        ]{
+            let r=cmd_media_doc("convert",&media_args(&["rgba.png",op,geometry,"o.png"]),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{op} {geometry}");
+        }
     }
 
     #[test]

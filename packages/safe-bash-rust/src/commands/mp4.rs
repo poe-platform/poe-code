@@ -1473,7 +1473,8 @@ fn render_track(
     };
     let first = range.start;
     let count = range.len();
-    let filtered = duration.is_none() || !opts.filters.is_empty();
+    // Full decoded frames retain the source sample delay (including when a GIF caps the frame count).
+    let sample_timing = full_size || duration.is_none() || !opts.filters.is_empty();
     let duration = duration.unwrap_or_default();
     let produced = count.min(opts.frames.map_or(usize::MAX, |n| n.max(1) as usize));
     let uniform = if duration > 0. && produced != 0 {
@@ -1483,7 +1484,7 @@ fn render_track(
     };
     let times = range.map(|i| {
         let s = &samples[i];
-        let tick = if filtered {
+        let tick = if sample_timing {
             s.dts
                 .saturating_add(s.tick.into())
                 .min(end)
@@ -1514,7 +1515,7 @@ fn render_track(
                 },
                 promote,
             )?;
-            d.image((w, h), full_size || filtered, limit)
+            d.image((w, h), sample_timing, limit)
         },
         emit,
     )?;

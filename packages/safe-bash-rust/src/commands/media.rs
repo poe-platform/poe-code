@@ -14214,6 +14214,15 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn gif_frame_cap_keeps_the_decoded_mp4_sample_delay() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]| cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs);
+        assert_eq!(run(&["-f","lavfi","-i","testsrc=s=16x16:r=8:d=0.5","b.mp4"]).exit_code,0);
+        assert_eq!(run(&["-i","b.mp4","-frames:v","1","cap.gif"]).exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/cap.gif").unwrap())),"a56a108ae7f2c43ba9f1f4ede312a864735442f3ca153672f54782e75303e843");
+    }
+
+    #[test]
     fn ffmpeg_keeps_gif_packets_for_input_edits_and_loops() {
         let fs=MemoryVfs::new();
         fs.write_file("/input",&hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021f904000a0000002c0000000003000200000809000108201060408180003b")).unwrap();

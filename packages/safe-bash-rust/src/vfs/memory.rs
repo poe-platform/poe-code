@@ -443,6 +443,44 @@ impl MemoryVfs {
         Ok(())
     }
 
+    pub(super) fn copy_up_times(&self, lower: &Self, versions: (u64, u64), path: &str, atime: f64, mtime: f64) -> Result<(), String> {
+        let (base, mut upper) = self.overlay_layers(lower, versions)?;
+        let mut directories = Vec::new();
+        let mut cursor = path;
+        while !upper.nodes.contains_key(cursor) {
+            match base.nodes.get(cursor) {
+                Some(MemoryNode::Directory { mode, atime_ms, .. }) => directories.push((cursor, *mode, *atime_ms)),
+                Some(MemoryNode::File { .. }) if cursor == path => {}
+                _ => return Err(format!("ENOTSUP: unsupported copy-up, overlay '{cursor}'")),
+            }
+            cursor = cursor.rsplit_once('/').map(|(p,_)| if p.is_empty() { "/" } else { p }).unwrap_or("/");
+        }
+        let file = match base.nodes.get(path) {
+            Some(MemoryNode::File { ino }) => Some(&base.files[ino]),
+            Some(MemoryNode::Directory { .. }) => None,
+            _ => return Err(format!("ENOENT: no such file or directory, overlay '{path}'")),
+        };
+        if directories.len() + usize::from(file.is_some()) > upper.limits.max_entries.saturating_sub(upper.nodes.len()) {
+            return Err("ENOSPC: inode limit exceeded".into());
+        }
+        if let Some(file) = file {
+            Self::store_file(&mut upper, path.to_owned(), &file.data, file.mode, None)?;
+            let ino = upper.nodes[path].ino();
+            let copy = upper.files.get_mut(&ino).unwrap();
+            copy.atime_ms = atime;
+            copy.mtime_ms = mtime;
+        }
+        for (parent, mode, previous_atime) in directories {
+            upper.insert_directory(parent.to_owned(), MemoryNode::Directory {
+                ino: NEXT_INODE.fetch_add(1, Ordering::Relaxed), mode,
+                atime_ms: if parent == path { atime } else { previous_atime },
+                mtime_ms: if parent == path { mtime } else { 1_700_000_000_000.0 },
+            });
+        }
+        self.bump_generation();
+        Ok(())
+    }
+
     pub(super) fn remove_overlay_entry(&self, lower: &Self, versions: (u64, u64), path: &str, directory: bool, recursive: bool) -> Result<(), String> {
         let (base, mut upper) = self.overlay_layers(lower, versions)?;
         if path == "/" || upper.devices.entry(path).is_some() || base.devices.entry(path).is_some() {

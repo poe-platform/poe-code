@@ -411,21 +411,41 @@ impl SafeBashFs for OverlayVfs {
         if atime_ms.is_some_and(|t| !t.is_finite()) || mtime_ms.is_some_and(|t| !t.is_finite()) {
             return Err(format!("EINVAL: invalid argument, utimes '{path}'"));
         }
+        let versions = (self.lower.generation(), self.upper.generation());
         let norm = self.access_path(path, true)?;
-        let mut atime = atime_ms;
-        let mut mtime = mtime_ms;
-        if self.upper.lstat(&norm).is_err() {
-            let st = self.stat(&norm)?;
-            atime = atime.or(Some(st.atime_ms));
-            mtime = mtime.or(Some(st.mtime_ms));
-            if st.kind == VfsEntryKind::Directory {
-                self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
-            } else {
-                self.upper.write_file(&norm, &self.lower.read_file(&norm)?)?;
+        if self.upper.lstat(&norm).is_ok() { return self.upper.set_times(&norm, atime_ms, mtime_ms); }
+        let st = self.stat(&norm)?;
+        let dir = st.kind == VfsEntryKind::Directory;
+        let parent = crate::vfs::dirname_posix_path(&norm);
+        let mut ancestor = parent.clone();
+        loop {
+            if self.stat(&ancestor)?.mode & 0o300 != 0o300 {
+                return Err(format!("EACCES: permission denied, overlay '{ancestor}'"));
             }
-            self.upper.chmod(&norm, st.mode)?;
+            if ancestor == "/" || self.upper.lstat(&ancestor).is_ok() { break; }
+            ancestor = crate::vfs::dirname_posix_path(&ancestor);
         }
-        self.upper.set_times(&norm, atime, mtime)
+        if !dir {
+            if st.nlink > 1 { return Err(format!("ENOTSUP: copy-up cannot preserve hardlink identity, overlay '{norm}'")); }
+            if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, overlay '{norm}'")); }
+        }
+        let atime = atime_ms.unwrap_or(st.atime_ms);
+        let mtime = mtime_ms.unwrap_or(st.mtime_ms);
+        if let (Some(lower), Some(upper)) = (self.lower.memory_backend(), self.upper.memory_backend()) {
+            let whiteouts = self.whiteouts.read().map_err(|_| "EIO: input/output error")?;
+            if whiteouts.contains(&norm) { return Err(format!("ENOENT: no such file or directory, overlay '{norm}'")); }
+            return self.copy_up_directories(if dir { &norm } else { &parent }, || {
+                upper.copy_up_times(lower, versions, &norm, atime, mtime)
+            });
+        }
+        if dir {
+            self.copy_up_directories(&norm, || self.upper.mkdir_all(&norm))?;
+        } else {
+            let bytes = self.lower.read_file(&norm)?;
+            self.copy_up_directories(&parent, || self.upper.write_file(&norm, &bytes))?;
+        }
+        self.upper.chmod(&norm, st.mode)?;
+        self.upper.set_times(&norm, Some(atime), Some(mtime))
     }
 
     fn generation(&self) -> u64 {
@@ -468,6 +488,35 @@ impl SafeBashFs for OverlayVfs {
 mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
+
+    #[test]
+    fn timestamp_copy_up_preserves_parents_and_rejects_unsafe_copies() {
+        let lower = Arc::new(MemoryVfs::new());
+        let upper = Arc::new(MemoryVfs::new());
+        lower.write_file("/dir/file", b"hello").unwrap();
+        lower.write_file("/dir/private", b"secret").unwrap();
+        lower.write_file("/dir/linked", b"alias").unwrap();
+        lower.hard_link("/dir/linked", "/alias").unwrap();
+        lower.chmod("/dir/private", 0o200).unwrap();
+        lower.chmod("/dir", 0o555).unwrap();
+        let fs = OverlayVfs::new(lower.clone(), upper.clone());
+        let set = |p| fs.set_times(p, Some(-1.5), Some(123.75));
+        lower.mkdir_all("/dir/child").unwrap();
+        assert!(set("/dir/child").unwrap_err().starts_with("EACCES:"));
+        assert!(!upper.exists("/dir/child"));
+        assert_eq!(set("/dir/file").unwrap_err(), "EACCES: permission denied, overlay '/dir'");
+        lower.chmod("/dir", 0o751).unwrap();
+        assert!(set("/dir/private").unwrap_err().starts_with("EACCES:"));
+        assert!(set("/dir/linked").unwrap_err().starts_with("ENOTSUP:"));
+        assert!(!upper.exists("/dir/file") && !upper.exists("/dir/private") && !upper.exists("/dir/linked"));
+        lower.set_times("/dir", Some(5.0), Some(7.0)).unwrap();
+        let dir = fs.stat("/dir").unwrap();
+        set("/dir/file").unwrap();
+        let after = fs.stat("/dir").unwrap();
+        assert_eq!((after.mode, after.identity, after.atime_ms), (dir.mode, dir.identity, 5.0));
+        assert_eq!(fs.stat("/dir/file").unwrap().mtime_ms, 123.75);
+        assert_ne!(lower.stat("/dir/file").unwrap().mtime_ms, 123.75);
+    }
 
     #[test]
     fn direct_reads_through_a_confirmed_lower_link_use_the_visible_file_and_directory() {

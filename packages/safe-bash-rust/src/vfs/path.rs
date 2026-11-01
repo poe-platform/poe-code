@@ -68,6 +68,91 @@ pub fn dirname_posix_path(path: &str) -> String {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum WalkPurpose {
+    AllowMissingParents,
+    Access,
+    Rename,
+}
+
+// Absolute link targets are rooted at their own mount. Once a link is
+// followed, neither ".." nor the remaining path may enter another mount.
+pub(super) fn walk_path<'a, F: super::SafeBashFs + ?Sized + 'a>(
+    path: &str,
+    follow_final: bool,
+    purpose: WalkPurpose,
+    location: impl Fn(&str) -> (Option<&'a str>, &'a F, String),
+) -> Result<String, String> {
+    let mut current = "/".to_string();
+    let mut pending: Vec<String> = path
+        .split('/')
+        .filter(|s| !s.is_empty())
+        .rev()
+        .map(str::to_owned)
+        .collect();
+    let mut boundary = None;
+    let mut links = 0;
+    if purpose != WalkPurpose::AllowMissingParents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
+    if path.contains('\0') { return Err("EINVAL: invalid argument".into()); }
+    if purpose == WalkPurpose::Access && path.ends_with('/') { pending.insert(0, ".".into()); }
+    while let Some(part) = pending.pop() {
+        if purpose != WalkPurpose::AllowMissingParents {
+            let (_, backend, local) = location(&current);
+            let st = backend.stat(&local)?;
+            if st.kind != super::VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
+            if st.mode & 0o100 == 0 { return Err("EACCES: permission denied".into()); }
+            if purpose == WalkPurpose::Rename && pending.is_empty() && matches!(part.as_str(), "." | "..") {
+                return Err("EINVAL: invalid argument".into());
+            }
+        }
+        if part == "." {
+            continue;
+        }
+        if part == ".." {
+            if boundary == Some(current.as_str()) {
+                return Err("EACCES: Permission denied".into());
+            }
+            current = dirname_posix_path(&current);
+            continue;
+        }
+        let candidate = format!("{}/{part}", current.trim_end_matches('/'));
+        let (prefix, backend, relative) = location(&candidate);
+        if boundary.is_some() && boundary != prefix {
+            return Err("EACCES: Permission denied".into());
+        }
+        if !follow_final && pending.is_empty() {
+            return Ok(candidate);
+        }
+        match backend.lstat(&relative) {
+            Ok(st) if st.kind == super::VfsEntryKind::Symlink => {
+                links += 1;
+                if links > 40 {
+                    return Err("ELOOP: too many symbolic links".into());
+                }
+                let target = backend.readlink(&relative)?;
+                boundary = prefix;
+                if target.starts_with('/') {
+                    current = prefix.unwrap_or("/").to_owned();
+                }
+                if purpose == WalkPurpose::Access && target.ends_with('/') { pending.push(".".into()); }
+                pending.extend(
+                    target
+                        .split('/')
+                        .filter(|s| !s.is_empty())
+                        .rev()
+                        .map(str::to_owned),
+                );
+            }
+            Ok(_) => current = candidate,
+            Err(error) if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") => {
+                current = candidate
+            }
+            Err(error) => return Err(error),
+        }
+    }
+    Ok(current)
+}
+
 // Resolve parents before interpreting "..", without following the entry being moved.
 pub(super) fn rename_entry(
     path: &str,

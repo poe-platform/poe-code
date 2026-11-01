@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { getSystemErrorMap } from "node:util";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -6,6 +7,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const encoder = new TextEncoder();
 const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
 function fsErr(code, msg) { const e = new Error(msg); e.code = code; e[FS_ERROR_BRAND] = true; return e; }
+let systemErrors;
+function fsOperationError(text, syscall, path, dest) {
+  const code = text.split(":", 1)[0];
+  systemErrors ??= new Map(Array.from(getSystemErrorMap(), ([errno, [name, description]]) => [name, [errno, description]]));
+  const [errno, description] = systemErrors.get(code) ?? systemErrors.get("EIO");
+  const message = `${code}: ${description}, ${syscall} '${path}'` + (dest === undefined ? "" : ` -> '${dest}'`);
+  const error = Object.assign(fsErr(code, message), { name: "FsError", errno, syscall, path });
+  if (dest !== undefined) error.dest = dest;
+  return error;
+}
 const decoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
 
 let compiledWasmModule = null;
@@ -226,14 +237,25 @@ export class WasmFileSystem {
   }
 
   async realpath(filePath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion || (this.bash.companionFactory && !this.bash.forceNative)) {
       await this.bash._ensureCompanionSynced();
       if (this.bash._companion.fs.realpath) {
         return this.bash._companion.fs.realpath(filePath, options);
       }
     }
-    this.bash.stat(filePath, true);
-    return path.posix.normalize(filePath);
+    const bash = this.bash;
+    const p = bash._allocBytes(encoder.encode(filePath));
+    try {
+      const len = bash.exports.safe_bash_realpath(bash.sessionId, p.ptr, p.len);
+      if (len === -1) throw new Error("Wasm session unavailable");
+      const ptr = bash.exports.safe_bash_output_ptr(bash.sessionId);
+      const text = decoder.decode(new Uint8Array(bash.exports.memory.buffer, ptr, Math.abs(len)));
+      if (len < 0) throw fsOperationError(text, "realpath", filePath);
+      return text;
+    } finally {
+      bash._freeBytes(p);
+    }
   }
 
   async open(filePath, options) {

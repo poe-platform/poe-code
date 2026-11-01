@@ -209,6 +209,24 @@ pub unsafe extern "C" fn safe_bash_read_file(
 }
 
 #[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_realpath(id: u32, ptr: *const u8, len: usize) -> i32 {
+    let path = unsafe { str_from_raw(ptr, len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let fs = &sess.shell.fs;
+    match fs.access_path(path, true).and_then(|p| fs.lstat(&p).map(|_| p)) {
+        Ok(p) => {
+            sess.last_output_buf = p.into_bytes();
+            sess.last_output_buf.len() as i32
+        }
+        Err(e) => {
+            sess.last_output_buf = e.into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
+    }
+}
+
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn safe_bash_rename(
     id: u32, src_ptr: *const u8, src_len: usize, dst_ptr: *const u8, dst_len: usize, no_replace: bool,
 ) -> i32 {

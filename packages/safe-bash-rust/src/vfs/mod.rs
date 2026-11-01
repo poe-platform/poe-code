@@ -77,6 +77,11 @@ impl FsError {
 }
 
 pub trait SafeBashFs: Send + Sync {
+    /// Resolve and validate parents in traversal order. The final entry may be missing.
+    fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
+        path::walk_path(path, follow_final, path::WalkPurpose::Access, |p| (None, self, p.to_owned()))
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String>;
     fn write_file(&self, path: &str, data: &[u8]) -> Result<(), String>;
     /// Filesystem identity and revision covering a patch target and its local ancestors.

@@ -1,4 +1,4 @@
-use crate::vfs::path::{dirname_posix_path, normalize_posix_path};
+use crate::vfs::path::{WalkPurpose, normalize_posix_path, walk_path};
 use crate::vfs::{FileStat, SafeBashFs, VfsFileEntry};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -37,83 +37,24 @@ impl MountVfs {
         ("/", self.root.as_ref(), norm.to_owned())
     }
 
-    // Absolute link targets are rooted at their own mount. Once a link is
-    // followed, neither ".." nor the remaining path may enter another mount.
-    fn resolve(&self, path: &str, follow_final: bool, require_parents: bool) -> Result<String, String> {
-        let mut current = "/".to_string();
-        let mut pending: Vec<String> = path
-            .split('/')
-            .filter(|s| !s.is_empty())
-            .rev()
-            .map(str::to_owned)
-            .collect();
-        let mut boundary = None;
-        let mut links = 0;
-        if require_parents && path.is_empty() { return Err("ENOENT: no such file or directory".into()); }
-        while let Some(part) = pending.pop() {
-            if require_parents {
-                let (_, backend, local) = self.location(&current);
-                let st = backend.stat(&local)?;
-                if st.kind != crate::vfs::VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
-                if st.mode & 0o100 == 0 { return Err("EACCES: permission denied".into()); }
-                if pending.is_empty() && matches!(part.as_str(), "." | "..") {
-                    return Err("EINVAL: invalid argument".into());
-                }
-            }
-            if part == "." {
-                continue;
-            }
-            if part == ".." {
-                if boundary == Some(current.as_str()) {
-                    return Err("EACCES: Permission denied".into());
-                }
-                current = dirname_posix_path(&current);
-                continue;
-            }
-            let candidate = format!("{}/{part}", current.trim_end_matches('/'));
-            let (prefix, backend, relative) = self.location(&candidate);
-            if boundary.is_some_and(|root| root != prefix) {
-                return Err("EACCES: Permission denied".into());
-            }
-            if !follow_final && pending.is_empty() {
-                return Ok(candidate);
-            }
-            match backend.lstat(&relative) {
-                Ok(st) if st.kind == crate::vfs::VfsEntryKind::Symlink => {
-                    links += 1;
-                    if links > 40 {
-                        return Err("ELOOP: too many symbolic links".into());
-                    }
-                    let target = backend.readlink(&relative)?;
-                    boundary = Some(prefix);
-                    if target.starts_with('/') {
-                        current = prefix.to_owned();
-                    }
-                    pending.extend(
-                        target
-                            .split('/')
-                            .filter(|s| !s.is_empty())
-                            .rev()
-                            .map(str::to_owned),
-                    );
-                }
-                Ok(_) => current = candidate,
-                Err(error) if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") => {
-                    current = candidate
-                }
-                Err(error) => return Err(error),
-            }
-        }
-        Ok(current)
+    fn resolve(&self, path: &str, follow_final: bool, purpose: WalkPurpose) -> Result<String, String> {
+        walk_path(path, follow_final, purpose, |p| {
+            let (mount, fs, local) = self.location(p);
+            (Some(mount), fs, local)
+        })
     }
 
     fn route(&self, path: &str, follow_final: bool) -> Result<(&dyn SafeBashFs, String), String> {
-        let (_, fs, local) = self.location(&self.resolve(path, follow_final, false)?);
+        let (_, fs, local) = self.location(&self.resolve(path, follow_final, WalkPurpose::AllowMissingParents)?);
         Ok((fs, local))
     }
 }
 
 impl SafeBashFs for MountVfs {
+    fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
+        self.resolve(path, follow_final, WalkPurpose::Access)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         let (fs, rel) = self.route(path, true)?;
         fs.read_file(&rel)
@@ -166,8 +107,8 @@ impl SafeBashFs for MountVfs {
     }
 
     fn rename(&self, source: &str, destination: &str, no_replace: bool) -> Result<(), String> {
-        let from = self.resolve(source, false, true)?;
-        let to = self.resolve(destination, false, true)?;
+        let from = self.resolve(source, false, WalkPurpose::Rename)?;
+        let to = self.resolve(destination, false, WalkPurpose::Rename)?;
         if self.mounts.keys().any(|m| [from.as_str(), to.as_str()].iter().any(|p| crate::vfs::is_path_within(p, m))) {
             return Err("EBUSY: resource busy or locked".into());
         }
@@ -180,7 +121,7 @@ impl SafeBashFs for MountVfs {
     }
 
     fn remove_path(&self, path: &str) -> Result<(), String> {
-        let resolved = self.resolve(path, false, false)?;
+        let resolved = self.resolve(path, false, WalkPurpose::AllowMissingParents)?;
         if self
             .mounts
             .keys()
@@ -208,7 +149,7 @@ impl SafeBashFs for MountVfs {
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
-        let parent = self.resolve(path, true, false)?;
+        let parent = self.resolve(path, true, WalkPurpose::AllowMissingParents)?;
         let (_, fs, rel) = self.location(&parent);
         let mut entries = fs.list_dir(&rel)?;
         for mount in self.mounts.keys() {

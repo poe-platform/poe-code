@@ -56,7 +56,7 @@ export class WasmFileSystem {
   rm(filePath: string, options?: { recursive?: boolean; force?: boolean; signal?: AbortSignal }): Promise<void>;
   rmdir(dirPath: string, options?: { signal?: AbortSignal }): Promise<void>;
   utimes(filePath: string, atime: Date | number, mtime: Date | number): Promise<void>;
-  realpath(filePath: string): Promise<string>;
+  realpath(filePath: string, options?: { signal?: AbortSignal }): Promise<string>;
   open(filePath: string, flags?: string | number, mode?: number): Promise<unknown>;
   rename(oldPath: string, newPath: string, options?: { noReplace?: boolean; signal?: AbortSignal }): Promise<void>;
   copyFile(srcPath: string, destPath: string): Promise<void>;

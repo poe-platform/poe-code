@@ -447,3 +447,21 @@ test("rename preserves hard links and rejects moves across a mount", async () =>
     bash.dispose();
   }
 });
+
+test("realpath walks links before parent components and stays inside a mount", async () => {
+  const bash = new RustWasmBash({files:{"/tree/sub/file":"data"}});
+  const fs = bash.fs;
+  try {
+    await fs.symlink("/tree/sub", "/alias");
+    assert.equal(await fs.realpath("/alias/../sub/file"), "/tree/sub/file");
+    assert.equal(await fs.realpath("alias"), "/tree/sub");
+    await assert.rejects(fs.realpath("/missing/../tree"), {code:"ENOENT"});
+    await assert.rejects(fs.realpath("/tree/sub/file/"), {code:"ENOTDIR"});
+    await fs.symlink("/cycle", "/cycle");
+    await assert.rejects(fs.realpath("/cycle"), {code:"ELOOP"});
+    bash.mountDevices();
+    await fs.symlink("/dev", "/through");
+    await assert.rejects(fs.realpath("/through/null"), {code:"EACCES"});
+    assert.equal(await fs.realpath("/dev/."), "/dev");
+  } finally { bash.dispose(); }
+});

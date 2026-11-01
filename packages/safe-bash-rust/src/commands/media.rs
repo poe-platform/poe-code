@@ -4675,7 +4675,7 @@ fn cmd_media_doc(
             let y4m_output = muxer == Some("y4m");
             let named=output_format.map(str::to_ascii_lowercase);
             let image_name=if sequence.is_some(){ext}else{named.as_deref().or(ext)};
-            let image_format=image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()));
+            let image_format=if muxer==Some("gif"){Some("gif")}else{image_name.filter(|_|muxer==Some("image2")).and_then(|f|frame_output::image_format(f,sequence.is_some()))};
             let frame_output=y4m_output || image_format.is_some();
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
@@ -4774,7 +4774,7 @@ fn cmd_media_doc(
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
-                        let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
+                        let frames=if image_format.is_some() && image_format!=Some("gif") && !sequence{Some(1)}else{vframes_opt};
                         if inputs.len()>1 || matches!(format,Some("wav"|"y4m")) || (real_mp4 || still_input || generator.is_some()) && seek.loops>0 {
                             return mp4::mux::render_mapped(sources,&remux,frames,sequence,emit);
                         }
@@ -14196,6 +14196,14 @@ mod media_unit_tests {
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.ppm").unwrap())), "c6213c31b8dc8aa74e5163435f70b978d406d919f0f33e7d0bcb65bab89fd010");
         assert_eq!(run(&["-f", "lavfi", "-i", "testsrc=s=7x5:r=2:d=1", "%02d.webp"]).exit_code, 0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/02.webp").unwrap())), "517792c6879004136e9ae816f1abd8dd522ee686f54368e84350bc2ec8f256ce");
+    }
+
+    #[test]
+    fn ffmpeg_writes_animated_gifs_with_cumulative_centisecond_rounding() {
+        let fs=MemoryVfs::new();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=7x5:r=8:d=0.5","anim.gif"]),"","/",&fs);
+        assert_eq!(r.exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/anim.gif").unwrap())),"bd8d1a4587654c101657be4956df225a44963874fbe8f4f780581bec1b153156");
     }
 
     #[test]

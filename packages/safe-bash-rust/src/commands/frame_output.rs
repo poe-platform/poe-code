@@ -10,6 +10,7 @@ pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
         "jpg" | "jpeg" => "jpeg",
         "bmp" => "bmp",
         "webp" => "webp",
+        "gif" => "gif",
         "ppm" => "ppm",
         _ => return None,
     })
@@ -77,7 +78,7 @@ pub(super) fn encode(
     let data = match format {
         "jpeg" => jpeg::encode(im, quality, density, limit)?,
         "tiff" => tiff(im, density, limit)?,
-        "gif" => super::gif::encode(im,limit)?,
+        "gif" => super::gif::encode(w,h,&im.pixels,None,limit)?,
         "webp" => super::webp::encode(im, density, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]
@@ -366,8 +367,26 @@ pub(super) fn render(
     let mut failure = None;
     let mut total = 0usize;
     let mut geometry = None;
+    let animation=image_format==Some("gif") && pattern.is_none();
+    let mut gif_pixels=Vec::new();
+    let mut delays=Vec::new();
+    let mut elapsed=0.;
+    let mut previous=0u64;
     let dims = decode(pattern.is_some(), &mut |mut im, duration, _| {
-        if let Some(fmt) = image_format {
+        if animation {
+            let (w,h)=*geometry.get_or_insert((im.width,im.height));
+            let n=w.saturating_mul(h);
+            if n==0 {return Err("GIF dimensions exceed 16-bit frame fields");}
+            if im.pixels.len()>n {return Err("offset is out of bounds");}
+            let end=gif_pixels.len().saturating_add(n);
+            if end.saturating_mul(4).saturating_add((delays.len()+1)*2)>limit {return Err("image exceeds memory budget");}
+            gif_pixels.append(&mut im.pixels);
+            gif_pixels.resize(end,[0;4]);
+            elapsed+=duration;
+            let ticks=(elapsed*100.).round() as u64;
+            delays.push(ticks.saturating_sub(previous) as u16);
+            previous=ticks;
+        } else if let Some(fmt) = image_format {
             if fmt=="tiff" { im.orientation=None; }
             let frame = encode(&im, fmt, 85., 72, limit)?;
             if let Some((i, j, width)) = pattern {
@@ -403,6 +422,14 @@ pub(super) fn render(
     let (w, h, fps) = dims.map_err(|e| failure.unwrap_or(e))?;
     if pattern.is_some() {
         return Ok(None);
+    }
+    if animation {
+        let (w,h)=geometry.unwrap_or((w,h));
+        if delays.is_empty() {
+            if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget".into());}
+            gif_pixels.resize(w*h,[0;4]);
+        }
+        return Ok(Some(super::gif::encode(w,h,&gif_pixels,Some(&delays),limit)?));
     }
     if data.is_empty() {
         data = if let Some(fmt) = image_format {

@@ -12,8 +12,13 @@ pub(super) fn dimensions(bytes: &[u8]) -> Result<(u32, u32), &'static str> {
     Ok((dim(6), dim(8)))
 }
 
-pub(super) fn encode(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
-    let (w, h) = (im.width, im.height);
+pub(super) fn encode(
+    w: usize,
+    h: usize,
+    pixels: &[[u8; 4]],
+    delays: Option<&[u16]>,
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
     if !(1..=65535).contains(&w) || !(1..=65535).contains(&h) {
         return Err("GIF dimensions exceed 16-bit frame fields");
     }
@@ -32,10 +37,8 @@ pub(super) fn encode(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str>
     let mut used = BTreeSet::new();
     let mut missing = Vec::new();
     let mut seen = BTreeSet::new();
-    let mut transparent = false;
-    for &[r, g, b, a] in &im.pixels {
+    for &[r, g, b, a] in pixels {
         if a < 128 {
-            transparent = true;
             continue;
         }
         let rgb = [r, g, b];
@@ -57,7 +60,12 @@ pub(super) fn encode(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str>
         .checked_mul(9)
         .ok_or("output byte limit exceeded")?
         .div_ceil(8);
-    let size = 13 + 768 + usize::from(transparent) * 8 + 11 + len + len.div_ceil(255) + 2;
+    let frames = pixels.len() / n;
+    let animated = frames > 1;
+    let gce = delays.is_some() || pixels.iter().any(|p| p[3] < 128);
+    let size = 782usize
+        .saturating_add(usize::from(animated) * 19)
+        .saturating_add(frames.saturating_mul(usize::from(gce) * 8 + 12 + len + len.div_ceil(255)));
     if size > limit {
         return Err("output byte limit exceeded");
     }
@@ -67,53 +75,71 @@ pub(super) fn encode(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str>
     out.extend_from_slice(&dims);
     out.extend_from_slice(&[247, 0, 0]);
     out.extend_from_slice(palette.as_flattened());
-    if transparent {
-        out.extend_from_slice(&[33, 249, 4, 1, 0, 0, 255, 0]);
+    if animated {
+        out.extend_from_slice(b"\x21\xff\x0bNETSCAPE2.0\x03\x01\0\0\0");
     }
-    out.extend_from_slice(&[44, 0, 0, 0, 0]);
-    out.extend_from_slice(&dims);
-    out.extend_from_slice(&[0, 8]);
-    let mut remaining = 0;
-    let mut bytes_left = len;
-    let mut emit = |byte| {
-        if remaining == 0 {
-            remaining = bytes_left.min(255);
-            out.push(remaining as u8);
+    for (index, frame) in pixels.chunks_exact(n).enumerate() {
+        if gce {
+            let delay = delays
+                .map_or(0, |v| v.get(index).copied().unwrap_or(10))
+                .to_le_bytes();
+            out.extend_from_slice(&[
+                33,
+                249,
+                4,
+                if animated { 5 } else { 1 },
+                delay[0],
+                delay[1],
+                255,
+                0,
+            ]);
         }
-        out.push(byte);
-        remaining -= 1;
-        bytes_left -= 1;
-    };
-    let mut pending = 0u32;
-    let mut bits = 0;
-    let mut code = |v: u16| {
-        pending |= u32::from(v) << bits;
-        bits += 9;
-        while bits >= 8 {
-            emit(pending as u8);
-            pending >>= 8;
-            bits -= 8;
-        }
-    };
-    for (i, &[r, g, b, a]) in im.pixels.iter().enumerate() {
-        if i % 120 == 0 {
-            code(256);
-        }
-        let index = if a < 128 {
-            255
-        } else {
-            colors
-                .get(&[r, g, b])
-                .copied()
-                .unwrap_or_else(|| ((r & 224) | ((g >> 3) & 28) | (b >> 6)).min(254))
+        out.extend_from_slice(&[44, 0, 0, 0, 0]);
+        out.extend_from_slice(&dims);
+        out.extend_from_slice(&[0, 8]);
+        let mut remaining = 0;
+        let mut bytes_left = len;
+        let mut emit = |byte| {
+            if remaining == 0 {
+                remaining = bytes_left.min(255);
+                out.push(remaining as u8);
+            }
+            out.push(byte);
+            remaining -= 1;
+            bytes_left -= 1;
         };
-        code(u16::from(index));
+        let mut pending = 0u32;
+        let mut bits = 0;
+        let mut code = |v: u16| {
+            pending |= u32::from(v) << bits;
+            bits += 9;
+            while bits >= 8 {
+                emit(pending as u8);
+                pending >>= 8;
+                bits -= 8;
+            }
+        };
+        for (i, &[r, g, b, a]) in frame.iter().enumerate() {
+            if i % 120 == 0 {
+                code(256);
+            }
+            let index = if a < 128 {
+                255
+            } else {
+                colors
+                    .get(&[r, g, b])
+                    .copied()
+                    .unwrap_or_else(|| ((r & 224) | ((g >> 3) & 28) | (b >> 6)).min(254))
+            };
+            code(u16::from(index));
+        }
+        code(257);
+        if bits != 0 {
+            emit(pending as u8);
+        }
+        out.push(0);
     }
-    code(257);
-    if bits != 0 {
-        emit(pending as u8);
-    }
-    out.extend_from_slice(&[0, 59]);
+    out.push(59);
     Ok(out)
 }
 

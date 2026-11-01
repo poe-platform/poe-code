@@ -1227,13 +1227,93 @@ fn write(
 }
 
 #[derive(Clone, Copy)]
-pub(in super::super) enum Stack {
+pub(in super::super) enum Composition {
     Horizontal,
     Vertical,
+    Overlay(usize, usize),
+}
+
+impl Composition {
+    pub(in super::super) fn parse(graph: &str) -> Option<Self> {
+        if graph.contains("concat=") || graph.contains("xfade") {
+            return None;
+        }
+        if graph.contains("vstack") {
+            return Some(Self::Vertical);
+        }
+        if graph.contains("hstack") {
+            return Some(Self::Horizontal);
+        }
+        let (_, tail) = graph.split_once("overlay")?;
+        let offset = tail
+            .strip_prefix('=')
+            .and_then(|s| s.split_once(':'))
+            .and_then(|(x, y)| {
+                let y = &y[..y.bytes().take_while(u8::is_ascii_digit).count()];
+                if x.is_empty() || y.is_empty() || !x.bytes().all(|c| c.is_ascii_digit()) {
+                    return None;
+                }
+                Some((
+                    x.parse().unwrap_or(usize::MAX),
+                    y.parse().unwrap_or(usize::MAX),
+                ))
+            })
+            .unwrap_or_default();
+        Some(Self::Overlay(offset.0, offset.1))
+    }
+
+    fn combine(
+        self,
+        a: &mut Raster,
+        im: &Raster,
+        remaining: &mut usize,
+    ) -> Result<(), &'static str> {
+        let (w, h, x, y) = match self {
+            Self::Horizontal => (a.width + im.width, a.height.max(im.height), a.width, 0),
+            Self::Vertical => (a.width.max(im.width), a.height + im.height, 0, a.height),
+            Self::Overlay(x, y) => {
+                let cols = a.width.saturating_sub(x).min(im.width);
+                if cols != 0 {
+                    for (r, row) in im
+                        .pixels
+                        .chunks_exact(im.width)
+                        .take(a.height.saturating_sub(y))
+                        .enumerate()
+                    {
+                        let start = (y + r) * a.width + x;
+                        for (dst, src) in a.pixels[start..start + cols].iter_mut().zip(row) {
+                            *dst = [src[0], src[1], src[2], 255];
+                        }
+                    }
+                }
+                a.gray = false;
+                return Ok(());
+            }
+        };
+        let n = w
+            .checked_mul(h)
+            .filter(|&n| n <= *remaining / 4)
+            .ok_or("video frames exceed memory budget")?;
+        let mut pixels = vec![[0; 4]; n];
+        for (row, src) in a.pixels.chunks_exact(a.width).enumerate() {
+            pixels[row * w..row * w + a.width].copy_from_slice(src);
+        }
+        for (row, src) in im.pixels.chunks_exact(im.width).enumerate() {
+            let offset = (y + row) * w + x;
+            pixels[offset..offset + im.width].copy_from_slice(src);
+        }
+        *remaining = *remaining + 4 * a.pixels.len() - 4 * n;
+        a.pixels = pixels;
+        a.width = w;
+        a.height = h;
+        a.gray = false;
+        a.alpha = true;
+        Ok(())
+    }
 }
 
 pub(in super::super) struct Remux<'a> {
-    pub stack: Option<Stack>,
+    pub composition: Option<Composition>,
     pub rate: Option<u32>,
     pub channels: Option<u32>,
     pub audio_filters: &'a [&'a str],
@@ -1383,7 +1463,7 @@ pub(in super::super) fn input_slice(
     remux(
         std::slice::from_ref(input),
         Remux {
-            stack: None,
+            composition: None,
             start: seek.start,
             end: seek.end(),
             source_end,
@@ -1413,7 +1493,7 @@ fn materialize<'a>(
     opts: &Remux<'_>,
 ) -> Result<Vec<Cow<'a, [u8]>>, String> {
     let sliced =
-        opts.stack.is_none() && (opts.start.is_some() || opts.end.is_some() || opts.shortest);
+        opts.composition.is_none() && (opts.start.is_some() || opts.end.is_some() || opts.shortest);
     let mut materialized = Vec::new();
     let mut admitted = 0usize;
     for (j, source) in inputs.iter().enumerate() {
@@ -1653,7 +1733,7 @@ fn mapped_tracks(
         })
         .flatten();
     for &(j, _) in &selected {
-        if opts.stack.is_none()
+        if opts.composition.is_none()
             && let Streams::Y4m(clip) = &sources[j].2
         {
             if let Some(end) = shortest {
@@ -1680,11 +1760,11 @@ pub(in super::super) fn render_mapped(
 ) -> Result<(usize, usize, u32), String> {
     let data = materialize(inputs, opts)?;
     let sources = read_sources(inputs, &data, opts)?;
-    let stacked = opts
-        .stack
-        .map(|s| stack_frames(s, &sources, inputs, opts))
+    let composed = opts
+        .composition
+        .map(|s| compose_frames(s, &sources, inputs, opts))
         .transpose()?;
-    let sources = if stacked.is_some() {
+    let sources = if composed.is_some() {
         &sources[..1]
     } else {
         &sources[..]
@@ -1715,7 +1795,7 @@ pub(in super::super) fn render_mapped(
         filters: opts.video_filters,
         limit: opts.limit,
     };
-    if let Some(sequence) = stacked {
+    if let Some(sequence) = composed {
         let (w, h) = sequence.geometry;
         y4m::render_frames(
             w,
@@ -1768,12 +1848,12 @@ fn render_source(
     }
 }
 
-struct StackedFrames {
+struct ComposedFrames {
     frames: Vec<(Raster, f64)>,
     geometry: (usize, usize),
 }
 
-impl StackedFrames {
+impl ComposedFrames {
     fn times(&self) -> impl Iterator<Item = (f64, f64)> {
         self.frames.iter().scan(0., |at, (_, duration)| {
             let pts = *at;
@@ -1813,12 +1893,12 @@ impl StackedFrames {
     }
 }
 
-fn stack_frames(
-    stack: Stack,
+fn compose_frames(
+    composition: Composition,
     sources: &[Source<'_>],
     inputs: &[MediaInput],
     opts: &Remux<'_>,
-) -> Result<StackedFrames, String> {
+) -> Result<ComposedFrames, String> {
     let mut frames = Vec::new();
     let mut remaining = opts.limit;
     let mut geometry = (64, 64);
@@ -1828,6 +1908,7 @@ fn stack_frames(
             .find(|&i| streams.kind(i) == "video")
             .ok_or("Cannot read properties of undefined (reading 'decodedVideoFrames')")?;
         let mut index = 0;
+        let mut last = None;
         let options = y4m::Options {
             start: 0.,
             end: None,
@@ -1850,32 +1931,10 @@ fn stack_frames(
                         .ok_or("video frames exceed memory budget")?;
                     frames.push((im, tick));
                 } else if let Some((a, _)) = frames.get_mut(index) {
-                    let (w, h, x, y) = match stack {
-                        Stack::Horizontal => {
-                            (a.width + im.width, a.height.max(im.height), a.width, 0)
-                        }
-                        Stack::Vertical => {
-                            (a.width.max(im.width), a.height + im.height, 0, a.height)
-                        }
-                    };
-                    let n = w
-                        .checked_mul(h)
-                        .filter(|&n| n <= remaining / 4)
-                        .ok_or("video frames exceed memory budget")?;
-                    let mut pixels = vec![[0; 4]; n];
-                    for (row, src) in a.pixels.chunks_exact(a.width).enumerate() {
-                        pixels[row * w..row * w + a.width].copy_from_slice(src);
+                    composition.combine(a, &im, &mut remaining)?;
+                    if matches!(composition, Composition::Overlay(..)) {
+                        last = Some(im);
                     }
-                    for (row, src) in im.pixels.chunks_exact(im.width).enumerate() {
-                        let offset = (y + row) * w + x;
-                        pixels[offset..offset + im.width].copy_from_slice(src);
-                    }
-                    remaining = remaining + 4 * a.pixels.len() - 4 * n;
-                    a.pixels = pixels;
-                    a.width = w;
-                    a.height = h;
-                    a.gray = false;
-                    a.alpha = true;
                 }
                 index += 1;
                 Ok(())
@@ -1883,6 +1942,12 @@ fn stack_frames(
         )?;
         if j == 0 {
             geometry = (w, h);
+        } else if matches!(composition, Composition::Overlay(..)) {
+            if let Some(im) = last {
+                for (a, _) in frames.iter_mut().skip(index) {
+                    composition.combine(a, &im, &mut remaining)?;
+                }
+            }
         } else {
             frames.truncate(index);
         }
@@ -1890,7 +1955,7 @@ fn stack_frames(
     if let Some((im, _)) = frames.first() {
         geometry = (im.width, im.height);
     }
-    Ok(StackedFrames { frames, geometry })
+    Ok(ComposedFrames { frames, geometry })
 }
 
 fn cut_packets<'a>(
@@ -1951,11 +2016,11 @@ pub(in super::super) fn remux(
         Streams::Still(_) => 25,
         _ => header_time(child(moov, b"mvhd"), 1000).0,
     };
-    let stacked = opts
-        .stack
-        .map(|s| stack_frames(s, &sources, inputs, &opts))
+    let composed = opts
+        .composition
+        .map(|s| compose_frames(s, &sources, inputs, &opts))
         .transpose()?;
-    let sources = if stacked.is_some() {
+    let sources = if composed.is_some() {
         &sources[..1]
     } else {
         &sources[..]
@@ -2134,7 +2199,7 @@ pub(in super::super) fn remux(
     let mut index_bytes = 0usize;
     for (ordinal, &(j, i)) in selected.iter().enumerate() {
         let (input, _, source) = &sources[j];
-        if let Some(sequence) = &stacked
+        if let Some(sequence) = &composed
             && !matches!(source, Streams::Mp4(_))
             && source.kind(i) == "video"
         {
@@ -2277,8 +2342,8 @@ pub(in super::super) fn remux(
                 ]
             })
             .collect();
-        let stacked_video = stacked.as_ref().filter(|_| video);
-        let count = if stacked_video.is_some() {
+        let composed_video = composed.as_ref().filter(|_| video);
+        let count = if composed_video.is_some() {
             0
         } else {
             t.stats.count
@@ -2398,7 +2463,7 @@ pub(in super::super) fn remux(
             handler,
             name,
         };
-        if let Some(sequence) = stacked_video {
+        if let Some(sequence) = composed_video {
             let consumed = selected[..ordinal]
                 .iter()
                 .any(|&(j, i)| sources[j].2.kind(i) == "video");

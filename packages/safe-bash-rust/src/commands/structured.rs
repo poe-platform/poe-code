@@ -29378,11 +29378,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let first_word = header.text.split([' ', '\t', '\r', '\n']).next().unwrap_or("");
     let graph_family = matches!(first_word,
-        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2" | "erDiagram"
+        "flowchart" | "graph" | "timeline" | "journey" | "mindmap" | "gitGraph" | "stateDiagram" | "stateDiagram-v2" | "erDiagram" | "classDiagram"
     );
     let native_family = graph_family || matches!(first_word, "pie" | "gantt");
     if !native_family && !matches!(first_word,
-        "sequenceDiagram" | "classDiagram"
+        "sequenceDiagram"
     ) {
         let reason = format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
         return err_out(&header.error("E_UNSUPPORTED", &header.text, &reason), 1);
@@ -38510,6 +38510,42 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("erDiagram\n\"Site name\" ||--o{ \"Room number\": \"has room\"", "svg", "a8511ebe252118fbab8ac7113fb2e5911a3334c24cb4eee16d5bbe31d4f86dae"),
             ("erDiagram\nA --o{ B", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement 'A --o{ B'\n"),
             ("erDiagram\nA ||--|| B:", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement 'A ||--|| B:'\n"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_renders_class_members_and_namespaces() {
+        assert_mermaid_outputs(&[
+            ("classDiagram\n", "svg", "d694ec7ec087889c914a89cc3a2aeb8b2e0d2214ef44f73dd1e92665ffa4b906"),
+            ("classDiagram\nclass Order", "svg", "677e6d09dd48d7496e5a92353f7f5a0f759b3b8762638837ae43e231318d4a6e"),
+            ("classDiagram\nclass Order { }", "svg", "677e6d09dd48d7496e5a92353f7f5a0f759b3b8762638837ae43e231318d4a6e"),
+            ("classDiagram\nclass A[\"Order line\"]", "svg", "a5a3b98d5c5d0c0158ece5ec28e3d9d4e0a9fe5ad1c52950ab9e627bad86a382"),
+            ("classDiagram\nclass A[\"Old\"]\nclass A[\"New\"]", "svg", "c09bcff8b4253b8dfcaad7100280439e33a053830cedc5fe7166ef902a4bc650"),
+            ("classDiagram\nclass Customer {\n +name: string\n -id : int\n #count\n}", "svg", "d5202e6b6e675ddb1a2e438b00328f8f07f9291d8185200f476a554b786299bb"),
+            ("classDiagram\nclass Session {\n+login(username, token): bool\n-close() void\n}", "svg", "43a1dad0ab227a4f15f28377c39b42c0eb4adf75618cd8e4d1c873c004952412"),
+            ("classDiagram\nclass Session {\n+login(username, token): bool\n-close() void\n}", "png", "abe168ac7fd2c566bc79e027a395ccd29212d95d4e211dca30c24cfb13221e31"),
+            ("classDiagram\nclass Session {\n+login(username, token): bool\n-close() void\n}", "pdf", "8d2cbe8b22fdb828a6dccfbbc0405538853a4dabf2e58d83d706ee5012904adf"),
+            ("classDiagram\nclass Service <<interface>> {\n+call(): Result\n}", "svg", "fd042d4153e011326b28857d76a0efc3498ae8a2fc7df3ca0e8c85620b05fe83"),
+            ("classDiagram\nclass Point {\n<<value object>>\n+x: float\n+distance(other) float\n}", "svg", "0acf831aabbfa404b74a4959937f5560836bdbd2deee52b7fa6397a58b1dea8e"),
+            ("classDiagram\nclass Point {\n<<value object>>\n+x: float\n+distance(other) float\n}", "png", "46c218cae67642c340f54ff8a47c196f4816577af99bd1ae38004ab4b5e5cb63"),
+            ("classDiagram\nclass Point {\n<<value object>>\n+x: float\n+distance(other) float\n}", "pdf", "6802704eecad99dc5d18c8e3c8541cc110c7c1876895e1bfc06ca5b0cbddbf60"),
+            ("classDiagram\nA : +size : int\nA : #func(value): User", "svg", "a398e92ba302470cf1793c3ae323a6c8c64c5aa86afe3b6a356fdc13facf966a"),
+            ("classDiagram\ndirection BT\nclass A\nclass B", "svg", "794fab922cc54eeb445844dc915eb1d3002a278bef5a879e7b5487bc0561a10d"),
+            ("classDiagram\nnamespace Bank {\nclass Person\nclass Account\n}", "svg", "9d62cd976ea2747237282acef5fc1f3c25c4cf1c18e2f8da0549740b73cbd8e0"),
+            ("classDiagram\nclass Item\nnamespace Shop {\nclass Item[\"Product\"]\n}", "svg", "3e7e52ade7598a6d6d6581630d2a7563a44c9e20a8cded20cb341d1946042ed8"),
+            ("classDiagram\nRandom", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized classDiagram statement: 'Random'\n"),
+            ("classDiagram\ndirection forward", "svg", "mmdc: E_SYNTAX (line 2, column 1): Invalid classDiagram direction 'FORWARD'\n"),
+            ("classDiagram\nnamespace G", "svg", "mmdc: E_SYNTAX (line 2, column 1): Expected '{' at end of 'namespace' declaration\n"),
+            ("classDiagram\nnamespace {", "svg", "mmdc: E_SYNTAX (line 2, column 1): Missing namespace identifier\n"),
+            ("classDiagram\n}", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unexpected '}' in classDiagram\n"),
+            ("classDiagram\nclass", "svg", "mmdc: E_SYNTAX (line 2, column 1): Missing class identifier in classDiagram\n"),
+            ("classDiagram\nclass Order {\n-name: string", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unclosed class block 'Order'\n"),
+            ("classDiagram\nnamespace G {\nclass X", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unclosed namespace block 'G'\n"),
+            ("classDiagram\nclass A[\"<img>\"]", "svg", "mmdc: E_UNSUPPORTED (line 2, column 1): Unsupported HTML or active content '<img' in diagram label\n"),
+            ("classDiagram\nclass A {\n+bad: <svg>\n}", "svg", "mmdc: E_UNSUPPORTED (line 3, column 1): Unsupported HTML or active content '<svg' in diagram label\n"),
+            ("classDiagram\nA: +count", "svg", "d23f00613265abe532917a6a9c79155655b68f15191f63cc3c7e8e11e59c28cd"),
+            ("classDiagram\nA: +()", "svg", "410ec4773b8d952042302ecc429ab3cb4222e08f4f71079aaec829d09e0e5c25"),
+            ("classDiagram\nFoo: +value--price : int", "svg", "6b97bf7735dc5883e9eeed7d25492cffdc33ff19b4f35f4a75216adf3cd16ab4"),
         ]);
     }
 

@@ -1,29 +1,7 @@
 use super::{Graph, Node, Pill, Shape, Statement, scanner::check_label};
 use std::collections::BTreeMap;
 
-fn strip_quotes(value: &str) -> &str {
-    let s = value.trim_ascii();
-    match s.as_bytes() {
-        [a @ (b'\'' | b'"'), .., b] if a == b => &s[1..s.len() - 1],
-        _ => s,
-    }
-}
-
-fn outside(s: &str, token: impl Fn(&str) -> bool) -> Option<usize> {
-    let mut quote = None;
-    for (i, c) in s.char_indices() {
-        if let Some(q) = quote {
-            if c == q && !s[..i].ends_with('\\') {
-                quote = None;
-            }
-        } else if matches!(c, '\'' | '"') {
-            quote = Some(c);
-        } else if token(&s[i..]) {
-            return Some(i);
-        }
-    }
-    None
-}
+use super::scanner::{outside, strip_quotes};
 
 pub(super) fn parse(
     lines: &[Statement],

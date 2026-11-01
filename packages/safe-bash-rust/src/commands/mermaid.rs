@@ -2,6 +2,10 @@
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
 
+#[path = "mermaid/card.rs"]
+mod card;
+#[path = "mermaid/class.rs"]
+mod class;
 #[path = "mermaid/config.rs"]
 pub(super) mod config;
 #[path = "mermaid/er.rs"]
@@ -55,7 +59,9 @@ struct Node {
     label: String,
     shape: Shape,
     accent: bool,
-    attributes: Vec<er::Attribute>,
+    attributes: Vec<card::Member>,
+    methods: Vec<card::Member>,
+    stereotype: String,
     lines: Vec<String>,
     w: i32,
     h: i32,
@@ -85,6 +91,7 @@ enum Shape {
     StateStart,
     StateEnd,
     Entity,
+    Class,
     Circle,
     Diamond,
     Cylinder,
@@ -249,7 +256,7 @@ fn dimensions(
     (n.lines, tallest) = text_block(
         &n.label,
         font_size,
-        n.shape == Shape::Entity,
+        matches!(n.shape, Shape::Entity | Shape::Class),
         wrapping_width,
         *remaining_lines,
     )?;
@@ -259,13 +266,27 @@ fn dimensions(
         return None;
     }
     (n.w, n.h) = match n.shape {
-        Shape::Entity => {
+        Shape::Entity | Shape::Class => {
             let width = n
                 .attributes
                 .iter()
-                .map(|a| a.width(secondary))
-                .fold(tallest + 36., f64::max);
-            let height = (text_height + 16.).max(36.) + 12. + n.attributes.len() as f64 * 22.;
+                .map(|a| a.width(secondary, false))
+                .chain(n.methods.iter().map(|m| m.width(secondary, true)))
+                .fold(
+                    tallest.max(measure(&n.stereotype, secondary, false)) + 36.,
+                    f64::max,
+                );
+            let height = card::header_height(n, text_height)
+                + if n.attributes.is_empty() && n.shape == Shape::Class {
+                    0.
+                } else {
+                    12. + n.attributes.len() as f64 * 22.
+                }
+                + if n.methods.is_empty() {
+                    0.
+                } else {
+                    12. + n.methods.len() as f64 * 22.
+                };
             if width.max(height) > f64::from(i32::MAX / 16) {
                 return None;
             }
@@ -290,7 +311,7 @@ fn dimensions(
     };
     n.radius = match n.shape {
         Shape::Circle | Shape::Stadium => f64::from(n.h / 2),
-        Shape::Entity => 8.,
+        Shape::Entity | Shape::Class => 8.,
         Shape::Diamond => 4.,
         Shape::Rounded => 12.,
         _ => corner,
@@ -558,6 +579,9 @@ pub(super) fn parse<'a>(
     let header_stmt = stmts.next()?;
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
+    if keyword == "classDiagram" {
+        return class::parse(lines, wrapping_width, limit).transpose();
+    }
     if keyword == "erDiagram" {
         return Some(er::parse(lines, wrapping_width, secondary_size, limit));
     }
@@ -1208,7 +1232,7 @@ pub(super) fn layout(
         let accented = n.accent
             || !matches!(
                 n.shape,
-                Shape::Rect | Shape::Rounded | Shape::Subroutine | Shape::Entity
+                Shape::Rect | Shape::Rounded | Shape::Subroutine | Shape::Entity | Shape::Class
             );
         let styled = styles.node(&n.id);
         let (fill, fill_rgba) = styled
@@ -1240,9 +1264,9 @@ pub(super) fn layout(
         }
         let thickness = styled.width.unwrap_or(stroke_width);
         let radius = n.radius;
-        let header = (n.shape == Shape::Entity).then(|| {
+        let header = (matches!(n.shape, Shape::Entity | Shape::Class)).then(|| {
             (
-                (n.lines.len() as f64 * line_height + 16.).max(36.),
+                card::header_height(&n, n.lines.len() as f64 * line_height),
                 theme.color("groupHeaderSurface"),
             )
         });
@@ -1274,7 +1298,7 @@ pub(super) fn layout(
         );
         let mut el = format!(r#"<g class="mmdc-node" data-id="{}">"#, esc(&n.id));
         match n.shape {
-            Shape::Entity => {
+            Shape::Entity | Shape::Class => {
                 let (hh, (color, _)) = header?;
                 let clip = format!("{prefix}mmdc-node-clip-{}", n.order);
                 write!(el,r##"<defs><clipPath id="{clip}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8"/></clipPath></defs><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="{fill}" filter="url(#{prefix}mmdc-shadow)"/><rect x="{x}" y="{y}" width="{w}" height="{hh}" fill="{color}" clip-path="url(#{clip})"/><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="8" fill="none" stroke="{border}" stroke-width="{thickness}"/>"##).ok()?;
@@ -1332,9 +1356,9 @@ pub(super) fn layout(
             }
         }
         let rows = if let Some((hh, _)) = header
-            && !n.attributes.is_empty()
+            && (!n.attributes.is_empty() || !n.methods.is_empty())
         {
-            match er::paint_attributes(
+            match card::paint_members(
                 &n,
                 hh,
                 theme,
@@ -1349,13 +1373,37 @@ pub(super) fn layout(
         } else {
             None
         };
+        if !n.stereotype.is_empty() {
+            let (color, rgba) = theme.color("mutedText");
+            let baseline = y + 15;
+            if let Err(e) = config::charge_attributes(&mut styles.budget, &[(font, 1), (color, 1)])
+            {
+                return Some(Err(e));
+            }
+            write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{}" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,nonnegative_number(secondary),esc(&n.stereotype)).ok()?;
+            paint.push(Paint::Text {
+                mono: false,
+                start: f64::from(cx) - measure(&n.stereotype, secondary, false) / 2.,
+                baseline: baseline.into(),
+                size: secondary,
+                weight: 500,
+                color: rgba,
+                text: n.stereotype.clone(),
+            });
+        }
         let bold = header.is_some();
         let weight = if bold { 600 } else { 500 };
         let first_y = f64::from(y)
             + (header.map_or(f64::from(h), |(hh, _)| hh) - n.lines.len() as f64 * line_height) / 2.
             + font_size
             + 1.
-            + if n.shape == Shape::Cylinder { 8. } else { 0. };
+            + if n.shape == Shape::Cylinder {
+                8.
+            } else if !n.stereotype.is_empty() {
+                11.
+            } else {
+                0.
+            };
         for (i, line) in n
             .lines
             .iter()

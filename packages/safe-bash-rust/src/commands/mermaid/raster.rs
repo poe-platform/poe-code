@@ -175,7 +175,7 @@ impl Frame {
                         *color,
                     );
                     left += f64::from(if *mono {
-                        super::er::mono_advance(c)
+                        super::card::mono_advance(c)
                     } else {
                         advance(c, *weight >= 600)
                     }) * unit;
@@ -196,7 +196,7 @@ impl Frame {
         color: [u8; 4],
     ) {
         let data: &[u8] = if mono {
-            super::er::MONO
+            super::card::MONO
         } else {
             include_bytes!("outlines.bin")
         };

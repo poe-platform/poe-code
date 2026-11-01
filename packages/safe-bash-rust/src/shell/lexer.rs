@@ -785,7 +785,7 @@ pub fn tokenize_shell_with_extglob(input: &str, extglob: bool) -> Result<Vec<Tok
                                 }
                             }
                             continue;
-                        } else if c == '[' {
+                        } else if is_extglob_prefix && c == '[' {
                             current.push(c);
                             i += 1;
                             if i < chars.len() && matches!(chars[i], '!' | '^') {

@@ -2838,79 +2838,58 @@ impl<'a> EvalState<'a> {
         inner: &str,
         is_assoc: bool,
     ) -> Result<Vec<(Option<String>, String, bool)>, EvalError> {
-        let mut raw_tokens = Vec::new();
-        let chars: Vec<char> = inner.chars().collect();
-        let mut i = 0usize;
-        let mut cur = String::new();
-        while i < chars.len() {
-            let c = chars[i];
-            if c.is_whitespace() {
-                if !cur.is_empty() {
-                    raw_tokens.push(std::mem::take(&mut cur));
+        let mut entries = Vec::new();
+        let mut start = 0;
+        let mut selector = None;
+        let mut brackets = Vec::new();
+        let mut quote = None;
+        let mut chars = inner.char_indices();
+        while let Some((i, ch)) = chars.next() {
+            if ch == '\\' && quote != Some('\'') {
+                chars.next();
+            } else if let Some(q) = quote {
+                if ch == q {
+                    quote = None;
                 }
-                i += 1;
-                continue;
-            }
-            if c == '\'' {
-                cur.push(c);
-                i += 1;
-                while i < chars.len() {
-                    let sc = chars[i];
-                    cur.push(sc);
-                    i += 1;
-                    if sc == '\'' {
-                        break;
+            } else {
+                match ch {
+                    '\'' | '"' => quote = Some(ch),
+                    '[' => brackets.push((i == start).then_some((i, entries.len()))),
+                    ']' => {
+                        if let Some(Some((open, n))) = brackets.pop()
+                            && (inner[i + 1..].starts_with('=') || inner[i + 1..].starts_with("+="))
+                        {
+                            // Spaces in an explicit subscript belong to that entry.
+                            entries.truncate(n);
+                            start = open;
+                            selector = Some(i);
+                        }
                     }
-                }
-                continue;
-            }
-            if c == '"' {
-                cur.push(c);
-                i += 1;
-                while i < chars.len() {
-                    let dc = chars[i];
-                    cur.push(dc);
-                    i += 1;
-                    if dc == '\\' && i < chars.len() {
-                        cur.push(chars[i]);
-                        i += 1;
-                    } else if dc == '"' {
-                        break;
+                    _ if ch.is_whitespace() => {
+                        if start < i {
+                            entries.push((start, i, selector.take()));
+                        }
+                        start = i + ch.len_utf8();
                     }
+                    _ => {}
                 }
-                continue;
             }
-            if c == '[' {
-                cur.push(c);
-                i += 1;
-                while i < chars.len() && chars[i] != ']' {
-                    cur.push(chars[i]);
-                    i += 1;
-                }
-                if i < chars.len() {
-                    cur.push(chars[i]);
-                    i += 1;
-                }
-                continue;
-            }
-            cur.push(c);
-            i += 1;
-        }
-        if !cur.is_empty() {
-            raw_tokens.push(cur);
         }
 
+        if start < inner.len() {
+            entries.push((start, inner.len(), selector));
+        }
         let mut out = Vec::new();
-        for tok in raw_tokens {
-            if let Some(rest) = tok.strip_prefix('[')
-                && let Some((sub_k, sub_v, sub_append)) = rest
-                    .split_once("]+=")
-                    .map(|(k, v)| (k, v, true))
-                    .or_else(|| rest.split_once("]=").map(|(k, v)| (k, v, false)))
-            {
+        for (start, end, selector) in entries {
+            let tok = &inner[start..end];
+            if let Some(close) = selector {
+                let sub_k = &inner[start + 1..close];
+                let rest = &inner[close + 1..end];
+                let sub_append = rest.starts_with('+');
+                let sub_v = &rest[if sub_append { 2 } else { 1 }..];
                 if !is_assoc && self.is_braceexpand_enabled() {
                     let (brace_words, changed) = expand_braces_with_limits(
-                        &tok,
+                        tok,
                         self.budget.limits.max_expansion_fields,
                         self.budget.limits.max_expansion_bytes,
                     )?;
@@ -2935,7 +2914,7 @@ impl<'a> EvalState<'a> {
                 let exp_v = self.expand_assignment_rhs(sub_v)?;
                 out.push((Some(exp_k), exp_v, sub_append));
             } else {
-                let fields = self.expand_word_to_fields(&tok)?;
+                let fields = self.expand_word_to_fields(tok)?;
                 for f in fields {
                     out.push((None, f, false));
                 }
@@ -16047,6 +16026,23 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn compound_array_entries_preserve_subscripts_and_word_boundaries() {
+        for (script, expected) in [
+            (r#"a=([0]=10 [a[0] + 1]=20); echo "${!a[@]}:${a[@]}""#, "0 11:10 20\n"),
+            (r#"a=([0]=foo]+=bar); echo "${a[0]}""#, "foo]+=bar\n"),
+            (r#"a=([1]=abc [1]+=def); echo "${a[1]}""#, "abcdef\n"),
+            (r#"declare -A a; a=(['left] side']=ok); echo "${!a[@]}:${a[@]}""#, "left] side:ok\n"),
+            (r#"declare -A a; a=(['left]=side']=ok); echo "${!a[@]}:${a[@]}""#, "left]=side:ok\n"),
+            (r#"a=(x[y z); printf "<%s>\n" "${a[@]}""#, "<x[y>\n<z>\n"),
+            (r#"a=(x\ y z); printf "<%s>\n" "${a[@]}""#, "<x y>\n<z>\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+        }
     }
 
     #[test]

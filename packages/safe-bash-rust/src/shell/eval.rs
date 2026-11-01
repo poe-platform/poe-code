@@ -2622,7 +2622,18 @@ impl<'a> EvalState<'a> {
                     .get(&format!("__attr__{resolved}"))
                     .is_some_and(|a| a.contains('A'));
             let inner = &arr_lit[1..arr_lit.len() - 1];
-            let items = self.expand_array_literal_items(inner, is_assoc)?;
+            let mut items = self.expand_array_literal_items(inner, is_assoc)?;
+            // Ordinary associative keys see the old binding. Integer attributes
+            // and indexed subscripts instead see each preceding element write.
+            let keys_before_writes = is_assoc
+                && !self.env.get(&format!("__attr__{resolved}")).is_some_and(|a| a.contains('i'));
+            if keys_before_writes {
+                for (key, _, _) in &mut items {
+                    if let Some(key) = key {
+                        *key = self.expand_word_to_string(key)?;
+                    }
+                }
+            }
             if !append {
                 let prefix = format!("{resolved}[");
                 let old_keys: Vec<String> = self
@@ -2664,6 +2675,7 @@ impl<'a> EvalState<'a> {
 
             for (explicit_sub, item_val, item_append) in items {
                 if let Some(sub_k) = explicit_sub {
+                    let sub_k = if keys_before_writes { sub_k } else { self.expand_word_to_string(&sub_k)? };
                     let final_k = if is_assoc {
                         sub_k
                     } else {
@@ -2934,9 +2946,8 @@ impl<'a> EvalState<'a> {
                         continue;
                     }
                 }
-                let exp_k = self.expand_word_to_string(sub_k)?;
-                let exp_v = self.expand_assignment_rhs(sub_v)?;
-                out.push((Some(exp_k), exp_v, sub_append));
+                let value = self.expand_assignment_rhs(sub_v)?;
+                out.push((Some(sub_k.to_string()), value, sub_append));
             } else {
                 let fields = self.expand_word_to_fields(tok)?;
                 for f in fields {
@@ -16118,6 +16129,23 @@ hash -l
             (r#"declare -A a; i=0; a[$((i++))]=$i; echo "$i:${!a[@]}:${a[@]}""#, "1:0:0\n"),
             (r#"a=10; a[2]="$((a=25))"; echo "${a[@]}""#, "25 25\n"),
             (r#"a=(10 20); i=0; a[$((i++))]=$i; echo "$i:${a[@]}""#, "1:1 20\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+        }
+    }
+
+    #[test]
+    fn compound_array_values_expand_before_keys_are_resolved() {
+        for (script, expected) in [
+            (r#"declare -A a; i=0; a=([$((i++))]=$((i++)) [$((i++))]=$((i++))); echo "$i:${!a[@]}:${a[@]}""#, "4:2 3:0 1\n"),
+            (r#"a=(1); i=0; a=([$i]=$((i++)) [$i]=$((i++))); echo "$i:${!a[@]}:${a[@]}""#, "2:2:1\n"),
+            (r#"a=(1); i=0; a=([$((i++))]=$i [$((i++))]=$i); echo "$i:${!a[@]}:${a[@]}""#, "2:0 1:0 0\n"),
+            (r#"declare -A a; k=key; a=([$k]=foo [${a[key]}x]=bar); echo "${!a[@]}:${a[@]}""#, "key x:foo bar\n"),
+            (r#"a=(); a=([0]=10 [$((a[0]+1))]=yes); echo "${!a[@]}:${a[@]}""#, "0 11:10 yes\n"),
+            (r#"declare -Ai a; a=([x]=5 [${a[x]}y]=8); echo "${!a[@]}:${a[@]}""#, "x 5y:5 8\n"),
+            (r#"declare -A a=([x]=old); a=([x]=new [${a[x]}y]=yes); echo "${!a[@]}:${a[@]}""#, "x oldy:new yes\n"),
         ] {
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();

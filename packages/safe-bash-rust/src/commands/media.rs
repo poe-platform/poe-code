@@ -172,6 +172,9 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     };
     if bytes.len() >= 24 && bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
         meta.fmt = "PNG".to_string();
+        if matches!(bytes.get(25), Some(0 | 4)) {
+            meta.cs = "Gray".to_string();
+        }
         meta.w = u32::from_be_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]);
         meta.h = u32::from_be_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]);
     } else if bytes.starts_with(b"\xff\xd8\xff") {

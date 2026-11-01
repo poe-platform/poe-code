@@ -14,7 +14,7 @@ pub(super) fn image_format(name: &str, numbered: bool) -> Option<&'static str> {
     })
 }
 
-fn tiff(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
+fn tiff(im: &Raster, density:u32, limit: usize) -> Result<Vec<u8>, &'static str> {
     let byte_count = im
         .pixels
         .len()
@@ -40,7 +40,7 @@ fn tiff(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
         (259, 3, 1, 1),
         (262, 3, 1, 2),
         (273, 4, 1, 8),
-        (274, 3, 1, 1),
+        (274, 3, 1, u32::from(im.orientation.unwrap_or(1))),
         (277, 3, 1, 4),
         (278, 4, 1, h),
         (279, 4, 1, byte_count as u32),
@@ -55,7 +55,7 @@ fn tiff(im: &Raster, limit: usize) -> Result<Vec<u8>, &'static str> {
         out.extend_from_slice(&count.to_le_bytes());
         out.extend_from_slice(&value.to_le_bytes());
     }
-    for value in [0u32, 0x00080008, 0x00080008, 72, 1, 72, 1] {
+    for value in [0u32, 0x00080008, 0x00080008, density, 1, density, 1] {
         out.extend_from_slice(&value.to_le_bytes());
     }
     Ok(out)
@@ -74,7 +74,7 @@ pub(super) fn encode(
     }
     let data = match format {
         "jpeg" => jpeg::encode(im, quality, density, limit)?,
-        "tiff" => tiff(im, limit)?,
+        "tiff" => tiff(im, density, limit)?,
         "png" => super::pixel_png(w, h, super::PngEncoding::Density(72), |x, y| {
             im.pixels[y * w + x]
         }),
@@ -126,8 +126,8 @@ pub(super) fn encode(
                 24 << 16 | 1,
                 0,
                 size as u32,
-                2835,
-                2835,
+                (f64::from(density)/0.0254).round() as u32,
+                (f64::from(density)/0.0254).round() as u32,
                 0,
                 0,
             ] {
@@ -361,6 +361,7 @@ pub(super) fn render(
     let mut geometry = None;
     let dims = decode(pattern.is_some(), &mut |mut im, duration, _| {
         if let Some(fmt) = image_format {
+            if fmt=="tiff" { im.orientation=None; }
             let frame = encode(&im, fmt, 85, 72, limit)?;
             if let Some((i, j, width)) = pattern {
                 total = total.saturating_add(frame.len());

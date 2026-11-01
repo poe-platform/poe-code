@@ -17,6 +17,17 @@ pub(super) fn supported_still(bytes: &[u8]) -> bool {
         || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
 }
 
+pub(super) fn destination(spec: &str) -> Option<(&'static str, &str)> {
+    let format=|name:&str| match name.to_ascii_lowercase().as_str() {
+        "png"=>Some("png"),"bmp"=>Some("bmp"),"tiff"|"tif"=>Some("tiff"),
+        "ppm"=>Some("ppm"),"pgm"=>Some("pgm"),"pbm"=>Some("pbm"),_=>None
+    };
+    if let Some((prefix,path))=spec.split_once(':') && let Some(fmt)=format(prefix) {return Some((fmt,path));}
+    if spec=="-" {return Some(("png",spec));}
+    let (_,ext)=spec.rsplit_once('.')?;
+    Some((if ext.eq_ignore_ascii_case("pnm") {"png"} else {format(ext)?},spec))
+}
+
 impl Raster {
     pub(super) fn remap(&mut self, w: usize, h: usize, mut pixel: impl FnMut(&Self, usize, usize) -> [u8; 4]) {
         let mut out = Vec::with_capacity(w * h);
@@ -62,15 +73,15 @@ impl Raster {
     }
     pub fn publish(
         &self,
-        dest: &str,
+        (format,path): (&str,&str),
         cwd: &str,
         fs: &dyn super::SafeBashFs,
     ) -> super::BuiltinOutcome {
-        let bytes = self.png();
-        let path = dest
-            .get(..4)
-            .filter(|p| p.eq_ignore_ascii_case("png:"))
-            .map_or(dest, |_| &dest[4..]);
+        let bytes=if format=="png"{self.png()}else{
+            match super::frame_output::encode(self,format,85,self.density,fs.max_input_bytes()) {
+                Ok(data)=>data,Err(e)=>return super::err_out(&format!("magick: {e}\n"),1),
+            }
+        };
         if path == "-" {
             return super::ok_out(&crate::vfs::bytes_to_stream_string(&bytes));
         }

@@ -10179,9 +10179,7 @@ fn cmd_media_doc(
                 }
             }
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
-                let lower = dest.to_ascii_lowercase();
-                if !(lower.ends_with(".png") || lower.starts_with("png:") || dest=="-")
-                    { return None; }
+                let dest=png_pixels::destination(dest)?;
                 let mut image = if let Some(canvas) = canvas {
                     let (w,h)=size_opt.unwrap_or((1,1));
                     let (width,height)=(w.max(1) as usize,h.max(1) as usize);
@@ -10528,14 +10526,14 @@ fn cmd_media_doc(
             let limit=fs.max_input_bytes();
             let mut retained=0;
             let spec=format!("{}x{}",cell_w.map(|v|v.to_string()).unwrap_or_default(),cell_h.map(|v|v.to_string()).unwrap_or_default());
-            let png=out_rel.to_ascii_lowercase().ends_with(".png") || out_rel.to_ascii_lowercase().starts_with("png:") || out_rel=="-";
+            let destination=png_pixels::destination(out_rel);
             for p in in_paths {
                 let path=p.strip_prefix("png:").unwrap_or(p);
                 let full=resolve_posix_path(cwd,path);
                 let bytes=if Canvas::parse(p).is_some(){Vec::new()}else{
                     match fs.read_file(&full){Ok(bytes)=>bytes,Err(_)=>return err_out(&format!("montage: unable to open image '{p}': No such file or directory\n"),1)}
                 };
-                let (tw,th)=match if png {png_pixels::Raster::input(p,&bytes,limit)} else {Ok(None)} {
+                let (tw,th)=match if destination.is_some() {png_pixels::Raster::input(p,&bytes,limit)} else {Ok(None)} {
                     Ok(Some(mut image))=>{
                         if let Err(e)=image.resize(&spec,magick_resize::Kernel::Lanczos3,limit){return err_out(&format!("montage: {e}\n"),1);}
                         let (w,h)=(image.width as u32,image.height as u32);
@@ -10569,7 +10567,7 @@ fn cmd_media_doc(
             let canvas_w = cols.saturating_mul(slot_w as usize).max(1);
             let canvas_h = rows.saturating_mul(slot_h as usize).max(1);
             if canvas_w.saturating_mul(canvas_h)>limit/4 {return err_out("montage: image exceeds memory budget\n",1);}
-            if tiles.len()==n {
+            if tiles.len()==n && let Some(dest)=destination {
                 let mut sheet=png_pixels::Raster {width:canvas_w,height:canvas_h,density:72,orientation:None,gray:false,alpha:background[3]<255 || (border_w>0 && border_color[3]<255),pixels:vec![background;canvas_w*canvas_h]};
                 for (i,(tile,(tw,th))) in tiles.iter().zip(thumb_dims).enumerate() {
                     if cols==0 || i/cols>=rows {break;}
@@ -10587,7 +10585,7 @@ fn cmd_media_doc(
                         *d=magick_composite::blend(src,*d,"over",1.,1.);
                     }}
                 }
-                return sheet.publish(out_rel,cwd,fs);
+                return sheet.publish(dest,cwd,fs);
             }
             let out_full = resolve_posix_path(cwd, out_rel);
             let out_meta = ImageMeta {
@@ -10692,9 +10690,10 @@ fn cmd_media_doc(
             let default_null = "null:".to_string();
             let out_spec = operands.get(2).unwrap_or(&default_null);
             let raster = |spec: &str, bytes: &[u8]| png_pixels::Raster::input(spec,bytes,fs.max_input_bytes());
-            if out_spec.eq_ignore_ascii_case("null:") || out_spec=="-" || out_spec.to_ascii_lowercase().starts_with("png:") || out_spec.to_ascii_lowercase().ends_with(".png") {
+            let dest=png_pixels::destination(out_spec);
+            if out_spec.eq_ignore_ascii_case("null:") || dest.is_some() {
                 match (raster(&operands[0], &bytes_a),raster(&operands[1], &bytes_b)) {
-                    (Ok(Some(a)), Ok(Some(b))) => return magick_compare::compare([&a,&b],&metric,&options,out_spec,cwd,fs),
+                    (Ok(Some(a)), Ok(Some(b))) => return magick_compare::compare([&a,&b],&metric,&options,dest,cwd,fs),
                     (Err(e),_) | (_,Err(e)) => return err_out(&format!("compare: improper image header: {e}\n"),2),
                     _ => {}
                 }
@@ -14098,6 +14097,21 @@ mod media_unit_tests {
             let png=pixel_png(257,129,PngEncoding::SplitDensity(72,None),|x,y|pixels[y*257+x]);
             assert_eq!(hex_enc(&sha256_bytes(&png)),expected);
         }
+    }
+
+    #[test]
+    fn magick_publishes_transformed_pixels_in_the_requested_image_format() {
+        let fs=MemoryVfs::new();
+        let run=|dest:&str| cmd_media_doc("convert",&media_args(&["-size","7x5","xc:red","-negate",dest]),"","/",&fs);
+        let out = run("ppm:-");
+        let expected=[b"P6\n7 5\n255\n".as_slice(),&[0u8,255,255].repeat(35)].concat();
+        assert_eq!(crate::vfs::stream_string_to_bytes(&out.stdout),expected);
+        for (dest,head) in [("PBM:bits",b"P4\n7 5\n".as_slice()),("photo.pgm",b"P5\n7 5\n255\n"),("photo.bmp",b"BM"),("photo.tiff",b"II*\0")] {
+            assert_eq!(run(dest).exit_code,0);
+            assert!(fs.read_file(&format!("/{}",dest.split(':').next_back().unwrap())).unwrap().starts_with(head));
+        }
+        assert_eq!(fs.read_file("/bits").unwrap(),[b"P4\n7 5\n".as_slice(),&[0;5]].concat());
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/photo.tiff").unwrap())),"cfa9769ebaf020dcc1d7af99f9e1714f806b875e9bd406451011c9c54a65ec4d");
     }
 
     #[test]

@@ -1,5 +1,5 @@
 use super::{
-    BuiltinOutcome, SafeBashFs, err_out, pixel_png, png_pixels::Raster, resolve_posix_path,
+    BuiltinOutcome, SafeBashFs, err_out, png_pixels::Raster,
 };
 
 pub(super) struct Options {
@@ -27,7 +27,7 @@ pub(super) fn compare(
     images: [&Raster; 2],
     metric: &str,
     opts: &Options,
-    dest: &str,
+    dest: Option<(&str,&str)>,
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
@@ -40,7 +40,7 @@ pub(super) fn compare(
     let mut different = 0;
     let (mut abs, mut sq, mut max) = (0., 0., 0.0_f64);
     let mut sums = [0.; 5];
-    let mut diff = (!dest.eq_ignore_ascii_case("null:")).then(|| Vec::with_capacity(count));
+    let mut diff = dest.map(|_| Vec::with_capacity(count));
     for y in 0..h {
         for x in 0..w {
             let [pa, pb] = images.map(|im| {
@@ -121,14 +121,10 @@ pub(super) fn compare(
         _ => scaled(rmse),
     };
     let mut stdout = String::new();
-    if let Some(pixels) = diff {
-        let data = pixel_png(w, h, super::PngEncoding::SplitDensity(opts.density,None), |x, y| pixels[y * w + x]);
-        let path = dest.split_once(':').map_or(dest, |(_, p)| p);
-        if path == "-" {
-            stdout = crate::vfs::bytes_to_stream_string(&data);
-        } else if let Err(e) = super::publish_magick_output(fs, &resolve_posix_path(cwd, path), &data) {
-            return err_out(&format!("shell: line 1: {e}\n"), 1);
-        }
+    if let Some((pixels,dest)) = diff.zip(dest) {
+        let out=Raster{width:w,height:h,alpha:true,gray:false,density:opts.density,orientation:None,pixels}.publish(dest,cwd,fs);
+        if out.exit_code!=0{return out;}
+        stdout=out.stdout;
     }
     BuiltinOutcome {
         stdout,

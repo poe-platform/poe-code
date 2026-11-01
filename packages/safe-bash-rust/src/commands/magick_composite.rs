@@ -221,10 +221,7 @@ pub(super) fn run(
     let &[first, second, dest] = operands.as_slice() else {
         return None;
     };
-    let dest_lower = dest.to_ascii_lowercase();
-    if !(dest_lower.ends_with(".png") || dest_lower.starts_with("png:") || dest == "-") {
-        return None;
-    }
+    let dest=super::png_pixels::destination(dest)?;
     let (base, overlay) = if cmd == "composite" {
         (second, first)
     } else {

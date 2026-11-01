@@ -3,6 +3,22 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq resolves definitions by arity and evaluates filter arguments in their caller's scope", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, value] of [
+      ["def f: 1; def f(x): x+1; [$__def_f,f,f(4)]", ["user",1,5]],
+      ["def f(g): \"inside\" as $x | [g, g]; \"outside\" as $x | f($x)", ["outside","outside"]],
+      ["def step: .+1; def apply(step): 1|step; apply(step)", 2],
+      ["def length: 9; [1,2] | length", 9],
+    ]) {
+      const result = await bash.exec(`jq --arg __def_f user -nc '${filter}'`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout), value);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq env and $ENV read exported variables independently of jq arguments", async () => {
   const bash = new RustWasmBash();
   try {

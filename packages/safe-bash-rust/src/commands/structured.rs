@@ -13,6 +13,7 @@ use crate::commands::search::{
 };
 use std::cell::{Cell, RefCell};
 use std::collections::VecDeque;
+use std::rc::Rc;
 use std::sync::Mutex;
 
 static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
@@ -20,9 +21,17 @@ static BIG_NUM_RAW: Mutex<Option<BTreeMap<u64, String>>> = Mutex::new(None);
 #[derive(Clone)]
 struct JqScope<'a> {
     env: &'a BTreeMap<String, String>,
+    functions: BTreeMap<String, BTreeMap<usize, Rc<JqFilter<'a>>>>,
     bindings: BTreeMap<String, JVal>,
     inputs: &'a RefCell<VecDeque<JVal>>,
     yq: Option<&'a YqDocuments<'a>>,
+}
+
+struct JqFilter<'a> {
+    params: Vec<String>,
+    body: String,
+    scope: JqScope<'a>,
+    recursive: bool,
 }
 
 #[derive(Clone, Default)]
@@ -41,7 +50,44 @@ struct YqDocuments<'a> {
     next: Cell<usize>,
 }
 
-impl JqScope<'_> {
+impl<'a> JqScope<'a> {
+    fn define(&mut self, name: &str, params: Vec<String>, body: &str, scope: &Self, recursive: bool) {
+        self.functions.entry(name.into()).or_default().insert(params.len(), Rc::new(JqFilter {
+            params, body: body.into(), scope: scope.clone(), recursive,
+        }));
+    }
+
+    fn call<T>(
+        &self, name: &str, arguments: Option<&str>, input: &JVal,
+        evaluate: fn(&str, &JVal, &Self) -> Result<Vec<T>, String>,
+    ) -> Result<Option<Vec<T>>, String> {
+        let Some(overloads) = self.functions.get(name) else { return Ok(None) };
+        let args = arguments.map_or_else(Vec::new, |s| split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()]));
+        let Some(filter) = overloads.get(&args.len()) else { return Ok(None) };
+        let mut base = filter.scope.clone();
+        if filter.recursive {
+            base.functions.entry(name.into()).or_default().insert(args.len(), filter.clone());
+        }
+        let mut scopes = vec![base];
+        for (param, argument) in filter.params.iter().zip(args) {
+            if let Some(variable) = param.strip_prefix('$') {
+                let values = eval_jq(&argument, input, self)?;
+                scopes = scopes.into_iter().flat_map(|scope| values.iter().map(move |value| {
+                    let mut bound = scope.clone();
+                    bound.bindings.insert(variable.into(), value.clone());
+                    bound
+                })).collect();
+            } else {
+                for scope in &mut scopes {
+                    scope.define(param, Vec::new(), &argument, self, false);
+                }
+            }
+        }
+        let mut out = Vec::new();
+        for scope in scopes { out.extend(evaluate(&filter.body, input, &scope)?); }
+        Ok(Some(out))
+    }
+
     fn environment(&self) -> JVal {
         JVal::Object(self.env.iter()
             .filter(|(k, _)| crate::shell::is_exported_scalar(self.env, k))
@@ -1095,7 +1141,7 @@ fn cmd_jq_core(
     }
 
     let inputs = RefCell::new(VecDeque::from(stream_inputs));
-    let vars = JqScope { env, bindings: vars, inputs: &inputs, yq };
+    let vars = JqScope { env, functions: BTreeMap::new(), bindings: vars, inputs: &inputs, yq };
 
     let mut out = String::new();
     let mut last_truthy: Option<bool> = None;
@@ -1193,16 +1239,8 @@ fn eval_jq(
             (sig, "")
         };
         let mut next_vars = vars.clone();
-        let lex_entries: Vec<(String, JVal)> = vars.bindings
-            .iter()
-            .filter(|(k, _)| !k.starts_with("__lex_") && *k != "ARGS")
-            .map(|(k, v)| (k.clone(), v.clone()))
-            .collect();
-        next_vars.bindings.insert(format!("__lex_{fname}"), JVal::Object(lex_entries));
-        next_vars.bindings.insert(
-            format!("__def_{fname}"),
-            JVal::Str(format!("{param}::{}", body.trim())),
-        );
+        let params = param.split(';').map(str::trim).filter(|p| !p.is_empty()).map(str::to_owned).collect();
+        next_vars.define(fname, params, body.trim(), vars, true);
         return eval_jq(after_semi.trim(), input, &next_vars);
     }
 
@@ -1631,18 +1669,6 @@ fn eval_jq(
     if let Some(res) = try_eval_jq_builtin(s, input, vars)? {
         return Ok(res);
     }
-    if let Some(JVal::Str(def_spec)) = vars.bindings.get(&format!("__def_{s}"))
-        && let Some((_param, body)) = def_spec.split_once("::")
-    {
-        let mut call_vars = vars.clone();
-        if let Some(JVal::Object(lex)) = vars.bindings.get(&format!("__lex_{s}")) {
-            for (k, v) in lex {
-                call_vars.bindings.insert(k.clone(), v.clone());
-            }
-        }
-        return eval_jq(body, input, &call_vars);
-    }
-
     if s == "env" { return Ok(vec![vars.environment()]); }
     if let Some(path) = s.strip_prefix("env").filter(|path| path.starts_with(['.', '['])) {
         let mut out = Vec::new();
@@ -1987,6 +2013,11 @@ fn resolve_jq_lhs_paths(
             }
             paths = next_paths;
         }
+        return Ok(paths);
+    }
+    let (name, args) = s.strip_suffix(')').and_then(|s| s.split_once('('))
+        .map_or((s, None), |(name, args)| (name.trim(), Some(args)));
+    if let Some(paths) = vars.call(name, args, input, resolve_jq_lhs_paths)? {
         return Ok(paths);
     }
     if s == ".." || s == "recurse" {
@@ -2336,6 +2367,7 @@ fn try_eval_jq_builtin(
         }
         return Ok(Some(out));
     }
+    if let Some(result) = vars.call(s, None, input, eval_jq)? { return Ok(Some(result)); }
     match s {
         "empty" => return Ok(Some(Vec::new())),
         "not" => return Ok(Some(vec![JVal::Bool(!input.is_truthy())])),
@@ -2940,6 +2972,7 @@ fn try_eval_jq_builtin(
         if s.ends_with(')') {
             let fname = s[..open].trim();
             let arg_expr = s[open + 1..s.len() - 1].trim();
+            if let Some(result) = vars.call(fname, Some(arg_expr), input, eval_jq)? { return Ok(Some(result)); }
             match fname {
                 "delpaths" => {
                     let mut updated = input.clone();
@@ -3843,51 +3876,7 @@ fn try_eval_jq_builtin(
                     }
                     return Ok(Some(out));
                 }
-                other => {
-                    if let Some(JVal::Str(def_spec)) = vars.bindings.get(&format!("__def_{other}"))
-                        && let Some((param, body)) = def_spec.split_once("::")
-                    {
-                        let params: Vec<&str> = param.split(';').map(|s| s.trim()).filter(|s| !s.is_empty()).collect();
-                        let args: Vec<String> = split_jq_top(arg_expr, ';').unwrap_or_else(|| vec![arg_expr.to_string()]);
-                        let mut base_vars = vars.clone();
-                        if let Some(JVal::Object(lex)) = vars.bindings.get(&format!("__lex_{other}")) {
-                            for (k, v) in lex {
-                                base_vars.bindings.insert(k.clone(), v.clone());
-                            }
-                        }
-                        let mut expanded = body.to_string();
-                        let mut val_param_streams: Vec<(String, Vec<JVal>)> = Vec::new();
-                        for (idx, p) in params.iter().enumerate() {
-                            let a_str = args.get(idx).map(|s| s.trim()).unwrap_or(".");
-                            if let Some(vname) = p.strip_prefix('$') {
-                                let avs = eval_jq(a_str, input, vars)?;
-                                val_param_streams.push((vname.trim().to_string(), avs));
-                            } else {
-                                expanded = replace_jq_ident(&expanded, p, &format!("({a_str})"));
-                            }
-                        }
-                        if val_param_streams.is_empty() {
-                            return eval_jq(&expanded, input, &base_vars).map(Some);
-                        }
-                        let mut env_combos = vec![base_vars];
-                        for (vname, avs) in val_param_streams {
-                            let mut next_combos = Vec::new();
-                            for env_map in &env_combos {
-                                for av in &avs {
-                                    let mut nm = env_map.clone();
-                                    nm.bindings.insert(vname.clone(), av.clone());
-                                    next_combos.push(nm);
-                                }
-                            }
-                            env_combos = next_combos;
-                        }
-                        let mut out = Vec::new();
-                        for env_map in env_combos {
-                            out.extend(eval_jq(&expanded, input, &env_map)?);
-                        }
-                        return Ok(Some(out));
-                    }
-                }
+                _ => {}
             }
         }
     }
@@ -6496,7 +6485,7 @@ fn cmd_yq(
             other => other,
         };
         let inputs = RefCell::default();
-        let mut base_vars = JqScope { env, bindings: BTreeMap::new(), inputs: &inputs, yq: None };
+        let mut base_vars = JqScope { env, functions: BTreeMap::new(), bindings: BTreeMap::new(), inputs: &inputs, yq: None };
         for (idx, v) in vals.iter().enumerate() {
             base_vars.bindings.insert("index".to_string(), JVal::Number(idx as f64));
             let name = eval_jq(s_exp, v, &base_vars)

@@ -1,4 +1,4 @@
-pub(super) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
+pub(in crate::commands) fn parse_color(raw: &str) -> Result<[u8; 4], String> {
     let raw = raw.trim();
     let s = raw.to_ascii_lowercase();
     let error = || format!("Unable to parse color from string: {raw}");

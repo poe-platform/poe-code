@@ -29669,6 +29669,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             escape_mmdc_xml(bg_color.trim())
         ));
     }
+    let empty_canvas = scene.as_ref().is_some_and(|s|s.elements.is_empty());
     let standard_svg = scene.is_some();
     if let Some(scene) = scene {
         parts.extend(scene.elements);
@@ -29686,7 +29687,17 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut svg = parts.join("\n");
     if !standard_svg { svg.push('\n'); }
 
-    let out_bytes: Vec<u8> = if output_format == "png" {
+    let out_bytes: Vec<u8> = if empty_canvas && matches!(output_format.as_str(),"png"|"pdf") {
+        use crate::commands::archive::{PngEncoding,pixel_png,image_pdf,parse_color};
+        let w=(width*scale).ceil().max(1.) as usize;
+        let h=(height*scale).ceil().max(1.) as usize;
+        let Some(count)=w.checked_mul(h).filter(|n|*n<=fs.max_input_bytes()/4) else {return err_out("mmdc: E_LIMIT: Pixel budget exceeded\n",1);};
+        let Ok(mut color)=parse_color(&bg_color) else {return err_out(&format!("mmdc: E_CONFIG: Unsupported color format '{bg_color}'\n"),1);};
+        if color[3]==0{color=[0;4];}
+        if output_format=="png" {pixel_png(w,h,PngEncoding::Mermaid,|_,_|color)}
+        else if let Some(pdf)=image_pdf(&vec![color;count],w,h,width*0.75,height*0.75,fs.max_input_bytes()){pdf}
+        else{return err_out("mmdc: E_LIMIT: Output byte budget exceeded\n",1);}
+    } else if output_format == "png" {
         let png_w = ((width as f64) * scale).round().max(1.0) as u32;
         let png_h = ((height as f64) * scale).round().max(1.0) as u32;
         let mut buf = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR".to_vec();
@@ -38243,6 +38254,17 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         fs.chmod("/out.svg",0o600).unwrap();
         assert_eq!(run("out.svg").exit_code,0);
         assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o600);
+    }
+
+    #[test]
+    fn mmdc_encodes_png_scanlines_and_embeds_the_raster_in_a_pdf() {
+        let fs=MemoryVfs::new();
+        for (path,hash) in [("/chart.png","1ffddd1c9689d494aa4eb0da247a97af12b1c077c678fb055705dc0ac2470581"),("/chart.pdf","17c6a60bf2022217300c2073eee4f8ecad15ee3f863bae2676991629a8c66b1b")] {
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o",path]),"flowchart TD","/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            let bytes=fs.read_file(path).unwrap();
+            assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),hash);
+        }
     }
 
     #[test]

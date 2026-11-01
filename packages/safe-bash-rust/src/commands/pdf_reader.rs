@@ -16,6 +16,7 @@ pub(super) use pdf_svg::render_svg;
 
 #[path = "pdf_render.rs"]
 mod pdf_render;
+pub(in crate::commands) use pdf_render::image_pdf;
 pub(super) use pdf_render::render_paragraphs;
 
 type ObjectId = (usize, usize);

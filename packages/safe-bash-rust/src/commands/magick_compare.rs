@@ -122,7 +122,7 @@ pub(super) fn compare(
     };
     let mut stdout = String::new();
     if let Some(pixels) = diff {
-        let data = pixel_png(w, h, opts.density, true, |x, y| pixels[y * w + x]);
+        let data = pixel_png(w, h, super::PngEncoding::SplitDensity(opts.density), |x, y| pixels[y * w + x]);
         let path = dest.split_once(':').map_or(dest, |(_, p)| p);
         if path == "-" {
             stdout = crate::vfs::bytes_to_stream_string(&data);

@@ -63,23 +63,23 @@ impl Raster {
         let pixel = |x: usize, y: usize| self.pixels[y * self.width + x];
         match (self.gray, self.alpha) {
             (true, true) => {
-                super::pixel_png(self.width, self.height, self.density, true, |x, y| {
+                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), |x, y| {
                     let [v, _, _, a] = pixel(x, y);
                     [v, a]
                 })
             }
             (true, false) => {
-                super::pixel_png(self.width, self.height, self.density, true, |x, y| {
+                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), |x, y| {
                     [pixel(x, y)[0]]
                 })
             }
             (false, false) => {
-                super::pixel_png(self.width, self.height, self.density, true, |x, y| {
+                super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), |x, y| {
                     let [r, g, b, _] = pixel(x, y);
                     [r, g, b]
                 })
             }
-            (false, true) => super::pixel_png(self.width, self.height, self.density, true, pixel),
+            (false, true) => super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density), pixel),
         }
     }
     pub fn decode(png: &[u8], limit: usize) -> Result<Self, &'static str> {

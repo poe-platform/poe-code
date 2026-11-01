@@ -165,3 +165,57 @@ pub(in super::super) fn render_paragraphs(doc: &PdfDoc) -> Result<Option<Vec<u8>
     .into_bytes();
     write_objects(&bodies, limit).map(Some).ok_or(())
 }
+
+pub(in crate::commands) fn image_pdf(
+    pixels: &[[u8; 4]],
+    w: usize,
+    h: usize,
+    page_w: f64,
+    page_h: f64,
+    limit: usize,
+) -> Option<Vec<u8>> {
+    fn stream(mut dict: String, raw: &[u8]) -> Vec<u8> {
+        let data = zlib_compress(raw);
+        dict.push_str(&format!(
+            "/Filter /FlateDecode\n/Length {}\n>>\nstream\n",
+            data.len()
+        ));
+        let mut b = dict.into_bytes();
+        b.extend(data);
+        b.extend_from_slice(b"\nendstream");
+        b
+    }
+    let alpha = pixels.iter().any(|p| p[3] != 255);
+    let image = if alpha { 7 } else { 6 };
+    let mut bodies=vec![
+        b"<<\n/Type /Catalog\n/Pages 2 0 R\n>>".to_vec(),
+        b"<<\n/Type /Pages\n/Count 1\n/Kids [ 5 0 R ]\n>>".to_vec(),
+        b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec(),
+        stream("<<\n".into(),format!("q\n{page_w} 0 0 {page_h} 0 0 cm\n/Im1 Do\nQ").as_bytes()),
+        format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {page_w} {page_h} ]\n/Resources <<\n/Font <<\n>>\n/XObject <<\n/Im1 {image} 0 R\n>>\n>>\n/Contents 4 0 R\n>>").into_bytes(),
+    ];
+    let dict = |color: &str| {
+        format!(
+            "<<\n/Type /XObject\n/Subtype /Image\n/Width {w}\n/Height {h}\n/ColorSpace /Device{color}\n/BitsPerComponent 8\n"
+        )
+    };
+    if alpha {
+        bodies.push(stream(
+            dict("Gray"),
+            &pixels.iter().map(|p| p[3]).collect::<Vec<_>>(),
+        ));
+    }
+    let mut rgb = dict("RGB");
+    if alpha {
+        rgb.push_str("/SMask 6 0 R\n");
+    }
+    bodies.push(stream(
+        rgb,
+        &pixels
+            .iter()
+            .flat_map(|p| &p[..3])
+            .copied()
+            .collect::<Vec<_>>(),
+    ));
+    write_objects(&bodies, limit)
+}

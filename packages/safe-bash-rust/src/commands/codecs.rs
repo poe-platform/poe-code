@@ -434,6 +434,30 @@ pub(super) fn zlib_compress(data: &[u8]) -> Vec<u8> {
     out
 }
 
+// Mermaid writes one fixed Huffman block, matching runs at distances 1 and 4.
+pub(super) fn zlib_pixel_runs(data:&[u8])->Vec<u8>{
+    let mut w=DeflateWriter{bytes:vec![0x78,1],bits:0,pending:0};
+    w.bits(3,3);
+    let mut i=0;
+    while i<data.len(){
+        let mut matched=0;
+        for distance in [1usize,4]{
+            if i<distance{continue;}
+            let mut n=0;
+            while n<(data.len()-i).min(258) && data[i+n]==data[i+n-distance]{n+=1;}
+            if n>=distance.max(3){
+                let l=LEN_BASE.partition_point(|&b|usize::from(b)<=n)-1;
+                w.symbol(257+l as u16);w.bits(n as u16-LEN_BASE[l],LEN_EXTRA[l]);
+                w.bits(((distance-1) as u16).reverse_bits()>>11,5);
+                matched=n;break;
+            }
+        }
+        if matched==0{w.symbol(data[i].into());i+=1;}else{i+=matched;}
+    }
+    w.symbol(256);if w.bits!=0{w.bytes.push(w.pending as u8);}
+    w.bytes.extend_from_slice(&adler32(data).to_be_bytes());w.bytes
+}
+
 pub(super) fn adler32(data: &[u8]) -> u32 {
     let (mut a, mut b) = (1u32, 0u32);
     for chunk in data.chunks(5552) {

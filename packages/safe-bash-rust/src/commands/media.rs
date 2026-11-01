@@ -101,7 +101,8 @@ mod magick_composite;
 mod magick_compare;
 #[path = "magick_color.rs"]
 mod magick_color;
-use magick_color::{Canvas, parse_color};
+use magick_color::Canvas;
+pub(super) use magick_color::parse_color;
 
 fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
     let s = spec.trim();
@@ -311,6 +312,7 @@ mod office;
 
 #[path = "pdf_reader.rs"]
 mod pdf_reader;
+pub(super) use pdf_reader::image_pdf;
 
 fn publish_magick_output(fs: &dyn SafeBashFs, path: &str, bytes: &[u8]) -> Result<(), String> {
     use crate::vfs::{VfsEntryKind, dirname_posix_path};
@@ -3927,7 +3929,9 @@ fn qr_fmt_ratio(v: u8) -> String {
     }
 }
 
-fn pixel_png<const N: usize>(width: usize, height: usize, dpi: u32, stored: bool, pixel: impl Fn(usize, usize) -> [u8; N]) -> Vec<u8> {
+pub(super) enum PngEncoding { Density(u32), SplitDensity(u32), Mermaid }
+
+pub(super) fn pixel_png<const N: usize>(width: usize, height: usize, encoding: PngEncoding, pixel: impl Fn(usize, usize) -> [u8; N]) -> Vec<u8> {
     let mut raw = Vec::with_capacity((width * N + 1) * height);
     for y in 0..height {
         raw.push(1); // Sub filter: store the channel difference from the pixel to the left.
@@ -3951,13 +3955,16 @@ fn pixel_png<const N: usize>(width: usize, height: usize, dpi: u32, stored: bool
     header[4..8].copy_from_slice(&(height as u32).to_be_bytes());
     header[8..10].copy_from_slice(&[8, match N { 1 => 0, 2 => 4, 3 => 2, 4 => 6, _ => unreachable!() }]);
     chunk(b"IHDR", &header);
-    let ppm = ((dpi as f64 / 0.0254).round() as u32).to_be_bytes();
-    let mut phys = [1; 9];
-    phys[..4].copy_from_slice(&ppm);
-    phys[4..8].copy_from_slice(&ppm);
-    chunk(b"pHYs", &phys);
-    let compressed = crate::commands::codecs::zlib_compress(&raw);
-    if stored {
+    let compressed=match encoding {
+        PngEncoding::Mermaid=>crate::commands::codecs::zlib_pixel_runs(&raw),
+        PngEncoding::Density(dpi)|PngEncoding::SplitDensity(dpi)=>{
+            let ppm=((dpi as f64/0.0254).round() as u32).to_be_bytes();
+            let mut phys=[1;9];phys[..4].copy_from_slice(&ppm);phys[4..8].copy_from_slice(&ppm);
+            chunk(b"pHYs",&phys);
+            crate::commands::codecs::zlib_compress(&raw)
+        }
+    };
+    if matches!(encoding,PngEncoding::SplitDensity(_)) {
         // Stored images start the encoder with the first row filter, emitting its zlib header.
         chunk(b"IDAT", &compressed[..2]);
         for part in compressed[2..].chunks(4084) { chunk(b"IDAT", part); }
@@ -3988,7 +3995,7 @@ fn qr_render(
         }
     };
     if rtype == "PNG" || rtype == "PNG32" {
-        return pixel_png(pixels, pixels, dpi, false, |x, y| if dark(x / size, y / size) { fg } else { bg });
+        return pixel_png(pixels, pixels, PngEncoding::Density(dpi), |x, y| if dark(x / size, y / size) { fg } else { bg });
     }
     let mut text = String::new();
     if rtype == "SVG" {

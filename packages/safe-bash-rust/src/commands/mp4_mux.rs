@@ -972,8 +972,10 @@ pub(in super::super) fn input_slice(
     )
 }
 
-pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<Vec<u8>, String> {
-    use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
+fn materialize<'a>(
+    inputs: &'a [MediaInput],
+    opts: &Remux<'_>,
+) -> Result<Vec<Cow<'a, [u8]>>, String> {
     let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
     let mut materialized = Vec::new();
     let mut admitted = 0usize;
@@ -1033,8 +1035,19 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
         }
         materialized.push(bytes);
     }
+    Ok(materialized)
+}
+
+type Source<'a> = (&'a [u8], &'a [u8], Streams<'a>);
+
+fn read_sources<'a>(
+    inputs: &'a [MediaInput],
+    materialized: &'a [Cow<'_, [u8]>],
+    opts: &Remux<'_>,
+) -> Result<Vec<Source<'a>>, String> {
+    use super::atoms;
     let mut sources = Vec::new();
-    for (j, (source, data)) in inputs.iter().zip(&materialized).enumerate() {
+    for (j, (source, data)) in inputs.iter().zip(materialized).enumerate() {
         let format = if matches!(data, Cow::Owned(_)) {
             "mp4"
         } else {
@@ -1125,11 +1138,10 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
             Streams::Mp4(tracks.into_iter().zip(boxes).collect()),
         ));
     }
-    let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
-    let scale = match sources[0].2 {
-        Streams::Aac { rate, .. } => rate,
-        _ => header_time(child(moov, b"mvhd"), 1000).0,
-    };
+    Ok(sources)
+}
+
+fn mapped_tracks(sources: &[Source<'_>], opts: &Remux<'_>) -> Result<Vec<(usize, usize)>, String> {
     let mut selected = select_tracks(
         opts.maps,
         sources.len(),
@@ -1145,6 +1157,67 @@ pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<
     if selected.len() > 32 {
         return Err("output stream count exceeds limit".into());
     }
+    Ok(selected)
+}
+
+pub(in super::super) fn render_mapped(
+    inputs: &[MediaInput],
+    opts: &Remux<'_>,
+    frames: Option<u32>,
+    full_size: bool,
+    emit: impl FnMut(Raster, f64, y4m::Buffer) -> Result<(), &'static str>,
+) -> Result<(usize, usize, u32), String> {
+    let data = materialize(inputs, opts)?;
+    let sources = read_sources(inputs, &data, opts)?;
+    let selected = mapped_tracks(&sources, opts)?;
+    let Some(&(j, i)) = selected
+        .iter()
+        .find(|&&(j, i)| sources[j].2.kind(i) == "video")
+    else {
+        return Ok((64, 64, 10));
+    };
+    let (input, _, streams) = &sources[j];
+    let durations = selected.iter().map(|&(j, i)| sources[j].2.seconds(i));
+    let duration = if opts.shortest {
+        durations.reduce(f64::min)
+    } else {
+        durations.reduce(f64::max)
+    }
+    .unwrap_or(0.);
+    let cut = opts.shortest || opts.start.is_some() || opts.end.is_some();
+    let options = y4m::Options {
+        start: opts.start.unwrap_or(0.).max(0.),
+        end: cut.then(|| {
+            opts.end
+                .unwrap_or(duration)
+                .min(duration)
+                .min(streams.seconds(i))
+        }),
+        no_video: false,
+        frames,
+        filters: opts.video_filters,
+        limit: opts.limit,
+    };
+    match streams {
+        Streams::Images(seq) => seq.render(options, emit).map_err(str::to_owned),
+        Streams::GeneratedVideo(v) => v.render(options, false, emit).map_err(str::to_owned),
+        Streams::Mp4(tracks) => {
+            super::render_track(input, &tracks[i].0, duration, options, full_size, emit)
+        }
+        _ => unreachable!(),
+    }
+}
+
+pub(in super::super) fn remux(inputs: &[MediaInput], opts: Remux<'_>) -> Result<Vec<u8>, String> {
+    use super::{atoms, child, header_time, rows, u16_at, u32_at, wide};
+    let data = materialize(inputs, &opts)?;
+    let sources = read_sources(inputs, &data, &opts)?;
+    let &(input, moov, ..) = sources.first().ok_or("no MP4 inputs")?;
+    let scale = match sources[0].2 {
+        Streams::Aac { rate, .. } => rate,
+        _ => header_time(child(moov, b"mvhd"), 1000).0,
+    };
+    let selected = mapped_tracks(&sources, &opts)?;
     let shortest = if opts.shortest {
         selected
             .iter()

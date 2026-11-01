@@ -4655,7 +4655,7 @@ fn cmd_media_doc(
             let audio_output = muxer == Some("aac");
             let mp4_output = matches!(muxer, Some("mp4" | "mov"));
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
-            if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || inputs.len()==1 && frame_output{
+            if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || frame_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
                 let generator = (frame_output && input_format==Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
@@ -4701,11 +4701,14 @@ fn cmd_media_doc(
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 let output=if muxer==Some("ffmetadata") && remux_inputs {
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,limit){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if frame_output && (format==Some("y4m") || png_input || supported) {
+                } else if frame_output && (inputs.len()==1 && (format==Some("y4m") || png_input || supported) || remux_inputs) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
                         let frames=if image_format.is_some() && !sequence{Some(1)}else{vframes_opt};
+                        if inputs.len()>1 {
+                            return mp4::mux::render_mapped(&sources,&remux,frames,sequence,emit);
+                        }
                         let opts=y4m::Options {filters:&vf_flags,frames,start,end,no_video:strip_video,limit};
                         let input=&sources[0];
                         let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
@@ -13403,6 +13406,20 @@ mod media_unit_tests {
         assert_eq!((r.exit_code,r.stderr),(0,String::new()));
         let r=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=width,height,duration,nb_frames","-of","csv=p=0","mixed.mp4"]),"","/",&fs);
         assert_eq!(r.stdout,"4,2,1.500000,3\n2,2,0.500000,2\n");
+    }
+
+    #[test]
+    fn ffmpeg_renders_raw_pixels_from_the_first_mapped_video() {
+        let fs = MemoryVfs::new();
+        for (name, red) in [("a0", 7), ("b0", 211), ("b1", 139)] {
+            fs.write_file(&format!("/{name}.png"), &pixel_png(1, 1, PngEncoding::Density(72), |_, _| [red, 13, 3, 255])).unwrap();
+        }
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "a%d.png", "-i", "b%d.png", "-map", "1:v", "-map", "0:v", "out%d.ppm"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stderr), (0, String::new()));
+        for (name, red) in [("/out1.ppm", 211), ("/out2.ppm", 139)] {
+            assert_eq!(fs.read_file(name).unwrap(), [b"P6\n1 1\n255\n".as_slice(), &[red, 13, 3]].concat());
+        }
+        assert!(!fs.exists("/out3.ppm"));
     }
 
     #[test]

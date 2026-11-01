@@ -1337,6 +1337,17 @@ pub(super) fn render_video(
     else {
         return Ok((64, 64, 10));
     };
+    render_track(input, t, duration, opts, full_size, emit)
+}
+
+fn render_track(
+    input: &[u8],
+    t: &Track<'_>,
+    duration: f64,
+    opts: super::y4m::Options<'_>,
+    full_size: bool,
+    emit: impl FnMut(super::png_pixels::Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+) -> Result<(usize, usize, u32), String> {
     let (w, h) = (t.width as usize, t.height as usize);
     let limit = opts.limit;
     if t.stats.count > limit / size_of::<Sample>() {

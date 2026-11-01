@@ -3670,94 +3670,57 @@ fn cmd_stat(
     env: &std::collections::BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let mut fmt_spec: Option<String> = None;
+    let mut fmt_spec = None;
     let mut is_printf = false;
     let mut is_bsd = false;
     let mut filesystem = false;
     let mut deref = false;
     let mut ended = false;
     let mut targets = Vec::new();
-    let mut i = 0usize;
-    while i < args.len() {
-        let a = &args[i];
+    let mut operands = args.iter().map(String::as_str).peekable();
+    while let Some(a) = operands.next() {
         if ended || a == "-" || !a.starts_with('-') {
-            targets.push(a.clone());
-            i += 1;
-            continue;
-        }
-        if a == "--" {
+            targets.push(a.to_owned());
+        } else if a == "--" {
             ended = true;
-            i += 1;
-            continue;
-        }
-        if (a == "-c" || a == "--format") && i + 1 < args.len() {
-            fmt_spec = Some(args[i + 1].clone());
-            is_printf = false;
-            is_bsd = false;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("--format=") {
-            fmt_spec = Some(rest.to_string());
-            is_printf = false;
-            is_bsd = false;
-            i += 1;
-        } else if a == "--printf" && i + 1 < args.len() {
-            fmt_spec = Some(args[i + 1].clone());
-            is_printf = true;
-            is_bsd = false;
-            i += 2;
-        } else if let Some(rest) = a.strip_prefix("--printf=") {
-            fmt_spec = Some(rest.to_string());
-            is_printf = true;
-            is_bsd = false;
-            i += 1;
-        } else if a == "-L" || a == "--dereference" {
+        } else if a == "--dereference" {
             deref = true;
-            i += 1;
         } else if a == "--file-system" {
             filesystem = true;
-            i += 1;
-        } else if !a.starts_with("--") {
-            let chars: Vec<char> = a[1..].chars().collect();
-            let mut j = 0usize;
-            while j < chars.len() {
-                match chars[j] {
+        } else if matches!(a, "--cached=never" | "--cached=always" | "--cached=default" | "--terse") {
+            continue;
+        } else if a.starts_with("--") {
+            let (option, inline) = a.split_once('=').map_or((a, None), |(o, v)| (o, Some(v)));
+            if !matches!(option, "--format" | "--printf") { return err_out(&format!("stat: unrecognized option '{a}'\n"), 1); }
+            let Some(value) = inline.or_else(|| operands.next()) else { return err_out(&format!("stat: missing format for '{a}'\n"), 1); };
+            fmt_spec = Some(value);
+            is_printf = option == "--printf";
+            is_bsd = false;
+        } else {
+            let mut flags = a[1..].chars();
+            while let Some(flag) = flags.next() {
+                match flag {
                     'L' => deref = true,
+                    't' => {}
                     'c' => {
-                        let rest: String = chars[j + 1..].iter().collect();
-                        if !rest.is_empty() {
-                            fmt_spec = Some(rest);
-                        } else if i + 1 < args.len() {
-                            i += 1;
-                            fmt_spec = Some(args[i].clone());
-                        }
+                        let rest = flags.as_str();
+                        fmt_spec = if rest.is_empty() { operands.next() } else { Some(rest) };
+                        if fmt_spec.is_none() { return err_out("stat: missing format for '-c'\n", 1); }
                         is_printf = false;
                         is_bsd = false;
                         break;
                     }
-                    'f' => {
-                        if j + 1 == chars.len()
-                            && i + 2 < args.len()
-                            && args[i + 1].contains('%')
-                            && !args[i + 1].starts_with("-c")
-                            && !args[i + 1].starts_with("--format=")
-                            && !args[i + 1].starts_with("--printf=")
-                        {
-                            i += 1;
-                            fmt_spec = Some(args[i].clone());
-                            is_bsd = true;
-                            filesystem = false;
-                            is_printf = false;
-                        } else {
-                            filesystem = true;
-                        }
+                    'f' if flags.as_str().is_empty() && operands.len() >= 2
+                        && operands.peek().is_some_and(|v| v.contains('%') && !v.starts_with("-c") && !v.starts_with("--format=") && !v.starts_with("--printf=")) => {
+                        fmt_spec = operands.next();
+                        is_bsd = true;
+                        filesystem = false;
+                        is_printf = false;
                     }
-                    _ => {}
+                    'f' => filesystem = true,
+                    _ => return err_out(&format!("stat: unrecognized option '{a}'\n"), 1),
                 }
-                j += 1;
             }
-            i += 1;
-        } else {
-            i += 1;
         }
     }
     if targets.is_empty() {
@@ -3814,7 +3777,7 @@ fn cmd_stat(
                         }
                     }
                 };
-                let spec = fmt_spec.as_deref().unwrap_or(if filesystem {
+                let spec = fmt_spec.unwrap_or(if filesystem {
                     "  File: %n\n  Type: %T"
                 } else {
                     "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w"
@@ -7540,6 +7503,22 @@ mod tests {
             0
         );
         assert!(!vfs.exists("/work/dir"));
+    }
+
+    #[test]
+    fn stat_validates_options_before_inspecting_files() {
+        let fs = MemoryVfs::new();
+        for (options, reason) in [
+            (vec!["/missing", "--format"], "missing format for '--format'"),
+            (vec!["/missing", "-Lc"], "missing format for '-c'"),
+            (vec!["/missing", "-qL"], "unrecognized option '-qL'"),
+            (vec!["--cached=no", "/missing"], "unrecognized option '--cached=no'"),
+        ] {
+            let got = cmd_stat(&args(&options), "/", &BTreeMap::new(), &fs);
+            assert_eq!((got.exit_code, got.stdout, got.stderr), (1, String::new(), format!("stat: {reason}\n")));
+        }
+        let got = cmd_stat(&args(&["--cached=never", "-c%n", "/"]), "/", &BTreeMap::new(), &fs);
+        assert_eq!(got.stdout, "/\n");
     }
 
     #[test]

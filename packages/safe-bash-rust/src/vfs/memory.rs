@@ -892,16 +892,11 @@ impl SafeBashFs for MemoryVfs {
         } else if guard.devices != Devices::None && resolved == "/" {
             children.push("dev".into());
         }
-        for key in guard.nodes.keys() {
-            if key == &resolved {
-                continue;
-            }
-            if let Some(rest) = key.strip_prefix(&prefix)
-                && !rest.is_empty()
-                && !rest.contains('/')
-                && !children.iter().any(|c| c == rest)
-            {
-                children.push(rest.to_string());
+        let device_count = children.len();
+        for (key, _) in guard.nodes.range(prefix.clone()..) {
+            let Some(name) = key.strip_prefix(&prefix) else { break };
+            if !name.is_empty() && !name.contains('/') && !children[..device_count].iter().any(|c| c == name) {
+                children.push(name.to_owned());
             }
         }
         Ok(children)

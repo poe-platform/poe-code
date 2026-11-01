@@ -6,6 +6,8 @@ mod csvkit_encoding;
 mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
+#[path = "mermaid.rs"]
+mod mermaid;
 use crate::commands::search::{
     ZeroRegex, regex_capture_spans_in_hay, regex_captures, replace_regex_in_text,
 };
@@ -29623,10 +29625,18 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (String::new(), String::new())
     };
 
-    let mut parts: Vec<String> = Vec::new();
-    parts.push(format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\"{id_attr} class=\"flowchart\" width=\"{width}\" height=\"{height}\" viewBox=\"0 0 {width} {height}\" role=\"img\">"
-    ));
+    let scene = if output_format == "svg" {
+        mermaid::layout(&content_lines, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes())
+    } else { None };
+    let (vw, vh) = scene.as_ref().map_or((f64::from(width), f64::from(height)), |s| (s.width, s.height));
+    let (width, height) = match (scene.is_some(), cli_width.or(cfg_width), cli_height.or(cfg_height)) {
+        (true, Some(w), None) => (f64::from(w), (f64::from(w) * vh / vw).round().max(1.)),
+        (true, None, Some(h)) => ((f64::from(h) * vw / vh).round().max(1.), f64::from(h)),
+        (true, None, None) => (vw, vh),
+        _ => (f64::from(width), f64::from(height)),
+    };
+    let class = if scene.is_some() { "" } else { r#" class="flowchart""# };
+    let mut parts = vec![format!(r#"<svg xmlns="http://www.w3.org/2000/svg"{id_attr}{class} width="{width}" height="{height}" viewBox="0 0 {vw} {vh}" role="img">"#)];
     if let Some(ref t) = acc_title {
         parts.push(format!("<title>{}</title>", escape_mmdc_xml(t)));
     }
@@ -29638,7 +29648,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     ));
     if bg_color.trim().to_ascii_lowercase() != "transparent" {
         parts.push(format!(
-            "<rect width=\"{width}\" height=\"{height}\" fill=\"{}\"/>",
+            "<rect width=\"{vw}\" height=\"{vh}\" fill=\"{}\"/>",
             escape_mmdc_xml(bg_color.trim())
         ));
     }
@@ -29648,16 +29658,22 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 .to_string(),
         );
     }
-    for (idx, line) in content_lines.iter().enumerate() {
-        let y_box = 24 + (idx as u32) * 40;
-        let y_txt = y_box + 22;
-        parts.push(format!(
-            "<g class=\"mmdc-node\" data-id=\"node_{idx}\"><rect x=\"24\" y=\"{y_box}\" width=\"180\" height=\"32\" rx=\"8\" fill=\"{surface}\" stroke=\"{border}\" stroke-width=\"1.25\"/><text x=\"114\" y=\"{y_txt}\" fill=\"{text_col}\" text-anchor=\"middle\">{}</text></g>",
-            escape_mmdc_xml(line)
-        ));
+    let standard_svg = scene.is_some();
+    if let Some(scene) = scene {
+        parts.extend(scene.elements);
+    } else {
+        for (idx, line) in content_lines.iter().enumerate() {
+            let y_box = 24 + (idx as u32) * 40;
+            let y_txt = y_box + 22;
+            parts.push(format!(
+                "<g class=\"mmdc-node\" data-id=\"node_{idx}\"><rect x=\"24\" y=\"{y_box}\" width=\"180\" height=\"32\" rx=\"8\" fill=\"{surface}\" stroke=\"{border}\" stroke-width=\"1.25\"/><text x=\"114\" y=\"{y_txt}\" fill=\"{text_col}\" text-anchor=\"middle\">{}</text></g>",
+                escape_mmdc_xml(line)
+            ));
+        }
     }
     parts.push("</svg>".to_string());
-    let svg = format!("{}\n", parts.join("\n"));
+    let mut svg = parts.join("\n");
+    if !standard_svg { svg.push('\n'); }
 
     let out_bytes: Vec<u8> = if output_format == "png" {
         let png_w = ((width as f64) * scale).round().max(1.0) as u32;
@@ -38305,6 +38321,15 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         .unwrap();
         assert_eq!(bad_persist.exit_code, 1);
         assert!(bad_persist.stderr.contains("unsupported FTS5 binary persistence"));
+    }
+
+    #[test]
+    fn mmdc_places_flowchart_nodes_and_connectors() {
+        let fs = MemoryVfs::new();
+        let r = try_run_structured_command("mmdc", &args(&["-i","-","-o","a.svg"]), "graph TD; A-->B;", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        let bytes=fs.read_file("/a.svg").unwrap();
+        assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f");
     }
 
     #[test]

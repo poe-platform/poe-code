@@ -9256,9 +9256,51 @@ fn cmd_media_doc(
                     99,
                 );
             }
-            let pw = (doc.page_w * zoom).round() as i64;
-            let ph = (doc.page_h * zoom).round() as i64;
-            let default_font_size = (12.0 * zoom).round() as i64;
+            let mut source = pdf_reader::PageSource::open(&raw_bytes);
+            let dimensions = |pno| {
+                let (w, h, _) = doc.page_media.get(&pno).copied().unwrap_or((doc.page_w, doc.page_h, None));
+                (w.abs(), h.abs())
+            };
+            let mut page_text = |pno: usize| {
+                let mut fonts = vec![("Helvetica".to_string(), (12.0 * zoom).round() as i64)];
+                let mut markup = Vec::new();
+                if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno)) {
+                    let height = dimensions(pno).1;
+                    let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
+                    for run in layout {
+                        let [x0, y0, x1, y1] = run.bounds;
+                        let left = (x0 * zoom).round().max(0.) as i64;
+                        let top = ((height - y1) * zoom).round().max(0.) as i64;
+                        let width = ((x1 - x0) * zoom).round().max(1.) as i64;
+                        let height = ((y1 - y0) * zoom).round().max(1.) as i64;
+                        let style = run.family.to_ascii_lowercase();
+                        let mut inner = html_escape_str(&run.text);
+                        if style.contains("italic") || style.contains("oblique") { inner = format!("<i>{inner}</i>"); }
+                        if style.contains("bold") { inner = format!("<b>{inner}</b>"); }
+                        markup.push(if xml_mode {
+                            let key = (run.family.to_string(), (run.size * zoom).round().max(1.) as i64);
+                            let id = font_ids.entry(key.clone()).or_insert_with(|| { fonts.push(key); fonts.len()-1 });
+                            format!(r#"    <text top="{top}" left="{left}" width="{width}" height="{height}" font="{id}">{inner}</text>"#)
+                        } else {
+                            format!(r#"  <p style="position:absolute;top:{top}pt;left:{left}pt;margin:0;">{inner}</p>"#)
+                        });
+                    }
+                } else if let Some(pg) = doc.pages.get(pno - 1) {
+                    for (i, line) in pg.text.lines().map(str::trim).filter(|s| !s.is_empty()).enumerate() {
+                        let mut inner = html_escape_str(line);
+                        if i == 0 && let Some(url) = pg.urls.first() {
+                            inner = format!(r#"<a href="{}">{inner}</a>"#, html_escape_str(url));
+                        }
+                        let top = 50 + i * 20;
+                        markup.push(if xml_mode {
+                            format!(r#"    <text top="{top}" left="50" width="200" height="20" font="0">{inner}</text>"#)
+                        } else {
+                            format!(r#"  <p style="position:absolute;top:{top}pt;left:50pt;margin:0;">{inner}</p>"#)
+                        });
+                    }
+                }
+                (fonts, markup)
+            };
             let rendered = if xml_mode {
                 let mut lines = vec![
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?>".to_string(),
@@ -9266,12 +9308,15 @@ fn cmd_media_doc(
                     "<pdf2xml producer=\"@poe-code/pdf-ast\" version=\"24.08.0\">".to_string(),
                 ];
                 for pno in first_p..=end_p {
+                    let (pw, ph) = dimensions(pno);
+                    let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
+                    let (fonts, markup) = page_text(pno);
                     lines.push(format!(
                         "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
                     ));
-                    lines.push(format!(
-                        "    <fontspec id=\"0\" size=\"{default_font_size}\" family=\"Helvetica\" color=\"#000000\"/>"
-                    ));
+                    for (id, (family, size)) in fonts.iter().enumerate() {
+                        lines.push(format!(r##"    <fontspec id="{id}" size="{size}" family="{}" color="#000000"/>"##, html_escape_str(family)));
+                    }
                     if let Some(pg) = doc.pages.get(pno - 1) {
                         if !ignore_images {
                             for (img_idx, (iw, ih, _)) in pg.images.iter().enumerate() {
@@ -9299,19 +9344,8 @@ fn cmd_media_doc(
                                 ));
                             }
                         }
-                        for (lidx, line_str) in pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).enumerate() {
-                            let top = 50 + (lidx as i64) * 20;
-                            let escaped = html_escape_str(line_str);
-                            let inner = if let Some(u) = pg.urls.first() && lidx == 0 {
-                                format!("<a href=\"{}\">{escaped}</a>", html_escape_str(u))
-                            } else {
-                                escaped
-                            };
-                            lines.push(format!(
-                                "    <text top=\"{top}\" left=\"50\" width=\"200\" height=\"20\" font=\"0\">{inner}</text>"
-                            ));
-                        }
                     }
+                    lines.extend(markup);
                     lines.push("  </page>".to_string());
                 }
                 if !doc.bookmarks.is_empty() {
@@ -9336,6 +9370,9 @@ fn cmd_media_doc(
                     "<body>".to_string(),
                 ];
                 for pno in first_p..=end_p {
+                    let (pw, ph) = dimensions(pno);
+                    let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
+                    let (_, markup) = page_text(pno);
                     lines.push(format!(
                         "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
                     ));
@@ -9366,19 +9403,8 @@ fn cmd_media_doc(
                                 ));
                             }
                         }
-                        for (lidx, line_str) in pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).enumerate() {
-                            let top = 50 + (lidx as i64) * 20;
-                            let escaped = html_escape_str(line_str);
-                            let inner = if let Some(u) = pg.urls.first() && lidx == 0 {
-                                format!("<a href=\"{}\">{escaped}</a>", html_escape_str(u))
-                            } else {
-                                escaped
-                            };
-                            lines.push(format!(
-                                "  <p style=\"position:absolute;top:{top}pt;left:50pt;margin:0;\">{inner}</p>"
-                            ));
-                        }
                     }
+                    lines.extend(markup);
                     lines.push("</div>".to_string());
                 }
                 if !doc.bookmarks.is_empty() {
@@ -13542,6 +13568,26 @@ mod media_unit_tests {
         let save = cmd_media_doc("pdfdetach", &media_args(&["-save", "1", "-o", "/dest", "book.pdf"]), "", "/", &fs);
         assert_eq!((save.exit_code,save.stderr.as_str()), (2,"I/O Error: Error saving embedded file as '/dest'\n"));
         assert_eq!(fs.read_file("/book.pdf").unwrap(), bytes);
+    }
+
+    #[test]
+    fn pdftohtml_uses_pdf_text_positions_and_font_metrics_at_each_zoom() {
+        let stream = "BT /F1 11 Tf 1 0 0 1 28.346457 795 Tm (Hello) Tj 0 -20 Td (World) Tj ET";
+        let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 595 842] /Resources << /Font << /F1 5 0 R >> >> >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents,
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        ], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
+        let html = cmd_media_doc("pdftohtml", &media_args(&["-stdout", "-zoom", "2", "page.pdf"]), "", "/", &fs);
+        assert!(html.stdout.contains("top:76pt;left:57pt;margin:0;\">Hello</p>"), "{}", html.stdout);
+        let xml = cmd_media_doc("pdftohtml", &media_args(&["-stdout", "-xml", "page.pdf"]), "", "/", &fs);
+        assert!(xml.stdout.contains(r#"<fontspec id="1" size="11" family="Helvetica""#), "{}", xml.stdout);
+        assert!(xml.stdout.contains(r#"<text top="38" left="28" width="25" height="11" font="1">Hello</text>"#));
+        assert!(xml.stdout.contains(r#"<text top="58" left="28" width="29" height="11" font="1">World</text>"#));
     }
 
     #[test]

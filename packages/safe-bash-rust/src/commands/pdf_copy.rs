@@ -5,6 +5,8 @@ use std::io::Write;
 
 #[path = "pdf_fonts.rs"]
 mod pdf_fonts;
+#[path = "pdf_text_layout.rs"]
+mod pdf_text_layout;
 
 pub(in super::super) struct PageSource<'a> {
     objects: Objects<'a>,

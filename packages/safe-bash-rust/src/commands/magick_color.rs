@@ -464,6 +464,27 @@ pub(super) fn negate(pixel: &mut [u8; 4], channels: [bool; 4], only_gray: bool) 
 }
 
 impl super::png_pixels::Raster {
+    pub fn sepia(&mut self, strength: f64) {
+        for pixel in &mut self.pixels {
+            let [r, g, b, _] = pixel.map(f64::from);
+            let sepia = [0.393*r + 0.769*g + 0.189*b, 0.349*r + 0.686*g + 0.168*b, 0.272*r + 0.534*g + 0.131*b];
+            for (c, tone) in pixel[..3].iter_mut().zip(sepia) {
+                *c = (f64::from(*c) * (1. - strength) + tone.min(255.) * strength).round() as u8;
+            }
+        }
+    }
+
+    pub fn posterize(&mut self, levels: f64) {
+        let max = levels - 1.;
+        let step = 255. / max;
+        let lut: [u8; 256] = std::array::from_fn(|c| ((c as f64 / 255. * max).round() * step).round() as u8);
+        for pixel in &mut self.pixels {
+            for c in &mut pixel[..3] {
+                *c = lut[usize::from(*c)];
+            }
+        }
+    }
+
     pub fn gamma(&mut self, gamma: f64) {
         let g = if gamma < 0.1 { 0.1 } else { gamma };
         let lut: [u8; 256] = std::array::from_fn(|i| {

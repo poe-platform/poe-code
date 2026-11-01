@@ -277,12 +277,12 @@ fn magick_number(value: &str, empty: f64) -> f64 {
     s.parse().unwrap_or(f64::NAN)
 }
 
-// ImageMagick fuzz uses JavaScript parseFloat: trailing units are ignored.
-fn magick_fuzz(raw:&str)->f64{
+// JavaScript parseFloat accepts a numeric prefix followed by units.
+fn magick_float(raw:&str)->f64{
     let s=raw.trim_start();
     let b=s.as_bytes();
     let mut i=usize::from(matches!(b.first(),Some(b'+'|b'-')));
-    let value=if s[i..].starts_with("Infinity"){
+    if s[i..].starts_with("Infinity"){
         if s.starts_with('-'){f64::NEG_INFINITY}else{f64::INFINITY}
     }else{
         while b.get(i).is_some_and(u8::is_ascii_digit){i+=1;}
@@ -292,7 +292,11 @@ fn magick_fuzz(raw:&str)->f64{
             if b.get(j).is_some_and(u8::is_ascii_digit){while b.get(j).is_some_and(u8::is_ascii_digit){j+=1;}i=j;}
         }
         s[..i].parse().unwrap_or(f64::NAN)
-    };
+    }
+}
+
+fn magick_fuzz(raw:&str)->f64{
+    let value=magick_float(raw);
     if raw.ends_with('%'){value/100.*255.}else{value}
 }
 
@@ -10111,7 +10115,7 @@ fn cmd_media_doc(
             let mut quality=92.;
             let mut adjoin=true;
             let (mut delay, mut repeat) = (None, None);
-            enum PixelOp<'a> { Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+            enum PixelOp<'a> { Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
             let mut ops = Vec::new();
             let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
@@ -10312,6 +10316,18 @@ fn cmd_media_doc(
                             }
                         }else{ops.push(PixelOp::Morph(method,magick_morphology::radii(spec)));}
                     }
+                    "-sepia-tone" | "-solarize" | "-posterize" | "-colors" => {
+                        let value=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else{match arg.as_str(){"-sepia-tone"=>"80%","-solarize"=>"50%",_=>"8"}};
+                        ops.push(match arg.as_str(){
+                            "-sepia-tone"=>{
+                                let n=magick_float(value);
+                                let strength=if value.ends_with('%'){n}else{n/255.}/100.;
+                                PixelOp::Sepia(if strength.is_nan() || strength==0.{0.8}else{strength.clamp(0.,1.)})
+                            }
+                            "-solarize"=>PixelOp::Solarize(magick_fuzz(value)),
+                            _=>PixelOp::Posterize(magick_number(value,0.).round().clamp(2.,256.)),
+                        });i+=1;
+                    }
                     "-raise" | "+raise" | "-vignette" | "-shadow" => {
                         let spec=if i+1<args.len()-usize::from(!is_mogrify){i+=1;args[i].as_str()}else if arg=="-shadow"{"80x3+5+5"}else{"4"};
                         ops.push(match arg.as_str(){
@@ -10383,6 +10399,9 @@ fn cmd_media_doc(
                         }
                     }
                     match op {
+                        PixelOp::Sepia(strength)=>image.sepia(*strength),
+                        PixelOp::Solarize(threshold)=>for p in &mut image.pixels {for c in &mut p[..3] {if f64::from(*c)>*threshold {*c=255-*c;}}},
+                        PixelOp::Posterize(levels)=>image.posterize(*levels),
                         PixelOp::Raise(g,raised)=>image.raise(*g,*raised),
                         PixelOp::Vignette(bg)=>image.vignette(*bg),
                         PixelOp::Shadow(g,bg)=>image.shadow(*g,*bg,fs.max_input_bytes())?,
@@ -14686,6 +14705,12 @@ mod media_unit_tests {
             ("-convolve","kernel:0,-0.5,0,-0.5,3,-0.5,0,-0.5,0","2e62f1aebc90a1384747d5d11643829d951a75bacae551f161b2f8962706b9a5"),
             ("-emboss","1","620e3e4fdb5d3f0f1dcabd7c8a517b3f97e900cc8e54c7aebe9c526ae182d480"),
             ("-charcoal","3","378d4c7520d098dc90c714142245a54109df0809766c5486765174934cb05ff8"),
+            ("-sepia-tone","80%","70e9f61563137eaaebc2958c9a87a823bdcd1d4cade137619fa5ab52f4952019"),
+            ("-sepia-tone","190","e089eee3743a2f46ecc58d191e9dffc4b8bcf8e855c6750cbff74f67d9a27c18"),
+            ("-solarize","50%","09fa21cd3f6a7c8dcddf1cb17d3a6dae01db436059b0ecaaa0f559ce86b09624"),
+            ("-posterize","3","acd5345b38116fc1a526b35ae7bfed9b13165f2652556fc52a010504f36fd10f"),
+            ("-posterize","bad","f3fadea3f6ef18ff4b1544e6150c1a6ef2014371d81fe4822dbfd91ccf1db68d"),
+            ("-colors","8","27ba1f83a8b7044cfda8a5bf53394aa624e648d2cddbcfe74e10cb5f0749043b"),
             ("+raise","2x1","8012345993a65f6bcb4396a6a59a68a567585f618c79c1687e6a566245054171"),
             ("-vignette","1","d0e5348280feaace8faf4c12e32b52b0574912228d0ab593318f466847576dcd"),
             ("-shadow","80x3+5+5","df41baa05f418a316cf74fae882386ac0e10e3377e53b8d85fd7195306c4e4c3"),

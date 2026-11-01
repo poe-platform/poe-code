@@ -50,9 +50,13 @@ assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 
 If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` create a destination. It must create the file with the requested mode and return `EEXIST` if the name is already occupied, including by a dangling symlink. To support `ln` and `cp -l`, implement `supports_hard_links` and `hard_link`. A hard link shares the source inode, including when the source is a symlink. In a filesystem snapshot, entries with the same `link_group` share an inode; file payloads use `Arc<[u8]>` so a snapshot stores those bytes once.
 
+Custom filesystems can support `touch` and timestamp-preserving copies by implementing `set_times(path, atime_ms, mtime_ms)`. Each time is an `Option<f64>` in milliseconds since the Unix epoch; leave the corresponding time unchanged for `None`.
+
 ### 2. WebAssembly Shell from JavaScript / TypeScript
 
 The JavaScript entry point requires Node.js to load the packaged WebAssembly binary. Use `await bash.fs.open(path, { access: "readwrite" })` for positioned I/O on memory files. Use `await bash.fs.link(existingPath, newPath)` to give a file or symlink a second name. The descriptor stays attached to the opened file after renames and unlinks; call `await descriptor.close()` to release it. Use `await bash.fs.readdir(path, { maxEntries })` for sorted `{ name, type }` entries; exceeding the limit raises `EFBIG`. The synchronous `bash.readdir(path)` returns names.
+
+Use `await bash.fs.utimes(path, atimeMs, mtimeMs)` to set access and modification times, including fractional milliseconds and dates before 1970. Read both values with `await bash.fs.stat(path)`.
 
 By default the shell exposes a virtual `/dev/null` alongside files you supply under `/dev`. Use `deviceView: "provided"` to keep your own `/dev/null`, or call `bash.mountDevices()` to mount the device filesystem over `/dev`.
 

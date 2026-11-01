@@ -4424,7 +4424,8 @@ fn cmd_media_doc(
                 }
             }
             let mut inputs: Vec<String> = Vec::new();
-            let (mut input_format,mut output_format) = (None,None);
+            let (mut pending_format,mut output_format) = (None,None);
+            let mut input_formats=Vec::new();
             let (mut audio_copy,mut video_copy)=(false,false);
             let mut audio_filters=Vec::new();let mut fragmented=false;let mut maps=Vec::new();let mut strip_subtitles=false;let mut rotation=None;let mut shortest=false;
             let mut fmt_flag = String::new();
@@ -4465,11 +4466,12 @@ fn cmd_media_doc(
                     }
                     "-i" if i + 1 < args.len() => {
                         inputs.push(args[i + 1].clone());
+                        input_formats.push(pending_format.take());
                         i += 2;
                     }
                     "-f" if i + 1 < args.len() => {
                         fmt_flag = args[i + 1].clone();
-                        if args[i+2..].iter().any(|arg| arg == "-i") { input_format = Some(args[i+1].as_str()); }
+                        if args[i+2..].iter().any(|arg| arg == "-i") { pending_format = Some(args[i+1].as_str()); }
                         else { output_format = Some(args[i+1].as_str()); }
                         i += 2;
                     }
@@ -4590,36 +4592,29 @@ fn cmd_media_doc(
             let subtitle_output = matches!(muxer, Some("srt" | "webvtt"));
             if mp4_output || subtitle_output || muxer==Some("ffmetadata") || inputs.len()==1 && (muxer==Some("aac") || y4m_output){
                 let source=&inputs[0];
+                let input_format=input_formats[0];
                 let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
                 let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
                 let bytes=if generator.is_some(){None}else{read(source)};
                 let start=ss_opt.unwrap_or(0.).max(0.);
                 let end=to_opt.or_else(||t_opt.map(|t|start+t));
                 let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
-                let real_mp4=matches!(format,Some("mp4"|"mov")) && !bytes.as_deref().unwrap_or_default().starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+                let remuxable=|format,data:&[u8]|matches!(format,Some("srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+                let supported=remuxable(format,bytes.as_deref().unwrap_or_default());
+                let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
                 let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
-                if real_mp4 && (mp4_output || subtitle_output || muxer==Some("ffmetadata")){
-                    for source in &inputs[1..]{
+                if supported && (mp4_output || subtitle_output || muxer==Some("ffmetadata")){
+                    for (source,&explicit) in inputs[1..].iter().zip(&input_formats[1..]){
                         let Some(data)=read(source)else{break};
-                        if !matches!(media_format::detect(&data,source,input_format),Some("mp4"|"mov")) || data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"){break}
+                        let fmt=media_format::detect(&data,source,explicit);
+                        let Some(id)=fmt.filter(|_|remuxable(fmt,&data))else{break};
                         admitted=admitted.saturating_add(data.len());if admitted>fs.max_input_bytes(){return err_out("ffmpeg: input byte limit exceeded\n",1)}
-                        additional.push(data);
+                        additional.push((id,data));
                     }
                 }
                 let remux=mp4::mux::Remux{maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                let output=if inputs.len()==1 && (subtitle_output || mp4_output) && matches!(format, Some("srt"|"webvtt")) {
-                    let selected=maps.iter().fold(maps.is_empty(), |selected, map| {
-                        let spec=map.trim_end_matches('?').trim_start_matches('-');
-                        if matches!(spec,"0"|"0:0"|"0:s"|"0:s:0"){!map.starts_with('-')}else{selected}
-                    });
-                    let slice=(shortest || ss_opt.is_some() || end.is_some()).then_some((start,end));
-                    let input=bytes.as_deref().unwrap_or_default();
-                    let result=if mp4_output {
-                        mp4::mux::subtitles(input,selected && !strip_subtitles,remux)
-                    }else{subtitles::convert(input,muxer==Some("webvtt"),selected && !strip_subtitles,slice,fs.max_input_bytes())};
-                    match result{Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() {
-                    let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
+                let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
+                    let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
                     if !video_copy {
@@ -4632,8 +4627,8 @@ fn cmd_media_doc(
                         else if real_mp4{mp4::decode_y4m(bytes,opts)}
                         else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if (mp4_output || subtitle_output) && real_mp4 && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
-                    let sources:Vec<_>=bytes.iter().chain(&additional).map(Vec::as_slice).collect();
+                } else if (mp4_output || subtitle_output) && supported && additional.len()+1==inputs.len() && fc_flag.is_empty() && (video_copy || vf_flags.is_empty() && size_opt.is_none() && output_fps.is_none()) && (audio_copy || audio_filters.is_empty() && ar_opt.is_none() && ac_opt.is_none()){
+                    let sources:Vec<_>=format.into_iter().zip(bytes.as_deref()).chain(additional.iter().map(|(f,b)|(*f,b.as_slice()))).collect();
                     match mp4::mux::remux(&sources,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if inputs.len()==1 && (mp4_output && format==Some("aac") || muxer==Some("aac") && (format==Some("aac") || real_mp4)) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || !audio_filters.is_empty());
@@ -12966,6 +12961,18 @@ mod media_unit_tests {
         assert_eq!(r.stdout,"aac,HE-AAC,48000,1\n");
         let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-c:a","copy","-f","aac","-"]),"","/",&fs);
         assert_eq!(&crate::vfs::stream_string_to_bytes(&r.stdout)[..4],&[255,241,76,64]);
+    }
+
+    #[test]
+    fn ffmpeg_maps_a_subtitle_file_alongside_an_mp4_video() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/video.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        fs.write_file("/captions",b"7\n00:00:01,000 --> 00:00:02,000\nCaption text\n").unwrap();
+        let run=|cmd,args:&[&str]|cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+        let r=run("ffmpeg",&["-i","video.mp4","-f","srt","-i","captions","-map","1:s","-map","0:v","out.mp4"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        assert_eq!(run("ffprobe",&["-show_entries","stream=index,codec_name","-of","csv=p=0","out.mp4"]).stdout,"0,mov_text\n1,h264\n");
+        assert_eq!(run("ffmpeg",&["-i","out.mp4","-f","srt","-"]).stdout,"1\n00:00:01,000 --> 00:00:02,000\nCaption text\n");
     }
 
     #[test]

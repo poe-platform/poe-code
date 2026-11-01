@@ -185,30 +185,24 @@ impl Writer {
 }
 
 pub(super) fn convert(
-    input: &[u8],
-    vtt: bool,
-    selected: bool,
+    text: &str,
+    writer: &mut Writer,
     slice: Option<(f64, Option<f64>)>,
-    limit: usize,
-) -> Result<Vec<u8>, &'static str> {
-    let text = String::from_utf8_lossy(input);
-    let mut writer = Writer::new(vtt, limit);
-    if selected {
-        if slice.is_some() {
-            let mut dts = 0i64;
-            for (body, duration, _, _) in packets(&text, slice) {
-                writer.cue(
-                    dts,
-                    dts.saturating_add(duration),
-                    &String::from_utf8_lossy(&body),
-                )?;
-                dts = dts.saturating_add(duration);
-            }
-        } else {
-            for c in cues(&text) {
-                writer.cue(c.start, c.start.saturating_add(c.duration), &c.text)?
-            }
+) -> Result<(), &'static str> {
+    if slice.is_some() {
+        let mut dts = 0i64;
+        for (body, duration, _, _) in packets(text, slice) {
+            writer.cue(
+                dts,
+                dts.saturating_add(duration),
+                &String::from_utf8_lossy(&body),
+            )?;
+            dts = dts.saturating_add(duration);
+        }
+    } else {
+        for c in cues(text) {
+            writer.cue(c.start, c.start.saturating_add(c.duration), &c.text)?
         }
     }
-    Ok(writer.output.into_bytes())
+    Ok(())
 }

@@ -216,33 +216,32 @@ impl ImageSequence {
     }
 }
 
-pub(super) fn render_png(
-    bytes: &[u8],
-    opts: super::y4m::Options<'_>,
-    seek: super::InputTime,
-    reslice: bool,
-    emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
-) -> Result<(usize, usize, u32), &'static str> {
-    let im = match Raster::decode(bytes, opts.limit) {
+pub(super) fn png_dimensions(bytes: &[u8], limit: usize) -> Result<(usize, usize), &'static str> {
+    // image2 retains the PNG dimensions for a damaged image.
+    let dimension = |i| {
+        bytes
+            .get(i..i + 4)
+            .map(|b| u32::from_be_bytes(b.try_into().unwrap()) as usize)
+            .filter(|n| *n != 0)
+            .unwrap_or(64)
+    };
+    let (w, h) = if bytes.len() >= 24 {
+        (dimension(16), dimension(20))
+    } else {
+        (64, 64)
+    };
+    if w.saturating_mul(h) > limit / 4 {
+        return Err("image exceeds memory budget");
+    }
+    Ok((w, h))
+}
+
+pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    Ok(match Raster::decode(bytes, limit) {
         Ok(im) => im,
         Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
         Err(_) => {
-            // image2 retains the PNG dimensions for a damaged image.
-            let dimension = |i| {
-                bytes
-                    .get(i..i + 4)
-                    .map(|b| u32::from_be_bytes(b.try_into().unwrap()) as usize)
-                    .filter(|n| *n != 0)
-                    .unwrap_or(64)
-            };
-            let (w, h) = if bytes.len() >= 24 {
-                (dimension(16), dimension(20))
-            } else {
-                (64, 64)
-            };
-            if w.saturating_mul(h) > opts.limit / 4 {
-                return Err("image exceeds memory budget");
-            }
+            let (w, h) = png_dimensions(bytes, limit)?;
             Raster {
                 width: w,
                 height: h,
@@ -252,14 +251,28 @@ pub(super) fn render_png(
                 pixels: vec![[180; 4]; w * h],
             }
         }
-    };
+    })
+}
+
+pub(super) fn png_sample(start: f64, end: f64) -> bool {
+    (start.max(0.) * 25.).round() < 1. && (end.min(0.04) * 25.).round() >= 1.
+}
+
+pub(super) fn render_png(
+    bytes: &[u8],
+    opts: super::y4m::Options<'_>,
+    seek: super::InputTime,
+    reslice: bool,
+    emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
+) -> Result<(usize, usize, u32), &'static str> {
+    let im = decode_still(bytes, opts.limit)?;
     let (w, h) = (im.width, im.height);
     // A still has one 25 Hz sample. A sub-tick input cut may preserve
     // its decoded pixels but leave no packet duration for a second cut.
     let start = seek.start.unwrap_or(0.).max(0.);
     let end = seek.end().unwrap_or(0.04);
     let visible = start < 0.04 && end > 0.;
-    let packet = (start * 25.).round() < 1. && (end.min(0.04) * 25.).round() >= 1.;
+    let packet = png_sample(start, end);
     let times = (visible && (!reslice || packet)).then_some((0., 0.04));
     super::y4m::render_frames(w, h, times.into_iter(), opts, |_| Ok(im.clone()), emit)?;
     Ok((w, h, 30))

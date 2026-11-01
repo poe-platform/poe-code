@@ -4369,6 +4369,7 @@ impl MediaInput {
     fn remuxable(&self)->bool {
         match self {
             Self::Bytes("lavfi",b)=>matches!(b.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")),
+            Self::Bytes("image2",b)=>b.starts_with(b"\x89PNG\r\n\x1a\n") && b.get(29..38)!=Some(b"\n__IMG__:"),
             Self::Bytes("mp4"|"mov",b)=>!b.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:"),
             Self::Images(_) | Self::Bytes("aac"|"srt"|"webvtt",_)=>true,
             _=>false,
@@ -4615,7 +4616,7 @@ fn cmd_media_doc(
                 let (format,bytes)=match sources.first(){Some(MediaInput::Bytes(f,b))=>(Some(*f),b.as_slice()),_=>(None,&[][..])};
                 let supported=sources.first().is_some_and(MediaInput::remuxable);
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
-                let png_input=format==Some("image2") && bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38)!=Some(b"\n__IMG__:");
+                let png_input=format==Some("image2") && supported;
                 let remux_inputs=sources.len()==inputs.len() && sources.iter().all(MediaInput::remuxable) && fc_flag.is_empty();
                 if (frame_output || mp4_output && remux_inputs) && !video_copy {
                     if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
@@ -4624,7 +4625,7 @@ fn cmd_media_doc(
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},video_filters:&vf_flags,maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,source_end:end,input_times:&input_times,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
                 let output=if muxer==Some("ffmetadata") && remux_inputs {
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,limit){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if frame_output && (inputs.len()==1 && (format==Some("y4m") || png_input || supported) || remux_inputs) {
+                } else if frame_output && (inputs.len()==1 && (format==Some("y4m") || supported) || remux_inputs) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
@@ -13362,6 +13363,18 @@ mod media_unit_tests {
         assert_eq!(run("out.mp4").exit_code,0);
         let probe=cmd_media_doc("ffprobe",&media_args(&["-show_entries","stream=width,height,nb_frames,duration","-of","csv=p=0","out.mp4"]),"","/",&fs);
         assert_eq!(probe.stdout,"2,1,1.000000,2\n");
+    }
+
+    #[test]
+    fn ffmpeg_muxes_a_png_packet_without_reencoding_it() {
+        let fs = MemoryVfs::new();
+        let png = pixel_png(3, 2, PngEncoding::Density(72), |x,y| [x as u8, y as u8, 99, 255]);
+        fs.write_file("/still.png", &png).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i","still.png","-f","lavfi","-i","sine=d=0.2","still.mov"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stderr), (0, String::new()));
+        let r = cmd_media_doc("ffprobe", &media_args(&["-select_streams","v","-show_entries","stream=codec_name,width,height,time_base,nb_frames","-of","csv=p=0","still.mov"]), "", "/", &fs);
+        assert_eq!(r.stdout, "png,3,2,1/25,1\n");
+        assert!(fs.read_file("/still.mov").unwrap().windows(png.len()).any(|sample| sample == png));
     }
 
     #[test]

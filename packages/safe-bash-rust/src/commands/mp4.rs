@@ -1071,6 +1071,104 @@ fn read_tracks<'a>(input: &'a [u8], moov: &'a [u8]) -> Result<(Vec<Track<'a>>, f
     Ok((tracks, duration))
 }
 
+pub(super) fn decode_y4m(input: &[u8], opts: super::y4m::Options<'_>) -> Result<Vec<u8>, String> {
+    let (tracks, duration) = read_tracks(input, movie(input)?)?;
+    let Some(t) = tracks.iter().find(|t| t.kind == "video" && !opts.no_video) else {
+        return Ok(b"YUV4MPEG2 W64 H64 F10:1 Ip A1:1 C420jpeg\n".to_vec());
+    };
+    let (w, h) = (t.width as usize, t.height as usize);
+    let limit = opts.limit;
+    if t.stats.count > limit / size_of::<Sample>() {
+        return Err("frame index exceeds memory budget".into());
+    }
+    let samples: Vec<_> = t.samples(input.len()).collect();
+    let scale = f64::from(t.scale);
+    let start = if opts.start == 0. && opts.end.is_none() {
+        0
+    } else {
+        t.origin.saturating_add((opts.start * scale).round() as u64)
+    };
+    let end = opts.end.map_or(u64::MAX, |s| {
+        t.origin.saturating_add((s * scale).round() as u64)
+    });
+    let range = if end <= start {
+        0..0
+    } else {
+        samples.partition_point(|s| s.dts.saturating_add(s.tick.into()) <= start)
+            ..samples.partition_point(|s| s.dts < end)
+    };
+    let first = range.start;
+    let count = range.len();
+    let filtered = !opts.filters.is_empty();
+    let produced = count.min(opts.frames.map_or(usize::MAX, |n| n.max(1) as usize));
+    let sliced_duration = (opts.end.unwrap_or(duration).min(duration) - opts.start).max(0.);
+    let uniform = if sliced_duration > 0. && produced != 0 {
+        sliced_duration / produced as f64
+    } else {
+        1. / 30.
+    };
+    let times = range.map(|i| {
+        let s = &samples[i];
+        let tick = if filtered {
+            s.dts
+                .saturating_add(s.tick.into())
+                .min(end)
+                .saturating_sub(s.dts) as f64
+                / scale
+        } else {
+            uniform
+        };
+        (s.dts.saturating_sub(start) as f64 / scale, tick)
+    });
+    let mut decoder = None;
+    let mut replay_bytes = 0usize;
+    super::y4m::encode(
+        w,
+        h,
+        times,
+        super::y4m::Options {
+            start: 0.,
+            end: None,
+            ..opts
+        },
+        |i| {
+            let index = first + i;
+            if decoder.is_none() {
+                let s = t
+                    .sequence
+                    .as_ref()
+                    .ok_or("unsupported MP4 video codec or missing H.264 sequence parameters")?;
+                decoder = Some(h264::Pcm::new(
+                    s,
+                    child(t.entry.get(78..).unwrap_or_default(), b"avcC"),
+                    limit,
+                )?);
+            }
+            let d = decoder.as_mut().unwrap();
+            if d.next > index + 1 {
+                d.next = 0
+            }
+            while d.next <= index {
+                let sample = &samples[d.next];
+                replay_bytes = replay_bytes.saturating_add(sample.size as usize);
+                if replay_bytes > limit.saturating_mul(32) {
+                    return Err("H.264 decode work limit exceeded");
+                }
+                let data = &input[sample.offset..sample.offset + sample.size as usize];
+                let promote = d.next == first
+                    && (opts.start > 0. || opts.end.is_some())
+                    && data.get(4).is_some_and(|v| v & 31 == 1);
+                d.decode(data)?;
+                if promote {
+                    d.promote(w, h, limit)?;
+                }
+            }
+            d.image((w, h), filtered, limit)
+        },
+    )
+    .map_err(str::to_owned)
+}
+
 pub(super) fn extract_adts(
     input: &[u8],
     mut opts: super::adts::Options,

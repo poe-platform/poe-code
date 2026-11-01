@@ -210,8 +210,7 @@ impl Video {
         y4m::encode(
             w,
             h,
-            fps,
-            n,
+            (0..n).map(|i| (i as f64 / fps, 1. / fps)),
             y4m::Options {
                 start: 0.,
                 end: None,

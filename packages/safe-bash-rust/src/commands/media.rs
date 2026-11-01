@@ -4582,16 +4582,19 @@ fn cmd_media_doc(
                 let start=ss_opt.unwrap_or(0.).max(0.);
                 let end=to_opt.or_else(||t_opt.map(|t|start+t));
                 let format=bytes.as_ref().and_then(|b|media_format::detect(b,source,input_format));
-                let output=if y4m_output && (generator.is_some() || format==Some("y4m")) {
+                let real_mp4=matches!(format,Some("mp4"|"mov")) && !bytes.as_deref().unwrap_or_default().starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
+                let output=if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
                     if !video_copy {
                         if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
                         if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
                     }
                     let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
-                    let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some())}
-                        else {y4m::Stream::parse(bytes.as_deref().unwrap_or_default()).and_then(|s|s.encode(opts))};
+                    let bytes=bytes.as_deref().unwrap_or_default();
+                    let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some()).map_err(str::to_owned)}
+                        else if real_mp4{mp4::decode_y4m(bytes,opts)}
+                        else {y4m::Stream::parse(bytes).and_then(|s|s.encode(opts)).map_err(str::to_owned)};
                     match result {Ok(b)=>Some(b), Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if !y4m_output && (format==Some("aac") || matches!(format,Some("mp4"|"mov")) && !bytes.as_deref().unwrap_or_default().starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:")) {
+                } else if !y4m_output && (format==Some("aac") || real_mp4) {
                     let transform = !audio_copy && (ar_opt.is_some() || ac_opt.is_some() || audio_filter);
                     let opts=adts::Options{start,end,rate:ar_opt.filter(|_|transform),channels:ac_opt.filter(|_|transform),clear_samples:transform,strip_audio,limit:fs.max_input_bytes()};
                     let bytes=bytes.as_deref().unwrap_or_default();
@@ -12883,6 +12886,21 @@ mod media_unit_tests {
         for name in ["empty.aac","-"] {
             assert_eq!(run(&["-f","aac","-show_entries","stream=sample_rate,channels,nb_frames","-of","csv=p=0",name]).stdout, "44100,2,0\n");
         }
+    }
+
+    #[test]
+    fn ffmpeg_empty_mp4_interval_inside_a_frame_does_not_emit_that_frame() {
+        let fs=MemoryVfs::new();fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-ss","0.2","-i","av.mp4","-t","0","-f","y4m","-"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stdout,r.stderr),(0,"YUV4MPEG2 W6 H4 F30:1 Ip A1:1 C420jpeg\n".into(),String::new()));
+    }
+
+    #[test]
+    fn ffmpeg_decodes_mp4_pcm_macroblocks_to_y4m() {
+        let fs=MemoryVfs::new();fs.write_file("/av.mp4",include_bytes!("../../tests/fixtures/av.mp4")).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","av.mp4","-frames:v","1","-f","y4m","-"]),"","/",&fs);
+        let expected=[&b"YUV4MPEG2 W6 H4 F1:1 Ip A1:1 C420jpeg\nFRAME\n"[..],&[116,116,116,116,117,117,116,116,117,117,118,118,117,117,118,118,119,119,118,118,119,119,120,120,86,85,84,84,84,83,191,192,194,189,190,193]].concat();
+        assert_eq!((r.exit_code,crate::vfs::stream_string_to_bytes(&r.stdout),r.stderr),(0,expected,String::new()));
     }
 
     #[test]

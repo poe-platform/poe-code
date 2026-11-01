@@ -96,7 +96,11 @@ fn decode(frame: &[u8], w: usize, h: usize, rgb: impl Fn(i32, i32, i32) -> [u8; 
     raster(w, h, pixels)
 }
 
-fn append_planes(out: &mut Vec<u8>, im: &Raster, limit: usize) -> Result<(), &'static str> {
+pub(super) fn append_planes(
+    out: &mut Vec<u8>,
+    im: &Raster,
+    limit: usize,
+) -> Result<(), &'static str> {
     let (w, h) = (im.width, im.height);
     let cw = w.div_ceil(2);
     let chroma = cw * h.div_ceil(2);
@@ -148,23 +152,25 @@ pub(super) fn materialized(
     }
     let mut frame = Vec::new();
     append_planes(&mut frame, &im, limit)?;
-    // libswscale uses 13 fractional bits for its limited-range BT.601 coefficients.
-    let mut decoded = decode(&frame, dw, dh, |y, u, v| {
-        let c = y * 9539;
-        let sat = |n: i32| ((n + 4096) >> 13).clamp(0, 255) as u8;
-        [
-            sat(c + 13075 * v),
-            sat(c - 3209 * u - 6660 * v),
-            sat(c + 16525 * u),
-            255,
-        ]
-    });
+    let mut decoded = decode(&frame, dw, dh, bt601);
     if !filtered {
         decoded.width = w;
         decoded.height = h;
         decoded.pixels.truncate(w * h);
     }
     Ok(decoded)
+}
+
+// libswscale uses 13 fractional bits for its limited-range BT.601 coefficients.
+pub(super) fn bt601(y: i32, u: i32, v: i32) -> [u8; 4] {
+    let c = y * 9539;
+    let sat = |n: i32| ((n + 4096) >> 13).clamp(0, 255) as u8;
+    [
+        sat(c + 13075 * v),
+        sat(c - 3209 * u - 6660 * v),
+        sat(c + 16525 * u),
+        255,
+    ]
 }
 
 pub(super) struct Options<'a> {
@@ -186,18 +192,24 @@ impl Stream<'_> {
             }
             frames.push(f);
         }
-        encode(w, h, self.fps, frames.len(), options, |i| {
-            Ok(decode(frames[i], w, h, |y, u, v| {
-                let c = y.max(0) * 298;
-                let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
-                [
-                    sat(c + 409 * v),
-                    sat(c - 100 * u - 208 * v),
-                    sat(c + 516 * u),
-                    255,
-                ]
-            }))
-        })
+        encode(
+            w,
+            h,
+            (0..frames.len()).map(|i| (i as f64 / self.fps, 1. / self.fps)),
+            options,
+            |i| {
+                Ok(decode(frames[i], w, h, |y, u, v| {
+                    let c = y.max(0) * 298;
+                    let sat = |n: i32| ((n + 128) >> 8).clamp(0, 255) as u8;
+                    [
+                        sat(c + 409 * v),
+                        sat(c - 100 * u - 208 * v),
+                        sat(c + 516 * u),
+                        255,
+                    ]
+                }))
+            },
+        )
     }
 }
 
@@ -276,8 +288,7 @@ fn render(
 pub(super) fn encode(
     w: usize,
     h: usize,
-    fps: f64,
-    count: usize,
+    times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
 ) -> Result<Vec<u8>, &'static str> {
@@ -286,10 +297,8 @@ pub(super) fn encode(
     if opts.no_video {
         return Ok(header(64, 64, 10));
     }
-    let duration = 1. / fps;
     let mut frames = Vec::new();
-    for index in 0..count {
-        let pts = index as f64 / fps;
+    for (index, (pts, duration)) in times.enumerate() {
         if pts + duration > opts.start && opts.end.is_none_or(|t| pts < t) {
             if frames.len() >= opts.limit / size_of::<TimedFrame>() {
                 return Err("frame index exceeds memory budget");

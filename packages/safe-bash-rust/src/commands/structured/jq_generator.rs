@@ -41,7 +41,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     if s == "." || s.is_empty() {
         return emit(input.clone());
     }
-    if s.as_bytes()[0].is_ascii_digit() && let Some(value) = super::jq_number::literal(s) {
+    if super::jq_parser::starts_number(s) && let Some(value) = super::jq_number::literal(s) {
         return emit(value);
     }
     visit_filter(s, input, vars, emit)

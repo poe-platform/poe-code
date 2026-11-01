@@ -23,6 +23,10 @@ struct Token<'a> {
     at: usize,
 }
 
+pub(super) fn starts_number(source: &str) -> bool {
+    matches!(source.as_bytes(), [b'0'..=b'9', ..] | [b'.', b'0'..=b'9', ..])
+}
+
 struct Lexer<'a> {
     source: &'a str,
     pos: usize,
@@ -112,9 +116,7 @@ impl<'a> Lexer<'a> {
                         self.pos += 1;
                     }
                     Kind::Name
-                } else if b.is_ascii_digit()
-                    || (b == b'.' && bytes.get(at + 1).is_some_and(u8::is_ascii_digit))
-                {
+                } else if starts_number(&self.source[at..]) {
                     while bytes.get(self.pos).is_some_and(u8::is_ascii_digit) {
                         self.pos += 1;
                     }
@@ -224,7 +226,7 @@ pub(super) fn binary(source: &str) -> Option<Binary<'_>> {
     let mut root: Option<Token<'_>> = None;
     let mut chain: Option<usize> = None;
     let single_number = |operand: &str, last: &str| {
-        last.as_bytes().first().is_some_and(u8::is_ascii_digit) && operand.trim() == last
+        starts_number(last) && operand.trim() == last
     };
     let (mut depth, mut strings, mut conditions) = (0usize, 0usize, 0usize);
     let mut can_end = false;

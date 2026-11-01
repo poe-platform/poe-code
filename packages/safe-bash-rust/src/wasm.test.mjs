@@ -290,6 +290,14 @@ test("async stdin preserves borrowed bytes and stops pulling after cancellation"
   } finally { bash.dispose(); }
 });
 
+test("jq accepts leading decimal points in numeric filters and arithmetic operands", () => {
+  const bash = new RustWasmBash();
+  try {
+    const r = bash.execSync("jq -nc '[.5, -.25, .125e+2, 1+.5+.25, {x: 2}.x]'");
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "[0.5,-0.25,12.5,1.75,2]\n", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("a long jq operator chain cannot exhaust the shell stack", () => {
   const bash = new RustWasmBash();
   try {

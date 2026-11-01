@@ -34443,8 +34443,8 @@ struct AstCapture {
 }
 
 #[derive(Debug, Clone)]
-struct AstMatch {
-    node: AstCodeNode,
+struct AstMatch<'a> {
+    node: &'a AstCodeNode,
     captures: Vec<AstCapture>,
 }
 
@@ -36864,24 +36864,20 @@ fn ast_find_matches(
     root: &AstCodeNode,
     pattern: &AstPattern,
     source: &str,
-) -> Result<Vec<AstMatch>, String> {
+    mut visit: impl FnMut(AstMatch<'_>) -> Result<(), String>,
+) -> Result<(), String> {
     let mut compiled = BTreeMap::new();
     compile_ast_patterns(pattern, &root.language, &mut compiled)?;
-    let mut nodes = Vec::new();
-    walk_ast_nodes(root, &mut nodes);
-    let mut out = Vec::new();
-    for n in nodes {
-        if n.trivia || n.kind == "ERROR" {
-            continue;
+    let mut nodes = vec![root];
+    while let Some(node) = nodes.pop() {
+        if !node.trivia && node.kind != "ERROR"
+            && let Some(captures) = eval_ast_pattern(pattern, &compiled, root, node, &[], source)
+        {
+            visit(AstMatch { node, captures })?;
         }
-        if let Some(captures) = eval_ast_pattern(pattern, &compiled, root, n, &[], source) {
-            out.push(AstMatch {
-                node: n.clone(),
-                captures,
-            });
-        }
+        nodes.extend(node.children.iter().rev());
     }
-    Ok(out)
+    Ok(())
 }
 
 fn ast_replacement(template: &str, m: &AstMatch) -> Result<String, String> {
@@ -37088,23 +37084,18 @@ fn ast_json_record(
     Ok((JVal::Object(fields), repl))
 }
 
-fn ast_text_output(source: &str, file: &str, matches: &[AstMatch], opts: &AstGrepOptions) -> String {
+fn ast_text_output(source: &str, file: &str, matches: &[(usize, usize)], opts: &AstGrepOptions) -> String {
     let mut lines: Vec<&str> = source.split('\n').collect();
     if lines.last() == Some(&"") {
         lines.pop();
     }
     let mut matched = std::collections::BTreeSet::new();
     let mut shown = std::collections::BTreeSet::new();
-    for m in matches {
-        let end = if m.node.end.1 == 0 && m.node.end.0 > m.node.start.0 {
-            m.node.end.0 - 1
-        } else {
-            m.node.end.0
-        };
-        for n in m.node.start.0..=end {
+    for &(start, end) in matches {
+        for n in start..=end {
             matched.insert(n);
         }
-        let from = m.node.start.0.saturating_sub(opts.before);
+        let from = start.saturating_sub(opts.before);
         let to = (end + opts.after).min(lines.len().saturating_sub(1));
         for n in from..=to {
             if n < lines.len() {
@@ -37311,7 +37302,7 @@ fn cmd_ast_grep(
             };
             let lines: Vec<&str> = source.split('\n').collect();
             let mut edits: Vec<((usize, usize), String)> = Vec::new();
-            let mut all_matches: Vec<AstMatch> = Vec::new();
+            let mut matched_lines = Vec::new();
             for rule in relevant {
                 let lang = rule
                     .language
@@ -37319,9 +37310,11 @@ fn cmd_ast_grep(
                     .or(language.as_deref())
                     .ok_or_else(|| "missing language".to_string())?;
                 let tree = parse_ast_code(&source, lang)?;
-                let matches = ast_find_matches(&tree, &rule.rule, &source)?;
                 let mut last_end: Option<usize> = None;
-                for m in matches {
+                ast_find_matches(&tree, &rule.rule, &source, |m| {
+                    if count == 10_000 {
+                        return Err("match limit exceeded".into());
+                    }
                     count += 1;
                     let (row_jval, repl_opt) = ast_json_record(&tree, &m, &file_label, &lines, rule)?;
                     if let Some(ref jm) = opts.json {
@@ -37339,11 +37332,16 @@ fn cmd_ast_grep(
                         edits.push((m.node.range, repl));
                         last_end = Some(m.node.range.1);
                     }
-                    all_matches.push(m);
-                }
+                    if opts.json.is_none() {
+                        let start = m.node.start.0;
+                        let end = m.node.end.0 - usize::from(m.node.end.1 == 0 && m.node.end.0 > start);
+                        matched_lines.push((start, end));
+                    }
+                    Ok(())
+                })?;
             }
-            if opts.json.is_none() && !all_matches.is_empty() {
-                stdout.push_str(&ast_text_output(&source, &file_label, &all_matches, &opts));
+            if !matched_lines.is_empty() {
+                stdout.push_str(&ast_text_output(&source, &file_label, &matched_lines, &opts));
                 if !edits.is_empty() {
                     let rewritten = apply_ast_edits(&source, &edits)?;
                     stdout.push_str(&rewritten);
@@ -39358,6 +39356,19 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_match_limit_skips_the_file_that_exceeds_it() {
+        let fs = MemoryVfs::new();
+        let source = "f;\n".repeat(10_000);
+        fs.write_file("/first.js", b"f;").unwrap();
+        fs.write_file("/rest.js", source.as_bytes()).unwrap();
+        let r = try_run_structured_command("sg", &args(&["-p", "f", "-r", "g", "-U", "first.js", "rest.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (2, "sg: match limit exceeded\n"));
+        assert_eq!(r.stdout, "first.js:1:f;\ng;\n");
+        assert_eq!(fs.read_file("/first.js").unwrap(), b"g;");
+        assert_eq!(fs.read_file("/rest.js").unwrap(), source.as_bytes());
     }
 
     #[test]

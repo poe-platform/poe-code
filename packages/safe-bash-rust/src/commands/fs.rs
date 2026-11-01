@@ -5152,8 +5152,14 @@ fn cmd_df(
     if !operands.is_empty() {
         for op in &operands {
             let resolved = resolve_posix_path(cwd, op);
-            let is_mount_target = mounts.iter().any(|m| m.target == resolved);
-            if !is_mount_target && fs.lstat(&resolved).is_err() && !fs.exists(&resolved) {
+            let needs_walk = op.len() > 1 && (op.ends_with('/') || op.ends_with("/.") || op.contains("/./"))
+                || op.split('/').any(|part| part == "..");
+            let missing = if needs_walk {
+                fs.inspect_command_entry(&absolute_operand(cwd, op), false, "lstat").is_err()
+            } else {
+                !mounts.iter().any(|m| m.target == resolved) && fs.inspect_command_entry(&resolved, false, "lstat").is_err()
+            };
+            if missing {
                 stderr.push_str(&format!("df: '{op}': No such file or directory\n"));
                 exit_code = 1;
                 continue;
@@ -7598,6 +7604,21 @@ mod tests {
             let got = cmd_stat(&args(&[opt, fmt, "/"]), "/", &BTreeMap::new(), &fs);
             assert_eq!((got.exit_code, got.stdout, got.stderr), (1, String::new(), format!("stat: {reason}\n")));
         }
+    }
+
+    #[test]
+    fn df_checks_path_components_before_selecting_a_mount() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/w/tree/dir").unwrap();
+        fs.write_file("/w/tree/file", b"x").unwrap();
+        fs.symlink("tree/dir", "/w/link").unwrap();
+        let run = |p: &str| cmd_df(&args(&["--output=target", p]), "/w", &BTreeMap::new(), &fs);
+        for path in ["/proc/", "tree/file/.", "missing/../tree"] {
+            let result = run(path);
+            assert_eq!((result.exit_code, result.stderr), (1, format!("df: '{path}': No such file or directory\n")));
+        }
+        assert_eq!(run("/proc").exit_code, 0);
+        assert_eq!(run("link/../file").exit_code, 0);
     }
 
     #[test]

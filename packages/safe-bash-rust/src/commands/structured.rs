@@ -29630,7 +29630,15 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (String::new(), String::new())
     };
 
-    let scene = if output_format == "svg" {
+    let scene = if first_word == "pie" {
+        match mermaid::pie::Pie::parse(first_stmt,&src_text,fs.max_input_bytes()) {
+            Ok(pie) => {
+                acc_title=pie.title.clone();
+                (output_format=="svg").then(||pie.layout(&resolved_theme))
+            }
+            Err(message)=>return err_out(&message,1),
+        }
+    } else if output_format == "svg" {
         match mermaid::layout(&content_lines, &src_text, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes()) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
@@ -29660,12 +29668,6 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             "<rect width=\"{vw}\" height=\"{vh}\" fill=\"{}\"/>",
             escape_mmdc_xml(bg_color.trim())
         ));
-    }
-    if first_word == "pie" {
-        parts.push(
-            "<polygon class=\"mmdc-pie-slice\" points=\"100,100 180,100 140,160\" fill=\"#2563eb\" />"
-                .to_string(),
-        );
     }
     let standard_svg = scene.is_some();
     if let Some(scene) = scene {
@@ -38241,6 +38243,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         fs.chmod("/out.svg",0o600).unwrap();
         assert_eq!(run("out.svg").exit_code,0);
         assert_eq!(fs.stat("/out.svg").unwrap().mode & 0o777,0o600);
+    }
+
+    #[test]
+    fn mmdc_pie_validates_before_write_and_draws_each_slice() {
+        let fs=MemoryVfs::new();
+        for ext in ["svg","png","pdf"] {
+            let path=format!("/pie.{ext}");
+            fs.write_file(&path,b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o",&path]),"pie\n   \"X\": -1","/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,1);
+            assert_eq!(r.stderr,"mmdc: E_SYNTAX (line 2, column 4): Pie values must be finite nonnegative numbers\n");
+            assert_eq!(fs.read_file(&path).unwrap(),b"previous");
+        }
+        let r=try_run_structured_command("mmdc",&args(&["-i","-","-o","/pie.svg"]),"pie showData title Split\n\"big\":3\n\"small\":1","/",&BTreeMap::new(),&fs).unwrap();
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        let svg=String::from_utf8(fs.read_file("/pie.svg").unwrap()).unwrap();
+        assert_eq!(svg.matches("class=\"mmdc-pie-slice\"").count(),2);
+        assert!(svg.contains(">big [3] (75.0%)</text>") && svg.contains("<title>Split</title>"));
     }
 
     #[test]

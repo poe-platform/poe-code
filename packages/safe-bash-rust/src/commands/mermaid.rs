@@ -2,6 +2,9 @@
 use super::escape_mmdc_xml as esc;
 use std::{collections::BTreeMap, fmt::Write};
 
+#[path = "mermaid/pie.rs"]
+pub(super) mod pie;
+
 pub(super) struct Scene {
     pub width: f64,
     pub height: f64,
@@ -109,7 +112,7 @@ const EDGE_OPS: &[&str] = &[
     "--x", "--o",
 ];
 
-fn syntax(source: &str, at: &str, message: String) -> String {
+fn position(source: &str, at: &str) -> (usize, usize) {
     // The statement and token are slices of the original UTF-8 source. Mermaid
     // reports one-based UTF-16 columns, including indentation and the header.
     let offset = at.as_ptr() as usize - source.as_ptr() as usize;
@@ -121,6 +124,10 @@ fn syntax(source: &str, at: &str, message: String) -> String {
         .unwrap_or("")
         .encode_utf16()
         .count();
+    (line, column)
+}
+fn syntax(source: &str, at: &str, message: String) -> String {
+    let (line, column) = position(source, at);
     format!("mmdc: E_SYNTAX (line {line}, column {column}): {message}\n")
 }
 fn parse_node<'a>(

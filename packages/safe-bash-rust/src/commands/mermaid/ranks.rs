@@ -1,9 +1,9 @@
 // Coordinates for ungrouped flowchart ranks, in source order within each rank.
-use super::{Node, measure};
+use super::{Edge, Node};
 
 pub(super) fn place(
     nodes: &mut [Node],
-    edges: &[(usize, usize, &str, &str)],
+    edges: &[Edge],
     horizontal: bool,
     reverse: bool,
 ) -> Option<(i32, i32)> {
@@ -79,14 +79,14 @@ pub(super) fn place(
     let mut allowance = vec![0_f64; layers.len()];
     let mut intervals: Vec<_> = edges
         .iter()
-        .filter(|e| !e.3.is_empty() && e.0 != e.1)
-        .map(|&(a, b, _, label)| {
+        .filter_map(|(a, b, _, label)| {
+            let label = label.as_ref()?;
             let needed = if horizontal {
-                measure(label, 11.5, false) + 36.
+                label.rank_width + 36.
             } else {
-                44.
+                label.height - 7. + 28.
             };
-            (needed, rank[a].min(rank[b])..rank[a].max(rank[b]))
+            (a != b).then(|| (needed, rank[*a].min(rank[*b])..rank[*a].max(rank[*b])))
         })
         .collect();
     if !intervals.is_empty() {

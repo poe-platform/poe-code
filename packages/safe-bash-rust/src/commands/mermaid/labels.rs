@@ -1,4 +1,4 @@
-use super::{Node, pill_style, route::Point};
+use super::{Edge, Node, route::Point};
 
 type Rect = [f64; 4];
 fn overlaps([x, y, w, h]: Rect, [a, b, c, d]: Rect, margin: f64) -> bool {
@@ -7,12 +7,12 @@ fn overlaps([x, y, w, h]: Rect, [a, b, c, d]: Rect, margin: f64) -> bool {
 
 pub(super) fn place(
     nodes: &[Node],
-    edges: &[(usize, usize, &str, &str)],
+    edges: &[Edge],
     paths: &[Vec<Point>],
     mut work: usize,
 ) -> Result<Vec<Option<Rect>>, String> {
     let mut placed = vec![None; edges.len()];
-    if edges.iter().all(|e| e.3.is_empty()) {
+    if edges.iter().all(|e| e.3.is_none()) {
         return Ok(placed);
     }
     let boxes: Vec<_> = nodes
@@ -44,8 +44,12 @@ pub(super) fn place(
         Ok::<_, String>(())
     };
     let mut labels: Vec<(usize, Rect)> = Vec::new();
-    for (i, &(_, _, _, text)) in edges.iter().enumerate().filter(|(_, e)| !e.3.is_empty()) {
-        let width = pill_style(text).3;
+    for (i, label) in edges
+        .iter()
+        .enumerate()
+        .filter_map(|(i, e)| Some((i, e.3.as_ref()?)))
+    {
+        let (width, height) = (label.width, label.height);
         let path = &paths[i];
         let mut spans: Vec<_> = path
             .windows(2)
@@ -67,9 +71,9 @@ pub(super) fn place(
         let rect = |a: Point, b: Point, t: f64| {
             [
                 (a.0 + (b.0 - a.0) * t - width * 0.5 + 0.5).floor(),
-                (a.1 + (b.1 - a.1) * t - 11.5 + 0.5).floor(),
+                (a.1 + (b.1 - a.1) * t - height * 0.5 + 0.5).floor(),
                 width,
-                23.,
+                height,
             ]
         };
         let mut best = rect(spans[0].1, spans[0].2, 0.5);

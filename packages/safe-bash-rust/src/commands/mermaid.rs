@@ -86,40 +86,77 @@ fn measure(s: &str, size: f64, bold: bool) -> f64 {
 fn snap(v: f64) -> i32 {
     (v / 8.).ceil() as i32 * 8
 }
-fn dimensions(n: &mut Node, horizontal: bool) {
-    let mut tallest = 0.;
-    let label = n
-        .label
-        .replace("\\n", "\n")
-        .replace("<br>", "\n")
-        .replace("<br/>", "\n")
-        .replace("<br />", "\n");
-    for l in label.lines() {
+fn text_block(text: &str, size: f64, bold: bool) -> (Vec<String>, f64) {
+    let mut normalized = String::with_capacity(text.len());
+    let mut tail = text;
+    while !tail.is_empty() {
+        let skip = if tail.starts_with("\\n") || tail.starts_with("\r\n") {
+            2
+        } else if tail.starts_with('\r') {
+            1
+        } else if tail.starts_with('<') {
+            ["<br>", "<br/>", "<br />"]
+                .into_iter()
+                .find(|tag| {
+                    tail.get(..tag.len())
+                        .is_some_and(|p| p.eq_ignore_ascii_case(tag))
+                })
+                .map_or(0, str::len)
+        } else {
+            0
+        };
+        if skip > 0 {
+            normalized.push('\n');
+            tail = &tail[skip..];
+        } else {
+            let c = tail.chars().next().unwrap();
+            normalized.push(c);
+            tail = &tail[c.len_utf8()..];
+        }
+    }
+    let mut lines = Vec::new();
+    let width = |units: u64| (units as f64 / 1000. * size * 100.).ceil() / 100.;
+    let mut widest = 0_f64;
+    let space = u64::from(advance(' ', bold));
+    for raw in normalized.split('\n') {
         let mut line = String::new();
-        for word in l.split_whitespace() {
-            let width = measure(word, 13., false);
-            if !line.is_empty()
-                && measure(&line, 13., false) + measure(" ", 13., false) + width > 200.
-            {
-                n.lines.push(std::mem::take(&mut line));
-            } else if !line.is_empty() {
-                line.push(' ');
+        let mut units = 0;
+        for word in raw.trim().split(' ') {
+            let word_units: u64 = word.chars().map(|c| u64::from(advance(c, bold))).sum();
+            let candidate = units + word_units + if line.is_empty() { 0 } else { space };
+            if width(candidate) <= 200. {
+                if !line.is_empty() {
+                    line.push(' ');
+                }
+                line.push_str(word);
+                units = candidate;
+                continue;
+            }
+            if !line.is_empty() {
+                widest = widest.max(width(units));
+                lines.push(std::mem::take(&mut line));
+                units = 0;
             }
             for c in word.chars() {
-                if !line.is_empty()
-                    && measure(&line, 13., false) + f64::from(advance(c, false)) * 0.013 > 200.
-                {
-                    n.lines.push(std::mem::take(&mut line));
+                let add = u64::from(advance(c, bold));
+                if !line.is_empty() && width(units + add) > 200. {
+                    widest = widest.max(width(units));
+                    lines.push(std::mem::take(&mut line));
+                    units = 0;
                 }
                 line.push(c);
+                units += add;
             }
         }
-        n.lines.push(line);
+        widest = widest.max(width(units));
+        lines.push(line);
     }
-    for l in &n.lines {
-        tallest = f64::max(tallest, measure(l, 13., false));
-    }
-    let text_height = n.lines.len().max(1) as f64 * 20.;
+    (lines, widest)
+}
+fn dimensions(n: &mut Node, horizontal: bool) {
+    let tallest;
+    (n.lines, tallest) = text_block(&n.label, 13., false);
+    let text_height = n.lines.len() as f64 * 20.;
     (n.w, n.h) = match n.shape {
         Shape::Diamond => (
             snap((tallest + 36.) * 1.68).max(120),
@@ -229,21 +266,46 @@ fn parse_node<'a>(
     }
     Some((i, rest))
 }
-fn pill_style(label: &str) -> (f64, u16, i32, f64) {
-    let (size, weight, radius, pad) = if label.len() <= 4
-        && label
-            .bytes()
-            .all(|b| b.is_ascii_digit() || b".*nN".contains(&b))
-    {
-        (11., 600, 4, 16.)
-    } else {
-        (11.5, 500, 5, 18.)
-    };
-    let units = label
-        .chars()
-        .map(|c| u64::from(advance(c, weight == 600)))
-        .sum::<u64>() as f64;
-    (size, weight, radius, (units * size / 1000. + pad).ceil())
+type Edge<'a> = (usize, usize, &'a str, Option<Pill>);
+struct Pill {
+    size: f64,
+    weight: u16,
+    radius: i32,
+    width: f64,
+    height: f64,
+    rank_width: f64,
+    lines: Vec<String>,
+}
+impl Pill {
+    fn new(label: &str) -> Option<Self> {
+        if label.is_empty() {
+            return None;
+        }
+        let short = label.len() <= 4
+            && label
+                .bytes()
+                .all(|b| b.is_ascii_digit() || b".*nN".contains(&b));
+        let (size, weight, radius, pad) = if short {
+            (11., 600, 4, 16.)
+        } else {
+            (11.5, 500, 5, 18.)
+        };
+        let (lines, text_width) = text_block(label, size, short);
+        let rank_width = if short {
+            measure(label, 11.5, false)
+        } else {
+            text_width
+        };
+        Some(Self {
+            size,
+            weight,
+            radius,
+            width: (text_width + pad).ceil(),
+            height: lines.len() as f64 * 16. + 7.,
+            rank_width,
+            lines,
+        })
+    }
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) fn layout(
@@ -306,7 +368,13 @@ pub(super) fn layout(
                 }
                 return None;
             };
-            if label.contains(['<', '\n']) || measure(label, 13., false) > 200. {
+            // HTML-like content other than line breaks still uses the existing fallback.
+            if label.split('<').skip(1).any(|tail| {
+                !["br>", "br/>", "br />"].iter().any(|tag| {
+                    tail.get(..tag.len())
+                        .is_some_and(|p| p.eq_ignore_ascii_case(tag))
+                })
+            }) {
                 return None;
             }
             let (b, tail) = parse_node(tail, &mut nodes, &mut ids)?;
@@ -319,7 +387,7 @@ pub(super) fn layout(
             if edges.len() >= limit / 300 {
                 return None;
             }
-            edges.push((a, b, op, label));
+            edges.push((a, b, op, Pill::new(label)));
             a = b;
             rest = tail;
         }
@@ -476,8 +544,17 @@ pub(super) fn layout(
             "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
             _ => {}
         }
-        if let Some([px, py, w, _]) = positions[idx] {
-            let (size, weight, rx, _) = pill_style(label);
+        if let (
+            Some([px, py, w, h]),
+            Some(Pill {
+                size,
+                weight,
+                radius: rx,
+                lines,
+                ..
+            }),
+        ) = (positions[idx], label)
+        {
             let short = weight == 600;
             let left = px + f64::from(dx);
             let top = py + f64::from(dy);
@@ -487,7 +564,7 @@ pub(super) fn layout(
                 ("#ffffff", "#e2e8f0", "#0f172a")
             };
             pill_paint.push(Paint::Box {
-                bounds: [left, top, w, 23.],
+                bounds: [left, top, w, h],
                 shape: Shape::Rounded,
                 shadow: None,
                 style: BoxStyle {
@@ -497,15 +574,24 @@ pub(super) fn layout(
                     thickness: 1.,
                 },
             });
-            pill_paint.push(Paint::Text {
-                start: (left + w / 2.).round() - measure(label, size, short) / 2.,
-                baseline: top + if short { 14. } else { 15. },
-                size,
-                weight,
-                color: parse_color(color).unwrap(),
-                text: label.into(),
-            });
-            pills.push(format!(r#"<g class="mmdc-label-pill"><rect x="{left}" y="{top}" width="{w}" height="23" rx="{rx}" fill="{fill}" stroke="{border}" stroke-width="1"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#,(left+w/2.).round(),top+if short{14.}else{15.},esc(label)));
+            let mut pill = format!(
+                r#"<g class="mmdc-label-pill"><rect x="{left}" y="{top}" width="{w}" height="{h}" rx="{rx}" fill="{fill}" stroke="{border}" stroke-width="1"/>"#
+            );
+            let cx = (left + w / 2.).round();
+            for (i, text) in lines.into_iter().enumerate().filter(|(_, t)| !t.is_empty()) {
+                let baseline = top + if short { 14. } else { 15. } + i as f64 * 16.;
+                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{FONT}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&text)).ok()?;
+                pill_paint.push(Paint::Text {
+                    start: cx - measure(&text, size, short) / 2.,
+                    baseline,
+                    size,
+                    weight,
+                    color: parse_color(color).unwrap(),
+                    text,
+                });
+            }
+            pill.push_str("</g>");
+            pills.push(pill);
         }
         el.push_str("</g>");
         elements.push(el);

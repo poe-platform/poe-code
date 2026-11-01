@@ -1,4 +1,4 @@
-use super::{Node, Shape};
+use super::{Edge, Node, Shape};
 use std::{collections::BTreeMap, fmt::Write};
 
 pub(super) type Point = (f64, f64);
@@ -165,7 +165,7 @@ pub(super) struct Routes {
 
 pub(super) fn waypoints(
     nodes: &[Node],
-    edges: &[(usize, usize, &str, &str)],
+    edges: &[Edge],
     pairs: &BTreeMap<(usize, usize), usize>,
     horizontal: bool,
     reverse: bool,
@@ -373,7 +373,7 @@ pub(super) fn waypoints(
     }
     let mut paths = Vec::with_capacity(edges.len());
     let mut collision = None;
-    for (i, &(a, b, _, label)) in edges.iter().enumerate() {
+    for (i, &(a, b, _, ref label)) in edges.iter().enumerate() {
         let [src, dst] = attachments[i];
         let (p, s) = src.point(&nodes[a]);
         let (q, t) = dst.point(&nodes[b]);
@@ -418,13 +418,13 @@ pub(super) fn waypoints(
             }
             let lane = if src.count >= dst.count { src } else { dst };
             let f = (lane.lane + 1) as f64 / (lane.count + 1) as f64;
-            let reserve = if label.is_empty() {
-                0.
-            } else if horizontal {
-                super::pill_style(label).3 + 24.
-            } else {
-                47.
-            };
+            let reserve = label.as_ref().map_or(0., |p| {
+                if horizontal {
+                    p.width + 24.
+                } else {
+                    p.height + 24.
+                }
+            });
             if horizontal {
                 let delta = t.0 - s.0;
                 let end = t.0 - delta.signum() * reserve.min(delta.abs());

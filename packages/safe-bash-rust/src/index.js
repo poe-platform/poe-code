@@ -1008,20 +1008,21 @@ export class RustWasmBash extends WasmShell {
     }
     let stdinData = options.stdin ?? "";
     if (stdinData && typeof stdinData === "object" && !(stdinData instanceof Uint8Array) && Symbol.asyncIterator in stdinData) {
-      const chunks = [];
-      let total = 0;
+      let bytes = new Uint8Array(0), length = 0;
       for await (const chunk of stdinData) {
-        const u8 = chunk instanceof Uint8Array ? chunk : encoder.encode(String(chunk));
-        chunks.push(u8);
-        total += u8.byteLength;
+        options.signal?.throwIfAborted();
+        const data = chunk instanceof Uint8Array ? chunk : encoder.encode(String(chunk));
+        const end = length + data.byteLength;
+        if (end > bytes.length) {
+          const grown = new Uint8Array(Math.max(end, bytes.length * 2));
+          grown.set(bytes.subarray(0, length));
+          bytes = grown;
+        }
+        // The producer may reuse its buffer as soon as next() is called.
+        bytes.set(data, length);
+        length = end;
       }
-      const merged = new Uint8Array(total);
-      let off = 0;
-      for (const c of chunks) {
-        merged.set(c, off);
-        off += c.byteLength;
-      }
-      stdinData = merged;
+      stdinData = bytes.subarray(0, length);
     }
     options.signal?.throwIfAborted();
     const shell = this.#forkShell();

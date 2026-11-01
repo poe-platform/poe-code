@@ -3,6 +3,34 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("async stdin preserves borrowed bytes and stops pulling after cancellation", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const source = { async *[Symbol.asyncIterator]() {
+      const chunk = Buffer.alloc(2);
+      for (const b of [0, 128, 255]) {
+        chunk.fill(b);
+        yield chunk.subarray(1);
+      }
+    } };
+    const result = await bash.exec("cat", { stdin: source });
+    assert.deepEqual([...result.stdoutBytes], [0, 128, 255]);
+    const controller = new AbortController();
+    const reason = { cancelled: true };
+    let reads = 0, closes = 0;
+    const cancelled = { async *[Symbol.asyncIterator]() {
+      try {
+        reads++; yield Uint8Array.of(1);
+        controller.abort(reason);
+        reads++; yield Uint8Array.of(2);
+        reads++; yield Uint8Array.of(3);
+      } finally { closes++; }
+    } };
+    await assert.rejects(bash.exec("cat", { stdin: cancelled, signal: controller.signal }), e => e === reason);
+    assert.deepEqual([reads, closes], [2, 1]);
+  } finally { bash.dispose(); }
+});
+
 test("jq accepts if as an unquoted object key beside conditional values", async () => {
   const bash = new RustWasmBash();
   try {

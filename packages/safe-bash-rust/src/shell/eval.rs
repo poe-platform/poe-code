@@ -32,7 +32,7 @@ pub enum EvalError {
     UnportedCommand(String),
 }
 
-const MISSING_ASSOC_SUBSCRIPT: &str = "indexed array: associative compound entry requires a subscript";
+const INDEX_OUT_OF_RANGE: &str = "indexed array: index outside 0..2147483647";
 const STDIN_STREAM_FD: u32 = u32::MAX;
 type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 
@@ -2640,13 +2640,51 @@ impl<'a> EvalState<'a> {
             let inner = &arr_lit[1..arr_lit.len() - 1];
             let entries = scan_array_literal_entries(inner)?;
             if is_assoc && entries.iter().any(|(_, _, selector)| selector.is_none()) {
-                return Ok(Some(MISSING_ASSOC_SUBSCRIPT.into()));
+                return Ok(Some("indexed array: associative compound entry requires a subscript".into()));
+            }
+            let append_cursor = |env: &BTreeMap<String, String>| -> i64 {
+                if !append || is_assoc { return 0; }
+                let prefix = format!("{resolved}[");
+                env.keys().filter_map(|k| k.strip_prefix(&prefix)?.strip_suffix(']')?.parse::<i32>().ok())
+                    .max().map_or_else(|| i64::from(env.contains_key(&resolved)), |n| i64::from(n) + 1)
+            };
+            let max_index = i64::from(i32::MAX);
+            if !is_assoc {
+                let mut cursor = Some(append_cursor(self.env));
+                for (i, &(start, end, selector)) in entries.iter().enumerate() {
+                    if let Some(close) = selector {
+                        cursor = literal_compound_index(&inner[start + 1..close]).map(|n| n + 1);
+                    } else if let Some(n) = cursor {
+                        if n + (entries.len() - i) as i64 <= max_index {
+                            // No run of single fields left here could reach the limit.
+                            cursor = None;
+                            continue;
+                        }
+                        let (required, single) = compound_field_count(&inner[start..end]);
+                        if required && n > max_index { return Ok(Some(INDEX_OUT_OF_RANGE.into())); }
+                        cursor = single.then_some(n + 1);
+                    }
+                }
             }
             let mut items = self.expand_array_literal_items(inner, is_assoc, entries)?;
+            let mut next_idx = append_cursor(self.env);
+            let integer = self.env.get(&format!("__attr__{resolved}")).is_some_and(|a| a.contains('i'));
+            // Literal indices publish together. A computed index or integer attribute
+            // instead observes the writes already made in this assignment.
+            if !is_assoc && !integer && items.iter().all(|(sub, _, _)| sub.as_deref().is_none_or(|s| literal_compound_index(s).is_some())) {
+                let mut cursor = next_idx;
+                for (sub, _, _) in &items {
+                    if let Some(n) = sub.as_deref().and_then(literal_compound_index) {
+                        cursor = n + 1;
+                    } else {
+                        if cursor > max_index { return Ok(Some(INDEX_OUT_OF_RANGE.into())); }
+                        cursor += 1;
+                    }
+                }
+            }
             // Ordinary associative keys see the old binding. Integer attributes
             // and indexed subscripts instead see each preceding element write.
-            let keys_before_writes = is_assoc
-                && !self.env.get(&format!("__attr__{resolved}")).is_some_and(|a| a.contains('i'));
+            let keys_before_writes = is_assoc && !integer;
             if keys_before_writes {
                 for (key, _, _) in &mut items {
                     if let Some(key) = key {
@@ -2677,22 +2715,6 @@ impl<'a> EvalState<'a> {
                     sync_array_metadata(&resolved, self.env);
                 }
             }
-            let mut next_idx: i64 = if append && !is_assoc {
-                let prefix = format!("{resolved}[");
-                self.env
-                    .keys()
-                    .filter_map(|k| {
-                        k.strip_prefix(&prefix)
-                            .and_then(|s| s.strip_suffix(']'))
-                            .and_then(|sub| sub.parse::<i64>().ok())
-                    })
-                    .max()
-                    .map(|m| m + 1)
-                    .unwrap_or(0)
-            } else {
-                0
-            };
-
             for (explicit_sub, item_val, item_append) in items {
                 if let Some(sub_k) = explicit_sub {
                     let final_k = if keys_before_writes {
@@ -2763,6 +2785,7 @@ impl<'a> EvalState<'a> {
                     self.env.insert(elem_key, final_item_val);
                     sync_array_metadata(&resolved, self.env);
                 } else {
+                    if next_idx > max_index { return Ok(Some(INDEX_OUT_OF_RANGE.into())); }
                     let final_item_val = apply_var_attributes(&resolved, &item_val, self.env)
                         .map_err(EvalError::Syntax)?;
                     self.env
@@ -7587,11 +7610,11 @@ impl<'a> EvalState<'a> {
 
             if let Some(v) = val_opt {
                 if let Some(msg) = self.assign_value(&base_name, &v, append)? {
-                    if new_assoc {
-                        self.env.remove(&format!("__assoc__{base_name}"));
+                    if new_assoc || (is_indexed && !self.env.contains_key(&format!("__keys__{base_name}"))) {
+                        if new_assoc { self.env.remove(&format!("__assoc__{base_name}")); }
                         let key = format!("__attr__{base_name}");
                         if let Some(attr) = self.env.get_mut(&key) {
-                            attr.retain(|c| c != 'A');
+                            attr.retain(|c| c != if new_assoc { 'A' } else { 'a' });
                             if attr.is_empty() { self.env.remove(&key); }
                         }
                     }
@@ -13188,6 +13211,36 @@ impl<'a> EvalState<'a> {
     }
 }
 
+fn literal_compound_index(raw: &str) -> Option<i64> {
+    let s = ['\'', '"'].into_iter().find_map(|q| raw.strip_prefix(q)?.strip_suffix(q)).unwrap_or(raw);
+    if s != "0" && !s.as_bytes().first().is_some_and(|c| (b'1'..=b'9').contains(c)) { return None; }
+    s.parse::<i32>().ok().map(i64::from)
+}
+
+// Determine whether expansion requires a field, and whether it always yields exactly one.
+fn compound_field_count(word: &str) -> (bool, bool) {
+    let mut required = false;
+    let mut single = true;
+    for part in tokenize_brace_word(word) {
+        match part {
+            BracePart::Text { raw, .. } => {
+                required |= !raw.is_empty();
+                single &= !raw.contains(['*', '?', '[']);
+            }
+            BracePart::AnsiQuote { .. } => required = true,
+            BracePart::Quoted { list, .. } => {
+                required = true;
+                single &= !list;
+            }
+            BracePart::Atom { raw, .. } if raw.starts_with(['\'', '"', '\\']) => {
+                required = true;
+            }
+            _ => single = false,
+        }
+    }
+    (required, single)
+}
+
 fn scan_array_literal_entries(inner: &str) -> Result<Vec<(usize, usize, Option<usize>)>, EvalError> {
     let mut entries = Vec::new();
     let mut start = 0;
@@ -13964,6 +14017,7 @@ fn parse_select_choice(bytes: &[u8]) -> Option<usize> {
 
 #[derive(Debug, Clone)]
 enum BracePart {
+    Quoted { raw: String, byte_len: usize, list: bool },
     Text { raw: String, byte_len: usize },
     AnsiQuote { raw: String, decoded: String, byte_len: usize },
     Atom { raw: String, byte_len: usize },
@@ -14143,6 +14197,7 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
             let start = idx;
             idx += 1;
             let mut has_subst = false;
+            let mut list = false;
             let mut inner = String::new();
             while idx < chars.len() && chars[idx] != '"' {
                 if chars[idx] == '\\' && idx + 1 < chars.len() {
@@ -14152,6 +14207,7 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
                 }
                 if chars[idx] == '$' && idx + 1 < chars.len() {
                     has_subst = true;
+                    list |= chars[idx + 1] == '@';
                     if chars[idx + 1] == '(' {
                         idx += 1;
                         scan_brace_atom_sub(&chars, &mut idx, '(', ')');
@@ -14159,7 +14215,16 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
                     }
                     if chars[idx + 1] == '{' {
                         idx += 1;
+                        let start = idx + 1;
                         scan_brace_atom_sub(&chars, &mut idx, '{', '}');
+                        let expr = &chars[start..idx.saturating_sub(1).max(start)];
+                        if expr.contains(&'@') {
+                            let expr: String = expr.iter().collect();
+                            let name = expr.strip_prefix('!').unwrap_or(&expr);
+                            list |= expr == "@" || expr.starts_with("@:") || name.split_once("[@]").is_some_and(|(base, op)| {
+                                is_valid_shell_ident(base) && (op.is_empty() || op.starts_with(':'))
+                            });
+                        }
                         continue;
                     }
                 }
@@ -14190,7 +14255,7 @@ fn tokenize_brace_word(word: &str) -> Vec<BracePart> {
             } else {
                 stream_string_to_bytes(&inner).len()
             };
-            parts.push(BracePart::Atom { raw, byte_len });
+            parts.push(BracePart::Quoted { raw, byte_len, list });
             continue;
         }
         if c == '\\' {
@@ -14299,7 +14364,7 @@ fn expand_braces_with_limits(
         let bytes = match &part {
             BracePart::Text { byte_len, .. }
             | BracePart::AnsiQuote { byte_len, .. }
-            | BracePart::Atom { byte_len, .. } => *byte_len,
+            | BracePart::Atom { byte_len, .. } | BracePart::Quoted { byte_len, .. } => *byte_len,
         };
         BraceNode {
             count: 1,
@@ -14590,11 +14655,11 @@ fn expand_braces_with_limits(
             }
             let at_word_end = materialized_parts[idx + 1..].iter().all(|(p, _)| match p {
                 BracePart::Text { raw, .. }
-                | BracePart::Atom { raw, .. }
+                | BracePart::Atom { raw, .. } | BracePart::Quoted { raw, .. }
                 | BracePart::AnsiQuote { raw, .. } => raw.is_empty(),
             });
             match part {
-                BracePart::Text { raw, .. } | BracePart::Atom { raw, .. } => {
+                BracePart::Text { raw, .. } | BracePart::Atom { raw, .. } | BracePart::Quoted { raw, .. } => {
                     if *is_gen && raw == "`" && at_word_end {
                         word_out.push_str("\\`");
                     } else {
@@ -16222,6 +16287,21 @@ hash -l
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+        }
+    }
+
+    #[test]
+    fn compound_implicit_indices_check_bounds_at_the_correct_expansion_stage() {
+        for (script, stdout) in [
+            (r#"a=(old); a=([2147483647]=$((i++)) tail); echo "$?:$i:${a[@]}""#, "1::old\n"),
+            (r#"a=(old); a=([2147483647]=$((i++)) $((i++))); echo "$?:$i:${a[@]}""#, "1:2:old\n"),
+            (r#"a=(old); a=([2147483646]=$((i++)) "\$@" tail); echo "$?:$i:${a[@]}""#, "1::old\n"),
+            (r#"a=(old); a=([2147483647+0]=max tail); echo "$?:${a[@]}""#, "1:max\n"),
+            (r#"declare -ai a=([2147483647]=1 tail); declare -p a"#, "declare -i a\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, "shell: line 1: indexed array: index outside 0..2147483647\n"), "{script}");
         }
     }
 

@@ -549,3 +549,16 @@ test("companion replay retains only completed writes and their original bytes an
     assert.equal((await companion.fs.stat("/created")).mode & 0o777, 0o600);
   } finally { bash.dispose(); companion.dispose(); }
 });
+
+test("constructor seeds use the same creation mode as fs.writeFile", async () => {
+  const bash = new RustWasmBash({files:{
+    "/nested/text":"hello", "/bytes":new Uint8Array([42]), "/object":{content:"value"},
+    "/private":{content:"secret",mode:0o600},
+  }});
+  try {
+    for (const path of ["/nested/text", "/bytes", "/object"]) {
+      assert.equal((await bash.fs.stat(path)).mode & 0o777, 0o666, path);
+    }
+    assert.equal((await bash.fs.stat("/private")).mode & 0o777, 0o600);
+  } finally { bash.dispose(); }
+});

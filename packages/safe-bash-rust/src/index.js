@@ -393,14 +393,8 @@ export class RustWasmBash {
                 ? encoder.encode(init.content)
                 : init.content;
         this.writeFile(filePath, bytes);
-        if (init && typeof init === "object" && !(init instanceof Uint8Array)) {
-          if (init.mode !== undefined) {
-            this.chmod(filePath, init.mode);
-          }
-          if (init.mtime !== undefined) {
-            this.setMtime(filePath, init.mtime);
-          }
-        }
+        this.chmod(filePath, init.mode ?? 0o666);
+        if (init.mtime !== undefined) this.setMtime(filePath, init.mtime);
       }
     }
     if (options.symlinks) {

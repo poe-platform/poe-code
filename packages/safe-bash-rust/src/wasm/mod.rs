@@ -6,7 +6,6 @@ use crate::shell::{ExecOptions, Shell, ShellOptions};
 use crate::vfs::{bytes_to_stream_string, stream_string_to_bytes};
 use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock};
-use std::sync::atomic::{AtomicU32, Ordering};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Profile { Memory, Overlay, Devices }
@@ -116,12 +115,28 @@ impl WasmSession {
     }
 }
 
-static SESSIONS: OnceLock<Mutex<BTreeMap<u32, WasmSession>>> = OnceLock::new();
+#[derive(Default)]
+struct Sessions {
+    last_id: u32,
+    // An empty slot belongs to the running command until it returns or is destroyed.
+    slots: BTreeMap<u32, Option<WasmSession>>,
+}
 
-fn next_session_id() -> Option<u32> {
-    static LAST: AtomicU32 = AtomicU32::new(0);
-    LAST.fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| id.checked_add(1))
-        .ok().map(|id| id + 1)
+impl Sessions {
+    fn insert(&mut self, session: WasmSession) -> u32 {
+        let Some(id) = self.last_id.checked_add(1) else { return 0 };
+        self.last_id = id;
+        self.slots.insert(id, Some(session));
+        id
+    }
+
+    fn get(&self, id: &u32) -> Option<&WasmSession> {
+        self.slots.get(id)?.as_ref()
+    }
+
+    fn get_mut(&mut self, id: &u32) -> Option<&mut WasmSession> {
+        self.slots.get_mut(id)?.as_mut()
+    }
 }
 
 unsafe fn slice_from_raw<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
@@ -136,8 +151,9 @@ unsafe fn str_from_raw<'a>(ptr: *const u8, len: usize) -> &'a str {
     unsafe { std::str::from_utf8_unchecked(slice_from_raw(ptr, len)) }
 }
 
-fn sessions() -> &'static Mutex<BTreeMap<u32, WasmSession>> {
-    SESSIONS.get_or_init(|| Mutex::new(BTreeMap::new()))
+fn sessions() -> &'static Mutex<Sessions> {
+    static SESSIONS: OnceLock<Mutex<Sessions>> = OnceLock::new();
+    SESSIONS.get_or_init(Mutex::default)
 }
 
 #[unsafe(no_mangle)]
@@ -159,8 +175,6 @@ pub unsafe extern "C" fn safe_bash_dealloc(ptr: *mut u8, size: usize) {
 
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_create_session() -> u32 {
-    let mut map = sessions().lock().unwrap();
-    let Some(id) = next_session_id() else { return 0 };
     let vfs = MemoryVfs::new();
     vfs.set_devices(crate::vfs::memory::Devices::Null);
     let _ = vfs.mkdir_all("/workspace");
@@ -175,25 +189,20 @@ pub extern "C" fn safe_bash_create_session() -> u32 {
             mode: BackendMode::NativeOnly,
         },
     );
-    map.insert(
-        id,
-        WasmSession {
-            shell,
-            memory_vfs: vfs,
-            descriptors: BTreeMap::new(),
-            next_descriptor: 1,
-            profile: Profile::Memory,
-            last_output_buf: Vec::new(),
-        },
-    );
-    id
+    sessions().lock().unwrap().insert(WasmSession {
+        shell,
+        memory_vfs: vfs,
+        descriptors: BTreeMap::new(),
+        next_descriptor: 1,
+        profile: Profile::Memory,
+        last_output_buf: Vec::new(),
+    })
 }
 
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
     let mut map = sessions().lock().unwrap();
     let Some(parent) = map.get(&parent_id) else { return 0 };
-    let Some(id) = next_session_id() else { return 0 };
     let child = WasmSession {
         shell: parent.shell.clone(),
         memory_vfs: parent.memory_vfs.clone(),
@@ -202,8 +211,7 @@ pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
         profile: parent.profile,
         last_output_buf: Vec::new(),
     };
-    map.insert(id, child);
-    id
+    map.insert(child)
 }
 
 #[unsafe(no_mangle)]
@@ -275,7 +283,7 @@ pub extern "C" fn safe_bash_use_provided_devices(id: u32) {
 #[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_destroy_session(id: u32) {
     if let Ok(mut map) = sessions().lock() {
-        map.remove(&id);
+        map.slots.remove(&id);
     }
 }
 
@@ -858,13 +866,12 @@ pub unsafe extern "C" fn safe_bash_exec(
     };
     let stdin_bytes = unsafe { slice_from_raw(stdin_ptr, stdin_len) };
     let stdin_str = bytes_to_stream_string(stdin_bytes);
-    let Ok(mut map) = sessions().lock() else {
-        return -1;
+    let mut sess = {
+        let Ok(mut map) = sessions().lock() else { return -1 };
+        let Some(sess) = map.slots.get_mut(&id).and_then(Option::take) else { return -1 };
+        sess
     };
-    let Some(sess) = map.get_mut(&id) else {
-        return -1;
-    };
-    match sess.shell.exec_with_options(
+    let code = match sess.shell.exec_with_options(
         script,
         ExecOptions {
             stdin: if stdin_bytes.is_empty() {
@@ -903,7 +910,11 @@ pub unsafe extern "C" fn safe_bash_exec(
             sess.last_output_buf = buf;
             -124
         }
-    }
+    };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(slot) = map.slots.get_mut(&id) else { return -1 };
+    *slot = Some(sess);
+    code
 }
 
 #[unsafe(no_mangle)]

@@ -3,6 +3,38 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("a host callback can inspect the parent session while a child is executing", async t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  let snapshot;
+  t.mock.method(globalThis.crypto, "getRandomValues", view => {
+    snapshot = bash.snapshot(0);
+    return view.fill(0x61);
+  });
+  try {
+    const result = await bash.exec("head -c1 /dev/random");
+    assert.deepEqual([result.exitCode, result.stdout, snapshot?.cwd], [0, "a", "/workspace"]);
+  } finally { bash.dispose(); }
+});
+
+test("a running command cannot restore its session after a host callback destroys it", t => {
+  const bash = new RustWasmBash({ deviceView: "provided" });
+  bash.mountDevices();
+  const x = bash.instance.exports, old = bash.sessionId;
+  let next = 0;
+  t.mock.method(globalThis.crypto, "getRandomValues", view => {
+    x.safe_bash_destroy_session(old);
+    next = x.safe_bash_create_session();
+    return view.fill(0);
+  });
+  try {
+    bash.execSync("head -c1 /dev/random");
+    assert.ok(next > 0);
+    assert.equal(x.safe_bash_session_snapshot(old, 0), -1);
+    assert.ok(x.safe_bash_session_snapshot(next, 0) > 0);
+  } finally { x.safe_bash_destroy_session(next); bash.dispose(); }
+});
+
 test("a destroyed session handle cannot read or destroy a later session", () => {
   const bash = new RustWasmBash();
   const x = bash.instance.exports;

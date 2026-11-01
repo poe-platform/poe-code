@@ -7,6 +7,7 @@ use std::io::Write;
 mod pdf_fonts;
 #[path = "pdf_text_layout.rs"]
 mod pdf_text_layout;
+pub(super) use pdf_text_layout::widths::WIDTHS;
 
 #[path = "pdf_raster.rs"]
 mod pdf_raster;

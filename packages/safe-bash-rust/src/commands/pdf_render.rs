@@ -41,7 +41,7 @@ fn paragraphs(mut html: &str) -> Option<Vec<String>> {
     Some(result)
 }
 
-fn win_ansi(s: &str) -> Vec<u8> {
+pub(super) fn win_ansi(s: &str) -> Vec<u8> {
     s.chars()
         .map(|c| {
             u8::try_from(c as u32).unwrap_or_else(|_| {

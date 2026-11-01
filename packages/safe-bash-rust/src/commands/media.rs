@@ -2496,300 +2496,6 @@ fn svg_numbers(source: &str) -> Result<Vec<f64>, String> {
     Ok(out)
 }
 
-fn svg_validate_path(source: &str) -> Result<(), String> {
-    let input = svg_tokens(source)?;
-    if !input.is_empty() && !matches!(input[0], Err('M') | Err('m')) {
-        return Err("SVG path must begin with moveto".to_string());
-    }
-    let mut i = 0usize;
-    let mut command = '\0';
-    let take_num = |idx: &mut usize| -> Result<f64, String> {
-        let Some(tok) = input.get(*idx) else {
-            return Err("Invalid SVG path".to_string());
-        };
-        *idx += 1;
-        match tok {
-            Ok(n) => Ok(*n),
-            Err(_) => Err("Invalid SVG path".to_string()),
-        }
-    };
-    while i < input.len() {
-        if let Err(ch) = input[i] {
-            command = ch;
-            i += 1;
-        }
-        let upper = command.to_ascii_uppercase();
-        match upper {
-            'Z' => {
-                command = '\0';
-            }
-            'M' | 'L' | 'T' => {
-                take_num(&mut i)?;
-                take_num(&mut i)?;
-                if upper == 'M' {
-                    command = if command == 'm' { 'l' } else { 'L' };
-                }
-            }
-            'H' | 'V' => {
-                take_num(&mut i)?;
-            }
-            'C' => {
-                for _ in 0..6 {
-                    take_num(&mut i)?;
-                }
-            }
-            'S' | 'Q' => {
-                for _ in 0..4 {
-                    take_num(&mut i)?;
-                }
-            }
-            _ => return Err(format!("Unsupported SVG path command {command}")),
-        }
-    }
-    Ok(())
-}
-
-fn svg_validate_transforms(source: &str) -> Result<(), String> {
-    let bytes = source.as_bytes();
-    let mut offset = 0usize;
-    while offset < bytes.len() {
-        while offset < bytes.len() && (bytes[offset].is_ascii_whitespace() || bytes[offset] == b',') {
-            offset += 1;
-        }
-        if offset == bytes.len() {
-            break;
-        }
-        let Some(open_rel) = source[offset..].find('(') else {
-            return Err("Invalid SVG transform".to_string());
-        };
-        let open = offset + open_rel;
-        let Some(close_rel) = source[open..].find(')') else {
-            return Err("Invalid SVG transform".to_string());
-        };
-        let close = open + close_rel;
-        let name = source[offset..open].trim();
-        let args = svg_numbers(&source[open + 1..close])?;
-        let ok = match name {
-            "matrix" => args.len() == 6,
-            "translate" | "scale" => (1..=2).contains(&args.len()),
-            "rotate" => args.len() == 1 || args.len() == 3,
-            _ => false,
-        };
-        if !ok {
-            return Err(format!("Unsupported SVG transform {name}"));
-        }
-        offset = close + 1;
-    }
-    Ok(())
-}
-
-fn validate_and_extract_svg_render(source: &str) -> Result<(f64, f64, Vec<String>), String> {
-    let root = parse_svg_xml_impl(source, false)?;
-    let root_local = root.name.rsplit(':').next().unwrap_or(&root.name);
-    if root_local != "svg" {
-        return Err("Expected SVG document".to_string());
-    }
-    let root_attrs: BTreeMap<String, String> = root
-        .attrs
-        .iter()
-        .map(|(k, v)| (k.rsplit(':').next().unwrap_or(k).to_string(), xml_unescape_str(v)))
-        .collect();
-    if let Some(par) = root_attrs.get("preserveAspectRatio")
-        && par != "xMidYMid meet"
-        && par != "xMidYMid"
-    {
-        return Err("Unsupported SVG preserveAspectRatio".to_string());
-    }
-    let vbox = if let Some(vb) = root_attrs.get("viewBox") {
-        let nums = svg_numbers(vb)?;
-        if nums.len() != 4 || nums[2] <= 0.0 || nums[3] <= 0.0 {
-            return Err("Invalid SVG viewBox".to_string());
-        }
-        Some(nums)
-    } else {
-        None
-    };
-    let width = parse_svg_length_px(
-        root_attrs.get("width").map(|s| s.as_str()),
-        vbox.as_ref().map(|b| b[2]).unwrap_or(300.0),
-    )?;
-    let height = parse_svg_length_px(
-        root_attrs.get("height").map(|s| s.as_str()),
-        vbox.as_ref().map(|b| b[3]).unwrap_or(150.0),
-    )?;
-    let pixels = width.ceil() * height.ceil();
-    if !(width > 0.0 && height > 0.0) || !pixels.is_finite() || pixels > 16_000_000.0 {
-        return Err("SVG pixel limit exceeded".to_string());
-    }
-
-    fn visit(
-        node: &SvgEl,
-        inherited: &BTreeMap<String, String>,
-        is_root: bool,
-        texts: &mut Vec<String>,
-    ) -> Result<(), String> {
-        let local_name = node.name.rsplit(':').next().unwrap_or(&node.name);
-        let mut own: BTreeMap<String, String> = BTreeMap::new();
-        for (k, v) in &node.attrs {
-            own.insert(k.rsplit(':').next().unwrap_or(k).to_string(), xml_unescape_str(v));
-        }
-        let mut a = inherited.clone();
-        for (k, v) in &own {
-            a.insert(k.clone(), v.clone());
-        }
-        if let Some(style) = own.get("style") {
-            for decl in style.split(';') {
-                if let Some((sk, sv)) = decl.split_once(':') {
-                    a.insert(sk.trim().to_string(), sv.trim().to_string());
-                }
-            }
-        }
-        if a.get("display").map(|s| s.as_str()) == Some("none")
-            || a.get("visibility").map(|s| s.as_str()) == Some("hidden")
-        {
-            return Ok(());
-        }
-        if matches!(local_name, "defs" | "title" | "desc" | "metadata") {
-            return Ok(());
-        }
-        for key in ["clip-path", "mask", "filter", "marker-start", "marker-mid", "marker-end"] {
-            if let Some(v) = a.get(key)
-                && !v.is_empty()
-                && v != "none"
-            {
-                return Err(format!("Unsupported SVG {key}"));
-            }
-        }
-        for key in ["opacity", "fill-opacity", "stroke-opacity"] {
-            if let Some(v) = a.get(key)
-                && v.trim().parse::<f64>().ok() != Some(1.0)
-            {
-                return Err(format!("Unsupported SVG {key}"));
-            }
-        }
-        if !is_root && local_name == "svg" {
-            return Err("Unsupported nested SVG viewport".to_string());
-        }
-        if let Some(tf) = own.get("transform") {
-            svg_validate_transforms(tf)?;
-        }
-        if let Some(da) = a.get("stroke-dasharray")
-            && !da.is_empty()
-            && da != "none"
-        {
-            let dash = svg_numbers(da)?;
-            if dash.is_empty() || dash.iter().any(|&v| v < 0.0) {
-                return Err("Invalid SVG dash array".to_string());
-            }
-            parse_svg_length_px(a.get("stroke-dashoffset").map(|s| s.as_str()), 0.0)?;
-        }
-        if let Some(lc) = a.get("stroke-linecap")
-            && !lc.is_empty()
-            && !matches!(lc.as_str(), "butt" | "round" | "square")
-        {
-            return Err("Invalid SVG stroke-linecap".to_string());
-        }
-        if let Some(lj) = a.get("stroke-linejoin")
-            && !lj.is_empty()
-            && !matches!(lj.as_str(), "miter" | "round" | "bevel")
-        {
-            return Err("Invalid SVG stroke-linejoin".to_string());
-        }
-        let n = |key: &str, fallback: f64| -> Result<f64, String> {
-            parse_svg_length_px(a.get(key).map(|s| s.as_str()), fallback)
-        };
-        match local_name {
-            "svg" | "g" | "a" => {}
-            "rect" => {
-                let _ = (n("x", 0.0)?, n("y", 0.0)?);
-                let rw = n("width", 0.0)?;
-                let rh = n("height", 0.0)?;
-                let ry_def = n("ry", 0.0)?;
-                let rx = n("rx", ry_def)?;
-                let ry = n("ry", rx)?;
-                if rw < 0.0 || rh < 0.0 || rx < 0.0 || ry < 0.0 {
-                    return Err("Negative SVG rectangle size".to_string());
-                }
-            }
-            "line" => {
-                let _ = (n("x1", 0.0)?, n("y1", 0.0)?, n("x2", 0.0)?, n("y2", 0.0)?);
-            }
-            "path" => {
-                svg_validate_path(a.get("d").map(|s| s.as_str()).unwrap_or(""))?;
-            }
-            "polygon" | "polyline" => {
-                let pts = svg_numbers(a.get("points").map(|s| s.as_str()).unwrap_or(""))?;
-                if pts.len() % 2 != 0 {
-                    return Err("Invalid SVG points".to_string());
-                }
-            }
-            "ellipse" | "circle" => {
-                let _ = (n("cx", 0.0)?, n("cy", 0.0)?);
-                let rx = n(if local_name == "circle" { "r" } else { "rx" }, 0.0)?;
-                let ry = n(if local_name == "circle" { "r" } else { "ry" }, 0.0)?;
-                if rx < 0.0 || ry < 0.0 {
-                    return Err("Negative SVG radius".to_string());
-                }
-            }
-            "text" => {
-                if node.children.iter().any(|c| matches!(c, SvgChild::El(_))) {
-                    return Err("Unsupported SVG text children".to_string());
-                }
-                if a.get("fill").map(|s| s.as_str()) != Some("none") {
-                    if let Some(st) = a.get("stroke")
-                        && !st.is_empty()
-                        && st != "none"
-                    {
-                        return Err("Unsupported SVG text stroke".to_string());
-                    }
-                    let _ = (n("font-size", 16.0)?, n("x", 0.0)?, n("y", 0.0)?);
-                    let mut t = String::new();
-                    for ch in &node.children {
-                        if let SvgChild::Text(s) = ch {
-                            t.push_str(&xml_unescape_str(s));
-                        }
-                    }
-                    if !t.is_empty() {
-                        texts.push(t);
-                    }
-                }
-            }
-            other => return Err(format!("Unsupported SVG element {other}")),
-        }
-        if local_name != "text" {
-            let mut styles = BTreeMap::new();
-            for key in [
-                "fill",
-                "stroke",
-                "stroke-width",
-                "fill-rule",
-                "font-size",
-                "text-anchor",
-                "visibility",
-                "stroke-dasharray",
-                "stroke-dashoffset",
-                "stroke-linecap",
-                "stroke-linejoin",
-            ] {
-                if let Some(v) = a.get(key) {
-                    styles.insert(key.to_string(), v.clone());
-                }
-            }
-            for ch in &node.children {
-                if let SvgChild::El(sub) = ch {
-                    visit(sub, &styles, false, texts)?;
-                }
-            }
-        }
-        Ok(())
-    }
-
-    let mut texts = Vec::new();
-    visit(&root, &BTreeMap::new(), true, &mut texts)?;
-    Ok((width, height, texts))
-}
-
-
 fn js_math_round(v: f64) -> f64 {
     if !v.is_finite() || v == 0.0 {
         return v;
@@ -12316,32 +12022,9 @@ fn cmd_media_doc(
             } else {
                 stdin.to_string()
             };
-            let (width, height, texts) = match validate_and_extract_svg_render(&src) {
-                Ok(r) => r,
+            let rendered = match pdf_reader::render_svg(&src, &format, fs.max_input_bytes()) {
+                Ok(bytes) => bytes,
                 Err(e) => return err_out(&format!("rsvg-convert: {e}\n"), 1),
-            };
-            let rendered = if format == "png" {
-                let im = ImageMeta {
-                    fmt: "PNG".to_string(),
-                    w: width.ceil() as u32,
-                    h: height.ceil() as u32,
-                    cs: "sRGB".to_string(),
-                    exif: BTreeMap::new(),
-                };
-                write_image_bytes(&im)
-            } else {
-                let mut doc = PdfDoc::new();
-                doc.version = "1.7".to_string();
-                doc.page_w = width * 0.75;
-                doc.page_h = height * 0.75;
-                doc.pages.push(PdfPage {
-                    rot: 0,
-                    text: texts.join("\n"),
-                    html: String::new(),
-                    images: Vec::new(),
-                    urls: Vec::new(),
-                });
-                doc.serialize()
             };
             if let Some(ref out_p) = output_opt && out_p != "-" {
                 let full = resolve_posix_path(cwd, out_p);
@@ -13593,6 +13276,23 @@ mod media_unit_tests {
         let save = cmd_media_doc("pdfdetach", &media_args(&["-save", "1", "-o", "/dest", "book.pdf"]), "", "/", &fs);
         assert_eq!((save.exit_code,save.stderr.as_str()), (2,"I/O Error: Error saving embedded file as '/dest'\n"));
         assert_eq!(fs.read_file("/book.pdf").unwrap(), bytes);
+    }
+
+    #[test]
+    fn rsvg_convert_draws_paths_and_groups_in_both_formats() {
+        let fs=MemoryVfs::new();
+        for (body,pdf,png) in [
+            (r#"<g transform="translate(2 3)" fill="red"><rect width="5" height="8"/><circle cx="5" cy="2" r="2"/></g>"#, "4ef7756b1c9169ce3864c1b523413360e661921f68c6aba079e0be34fe098095", "78335fc300d788c0d3f6d34bb6999719c00840a17cb4623a3c0bb10ca74b92f5"),
+            (r#"<path d="M1 1 l6 3 q3 2 6 -1 Z" fill="green"/>"#, "e443034b529547f27c871c024036a89752528b40713e7d9dd518fb89d751f72b","d6559b5a215ca50677f4783c8325eb738fd96dd1a6597136cd60757ef960a096"),
+            (r#"<text x="3" y="9" font-size="8">Hi</text>"#,"20d11261d64abd6ffa687bdf1d31d61e070456a780fd4a483483000a40fb571e","a94b66200c4108a248ade8d56e1f942a991655357b4413a0c2426369dfbc65b8"),
+        ] {
+            let svg=format!(r#"<svg width="20" height="12">{body}</svg>"#);
+            for (ext,expected) in [("pdf",pdf),("png",png)] {
+                let r=cmd_media_doc("rsvg-convert",&media_args(&["-f",ext,"-o","out"]),&svg,"/",&fs);
+                assert_eq!(r.exit_code,0,"{}",r.stderr);
+                assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out").unwrap())),expected,"{ext}: {body}");
+            }
+        }
     }
 
     #[test]

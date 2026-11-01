@@ -116,10 +116,10 @@ impl Bitmap {
     }
 }
 fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode: &str) -> Option<Vec<u8>> {
-    let png = format == "PNG";
-    let rgb = png && pixels.iter().all(|p| p[3] == 255);
+    let png = matches!(format,"PNG"|"RGBA");
+    let rgb = format=="PNG" && pixels.iter().all(|p| p[3] == 255);
     let mut raw = match format {
-        "PNG" => vec![],
+        "PNG" | "RGBA" => vec![],
         "PBM" => format!("P4\n{w} {h}\n").into_bytes(),
         "PGM" => format!("P5\n{w} {h}\n255\n").into_bytes(),
         "PPM" => format!("P6\n{w} {h}\n255\n").into_bytes(),

@@ -6,6 +6,10 @@ use std::collections::{BTreeMap, BTreeSet};
 mod pdf_copy;
 pub(super) use pdf_copy::{PageOutput, PageSource, RasterOptions};
 
+#[path = "pdf_svg.rs"]
+mod pdf_svg;
+pub(super) use pdf_svg::render_svg;
+
 #[path = "pdf_render.rs"]
 mod pdf_render;
 pub(super) use pdf_render::render_paragraphs;

@@ -1,5 +1,5 @@
 // Standard 14 advance widths from pdf-ast’s PDF.js metrics (Apache-2.0).
-pub(super) const WIDTHS: [[u16; 256]; 8] = [
+pub(in super::super::super) const WIDTHS: [[u16; 256]; 8] = [
     // Helvetica
     [
         556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556,

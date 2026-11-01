@@ -3,7 +3,7 @@ use super::super::{Cursor, text};
 use super::{PageSource, Value};
 use std::{collections::BTreeMap, rc::Rc};
 #[path = "pdf_font_widths.rs"]
-mod widths;
+pub(in super::super) mod widths;
 
 use super::{ID, Matrix, concat};
 fn shift(m: &mut Matrix, x: f64, y: f64) {

@@ -246,10 +246,17 @@ pub(super) fn run(
         Ok(im) => im,
         Err(e) => return Some(err_out(&format!("magick: {e}\n"), 1)),
     };
-    let overlay = match load(overlay)? {
+    let mut overlay = match load(overlay)? {
         Ok(im) => im,
         Err(e) => return Some(err_out(&format!("magick: {e}\n"), 1)),
     };
+    if let Err(e) = overlay.resize(
+        geometry,
+        super::magick_resize::Kernel::Lanczos3,
+        fs.max_input_bytes(),
+    ) {
+        return Some(err_out(&format!("magick: {e}\n"), 1));
+    }
     let offsets = geometry
         .find(['+', '-'])
         .map(|i| &geometry[i..])

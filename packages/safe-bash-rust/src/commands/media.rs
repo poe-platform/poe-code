@@ -91,6 +91,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
 
 #[path = "png_pixels.rs"]
 mod png_pixels;
+#[path = "magick_resize.rs"]
+mod magick_resize;
 #[path = "magick_composite.rs"]
 mod magick_composite;
 #[path = "magick_compare.rs"]
@@ -10127,6 +10129,10 @@ fn cmd_media_doc(
                 }
             }
             let mut size_opt: Option<(u32, u32)> = None;
+            use magick_resize::Kernel;
+            enum PixelOp<'a> { Resize(&'a str,Kernel), Negate, Gray, Flip, Flop }
+            let mut ops = Vec::new();
+            let mut kernel = Kernel::Lanczos3;
             let mut resize_spec: Option<String> = None;
             let mut crop_opt: Option<(u32, u32)> = None;
             let mut border_opt: Option<(u32, u32)> = None;
@@ -10162,6 +10168,7 @@ fn cmd_media_doc(
                         i += 2;
                     }
                     "-resize" | "-scale" | "-sample" | "-thumbnail" if i + 1 < args.len() => {
+                        ops.push(PixelOp::Resize(&args[i+1], if arg=="-sample" {Kernel::Nearest} else {kernel}));
                         resize_spec = Some(args[i + 1].clone());
                         i += 2;
                     }
@@ -10196,7 +10203,10 @@ fn cmd_media_doc(
                         transpose_swaps += 1;
                         i += 1;
                     }
+                    "-filter" if i+1 < args.len() => {kernel=Kernel::parse(&args[i+1]);i+=2;}
+                    "-flip" | "-flop" => {ops.push(if arg=="-flip" {PixelOp::Flip}else{PixelOp::Flop});i+=1;}
                     "-negate" => {
+                        ops.push(PixelOp::Negate);
                         negate_count += 1;
                         i += 1;
                     }
@@ -10219,6 +10229,7 @@ fn cmd_media_doc(
                     "-colorspace" | "-grayscale" if i + 1 < args.len() => {
                         let space = args[i + 1].to_ascii_lowercase();
                         if space.contains("gray") || space.contains("grey") || matches!(space.as_str(), "rec709luma" | "rec601luma") {
+                            ops.push(PixelOp::Gray);
                             negates_before_gray.get_or_insert(negate_count);
                         }
                         i += 2;
@@ -10226,7 +10237,7 @@ fn cmd_media_doc(
                     "-gravity" | "-channel" | "-blur" | "-sharpen" | "-threshold"
                     | "-quality" | "-depth" | "-background" | "-fill" | "-bordercolor"
                     | "-density" | "-pointsize" | "-font" | "-stroke" | "-strokewidth"
-                    | "-draw" | "-annotate" | "-alpha" | "-define" | "-filter"
+                    | "-draw" | "-annotate" | "-alpha" | "-define"
                         if i + 1 < args.len() =>
                     {
                         i += 2;
@@ -10248,6 +10259,36 @@ fn cmd_media_doc(
                     }
                 }
             }
+            let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
+                let lower = dest.to_ascii_lowercase();
+                if !(lower.ends_with(".png") || lower.starts_with("png:") || dest=="-")
+                    || border_opt.is_some() || extent_opt.is_some() || crop_opt.is_some() || rot_deg!=0 || transpose_swaps!=0 || append_mode.is_some() { return None; }
+                let mut image = if let Some(canvas) = canvas {
+                    let (w,h)=size_opt.unwrap_or((1,1));
+                    let (width,height)=(w.max(1) as usize,h.max(1) as usize);
+                    if width.saturating_mul(height)>fs.max_input_bytes()/4 {return Some(err_out("magick: image exceeds memory budget\n",1));}
+                    let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
+                    png_pixels::Raster {width,height,density:72,gray:false,alpha:true,pixels}
+                } else {
+                    match png_pixels::Raster::input(input,bytes,fs.max_input_bytes()) {
+                        Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
+                    }
+                };
+                for op in &ops {
+                    match op {
+                        PixelOp::Resize(size,kernel) => if let Err(e)=image.resize(size,*kernel,fs.max_input_bytes()) {return Some(err_out(&format!("magick: {e}\n"),1));},
+                        PixelOp::Negate => for p in &mut image.pixels { for c in &mut p[..3] { *c=255-*c; } },
+                        PixelOp::Gray => {image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
+                        PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width){row.reverse();}}
+                        PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width){row.reverse();},
+                    }
+                }
+                let data=image.png();
+                let path=if lower.starts_with("png:") {&dest[4..]}else{dest};
+                Some(if path=="-" {ok_out(&crate::vfs::bytes_to_stream_string(&data))}
+                    else if let Err(e)=publish_magick_output(fs,&resolve_posix_path(cwd,path),&data) {err_out(&format!("shell: line 1: {e}\n"),1)}
+                    else {ok_out("")})
+            };
             let apply_ops = |meta: &mut ImageMeta| {
                 if let Some(ref rspec) = resize_spec {
                     let (rw, rh) = apply_magick_resize_geom(meta.w, meta.h, rspec);
@@ -10332,6 +10373,10 @@ fn cmd_media_doc(
                     if mogrify_format.is_some() {
                         meta.fmt = format_from_path(&dst_full).to_string();
                     }
+                    if let Some(out) = raster_output(&full, &bytes, &dst_full) {
+                        if out.exit_code!=0 {return out;}
+                        continue;
+                    }
                     let _ = fs.write_file(&dst_full, &write_image_bytes(&meta));
                 }
                 return ok_out("");
@@ -10357,6 +10402,12 @@ fn cmd_media_doc(
             }
             if let Some(out_rel) = pos_files.last() {
                 let out_full = resolve_posix_path(cwd, out_rel);
+                if canvas.is_some() && pos_files.len()==1 {
+                    if let Some(out)=raster_output("", &[], out_rel) {return out;}
+                } else if !has_pseudo_input && pos_files.len()==2 {
+                    let path=pos_files[0].strip_prefix("png:").unwrap_or(&pos_files[0]);
+                    if let Ok(bytes)=fs.read_file(&resolve_posix_path(cwd,path)) && let Some(out)=raster_output(path,&bytes,out_rel) {return out;}
+                }
                 let mut meta = if let Some(vertical) = append_mode
                     && pos_files.len() >= 2
                 {
@@ -13074,6 +13125,21 @@ mod media_unit_tests {
         fs.write_file("/a.png", &hex_dec("89504e470d0a1a0a0000000d494844520000000d000000090806000000e97aa66a000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000003b4944415463945170facf40226034b3f2235d53404814e99ab2f25249d7d4da5148baa6f98b6a49d7b4734f27e99a2e5f9b42baa6b71f1690ac0900dff8166cd748a1f90000000049454e44ae426082")).unwrap();
         fs.write_file("/b.png", &hex_dec("89504e470d0a1a0a0000000d4948445200000007000000050806000000899af6d8000000097048597300000b1300000b1301009a9c180000000249444154789c62a4912b0000006149444154639c51a6f4ff2d37cbe34f9c4c2f7f33337d67fdfb8f93effb3f71e1af7f64197b6b54debde263b9fb9687e5e13736a68f5cbffef10b7ff9232ff6e98f326357bdea8b177cacb75ef0b3dc06d1129f7eab497cfca30aa2f1ebc4672700f4c246b0d78da95f0000000049454e44ae426082")).unwrap();
         fs
+    }
+
+    #[test]
+    fn resizing_pngs_resamples_pixels_with_the_selected_filter() {
+        let fs = gradient_png_pair();
+        for (name, kernel, size, hash) in [
+            ("b.png", "nearest", "5x12!", "593b235eb2325999fbd54734fb3cedd8ff3f8928398b4acf1777537bc2cca9fa"),
+            ("a.png", "mitchell", "7x2!", "b20c852161e64ea390ad05d6e97d965f061844191f6a0e007381cbb4fc0accd9"),
+            ("b.png", "lanczos2", "23x17!", "ee3b14631a4c2e90c2b5a490d96aab0fffd626673148667bc6686f6a9899a8f2"),
+            ("a.png", "lanczos3", "2x2", "c55a20582ed5b3a3eedcfe1e71a64b74af7665dc2bb318cc67bf087464d3ab14"),
+        ] {
+            let r = cmd_media_doc("magick", &media_args(&[name,"-filter",kernel,"-resize",size,"out.png"]), "", "/", &fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())),hash,"{name} {kernel} {size}");
+        }
     }
 
     #[test]

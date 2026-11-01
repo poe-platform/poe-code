@@ -3391,40 +3391,6 @@ fn try_eval_jq_builtin(
                         return Ok(Some(out));
                     }
                 }
-                "first" => {
-                    let vals = eval_jq_limited(arg_expr, 1, input, vars)?;
-                    return Ok(Some(vals.into_iter().take(1).collect()));
-                }
-                "last" => {
-                    let vals = eval_jq(arg_expr, input, vars)?;
-                    return Ok(Some(vals.into_iter().next_back().into_iter().collect()));
-                }
-                "isempty" => {
-                    let vals = eval_jq_limited(arg_expr, 1, input, vars)?;
-                    return Ok(Some(vec![JVal::Bool(vals.is_empty())]));
-                }
-                "nth" => {
-                    if let Some((n_e, expr_e)) = split_jq_binary(arg_expr, ";") {
-                        let n = eval_jq(n_e.trim(), input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(num) => Some(num.ceil().max(0.0) as usize),
-                                _ => None,
-                            })
-                            .unwrap_or(0);
-                        let vals = eval_jq_limited(expr_e.trim(), n + 1, input, vars)?;
-                        return Ok(Some(vals.into_iter().nth(n).into_iter().collect()));
-                    } else if let JVal::Array(a) = input {
-                        let n = eval_jq(arg_expr, input, vars)?
-                            .first()
-                            .and_then(|v| match v {
-                                JVal::Number(num) => Some(num.ceil().max(0.0) as usize),
-                                _ => None,
-                            })
-                            .unwrap_or(0);
-                        return Ok(Some(vec![a.get(n).cloned().unwrap_or(JVal::Null)]));
-                    }
-                }
                 "INDEX" => {
                     let (stream_e, idx_e) = if let Some((s_e, i_e)) = split_jq_binary(arg_expr, ";") {
                         (s_e, i_e)
@@ -4316,23 +4282,6 @@ fn split_jq_def_semi(s: &str) -> Option<(String, String)> {
         i += 1;
     }
     None
-}
-
-fn eval_jq_limited(
-    expr: &str,
-    max_items: usize,
-    input: &JVal,
-    vars: &JqScope<'_>,
-) -> Result<Vec<JVal>, String> {
-    if max_items == 0 {
-        return Ok(Vec::new());
-    }
-    let mut out = Vec::new();
-    let _ = visit_jq(expr, input, vars, &mut |value| {
-        out.push(value);
-        Ok(if out.len() == max_items { ControlFlow::Break(()) } else { ControlFlow::Continue(()) })
-    })?;
-    Ok(out)
 }
 
 fn parse_jq_regex_args(

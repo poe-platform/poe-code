@@ -3,6 +3,31 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq selects stream results for each nth argument and returns null for last(empty)", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout] of [
+      ["nth((0,2);range(4))", "0\n2\n"],
+      ["[nth((0,1);inputs),inputs]", "[1,3,4]\n"],
+      ["[1,2,3] | nth((-1,0.5,9))", "3\n1\nnull\n"],
+      ['{x:42} | nth(("x","missing"))', "42\nnull\n"],
+      ["nth(1.0;range(3))", "1\n"],
+      ["last(empty)", "null\n"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}' <<< '1 2 3 4'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], filter);
+    }
+    for (const [filter, message] of [
+      ["nth(-1;empty)", "nth doesn't support negative indices"],
+      ["true | nth(2)", "Cannot index boolean with number"],
+      ['[] | nth("x")', 'Cannot index array with string "x"'],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", `jq: error (at <unknown>): ${message}\n`], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq emits every combination of object fields in order and replaces duplicate keys", async () => {
   const bash = new RustWasmBash();
   try {

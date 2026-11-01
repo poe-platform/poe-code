@@ -154,7 +154,7 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             emit,
         );
     }
-    if !vars.functions.is_empty() || s.starts_with("range") || s.starts_with("limit") {
+    if !vars.functions.is_empty() || s.ends_with(')') {
         let (name, args) = s
             .find('(')
             .filter(|&pos| s.ends_with(')') && is_matching_outer_delim(&s[pos..], '(', ')'))
@@ -170,9 +170,73 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             return Ok(Continue(()));
         }
         if let Some(args) = args
-            && matches!(name, "range" | "limit")
+            && matches!(
+                name,
+                "range" | "limit" | "first" | "last" | "isempty" | "nth"
+            )
         {
             let parts = split_jq_top(args, ';').unwrap_or_else(|| vec![args.to_owned()]);
+            if let [filter] = parts.as_slice()
+                && matches!(name, "first" | "last" | "isempty")
+            {
+                let mut selected = None;
+                let _ = visit_jq(filter, input, vars, &mut |value| {
+                    selected = Some(value);
+                    Ok(if name == "last" {
+                        Continue(())
+                    } else {
+                        Break(())
+                    })
+                })?;
+                return match name {
+                    "isempty" => emit(JVal::Bool(selected.is_none())),
+                    "last" => emit(selected.unwrap_or(JVal::Null)),
+                    _ => selected.map_or(Ok(Continue(())), emit),
+                };
+            }
+            if name == "nth" && (1..=2).contains(&parts.len()) {
+                return visit_jq(&parts[0], input, vars, &mut |index| {
+                    if let Some(filter) = parts.get(1) {
+                        let JVal::Number(n) = index else {
+                            return Err("nth doesn't support negative indices".into());
+                        };
+                        let n = super::clean_jval_num(n);
+                        if n < 0.0 {
+                            return Err("nth doesn't support negative indices".into());
+                        }
+                        let mut n = n.ceil();
+                        let mut selected = None;
+                        let _ = visit_jq(filter, input, vars, &mut |v| {
+                            if n == 0.0 {
+                                selected = Some(v);
+                                Ok(Break(()))
+                            } else {
+                                n -= 1.0;
+                                Ok(Continue(()))
+                            }
+                        })?;
+                        selected.map_or(Ok(Continue(())), &mut *emit)
+                    } else {
+                        match (&index, input) {
+                            (JVal::Number(n), JVal::Array(_) | JVal::Null) if n.is_finite() => {}
+                            (JVal::Str(_), JVal::Object(_) | JVal::Null) => {}
+                            _ => {
+                                let detail = if matches!(&index,JVal::Str(k) if k.len()<30) {
+                                    format!(" {}", index.to_json_string(true, false, 0))
+                                } else {
+                                    String::new()
+                                };
+                                return Err(format!(
+                                    "Cannot index {} with {}{detail}",
+                                    input.type_name(),
+                                    index.type_name()
+                                ));
+                            }
+                        }
+                        emit(super::get_jq_jval_path(input, std::slice::from_ref(&index)))
+                    }
+                });
+            }
             if name == "range" && (1..=3).contains(&parts.len()) {
                 let (start, end) = if parts.len() == 1 {
                     ("0", &parts[0])

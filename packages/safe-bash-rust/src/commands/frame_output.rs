@@ -181,6 +181,8 @@ impl ImageSequence {
             }
             let frame = if super::netpbm::signature(&bytes) {
                 super::netpbm::Netpbm::parse(&bytes, remaining)?.decode()
+            } else if super::bmp::signature(&bytes) {
+                super::bmp::Bmp::parse(&bytes, remaining)?.decode()
             } else if !bytes.starts_with(b"\x89PNG\r\n\x1a\n") {
                 return Err("Input buffer contains unsupported image format".into());
             } else {
@@ -220,7 +222,8 @@ impl ImageSequence {
 }
 
 pub(super) fn supported_still(bytes: &[u8]) -> bool {
-    super::netpbm::signature(bytes)
+    super::bmp::signature(bytes)
+        || super::netpbm::signature(bytes)
         || bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:")
 }
 
@@ -231,6 +234,16 @@ pub(super) fn still_info(
     if super::netpbm::signature(bytes) {
         let image = super::netpbm::Netpbm::parse(bytes, limit)?;
         return Ok((image.width, image.height, image.codec()));
+    }
+    if super::bmp::signature(bytes) {
+        return match super::bmp::Bmp::parse(bytes, limit) {
+            Ok(image) => Ok((image.width, image.height, b"bmp ")),
+            Err("Offset is outside the bounds of the DataView") if limit < 64 * 64 * 4 => {
+                Err("image exceeds memory budget")
+            }
+            Err("Offset is outside the bounds of the DataView") => Ok((64, 64, b"png ")),
+            Err(reason) => Err(reason),
+        };
     }
     // image2 retains the PNG dimensions for a damaged image.
     let dimension = |i| {
@@ -255,7 +268,12 @@ pub(super) fn decode_still(bytes: &[u8], limit: usize) -> Result<Raster, &'stati
     if super::netpbm::signature(bytes) {
         return Ok(super::netpbm::Netpbm::parse(bytes, limit)?.decode());
     }
-    Ok(match Raster::decode(bytes, limit) {
+    let decoded = if super::bmp::signature(bytes) {
+        super::bmp::Bmp::parse(bytes, limit).map(|bmp| bmp.decode())
+    } else {
+        Raster::decode(bytes, limit)
+    };
+    Ok(match decoded {
         Ok(im) => im,
         Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
         Err(_) => {

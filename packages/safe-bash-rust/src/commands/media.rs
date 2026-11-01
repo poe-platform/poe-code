@@ -89,6 +89,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
+#[path = "bmp.rs"]
+mod bmp;
 #[path = "netpbm.rs"]
 mod netpbm;
 #[path = "png_pixels.rs"]
@@ -4594,7 +4596,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if fc_flag.is_empty() && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                    }else if fc_flag.is_empty() && path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -13386,6 +13388,23 @@ mod media_unit_tests {
         let movie = fs.read_file("/copy.mp4").unwrap();
         assert!(movie.ends_with(ascii));
         assert!(movie.windows(4).any(|b| b == b"ppm "));
+    }
+
+    #[test]
+    fn ffmpeg_reads_indexed_bmp_rows_in_display_order() {
+        let fs = MemoryVfs::new();
+        let mut bmp = vec![0u8; 62];
+        bmp[..2].copy_from_slice(b"BM");
+        bmp[10] = 62; bmp[14] = 40; bmp[18] = 3; bmp[22] = 2; bmp[26] = 1; bmp[28] = 1;
+        bmp[56] = 255; bmp[58] = 255; // palette: red, blue
+        bmp.extend_from_slice(&[0x60, 0, 0, 0, 0x80, 0, 0, 0]);
+        fs.write_file("/in1.bmp", &bmp).unwrap();
+        let r = cmd_media_doc("ffmpeg", &media_args(&["-i", "in%d.bmp", "frame%d.ppm"]), "", "/", &fs);
+        assert_eq!((r.exit_code, r.stderr), (0, String::new()));
+        let red = [255, 0, 0]; let blue = [0, 0, 255];
+        assert_eq!(fs.read_file("/frame1.ppm").unwrap(), [b"P6\n3 2\n255\n".as_slice(), &[blue,red,red,red,blue,blue].concat()].concat());
+        let r = cmd_media_doc("ffprobe", &media_args(&["-show_entries","stream=codec_name,width,height","-of","csv=p=0","in1.bmp"]), "", "/", &fs);
+        assert_eq!(r.stdout, "bmp,3,2\n");
     }
 
     #[test]

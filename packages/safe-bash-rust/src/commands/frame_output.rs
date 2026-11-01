@@ -254,6 +254,10 @@ pub(super) fn still_info(
         if w.saturating_mul(h)>limit/4 {return Err("image exceeds memory budget");}
         return Ok((w,h,b"mjpe"));
     }
+    if super::tiff::signature(bytes) {
+        let image = super::tiff::Tiff::parse(bytes, limit)?;
+        return Ok((image.width, image.height, b"tiff"));
+    }
     if super::netpbm::signature(bytes) {
         let image = super::netpbm::Netpbm::parse(bytes, limit)?;
         return Ok((image.width, image.height, image.codec()));

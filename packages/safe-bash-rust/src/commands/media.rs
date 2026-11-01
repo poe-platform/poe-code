@@ -10,6 +10,7 @@ struct ImageMeta {
 impl ImageMeta {
     fn has_alpha(&self, channels: u8) -> bool {
         matches!(channels, 2 | 4) && self.cs != "CMYK"
+            || self.fmt == "TIFF" && self.cs == "Gray" && channels == 3
     }
 }
 
@@ -95,6 +96,8 @@ fn try_magick_list_option(args: &[String]) -> Option<BuiltinOutcome> {
     None
 }
 
+#[path = "tiff.rs"]
+mod tiff;
 #[path = "bmp.rs"]
 mod bmp;
 #[path = "identify.rs"]
@@ -246,6 +249,11 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         meta.fmt = std::str::from_utf8(im.codec()).unwrap().trim_end().to_ascii_uppercase();
         meta.cs = if gray { "Gray" } else { "sRGB" }.into();
         (im.bit_depth(), if gray { 1 } else { 3 }, 72)
+    } else if tiff::signature(bytes) {
+        let im = tiff::Tiff::parse(bytes,limit)?;
+        meta.w=im.width as u32; meta.h=im.height as u32; meta.fmt="TIFF".into();
+        meta.cs=if im.samples<3 {"Gray"} else {"sRGB"}.into();
+        (im.depth, if im.samples==2 {3} else {im.samples as u8}, im.density)
     } else if bmp::signature(bytes) && let Ok(im) = bmp::Bmp::parse(bytes, limit) {
         meta.w = im.width as u32;
         meta.h = im.height as u32;
@@ -4664,7 +4672,7 @@ fn cmd_media_doc(
                     let explicit=input_formats[i];
                     let input=if explicit==Some("lavfi"){
                         MediaInput::Bytes("lavfi",path.as_bytes().to_vec())
-                    }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
+                    }else if path.rsplit_once('.').is_some_and(|(_,ext)| ["png","ppm","pgm","pbm","pnm","bmp","jpg","jpeg","tif","tiff"].iter().any(|e| ext.eq_ignore_ascii_case(e))) && let Some(pattern)=match frame_output::sequence(path){
                         Ok(p)=>p,Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)
                     }{
                         let (number,fps)=image_options[i];
@@ -10851,7 +10859,7 @@ fn cmd_media_doc(
                     }
                 };
                 let display_depth = if depth < 8 { 1 } else { depth };
-                let space = if depth == 16 && meta.fmt == "PNG" { "sRGB" } else { &meta.cs };
+                let space = if depth == 16 && matches!(meta.fmt.as_str(),"PNG" | "TIFF") { "sRGB" } else { &meta.cs };
                 if let Some(ref fmt_str) = fmt_opt {
                     if let Err(e) = identify::format(fmt_str, operand, (&meta, depth, channels, dpi), bytes.len(), &mut out, fs.shell_limits().max_output_bytes) {
                         return err_out(&format!("identify: {e}\n"), 1);
@@ -11214,7 +11222,7 @@ fn cmd_media_doc(
                             "samplesPerPixel" => channels.to_string(),
                             "bitsPerSample" => (if depth < 8 { 1 } else { depth }).to_string(),
                             "hasAlpha" => if meta.has_alpha(channels) { "yes" } else { "no" }.into(),
-                            "space" => match meta.cs.as_str() { "CMYK" => "CMYK", "Gray" if !(meta.fmt == "PNG" && depth == 16) => "Gray", _ => "RGB" }.into(),
+                            "space" => match meta.cs.as_str() { "CMYK" => "CMYK", "Gray" if !(matches!(meta.fmt.as_str(),"PNG" | "TIFF") && depth == 16) => "Gray", _ => "RGB" }.into(),
                             other => meta
                                 .exif
                                 .get(other)
@@ -13905,6 +13913,21 @@ mod media_unit_tests {
         run(&["-f","lavfi","-i","color=c=red:s=6x4:r=3:d=0.7","b.y4m"]);
         run(&["-i","a.mp4","-i","b.y4m","-filter_complex","concat=n=2:v=1:a=0","o.y4m"]);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.y4m").unwrap())), "b5e04cd714a2e692a3170253e1b815057bad55ddf37a2ff59e18163897d65b79");
+    }
+
+    #[test]
+    fn tiff_still_roundtrips_pixels_dimensions_and_codec() {
+        let fs=MemoryVfs::new();
+        let run=|cmd:&str,args:&[&str]| {
+            let r=cmd_media_doc(cmd,&media_args(args),"","/",&fs);
+            assert_eq!(r.exit_code,0,"{}",r.stderr);
+            r.stdout
+        };
+        run("ffmpeg",&["-f","lavfi","-i","testsrc=s=7x5:r=1:d=1","image.tiff"]);
+        run("ffmpeg",&["-i","image.tiff","image.ppm"]);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/image.ppm").unwrap())),"1690dfbe21c99b6868c58965186eda9958ee04ec3c7970c43b5ebdcbe37a3e47");
+        assert_eq!(run("ffprobe",&["-show_entries","stream=codec_name,width,height","-of","csv=p=0","image.tiff"]),"tiff,7,5\n");
+        assert_eq!(run("identify",&["-format","%m %wx%h","image.tiff"]),"TIFF 7x5");
     }
 
     #[test]

@@ -112,7 +112,7 @@ impl<'a> Png<'a> {
     }
 }
 
-fn exif(data: &[u8]) -> Option<(Option<u32>, Option<u8>)> {
+pub(super) fn exif(data: &[u8]) -> Option<(Option<u32>, Option<u8>)> {
     let tiff = data.strip_prefix(b"Exif\0\0").unwrap_or(data);
     let little = match tiff.get(..2)? {
         b"II" => true,

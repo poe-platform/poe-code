@@ -95,7 +95,7 @@ impl Raster {
 
     pub fn png(&self) -> Vec<u8> {
         let pixel = |x: usize, y: usize| self.pixels[y * self.width + x];
-        match (self.gray, self.alpha) {
+        match (self.gray, self.alpha || self.pixels.iter().any(|p| p[3] < 255)) {
             (true, true) => {
                 super::pixel_png(self.width, self.height, super::PngEncoding::SplitDensity(self.density,self.orientation), |x, y| {
                     let [v, _, _, a] = pixel(x, y);

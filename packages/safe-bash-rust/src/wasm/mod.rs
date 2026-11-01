@@ -590,7 +590,15 @@ pub unsafe extern "C" fn safe_bash_readdir(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    match sess.shell.fs.list_dir(path) {
+    let fs = &sess.shell.fs;
+    let result = (|| {
+        let p = fs.access_path(path, true)?;
+        let st = fs.lstat(&p)?;
+        if st.kind != VfsEntryKind::Directory { return Err("ENOTDIR: not a directory".into()); }
+        if st.mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
+        fs.list_dir(&p)
+    })();
+    match result {
         Ok(mut entries) => {
             entries.sort();
             let mut buf = Vec::new();
@@ -604,7 +612,13 @@ pub unsafe extern "C" fn safe_bash_readdir(
             sess.last_output_buf = buf;
             len
         }
-        Err(_) => -1,
+        Err(e) => {
+            let code = e.split_once(':').map_or("EIO", |(c, _)| c);
+            let syscall = if sess.profile == Profile::Overlay { "overlay" } else { "readdir" };
+            let root = if sess.profile == Profile::Devices && !path.starts_with('/') { "/" } else { "" };
+            sess.last_output_buf = format!("{code}:{syscall}:{root}{path}").into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
     }
 }
 

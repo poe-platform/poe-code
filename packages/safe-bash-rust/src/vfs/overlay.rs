@@ -198,10 +198,8 @@ impl SafeBashFs for OverlayVfs {
             return Err(format!("ENOENT: no such file or directory, scandir '{norm}'"));
         }
         let mut names = BTreeSet::new();
-        if !self.is_deleted(&norm)
-            && let Ok(lower_entries) = self.lower.list_dir(&norm)
-        {
-            for name in lower_entries {
+        if !self.is_deleted(&norm) && self.lower.is_dir(&norm) {
+            for name in self.lower.list_dir(&norm)? {
                 let child = if norm == "/" {
                     format!("/{name}")
                 } else {
@@ -212,8 +210,8 @@ impl SafeBashFs for OverlayVfs {
                 }
             }
         }
-        if let Ok(upper_entries) = self.upper.list_dir(&norm) {
-            for name in upper_entries {
+        if self.upper.is_dir(&norm) {
+            for name in self.upper.list_dir(&norm)? {
                 names.insert(name);
             }
         }
@@ -360,6 +358,17 @@ mod tests {
         assert_eq!(overlay.stat("/private/shared").unwrap().mode & 0o777, 0o750);
         assert_eq!(overlay.stat("/private/shared/new").unwrap().mode & 0o777, 0o711);
         assert!(!lower.exists("/private/shared/new"));
+    }
+
+    #[test]
+    fn listing_an_upper_directory_cannot_disclose_unreadable_lower_names() {
+        let lower = Arc::new(MemoryVfs::new());
+        lower.write_file("/private/secret", b"data").unwrap();
+        lower.chmod("/private", 0o100).unwrap();
+        let upper = Arc::new(MemoryVfs::new());
+        upper.mkdir_all("/private").unwrap();
+        let overlay = OverlayVfs::new(lower, upper);
+        assert!(overlay.list_dir("/private").unwrap_err().starts_with("EACCES"));
     }
 
     #[test]

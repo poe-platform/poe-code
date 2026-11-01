@@ -822,3 +822,21 @@ test("mkdir replay retains parents created before a recursive failure", async ()
     assert.equal((await companion.fs.stat("/unsearchable")).mode & 0o777, 0);
   } finally { bash.dispose(); companion.dispose(); }
 });
+
+test("readdir refuses unreadable directories and resolves ancestors before '..'", async () => {
+  for (const profile of [undefined, "overlay-cow-fs", "strict-budgets-mount-dev"]) {
+    const bash = new RustWasmBash({profile, files:{"/private/secret":"value", "/readable/file":"data", "/dev/secret":"value"}});
+    try {
+      if (!profile) {
+        await bash.fs.chmod("/dev", 0o100);
+        await assert.rejects(bash.fs.readdir("/dev"), {code:"EACCES"});
+      }
+      await bash.fs.chmod("/private", 0o100);
+      await assert.rejects(bash.fs.readdir("/private"), {code:"EACCES"});
+      assert.throws(() => bash.readdir("/private"), {code:"EACCES"});
+      await assert.rejects(bash.fs.readdir("/readable/file"), {code:"ENOTDIR"});
+      await assert.rejects(bash.fs.readdir("/missing/../readable"), {code:"ENOENT"});
+      await assert.rejects(bash.fs.readdir("/readable", {signal:AbortSignal.abort()}), {name:"AbortError"});
+    } finally { bash.dispose(); }
+  }
+});

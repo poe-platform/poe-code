@@ -213,6 +213,7 @@ export class WasmFileSystem {
   }
 
   async readdir(dirPath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       return this.bash._companion.fs.readdir(dirPath, options);
@@ -741,10 +742,13 @@ export class RustWasmBash {
     const p = this._allocBytes(encoder.encode(dirPath));
     try {
       const len = this.exports.safe_bash_readdir(this.sessionId, p.ptr, p.len);
-      if (len < 4) {
-        throw fsErr('ENOENT', `ENOENT: no such directory '${dirPath}'`);
-      }
+      if (len === -1) throw new Error("Wasm session unavailable");
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
+      if (len < 0) {
+        const text = decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, -len));
+        const sep = text.indexOf(":"), end = text.indexOf(":", sep + 1);
+        throw fsOperationError(text, text.slice(sep + 1, end), text.slice(end + 1));
+      }
       const view = new DataView(this.exports.memory.buffer, outPtr, len);
       const count = view.getUint32(0, true);
       let offset = 4;

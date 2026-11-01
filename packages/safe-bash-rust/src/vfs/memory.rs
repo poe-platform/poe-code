@@ -812,6 +812,9 @@ impl SafeBashFs for MemoryVfs {
         let guard = self.state.read().map_err(|e| e.to_string())?;
         let resolved = Self::resolve_symlinks_locked(&guard, &norm, true).map_err(|e| e.message)?;
         let directory = guard.devices.entry(&resolved) == Some("");
+        if matches!(guard.nodes.get(&resolved), Some(MemoryNode::Directory { mode, .. }) if mode & 0o400 == 0) {
+            return Err(format!("EACCES: permission denied, readdir '{path}'"));
+        }
         if !directory {
             match guard.nodes.get(&resolved) {
                 Some(MemoryNode::Directory { .. }) => {}

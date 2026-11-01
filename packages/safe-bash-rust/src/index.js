@@ -561,6 +561,20 @@ class WasmShell {
     }
   }
 
+  restoreSession(state) {
+    if ("rawHistory" in state) throw new TypeError("Command history cannot restore a shell session");
+    const data = this._allocBytes(encoder.encode(JSON.stringify(state)));
+    try {
+      const n = this.exports.safe_bash_restore_session(this.sessionId, data.ptr, data.len);
+      if (n !== 0) throw new TypeError(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), n)));
+    } finally { this._freeBytes(data); }
+  }
+
+  snapshot(status) {
+    const n = this.exports.safe_bash_session_snapshot(this.sessionId, status);
+    return JSON.parse(decoder.decode(new Uint8Array(this.exports.memory.buffer, this.exports.safe_bash_output_ptr(this.sessionId), n)));
+  }
+
   execSync(script, stdin = "") {
     if (!this.sessionId) throw new Error("Shell session is disposed");
     const s = this._allocBytes(encoder.encode(script));
@@ -659,6 +673,7 @@ export class RustWasmBash extends WasmShell {
     this._companion = null;
     this._companionSyncPromise = null;
     this._history = [];
+    this.hooks = options.hooks;
 
     const providedDevices = options.deviceView === "provided" || options.profile === "strict-budgets-mount-dev";
     if (providedDevices) {
@@ -1003,6 +1018,11 @@ export class RustWasmBash extends WasmShell {
     const shell = this.#forkShell();
     let res;
     try {
+      const before = options.hooks?.beforeExec ?? this.hooks?.beforeExec;
+      const state = options.state ?? (before && await before({source: script, options}));
+      options.signal?.throwIfAborted();
+      if (options.limits) shell.setLimits(options.limits);
+      if (state !== undefined) shell.restoreSession(state);
       for (const [name, value] of Object.entries(options.env ?? {})) {
         shell.setEnv(name, value);
       }
@@ -1012,7 +1032,6 @@ export class RustWasmBash extends WasmShell {
       if (pi?.effectiveGid !== undefined) shell.setEnv("__egid", String(pi.effectiveGid));
       if (options.limits) {
         const { maxVfsBytes, maxBytes, maxFileBytes, maxFiles, ...limits } = options.limits;
-        shell.setLimits(limits);
         const sharedKeys = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxPipelineBytes", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"];
         if (sharedKeys.some(k => limits[k] !== undefined && limits[k] !== Infinity)) shell.setEnv("__has_finite_shared_quota", "1");
         const split = limits.commandLimits?.split?.maxFiles;
@@ -1021,6 +1040,7 @@ export class RustWasmBash extends WasmShell {
         if (html !== undefined) shell.setEnv("__limit_html_to_markdown_max_input_bytes", String(html));
       }
       res = shell.execSync(script, stdinData);
+      if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);
     } finally {
       shell.dispose();
     }
@@ -1039,6 +1059,10 @@ export class RustWasmBash extends WasmShell {
     }
     if (this.companionFactory && !this.forceNative) {
       this._history.push({ type: "exec", script, options });
+    }
+    if (res.state) {
+      await options.onState?.(res.state, res);
+      await (options.hooks?.afterExec ?? this.hooks?.afterExec)?.(res.state, res);
     }
     return res;
   }
@@ -1158,77 +1182,31 @@ export class RustWasmBash extends WasmShell {
         },
       };
     }
-    const self = this.#forkShell();
-    this.#sessions.add(self);
+    if (!this.sessionId) throw new Error("Shell is disposed");
+    if (initialState && "rawHistory" in initialState) throw new TypeError("Command history cannot restore a shell session");
     const owner = this;
-    if (initialState && initialState.rawHistory) {
-      for (const cmd of initialState.rawHistory) self.execSync(cmd);
-    }
-    let history = initialState?.rawHistory ? [...initialState.rawHistory] : [];
-    let lastStatus = typeof initialState?.status === "number" ? initialState.status : 0;
-    let lastUmask = typeof initialState?.umask === "number" ? initialState.umask : 0o022;
+    const controller = new AbortController();
+    this.#sessions.add(controller);
     let tail = Promise.resolve();
     const session = {
+      state: initialState,
       async dispose() {
-        self.dispose();
-        owner.#sessions.delete(self);
+        controller.abort(new Error("Shell session is disposed"));
+        owner.#sessions.delete(controller);
         await tail;
       },
-      get state() {
-        return {
-          ...self.state,
-          umask: lastUmask,
-          status: lastStatus,
-          rawHistory: [...history],
-        };
-      },
-      set state(nextState) {
-        if (!nextState || typeof nextState !== "object") return;
-        const nextHistory = Array.isArray(nextState.rawHistory) ? [...nextState.rawHistory] : [];
-        if (typeof nextState.status === "number") {
-          lastStatus = nextState.status;
-        }
-        if (JSON.stringify(nextHistory) === JSON.stringify(history)) {
-          return;
-        }
-        history = nextHistory;
-        if (nextState.env && typeof nextState.env === "object") {
-          for (const [k, v] of Object.entries(nextState.env)) {
-            if (typeof v === "string") self.setEnv(k, v);
-          }
-        }
-        for (const cmd of history) {
-          const r = self.execSync(cmd);
-          lastStatus = r.exitCode;
-        }
-      },
       exec(script, opts = {}) {
-        const turn = tail.then(async () => {
-          if (!self.sessionId) throw new Error("Shell session is disposed");
-          opts.signal?.throwIfAborted();
-          if (opts.hooks?.beforeExec) {
-            await opts.hooks.beforeExec({ ...session.state, source: script });
-            if (!self.sessionId) throw new Error("Shell session is disposed");
-            opts.signal?.throwIfAborted();
-          }
-          history.push(script);
-          const umaskMatch = /\bumask\s+(0?[0-7]{1,4})\b/.exec(script);
-          if (umaskMatch) {
-            lastUmask = parseInt(umaskMatch[1], 8);
-          }
-          if (opts.cwd !== undefined) self.setEnv("__cwd", opts.cwd);
-          for (const [name, value] of Object.entries(opts.env ?? {})) {
-            self.setEnv(name, value);
-          }
-          const res = self.execSync(script, opts.stdin ?? "");
-          lastStatus = res.exitCode;
-          if (opts.hooks?.afterExec) {
-            await opts.hooks.afterExec(session.state, res);
-          }
-          if (opts.hooks?.onState) {
-            await opts.hooks.onState(session.state);
-          }
-          return res;
+        const turn = tail.then(() => {
+          controller.signal.throwIfAborted();
+          return owner.exec(script, {
+            ...opts,
+            signal: opts.signal ? AbortSignal.any([opts.signal, controller.signal]) : controller.signal,
+            state: opts.state ?? session.state,
+            async onState(state, result) {
+              session.state = state;
+              await opts.onState?.(state, result);
+            },
+          });
         });
         tail = turn.catch(() => {});
         return turn;
@@ -1242,7 +1220,7 @@ export class RustWasmBash extends WasmShell {
     if (this._companion) {
       void this._companion.shell.dispose();
     }
-    for (const shell of this.#sessions) shell.dispose();
+    for (const controller of this.#sessions) controller.abort(new Error("Shell session is disposed"));
     this.#sessions.clear();
     super.dispose();
   }

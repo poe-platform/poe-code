@@ -1,3 +1,4 @@
+mod session;
 use crate::budget::{ExecutionBudget, ShellLimits};
 use crate::fs::{SafeBashFs, VfsEntryKind, VfsFileEntry};
 use crate::vfs::FileStat;

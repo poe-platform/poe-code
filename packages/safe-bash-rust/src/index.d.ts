@@ -1,3 +1,5 @@
+import type { ShellSessionState, ShellSessionHooks, ShellExecOptions } from "@poe-platform/safe-bash";
+
 export interface RustWasmFileInit {
   readonly content: string | Uint8Array;
   readonly mode?: number;
@@ -5,6 +7,7 @@ export interface RustWasmFileInit {
 }
 
 export interface RustWasmBashOptions {
+  readonly hooks?: ShellSessionHooks;
   readonly cwd?: string;
   readonly env?: Readonly<Record<string, string>>;
   readonly directories?: readonly string[];
@@ -21,6 +24,7 @@ export interface RustWasmBashOptions {
 }
 
 export interface RustWasmExecResult {
+  readonly state?: ShellSessionState;
   readonly stdout: string;
   readonly stderr: string;
   readonly stdoutBytes: Uint8Array;
@@ -124,16 +128,10 @@ export class RustWasmBash {
   readdir(dirPath: string): string[];
   setEnv(key: string, value: string): void;
   execSync(script: string, stdin?: string | Uint8Array): RustWasmExecResult;
-  exec(script: string, options?: { stdin?: string | Uint8Array; cwd?: string; env?: Record<string, string> }): Promise<RustWasmExecResult>;
-  createSession(initialState?: { rawHistory?: readonly string[] }): {
-    readonly state: {
-      cwd: string;
-      env: Record<string, string>;
-      vars: Record<string, string>;
-      functions: Record<string, string>;
-      rawHistory: string[];
-    };
-    exec(script: string, options?: { stdin?: string | Uint8Array; cwd?: string; env?: Readonly<Record<string, string>> }): Promise<RustWasmExecResult>;
+  exec(script: string, options?: ShellExecOptions): Promise<RustWasmExecResult>;
+  createSession(initialState?: ShellSessionState): {
+    state: ShellSessionState | undefined;
+    exec(script: string, options?: ShellExecOptions): Promise<RustWasmExecResult>;
     dispose(): Promise<void>;
   };
   dispose(): void;

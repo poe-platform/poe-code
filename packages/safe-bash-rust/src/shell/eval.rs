@@ -15458,7 +15458,7 @@ fn is_valid_shell_ident(s: &str) -> bool {
     chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
 }
 
-fn format_function_display(name: &str, body: &CommandNode) -> String {
+pub(crate) fn format_function_display(name: &str, body: &CommandNode) -> String {
     format!("{name} () \n{}\n", format_command_node(body, ""))
 }
 

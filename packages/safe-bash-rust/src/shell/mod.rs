@@ -51,10 +51,15 @@ impl Shell {
             .map(normalize_posix_path)
             .unwrap_or_else(|| "/".to_string());
         let _ = fs.mkdir_all(&cwd);
+        let mut env = options.env;
+        if !env.contains_key("IFS") {
+            env.insert("IFS".into(), " \t\n".into());
+            env.insert("__unexported__IFS".into(), "1".into());
+        }
         Self {
             fs,
             cwd,
-            env: options.env,
+            env,
             backend: HybridBackend::new(options.mode),
             limits: ShellLimits::default(),
         }
@@ -83,6 +88,15 @@ impl Shell {
         self.backend.register_command(name, cmd);
     }
 
+    pub(crate) fn session_snapshot(&self, status: i32) -> String {
+        self.backend.snapshot(&self.cwd, &self.env, status)
+    }
+
+    pub(crate) fn restore_session(&mut self, snapshot: &[u8]) -> Result<(), String> {
+        self.cwd = self.backend.restore(snapshot, &mut self.env, &self.limits)?;
+        Ok(())
+    }
+
     pub fn cwd(&self) -> &str {
         &self.cwd
     }
@@ -94,6 +108,7 @@ impl Shell {
     }
 
     pub fn set_env(&mut self, key: &str, val: &str) {
+        self.env.remove(&format!("__unexported__{key}"));
         self.env.insert(key.to_string(), val.to_string());
     }
 

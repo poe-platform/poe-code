@@ -201,6 +201,24 @@ pub extern "C" fn safe_bash_fork_session(parent_id: u32) -> u32 {
 }
 
 #[unsafe(no_mangle)]
+pub extern "C" fn safe_bash_session_snapshot(id: u32, status: i32) -> i32 {
+    let mut map = sessions().lock().unwrap();
+    let Some(session) = map.get_mut(&id) else { return -1 };
+    session.last_output_buf = session.shell.session_snapshot(status).into_bytes();
+    session.last_output_buf.len() as i32
+}
+
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_bash_restore_session(id: u32, ptr: *const u8, size: usize) -> i32 {
+    let mut map = sessions().lock().unwrap();
+    let Some(session) = map.get_mut(&id) else { return -1 };
+    match session.shell.restore_session(unsafe { slice_from_raw(ptr,size) }) {
+        Ok(()) => 0,
+        Err(e) => { session.last_output_buf = e.into_bytes(); session.last_output_buf.len() as i32 }
+    }
+}
+
+#[unsafe(no_mangle)]
 pub extern "C" fn safe_bash_configure_profile(id: u32, profile: u32) -> i32 {
     let Ok(mut map) = sessions().lock() else {
         return -1;

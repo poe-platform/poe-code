@@ -64,6 +64,8 @@ Inode numbers are local to each filesystem. When comparing two entries with `sta
 
 By default the shell exposes a virtual `/dev/null` alongside files you supply under `/dev`. Use `deviceView: "provided"` to keep your own `/dev/null`, or call `bash.mountDevices()` to mount the device filesystem over `/dev`.
 
+To checkpoint a session, save `JSON.stringify(session.state)` after an execution. Pass the parsed snapshot to `bash.createSession(snapshot)` or assign it to `session.state` to restore the shell bindings. Files stay on the filesystem; restoring bindings never repeats file writes. The older Rust-only `rawHistory` format is rejected because it contains commands rather than state.
+
 ```ts
 import { createRustWasmBash } from "@poe-code/safe-bash-rust";
 

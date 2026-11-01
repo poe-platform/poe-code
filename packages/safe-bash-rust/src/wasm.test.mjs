@@ -3,6 +3,85 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("JSON session checkpoints restore bindings without repeating filesystem writes", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const session = bash.createSession();
+    await session.exec("echo once >> /journal; set -- 'two words'; readonly fixed=yes; export KEEP=value; declare -a sparse=([4]=four); f() { echo ok; } > /function-output; export -f f; umask 027; false");
+    const checkpoint = JSON.parse(JSON.stringify(session.state));
+    await session.exec("EXTRA=gone; unset KEEP; set -- changed");
+    session.state = checkpoint;
+    for (const restored of [session, bash.createSession(checkpoint)]) {
+      const result = await restored.exec('echo "$?:$KEEP:${EXTRA-unset}:$1:${sparse[4]}:$fixed"; bash -c f; cat /function-output /journal; umask');
+      assert.equal(result.stdout, "1:value:unset:two words:four:yes\nok\nonce\n0027\n");
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    assert.deepEqual(checkpoint.arrays.sparse.elements, {4: "four"});
+    assert.deepEqual(checkpoint.readonlyVariables, ["fixed"]);
+    assert.equal(checkpoint.umask, 0o27);
+    assert.ok(!("rawHistory" in checkpoint));
+  } finally { bash.dispose(); }
+});
+
+test("JavaScript and Rust can exchange cold session snapshots", async () => {
+  const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
+  const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" });
+  js.use(agentCommands());
+  const rust = new RustWasmBash({ cwd: "/" });
+  try {
+    const setup = "export E=value; set -- 'two words'; readonly fixed=1; declare -i number=3; declare -A m=([foo]='bar baz'); declare -a sparse=([5]=a); f() { echo ok; } > /output; readonly -f f; export -f f; shopt -s nullglob; umask 027; false";
+    const source = 'echo "$?:$E:$1:${m[foo]}:${sparse[5]}:$fixed"; number=2+3; echo "$number"; f; read -r line < /output; echo "$line"; umask';
+    const snapshots = [];
+    for (const [from, to] of [[js, rust], [rust, js]]) {
+      const session = from.createSession();
+      await session.exec(setup);
+      const snapshot = JSON.parse(JSON.stringify(session.state));
+      snapshots.push(snapshot);
+      const restored = to.createSession(snapshot);
+      const result = await restored.exec(source);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "1:value:two words:bar baz:a:1\n5\nok\n0027\n");
+    }
+    for (const key of ["exported", "readonlyVariables", "exportedFunctions", "readonlyFunctions"]) {
+      for (const s of snapshots) s[key].sort();
+    }
+    assert.deepEqual(snapshots[1], snapshots[0]);
+  } finally { await js.dispose(); rust.dispose(); }
+});
+
+test("session restore only parses function definitions and never runs legacy history", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const session = bash.createSession({ cwd: "/", functions: { bad: "echo wrong > /bad" } });
+    assert.equal((await session.exec("command -v bad; test ! -e /bad")).exitCode, 0);
+    assert.throws(() => bash.createSession({rawHistory: ["echo wrong > /bad"]}), /history/i);
+    assert.equal((await bash.exec("test ! -e /bad")).exitCode, 0);
+  } finally { bash.dispose(); }
+});
+
+test("session hooks can supply a checkpoint and observe the committed turn", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const session = bash.createSession();
+    assert.equal(session.state, undefined);
+    const seen = [];
+    const beforeExec = ({ source, options }) => {
+      seen.push([source, options.cwd]);
+      return {cwd: "/", variables: {FROM_HOOK: "yes"}};
+    };
+    const result = await session.exec('echo "$FROM_HOOK"', {
+      cwd: "/workspace",
+      hooks: { beforeExec, afterExec(state, res) { seen.push(["after", state === res.state]); } },
+      onState(state, res) { seen.push(["state", state === session.state && state === res.state]); },
+    });
+    assert.equal(result.stdout, "yes\n");
+    await session.exec(":", { hooks: { beforeExec } });
+    assert.deepEqual(seen, [['echo "$FROM_HOOK"', "/workspace"], ["state", true], ["after", true]]);
+    session.state = undefined;
+    assert.equal((await session.exec('echo "${FROM_HOOK-unset}"')).stdout, "unset\n");
+  } finally { bash.dispose(); }
+});
+
 test("session turns run in order across async hooks and recover after rejection", async () => {
   const bash = new RustWasmBash();
   try {

@@ -177,6 +177,7 @@ pub(super) fn run(
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
     let mut quality = 92.;
+    let mut adjoin = true;
     let mut mode = "over".to_owned();
     let mut gravity = "northwest".to_owned();
     let mut amounts = "";
@@ -218,13 +219,19 @@ pub(super) fn run(
                 iter.next()?;
             }
             "-composite" => {}
+            "-adjoin" => adjoin = true,
+            "+adjoin" if cmd != "composite" => adjoin = false,
             a if a.starts_with('-') && a != "-" => return None,
             a => operands.push(a),
         }
     }
-    let &[first, second, dest] = operands.as_slice() else {
+    let (&dest, inputs) = operands.split_last()?;
+    let &[first, second, ref rest @ ..] = inputs else {
         return None;
     };
+    if !rest.is_empty() && cmd != "composite" {
+        return None;
+    }
     let dest = super::png_pixels::destination(dest)?;
     let (base, overlay) = if cmd == "composite" {
         (second, first)
@@ -332,6 +339,14 @@ pub(super) fn run(
         ) || base.pixels.iter().any(|p| p[3] < 255);
     }
     let limit = fs.max_input_bytes();
+    let name = magick_stack::SceneName::parse(dest.1);
+    if images.frames.len() > 1 && (!adjoin || !matches!(name, magick_stack::SceneName::Literal)) {
+        let mut snapshots = magick_stack::Snapshots::default();
+        if let Err(e) = images.stage_split(name, dest, quality, limit, &mut snapshots) {
+            return fail(e);
+        }
+        return Some(snapshots.publish(cwd, fs));
+    }
     let encoded = if dest.0 == "gif" {
         images.gif(Default::default(), kernel, limit)
     } else {

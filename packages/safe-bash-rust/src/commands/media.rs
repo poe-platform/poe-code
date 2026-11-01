@@ -14517,6 +14517,10 @@ mod media_unit_tests {
             let name=args.split_whitespace().last().unwrap();
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{name}")).unwrap())),hash,"{args}");
         }
+        let r=run("composite","p.png a.gif frame-%02d.png");
+        assert_eq!(r.exit_code,0,"{}",r.stderr);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-00.png").unwrap())),"9fbef3cccab335666b189a5c410bc1a15a30a4ef6b753e46f73b5835175b018f");
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/frame-02.png").unwrap())),"862e92446a2e54553c1ccd96f66a2d90c7b3ec002fc0c59b89d58f6a725c2960");
     }
 
     #[test]

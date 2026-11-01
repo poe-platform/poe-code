@@ -89,6 +89,7 @@ fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, Option<bool>)>
 }
 
 struct ParticipantBox {
+    id: usize,
     label: String,
     fill: Option<(String, [u8; 4])>,
 }
@@ -107,6 +108,9 @@ impl Sequence {
         let mut chart = Self::default();
         let mut ids = BTreeMap::<String, usize>::new();
         let mut open_box: Option<&Statement> = None;
+        let mut stack = Vec::new();
+        let mut closed = 0;
+        let mut has_frame = false;
         for stmt in &stmts[1..] {
             let text = stmt.text.trim_end();
             let word = text.split_ascii_whitespace().next().unwrap_or("");
@@ -277,17 +281,34 @@ impl Sequence {
                     };
                     check_label(label, stmt, text)?;
                     chart.boxes.push(ParticipantBox {
+                        id: closed,
                         label: strip_quotes(label).into(),
                         fill,
                     });
                     open_box = Some(stmt);
                 }
                 "end" => {
-                    if open_box.take().is_none() {
+                    if let Some((_, _, start)) = stack.pop() {
+                        has_frame |= start < step;
+                    } else if open_box.take().is_none() {
                         return Err(fail("Unexpected 'end' without matching sequence block"));
                     }
+                    closed += 1;
                 }
-                "loop" | "opt" | "alt" | "else" => return Ok(None),
+                "loop" | "opt" | "alt" => {
+                    if stack.len() >= limit / 64 {
+                        return Err(BUDGET.into());
+                    }
+                    stack.push((word, stmt, step));
+                }
+                "else" => {
+                    if !stack
+                        .last()
+                        .is_some_and(|(kw, _, _)| kw.eq_ignore_ascii_case("alt"))
+                    {
+                        return Err(fail("'else' is only valid inside an 'alt' sequence block"));
+                    }
+                }
                 _ => {
                     let Some((from, to, label, marker, dashed, activation)) = message(text) else {
                         return Err(fail(&format!(
@@ -314,10 +335,17 @@ impl Sequence {
                 }
             }
         }
+        if let Some((kw, stmt, _)) = stack.pop() {
+            return Err(stmt.error(
+                "E_SYNTAX",
+                &stmt.text,
+                &format!("Unclosed sequence block '{}'", kw.to_ascii_lowercase()),
+            ));
+        }
         if let Some(stmt) = open_box {
             return Err(stmt.error("E_SYNTAX", &stmt.text, "Unclosed participant box"));
         }
-        Ok(Some(chart))
+        Ok((!has_frame).then_some(chart))
     }
 
     pub fn layout(
@@ -594,7 +622,7 @@ impl Sequence {
             paint: vec![],
         };
         let mut frame_idx = 0;
-        for (id, (group, extent)) in self.boxes.into_iter().zip(extents).enumerate() {
+        for (group, extent) in self.boxes.into_iter().zip(extents) {
             let Some([left, right, base]) = extent else {
                 continue;
             };
@@ -624,7 +652,7 @@ impl Sequence {
                 border,
             }
             .paint(
-                &format!("participant_box_{id}"),
+                &format!("participant_box_{}", group.id),
                 frame_idx,
                 prefix,
                 &mut scene.paint,

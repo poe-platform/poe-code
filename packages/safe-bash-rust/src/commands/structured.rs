@@ -38819,6 +38819,25 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_validates_sequence_blocks_and_omits_empty_frames() {
+        assert_mermaid_outputs(&[
+            ("sequenceDiagram\nalt Empty\nelse or\nend", "svg", "071bbab186626891c2aa5aa9b425a2408a916479960ae96d96b5c46895a4701a"),
+            ("sequenceDiagram\nopt Empty\nparticipant A\nend", "svg", "ba9ba39d3cf905683cf43cd844b4aec8f58bd322adcb105a796ad33ef86e2f7d"),
+            ("sequenceDiagram\nloop A\nalt B\nend\nend", "svg", "071bbab186626891c2aa5aa9b425a2408a916479960ae96d96b5c46895a4701a"),
+            ("sequenceDiagram\nloop open\nA->>B", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unclosed sequence block 'loop'\n"),
+            ("sequenceDiagram\nalt Outer\nloop Inner\nA->>B", "svg", "mmdc: E_SYNTAX (line 3, column 1): Unclosed sequence block 'loop'\n"),
+            ("sequenceDiagram\nopt Maybe\nelse", "svg", "mmdc: E_SYNTAX (line 3, column 1): 'else' is only valid inside an 'alt' sequence block\n"),
+            ("sequenceDiagram\nloop Outer\nalt Inner\nelse branch\nend\nelse bad\nend", "svg", "mmdc: E_SYNTAX (line 6, column 1): 'else' is only valid inside an 'alt' sequence block\n"),
+            ("sequenceDiagram\nelse nope", "svg", "mmdc: E_SYNTAX (line 2, column 1): 'else' is only valid inside an 'alt' sequence block\n"),
+            ("sequenceDiagram\nloop X\nA-broken\nend", "svg", "mmdc: E_SYNTAX (line 3, column 1): Unrecognized sequenceDiagram statement: 'A-broken'\n"),
+            ("sequenceDiagram\nalt valid\nNote odd X: test\nend", "svg", "mmdc: E_SYNTAX (line 3, column 1): Invalid sequence Note placement 'odd X' (expected 'left of', 'right of', or 'over')\n"),
+            ("sequenceDiagram\nalt Empty\nelse\nend\nbox blue B\nparticipant X\nend", "svg", "78187e58cc28f644d8ed6de6a255aae789c8451a9a08d0c67056761b64b14f66"),
+            ("sequenceDiagram\nloop L\nbox red Team\nactor X\nend\nend", "svg", "263f76c7bc660769bb365e0129963e0b77df0e82a75987d8ab8c10ed6a823ea6"),
+            ("sequenceDiagram\nloop Start\nactivate X\nend\nX->>X: after", "svg", "ec5d3e2af7cab61f69f9e4316e627bf3494b11e8cb33d0c118965d2c2298812e"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

@@ -94,19 +94,12 @@ pub(super) fn edit_png(
     bytes: &[u8],
     ops: &[(&str, String, String)],
     limit: usize,
-) -> Result<Vec<u8>, &'static str> {
+) -> Result<Vec<u8>, String> {
     let mut raster = super::png_pixels::Raster::decode(bytes, limit)?;
+    super::sips_geometry::transform(&mut raster, ops, limit)?;
     let mut props = read(bytes)?;
     for (op, key, value) in ops {
         match (*op, key.as_str()) {
-            ("f", direction) => {
-                if direction == "vertical" {
-                    raster.pixels.reverse();
-                }
-                for row in raster.pixels.chunks_exact_mut(raster.width) {
-                    row.reverse();
-                }
-            }
             ("d", _) => set(&mut props, key.clone(), None),
             ("s", "format" | "formatOptions") => {}
             ("s", "dpiWidth" | "dpiHeight") => {
@@ -121,7 +114,7 @@ pub(super) fn edit_png(
                 }
             }
             ("s", _) => set(&mut props, key.clone(), Some(value.clone())),
-            _ => unreachable!(),
+            _ => {}
         }
     }
     let mut png = raster.png();
@@ -134,7 +127,7 @@ pub(super) fn edit_png(
         size +=
             key.encode_utf16().count() + value.as_ref().map_or(4, |s| s.encode_utf16().count()) + 8;
         if size > 65500 {
-            return Err("sips metadata byte limit exceeded");
+            return Err("sips metadata byte limit exceeded".into());
         }
         let key = Value::String(key.encode_utf16().collect());
         let value = value.map_or(Value::Null, |v| Value::String(v.encode_utf16().collect()));
@@ -145,7 +138,7 @@ pub(super) fn edit_png(
         entries.into_iter().map(|(_, entry)| entry).collect(),
     ));
     if payload.len() > 65500 {
-        return Err("sips metadata byte limit exceeded");
+        return Err("sips metadata byte limit exceeded".into());
     }
     let prefix = b"safe-bash-sips\0\0\0\0\0";
     let mut chunk = ((prefix.len() + payload.len()) as u32)

@@ -101,6 +101,8 @@ mod bmp;
 mod identify;
 #[path = "netpbm.rs"]
 mod netpbm;
+#[path = "sips_geometry.rs"]
+mod sips_geometry;
 #[path = "sips_properties.rs"]
 mod sips_properties;
 #[path = "image_header.rs"]
@@ -10967,6 +10969,7 @@ fn cmd_media_doc(
                         if !oy.is_finite() || !ox.is_finite() {
                             return err_out("sips: invalid offset for --cropOffset\n", 1);
                         }
+                        ops.push(("offset", args[i+1].clone(), args[i+2].clone()));
                         i += 3;
                     }
                     "-p" | "--padToHeightWidth" => {
@@ -10979,7 +10982,8 @@ fn cmd_media_doc(
                         ops.push(("p", args[i + 1].clone(), args[i + 2].clone()));
                         i += 3;
                     }
-                    "--padColor" if i + 1 < args.len() => {
+                    "--padColor" => {
+                        ops.push(("color", args.get(i+1).cloned().unwrap_or_else(|| "000000".into()), String::new()));
                         i += 2;
                     }
                     "-s" | "--setProperty" => {
@@ -11303,8 +11307,7 @@ fn cmd_media_doc(
                         format!("{}/{name}", opath.trim_end_matches('/'))
                     } else { opath.clone() }
                 } else { f.clone() };
-                let encoded = if meta.fmt == "PNG" && png_pixels::supported_still(&bytes)
-                    && ops.iter().all(|(op, _, _)| matches!(*op, "s" | "d" | "f")) {
+                let encoded = if meta.fmt == "PNG" && png_pixels::supported_still(&bytes) {
                     match sips_properties::edit_png(&bytes, &ops, fs.max_input_bytes()) {
                         Ok(encoded) => encoded,
                         Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
@@ -13701,6 +13704,19 @@ mod media_unit_tests {
         assert_eq!(raster.density, 144);
         let payload = br#"[["artist",null],["dpiWidth","144.200"]]"#;
         assert!(tagged.windows(payload.len()).any(|w| w == payload));
+    }
+
+    #[test]
+    fn sips_applies_resize_before_rotation_and_only_keeps_the_last_crop_or_pad() {
+        let fs = MemoryVfs::new();
+        let png = pixel_png(2, 1, PngEncoding::Density(72), |x, _| [if x==0 {0} else {255}, 0, 0]);
+        fs.write_file("/photo.png", &png).unwrap();
+        let result = cmd_media_doc("sips", &media_args(&["-p", "20", "20", "-r", "90", "-z", "1", "2", "-c", "2", "1", "photo.png"]), "", "/", &fs);
+        assert_eq!(result.exit_code, 0);
+        let bytes = fs.read_file("/photo.png").unwrap();
+        let image = png_pixels::Raster::decode(&bytes, 1024).unwrap();
+        assert_eq!((image.width, image.height), (1, 2));
+        assert_eq!(image.pixels, [[0,0,0,255], [255,0,0,255]]);
     }
 
     #[test]

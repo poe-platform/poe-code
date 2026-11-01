@@ -7,6 +7,7 @@ pub(super) struct Frames<'a> {
     input: &'a [u8],
     pub rate: u32,
     pub channels: u8,
+    pub object: u8,
 }
 
 impl<'a> Frames<'a> {
@@ -15,6 +16,7 @@ impl<'a> Frames<'a> {
             input,
             rate: 44100,
             channels: 2,
+            object: 2,
         }
     }
 }
@@ -28,6 +30,7 @@ impl<'a> Iterator for Frames<'a> {
                 self.input = &input[1..];
                 continue;
             }
+            self.object = (input[2] >> 6) + 1;
             if let Some(rate) = RATES.get(usize::from(input[2] >> 2 & 15)) {
                 self.rate = *rate;
             }
@@ -48,6 +51,13 @@ impl<'a> Iterator for Frames<'a> {
     }
 }
 
+pub(super) fn silent(channels: u32) -> &'static [u8] {
+    if channels == 1 {
+        &[1, 64, 32, 7, 246, 0, 0]
+    } else {
+        &[33, 16, 4, 96, 140, 28]
+    }
+}
 pub(super) struct Options {
     pub start: f64,
     pub end: Option<f64>,
@@ -104,11 +114,7 @@ impl Options {
             }
         }
         if !written {
-            append(if channels == 1 {
-                &[1, 64, 32, 7, 246, 0, 0]
-            } else {
-                &[33, 16, 4, 96, 140, 28]
-            })?
+            append(silent(channels))?
         }
         Ok(output)
     }

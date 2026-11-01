@@ -1181,105 +1181,6 @@ fn eval_jq_atom(
         }
     }
 
-    for update_op in ["|=", "//=", "+=", "-=", "*=", "/=", "%=", "="] {
-        if let Some((lhs, rhs)) = split_jq_binary(s, update_op) {
-            if update_op == "=" && (lhs.ends_with('!') || lhs.ends_with('<') || lhs.ends_with('>') || lhs.ends_with('=') || lhs.ends_with('|') || lhs.ends_with('+') || lhs.ends_with('-') || lhs.ends_with('*') || lhs.ends_with('/') || lhs.ends_with('%') || rhs.starts_with('=')) {
-                continue;
-            }
-            return eval_jq_update(&lhs, update_op, &rhs, input, vars);
-        }
-    }
-
-    if let Some((lhs, rhs)) = split_jq_binary(s, "//") && !lhs.ends_with('?') {
-        let lvals = eval_jq(&lhs, input, vars).unwrap_or_default();
-        let truthy: Vec<JVal> = lvals.into_iter().filter(|v| v.is_truthy()).collect();
-        if !truthy.is_empty() {
-            return Ok(truthy);
-        }
-        return eval_jq(&rhs, input, vars);
-    }
-
-    for logic_op in [" or ", " and "] {
-        if let Some((lhs, rhs)) = split_jq_binary(s, logic_op) {
-            let lv = eval_jq(&lhs, input, vars)?
-                .first()
-                .map(|v| v.is_truthy())
-                .unwrap_or(false);
-            let rv = eval_jq(&rhs, input, vars)?
-                .first()
-                .map(|v| v.is_truthy())
-                .unwrap_or(false);
-            let res = if logic_op.trim() == "or" {
-                lv || rv
-            } else {
-                lv && rv
-            };
-            return Ok(vec![JVal::Bool(res)]);
-        }
-    }
-
-    for cmp_op in ["==", "!=", "<=", ">=", "<", ">"] {
-        if let Some((lhs, rhs)) = split_jq_binary(s, cmp_op) {
-            let lv = eval_jq(&lhs, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null);
-            let rv = eval_jq(&rhs, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null);
-            let ord = compare_jval(&lv, &rv);
-            let yq_eq = if vars.yq.is_some()
-                && let (JVal::Str(lx), JVal::Str(ry)) = (&lv, &rv)
-                && (ry.contains('*') || ry.contains('?'))
-            {
-                yq_glob_match(lx, ry)
-            } else {
-                jval_eq(&lv, &rv)
-            };
-            let res = match cmp_op {
-                "==" => yq_eq,
-                "!=" => !yq_eq,
-                "<=" => ord != std::cmp::Ordering::Greater,
-                ">=" => ord != std::cmp::Ordering::Less,
-                "<" => ord == std::cmp::Ordering::Less,
-                ">" => ord == std::cmp::Ordering::Greater,
-                _ => false,
-            };
-            return Ok(vec![JVal::Bool(res)]);
-        }
-    }
-
-    for add_op in ["+", "-"] {
-        if let Some((lhs, rhs)) = split_jq_binary_right(s, add_op) {
-            if !lhs.trim().is_empty() {
-                let lv = eval_jq(&lhs, input, vars)?
-                    .into_iter()
-                    .next()
-                    .unwrap_or(JVal::Null);
-                let rv = eval_jq(&rhs, input, vars)?
-                    .into_iter()
-                    .next()
-                    .unwrap_or(JVal::Null);
-                return Ok(vec![apply_jq_arith(&lv, &rv, add_op)?]);
-            }
-        }
-    }
-
-    for mul_op in ["*", "/", "%"] {
-        if let Some((lhs, rhs)) = split_jq_binary_right(s, mul_op) {
-            let lv = eval_jq(&lhs, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null);
-            let rv = eval_jq(&rhs, input, vars)?
-                .into_iter()
-                .next()
-                .unwrap_or(JVal::Null);
-            return Ok(vec![apply_jq_arith(&lv, &rv, mul_op)?]);
-        }
-    }
-
     if let Some(inner) = s.strip_prefix('-')
         && !inner.is_empty()
     {
@@ -4951,15 +4852,6 @@ fn split_jq_binary_right(s: &str, op: &str) -> Option<(String, String)> {
         let c = chars[i];
         if c == '"' {
             i = skip_jq_string(&chars, i);
-            continue;
-        }
-        if matches!(op, "+" | "-") && c.is_ascii_digit() && (i == 0 || !(chars[i-1].is_alphanumeric() || chars[i-1] == '_')) {
-            while chars.get(i).is_some_and(|c| c.is_ascii_digit() || *c == '.') {i+=1;}
-            if matches!(chars.get(i),Some('e'|'E')) {
-                i+=1;
-                if matches!(chars.get(i),Some('+'|'-')) {i+=1;}
-                while chars.get(i).is_some_and(char::is_ascii_digit) {i+=1;}
-            }
             continue;
         }
         {

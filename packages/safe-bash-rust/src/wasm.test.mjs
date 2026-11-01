@@ -3,6 +3,28 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq binary operators visit every operand in order and short-circuit unused filters", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout] of [
+      ["[(10,20) - (1,2)]", "[9,19,8,18]\n"],
+      ["[(1,2) == (2,1)]", "[false,true,true,false]\n"],
+      ["[first(inputs) - first(inputs),inputs]", "[1,3]\n"],
+      ['[false and error("x"),true or error("y")]', "[false,true]\n"],
+      ["[(false,true) and (true,false)]", "[false,true,false]\n"],
+      ['first((1,error("late")) // 3)', "1\n"],
+      ['try (error("x") // 2) catch .', '"x"\n'],
+      ['first((1,error("late")) + 2)', "3\n"],
+      ["[.a // .b=5]", '[{"b":5}]\n'],
+      ["(1,2)+empty", ""],
+      ["[1+-2,2*-3,1e-2+2e-2]", "[-1,-6,0.03]\n"],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}' <<< '1 2 3'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, stdout, ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq parses arguments, file variables and string conversions with its input grammar", async () => {
   const bash = new RustWasmBash({ files: {"/workspace/bad": "[1,]", "/workspace/-": "1 2"} });
   try {

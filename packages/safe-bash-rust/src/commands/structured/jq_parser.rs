@@ -195,6 +195,81 @@ impl<'a> Lexer<'a> {
     }
 }
 
+fn precedence(op: &str) -> Option<u8> {
+    Some(match op {
+        "|" => 1,
+        "," => 2,
+        "//" => 3,
+        "=" | "|=" | "+=" | "-=" | "*=" | "/=" | "%=" | "//=" => 4,
+        "or" => 5,
+        "and" => 6,
+        "==" | "!=" => 7,
+        "<" | ">" | "<=" | ">=" => 8,
+        "+" | "-" => 9,
+        "*" | "/" | "%" => 10,
+        _ => return None,
+    })
+}
+
+// The evaluator still accepts source slices (including yq expressions). Use the
+// compiler's tokens so exponent signs, strings and nested filters remain intact.
+pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
+    let mut lexer = Lexer::new(source);
+    let mut lowest = u8::MAX;
+    let mut root = None;
+    let (mut depth, mut strings, mut conditions) = (0usize, 0usize, 0usize);
+    let mut can_end = false;
+    let mut previous = "";
+    let mut end = 0;
+    loop {
+        let t = lexer.next().ok()?;
+        match t.kind {
+            Kind::End => break,
+            Kind::Quote => {
+                strings += 1;
+                continue;
+            }
+            Kind::EndQuote => {
+                strings -= 1;
+                can_end = true;
+                previous = t.text;
+                continue;
+            }
+            _ if strings != 0 => continue,
+            _ => {}
+        }
+        let property =
+            matches!(previous, "." | "$" | "@" | "::") && end == t.at && t.kind == Kind::Name;
+        end = t.at + t.text.len();
+        if matches!(t.text, "(" | "[" | "{") {
+            depth += 1;
+        } else if matches!(t.text, ")" | "]" | "}") {
+            depth = depth.checked_sub(1)?;
+        } else if depth == 0 && !property && t.text == "if" {
+            conditions += 1;
+        } else if depth == 0 && conditions != 0 && !property && t.text == "end" {
+            conditions -= 1;
+        } else if depth == 0
+            && conditions == 0
+            && !property
+            && can_end
+            && let Some(prec) = precedence(t.text)
+        {
+            if prec < lowest || (prec == lowest && prec != 4) {
+                root = Some((&source[..t.at], t.text, &source[t.at + t.text.len()..]));
+                lowest = prec;
+            }
+            can_end = false;
+            previous = t.text;
+            continue;
+        }
+        can_end = matches!(t.kind, Kind::Name | Kind::Number)
+            || matches!(t.text, "." | ".." | ")" | "]" | "}" | "?");
+        previous = t.text;
+    }
+    root.filter(|_| lowest >= 3)
+}
+
 fn builtin(name: &str, arity: usize) -> bool {
     match name {
         "abs" | "add" | "arrays" | "ascii_downcase" | "ascii_upcase" | "booleans" | "ceil"
@@ -459,19 +534,12 @@ impl<'a> Parser<'a, '_> {
                 self.variables.truncate(mark);
                 continue;
             }
-            let prec = match self.current.text {
-                "|" => 1,
-                "," if !stop_comma => 2,
-                "//" => 3,
-                "=" | "|=" | "+=" | "-=" | "*=" | "/=" | "%=" | "//=" => 4,
-                "or" => 5,
-                "and" => 6,
-                "==" | "!=" => 7,
-                "<" | ">" | "<=" | ">=" => 8,
-                "+" | "-" => 9,
-                "*" | "/" | "%" => 10,
-                _ => break,
+            let Some(prec) = precedence(self.current.text) else {
+                break;
             };
+            if stop_comma && self.current.text == "," {
+                break;
+            }
             if prec < min {
                 break;
             }

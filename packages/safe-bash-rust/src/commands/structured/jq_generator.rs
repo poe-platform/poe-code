@@ -154,6 +154,73 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             emit,
         );
     }
+    if !s.starts_with("label $")
+        && let Some((left, op, right)) = super::jq_parser::binary(s)
+    {
+        if op == "//" {
+            let mut found = false;
+            let flow = visit_jq(left, input, vars, &mut |v| {
+                if v.is_truthy() {
+                    found = true;
+                    emit(v)
+                } else {
+                    Ok(Continue(()))
+                }
+            })?;
+            return if found {
+                Ok(flow)
+            } else {
+                visit_jq(right, input, vars, emit)
+            };
+        }
+        if matches!(op, "and" | "or") {
+            return visit_jq(left, input, vars, &mut |v| {
+                if v.is_truthy() == (op == "or") {
+                    emit(JVal::Bool(v.is_truthy()))
+                } else {
+                    visit_jq(right, input, vars, &mut |r| emit(JVal::Bool(r.is_truthy())))
+                }
+            });
+        }
+        if matches!(op, "=" | "|=" | "+=" | "-=" | "*=" | "/=" | "%=" | "//=") {
+            for v in super::eval_jq_update(left, op, right, input, vars)? {
+                if emit(v)?.is_break() {
+                    return Ok(Break(()));
+                }
+            }
+            return Ok(Continue(()));
+        }
+        let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+        return visit_jq(right, input, vars, &mut |r| {
+            visit_jq(left, input, vars, &mut |l| {
+                remaining = remaining.checked_sub(1).ok_or("maxSteps limit exceeded")?;
+                let value = match op {
+                    "==" | "!=" => {
+                        let equal = match (&l, &r) {
+                            (JVal::Str(a), JVal::Str(b))
+                                if vars.yq.is_some() && b.contains(['*', '?']) =>
+                            {
+                                super::yq_glob_match(a, b)
+                            }
+                            _ => super::jval_eq(&l, &r),
+                        };
+                        JVal::Bool(equal == (op == "=="))
+                    }
+                    "<" | "<=" | ">" | ">=" => {
+                        let order = super::compare_jval(&l, &r);
+                        JVal::Bool(match op {
+                            "<" => order.is_lt(),
+                            "<=" => order.is_le(),
+                            ">" => order.is_gt(),
+                            _ => order.is_ge(),
+                        })
+                    }
+                    _ => super::apply_jq_arith(&l, &r, op)?,
+                };
+                emit(value)
+            })
+        });
+    }
     if !vars.functions.is_empty() || s.ends_with(')') {
         let (name, args) = s
             .find('(')

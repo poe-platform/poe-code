@@ -201,6 +201,7 @@ fn apply_magick_resize_geom(w: u32, h: u32, spec: &str) -> (u32, u32) {
 }
 
 fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
+    if let Some(fmt)=heif::format(bytes){return heif::header(bytes).image_meta(fmt);}
     let mut meta = ImageMeta {
         fmt: format_from_path(path).to_string(),
         w: 32,
@@ -273,6 +274,7 @@ fn magick_number(value: &str, empty: f64) -> f64 {
 }
 
 fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, u8, u8, u32), &'static str> {
+    if let Some(fmt)=heif::format(bytes){let h=heif::header(bytes);return Ok((h.image_meta(fmt),h.depth,h.channels,h.density));}
     if !image_header::recognized_image(bytes) { return Err("Input buffer contains unsupported image format"); }
     if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.len() < 24 { return Err("Invalid PNG header"); }
     let mut meta = read_image_meta(bytes, path);
@@ -14459,6 +14461,18 @@ mod media_unit_tests {
         let r=cmd_media_doc("sips",&media_args(&["-s","format","gif","-r","37","-f","horizontal","a.gif","--out","turned.gif"]),"","/",&fs);
         assert_eq!(r.exit_code,0,"{}",r.stderr);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/turned.gif").unwrap())),"0b27f8a0a9bb8f715c4803743a4cd3999915231610cfc2b1ce983083e2af50bc");
+    }
+
+    #[test]
+    fn reads_image_ast_heif_by_content() {
+        let im=png_pixels::Raster {
+            width:4, height:5, gray:false, alpha:true, density:240, orientation:Some(6),
+            pixels:(0..20).map(|i|std::array::from_fn(|j|((i*4+j)*43) as u8)).collect(),
+        };
+        let bytes=heif::encode(&im,"heic",240,4096).unwrap();
+        let (meta,depth,channels,density)=inspect_raster(&bytes,"wrong.png",4).unwrap();
+        assert_eq!((meta.fmt.as_str(),meta.w,meta.h,depth,channels,density),("HEIC",4,5,8,4,240));
+        assert_eq!(heif::header(&bytes).orientation,Some(6));
     }
 
     #[test]

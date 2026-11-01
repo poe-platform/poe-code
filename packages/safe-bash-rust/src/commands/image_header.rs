@@ -9,36 +9,7 @@ pub(super) fn recognized_image(b: &[u8]) -> bool {
     {
         return true;
     }
-    if b.len() >= 16 && b.get(4..8) == Some(b"ftyp") {
-        let size = u32::from_be_bytes(b[..4].try_into().unwrap()) as usize;
-        let end = if size == 0 || size > b.len() {
-            b.len().min(64)
-        } else {
-            size
-        };
-        let brand = |v: &[u8]| {
-            matches!(
-                v,
-                b"heic"
-                    | b"heix"
-                    | b"hevc"
-                    | b"hevx"
-                    | b"heim"
-                    | b"heis"
-                    | b"hevm"
-                    | b"hevs"
-                    | b"avif"
-                    | b"avis"
-                    | b"avio"
-                    | b"mif1"
-                    | b"msf1"
-                    | b"heif"
-            )
-        };
-        if end >= 16 && (brand(&b[8..12]) || b[16..end].chunks_exact(4).any(brand)) {
-            return true;
-        }
-    }
+    if super::heif::format(b).is_some() { return true; }
     if b[..b.len().min(1029)].windows(5).any(|v| v == b"%PDF-") {
         return true;
     }

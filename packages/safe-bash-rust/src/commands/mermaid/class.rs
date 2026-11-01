@@ -74,6 +74,7 @@ fn member(
 pub(super) fn parse(
     lines: &[Statement],
     wrapping: f64,
+    secondary: f64,
     limit: usize,
 ) -> Result<Option<Graph<'static>>, String> {
     let mut graph = Graph::core(wrapping, limit);
@@ -203,8 +204,48 @@ pub(super) fn parse(
         } else {
             let colon = outside(text, |s| s.starts_with(':'));
             let prefix = &text[..colon.unwrap_or(text.len())];
-            if outside(prefix, |s| s.starts_with("--") || s.starts_with("..")).is_some() {
-                return Ok(None);
+            let find_op = |suffix: &str| {
+                let i = text.len() - suffix.len();
+                if i == 0 {
+                    return None;
+                }
+                OPS.iter().copied().find(|&op| {
+                    suffix.starts_with(op)
+                        && (op != "o--" || text[..i].ends_with([' ', '\t', '\r', '\n', '\'', '"']))
+                        && !suffix[op.len()..].trim_start().is_empty()
+                })
+            };
+            if let Some(i) = outside(prefix, |s| {
+                find_op(&text[prefix.len() - s.len()..]).is_some()
+            }) {
+                let op = find_op(&text[i..]).unwrap();
+                let tail = text[i + op.len()..].trim_ascii();
+                let (right, label) = outside(tail, |s| s.starts_with(':'))
+                    .map_or((tail, ""), |j| {
+                        (tail[..j].trim_ascii(), strip_quotes(&tail[j + 1..]))
+                    });
+                if !right.is_empty() {
+                    let (left, source_label) = endpoint(&text[..i], true);
+                    let (right, target_label) = endpoint(right, false);
+                    if source_label.is_some() || target_label.is_some() {
+                        return Ok(None);
+                    }
+                    let (a, _) = ensure(left)?;
+                    let (b, _) = ensure(right)?;
+                    check_label(label, stmt, text)?;
+                    if graph.edges.len() >= limit / 300 {
+                        return Err("mmdc: E_LIMIT: Edge limit exceeded\n".into());
+                    }
+                    graph.connect(a, b, op);
+                    if !label.is_empty() {
+                        let pill =
+                            super::Pill::new(label, wrapping, secondary, graph.remaining_lines)
+                                .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
+                        graph.remaining_lines -= pill.lines.len();
+                        graph.edges.last_mut().unwrap().3 = Some(pill);
+                    }
+                    continue;
+                }
             }
             if let Some(i) = colon
                 && i > 0
@@ -238,4 +279,105 @@ pub(super) fn parse(
         ));
     }
     Ok(Some(graph))
+}
+
+const OPS: &[&str] = &[
+    "<|--", "--|>", "<|..", "..|>", "*--", "--*", "o--", "--o", "<--", "-->", "<..", "..>", "--",
+    "..",
+];
+
+fn endpoint(raw: &str, source: bool) -> (&str, Option<&str>) {
+    let s = raw.trim_ascii();
+    if source {
+        if let Some(q) = s.chars().next_back().filter(|c| matches!(c, '"' | '\''))
+            && let Some(i) = s[..s.len() - 1].rfind(q)
+            && i > 0
+        {
+            return (
+                strip_quotes(s[..i].trim_ascii()),
+                Some(strip_quotes(&s[i..])),
+            );
+        }
+    } else if let Some(q) = s.chars().next().filter(|c| matches!(c, '"' | '\''))
+        && let Some(i) = s[1..].find(q)
+        && i + 2 < s.len()
+    {
+        return (
+            strip_quotes(s[i + 2..].trim_ascii()),
+            Some(strip_quotes(&s[..i + 2])),
+        );
+    }
+    (strip_quotes(s), None)
+}
+
+pub(super) enum Uml {
+    Triangle,
+    Composition,
+    Aggregation,
+}
+impl Uml {
+    pub fn from_operator(op: &str) -> Option<(bool, Self)> {
+        Some(match op {
+            "<|--" | "<|.." => (true, Self::Triangle),
+            "--|>" | "..|>" => (false, Self::Triangle),
+            "*--" => (true, Self::Composition),
+            "--*" => (false, Self::Composition),
+            "o--" => (true, Self::Aggregation),
+            "--o" => (false, Self::Aggregation),
+            _ => return None,
+        })
+    }
+    pub fn pullback(&self) -> f64 {
+        if matches!(self, Self::Triangle) {
+            9.5
+        } else {
+            11.5
+        }
+    }
+    #[allow(clippy::too_many_arguments)]
+    pub fn paint(
+        &self,
+        (x, y): (f64, f64),
+        angle: f64,
+        (edge, stroke): (&str, [u8; 4]),
+        theme: &super::config::Theme,
+        budget: &mut usize,
+        el: &mut String,
+        paint: &mut Vec<super::raster::Paint>,
+    ) -> Result<(), String> {
+        use std::fmt::Write;
+        let (fill, rgba) = if matches!(self, Self::Composition) {
+            (edge, stroke)
+        } else {
+            theme.color("canvas")
+        };
+        super::config::charge_attributes(budget, &[(edge, 1), (fill, 1)])?;
+        let (path, points, width): (_, &[(f64, f64)], _) = if matches!(self, Self::Triangle) {
+            (
+                "-10,-4 0,0 -10,4",
+                &[(-10., -4.), (0., 0.), (-10., 4.)],
+                1.5,
+            )
+        } else {
+            (
+                "-12,0 -6,-3.5 0,0 -6,3.5",
+                &[(-12., 0.), (-6., -3.5), (0., 0.), (-6., 3.5)],
+                1.4,
+            )
+        };
+        let (sin, cos) = angle.sin_cos();
+        let degrees = (angle.to_degrees() * 100. + 0.5).floor() / 100.;
+        write!(el,r#"<g transform="translate({x}, {y}) rotate({degrees})"><polygon points="{path}" fill="{fill}" stroke="{edge}" stroke-width="{width}" stroke-linejoin="round"/></g>"#).unwrap();
+        paint.push(super::raster::Paint::Path {
+            points: points
+                .iter()
+                .map(|&(a, b)| (x + (a * cos - b * sin), y + (a * sin + b * cos)))
+                .collect(),
+            fill: Some(rgba),
+            stroke,
+            width,
+            dashed: false,
+        });
+        Ok(())
+    }
 }

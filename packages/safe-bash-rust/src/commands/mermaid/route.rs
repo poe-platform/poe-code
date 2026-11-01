@@ -23,11 +23,13 @@ fn towards(a: Point, b: Point, dist: f64) -> Point {
     )
 }
 impl Route {
-    pub fn rounded(points: &mut [Point], start_arrow: bool, end_arrow: bool, elbow: f64) -> Self {
+    pub fn rounded(points: &mut [Point], pull: [f64; 2], elbow: f64) -> Self {
         let last = points.len() - 1;
-        for (i, j, arrow) in [(0, 1, start_arrow), (last, last - 1, end_arrow)] {
-            if arrow && (points[i].0 - points[j].0).hypot(points[i].1 - points[j].1) > 7.8 {
-                points[i] = towards(points[i], points[j], 6.8);
+        for (i, j, distance) in [(0, 1, pull[0]), (last, last - 1, pull[1])] {
+            if distance > 0.
+                && (points[i].0 - points[j].0).hypot(points[i].1 - points[j].1) > distance + 1.
+            {
+                points[i] = towards(points[i], points[j], distance);
             }
         }
         let mut segments = Vec::new();

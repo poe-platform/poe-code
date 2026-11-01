@@ -580,7 +580,7 @@ pub(super) fn parse<'a>(
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
     if keyword == "classDiagram" {
-        return class::parse(lines, wrapping_width, limit).transpose();
+        return class::parse(lines, wrapping_width, secondary_size, limit).transpose();
     }
     if keyword == "erDiagram" {
         return Some(er::parse(lines, wrapping_width, secondary_size, limit));
@@ -1014,10 +1014,16 @@ pub(super) fn layout(
     for (idx, ((a, b, op, label), mut points)) in edges.into_iter().zip(waypoints).enumerate() {
         let styled = styles.edge(idx);
         let (edge, edge_color) = styled.stroke.unwrap_or((edge, edge_color));
+        let uml = (nodes[a].shape == Shape::Class)
+            .then(|| class::Uml::from_operator(op))
+            .flatten();
+        let arrow = uml.is_none() && op.ends_with('>');
+        let start_arrow = uml.is_none() && op.starts_with('<');
+        let open_arrow = uml.is_none() && op == "--o";
         let copies = 1
-            + 2 * usize::from(op.starts_with('<'))
-            + 2 * usize::from(op.ends_with('>'))
-            + usize::from(matches!(op, "--o" | "--x"));
+            + 2 * usize::from(start_arrow)
+            + 2 * usize::from(arrow)
+            + usize::from(open_arrow || op == "--x");
         if let Err(e) = config::charge_attributes(&mut styles.budget, &[(edge, copies)]) {
             return Some(Err(e));
         }
@@ -1035,8 +1041,6 @@ pub(super) fn layout(
                 "mmdc: E_LIMIT: Scene geometry verification failed: Invariant 4 {message}\n"
             )));
         }
-        let arrow = op.ends_with('>');
-        let start_arrow = op.starts_with('<');
         let stroke = styled
             .width
             .unwrap_or(stroke_width + f64::from(u8::from(op.contains("=="))));
@@ -1045,7 +1049,14 @@ pub(super) fn layout(
         } else {
             ""
         };
-        let route = route::Route::rounded(&mut points, start_arrow, arrow, elbow);
+        let mut pull = [
+            if start_arrow { 6.8 } else { 0. },
+            if arrow { 6.8 } else { 0. },
+        ];
+        if let Some((start, ref shape)) = uml {
+            pull[usize::from(!start)] = shape.pullback();
+        }
+        let route = route::Route::rounded(&mut points, pull, elbow);
         let path = route.svg();
         edge_paint.push(Paint::Edge {
             route,
@@ -1086,7 +1097,7 @@ pub(super) fn layout(
                 write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
             }
         }
-        if op == "--o" {
+        if open_arrow {
             edge_paint.push(marker(
                 ex,
                 ey,
@@ -1115,9 +1126,27 @@ pub(super) fn layout(
                 }
             }
         }
+        if let Some((start, shape)) = uml {
+            let (tip, angle) = if start {
+                ((x, y), start_angle)
+            } else {
+                ((ex, ey), angle)
+            };
+            if let Err(e) = shape.paint(
+                tip,
+                angle,
+                (edge, edge_color),
+                theme,
+                &mut styles.budget,
+                &mut el,
+                &mut edge_paint,
+            ) {
+                return Some(Err(e));
+            }
+        }
         let angle = degrees(angle);
         match op {
-            "--o" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="{edge}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>"#).ok()?,
+            "--o" if open_arrow => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -8 -3.5 L 0 0 L -8 3.5" fill="none" stroke="{edge}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></g>"#).ok()?,
             "--x" => write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M -9 -4 L -1 4 M -9 4 L -1 -4" fill="none" stroke="{edge}" stroke-width="1.75" stroke-linecap="round"/></g>"#).ok()?,
             _ => {}
         }

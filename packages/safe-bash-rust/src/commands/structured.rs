@@ -38549,6 +38549,37 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_draws_class_relationships_and_uml_markers() {
+        assert_mermaid_outputs(&[
+            ("classDiagram\ndirection TD\nA --|> B : link", "svg", "e88468d26f06b766b404abdd17342b2168f722f593c1500117af910e977bfef4"),
+            ("classDiagram\nnamespace Internal {\nclass Server\n}\nClient --> Server: request", "svg", "1fe9437270265be71d7cc69aedfbb84137ef143733f6f33f0e84361f027fb5d9"),
+            ("classDiagram\n\"A -- B\" ..> \"Y: Z\": \"use: this\"", "svg", "551a59fea10f1df162f5bded5cbb516c697b4d6ea935098fe06cfb72cffe7b00"),
+            ("classDiagram\nclass Child {\n+string label\n+paint(): void\n}\nParent <|-- Child", "svg", "5b24e466d3e0fcb41ea3d5c736f64f3e3de457a82ff81a4472ea340cd519d35d"),
+            ("classDiagram\nA --> A: revisit", "svg", "a26e72f7c246b9433e160f4ce51bcf6efdc66796aa68768fc79944cfa5c68354"),
+            ("classDiagram\ndirection LR\nBase <|-- Child: link", "svg", "5d55277f111da9a22c5a14c019a6f1a77d4025cbbc4e74157eba0eaabb8291d1"),
+            ("classDiagram\ndirection LR\nBase <|-- Child: link", "png", "96e7e56d787628e758cdcc84011a2edf433c7d55b5c975dd7f072a1ba7ec0bdf"),
+            ("classDiagram\ndirection LR\nBase <|-- Child: link", "pdf", "c09cbace8a9ba1ad293963093dc2f3f631c291f1a7e9503c4cbec1b4b469ee61"),
+            ("classDiagram\ndirection LR\nBase --|> Child: link", "svg", "f6b197ce91c1a75fe0a8f49cdf01807d7ce1956f8717a41e22cf7c46b4392ece"),
+            ("classDiagram\ndirection LR\nBase <|.. Child: link", "svg", "298361faa4bf34bc7523de15834a0b28fcd5ef29acc7762abed8cdc1cdf80212"),
+            ("classDiagram\ndirection LR\nBase ..|> Child: link", "svg", "11b27886cce67a2a46b375593f409c67e04ae8c19e5ed1050f47c651df623872"),
+            ("classDiagram\ndirection LR\nBase *-- Child: link", "svg", "389a5e280f7860d7fdf143116326e226335a8136d0ee119ea817cf006f4cc249"),
+            ("classDiagram\ndirection LR\nBase --* Child: link", "svg", "9a0b4cde9a160f0edd0bf1edbeaf946bc93bebc4237639de30292f4435cd319a"),
+            ("classDiagram\ndirection LR\nBase --* Child: link", "png", "b9bec0f1c4fa9b50233032447f37e91ab9151e734966df06e58e23dcab3cab69"),
+            ("classDiagram\ndirection LR\nBase --* Child: link", "pdf", "f0713eebc118ab39457bb38d55d812ce78b55d5e4ef40329290d320f85f39419"),
+            ("classDiagram\ndirection LR\nBase o-- Child: link", "svg", "27b8de5f607889187d32ac488311d5797b1b66b7172eba0fb28fc775734fa4ad"),
+            ("classDiagram\ndirection LR\nBase o-- Child: link", "png", "947b3ea9dafb878c1ec956d166afa07f1d547a04ea9498c1f324f1a1a47f58dd"),
+            ("classDiagram\ndirection LR\nBase o-- Child: link", "pdf", "aaa36de58821978fd287df3b3b36ae0e06fbb99a4842a19f0472dadd51bf8702"),
+            ("classDiagram\ndirection LR\nBase --o Child: link", "svg", "e9680780b5a230d3df01ca551c4c358a23a6d9a56e25511d95ea2409fbad2251"),
+            ("classDiagram\ndirection LR\nBase <-- Child: link", "svg", "6ae46ad9ea7ebb9a1dc58bfa7e56c4889f3ab920ebf67a8a812bd5e7d51b1162"),
+            ("classDiagram\ndirection LR\nBase --> Child: link", "svg", "8f06f00bb4a607149fed8f94403c4504e5488cd1a59acb5dcb0d2d470dfab146"),
+            ("classDiagram\ndirection LR\nBase <.. Child: link", "svg", "5f59e952bd05125ebd906804a758d8524bba3ed0da5ffb4f94749f90a8229938"),
+            ("classDiagram\ndirection LR\nBase ..> Child: link", "svg", "1741f5109ab9480aa61f148c9960f0e0c2cef7f8ad2bdbf9f8d67f3bbbfc5def"),
+            ("classDiagram\ndirection LR\nBase -- Child: link", "svg", "ec9c361207e0b9085ad1118bc8003b87970514c2c247f2d8de4283794e937c37"),
+            ("classDiagram\ndirection LR\nBase .. Child: link", "svg", "2cb36e499e7b119684cd28c9f21a2077c3da1c1da9e3c1b9dea4ec2720b7b076"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

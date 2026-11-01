@@ -1250,13 +1250,14 @@ impl<'a> EvalState<'a> {
     }
 
     fn set_pipestatus(&mut self, codes: &[i32]) {
-        let is_indexed = self.env.contains_key("\0keys__PIPESTATUS")
-            || self.env.keys().any(|k| k.starts_with("PIPESTATUS["));
         let pipestatus_attr = self
             .env
             .get("\0attr__PIPESTATUS")
             .map(|s| s.as_str())
             .unwrap_or("");
+        let is_indexed = pipestatus_attr.contains('a')
+            || self.env.contains_key("\0keys__PIPESTATUS")
+            || self.env.keys().any(|k| k.starts_with("PIPESTATUS["));
         let is_readonly = pipestatus_attr.contains('r');
         let is_exported = pipestatus_attr.contains('x');
         let in_local_scope = self

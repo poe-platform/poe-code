@@ -6,7 +6,7 @@ import {svgAttributes,svgCharacter,svgHeaderStart,svgText,svgViewBox,type SvgSpa
 import {SvgNumber} from "./svg-number.js";
 import {svgPathSteps,svgPathTokenSteps,type SvgPathToken} from "./svg-path.js";
 import {SvgRecords} from "./svg-records.js";
-import {rasterSvgElement,type SvgMatrix,type SvgPixel,type SvgPoint} from "./svg-renderer.js";
+import {rasterSvgElement,svgInheritedFields,type SvgMatrix,type SvgPixel,type SvgPoint} from "./svg-renderer.js";
 import {applySvgTransform,multiplySvgMatrices} from "./svg-transform.js";
 
 const fieldNames=['cx','cy','fill','fill-opacity','font-size','height','opacity','r','rx','ry','stroke','stroke-opacity','stroke-width','text-anchor','width','x','x1','x2','y','y1','y2','d','points','transform'];
@@ -94,9 +94,11 @@ async function* textCodes(reader:SourceBytes,span:SvgSpan):AsyncGenerator<number
 /** Parse retained SVG ranges and drive the same geometry as the byte API. */
 export async function* svgSourcePixels(source:ImageByteSource,storage:ImageByteStorage,signal:AbortSignal,metadata:ImageMetadata):AsyncGenerator<SvgPixel|undefined>{
  const reader=new SourceBytes(source,signal,'SVG'),header=await svgHeaderStart(reader,source.size);
- const root=header===undefined?new Map<string,SvgSpan>():await svgAttributes(reader,header,source.size,['viewbox']);
+ const root=header===undefined?new Map<string,SvgSpan>():await svgAttributes(reader,header,source.size,['viewbox',...svgInheritedFields]);
  const box=await svgViewBox(source,root.get('viewbox'),signal),{width,height,density}=metadata;
  const vbW=box?.[2]??width/(density/72),vbH=box?.[3]??height/(density/72),scaleX=width/Math.max(1e-6,vbW),scaleY=height/Math.max(1e-6,vbH);
+ const inherited=new Map(root);inherited.delete('viewbox');
+ const frameSize=56+svgInheritedFields.length*16;
  let active:SvgMatrix=[scaleX,0,0,scaleY,-(box?.[0]??0)*scaleX,-(box?.[1]??0)*scaleY],stack=-1,work=0;
  for(let position=0;position<source.size;position++){
   if(await reader.at(position)!==60)continue;
@@ -114,17 +116,31 @@ export async function* svgSourcePixels(source:ImageByteSource,storage:ImageByteS
   }else position=end;
   const spans=await svgAttributes(reader,nameStart+tag.length,end+1,fieldNames);
   if(tag==='g'){
-   if(close){if(stack>=0){const bytes=await storage.read(stack,56,{signal});signal.throwIfAborted();if(bytes.length!==56)throw new Error('Truncated SVG transform stack');const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);stack=view.getFloat64(0,true);active=[view.getFloat64(8,true),view.getFloat64(16,true),view.getFloat64(24,true),view.getFloat64(32,true),view.getFloat64(40,true),view.getFloat64(48,true)];}}
-   else if(await reader.at(end-1)!==47){
-    const next=await transform(source,reader,spans.get('transform'),active,signal),address=storage.allocate(56),bytes=new Uint8Array(56),view=new DataView(bytes.buffer);
-    if(!Number.isSafeInteger(address)||address<0||!Number.isSafeInteger(address+56))throw new RangeError('Invalid SVG backing allocation');
+   if(close){if(stack>=0){
+    const bytes=await storage.read(stack,frameSize,{signal});signal.throwIfAborted();
+    if(bytes.length!==frameSize)throw new Error('Truncated SVG group stack');
+    const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);stack=view.getFloat64(0,true);
+    active=[view.getFloat64(8,true),view.getFloat64(16,true),view.getFloat64(24,true),view.getFloat64(32,true),view.getFloat64(40,true),view.getFloat64(48,true)];
+    inherited.clear();
+    for(let index=0;index<svgInheritedFields.length;index++){
+     const start=view.getFloat64(56+index*16,true),end=view.getFloat64(64+index*16,true);
+     if(start>=0)inherited.set(svgInheritedFields[index]!,[start,end]);
+    }
+   }}else if(await reader.at(end-1)!==47){
+    const next=await transform(source,reader,spans.get('transform'),active,signal),address=storage.allocate(frameSize),bytes=new Uint8Array(frameSize),view=new DataView(bytes.buffer);
+    if(!Number.isSafeInteger(address)||address<0||!Number.isSafeInteger(address+frameSize))throw new RangeError('Invalid SVG backing allocation');
     view.setFloat64(0,stack,true);for(let index=0;index<6;index++)view.setFloat64((index+1)*8,active[index]!,true);
+    for(let index=0;index<svgInheritedFields.length;index++){
+     const name=svgInheritedFields[index]!,span=inherited.get(name);
+     view.setFloat64(56+index*16,span?.[0]??-1,true);view.setFloat64(64+index*16,span?.[1]??0,true);
+     const own=spans.get(name);if(own)inherited.set(name,own);
+    }
     await storage.write(address,bytes,{signal});signal.throwIfAborted();stack=address;active=next;
    }
    continue;
   }
   if(close)continue;
-  const attrs=await fields(source,spans,signal),matrix=await transform(source,reader,spans.get('transform'),active,signal);
+  const attrs=await fields(source,new Map([...inherited,...spans]),signal),matrix=await transform(source,reader,spans.get('transform'),active,signal);
   const mapPoint=(x:number,y:number,move:0|1=0):readonly[number,number,0|1]=>[matrix[0]*x+matrix[2]*y+matrix[4],matrix[1]*x+matrix[3]*y+matrix[5],move];
   const points=new SvgRecords(3,storage,signal),text=new SvgRecords(1,storage,signal);let closed=false;
   if(tag==='path'&&spans.has('d')){

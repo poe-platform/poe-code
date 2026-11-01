@@ -2,6 +2,8 @@ import {FONT_5X7} from "./font-5x7.js";
 import {parseColor} from "../ast.js";
 import {parseSvgCoord,parseSvgNumber} from "./svg-number.js";
 
+export const svgInheritedFields=["fill","fill-opacity","font-size","stroke","stroke-opacity","stroke-width","text-anchor"] as const;
+
 export type SvgPixel = readonly [x:number,y:number,r:number,g:number,b:number,a:number];
 export type SvgMatrix = readonly [number,number,number,number,number,number];
 export type SvgPoint = readonly [x:number,y:number,move?:0|1];

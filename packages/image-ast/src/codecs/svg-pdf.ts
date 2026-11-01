@@ -2,7 +2,7 @@ import {multiplySvgMatrices,applySvgTransform} from "./svg-transform.js";
 import type {SvgMatrix} from "./svg-renderer.js";
 import {svgPathSteps,svgPathTokens,type SvgPathPoint} from "./svg-path.js";
 import {parseSvgNumber} from "./svg-number.js";
-import {rasterSvgElement,type SvgPixel} from "./svg-renderer.js";
+import {rasterSvgElement,svgInheritedFields,type SvgPixel} from "./svg-renderer.js";
 export type {SvgPixel} from "./svg-renderer.js";
 export {FONT_5X7} from "./font-5x7.js";
 import { PdfDocument, renderPdfPageToPng } from "@poe-code/pdf-ast";
@@ -253,6 +253,7 @@ export function* svgRasterSteps(
 
   let syntaxWork = 0;
   const ctmStack: Mat2D[] = [rootCtm];
+  const styleStack: Array<Record<string,string|undefined>> = [Object.fromEntries(svgInheritedFields.map(name=>[name,getAttr(svgTag,name)]))];
   // Rasterize <rect>, <circle>, <ellipse>, <line>, <polygon>, and <polyline> elements in document order
   const elemRegex = /<text\b([^>]*)>([\s\S]*?)<\/text>|<(\/?)(g|rect|circle|ellipse|line|polygon|polyline|path)\b([^>]*)\/?>/gi;
   let match: RegExpExecArray | null;
@@ -266,10 +267,13 @@ export function* svgRasterSteps(
     const isSelfClose = !isTextTag && match[0]!.endsWith("/>");
     if (tag === "g") {
       if (isClose) {
-        if (ctmStack.length > 1) ctmStack.pop();
+        if (ctmStack.length > 1) { ctmStack.pop(); styleStack.pop(); }
         activeCtm = ctmStack[ctmStack.length - 1]!;
       } else if (!isSelfClose) {
         const nextCtm = multiplySvgMatrices(ctmStack[ctmStack.length - 1]!, parseTransformAttr(getAttr(attrs, "transform")));
+        const nextStyle = {...styleStack[styleStack.length-1]};
+        for (const name of svgInheritedFields) nextStyle[name] = getAttr(attrs,name) ?? nextStyle[name];
+        styleStack.push(nextStyle);
         ctmStack.push(nextCtm);
         activeCtm = nextCtm;
       }
@@ -282,7 +286,7 @@ export function* svgRasterSteps(
     const parsed = tag === "path" ? parsePathPoints(getAttr(attrs, "d")) : undefined;
     const points = parsed?.pts ?? (tag === "polygon" || tag === "polyline" ? parsePointsList(getAttr(attrs, "points")) : []);
     const fields: Record<string,string|undefined> = {};
-    for (const name of ["cx", "cy", "fill", "fill-opacity", "font-size", "height", "opacity", "r", "rx", "ry", "stroke", "stroke-opacity", "stroke-width", "text-anchor", "width", "x", "x1", "x2", "y", "y1", "y2"]) fields[name] = getAttr(attrs, name);
+    for (const name of ["cx", "cy", "fill", "fill-opacity", "font-size", "height", "opacity", "r", "rx", "ry", "stroke", "stroke-opacity", "stroke-width", "text-anchor", "width", "x", "x1", "x2", "y", "y1", "y2"]) fields[name] = getAttr(attrs, name) ?? styleStack[styleStack.length-1]![name];
     const steps = rasterSvgElement({tag,attrs:fields,matrix:activeCtm,pointCount:points.length,closed:parsed?.closed??false,textLength:textContent.length},{width,height,vbW,vbH});
     let next = steps.next();
     try { while (!next.done) {

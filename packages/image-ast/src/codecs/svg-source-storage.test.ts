@@ -59,3 +59,30 @@ for(const mode of ['buffered','storage','source'] as const){
   for(const [x,y,...rgba] of checks)expect(Array.from(pixels.subarray((y*22+x)*4,(y*22+x)*4+4))).toEqual(rgba);
  });
 }
+
+for(const mode of ['buffered','storage','source'] as const){
+ for(const [name,root,body,expected] of [
+  ['nested fill overrides and siblings','fill="red"',
+   '<g fill="blue"><rect x="2" y="2" width="5" height="5"/><g fill="green"><rect x="9" y="2" width="5" height="5"/></g><rect x="16" y="2" width="5" height="5"/><rect x="23" y="2" width="5" height="5" fill="white"/></g><g fill="yellow"/><rect x="30" y="2" width="5" height="5"/>',
+   '<rect x="2" y="2" width="5" height="5" fill="blue"/><rect x="9" y="2" width="5" height="5" fill="green"/><rect x="16" y="2" width="5" height="5" fill="blue"/><rect x="23" y="2" width="5" height="5" fill="white"/><rect x="30" y="2" width="5" height="5" fill="red"/>'],
+  ['fill opacity','fill="blue" fill-opacity="0.5"',
+   '<rect x="2" y="2" width="5" height="5"/><g fill-opacity="0.25"><rect x="9" y="2" width="5" height="5"/><rect x="16" y="2" width="5" height="5" fill-opacity="1"/></g><rect x="23" y="2" width="5" height="5"/>',
+   '<rect x="2" y="2" width="5" height="5" fill="blue" fill-opacity="0.5"/><rect x="9" y="2" width="5" height="5" fill="blue" fill-opacity="0.25"/><rect x="16" y="2" width="5" height="5" fill="blue" fill-opacity="1"/><rect x="23" y="2" width="5" height="5" fill="blue" fill-opacity="0.5"/>'],
+  ['stroke color width and opacity','stroke="red" stroke-width="3" stroke-opacity="0.5"',
+   '<g><line x1="3" y1="4" x2="40" y2="4"/><g stroke="blue" stroke-width="1" stroke-opacity="1"><line x1="3" y1="10" x2="40" y2="10"/></g><line x1="3" y1="16" x2="40" y2="16"/></g>',
+   '<line x1="3" y1="4" x2="40" y2="4" stroke="red" stroke-width="3" stroke-opacity="0.5"/><line x1="3" y1="10" x2="40" y2="10" stroke="blue" stroke-width="1" stroke-opacity="1"/><line x1="3" y1="16" x2="40" y2="16" stroke="red" stroke-width="3" stroke-opacity="0.5"/>'],
+  ['text size anchor and fill','fill="green" font-size="8" text-anchor="end"',
+   '<g font-size="18" text-anchor="middle" fill="blue"><text x="24" y="18">ABC</text></g><text x="44" y="32">Hi</text>',
+   '<text x="24" y="18" font-size="18" text-anchor="middle" fill="blue">ABC</text><text x="44" y="32" font-size="8" text-anchor="end" fill="green">Hi</text>'],
+ ] as const)test(`${mode} inherits SVG presentation attributes: ${name}`,async()=>{
+  const bytes=new TextEncoder().encode(`<svg width="48" height="36" ${root}>${body}</svg>`);
+  let pixels:Uint8Array;
+  if(mode==='buffered')pixels=decodeSvgImage(bytes).data;
+  else{
+   const caller=backing(),signal=new AbortController().signal,borrowed=new Uint8Array(4096);
+   const image=mode==='storage'?await svg.decodeSvgToStorage(bytes,caller.storage,signal):await svg.decodeSvgSourceToStorage({size:bytes.length,async read(position,length){borrowed.set(bytes.subarray(position,position+length));return borrowed.subarray(0,length);}},caller.storage,signal);
+   pixels=await caller.pixels(image.position,48*36*4);
+  }
+  expect(pixels).toEqual(decodeSvgImage(new TextEncoder().encode(`<svg width="48" height="36">${expected}</svg>`)).data);
+ });
+}

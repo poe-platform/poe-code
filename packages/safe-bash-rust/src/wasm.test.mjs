@@ -3,6 +3,16 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("find -exec children inherit the caller's stdin in both execution modes", async () => {
+  const bash = new RustWasmBash({ files: { "/x": "", "/y": "" } });
+  try {
+    for (const [action, expected] of [["\\;", "ab\nc"], ["{} +", "a\nbc"]]) {
+      const r = await bash.exec("find /x /y -exec sh -c 'head -c1' " + action + "; echo; cat", { stdin: "abc" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], action);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("xargs shares inherited stdin across batches only with an argument file", async () => {
   const bash = new RustWasmBash({ files: { "/args": "x y" } });
   try {

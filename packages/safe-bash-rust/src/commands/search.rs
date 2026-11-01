@@ -43,7 +43,7 @@ where
             cmd == "fgrep",
         )),
         "rg" => Some(cmd_rg(args, stdin, cwd, env, fs)),
-        "find" => Some(cmd_find(args, cwd, env, fs, &mut exec_sub)),
+        "find" => Some(cmd_find(args, cwd, env, fs, &mut |words, cwd, env| exec_sub(words, stdin, cwd, env))),
         "fd" => Some(cmd_fd(args, cwd, env, fs, &mut exec_sub)),
         "xargs" => Some(cmd_xargs(args, stdin, cwd, env, fs, &mut exec_sub)),
         "which" => Some(cmd_which(args, cwd, env, fs)),
@@ -5411,7 +5411,7 @@ impl<'a> FindParseContext<'a> {
 
 struct FindEvalState<'a, F>
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     cwd: &'a mut String,
     env: &'a mut BTreeMap<String, String>,
@@ -5442,7 +5442,7 @@ fn eval_find_pred<F>(
     state: &mut FindEvalState<'_, F>,
 ) -> Result<bool, String>
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let disp_path = entry.display;
     let full_path = entry.path;
@@ -5565,7 +5565,7 @@ where
             } else {
                 let cmd_args: Vec<String> =
                     cmd.iter().map(|w| w.replace("{}", disp_path)).collect();
-                let res = (state.exec_sub)(&cmd_args, &mut String::new(), state.cwd, state.env);
+                let res = (state.exec_sub)(&cmd_args, state.cwd, state.env);
                 state.out.push_str(&res.stdout);
                 state.err.push_str(&res.stderr);
                 res.exit_code == 0
@@ -5599,7 +5599,7 @@ fn cmd_find<F>(
     exec_sub: &mut F,
 ) -> BuiltinOutcome
 where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     let mut follow_mode = FindFollowMode::Never;
     let mut debug_tree = false;
@@ -5768,7 +5768,7 @@ where
         if !pending.is_empty() {
             let mut cmd_args = cmd_prefix;
             cmd_args.extend(pending);
-            let res = (exec_sub)(&cmd_args, &mut String::new(), cwd, env);
+            let res = (exec_sub)(&cmd_args, cwd, env);
             out.push_str(&res.stdout);
             err.push_str(&res.stderr);
             if res.exit_code != 0 {
@@ -5800,7 +5800,7 @@ fn walk_find<F>(
     ancestors: &mut std::collections::BTreeSet<String>,
     state: &mut FindEvalState<'_, F>,
 ) where
-    F: FnMut(&[String], &mut String, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+    F: FnMut(&[String], &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
 {
     if *state.quit {
         return;

@@ -14473,6 +14473,15 @@ mod media_unit_tests {
         let (meta,depth,channels,density)=inspect_raster(&bytes,"wrong.png",4).unwrap();
         assert_eq!((meta.fmt.as_str(),meta.w,meta.h,depth,channels,density),("HEIC",4,5,8,4,240));
         assert_eq!(heif::header(&bytes).orientation,Some(6));
+        let decoded=png_pixels::Raster::decode(&bytes,4096).unwrap();
+        assert_eq!((decoded.orientation,decoded.pixels),(Some(6),im.pixels.clone()));
+        assert!(png_pixels::Raster::decode(&bytes,16).is_err());
+        let mut corrupt=bytes;
+        let start=corrupt.windows(8).position(|b|b==b"POEHEIF1").unwrap()+8;
+        corrupt[start]=0;
+        assert_eq!(png_pixels::Raster::decode(&corrupt,4096).unwrap().pixels,vec![[0,0,0,255];20]);
+        corrupt.extend(im.png());
+        assert_eq!(png_pixels::Raster::decode(&corrupt,4096).unwrap().pixels,im.pixels);
     }
 
     #[test]

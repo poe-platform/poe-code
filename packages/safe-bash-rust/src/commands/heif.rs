@@ -414,6 +414,53 @@ fn read_locations(
     Some(())
 }
 
+pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    use crate::commands::codecs::{adler32, inflate_raw_bounded};
+    let h = header(bytes);
+    let (width, height) = (h.width as usize, h.height as usize);
+    let count = width
+        .checked_mul(height)
+        .filter(|&n| n <= limit / 4)
+        .ok_or("image exceeds memory budget")?;
+    let pixels = if let Some(i) = bytes.windows(8).position(|s| s == b"POEHEIF1")
+        && let z = &bytes[i + 8..]
+        && z.len() >= 6
+        && z[0] & 15 == 8
+        && z[0] >> 4 <= 7
+        && z[1] & 32 == 0
+        && u16::from_be_bytes([z[0], z[1]]).is_multiple_of(31)
+        && let Ok((raw, n)) = inflate_raw_bounded(&z[2..], limit)
+        && raw.len() >= count * 4
+        && z.get(2 + n..6 + n) == Some(&adler32(&raw).to_be_bytes())
+    {
+        raw[..count * 4]
+            .chunks_exact(4)
+            .map(|v| v.try_into().unwrap())
+            .collect()
+    } else {
+        for i in 16..bytes.len().saturating_sub(4) {
+            let data = &bytes[i..];
+            if (super::jpeg_decode::signature(data) || data.starts_with(b"\x89PNG\r\n\x1a\n"))
+                && let Ok(mut preview) = Raster::decode(data, limit)
+            {
+                preview.orientation = h.orientation.or(preview.orientation);
+                preview.density = h.density;
+                return Ok(preview);
+            }
+        }
+        vec![[0, 0, 0, 255]; count]
+    };
+    Ok(Raster {
+        width,
+        height,
+        alpha: h.alpha,
+        gray: h.channels < 3,
+        density: h.density,
+        orientation: h.orientation,
+        pixels,
+    })
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

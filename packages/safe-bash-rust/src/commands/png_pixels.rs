@@ -21,7 +21,7 @@ pub(super) fn still_format(bytes: &[u8]) -> Option<&'static str> {
     else if super::gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:") { Some("gif") }
     else if super::webp::signature(bytes) && !bytes[12..].starts_with(b"\n__IMG__:") { Some("webp") }
     else if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.get(29..38) != Some(b"\n__IMG__:") { Some("png") }
-    else { None }
+    else { super::heif::format(bytes) }
 }
 
 pub(super) fn destination(spec: &str) -> Option<(&'static str, &str)> {
@@ -142,6 +142,7 @@ impl Raster {
         if super::bmp::signature(bytes) {
             return Ok(super::bmp::Bmp::parse(bytes, limit)?.decode());
         }
+        if super::heif::format(bytes).is_some() {return super::heif::decode(bytes,limit);}
         let mut idat = Vec::new();
         let header = super::image_header::Png::read(bytes, |data| {
             if data.len() > limit - idat.len() { return Err("image exceeds memory budget"); }

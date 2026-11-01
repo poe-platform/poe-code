@@ -22,7 +22,7 @@ impl Statement {
         Ok(true)
     }
 
-    pub(super) fn error(&self, code: &str, token: &str, message: &str) -> String {
+    pub(in super::super) fn error(&self, code: &str, token: &str, message: &str) -> String {
         let offset = if token.is_empty() {
             self.text.trim_end().len()
         } else {
@@ -193,6 +193,13 @@ pub(super) fn label(raw: &str, stmt: &Statement, token: &str) -> Result<String, 
 }
 
 pub(super) fn check_label(text: &str, stmt: &Statement, token: &str) -> Result<(), String> {
+    if let Some(message) = unsafe_label(text) {
+        return Err(stmt.error("E_UNSUPPORTED", token, &message));
+    }
+    Ok(())
+}
+
+pub(super) fn unsafe_label(text: &str) -> Option<String> {
     let lower = text.to_ascii_lowercase();
     for forbidden in [
         "<script",
@@ -208,12 +215,10 @@ pub(super) fn check_label(text: &str, stmt: &Statement, token: &str) -> Result<(
         "onload=",
     ] {
         if lower.contains(forbidden) {
-            return Err(stmt.error(
-                "E_UNSUPPORTED",
-                token,
-                &format!("Unsupported HTML or active content '{forbidden}' in diagram label"),
+            return Some(format!(
+                "Unsupported HTML or active content '{forbidden}' in diagram label"
             ));
         }
     }
-    Ok(())
+    None
 }

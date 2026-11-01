@@ -19,28 +19,8 @@ fn diagnostic(source: &str, at: Option<&str>, code: &str, msg: &str) -> String {
     }
 }
 fn safe_label(source: &str, at: Option<&str>, label: String) -> Result<String, String> {
-    let lower = label.to_ascii_lowercase();
-    for token in [
-        "<script",
-        "</script",
-        "<iframe",
-        "<object",
-        "<embed",
-        "<svg",
-        "<img",
-        "<a ",
-        "javascript:",
-        "onerror=",
-        "onload=",
-    ] {
-        if lower.contains(token) {
-            return Err(diagnostic(
-                source,
-                at,
-                "E_UNSUPPORTED",
-                &format!("Unsupported HTML or active content '{token}' in diagram label"),
-            ));
-        }
+    if let Some(message) = super::scanner::unsafe_label(&label) {
+        return Err(diagnostic(source, at, "E_UNSUPPORTED", &message));
     }
     Ok(label)
 }

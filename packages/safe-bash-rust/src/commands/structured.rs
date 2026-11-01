@@ -29331,7 +29331,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     }
 
-    let src_text = if input == "-" {
+    let mut src_text = if input == "-" {
         stdin.to_string()
     } else {
         let full = resolve_posix_path(cwd, &input);
@@ -29361,6 +29361,10 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     };
 
+    let mut metadata=match mermaid::source::Metadata::frontmatter(&mut src_text) {
+        Ok(meta)=>meta,
+        Err(e)=>return err_out(&e,if e.starts_with("mmdc: E_CONFIG:"){2}else{1}),
+    };
     let mut directives = Vec::new();
     let flowchart = mermaid::scanner::is_flowchart(&src_text);
     let scanned = if flowchart || src_text.contains("%%{") {
@@ -29380,11 +29384,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             let at = body.as_ptr() as usize - src_text.as_ptr() as usize - 3;
             let end = at + body.len() + 6;
             output.push_str(&src_text[from..at]);
-            output.extend(src_text[at..end].encode_utf16().map(|c| match c {
-                10 => '\n',
-                13 => '\r',
-                _ => ' ',
-            }));
+            output.extend(mermaid::source::blank(&src_text[at..end]));
             from = end;
         }
         output.push_str(&src_text[from..]);
@@ -29393,7 +29393,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     } else {
         &src_text
     };
-    let source_config = match mermaid::source::directives(directives, fs.max_input_bytes()) {
+    let source_config = match metadata.directives(directives, fs.max_input_bytes()) {
         Ok(Some(value)) => mermaid::config::Config::parse(&value, true),
         Ok(None) => Ok(mermaid::config::Config::default()),
         Err(e) => {
@@ -29409,7 +29409,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let defaults = mermaid::config::Config::default();
     let source_cfg = source_config.as_ref().unwrap_or(&defaults);
-    let mut acc_title: Option<String> = None;
+    let mut acc_title = metadata.title.filter(|s|!s.is_empty());
     let mut acc_descr: Option<String> = None;
     let mut content_lines: Vec<&str> = if let Some(stmts) = &scanned {
         stmts.iter().map(|stmt| stmt.text.trim_end()).collect()
@@ -29463,7 +29463,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
 
     if content_lines.is_empty() {
-        return err_out("mmdc: E_SYNTAX: Diagram source is empty\n", 1);
+        return err_out("mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n", 1);
     }
 
     let first_stmt = &content_lines[0];
@@ -29487,12 +29487,12 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         "timeline",
     ];
     if !VALID_HEADERS.contains(&first_word) {
-        return err_out(
-            &format!(
-                "mmdc: E_UNSUPPORTED (line 1, column 1): Unsupported or unrecognized Mermaid diagram family '{first_word}'\n"
-            ),
-            1,
-        );
+        let reason=format!("Unsupported or unrecognized Mermaid diagram family '{first_word}'");
+        if let Some(stmt)=scanned.as_ref().and_then(|s|s.first()) {
+            return err_out(&stmt.error("E_UNSUPPORTED",&stmt.text,&reason),1);
+        }
+        let (line,column)=mermaid::position(src_text,first_stmt);
+        return err_out(&format!("mmdc: E_UNSUPPORTED (line {line}, column {column}): {reason}\n"),1);
     }
 
     let width = cli_width.map(f64::from).or(cfg.width).or(source_cfg.width);
@@ -29557,7 +29557,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Ok(color) => color,
         Err(error) => return err_out(&error, 2),
     };
-    let scene = if let Some(pie) = pie {
+    let scene = if let Some(mut pie) = pie {
+        pie.title=pie.title.or(acc_title);
         acc_title = pie.title.clone();
         Some(pie.layout(&resolved_theme,cfg.padding.or(source_cfg.padding).unwrap_or(32.)))
     } else if let Some(graph) = flow {
@@ -38209,6 +38210,32 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             assert_eq!(r.stderr,"mmdc: E_LIMIT: Render work budget exceeded\n");
             assert_eq!(r.exit_code,1);
             assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
+    }
+
+    #[test]
+    fn mmdc_reads_frontmatter_preserving_body_positions_and_title_precedence() {
+        let fs=MemoryVfs::new();
+        for (source,status,expected) in [
+            ("---\ntitle: Example\n---\n  notDiagram foo",1,"mmdc: E_UNSUPPORTED (line 4, column 3): Unsupported or unrecognized Mermaid diagram family 'notDiagram'\n"),
+            ("---\ntitle: Ship\n---\npie\n\"A\":3\n\"B\":1",0,"5dac237225b856092ed1a1d19f6ea209b6d1f23b9b4ae90374870bb3bdcda157"),
+            ("---\ntitle: Test ü\nconfig: {rankGap: 95, theme: forest}\n---\nflowchart TD; A[Build release] -->|review| B{Ship?}; B --> C & D",0,"938a4e4a3b9c802b6e7888f78a3d150c3cda6d688eeb157d448359b730c6a6b3"),
+            ("---\ntitle: metadata\nconfig: {theme: forest}\n---\n%%{init: {theme: dark}}%%\nflowchart TD; title body overrides; A-->B",0,"953609ca74d2e706ee352a1ef7a721dfd3fba683f8465e998ba65b081a627ea2"),
+            ("---\ntitle: 😀\n---\nflowchart TD; A-->",1,"mmdc: E_SYNTAX (line 4, column 19): Expected node identifier at ''\n"),
+            ("---\ntitle: \"<img src=X>\"\n---\nflowchart TD; A[Build release] -->|review| B{Ship?}; B --> C & D",1,"mmdc: E_UNSUPPORTED: Unsupported HTML or active content '<img' in diagram label\n"),
+            ("---\ntitle: Hello\nflowchart TD; A[Build release] -->|review| B{Ship?}; B --> C & D",1,"mmdc: E_SYNTAX: Unclosed YAML frontmatter\n"),
+            ("---\ntitle: Only\n---",1,"mmdc: E_SYNTAX (line 1, column 1): Diagram source is empty\n"),
+        ] {
+            fs.write_file("/d.svg",b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o","/d.svg"]),source,"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,status,"{}",r.stderr);
+            let bytes=fs.read_file("/d.svg").unwrap();
+            if status==0 {
+                assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),expected);
+            }else{
+                assert_eq!(r.stderr,expected);
+                assert_eq!(bytes,b"previous");
+            }
         }
     }
 

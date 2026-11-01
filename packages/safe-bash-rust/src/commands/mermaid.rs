@@ -245,7 +245,7 @@ const EDGE_OPS: &[&str] = &[
     "--x", "--o",
 ];
 
-fn position(source: &str, at: &str) -> (usize, usize) {
+pub(super) fn position(source: &str, at: &str) -> (usize, usize) {
     // The statement and token are slices of the original UTF-8 source. Mermaid
     // reports one-based UTF-16 columns, including indentation and the header.
     let offset = at.as_ptr() as usize - source.as_ptr() as usize;

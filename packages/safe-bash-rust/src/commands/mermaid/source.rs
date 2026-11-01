@@ -8,6 +8,14 @@ fn yaml_error(raw: &[u16], err: yaml::Error) -> String {
         .iter()
         .rposition(|c| *c == 10)
         .map_or(0, |i| i + 1);
+    let excerpt = if at == start && start > 0 {
+        raw[..start - 1]
+            .iter()
+            .rposition(|c| *c == 10)
+            .map_or(0, |i| i + 1)
+    } else {
+        start
+    };
     let end = raw[at..]
         .iter()
         .position(|c| *c == 10)
@@ -77,7 +85,7 @@ fn yaml_error(raw: &[u16], err: yaml::Error) -> String {
     }
     format!(
         "mmdc: E_CONFIG: {reason} at line {line}, column {column}:\n\n{}\n{}^\n\n",
-        String::from_utf16_lossy(&raw[start..end]),
+        String::from_utf16_lossy(&raw[excerpt..end]).replace("\r\n", "\n"),
         " ".repeat(column - 1)
     )
 }
@@ -132,30 +140,87 @@ fn json(value: Yaml) -> Value {
     }
 }
 
-pub(in super::super) fn directives(
-    bodies: Vec<&str>,
-    limit: usize,
-) -> Result<Option<Value>, String> {
-    let mut merged = None;
-    let mut total = 0usize;
-    let mut work = limit;
-    for body in bodies {
-        let Some((key, text)) = body.trim().split_once(':') else {
-            continue;
-        };
-        if !matches!(key.trim(), "init" | "initialize") {
-            continue;
+pub(in super::super) fn blank(s: &str) -> impl Iterator<Item = char> + '_ {
+    s.encode_utf16().map(|c| match c {
+        10 => '\n',
+        13 => '\r',
+        _ => ' ',
+    })
+}
+
+#[derive(Default)]
+pub(in super::super) struct Metadata {
+    pub title: Option<String>,
+    config: Option<Yaml>,
+    bytes: usize,
+}
+impl Metadata {
+    pub fn frontmatter(source: &mut String) -> Result<Self, String> {
+        if source.starts_with('\u{feff}') {
+            source.drain(..3);
         }
-        total = total.saturating_add(text.len());
-        work = work
-            .checked_sub(total)
-            .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
-        let value = mapping(text)?;
-        merged = Some(match merged {
-            None => value,
-            Some(old) => config_data::merge(&old, &value, None)
-                .map_err(|e| format!("mmdc: E_CONFIG: {e}\n"))?,
-        });
+        let opening = source.trim_start_matches([' ', '\t', '\r', '\n']);
+        if !opening.starts_with("---\n") && !opening.starts_with("---\r\n") {
+            return Ok(Self::default());
+        }
+        let start = source.len() - opening.len() + opening.find('\n').unwrap() + 1;
+        let mut end = start;
+        for line in source[start..].split_inclusive('\n') {
+            if line.trim() == "---" {
+                break;
+            }
+            end += line.len();
+        }
+        if end == source.len() {
+            return Err("mmdc: E_SYNTAX: Unclosed YAML frontmatter\n".into());
+        }
+        let Yaml::Object(pairs) = mapping(&source[start..end])? else {
+            unreachable!()
+        };
+        let mut meta = Self::default();
+        for (key, value) in pairs {
+            match (String::from_utf16_lossy(&key).as_str(), value) {
+                ("title", Yaml::String(text)) => {
+                    let title = String::from_utf16_lossy(&text);
+                    if let Some(msg) = super::scanner::unsafe_label(&title) {
+                        return Err(format!("mmdc: E_UNSUPPORTED: {msg}\n"));
+                    }
+                    meta.title = Some(title);
+                }
+                ("config", v @ Yaml::Object(_)) => {
+                    meta.config = Some(v);
+                    meta.bytes = end - start;
+                }
+                _ => (),
+            }
+        }
+        let fence_end = source[end..].find('\n').map_or(source.len(), |n| end + n);
+        let masked = blank(&source[..fence_end]).collect::<String>();
+        source.replace_range(..fence_end, &masked);
+        Ok(meta)
     }
-    Ok(merged.map(json))
+    pub fn directives(&mut self, bodies: Vec<&str>, limit: usize) -> Result<Option<Value>, String> {
+        let mut merged = self.config.take();
+        let mut total = self.bytes;
+        let mut work = limit;
+        for body in bodies {
+            let Some((key, text)) = body.trim().split_once(':') else {
+                continue;
+            };
+            if !matches!(key.trim(), "init" | "initialize") {
+                continue;
+            }
+            total = total.saturating_add(text.len());
+            work = work
+                .checked_sub(total)
+                .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
+            let value = mapping(text)?;
+            merged = Some(match merged {
+                None => value,
+                Some(old) => config_data::merge(&old, &value, None)
+                    .map_err(|e| format!("mmdc: E_CONFIG: {e}\n"))?,
+            });
+        }
+        Ok(merged.map(json))
+    }
 }

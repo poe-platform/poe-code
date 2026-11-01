@@ -37001,10 +37001,12 @@ fn cmd_ast_grep(
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let run = || -> Result<(String, i32), String> {
+    let mut stdout = String::new();
+    let mut run = || -> Result<i32, String> {
         let opts = parse_ast_grep_options(args)?;
         if opts.help {
-            return Ok((AST_GREP_HELP.to_string(), 0));
+            stdout.push_str(AST_GREP_HELP);
+            return Ok(0);
         }
         let rules: Vec<AstSearchRule> = if opts.scan {
             let mut rs = Vec::new();
@@ -37042,54 +37044,41 @@ fn cmd_ast_grep(
             .iter()
             .filter_map(|g| g.strip_prefix('!'))
             .collect();
-        let mut target_paths: Vec<Option<String>> = Vec::new();
-        if opts.stdin {
-            target_paths.push(None);
+        let mut pending: Vec<Option<String>> = if opts.stdin {
+            vec![None]
+        } else if opts.paths.is_empty() {
+            vec![Some(resolve_posix_path(cwd, "."))]
         } else {
-            let roots = if opts.paths.is_empty() {
-                vec![".".to_string()]
-            } else {
-                opts.paths.clone()
-            };
-            let mut pending: Vec<String> = roots
-                .into_iter()
-                .map(|p| resolve_posix_path(cwd, &p))
-                .rev()
-                .collect();
-            let mut seen = std::collections::BTreeSet::new();
-            while let Some(path) = pending.pop() {
-                if !seen.insert(path.clone()) {
-                    continue;
-                }
-                let meta = fs.stat(&path)?;
-                if meta.kind == crate::vfs::VfsEntryKind::Directory {
-                    let mut children = fs.read_dir(&path)?;
-                    children.sort_by(|a, b| b.cmp(a));
-                    for child in children {
-                        let joined = if path == "/" {
-                            format!("/{child}")
-                        } else {
-                            format!("{path}/{child}")
-                        };
-                        pending.push(joined);
-                    }
-                } else if meta.kind == crate::vfs::VfsEntryKind::File {
-                    let rel = relative_to_cwd(cwd, &path);
-                    let inc_ok = includes.is_empty()
-                        || includes.iter().any(|g| ast_glob_matches_path(g, &rel));
-                    let exc_ok = !excludes.iter().any(|g| ast_glob_matches_path(g, &rel));
-                    if inc_ok && exc_ok {
-                        target_paths.push(Some(path));
-                    }
-                }
-            }
-        }
-        let mut stdout = String::new();
+            opts.paths.iter().rev().map(|p| Some(resolve_posix_path(cwd, p))).collect()
+        };
+        let mut seen = std::collections::BTreeSet::new();
         let mut count = 0usize;
         if let Some(ref jm) = opts.json && jm != "stream" {
             stdout.push_str(if jm == "pretty" { "[\n" } else { "[" });
         }
-        for maybe_path in target_paths {
+        while let Some(maybe_path) = pending.pop() {
+            if let Some(ref path) = maybe_path {
+                if !seen.insert(path.clone()) {
+                    continue;
+                }
+                match fs.lstat(path)?.kind {
+                    crate::vfs::VfsEntryKind::Directory => {
+                        let mut children = fs.read_dir(path)?;
+                        children.sort_by(|a, b| b.cmp(a));
+                        pending.extend(children.into_iter().map(|child| Some(resolve_posix_path(path, &child))));
+                        continue;
+                    }
+                    crate::vfs::VfsEntryKind::File => {
+                        let rel = relative_to_cwd(cwd, path);
+                        if (!includes.is_empty() && !includes.iter().any(|g| ast_glob_matches_path(g, &rel)))
+                            || excludes.iter().any(|g| ast_glob_matches_path(g, &rel))
+                        {
+                            continue;
+                        }
+                    }
+                    _ => continue,
+                }
+            }
             let mut language = opts.language.clone();
             if let Some(ref p) = maybe_path && language.is_none() {
                 let Ok(l) = ast_grep_language_for(p) else {
@@ -37171,15 +37160,19 @@ fn cmd_ast_grep(
         if let Some(ref jm) = opts.json && jm != "stream" {
             stdout.push_str(if jm == "pretty" { "\n]\n" } else { "]\n" });
         }
-        Ok((stdout, if count > 0 { 0 } else { 1 }))
+        Ok(if count > 0 { 0 } else { 1 })
     };
     match run() {
-        Ok((stdout, code)) => BuiltinOutcome {
+        Ok(code) => BuiltinOutcome {
             stdout,
             stderr: String::new(),
             exit_code: code,
         },
-        Err(msg) => err_out(&format!("{invoked}: {msg}\n"), 2),
+        Err(msg) => BuiltinOutcome {
+            stdout,
+            stderr: format!("{invoked}: {msg}\n"),
+            exit_code: 2,
+        },
     }
 }
 
@@ -39162,6 +39155,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_visits_regular_files_in_order_and_preserves_output_on_failure() {
+        let fs = MemoryVfs::new();
+        fs.mkdir_all("/dir").unwrap();
+        fs.write_file("/dir/a.js", b"f(a);\n").unwrap();
+        fs.symlink("/dir/a.js", "/link.js").unwrap();
+        fs.symlink("/dir", "/linked").unwrap();
+        let run = |paths: &[&str]| {
+            let mut argv = args(&["-p", "f($X)", "-r", "g($X)", "-U", "--json=compact"]);
+            argv.extend(args(paths));
+            try_run_structured_command("sg", &argv, "", "/", &BTreeMap::new(), &fs).unwrap()
+        };
+        let r = run(&["link.js", "linked"]);
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (1, "[]\n", ""));
+        assert_eq!(fs.read_file("/dir/a.js").unwrap(), b"f(a);\n");
+        let r = run(&["dir", "missing.js"]);
+        assert_eq!(r.exit_code, 2);
+        assert_eq!(r.stderr, "sg: ENOENT: no such file or directory, lstat '/missing.js'\n");
+        assert!(r.stdout.starts_with("[{") && r.stdout.ends_with("}"));
+        assert_eq!(fs.read_file("/dir/a.js").unwrap(), b"g(a);\n");
     }
 
     #[test]

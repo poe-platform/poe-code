@@ -218,6 +218,24 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     meta
 }
 
+fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> (ImageMeta, u8, u8, u32) {
+    let mut meta = read_image_meta(bytes, path);
+    let (depth, channels, dpi) = if netpbm::signature(bytes) && let Ok(im) = netpbm::Netpbm::parse(bytes, limit) {
+        meta.w = im.width as u32;
+        meta.h = im.height as u32;
+        let gray = im.codec() != b"ppm ";
+        meta.fmt = std::str::from_utf8(im.codec()).unwrap().trim_end().to_ascii_uppercase();
+        meta.cs = if gray { "Gray" } else { "sRGB" }.into();
+        (im.bit_depth(), if gray { 1 } else { 3 }, 72)
+    } else if bmp::signature(bytes) && let Ok(im) = bmp::Bmp::parse(bytes, limit) {
+        meta.w = im.width as u32;
+        meta.h = im.height as u32;
+        meta.fmt = "BMP".into();
+        (8, if im.bpp == 32 { 4 } else { 3 }, im.density)
+    } else { (8, 3, 72) };
+    (meta, depth, channels, dpi)
+}
+
 fn write_image_bytes(meta: &ImageMeta) -> Vec<u8> {
     let mut buf = match meta.fmt.as_str() {
         "PNG" => {
@@ -10733,7 +10751,7 @@ fn cmd_media_doc(
                     exit_code = 1;
                     continue;
                 };
-                let meta = read_image_meta(&bytes, &full);
+                let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
                 if let Some(ref fmt_str) = fmt_opt {
                     let fname = f.rsplit('/').next().unwrap_or(f);
                     let (stem, ext) = match fname.rsplit_once('.') {
@@ -10751,8 +10769,11 @@ fn cmd_media_doc(
                         .replace("%m", &meta.fmt)
                         .replace("%w", &meta.w.to_string())
                         .replace("%h", &meta.h.to_string())
-                        .replace("%z", "8")
-                        .replace("%q", "8")
+                        .replace("%x", &dpi.to_string())
+                        .replace("%y", &dpi.to_string())
+                        .replace("%[channels]", &format!("{}{}", meta.cs.to_ascii_lowercase(), if channels == 4 || channels == 2 { "a" } else { "" }))
+                        .replace("%z", &depth.to_string())
+                        .replace("%q", &depth.to_string())
                         .replace("%r", &format!("DirectClass {}", meta.cs))
                         .replace("%t", stem)
                         .replace("%e", ext)
@@ -10765,13 +10786,13 @@ fn cmd_media_doc(
                         .replace("%s", "0")
                         .replace("%[width]", &meta.w.to_string())
                         .replace("%[height]", &meta.h.to_string())
-                        .replace("%[depth]", "8")
+                        .replace("%[depth]", &depth.to_string())
                         .replace("%[size]", &format!("{}B", bytes.len()))
                         .replace("%[compression]", compression)
                         .replace("%[quality]", "92")
                         .replace("%[fx:w]", &meta.w.to_string())
                         .replace("%[fx:h]", &meta.h.to_string())
-                        .replace("%[fx:w*h]", &(meta.w * meta.h).to_string())
+                        .replace("%[fx:w*h]", &(u64::from(meta.w) * u64::from(meta.h)).to_string())
                         .replace("%[colorspace]", &meta.cs)
                         .replace("%b", &format!("{}B", bytes.len()))
                         .replace("%B", &bytes.len().to_string())
@@ -10781,18 +10802,27 @@ fn cmd_media_doc(
                         .replace("\x00PCT\x00", "%");
                     out.push_str(&rendered);
                 } else if verbose {
+                    let details = if netpbm::signature(&bytes) || bmp::signature(&bytes) {
+                        match png_pixels::Raster::decode(&bytes, fs.max_input_bytes()) {
+                            Ok(image) => {
+                                let alpha = if image.alpha { "True" } else { "False" };
+                                format!("  Channels: {channels}\n  Alpha: {alpha}\n  Filesize: {}B\n  Entropy: {:.4}\n", bytes.len(), image.entropy())
+                            }
+                            Err(reason) => {
+                                err_buf.push_str(&format!("identify: improper image header '{f}': {reason}\n"));
+                                exit_code = 1;
+                                continue;
+                            }
+                        }
+                    } else { format!("  Filesize: {}B\n", bytes.len()) };
                     out.push_str(&format!(
-                        "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: 72x72\n  Colorspace: {}\n  Depth: 8-bit\n  Filesize: {}B\n",
-                        meta.fmt,
-                        meta.w,
-                        meta.h,
-                        meta.cs,
-                        bytes.len()
+                        "Image: {f}\n  Format: {}\n  Geometry: {}x{}+0+0\n  Resolution: {dpi}x{dpi}\n  Colorspace: {}\n  Depth: {depth}-bit\n{details}",
+                        meta.fmt, meta.w, meta.h, meta.cs
                     ));
                 } else {
                     out.push_str(&format!(
-                        "{f} {} {}x{} {}x{}+0+0 8-bit {}\n",
-                        meta.fmt, meta.w, meta.h, meta.w, meta.h, meta.cs
+                        "{f} {} {}x{} {}x{}+0+0 {depth}-bit {} {}B 0.000u 0:00.000\n",
+                        meta.fmt, meta.w, meta.h, meta.w, meta.h, meta.cs, bytes.len()
                     ));
                 }
             }
@@ -11078,20 +11108,7 @@ fn cmd_media_doc(
                         continue;
                     }
                     let bytes = fs.read_file(&full).unwrap_or_default();
-                    let mut meta = read_image_meta(&bytes, &full);
-                    let (depth, channels, dpi) = if netpbm::signature(&bytes) && let Ok(im) = netpbm::Netpbm::parse(&bytes, fs.max_input_bytes()) {
-                        meta.w = im.width as u32;
-                        meta.h = im.height as u32;
-                        let gray = im.codec() != b"ppm ";
-                        meta.fmt = std::str::from_utf8(im.codec()).unwrap().trim_end().to_ascii_uppercase();
-                        meta.cs = if gray { "Gray" } else { "sRGB" }.into();
-                        (im.bit_depth(), if gray { 1 } else { 3 }, 72)
-                    } else if bmp::signature(&bytes) && let Ok(im) = bmp::Bmp::parse(&bytes, fs.max_input_bytes()) {
-                        meta.w = im.width as u32;
-                        meta.h = im.height as u32;
-                        meta.fmt = "BMP".into();
-                        (8, if im.bpp == 32 { 4 } else { 3 }, im.density)
-                    } else { (8, 3, 72) };
+                    let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
                     let fmt_lower = meta.fmt.to_ascii_lowercase();
                     let xml = get_props.iter().any(|p| p == "allxml");
                     let mut expanded_props = Vec::new();
@@ -13636,6 +13653,16 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn identify_reads_pixmap_geometry_and_entropy_from_the_image() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/in.bin", b"P3\n2 1\n1\n1 0 0 0 1 0").unwrap();
+        let run = |args: &[&str]| cmd_media_doc("identify", &media_args(args), "", "/", &fs).stdout;
+        assert_eq!(run(&["in.bin"]), "in.bin PPM 2x1 2x1+0+0 8-bit sRGB 20B 0.000u 0:00.000\n");
+        assert_eq!(run(&["-format", "%m %wx%h %[channels]", "in.bin"]), "PPM 2x1 srgb");
+        assert!(run(&["-verbose", "in.bin"]).ends_with("  Channels: 3\n  Alpha: False\n  Filesize: 20B\n  Entropy: 1.0000\n"));
     }
 
     #[test]

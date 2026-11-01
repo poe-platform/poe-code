@@ -29,6 +29,18 @@ impl Raster {
         self.pixels = out;
     }
 
+    pub(super) fn entropy(&self) -> f64 {
+        let mut bins = [0usize; 256];
+        for &[r, g, b, _] in &self.pixels {
+            let luma = if self.gray { r } else { super::magick_color::gray(r, g, b) };
+            bins[usize::from(luma)] += 1;
+        }
+        bins.into_iter().filter(|&n| n != 0).fold(0., |entropy, n| {
+            let p = n as f64 / self.pixels.len() as f64;
+            entropy - p * p.log2()
+        })
+    }
+
     pub fn input(spec: &str, bytes: &[u8], limit: usize) -> Result<Option<Self>, String> {
         if let Some(canvas) = super::Canvas::parse(spec) {
             return Ok(Some(Self {

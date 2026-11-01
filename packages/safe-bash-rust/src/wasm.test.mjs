@@ -3,6 +3,22 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq keeps the first named argument and skips duplicate file operands", async () => {
+  const bash = new RustWasmBash({ files: { "/workspace/values": "42" } });
+  try {
+    for (const [args, expected] of [
+      ["--arg x first --argjson x 2", "first"],
+      ["--arg x first --rawfile x missing", "first"],
+      ["--slurpfile x values --arg x second", [42]],
+    ]) {
+      const r = await bash.exec(`jq -nc ${args} '[$x,$ARGS.named]'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, JSON.stringify([expected, { x: expected }]) + "\n", ""]);
+    }
+    const r = await bash.exec("jq -nc --arg x first --argjson x nope '$x'");
+    assert.deepEqual([r.exitCode, r.stderr], [2, "jq: invalid JSON for --argjson x\n"]);
+  } finally { bash.dispose(); }
+});
+
 test("jq rejects invalid UTF-8 in program files before opening data files", async () => {
   const bash = new RustWasmBash({ files: { "/workspace/filter.jq": Uint8Array.of(34, 255, 34) } });
   try {

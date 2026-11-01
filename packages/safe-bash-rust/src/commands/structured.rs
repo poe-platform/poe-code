@@ -772,47 +772,41 @@ fn cmd_jq_core(
             }
             continue;
         }
-        if !end_opts && (a == "--arg" || a == "--argjson") {
+        if !end_opts && matches!(a.as_str(), "--arg" | "--argjson" | "--slurpfile" | "--rawfile") {
             if i + 2 >= args.len() {
                 return err_out(&format!("jq: {a} requires an operand\n"), 2);
             }
-            let name = args[i + 1].clone();
+            let name = &args[i + 1];
             let text = &args[i + 2];
-            let v = if a == "--arg" {
-                JVal::Str(text.clone())
-            } else {
-                match parse_single_json_strict(text) {
+            i += 3;
+            let value = match a.as_str() {
+                "--arg" => JVal::Str(text.clone()),
+                "--argjson" => match parse_single_json_strict(text) {
                     Ok(parsed) => parsed,
                     Err(_) => return err_out(&format!("jq: invalid JSON for --argjson {name}\n"), 2),
+                },
+                _ => {
+                    if vars.contains_key(name) { continue; }
+                    let full = resolve_posix_path(cwd, text);
+                    let bytes = match fs.read_file(&full) {
+                        Ok(bytes) => bytes,
+                        Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
+                    };
+                    let content = String::from_utf8_lossy(&bytes);
+                    if a == "--rawfile" {
+                        JVal::Str(content.into_owned())
+                    } else {
+                        match parse_json_stream(&content) {
+                            Ok(values) => JVal::Array(values),
+                            Err(_) => return err_out("jq: bad JSON in --slurpfile\n", 2),
+                        }
+                    }
                 }
             };
-            named_args.push((name.clone(), v.clone()));
-            vars.insert(name, v);
-            i += 3;
-            continue;
-        }
-        if !end_opts && (a == "--slurpfile" || a == "--rawfile") {
-            if i + 2 >= args.len() {
-                return err_out(&format!("jq: {a} requires an operand\n"), 2);
+            if let std::collections::btree_map::Entry::Vacant(entry) = vars.entry(name.clone()) {
+                named_args.push((name.clone(), value.clone()));
+                entry.insert(value);
             }
-            let name = args[i + 1].clone();
-            let full = resolve_posix_path(cwd, &args[i + 2]);
-            let bytes = match fs.read_file(&full) {
-                Ok(b) => b,
-                Err(_) => return err_out(&format!("jq: {}\n", read_stream_diag(&full, fs)), 2),
-            };
-            let content = String::from_utf8_lossy(&bytes).into_owned();
-            let v = if a == "--rawfile" {
-                JVal::Str(content)
-            } else {
-                match parse_json_stream(&content) {
-                    Ok(vals) => JVal::Array(vals),
-                    Err(_) => return err_out("jq: bad JSON in --slurpfile\n", 2),
-                }
-            };
-            named_args.push((name.clone(), v.clone()));
-            vars.insert(name, v);
-            i += 3;
             continue;
         }
         if !end_opts && (a == "-f" || a == "--from-file") {

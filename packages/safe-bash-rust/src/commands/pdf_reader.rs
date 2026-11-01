@@ -439,46 +439,80 @@ impl<'a> Objects<'a> {
     }
 }
 
-fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
+fn last_xref(bytes: &[u8]) -> Option<usize> {
     let tail = bytes.get(bytes.len().saturating_sub(4096)..)?;
     let offset_pos = tail.windows(9).rposition(|w| w == b"startxref")? + 9;
-    let offset = uint(Cursor(&tail[offset_pos..]).word()?)?;
-    let mut c = Cursor(bytes.get(offset..)?);
-    if c.word()? != b"xref" {
-        return None;
-    }
+    uint(Cursor(&tail[offset_pos..]).word()?)
+}
+
+fn index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
+    let mut offset = last_xref(bytes)?;
     let mut objects = Objects {
         bytes,
         xref: BTreeMap::new(),
         tokens: 1_000_000,
         remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
     };
+    // Revisions are ordered newest first; free entries also hide older objects.
+    let mut seen = BTreeSet::new();
+    let mut latest = Vec::new();
     loop {
-        let first = c.word()?;
-        if first == b"trailer" {
-            break;
+        let mut c = Cursor(bytes.get(offset..)?);
+        if c.word()? != b"xref" {
+            return None;
         }
-        let first = uint(first)?;
-        let count = uint(c.word()?)?;
-        objects.tokens = objects.tokens.checked_sub(count)?;
-        for id in first..first.checked_add(count)? {
-            let pos = uint(c.word()?)?;
-            let generation = uint(c.word()?)?;
-            match c.word()? {
-                b"n" => {
-                    objects.xref.insert((id, generation), pos);
+        loop {
+            let first = c.word()?;
+            if first == b"trailer" {
+                break;
+            }
+            let first = uint(first)?;
+            let count = uint(c.word()?)?;
+            objects.tokens = objects.tokens.checked_sub(count)?;
+            for id in first..first.checked_add(count)? {
+                let pos = uint(c.word()?)?;
+                let generation = uint(c.word()?)?;
+                match c.word()? {
+                    b"n" => {
+                        if seen.insert(id) {
+                            objects.xref.insert((id, generation), pos);
+                        }
+                    }
+                    b"f" => {
+                        seen.insert(id);
+                    }
+                    _ => return None,
                 }
-                b"f" => {}
-                _ => return None,
             }
         }
+        let trailer = c.value(0, &mut objects.tokens)?;
+        if trailer.get(b"Encrypt").is_some() || trailer.get(b"XRefStm").is_some() {
+            return None;
+        }
+        let prev = trailer.get(b"Prev").map(|v| uint(v.word()?));
+        let Value::Dict(entries) = trailer else {
+            return None;
+        };
+        // Only these inherited entries are needed by readers.
+        for (key, value) in entries {
+            if matches!(key, b"Root" | b"Info" | b"ID" | b"Size")
+                && !latest.iter().any(|(k, _)| *k == key)
+            {
+                latest.push((key, value));
+            }
+        }
+        match prev {
+            Some(Some(p)) if p < offset => offset = p,
+            None => break,
+            _ => return None,
+        }
     }
-    let trailer = c.value(0, &mut objects.tokens)?;
-    if trailer.get(b"Encrypt").is_some() || trailer.get(b"Prev").is_some() {
-        return None;
-    }
-    Some((objects, trailer))
+    Some((objects, Value::Dict(latest)))
 }
+
+#[path = "pdf_metadata.rs"]
+mod pdf_metadata;
+pub(super) use pdf_metadata::edit_info;
 
 pub(super) fn read(bytes: &[u8]) -> Option<PdfDoc> {
     let (mut objects, trailer) = index(bytes)?;

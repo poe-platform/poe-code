@@ -11465,8 +11465,7 @@ fn cmd_media_doc(
                 }
                 if let Some(rest) = a.strip_prefix('-') {
                     if let Some((k, v)) = rest.split_once('=') {
-                        let clean_k = k.trim_end_matches('+').trim_end_matches('-');
-                        updates.push((clean_k.to_string(), v.to_string()));
+                        updates.push((k.to_string(), v.to_string()));
                     } else if !matches!(
                         rest,
                         "j" | "json"
@@ -11579,6 +11578,7 @@ fn cmd_media_doc(
             }
             if writing_mode {
                 let mut updated = 0usize;
+                let mut unchanged = 0usize;
                 let mut err_out = String::new();
                 for f in &files {
                     let full = resolve_posix_path(cwd, f);
@@ -11607,14 +11607,32 @@ fn cmd_media_doc(
                         ));
                         continue;
                     }
+                    let revision = if is_pdf && data.split(|&b| b == b'\n').nth(1) != Some(b"%%SAFE_PDF_V2%%") {
+                        match pdf_reader::edit_info(&data, &updates, tags_from_file.is_some()) {
+                            Ok(suffix) if suffix.is_empty() && out_path.is_none() && !updates.iter().any(|(k,v)| !v.is_empty() && !k.ends_with(['+', '-'])) => {
+                                unchanged += 1;
+                                continue;
+                            }
+                            Ok(suffix) => Some(suffix),
+                            Err(e) => {
+                                err_out.push_str(&format!("Error: {e} - {f}\n"));
+                                continue;
+                            }
+                        }
+                    } else { None };
                     if !overwrite_orig && out_path.is_none() {
                         let orig_path = format!("{full}_original");
                         if !fs.exists(&orig_path) {
                             let _ = fs.write_file(&orig_path, &data);
                         }
                     }
-                    for (k, v) in &updates {
-                        data.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
+                    if let Some(suffix) = revision {
+                        data.extend_from_slice(&suffix);
+                    } else {
+                        for (k, v) in &updates {
+                            let k = k.trim_end_matches(['+', '-']);
+                            data.extend_from_slice(format!("\n__EXIF__:{k}={v}").as_bytes());
+                        }
                     }
                     let dst = out_path
                         .as_ref()
@@ -11623,11 +11641,12 @@ fn cmd_media_doc(
                     let _ = fs.write_file(&dst, &data);
                     updated += 1;
                 }
-                let stdout_str = if updated > 0 {
-                    format!("    {updated} image files updated\n")
+                let mut stdout_str = if updated > 0 || unchanged > 0 {
+                    format!("{updated:>5} image files updated\n")
                 } else {
                     String::new()
                 };
+                if unchanged > 0 { stdout_str.push_str(&format!("{unchanged:>5} image files unchanged\n")); }
                 return BuiltinOutcome {
                     stdout: stdout_str,
                     stderr: err_out.clone(),
@@ -13078,6 +13097,28 @@ mod media_unit_tests {
         pdf.push_str(&xref);
         pdf.push_str(&format!("trailer\n<< /Size {} /Root 1 0 R {extra} >>\nstartxref\n{offset}\n%%EOF", objects.len() + 1));
         pdf
+    }
+
+    #[test]
+    fn exiftool_appends_pdf_info_without_losing_pages_or_previous_metadata() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 40 80] >>",
+            "<< /Type /Page /Parent 2 0 R >>",
+            "<< /Author (Ada) /Title (Original) >>",
+        ], "/Info 4 0 R");
+        fs.write_file("/doc.pdf", pdf.as_bytes()).unwrap();
+        for title in ["New (title)", "日本語"] {
+            let r = cmd_media_doc("exiftool", &media_args(&[&format!("-Title={title}"), "-overwrite_original", "doc.pdf"]), "", "/", &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let updated = fs.read_file("/doc.pdf").unwrap();
+            assert!(updated.starts_with(pdf.as_bytes()));
+            let parsed = pdf_reader::read(&updated).unwrap();
+            assert_eq!(parsed.title, title);
+            assert_eq!(parsed.author, "Ada");
+            assert_eq!(parsed.pages.len(), 1);
+        }
     }
 
     #[test]

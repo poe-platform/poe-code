@@ -11424,10 +11424,13 @@ impl<'a> EvalState<'a> {
         word: &str,
         escape_quoted_glob: bool,
         split_plain_text: bool,
+        split_fields: bool,
         segments: &mut Vec<WordSeg>,
     ) -> Result<(), EvalError> {
         let chars: Vec<char> = word.chars().collect();
         let mut idx = 0usize;
+        let mut quoted_breaks = 0usize;
+        let mut quoted_bytes = 0usize;
 
         while idx < chars.len() {
             let c = chars[idx];
@@ -11491,6 +11494,7 @@ impl<'a> EvalState<'a> {
             if c == '"' {
                 idx += 1;
                 let mut dq = String::new();
+                let mut keep_empty = chars.get(idx) == Some(&'"');
                 while idx < chars.len() && chars[idx] != '"' {
                     if chars[idx] == '\\' && idx + 1 < chars.len() {
                         let nc = chars[idx + 1];
@@ -11509,6 +11513,51 @@ impl<'a> EvalState<'a> {
                         }
                     }
                     if chars[idx] == '$' {
+                        if split_fields {
+                            let mut end = idx + 1;
+                            let items = match chars.get(end) {
+                                Some('@') => {
+                                    end += 1;
+                                    Some(self.pos_args.clone())
+                                }
+                                Some('{') => {
+                                    let expr = scan_nested_brace_sub(&chars, &mut end)?;
+                                    expand_double_quoted_at_expr(&expr, self.env, &self.pos_args)
+                                }
+                                _ => None,
+                            };
+                            if let Some(items) = items {
+                                quoted_breaks = quoted_breaks.saturating_add(items.len().saturating_sub(1));
+                                if !items.is_empty() && quoted_breaks >= self.budget.limits.max_expansion_fields {
+                                    return Err(EvalError::Budget(format!(
+                                        "Execution aborted: Shell limit exceeded: maxExpansionFields ({})",
+                                        self.budget.limits.max_expansion_fields
+                                    )));
+                                }
+                                quoted_bytes = items
+                                    .iter()
+                                    .fold(quoted_bytes, |n, item| n.saturating_add(item.len()));
+                                if quoted_bytes > self.budget.limits.max_expansion_bytes {
+                                    return Err(EvalError::Budget(format!(
+                                        "Execution aborted: Shell limit exceeded: maxExpansionBytes ({})",
+                                        self.budget.limits.max_expansion_bytes
+                                    )));
+                                }
+                                if keep_empty || !dq.is_empty() {
+                                    segments.push(WordSeg::Quoted(std::mem::take(&mut dq)));
+                                }
+                                keep_empty = false;
+                                for (i, item) in items.into_iter().enumerate() {
+                                    if i != 0 {
+                                        segments.push(WordSeg::Boundary);
+                                    }
+                                    segments.push(WordSeg::Quoted(item));
+                                }
+                                idx = end;
+                                continue;
+                            }
+                        }
+                        keep_empty = true;
                         let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_dollar(&chars, &mut idx);
                         match prev_dq {
@@ -11536,6 +11585,7 @@ impl<'a> EvalState<'a> {
                         continue;
                     }
                     if chars[idx] == '`' {
+                        keep_empty = true;
                         let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_backticks(&chars, &mut idx);
                         match prev_dq {
@@ -11576,7 +11626,9 @@ impl<'a> EvalState<'a> {
                 if idx < chars.len() {
                     idx += 1;
                 }
-                segments.push(WordSeg::Quoted(dq));
+                if keep_empty || !dq.is_empty() {
+                    segments.push(WordSeg::Quoted(dq));
+                }
                 continue;
             }
             if (c == '<' || c == '>') && idx + 1 < chars.len() && chars[idx + 1] == '(' {
@@ -11636,6 +11688,7 @@ impl<'a> EvalState<'a> {
                             &tilded_alt,
                             escape_quoted_glob,
                             true,
+                            split_fields,
                             segments,
                         );
                         for tk in temp_keys {
@@ -11682,42 +11735,6 @@ impl<'a> EvalState<'a> {
         split_and_glob: bool,
         escape_quoted_glob: bool,
     ) -> Result<Vec<String>, EvalError> {
-        if split_and_glob && (word == "\"$@\"" || word == "\"${@}\"") {
-            return Ok(self.pos_args.clone());
-        }
-        if split_and_glob
-            && let Some(dq_body) = word.strip_prefix('"').and_then(|s| s.strip_suffix('"'))
-            && let Some(start_brace) = dq_body.find("${")
-        {
-            let prefix = &dq_body[..start_brace];
-            if !prefix.contains(['"', '\\']) {
-                let chars: Vec<char> = dq_body[start_brace..].chars().collect();
-                let mut end = 1;
-                let inner = scan_nested_brace_sub(&chars, &mut end)?;
-                let suffix = &dq_body[start_brace + inner.len() + 3..];
-                if !suffix.contains('"') && !suffix.contains("${")
-                    && let Some(mut items) =
-                        expand_double_quoted_at_expr(&inner, self.env, &self.pos_args)
-                {
-                    if prefix.is_empty() && suffix.is_empty() {
-                        return Ok(items);
-                    }
-                    let pre_s = self.expand_word_to_string(&format!("\"{prefix}\""))?;
-                    let suf_s = self.expand_word_to_string(&format!("\"{suffix}\""))?;
-                    if items.is_empty() {
-                        if pre_s.is_empty() && suf_s.is_empty() {
-                            return Ok(Vec::new());
-                        }
-                        return Ok(vec![format!("{pre_s}{suf_s}")]);
-                    }
-                    items[0] = format!("{pre_s}{}", items[0]);
-                    if let Some(last) = items.last_mut() {
-                        last.push_str(&suf_s);
-                    }
-                    return Ok(items);
-                }
-            }
-        }
         if split_and_glob && (word == "$@" || word == "${@}") {
             let ifs = self
                 .env
@@ -11732,12 +11749,13 @@ impl<'a> EvalState<'a> {
         }
 
         let mut segments: Vec<WordSeg> = Vec::new();
-        self.collect_word_segments(word, escape_quoted_glob, false, &mut segments)?;
+        self.collect_word_segments(word, escape_quoted_glob, false, split_and_glob, &mut segments)?;
 
         let total_exp_bytes: usize = segments
             .iter()
             .map(|seg| match seg {
                 WordSeg::Quoted(s) | WordSeg::Literal(s) | WordSeg::Split(s) => s.len(),
+                WordSeg::Boundary => 0,
             })
             .sum();
         if total_exp_bytes > self.budget.limits.max_expansion_bytes {
@@ -11751,6 +11769,7 @@ impl<'a> EvalState<'a> {
             let mut s = String::new();
             for seg in segments {
                 match seg {
+                    WordSeg::Boundary => unreachable!("only split words have field boundaries"),
                     WordSeg::Quoted(part) | WordSeg::Literal(part) | WordSeg::Split(part) => {
                         s.push_str(&part);
                     }
@@ -11824,6 +11843,7 @@ impl<'a> EvalState<'a> {
 
         for seg in segments {
             match seg {
+                WordSeg::Boundary => add_field(&mut fields, &mut split_boundary),
                 WordSeg::Quoted(text) => {
                     append_piece(&mut fields, &mut split_boundary, &text, false, true);
                 }
@@ -13612,6 +13632,7 @@ fn split_ifs_fields(s: &str, ifs: &str, max_fields: Option<usize>) -> Vec<String
 
 #[derive(Debug, Clone)]
 enum WordSeg {
+    Boundary,
     Quoted(String),
     Literal(String),
     Split(String),
@@ -16026,6 +16047,30 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn quoted_arrays_expand_in_order_and_keep_each_argument() {
+        for (word,expected) in [
+            (r#""$((a[0]++)):${a[@]}""#, "<10:11>\n<two words>\n"),
+            (r#""p$@s""#, "<px>\n<y zs>\n"),
+            (r#""${a[@]}-${b[@]}""#, "<10>\n<two words->\n<last>\n"),
+            (r#"start"${a[@]}"tail"#, "<start10>\n<two wordstail>\n"),
+            (r#""${empty[@]}""${empty[@]}""#, ""),
+            (r#""${empty[@]}$unset""#, "<>\n"),
+            (r#""$unset${empty[@]}""#, "<>\n"),
+            (r#""${b[@]}""${a[@]}""#, "<>\n<last10>\n<two words>\n"),
+            (r#""${a[@]:1:1}""#, "<two words>\n"),
+            (r#""\${a[@]}""#, "<${a[@]}>\n"),
+            (r#""x${a[@]}$((a[0]+=5))${a[@]}""#, "<x10>\n<two words1515>\n<two words>\n"),
+            (r#""x$@"y"#, "<xx>\n<y zy>\n"),
+            (r#""${a[@]}"*"#, "<10>\n<two words*>\n"),
+        ] {
+            let script=format!(r#"a=(10 "two words"); b=("" last); empty=(); set -- x "y z"; for v in {word}; do printf "<%s>\n" "$v"; done"#);
+            let (mut shell,_) = crate::shell::Shell::with_memory_fs();
+            let r=shell.exec(&script).unwrap();
+            assert_eq!((r.exit_code,r.stdout.as_str(),r.stderr.as_str()),(0,expected,""),"{word}");
+        }
     }
 
     #[test]

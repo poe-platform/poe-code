@@ -4,6 +4,7 @@ import {
   Shell,
   agentCommands,
   createMemoryFileSystem,
+  rsvgConvertCommands,
 } from "../../safe-bash/dist/index.js";
 
 async function readAllStdin() {
@@ -110,7 +111,7 @@ async function main() {
     fs,
     cwd: req.cwd || "/",
     env: req.env || {},
-  }).use(agentCommands());
+  }).use(agentCommands()).use(rsvgConvertCommands());
 
   const session = shell.createSession();
   const controller = new AbortController();

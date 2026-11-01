@@ -105,3 +105,34 @@ fn native_only_pandoc_preserves_existing_document() {
     assert_eq!(fs.read_file("/work/guide.docx").unwrap(), b"existing document");
     assert!(!result.used_typescript_bridge);
 }
+
+#[test]
+fn hybrid_rsvg_convert_renders_files_and_piped_svg() {
+    for mode in [BackendMode::Hybrid, BackendMode::TypeScriptOnly] {
+        let (mut shell, fs) = fixture(mode);
+        fs.write_file("/work/input.svg", b"<svg width=\"2\" height=\"1\"><rect width=\"2\" height=\"1\" fill=\"red\"/></svg>").unwrap();
+        for command in [
+            "rsvg-convert input.svg -o 'output image.png'",
+            "cat input.svg | rsvg-convert -o 'output image.png'",
+        ] {
+            let result = shell.exec(command).unwrap();
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert!(result.used_typescript_bridge);
+            let result = shell.exec("convert 'output image.png' output.ppm").unwrap();
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(fs.read_file("/work/output.ppm").unwrap(), b"P6\n2 1\n255\n\xff\x00\x00\xff\x00\x00");
+        }
+    }
+}
+
+#[test]
+fn hybrid_rsvg_convert_reports_renderer_errors_without_replacing_output() {
+    let (mut shell, fs) = fixture(BackendMode::Hybrid);
+    fs.write_file("/work/input.svg", b"<svg width=\"2\" height=\"1\"><image/></svg>").unwrap();
+    fs.write_file("/work/output.png", b"existing output").unwrap();
+    let result = shell.exec("rsvg-convert input.svg -o output.png").unwrap();
+    assert_ne!(result.exit_code, 0);
+    assert!(result.stderr.contains("Unsupported SVG element image"), "{}", result.stderr);
+    assert_eq!(fs.read_file("/work/output.png").unwrap(), b"existing output");
+    assert!(result.used_typescript_bridge);
+}

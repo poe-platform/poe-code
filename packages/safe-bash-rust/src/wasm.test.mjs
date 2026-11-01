@@ -61,6 +61,18 @@ test("tail starting at a record skips across device chunks and reads to EOF or a
   } finally { bash.dispose(); }
 });
 
+test("cat enforces its input quota per regular file, including later chunks", async () => {
+  const bash = new RustWasmBash({ files: {
+    "/long": new Uint8Array(65537), "/one": "abc", "/two": "def", "/secret": { content: "hidden", mode: 0o200 },
+  }, symlinks: { "/alias": "/long" } });
+  try {
+    await assert.rejects(bash.exec("cat -n /alias", { limits: { maxInputBytes: 65536 } }), /maxInputBytes/);
+    const r = await bash.exec("cat /one /secret /two", { limits: { maxInputBytes: 3 } });
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [1, "abcdef", "cat: EACCES: permission denied, readStream '/secret'\n"]);
+    assert.equal((await bash.exec("cat /long", { limits: { maxInputBytes: 65537 } })).stdoutBytes.length, 65537);
+  } finally { bash.dispose(); }
+});
+
 test("cat checks access before reading aliases and preserves each filesystem's path errors", async () => {
   for (const profile of [undefined, "strict-budgets-mount-dev", "overlay-cow-fs"]) {
     const bash = new RustWasmBash({ profile, files: {

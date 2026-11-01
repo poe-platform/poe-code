@@ -227,7 +227,7 @@ impl SafeBashFs for RealVfs {
     fn read_chunks(&self, path: &str, consume: &mut dyn FnMut(&[u8]) -> Result<bool, String>) -> Result<(), String> {
         use std::io::{BufRead, BufReader};
         let host = self.walk(&self.root, path, Walk::Follow, false)?;
-        let file = std::fs::File::open(host).map_err(|e| e.to_string())?;
+        let file = std::fs::File::open(host).map_err(mutation_error)?;
         let mut reader = BufReader::with_capacity(65536, file);
         loop {
             let chunk = reader.fill_buf().map_err(|e| e.to_string())?;

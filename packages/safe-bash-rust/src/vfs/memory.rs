@@ -787,6 +787,7 @@ impl SafeBashFs for MemoryVfs {
             Some("") => Err(format!("EISDIR: illegal operation on a directory, read '{path}'")),
             _ => {
                 let file = self.retain_file(&resolved)?;
+                if file.stat().mode & 0o400 == 0 { return Err("EACCES: permission denied".into()); }
                 let mut offset = 0;
                 loop {
                     let chunk = file.read(offset, 65536);

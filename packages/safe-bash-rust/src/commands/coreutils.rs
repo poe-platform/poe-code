@@ -409,14 +409,24 @@ fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
         } else {
             let p = super::fs::absolute_operand(cwd, f);
             let result = fs.inspect_command_entry(&p, true, "capabilitiesFor")
-                .and_then(|(resolved, _)| fs.read_file(&resolved));
-            match result {
-                Ok(bytes) => raw_bytes.extend_from_slice(&bytes),
-                Err(error) => {
-                    let message = stream_file_error(error, "readStream", &p);
-                    stderr.push_str(&format!("cat: {message}\n"));
-                    exit_code = 1;
-                }
+                .and_then(|(resolved, st)| {
+                    if st.mode & 0o170000 != 0o100000 {
+                        raw_bytes.extend(fs.read_file(&resolved)?);
+                        return Ok(());
+                    }
+                    let limit = fs.max_input_bytes();
+                    let mut remaining = limit;
+                    fs.read_chunks(&resolved, &mut |chunk| {
+                        remaining = remaining.checked_sub(chunk.len())
+                            .ok_or_else(|| fs.limit_error("maxInputBytes", limit))?;
+                        raw_bytes.extend_from_slice(chunk);
+                        Ok(true)
+                    })
+                });
+            if let Err(error) = result {
+                let message = stream_file_error(error, "readStream", &p);
+                stderr.push_str(&format!("cat: {message}\n"));
+                exit_code = 1;
             }
         }
     }

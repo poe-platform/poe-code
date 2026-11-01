@@ -12258,7 +12258,7 @@ mod tests {
         assert_eq!(ff.exit_code, 0);
         let fp = try_run_archive_command(
             "ffprobe",
-            &args(&["-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", "/work/out.mp4"]),
+            &args(&["-v", "quiet", "-print_format", "json=compact=1", "-show_format", "-show_streams", "/work/out.mp4"]),
             "",
             "/work",
             &env,

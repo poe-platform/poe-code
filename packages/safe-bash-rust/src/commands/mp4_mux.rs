@@ -257,6 +257,143 @@ impl Track<'_> {
         });
     }
 }
+pub(in super::super) fn lavfi(
+    video: &super::super::lavfi::Video,
+    filters: &[String],
+    opts: Remux<'_>,
+) -> Result<Vec<u8>, String> {
+    use super::{super::y4m, h264};
+    let (w, h) = (video.width as usize, video.height as usize);
+    let count = (opts.end.unwrap_or(video.duration) * video.fps)
+        .round()
+        .max(1.) as usize;
+    if count > 200_000 || count > opts.limit / size_of::<Sample>() {
+        return Err("frame index exceeds memory budget".into());
+    }
+    let mut dims = (w, h);
+    let mut stsd = Vec::new();
+    let mut samples = Vec::new();
+    let mut previous = Vec::new();
+    let mut ticks = 0u64;
+    let mut used = 0usize;
+    let sliced = opts.start.is_some() || opts.end.is_some() || opts.shortest;
+    let frame_opts = y4m::Options {
+        filters,
+        frames: if sliced { None } else { opts.frames },
+        start: 0.,
+        end: None,
+        no_video: false,
+        limit: opts.limit,
+    };
+    y4m::render_frames(
+        w,
+        h,
+        (0..count).map(|i| (i as f64 / video.fps, 1. / video.fps)),
+        frame_opts,
+        |i| Ok(video.image(i)),
+        |im, duration| {
+            if samples.is_empty() {
+                dims = (im.width, im.height);
+                let config = h264::configuration(
+                    im.width,
+                    im.height,
+                    (1. / duration).round().max(1.) as u32,
+                )?;
+                words(&mut stsd, &[0, 1]);
+                atom(&mut stsd, b"avc1", |b| {
+                    words(
+                        b,
+                        &[
+                            0,
+                            1,
+                            0,
+                            0,
+                            0,
+                            0,
+                            (im.width as u32) << 16 | im.height as u32,
+                            0x00480000,
+                            0x00480000,
+                            0,
+                        ],
+                    );
+                    b.extend_from_slice(&1u16.to_be_bytes());
+                    b.extend_from_slice(&[0; 32]);
+                    words(b, &[0x0018ffff]);
+                    atom(b, b"avcC", |b| b.extend_from_slice(&config));
+                });
+            }
+            let blocks = h264::macroblocks(im, opts.limit)?;
+            let data = h264::encode_slice(
+                &blocks,
+                &previous,
+                samples.len(),
+                opts.limit.saturating_sub(used),
+            )?;
+            previous = blocks;
+            used = used.saturating_add(data.len() + size_of::<Sample>());
+            if used > opts.limit {
+                return Err("output byte limit exceeded");
+            }
+            let duration = (duration * 90000.).round().max(1.) as u32;
+            ticks += u64::from(duration);
+            samples.push(Sample {
+                data: data.into(),
+                duration,
+                cts: 0,
+                key: true,
+                description: 1,
+            });
+            Ok(())
+        },
+    )?;
+    let track = Track {
+        samples,
+        scale: 90000,
+        media_ticks: ticks as u32,
+        movie_ticks: (ticks as f64 / 90.).round() as u32,
+        first_dts: 0,
+        stsd: stsd.into(),
+        edits: vec![],
+        kind: "video",
+        enabled: true,
+        volume: 0,
+        matrix: MATRIX,
+        width: dims.0 as u32,
+        height: dims.1 as u32,
+        language: 0x55c4,
+        handler: *b"vide",
+        name: b"VideoHandler",
+    };
+    let mut metadata = opts.metadata.clone();
+    metadata
+        .entry("encoder".to_owned())
+        .or_insert_with(|| "@poe-code/mp4-ast".to_owned());
+    let mov = opts.format == "mov";
+    let brand: &[u8] = if mov {
+        b"qt  \0\0\x02\0qt  "
+    } else {
+        b"isom\0\0\x02\0isomiso2avc1mp41"
+    };
+    if sliced || !opts.maps.is_empty() || opts.rotation.is_some() {
+        let input = write(&[track], 1000, brand, &metadata, &[], false, opts.limit)?;
+        return remux(&[("mp4", &input)], opts);
+    }
+    write(
+        if opts.strip_video {
+            &[]
+        } else {
+            std::slice::from_ref(&track)
+        },
+        1000,
+        brand,
+        &metadata,
+        &[],
+        opts.fragmented,
+        opts.limit,
+    )
+    .map_err(str::to_owned)
+}
+
 fn adts_track<'a>(
     input: &'a [u8],
     opts: &Options,

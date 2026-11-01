@@ -390,80 +390,11 @@ impl<'a> Pcm<'a> {
         {
             return Err("unsupported H.264 slice promotion dimensions");
         }
-        let mut im = self.image((w, h), false, limit)?;
-        if w != dw || h != dh {
-            im.remap(dw, dh, |r, x, y| r.pixels[y.min(h - 1) * w + x.min(w - 1)])
-        }
-        let mut planes = Vec::new();
-        super::super::y4m::append_planes(&mut planes, &im, limit)?;
-        let y_len = dw * dh;
-        for (i, mb) in self.blocks.iter_mut().enumerate() {
-            let (x, y) = (i % (dw / 16), i / (dw / 16));
-            for row in 0..16 {
-                let j = (y * 16 + row) * dw + x * 16;
-                mb[row * 16..row * 16 + 16].copy_from_slice(&planes[j..j + 16]);
-            }
-            for row in 0..8 {
-                let j = (y * 8 + row) * (dw / 2) + x * 8;
-                for (plane, base) in [(y_len, 256), (y_len + y_len / 4, 320)] {
-                    mb[base + row * 8..base + row * 8 + 8]
-                        .copy_from_slice(&planes[plane + j..plane + j + 8]);
-                }
-            }
-        }
+        self.blocks = macroblocks(self.image((w, h), false, limit)?, limit)?;
         Ok(())
     }
     pub(super) fn idr(&self, limit: usize) -> Result<Vec<u8>, &'static str> {
-        // The slice promoted at a cut is frame zero of the new stream. All
-        // blocks use I_PCM and start their samples on a byte boundary.
-        let mut raw = Vec::new();
-        let mut at = 0;
-        let put = |raw: &mut Vec<u8>, at: &mut u32, value: u32, count: u32| {
-            for n in (0..count).rev() {
-                if *at == 0 {
-                    raw.push(0)
-                }
-                *raw.last_mut().unwrap() |= (((value >> n) & 1) as u8) << (7 - *at);
-                *at = (*at + 1) % 8;
-            }
-        };
-        let ue = |raw: &mut Vec<u8>, at: &mut u32, value: u32| {
-            let code = value + 1;
-            put(raw, at, code, 2 * (31 - code.leading_zeros()) + 1);
-        };
-        ue(&mut raw, &mut at, 0);
-        ue(&mut raw, &mut at, 7);
-        ue(&mut raw, &mut at, 0);
-        put(&mut raw, &mut at, 0, 4);
-        ue(&mut raw, &mut at, 0);
-        put(&mut raw, &mut at, 0, 6);
-        ue(&mut raw, &mut at, 0);
-        ue(&mut raw, &mut at, 1);
-        for block in &self.blocks {
-            ue(&mut raw, &mut at, 25);
-            at = 0;
-            if raw.len().saturating_add(block.len()) > limit {
-                return Err("output byte limit exceeded");
-            }
-            raw.extend_from_slice(block);
-        }
-        raw.push(0x80);
-        let mut sample = vec![0, 0, 0, 0, 0x65];
-        let mut zeros = 0;
-        for byte in raw {
-            if zeros == 2 && byte <= 3 {
-                sample.push(3);
-                zeros = 0
-            }
-            sample.push(byte);
-            zeros = if byte == 0 { zeros + 1 } else { 0 };
-            if sample.len() > limit {
-                return Err("output byte limit exceeded");
-            }
-        }
-        let size = (sample.len() - 4) as u32;
-        sample[..4].copy_from_slice(&size.to_be_bytes());
-        Ok(sample)
+        encode_slice(&self.blocks, &[], 0, limit)
     }
     pub(super) fn image(
         &self,
@@ -505,6 +436,162 @@ impl<'a> Pcm<'a> {
             density: 72,
         })
     }
+}
+
+pub(super) fn macroblocks(mut im: Raster, limit: usize) -> Result<Vec<[u8; 384]>, &'static str> {
+    let (w, h) = (im.width, im.height);
+    let (dw, dh) = (w.div_ceil(16) * 16, h.div_ceil(16) * 16);
+    if w == 0 || h == 0 || dw.saturating_mul(dh) > limit / 4 {
+        return Err("image exceeds memory budget");
+    }
+    if w != dw || h != dh {
+        im.remap(dw, dh, |r, x, y| r.pixels[y.min(h - 1) * w + x.min(w - 1)])
+    }
+    let mut planes = Vec::new();
+    super::super::y4m::append_planes(&mut planes, &im, limit)?;
+    let y_len = dw * dh;
+    let mut blocks = vec![[0u8; 384]; dw / 16 * (dh / 16)];
+    for (i, mb) in blocks.iter_mut().enumerate() {
+        let (x, y) = (i % (dw / 16), i / (dw / 16));
+        for row in 0..16 {
+            let j = (y * 16 + row) * dw + x * 16;
+            mb[row * 16..row * 16 + 16].copy_from_slice(&planes[j..j + 16]);
+        }
+        for row in 0..8 {
+            let j = (y * 8 + row) * (dw / 2) + x * 8;
+            for (plane, base) in [(y_len, 256), (y_len + y_len / 4, 320)] {
+                mb[base + row * 8..base + row * 8 + 8]
+                    .copy_from_slice(&planes[plane + j..plane + j + 8]);
+            }
+        }
+    }
+    Ok(blocks)
+}
+
+#[derive(Default)]
+struct BitWriter {
+    bytes: Vec<u8>,
+    used: u8,
+}
+impl BitWriter {
+    fn bits(&mut self, value: u32, n: u32) {
+        for shift in (0..n).rev() {
+            if self.used == 0 {
+                self.bytes.push(0)
+            }
+            *self.bytes.last_mut().unwrap() |= (((value >> shift) & 1) as u8) << (7 - self.used);
+            self.used = (self.used + 1) % 8;
+        }
+    }
+    fn ue(&mut self, value: u32) {
+        let code = value + 1;
+        let n = 31 - code.leading_zeros();
+        self.bits(0, n);
+        self.bits(code, n + 1);
+    }
+    // rbsp_stop_one_bit followed by zero padding; escape Annex B start codes.
+    fn nal(mut self, header: u8, prefix: usize, limit: usize) -> Result<Vec<u8>, &'static str> {
+        self.bits(1, 1);
+        let mut out = vec![0; prefix];
+        out.push(header);
+        let mut zeros = 0;
+        for byte in self.bytes {
+            if zeros == 2 && byte <= 3 {
+                out.push(3);
+                zeros = 0;
+            }
+            out.push(byte);
+            zeros = if byte == 0 { zeros + 1 } else { 0 };
+            if out.len() > limit {
+                return Err("output byte limit exceeded");
+            }
+        }
+        Ok(out)
+    }
+}
+
+pub(super) fn configuration(w: usize, h: usize, fps: u32) -> Result<Vec<u8>, &'static str> {
+    let (mw, mh) = (w.div_ceil(16), h.div_ceil(16));
+    let level = if w > 1280 || h > 720 { 40 } else { 31 };
+    let mut b = BitWriter::default();
+    b.bits(66, 8);
+    b.bits(0xc0, 8);
+    b.bits(level, 8);
+    for v in [0, 0, 0, 0, 4] {
+        b.ue(v)
+    }
+    b.bits(0, 1);
+    b.ue(mw as u32 - 1);
+    b.ue(mh as u32 - 1);
+    b.bits(3, 2);
+    let (right, bottom) = ((mw * 16 - w) / 2, (mh * 16 - h) / 2);
+    b.bits(u32::from(right + bottom > 0), 1);
+    if right + bottom > 0 {
+        for v in [0, right, 0, bottom] {
+            b.ue(v as u32)
+        }
+    }
+    b.bits(3, 2);
+    b.bits(1, 8);
+    b.bits(1, 4); // square pixels, timing_info_present
+    b.bits(1000, 32);
+    b.bits(fps.wrapping_mul(2000), 32);
+    b.bits(16, 5);
+    let sps = b.nal(0x67, 0, 256)?;
+    let mut avcc = vec![1, 66, 0xc0, level as u8, 0xff, 0xe1];
+    avcc.extend_from_slice(&(sps.len() as u16).to_be_bytes());
+    avcc.extend(sps);
+    avcc.extend_from_slice(&[1, 0, 4, 0x68, 0xce, 0x3c, 0x80]); // CAVLC PPS, no slice groups
+    Ok(avcc)
+}
+
+pub(super) fn encode_slice(
+    blocks: &[[u8; 384]],
+    previous: &[[u8; 384]],
+    index: usize,
+    limit: usize,
+) -> Result<Vec<u8>, &'static str> {
+    let gop = index % 24;
+    let predictive = gop != 0 && previous.len() == blocks.len();
+    let mut b = BitWriter::default();
+    b.ue(0);
+    b.ue(if predictive { 5 } else { 7 });
+    b.ue(0);
+    if predictive {
+        b.bits(gop as u32, 4);
+        b.bits((gop * 2) as u32, 4);
+        b.bits(0, 3);
+    } else {
+        b.bits(0, 4);
+        b.ue(index as u32 & 0x7fff);
+        b.bits(0, 6)
+    }
+    b.ue(0);
+    b.ue(1);
+    let mut skip = 0;
+    for (i, block) in blocks.iter().enumerate() {
+        if predictive && block == &previous[i] {
+            skip += 1;
+            continue;
+        }
+        if predictive {
+            b.ue(skip);
+            skip = 0;
+        }
+        b.ue(if predictive { 30 } else { 25 });
+        b.used = 0;
+        if b.bytes.len().saturating_add(384) > limit {
+            return Err("output byte limit exceeded");
+        }
+        b.bytes.extend_from_slice(block);
+    }
+    if skip > 0 {
+        b.ue(skip)
+    }
+    let mut sample = b.nal(if predictive { 0x61 } else { 0x65 }, 4, limit)?;
+    let len = (sample.len() - 4) as u32;
+    sample[..4].copy_from_slice(&len.to_be_bytes());
+    Ok(sample)
 }
 
 #[cfg(test)]

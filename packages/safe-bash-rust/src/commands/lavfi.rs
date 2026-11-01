@@ -97,7 +97,7 @@ impl Video {
         })
     }
 
-    fn image(&self, idx: usize) -> Raster {
+    pub(super) fn image(&self, idx: usize) -> Raster {
         let (w, h) = (self.width as usize, self.height as usize);
         let pixels = match self.pattern {
             Pattern::Color([r, g, b]) => vec![[r, g, b, 255]; w * h],

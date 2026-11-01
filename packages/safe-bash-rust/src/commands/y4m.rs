@@ -290,13 +290,35 @@ pub(super) fn encode(
     h: usize,
     times: impl Iterator<Item = (f64, f64)>,
     opts: Options<'_>,
-    mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
+    image: impl FnMut(usize) -> Result<Raster, &'static str>,
 ) -> Result<Vec<u8>, &'static str> {
     let header =
         |w, h, fps| format!("YUV4MPEG2 W{w} H{h} F{fps}:1 Ip A1:1 C420jpeg\n").into_bytes();
     if opts.no_video {
         return Ok(header(64, 64, 10));
     }
+    let limit = opts.limit;
+    let mut out = Vec::new();
+    render_frames(w, h, times, opts, image, |im, duration| {
+        if out.is_empty() {
+            out = header(im.width, im.height, (1. / duration).round().max(1.) as u32)
+        }
+        out.extend_from_slice(b"FRAME\n");
+        append_planes(&mut out, &im, limit)
+    })?;
+    if out.is_empty() {
+        out = header(w, h, 30)
+    }
+    Ok(out)
+}
+pub(super) fn render_frames(
+    w: usize,
+    h: usize,
+    times: impl Iterator<Item = (f64, f64)>,
+    opts: Options<'_>,
+    mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
+    mut emit: impl FnMut(Raster, f64) -> Result<(), &'static str>,
+) -> Result<(), &'static str> {
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
         if pts + duration > opts.start && opts.end.is_none_or(|t| pts < t) {
@@ -449,23 +471,17 @@ pub(super) fn encode(
         frames.truncate(n.max(1) as usize);
     }
     if frames.is_empty() {
-        return Ok(header(w, h, 30));
+        return Ok(());
     }
     if w.saturating_mul(h) > opts.limit / 4 {
         return Err("image exceeds memory budget");
     }
-    let mut out = Vec::new();
-    let fps = 1. / frames[0].duration;
     for frame in frames {
         let mut im = render(&stages, frame.index, opts.limit, &mut image)?;
         for op in &ops {
             op.apply(&mut im, opts.limit)?;
         }
-        if out.is_empty() {
-            out = header(im.width, im.height, fps.round().max(1.) as u32);
-        }
-        out.extend_from_slice(b"FRAME\n");
-        append_planes(&mut out, &im, opts.limit)?;
+        emit(im, frame.duration)?;
     }
-    Ok(out)
+    Ok(())
 }

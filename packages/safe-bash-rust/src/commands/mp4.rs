@@ -1222,6 +1222,31 @@ fn read_tracks<'a>(input: &'a [u8], moov: &'a [u8]) -> Result<(Vec<Track<'a>>, f
     Ok((tracks, duration))
 }
 
+pub(super) fn media_doc(input: &[u8]) -> Option<super::MediaDoc> {
+    let moov = movie(input).ok()?;
+    let (tracks, duration) = read_tracks(input, moov).ok()?;
+    let audio = tracks.iter().find(|t| t.kind == "audio");
+    let t = tracks.iter().find(|t| t.kind == "video").or(audio)?;
+    let mut doc = super::MediaDoc::default_video();
+    doc.codec_type = t.kind.into();
+    doc.codec_name = t.codec().0.into();
+    doc.width = t.width;
+    doc.height = t.height;
+    doc.nb_frames = t.stats.count as u32;
+    if t.stats.ticks > 0 {
+        doc.fps = (t.stats.count as f64 * f64::from(t.scale) / t.stats.ticks as f64).round() as u32;
+    }
+    doc.duration = duration;
+    if let Some(a) = audio {
+        doc.has_audio = true;
+        doc.sample_rate = a.audio_rate();
+        doc.channels = u32::from(a.channels());
+    }
+    doc.tags.extend(text_tags(moov).map(|(k, v)| (k.into(), v)));
+    doc.title = doc.tags.get("title").cloned().unwrap_or_default();
+    Some(doc)
+}
+
 pub(super) fn ffmetadata(
     inputs: &[&[u8]],
     mapped: bool,

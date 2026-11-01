@@ -906,6 +906,9 @@ impl MediaDoc {
     }
 
     fn parse(bytes: &[u8], path: &str) -> Self {
+        if bytes.get(4..8) == Some(b"ftyp") && let Some(doc) = mp4::media_doc(bytes) {
+            return doc;
+        }
         let mut d = Self::default_video();
         let lower_path = path.to_ascii_lowercase();
         if lower_path.ends_with(".wav") || (bytes.len() >= 12 && &bytes[0..4] == b"RIFF" && &bytes[8..12] == b"WAVE") {
@@ -4593,7 +4596,7 @@ fn cmd_media_doc(
             if mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata") || inputs.len()==1 && y4m_output{
                 let source=&inputs[0];
                 let input_format=input_formats[0];
-                let generator = (y4m_output && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
+                let generator = (inputs.len()==1 && (y4m_output || mp4_output) && input_format == Some("lavfi")).then(||lavfi::Video::parse(source)).flatten();
                 let read=|source:&str|if media_stdin(source){Some(crate::vfs::stream_string_to_bytes(stdin))}else{fs.read_file(&resolve_posix_path(cwd,source)).ok()};
                 let bytes=if generator.is_some(){None}else{read(source)};
                 let start=ss_opt.unwrap_or(0.).max(0.);
@@ -4613,14 +4616,16 @@ fn cmd_media_doc(
                     }
                 }
                 let remux=mp4::mux::Remux{rate:ar_opt.filter(|_|!audio_copy),channels:ac_opt.filter(|_|!audio_copy),audio_filters:if audio_copy{&[]}else{&audio_filters},maps:&maps,strip_audio,strip_video,strip_subtitles,shortest,start:ss_opt,end,frames:vframes_opt,format:muxer.unwrap_or(""),fragmented,metadata:&meta_tags,rotation,limit:fs.max_input_bytes()};
-                let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
+                if (generator.is_some() || y4m_output) && !video_copy {
+                    if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
+                    if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
+                }
+                let output=if mp4_output && let Some(video)=generator.as_ref() {
+                    match mp4::mux::lavfi(video,&vf_flags,remux){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
+                } else if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
                 } else if y4m_output && (generator.is_some() || format==Some("y4m") || real_mp4) {
-                    if !video_copy {
-                        if let Some((w,h))=size_opt {vf_flags.push(format!("scale={w}:{h}"));}
-                        if let Some(fps)=output_fps {vf_flags.push(format!("fps={fps}"));}
-                    }
                     let opts=y4m::Options {filters:&vf_flags,frames:vframes_opt,start,end,no_video:strip_video,limit:fs.max_input_bytes()};
                     let bytes=bytes.as_deref().unwrap_or_default();
                     let result=if let Some(video)=generator {video.encode(opts,ss_opt.is_some() || end.is_some()).map_err(str::to_owned)}
@@ -13197,6 +13202,21 @@ mod media_unit_tests {
         assert_eq!(cmd_media_doc("ffmpeg",&args,"","/",&fs).exit_code,0);
         let frame=fs.read_file("/out.y4m").unwrap();
         assert_eq!(frame.strip_prefix(b"YUV4MPEG2 W8 H4 F4:1 Ip A1:1 C420jpeg\nFRAME\n"),Some([144,144,109,127,147,163,144,144,144,144,199,62,62,62,144,144,144,144,74,116,136,152,144,144,144,144,144,144,144,144,144,144,54,168,170,54,54,100,55,54,34,94,133,34,34,82,92,34].as_slice()));
+    }
+
+    #[test]
+    fn ffmpeg_encodes_lavfi_video_that_can_be_decoded_again() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]|cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs);
+        let r=run(&["-f","lavfi","-i","color=c=red:s=16x16:r=3:d=1","red.mp4"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let data=fs.read_file("/red.mp4").unwrap();
+        assert!(data.windows(4).any(|b|b==b"avcC"));
+        let r=run(&["-i","red.mp4","frames.y4m"]);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        let planes=fs.read_file("/frames.y4m").unwrap();
+        assert_eq!(planes.windows(6).filter(|b|*b==b"FRAME\n").count(),3);
+        assert_eq!(planes.last(),Some(&239));
     }
 
     #[test]

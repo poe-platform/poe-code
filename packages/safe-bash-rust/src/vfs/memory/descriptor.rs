@@ -23,6 +23,7 @@ impl RetainedFile {
         let state = self.fs.state.read().unwrap();
         let file = &state.files[&self.ino];
         FileStat {
+            nlink: usize::from(file.linked) + state.extra_links.get(&self.ino).copied().unwrap_or(0),
             identity: Some(EntryIdentity::Memory(self.fs.id, self.ino)),
             allocated_bytes: None,
             kind: VfsEntryKind::File,

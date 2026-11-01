@@ -5475,24 +5475,7 @@ where
             }
         },
         FindPred::Links { op, count } => {
-            let entries = state.fs.export_entries().unwrap_or_default();
-            let mut canon = entry.physical.to_owned();
-            for _ in 0..16 {
-                if let Some(ent) = entries.iter().find(|e| e.path == canon)
-                    && let Some(ref t) = ent.symlink_target
-                    && let Some(rest) = t.strip_prefix("__hardlink__:")
-                {
-                    canon = normalize_posix_path(rest);
-                } else {
-                    break;
-                }
-            }
-            let hl_tag = format!("__hardlink__:{canon}");
-            let extra = entries
-                .iter()
-                .filter(|e| e.symlink_target.as_deref() == Some(hl_tag.as_str()))
-                .count();
-            let nlinks = 1 + extra;
+            let nlinks = st.nlink;
             match op {
                 1 => nlinks > *count,
                 -1 => nlinks < *count,

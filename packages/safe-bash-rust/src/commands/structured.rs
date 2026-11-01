@@ -38243,7 +38243,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let source=b"graph TD; A-->B;";
         fs.write_file("/flow.mmd", source).unwrap();
         fs.symlink("/flow.mmd","/link.svg").unwrap();
-        fs.symlink("__hardlink__:/flow.mmd","/alias.svg").unwrap();
+        fs.hard_link("/flow.mmd","/alias.svg").unwrap();
         let run=|out|try_run_structured_command("mmdc",&args(&["-i","flow.mmd","-o",out]),"","/",&BTreeMap::new(),&fs).unwrap();
         assert_eq!(run("link.svg").stderr,"mmdc: E_IO: Output target must be a regular file\n");
         assert_eq!(run("alias.svg").stderr,"mmdc: E_IO: Input and output VFS entries must not alias the same file\n");

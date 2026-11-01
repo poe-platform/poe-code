@@ -142,13 +142,14 @@ impl RealVfs {
             !0
         };
         #[cfg(unix)]
-        let (identity, allocated_bytes) = {
+        let (identity, allocated_bytes, nlink) = {
             use std::os::unix::fs::MetadataExt;
-            (Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())), meta.blocks().checked_mul(512))
+            (Some(crate::vfs::EntryIdentity::Unix(meta.dev(), meta.ino())), meta.blocks().checked_mul(512), meta.nlink() as usize)
         };
         #[cfg(not(unix))]
-        let (identity, allocated_bytes) = (None, None);
+        let (identity, allocated_bytes, nlink) = (None, None, 1);
         Ok(FileStat {
+            nlink,
             identity,
             allocated_bytes,
             kind,
@@ -328,6 +329,14 @@ impl SafeBashFs for RealVfs {
         Ok(names)
     }
 
+    fn supports_hard_links(&self, _path: &str) -> bool { true }
+
+    fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
+        let src = self.walk(&self.root, source, Walk::RenameEntry, false)?;
+        let dst = self.walk(&self.root, destination, Walk::RenameEntry, false)?;
+        std::fs::hard_link(src, dst).map_err(mutation_error)
+    }
+
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         #[cfg(unix)]
         {
@@ -413,6 +422,11 @@ mod tests {
             assert!(vfs.create_file("/nested/dir/link.txt", b"no", 0o600).unwrap_err().starts_with("EEXIST"));
             assert_eq!(vfs.read_file("/nested/dir/hello.txt").unwrap(), b"real-vfs-bytes");
             assert_eq!(vfs.readlink("/nested/dir/link.txt").unwrap(), "hello.txt");
+            vfs.hard_link("/nested/dir/link.txt", "/other-link").unwrap();
+            let linked = vfs.lstat("/other-link").unwrap();
+            assert_eq!(linked.identity, vfs.lstat("/nested/dir/link.txt").unwrap().identity);
+            assert_eq!(linked.nlink, 2);
+            vfs.remove_path("/other-link").unwrap();
             vfs.symlink("/nested/dir/hello.txt", "/absolute").unwrap();
             assert_eq!(vfs.read_file("/absolute").unwrap(), b"real-vfs-bytes");
             assert_eq!(vfs.readlink("/absolute").unwrap(), "/nested/dir/hello.txt");
@@ -420,6 +434,7 @@ mod tests {
             std::os::unix::fs::symlink(tmp_root.parent().unwrap(), tmp_root.join("outside"))
                 .unwrap();
             assert!(vfs.list_dir("/outside").is_err());
+            assert!(vfs.hard_link("/nested/dir/hello.txt", "/outside/no-link").is_err());
             assert!(!vfs.exists("/outside"));
             assert!(vfs.write_file("/outside/never-created", b"x").is_err());
             assert!(vfs.readlink("/outside").is_err());

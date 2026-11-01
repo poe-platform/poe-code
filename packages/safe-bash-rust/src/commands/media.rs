@@ -13314,7 +13314,7 @@ mod media_unit_tests {
         let fs = MemoryVfs::new();
         fs.write_file("/source", b"<p>original</p>").unwrap();
         fs.symlink("/source", "/alias").unwrap();
-        fs.symlink("__hardlink__:/source", "/hard").unwrap();
+        fs.hard_link("/source", "/hard").unwrap();
         let run = |src, dst| cmd_media_doc("wkhtmltopdf", &media_args(&[src, dst]), "", "/", &fs);
         for (src, dst) in [("/source","/alias"),("/alias","/source"),("/hard","/source"),("/source","/hard"),
                             ("/source","/source"),("/source","/"),("/source","/missing/output")] {

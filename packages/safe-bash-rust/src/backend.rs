@@ -188,6 +188,15 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.inner.list_dir(path)
     }
 
+    fn supports_hard_links(&self, path: &str) -> bool { self.inner.supports_hard_links(path) }
+
+    fn hard_link(&self, source: &str, destination: &str) -> Result<(), String> {
+        self.budget.limits.check_path(source)?;
+        self.budget.limits.check_path(destination)?;
+        self.budget.tick_fs_op()?;
+        self.inner.hard_link(source, destination)
+    }
+
     fn symlink(&self, target: &str, path: &str) -> Result<(), String> {
         self.budget.limits.check_path(path)?;
         self.inner.symlink(target, path)
@@ -339,7 +348,8 @@ impl HybridBackend {
         let _ = (Limits::default, Value::Null, parse, stringify, VfsEntryKind::File, VfsFileEntry {
             path: String::new(),
             kind: VfsEntryKind::File,
-            data: Vec::new(),
+            data: Default::default(),
+            link_group: None,
             symlink_target: None,
             mode: 0,
         });
@@ -362,6 +372,7 @@ impl HybridBackend {
 
         let entries = fs.export_entries()?;
         let mut files_json = Vec::with_capacity(entries.len());
+        let mut emitted = std::collections::BTreeSet::new();
         for entry in entries {
             let kind_str = match entry.kind {
                 VfsEntryKind::File => "file",
@@ -373,10 +384,11 @@ impl HybridBackend {
                 (jstr("kind"), Value::String(jstr(kind_str))),
                 (
                     jstr("dataBase64"),
-                    Value::String(jstr(&base64_encode(&entry.data))),
+                    Value::String(jstr(&if entry.link_group.is_some_and(|id| !emitted.insert(id)) { String::new() } else { base64_encode(&entry.data) })),
                 ),
                 (jstr("mode"), Value::Number(entry.mode as f64)),
             ];
+            if let Some(id) = entry.link_group { obj.push((jstr("linkGroup"), Value::String(jstr(&id.to_string())))); }
             if let Some(target) = entry.symlink_target {
                 obj.push((jstr("symlinkTarget"), Value::String(jstr(&target))));
             }
@@ -499,7 +511,11 @@ impl HybridBackend {
                     synced.push(VfsFileEntry {
                         path: from_jstr(path),
                         kind,
-                        data: bytes,
+                        data: bytes.into(),
+                        link_group: match obj_get(f, "linkGroup") {
+                            Some(Value::String(id)) => Some(from_jstr(id).parse().map_err(|_| "invalid link group")?),
+                            _ => None,
+                        },
                         symlink_target,
                         mode,
                     });

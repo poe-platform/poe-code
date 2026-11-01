@@ -48,7 +48,7 @@ let sorted = String::from_utf8(vfs.read_file("/workspace/sorted.txt").unwrap()).
 assert_eq!(sorted, "v=1\nv=2\nv=3\n");
 ```
 
-If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` create a destination. It must create the file with the requested mode and return `EEXIST` if the name is already occupied, including by a dangling symlink.
+If you supply a custom `SafeBashFs`, implement `create_file` to let `cp` create a destination. It must create the file with the requested mode and return `EEXIST` if the name is already occupied, including by a dangling symlink. To support `ln` and `cp -l`, implement `supports_hard_links` and `hard_link`. A hard link shares the source inode, including when the source is a symlink. In a filesystem snapshot, entries with the same `link_group` share an inode; file payloads use `Arc<[u8]>` so a snapshot stores those bytes once.
 
 ### 2. WebAssembly Shell from JavaScript / TypeScript
 

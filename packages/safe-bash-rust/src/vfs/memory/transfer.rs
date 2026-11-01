@@ -87,6 +87,7 @@ impl MemoryVfs {
         let mut staged = MemoryState {
             nodes: BTreeMap::new(),
             files: HashMap::new(),
+            extra_links: HashMap::new(), child_dirs: HashMap::new(),
             devices: Devices::None,
             total_bytes: dst.total_bytes,
             limits: dst.limits.clone(),
@@ -117,17 +118,7 @@ impl MemoryVfs {
             if device.is_none() && staged.nodes.len() >= available {
                 return Err("ENOSPC: inode limit exceeded".into());
             }
-            let actual = match node {
-                MemoryNode::Symlink { target, .. } if target.starts_with("__hardlink__:") => {
-                    let resolved =
-                        Self::resolve_symlinks_locked(&src, path, true).map_err(|e| e.message)?;
-                    src.nodes
-                        .get(&resolved)
-                        .ok_or("ENOENT: missing hard link target")?
-                }
-                node => node,
-            };
-            match actual {
+            match node {
                 MemoryNode::File { ino } => {
                     let file = &src.files[ino];
                     if file.mode & 0o400 == 0 {
@@ -196,7 +187,7 @@ impl MemoryVfs {
                         Some(MemoryNode::Directory { ino, .. }) if suffix.is_empty() => *ino,
                         _ => NEXT_INODE.fetch_add(1, Ordering::Relaxed),
                     };
-                    staged.nodes.insert(
+                    staged.insert_directory(
                         new_path,
                         MemoryNode::Directory {
                             ino,
@@ -216,6 +207,7 @@ impl MemoryVfs {
             if existing.is_some() {
                 Self::unlink_locked(&mut dst, to);
             }
+            for (parent, count) in staged.child_dirs { *dst.child_dirs.entry(parent).or_default() += count; }
             dst.nodes.append(&mut staged.nodes);
             dst.files.extend(staged.files);
             dst.total_bytes += added;

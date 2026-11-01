@@ -22,7 +22,7 @@ async function ensureParentDirs(fs, filePath) {
   }
 }
 
-async function collectFiles(fs, dirPath, out) {
+async function collectFiles(fs, dirPath, out, emitted = new Set()) {
   // The command has finished. Read the entire result for transfer, including
   // inaccessible entries, while returning their original permission bits.
   const directoryStat = await fs.lstat(dirPath);
@@ -47,6 +47,7 @@ async function collectFiles(fs, dirPath, out) {
       continue;
     }
     const kind = entryType ?? stat?.type;
+    const linkGroup = stat.nlink > 1 && kind !== "directory" ? String(stat.ino) : undefined;
     if (kind === "directory" || (typeof stat?.isDirectory === "function" && stat.isDirectory())) {
       out.push({
         path: fullPath,
@@ -54,7 +55,7 @@ async function collectFiles(fs, dirPath, out) {
         dataBase64: "",
         mode: stat.mode ?? 0o40755,
       });
-      await collectFiles(fs, fullPath, out);
+      await collectFiles(fs, fullPath, out, emitted);
     } else if (
       kind === "symlink" ||
       (typeof stat?.isSymbolicLink === "function" && stat.isSymbolicLink())
@@ -63,6 +64,7 @@ async function collectFiles(fs, dirPath, out) {
       out.push({
         path: fullPath,
         kind: "symlink",
+        linkGroup,
         symlinkTarget:
           typeof target === "string" ? target : Buffer.from(target).toString("utf8"),
         dataBase64: "",
@@ -70,11 +72,13 @@ async function collectFiles(fs, dirPath, out) {
       });
     } else if (kind === "file" || (typeof stat?.isFile === "function" && stat.isFile())) {
       await fs.chmod(fullPath, (stat.mode & 0o7777) | 0o400);
-      const bytes = await fs.readFile(fullPath);
+      const bytes = linkGroup !== undefined && emitted.has(linkGroup) ? undefined : await fs.readFile(fullPath);
+      if (linkGroup !== undefined) emitted.add(linkGroup);
       out.push({
         path: fullPath,
         kind: "file",
-        dataBase64: Buffer.from(bytes).toString("base64"),
+        linkGroup,
+        dataBase64: bytes === undefined ? "" : Buffer.from(bytes).toString("base64"),
         mode: stat.mode ?? 0o100644,
       });
     }
@@ -90,7 +94,16 @@ async function main() {
     await fs.mkdir(req.cwd, { recursive: true });
   }
 
+  const linked = new Map();
   for (const entry of req.files ?? []) {
+    if (entry.linkGroup !== undefined) {
+      if (linked.has(entry.linkGroup)) {
+        await ensureParentDirs(fs, entry.path);
+        await fs.link(linked.get(entry.linkGroup), entry.path);
+        continue;
+      }
+      linked.set(entry.linkGroup, entry.path);
+    }
     if (entry.kind === "directory") {
       await fs.mkdir(entry.path, { recursive: true });
     } else if (entry.kind === "symlink" && typeof entry.symlinkTarget === "string") {

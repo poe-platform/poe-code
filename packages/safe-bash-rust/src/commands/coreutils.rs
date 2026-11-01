@@ -21782,7 +21782,7 @@ mod tests {
         assert_eq!(fs.stat("/xx01").unwrap().mode & 0o777, 0o600);
 
         fs.remove_path("/xx00").unwrap();
-        fs.symlink("__hardlink__:/src", "/xx00").unwrap();
+        fs.hard_link("/src", "/xx00").unwrap();
         let r = cmd_csplit(&args(&["src", "2"]), "", "/", &fs);
         assert_eq!(r.stderr, "csplit: output would overwrite the input file\n");
         assert_eq!(fs.read_file("/src").unwrap(), bytes);

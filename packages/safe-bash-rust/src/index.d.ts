@@ -33,6 +33,7 @@ export interface RustWasmExecResult {
 export interface WasmFileStat {
   readonly dev?: number;
   readonly ino?: number;
+  readonly nlink?: number;
   readonly identityScope?: symbol;
   readonly type: "file" | "directory" | "symlink" | "character";
   readonly size: number;

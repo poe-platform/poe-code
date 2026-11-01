@@ -664,6 +664,7 @@ test("open descriptors retain the file across rename, unlink, and replacement", 
     assert.equal(buf.toString(), "changed!????????");
     assert.equal(await reader.getPosition(), 8);
     assert.equal((await reader.stat()).ino, original.ino);
+    assert.equal((await reader.stat()).nlink, 0);
     assert.equal(await reader.read(buf, null), 0);
     await writer.truncate(2);
     assert.equal((await reader.stat()).size, 2);

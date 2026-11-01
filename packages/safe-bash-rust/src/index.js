@@ -724,6 +724,7 @@ export class RustWasmBash {
     const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
     const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
     return {
+      ...(len >= 40 ? { nlink: view.getUint32(36, true) } : {}),
       ...(Number.isSafeInteger(dev) && Number.isSafeInteger(ino) ? { dev, ino, identityScope: this.#identityScope } : {}),
       type,
       size,

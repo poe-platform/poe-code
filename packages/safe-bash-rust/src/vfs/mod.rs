@@ -31,6 +31,7 @@ pub enum EntryIdentity {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FileStat {
+    pub nlink: usize,
     pub allocated_bytes: Option<u64>,
     pub identity: Option<EntryIdentity>,
     pub kind: VfsEntryKind,
@@ -43,7 +44,9 @@ pub struct FileStat {
 pub struct VfsFileEntry {
     pub path: String,
     pub kind: VfsEntryKind,
-    pub data: Vec<u8>,
+    pub data: std::sync::Arc<[u8]>,
+    /// Names with the same group in one snapshot share an inode.
+    pub link_group: Option<u64>,
     pub symlink_target: Option<String>,
     pub mode: u32,
 }
@@ -140,6 +143,11 @@ pub trait SafeBashFs: Send + Sync {
     /// The caller has already resolved the parent and checked traversal access.
     fn indexed_directory_entry(&self, _path: &str) -> Option<bool> { None }
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String>;
+    fn supports_hard_links(&self, _path: &str) -> bool { false }
+    /// Create a second name for the source inode without following its final symlink.
+    fn hard_link(&self, _source: &str, _destination: &str) -> Result<(), String> {
+        Err("ENOTSUP: operation not supported".into())
+    }
     fn symlink(&self, target: &str, path: &str) -> Result<(), String>;
     fn readlink(&self, path: &str) -> Result<String, String>;
     fn export_entries(&self) -> Result<Vec<VfsFileEntry>, String>;
@@ -171,6 +179,7 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if self.is_dir(&norm) {
             return Ok(FileStat {
+                nlink: 1,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Directory,
@@ -181,6 +190,7 @@ pub trait SafeBashFs: Send + Sync {
         }
         if let Ok(data) = self.read_file(&norm) {
             return Ok(FileStat {
+                nlink: 1,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::File,
@@ -196,6 +206,7 @@ pub trait SafeBashFs: Send + Sync {
         let norm = normalize_posix_path(path);
         if let Ok(target) = self.readlink(&norm) {
             return Ok(FileStat {
+                nlink: 1,
                 identity: None,
                 allocated_bytes: None,
                 kind: VfsEntryKind::Symlink,

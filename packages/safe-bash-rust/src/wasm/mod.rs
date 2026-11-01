@@ -515,7 +515,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
         VfsEntryKind::Directory => 1,
         VfsEntryKind::Symlink => 2,
     };
-    let mut buf = Vec::with_capacity(36);
+    let mut buf = Vec::with_capacity(40);
     buf.extend_from_slice(&kind_code.to_le_bytes());
     buf.extend_from_slice(&(st.size as u32).to_le_bytes());
     buf.extend_from_slice(&st.mode.to_le_bytes());
@@ -523,6 +523,7 @@ fn stat_bytes(st: FileStat) -> Vec<u8> {
     if let Some(crate::vfs::EntryIdentity::Memory(dev, ino)) = st.identity {
         buf.extend_from_slice(&dev.to_le_bytes());
         buf.extend_from_slice(&ino.to_le_bytes());
+        buf.extend_from_slice(&(st.nlink as u32).to_le_bytes());
     }
     buf
 }

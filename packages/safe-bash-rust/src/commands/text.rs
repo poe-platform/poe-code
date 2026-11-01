@@ -10118,7 +10118,7 @@ mod tests {
     fn apply_patch_preflights_backing_entries_and_owner_permissions() {
         let fs = MemoryVfs::new();
         fs.write_file("/d/file", b"old\n").unwrap();
-        fs.symlink("__hardlink__:/d/file", "/alias").unwrap();
+        fs.hard_link("/d/file", "/alias").unwrap();
         let patch = |body: &str| cmd_apply_patch(&[], &format!("*** Begin Patch\n{body}\n*** End Patch"), "/", &fs);
         let r = patch("*** Add File: d/file\n+new\n*** Delete File: alias");
         assert_eq!(r.stderr, "apply_patch: patch operations refer to the same backing entry\n");

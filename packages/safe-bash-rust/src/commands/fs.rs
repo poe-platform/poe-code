@@ -330,8 +330,7 @@ fn cmd_ls(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
         }
         if fs
             .readlink(full_path)
-            .map(|t| !t.starts_with("__hardlink__:"))
-            .unwrap_or(false)
+            .is_ok()
         {
             if indicator == "file-type" || indicator == "classify" {
                 return "@";
@@ -1140,6 +1139,12 @@ fn copy_error(error: &str, op: &str, path: &str) -> String {
     format!("{reason}, {op} '{path}'")
 }
 
+fn hard_link_error(error: &str, source: &str, destination: &str) -> String {
+    if error.starts_with("EBUSY:") { format!("{error} '{source}'") }
+    else if error.starts_with("ENOENT:") || error.starts_with("EACCES:") { copy_error(error, "link", destination) }
+    else { format!("{error}, link '{source}' -> '{destination}'") }
+}
+
 fn backup_copy_target(fs: &dyn SafeBashFs, src: &str, target: &str, mode: BackupMode, suffix: &str) -> Result<(), String> {
     let backup = backup_path(target, mode, suffix, fs)?;
     let from = fs.access_path(src, false)?;
@@ -1267,6 +1272,11 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         && (link_id.is_none() || st.identity.is_none() || t.identity.is_none() || t.identity == link_id) {
         return Err(format!("ENOTSUP: link copy unlink lacks authoritative distinctness '{dst}'"));
     }
+    if settings.hard_link && !directory {
+        for path in [src, dst] {
+            if !fs.supports_hard_links(path) { return Err(format!("ENOTSUP: operation not supported, cp '{path}'")); }
+        }
+    }
     if directory {
         if !settings.recursive { return Err(format!("EISDIR: omitting directory (use -R) '{src}'")); }
         if crate::vfs::is_path_within(&source, &target) {
@@ -1282,6 +1292,12 @@ fn copy_entry(src: &str, dst: &str, display: (&str, &str), fs: &dyn SafeBashFs, 
         backup_copy_target(fs, src, &entry, *mode, suffix)?;
         target = entry.clone();
         target_stat = None;
+    }
+    if settings.hard_link && !directory {
+        if target_stat.is_some() { unlink_destination(&entry, fs)?; }
+        fs.hard_link(&source, &entry).map_err(|e| hard_link_error(&e, &source, dst))?;
+        if let CopyPass::Publish(report) = pass { report.copied(display); }
+        return Ok(true);
     }
     if !directory && (settings.symbolic_cwd.is_some() || preserve_link) {
         let text = if settings.symbolic_cwd.is_some() { display.0.to_owned() } else { fs.readlink(&source)? };
@@ -1657,7 +1673,6 @@ fn cmd_cp(
             dst_raw.clone()
         };
         let dest_entry = fs.lstat(&target).ok();
-        let target_exists = dest_entry.is_some();
         let follow_target = !preserve_top_link && !(settings.remove_destination && !src_is_dir) && !sym_link && !hard_link;
         let destination = if follow_target && dest_entry.as_ref().is_some_and(|t| t.kind == VfsEntryKind::Symlink) {
             fs.inspect_command_entry(&target, true, "realpath").map(|(p, t)| (p, Some(t)))
@@ -1686,8 +1701,6 @@ fn cmd_cp(
             code = 1;
             continue;
         }
-        if hard_link && !src_is_dir && dest_stat.as_ref().is_some_and(|t| t.kind != VfsEntryKind::Directory)
-            && !report.confirm(&disp_target) { continue; }
         if let Some(prev_src) = copied_targets.get(&phys_dst)
             && prev_src != &phys_src
         {
@@ -1697,24 +1710,13 @@ fn cmd_cp(
             code = 1;
             continue;
         }
-        if target_exists && hard_link {
-            let removal = if let Some((mode, suffix)) = &settings.backup {
-                backup_copy_target(fs, &src, &target, *mode, suffix)
-            } else { unlink_destination(&target, fs) };
-            if let Err(e) = removal { report.stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
-        }
-        let copy_res = if hard_link {
-            fs.symlink(&format!("__hardlink__:{src}"), &target).map(|()| true)
-        } else {
-            copy_entry(&src, &target, (src_raw, &disp_target), fs, &settings, CopyPass::Publish(&mut report), &mut Default::default())
-        };
+        let copy_res = copy_entry(&src, &target, (src_raw, &disp_target), fs, &settings, CopyPass::Publish(&mut report), &mut Default::default());
         match copy_res {
             Ok(false) => {}
             Ok(true) => {
                 if preserve_links {
                     copied_targets.insert(phys_dst, phys_src);
                 }
-                if hard_link { report.copied((src_raw, &disp_target)); }
             }
             Err(e) => {
                 report.stderr.push_str(&format!("cp: {e}\n"));
@@ -2348,24 +2350,6 @@ fn parse_touch_date_checked(s: &str) -> Option<u64> {
     None
 }
 
-fn resolve_hardlink_root_path(
-    path: &str,
-    entries: &[crate::vfs::VfsFileEntry],
-) -> String {
-    let mut cur = normalize_posix_path(path);
-    for _ in 0..16 {
-        if let Some(entry) = entries.iter().find(|e| e.path == cur)
-            && let Some(ref target) = entry.symlink_target
-            && let Some(rest) = target.strip_prefix("__hardlink__:")
-        {
-            cur = normalize_posix_path(rest);
-        } else {
-            break;
-        }
-    }
-    cur
-}
-
 fn cmd_ln(
     args: &[String],
     stdin: &str,
@@ -2549,6 +2533,12 @@ fn cmd_ln(
         return err_out(&format!("ln: ENOTDIR: not a directory '{target_operand}'\n"), 1);
     }
 
+    if !symbolic {
+        for operand in &eff_operands[..eff_operands.len()-1] {
+            let dst = directory.as_ref().map_or_else(|| target_base.clone(), |d| child_disp_path(d, &basename_posix_path(operand)));
+            if !fs.supports_hard_links(&dst) { return err_out(&format!("ln: ENOTSUP: operation not supported, ln '{dst}'\n"), 1); }
+        }
+    }
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut code = 0;
@@ -2655,31 +2645,23 @@ fn cmd_ln(
                 continue;
             }
         }
-        let stored_target = if symbolic {
-            relative_target.unwrap_or_else(|| src_op.clone())
-        } else if !logical && let Ok(sym_t) = fs.readlink(&src_full) {
-            sym_t
-        } else {
-            let entries = fs.export_entries().unwrap_or_default();
-            let canon = resolve_hardlink_root_path(&src_full, &entries);
-            format!("__hardlink__:{canon}")
-        };
-        let result = if source_stat.as_ref().is_some_and(|s| s.kind == VfsEntryKind::Directory) {
-            Err(format!("EPERM: operation not permitted, link '{src_full}' -> '{link_path}'"))
-        } else { fs.symlink(&stored_target, &link_path) };
+        let stored_target = relative_target.as_deref().unwrap_or(src_op);
+        let result = if symbolic { fs.symlink(stored_target, &link_path) }
+            else { fs.hard_link(&src_full, &link_path) };
         if let Err(e) = result {
             if let Some(backup) = moved_backup && let Err(e) = fs.rename(&backup, &link_path, true) {
                 stderr.push_str(&format!("ln: {e}, restoring '{backup}' -> '{link_path}'\n"));
             }
             if !symbolic && e.starts_with("EEXIST:") {
                 stderr.push_str(&format!("ln: EEXIST: file already exists, link '{src_full}' -> '{link_path}'\n"));
-            } else { stderr.push_str(&format!("ln: {e}\n")); }
+            } else if !symbolic { stderr.push_str(&format!("ln: {}\n", hard_link_error(&e, &src_full, &link_path))); }
+            else { stderr.push_str(&format!("ln: {e}\n")); }
             code = 1;
             continue;
         }
         if verbose {
             let arrow = if symbolic { "->" } else { "=>" };
-            let shown_target = if symbolic { &stored_target } else { src_op };
+            let shown_target = stored_target;
             stdout.push_str(&format!("'{disp_target}' {arrow} '{shown_target}'\n"));
         }
     }
@@ -2755,7 +2737,7 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
         if mode == 'L' {
             let p = resolve_posix_path(cwd, target);
             match fs.readlink(&p) {
-                Ok(t) if !t.starts_with("__hardlink__:") => {
+                Ok(t) => {
                     out.push_str(&t);
                     out.push_str(term);
                 }
@@ -2881,7 +2863,7 @@ pub(super) fn canonicalize_posix_path(
             format!("{cur}/{part}")
         };
         if let Ok(link_t) = fs.readlink(&next)
-            && !link_t.starts_with("__hardlink__:")
+
         {
             if mode == 'm' {
                 if !expanding.insert(next.clone()) {
@@ -4082,29 +4064,7 @@ fn cmd_stat(
                         "T" if filesystem => "memory".to_string(),
                         "h" => {
                             numeric = true;
-                            if st.kind == VfsEntryKind::Directory {
-                                let subdirs = fs
-                                    .list_dir(&p)
-                                    .unwrap_or_default()
-                                    .into_iter()
-                                    .filter(|name| {
-                                        let child = child_disp_path(&p, name);
-                                        fs.lstat(&child)
-                                            .map(|s| s.kind == VfsEntryKind::Directory)
-                                            .unwrap_or(false)
-                                    })
-                                    .count();
-                                (2 + subdirs).to_string()
-                            } else {
-                                let entries = fs.export_entries().unwrap_or_default();
-                                let canon = resolve_hardlink_root_path(&p, &entries);
-                                let hl_tag = format!("__hardlink__:{canon}");
-                                let extra = entries
-                                    .iter()
-                                    .filter(|e| e.symlink_target.as_deref() == Some(hl_tag.as_str()))
-                                    .count();
-                                (1 + extra).to_string()
-                            }
+                            st.nlink.to_string()
                         }
                         "m" => "/".to_string(),
                         other => format!("%{other}"),
@@ -5847,8 +5807,7 @@ struct TreeEntry {
 fn inspect_tree_entry(path: String, display: String, name: String, fs: &dyn SafeBashFs) -> TreeEntry {
     let target = fs
         .readlink(&path)
-        .ok()
-        .filter(|t| !t.starts_with("__hardlink__:"));
+        .ok();
     let is_symlink = target.is_some();
     let is_dir = fs.is_dir(&path);
     TreeEntry {
@@ -6929,7 +6888,7 @@ mod tests {
     fn mv_preserves_file_identity_and_refuses_to_merge_existing_trees() {
         let fs = MemoryVfs::new();
         fs.write_file("/from", b"one").unwrap();
-        fs.symlink("__hardlink__:/from", "/alias").unwrap();
+        fs.hard_link("/from", "/alias").unwrap();
         fs.write_file("/to", b"two").unwrap();
         let result = cmd_mv(&args(&["from", "to"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(result.exit_code, 0);
@@ -6988,11 +6947,11 @@ mod tests {
         let dest = Arc::new(MemoryVfs::new());
         let fs = MountVfs::new(root.clone()).with_mount("/mnt", dest.clone());
         root.write_file("/tree/file", b"source").unwrap();
-        root.symlink("__hardlink__:/tree/file", "/peer").unwrap();
+        root.hard_link("/tree/file", "/peer").unwrap();
         root.chmod("/tree/file", 0o640).unwrap();
         root.symlink("file", "/tree/link").unwrap();
         dest.write_file("/dest", b"old").unwrap();
-        dest.symlink("__hardlink__:/dest", "/old-link").unwrap();
+        dest.hard_link("/dest", "/old-link").unwrap();
         let mv = |args_in: &[&str]| cmd_mv(&args(args_in), "", "/", &BTreeMap::new(), &fs);
         dest.chmod("/dest", 0o400).unwrap();
         root.chmod("/peer", 0o200).unwrap();
@@ -7026,7 +6985,7 @@ mod tests {
         let fs = MemoryVfs::new();
         fs.write_file("/from", b"new").unwrap();
         fs.write_file("/to", b"old").unwrap();
-        fs.symlink("__hardlink__:/to", "/old-alias").unwrap();
+        fs.hard_link("/to", "/old-alias").unwrap();
         let result = cmd_mv(&args(&["-b", "from", "to"]), "", "/", &BTreeMap::new(), &fs);
         assert_eq!(result.exit_code, 0);
         fs.write_file("/to~", b"saved").unwrap();
@@ -7170,6 +7129,38 @@ mod tests {
         assert_eq!(fs.readlink("/w/dst").unwrap(), "real/file");
         assert_eq!(run(&["-srfT", "alias/../file", "alias"]).exit_code, 0);
         assert_eq!(fs.readlink("/w/alias").unwrap(), "real/file");
+    }
+
+    #[test]
+    fn hard_links_share_inodes_without_interpreting_symbolic_link_text() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/file", b"data").unwrap();
+        fs.symlink("__hardlink__:/file", "/literal").unwrap();
+        assert_eq!(fs.readlink("/literal").unwrap(), "__hardlink__:/file");
+        fs.symlink("file", "/src").unwrap();
+        let result = cmd_ln(&args(&["-P", "/src", "/alias"]), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        assert_eq!(fs.lstat("/src").unwrap().identity, fs.lstat("/alias").unwrap().identity);
+        fs.rename("/src", "/alias", false).unwrap();
+        for p in ["/src", "/alias"] { assert_eq!(fs.readlink(p).unwrap(), "file"); }
+        let snapshot = fs.export_entries().unwrap();
+        let other = MemoryVfs::new();
+        other.replace_entries(&snapshot).unwrap();
+        assert_eq!(other.lstat("/src").unwrap().identity, other.lstat("/alias").unwrap().identity);
+        assert_eq!(other.readlink("/literal").unwrap(), "__hardlink__:/file");
+    }
+
+    #[test]
+    fn recursive_hardlink_copy_links_the_selected_entry() {
+        for (flags, physical) in [("-RPlT", true), ("-RLlT", false)] {
+            let fs = MemoryVfs::new();
+            fs.write_file("/src/a", b"DATA").unwrap();
+            fs.symlink("a", "/src/l").unwrap();
+            let r = cmd_cp(&args(&[flags, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(fs.lstat("/dst/a").unwrap().identity, fs.lstat("/src/a").unwrap().identity);
+            assert_eq!(fs.lstat("/dst/l").unwrap().identity, fs.lstat(if physical { "/src/l" } else { "/src/a" }).unwrap().identity);
+        }
     }
 
     #[test]

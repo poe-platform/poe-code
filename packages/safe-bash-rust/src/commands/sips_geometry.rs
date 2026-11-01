@@ -3,6 +3,7 @@ use super::{magick_color::parse_color, magick_resize::Kernel, png_pixels::Raster
 pub(super) fn transform(
     raster: &mut Raster,
     ops: &[(&str, String, String)],
+    mut jpeg: bool,
     limit: usize,
 ) -> Result<(), String> {
     let (orig_w, orig_h) = (raster.width as f64, raster.height as f64);
@@ -35,15 +36,24 @@ pub(super) fn transform(
         .rev()
         .find(|(op, ..)| *op == "color")
         .map(|(_, s, _)| s.trim());
-    let has_alpha = raster.alpha;
-    let background = |odd: bool| -> Result<[u8; 4], String> {
+    let has_alpha = raster.alpha && !jpeg;
+    let background = |odd: bool, four_channels: bool| -> Result<[u8; 4], String> {
         let Some(color) = color else {
-            return Ok([0, 0, 0, if has_alpha { 0 } else { 255 }]);
+            return Ok([
+                0,
+                0,
+                0,
+                if has_alpha || odd && four_channels {
+                    0
+                } else {
+                    255
+                },
+            ]);
         };
         let hex = color.trim_start_matches('#');
         if matches!(hex.len(), 3 | 4 | 6 | 8) && hex.bytes().all(|b| b.is_ascii_hexdigit()) {
             let mut p = parse_color(&format!("#{hex}"))?;
-            if odd && has_alpha && matches!(hex.len(), 3 | 6) {
+            if odd && four_channels && matches!(hex.len(), 3 | 6) {
                 p[3] = 0;
             }
             Ok(p)
@@ -83,7 +93,7 @@ pub(super) fn transform(
             apply_resize(raster, dims, limit)?;
         }
         match *op {
-            "r" => raster.rotate(a.parse().unwrap(), background(false)?, limit)?,
+            "r" => raster.rotate(a.parse().unwrap(), background(false, raster.alpha)?, limit)?,
             "f" => {
                 if a == "vertical" {
                     raster.pixels.reverse();
@@ -110,7 +120,7 @@ pub(super) fn transform(
                     return Err("image exceeds memory budget".into());
                 }
                 let odd = left.fract() != 0. || top.fract() != 0.;
-                let bg = background(odd)?;
+                let bg = background(odd, raster.alpha)?;
                 raster.remap(w, h, |im, x, y| {
                     let (sx, sy) = (x as f64 + left, y as f64 + top);
                     let sample = |x: f64, y: f64| {
@@ -142,6 +152,9 @@ pub(super) fn transform(
                     sum.map(|v| v.round() as u8)
                 });
                 if odd {
+                    // The interpolated canvas is decoded from raw pixels, without source metadata.
+                    jpeg = false;
+                    raster.orientation = None;
                     raster.density = 72;
                     if raster.alpha {
                         raster.gray = false;
@@ -149,6 +162,12 @@ pub(super) fn transform(
                 }
             }
             _ => unreachable!(),
+        }
+        if jpeg {
+            // sips encodes and reopens the image after a flip, rotation, or integer crop/pad.
+            // The lossy intermediate JPEG affects even a subsequent lossless export.
+            let bytes = super::jpeg::encode(raster, 85, raster.density, limit)?;
+            *raster = super::jpeg_decode::decode(&bytes, limit)?;
         }
         dims = (raster.width, raster.height);
     }

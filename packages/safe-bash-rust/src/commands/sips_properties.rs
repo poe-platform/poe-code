@@ -97,7 +97,12 @@ pub(super) fn edit(
     limit: usize,
 ) -> Result<Vec<u8>, String> {
     let mut raster = super::png_pixels::Raster::decode(bytes, limit)?;
-    super::sips_geometry::transform(&mut raster, ops, limit)?;
+    super::sips_geometry::transform(
+        &mut raster,
+        ops,
+        super::jpeg_decode::signature(bytes),
+        limit,
+    )?;
     let mut props = read(bytes)?;
     let mut quality = 85;
     for (op, key, value) in ops {

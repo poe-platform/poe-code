@@ -13542,6 +13542,15 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn sips_preserves_jpeg_rounding_between_geometry_operations() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/src.jpg", include_bytes!("../../tests/fixtures/subsampled-progressive.jpg")).unwrap();
+        let args=media_args(&["-r","90","-p","9","19","-Z","8","-s","format","png","src.jpg","--out","out.png"]);
+        assert_eq!(cmd_media_doc("sips",&args,"","/",&fs).exit_code,0);
+        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "dbf41ea98710cede4c2280ddc3bf314e1f041df84c192664f409ced9b29d4917");
+    }
+
+    #[test]
     fn ffmpeg_writes_numbered_pngs_with_decodable_frame_pixels() {
         let fs=MemoryVfs::new();
         let r=cmd_media_doc("ffmpeg",&media_args(&["-f","lavfi","-i","testsrc=s=16x32:r=2:d=1","-start_number","7","frame%02d.png"]),"","/",&fs);

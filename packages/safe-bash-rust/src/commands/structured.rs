@@ -6,6 +6,7 @@ mod csvkit_encoding;
 mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
+mod jq_parser;
 #[path = "mermaid.rs"]
 mod mermaid;
 use crate::commands::search::{
@@ -1040,10 +1041,15 @@ fn cmd_jq_core(
     } else {
         filter.unwrap_or_else(|| ".".to_string())
     };
-    if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) {
-        return compile_err;
-    }
-    let filter_str = preprocess_jq_imports(&raw_filter, &lib_dirs, cwd, fs);
+    let filter_str = if !xml_input && yq.is_none() && lib_dirs.is_empty() {
+        match jq_parser::compile(&raw_filter, vars.keys().map(String::as_str), false) {
+            Ok(filter) => filter,
+            Err(error) => return err_out(&format!("jq: {error}\n"), 3),
+        }
+    } else {
+        if let Some(compile_err) = check_jq_filter_syntax(&raw_filter) { return compile_err; }
+        std::borrow::Cow::Owned(preprocess_jq_imports(&raw_filter, &lib_dirs, cwd, fs))
+    };
     let mut stream_inputs: Vec<JVal> = Vec::new();
     let mut deferred_xml_err: Option<(String, i32)> = None;
 

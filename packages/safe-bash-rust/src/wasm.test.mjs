@@ -3,6 +3,22 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq checks variable scope before reading input or evaluating branches", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, name, offset] of [
+      ["$missing", "missing", 8], ["empty | $missing", "missing", 16], ["if false then $missing else 3 end", "missing", 23],
+      ["(. as $x | $x), $x", "x", 18], ["def f($x): $x; $x", "x", 17],
+      ["reduce .[] as $x ($x; .)", "x", 20], ['"😀\\($no)"', "no", 8],
+    ]) {
+      const result = await bash.exec(`jq '${filter}' /missing-input`);
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [3, "", `jq: undefined variable $${name} at offset ${offset}\n`]);
+    }
+    const scoped = await bash.exec(`jq -nc --arg x outer '[$x,(1 as $x | $x),$x,(reduce [2,3][] as $n (1; . * $n))]'`);
+    assert.equal(scoped.stdout, '["outer",1,"outer",6]\n');
+  } finally { bash.dispose(); }
+});
+
 test("jq resolves definitions by arity and evaluates filter arguments in their caller's scope", async () => {
   const bash = new RustWasmBash();
   try {

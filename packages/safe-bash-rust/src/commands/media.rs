@@ -14214,6 +14214,16 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_keeps_gif_packets_for_input_edits_and_loops() {
+        let fs=MemoryVfs::new();
+        fs.write_file("/input",&hex_dec("4749463839610300020082000000458a11569bdd2267ee3378baff44cb105500000000000021f904000a0000002c0000000003000200000809000108201060408180003b")).unwrap();
+        for (prefix,hash) in [(["-ss","0.05"],"aaa8d30613d219a7e508ca4bb3cad4a6cddad3bb6c4018775d47d6476b66088c"),(["-stream_loop","1"],"85de061c86f72926504b7b4507333b9286fbdc7199020912b7a61b253ff92910")] {
+            let r=cmd_media_doc("ffmpeg",&media_args(&["-y",prefix[0],prefix[1],"-i","input","o.mp4"]),"","/",&fs);
+            assert_eq!(r.exit_code,0);
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),hash);
+        }
+    }
+    #[test]
     fn ffprobe_reads_gif_packet_boundaries_and_individual_frame_delays() {
         let fs=MemoryVfs::new();
         let mut data=b"GIF89a\x01\0\x01\0\0\0\0".to_vec();

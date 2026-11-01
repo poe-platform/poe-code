@@ -453,12 +453,21 @@ pub(super) struct Frame {
 pub(super) struct Animation {
     pub width: usize,
     pub height: usize,
-    pub ticks: u64,
     pub frames: Vec<Frame>,
+    visible: std::ops::Range<usize>,
+    start: f64,
+    copies: usize,
+    period: u64,
+    pub origin: u64,
+    packet_count: usize,
 }
 
 impl Animation {
-    pub fn read(bytes: &[u8], remaining: &mut usize) -> Result<Self, &'static str> {
+    pub fn read(
+        bytes: &[u8],
+        seek: super::InputTime,
+        remaining: &mut usize,
+    ) -> Result<Self, &'static str> {
         let (w, h) = dimensions(bytes)?;
         let (width, height) = (w as usize, h as usize);
         let size = width.saturating_mul(height).saturating_mul(4);
@@ -487,17 +496,73 @@ impl Animation {
                 frame.pixels = pixels.to_vec();
             }
         })?;
+        let start = seek.start.unwrap_or(0.).max(0.);
+        let end = seek.end().unwrap_or(ticks as f64 / 100.);
+        let cut = seek.start.is_some() || seek.end().is_some();
+        let copies = seek.loops.saturating_add(1);
+        let from = (start * 100.).round() as u64;
+        let until = ((end * 100.).round() as u64).min(ticks);
+        let mut visible = 0..frames.len();
+        let mut period = ticks;
+        let mut packet_count = frames.len();
+        if cut {
+            let first = frames
+                .partition_point(|f| f.pts as f64 / 100. + f64::from(f.delay) / 100. <= start);
+            visible = first..first.max(frames.partition_point(|f| (f.pts as f64 / 100.) < end));
+            // Only the first GIF packet is a sync sample. The edit keeps the
+            // earlier packets for decoding and hides them on the movie clock.
+            period = if until > from { until } else { 0 };
+            packet_count = frames.partition_point(|f| f.pts < period);
+        }
+        if visible.len().max(packet_count).saturating_mul(copies) > *remaining / size_of::<Frame>()
+        {
+            return Err("frame index exceeds memory budget");
+        }
+        let origin = if period != 0 && copies == 1 { from } else { 0 };
         Ok(Self {
             width,
             height,
-            ticks,
             frames,
+            visible,
+            start,
+            copies,
+            period,
+            origin,
+            packet_count,
         })
     }
+    pub fn timescale(&self) -> u32 {
+        if self.copies > 1 { 90000 } else { 100 }
+    }
+    pub fn ticks(&self) -> u64 {
+        self.period * self.copies as u64
+    }
+    pub fn seconds(&self) -> f64 {
+        (self.ticks() - self.origin) as f64 / 100.
+    }
+    pub fn packets(&self) -> impl Iterator<Item = (usize, u64, u32)> + '_ {
+        (0..self.copies * self.packet_count).map(|i| {
+            let index = i % self.packet_count;
+            let f = &self.frames[index];
+            (
+                index,
+                self.period * (i / self.packet_count) as u64 + f.pts,
+                u64::from(f.delay).min(self.period - f.pts) as u32,
+            )
+        })
+    }
+    pub fn frame_index(&self, i: usize) -> usize {
+        self.visible.start + i % self.visible.len()
+    }
     pub fn times(&self) -> impl Iterator<Item = (f64, f64)> + '_ {
-        self.frames
-            .iter()
-            .map(|f| (f.pts as f64 / 100., f64::from(f.delay) / 100.))
+        (0..self.visible.len() * self.copies).map(|i| {
+            let f = &self.frames[self.frame_index(i)];
+            (
+                (f.pts as f64 / 100. - self.start).max(0.)
+                    + (self.period * (i / self.visible.len()) as u64) as f64 / 100.,
+                f64::from(f.delay) / 100.,
+            )
+        })
     }
     pub fn image(&self, i: usize) -> Raster {
         Raster {
@@ -507,7 +572,7 @@ impl Animation {
             gray: false,
             density: 72,
             orientation: None,
-            pixels: self.frames[i].pixels.clone(),
+            pixels: self.frames[self.frame_index(i)].pixels.clone(),
         }
     }
 }

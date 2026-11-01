@@ -511,7 +511,7 @@ pub(super) struct Graph<'a> {
     notes: Vec<state::Note>,
     groups: Vec<Group>,
     nodes: Vec<Node>,
-    edges: Vec<Edge<'static>>,
+    edges: Vec<Edge<'a>>,
     hrefs: BTreeMap<&'a str, &'a str>,
     styles: Styles<'a>,
     dir: &'a str,
@@ -519,7 +519,7 @@ pub(super) struct Graph<'a> {
     wrapping_width: f64,
 }
 
-impl Graph<'static> {
+impl<'a> Graph<'a> {
     fn core(wrapping_width: f64, limit: usize) -> Self {
         Self {
             notes: Vec::new(),
@@ -535,7 +535,7 @@ impl Graph<'static> {
         }
     }
 
-    fn connect(&mut self, from: usize, to: usize, marker: &'static str) {
+    fn connect(&mut self, from: usize, to: usize, marker: &'a str) {
         if from == to {
             self.nodes[from].loops += 1;
         } else {
@@ -559,7 +559,7 @@ pub(super) fn parse<'a>(
     let header = header_stmt.text.trim_end();
     let keyword = header.split_ascii_whitespace().next()?;
     if keyword == "erDiagram" {
-        return er::parse(lines, wrapping_width, limit).transpose();
+        return Some(er::parse(lines, wrapping_width, secondary_size, limit));
     }
     if matches!(keyword, "stateDiagram" | "stateDiagram-v2") {
         return Some(state::parse(lines, wrapping_width, secondary_size, limit));
@@ -1074,6 +1074,21 @@ pub(super) fn layout(
         } else if op == "--x" {
             for points in [[(-9., -4.), (-1., 4.)], [(-9., 4.), (-1., -4.)]] {
                 edge_paint.push(marker(ex, ey, angle, &points, false, 1.75));
+            }
+        }
+        if let Some((left, right)) = er::cardinalities(op) {
+            for (card, tip, rotation) in [(left, (x, y), start_angle), (right, (ex, ey), angle)] {
+                if let Err(e) = card.paint(
+                    tip,
+                    rotation,
+                    (edge, edge_color),
+                    theme,
+                    &mut styles.budget,
+                    &mut el,
+                    &mut edge_paint,
+                ) {
+                    return Some(Err(e));
+                }
             }
         }
         let angle = degrees(angle);

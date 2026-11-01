@@ -38493,6 +38493,26 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_draws_er_relationship_labels_and_cardinalities() {
+        assert_mermaid_outputs(&[
+            ("erDiagram\nA ||--|| B", "svg", "2c59f94f17e477224f7734fefd0ac13b089de72e8cbdf190c4dc7f2872b642e7"),
+            ("erDiagram\nA |o..o| B : observed", "svg", "fb1c233ef58586a5a59f6da9a7c577bcc8c83315307fe565097e939a16e39119"),
+            ("erDiagram\nA |o..o| B : observed", "png", "265356fa4228c0079edbd17f5b0d5c3af07bc9619f950d3a0c5f185717d47d12"),
+            ("erDiagram\nA |o..o| B : observed", "pdf", "bbb942e32d9adb3e1a2a53c8d313bec65bcc455e3fa0590f00642ef0ec71889b"),
+            ("erDiagram\nA }|--|{ B: \"links\"", "svg", "dce8304a9d503439036d1fbe0f18c76a1cbdad1c9741c423168f7a8c255cf44e"),
+            ("erDiagram\nA }o--o{ B: records", "svg", "495cdc1d8e0ad091cd1243c12b5cc32c63faf4a204c25f47e215330bcc351510"),
+            ("erDiagram\ndirection LR\nSITE ||--o{ ROOM : owns\nSITE {\n uuid id PK\n}\nROOM {\n uuid owner FK\n}", "svg", "a6974513f32a333252ca5e04f7fded4e5147b1dbb90c43e0cbb9eca1d0bca38a"),
+            ("erDiagram\ndirection LR\nSITE ||--o{ ROOM : owns\nSITE {\n uuid id PK\n}\nROOM {\n uuid owner FK\n}", "png", "80b1a4c6dda730b1284630a8cb59d4032e1f7d2daa74381991b0268f8fca0b89"),
+            ("erDiagram\ndirection LR\nSITE ||--o{ ROOM : owns\nSITE {\n uuid id PK\n}\nROOM {\n uuid owner FK\n}", "pdf", "fe054eaf33bbc1501eca3e05d167ba02e6b1960d884c88b2f7be5c25c534edba"),
+            ("erDiagram\nP ||--o{ P : parent", "svg", "00ba7b7fe39aff0ffb6ce95429982fd57c8e7e72f338a5f1465610a8ba7c9ff3"),
+            ("erDiagram\nA ||--o{ B\nB ||--|{ A", "svg", "0a87024a04e371d66d348e2e28caa4b5f6ab9b613f5a4d5df9c22d580545b97b"),
+            ("erDiagram\n\"Site name\" ||--o{ \"Room number\": \"has room\"", "svg", "a8511ebe252118fbab8ac7113fb2e5911a3334c24cb4eee16d5bbe31d4f86dae"),
+            ("erDiagram\nA --o{ B", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement 'A --o{ B'\n"),
+            ("erDiagram\nA ||--|| B:", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unrecognized erDiagram statement 'A ||--|| B:'\n"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

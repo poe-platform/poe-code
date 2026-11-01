@@ -35763,7 +35763,9 @@ fn parse_js_expr(b: &mut AstBuilder<'_>, mut i: usize, mut end: usize) -> Result
             pos = close + 1;
             continue;
         }
-        break;
+        // Keep a successfully parsed prefix searchable in a source file, but
+        // never accept it as the entire expression of a rewrite pattern.
+        return Ok((b.branch("ERROR", i, end, vec![cur]), end));
     }
     Ok((cur, pos))
 }
@@ -36313,6 +36315,9 @@ fn ast_pattern_node(pattern: &str, language: &str) -> Result<AstCodeNode, String
         }
     }
     let mut root = tree.map_err(|_| format!("Invalid {language} pattern: {pattern}"))?;
+    if find_first_kind(&root, "ERROR").is_some() {
+        return Err(format!("Invalid {language} pattern: {pattern}"));
+    }
     annotate_ast_markers(&mut root, &markers);
     if let Some(ref mut sel) = selected {
         annotate_ast_markers(sel, &markers);
@@ -39157,6 +39162,19 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let sheet=std::str::from_utf8(&parts["xl/worksheets/sheet1.xml"]).unwrap();
         assert!(sheet.contains(r#"<c r="A2"><v>1</v></c>"#),"{sheet}");
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(), "935b5ce1373d8a1c5e67505e5b3118680ea6604dd706438f94867fad1964cf70");
+    }
+
+    #[test]
+    fn ast_grep_rejects_partial_patterns_before_updating_the_file() {
+        let fs = MemoryVfs::new();
+        let source = b"f(a); f(b); a;\n";
+        fs.write_file("/code.js", source).unwrap();
+        for pattern in ["$X ===", "f($X +)", "$X !@", "f($X foo)", "$X ? x :"] {
+            let result = try_run_structured_command("sg", &args(&["-p", pattern, "-r", "stop", "-U", "code.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(result.exit_code, 2, "{pattern}");
+            assert_eq!(result.stderr, format!("sg: Invalid javascript pattern: {pattern}\n"));
+            assert_eq!(fs.read_file("/code.js").unwrap(), source);
+        }
     }
 
     #[test]

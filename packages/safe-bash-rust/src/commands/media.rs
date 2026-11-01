@@ -4774,14 +4774,14 @@ fn cmd_media_doc(
                                 let movie=mp4::mux::input_slice(input,seek,None,limit)?;
                                 let end=if input_cut{end}else{Some(end.unwrap_or(seq.template_duration()).min(seq.template_duration()))};
                                 mp4::render_video(&movie,y4m::Options{end,..opts},&maps,sequence,emit)
-                            }else{seq.render(opts,emit).map_err(str::to_owned)}
+                            }else{seq.render(opts,emit)}
                         }
-                        else if still_input {frame_output::render_still(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
+                        else if still_input {frame_output::render_still(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit)}
                             else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
                             mp4::mux::input_slice(input,seek,seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
                         }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
                             mp4::mux::input_slice(input,InputTime{start:Some(start),to:end,..InputTime::default()},end,limit).and_then(|b|mp4::render_video(&b,y4m::Options{start:0.,end:None,..opts},&maps,sequence,emit))
-                        } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
+                        } else if let Some(video)=generator {video.render(opts,ss_opt.is_some() || end.is_some(),emit)}
                             else if real_mp4{mp4::render_video(bytes,opts,&maps,sequence,emit)}
                             else{Ok((64,64,10))}
                     });
@@ -13937,6 +13937,7 @@ mod media_unit_tests {
         assert_eq!(run("ffprobe",&["-show_entries","stream=codec_name,width,height,coded_width,display_aspect_ratio","-of","csv=p=0","b.tif"]).stdout,"tiff,0,0\n");
         assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","hflip","o.ppm"]).exit_code,0);
         assert_eq!(fs.read_file("/o.ppm").unwrap(),b"P6\n0 0\n255\n");
+        assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","crop=1:1","o.png"]).stderr,"ffmpeg: extract_area: bad extract area (left=0, top=0, width=0, height=0 on 0x0)\n");
         assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","scale=2:2","o.png"]).stderr,"ffmpeg: offset is out of bounds\n");
         assert_eq!(run("ffmpeg",&["-i","b.tif","-vf","hflip","o.mp4"]).exit_code,0);
         assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.mp4").unwrap())),"c42372af188eb8d660d9bd4bfc82842d39ff70b2f9bb0eaa7cd158f973bccb7c");

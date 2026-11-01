@@ -231,7 +231,7 @@ impl ImageSequence {
         &self,
         opts: super::y4m::Options<'_>,
         emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
-    ) -> Result<(usize, usize, u32), &'static str> {
+    ) -> Result<(usize, usize, u32), String> {
         let (w, h) = (self.frames[0].width, self.frames[0].height);
         super::y4m::render_frames(
             w,
@@ -319,7 +319,7 @@ pub(super) fn render_still(
     seek: super::InputTime,
     reslice: bool,
     emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
-) -> Result<(usize, usize, u32), &'static str> {
+) -> Result<(usize, usize, u32), String> {
     let im = decode_still(bytes, opts.limit)?;
     let (w, h) = (im.width, im.height);
     // A still has one 25 Hz sample. A sub-tick input cut may preserve
@@ -334,7 +334,7 @@ pub(super) fn render_still(
         0
     };
     if count > opts.limit / size_of::<(f64, f64)>() {
-        return Err("frame index exceeds memory budget");
+        return Err("frame index exceeds memory budget".into());
     }
     let times = (0..count).map(|i| (i as f64 / 25., 0.04));
     super::y4m::render_frames(w, h, times, opts, |_| Ok(im.clone()), emit)?;

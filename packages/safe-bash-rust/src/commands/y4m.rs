@@ -353,7 +353,7 @@ impl<'a> Clip<'a> {
         &self,
         options: Options<'_>,
         emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
-    ) -> Result<(usize, usize, u32), &'static str> {
+    ) -> Result<(usize, usize, u32), String> {
         render_frames(
             self.width,
             self.height,
@@ -402,7 +402,7 @@ fn render(
     limit: usize,
     work: &mut usize,
     image: &mut impl FnMut(usize) -> Result<Raster, &'static str>,
-) -> Result<Raster, &'static str> {
+) -> Result<Raster, String> {
     let Some((stage, prior)) = stages.split_last() else {
         let frame = image(index)?;
         charge_pixels(work, frame.pixels.len())?;
@@ -431,7 +431,7 @@ fn render(
         if canvas.is_none() {
             let (dw, dh) = (dim(stage.cols, w)?, dim(stage.rows, h)?);
             if dw.max(1).saturating_mul(dh.max(1)) > limit.saturating_sub(cell.pixels.len() * 4) / 4 {
-                return Err("image exceeds memory budget");
+                return Err("image exceeds memory budget".into());
             }
             charge_pixels(work, dw * dh)?;
             canvas = Some(raster(dw, dh, vec![[0, 0, 0, 255]; dw * dh]));
@@ -446,7 +446,7 @@ fn render(
             || x + i128::from(w) > dst.width as i128
             || y + i128::from(h) > dst.height as i128
         {
-            return Err("offset is out of bounds");
+            return Err("offset is out of bounds".into());
         }
         for (dy, row) in cell
             .pixels
@@ -459,7 +459,7 @@ fn render(
             dst.pixels[i..i + n].copy_from_slice(&row[..n]);
         }
     }
-    canvas.ok_or("missing tile frame")
+    canvas.ok_or_else(|| "missing tile frame".into())
 }
 
 pub(super) fn header(w: usize, h: usize, fps: u32) -> Vec<u8> {
@@ -472,14 +472,14 @@ pub(super) fn render_frames(
     opts: Options<'_>,
     mut image: impl FnMut(usize) -> Result<Raster, &'static str>,
     mut emit: impl FnMut(Raster, f64, Buffer) -> Result<(), &'static str>,
-) -> Result<(), &'static str> {
+) -> Result<(), String> {
     let mut frames = Vec::new();
     for (index, (pts, duration)) in times.enumerate() {
         if (opts.start == 0. && opts.end.is_none())
             || pts + duration > opts.start && opts.end.is_none_or(|t| pts < t)
         {
             if frames.len() >= opts.limit / size_of::<TimedFrame>() {
-                return Err("frame index exceeds memory budget");
+                return Err("frame index exceeds memory budget".into());
             }
             frames.push(TimedFrame {
                 index,
@@ -527,7 +527,7 @@ pub(super) fn render_frames(
                 }
                 // Each nested tile renders one child layer on the Wasm stack.
                 if stages.len() >= 64 {
-                    return Err("video tile nesting limit exceeded");
+                    return Err("video tile nesting limit exceeded".into());
                 }
                 let previous = std::mem::take(&mut frames);
                 frames = previous
@@ -586,7 +586,7 @@ pub(super) fn render_frames(
                 let total: f64 = frames.iter().map(|f| f.duration).sum();
                 let n = (total * rate).round().max(1.) as usize;
                 if n > opts.limit / size_of::<TimedFrame>() {
-                    return Err("frame index exceeds memory budget");
+                    return Err("frame index exceeds memory budget".into());
                 }
                 frames = (0..n)
                     .map(|i| {
@@ -656,7 +656,7 @@ pub(super) fn render_frames(
         return Ok(());
     }
     if w.saturating_mul(h) > opts.limit / 4 {
-        return Err("image exceeds memory budget");
+        return Err("image exceeds memory budget".into());
     }
     // As with H.264 replay, allow 32 input budgets of work. Count RGBA pixels
     // even when identical frames compress to only a few bytes.
@@ -694,6 +694,6 @@ mod tests {
             |i| Ok(spec.image(i)),
             |_, _, _| Ok(()),
         );
-        assert_eq!(result, Err("video pixel work limit exceeded"));
+        assert_eq!(result, Err("video pixel work limit exceeded".into()));
     }
 }

@@ -185,13 +185,13 @@ impl Video {
         opts: y4m::Options<'_>,
         sliced: bool,
         emit: impl FnMut(Raster, f64, super::y4m::Buffer) -> Result<(), &'static str>,
-    ) -> Result<(usize, usize, u32), &'static str> {
+    ) -> Result<(usize, usize, u32), String> {
         let (w, h) = (self.width as usize, self.height as usize);
         let count = (opts.end.unwrap_or(self.duration) * self.fps)
             .round()
             .max(1.) as usize;
         if count > opts.limit / size_of::<usize>() {
-            return Err("frame index exceeds memory budget");
+            return Err("frame index exceeds memory budget".into());
         }
         let mut fps = self.fps;
         let first = (opts.start * fps).floor() as usize;

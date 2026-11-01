@@ -343,7 +343,7 @@ fn encode_video(
     mut input_consumed: impl FnMut(usize) -> bool,
     fragmented: bool,
     image: impl FnMut(usize) -> Result<Raster, &'static str>,
-) -> Result<(), &'static str> {
+) -> Result<(), String> {
     let limit = opts.limit;
     let mut previous_buffer = None;
     let mut samples = Vec::new();
@@ -1900,18 +1900,17 @@ fn render_source(
 ) -> Result<(usize, usize, u32), String> {
     let cut = options.start != 0. || options.end.is_some();
     match streams {
-        Streams::Y4m(v) => v.render(options, emit).map_err(str::to_owned),
-        Streams::Images(seq) => seq.render(options, emit).map_err(str::to_owned),
+        Streams::Y4m(v) => v.render(options, emit),
+        Streams::Images(seq) => seq.render(options, emit),
         Streams::Still(seek) => {
-            frame_output::render_still(input, options, *seek, cut, emit).map_err(str::to_owned)
+            frame_output::render_still(input, options, *seek, cut, emit)
         }
-        Streams::GeneratedVideo(v) => v.render(options, false, emit).map_err(str::to_owned),
+        Streams::GeneratedVideo(v) => v.render(options, false, emit),
         Streams::Mp4(tracks) => {
             if let MediaInput::Bytes("image2", bytes) = source
                 && tracks[i].0.tag != b"avc1"
             {
-                return frame_output::render_still(bytes, options, seek, cut, emit)
-                    .map_err(str::to_owned);
+                return frame_output::render_still(bytes, options, seek, cut, emit);
             }
             super::render_track(input, &tracks[i].0, duration, options, full_size, emit)
         }

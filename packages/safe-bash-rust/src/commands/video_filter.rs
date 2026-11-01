@@ -26,7 +26,7 @@ impl<'a> Filter<'a> {
             })
             .or_else(|| self.args.get(pos).map(|s| s.trim()))
     }
-    pub fn apply(&self, im: &mut Raster, limit: usize) -> Result<(), &'static str> {
+    pub fn apply(&self, im: &mut Raster, limit: usize) -> Result<(), String> {
         let (iw, ih) = (im.width, im.height);
         let dim = |keys: &[&str], pos, base: usize| {
             self.param(keys, pos)
@@ -60,19 +60,21 @@ impl<'a> Filter<'a> {
                     im.pixels[(ih - 1 - x) * iw + y]
                 }
             }),
-            "crop" if iw==0 || ih==0 => return Err("extract_area: bad extract area"),
             "crop" => {
-                let w = dim(&["w"], 0, iw).clamp(1, iw as i32) as usize;
-                let h = dim(&["h"], 1, ih).clamp(1, ih as i32) as usize;
+                let w = dim(&["w"], 0, iw).max(1).min(iw as i32) as usize;
+                let h = dim(&["h"], 1, ih).max(1).min(ih as i32) as usize;
                 let x = num(&["x"], 2, (iw - w) as i64 / 2).clamp(0, (iw - w) as i64) as usize;
                 let y = num(&["y"], 3, (ih - h) as i64 / 2).clamp(0, (ih - h) as i64) as usize;
+                if w == 0 || h == 0 {
+                    return Err(format!("extract_area: bad extract area (left={x}, top={y}, width={w}, height={h} on {iw}x{ih})"));
+                }
                 im.remap(w, h, |im, dx, dy| im.pixels[(y + dy) * iw + x + dx]);
             }
             "pad" => {
                 let w = dim(&["w", "width"], 0, iw).max(iw as i32) as usize;
                 let h = dim(&["h", "height"], 1, ih).max(ih as i32) as usize;
                 if w.saturating_mul(h) > limit / 4 {
-                    return Err("image exceeds memory budget");
+                    return Err("image exceeds memory budget".into());
                 }
                 let x = num(&["x"], 2, 0).clamp(0, (w - iw) as i64) as usize;
                 let y = num(&["y"], 3, 0).clamp(0, (h - ih) as i64) as usize;
@@ -104,7 +106,7 @@ impl<'a> Filter<'a> {
                     }
                 }
             }
-            "scale" if iw==0 || ih==0 => return Err("offset is out of bounds"),
+            "scale" if iw==0 || ih==0 => return Err("offset is out of bounds".into()),
             "scale" => {
                 let (mut dw, mut dh) = (dim(&["w", "width"], 0, iw), dim(&["h", "height"], 1, ih));
                 let auto = |d: i32, other: i32, n: usize, m: usize| {

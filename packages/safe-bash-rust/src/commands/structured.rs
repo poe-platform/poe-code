@@ -29526,7 +29526,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut acc_descr: Option<String> = None;
     let mut in_descr_block = false;
     let mut descr_lines: Vec<String> = Vec::new();
-    let mut content_lines: Vec<String> = Vec::new();
+    let mut content_lines: Vec<&str> = Vec::new();
 
     for raw_line in src_text.lines() {
         let t = raw_line.trim();
@@ -29568,7 +29568,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 continue;
             }
         }
-        content_lines.push(t.to_string());
+        content_lines.push(t);
     }
 
     if content_lines.is_empty() {
@@ -29631,7 +29631,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
 
     let scene = if output_format == "svg" {
-        mermaid::layout(&content_lines, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes())
+        match mermaid::layout(&content_lines, &src_text, &resolved_theme, &id_prefix, acc_title.as_deref(), fs.max_input_bytes()) {
+            Some(Ok(scene)) => Some(scene),
+            Some(Err(message)) => return err_out(&message, 1),
+            None => None,
+        }
     } else { None };
     let (vw, vh) = scene.as_ref().map_or((f64::from(width), f64::from(height)), |s| (s.width, s.height));
     let (width, height) = match (scene.is_some(), cli_width.or(cfg_width), cli_height.or(cfg_height)) {

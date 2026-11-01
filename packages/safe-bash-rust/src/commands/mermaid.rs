@@ -94,6 +94,25 @@ fn dimensions(n: &mut Node) {
         _ => (snap(tallest + 36.).max(88), snap(text_height + 22.).max(40)),
     }
 }
+const EDGE_OPS: &[&str] = &[
+    "<-.->", "<-->", "<==>", "-..->", "-.->", "--->", "===>", "-.-", "-->", "---", "==>", "===",
+    "--x", "--o",
+];
+
+fn syntax(source: &str, at: &str, message: String) -> String {
+    // The statement and token are slices of the original UTF-8 source. Mermaid
+    // reports one-based UTF-16 columns, including indentation and the header.
+    let offset = at.as_ptr() as usize - source.as_ptr() as usize;
+    let before = &source[..offset];
+    let line = 1 + before.bytes().filter(|b| *b == b'\n').count();
+    let column = 1 + before
+        .rsplit('\n')
+        .next()
+        .unwrap_or("")
+        .encode_utf16()
+        .count();
+    format!("mmdc: E_SYNTAX (line {line}, column {column}): {message}\n")
+}
 fn parse_node<'a>(
     s: &'a str,
     nodes: &mut Vec<Node>,
@@ -105,7 +124,7 @@ fn parse_node<'a>(
         .find(|&(i, c)| {
             !(c.is_alphanumeric()
                 || c == '_'
-                || (c == '-' && !s[i..].starts_with("--") && !s[i..].starts_with("-.")))
+                || (c == '-' && !EDGE_OPS.iter().any(|op| s[i..].starts_with(op))))
         })
         .map_or(s.len(), |(i, _)| i);
     if end == 0 || end > 4096 {
@@ -140,12 +159,13 @@ fn parse_node<'a>(
 }
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) fn layout(
-    lines: &[String],
+    lines: &[&str],
+    source: &str,
     theme: &str,
     prefix: &str,
     title: Option<&str>,
     limit: usize,
-) -> Option<Scene> {
+) -> Option<Result<Scene, String>> {
     let mut stmts = lines
         .iter()
         .flat_map(|l| l.split(';'))
@@ -167,16 +187,50 @@ pub(super) fn layout(
     for stmt in stmts {
         let (mut a, mut rest) = parse_node(stmt, &mut nodes, &mut ids)?;
         while !rest.is_empty() {
-            let op = ["-->", "---", "-.->", "==>"]
-                .into_iter()
-                .find(|op| rest.starts_with(op))?;
-            let (b, tail) = parse_node(&rest[op.len()..], &mut nodes, &mut ids)?;
+            let (op, tail, label) = if let Some(op) =
+                EDGE_OPS.iter().copied().find(|op| rest.starts_with(op))
+            {
+                if matches!(op, "--x" | "--o") {
+                    return None;
+                }
+                let tail = rest[op.len()..].trim_start();
+                if let Some(tail) = tail.strip_prefix('|') {
+                    let Some((label, tail)) = tail.split_once('|') else {
+                        return Some(Err(syntax(
+                            source,
+                            rest,
+                            "Unclosed edge label pipe '|'".into(),
+                        )));
+                    };
+                    (op, tail, label.trim())
+                } else {
+                    (op, tail, "")
+                }
+            } else if let Some(t) = rest.strip_prefix("--") {
+                let (label, tail) = t.split_once("-->")?;
+                ("-->", tail, label.trim())
+            } else {
+                if nodes[a].id.ends_with("--") {
+                    let text =
+                        String::from_utf16_lossy(&rest.encode_utf16().take(24).collect::<Vec<_>>());
+                    return Some(Err(syntax(
+                        source,
+                        rest,
+                        format!("Unexpected flowchart syntax near '{text}'"),
+                    )));
+                }
+                return None;
+            };
+            if label.contains(['<', '\n']) || measure(label) > 200. {
+                return None;
+            }
+            let (b, tail) = parse_node(tail, &mut nodes, &mut ids)?;
             if nodes[a].to.is_some() || nodes[b].from.is_some() {
                 return None;
             }
             nodes[a].to = Some(b);
             nodes[b].from = Some(a);
-            edges.push((a, b, op));
+            edges.push((a, b, op, label));
             a = b;
             rest = tail;
         }
@@ -224,25 +278,50 @@ pub(super) fn layout(
         .map(|n| if along_x { n.h } else { n.w })
         .max()
         .unwrap_or(0);
-    let mut pos = 32;
+    let mut allowances = vec![0.; nodes.len()];
+    let mut label_breadth = 0;
+    for &(a, b, _, label) in &edges {
+        if !label.is_empty() {
+            let units = label
+                .chars()
+                .map(|c| u64::from(advance(c, false)))
+                .sum::<u64>() as f64;
+            let text_width = (units * 1.15).ceil() / 100.;
+            allowances[if reversed { b } else { a }] =
+                if horizontal { text_width + 36. } else { 44. };
+            label_breadth = label_breadth.max(if horizontal {
+                23
+            } else {
+                (text_width + 18.).ceil() as i32
+            });
+        }
+    }
+    let breadth = breadth.max(label_breadth);
+    let mut cursor = 32_f64;
     for i in order {
+        let pos = cursor.round() as i32;
         let n = &mut nodes[i];
         if along_x {
             n.x = pos;
             n.y = 32 + (breadth - n.h) / 2;
-            pos += n.w + gap
+            cursor += f64::from(n.w + gap) + allowances[i]
         } else {
             n.y = pos;
             n.x = 32 + (breadth - n.w) / 2;
-            pos += n.h + gap
+            cursor += f64::from(n.h + gap) + allowances[i]
         }
     }
-    let width = nodes.iter().map(|n| n.x + n.w).max().unwrap_or(152) + 32;
+    let width = (nodes.iter().map(|n| n.x + n.w).max().unwrap_or(152) + 32).max(if !horizontal {
+        64 + label_breadth
+    } else {
+        0
+    });
     let height = nodes.iter().map(|n| n.y + n.h).max().unwrap_or(112) + 32;
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];
-    for (idx, (a, b, op)) in edges.into_iter().enumerate() {
+    let mut pills = Vec::new();
+    for (idx, (a, b, op, label)) in edges.into_iter().enumerate() {
         let (a, b) = (&nodes[a], &nodes[b]);
         let (x, y, ex, ey, dx, dy, angle) = match dir {
             "LR" => (a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2, 1., 0., 0),
@@ -250,21 +329,63 @@ pub(super) fn layout(
             "BT" => (a.x + a.w / 2, a.y, b.x + b.w / 2, b.y + b.h, 0., -1., -90),
             _ => (a.x + a.w / 2, a.y + a.h, b.x + b.w / 2, b.y, 0., 1., 90),
         };
-        let arrow = op != "---";
+        let arrow = op.ends_with('>');
+        let start_arrow = op.starts_with('<');
         let end_x = f64::from(ex) - if arrow { dx * 6.8 } else { 0. };
         let end_y = f64::from(ey) - if arrow { dy * 6.8 } else { 0. };
-        let stroke = if op == "==>" { "2.25" } else { "1.25" };
-        let dash = if op == "-.->" {
+        let stroke = if op.contains("==") { "2.25" } else { "1.25" };
+        let dash = if op.contains('.') {
             r#" stroke-dasharray="5 4""#
         } else {
             ""
         };
+        let start_x = f64::from(x) + if start_arrow { dx * 6.8 } else { 0. };
+        let start_y = f64::from(y) + if start_arrow { dy * 6.8 } else { 0. };
         let mut el = format!(
-            r#"<g class="mmdc-edge" data-id="edge_{}"><path d="M {x} {y} L {end_x} {end_y}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
+            r#"<g class="mmdc-edge" data-id="edge_{}"><path d="M {start_x} {start_y} L {end_x} {end_y}" fill="none" stroke="{edge}" stroke-width="{stroke}" stroke-linecap="round" stroke-linejoin="round"{dash}/>"#,
             idx + 1
         );
-        if arrow {
-            write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
+        for (show, ex, ey, angle) in [
+            (
+                start_arrow,
+                x,
+                y,
+                match angle {
+                    0 => 180,
+                    90 => -90,
+                    180 => 0,
+                    _ => 90,
+                },
+            ),
+            (arrow, ex, ey, angle),
+        ] {
+            if show {
+                write!(el,r#"<g transform="translate({ex}, {ey}) rotate({angle})"><path d="M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z" transform="translate(-9, -3.5)" fill="{edge}" stroke="{edge}" stroke-width="1" stroke-linejoin="round"/></g>"#).ok()?;
+            }
+        }
+        if !label.is_empty() {
+            let short = label.len() <= 4
+                && label
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || b".*nN".contains(&b));
+            let (size, weight, rx, pad) = if short {
+                (11., 600, 4, 16.)
+            } else {
+                (11.5, 500, 5, 18.)
+            };
+            let units = label
+                .chars()
+                .map(|c| u64::from(advance(c, short)))
+                .sum::<u64>() as f64;
+            let w = (units * size / 1000. + pad).ceil();
+            let left = ((f64::from(x + ex) - w) * 0.5).round();
+            let top = ((f64::from(y + ey) - 23.) * 0.5).round();
+            let (fill, border, color) = if dark {
+                ("#1e293b", "#334155", "#f8fafc")
+            } else {
+                ("#ffffff", "#e2e8f0", "#0f172a")
+            };
+            pills.push(format!(r#"<g class="mmdc-label-pill"><rect x="{left}" y="{top}" width="{w}" height="23" rx="{rx}" fill="{fill}" stroke="{border}" stroke-width="1"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#,(left+w/2.).round(),top+if short{14.}else{15.},esc(label)));
         }
         el.push_str("</g>");
         elements.push(el);
@@ -359,9 +480,10 @@ pub(super) fn layout(
         elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="32" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-64.,width/2.,height+18.,esc(t)));
         height += 56.;
     }
-    Some(Scene {
+    elements.extend(pills);
+    Some(Ok(Scene {
         width,
         height,
         elements,
-    })
+    }))
 }

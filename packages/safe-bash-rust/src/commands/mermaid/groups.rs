@@ -1,10 +1,9 @@
 use super::{
-    FONT, Node, Shape, Statement, esc, measure,
+    Node, Shape, Statement, esc, measure,
     raster::{BoxStyle, Paint},
     route::Point,
     scanner, snap,
 };
-use crate::commands::archive::parse_color;
 use std::fmt::Write;
 
 #[derive(Default)]
@@ -64,25 +63,24 @@ impl Group {
         &self,
         idx: usize,
         prefix: &str,
-        dark: bool,
+        theme: &super::config::Theme,
         shift: (i32, i32),
         paths: &[Vec<Point>],
         paint: &mut Vec<Paint>,
     ) -> String {
         let [gx, gy, w, h] = self.bounds;
         let (x, y) = (gx + shift.0, gy + shift.1);
-        let (fill, header, border, color) = if dark {
-            ("#0f172a99", "#1e293b", "#334155", "#f8fafc")
-        } else {
-            ("#f1f5f980", "#e2e8f080", "#cbd5e1", "#0f172a")
-        };
-        let stroke = parse_color(border).unwrap();
+        let (fill, fill_rgba) = theme.color("groupSurface");
+        let (header, header_rgba) = theme.color("groupHeaderSurface");
+        let (border, stroke) = theme.color("groupBorder");
+        let (color, text_rgba) = theme.color("text");
+        let font = &theme.font;
         paint.push(Paint::Box {
             bounds: [x.into(), y.into(), w.into(), h.into()],
             style: BoxStyle {
                 radius: 12.,
-                fill: parse_color(fill).unwrap(),
-                header: Some((32., parse_color(header).unwrap())),
+                fill: fill_rgba,
+                header: Some((32., header_rgba)),
                 border: stroke,
                 thickness: 1.25,
             },
@@ -119,13 +117,13 @@ impl Group {
                 }
             }
             let ly = y + 21;
-            write!(el,r#"<text x="{lx}" y="{ly}" fill="{color}" font-family="{FONT}" font-size="12" font-weight="600" letter-spacing="0.025em" text-anchor="start">{}</text>"#,esc(&self.label)).unwrap();
+            write!(el,r#"<text x="{lx}" y="{ly}" fill="{color}" font-family="{font}" font-size="12" font-weight="600" letter-spacing="0.025em" text-anchor="start">{}</text>"#,esc(&self.label)).unwrap();
             paint.push(Paint::Text {
                 start: lx,
                 baseline: ly.into(),
                 size: 12.,
                 weight: 600,
-                color: parse_color(color).unwrap(),
+                color: text_rgba,
                 text: self.label.clone(),
             });
         }

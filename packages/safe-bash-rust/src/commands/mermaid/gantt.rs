@@ -1,12 +1,9 @@
 use super::{
-    FONT, Scene, Shape, diamond_path, esc, measure,
+    Scene, Shape, diamond_path, esc, measure,
     raster::{BoxStyle, Paint},
     scanner::{Statement, check_label},
 };
-use crate::commands::{
-    archive::parse_color,
-    coreutils::{civil_from_days, days_from_civil},
-};
+use crate::commands::coreutils::{civil_from_days, days_from_civil};
 use std::collections::BTreeMap;
 
 const DAY: f64 = 86_400_000.;
@@ -184,16 +181,30 @@ impl Gantt {
         }
         Ok(chart)
     }
-    pub(in super::super) fn layout(self, theme: &str, padding: f64, title: Option<&str>) -> Scene {
-        let dark = theme == "dark";
-        let color = if dark { "#f8fafc" } else { "#0f172a" };
-        let border = if dark { "#334155" } else { "#cbd5e1" };
-        let accent = match theme {
-            "dark" => "#60a5fa",
-            "forest" => "#15803d",
-            "neutral" => "#475569",
-            _ => "#2563eb",
-        };
+    pub(in super::super) fn layout(
+        self,
+        theme: &super::config::Theme,
+        padding: f64,
+        title: Option<&str>,
+        mut limit: usize,
+    ) -> Result<Scene, String> {
+        let (color, text_rgba) = theme.color("text");
+        let font = &theme.font;
+        let (border, border_rgba) = theme.color("border");
+        let accent = theme.color("accent");
+        let headings = self
+            .tasks
+            .iter()
+            .enumerate()
+            .filter(|(i, t)| {
+                t.section.is_some() && (*i == 0 || t.section != self.tasks[i - 1].section)
+            })
+            .count();
+        let labels = self.tasks.len() * 2 + 2 + headings + usize::from(title.is_some());
+        super::config::charge_attributes(
+            &mut limit,
+            &[(font, labels), (color, labels), (border, self.tasks.len())],
+        )?;
         let (mut start, mut end, mut label_width) = (f64::INFINITY, f64::NEG_INFINITY, 120_f64);
         for t in &self.tasks {
             start = start.min(t.start);
@@ -219,7 +230,7 @@ impl Gantt {
             let tx = if right { x + w } else { x };
             let baseline = y + 17.;
             let anchor = if right { "end" } else { "start" };
-            scene.elements.push(format!(r#"<g class="mmdc-node" data-id="{}"><rect x="{x}" y="{y}" width="{w}" height="24" rx="0" fill="transparent" stroke="transparent" stroke-width="0"/><text x="{tx}" y="{baseline}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="400" letter-spacing="0.025em" text-anchor="{anchor}">{}</text></g>"#,esc(id),esc(value)));
+            scene.elements.push(format!(r#"<g class="mmdc-node" data-id="{}"><rect x="{x}" y="{y}" width="{w}" height="24" rx="0" fill="transparent" stroke="transparent" stroke-width="0"/><text x="{tx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="13" font-weight="400" letter-spacing="0.025em" text-anchor="{anchor}">{}</text></g>"#,esc(id),esc(value)));
             scene.paint.push(Paint::Text {
                 start: if right {
                     tx - measure(value, 13., false)
@@ -229,7 +240,7 @@ impl Gantt {
                 baseline,
                 size: 13.,
                 weight: 400,
-                color: parse_color(color).unwrap(),
+                color: text_rgba,
                 text: value.into(),
             });
         };
@@ -285,13 +296,14 @@ impl Gantt {
             } else {
                 ((t.end - t.start) / span * 600.).max(1.)
             };
-            let fill = if t.status.contains("crit") {
-                "#dc2626"
+            let (fill, fill_rgba) = if t.status.contains("crit") {
+                ("#dc2626", [220, 38, 38, 255])
             } else if t.status.contains("done") {
-                "#64748b"
+                ("#64748b", [100, 116, 139, 255])
             } else {
                 accent
             };
+            super::config::charge_attributes(&mut limit, &[(fill, 1)])?;
             let shape = if t.milestone {
                 format!(r#"<path d="{}""#, diamond_path(x, y, w, 24.))
             } else {
@@ -308,8 +320,8 @@ impl Gantt {
                 shadow: None,
                 style: BoxStyle {
                     radius: 3.,
-                    fill: parse_color(fill).unwrap(),
-                    border: parse_color(border).unwrap(),
+                    fill: fill_rgba,
+                    border: border_rgba,
                     thickness: 1.,
                     header: None,
                 },
@@ -332,8 +344,8 @@ impl Gantt {
         }
         scene.height = y + padding;
         if let Some(t) = title {
-            scene.add_title(t, padding, dark)
+            scene.add_title(t, padding, theme)
         }
-        scene
+        Ok(scene)
     }
 }

@@ -1,5 +1,5 @@
 use super::raster::{BoxStyle, Paint};
-use super::{FONT, Scene, esc, measure};
+use super::{Scene, esc, measure};
 use crate::commands::archive::parse_color;
 use std::fmt::Write;
 
@@ -78,7 +78,20 @@ impl Pie {
         Ok(pie)
     }
 
-    pub(in super::super) fn layout(&self, theme: &str, padding: f64) -> Scene {
+    pub(in super::super) fn layout(
+        &self,
+        theme: &super::config::Theme,
+        padding: f64,
+        mut limit: usize,
+    ) -> Result<Scene, String> {
+        super::config::charge_attributes(
+            &mut limit,
+            &[(
+                &theme.font,
+                self.slices.len() + usize::from(self.title.is_some()),
+            )],
+        )?;
+        let font = &theme.font;
         let mut labels = Vec::new();
         let mut legend: f64 = 120.;
         for (label, v) in &self.slices {
@@ -161,32 +174,28 @@ impl Pie {
                 color: parse_color(color).unwrap(),
                 text: label.clone(),
             });
-            nodes.push(format!(r#"<g class="mmdc-node" data-id="legend_{i}"><rect x="{legend_x}" y="{y}" width="{legend}" height="24" rx="3" fill="{fill}" stroke="{fill}" stroke-width="0"/><text x="{text_x}" y="{}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="400" letter-spacing="0.025em" text-anchor="start">{}</text></g>"# ,y+17.,esc(&label)));
+            nodes.push(format!(r#"<g class="mmdc-node" data-id="legend_{i}"><rect x="{legend_x}" y="{y}" width="{legend}" height="24" rx="3" fill="{fill}" stroke="{fill}" stroke-width="0"/><text x="{text_x}" y="{}" fill="{color}" font-family="{font}" font-size="13" font-weight="400" letter-spacing="0.025em" text-anchor="start">{}</text></g>"# ,y+17.,esc(&label)));
         }
         elements.extend(nodes);
         paint.insert(0, Paint::Pie { cx, cy, ends });
         if let Some(t) = title {
-            let color = if theme == "dark" {
-                "#f8fafc"
-            } else {
-                "#0f172a"
-            };
+            let (color, text_rgba) = theme.color("text");
             paint.push(Paint::Text {
                 start: (width - title_width) / 2.,
                 baseline: padding + 13.,
                 size: 16.,
                 weight: 600,
-                color: parse_color(color).unwrap(),
+                color: text_rgba,
                 text: t.into(),
             });
-            elements.push(format!(r#"<g class="mmdc-node" data-id="pie_title"><rect x="{padding}" y="{padding}" width="{}" height="16" rx="0" fill="transparent" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#,width-2.*padding,width/2.,padding+13.,esc(t)));
+            elements.push(format!(r#"<g class="mmdc-node" data-id="pie_title"><rect x="{padding}" y="{padding}" width="{}" height="16" rx="0" fill="transparent" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{font}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#,width-2.*padding,width/2.,padding+13.,esc(t)));
         }
-        Scene {
+        Ok(Scene {
             width,
             height,
             elements,
             paint,
-        }
+        })
     }
 }
 

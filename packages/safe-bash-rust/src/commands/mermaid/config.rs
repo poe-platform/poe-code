@@ -174,12 +174,75 @@ impl Config {
     }
 }
 
+pub(in super::super) struct Theme<'a> {
+    mode: &'a str,
+    pub numbers: BTreeMap<&'a str, f64>,
+    colors: BTreeMap<&'a str, (String, [u8; 4])>,
+    pub font: String,
+}
+
+impl Theme<'_> {
+    pub fn color(&self, key: &str) -> (&str, [u8; 4]) {
+        if let Some((raw, rgba)) = self.colors.get(key) {
+            return (raw, *rgba);
+        }
+        let base = |light, dark| if self.mode == "dark" { dark } else { light };
+        let value = match key {
+            "surface" | "edgeLabelBackground" => base("#ffffff", "#1e293b"),
+            "text" => base("#0f172a", "#f8fafc"),
+            "border" | "groupBorder" => base("#cbd5e1", "#334155"),
+            "edge" => base("#64748b", "#94a3b8"),
+            "shadowColor" => base("rgba(15, 23, 42, 0.06)", "rgba(0, 0, 0, 0.35)"),
+            "groupSurface" => base("#f1f5f980", "#0f172a99"),
+            "groupHeaderSurface" => base("#e2e8f080", "#1e293b"),
+            "edgeLabelBorder" => base("#e2e8f0", "#334155"),
+            "accent" => match self.mode {
+                "dark" => "#60a5fa",
+                "forest" => "#15803d",
+                "neutral" => "#475569",
+                _ => "#2563eb",
+            },
+            "surfaceAccent" => match self.mode {
+                "dark" => "#172554",
+                "forest" => "#f0fdf4",
+                "neutral" => "#f1f5f9",
+                _ => "#eff6ff",
+            },
+            "accentBorder" => match self.mode {
+                "dark" => "#3b82f6",
+                "forest" => "#4ade80",
+                "neutral" => "#94a3b8",
+                _ => "#60a5fa",
+            },
+            "accentText" => match self.mode {
+                "dark" => "#dbeafe",
+                "forest" => "#166534",
+                "neutral" => "#334155",
+                _ => "#1e3a8a",
+            },
+            _ => unreachable!("missing default color {key}"),
+        };
+        super::css_color(value).unwrap()
+    }
+}
+
+/// Bound repeated SVG attributes before constructing the element. Count the strings
+/// actually painted so unused overrides cannot reject a small output.
+pub(super) fn charge_attributes(budget: &mut usize, attrs: &[(&str, usize)]) -> Result<(), String> {
+    for (value, count) in attrs {
+        *budget = budget
+            .checked_sub(value.len().saturating_mul(*count))
+            .ok_or("mmdc: E_LIMIT: Render work budget exceeded\n")?;
+    }
+    Ok(())
+}
+
 /// Apply object-spread precedence before validating: an overwritten invalid token is unobservable.
 pub(in super::super) fn theme_tokens<'a>(
     source: &'a Config,
     file: &'a Config,
-    mode: &str,
-) -> Result<BTreeMap<&'a str, &'a Value>, String> {
+    mode: &'a str,
+) -> Result<Theme<'a>, String> {
     let index = usize::from(mode == "dark");
     let mut values = BTreeMap::new();
     let mut order = Vec::new();
@@ -202,6 +265,12 @@ pub(in super::super) fn theme_tokens<'a>(
             .filter(|n| n.to_string() == *key)
             .unwrap_or(u32::MAX)
     });
+    let mut theme = Theme {
+        mode,
+        colors: BTreeMap::new(),
+        numbers: BTreeMap::new(),
+        font: super::FONT.into(),
+    };
     for key in order {
         let val = values[key];
         let invalid = |msg: &str| format!("mmdc: E_CONFIG: Theme token '{key}' must be {msg}\n");
@@ -232,19 +301,32 @@ pub(in super::super) fn theme_tokens<'a>(
                 let Value::String(value) = val else {
                     return Err(invalid("a valid color string"));
                 };
-                super::css_color(&String::from_utf16_lossy(value))?;
+                let raw = String::from_utf16_lossy(value);
+                let rgba = super::css_color(&raw)?.1;
+                theme.colors.insert(key, (raw, rgba));
             }
             "fontSize" | "secondaryFontSize" | "lineHeight" | "strokeWidth" | "edgeStrokeWidth"
             | "cornerRadius" | "elbowRadius" | "rankGap" | "nodeGap" | "wrappingWidth"
             | "padding" => {
-                if !matches!(val,Value::Number(n) if n.is_finite() && *n>0.) {
+                if let Value::Number(n) = val
+                    && n.is_finite()
+                    && *n > 0.
+                {
+                    theme.numbers.insert(key, *n);
+                } else {
                     return Err(invalid("a positive finite number"));
                 }
             }
             "fontFamily" | "monospaceFontFamily" => {
-                if !matches!(val,Value::String(v) if !String::from_utf16_lossy(v).trim().is_empty())
-                {
+                let Value::String(v) = val else {
                     return Err(invalid("a non-empty string"));
+                };
+                let font = String::from_utf16_lossy(v);
+                if font.trim().is_empty() {
+                    return Err(invalid("a non-empty string"));
+                }
+                if key == "fontFamily" {
+                    theme.font = super::esc(&font);
                 }
             }
             // Inherited Object properties are present in the default JS token object,
@@ -264,5 +346,5 @@ pub(in super::super) fn theme_tokens<'a>(
             _ => return Err(format!("mmdc: E_CONFIG: Unknown theme token '{key}'\n")),
         }
     }
-    Ok(values)
+    Ok(theme)
 }

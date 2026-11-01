@@ -97,7 +97,7 @@ pub(super) struct Styles<'a> {
     edges: BTreeMap<&'a str, Style<'a>>,
     assignments: BTreeMap<&'a str, Vec<&'a str>>,
     assigned: BTreeSet<(&'a str, &'a str)>,
-    budget: usize,
+    pub(super) budget: usize,
 }
 
 impl<'a> Styles<'a> {
@@ -115,17 +115,6 @@ impl<'a> Styles<'a> {
         )?;
         if self.assigned.insert((id, name)) {
             self.assignments.entry(id).or_default().push(name);
-        }
-        Ok(())
-    }
-    pub(super) fn charge_colors(
-        &mut self,
-        colors: &[(Option<Color<'_>>, usize)],
-    ) -> Result<(), String> {
-        for &(color, count) in colors {
-            if let Some((raw, _)) = color {
-                self.charge(raw.len().saturating_mul(count))?;
-            }
         }
         Ok(())
     }

@@ -729,7 +729,7 @@ pub(super) fn parse<'a>(
 
 pub(super) fn layout(
     graph: Graph<'_>,
-    theme: &str,
+    theme: &config::Theme,
     prefix: &str,
     title: Option<&str>,
     gaps: (f64, f64),
@@ -860,11 +860,23 @@ pub(super) fn layout(
             }
         }
     }
-    let dark = theme == "dark";
-    let edge = if dark { "#94a3b8" } else { "#64748b" };
+    let font = &theme.font;
+    let (edge, edge_color) = theme.color("edge");
+    let shadow = theme.color("shadowColor").1;
+    let labels = groups.iter().filter(|g| !g.label.is_empty()).count();
+    let mut group_attrs = vec![(font.as_str(), labels), (theme.color("text").0, labels)];
+    for (k, count) in [
+        ("groupSurface", 1),
+        ("groupHeaderSurface", 1),
+        ("groupBorder", 2),
+    ] {
+        group_attrs.push((theme.color(k).0, groups.len() * count));
+    }
+    if let Err(e) = config::charge_attributes(&mut styles.budget, &group_attrs) {
+        return Some(Err(e));
+    }
     let mut elements = vec![];
     let mut pills = Vec::new();
-    use crate::commands::archive::parse_color;
     use raster::{BoxStyle, Paint};
     let mut paint = Vec::new();
     if !groups.is_empty()
@@ -878,24 +890,19 @@ pub(super) fn layout(
         return Some(Err("mmdc: E_LIMIT: Render work budget exceeded\n".into()));
     }
     for (idx, group) in group_order.into_iter().enumerate() {
-        elements.push(groups[group].paint(idx, prefix, dark, (dx, dy), &waypoints, &mut paint));
+        elements.push(groups[group].paint(idx, prefix, theme, (dx, dy), &waypoints, &mut paint));
     }
     let mut edge_paint = Vec::new();
     let mut pill_paint = Vec::new();
-    let edge_color = parse_color(edge).unwrap();
-    let shadow = if dark {
-        [0, 0, 0, 89]
-    } else {
-        [15, 23, 42, 15]
-    };
     for (idx, ((a, b, op, label), mut points)) in edges.into_iter().zip(waypoints).enumerate() {
         let styled = styles.edge(idx);
         let (edge, edge_color) = styled.stroke.unwrap_or((edge, edge_color));
-        if let Err(error) = styles.charge_colors(&[
-            (styled.stroke, 5),
-            (styled.color, label.as_ref().map_or(0, |p| p.lines.len())),
-        ]) {
-            return Some(Err(error));
+        let copies = 1
+            + 2 * usize::from(op.starts_with('<'))
+            + 2 * usize::from(op.ends_with('>'))
+            + usize::from(matches!(op, "--o" | "--x"));
+        if let Err(e) = config::charge_attributes(&mut styles.budget, &[(edge, copies)]) {
+            return Some(Err(e));
         }
         let (x, y) = points[0];
         let (ex, ey) = *points.last()?;
@@ -996,14 +1003,16 @@ pub(super) fn layout(
             let short = weight == 600;
             let left = px + f64::from(dx);
             let top = py + f64::from(dy);
-            let (fill, border, color) = if dark {
-                ("#1e293b", "#334155", "#f8fafc")
-            } else {
-                ("#ffffff", "#e2e8f0", "#0f172a")
-            };
-            let (color, text_rgba) = styled
-                .color
-                .unwrap_or_else(|| (color, parse_color(color).unwrap()));
+            let (fill, fill_rgba) = theme.color("edgeLabelBackground");
+            let (border, border_rgba) = theme.color("edgeLabelBorder");
+            let (color, text_rgba) = styled.color.unwrap_or_else(|| theme.color("text"));
+            let count = lines.iter().filter(|s| !s.is_empty()).count();
+            if let Err(e) = config::charge_attributes(
+                &mut styles.budget,
+                &[(fill, 1), (border, 1), (color, count), (font, count)],
+            ) {
+                return Some(Err(e));
+            }
             pill_paint.push(Paint::Box {
                 bounds: [left, top, w, h],
                 shape: Shape::Rounded,
@@ -1011,8 +1020,8 @@ pub(super) fn layout(
                 style: BoxStyle {
                     header: None,
                     radius: f64::from(rx),
-                    fill: parse_color(fill).unwrap(),
-                    border: parse_color(border).unwrap(),
+                    fill: fill_rgba,
+                    border: border_rgba,
                     thickness: 1.,
                 },
             });
@@ -1022,7 +1031,7 @@ pub(super) fn layout(
             let cx = (left + w / 2.).round();
             for (i, text) in lines.into_iter().enumerate().filter(|(_, t)| !t.is_empty()) {
                 let baseline = top + if short { 14. } else { 15. } + i as f64 * 16.;
-                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{FONT}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&text)).ok()?;
+                write!(pill,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="{size}" font-weight="{weight}" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&text)).ok()?;
                 pill_paint.push(Paint::Text {
                     start: cx - measure(&text, size, short) / 2.,
                     baseline,
@@ -1045,39 +1054,35 @@ pub(super) fn layout(
         let (x, y, w, h) = (n.x, n.y, n.w, n.h);
         let cx = x + w / 2;
         let cy = y + h / 2;
-        let accent = match theme {
-            "dark" => ("#172554", "#3b82f6", "#dbeafe"),
-            "forest" => ("#f0fdf4", "#4ade80", "#166534"),
-            "neutral" => ("#f1f5f9", "#94a3b8", "#334155"),
-            _ => ("#eff6ff", "#60a5fa", "#1e3a8a"),
-        };
-        let (fill, border, color) =
-            if matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine) {
-                if dark {
-                    ("#1e293b", "#334155", "#f8fafc")
-                } else {
-                    ("#ffffff", "#cbd5e1", "#0f172a")
-                }
-            } else {
-                accent
-            };
+        let accented = !matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine);
         let styled = styles.node(&n.id);
-        if let Err(error) = styles.charge_colors(&[
-            (styled.fill, 1),
-            (styled.stroke, 2),
-            (styled.color, n.lines.len()),
-        ]) {
-            return Some(Err(error));
-        }
         let (fill, fill_rgba) = styled
             .fill
-            .unwrap_or_else(|| (fill, parse_color(fill).unwrap()));
+            .unwrap_or_else(|| theme.color(if accented { "surfaceAccent" } else { "surface" }));
         let (border, border_rgba) = styled
             .stroke
-            .unwrap_or_else(|| (border, parse_color(border).unwrap()));
+            .unwrap_or_else(|| theme.color(if accented { "accentBorder" } else { "border" }));
         let (color, text_rgba) = styled
             .color
-            .unwrap_or_else(|| (color, parse_color(color).unwrap()));
+            .unwrap_or_else(|| theme.color(if accented { "accentText" } else { "text" }));
+        let count = n.lines.iter().filter(|s| !s.is_empty()).count();
+        let divider = if matches!(n.shape, Shape::Subroutine) {
+            2
+        } else {
+            0
+        };
+        if let Err(e) = config::charge_attributes(
+            &mut styles.budget,
+            &[
+                (fill, 1),
+                (border, 1 + usize::from(matches!(n.shape, Shape::Cylinder))),
+                (font, count),
+                (color, count),
+                (theme.color("accentBorder").0, divider),
+            ],
+        ) {
+            return Some(Err(e));
+        }
         let thickness = styled.width.unwrap_or(1.25);
         let radius = n.radius;
         paint.push(Paint::Box {
@@ -1143,15 +1148,16 @@ pub(super) fn layout(
             }
         }
         if n.shape == Shape::Subroutine {
+            let (divider, divider_rgba) = theme.color("accentBorder");
             for pos in [x + 11, x + w - 11] {
                 paint.push(Paint::Path {
                     points: vec![(pos.into(), y.into()), (pos.into(), (y + h).into())],
                     fill: None,
-                    stroke: parse_color(accent.1).unwrap(),
+                    stroke: divider_rgba,
                     width: 1.5,
                     dashed: false,
                 });
-                write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,accent.1).ok()?;
+                write!(el,r#"<line x1="{pos}" y1="{y}" x2="{pos}" y2="{}" stroke="{}" stroke-width="1"/>"#,y+h,divider).ok()?;
             }
         }
         let first_y =
@@ -1166,7 +1172,7 @@ pub(super) fn layout(
                     color: text_rgba,
                     text: line.clone(),
                 });
-                write!(el,r#"<text x="{cx}" y="{}" fill="{color}" font-family="{FONT}" font-size="13" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,first_y+i as i32*20,esc(line)).ok()?;
+                write!(el,r#"<text x="{cx}" y="{}" fill="{color}" font-family="{font}" font-size="13" font-weight="500" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,first_y+i as i32*20,esc(line)).ok()?;
             }
         }
         el.push_str("</g>");
@@ -1182,7 +1188,7 @@ pub(super) fn layout(
         elements,
     };
     if let Some(t) = title {
-        scene.add_title(t, padding, dark);
+        scene.add_title(t, padding, theme);
     }
     scene.elements.extend(pills);
     scene.paint.extend(edge_paint);
@@ -1225,14 +1231,14 @@ fn diamond_path(x: f64, y: f64, w: f64, h: f64) -> String {
 }
 
 impl Scene {
-    fn add_title(&mut self, t: &str, padding: f64, dark: bool) {
+    fn add_title(&mut self, t: &str, padding: f64, theme: &config::Theme) {
         use self::raster::{BoxStyle, Paint};
-        use crate::commands::archive::parse_color;
         let height = self.height;
         let text_width = measure(t, 16., true);
         let width = self.width.max(text_width + 2. * padding);
-        let fill = if dark { "#1e293b" } else { "#ffffff" };
-        let color = if dark { "#f8fafc" } else { "#0f172a" };
+        let (fill, fill_rgba) = theme.color("surface");
+        let (color, text_rgba) = theme.color("text");
+        let font = &theme.font;
         self.paint.push(Paint::Box {
             bounds: [padding, height, width - 2. * padding, 24.],
             shape: Shape::Rect,
@@ -1240,7 +1246,7 @@ impl Scene {
             style: BoxStyle {
                 header: None,
                 radius: 0.,
-                fill: parse_color(fill).unwrap(),
+                fill: fill_rgba,
                 border: [0; 4],
                 thickness: 0.,
             },
@@ -1250,10 +1256,10 @@ impl Scene {
             baseline: height + 18.,
             size: 16.,
             weight: 600,
-            color: parse_color(color).unwrap(),
+            color: text_rgba,
             text: t.into(),
         });
-        self.elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="{padding}" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{FONT}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-2.*padding,width/2.,height+18.,esc(t)));
+        self.elements.push(format!(r#"<g class="mmdc-node" data-id="mmdc_title"><rect x="{padding}" y="{height}" width="{}" height="24" rx="0" fill="{fill}" stroke="transparent" stroke-width="0"/><text x="{}" y="{}" fill="{color}" font-family="{font}" font-size="16" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text></g>"#, width-2.*padding,width/2.,height+18.,esc(t)));
         self.width = width;
         self.height += 24. + padding;
     }

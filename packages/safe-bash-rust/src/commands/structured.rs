@@ -29446,10 +29446,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let bg_color = cli_bg.as_deref().or(cfg.background.as_deref())
         .or(source_cfg.background.as_deref()).unwrap_or("white");
     let tokens = mermaid::config::theme_tokens(source_cfg, &cfg, resolved_theme);
-    let num_token = |key: &str| match tokens.as_ref().ok().and_then(|t| t.get(key)) {
-        Some(mcp_protocol_rust::json::Value::Number(n)) => Some(*n),
-        _ => None,
-    };
+    let num_token = |key: &str| tokens.as_ref().ok().and_then(|t| t.numbers.get(key).copied());
     let wrapping_width = cfg.wrapping_width.or(source_cfg.wrapping_width)
         .or_else(|| num_token("wrappingWidth")).unwrap_or(200.);
     let padding = cfg.padding.or(source_cfg.padding).or_else(|| num_token("padding")).unwrap_or(32.);
@@ -29458,11 +29455,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         cfg.node_gap.or(source_cfg.node_gap).or_else(|| num_token("nodeGap")).unwrap_or(32.),
     );
 
-    let (surface, border, text_col, edge_col, shadow_col) = match resolved_theme {
-        "dark" => ("#1e293b", "#334155", "#f8fafc", "#94a3b8", "rgba(0, 0, 0, 0.35)"),
-        "forest" => ("#dcfce7", "#4ade80", "#166534", "#64748b", "rgba(15, 23, 42, 0.06)"),
-        "neutral" => ("#e2e8f0", "#94a3b8", "#334155", "#64748b", "rgba(15, 23, 42, 0.06)"),
-        _ => ("#ffffff", "#cbd5e1", "#0f172a", "#64748b", "rgba(15, 23, 42, 0.06)"),
+    let (surface, border, text_col) = match resolved_theme {
+        "dark" => ("#1e293b", "#334155", "#f8fafc"),
+        "forest" => ("#dcfce7", "#4ade80", "#166534"),
+        "neutral" => ("#e2e8f0", "#94a3b8", "#334155"),
+        _ => ("#ffffff", "#cbd5e1", "#0f172a"),
     };
 
     let (id_attr, id_prefix) = if let Some(ref sid) = svg_id {
@@ -29514,7 +29511,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             );
         }
     }
-    if let Err(message) = tokens { return err_out(&message, 2); }
+    let theme = match tokens { Ok(t)=>t, Err(message)=>return err_out(&message,2) };
     let (bg_color, bg_rgba) = match mermaid::css_color(bg_color) {
         Ok(color) => color,
         Err(error) => return err_out(&error, 2),
@@ -29522,11 +29519,11 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let scene = if let Some(mut pie) = pie {
         pie.title=pie.title.or(acc_title);
         acc_title = pie.title.clone();
-        Some(pie.layout(resolved_theme,padding))
+        Some(match pie.layout(&theme,padding,limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
     } else if let Some(chart) = gantt {
-        Some(chart.layout(resolved_theme, padding, acc_title.as_deref()))
+        Some(match chart.layout(&theme,padding,acc_title.as_deref(),limit){Ok(scene)=>scene,Err(e)=>return err_out(&e,1)})
     } else if let Some(graph) = graph {
-        match mermaid::layout(graph, resolved_theme, &id_prefix, acc_title.as_deref(), gaps, padding, limit) {
+        match mermaid::layout(graph, &theme, &id_prefix, acc_title.as_deref(), gaps, padding, limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -29591,6 +29588,8 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         if let Some(ref d) = acc_descr {
             parts.push(format!("<desc>{}</desc>", escape_mmdc_xml(d)));
         }
+        let (edge_col,_) = theme.color("edge");
+        let (shadow_col,_) = theme.color("shadowColor");
         parts.push(format!(
             "<defs><filter id=\"{id_prefix}mmdc-shadow\" x=\"-12%\" y=\"-12%\" width=\"124%\" height=\"132%\"><feDropShadow dx=\"0\" dy=\"1.5\" stdDeviation=\"2.5\" flood-color=\"{shadow_col}\"/></filter><marker id=\"{id_prefix}mmdc-dart\" viewBox=\"0 0 9 7\" refX=\"9\" refY=\"3.5\" markerWidth=\"9\" markerHeight=\"7\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 9 3.5 L 0 7 L 2.2 3.5 Z\" fill=\"{edge_col}\" stroke-linejoin=\"round\"/></marker></defs>"
         ));
@@ -38324,6 +38323,46 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             } else {
                 assert_eq!(r.exit_code,0,"{}",r.stderr);
                 assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b|format!("{b:02x}")).collect::<String>(),expected,"{config}");
+            }
+        }
+    }
+
+
+    #[test]
+    fn mmdc_applies_theme_colors_to_graphs_and_specialized_renderers() {
+        assert_mermaid_outputs(&[
+            ("%%{init: {\"theme\":{\"light\":{\"edge\":\" rgba( 75, 0, 125, .6 ) \"}}}}%%\nflowchart TD; title Release; subgraph G [Phase]; A(Review) -->|ok| B{Ship?}; B --> C((Tag)); end; C --> D[(Log)]", "svg", "d7713843e59a54b31298ac5d5d4670141d2e5845e54a6d2c68698e79d079a5fb"),
+            ("%%{init: {\"theme\":{\"light\":{\"groupSurface\":\"antiquewhite\"}}}}%%\nflowchart TD; title Release; subgraph G [Phase]; A(Review) -->|ok| B{Ship?}; B --> C((Tag)); end; C --> D[(Log)]", "svg", "a5c977f9cc7bf731757c5f974891036fbbe9645a729f16e7b46d167fec55946a"),
+            ("%%{init: {\"theme\":{\"light\":{\"edgeLabelBorder\":\"aqua\"}}}}%%\nflowchart TD; title Release; subgraph G [Phase]; A(Review) -->|ok| B{Ship?}; B --> C((Tag)); end; C --> D[(Log)]", "svg", "3d2304de1a02a0e17be37ce8fbb0fcc9e7bfd790a98d6113413e96c580f6d3f8"),
+            ("%%{init: {\"themeVariables\":{\"primaryColor\":\"purple\",\"primaryTextColor\":\"yellow\",\"primaryBorderColor\":\"black\",\"lineColor\":\"navy\"}}}%%\nflowchart TD; title Release; subgraph G [Phase]; A(Review) -->|ok| B{Ship?}; B --> C((Tag)); end; C --> D[(Log)]", "svg", "2b60fed244e835499dd8cfe9da973ba061d05d2c45f707e1c9217c5f533abcdb"),
+            ("%%{init: {\"themeVariables\":{\"primaryColor\":\"purple\",\"primaryTextColor\":\"yellow\",\"primaryBorderColor\":\"black\",\"lineColor\":\"navy\"}}}%%\nflowchart TD; title Release; subgraph G [Phase]; A(Review) -->|ok| B{Ship?}; B --> C((Tag)); end; C --> D[(Log)]", "png", "facabd7db22251046dba950594ebaa0a08f596dd7776f28b345cf7e16cad949c"),
+            ("%%{init: {\"themeVariables\":{\"primaryColor\":\"purple\",\"primaryTextColor\":\"yellow\",\"primaryBorderColor\":\"black\",\"lineColor\":\"navy\"}}}%%\nflowchart TD; title Release; subgraph G [Phase]; A(Review) -->|ok| B{Ship?}; B --> C((Tag)); end; C --> D[(Log)]", "pdf", "a69a53e4df721caa33b127e1f1480775973a47043cc490f9a0e6be780b679784"),
+            ("%%{init: {\"theme\":{\"light\":{\"text\":\"navy\"}}}}%%\npie title Test; \"Yes\":2; \"No\":1", "svg", "4ee4f012e21cf1550c840e7bf28f406ccca4e2128e328d480641af1e85f48dfa"),
+            ("%%{init: {\"theme\":{\"light\":{\"text\":\"navy\"}}}}%%\npie title Test; \"Yes\":2; \"No\":1", "png", "33b0470ec3bcc6a5859e072d83d9b325569715633d9e5d5a3d3535cfa3a35f8f"),
+            ("%%{init: {\"theme\":{\"light\":{\"text\":\"navy\"}}}}%%\npie title Test; \"Yes\":2; \"No\":1", "pdf", "e07d8c2860c7d5a0e7221a6cc384d300285a0f1b93e3cff67e2e1e2bb3354951"),
+            ("%%{init: {\"theme\":{\"light\":{\"fontFamily\":\"Inter, \\\"Rock & Roll\\\", serif\"}}}}%%\ngantt; title Schedule; section Work; Plan: 2024-01-01, 1d; Ship: milestone, 1d", "svg", "8a16802b54509483b46fb0b2194de02d602754423c3254d1a4a928b9bd5d7e10"),
+            ("%%{init: {\"themeVariables\":{\"primaryColor\":\"purple\",\"primaryTextColor\":\"yellow\",\"primaryBorderColor\":\"black\",\"lineColor\":\"navy\"}}}%%\ngantt; title Schedule; section Work; Plan: 2024-01-01, 1d; Ship: milestone, 1d", "svg", "10fc18428432e981dce1189c68d0fa92b42ae0c325975cbf6199c1db7e54341f"),
+            ("%%{init: {\"themeVariables\":{\"primaryColor\":\"purple\",\"primaryTextColor\":\"yellow\",\"primaryBorderColor\":\"black\",\"lineColor\":\"navy\"}}}%%\ngantt; title Schedule; section Work; Plan: 2024-01-01, 1d; Ship: milestone, 1d", "png", "5c0dccae7ff8ccc04e6244736b9ad7287b306664aad351f82c3c044b7a47fbf6"),
+            ("%%{init: {\"themeVariables\":{\"primaryColor\":\"purple\",\"primaryTextColor\":\"yellow\",\"primaryBorderColor\":\"black\",\"lineColor\":\"navy\"}}}%%\ngantt; title Schedule; section Work; Plan: 2024-01-01, 1d; Ship: milestone, 1d", "pdf", "04947c305d8b6fe73532fc10048fe836e266633dae90eff1b8e4318a0d8d6d0a"),
+            ("%%{init: {\"theme\":{\"light\":{\"shadowColor\":\"rgba(25,50,70,0.5)\"}}}}%%\nmindmap\n  root((Release))\n    one[First]\n    two{{Second}}", "svg", "b9156542d8c0fa6c503880acceac1deef09b175f8edc825e90915b858d4d0552"),
+            ("%%{init: {\"theme\":{\"light\":{\"shadowColor\":\"rgba(25,50,70,0.5)\"}}}}%%\nmindmap\n  root((Release))\n    one[First]\n    two{{Second}}", "png", "cde84008cb8c7e96f699c50d63c16abee0513616763f29745db6f1f5495a7eef"),
+            ("%%{init: {\"theme\":{\"light\":{\"shadowColor\":\"rgba(25,50,70,0.5)\"}}}}%%\nmindmap\n  root((Release))\n    one[First]\n    two{{Second}}", "pdf", "05b5458e7debd7b57a18b1b9a0554507c99e87b94b1557b51faf04f86e2b2ab4"),
+        ]);
+    }
+
+    #[test]
+    fn mmdc_bounds_repeated_theme_attributes_without_charging_unused_colors() {
+        let fs = MemoryVfs::new();
+        let slices = format!("pie\n{}", "\"Slice\":1\n".repeat(500));
+        for (key, status) in [("fontFamily", 1), ("noteSurface", 0)] {
+            let config = format!(r#"{{"theme":{{"light":{{"{key}":"{}red"}}}}}}"#, " ".repeat(40_000));
+            fs.write_file("/cfg", config.as_bytes()).unwrap();
+            fs.write_file("/chart.svg", b"previous").unwrap();
+            let result = try_run_structured_command("mmdc", &args(&["-i", "-", "-o", "/chart.svg", "-c", "/cfg"]), &slices, "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!(result.exit_code, status, "{key}: {}", result.stderr);
+            if status != 0 {
+                assert_eq!(result.stderr, "mmdc: E_LIMIT: Render work budget exceeded\n");
+                assert_eq!(fs.read_file("/chart.svg").unwrap(), b"previous");
             }
         }
     }

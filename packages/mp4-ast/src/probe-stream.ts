@@ -77,7 +77,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
     height: h,
     coded_width: w ? Math.ceil(w / 16) * 16 : undefined,
     coded_height: h ? Math.ceil(h / 16) * 16 : undefined,
-    has_b_frames: track.type === "video" ? (stats.hasCts ? 1 : 0) : undefined,
+    has_b_frames: track.type === "video" ? (desc?.maxNumReorderFrames ?? (stats.hasCts ? 1 : 0)) : undefined,
     sample_aspect_ratio:
       track.type === "video"
         ? `${desc?.sarWidth ?? 1}:${desc?.sarHeight ?? 1}`

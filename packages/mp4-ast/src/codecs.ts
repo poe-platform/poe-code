@@ -39,6 +39,7 @@ export interface ParsedH264Sps {
   readonly sarHeight: number;
   readonly fps?: number | undefined;
   readonly maxNumRefFrames: number;
+  readonly maxNumReorderFrames?: number | undefined;
 }
 
 const H264_PROFILES: Record<number, string> = {
@@ -186,6 +187,7 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
   let sarWidth = 1;
   let sarHeight = 1;
   let fps: number | undefined;
+  let maxNumReorderFrames: number | undefined;
 
   const vuiPresent = bits.readBit();
   if (vuiPresent && bits.bitsRemaining > 0) {
@@ -220,9 +222,34 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     if (timingInfoPresent && bits.bitsRemaining >= 64) {
       const numUnitsInTick = bits.readBits(32);
       const timeScale = bits.readBits(32);
+      bits.readBit(); // fixed_frame_rate_flag
       if (numUnitsInTick > 0 && timeScale > 0) {
         fps = timeScale / (2 * numUnitsInTick);
       }
+    }
+    let hrdPresent = false;
+    // NAL and VCL HRD parameters have the same syntax.
+    for (let kind = 0; kind < 2; kind++) {
+      if (!bits.readBit()) continue;
+      hrdPresent = true;
+      const cpbCount = bits.readUE() + 1;
+      bits.readBits(8); // bit_rate_scale, cpb_size_scale
+      for (let i = 0; i < cpbCount && bits.bitsRemaining > 0; i++) {
+        bits.readUE(); // bit_rate_value_minus1
+        bits.readUE(); // cpb_size_value_minus1
+        bits.readBit(); // cbr_flag
+      }
+      bits.readBits(20); // delay lengths and time_offset_length
+    }
+    if (hrdPresent) bits.readBit(); // low_delay_hrd_flag
+    bits.readBit(); // pic_struct_present_flag
+    if (bits.readBit()) { // bitstream_restriction_flag
+      bits.readBit(); // motion_vectors_over_pic_boundaries_flag
+      bits.readUE(); // max_bytes_per_pic_denom
+      bits.readUE(); // max_bits_per_mb_denom
+      bits.readUE(); // log2_max_mv_length_horizontal
+      bits.readUE(); // log2_max_mv_length_vertical
+      maxNumReorderFrames = bits.readUE();
     }
   }
 
@@ -263,7 +290,8 @@ export function parseH264Sps(nalu: Uint8Array): ParsedH264Sps {
     sarWidth,
     sarHeight,
     fps,
-    maxNumRefFrames
+    maxNumRefFrames,
+    maxNumReorderFrames
   };
 }
 

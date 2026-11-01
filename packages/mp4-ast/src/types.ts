@@ -299,6 +299,7 @@ export interface MediaCodecDescription {
   readonly codecTagString?: string | undefined;
   readonly profile?: string | undefined;
   readonly level?: number | undefined;
+  readonly maxNumReorderFrames?: number | undefined;
   readonly width?: number | undefined;
   readonly height?: number | undefined;
   readonly pixFmt?: string | undefined;

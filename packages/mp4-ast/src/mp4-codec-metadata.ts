@@ -43,6 +43,7 @@ export function applyCodecMetadata(state: CodecEntryState, child: CodecMetadataC
       metadata.codecName = 'h264'; metadata.level = child.levelIdc;
       if (child.sps) {
         const sps = parseH264Sps(child.sps);
+        metadata.maxNumReorderFrames = sps.maxNumReorderFrames;
         metadata.profile = sps.profileName; metadata.width = sps.width || metadata.width; metadata.height = sps.height || metadata.height;
         metadata.pixFmt = sps.pixFmt; metadata.sarWidth = sps.sarWidth; metadata.sarHeight = sps.sarHeight;
       }

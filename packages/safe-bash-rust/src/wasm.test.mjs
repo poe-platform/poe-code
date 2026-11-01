@@ -3,6 +3,25 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq emits exact JSON bytes for ASCII, indentation, color, and sequence options", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [args, expected] of [
+      [String.raw`-nc '["\b","\f","\u007f"]'`, String.raw`["\b","\f","\u007f"]` + "\n"],
+      [`-nrc --ascii-output '{"é":"😀"}'`, String.raw`{"\u00e9":"\ud83d\ude00"}` + "\n"],
+      [String.raw`-na --raw-output0 '"\u0000"'`, '"\\u0000"\0'],
+      [`-nc --indent 1 '{a:[1]}'`, '{\n "a": [\n  1\n ]\n}\n'],
+      [`-nc --tab '{a:[]}'`, '{\n\t"a": []\n}\n'],
+      [`-ncC '{a:[null]}'`, '\x1b[1;39m{\x1b[0m\x1b[1;34m"a"\x1b[0m\x1b[1;39m:\x1b[0m\x1b[1;39m[\x1b[0;90mnull\x1b[0m\x1b[1;39m\x1b[1;39m]\x1b[0m\x1b[1;39m\x1b[1;39m}\x1b[0m\n'],
+      [`-ncMC '{a:[null]}'`, '{"a":[null]}\n'],
+      [`-nr --seq '"abc",1'`, "abc\n\x1e1\n"],
+    ]) {
+      const r = await bash.exec(`jq ${args}`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], args);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq reports undefined function signatures in unused definitions and branches", async () => {
   const bash = new RustWasmBash();
   try {

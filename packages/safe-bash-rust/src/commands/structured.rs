@@ -7,6 +7,8 @@ mod csvkit_records;
 mod csvstat_json;
 mod in2csv_json;
 mod jq_parser;
+mod json_format;
+use json_format::{JsonFormat, JsonStrings, escape_json_str};
 #[path = "mermaid.rs"]
 mod mermaid;
 use crate::commands::search::{
@@ -400,111 +402,11 @@ impl JVal {
     }
 
     pub fn to_json_string(&self, compact: bool, sort_keys: bool, indent: usize) -> String {
-        match self {
-            JVal::Null => "null".to_string(),
-            JVal::Bool(b) => if *b { "true" } else { "false" }.to_string(),
-            JVal::Number(n) => {
-                if n.is_nan() {
-                    return "null".to_string();
-                }
-                if n.is_infinite() {
-                    return if *n > 0.0 {
-                        "1.7976931348623157e+308".to_string()
-                    } else {
-                        "-1.7976931348623157e+308".to_string()
-                    };
-                }
-                if n.abs() >= 1e15
-                    && let Ok(guard) = BIG_NUM_RAW.lock()
-                    && let Some(ref map) = *guard
-                    && let Some(raw) = map.get(&n.to_bits())
-                {
-                    return raw.clone();
-                }
-                if n.fract() == 0.0 && n.abs() < 1e15 {
-                    format!("{}", *n as i64)
-                } else if (n - n.round()).abs() < 1e-11 && (n.to_bits() & 1) == 1 && n.abs() < 1e15 {
-                    format!("{:.1}", n.round())
-                } else {
-                    format!("{n}")
-                }
-            }
-            JVal::Str(s) => escape_json_str(s),
-            JVal::Array(items) => {
-                if items.is_empty() {
-                    return "[]".to_string();
-                }
-                if compact {
-                    let parts: Vec<String> = items
-                        .iter()
-                        .map(|v| v.to_json_string(true, sort_keys, 0))
-                        .collect();
-                    format!("[{}]", parts.join(","))
-                } else {
-                    let pad = " ".repeat((indent + 1) * 2);
-                    let close_pad = " ".repeat(indent * 2);
-                    let parts: Vec<String> = items
-                        .iter()
-                        .map(|v| format!("{pad}{}", v.to_json_string(false, sort_keys, indent + 1)))
-                        .collect();
-                    format!("[\n{}\n{close_pad}]", parts.join(",\n"))
-                }
-            }
-            JVal::Object(entries) => {
-                if entries.is_empty() {
-                    return "{}".to_string();
-                }
-                let mut list = entries.clone();
-                if sort_keys {
-                    list.sort_by(|a, b| a.0.cmp(&b.0));
-                }
-                if compact {
-                    let parts: Vec<String> = list
-                        .iter()
-                        .map(|(k, v)| {
-                            format!(
-                                "{}:{}",
-                                escape_json_str(k),
-                                v.to_json_string(true, sort_keys, 0)
-                            )
-                        })
-                        .collect();
-                    format!("{{{}}}", parts.join(","))
-                } else {
-                    let pad = " ".repeat((indent + 1) * 2);
-                    let close_pad = " ".repeat(indent * 2);
-                    let parts: Vec<String> = list
-                        .iter()
-                        .map(|(k, v)| {
-                            format!(
-                                "{pad}{}: {}",
-                                escape_json_str(k),
-                                v.to_json_string(false, sort_keys, indent + 1)
-                            )
-                        })
-                        .collect();
-                    format!("{{\n{}\n{close_pad}}}", parts.join(",\n"))
-                }
-            }
-        }
+        let mut out = String::new();
+        JsonFormat { indent: if compact { "" } else { "  " }, strings: JsonStrings::Plain, color: false, sort_keys }
+            .write(self, indent, &mut out);
+        out
     }
-}
-
-fn escape_json_str(s: &str) -> String {
-    let mut out = String::from("\"");
-    for c in s.chars() {
-        match c {
-            '"' => out.push_str("\\\""),
-            '\\' => out.push_str("\\\\"),
-            '\n' => out.push_str("\\n"),
-            '\r' => out.push_str("\\r"),
-            '\t' => out.push_str("\\t"),
-            c if (c as u32) < 0x20 => out.push_str(&format!("\\u{:04x}", c as u32)),
-            other => out.push(other),
-        }
-    }
-    out.push('"');
-    out
 }
 
 pub fn parse_json_stream(input: &str) -> Result<Vec<JVal>, String> {
@@ -824,7 +726,9 @@ fn cmd_jq_core(
     let mut raw_output0 = false;
     let mut ascii_output = false;
     let mut raw_input = false;
-    let mut compact_output = false;
+    let mut indent = String::from("  ");
+    let mut color = false;
+    let mut monochrome = false;
     let mut slurp = false;
     let mut null_input = false;
     let mut exit_status = false;
@@ -939,13 +843,12 @@ fn cmd_jq_core(
             if !(-1..=7).contains(&val) {
                 return err_out("jq: --indent takes a number between -1 and 7\n", 2);
             }
-            if val == 0 {
-                compact_output = true;
-            }
+            indent = if val == -1 { "\t".into() } else { " ".repeat(val as usize) };
             i += 2;
             continue;
         }
         if !end_opts && a == "--tab" {
+            indent = "\t".into();
             i += 1;
             continue;
         }
@@ -990,7 +893,9 @@ fn cmd_jq_core(
                     'h' => return ok_out(JQ_HELP),
                     'r' => raw_output = true,
                     'R' => raw_input = true,
-                    'c' => compact_output = true,
+                    'c' => indent.clear(),
+                    'C' => color = true,
+                    'M' => monochrome = true,
                     'a' => ascii_output = true,
                     's' => slurp = true,
                     'n' => null_input = true,
@@ -1179,15 +1084,18 @@ fn cmd_jq_core(
                         };
                     }
                     last_truthy = Some(r.is_truthy());
-                    let formatted = if raw_output {
-                        r.to_raw_string(compact_output, sort_keys)
+                    let raw_string = raw_output && matches!(r, JVal::Str(_));
+                    if seq_mode && !raw_string { out.push('\x1e'); }
+                    if raw_string && !ascii_output && let JVal::Str(ref s) = r {
+                        out.push_str(s);
                     } else {
-                        r.to_json_string(compact_output, sort_keys, 0)
-                    };
-                    if seq_mode {
-                        out.push('\x1e');
+                        JsonFormat {
+                            indent: &indent,
+                            strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
+                            color: color && !monochrome && !raw_string,
+                            sort_keys,
+                        }.write(&r, 0, &mut out);
                     }
-                    out.push_str(&formatted);
                     if raw_output0 {
                         out.push('\0');
                     } else if !join_output {

@@ -1,5 +1,6 @@
 use crate::commands::codecs::{adler32, inflate_raw_bounded};
 
+#[derive(Clone)]
 pub(super) struct Raster {
     pub width: usize,
     pub height: usize,

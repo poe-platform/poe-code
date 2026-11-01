@@ -4653,6 +4653,7 @@ fn cmd_media_doc(
                 let remuxable=|format,data:&[u8]|format==Some("lavfi") && matches!(data.split(|&v|v==b'=').next(),Some(b"color"|b"smptebars"|b"testsrc"|b"testsrc2"|b"sine"|b"anullsrc")) || matches!(format,Some("aac"|"srt"|"webvtt")) || matches!(format,Some("mp4"|"mov")) && !data.starts_with(b"\0\0\0\x18ftypmp42\n__MEDIA__:");
                 let supported=remuxable(format,bytes.as_deref().unwrap_or_default());
                 let real_mp4=supported && matches!(format,Some("mp4"|"mov"));
+                let png_input=format==Some("image2") && bytes.as_deref().is_some_and(|b|b.starts_with(b"\x89PNG\r\n\x1a\n") && b.get(29..38)!=Some(b"\n__IMG__:"));
                 let mut additional=Vec::new();let mut admitted=bytes.as_ref().map_or(0,Vec::len);
                 if supported && (mp4_output || subtitle_output || audio_output || muxer==Some("ffmetadata")){
                     for (source,&explicit) in inputs[1..].iter().zip(&input_formats[1..]){
@@ -4671,7 +4672,7 @@ fn cmd_media_doc(
                 let output=if muxer==Some("ffmetadata") && real_mp4 && additional.len()+1==inputs.len() && additional.iter().all(|(f,_)|matches!(*f,"mp4"|"mov")){
                     let sources:Vec<_>=bytes.iter().chain(additional.iter().map(|(_,b)|b)).map(Vec::as_slice).collect();
                     match mp4::ffmetadata(&sources,!maps.is_empty(),&meta_tags,fs.max_input_bytes()){Ok(b)=>Some(b),Err(e)=>return err_out(&format!("ffmpeg: {e}\n"),1)}
-                } else if frame_output && (format==Some("y4m") || supported) {
+                } else if frame_output && (format==Some("y4m") || png_input || supported) {
                     let seek=input_times[0];
                     let limit=fs.max_input_bytes();
                     let result=frame_output::render(fs,cwd,&out_rel,image_format,sequence,output_start,|sequence,emit|{
@@ -4680,6 +4681,7 @@ fn cmd_media_doc(
                         let bytes=bytes.as_deref().unwrap_or_default();
                         let no_video=strip_video || !real_mp4 && !maps.is_empty() && mp4::mux::select_tracks(&maps,1,|_|1,|_,_|"video")?.is_empty();
                         if no_video {Ok((64,64,10))}
+                        else if png_input {frame_output::render_png(bytes,opts,seek,shortest || ss_opt.is_some() || end.is_some(),emit).map_err(str::to_owned)}
                             else if (seek.start.is_some() || seek.end().is_some()) && (generator.is_some() || real_mp4) {
                             mp4::mux::input_slice(format.unwrap(),bytes,seek.start,seek.end(),seek.generation_end(end),limit).and_then(|b|mp4::render_video(&b,opts,&maps,sequence,emit))
                         }else if image_format.is_some() && generator.is_some() && (ss_opt.is_some() || end.is_some() || shortest) {
@@ -13351,6 +13353,16 @@ mod media_unit_tests {
         let r=cmd_media_doc("ffmpeg",&args,"","/",&fs);
         assert_eq!((r.exit_code,r.stderr),(1,"ffmpeg: ENOENT: no such file or directory, writeFile '/missing/im1.png'\n".to_string()));
         assert!(!fs.exists("/missing"));
+    }
+
+    #[test]
+    fn ffmpeg_transforms_pixels_from_a_png_input() {
+        let fs=MemoryVfs::new();
+        let png=pixel_png(2,1,PngEncoding::Density(72),|x,_|if x==0{[251,3,7,128]}else{[5,11,199,255]});
+        fs.write_file("/still.png",&png).unwrap();
+        let r=cmd_media_doc("ffmpeg",&media_args(&["-i","still.png","-vf","hflip","out.ppm"]),"","/",&fs);
+        assert_eq!((r.exit_code,r.stderr),(0,String::new()));
+        assert_eq!(fs.read_file("/out.ppm").unwrap(),b"P6\n2 1\n255\n\x05\x0b\xc7\xfb\x03\x07".as_slice());
     }
 
     #[test]

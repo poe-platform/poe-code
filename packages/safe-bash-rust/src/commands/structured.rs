@@ -38300,6 +38300,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     fn mmdc_places_flowchart_nodes_and_connectors() {
         let fs = MemoryVfs::new();
         for (source,hash) in [
+            ("flowchart RL; A-->B; C-->D","6ce3c8b4a2b890f6509a5c474ee80c0af1adb5488293e889848f307902ad8d07"),
+            ("flowchart TD; A-->B; C","740f643492317e39204c3354a597ed2c2f3f9c464e92a09ef8a2f0083dc9757f"),
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
             ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
             ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")

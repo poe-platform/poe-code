@@ -4,6 +4,8 @@ use std::{collections::BTreeMap, fmt::Write};
 
 #[path = "mermaid/pie.rs"]
 pub(super) mod pie;
+#[path = "mermaid/ranks.rs"]
+mod ranks;
 #[path = "mermaid/raster.rs"]
 mod raster;
 
@@ -190,6 +192,22 @@ fn parse_node<'a>(
     }
     Some((i, rest))
 }
+fn pill_style(label: &str) -> (f64, u16, i32, f64) {
+    let (size, weight, radius, pad) = if label.len() <= 4
+        && label
+            .bytes()
+            .all(|b| b.is_ascii_digit() || b".*nN".contains(&b))
+    {
+        (11., 600, 4, 16.)
+    } else {
+        (11.5, 500, 5, 18.)
+    };
+    let units = label
+        .chars()
+        .map(|c| u64::from(advance(c, weight == 600)))
+        .sum::<u64>() as f64;
+    (size, weight, radius, (units * size / 1000. + pad).ceil())
+}
 const FONT: &str = "Inter, -apple-system, BlinkMacSystemFont, &#39;Segoe UI&#39;, Roboto, Helvetica, Arial, sans-serif";
 pub(super) fn layout(
     lines: &[&str],
@@ -271,78 +289,7 @@ pub(super) fn layout(
     for n in &mut nodes {
         dimensions(n);
     }
-    let mut order = Vec::new();
-    if !edges.is_empty() {
-        if edges.len() + 1 != nodes.len() {
-            return None;
-        }
-        let mut at = Some(nodes.iter().position(|n| n.from.is_none())?);
-        while let Some(i) = at {
-            order.push(i);
-            at = nodes[i].to;
-        }
-        if order.len() != nodes.len() {
-            return None;
-        }
-    } else {
-        order.extend(0..nodes.len());
-    }
-    // Isolated nodes share a rank, perpendicular to the flow direction.
-    let along_x = if edges.is_empty() {
-        !horizontal
-    } else {
-        horizontal
-    };
-    if reversed && !edges.is_empty() {
-        order.reverse();
-    }
-    let gap = if edges.is_empty() {
-        36
-    } else if horizontal {
-        64
-    } else {
-        56
-    };
-    let breadth = nodes
-        .iter()
-        .map(|n| if along_x { n.h } else { n.w })
-        .max()
-        .unwrap_or(0);
-    let mut allowances = vec![0.; nodes.len()];
-    let mut label_breadth = 0;
-    for &(a, b, _, label) in &edges {
-        if !label.is_empty() {
-            let text_width = measure(label, 11.5, false);
-            allowances[if reversed { b } else { a }] =
-                if horizontal { text_width + 36. } else { 44. };
-            label_breadth = label_breadth.max(if horizontal {
-                23
-            } else {
-                (text_width + 18.).ceil() as i32
-            });
-        }
-    }
-    let breadth = breadth.max(label_breadth);
-    let mut cursor = 32_f64;
-    for i in order {
-        let pos = cursor.round() as i32;
-        let n = &mut nodes[i];
-        if along_x {
-            n.x = pos;
-            n.y = 32 + (breadth - n.h) / 2;
-            cursor += f64::from(n.w + gap) + allowances[i]
-        } else {
-            n.y = pos;
-            n.x = 32 + (breadth - n.w) / 2;
-            cursor += f64::from(n.h + gap) + allowances[i]
-        }
-    }
-    let width = (nodes.iter().map(|n| n.x + n.w).max().unwrap_or(152) + 32).max(if !horizontal {
-        64 + label_breadth
-    } else {
-        0
-    });
-    let height = nodes.iter().map(|n| n.y + n.h).max().unwrap_or(112) + 32;
+    let (width, height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];
@@ -454,20 +401,8 @@ pub(super) fn layout(
             _ => {}
         }
         if !label.is_empty() {
-            let short = label.len() <= 4
-                && label
-                    .bytes()
-                    .all(|b| b.is_ascii_digit() || b".*nN".contains(&b));
-            let (size, weight, rx, pad) = if short {
-                (11., 600, 4, 16.)
-            } else {
-                (11.5, 500, 5, 18.)
-            };
-            let units = label
-                .chars()
-                .map(|c| u64::from(advance(c, short)))
-                .sum::<u64>() as f64;
-            let w = (units * size / 1000. + pad).ceil();
+            let (size, weight, rx, w) = pill_style(label);
+            let short = weight == 600;
             let left = ((f64::from(x + ex) - w) * 0.5).round();
             let top = ((f64::from(y + ey) - 23.) * 0.5).round();
             let (fill, border, color) = if dark {

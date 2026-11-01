@@ -1,6 +1,6 @@
 use crate::backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
 use crate::budget::ExecutionBudget;
-use crate::commands::try_run_command;
+use crate::commands::try_run_command_with_input;
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
     path_targets, resolve_physical_path, try_run_builtin,
@@ -4780,7 +4780,7 @@ impl<'a> EvalState<'a> {
         let provided_devices = self.provided_devices;
         let mut sub_err: Option<EvalError> = None;
 
-        if let Some(c_out) = try_run_command(
+        if let Some(c_out) = try_run_command_with_input(
             effective_cmd,
             args,
             stdin,
@@ -4898,12 +4898,6 @@ impl<'a> EvalState<'a> {
         ) {
             if let Some(e) = sub_err {
                 return Err(e);
-            }
-            if effective_cmd == "cat"
-                && (args.iter().all(|a| a.starts_with('-') && a != "-")
-                    || args.iter().any(|a| a == "-"))
-            {
-                stdin.clear();
             }
             return Ok(c_out);
         }

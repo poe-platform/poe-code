@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("cat, head and tail advance the shared stdin cursor only when they read", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [script, input, expected] of [
+      ["head -qc2 - -; echo; cat", "abcdef", "abcd\nef"],
+      ["head -qzn1 - -; echo; cat", "a\0b\0c", "a\0b\0\nc"],
+      ["head -n-1; cat", "a\nb\nc\n", "a\nb\n"],
+      ["tail -qc2 - -; cat", "abcdef", "ef"],
+      ["cat - -; cat", "abcdef", "abcdef"],
+      ["cat --invalid 2>/dev/null; cat", "abcdef", "abcdef"],
+      ["head -c0; head -c1 </dev/null; cat", "abc", "abc"],
+    ]) {
+      const result = await bash.exec(script, { stdin: input });
+      assert.deepEqual([result.stdout, result.exitCode], [expected, 0], script);
+    }
+    const split = await bash.exec("head -c1; echo; cat", { stdin: "é" });
+    assert.deepEqual([...split.stdoutBytes], [0xc3, 10, 0xa9]);
+  } finally { bash.dispose(); }
+});
+
 test("a rejected beforeExec hook leaves stdin untouched", async () => {
   const bash = new RustWasmBash(), reason = new Error("hook refused execution");
   let opened = 0;

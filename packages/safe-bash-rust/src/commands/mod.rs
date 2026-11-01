@@ -623,6 +623,21 @@ pub fn try_run_command<F>(
     cwd: &mut String,
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
+    exec_sub: F,
+) -> Option<BuiltinOutcome>
+where
+    F: FnMut(&[String], &str, &mut String, &mut BTreeMap<String, String>) -> BuiltinOutcome,
+{
+    try_run_command_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs, exec_sub)
+}
+
+pub(crate) fn try_run_command_with_input<F>(
+    cmd: &str,
+    args: &[String],
+    stdin: &mut String,
+    cwd: &mut String,
+    env: &mut BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
     mut exec_sub: F,
 ) -> Option<BuiltinOutcome>
 where
@@ -639,7 +654,7 @@ where
     if let Some(res) = integrations::try_run_integration_command(cmd, args, stdin, cwd, env, fs, &mut exec_sub) {
         return Some(res);
     }
-    if let Some(res) = coreutils::try_run_coreutil(cmd, args, stdin, cwd, env, fs) {
+    if let Some(res) = coreutils::try_run_coreutil_with_input(cmd, args, stdin, cwd, env, fs) {
         return Some(res);
     }
     if let Some(res) = fs::try_run_fs_command(cmd, args, stdin, cwd, env, fs) {

@@ -13,13 +13,24 @@ pub fn try_run_coreutil(
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> Option<BuiltinOutcome> {
+    try_run_coreutil_with_input(cmd, args, &mut stdin.to_owned(), cwd, env, fs)
+}
+
+pub(super) fn try_run_coreutil_with_input(
+    cmd: &str,
+    args: &[String],
+    stdin: &mut String,
+    cwd: &str,
+    env: &BTreeMap<String, String>,
+    fs: &dyn SafeBashFs,
+) -> Option<BuiltinOutcome> {
     if let Some(info) = gnu_information_sync(cmd, args, env.contains_key("POSIXLY_CORRECT")) {
         return Some(info);
     }
     match cmd {
         "cat" => Some(cmd_cat(args, stdin, cwd, fs)),
-        "head" => Some(cmd_head(args, stdin, cwd, fs)),
-        "tail" => Some(cmd_tail(args, stdin, cwd, fs)),
+        "head" => Some(run_head_or_tail("head", args, stdin, cwd, fs)),
+        "tail" => Some(run_head_or_tail("tail", args, stdin, cwd, fs)),
         "wc" => Some(cmd_wc(args, stdin, cwd, env, fs)),
         "sort" => Some(cmd_sort(args, stdin, cwd, env, fs)),
         "uniq" => Some(cmd_uniq(args, stdin, cwd, env, fs)),
@@ -287,7 +298,7 @@ pub fn read_inputs_or_stdin(
     Ok(combined)
 }
 
-fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut flag_n = false;
     let mut flag_b = false;
     let mut flag_s = false;
@@ -372,6 +383,7 @@ fn cmd_cat(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     for f in &targets {
         if f == "-" {
             raw_bytes.extend_from_slice(&stream_string_to_bytes(stdin));
+            stdin.clear();
         } else {
             let p = resolve_posix_path(cwd, f);
             if let Ok(st) = fs.stat(&p)
@@ -610,7 +622,7 @@ fn split_records_inclusive(raw: &[u8], delimiter: u8) -> Vec<&[u8]> {
 fn run_head_or_tail(
     name: &str,
     raw_args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
@@ -761,9 +773,12 @@ fn run_head_or_tail(
     let mut exit_code = 0;
     let mut header_written = false;
 
+    let mut input = None;
+    let mut consumed = 0;
     for file in &names {
-        let raw_bytes: Vec<u8> = if file == "-" {
-            stream_string_to_bytes(stdin)
+        let file_bytes;
+        let raw_bytes: &[u8] = if file == "-" {
+            &input.get_or_insert_with(|| stream_string_to_bytes(stdin))[consumed..]
         } else {
             let p = resolve_posix_path(cwd, file);
             match fs.stat(&p) {
@@ -785,7 +800,7 @@ fn run_head_or_tail(
                 }
             }
             match fs.read_file(&p) {
-                Ok(b) => b,
+                Ok(b) => { file_bytes = b; &file_bytes }
                 Err(_) => {
                     stderr.push_str(&format!(
                         "{name}: ENOENT: no such file or directory, stat '{p}'\n"
@@ -803,25 +818,18 @@ fn run_head_or_tail(
             header_written = true;
         }
 
+        let mut read = raw_bytes.len();
         if name == "head" {
-            if bytes_mode {
-                let take = if negative {
-                    raw_bytes.len().saturating_sub(count)
-                } else {
-                    count.min(raw_bytes.len())
-                };
-                out_bytes.extend_from_slice(&raw_bytes[..take]);
+            let take = if bytes_mode {
+                if negative { read.saturating_sub(count) } else { count.min(read) }
+            } else if negative {
+                let records = split_records_inclusive(raw_bytes, delimiter);
+                records[..records.len().saturating_sub(count)].iter().map(|r| r.len()).sum()
             } else {
-                let records = split_records_inclusive(&raw_bytes, delimiter);
-                let take = if negative {
-                    records.len().saturating_sub(count)
-                } else {
-                    count.min(records.len())
-                };
-                for rec in &records[..take] {
-                    out_bytes.extend_from_slice(rec);
-                }
-            }
+                raw_bytes.split_inclusive(|&b| b == delimiter).take(count).map(|r| r.len()).sum()
+            };
+            out_bytes.extend_from_slice(&raw_bytes[..take]);
+            if !negative { read = take; }
         } else if bytes_mode {
             let start = if positive {
                 count.saturating_sub(1).min(raw_bytes.len())
@@ -840,6 +848,11 @@ fn run_head_or_tail(
                 out_bytes.extend_from_slice(rec);
             }
         }
+        if file == "-" { consumed += read; }
+    }
+
+    if consumed != 0 && let Some(bytes) = input {
+        *stdin = crate::vfs::bytes_to_stream_string(&bytes[consumed..]);
     }
 
     BuiltinOutcome {
@@ -847,14 +860,6 @@ fn run_head_or_tail(
         stderr,
         exit_code,
     }
-}
-
-fn cmd_head(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    run_head_or_tail("head", args, stdin, cwd, fs)
-}
-
-fn cmd_tail(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    run_head_or_tail("tail", args, stdin, cwd, fs)
 }
 
 const WC_ZERO_WIDTH_PACKED: &str = "0,v,2o,w,gx,33,9,1,7,3,8,0,2,0,l,0,69,6,4n,0,13,1,1f,1,4,19,2,0,2,1,2,1,2,8,s,3,7,a,h,a,2,0,1b,k,h,0,2u,6,3,5,3,1,2,3,x,0,3,0,v,s,2i,a,2,d,18,8,8,2,p,3,2,8,2,2,2,6,g,0,q,4,2,0,c,4,w,0,3,d,17,n,2,v,1k,0,2,0,5,7,5,0,4,6,b,1,u,0,3,0,9,1,3,1,n,0,8,0,2,2,5,2,5,5,3,1,3,0,2,7,2,3,3,0,4,3,p,4,2,0,7,3,3,1,n,0,8,0,3,0,3,0,3,3,4,n,5,0,2,6,b,1,4,0,2,b,2,0,a,0,4,0,n,0,8,0,3,0,6,2,5,7,2,0,3,2,2,e,3,3,d,6,2,7,3,0,9,1,3,1,n,0,8,0,3,0,6,2,3,0,2,5,3,1,3,9,2,3,3,0,4,3,j,a,2,0,7,2,4,0,5,2,3,0,2,0,3,2,3,2,4,2,d,3,3,0,3,2,4,0,4,2,2,5,2,d,m,5,4,0,9,0,4,0,o,0,h,2,2,2,5,i,4,1,2,1,3,3,b,6,b,0,c,0,4,0,o,0,b,0,6,2,3,0,6,1,3,0,3,8,3,5,3,0,3,3,b,0,4,d,c,0,4,0,16,1,5,4,4,0,4,0,3,3,f,3,r,1,3,0,j,2,p,0,a,0,2,1,8,7,4,5,9,5,b,1,4,b,1d,0,3,a,9,7,e,10,3,0,2,0,6,0,p,0,2,0,b,0,3,8,2,1,6,0,2,8,b,1,5,v,p,1,s,0,2,0,2,0,f,0,11,h,2,4,2,1,6,1c,9,0,7,0,e,10,1a,3,2,5,2,1,3,1,q,1,5,2,h,3,e,0,3,1,7,0,g,0,15,0,2,4,2,1,41,4f,22,0,5,1,8,0,2,0,5,1,16,0,5,1,y,0,5,1,8,0,2,0,5,1,g,0,1m,0,5,1,1w,4,u,2,r,5,2f,1,7,1,im,2,2i,6,j,2,2,8,k,1,4,8,j,d,e,0,4,e,1h,1,2,6,9,0,3,a,a,2,b,5,b,5,c,4,b,5,2i,6,6,1,z,0,2,4,1z,9,w,3,5,1,4,3,3,0,7,6,2,2,17,1,6,a,19,3,r,5,c,2,1m,1,3,2,1l,0,2,8,2,0,3,7,7,c,b,5,b,5,f,2d,1d,0,2,4,2,0,6,0,b,2,s,8,c,2,x,3,3,1,2,2,1l,0,2,1,4,0,2,2,3,7,1d,7,3,4,g,2,1p,6,18,1,c,a,2,c,2,6,5,0,7,0,4,1,2,4,5d,1r,7r,1,7,1,13,1,7,1,9,0,2,0,2,0,2,0,w,1,1i,0,g,0,f,1,7,0,k,1,4,0,a,0,c,4,p,6,1e,f,3,1,s,0,e,2,y,1q,3x,3,ig,o,c,k,1ed,1,x,0,9l,2,3,4,1a,0,2,4,2,1,1l,6,3,e,o,8,8,0,8,0,8,0,8,0,8,0,8,0,8,0,8,w,2n,x,r,0,2i,b,5z,p,1n,3,j,0,2f,3,2u,4,18,0,2n,0,2d,a,1d,0,mlq,2,1k,8,9p,j,1c,3,2,9,x,1,29,1,7,7,5o,4,3,0,2,0,6,n,h,0,4,0,5,0,q,1,6,3,b,5,1l,7,1x,9,d,n,e,0,13,7,q,a,3,a,v,5,1d,0,3,3,3,1,h,0,c,3,8,0,q,0,16,5,3,1,3,a,4,0,9,0,2,1,b,1,x,0,1g,0,2,2,3,1,6,1,2,0,2,n,i,1,9,a,7,1,7,1,7,8,8,0,8,0,1p,3,3a,0,3,0,5,2,b,5,8md,1nf,57z,1,2z,11,8,b,6,4,2,0,p,0,6,0,2,0,3,0,3,0,3i,f,ce,1,1j,6,2,v,h,f,b,l,10,0,k,0,5,3,6,0,3s,3,5b,2,7,1,7,1,7,1,4,2,8,0,8,c,3,1,d,0,r,0,k,0,3,0,g,1,f,x,3g,4,4,3,1a,2,2h,0,e,2,2,1a,1a,3m,u,2,1e,f,s,3,11,8,v,4,13,9,v,0,12,3,f,15,4f,1,b,5,11,3,11,3,15,7,1h,a,d,0,g,0,8,0,3,0,c,0,g,0,8,0,3,1u,8o,8,n,9,9,n,7,0,17,0,a,1w,7,1,2,0,19,0,3,2,2,1,o,0,21,7,a,1b,k,0,3,4,y,2,s,4,2,1r,1l,3,l,1,1c,e,5,0,4,0,u,9,a,6,a,6,1t,v,12,5,d,8,1j,2,u,1,s,4,r,6,5,b,8,27,22,1i,1g,c,1g,6,17,b,b,85,w,0,17,2,2,1,3,25,15,7,n,a,a,l,j,3,5,11,t,j,o,8,2,0,1j,e,8,3,v,0,3,1,2,b,1e,3,3,1,8,a,2,1,q,6,b,8,11,4,2,8,j,7,10,0,4,a,1h,8,b,3,3,0,h,0,l,a,j,0,t,2,3,0,2,1,7,0,3,1q,8,0,2,0,5,0,g,0,c,5,1c,0,4,c,b,7,3,0,9,1,3,1,n,0,8,0,3,0,6,2,4,0,5,1,3,1,4,1,2,5,2,4,8,4b,1l,7,3,2,2,0,m,0,2,0,4,t,1g,5,2,0,5,1,2,1,5,7,b,4l,1f,5,5,1,2,1,s,z,1g,7,3,0,2,1,5,a,b,5,e,i,18,0,2,0,3,5,2,0,3,5,b,1h,s,4,3,3,2,8,o,54,1c,8,2,1,2,2r,2c,b,9,1,2,1,9,0,3,0,v,0,3,3,2,0,5,0,4,8,b,1x,9,1,17,7,5,0,5,q,2,9,15,5,3,3,9,8,2,5,3,2,1b,c,2,1,a,c,22,6,b,6t,a,0,13,d,2,0,7,9,u,2,x,o,2,6,2,1,2,22,8,0,3,0,13,k,2,8,b,5,7,0,3,0,12,3,3,0,2,0,2,6,b,8l,k,1,5,8,g,0,11,7,3,0,2,0,o,2d,2,e,1f,c,po,2t,34,0,6,a,5h,217,2s,c,tt,g,7,33s,g8,6ns,fu,6,w,0,b,3,2a,0,b,5,v,6,2,9,1d,6,g,9,b,0,8,0,m,4,k,j3,2k,2s,24,4,1l,a,e,1r,5,b,3,d,4qh,7,yf,15,a,6w6,5,0,8,0,3,0,84,e,2,s,4,1,2,d,5,7,b1,1s3,30,4,e,2,a,6,b,1,2,1,2,3ov,39,1n,6v,9,14,1,1r,2,a,f,3,6,v,3,1q,k,1v,2,2,3d,l,b,l,b,2g,8,q,3q,2e,0,20,0,3,1,2,1,3,1,5,0,d,0,2,0,8,0,1u,0,5,1,9,0,8,0,t,0,5,0,6,0,2,2,8,0,9h,1,85,1,fn,1i,5,1d,9,0,f,0,8,vn,w,5,7,78,1r,41,1a,9,8,1,b,3,3,8v,v,h,19,3,b,4,2,cv,t,3,b,kl,8,0,5,0,3,0,g,0,5i,1,a,1b,1x,6,2,3,b,3,3,ls,1x,23,1q,5d,5,0,s,0,3,0,2,1,2,0,b,0,5,0,2,0,2,5,2,3,2,0,2,0,2,0,4,0,3,0,2,1,2,0,2,0,2,0,2,0,2,0,3,0,2,1,5,0,8,0,5,0,5,0,2,0,b,0,i,4,4,0,6,0,i,1f,3,7h,19,3,2t,b,g,1,g,0,g,0,12,9,4v,1j,u,c,19,3,a,6,3,d,7,49,rd,3,i,2,e,2,3c,3,2o,5,d,3,2,e,d,3,1l,7,b,5,15,7,v,1,3,25,9h,b,f,1,e,2,a,6,1b,0,8,7,f,3,a,6,a,6,44,0,1k,10,b,sl,wyp,v,37f,5,67,1,4g3,d,5rm,e,hb,1wh,f3,15t,3t8,4,38h,gnrj,1ekf,1,1ekf,1";

@@ -22,6 +22,8 @@ mod route;
 #[path = "mermaid/scanner.rs"]
 pub(super) mod scanner;
 use scanner::Statement;
+#[path = "mermaid/source.rs"]
+pub(super) mod source;
 #[path = "mermaid/styles.rs"]
 mod styles;
 use styles::Styles;

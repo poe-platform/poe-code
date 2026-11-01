@@ -29239,7 +29239,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         ) else {
             return err_out("mmdc: E_CONFIG: Invalid JSON in configuration file\n", 2);
         };
-        match mermaid::config::Config::parse(&value) {
+        match mermaid::config::Config::parse(&value,false) {
             Ok(config) => config,
             Err(e) => return err_out(&format!("mmdc: E_CONFIG: {e}\n"), 2),
         }
@@ -29361,36 +29361,54 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     };
 
-    let mut init_theme: Option<String> = None;
     let mut directives = Vec::new();
-    let scanned = if mermaid::scanner::is_flowchart(&src_text) {
+    let flowchart = mermaid::scanner::is_flowchart(&src_text);
+    let scanned = if flowchart || src_text.contains("%%{") {
         match mermaid::scanner::scan(&src_text, &mut directives) {
-            Ok(stmts) => Some(stmts),
+            Ok(stmts) => flowchart.then_some(stmts),
             Err(message) => return err_out(&message, 1),
         }
     } else {
-        let mut search_idx = 0usize;
-        while let Some(rel) = src_text[search_idx..].find("%%{") {
-            let start_dir = search_idx + rel;
-            let Some(end_rel) = src_text[start_dir + 3..].find("}%%") else {
-                return err_out("mmdc: E_SYNTAX: Unclosed Mermaid directive\n", 1);
-            };
-            directives.push(&src_text[start_dir + 3..start_dir + 3 + end_rel]);
-            search_idx = start_dir + 3 + end_rel + 3;
-        }
         None
     };
-    for dir_body in directives {
-        for tname in ["dark", "forest", "neutral", "base", "light", "default"] {
-            if dir_body.contains(&format!("\"{tname}\""))
-                || dir_body.contains(&format!("'{tname}'"))
-            {
-                init_theme = Some(tname.to_string());
-                break;
-            }
+    // Line-oriented families consume the original source, including its diagnostic positions.
+    let masked;
+    let src_text = if !flowchart && !directives.is_empty() {
+        let mut output = String::with_capacity(src_text.len());
+        let mut from = 0;
+        for body in &directives {
+            let at = body.as_ptr() as usize - src_text.as_ptr() as usize - 3;
+            let end = at + body.len() + 6;
+            output.push_str(&src_text[from..at]);
+            output.extend(src_text[at..end].encode_utf16().map(|c| match c {
+                10 => '\n',
+                13 => '\r',
+                _ => ' ',
+            }));
+            from = end;
         }
-    }
-
+        output.push_str(&src_text[from..]);
+        masked = output;
+        &masked
+    } else {
+        &src_text
+    };
+    let source_config = match mermaid::source::directives(directives, fs.max_input_bytes()) {
+        Ok(Some(value)) => mermaid::config::Config::parse(&value, true),
+        Ok(None) => Ok(mermaid::config::Config::default()),
+        Err(e) => {
+            return err_out(
+                &e,
+                if e.starts_with("mmdc: E_CONFIG:") {
+                    2
+                } else {
+                    1
+                },
+            );
+        }
+    };
+    let defaults = mermaid::config::Config::default();
+    let source_cfg = source_config.as_ref().unwrap_or(&defaults);
     let mut acc_title: Option<String> = None;
     let mut acc_descr: Option<String> = None;
     let mut content_lines: Vec<&str> = if let Some(stmts) = &scanned {
@@ -29477,14 +29495,13 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         );
     }
 
-    let width = cli_width.map(f64::from).or(cfg.width);
-    let height = cli_height.map(f64::from).or(cfg.height);
+    let width = cli_width.map(f64::from).or(cfg.width).or(source_cfg.width);
+    let height = cli_height.map(f64::from).or(cfg.height).or(source_cfg.height);
     let scale = cli_scale.or(cfg.scale).unwrap_or(1.0);
-    let resolved_theme = cfg.theme
+    let resolved_theme = source_cfg.theme.clone().or(cfg.theme)
         .or(cli_theme)
-        .or(init_theme)
         .unwrap_or_else(|| "light".to_string());
-    let bg_color = cli_bg.or(cfg.background).unwrap_or_else(|| "white".to_string());
+    let bg_color = cli_bg.or(cfg.background).or_else(||source_cfg.background.clone()).unwrap_or_else(|| "white".to_string());
 
     let (surface, border, text_col, edge_col, shadow_col) = match resolved_theme.as_str() {
         "dark" => ("#1e293b", "#334155", "#f8fafc", "#94a3b8", "rgba(0, 0, 0, 0.35)"),
@@ -29505,13 +29522,13 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 
     let limit = fs.max_input_bytes();
     let pie = if first_word == "pie" {
-        match mermaid::pie::Pie::parse(first_stmt, &src_text, limit) {
+        match mermaid::pie::Pie::parse(first_stmt, src_text, limit) {
             Ok(pie) => Some(pie),
             Err(message) => return err_out(&message, 1),
         }
     } else { None };
     let flow = if let Some(stmts) = &scanned {
-        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, cfg.wrapping_width.unwrap_or(200.), limit) {
+        match mermaid::parse(stmts, &mut acc_title, &mut acc_descr, cfg.wrapping_width.or(source_cfg.wrapping_width).unwrap_or(200.), limit) {
             Some(Ok(graph)) => Some(graph),
             Some(Err(message)) => return err_out(&message, if message.starts_with("mmdc: E_CONFIG:") { 2 } else { 1 }),
             None => {
@@ -29527,6 +29544,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             }
         }
     } else { None };
+    if let Err(e)=&source_config {return err_out(&format!("mmdc: E_CONFIG: {e}\n"),2);}
     for (key, value) in [("width", width), ("height", height)] {
         if value.is_some_and(|v| v.fract() != 0. || v > 9_007_199_254_740_991.) {
             return err_out(
@@ -29541,9 +29559,9 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     };
     let scene = if let Some(pie) = pie {
         acc_title = pie.title.clone();
-        Some(pie.layout(&resolved_theme,cfg.padding.unwrap_or(32.)))
+        Some(pie.layout(&resolved_theme,cfg.padding.or(source_cfg.padding).unwrap_or(32.)))
     } else if let Some(graph) = flow {
-        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (cfg.rank_gap.unwrap_or(56.),cfg.node_gap.unwrap_or(32.)), cfg.padding.unwrap_or(32.), limit) {
+        match mermaid::layout(graph, &resolved_theme, &id_prefix, acc_title.as_deref(), (cfg.rank_gap.or(source_cfg.rank_gap).unwrap_or(56.),cfg.node_gap.or(source_cfg.node_gap).unwrap_or(32.)), cfg.padding.or(source_cfg.padding).unwrap_or(32.), limit) {
             Some(Ok(scene)) => Some(scene),
             Some(Err(message)) => return err_out(&message, 1),
             None => None,
@@ -38190,6 +38208,33 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             let r=try_run_structured_command("mmdc",&args(&["-c","/config.json","-i","-","-o","/d.svg"]),&source,"/",&BTreeMap::new(),&fs).unwrap();
             assert_eq!(r.stderr,"mmdc: E_LIMIT: Render work budget exceeded\n");
             assert_eq!(r.exit_code,1);
+            assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
+        }
+    }
+
+    #[test]
+    fn mmdc_resolves_init_directives_as_yaml_mappings() {
+        let fs=MemoryVfs::new();
+        let chart="flowchart TD; A[Build release] -->|review| B; B-->C & D";
+        for (directives,file,expected) in [
+            ("%%{other: {theme: dark}}%%\n%%{init: {description: 'dark'}}%%","{}","{}"),
+            ("%%{init: {theme: forest, flowchart: {wrappingWidth: 30, nodeSpacing: 74}}}%%\n%%{initialize: {flowchart: {rankSpacing: 89}}}%%",r#"{"theme":"dark","width":310}"#,r#"{"theme":"forest","width":310,"flowchart":{"wrappingWidth":30,"nodeSpacing":74,"rankSpacing":89}}"#),
+            ("%%{init: {rankGap: 72, width: 180, backgroundColor: 'navy'}}%%",r#"{"width":230,"flowchart":{"rankSpacing":90}}"#,r#"{"rankGap":90,"width":230,"backgroundColor":"navy"}"#),
+        ] {
+            let mut outputs=Vec::new();
+            for (config,source) in [(file,format!("{directives}\n{chart}")),(expected,chart.to_owned())] {
+                fs.write_file("/c",config.as_bytes()).unwrap();
+                let r=try_run_structured_command("mmdc",&args(&["-i","-","-c","/c","-o","/d.svg"]),&source,"/",&BTreeMap::new(),&fs).unwrap();
+                assert_eq!(r.exit_code,0,"{}",r.stderr);
+                outputs.push(fs.read_file("/d.svg").unwrap());
+            }
+            assert_eq!(outputs[0],outputs[1],"{directives}");
+        }
+        for (yaml,message) in [("[]","Mermaid configuration must be a mapping"),("{theme: wrong}","Unsupported theme 'wrong' in config file"),("{ a: [ }","Flow sequence in block collection must be sufficiently indented and end with a ] at line 1, column 9:\n\n { a: [ }\n        ^\n")] {
+            fs.write_file("/d.svg",b"previous").unwrap();
+            let r=try_run_structured_command("mmdc",&args(&["-i","-","-o","/d.svg"]),&format!("%%{{init: {yaml}}}%%\n{chart}"),"/",&BTreeMap::new(),&fs).unwrap();
+            assert_eq!(r.exit_code,2);
+            assert_eq!(r.stderr,format!("mmdc: E_CONFIG: {message}\n"));
             assert_eq!(fs.read_file("/d.svg").unwrap(),b"previous");
         }
     }

@@ -24,6 +24,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "@poe-code/config-mutations-rust": "*",
     "@poe-platform/safe-bash": "*",
     "mcp-protocol-rust": "*"
   },

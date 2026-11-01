@@ -33,25 +33,27 @@ fn js_string(value: &Value) -> String {
 }
 
 impl Config {
-    pub fn parse(v: &Value) -> Result<Self, String> {
+    pub fn parse(v: &Value, source: bool) -> Result<Self, String> {
         let Value::Object(fields) = v else {
             return Err("Configuration file must contain a JSON object".into());
         };
         for (key, _) in fields {
             let key = String::from_utf16_lossy(key);
-            if !matches!(
-                key.as_str(),
-                "theme"
-                    | "rankGap"
-                    | "nodeGap"
-                    | "padding"
-                    | "width"
-                    | "height"
-                    | "scale"
-                    | "backgroundColor"
-                    | "flowchart"
-                    | "themeVariables"
-            ) {
+            if !source
+                && !matches!(
+                    key.as_str(),
+                    "theme"
+                        | "rankGap"
+                        | "nodeGap"
+                        | "padding"
+                        | "width"
+                        | "height"
+                        | "scale"
+                        | "backgroundColor"
+                        | "flowchart"
+                        | "themeVariables"
+                )
+            {
                 return Err(format!("Unknown configuration key '{key}'"));
             }
         }
@@ -99,7 +101,10 @@ impl Config {
             Value::Number(n) if n.is_finite() && *n > 0. => Ok(*n),
             _ => Err(format!("Configuration '{key}' must be a positive number")),
         };
-        if let Some(flow) = v.get("flowchart").filter(|v| **v != Value::Null) {
+        if let Some(flow) = v
+            .get("flowchart")
+            .filter(|v| **v != Value::Null && !(source && matches!(v, Value::Array(_))))
+        {
             let Value::Object(pairs) = flow else {
                 return Err("Configuration 'flowchart' must be an object".into());
             };
@@ -109,12 +114,16 @@ impl Config {
                     "rankSpacing" => &mut config.rank_gap,
                     "nodeSpacing" => &mut config.node_gap,
                     "wrappingWidth" => &mut config.wrapping_width,
+                    _ if source && key != "padding" => continue,
                     _ => return Err(format!("Unsupported flowchart configuration '{key}'")),
                 };
                 *slot = Some(number(&format!("flowchart.{key}"), val)?);
             }
         }
-        if let Some(vars) = v.get("themeVariables").filter(|v| **v != Value::Null) {
+        if let Some(vars) = v
+            .get("themeVariables")
+            .filter(|v| **v != Value::Null && !(source && matches!(v, Value::Array(_))))
+        {
             let Value::Object(pairs) = vars else {
                 return Err("Configuration 'themeVariables' must be an object".into());
             };
@@ -132,6 +141,9 @@ impl Config {
                         | "noteTextColor"
                         | "noteBorderColor"
                 ) {
+                    if source {
+                        continue;
+                    }
                     return Err(format!("Unsupported theme variable '{key}'"));
                 }
                 if !matches!(val, Value::String(_)) {

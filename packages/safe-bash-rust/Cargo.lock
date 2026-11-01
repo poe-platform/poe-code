@@ -3,6 +3,13 @@
 version = 4
 
 [[package]]
+name = "config-mutations-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
 
@@ -17,6 +24,7 @@ dependencies = [
 name = "safe-bash-rust"
 version = "0.1.0"
 dependencies = [
+ "config-mutations-rust",
  "mcp-protocol-rust",
  "poe-agent-rust",
 ]

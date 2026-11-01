@@ -93,6 +93,7 @@ pub(super) fn parse(
                 }
                 if let Some(shape) = shape {
                     n.shape = shape;
+                    n.accent |= shape == Shape::Diamond;
                 }
                 return Ok(idx);
             }
@@ -105,6 +106,7 @@ pub(super) fn parse(
                 id: id.into(),
                 label: label.unwrap_or(id).into(),
                 shape: shape.unwrap_or(Shape::Rounded),
+                accent: shape == Some(Shape::Diamond),
                 order: idx,
                 group: current,
                 ..Default::default()
@@ -266,6 +268,11 @@ pub(super) fn parse(
                     }
                     let id = format!("__state_{prefix}_{}", scopes.len() + 1);
                     let idx = ensure(&mut graph.nodes, &id, Some(""), Some(shape))?;
+                    // A scoped pseudostate replaces an explicit declaration with its generated ID.
+                    let node = &mut graph.nodes[idx];
+                    node.group = current;
+                    node.label.clear();
+                    node.accent = false;
                     scopes.insert(current, idx);
                     Ok(idx)
                 } else {

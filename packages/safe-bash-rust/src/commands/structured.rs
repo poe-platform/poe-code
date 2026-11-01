@@ -38444,6 +38444,16 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_preserves_state_redeclaration_semantics() {
+        assert_mermaid_outputs(&[
+            ("stateDiagram-v2\nstate __state_start_1\nstate G {\n[*] --> S\n}\nG --> X", "svg", "b03dd9163ae8132f7c91acdc66df35b2bc621b49167c1f37adbbd05327450cd9"),
+            ("stateDiagram-v2\nstate __state_start_1\nstate G {\n[*] --> S\n}\nG --> X", "png", "5aa83fe0417f65c0a576c3874753ad423d9cb380ac3936517fad0d6ba9702b87"),
+            ("stateDiagram-v2\nstate Q <<choice>>\nstate Q <<fork>>\nQ --> Next", "svg", "85f1210ea9f03f0bd88899caa160f1829747c043b0cd0b2d0f75fa6a2b72aa5c"),
+            ("stateDiagram-v2\nstate Q <<choice>>\nstate Q <<fork>>\nQ --> Next", "png", "dae0f6af0f534deb3b133c56a63c37583831801e4461155c5adea14dbdbaffd4"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

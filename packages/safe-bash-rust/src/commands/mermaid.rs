@@ -52,6 +52,7 @@ struct Node {
     order: usize,
     label: String,
     shape: Shape,
+    accent: bool,
     lines: Vec<String>,
     w: i32,
     h: i32,
@@ -1157,7 +1158,8 @@ pub(super) fn layout(
             });
             continue;
         }
-        let accented = !matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine);
+        let accented =
+            n.accent || !matches!(n.shape, Shape::Rect | Shape::Rounded | Shape::Subroutine);
         let styled = styles.node(&n.id);
         let (fill, fill_rgba) = styled
             .fill

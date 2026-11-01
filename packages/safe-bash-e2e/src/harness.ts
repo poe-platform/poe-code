@@ -692,9 +692,6 @@ export class SafeBashE2EHarness {
         const normalizedLink = sb.normalizePath(rawLink);
         rustBash.symlink(target, normalizedLink);
       }
-      if (options.cwd && options.cwd !== "/workspace") {
-        rustBash.setEnv("__cwd", sb.normalizePath(options.cwd));
-      }
       if (options.mountDev) rustBash.mountDevices();
       if (hasCustomJsPlugins) {
         (rustBash as unknown as { _getOrCreateCompanionSync(): void })._getOrCreateCompanionSync();

@@ -88,7 +88,7 @@ fn cmd_which(
     }
     let path_str = if let Some(p) = env.get("PATH").cloned() {
         p
-    } else if env.get("__path_unset__").map(|v| v == "1").unwrap_or(false) {
+    } else if env.get("\0path_unset__").map(|v| v == "1").unwrap_or(false) {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: String::new(),

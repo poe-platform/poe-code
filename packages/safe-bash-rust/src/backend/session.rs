@@ -63,7 +63,7 @@ fn list(v: Option<&Value>) -> Vec<String> {
     }
 }
 fn public_name(k: &str) -> bool {
-    !k.is_empty() && !k.starts_with("__") && !k.contains(['[', ']']) && k != "0"
+    !k.is_empty() && !k.contains('\0') && !k.contains(['[', ']']) && k != "0"
 }
 
 impl HybridBackend {
@@ -82,11 +82,11 @@ impl HybridBackend {
         let mut readonly_fns = Vec::new();
         let mut variables = BTreeMap::new();
         for (k, v) in env {
-            if let Some(name) = k.strip_prefix("__alias__") {
+            if let Some(name) = k.strip_prefix("\0alias__") {
                 aliases.push((jstr(name), string(v)));
-            } else if let Some(name) = k.strip_prefix("__readonly_fn__") {
+            } else if let Some(name) = k.strip_prefix("\0readonly_fn__") {
                 readonly_fns.push(string(name));
-            } else if let Some(name) = k.strip_prefix("__attr__").filter(|n| public_name(n)) {
+            } else if let Some(name) = k.strip_prefix("\0attr__").filter(|n| public_name(n)) {
                 if v.contains('r') {
                     readonly.push(string(name));
                 }
@@ -100,12 +100,12 @@ impl HybridBackend {
                 if !flags.is_empty() {
                     attrs.push((jstr(name), string(&flags)));
                 }
-            } else if let Some(name) = k.strip_prefix("__nameref__").filter(|n| public_name(n)) {
+            } else if let Some(name) = k.strip_prefix("\0nameref__").filter(|n| public_name(n)) {
                 variables.insert(name, string(v));
                 attrs.push((jstr(name), string("n")));
             } else if let Some(name) = k
-                .strip_prefix("__keys__")
-                .or_else(|| k.strip_prefix("__assoc__"))
+                .strip_prefix("\0keys__")
+                .or_else(|| k.strip_prefix("\0assoc__"))
                 .filter(|n| public_name(n))
             {
                 arrays.entry(name).or_default();
@@ -124,11 +124,11 @@ impl HybridBackend {
         variables.remove("DIRSTACK");
         let arrays = object(arrays.into_iter().map(|(name, mut elements)| {
             variables.remove(name);
-            let assoc = env.contains_key(&format!("__assoc__{name}"))
+            let assoc = env.contains_key(&format!("\0assoc__{name}"))
                 || env
-                    .get(&format!("__attr__{name}"))
+                    .get(&format!("\0attr__{name}"))
                     .is_some_and(|s| s.contains('A'));
-            let keys = env.get(&format!("__keys__{name}"));
+            let keys = env.get(&format!("\0keys__{name}"));
             let mut ordered = Vec::with_capacity(elements.len());
             if assoc && let Some(keys) = keys {
                 for key in keys.split('\x1f') {
@@ -159,11 +159,11 @@ impl HybridBackend {
         }));
         exported.extend(
             variables.keys().copied().filter(|k| {
-                *k != "BASH_COMMAND" && !env.contains_key(&format!("__unexported__{k}"))
+                *k != "BASH_COMMAND" && !env.contains_key(&format!("\0unexported__{k}"))
             }),
         );
         let stack = env
-            .get("__dirstack")
+            .get("\0dirstack")
             .into_iter()
             .flat_map(|v| v.split('\x1f'))
             .map(string)
@@ -172,7 +172,7 @@ impl HybridBackend {
             |(prefix, names)| {
                 names.iter().map(move |&name| {
                     let flag = env
-                        .get(&format!("__{prefix}_{name}"))
+                        .get(&format!("\0{prefix}_{name}"))
                         .map_or(name == "braceexpand", |v| v == "1");
                     (name, Value::Bool(flag))
                 })
@@ -184,7 +184,7 @@ impl HybridBackend {
             (
                 "umask",
                 Value::Number(
-                    env.get("__umask")
+                    env.get("\0umask")
                         .and_then(|s| u32::from_str_radix(s, 8).ok())
                         .unwrap_or(0o22)
                         .into(),
@@ -243,7 +243,7 @@ impl HybridBackend {
         let exported: BTreeSet<_> = list(v.get("exported")).into_iter().collect();
         for (k, s) in string_entries(v.get("variables")).filter(|(k, _)| public_name(k)) {
             if !exported.contains(&k) {
-                env.insert(format!("__unexported__{k}"), "1".into());
+                env.insert(format!("\0unexported__{k}"), "1".into());
             }
             env.insert(k, s);
         }
@@ -254,15 +254,15 @@ impl HybridBackend {
             if alias_bytes > limits.max_expansion_bytes {
                 return Err("Shell limit exceeded: maxExpansionBytes".into());
             }
-            env.insert(format!("__alias__{name}"), val);
+            env.insert(format!("\0alias__{name}"), val);
         }
         for (name, arr) in entries(v.get("arrays")).filter(|(k, _)| public_name(k)) {
             let assoc = arr.get("kind").and_then(text).as_deref() == Some("associative");
             if assoc {
-                env.insert(format!("__assoc__{name}"), "1".into());
+                env.insert(format!("\0assoc__{name}"), "1".into());
             }
             env.insert(
-                format!("__attr__{name}"),
+                format!("\0attr__{name}"),
                 if assoc { "A" } else { "a" }.into(),
             );
             env.remove(&name);
@@ -281,7 +281,7 @@ impl HybridBackend {
                 keys.sort_by_key(|k| k.parse::<u64>().unwrap());
             }
             if !keys.is_empty() || arr.get("assigned") != Some(&Value::Bool(false)) {
-                env.insert(format!("__keys__{name}"), keys.join("\x1f"));
+                env.insert(format!("\0keys__{name}"), keys.join("\x1f"));
             }
         }
         for (k, flags) in
@@ -290,46 +290,46 @@ impl HybridBackend {
             if flags.contains('n')
                 && let Some(target) = env.get(&k).cloned()
             {
-                env.insert(format!("__nameref__{k}"), target);
+                env.insert(format!("\0nameref__{k}"), target);
             }
-            env.entry(format!("__attr__{k}"))
+            env.entry(format!("\0attr__{k}"))
                 .or_default()
                 .extend(flags.chars().filter(|c| "ilnu".contains(*c)));
         }
         for k in exported.iter().filter(|k| public_name(k)) {
-            env.remove(&format!("__unexported__{k}"));
-            env.entry(format!("__attr__{k}")).or_default().push('x');
+            env.remove(&format!("\0unexported__{k}"));
+            env.entry(format!("\0attr__{k}")).or_default().push('x');
         }
         for k in list(v.get("readonlyVariables"))
             .into_iter()
             .filter(|k| public_name(k))
         {
-            env.entry(format!("__attr__{k}")).or_default().push('r');
+            env.entry(format!("\0attr__{k}")).or_default().push('r');
         }
         for k in list(v.get("readonlyFunctions")) {
-            env.insert(format!("__readonly_fn__{k}"), "1".into());
+            env.insert(format!("\0readonly_fn__{k}"), "1".into());
         }
         if let Some(Value::Number(n)) = v.get("umask") {
-            env.insert("__umask".into(), format!("{:04o}", (*n as u32) & 0o777));
+            env.insert("\0umask".into(), format!("{:04o}", (*n as u32) & 0o777));
         }
         if let Some(Value::Number(n)) = v.get("status") {
-            env.insert("__last_exit".into(), (*n as i32).to_string());
+            env.insert("\0last_exit".into(), (*n as i32).to_string());
         }
         let stack = list(v.get("directoryStack"));
         if !stack.is_empty() {
-            env.insert("__dirstack".into(), stack.join("\x1f"));
+            env.insert("\0dirstack".into(), stack.join("\x1f"));
         }
         for (prefix, names) in [("set", SET), ("shopt", SHOPT)] {
             for &name in names {
                 if let Some(Value::Bool(b)) = v.get("options").and_then(|opts| opts.get(name)) {
                     env.insert(
-                        format!("__{prefix}_{name}"),
+                        format!("\0{prefix}_{name}"),
                         if *b { "1" } else { "0" }.into(),
                     );
                 }
             }
         }
-        let extglob = env.get("__shopt_extglob").is_some_and(|v| v == "1");
+        let extglob = env.get("\0shopt_extglob").is_some_and(|v| v == "1");
         let mut functions = BTreeMap::new();
         for (name, src) in string_entries(v.get("functions")) {
             if src.len() > limits.max_source_bytes {

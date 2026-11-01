@@ -5610,10 +5610,10 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
     if names.is_empty() {
         let mut out = String::new();
         for (k, v) in env {
-            if k.starts_with("__")
+            if k.starts_with('\0')
                 || k.contains('[')
                 || k == "!"
-                || env.contains_key(&format!("__unexported__{k}"))
+                || env.contains_key(&format!("\0unexported__{k}"))
             {
                 continue;
             }
@@ -5624,11 +5624,11 @@ fn cmd_printenv(args: &[String], env: &BTreeMap<String, String>) -> BuiltinOutco
     let mut out = String::new();
     let mut code = 0;
     for k in names {
-        if k.contains('=') {
+        if k.contains(['=', '\0']) {
             code = 1;
             continue;
         }
-        if !env.contains_key(&format!("__unexported__{k}"))
+        if !env.contains_key(&format!("\0unexported__{k}"))
             && let Some(v) = env.get(k)
         {
             out.push_str(&format!("{v}{sep}"));
@@ -5773,7 +5773,7 @@ fn cmd_envsubst(args: &[String], stdin: &str, env: &BTreeMap<String, String>) ->
         if let Some((name, end_idx)) = matched {
             let allowed = whitelist.as_ref().map(|w| w.contains(name)).unwrap_or(true);
             if allowed {
-                if !env.contains_key(&format!("__unexported__{name}"))
+                if !env.contains_key(&format!("\0unexported__{name}"))
                     && let Some(val) = env.get(name)
                 {
                     out.extend_from_slice(val.as_bytes());
@@ -17630,7 +17630,7 @@ fn cmd_split(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let max_files = env
-        .get("__limit_split_max_files")
+        .get("\0limit_split_max_files")
         .and_then(|v| v.parse::<usize>().ok());
     let parsed = match parse_split_args(args, max_files) {
         Ok(p) => p,

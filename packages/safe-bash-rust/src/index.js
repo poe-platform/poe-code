@@ -545,11 +545,15 @@ class WasmShell {
   }
 
   setEnv(key, value) {
-    if (key === "__cwd") {
+    if (key.includes("\0")) throw new TypeError("Environment names cannot contain NUL");
+    this.state.env[key] = value;
+    this._setBinding(key, value);
+  }
+
+  _setBinding(key, value) {
+    if (key === "\0cwd") {
       this.state.cwd = value;
       this.state.env.PWD = value;
-    } else {
-      this.state.env[key] = value;
     }
     const k = this._allocBytes(encoder.encode(key));
     const v = this._allocBytes(encoder.encode(value));
@@ -738,7 +742,7 @@ export class RustWasmBash extends WasmShell {
     }
     if (options.cwd && options.cwd !== "/workspace") {
       this.mkdirAll(options.cwd);
-      this.setEnv("__cwd", options.cwd);
+      this._setBinding("\0cwd", options.cwd);
     }
     if (options.profile === "overlay-cow-fs") {
       this.exports.safe_bash_configure_profile(this.sessionId, 1);
@@ -1031,18 +1035,18 @@ export class RustWasmBash extends WasmShell {
       for (const [name, value] of Object.entries(options.env ?? {})) {
         shell.setEnv(name, value);
       }
-      if (options.cwd !== undefined) shell.setEnv("__cwd", options.cwd);
+      if (options.cwd !== undefined) shell._setBinding("\0cwd", options.cwd);
       const pi = options.capabilities?.predicateIdentity;
-      if (pi?.effectiveUid !== undefined) shell.setEnv("__euid", String(pi.effectiveUid));
-      if (pi?.effectiveGid !== undefined) shell.setEnv("__egid", String(pi.effectiveGid));
+      if (pi?.effectiveUid !== undefined) shell._setBinding("\0euid", String(pi.effectiveUid));
+      if (pi?.effectiveGid !== undefined) shell._setBinding("\0egid", String(pi.effectiveGid));
       if (options.limits) {
         const { maxVfsBytes, maxBytes, maxFileBytes, maxFiles, ...limits } = options.limits;
         const sharedKeys = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxPipelineBytes", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"];
-        if (sharedKeys.some(k => limits[k] !== undefined && limits[k] !== Infinity)) shell.setEnv("__has_finite_shared_quota", "1");
+        if (sharedKeys.some(k => limits[k] !== undefined && limits[k] !== Infinity)) shell._setBinding("\0has_finite_shared_quota", "1");
         const split = limits.commandLimits?.split?.maxFiles;
         const html = limits.commandLimits?.htmlToMarkdown?.maxInputBytes;
-        if (split !== undefined) shell.setEnv("__limit_split_max_files", String(split));
-        if (html !== undefined) shell.setEnv("__limit_html_to_markdown_max_input_bytes", String(html));
+        if (split !== undefined) shell._setBinding("\0limit_split_max_files", String(split));
+        if (html !== undefined) shell._setBinding("\0limit_html_to_markdown_max_input_bytes", String(html));
       }
       res = shell.execSync(script, stdinData);
       if (state || options.onState || options.hooks || this.hooks) res.state = shell.snapshot(res.exitCode);

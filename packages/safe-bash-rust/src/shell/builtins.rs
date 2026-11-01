@@ -101,7 +101,7 @@ pub fn try_run_builtin(
         "pushd" | "popd" | "dirs" => Some(builtin_directory_stack(cmd, args, cwd, env, fs)),
         "echo" => {
             let mut newline = true;
-            let mut interpret_escapes = env.get("__shopt_xpg_echo").is_some_and(|v| v == "1");
+            let mut interpret_escapes = env.get("\0shopt_xpg_echo").is_some_and(|v| v == "1");
             let mut idx = 0usize;
             while idx < args.len() {
                 let arg = &args[idx];
@@ -377,7 +377,7 @@ fn builtin_cd(
     };
 
     if env
-        .get("__attr__OLDPWD")
+        .get("\0attr__OLDPWD")
         .is_some_and(|a| a.contains('r'))
     {
         return BuiltinOutcome {
@@ -387,9 +387,9 @@ fn builtin_cd(
         };
     }
     env.insert("OLDPWD".to_string(), cwd.clone());
-    env.remove("__unexported__OLDPWD");
+    env.remove("\0unexported__OLDPWD");
     *cwd = resolved.clone();
-    if env.get("__attr__PWD").is_some_and(|a| a.contains('r')) {
+    if env.get("\0attr__PWD").is_some_and(|a| a.contains('r')) {
         return BuiltinOutcome {
             stdout: String::new(),
             stderr: "PWD: readonly variable\n".to_string(),
@@ -397,7 +397,7 @@ fn builtin_cd(
         };
     }
     env.insert("PWD".to_string(), resolved);
-    env.remove("__unexported__PWD");
+    env.remove("\0unexported__PWD");
 
     let printed = printed_from_cdpath.or_else(|| {
         if operand == Some("-") {
@@ -517,7 +517,7 @@ fn builtin_directory_stack(
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
     let tail: Vec<String> = env
-        .get("__dirstack")
+        .get("\0dirstack")
         .filter(|s| !s.is_empty())
         .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
         .unwrap_or_default();
@@ -864,7 +864,7 @@ fn format_symbolic_umask(mask: u32) -> String {
 
 fn builtin_umask(args: &[String], env: &mut BTreeMap<String, String>) -> BuiltinOutcome {
     let cur_str = env
-        .get("__umask")
+        .get("\0umask")
         .cloned()
         .unwrap_or_else(|| "0022".to_string());
     let mut cur_val = u32::from_str_radix(&cur_str, 8).unwrap_or(0o022);
@@ -907,7 +907,7 @@ fn builtin_umask(args: &[String], env: &mut BTreeMap<String, String>) -> Builtin
             };
         };
         cur_val = new_mask;
-        env.insert("__umask".to_string(), format!("{new_mask:04o}"));
+        env.insert("\0umask".to_string(), format!("{new_mask:04o}"));
         if !symbolic {
             return BuiltinOutcome {
                 stdout: String::new(),
@@ -959,7 +959,7 @@ pub fn path_targets(path_env: Option<&str>, name: &str) -> Vec<String> {
 pub fn effective_path_env<'a>(env: &'a BTreeMap<String, String>) -> Option<&'a str> {
     if let Some(p) = env.get("PATH") {
         Some(p.as_str())
-    } else if env.contains_key("__path_unset__") {
+    } else if env.contains_key("\0path_unset__") {
         None
     } else {
         Some("/bin:/usr/bin")
@@ -1022,7 +1022,7 @@ pub fn resolve_hash_command(
 
 fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: String) {
     let mut order: Vec<String> = env
-        .get("__hash_order")
+        .get("\0hash_order")
         .map(|s| {
             s.split('\n')
                 .filter(|x| !x.is_empty() && *x != name)
@@ -1031,21 +1031,21 @@ fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: Str
         })
         .unwrap_or_default();
     order.push(name.to_string());
-    env.insert("__hash_order".to_string(), order.join("\n"));
-    env.insert(format!("__hash__{name}"), target);
+    env.insert("\0hash_order".to_string(), order.join("\n"));
+    env.insert(format!("\0hash__{name}"), target);
 }
 
 fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<String> {
-    let removed = env.remove(&format!("__hash__{name}"));
-    if let Some(s) = env.get("__hash_order").cloned() {
+    let removed = env.remove(&format!("\0hash__{name}"));
+    if let Some(s) = env.get("\0hash_order").cloned() {
         let order: Vec<&str> = s
             .split('\n')
             .filter(|x| !x.is_empty() && *x != name)
             .collect();
         if order.is_empty() {
-            env.remove("__hash_order");
+            env.remove("\0hash_order");
         } else {
-            env.insert("__hash_order".to_string(), order.join("\n"));
+            env.insert("\0hash_order".to_string(), order.join("\n"));
         }
     }
     removed
@@ -1054,16 +1054,16 @@ fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<S
 fn hash_ordered_entries(env: &BTreeMap<String, String>) -> Vec<(String, String)> {
     let mut result = Vec::new();
     let mut seen = std::collections::BTreeSet::new();
-    if let Some(order_str) = env.get("__hash_order") {
+    if let Some(order_str) = env.get("\0hash_order") {
         for name in order_str.split('\n').filter(|x| !x.is_empty()) {
-            if let Some(target) = env.get(&format!("__hash__{name}")) {
+            if let Some(target) = env.get(&format!("\0hash__{name}")) {
                 seen.insert(name.to_string());
                 result.push((name.to_string(), target.clone()));
             }
         }
     }
     for (k, target) in env.iter() {
-        if let Some(name) = k.strip_prefix("__hash__") {
+        if let Some(name) = k.strip_prefix("\0hash__") {
             if !seen.contains(name) {
                 result.push((name.to_string(), target.clone()));
             }
@@ -1138,13 +1138,13 @@ fn builtin_hash(
     if reset {
         let keys: Vec<String> = env
             .keys()
-            .filter(|k| k.starts_with("__hash__"))
+            .filter(|k| k.starts_with("\0hash__"))
             .cloned()
             .collect();
         for k in keys {
             env.remove(&k);
         }
-        env.remove("__hash_order");
+        env.remove("\0hash_order");
     }
 
     if print_target && hash_args.is_empty() {
@@ -1190,7 +1190,7 @@ fn builtin_hash(
         }
         if print_target {
             let existing = env
-                .get(&format!("__hash__{name}"))
+                .get(&format!("\0hash__{name}"))
                 .cloned()
                 .or_else(|| resolve_hash_command(name, cwd, env, fs));
             if let Some(target) = existing {
@@ -1919,7 +1919,7 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
             .map(|(b, _)| b)
             .unwrap_or(&resolved);
         if env
-            .get(&format!("__attr__{base}"))
+            .get(&format!("\0attr__{base}"))
             .is_some_and(|a| a.contains('r'))
         {
             return BuiltinOutcome {
@@ -2175,7 +2175,7 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
                 return true;
             }
             let tail_len = env
-                .get("__dirstack")
+                .get("\0dirstack")
                 .filter(|s| !s.is_empty())
                 .map(|s| s.split('\x1f').count() as i64)
                 .unwrap_or(0);
@@ -2183,7 +2183,7 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
             let eff = if idx < 0 { tail_len + 1 + idx } else { idx };
             return eff >= 0 && eff <= tail_len;
         }
-        let is_assoc = env.get(&format!("__assoc__{resolved_base}")).is_some_and(|v| v == "1");
+        let is_assoc = env.get(&format!("\0assoc__{resolved_base}")).is_some_and(|v| v == "1");
         if !is_assoc && matches!(sub, "@" | "*") {
             let prefix = format!("{resolved_base}[");
             return env.contains_key(&resolved_base) || env.keys().any(|k| k.starts_with(&prefix));
@@ -2221,11 +2221,11 @@ fn eval_test_var_present(val: &str, env: &mut BTreeMap<String, String>) -> bool 
         return env.contains_key("FUNCNAME") || env.contains_key("FUNCNAME[0]");
     }
     if resolved == "RANDOM" {
-        return !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false)
             || env.contains_key("RANDOM");
     }
     if resolved == "SECONDS" {
-        return !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false)
             || env.contains_key("SECONDS");
     }
     if env.contains_key(resolved) || env.contains_key(&format!("{resolved}[0]")) {
@@ -2247,16 +2247,16 @@ pub fn eval_test_unary_predicate(
         "-t" => return false,
         "-v" => return eval_test_var_present(val, env),
         "-R" => {
-            return env.contains_key(&format!("__nameref__{val}"))
+            return env.contains_key(&format!("\0nameref__{val}"))
                 || env
-                    .get(&format!("__attr__{val}"))
+                    .get(&format!("\0attr__{val}"))
                     .is_some_and(|a| a.contains('n'));
         }
         "-o" => {
             return if val == "braceexpand" {
-                env.get("__set_braceexpand").map(|v| v != "0").unwrap_or(true)
+                env.get("\0set_braceexpand").map(|v| v != "0").unwrap_or(true)
             } else {
-                env.get(&format!("__set_{val}")).is_some_and(|v| v == "1")
+                env.get(&format!("\0set_{val}")).is_some_and(|v| v == "1")
             };
         }
         _ => {}
@@ -2285,7 +2285,7 @@ pub fn eval_test_unary_predicate(
                 .strip_prefix("/dev/fd/")
                 .or_else(|| path.strip_prefix("/proc/self/fd/"))
                 && let Ok(fd) = fd_str.parse::<u32>()
-                && env.get(&format!("__pipe_fd__{fd}")).is_some_and(|v| v == "1")
+                && env.get(&format!("\0pipe_fd__{fd}")).is_some_and(|v| v == "1")
             {
                 return true;
             }
@@ -2310,14 +2310,14 @@ pub fn eval_test_unary_predicate(
             .unwrap_or(false),
         "-O" => {
             let euid = env
-                .get("__euid")
+                .get("\0euid")
                 .and_then(|v| v.parse::<u32>().ok())
                 .unwrap_or(0);
             fs.stat(&path).is_ok() && euid == 0
         }
         "-G" => {
             let egid = env
-                .get("__egid")
+                .get("\0egid")
                 .and_then(|v| v.parse::<u32>().ok())
                 .unwrap_or(0);
             fs.stat(&path).is_ok() && egid == 0
@@ -2696,7 +2696,7 @@ fn eval_test_primary(
         let right = args.get(*pos + 2).map(|s| s.as_str()).unwrap_or("");
         *pos += 3;
         let nocase = env
-            .get("__shopt_nocasematch")
+            .get("\0shopt_nocasematch")
             .map(|v| v == "1")
             .unwrap_or(false);
         return match op {
@@ -3547,7 +3547,7 @@ pub fn eval_ere_match(
     }
 
     let nocase = env
-        .get("__shopt_nocasematch")
+        .get("\0shopt_nocasematch")
         .is_some_and(|v| v == "1");
     let mut parser = EreParser {
         pattern: &pattern,
@@ -3589,7 +3589,7 @@ pub fn eval_ere_match(
     let status = if matched.is_some() { 0 } else { 1 };
 
     if env
-        .get("__attr__BASH_REMATCH")
+        .get("\0attr__BASH_REMATCH")
         .is_some_and(|a| a.contains('r'))
     {
         stderr.push_str("BASH_REMATCH: readonly variable\n");
@@ -3615,9 +3615,9 @@ pub fn eval_ere_match(
 
 fn sync_dirstack_env(cwd: &str, stack: &[String], env: &mut BTreeMap<String, String>) {
     if stack.is_empty() {
-        env.remove("__dirstack");
+        env.remove("\0dirstack");
     } else {
-        env.insert("__dirstack".to_string(), stack.join("\x1f"));
+        env.insert("\0dirstack".to_string(), stack.join("\x1f"));
     }
     let old: Vec<String> = env
         .keys()
@@ -3809,7 +3809,7 @@ mod tests {
         assert_eq!(print_ps.stdout, "umask -S u=rwx,g=rx,o=\n");
 
         env.insert("RO_VAR".to_string(), "initial".to_string());
-        env.insert("__attr__RO_VAR".to_string(), "r".to_string());
+        env.insert("\0attr__RO_VAR".to_string(), "r".to_string());
         let printf_ro = builtin_printf(&args(&["-v", "RO_VAR", "%s", "changed"]), &mut env);
         assert_eq!(printf_ro.exit_code, 1);
         assert_eq!(printf_ro.stderr, "printf: RO_VAR: readonly variable\n");
@@ -3880,7 +3880,7 @@ mod tests {
         let mut cwd = "/".to_string();
         let mut stdin = String::new();
 
-        env.insert("__shopt_xpg_echo".to_string(), "1".to_string());
+        env.insert("\0shopt_xpg_echo".to_string(), "1".to_string());
         let echo_xpg =
             try_run_builtin("echo", &args(&["a\\tb\\c", "ignored"]), &mut stdin, &mut cwd, &mut env, &vfs)
                 .unwrap();
@@ -3960,7 +3960,7 @@ mod tests {
         assert_eq!(err, "[[ invalid ERE at 0: unclosed bracket expression\n");
 
         let mut ro_err = String::new();
-        env.insert("__attr__BASH_REMATCH".to_string(), "r".to_string());
+        env.insert("\0attr__BASH_REMATCH".to_string(), "r".to_string());
         let ro_status = eval_ere_match(
             "xyz",
             &[("(x)(yz)".to_string(), false)],

@@ -127,11 +127,11 @@ fn is_signal_ignored(sig_num: i32, env: &BTreeMap<String, String>) -> bool {
     }
     let sname = signal_name(sig_num);
     if env
-        .get(&format!("__trap_ignored__SIG{sname}"))
+        .get(&format!("\0trap_ignored__SIG{sname}"))
         .map(|v| v == "1")
         .unwrap_or(false)
         || env
-            .get(&format!("__trap_ignored__SIG{sig_num}"))
+            .get(&format!("\0trap_ignored__SIG{sig_num}"))
             .map(|v| v == "1")
             .unwrap_or(false)
     {
@@ -908,16 +908,16 @@ where
         }
         sub_env.remove(name);
         if name == "PATH" {
-            sub_env.insert("__path_unset__".to_string(), "1".to_string());
+            sub_env.insert("\0path_unset__".to_string(), "1".to_string());
         }
     }
 
     let inherited_names: Vec<String> = sub_env
         .keys()
         .filter(|k| {
-            !k.starts_with("__")
+            !k.starts_with('\0')
                 && !k.contains('[')
-                && !sub_env.contains_key(&format!("__unexported__{k}"))
+                && !sub_env.contains_key(&format!("\0unexported__{k}"))
         })
         .cloned()
         .collect();
@@ -947,9 +947,9 @@ where
         if !existed {
             added_names.push(name.to_string());
         }
-        sub_env.remove(&format!("__unexported__{name}"));
+        sub_env.remove(&format!("\0unexported__{name}"));
         if name == "PATH" {
-            sub_env.remove("__path_unset__");
+            sub_env.remove("\0path_unset__");
         }
         sub_env.insert(name.to_string(), content.to_string());
     }
@@ -999,9 +999,9 @@ where
         );
     }
     if let Some(a0) = &parsed.argv0 {
-        sub_env.insert("__argv0".to_string(), a0.clone());
+        sub_env.insert("\0argv0".to_string(), a0.clone());
     } else {
-        sub_env.remove("__argv0");
+        sub_env.remove("\0argv0");
     }
 
     if offset < parsed.operands.len() {
@@ -1214,8 +1214,8 @@ fn split_env_string(
                 return Err(format!("only ${{VARNAME}} expansion is supported, error at: {tail}"));
             }
             let vname: String = chars[i + 2..end].iter().collect();
-            if !vname.starts_with("__")
-                && !env.contains_key(&format!("__unexported__{vname}"))
+            if !vname.starts_with('\0')
+                && !env.contains_key(&format!("\0unexported__{vname}"))
                 && let Some(val) = env.get(&vname)
             {
                 work.account(val)?;
@@ -1404,7 +1404,7 @@ where
     if duration_ms > 0.0
         && duration_ms.is_finite()
         && env
-            .get("__has_finite_shared_quota")
+            .get("\0has_finite_shared_quota")
             .map(|v| v == "1")
             .unwrap_or(false)
     {

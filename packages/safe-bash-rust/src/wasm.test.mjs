@@ -3,6 +3,26 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("double underscore variables survive exports, shell options and cold checkpoints", async () => {
+  const bash = new RustWasmBash({ cwd: "/workspace", env: { __cwd: "cwd-value", __project: "initial" } });
+  try {
+    const session = bash.createSession();
+    const first = await session.exec("export __project=demo; __attr__tag=r; tag=one; tag=two; __umask=text; __set_noexec=1; declare -a __items=([4]=four); echo ok");
+    assert.equal(first.stdout, "ok\n");
+    assert.equal(first.stderr, "");
+    const state = JSON.parse(JSON.stringify(session.state));
+    assert.equal(state.cwd, "/workspace");
+    assert.equal(state.umask, 0o22);
+    assert.equal(state.options.noexec, false);
+    assert.equal(state.variables.__attr__tag, "r");
+    assert.equal(state.variables.__umask, "text");
+    assert.equal(state.exported.includes("__project"), true);
+    assert.equal(Object.keys(state.variables).some(name => name.includes("\0")), false);
+    const next = await bash.createSession(state).exec(`echo "$__cwd:$tag:\${__items[4]}"; bash -c 'printenv __project'`);
+    assert.equal(next.stdout, "cwd-value:two:four\ndemo\n");
+  } finally { bash.dispose(); }
+});
+
 test("JSON session checkpoints restore bindings without repeating filesystem writes", async () => {
   const bash = new RustWasmBash();
   try {

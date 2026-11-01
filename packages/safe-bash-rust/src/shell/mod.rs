@@ -52,9 +52,11 @@ impl Shell {
             .unwrap_or_else(|| "/".to_string());
         let _ = fs.mkdir_all(&cwd);
         let mut env = options.env;
+        // Internal bindings start with NUL, which cannot occur in an environment name.
+        env.retain(|key, _| !key.contains('\0'));
         if !env.contains_key("IFS") {
             env.insert("IFS".into(), " \t\n".into());
-            env.insert("__unexported__IFS".into(), "1".into());
+            env.insert("\0unexported__IFS".into(), "1".into());
         }
         Self {
             fs,
@@ -108,7 +110,12 @@ impl Shell {
     }
 
     pub fn set_env(&mut self, key: &str, val: &str) {
-        self.env.remove(&format!("__unexported__{key}"));
+        if key.contains('\0') { return; }
+        self.set_binding(key, val);
+    }
+
+    pub(crate) fn set_binding(&mut self, key: &str, val: &str) {
+        self.env.remove(&format!("\0unexported__{key}"));
         self.env.insert(key.to_string(), val.to_string());
     }
 
@@ -133,7 +140,7 @@ impl Shell {
             self.cwd = normalize_posix_path(override_cwd);
         }
         for (k, v) in options.env {
-            self.env.insert(k, v);
+            self.set_env(&k, &v);
         }
         let stdin = options.stdin.as_deref().unwrap_or("");
 

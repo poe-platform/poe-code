@@ -676,25 +676,25 @@ fn parse_js_int10(value: &str) -> i64 {
 }
 
 pub fn read_dynamic_random(env: &mut BTreeMap<String, String>) -> Option<String> {
-    if env.get("__random_disabled").map(|v| v == "1").unwrap_or(false) {
+    if env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false) {
         return env.get("RANDOM").cloned();
     }
     let cur_seed = env
-        .get("__random_seed")
+        .get("\0random_seed")
         .and_then(|s| s.parse::<u64>().ok())
         .unwrap_or(1);
     let seed = (cur_seed.wrapping_mul(16807)) % 2147483647;
-    env.insert("__random_seed".to_string(), seed.to_string());
+    env.insert("\0random_seed".to_string(), seed.to_string());
     let val = (seed ^ (seed >> 16)) & 0x7fff;
     Some(val.to_string())
 }
 
 pub fn read_dynamic_seconds(env: &BTreeMap<String, String>) -> Option<String> {
-    if env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false) {
+    if env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false) {
         return env.get("SECONDS").cloned();
     }
     let origin_ms = env
-        .get("__seconds_origin_ms")
+        .get("\0seconds_origin_ms")
         .and_then(|s| s.parse::<i64>().ok())
         .unwrap_or(0);
     let now_ms = crate::commands::virtual_clock_elapsed_ms().floor() as i64;
@@ -703,19 +703,19 @@ pub fn read_dynamic_seconds(env: &BTreeMap<String, String>) -> Option<String> {
 }
 
 pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String, String>) -> bool {
-    if name == "RANDOM" && !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false) {
+    if name == "RANDOM" && !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false) {
         let parsed = parse_js_int10(value) as i32;
         let u = parsed as u32 as u64;
         let seed = (u % 2147483647).max(1);
-        env.insert("__random_seed".to_string(), seed.to_string());
+        env.insert("\0random_seed".to_string(), seed.to_string());
         env.insert("RANDOM".to_string(), value.to_string());
         return true;
     }
-    if name == "SECONDS" && !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false) {
+    if name == "SECONDS" && !env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false) {
         let parsed = parse_js_int10(value);
         let now_ms = crate::commands::virtual_clock_elapsed_ms().floor() as i64;
         let origin = now_ms - parsed.saturating_mul(1000);
-        env.insert("__seconds_origin_ms".to_string(), origin.to_string());
+        env.insert("\0seconds_origin_ms".to_string(), origin.to_string());
         env.insert("SECONDS".to_string(), value.to_string());
         return true;
     }
@@ -725,7 +725,7 @@ pub fn write_dynamic_variable(name: &str, value: &str, env: &mut BTreeMap<String
 pub fn ensure_dirstack_populated(env: &mut BTreeMap<String, String>) {
     let cwd = env.get("PWD").cloned().unwrap_or_else(|| "/".to_string());
     let tail: Vec<String> = env
-        .get("__dirstack")
+        .get("\0dirstack")
         .filter(|s| !s.is_empty())
         .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
         .unwrap_or_default();
@@ -1023,7 +1023,7 @@ pub fn sync_array_metadata(base: &str, env: &mut BTreeMap<String, String>) {
         .collect();
     sort_array_entries(base, env, &mut entries);
     let keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
-    env.insert(format!("__keys__{base}"), keys.join("\x1f"));
+    env.insert(format!("\0keys__{base}"), keys.join("\x1f"));
     if let Some(zero) = env.get(&format!("{base}[0]")).cloned() {
         env.insert(base.to_string(), zero);
     } else {
@@ -1037,15 +1037,15 @@ pub fn sort_array_entries(
     entries: &mut [(String, String)],
 ) {
     let is_assoc = env
-        .get(&format!("__assoc__{base}"))
+        .get(&format!("\0assoc__{base}"))
         .map(|v| v == "1")
         .unwrap_or(false)
         || env
-            .get(&format!("__attr__{base}"))
+            .get(&format!("\0attr__{base}"))
             .is_some_and(|a| a.contains('A'));
     if !is_assoc {
         entries.sort_by_key(|(k, _)| k.parse::<i64>().unwrap_or(0));
-    } else if let Some(order_str) = env.get(&format!("__keys__{base}")) {
+    } else if let Some(order_str) = env.get(&format!("\0keys__{base}")) {
         let order: Vec<&str> = if order_str.is_empty() {
             Vec::new()
         } else {
@@ -1071,9 +1071,9 @@ fn resolve_arith_var_resolved(
     } else if resolved == "SECONDS" {
         read_dynamic_seconds(env)
     } else if resolved == "LINENO" {
-        env.get("LINENO").or_else(|| env.get("__lineno")).cloned()
+        env.get("LINENO").or_else(|| env.get("\0lineno")).cloned()
     } else if resolved == "_" {
-        env.get("_").or_else(|| env.get("__last_arg")).cloned()
+        env.get("_").or_else(|| env.get("\0last_arg")).cloned()
     } else if resolved == "$" || resolved == "BASHPID" {
         Some(env.get(resolved).cloned().unwrap_or_else(|| "1".to_string()))
     } else if resolved == "BASH_SUBSHELL" {
@@ -1083,8 +1083,8 @@ fn resolve_arith_var_resolved(
             if !resolved.contains('[') {
                 env.get(&format!("{resolved}[0]")).cloned()
             } else if let Some(b) = resolved.strip_suffix("[0]")
-                && !env.contains_key(&format!("__keys__{b}"))
-                && !env.contains_key(&format!("__assoc__{b}"))
+                && !env.contains_key(&format!("\0keys__{b}"))
+                && !env.contains_key(&format!("\0assoc__{b}"))
             {
                 env.get(b).cloned()
             } else {
@@ -1093,7 +1093,7 @@ fn resolve_arith_var_resolved(
         })
     };
     let Some(raw) = raw_opt else {
-        if env.get("__set_nounset").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false) {
             return Err(format!("__nounset__{orig_ref}: unbound variable"));
         }
         return Ok(0);
@@ -1123,7 +1123,7 @@ fn set_arith_var_resolved(
         .map(|(b, _)| b)
         .unwrap_or(&resolved);
     if env
-        .get(&format!("__attr__{base}"))
+        .get(&format!("\0attr__{base}"))
         .is_some_and(|a| a.contains('r'))
     {
         return Err(format!("{base}: readonly variable"));
@@ -1134,23 +1134,23 @@ fn set_arith_var_resolved(
     }
     if !resolved.contains('[')
         && env
-            .get("__set_allexport")
+            .get("\0set_allexport")
             .map(|v| v == "1")
             .unwrap_or(false)
     {
-        let attr_key = format!("__attr__{base}");
+        let attr_key = format!("\0attr__{base}");
         let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
         if !attr.contains('x') {
             attr.push('x');
             env.insert(attr_key, attr);
         }
-        env.remove(&format!("__unexported__{base}"));
+        env.remove(&format!("\0unexported__{base}"));
     }
     let is_array = !resolved.contains('[')
-        && (env.contains_key(&format!("__keys__{resolved}"))
-            || env.contains_key(&format!("__assoc__{resolved}"))
+        && (env.contains_key(&format!("\0keys__{resolved}"))
+            || env.contains_key(&format!("\0assoc__{resolved}"))
             || env
-                .get(&format!("__attr__{resolved}"))
+                .get(&format!("\0attr__{resolved}"))
                 .is_some_and(|a| a.contains('a') || a.contains('A')));
     if is_array {
         env.insert(format!("{resolved}[0]"), val_s);
@@ -1158,8 +1158,8 @@ fn set_arith_var_resolved(
         return Ok(());
     }
     if let Some((base, _)) = resolved.split_once('[')
-        && !env.contains_key(&format!("__keys__{base}"))
-        && !env.contains_key(&format!("__assoc__{base}"))
+        && !env.contains_key(&format!("\0keys__{base}"))
+        && !env.contains_key(&format!("\0assoc__{base}"))
         && let Some(scalar) = env.get(base).cloned()
     {
         env.entry(format!("{base}[0]")).or_insert(scalar);
@@ -1203,17 +1203,17 @@ pub fn sync_getopts_env(env: &mut BTreeMap<String, String>) {
     if let Some(val) = env.get("OPTIND").cloned() {
         let idx = decimal_index(&val);
         if idx <= 1 {
-            env.insert("__getopts_index".to_string(), "0".to_string());
-            env.remove("__getopts_active_arg");
-            env.remove("__getopts_active_off");
+            env.insert("\0getopts_index".to_string(), "0".to_string());
+            env.remove("\0getopts_active_arg");
+            env.remove("\0getopts_active_off");
         } else {
-            env.insert("__getopts_index".to_string(), idx.to_string());
+            env.insert("\0getopts_index".to_string(), idx.to_string());
         }
     } else {
-        env.insert("__getopts_int".to_string(), "0".to_string());
-        env.insert("__getopts_index".to_string(), "0".to_string());
-        env.remove("__getopts_active_arg");
-        env.remove("__getopts_active_off");
+        env.insert("\0getopts_int".to_string(), "0".to_string());
+        env.insert("\0getopts_index".to_string(), "0".to_string());
+        env.remove("\0getopts_active_arg");
+        env.remove("\0getopts_active_off");
     }
 }
 
@@ -1554,7 +1554,7 @@ pub fn apply_var_attributes(
     raw_val: &str,
     env: &mut BTreeMap<String, String>,
 ) -> Result<String, String> {
-    let attr = env.get(&format!("__attr__{base}")).cloned().unwrap_or_default();
+    let attr = env.get(&format!("\0attr__{base}")).cloned().unwrap_or_default();
     let mut final_val = raw_val.to_string();
     if attr.contains('i') {
         let trimmed = final_val.trim();
@@ -1749,7 +1749,7 @@ pub fn expand_parameter_expr(
             }
             let prefix = format!("{resolved}[");
             let is_assoc = env
-                .get(&format!("__assoc__{resolved}"))
+                .get(&format!("\0assoc__{resolved}"))
                 .map(|v| v == "1")
                 .unwrap_or(false);
             let mut entries: Vec<(String, String)> = env
@@ -1764,7 +1764,7 @@ pub fn expand_parameter_expr(
             let mut keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
             if keys.is_empty()
                 && !is_assoc
-                && !env.contains_key(&format!("__keys__{resolved}"))
+                && !env.contains_key(&format!("\0keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 keys.push("0".to_string());
@@ -1773,7 +1773,7 @@ pub fn expand_parameter_expr(
         }
         if !iv_var.is_empty() && !iv_var.contains('[') && (iv_tail == "*" || iv_tail == "@") {
             let names = collect_prefix_var_names(iv_var, env);
-            if iv_tail == "*" && env.get("__in_dquote").map(|v| v == "1").unwrap_or(false) {
+            if iv_tail == "*" && env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false) {
                 let sep = env
                     .get("IFS")
                     .and_then(|s| s.chars().next())
@@ -1789,13 +1789,13 @@ pub fn expand_parameter_expr(
             }
             return Ok(names.join(" "));
         }
-        if iv_tail.is_empty() && env.contains_key(&format!("__nameref__{rest}")) {
+        if iv_tail.is_empty() && env.contains_key(&format!("\0nameref__{rest}")) {
             return Ok(resolve_nameref_base(rest, env).to_string());
         }
         if iv_var.is_empty() {
             return Err(format!("{expr}: bad substitution"));
         }
-        let target_name = if env.contains_key(&format!("__nameref__{iv_var}")) {
+        let target_name = if env.contains_key(&format!("\0nameref__{iv_var}")) {
             resolve_nameref_base(iv_var, env).to_string()
         } else {
             expand_parameter_expr(iv_var, env, last_exit, pos_args)?
@@ -1823,8 +1823,8 @@ pub fn expand_parameter_expr(
                 })
                 .count();
             if count == 0
-                && !env.contains_key(&format!("__keys__{resolved}"))
-                && !env.contains_key(&format!("__assoc__{resolved}"))
+                && !env.contains_key(&format!("\0keys__{resolved}"))
+                && !env.contains_key(&format!("\0assoc__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 return Ok("1".to_string());
@@ -1848,7 +1848,7 @@ pub fn expand_parameter_expr(
         if let Some(base) = var.strip_suffix("[]") {
             let resolved = resolve_nameref_base(base, env);
             let is_assoc = env
-                .get(&format!("__assoc__{resolved}"))
+                .get(&format!("\0assoc__{resolved}"))
                 .map(|v| v == "1")
                 .unwrap_or(false);
             if !is_assoc {
@@ -1856,7 +1856,7 @@ pub fn expand_parameter_expr(
             }
         }
 
-        let in_dquote = env.get("__in_dquote").map(|v| v == "1").unwrap_or(false);
+        let in_dquote = env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false);
         let is_array_members = var.ends_with("[@]") || var.ends_with("[*]");
 
         // Error if unset/empty :?, ?
@@ -1971,27 +1971,27 @@ pub fn expand_parameter_expr(
                     .unwrap_or(&resolved)
                     .to_string();
                 if env
-                    .get(&format!("__attr__{base}"))
+                    .get(&format!("\0attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
                     return Err(format!("__param_ro__{base}: readonly variable"));
                 }
                 let transformed_def = apply_var_attributes(&base, &def, env)?;
-                if env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
-                    let attr_key = format!("__attr__{base}");
+                if env.get("\0set_allexport").map(|v| v == "1").unwrap_or(false) {
+                    let attr_key = format!("\0attr__{base}");
                     let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
                     if !attr.contains('x') {
                         attr.push('x');
                         env.insert(attr_key, attr);
                     }
-                    env.remove(&format!("__unexported__{base}"));
+                    env.remove(&format!("\0unexported__{base}"));
                 }
                 if !write_dynamic_variable(&resolved, &transformed_def, env) {
                     let is_array = !resolved.contains('[')
-                        && (env.contains_key(&format!("__keys__{resolved}"))
-                            || env.contains_key(&format!("__assoc__{resolved}"))
+                        && (env.contains_key(&format!("\0keys__{resolved}"))
+                            || env.contains_key(&format!("\0assoc__{resolved}"))
                             || env
-                                .get(&format!("__attr__{resolved}"))
+                                .get(&format!("\0attr__{resolved}"))
                                 .is_some_and(|a| a.contains('a') || a.contains('A')));
                     if is_array {
                         env.insert(format!("{resolved}[0]"), transformed_def.clone());
@@ -2035,27 +2035,27 @@ pub fn expand_parameter_expr(
                     .unwrap_or(&resolved)
                     .to_string();
                 if env
-                    .get(&format!("__attr__{base}"))
+                    .get(&format!("\0attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
                     return Err(format!("__param_ro__{base}: readonly variable"));
                 }
                 let transformed_def = apply_var_attributes(&base, &def, env)?;
-                if env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
-                    let attr_key = format!("__attr__{base}");
+                if env.get("\0set_allexport").map(|v| v == "1").unwrap_or(false) {
+                    let attr_key = format!("\0attr__{base}");
                     let mut attr = env.get(&attr_key).cloned().unwrap_or_default();
                     if !attr.contains('x') {
                         attr.push('x');
                         env.insert(attr_key, attr);
                     }
-                    env.remove(&format!("__unexported__{base}"));
+                    env.remove(&format!("\0unexported__{base}"));
                 }
                 if !write_dynamic_variable(&resolved, &transformed_def, env) {
                     let is_array = !resolved.contains('[')
-                        && (env.contains_key(&format!("__keys__{resolved}"))
-                            || env.contains_key(&format!("__assoc__{resolved}"))
+                        && (env.contains_key(&format!("\0keys__{resolved}"))
+                            || env.contains_key(&format!("\0assoc__{resolved}"))
                             || env
-                                .get(&format!("__attr__{resolved}"))
+                                .get(&format!("\0attr__{resolved}"))
                                 .is_some_and(|a| a.contains('a') || a.contains('A')));
                     if is_array {
                         env.insert(format!("{resolved}[0]"), transformed_def.clone());
@@ -2112,7 +2112,7 @@ pub fn expand_parameter_expr(
 
         // Prefix / suffix stripping ##, #, %%, %
         let extglob = env
-            .get("__shopt_extglob")
+            .get("\0shopt_extglob")
             .map(|v| v == "1")
             .unwrap_or(false);
         if let Some(pat_raw) = op_rest.strip_prefix("##") {
@@ -2175,7 +2175,7 @@ pub fn expand_parameter_expr(
             let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
-            let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+            let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
@@ -2205,7 +2205,7 @@ pub fn expand_parameter_expr(
             let tilded_rep = expand_tilde_prefix(rep_raw, env, false, false);
             let pat = expand_pattern_operand(&tilded_pat, env, last_exit, pos_args)?;
             let rep = expand_replacement_operand_ext(&tilded_rep, env, last_exit, pos_args)?;
-            let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+            let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
             if let Some(elems) = lookup_array_elements(var, env, pos_args) {
                 let items: Vec<String> = elems
                     .iter()
@@ -2315,11 +2315,11 @@ pub fn expand_parameter_expr(
                     ensure_dirstack_populated(env);
                 }
                 let is_assoc = env
-                    .get(&format!("__assoc__{resolved}"))
+                    .get(&format!("\0assoc__{resolved}"))
                     .map(|v| v == "1")
                     .unwrap_or(false)
                     || env
-                        .get(&format!("__attr__{resolved}"))
+                        .get(&format!("\0attr__{resolved}"))
                         .is_some_and(|a| a.contains('A'));
                 if is_assoc {
                     let prefix = format!("{resolved}[");
@@ -2358,7 +2358,7 @@ pub fn expand_parameter_expr(
                     })
                     .collect();
                 if entries.is_empty()
-                    && !env.contains_key(&format!("__keys__{resolved}"))
+                    && !env.contains_key(&format!("\0keys__{resolved}"))
                     && is_var_set(&resolved, env, pos_args)
                 {
                     entries.push((0, lookup_var(&resolved, env, 0, pos_args)));
@@ -2473,7 +2473,7 @@ pub fn expand_parameter_expr(
         return Err(format!("${{{expr}}}: bad substitution"));
     }
 
-    if env.get("__set_nounset").map(|v| v == "1").unwrap_or(false)
+    if env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false)
         && !is_var_set(expr, env, pos_args)
         && !expr.ends_with("[@]")
         && !expr.ends_with("[*]")
@@ -2549,11 +2549,11 @@ pub fn expand_double_quoted_at_expr(
             }
             let prefix = format!("{resolved}[");
             let is_assoc = env
-                .get(&format!("__assoc__{resolved}"))
+                .get(&format!("\0assoc__{resolved}"))
                 .map(|v| v == "1")
                 .unwrap_or(false)
                 || env
-                    .get(&format!("__attr__{resolved}"))
+                    .get(&format!("\0attr__{resolved}"))
                     .is_some_and(|a| a.contains('A'));
             let mut entries: Vec<(String, String)> = env
                 .keys()
@@ -2567,7 +2567,7 @@ pub fn expand_double_quoted_at_expr(
             let mut keys: Vec<String> = entries.into_iter().map(|(k, _)| k).collect();
             if keys.is_empty()
                 && !is_assoc
-                && !env.contains_key(&format!("__keys__{resolved}"))
+                && !env.contains_key(&format!("\0keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 keys.push("0".to_string());
@@ -2583,7 +2583,7 @@ pub fn expand_double_quoted_at_expr(
             }
             let prefix = format!("{resolved}[");
             let is_assoc = env
-                .get(&format!("__assoc__{resolved}"))
+                .get(&format!("\0assoc__{resolved}"))
                 .map(|v| v == "1")
                 .unwrap_or(false);
             let mut entries: Vec<(String, String)> = env
@@ -2597,7 +2597,7 @@ pub fn expand_double_quoted_at_expr(
             sort_array_entries(&resolved, env, &mut entries);
             if entries.is_empty()
                 && !is_assoc
-                && !env.contains_key(&format!("__keys__{resolved}"))
+                && !env.contains_key(&format!("\0keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 let single = lookup_var(&resolved, env, 0, pos_args);
@@ -2622,11 +2622,11 @@ pub fn expand_double_quoted_at_expr(
                 ensure_dirstack_populated(env);
             }
             let is_assoc = env
-                .get(&format!("__assoc__{resolved}"))
+                .get(&format!("\0assoc__{resolved}"))
                 .map(|v| v == "1")
                 .unwrap_or(false)
                 || env
-                    .get(&format!("__attr__{resolved}"))
+                    .get(&format!("\0attr__{resolved}"))
                     .is_some_and(|a| a.contains('A'));
             if is_assoc {
                 let prefix = format!("{resolved}[");
@@ -2665,8 +2665,8 @@ pub fn expand_double_quoted_at_expr(
                 })
                 .collect();
             if entries.is_empty()
-                && !env.contains_key(&format!("__keys__{resolved}"))
-                && !env.contains_key(&format!("__assoc__{resolved}"))
+                && !env.contains_key(&format!("\0keys__{resolved}"))
+                && !env.contains_key(&format!("\0assoc__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 entries.push((0, lookup_var(&resolved, env, 0, pos_args)));
@@ -2698,7 +2698,7 @@ pub fn expand_double_quoted_at_expr(
                 && let Some(elems) = lookup_array_elements(var, env, pos_args)
             {
                 let extglob = env
-                    .get("__shopt_extglob")
+                    .get("\0shopt_extglob")
                     .map(|v| v == "1")
                     .unwrap_or(false);
                 if let Some(pat_raw) = op_rest.strip_prefix("##") {
@@ -2749,7 +2749,7 @@ pub fn expand_double_quoted_at_expr(
                         expand_pattern_operand(&tilded_pat, env, 0, pos_args).unwrap_or_default();
                     let rep = expand_replacement_operand_ext(&tilded_rep, env, 0, pos_args)
                         .unwrap_or_default();
-                    let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+                    let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
                     return Some(
                         elems
                             .iter()
@@ -2776,7 +2776,7 @@ pub fn expand_double_quoted_at_expr(
                         expand_pattern_operand(&tilded_pat, env, 0, pos_args).unwrap_or_default();
                     let rep = expand_replacement_operand_ext(&tilded_rep, env, 0, pos_args)
                         .unwrap_or_default();
-                    let nocase = env.get("__shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
+                    let nocase = env.get("\0shopt_nocasematch").map(|v| v == "1").unwrap_or(false);
                     return Some(
                         elems
                             .iter()
@@ -3048,7 +3048,7 @@ fn collect_prefix_var_names(prefix: &str, env: &BTreeMap<String, String>) -> Vec
         names.insert("FUNCNAME".to_string());
     }
     for k in env.keys() {
-        if k.starts_with("__") {
+        if k.starts_with('\0') {
             continue;
         }
         let base = k.split_once('[').map(|(b, _)| b).unwrap_or(k.as_str());
@@ -3092,28 +3092,28 @@ fn is_var_set(name: &str, env: &BTreeMap<String, String>, pos_args: &[String]) -
             return true;
         }
         let is_assoc = env
-            .get(&format!("__assoc__{resolved}"))
+            .get(&format!("\0assoc__{resolved}"))
             .map(|v| v == "1")
             .unwrap_or(false)
             || env
-                .get(&format!("__attr__{resolved}"))
+                .get(&format!("\0attr__{resolved}"))
                 .is_some_and(|a| a.contains('A'));
-        if !is_assoc && !env.contains_key(&format!("__keys__{resolved}")) {
+        if !is_assoc && !env.contains_key(&format!("\0keys__{resolved}")) {
             return env.contains_key(resolved);
         }
         return false;
     }
     let resolved = resolve_var_key_for_lookup(name, env);
     if resolved == "RANDOM" {
-        return !env.get("__random_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env.get("\0random_disabled").map(|v| v == "1").unwrap_or(false)
             || env.contains_key("RANDOM");
     }
     if resolved == "SECONDS" {
-        return !env.get("__seconds_disabled").map(|v| v == "1").unwrap_or(false)
+        return !env.get("\0seconds_disabled").map(|v| v == "1").unwrap_or(false)
             || env.contains_key("SECONDS");
     }
     if resolved == "_" {
-        return env.contains_key("_") || env.contains_key("__last_arg");
+        return env.contains_key("_") || env.contains_key("\0last_arg");
     }
     if resolved == "DIRSTACK" || resolved == "DIRSTACK[0]" {
         return true;
@@ -3127,7 +3127,7 @@ fn expand_nested_operand(
     last_exit: i32,
     pos_args: &[String],
 ) -> Result<String, String> {
-    let in_dquote = env.get("__in_dquote").map(|v| v == "1").unwrap_or(false);
+    let in_dquote = env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false);
     let chars: Vec<char> = raw.chars().collect();
     let mut i = 0usize;
     let mut out = String::new();
@@ -3254,7 +3254,7 @@ fn expand_replacement_operand(
     last_exit: i32,
     pos_args: &[String],
 ) -> Result<String, String> {
-    let in_dquote = env.get("__in_dquote").map(|v| v == "1").unwrap_or(false);
+    let in_dquote = env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false);
     let chars: Vec<char> = raw.chars().collect();
     let mut i = 0usize;
     let mut out = String::new();
@@ -3416,7 +3416,7 @@ fn replace_glob_pattern_full(
 pub fn resolve_nameref_base<'a>(base: &'a str, env: &'a BTreeMap<String, String>) -> &'a str {
     let mut cur = base;
     for _ in 0..8 {
-        if let Some(target) = env.get(&format!("__nameref__{cur}")) {
+        if let Some(target) = env.get(&format!("\0nameref__{cur}")) {
             cur = target.as_str();
         } else {
             break;
@@ -3486,9 +3486,9 @@ pub fn get_var_meta_info(
     resolved: &str,
     env: &BTreeMap<String, String>,
 ) -> (bool, bool, bool, Vec<(String, String)>, String) {
-    let attr = env.get(&format!("__attr__{resolved}")).cloned().unwrap_or_default();
+    let attr = env.get(&format!("\0attr__{resolved}")).cloned().unwrap_or_default();
     let is_assoc = env
-        .get(&format!("__assoc__{resolved}"))
+        .get(&format!("\0assoc__{resolved}"))
         .map(|v| v == "1")
         .unwrap_or(false)
         || attr.contains('A');
@@ -3504,14 +3504,14 @@ pub fn get_var_meta_info(
     sort_array_entries(resolved, env, &mut entries);
     let is_indexed = !is_assoc
         && (!entries.is_empty()
-            || env.contains_key(&format!("__keys__{resolved}"))
+            || env.contains_key(&format!("\0keys__{resolved}"))
             || attr.contains('a'));
     let is_array = is_assoc || is_indexed;
     let has_var = is_array
         || env.contains_key(resolved)
         || !attr.is_empty()
-        || env.contains_key(&format!("__declared__{resolved}"))
-        || env.contains_key(&format!("__nameref__{resolved}"));
+        || env.contains_key(&format!("\0declared__{resolved}"))
+        || env.contains_key(&format!("\0nameref__{resolved}"));
     let mut flags = String::new();
     if is_indexed {
         flags.push('a');
@@ -3525,7 +3525,7 @@ pub fn get_var_meta_info(
     if attr.contains('l') {
         flags.push('l');
     }
-    if attr.contains('n') || env.contains_key(&format!("__nameref__{resolved}")) {
+    if attr.contains('n') || env.contains_key(&format!("\0nameref__{resolved}")) {
         flags.push('n');
     }
     if attr.contains('r') {
@@ -3549,7 +3549,7 @@ fn apply_value_transform(
 ) -> Result<String, String> {
     let c_mode = is_c_locale(env);
     let extglob = env
-        .get("__shopt_extglob")
+        .get("\0shopt_extglob")
         .map(|v| v == "1")
         .unwrap_or(false);
     match xform {
@@ -3651,7 +3651,7 @@ fn lookup_array_elements(
     }
     let prefix = format!("{resolved}[");
     let is_assoc = env
-        .get(&format!("__assoc__{resolved}"))
+        .get(&format!("\0assoc__{resolved}"))
         .map(|v| v == "1")
         .unwrap_or(false);
     let mut entries: Vec<(String, String)> = env
@@ -3665,7 +3665,7 @@ fn lookup_array_elements(
     sort_array_entries(&resolved, env, &mut entries);
     if entries.is_empty()
         && !is_assoc
-        && !env.contains_key(&format!("__keys__{resolved}"))
+        && !env.contains_key(&format!("\0keys__{resolved}"))
         && is_var_set(&resolved, env, pos_args)
     {
         let single = lookup_var(&resolved, env, 0, pos_args);
@@ -3690,7 +3690,7 @@ fn resolve_var_key_for_lookup(name: &str, env: &BTreeMap<String, String>) -> Str
             unq.to_string()
         };
         let is_assoc = env
-            .get(&format!("__assoc__{resolved_base}"))
+            .get(&format!("\0assoc__{resolved_base}"))
             .map(|v| v == "1")
             .unwrap_or(false);
         if !is_assoc && !matches!(clean_sub.as_str(), "@" | "*" | "#") && !clean_sub.is_empty() {
@@ -3768,7 +3768,7 @@ fn resolve_var_key_mut(
             unq.to_string()
         };
         let is_assoc = env
-            .get(&format!("__assoc__{resolved_base}"))
+            .get(&format!("\0assoc__{resolved_base}"))
             .map(|v| v == "1")
             .unwrap_or(false);
         if !is_assoc && !matches!(clean_sub.as_str(), "@" | "*" | "#") && !clean_sub.is_empty() {
@@ -3822,25 +3822,25 @@ pub fn lookup_var(
     }
     if name == "-" {
         let mut flags = String::new();
-        if env.get("__set_allexport").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_allexport").map(|v| v == "1").unwrap_or(false) {
             flags.push('a');
         }
-        if env.get("__set_errexit").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_errexit").map(|v| v == "1").unwrap_or(false) {
             flags.push('e');
         }
-        if env.get("__set_noglob").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_noglob").map(|v| v == "1").unwrap_or(false) {
             flags.push('f');
         }
-        if env.get("__set_noexec").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_noexec").map(|v| v == "1").unwrap_or(false) {
             flags.push('n');
         }
-        if env.get("__set_nounset").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false) {
             flags.push('u');
         }
-        if env.get("__set_braceexpand").map(|v| v != "0").unwrap_or(true) {
+        if env.get("\0set_braceexpand").map(|v| v != "0").unwrap_or(true) {
             flags.push('B');
         }
-        if env.get("__set_noclobber").map(|v| v == "1").unwrap_or(false) {
+        if env.get("\0set_noclobber").map(|v| v == "1").unwrap_or(false) {
             flags.push('C');
         }
         return flags;
@@ -3878,7 +3878,7 @@ pub fn lookup_var(
         }
         let prefix = format!("{resolved}[");
         let is_assoc = env
-            .get(&format!("__assoc__{resolved}"))
+            .get(&format!("\0assoc__{resolved}"))
             .map(|v| v == "1")
             .unwrap_or(false);
         let mut entries: Vec<(String, String)> = env
@@ -3892,7 +3892,7 @@ pub fn lookup_var(
         sort_array_entries(&resolved, env, &mut entries);
         if entries.is_empty() {
             if !is_assoc
-                && !env.contains_key(&format!("__keys__{resolved}"))
+                && !env.contains_key(&format!("\0keys__{resolved}"))
                 && is_var_set(&resolved, env, pos_args)
             {
                 return lookup_var(&resolved, env, last_exit, pos_args);
@@ -3926,14 +3926,14 @@ pub fn lookup_var(
     if key == "LINENO" || key == "LINENO[0]" {
         return env
             .get("LINENO")
-            .or_else(|| env.get("__lineno"))
+            .or_else(|| env.get("\0lineno"))
             .cloned()
             .unwrap_or_else(|| "1".to_string());
     }
     if key == "_" || key == "_[0]" {
         return env
             .get("_")
-            .or_else(|| env.get("__last_arg"))
+            .or_else(|| env.get("\0last_arg"))
             .cloned()
             .unwrap_or_default();
     }
@@ -3942,8 +3942,8 @@ pub fn lookup_var(
     }
     if let Some(base) = key.strip_suffix("[0]")
         && !env.contains_key(&key)
-        && !env.contains_key(&format!("__keys__{base}"))
-        && !env.contains_key(&format!("__assoc__{base}"))
+        && !env.contains_key(&format!("\0keys__{base}"))
+        && !env.contains_key(&format!("\0assoc__{base}"))
         && let Some(sv) = env.get(base)
     {
         return sv.clone();
@@ -4179,7 +4179,7 @@ fn expand_pattern_operand(
     last_exit: i32,
     pos_args: &[String],
 ) -> Result<String, String> {
-    let prev = env.remove("__in_dquote");
+    let prev = env.remove("\0in_dquote");
     let res = (|| {
         let chars: Vec<char> = raw.chars().collect();
         let mut i = 0usize;
@@ -4198,14 +4198,14 @@ fn expand_pattern_operand(
                         }
                     }
                     if chars[i] == '$' {
-                        let prev_dq = env.insert("__in_dquote".to_string(), "1".to_string());
+                        let prev_dq = env.insert("\0in_dquote".to_string(), "1".to_string());
                         let exp = expand_nested_dollar(&chars, &mut i, env, last_exit, pos_args);
                         match prev_dq {
                             Some(v) => {
-                                env.insert("__in_dquote".to_string(), v);
+                                env.insert("\0in_dquote".to_string(), v);
                             }
                             None => {
-                                env.remove("__in_dquote");
+                                env.remove("\0in_dquote");
                             }
                         }
                         escape_glob_pattern_str(&exp?, &mut out);
@@ -4242,7 +4242,7 @@ fn expand_pattern_operand(
         Ok(out)
     })();
     if let Some(v) = prev {
-        env.insert("__in_dquote".to_string(), v);
+        env.insert("\0in_dquote".to_string(), v);
     }
     res
 }
@@ -4253,10 +4253,10 @@ fn expand_replacement_operand_ext(
     last_exit: i32,
     pos_args: &[String],
 ) -> Result<String, String> {
-    let prev = env.remove("__in_dquote");
+    let prev = env.remove("\0in_dquote");
     let res = expand_replacement_operand(raw, env, last_exit, pos_args);
     if let Some(v) = prev {
-        env.insert("__in_dquote".to_string(), v);
+        env.insert("\0in_dquote".to_string(), v);
     }
     res
 }
@@ -4322,7 +4322,7 @@ pub fn expand_globs_in_word_with_projection(
     env: &BTreeMap<String, String>,
 ) -> Vec<String> {
     let extglob = env
-        .get("__shopt_extglob")
+        .get("\0shopt_extglob")
         .map(|v| v == "1")
         .unwrap_or(false);
     if !has_glob_meta_ext(pattern, extglob) {
@@ -4330,12 +4330,12 @@ pub fn expand_globs_in_word_with_projection(
     }
     let globignore_raw = env.get("GLOBIGNORE").map(|s| s.as_str()).unwrap_or("");
     let has_globignore = !globignore_raw.is_empty();
-    let raw_dotglob = env.get("__shopt_dotglob").map(|v| v == "1").unwrap_or(false);
+    let raw_dotglob = env.get("\0shopt_dotglob").map(|v| v == "1").unwrap_or(false);
     let dotglob = raw_dotglob || has_globignore;
-    let nullglob = env.get("__shopt_nullglob").map(|v| v == "1").unwrap_or(false);
-    let failglob = env.get("__shopt_failglob").map(|v| v == "1").unwrap_or(false);
-    let nocaseglob = env.get("__shopt_nocaseglob").map(|v| v == "1").unwrap_or(false);
-    let globstar = env.get("__shopt_globstar").map(|v| v == "1").unwrap_or(false);
+    let nullglob = env.get("\0shopt_nullglob").map(|v| v == "1").unwrap_or(false);
+    let failglob = env.get("\0shopt_failglob").map(|v| v == "1").unwrap_or(false);
+    let nocaseglob = env.get("\0shopt_nocaseglob").map(|v| v == "1").unwrap_or(false);
+    let globstar = env.get("\0shopt_globstar").map(|v| v == "1").unwrap_or(false);
     let want_dir = projection.ends_with('/');
 
     let is_abs = pattern.starts_with('/');
@@ -4820,7 +4820,7 @@ mod tests {
     fn unit_arith_and_parameter_default_reject_readonly_variables() {
         let mut env = BTreeMap::new();
         env.insert("RO".to_string(), String::new());
-        env.insert("__attr__RO".to_string(), "r".to_string());
+        env.insert("\0attr__RO".to_string(), "r".to_string());
 
         let err = eval_arith("RO = 5", &mut env).unwrap_err();
         assert_eq!(err, "RO: readonly variable");
@@ -4844,7 +4844,7 @@ mod tests {
 
         env.insert("TARGET".to_string(), "hello-123-world".to_string());
         env.insert("PTR".to_string(), "TARGET".to_string());
-        env.insert("__shopt_extglob".to_string(), "1".to_string());
+        env.insert("\0shopt_extglob".to_string(), "1".to_string());
         assert_eq!(
             expand_parameter_expr("!PTR#hello-", &mut env, 0, &[]).unwrap(),
             "123-world"
@@ -4918,14 +4918,14 @@ mod tests {
         assert!(!env.contains_key("arr[0]"));
 
         // set -u in arithmetic
-        env.insert("__set_nounset".to_string(), "1".to_string());
+        env.insert("\0set_nounset".to_string(), "1".to_string());
         assert_eq!(
             eval_arith("MISSING_VAR + 1", &mut env).unwrap_err(),
             "__nounset__MISSING_VAR: unbound variable"
         );
         assert_eq!(eval_arith("NEW_ASSIGNED = 15", &mut env).unwrap(), 15);
         assert_eq!(env.get("NEW_ASSIGNED").map(String::as_str), Some("15"));
-        env.remove("__set_nounset");
+        env.remove("\0set_nounset");
 
         // NUL truncation in decode_ansi_c_escapes
         assert_eq!(decode_ansi_c_escapes(r"hello\0world"), "hello");
@@ -4994,7 +4994,7 @@ mod tests {
             "xxBARyy#foo"
         );
         env.insert("AB".to_string(), "ab".to_string());
-        env.insert("__shopt_extglob".to_string(), "1".to_string());
+        env.insert("\0shopt_extglob".to_string(), "1".to_string());
         assert_eq!(
             expand_parameter_expr("AB/?(z)/X", &mut env, 0, &[]).unwrap(),
             "Xab"

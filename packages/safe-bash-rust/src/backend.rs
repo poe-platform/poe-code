@@ -342,7 +342,7 @@ impl HybridBackend {
                     };
                 }
                 if script != ":" {
-                    env.insert("__last_exit".to_string(), last_exit_str);
+                    env.insert("\0last_exit".to_string(), last_exit_str);
                 }
                 Some(Ok(res))
             }
@@ -350,7 +350,7 @@ impl HybridBackend {
                 let code = if msg.starts_with("__exit127__") { 127 } else { 2 };
                 let stderr = eval.format_active_syntax_diagnostic(script, &msg);
                 if script != ":" {
-                    env.insert("__last_exit".to_string(), code.to_string());
+                    env.insert("\0last_exit".to_string(), code.to_string());
                 }
                 Some(Ok(CommandResult {
                     stdout: String::new(),
@@ -427,7 +427,7 @@ impl HybridBackend {
         }
 
         let mut env_obj = Vec::with_capacity(env.len());
-        for (k, v) in env.iter() {
+        for (k, v) in env.iter().filter(|(k, _)| !k.contains('\0')) {
             env_obj.push((jstr(k), Value::String(jstr(v))));
         }
 
@@ -504,9 +504,9 @@ impl HybridBackend {
             *cwd = from_jstr(next_cwd);
         }
         if let Some(Value::Object(next_env)) = obj_get(&resp, "env") {
-            env.clear();
+            env.retain(|k, _| k.starts_with('\0'));
             for (k, v) in next_env {
-                if let Value::String(s) = v {
+                if !k.contains(&0) && let Value::String(s) = v {
                     env.insert(from_jstr(k), from_jstr(s));
                 }
             }

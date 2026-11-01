@@ -134,29 +134,29 @@ impl<'a> EvalState<'a> {
         let mut fd_table = BTreeMap::new();
         fd_table.insert(1, FdTarget::Stdout);
         fd_table.insert(2, FdTarget::Stderr);
-        if !env.contains_key("PWD") && !env.contains_key("__pwd_unset__") {
+        if !env.contains_key("PWD") && !env.contains_key("\0pwd_unset__") {
             env.insert("PWD".to_string(), cwd.clone());
         }
-        if !env.contains_key("OPTIND") && !env.contains_key("__getopts_int") {
+        if !env.contains_key("OPTIND") && !env.contains_key("\0getopts_int") {
             env.insert("OPTIND".to_string(), "1".to_string());
-            env.insert("__unexported__OPTIND".to_string(), "1".to_string());
+            env.insert("\0unexported__OPTIND".to_string(), "1".to_string());
         }
-        if !env.contains_key("OPTERR") && !env.contains_key("__opterr_unset__") {
+        if !env.contains_key("OPTERR") && !env.contains_key("\0opterr_unset__") {
             env.insert("OPTERR".to_string(), "1".to_string());
-            env.insert("__unexported__OPTERR".to_string(), "1".to_string());
+            env.insert("\0unexported__OPTERR".to_string(), "1".to_string());
         }
-        let errexit = env.get("__set_errexit").map(|v| v == "1").unwrap_or(false);
-        let nounset = env.get("__set_nounset").map(|v| v == "1").unwrap_or(false);
-        let pipefail = env.get("__set_pipefail").map(|v| v == "1").unwrap_or(false);
-        let noclobber = env.get("__set_noclobber").map(|v| v == "1").unwrap_or(false);
-        let noexec = env.get("__set_noexec").is_some_and(|v| v == "1");
+        let errexit = env.get("\0set_errexit").map(|v| v == "1").unwrap_or(false);
+        let nounset = env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false);
+        let pipefail = env.get("\0set_pipefail").map(|v| v == "1").unwrap_or(false);
+        let noclobber = env.get("\0set_noclobber").map(|v| v == "1").unwrap_or(false);
+        let noexec = env.get("\0set_noexec").is_some_and(|v| v == "1");
         let last_exit = env
-            .get("__last_exit")
+            .get("\0last_exit")
             .and_then(|v| v.parse::<i32>().ok())
             .unwrap_or(0);
         let mut traps = BTreeMap::new();
         for (k, v) in env.iter() {
-            if let Some(sig) = k.strip_prefix("__trap_inherited_ignored__")
+            if let Some(sig) = k.strip_prefix("\0trap_inherited_ignored__")
                 && v == "1"
             {
                 traps.insert(sig.to_string(), String::new());
@@ -240,22 +240,22 @@ impl<'a> EvalState<'a> {
     {
         let errtrace = self
             .env
-            .get("__set_errtrace")
+            .get("\0set_errtrace")
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get("__shopt_extdebug")
+                .get("\0shopt_extdebug")
                 .map(|v| v == "1")
                 .unwrap_or(false);
         let functrace = self
             .env
-            .get("__set_functrace")
+            .get("\0set_functrace")
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get("__shopt_extdebug")
+                .get("\0shopt_extdebug")
                 .map(|v| v == "1")
                 .unwrap_or(false);
         let mut child_traps = BTreeMap::new();
@@ -274,10 +274,10 @@ impl<'a> EvalState<'a> {
             .and_then(|v| v.parse::<u32>().ok())
             .unwrap_or(0);
         env.insert("BASH_SUBSHELL".to_string(), (cur_subshell + 1).to_string());
-        env.insert("__unexported__BASH_SUBSHELL".to_string(), "1".to_string());
+        env.insert("\0unexported__BASH_SUBSHELL".to_string(), "1".to_string());
         let old_parent_keys: Vec<String> = env
             .keys()
-            .filter(|k| k.starts_with("__parent_job_"))
+            .filter(|k| k.starts_with("\0parent_job_"))
             .cloned()
             .collect();
         for k in old_parent_keys {
@@ -286,27 +286,27 @@ impl<'a> EvalState<'a> {
         let listed_pids: Vec<String> = self
             .env
             .keys()
-            .filter_map(|k| k.strip_prefix("__job_active__").map(|s| s.to_string()))
+            .filter_map(|k| k.strip_prefix("\0job_active__").map(|s| s.to_string()))
             .collect();
         for pid in listed_pids {
-            if let Some(jid) = self.env.get(&format!("__job_id__{pid}")) {
-                env.insert(format!("__parent_job_id__{pid}"), jid.clone());
+            if let Some(jid) = self.env.get(&format!("\0job_id__{pid}")) {
+                env.insert(format!("\0parent_job_id__{pid}"), jid.clone());
             }
-            if let Some(cmd) = self.env.get(&format!("__job_cmd__{pid}")) {
-                env.insert(format!("__parent_job_cmd__{pid}"), cmd.clone());
+            if let Some(cmd) = self.env.get(&format!("\0job_cmd__{pid}")) {
+                env.insert(format!("\0parent_job_cmd__{pid}"), cmd.clone());
             }
         }
         let own_job_keys: Vec<String> = env
             .keys()
             .filter(|k| {
-                k.starts_with("__job_status__")
-                    || k.starts_with("__job_active__")
-                    || k.starts_with("__job_notified__")
-                    || k.starts_with("__job_saved__")
-                    || k.starts_with("__job_settled__")
-                    || k.starts_with("__job_id__")
-                    || k.starts_with("__job_cmd__")
-                    || *k == "__job_next_id"
+                k.starts_with("\0job_status__")
+                    || k.starts_with("\0job_active__")
+                    || k.starts_with("\0job_notified__")
+                    || k.starts_with("\0job_saved__")
+                    || k.starts_with("\0job_settled__")
+                    || k.starts_with("\0job_id__")
+                    || k.starts_with("\0job_cmd__")
+                    || *k == "\0job_next_id"
             })
             .cloned()
             .collect();
@@ -563,14 +563,14 @@ impl<'a> EvalState<'a> {
         let mut map = BTreeMap::new();
         if !self
             .env
-            .get("__shopt_expand_aliases")
+            .get("\0shopt_expand_aliases")
             .map(|v| v == "1")
             .unwrap_or(false)
         {
             return map;
         }
         for (k, v) in self.env.iter() {
-            if let Some(name) = k.strip_prefix("__alias__") {
+            if let Some(name) = k.strip_prefix("\0alias__") {
                 map.insert(name.to_string(), v.clone());
             }
         }
@@ -579,7 +579,7 @@ impl<'a> EvalState<'a> {
 
     fn extglob_enabled(&self) -> bool {
         self.env
-            .get("__shopt_extglob")
+            .get("\0shopt_extglob")
             .map(|v| v == "1")
             .unwrap_or(false)
     }
@@ -829,12 +829,12 @@ impl<'a> EvalState<'a> {
         }
         let functrace = self
             .env
-            .get("__set_functrace")
+            .get("\0set_functrace")
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get("__shopt_extdebug")
+                .get("\0shopt_extdebug")
                 .map(|v| v == "1")
                 .unwrap_or(false);
         let cur_ver = self.trap_versions.get("DEBUG").copied();
@@ -870,7 +870,7 @@ impl<'a> EvalState<'a> {
         self.last_exit = saved_exit;
         let extdebug = self
             .env
-            .get("__shopt_extdebug")
+            .get("\0shopt_extdebug")
             .map(|v| v == "1")
             .unwrap_or(false);
         if extdebug && debug_out.exit_code != 0 {
@@ -898,12 +898,12 @@ impl<'a> EvalState<'a> {
         }
         let errtrace = self
             .env
-            .get("__set_errtrace")
+            .get("\0set_errtrace")
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get("__shopt_extdebug")
+                .get("\0shopt_extdebug")
                 .map(|v| v == "1")
                 .unwrap_or(false);
         let cur_ver = self.trap_versions.get("ERR").copied();
@@ -963,7 +963,7 @@ impl<'a> EvalState<'a> {
         let mut stderr = String::new();
         let mut last_code = self.last_exit;
         let prev_unit_locale = self.env.insert(
-            "__unit_byte_locale".to_string(),
+            "\0unit_byte_locale".to_string(),
             if self.is_current_byte_locale() { "1" } else { "0" }.to_string(),
         );
 
@@ -976,18 +976,18 @@ impl<'a> EvalState<'a> {
                 self.retire_notified_jobs();
                 let next_pid = self
                     .env
-                    .get("__job_next_pid")
+                    .get("\0job_next_pid")
                     .and_then(|s| s.parse::<u32>().ok())
                     .unwrap_or(1001);
                 self.env
-                    .insert("__job_next_pid".to_string(), (next_pid + 1).to_string());
+                    .insert("\0job_next_pid".to_string(), (next_pid + 1).to_string());
                 let max_occupied_job_id = self
                     .env
                     .keys()
-                    .filter_map(|k| k.strip_prefix("__job_active__"))
+                    .filter_map(|k| k.strip_prefix("\0job_active__"))
                     .filter_map(|pid| {
                         self.env
-                            .get(&format!("__job_id__{pid}"))
+                            .get(&format!("\0job_id__{pid}"))
                             .and_then(|s| s.parse::<u32>().ok())
                     })
                     .max()
@@ -1083,16 +1083,16 @@ impl<'a> EvalState<'a> {
                 stdout.push_str(&bg_out.stdout);
                 stderr.push_str(&bg_out.stderr);
                 self.env
-                    .insert(format!("__job_status__{pid_str}"), bg_out.exit_code.to_string());
+                    .insert(format!("\0job_status__{pid_str}"), bg_out.exit_code.to_string());
                 self.env
-                    .insert(format!("__job_active__{pid_str}"), "1".to_string());
-                self.env.remove(&format!("__job_notified__{pid_str}"));
-                self.env.remove(&format!("__job_saved__{pid_str}"));
-                self.env.remove(&format!("__job_settled__{pid_str}"));
+                    .insert(format!("\0job_active__{pid_str}"), "1".to_string());
+                self.env.remove(&format!("\0job_notified__{pid_str}"));
+                self.env.remove(&format!("\0job_saved__{pid_str}"));
+                self.env.remove(&format!("\0job_settled__{pid_str}"));
                 self.env
-                    .insert(format!("__job_id__{pid_str}"), next_job_id.to_string());
+                    .insert(format!("\0job_id__{pid_str}"), next_job_id.to_string());
                 self.env
-                    .insert(format!("__job_cmd__{pid_str}"), cmd_display);
+                    .insert(format!("\0job_cmd__{pid_str}"), cmd_display);
                 last_code = 0;
                 self.last_exit = 0;
                 continue;
@@ -1133,10 +1133,10 @@ impl<'a> EvalState<'a> {
         }
         match prev_unit_locale {
             Some(v) => {
-                self.env.insert("__unit_byte_locale".to_string(), v);
+                self.env.insert("\0unit_byte_locale".to_string(), v);
             }
             None => {
-                self.env.remove("__unit_byte_locale");
+                self.env.remove("\0unit_byte_locale");
             }
         }
 
@@ -1160,7 +1160,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn is_unit_byte_locale(&self) -> bool {
-        if let Some(v) = self.env.get("__unit_byte_locale") {
+        if let Some(v) = self.env.get("\0unit_byte_locale") {
             v == "1"
         } else {
             self.is_current_byte_locale()
@@ -1250,11 +1250,11 @@ impl<'a> EvalState<'a> {
     }
 
     fn set_pipestatus(&mut self, codes: &[i32]) {
-        let is_indexed = self.env.contains_key("__keys__PIPESTATUS")
+        let is_indexed = self.env.contains_key("\0keys__PIPESTATUS")
             || self.env.keys().any(|k| k.starts_with("PIPESTATUS["));
         let pipestatus_attr = self
             .env
-            .get("__attr__PIPESTATUS")
+            .get("\0attr__PIPESTATUS")
             .map(|s| s.as_str())
             .unwrap_or("");
         let is_readonly = pipestatus_attr.contains('r');
@@ -1298,7 +1298,7 @@ impl<'a> EvalState<'a> {
         }
         if self.func_stack.is_empty() {
             self.env.remove("FUNCNAME");
-            self.env.remove("__keys__FUNCNAME");
+            self.env.remove("\0keys__FUNCNAME");
         } else {
             for (i, f) in self.func_stack.iter().enumerate() {
                 self.env.insert(format!("FUNCNAME[{i}]"), f.clone());
@@ -1391,14 +1391,14 @@ impl<'a> EvalState<'a> {
         for (idx, cmd_node) in pipe.commands.iter().enumerate() {
             let is_last = idx + 1 == pipe.commands.len();
             let use_lastpipe =
-                is_last && self.env.get("__shopt_lastpipe").is_some_and(|v| v == "1");
+                is_last && self.env.get("\0shopt_lastpipe").is_some_and(|v| v == "1");
             if use_lastpipe {
-                let prev_pipe0 = self.env.insert("__pipe_fd__0".to_string(), "1".to_string());
+                let prev_pipe0 = self.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
                 let stage_res = self.eval_command_node(cmd_node, &mut cur_stdin);
                 if let Some(p0) = prev_pipe0 {
-                    self.env.insert("__pipe_fd__0".to_string(), p0);
+                    self.env.insert("\0pipe_fd__0".to_string(), p0);
                 } else {
-                    self.env.remove("__pipe_fd__0");
+                    self.env.remove("\0pipe_fd__0");
                 }
                 let mut stage_out = match stage_res {
                     Ok(o) => o,
@@ -1421,7 +1421,7 @@ impl<'a> EvalState<'a> {
             if idx == 0 {
                 sub.async_default_stdin = self.async_default_stdin;
             } else {
-                sub.env.insert("__pipe_fd__0".to_string(), "1".to_string());
+                sub.env.insert("\0pipe_fd__0".to_string(), "1".to_string());
             }
             if !is_last {
                 let peer_retired = pipe.commands.get(idx + 1).is_some_and(|next| {
@@ -1435,7 +1435,7 @@ impl<'a> EvalState<'a> {
                     )
                 });
                 sub.fd_table.insert(1, FdTarget::PipeStdout { peer_retired });
-                sub.env.insert("__pipe_fd__1".to_string(), "1".to_string());
+                sub.env.insert("\0pipe_fd__1".to_string(), "1".to_string());
                 sub.in_pipeline_producer = true;
             }
             let stage_res = if idx == 0 {
@@ -2161,9 +2161,9 @@ impl<'a> EvalState<'a> {
                     }
                     let prev_cond = self.in_condition;
                     self.in_condition = true;
-                    self.env.remove("__arith_diag");
+                    self.env.remove("\0arith_diag");
                     let cond_out = self.eval_script(cond, eff_stdin)?;
-                    let arith_diag = self.env.remove("__arith_diag").is_some();
+                    let arith_diag = self.env.remove("\0arith_diag").is_some();
                     self.in_condition = prev_cond;
                     stdout.push_str(&cond_out.stdout);
                     stderr.push_str(&cond_out.stderr);
@@ -2259,12 +2259,12 @@ impl<'a> EvalState<'a> {
                     let target = self.expand_word_to_string(word)?;
                     let nocase = self
                         .env
-                        .get("__shopt_nocasematch")
+                        .get("\0shopt_nocasematch")
                         .map(|v| v == "1")
                         .unwrap_or(false);
                     let extglob = self
                         .env
-                        .get("__shopt_extglob")
+                        .get("\0shopt_extglob")
                         .map(|v| v == "1")
                         .unwrap_or(false);
                     let mut force_exec = false;
@@ -2367,7 +2367,7 @@ impl<'a> EvalState<'a> {
                             self.restore_redirects(saved_fds, saved_in);
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
-                        self.env.insert("__arith_diag".to_string(), "1".to_string());
+                        self.env.insert("\0arith_diag".to_string(), "1".to_string());
                         let mut diag_out = BuiltinOutcome {
                             stdout: String::new(),
                             stderr: format!("{}((: {e}\n", self.diag_prefix()),
@@ -2385,7 +2385,7 @@ impl<'a> EvalState<'a> {
             CommandNode::FuncDef { name, body } => {
                 let is_posix = self
                     .env
-                    .get("__set_posix")
+                    .get("\0set_posix")
                     .map(|v| v == "1")
                     .unwrap_or(false);
                 if is_posix
@@ -2421,7 +2421,7 @@ impl<'a> EvalState<'a> {
                 }
                 if self
                     .env
-                    .get(&format!("__readonly_fn__{name}"))
+                    .get(&format!("\0readonly_fn__{name}"))
                     .is_some_and(|v| v == "1")
                 {
                     return Ok(BuiltinOutcome {
@@ -2432,9 +2432,9 @@ impl<'a> EvalState<'a> {
                 }
                 self.functions.insert(name.clone(), (**body).clone());
                 if let Some(ref src) = self.script_name {
-                    self.env.insert(format!("__func_src__{name}"), src.clone());
+                    self.env.insert(format!("\0func_src__{name}"), src.clone());
                 } else {
-                    self.env.remove(&format!("__func_src__{name}"));
+                    self.env.remove(&format!("\0func_src__{name}"));
                 }
                 Ok(BuiltinOutcome {
                     stdout: String::new(),
@@ -2491,19 +2491,19 @@ impl<'a> EvalState<'a> {
         let resolved_base = resolve_nameref_base(base, self.env).to_string();
         if self
             .env
-            .get(&format!("__attr__{resolved_base}"))
+            .get(&format!("\0attr__{resolved_base}"))
             .is_some_and(|a| a.contains('r'))
         {
             return Err(EvalError::Syntax(format!("{resolved_base}: readonly variable")));
         }
         let is_assoc = self
             .env
-            .get(&format!("__assoc__{resolved_base}"))
+            .get(&format!("\0assoc__{resolved_base}"))
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get(&format!("__attr__{resolved_base}"))
+                .get(&format!("\0attr__{resolved_base}"))
                 .is_some_and(|a| a.contains('A'));
         let (final_sub, raw_val) = if is_assoc {
             let value = value(self)?;
@@ -2529,7 +2529,7 @@ impl<'a> EvalState<'a> {
         let key = format!("{resolved_base}[{final_sub}]");
         let attr = self
             .env
-            .get(&format!("__attr__{resolved_base}"))
+            .get(&format!("\0attr__{resolved_base}"))
             .cloned()
             .unwrap_or_default();
         let val = if attr.contains('i') {
@@ -2573,7 +2573,7 @@ impl<'a> EvalState<'a> {
             s
         };
         if is_assoc {
-            let keys_k = format!("__keys__{resolved_base}");
+            let keys_k = format!("\0keys__{resolved_base}");
             let mut order: Vec<String> = self
                 .env
                 .get(&keys_k)
@@ -2608,7 +2608,7 @@ impl<'a> EvalState<'a> {
 
         if self
             .env
-            .get(&format!("__attr__{resolved}"))
+            .get(&format!("\0attr__{resolved}"))
             .is_some_and(|a| a.contains('r'))
         {
             return Err(EvalError::Syntax(format!("{resolved}: readonly variable")));
@@ -2620,12 +2620,12 @@ impl<'a> EvalState<'a> {
         {
             let is_assoc = self
                 .env
-                .get(&format!("__assoc__{resolved}"))
+                .get(&format!("\0assoc__{resolved}"))
                 .map(|v| v == "1")
                 .unwrap_or(false)
                 || self
                     .env
-                    .get(&format!("__attr__{resolved}"))
+                    .get(&format!("\0attr__{resolved}"))
                     .is_some_and(|a| a.contains('A'));
             let inner = &arr_lit[1..arr_lit.len() - 1];
             let entries = scan_array_literal_entries(inner)?;
@@ -2658,7 +2658,7 @@ impl<'a> EvalState<'a> {
             }
             let mut items = self.expand_array_literal_items(inner, is_assoc, entries)?;
             let mut next_idx = append_cursor(self.env);
-            let integer = self.env.get(&format!("__attr__{resolved}")).is_some_and(|a| a.contains('i'));
+            let integer = self.env.get(&format!("\0attr__{resolved}")).is_some_and(|a| a.contains('i'));
             // Literal indices publish together. A computed index or integer attribute
             // instead observes the writes already made in this assignment.
             if !is_assoc && !integer && items.iter().all(|(sub, _, _)| sub.as_deref().is_none_or(|s| literal_compound_index(s).is_some())) {
@@ -2693,7 +2693,7 @@ impl<'a> EvalState<'a> {
                 for k in old_keys {
                     self.env.remove(&k);
                 }
-                self.env.remove(&format!("__keys__{resolved}"));
+                self.env.remove(&format!("\0keys__{resolved}"));
                 self.env.remove(&resolved);
             } else if !is_assoc {
                 let prefix = format!("{resolved}[");
@@ -2725,7 +2725,7 @@ impl<'a> EvalState<'a> {
                     let elem_key = format!("{resolved}[{final_k}]");
                     let attr = self
                         .env
-                        .get(&format!("__attr__{resolved}"))
+                        .get(&format!("\0attr__{resolved}"))
                         .cloned()
                         .unwrap_or_default();
                     let final_item_val = if item_append {
@@ -2760,7 +2760,7 @@ impl<'a> EvalState<'a> {
                             .map_err(EvalError::Syntax)?
                     };
                     if is_assoc {
-                        let keys_k = format!("__keys__{resolved}");
+                        let keys_k = format!("\0keys__{resolved}");
                         let mut order: Vec<String> = self
                             .env
                             .get(&keys_k)
@@ -2794,12 +2794,12 @@ impl<'a> EvalState<'a> {
         let arr_prefix = format!("{resolved}[");
         let attr = self
             .env
-            .get(&format!("__attr__{resolved}"))
+            .get(&format!("\0attr__{resolved}"))
             .cloned()
             .unwrap_or_default();
         let is_existing_array = attr.contains(['a', 'A'])
-            || self.env.contains_key(&format!("__keys__{resolved}"))
-            || self.env.contains_key(&format!("__assoc__{resolved}"))
+            || self.env.contains_key(&format!("\0keys__{resolved}"))
+            || self.env.contains_key(&format!("\0assoc__{resolved}"))
             || self.env.keys().any(|k| k.starts_with(&arr_prefix));
         let final_val = if attr.contains('i') {
             let map_int_err = |e: String| {
@@ -2856,7 +2856,7 @@ impl<'a> EvalState<'a> {
                 s = s.to_uppercase();
             }
             if resolved == "OPTIND"
-                && self.env.get("__getopts_int").map(|v| v.as_str()) != Some("0")
+                && self.env.get("\0getopts_int").map(|v| v.as_str()) != Some("0")
             {
                 let expr = if s.is_empty() { "0" } else { s.as_str() };
                 s = eval_arith(expr, self.env)
@@ -2868,23 +2868,23 @@ impl<'a> EvalState<'a> {
 
         let allexport = self
             .env
-            .get("__set_allexport")
+            .get("\0set_allexport")
             .map(|v| v == "1")
             .unwrap_or(false);
         let already_existed = self.env.contains_key(&resolved);
         let was_unexported = self
             .env
-            .contains_key(&format!("__unexported__{resolved}"));
+            .contains_key(&format!("\0unexported__{resolved}"));
         if allexport || self.in_prefix_assignment || attr.contains('x') {
-            self.env.remove(&format!("__unexported__{resolved}"));
+            self.env.remove(&format!("\0unexported__{resolved}"));
             if allexport && !attr.contains('x') {
                 let mut new_attr = attr.clone();
                 new_attr.push('x');
-                self.env.insert(format!("__attr__{resolved}"), new_attr);
+                self.env.insert(format!("\0attr__{resolved}"), new_attr);
             }
         } else if !already_existed || was_unexported {
             self.env
-                .insert(format!("__unexported__{resolved}"), "1".to_string());
+                .insert(format!("\0unexported__{resolved}"), "1".to_string());
         }
         if write_dynamic_variable(&resolved, &final_val, self.env) {
             return Ok(None);
@@ -2895,13 +2895,13 @@ impl<'a> EvalState<'a> {
         }
         let is_optind = resolved == "OPTIND";
         if resolved == "OPTERR" {
-            self.env.remove("__opterr_unset__");
+            self.env.remove("\0opterr_unset__");
         }
         if resolved == "PWD" {
-            self.env.remove("__pwd_unset__");
+            self.env.remove("\0pwd_unset__");
         }
         if resolved == "PATH" {
-            self.env.remove("__path_unset__");
+            self.env.remove("\0path_unset__");
         }
         self.env.insert(resolved, final_val);
         if is_optind {
@@ -2973,7 +2973,7 @@ impl<'a> EvalState<'a> {
             let effective_line = simple.line + self.callback_line_offset;
             self.current_line = effective_line;
             self.env
-                .insert("__lineno".to_string(), effective_line.to_string());
+                .insert("\0lineno".to_string(), effective_line.to_string());
         }
         let mut cmd_parts = Vec::new();
         for (k, v, app) in &simple.assignments {
@@ -3233,7 +3233,7 @@ impl<'a> EvalState<'a> {
 
         let is_posix = self
             .env
-            .get("__set_posix")
+            .get("\0set_posix")
             .map(|v| v == "1")
             .unwrap_or(false);
         let is_special_head = is_posix
@@ -3268,7 +3268,7 @@ impl<'a> EvalState<'a> {
             let base_k = k.split('[').next().unwrap_or(k);
             let resolved = resolve_nameref_base(base_k, self.env);
             self.env
-                .get(&format!("__attr__{resolved}"))
+                .get(&format!("\0attr__{resolved}"))
                 .is_some_and(|a| a.contains('r'))
         });
         if !has_inline_input && (is_posix || expanded_words.is_empty()) && has_readonly_assign {
@@ -3394,7 +3394,7 @@ impl<'a> EvalState<'a> {
             if !simple.assignments.iter().any(|(k, _, _)| k == "_") {
                 self.env.remove("_");
             }
-            self.env.insert("__last_arg".to_string(), String::new());
+            self.env.insert("\0last_arg".to_string(), String::new());
             let mut shortcut_out = debug_out.stdout;
             if self.in_cmdsub_file_shortcut && use_local {
                 shortcut_out.push_str(&local_stdin);
@@ -3419,20 +3419,20 @@ impl<'a> EvalState<'a> {
         for (k, v, append) in &simple.assignments {
             let base_k = k.split('[').next().unwrap_or(k);
             let prev_val = self.env.get(base_k).cloned();
-            let was_unexp = self.env.contains_key(&format!("__unexported__{base_k}"));
+            let was_unexp = self.env.contains_key(&format!("\0unexported__{base_k}"));
             let is_arr_lit = v.starts_with('(') && v.ends_with(')');
-            let has_existing_arr = self.env.contains_key(&format!("__keys__{base_k}"))
-                || self.env.contains_key(&format!("__assoc__{base_k}"));
+            let has_existing_arr = self.env.contains_key(&format!("\0keys__{base_k}"))
+                || self.env.contains_key(&format!("\0assoc__{base_k}"));
             let extra_prev: Vec<(String, Option<String>)> =
                 if is_arr_lit || k.contains('[') || has_existing_arr {
                 let mut extras = vec![
                     (
-                        format!("__keys__{base_k}"),
-                        self.env.get(&format!("__keys__{base_k}")).cloned(),
+                        format!("\0keys__{base_k}"),
+                        self.env.get(&format!("\0keys__{base_k}")).cloned(),
                     ),
                     (
-                        format!("__assoc__{base_k}"),
-                        self.env.get(&format!("__assoc__{base_k}")).cloned(),
+                        format!("\0assoc__{base_k}"),
+                        self.env.get(&format!("\0assoc__{base_k}")).cloned(),
                     ),
                 ];
                 let prefix = format!("{base_k}[");
@@ -3451,8 +3451,8 @@ impl<'a> EvalState<'a> {
                 self.expand_assignment_rhs(v)?
             };
             if has_existing_arr && !is_arr_lit && !k.contains('[') {
-                self.env.remove(&format!("__keys__{base_k}"));
-                self.env.remove(&format!("__assoc__{base_k}"));
+                self.env.remove(&format!("\0keys__{base_k}"));
+                self.env.remove(&format!("\0assoc__{base_k}"));
                 let prefix = format!("{base_k}[");
                 let to_remove: Vec<String> = self
                     .env
@@ -3501,7 +3501,7 @@ impl<'a> EvalState<'a> {
             && !matches!(expanded_words[0].as_str(), "eval" | "." | "source")
         {
             self.env.insert(
-                "__last_arg".to_string(),
+                "\0last_arg".to_string(),
                 expanded_words.last().cloned().unwrap_or_default(),
             );
         }
@@ -3562,9 +3562,9 @@ impl<'a> EvalState<'a> {
                 }
                 if was_unexp {
                     self.env
-                        .insert(format!("__unexported__{k}"), "1".to_string());
+                        .insert(format!("\0unexported__{k}"), "1".to_string());
                 } else {
-                    self.env.remove(&format!("__unexported__{k}"));
+                    self.env.remove(&format!("\0unexported__{k}"));
                 }
                 match prev {
                     Some(v) => {
@@ -3627,7 +3627,7 @@ impl<'a> EvalState<'a> {
             self.func_stack.insert(0, cmd.to_string());
             self.sync_funcname();
             self.local_scopes.push(BTreeMap::new());
-            let func_src = self.env.get(&format!("__func_src__{cmd}")).cloned();
+            let func_src = self.env.get(&format!("\0func_src__{cmd}")).cloned();
             let prev_script_name = std::mem::replace(&mut self.script_name, func_src);
             let prev_func_line = self.current_line;
             let prev_cb_offset = std::mem::replace(&mut self.callback_line_offset, 0);
@@ -3677,7 +3677,7 @@ impl<'a> EvalState<'a> {
             let _ = self.func_trap_snapshots.pop();
             let local_frame = self.local_scopes.pop().unwrap_or_default();
             for (k, orig) in &local_frame {
-                if k.starts_with("__") || k.contains('[') {
+                if k.starts_with('\0') || k.contains('[') {
                     continue;
                 }
                 let prefix = format!("{k}[");
@@ -3690,11 +3690,11 @@ impl<'a> EvalState<'a> {
                 for ak in arr_keys {
                     self.env.remove(&ak);
                 }
-                self.env.remove(&format!("__attr__{k}"));
-                self.env.remove(&format!("__assoc__{k}"));
-                self.env.remove(&format!("__nameref__{k}"));
-                self.env.remove(&format!("__declared__{k}"));
-                self.env.remove(&format!("__keys__{k}"));
+                self.env.remove(&format!("\0attr__{k}"));
+                self.env.remove(&format!("\0assoc__{k}"));
+                self.env.remove(&format!("\0nameref__{k}"));
+                self.env.remove(&format!("\0declared__{k}"));
+                self.env.remove(&format!("\0keys__{k}"));
                 match orig {
                     Some(v) => {
                         self.env.insert(k.clone(), v.clone());
@@ -3705,7 +3705,7 @@ impl<'a> EvalState<'a> {
                 }
             }
             for (k, orig) in local_frame {
-                if !k.starts_with("__") && !k.contains('[') {
+                if !k.starts_with('\0') && !k.contains('[') {
                     continue;
                 }
                 match orig {
@@ -3737,12 +3737,12 @@ impl<'a> EvalState<'a> {
             self.current_line = prev_func_line;
             self.callback_line_offset = prev_cb_offset;
             self.env
-                .insert("__lineno".to_string(), prev_func_line.to_string());
+                .insert("\0lineno".to_string(), prev_func_line.to_string());
             self.sync_funcname();
             self.budget.leave_recursion();
             let out = out?;
             self.env.insert(
-                "__last_arg".to_string(),
+                "\0last_arg".to_string(),
                 args.last().unwrap_or(cmd).clone(),
             );
             return Ok(out);
@@ -3938,7 +3938,7 @@ impl<'a> EvalState<'a> {
                 let out = self.builtin_declare(cmd, args)?;
                 if out.exit_code != 0
                     && !bypass_functions
-                    && self.env.get("__set_posix").is_some_and(|v| v == "1")
+                    && self.env.get("\0set_posix").is_some_and(|v| v == "1")
                     && matches!(cmd.as_str(), "export" | "readonly")
                 {
                     self.exit_requested = Some(out.exit_code);
@@ -3949,7 +3949,7 @@ impl<'a> EvalState<'a> {
                 let out = self.builtin_unset(args);
                 if out.exit_code != 0
                     && !bypass_functions
-                    && self.env.get("__set_posix").is_some_and(|v| v == "1")
+                    && self.env.get("\0set_posix").is_some_and(|v| v == "1")
                 {
                     self.exit_requested = Some(out.exit_code);
                 }
@@ -3997,7 +3997,7 @@ impl<'a> EvalState<'a> {
                             if let Some(nu) = e.strip_prefix("__nounset__") {
                                 return Err(EvalError::Syntax(nu.to_string()));
                             }
-                            self.env.insert("__arith_diag".to_string(), "1".to_string());
+                            self.env.insert("\0arith_diag".to_string(), "1".to_string());
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!("let: {e}\n"),
@@ -4014,7 +4014,7 @@ impl<'a> EvalState<'a> {
             }
             "eval" => {
                 let is_special = !bypass_functions
-                    && self.env.get("__set_posix").is_some_and(|v| v == "1");
+                    && self.env.get("\0set_posix").is_some_and(|v| v == "1");
                 let eval_args = if args.first().map(|s| s.as_str()) == Some("--") {
                     &args[1..]
                 } else if let Some(first) = args.first()
@@ -4082,10 +4082,10 @@ impl<'a> EvalState<'a> {
                 self.callback_line_offset = prev_cb_offset;
                 self.current_line = prev_line;
                 self.env
-                    .insert("__lineno".to_string(), prev_line.to_string());
+                    .insert("\0lineno".to_string(), prev_line.to_string());
                 self.budget.leave_substitution();
                 self.env.insert(
-                    "__last_arg".to_string(),
+                    "\0last_arg".to_string(),
                     args.last().unwrap_or(cmd).clone(),
                 );
                 return match out {
@@ -4113,7 +4113,7 @@ impl<'a> EvalState<'a> {
                 };
             }
             "source" | "." => {
-                let is_posix = self.env.get("__set_posix").is_some_and(|v| v == "1");
+                let is_posix = self.env.get("\0set_posix").is_some_and(|v| v == "1");
                 let is_special = !bypass_functions && is_posix && cmd == ".";
                 let src_args = if args.first().map(|s| s.as_str()) == Some("--") {
                     &args[1..]
@@ -4285,7 +4285,7 @@ impl<'a> EvalState<'a> {
                             let prev_cb_offset =
                                 std::mem::replace(&mut self.callback_line_offset, 0);
                             self.current_line = 1;
-                            self.env.insert("__lineno".to_string(), "1".to_string());
+                            self.env.insert("\0lineno".to_string(), "1".to_string());
                             self.source_depth += 1;
                             self.source_debug_snapshots.push((
                                 self.traps.get("DEBUG").cloned(),
@@ -4307,7 +4307,7 @@ impl<'a> EvalState<'a> {
                             self.source_depth = self.source_depth.saturating_sub(1);
                             self.current_line = prev_line;
                             self.callback_line_offset = prev_cb_offset;
-                            self.env.insert("__lineno".to_string(), prev_line.to_string());
+                            self.env.insert("\0lineno".to_string(), prev_line.to_string());
                             self.script_name = prev_script_name;
                             if !self.caller_frames.is_empty() {
                                 self.caller_frames.remove(0);
@@ -4330,7 +4330,7 @@ impl<'a> EvalState<'a> {
                                         self.exit_requested = Some(2);
                                     }
                                     self.env.insert(
-                                        "__last_arg".to_string(),
+                                        "\0last_arg".to_string(),
                                         args.last().unwrap_or(cmd).clone(),
                                     );
                                     return Ok(BuiltinOutcome {
@@ -4372,7 +4372,7 @@ impl<'a> EvalState<'a> {
                                 self.pos_args_version = saved_pos_ver;
                             }
                             self.env.insert(
-                                "__last_arg".to_string(),
+                                "\0last_arg".to_string(),
                                 args.last().unwrap_or(cmd).clone(),
                             );
                             return Ok(out);
@@ -4459,7 +4459,7 @@ impl<'a> EvalState<'a> {
                     let keys: Vec<String> = self
                         .env
                         .keys()
-                        .filter(|k| !k.starts_with("__"))
+                        .filter(|k| !k.starts_with('\0'))
                         .cloned()
                         .collect();
                     for k in keys {
@@ -4471,7 +4471,7 @@ impl<'a> EvalState<'a> {
                     let base = argv0.unwrap_or_else(|| exec_cmd.clone());
                     let a0 = if login { format!("-{base}") } else { base };
                     self.env.insert("0".to_string(), a0.clone());
-                    self.env.insert("__argv0".to_string(), a0);
+                    self.env.insert("\0argv0".to_string(), a0);
                 }
                 let out = self.dispatch_words(&args[exec_idx..], stdin, bypass_functions)?;
                 self.exit_requested = Some(out.exit_code);
@@ -4577,7 +4577,7 @@ impl<'a> EvalState<'a> {
                 }
                 if default_path {
                     self.env
-                        .insert("__command_default_path__".to_string(), "1".to_string());
+                        .insert("\0command_default_path__".to_string(), "1".to_string());
                 }
                 self.budget.tick_command().map_err(EvalError::Budget)?;
                 self.budget
@@ -4585,7 +4585,7 @@ impl<'a> EvalState<'a> {
                     .map_err(EvalError::Budget)?;
                 let res = self.dispatch_words(&args[idx..], stdin, true);
                 self.budget.leave_substitution();
-                self.env.remove("__command_default_path__");
+                self.env.remove("\0command_default_path__");
                 return res;
             }
             "caller" => {
@@ -4656,8 +4656,8 @@ impl<'a> EvalState<'a> {
             _ => {}
         }
 
-        let default_path = self.env.remove("__command_default_path__").is_some();
-        let custom_argv0 = self.env.remove("__argv0");
+        let default_path = self.env.remove("\0command_default_path__").is_some();
+        let custom_argv0 = self.env.remove("\0argv0");
         let virtual_name = if cmd.contains('/') {
             self.virtual_executable_name(&resolve_posix_path(self.cwd, cmd))
         } else {
@@ -4910,7 +4910,7 @@ impl<'a> EvalState<'a> {
         if cmd.contains('/')
             || (!default_path
                 && !self.env.contains_key("PATH")
-                && self.env.contains_key("__path_unset__"))
+                && self.env.contains_key("\0path_unset__"))
         {
             return self.run_vfs_script(
                 cmd,
@@ -5007,7 +5007,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn resolve_vfs_executable(&self, cmd: &str) -> Option<String> {
-        if let Some(hashed) = self.env.get(&format!("__hash__{cmd}")) {
+        if let Some(hashed) = self.env.get(&format!("\0hash__{cmd}")) {
             let resolved = resolve_posix_path(self.cwd, hashed);
             if let Ok(st) = self.fs.stat(&resolved)
                 && st.kind == crate::vfs::VfsEntryKind::File
@@ -5339,7 +5339,7 @@ impl<'a> EvalState<'a> {
             if show_all || matches.is_empty() {
                 let is_posix = self
                     .env
-                    .get("__set_posix")
+                    .get("\0set_posix")
                     .map(|v| v == "1")
                     .unwrap_or(false);
                 let absolute = is_command && mode == "describe";
@@ -5519,17 +5519,17 @@ impl<'a> EvalState<'a> {
     fn build_child_process_env(&self, sub_cwd: &str, arg0: &str) -> BTreeMap<String, String> {
         let mut sub_env = BTreeMap::new();
         for (k, v) in self.env.iter() {
-            if k == "__umask"
-                || k.starts_with("__trap_inherited_ignored__")
-                || k == "__epoch_realtime_sec"
+            if k == "\0umask"
+                || k.starts_with("\0trap_inherited_ignored__")
+                || k == "\0epoch_realtime_sec"
             {
                 sub_env.insert(k.clone(), v.clone());
-            } else if !k.starts_with("__")
+            } else if !k.starts_with('\0')
                 && !k.contains('[')
                 && k != "0"
-                && !self.env.contains_key(&format!("__unexported__{k}"))
-                && !self.env.contains_key(&format!("__keys__{k}"))
-                && !self.env.contains_key(&format!("__assoc__{k}"))
+                && !self.env.contains_key(&format!("\0unexported__{k}"))
+                && !self.env.contains_key(&format!("\0keys__{k}"))
+                && !self.env.contains_key(&format!("\0assoc__{k}"))
                 && !matches!(
                     k.as_str(),
                     "PIPESTATUS"
@@ -5543,23 +5543,23 @@ impl<'a> EvalState<'a> {
                 )
             {
                 sub_env.insert(k.clone(), v.clone());
-                sub_env.insert(format!("__attr__{k}"), "x".to_string());
+                sub_env.insert(format!("\0attr__{k}"), "x".to_string());
             }
         }
         for (k, v) in &self.traps {
             if v.is_empty() && !matches!(k.as_str(), "EXIT" | "ERR" | "DEBUG" | "RETURN") {
-                sub_env.insert(format!("__trap_inherited_ignored__{k}"), "1".to_string());
+                sub_env.insert(format!("\0trap_inherited_ignored__{k}"), "1".to_string());
             }
         }
         sub_env.insert("PWD".to_string(), sub_cwd.to_string());
-        sub_env.insert("__attr__PWD".to_string(), "x".to_string());
+        sub_env.insert("\0attr__PWD".to_string(), "x".to_string());
         sub_env.insert("OPTIND".to_string(), "1".to_string());
-        sub_env.insert("__unexported__OPTIND".to_string(), "1".to_string());
-        sub_env.remove("__attr__OPTIND");
-        sub_env.insert("__getopts_index".to_string(), "0".to_string());
+        sub_env.insert("\0unexported__OPTIND".to_string(), "1".to_string());
+        sub_env.remove("\0attr__OPTIND");
+        sub_env.insert("\0getopts_index".to_string(), "0".to_string());
         sub_env.insert("OPTERR".to_string(), "1".to_string());
-        sub_env.insert("__unexported__OPTERR".to_string(), "1".to_string());
-        sub_env.remove("__attr__OPTERR");
+        sub_env.insert("\0unexported__OPTERR".to_string(), "1".to_string());
+        sub_env.remove("\0attr__OPTERR");
         sub_env.insert("0".to_string(), arg0.to_string());
         sub_env
     }
@@ -5583,8 +5583,8 @@ impl<'a> EvalState<'a> {
         let mut command_string = false;
         let mut standard_input = false;
 
-        let loaded_source = if let Some(path) = self.env.remove("__shebang_loaded_path") {
-            self.env.remove("__shebang_loaded_source").map(|source| (path, source))
+        let loaded_source = if let Some(path) = self.env.remove("\0shebang_loaded_path") {
+            self.env.remove("\0shebang_loaded_source").map(|source| (path, source))
         } else {
             None
         };
@@ -5729,7 +5729,7 @@ impl<'a> EvalState<'a> {
         let mut sub_cwd = self.cwd.clone();
         let mut sub_env = self.build_child_process_env(&sub_cwd, &arg0);
         if invoked_cmd == "sh" {
-            sub_env.insert("__set_posix".to_string(), "1".to_string());
+            sub_env.insert("\0set_posix".to_string(), "1".to_string());
         }
         self.budget
             .enter_substitution()
@@ -5744,12 +5744,12 @@ impl<'a> EvalState<'a> {
         sub.func_stack.clear();
         sub.sync_funcname();
         sub.env.remove("BASH_SUBSHELL");
-        sub.env.remove("__unexported__BASH_SUBSHELL");
+        sub.env.remove("\0unexported__BASH_SUBSHELL");
         sub.env.remove("!");
         let parent_job_keys: Vec<String> = sub
             .env
             .keys()
-            .filter(|k| k.starts_with("__parent_job_"))
+            .filter(|k| k.starts_with("\0parent_job_"))
             .cloned()
             .collect();
         for k in parent_job_keys {
@@ -6112,12 +6112,12 @@ impl<'a> EvalState<'a> {
                 words.push(target.to_string());
                 words.extend(args.iter().cloned());
                 self.env
-                    .insert("__shebang_loaded_path".to_string(), path.clone());
+                    .insert("\0shebang_loaded_path".to_string(), path.clone());
                 self.env
-                    .insert("__shebang_loaded_source".to_string(), full_src);
+                    .insert("\0shebang_loaded_source".to_string(), full_src);
                 let res = self.dispatch_words(&words, stdin, true);
-                self.env.remove("__shebang_loaded_path");
-                self.env.remove("__shebang_loaded_source");
+                self.env.remove("\0shebang_loaded_path");
+                self.env.remove("\0shebang_loaded_source");
                 return match res {
                     Ok(mut o) => {
                         if o.exit_code == 127
@@ -6230,14 +6230,14 @@ impl<'a> EvalState<'a> {
             match interpreter_profile {
                 Some("sh") => true,
                 Some(_) => false,
-                None => self.env.get("__set_posix").is_some_and(|v| v == "1"),
+                None => self.env.get("\0set_posix").is_some_and(|v| v == "1"),
             }
         } else {
             invoked_cmd == "sh"
         };
         let mut sub_env = self.build_child_process_env(&sub_cwd, target);
         if use_posix {
-            sub_env.insert("__set_posix".to_string(), "1".to_string());
+            sub_env.insert("\0set_posix".to_string(), "1".to_string());
         }
 
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
@@ -6255,12 +6255,12 @@ impl<'a> EvalState<'a> {
         sub.func_stack.clear();
         sub.sync_funcname();
         sub.env.remove("BASH_SUBSHELL");
-        sub.env.remove("__unexported__BASH_SUBSHELL");
+        sub.env.remove("\0unexported__BASH_SUBSHELL");
         sub.env.remove("!");
         let parent_job_keys: Vec<String> = sub
             .env
             .keys()
-            .filter(|k| k.starts_with("__parent_job_"))
+            .filter(|k| k.starts_with("\0parent_job_"))
             .cloned()
             .collect();
         for k in parent_job_keys {
@@ -6316,12 +6316,12 @@ impl<'a> EvalState<'a> {
         }
         let functrace = self
             .env
-            .get("__set_functrace")
+            .get("\0set_functrace")
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get("__shopt_extdebug")
+                .get("\0shopt_extdebug")
                 .map(|v| v == "1")
                 .unwrap_or(false);
         let cur_ver = self.trap_versions.get("RETURN").copied();
@@ -6362,33 +6362,33 @@ impl<'a> EvalState<'a> {
         match opt {
             "errexit" => {
                 self.errexit = enable;
-                self.env.insert("__set_errexit".to_string(), val.to_string());
+                self.env.insert("\0set_errexit".to_string(), val.to_string());
             }
             "nounset" => {
                 self.nounset = enable;
-                self.env.insert("__set_nounset".to_string(), val.to_string());
+                self.env.insert("\0set_nounset".to_string(), val.to_string());
             }
             "pipefail" => {
                 self.pipefail = enable;
                 self.env
-                    .insert("__set_pipefail".to_string(), val.to_string());
+                    .insert("\0set_pipefail".to_string(), val.to_string());
             }
             "noclobber" => {
                 self.noclobber = enable;
                 self.env
-                    .insert("__set_noclobber".to_string(), val.to_string());
+                    .insert("\0set_noclobber".to_string(), val.to_string());
             }
             "noexec" => {
                 self.noexec = enable;
-                self.env.insert("__set_noexec".to_string(), val.to_string());
+                self.env.insert("\0set_noexec".to_string(), val.to_string());
             }
             "xtrace" => {
                 self.xtrace = enable;
-                self.env.insert("__set_xtrace".to_string(), val.to_string());
+                self.env.insert("\0set_xtrace".to_string(), val.to_string());
             }
             other => {
                 self.env
-                    .insert(format!("__set_{other}"), val.to_string());
+                    .insert(format!("\0set_{other}"), val.to_string());
             }
         }
     }
@@ -6429,23 +6429,23 @@ impl<'a> EvalState<'a> {
         if args.is_empty() {
             let mut candidate_names: BTreeSet<String> = BTreeSet::new();
             for k in self.env.keys() {
-                if let Some(n) = k.strip_prefix("__attr__") {
-                    if is_valid_shell_ident(n) && !n.starts_with("__") {
+                if let Some(n) = k.strip_prefix("\0attr__") {
+                    if is_valid_shell_ident(n) {
                         candidate_names.insert(n.to_string());
                     }
-                } else if let Some(n) = k.strip_prefix("__declared__") {
-                    if is_valid_shell_ident(n) && !n.starts_with("__") {
+                } else if let Some(n) = k.strip_prefix("\0declared__") {
+                    if is_valid_shell_ident(n) {
                         candidate_names.insert(n.to_string());
                     }
-                } else if let Some(n) = k.strip_prefix("__assoc__") {
-                    if is_valid_shell_ident(n) && !n.starts_with("__") {
+                } else if let Some(n) = k.strip_prefix("\0assoc__") {
+                    if is_valid_shell_ident(n) {
                         candidate_names.insert(n.to_string());
                     }
                 } else if let Some((b, _)) = k.split_once('[') {
-                    if is_valid_shell_ident(b) && !b.starts_with("__") {
+                    if is_valid_shell_ident(b) {
                         candidate_names.insert(b.to_string());
                     }
-                } else if is_valid_shell_ident(k) && !k.starts_with("__") {
+                } else if is_valid_shell_ident(k) {
                     candidate_names.insert(k.clone());
                 }
             }
@@ -6615,7 +6615,7 @@ impl<'a> EvalState<'a> {
 
         if print || index == args.len() {
             for (k, v) in self.env.iter() {
-                if let Some(name) = k.strip_prefix("__alias__") {
+                if let Some(name) = k.strip_prefix("\0alias__") {
                     stdout.push_str(&format_entry(name, v));
                 }
             }
@@ -6636,8 +6636,8 @@ impl<'a> EvalState<'a> {
                     continue;
                 }
                 self.env
-                    .insert(format!("__alias__{name}"), val.to_string());
-            } else if let Some(val) = self.env.get(&format!("__alias__{arg}")) {
+                    .insert(format!("\0alias__{name}"), val.to_string());
+            } else if let Some(val) = self.env.get(&format!("\0alias__{arg}")) {
                 stdout.push_str(&format_entry(arg, val));
             } else {
                 stderr.push_str(&format!("alias: {arg}: not found\n"));
@@ -6680,7 +6680,7 @@ impl<'a> EvalState<'a> {
             let keys: Vec<String> = self
                 .env
                 .keys()
-                .filter(|k| k.starts_with("__alias__"))
+                .filter(|k| k.starts_with("\0alias__"))
                 .cloned()
                 .collect();
             for k in keys {
@@ -6704,7 +6704,7 @@ impl<'a> EvalState<'a> {
         let mut stderr = String::new();
         let mut exit_code = 0;
         for name in &args[index..] {
-            if self.env.remove(&format!("__alias__{name}")).is_none() {
+            if self.env.remove(&format!("\0alias__{name}")).is_none() {
                 stderr.push_str(&format!("unalias: {name}: not found\n"));
                 exit_code = 1;
             }
@@ -6728,18 +6728,18 @@ impl<'a> EvalState<'a> {
                 "xtrace" => self.xtrace,
                 "braceexpand" => self
                     .env
-                    .get("__set_braceexpand")
+                    .get("\0set_braceexpand")
                     .map(|v| v != "0")
                     .unwrap_or(true),
                 other => self
                     .env
-                    .get(&format!("__set_{other}"))
+                    .get(&format!("\0set_{other}"))
                     .map(|v| v == "1")
                     .unwrap_or(false),
             }
         } else {
             self.env
-                .get(&format!("__shopt_{name}"))
+                .get(&format!("\0shopt_{name}"))
                 .map(|v| v == "1")
                 .unwrap_or(false)
         }
@@ -6872,7 +6872,7 @@ impl<'a> EvalState<'a> {
                     self.apply_set_option(name, set_flag);
                 } else {
                     self.env.insert(
-                        format!("__shopt_{name}"),
+                        format!("\0shopt_{name}"),
                         if set_flag { "1" } else { "0" }.to_string(),
                     );
                     if name == "extdebug" {
@@ -7072,27 +7072,27 @@ impl<'a> EvalState<'a> {
             } else if action_opt.is_none() || action_opt == Some("-") {
                 if self
                     .env
-                    .get(&format!("__trap_inherited_ignored__{norm}"))
+                    .get(&format!("\0trap_inherited_ignored__{norm}"))
                     .is_some_and(|v| v == "1")
                 {
                     continue;
                 }
-                self.env.remove(&format!("__trap_ignored__{norm}"));
+                self.env.remove(&format!("\0trap_ignored__{norm}"));
                 self.traps.remove(&norm);
                 self.inactive_traps.remove(&norm);
                 self.trap_versions.remove(&norm);
             } else if let Some(action) = action_opt {
                 if self
                     .env
-                    .get(&format!("__trap_inherited_ignored__{norm}"))
+                    .get(&format!("\0trap_inherited_ignored__{norm}"))
                     .is_some_and(|v| v == "1")
                 {
                     continue;
                 }
                 if action.is_empty() {
-                    self.env.insert(format!("__trap_ignored__{norm}"), "1".to_string());
+                    self.env.insert(format!("\0trap_ignored__{norm}"), "1".to_string());
                 } else {
-                    self.env.remove(&format!("__trap_ignored__{norm}"));
+                    self.env.remove(&format!("\0trap_ignored__{norm}"));
                 }
                 let ver = self.next_trap_version;
                 self.next_trap_version += 1;
@@ -7278,7 +7278,7 @@ impl<'a> EvalState<'a> {
                 for (name, body) in &self.functions {
                     if self
                         .env
-                        .get(&format!("__readonly_fn__{name}"))
+                        .get(&format!("\0readonly_fn__{name}"))
                         .is_some_and(|v| v == "1")
                     {
                         out.push_str(&format_function_display(name, body));
@@ -7292,7 +7292,7 @@ impl<'a> EvalState<'a> {
                         status = 1;
                     } else {
                         self.env
-                            .insert(format!("__readonly_fn__{name}"), "1".to_string());
+                            .insert(format!("\0readonly_fn__{name}"), "1".to_string());
                     }
                 }
             }
@@ -7338,9 +7338,9 @@ impl<'a> EvalState<'a> {
             let mut out = String::new();
             let mut candidate_names: BTreeSet<String> = BTreeSet::new();
             for k in self.env.keys() {
-                if let Some(n) = k.strip_prefix("__attr__") {
+                if let Some(n) = k.strip_prefix("\0attr__") {
                     candidate_names.insert(n.to_string());
-                } else if !k.starts_with("__") && !k.contains('[') {
+                } else if !k.starts_with('\0') && !k.contains('[') {
                     candidate_names.insert(k.clone());
                 }
             }
@@ -7393,17 +7393,17 @@ impl<'a> EvalState<'a> {
             } else {
                 let mut set = BTreeSet::new();
                 for k in self.env.keys() {
-                    if let Some(n) = k.strip_prefix("__attr__") {
+                    if let Some(n) = k.strip_prefix("\0attr__") {
                         set.insert(n.to_string());
-                    } else if let Some(n) = k.strip_prefix("__declared__") {
+                    } else if let Some(n) = k.strip_prefix("\0declared__") {
                         set.insert(n.to_string());
-                    } else if let Some(n) = k.strip_prefix("__assoc__") {
+                    } else if let Some(n) = k.strip_prefix("\0assoc__") {
                         set.insert(n.to_string());
                     } else if let Some((b, _)) = k.split_once('[') {
-                        if !b.starts_with("__") {
+                        if !b.starts_with('\0') {
                             set.insert(b.to_string());
                         }
-                    } else if !k.starts_with("__") {
+                    } else if !k.starts_with('\0') {
                         set.insert(k.clone());
                     }
                 }
@@ -7458,7 +7458,7 @@ impl<'a> EvalState<'a> {
 
             if self
                 .env
-                .get(&format!("__attr__{base_name}"))
+                .get(&format!("\0attr__{base_name}"))
                 .is_some_and(|a| a.contains('r'))
                 && (val_opt.is_some() || is_local)
             {
@@ -7473,22 +7473,22 @@ impl<'a> EvalState<'a> {
             {
                 frame.insert(base_name.clone(), self.env.get(&base_name).cloned());
                 for meta_prefix in [
-                    "__attr__",
-                    "__assoc__",
-                    "__nameref__",
-                    "__declared__",
-                    "__keys__",
-                    "__unexported__",
+                    "\0attr__",
+                    "\0assoc__",
+                    "\0nameref__",
+                    "\0declared__",
+                    "\0keys__",
+                    "\0unexported__",
                 ] {
                     let mk = format!("{meta_prefix}{base_name}");
                     frame.insert(mk.clone(), self.env.get(&mk).cloned());
                 }
                 if base_name == "OPTIND" {
                     for gk in [
-                        "__getopts_index",
-                        "__getopts_active_arg",
-                        "__getopts_active_off",
-                        "__getopts_int",
+                        "\0getopts_index",
+                        "\0getopts_active_arg",
+                        "\0getopts_active_off",
+                        "\0getopts_int",
                     ] {
                         frame.insert(gk.to_string(), self.env.get(gk).cloned());
                     }
@@ -7507,28 +7507,28 @@ impl<'a> EvalState<'a> {
                     }
                 }
                 if !inherit_prev {
-                    self.env.remove(&format!("__attr__{base_name}"));
-                    self.env.remove(&format!("__assoc__{base_name}"));
-                    self.env.remove(&format!("__nameref__{base_name}"));
-                    self.env.remove(&format!("__declared__{base_name}"));
-                    self.env.remove(&format!("__keys__{base_name}"));
+                    self.env.remove(&format!("\0attr__{base_name}"));
+                    self.env.remove(&format!("\0assoc__{base_name}"));
+                    self.env.remove(&format!("\0nameref__{base_name}"));
+                    self.env.remove(&format!("\0declared__{base_name}"));
+                    self.env.remove(&format!("\0keys__{base_name}"));
                     self.env.remove(&base_name);
                 }
                 if base_name == "OPTIND" {
-                    self.env.insert("__getopts_int".to_string(), "0".to_string());
+                    self.env.insert("\0getopts_int".to_string(), "0".to_string());
                 }
             }
 
-            let new_assoc = is_assoc && !self.env.contains_key(&format!("__assoc__{base_name}"))
-                && !self.env.get(&format!("__attr__{base_name}")).is_some_and(|a| a.contains('A'));
+            let new_assoc = is_assoc && !self.env.contains_key(&format!("\0assoc__{base_name}"))
+                && !self.env.get(&format!("\0attr__{base_name}")).is_some_and(|a| a.contains('A'));
             if is_assoc {
                 let arr_prefix = format!("{base_name}[");
-                let was_indexed = !self.env.contains_key(&format!("__assoc__{base_name}"))
+                let was_indexed = !self.env.contains_key(&format!("\0assoc__{base_name}"))
                     && (self
                         .env
-                        .get(&format!("__attr__{base_name}"))
+                        .get(&format!("\0attr__{base_name}"))
                         .is_some_and(|a| a.contains('a'))
-                        || self.env.contains_key(&format!("__keys__{base_name}"))
+                        || self.env.contains_key(&format!("\0keys__{base_name}"))
                         || self.env.keys().any(|k| k.starts_with(&arr_prefix)));
                 if was_indexed {
                     decl_stderr.push_str(&format!(
@@ -7538,13 +7538,13 @@ impl<'a> EvalState<'a> {
                     continue;
                 }
                 self.env
-                    .insert(format!("__assoc__{base_name}"), "1".to_string());
+                    .insert(format!("\0assoc__{base_name}"), "1".to_string());
             }
             if is_indexed
-                && (self.env.contains_key(&format!("__assoc__{base_name}"))
+                && (self.env.contains_key(&format!("\0assoc__{base_name}"))
                     || self
                         .env
-                        .get(&format!("__attr__{base_name}"))
+                        .get(&format!("\0attr__{base_name}"))
                         .is_some_and(|a| a.contains('A')))
             {
                 decl_stderr.push_str(&format!(
@@ -7554,14 +7554,14 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             if is_export {
-                self.env.remove(&format!("__unexported__{base_name}"));
+                self.env.remove(&format!("\0unexported__{base_name}"));
             }
             if disabled.contains(&'x') {
                 self.env
-                    .insert(format!("__unexported__{base_name}"), "1".to_string());
+                    .insert(format!("\0unexported__{base_name}"), "1".to_string());
             }
             if disabled.contains(&'n') {
-                self.env.remove(&format!("__nameref__{base_name}"));
+                self.env.remove(&format!("\0nameref__{base_name}"));
             }
 
             if is_nameref {
@@ -7576,14 +7576,14 @@ impl<'a> EvalState<'a> {
                         continue;
                     }
                     self.env
-                        .insert(format!("__nameref__{base_name}"), target);
+                        .insert(format!("\0nameref__{base_name}"), target);
                 }
                 continue;
             }
 
             let mut cur_attr = self
                 .env
-                .get(&format!("__attr__{base_name}"))
+                .get(&format!("\0attr__{base_name}"))
                 .cloned()
                 .unwrap_or_default();
             for &d in &disabled {
@@ -7596,30 +7596,30 @@ impl<'a> EvalState<'a> {
             }
             let pre_attr: String = cur_attr.chars().filter(|&c| c != 'r').collect();
             if pre_attr.is_empty() {
-                self.env.remove(&format!("__attr__{base_name}"));
+                self.env.remove(&format!("\0attr__{base_name}"));
             } else {
                 self.env
-                    .insert(format!("__attr__{base_name}"), pre_attr);
+                    .insert(format!("\0attr__{base_name}"), pre_attr);
             }
 
             if let Some(v) = val_opt {
                 if let Some(msg) = self.assign_value(&base_name, &v, append)? {
-                    if new_assoc || (is_indexed && !self.env.contains_key(&format!("__keys__{base_name}"))) {
-                        if new_assoc { self.env.remove(&format!("__assoc__{base_name}")); }
-                        let key = format!("__attr__{base_name}");
+                    if new_assoc || (is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}"))) {
+                        if new_assoc { self.env.remove(&format!("\0assoc__{base_name}")); }
+                        let key = format!("\0attr__{base_name}");
                         if let Some(attr) = self.env.get_mut(&key) {
                             attr.retain(|c| c != if new_assoc { 'A' } else { 'a' });
                             if attr.is_empty() { self.env.remove(&key); }
                         }
                     }
-                    self.env.insert(format!("__declared__{base_name}"), "1".into());
+                    self.env.insert(format!("\0declared__{base_name}"), "1".into());
                     decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
                     decl_status = 1;
                     break;
                 }
             } else if is_indexed || is_assoc {
                 // A bare declaration has no assigned key list until the first write.
-                if self.env.contains_key(&format!("__keys__{base_name}")) || self.env.contains_key(&base_name) {
+                if self.env.contains_key(&format!("\0keys__{base_name}")) || self.env.contains_key(&base_name) {
                     sync_array_metadata(&base_name, self.env);
                 }
             } else if is_local
@@ -7630,7 +7630,7 @@ impl<'a> EvalState<'a> {
                 self.env.insert(base_name.clone(), String::new());
             } else if !self.env.contains_key(&base_name) {
                 self.env
-                    .insert(format!("__declared__{base_name}"), "1".to_string());
+                    .insert(format!("\0declared__{base_name}"), "1".to_string());
             }
             if cmd == "local" && base_name == "OPTIND" {
                 sync_getopts_env(self.env);
@@ -7639,13 +7639,13 @@ impl<'a> EvalState<'a> {
             if cur_attr.contains('r') {
                 let mut post_attr = self
                     .env
-                    .get(&format!("__attr__{base_name}"))
+                    .get(&format!("\0attr__{base_name}"))
                     .cloned()
                     .unwrap_or_default();
                 if !post_attr.contains('r') {
                     post_attr.push('r');
                 }
-                self.env.insert(format!("__attr__{base_name}"), post_attr);
+                self.env.insert(format!("\0attr__{base_name}"), post_attr);
             }
             self.retained_prefix_vars.push(base_name);
         }
@@ -7704,7 +7704,7 @@ impl<'a> EvalState<'a> {
                 }
                 if self
                     .env
-                    .get(&format!("__readonly_fn__{arg}"))
+                    .get(&format!("\0readonly_fn__{arg}"))
                     .is_some_and(|v| v == "1")
                 {
                     stderr.push_str(&format!("unset: {arg}: cannot unset: readonly function\n"));
@@ -7713,7 +7713,7 @@ impl<'a> EvalState<'a> {
                 }
                 self.functions.remove(arg);
                 self.exported_functions.remove(arg);
-                self.env.remove(&format!("__func_src__{arg}"));
+                self.env.remove(&format!("\0func_src__{arg}"));
                 continue;
             }
             let base_ident = arg.split_once('[').map(|(b, _)| b).unwrap_or(arg);
@@ -7725,10 +7725,10 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             let has_var_binding = self.env.contains_key(arg)
-                || self.env.contains_key(&format!("__attr__{arg}"))
-                || self.env.contains_key(&format!("__declared__{arg}"))
-                || self.env.contains_key(&format!("__assoc__{arg}"))
-                || self.env.contains_key(&format!("__nameref__{arg}"))
+                || self.env.contains_key(&format!("\0attr__{arg}"))
+                || self.env.contains_key(&format!("\0declared__{arg}"))
+                || self.env.contains_key(&format!("\0assoc__{arg}"))
+                || self.env.contains_key(&format!("\0nameref__{arg}"))
                 || self.env.keys().any(|k| k.starts_with(&format!("{arg}[")))
                 || self.local_scopes.iter().any(|f| f.contains_key(arg));
             let fallback_func =
@@ -7736,7 +7736,7 @@ impl<'a> EvalState<'a> {
             if fallback_func {
                 if self
                     .env
-                    .get(&format!("__readonly_fn__{arg}"))
+                    .get(&format!("\0readonly_fn__{arg}"))
                     .is_some_and(|v| v == "1")
                 {
                     stderr.push_str(&format!("unset: {arg}: cannot unset: readonly function\n"));
@@ -7745,19 +7745,19 @@ impl<'a> EvalState<'a> {
                 }
                 self.functions.remove(arg);
                 self.exported_functions.remove(arg);
-                self.env.remove(&format!("__func_src__{arg}"));
+                self.env.remove(&format!("\0func_src__{arg}"));
                 continue;
             }
             if unset_nameref {
-                if self.env.contains_key(&format!("__nameref__{arg}"))
+                if self.env.contains_key(&format!("\0nameref__{arg}"))
                     || self
                         .env
-                        .get(&format!("__attr__{arg}"))
+                        .get(&format!("\0attr__{arg}"))
                         .is_some_and(|a| a.contains('n'))
                 {
                     if self
                         .env
-                        .get(&format!("__attr__{arg}"))
+                        .get(&format!("\0attr__{arg}"))
                         .is_some_and(|a| a.contains('r'))
                     {
                         stderr.push_str(&format!(
@@ -7767,9 +7767,9 @@ impl<'a> EvalState<'a> {
                         status = 1;
                         continue;
                     }
-                    self.env.remove(&format!("__nameref__{arg}"));
-                    self.env.remove(&format!("__attr__{arg}"));
-                    self.env.remove(&format!("__declared__{arg}"));
+                    self.env.remove(&format!("\0nameref__{arg}"));
+                    self.env.remove(&format!("\0attr__{arg}"));
+                    self.env.remove(&format!("\0declared__{arg}"));
                     self.env.remove(arg);
                 }
                 continue;
@@ -7780,7 +7780,7 @@ impl<'a> EvalState<'a> {
                 let resolved = resolve_nameref_base(base, self.env).to_string();
                 if self
                     .env
-                    .get(&format!("__attr__{resolved}"))
+                    .get(&format!("\0attr__{resolved}"))
                     .is_some_and(|a| a.contains('r'))
                 {
                     stderr.push_str(&format!(
@@ -7793,12 +7793,12 @@ impl<'a> EvalState<'a> {
                 let clean_sub = raw_sub.trim_matches('"').trim_matches('\'');
                 let is_assoc = self
                     .env
-                    .get(&format!("__assoc__{resolved}"))
+                    .get(&format!("\0assoc__{resolved}"))
                     .map(|v| v == "1")
                     .unwrap_or(false)
                     || self
                         .env
-                        .get(&format!("__attr__{resolved}"))
+                        .get(&format!("\0attr__{resolved}"))
                         .is_some_and(|a| a.contains('A'));
                 if (clean_sub == "@" || clean_sub == "*") && !is_assoc {
                     let prefix = format!("{resolved}[");
@@ -7808,32 +7808,32 @@ impl<'a> EvalState<'a> {
                         .filter(|k| k.starts_with(&prefix))
                         .cloned()
                         .collect();
-                    let was_arr = self.env.contains_key(&format!("__keys__{resolved}"))
+                    let was_arr = self.env.contains_key(&format!("\0keys__{resolved}"))
                         || !arr_keys.is_empty()
                         || self
                             .env
-                            .get(&format!("__attr__{resolved}"))
+                            .get(&format!("\0attr__{resolved}"))
                             .is_some_and(|a| a.contains('a'));
                     for k in arr_keys {
                         self.env.remove(&k);
                     }
                     self.env.remove(&resolved);
-                    self.env.remove(&format!("__keys__{resolved}"));
+                    self.env.remove(&format!("\0keys__{resolved}"));
                     if was_arr {
-                        self.env.insert(format!("__keys__{resolved}"), String::new());
+                        self.env.insert(format!("\0keys__{resolved}"), String::new());
                     }
                     continue;
                 }
                 if is_assoc {
                     let elem_key = format!("{resolved}[{clean_sub}]");
                     self.env.remove(&elem_key);
-                    if let Some(order_str) = self.env.get(&format!("__keys__{resolved}")).cloned() {
+                    if let Some(order_str) = self.env.get(&format!("\0keys__{resolved}")).cloned() {
                         let filtered: Vec<&str> = order_str
                             .split('\x1f')
                             .filter(|&k| !k.is_empty() && k != clean_sub)
                             .collect();
                         self.env
-                            .insert(format!("__keys__{resolved}"), filtered.join("\x1f"));
+                            .insert(format!("\0keys__{resolved}"), filtered.join("\x1f"));
                     }
                     sync_array_metadata(&resolved, self.env);
                     continue;
@@ -7877,8 +7877,8 @@ impl<'a> EvalState<'a> {
                     let has_arr = self.env.keys().any(|k| k.starts_with(&prefix));
                     if !has_arr && self.env.contains_key(&resolved) {
                         self.env.remove(&resolved);
-                        self.env.remove(&format!("__attr__{resolved}"));
-                        self.env.remove(&format!("__declared__{resolved}"));
+                        self.env.remove(&format!("\0attr__{resolved}"));
+                        self.env.remove(&format!("\0declared__{resolved}"));
                         continue;
                     }
                 }
@@ -7890,7 +7890,7 @@ impl<'a> EvalState<'a> {
             let resolved = resolve_nameref_base(base_arg, self.env).to_string();
             if self
                 .env
-                .get(&format!("__attr__{resolved}"))
+                .get(&format!("\0attr__{resolved}"))
                 .is_some_and(|a| a.contains('r'))
             {
                 stderr.push_str(&format!(
@@ -7901,32 +7901,32 @@ impl<'a> EvalState<'a> {
                 continue;
             }
             self.env.remove(&resolved);
-            if self.env.get("__set_posix").is_some_and(|v| v == "1") {
+            if self.env.get("\0set_posix").is_some_and(|v| v == "1") {
                 self.retained_prefix_vars.push(resolved.clone());
             }
             if resolved == "PATH" {
-                self.env.insert("__path_unset__".to_string(), "1".to_string());
+                self.env.insert("\0path_unset__".to_string(), "1".to_string());
             }
             if resolved == "RANDOM" {
-                self.env.insert("__random_disabled".to_string(), "1".to_string());
+                self.env.insert("\0random_disabled".to_string(), "1".to_string());
             }
             if resolved == "SECONDS" {
-                self.env.insert("__seconds_disabled".to_string(), "1".to_string());
+                self.env.insert("\0seconds_disabled".to_string(), "1".to_string());
             }
             if resolved == "OPTIND" {
                 sync_getopts_env(self.env);
             }
             if resolved == "OPTERR" {
-                self.env.insert("__opterr_unset__".to_string(), "1".to_string());
+                self.env.insert("\0opterr_unset__".to_string(), "1".to_string());
             }
             if resolved == "PWD" {
-                self.env.insert("__pwd_unset__".to_string(), "1".to_string());
+                self.env.insert("\0pwd_unset__".to_string(), "1".to_string());
             }
-            self.env.remove(&format!("__attr__{resolved}"));
-            self.env.remove(&format!("__declared__{resolved}"));
-            self.env.remove(&format!("__assoc__{resolved}"));
-            self.env.remove(&format!("__keys__{resolved}"));
-            self.env.remove(&format!("__mapfile_active__{resolved}"));
+            self.env.remove(&format!("\0attr__{resolved}"));
+            self.env.remove(&format!("\0declared__{resolved}"));
+            self.env.remove(&format!("\0assoc__{resolved}"));
+            self.env.remove(&format!("\0keys__{resolved}"));
+            self.env.remove(&format!("\0mapfile_active__{resolved}"));
             let prefix = format!("{resolved}[");
             let arr_keys: Vec<String> = self
                 .env
@@ -8286,7 +8286,7 @@ impl<'a> EvalState<'a> {
             let resolved = arr;
             if self
                 .env
-                .get(&format!("__attr__{resolved}"))
+                .get(&format!("\0attr__{resolved}"))
                 .is_some_and(|a| a.contains('r'))
             {
                 return Ok(BuiltinOutcome {
@@ -8328,10 +8328,10 @@ impl<'a> EvalState<'a> {
                 self.env.remove(&k);
             }
             self.env.remove(&resolved);
-            self.env.remove(&format!("__nameref__{resolved}"));
-            self.env.remove(&format!("__assoc__{resolved}"));
+            self.env.remove(&format!("\0nameref__{resolved}"));
+            self.env.remove(&format!("\0assoc__{resolved}"));
             self.env
-                .insert(format!("__declared__{resolved}"), "1".to_string());
+                .insert(format!("\0declared__{resolved}"), "1".to_string());
             for (i, f) in fields.into_iter().enumerate() {
                 self.env
                     .insert(format!("{resolved}[{i}]"), bytes_to_stream_string(&f));
@@ -8370,7 +8370,7 @@ impl<'a> EvalState<'a> {
                     .unwrap_or(&resolved);
                 if self
                     .env
-                    .get(&format!("__attr__{base}"))
+                    .get(&format!("\0attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
                     return Ok(BuiltinOutcome {
@@ -8589,7 +8589,7 @@ impl<'a> EvalState<'a> {
         let resolved_arr = arr_name;
         if self
             .env
-            .get(&format!("__attr__{resolved_arr}"))
+            .get(&format!("\0attr__{resolved_arr}"))
             .is_some_and(|a| a.contains('r'))
         {
             return Ok(BuiltinOutcome {
@@ -8599,7 +8599,7 @@ impl<'a> EvalState<'a> {
             });
         }
 
-        let active_key = format!("__mapfile_active__{resolved_arr}");
+        let active_key = format!("\0mapfile_active__{resolved_arr}");
         let active_token = self
             .env
             .get(&active_key)
@@ -8621,10 +8621,10 @@ impl<'a> EvalState<'a> {
                 self.env.remove(&k);
             }
             self.env.remove(&resolved_arr);
-            self.env.remove(&format!("__nameref__{resolved_arr}"));
-            self.env.remove(&format!("__assoc__{resolved_arr}"));
+            self.env.remove(&format!("\0nameref__{resolved_arr}"));
+            self.env.remove(&format!("\0assoc__{resolved_arr}"));
             self.env
-                .insert(format!("__declared__{resolved_arr}"), "1".to_string());
+                .insert(format!("\0declared__{resolved_arr}"), "1".to_string());
             sync_array_metadata(&resolved_arr, self.env);
         } else {
             let has_arr_elems = self.env.keys().any(|k| k.starts_with(&arr_prefix));
@@ -8633,7 +8633,7 @@ impl<'a> EvalState<'a> {
                     self.env.insert(format!("{resolved_arr}[0]"), scalar_val);
                 }
                 self.env
-                    .insert(format!("__declared__{resolved_arr}"), "1".to_string());
+                    .insert(format!("\0declared__{resolved_arr}"), "1".to_string());
                 sync_array_metadata(&resolved_arr, self.env);
             }
         }
@@ -8946,7 +8946,7 @@ impl<'a> EvalState<'a> {
 
         let state_index = self
             .env
-            .get("__getopts_index")
+            .get("\0getopts_index")
             .and_then(|s| s.parse::<usize>().ok())
             .unwrap_or(0);
         let mut index = if state_index == 0 { 1usize } else { state_index };
@@ -8954,11 +8954,11 @@ impl<'a> EvalState<'a> {
             None
         } else {
             self.env
-                .get("__getopts_active_arg")
+                .get("\0getopts_active_arg")
                 .and_then(|a| a.parse::<usize>().ok())
                 .zip(
                     self.env
-                        .get("__getopts_active_off")
+                        .get("\0getopts_active_off")
                         .and_then(|o| o.parse::<usize>().ok()),
                 )
         };
@@ -8979,21 +8979,21 @@ impl<'a> EvalState<'a> {
                             status: i32|
          -> BuiltinOutcome {
             this.env
-                .insert("__getopts_index".to_string(), next_index.to_string());
+                .insert("\0getopts_index".to_string(), next_index.to_string());
             if let Some((aa, ao)) = next_active {
                 this.env
-                    .insert("__getopts_active_arg".to_string(), aa.to_string());
+                    .insert("\0getopts_active_arg".to_string(), aa.to_string());
                 this.env
-                    .insert("__getopts_active_off".to_string(), ao.to_string());
+                    .insert("\0getopts_active_off".to_string(), ao.to_string());
             } else {
-                this.env.remove("__getopts_active_arg");
-                this.env.remove("__getopts_active_off");
+                this.env.remove("\0getopts_active_arg");
+                this.env.remove("\0getopts_active_off");
             }
             let mut stderr = diag.unwrap_or_default();
             let resolved_optind = resolve_nameref_base("OPTIND", this.env).to_string();
             if this
                 .env
-                .get(&format!("__attr__{resolved_optind}"))
+                .get(&format!("\0attr__{resolved_optind}"))
                 .is_some_and(|a| a.contains('r'))
             {
                 stderr.push_str(&format!("{resolved_optind}: readonly variable\n"));
@@ -9006,16 +9006,16 @@ impl<'a> EvalState<'a> {
             this.env.insert("OPTIND".to_string(), next_optind.to_string());
             if this
                 .env
-                .get("__set_allexport")
+                .get("\0set_allexport")
                 .is_some_and(|v| v == "1")
             {
-                this.env.remove("__unexported__OPTIND");
+                this.env.remove("\0unexported__OPTIND");
             }
 
             let resolved_optarg = resolve_nameref_base("OPTARG", this.env).to_string();
             if this
                 .env
-                .get(&format!("__attr__{resolved_optarg}"))
+                .get(&format!("\0attr__{resolved_optarg}"))
                 .is_some_and(|a| a.contains('r'))
             {
                 stderr.push_str(&format!("{resolved_optarg}: readonly variable\n"));
@@ -9029,26 +9029,26 @@ impl<'a> EvalState<'a> {
                 let already_existed = this.env.contains_key(&resolved_optarg);
                 let was_unexported = this
                     .env
-                    .contains_key(&format!("__unexported__{resolved_optarg}"));
+                    .contains_key(&format!("\0unexported__{resolved_optarg}"));
                 let allexport = this
                     .env
-                    .get("__set_allexport")
+                    .get("\0set_allexport")
                     .is_some_and(|v| v == "1");
                 let attr_x = this
                     .env
-                    .get(&format!("__attr__{resolved_optarg}"))
+                    .get(&format!("\0attr__{resolved_optarg}"))
                     .is_some_and(|a| a.contains('x'));
                 if allexport || attr_x {
-                    this.env.remove(&format!("__unexported__{resolved_optarg}"));
+                    this.env.remove(&format!("\0unexported__{resolved_optarg}"));
                 } else if !already_existed || was_unexported {
                     this.env
-                        .insert(format!("__unexported__{resolved_optarg}"), "1".to_string());
+                        .insert(format!("\0unexported__{resolved_optarg}"), "1".to_string());
                 }
                 this.env.insert(resolved_optarg, arg_s);
             } else {
                 this.env.remove(&resolved_optarg);
-                this.env.remove(&format!("__attr__{resolved_optarg}"));
-                this.env.remove(&format!("__declared__{resolved_optarg}"));
+                this.env.remove(&format!("\0attr__{resolved_optarg}"));
+                this.env.remove(&format!("\0declared__{resolved_optarg}"));
             }
 
             if !is_valid_shell_ident(&var_name) {
@@ -9192,7 +9192,7 @@ impl<'a> EvalState<'a> {
     }
 
     fn apply_umask_to_new_file(&self, full_path: &str) {
-        if let Some(mask_s) = self.env.get("__umask")
+        if let Some(mask_s) = self.env.get("\0umask")
             && let Ok(mask) = u32::from_str_radix(mask_s, 8)
         {
             let mode = 0o666 & !mask;
@@ -10293,9 +10293,9 @@ impl<'a> EvalState<'a> {
                                 .cloned()
                                 .unwrap_or(FdTarget::Closed);
                             if matches!(inherited, FdTarget::PipeStdout { .. }) {
-                                self.env.insert(format!("__pipe_fd__{fd}"), "1".to_string());
+                                self.env.insert(format!("\0pipe_fd__{fd}"), "1".to_string());
                             } else {
-                                self.env.remove(&format!("__pipe_fd__{fd}"));
+                                self.env.remove(&format!("\0pipe_fd__{fd}"));
                             }
                             self.fd_table.insert(*fd, inherited);
                             if move_fd && src_fd != *fd {
@@ -11049,7 +11049,7 @@ impl<'a> EvalState<'a> {
             }
             let nocase = self
                 .env
-                .get("__shopt_nocasematch")
+                .get("\0shopt_nocasematch")
                 .is_some_and(|v| v == "1");
             fn get_non_empty<'e>(env: &'e BTreeMap<String, String>, key: &str) -> Option<&'e str> {
                 env.get(key).filter(|s| !s.is_empty()).map(|s| s.as_str())
@@ -11345,28 +11345,28 @@ impl<'a> EvalState<'a> {
                         }
                     }
                     if chars[idx] == '$' {
-                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let prev_dq = self.env.insert("\0in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_dollar(&chars, &mut idx)?;
                         match prev_dq {
                             Some(v) => {
-                                self.env.insert("__in_dquote".to_string(), v);
+                                self.env.insert("\0in_dquote".to_string(), v);
                             }
                             None => {
-                                self.env.remove("__in_dquote");
+                                self.env.remove("\0in_dquote");
                             }
                         }
                         dq.push_str(&exp);
                         continue;
                     }
                     if chars[idx] == '`' {
-                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let prev_dq = self.env.insert("\0in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_backticks(&chars, &mut idx);
                         match prev_dq {
                             Some(v) => {
-                                self.env.insert("__in_dquote".to_string(), v);
+                                self.env.insert("\0in_dquote".to_string(), v);
                             }
                             None => {
-                                self.env.remove("__in_dquote");
+                                self.env.remove("\0in_dquote");
                             }
                         }
                         let exp = exp?;
@@ -11421,7 +11421,7 @@ impl<'a> EvalState<'a> {
 
     pub fn is_braceexpand_enabled(&self) -> bool {
         self.env
-            .get("__set_braceexpand")
+            .get("\0set_braceexpand")
             .map(|v| v != "0")
             .unwrap_or(true)
     }
@@ -11595,14 +11595,14 @@ impl<'a> EvalState<'a> {
                             }
                         }
                         keep_empty = true;
-                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let prev_dq = self.env.insert("\0in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_dollar(&chars, &mut idx);
                         match prev_dq {
                             Some(v) => {
-                                self.env.insert("__in_dquote".to_string(), v);
+                                self.env.insert("\0in_dquote".to_string(), v);
                             }
                             None => {
-                                self.env.remove("__in_dquote");
+                                self.env.remove("\0in_dquote");
                             }
                         }
                         let exp = exp?;
@@ -11623,14 +11623,14 @@ impl<'a> EvalState<'a> {
                     }
                     if chars[idx] == '`' {
                         keep_empty = true;
-                        let prev_dq = self.env.insert("__in_dquote".to_string(), "1".to_string());
+                        let prev_dq = self.env.insert("\0in_dquote".to_string(), "1".to_string());
                         let exp = self.expand_backticks(&chars, &mut idx);
                         match prev_dq {
                             Some(v) => {
-                                self.env.insert("__in_dquote".to_string(), v);
+                                self.env.insert("\0in_dquote".to_string(), v);
                             }
                             None => {
-                                self.env.remove("__in_dquote");
+                                self.env.remove("\0in_dquote");
                             }
                         }
                         let exp = exp?;
@@ -11943,7 +11943,7 @@ impl<'a> EvalState<'a> {
 
         if self
             .env
-            .get("__set_noglob")
+            .get("\0set_noglob")
             .map(|v| v == "1")
             .unwrap_or(false)
         {
@@ -11953,12 +11953,12 @@ impl<'a> EvalState<'a> {
         let mut globbed = Vec::new();
         let failglob = self
             .env
-            .get("__shopt_failglob")
+            .get("\0shopt_failglob")
             .map(|v| v == "1")
             .unwrap_or(false);
         let extglob = self
             .env
-            .get("__shopt_extglob")
+            .get("\0shopt_extglob")
             .map(|v| v == "1")
             .unwrap_or(false);
         for field in fields {
@@ -12194,7 +12194,7 @@ impl<'a> EvalState<'a> {
 
     fn expand_backticks(&mut self, chars: &[char], idx: &mut usize) -> Result<String, EvalError> {
         *idx += 1;
-        let in_dq = self.env.get("__in_dquote").is_some_and(|v| v == "1");
+        let in_dq = self.env.get("\0in_dquote").is_some_and(|v| v == "1");
         let mut cmd_str = String::new();
         while *idx < chars.len() && chars[*idx] != '`' {
             if chars[*idx] == '\\' && *idx + 1 < chars.len() {
@@ -12227,24 +12227,24 @@ impl<'a> EvalState<'a> {
         let mut sub_env = self.env.clone();
         for (rk, rv) in &self.redirect_assignments {
             sub_env.insert(rk.clone(), rv.clone());
-            sub_env.remove(&format!("__unexported__{rk}"));
+            sub_env.remove(&format!("\0unexported__{rk}"));
         }
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
         sub.callback_line_offset = self.current_line.saturating_sub(1);
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
         let inherit_errexit = self
             .env
-            .get("__shopt_inherit_errexit")
+            .get("\0shopt_inherit_errexit")
             .map(|v| v == "1")
             .unwrap_or(false)
             || self
                 .env
-                .get("__set_posix")
+                .get("\0set_posix")
                 .map(|v| v == "1")
                 .unwrap_or(false);
         sub.errexit = inherit_errexit && self.errexit;
         sub.env.insert(
-            "__set_errexit".to_string(),
+            "\0set_errexit".to_string(),
             if sub.errexit { "1" } else { "0" }.to_string(),
         );
         sub.fd_table.insert(1, FdTarget::Stdout);
@@ -12322,16 +12322,16 @@ impl<'a> EvalState<'a> {
         let mut entries: Vec<(u32, u32, String)> = self
             .env
             .keys()
-            .filter_map(|k| k.strip_prefix("__job_active__").and_then(|p| p.parse::<u32>().ok()))
+            .filter_map(|k| k.strip_prefix("\0job_active__").and_then(|p| p.parse::<u32>().ok()))
             .map(|pid| {
                 let job_id = self
                     .env
-                    .get(&format!("__job_id__{pid}"))
+                    .get(&format!("\0job_id__{pid}"))
                     .and_then(|s| s.parse::<u32>().ok())
                     .unwrap_or(1);
                 let cmd = self
                     .env
-                    .get(&format!("__job_cmd__{pid}"))
+                    .get(&format!("\0job_cmd__{pid}"))
                     .cloned()
                     .unwrap_or_else(|| pid.to_string());
                 (job_id, pid, cmd)
@@ -12346,18 +12346,18 @@ impl<'a> EvalState<'a> {
             .env
             .keys()
             .filter_map(|k| {
-                k.strip_prefix("__parent_job_id__")
+                k.strip_prefix("\0parent_job_id__")
                     .and_then(|p| p.parse::<u32>().ok())
             })
             .map(|pid| {
                 let job_id = self
                     .env
-                    .get(&format!("__parent_job_id__{pid}"))
+                    .get(&format!("\0parent_job_id__{pid}"))
                     .and_then(|s| s.parse::<u32>().ok())
                     .unwrap_or(1);
                 let cmd = self
                     .env
-                    .get(&format!("__parent_job_cmd__{pid}"))
+                    .get(&format!("\0parent_job_cmd__{pid}"))
                     .cloned()
                     .unwrap_or_else(|| pid.to_string());
                 (job_id, pid, cmd)
@@ -12371,25 +12371,25 @@ impl<'a> EvalState<'a> {
         let notified_pids: Vec<String> = self
             .env
             .keys()
-            .filter_map(|k| k.strip_prefix("__job_notified__").map(|s| s.to_string()))
+            .filter_map(|k| k.strip_prefix("\0job_notified__").map(|s| s.to_string()))
             .collect();
         for pid in notified_pids {
-            if !self.env.contains_key(&format!("__job_saved__{pid}")) {
+            if !self.env.contains_key(&format!("\0job_saved__{pid}")) {
                 self.env
-                    .insert(format!("__job_saved__{pid}"), "1".to_string());
-                self.env.remove(&format!("__job_active__{pid}"));
+                    .insert(format!("\0job_saved__{pid}"), "1".to_string());
+                self.env.remove(&format!("\0job_active__{pid}"));
             }
         }
     }
 
     fn forget_job(&mut self, pid: u32) {
-        self.env.remove(&format!("__job_active__{pid}"));
-        self.env.remove(&format!("__job_status__{pid}"));
-        self.env.remove(&format!("__job_notified__{pid}"));
-        self.env.remove(&format!("__job_saved__{pid}"));
-        self.env.remove(&format!("__job_settled__{pid}"));
-        self.env.remove(&format!("__job_id__{pid}"));
-        self.env.remove(&format!("__job_cmd__{pid}"));
+        self.env.remove(&format!("\0job_active__{pid}"));
+        self.env.remove(&format!("\0job_status__{pid}"));
+        self.env.remove(&format!("\0job_notified__{pid}"));
+        self.env.remove(&format!("\0job_saved__{pid}"));
+        self.env.remove(&format!("\0job_settled__{pid}"));
+        self.env.remove(&format!("\0job_id__{pid}"));
+        self.env.remove(&format!("\0job_cmd__{pid}"));
     }
 
     fn parse_wait_pid(operand: &str, flexible: bool) -> Option<i64> {
@@ -12460,8 +12460,8 @@ impl<'a> EvalState<'a> {
         }
         let pid_i64 = Self::parse_wait_pid(operand, flexible)?;
         let pid = u32::try_from(pid_i64).ok()?;
-        if self.env.contains_key(&format!("__job_status__{pid}"))
-            || self.env.contains_key(&format!("__job_active__{pid}"))
+        if self.env.contains_key(&format!("\0job_status__{pid}"))
+            || self.env.contains_key(&format!("\0job_active__{pid}"))
         {
             Some(pid)
         } else {
@@ -12556,7 +12556,7 @@ impl<'a> EvalState<'a> {
             if sub_opt.is_none() {
                 if self
                     .env
-                    .get(&format!("__attr__{base}"))
+                    .get(&format!("\0attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
                     return BuiltinOutcome {
@@ -12568,9 +12568,9 @@ impl<'a> EvalState<'a> {
                     };
                 }
                 self.env.remove(&base);
-                self.env.remove(&format!("__declared__{base}"));
-                self.env.remove(&format!("__assoc__{base}"));
-                self.env.remove(&format!("__keys__{base}"));
+                self.env.remove(&format!("\0declared__{base}"));
+                self.env.remove(&format!("\0assoc__{base}"));
+                self.env.remove(&format!("\0keys__{base}"));
                 let arr_prefix = format!("{base}[");
                 let arr_keys: Vec<String> = self
                     .env
@@ -12595,7 +12595,7 @@ impl<'a> EvalState<'a> {
             if let (Some(vn), Some((base, _)), Some(p)) = (var_name, base_and_sub, pid) {
                 if this
                     .env
-                    .get(&format!("__attr__{base}"))
+                    .get(&format!("\0attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
                     stderr.push_str(&format!("{prefix}wait: {base}: readonly variable\n"));
@@ -12629,12 +12629,12 @@ impl<'a> EvalState<'a> {
                 if let Some(pid) = self.resolve_job_operand_ex(op, true)
                     && self
                         .env
-                        .get(&format!("__job_saved__{pid}"))
+                        .get(&format!("\0job_saved__{pid}"))
                         .is_some_and(|v| v == "1")
                 {
                     let saved_code = self
                         .env
-                        .get(&format!("__job_status__{pid}"))
+                        .get(&format!("\0job_status__{pid}"))
                         .and_then(|s| s.parse::<i32>().ok())
                         .unwrap_or(0);
                     return publish_dest(
@@ -12654,13 +12654,13 @@ impl<'a> EvalState<'a> {
                     .env
                     .keys()
                     .filter_map(|k| {
-                        k.strip_prefix("__job_status__")
+                        k.strip_prefix("\0job_status__")
                             .and_then(|p| p.parse::<u32>().ok())
                     })
                     .filter(|pid| {
                         !self
                             .env
-                            .get(&format!("__job_saved__{pid}"))
+                            .get(&format!("\0job_saved__{pid}"))
                             .is_some_and(|v| v == "1")
                     })
                     .collect();
@@ -12671,7 +12671,7 @@ impl<'a> EvalState<'a> {
                     if let Some(pid) = handle_pid
                         && !self
                             .env
-                            .get(&format!("__job_saved__{pid}"))
+                            .get(&format!("\0job_saved__{pid}"))
                             .is_some_and(|v| v == "1")
                     {
                         if !candidate_pids.contains(&pid) {
@@ -12708,17 +12708,17 @@ impl<'a> EvalState<'a> {
                 .filter(|pid| {
                     !self
                         .env
-                        .get(&format!("__job_saved__{pid}"))
+                        .get(&format!("\0job_saved__{pid}"))
                         .is_some_and(|v| v == "1")
                         && !self
                             .env
-                            .get(&format!("__job_notified__{pid}"))
+                            .get(&format!("\0job_notified__{pid}"))
                             .is_some_and(|v| v == "1")
                 })
                 .map(|pid| {
                     let jid = self
                         .env
-                        .get(&format!("__job_id__{pid}"))
+                        .get(&format!("\0job_id__{pid}"))
                         .and_then(|s| s.parse::<u32>().ok())
                         .unwrap_or(1);
                     (jid, pid)
@@ -12727,13 +12727,13 @@ impl<'a> EvalState<'a> {
             eligible.sort_by_key(|(jid, pid)| (*jid, *pid));
             if let Some((_, ready_pid)) = eligible.first().copied() {
                 self.env
-                    .insert(format!("__job_notified__{ready_pid}"), "1".to_string());
+                    .insert(format!("\0job_notified__{ready_pid}"), "1".to_string());
                 self.env
-                    .insert(format!("__job_saved__{ready_pid}"), "1".to_string());
-                self.env.remove(&format!("__job_active__{ready_pid}"));
+                    .insert(format!("\0job_saved__{ready_pid}"), "1".to_string());
+                self.env.remove(&format!("\0job_active__{ready_pid}"));
                 let code = self
                     .env
-                    .get(&format!("__job_status__{ready_pid}"))
+                    .get(&format!("\0job_status__{ready_pid}"))
                     .and_then(|s| s.parse::<i32>().ok())
                     .unwrap_or(0);
                 return publish_dest(
@@ -12758,8 +12758,8 @@ impl<'a> EvalState<'a> {
                 .env
                 .keys()
                 .filter_map(|k| {
-                    k.strip_prefix("__job_status__")
-                        .or_else(|| k.strip_prefix("__job_active__"))
+                    k.strip_prefix("\0job_status__")
+                        .or_else(|| k.strip_prefix("\0job_active__"))
                         .and_then(|p| p.parse::<u32>().ok())
                 })
                 .collect();
@@ -12767,15 +12767,15 @@ impl<'a> EvalState<'a> {
                 if Some(p) == latest_pid
                     && !self
                         .env
-                        .get(&format!("__job_notified__{p}"))
+                        .get(&format!("\0job_notified__{p}"))
                         .is_some_and(|v| v == "1")
                     && !self
                         .env
-                        .get(&format!("__job_saved__{p}"))
+                        .get(&format!("\0job_saved__{p}"))
                         .is_some_and(|v| v == "1")
                     && self
                         .env
-                        .get(&format!("__job_settled__{p}"))
+                        .get(&format!("\0job_settled__{p}"))
                         .is_some_and(|v| v == "1")
                 {
                     continue;
@@ -12804,17 +12804,17 @@ impl<'a> EvalState<'a> {
                 };
                 if !self
                     .env
-                    .get(&format!("__job_saved__{pid}"))
+                    .get(&format!("\0job_saved__{pid}"))
                     .is_some_and(|v| v == "1")
                 {
                     self.retire_notified_jobs();
                 }
                 self.env
-                    .insert(format!("__job_notified__{pid}"), "1".to_string());
-                self.env.remove(&format!("__job_active__{pid}"));
+                    .insert(format!("\0job_notified__{pid}"), "1".to_string());
+                self.env.remove(&format!("\0job_active__{pid}"));
                 code = self
                     .env
-                    .get(&format!("__job_status__{pid}"))
+                    .get(&format!("\0job_status__{pid}"))
                     .and_then(|s| s.parse::<i32>().ok())
                     .unwrap_or(0);
                 last_waited_pid = Some(pid);
@@ -12841,15 +12841,15 @@ impl<'a> EvalState<'a> {
             };
             if !self
                 .env
-                .get(&format!("__job_saved__{pid}"))
+                .get(&format!("\0job_saved__{pid}"))
                 .is_some_and(|v| v == "1")
             {
                 self.retire_notified_jobs();
             }
             self.env
-                .insert(format!("__job_notified__{pid}"), "1".to_string());
-            self.env.remove(&format!("__job_active__{pid}"));
-            if let Some(st) = self.env.get(&format!("__job_status__{pid}")) {
+                .insert(format!("\0job_notified__{pid}"), "1".to_string());
+            self.env.remove(&format!("\0job_active__{pid}"));
+            if let Some(st) = self.env.get(&format!("\0job_status__{pid}")) {
                 code = st.parse::<i32>().unwrap_or(0);
             } else {
                 code = 127;
@@ -13191,13 +13191,13 @@ impl<'a> EvalState<'a> {
             };
             if sig_num == 0 {
                 self.env
-                    .insert(format!("__job_settled__{pid}"), "1".to_string());
+                    .insert(format!("\0job_settled__{pid}"), "1".to_string());
                 let kind = if op.starts_with('%') { "job" } else { "process" };
                 stderr.push_str(&format!("{prefix}kill: {op}: no such {kind}\n"));
                 status = 1;
             } else {
                 self.env
-                    .insert(format!("__job_status__{pid}"), (128 + sig_num).to_string());
+                    .insert(format!("\0job_status__{pid}"), (128 + sig_num).to_string());
             }
         }
         BuiltinOutcome {
@@ -17180,7 +17180,7 @@ LOOP='-S ${LOOP}' env -S '${LOOP}' 2>/tmp/env_loop; printf 'env_loop=%s:%s\n' "$
         // 1. Fresh shell PIPESTATUS is empty before any command runs
         {
             let (mut sh, _) = crate::Shell::with_memory_fs();
-            sh.set_env("__cwd", "/work");
+            sh.set_cwd("/work");
             let out = sh
                 .exec("printf 'before=<%s>\\n' \"${PIPESTATUS[*]}\"")
                 .unwrap();

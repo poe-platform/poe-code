@@ -28570,7 +28570,7 @@ fn cmd_html_to_markdown(
         files.push("-".to_string());
     }
     let max_b = env
-        .get("__limit_html_to_markdown_max_input_bytes")
+        .get("\0limit_html_to_markdown_max_input_bytes")
         .and_then(|v| v.parse::<usize>().ok());
     let mut stdin_consumed = false;
     let mut total_in = 0usize;

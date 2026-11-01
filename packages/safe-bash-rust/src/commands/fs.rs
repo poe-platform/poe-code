@@ -583,7 +583,7 @@ fn cmd_mkdir(
         return err_out("mkdir: missing operand\n", 2);
     }
     let umask_val = env
-        .get("__umask")
+        .get("\0umask")
         .and_then(|s| u32::from_str_radix(s, 8).ok())
         .unwrap_or(0o022);
     let default_mode = (0o777 & !umask_val) & 0o777;
@@ -1988,7 +1988,7 @@ fn cmd_touch(
     let mut operands: Vec<String> = Vec::new();
     let mut ended = false;
     let umask_val = env
-        .get("__umask")
+        .get("\0umask")
         .and_then(|s| u32::from_str_radix(s, 8).ok())
         .unwrap_or(0o022);
     let mut i = 0usize;
@@ -3427,7 +3427,7 @@ fn cmd_chmod(
     }
 
     let umask_val = env
-        .get("__umask")
+        .get("\0umask")
         .and_then(|s| u32::from_str_radix(s, 8).ok())
         .unwrap_or(0o022);
 
@@ -5640,8 +5640,7 @@ fn cmd_mktemp(
             };
         }
         let umask = env
-            .get("__umask")
-            .or_else(|| env.get("__SAFE_BASH_UMASK"))
+            .get("\0umask")
             .and_then(|s| u32::from_str_radix(s, 8).ok())
             .unwrap_or(0o022);
         if is_dir {

@@ -32,6 +32,7 @@ pub enum EvalError {
     UnportedCommand(String),
 }
 
+const MISSING_ASSOC_SUBSCRIPT: &str = "indexed array: associative compound entry requires a subscript";
 const STDIN_STREAM_FD: u32 = u32::MAX;
 type SavedFds = (Vec<(u32, Option<FdTarget>)>, Vec<(u32, Option<u32>)>);
 
@@ -2457,7 +2458,10 @@ impl<'a> EvalState<'a> {
     // An invalid index fails this command. Errors expanding its words can stop the shell.
     fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<Option<String>, EvalError> {
         if word.starts_with('(') && word.ends_with(')') {
-            return self.assign_variable(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append).map(|()| None);
+            return match self.assign_variable(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append) {
+                Err(EvalError::Syntax(msg)) if msg == MISSING_ASSOC_SUBSCRIPT => Ok(Some(msg)),
+                result => result.map(|()| None),
+            };
         }
         if let Some((base, sub)) = lhs.split_once('[')
             && let Some(sub) = sub.strip_suffix(']')
@@ -2947,6 +2951,9 @@ impl<'a> EvalState<'a> {
 
         if start < inner.len() {
             entries.push((start, inner.len(), selector));
+        }
+        if is_assoc && entries.iter().any(|(_, _, selector)| selector.is_none()) {
+            return Err(EvalError::Syntax(MISSING_ASSOC_SUBSCRIPT.into()));
         }
         let mut out = Vec::new();
         for (start, end, selector) in entries {
@@ -7548,6 +7555,8 @@ impl<'a> EvalState<'a> {
                 }
             }
 
+            let new_assoc = is_assoc && !self.env.contains_key(&format!("__assoc__{base_name}"))
+                && !self.env.get(&format!("__attr__{base_name}")).is_some_and(|a| a.contains('A'));
             if is_assoc {
                 let arr_prefix = format!("{base_name}[");
                 let was_indexed = !self.env.contains_key(&format!("__assoc__{base_name}"))
@@ -7630,7 +7639,23 @@ impl<'a> EvalState<'a> {
             }
 
             if let Some(v) = val_opt {
-                self.assign_variable(&base_name, &v, append)?;
+                match self.assign_variable(&base_name, &v, append) {
+                    Err(EvalError::Syntax(msg)) if msg == MISSING_ASSOC_SUBSCRIPT => {
+                        if new_assoc {
+                            self.env.remove(&format!("__assoc__{base_name}"));
+                            let key = format!("__attr__{base_name}");
+                            if let Some(attr) = self.env.get_mut(&key) {
+                                attr.retain(|c| c != 'A');
+                                if attr.is_empty() { self.env.remove(&key); }
+                            }
+                        }
+                        self.env.insert(format!("__declared__{base_name}"), "1".into());
+                        decl_stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
+                        decl_status = 1;
+                        break;
+                    }
+                    result => result?,
+                }
             } else if is_indexed || is_assoc {
                 sync_array_metadata(&base_name, self.env);
             } else if is_local
@@ -16184,6 +16209,20 @@ hash -l
             let (mut shell, _) = crate::shell::Shell::with_memory_fs();
             let r = shell.exec(script).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (code, stdout, stderr), "{script}");
+        }
+    }
+
+    #[test]
+    fn associative_compound_assignments_require_selectors_before_expanding_values() {
+        let diagnostic = "shell: line 1: indexed array: associative compound entry requires a subscript\n";
+        for (script, stdout, stderr) in [
+            (r#"declare -A a=([k]=old); a+=([z]=$((i++)) plain); echo "$?:$i:${!a[@]}:${a[@]}""#, "1::k:old\n", diagnostic),
+            (r#"declare -Ai a=(plain) b=$((i++)); echo "$?:$i:$b"; declare -p a"#, "1:1:\ndeclare -i a\n", diagnostic),
+            (r#"declare -A a; a=("[x]=bad") 2>err || echo rc:$?; cat err"#, "rc:1\nshell: line 1: indexed array: associative compound entry requires a subscript\n", ""),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr), "{script}");
         }
     }
 

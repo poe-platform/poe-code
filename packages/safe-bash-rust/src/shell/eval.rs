@@ -21,6 +21,7 @@ use crate::shell::parser::{
     validate_basic_syntax, validate_basic_syntax_with_extglob,
 };
 use crate::vfs::{SafeBashFs, bytes_to_stream_string, resolve_posix_path, stream_string_to_bytes};
+use std::borrow::Cow;
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
@@ -2449,129 +2450,158 @@ impl<'a> EvalState<'a> {
         }
     }
 
+    fn assign_shell_word(&mut self, lhs: &str, word: &str, append: bool) -> Result<(), EvalError> {
+        if word.starts_with('(') && word.ends_with(')') {
+            return self.assign_variable(lhs, &format!("\x00__ARRAY_LITERAL__{word}"), append);
+        }
+        if let Some((base, sub)) = lhs.split_once('[')
+            && let Some(sub) = sub.strip_suffix(']')
+        {
+            return self.assign_element(base, sub, append, |s| {
+                s.expand_assignment_rhs(word).map(Cow::Owned)
+            });
+        }
+        let value = self.expand_assignment_rhs(word)?;
+        self.assign_variable(lhs, &value, append)
+    }
+
+    fn assign_element<'v>(
+        &mut self,
+        base: &str,
+        raw_sub: &str,
+        append: bool,
+        value: impl FnOnce(&mut Self) -> Result<Cow<'v, str>, EvalError>,
+    ) -> Result<(), EvalError> {
+        let resolved_base = resolve_nameref_base(base, self.env).to_string();
+        if self
+            .env
+            .get(&format!("__attr__{resolved_base}"))
+            .is_some_and(|a| a.contains('r'))
+        {
+            return Err(EvalError::Syntax(format!("{resolved_base}: readonly variable")));
+        }
+        let is_assoc = self
+            .env
+            .get(&format!("__assoc__{resolved_base}"))
+            .map(|v| v == "1")
+            .unwrap_or(false)
+            || self
+                .env
+                .get(&format!("__attr__{resolved_base}"))
+                .is_some_and(|a| a.contains('A'));
+        let (final_sub, raw_val) = if is_assoc {
+            let value = value(self)?;
+            let key = self.expand_word_to_string(raw_sub)?;
+            (key.trim_matches('"').trim_matches('\'').to_string(), value)
+        } else {
+            let sub_expanded = self.expand_word_to_string(raw_sub)?;
+            let clean_sub = sub_expanded.trim_matches('"').trim_matches('\'');
+            if clean_sub.trim().is_empty() {
+                return Err(EvalError::Syntax(format!("{base}[{raw_sub}]: bad array subscript")));
+            }
+            let idx = eval_arith(clean_sub, self.env).map_err(EvalError::Syntax)?;
+            let index = if idx < 0 {
+                let prefix = format!("{resolved_base}[");
+                let max_idx = self
+                    .env
+                    .keys()
+                    .filter_map(|k| {
+                        k.strip_prefix(&prefix)
+                            .and_then(|s| s.strip_suffix(']'))
+                            .and_then(|sub| sub.parse::<i64>().ok())
+                    })
+                    .max()
+                    .unwrap_or(if self.env.contains_key(&resolved_base) { 0 } else { -1 });
+                let resolved_idx = max_idx + (idx + 1);
+                if resolved_idx < 0 {
+                    return Err(EvalError::Syntax(format!("{base}[{raw_sub}]: bad array subscript")));
+                }
+                resolved_idx
+            } else {
+                idx
+            };
+            (index.to_string(), value(self)?)
+        };
+        if !is_assoc {
+            let prefix = format!("{resolved_base}[");
+            let has_arr_elems = self.env.keys().any(|k| k.starts_with(&prefix));
+            if !has_arr_elems
+                && let Some(scalar_v) = self.env.get(&resolved_base).cloned()
+            {
+                self.env.insert(format!("{resolved_base}[0]"), scalar_v);
+                sync_array_metadata(&resolved_base, self.env);
+            }
+        }
+
+        let key = format!("{resolved_base}[{final_sub}]");
+        let attr = self
+            .env
+            .get(&format!("__attr__{resolved_base}"))
+            .cloned()
+            .unwrap_or_default();
+        let val = if attr.contains('i') {
+            let map_int_err = |e: String| {
+                let msg = if let Some(nu) = e.strip_prefix("__nounset__") {
+                    format!("__param_err__{nu}")
+                } else {
+                    e
+                };
+                EvalError::Syntax(msg)
+            };
+            let rhs_num = if raw_val.trim().is_empty() {
+                0
+            } else {
+                eval_arith_formatted(&raw_val, self.env).map_err(map_int_err)?
+            };
+            let num = if append {
+                let prev_str = self.env.get(&key).cloned().unwrap_or_default();
+                let cur = if prev_str.trim().is_empty() {
+                    0
+                } else {
+                    eval_arith_formatted(&prev_str, self.env).map_err(map_int_err)?
+                };
+                cur.wrapping_add(rhs_num)
+            } else {
+                rhs_num
+            };
+            num.to_string()
+        } else {
+            let mut s = if append {
+                let cur = self.env.get(&key).cloned().unwrap_or_default();
+                format!("{cur}{raw_val}")
+            } else {
+                raw_val.into_owned()
+            };
+            if attr.contains('l') {
+                s = s.to_lowercase();
+            } else if attr.contains('u') {
+                s = s.to_uppercase();
+            }
+            s
+        };
+        if is_assoc {
+            let keys_k = format!("__keys__{resolved_base}");
+            let mut order: Vec<String> = self
+                .env
+                .get(&keys_k)
+                .filter(|s| !s.is_empty())
+                .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
+                .unwrap_or_default();
+            if !order.contains(&final_sub) {
+                order.push(final_sub.clone());
+                self.env.insert(keys_k, order.join("\x1f"));
+            }
+        }
+        self.env.insert(key, val);
+        sync_array_metadata(&resolved_base, self.env);
+        Ok(())
+    }
+
     pub fn assign_variable(&mut self, lhs: &str, raw_val: &str, append: bool) -> Result<(), EvalError> {
         if let Some((base, sub_rest)) = lhs.split_once('[')
             && let Some(raw_sub) = sub_rest.strip_suffix(']')
         {
-            let resolved_base = resolve_nameref_base(base, self.env).to_string();
-            if self
-                .env
-                .get(&format!("__attr__{resolved_base}"))
-                .is_some_and(|a| a.contains('r'))
-            {
-                return Err(EvalError::Syntax(format!("{resolved_base}: readonly variable")));
-            }
-            let sub_expanded = self.expand_word_to_string(raw_sub)?;
-            let clean_sub = sub_expanded.trim_matches('"').trim_matches('\'');
-            let is_assoc = self
-                .env
-                .get(&format!("__assoc__{resolved_base}"))
-                .map(|v| v == "1")
-                .unwrap_or(false)
-                || self
-                    .env
-                    .get(&format!("__attr__{resolved_base}"))
-                    .is_some_and(|a| a.contains('A'));
-            if !is_assoc {
-                let prefix = format!("{resolved_base}[");
-                let has_arr_elems = self.env.keys().any(|k| k.starts_with(&prefix));
-                if !has_arr_elems
-                    && let Some(scalar_v) = self.env.get(&resolved_base).cloned()
-                {
-                    self.env.insert(format!("{resolved_base}[0]"), scalar_v);
-                    sync_array_metadata(&resolved_base, self.env);
-                }
-            }
-            let final_sub = if is_assoc {
-                clean_sub.to_string()
-            } else {
-                if clean_sub.trim().is_empty() {
-                    return Err(EvalError::Syntax(format!("{lhs}: bad array subscript")));
-                }
-                let idx = eval_arith(clean_sub, self.env).map_err(EvalError::Syntax)?;
-                if idx < 0 {
-                    let prefix = format!("{resolved_base}[");
-                    let max_idx = self
-                        .env
-                        .keys()
-                        .filter_map(|k| {
-                            k.strip_prefix(&prefix)
-                                .and_then(|s| s.strip_suffix(']'))
-                                .and_then(|sub| sub.parse::<i64>().ok())
-                        })
-                        .max()
-                        .unwrap_or(-1);
-                    let resolved_idx = max_idx + 1 + idx;
-                    if resolved_idx < 0 {
-                        return Err(EvalError::Syntax(format!("{lhs}: bad array subscript")));
-                    }
-                    resolved_idx.to_string()
-                } else {
-                    idx.to_string()
-                }
-            };
-            let key = format!("{resolved_base}[{final_sub}]");
-            let attr = self
-                .env
-                .get(&format!("__attr__{resolved_base}"))
-                .cloned()
-                .unwrap_or_default();
-            let val = if attr.contains('i') {
-                let map_int_err = |e: String| {
-                    let msg = if let Some(nu) = e.strip_prefix("__nounset__") {
-                        format!("__param_err__{nu}")
-                    } else {
-                        e
-                    };
-                    EvalError::Syntax(msg)
-                };
-                let rhs_num = if raw_val.trim().is_empty() {
-                    0
-                } else {
-                    eval_arith_formatted(raw_val, self.env).map_err(map_int_err)?
-                };
-                let num = if append {
-                    let prev_str = self.env.get(&key).cloned().unwrap_or_default();
-                    let cur = if prev_str.trim().is_empty() {
-                        0
-                    } else {
-                        eval_arith_formatted(&prev_str, self.env).map_err(map_int_err)?
-                    };
-                    cur.wrapping_add(rhs_num)
-                } else {
-                    rhs_num
-                };
-                num.to_string()
-            } else {
-                let mut s = if append {
-                    let cur = self.env.get(&key).cloned().unwrap_or_default();
-                    format!("{cur}{raw_val}")
-                } else {
-                    raw_val.to_string()
-                };
-                if attr.contains('l') {
-                    s = s.to_lowercase();
-                } else if attr.contains('u') {
-                    s = s.to_uppercase();
-                }
-                s
-            };
-            if is_assoc {
-                let keys_k = format!("__keys__{resolved_base}");
-                let mut order: Vec<String> = self
-                    .env
-                    .get(&keys_k)
-                    .filter(|s| !s.is_empty())
-                    .map(|s| s.split('\x1f').map(|p| p.to_string()).collect())
-                    .unwrap_or_default();
-                if !order.contains(&final_sub) {
-                    order.push(final_sub.clone());
-                    self.env.insert(keys_k, order.join("\x1f"));
-                }
-            }
-            self.env.insert(key, val);
-            sync_array_metadata(&resolved_base, self.env);
-            return Ok(());
+            return self.assign_element(base, raw_sub, append, |_| Ok(Cow::Borrowed(raw_val)));
         }
 
         let resolved = resolve_nameref_base(lhs, self.env).to_string();
@@ -3238,12 +3268,7 @@ impl<'a> EvalState<'a> {
         if !has_inline_input && (is_posix || expanded_words.is_empty()) && has_readonly_assign {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                let val = if v.starts_with('(') && v.ends_with(')') {
-                    format!("\x00__ARRAY_LITERAL__{v}")
-                } else {
-                    self.expand_assignment_rhs(v)?
-                };
-                if let Err(e) = self.assign_variable(k, &val, *append) {
+                if let Err(e) = self.assign_shell_word(k, v, *append) {
                     match e {
                         EvalError::Syntax(msg) if msg.contains("readonly variable") => {
                             let code =
@@ -3323,12 +3348,7 @@ impl<'a> EvalState<'a> {
         if expanded_words.is_empty() {
             self.sub_exit = None;
             for (k, v, append) in &simple.assignments {
-                let val = if v.starts_with('(') && v.ends_with(')') {
-                    format!("\x00__ARRAY_LITERAL__{v}")
-                } else {
-                    self.expand_assignment_rhs(v)?
-                };
-                if let Err(e) = self.assign_variable(k, &val, *append) {
+                if let Err(e) = self.assign_shell_word(k, v, *append) {
                     match e {
                         EvalError::Syntax(msg) if msg.contains("readonly variable") => {
                             let code = if is_posix { 127 } else { 1 };
@@ -9276,8 +9296,8 @@ impl<'a> EvalState<'a> {
                         _ => true,
                     };
                     if file_operand {
-                        let full = if target.starts_with('/') { std::borrow::Cow::Borrowed(target.as_str()) }
-                            else { std::borrow::Cow::Owned(format!("{}/{}", this.cwd.trim_end_matches('/'), target)) };
+                        let full = if target.starts_with('/') { Cow::Borrowed(target.as_str()) }
+                            else { Cow::Owned(format!("{}/{}", this.cwd.trim_end_matches('/'), target)) };
                         if let Err(error) = this.budget.limits.check_path(&full) {
                             let mut out = BuiltinOutcome {
                                 stdout: String::new(),
@@ -16026,6 +16046,24 @@ hash -l
             s1.stdout,
             "sh:/tmp/bin/fail_sh:arg1\nrc=1\nbuiltin hash -p /tmp/bin/fail_sh z_cmd\nbuiltin hash -p /bin/echo a_cmd\n"
         );
+    }
+
+    #[test]
+    fn indexed_assignment_selects_the_element_before_expanding_its_value() {
+        for (script, expected) in [
+            (r#"a=(1 20); a[a[0]++]="$((a[0]+5))"; echo "${a[@]}""#, "2 7\n"),
+            (r#"a=(10 20); i=0; a[i++]=$i; echo "$i:${a[@]}""#, "1:1 20\n"),
+            (r#"a=(10 20); i=0; a[i++]+=$i; echo "$i:${a[@]}""#, "1:101 20\n"),
+            (r#"a=(10 20); i=0; ((a[i++]=i+5)); echo "$i:${a[@]}""#, "1:5 20\n"),
+            (r#"a=(10 20); i=0; a[-1]=$((a[5]=4)); echo "${!a[@]}:${a[@]}""#, "0 1 5:10 4 4\n"),
+            (r#"declare -A a; i=0; a[$((i++))]=$i; echo "$i:${!a[@]}:${a[@]}""#, "1:0:0\n"),
+            (r#"a=10; a[2]="$((a=25))"; echo "${a[@]}""#, "25 25\n"),
+            (r#"a=(10 20); i=0; a[$((i++))]=$i; echo "$i:${a[@]}""#, "1:1 20\n"),
+        ] {
+            let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+            let r = shell.exec(script).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{script}");
+        }
     }
 
     #[test]

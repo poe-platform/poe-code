@@ -23,6 +23,27 @@ impl JqInputs<'_> {
         }
     }
 
+    pub fn location(&mut self) -> String {
+        if let Reader::Files(v) = &mut self.reader {
+            let b = &mut v.bytes;
+            let Some(name) = &b.name else {
+                return "<unknown>".into();
+            };
+            let line = if b.at != 0
+                && b.chunk[b.at - 1] != b'\n'
+                && *b
+                    .more_newlines
+                    .get_or_insert_with(|| b.chunk[b.at..].contains(&b'\n'))
+            {
+                b.line + 1
+            } else {
+                b.line
+            };
+            return format!("{}:{line}", diagnostic(name, usize::MAX));
+        }
+        "<unknown>".into()
+    }
+
     pub fn next(&mut self) -> Result<Option<JVal>, (i32, String)> {
         if self.remaining == 0 {
             return Ok(None);
@@ -58,9 +79,19 @@ struct Bytes<'a> {
     fs: &'a dyn SafeBashFs,
     chunk: Cow<'a, [u8]>,
     at: usize,
+    name: Option<String>,
+    line: usize,
+    more_newlines: Option<bool>,
 }
 
 impl Bytes<'_> {
+    fn advance(&mut self, b: u8) {
+        self.at += 1;
+        if b == b'\n' {
+            self.line += 1;
+            self.more_newlines = None;
+        }
+    }
     fn peek(&mut self) -> Result<Option<u8>, (i32, String)> {
         while self.at == self.chunk.len() {
             let Some(path) = self.files.next() else {
@@ -76,7 +107,10 @@ impl Bytes<'_> {
                         .map_err(|_| (2, read_stream_diag(&full, self.fs)))?,
                 )
             };
+            self.name = Some(if path == "-" { "<stdin>".into() } else { path });
             self.at = 0;
+            self.line = 0;
+            self.more_newlines = None;
         }
         Ok(Some(self.chunk[self.at]))
     }
@@ -102,7 +136,7 @@ impl Values<'_> {
         if self.raw {
             let mut line = Vec::new();
             while let Some(b) = self.bytes.peek()? {
-                self.bytes.at += 1;
+                self.bytes.advance(b);
                 if !self.slurp && b == b'\n' {
                     break;
                 }
@@ -122,7 +156,7 @@ impl Values<'_> {
             let byte = self.bytes.peek()?;
             let separator = self.sequence && byte == Some(0x1e);
             if let Some(b) = byte {
-                self.bytes.at += 1;
+                self.bytes.advance(b);
                 if b == b'\n' {
                     self.line += 1;
                     self.column = 0;
@@ -230,6 +264,9 @@ pub(super) fn files<'a>(
             fs,
             chunk: Cow::Borrowed(&[]),
             at: 0,
+            name: None,
+            line: 0,
+            more_newlines: None,
         },
         raw,
         slurp,
@@ -249,4 +286,34 @@ pub(super) fn files<'a>(
         file_error: None,
         warnings: String::new(),
     }
+}
+
+pub(super) fn diagnostic(text: &str, max_units: usize) -> String {
+    use std::fmt::Write;
+    let mut out = String::new();
+    let mut units = 0;
+    for c in text.chars() {
+        if units == max_units {
+            break;
+        }
+        units += c.len_utf16();
+        if units > max_units {
+            out.push(char::REPLACEMENT_CHARACTER);
+            break;
+        }
+        match c {
+            '\x08' => out.push_str("\\b"),
+            '\x0b' => out.push_str("\\v"),
+            '\x0c' => out.push_str("\\f"),
+            '\r' => out.push_str("\\r"),
+            '\n' | '\t' => out.push(c),
+            c if c.is_control() => {
+                for b in c.encode_utf8(&mut [0; 4]).bytes() {
+                    write!(out, "\\{b:03o}").unwrap();
+                }
+            }
+            c => out.push(c),
+        }
+    }
+    out
 }

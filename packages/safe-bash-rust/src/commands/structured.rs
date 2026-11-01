@@ -1003,6 +1003,7 @@ fn cmd_jq_core(
     let mut out = String::new();
     let mut stderr = String::new();
     let mut last_truthy: Option<bool> = None;
+    let mut status = if exit_status { 4 } else { 0 };
     let mut first_null_done = false;
 
     loop {
@@ -1026,40 +1027,46 @@ fn cmd_jq_core(
         if let Some(e) = inputs.borrow_mut().file_error.take() {
             return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: {e}\n"), exit_code: 2 };
         }
-        match result {
-            Ok(results) => {
-                for r in results {
-                    if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
-                        let loc = if null_input { "<unknown>" } else { "<stdin>:1" };
-                        return BuiltinOutcome {
-                            stdout: out,
-                            stderr: format!(
-                                "{stderr}jq: error (at {loc}): Cannot dump a string containing NUL with --raw-output0 option\n"
-                            ),
-                            exit_code: 5,
-                        };
-                    }
-                    last_truthy = Some(r.is_truthy());
-                    let raw_string = raw_output && matches!(r, JVal::Str(_));
-                    if seq_mode && !raw_string { out.push('\x1e'); }
-                    if raw_string && !ascii_output && let JVal::Str(ref s) = r {
-                        out.push_str(s);
-                    } else {
-                        JsonFormat {
-                            indent: &indent,
-                            strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
-                            color: color && !monochrome && !raw_string,
-                            sort_keys,
-                        }.write(&r, 0, &mut out);
-                    }
-                    if raw_output0 {
-                        out.push('\0');
-                    } else if !join_output {
-                        out.push('\n');
-                    }
+        let mut invocation_last = None;
+        let emitted = result.and_then(|results| {
+            for r in results {
+                if raw_output0 && !ascii_output && let JVal::Str(ref s) = r && s.contains('\0') {
+                    return Err("Cannot dump a string containing NUL with --raw-output0 option".into());
+                }
+                invocation_last = Some(r.is_truthy());
+                let raw_string = raw_output && matches!(r, JVal::Str(_));
+                if seq_mode && !raw_string { out.push('\x1e'); }
+                if raw_string && !ascii_output && let JVal::Str(ref s) = r {
+                    out.push_str(s);
+                } else {
+                    JsonFormat {
+                        indent: &indent,
+                        strings: if ascii_output { JsonStrings::Ascii } else { JsonStrings::Jq },
+                        color: color && !monochrome && !raw_string,
+                        sort_keys,
+                    }.write(&r, 0, &mut out);
+                }
+                if raw_output0 {
+                    out.push('\0');
+                } else if !join_output {
+                    out.push('\n');
                 }
             }
-            Err(e) => return BuiltinOutcome { stdout: out, stderr: format!("{stderr}jq: error: {e}\n"), exit_code: 5 },
+            Ok(())
+        });
+        match emitted {
+            Ok(()) => {
+                last_truthy = invocation_last.or(last_truthy);
+                status = if !exit_status { 0 } else { match last_truthy { Some(true) => 0, Some(false) => 1, None => 4 } };
+            }
+            Err(e) => {
+                let error = e.strip_prefix("__jq_err:").and_then(|s| parse_single_json_strict(s).ok())
+                    .map(|value| value.to_raw_string(true, false)).unwrap_or(e);
+                let place = inputs.borrow_mut().location();
+                use std::fmt::Write;
+                writeln!(stderr, "jq: error (at {place}): {}", jq_input::diagnostic(&error, 1000)).unwrap();
+                status = 5;
+            }
         }
     }
 
@@ -1071,19 +1078,10 @@ fn cmd_jq_core(
         };
     }
 
-    let code = if exit_status {
-        match last_truthy {
-            None => 4,
-            Some(false) => 1,
-            Some(true) => 0,
-        }
-    } else {
-        0
-    };
     BuiltinOutcome {
         stdout: out,
         stderr,
-        exit_code: code,
+        exit_code: status,
     }
 }
 

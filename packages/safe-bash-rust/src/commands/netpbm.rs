@@ -82,6 +82,16 @@ impl<'a> Netpbm<'a> {
         })
     }
 
+    pub fn bit_depth(&self) -> u8 {
+        if matches!(self.magic, b'1' | b'4') {
+            1
+        } else if self.max > 255. {
+            16
+        } else {
+            8
+        }
+    }
+
     pub fn codec(&self) -> &'static [u8; 4] {
         match self.magic {
             b'1' | b'4' => b"pbm ",

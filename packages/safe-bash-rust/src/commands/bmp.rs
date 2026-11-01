@@ -9,10 +9,10 @@ pub(super) struct Bmp<'a> {
     pub width: usize,
     pub height: usize,
     top_down: bool,
-    bpp: usize,
+    pub bpp: usize,
     offset: u64,
     dib: u32,
-    density: u32,
+    pub density: u32,
 }
 
 impl<'a> Bmp<'a> {

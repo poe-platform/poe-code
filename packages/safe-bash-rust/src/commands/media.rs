@@ -11078,7 +11078,20 @@ fn cmd_media_doc(
                         continue;
                     }
                     let bytes = fs.read_file(&full).unwrap_or_default();
-                    let meta = read_image_meta(&bytes, &full);
+                    let mut meta = read_image_meta(&bytes, &full);
+                    let (depth, channels, dpi) = if netpbm::signature(&bytes) && let Ok(im) = netpbm::Netpbm::parse(&bytes, fs.max_input_bytes()) {
+                        meta.w = im.width as u32;
+                        meta.h = im.height as u32;
+                        let gray = im.codec() != b"ppm ";
+                        meta.fmt = std::str::from_utf8(im.codec()).unwrap().trim_end().to_ascii_uppercase();
+                        meta.cs = if gray { "Gray" } else { "sRGB" }.into();
+                        (im.bit_depth(), if gray { 1 } else { 3 }, 72)
+                    } else if bmp::signature(&bytes) && let Ok(im) = bmp::Bmp::parse(&bytes, fs.max_input_bytes()) {
+                        meta.w = im.width as u32;
+                        meta.h = im.height as u32;
+                        meta.fmt = "BMP".into();
+                        (8, if im.bpp == 32 { 4 } else { 3 }, im.density)
+                    } else { (8, 3, 72) };
                     let fmt_lower = meta.fmt.to_ascii_lowercase();
                     let xml = get_props.iter().any(|p| p == "allxml");
                     let mut expanded_props = Vec::new();
@@ -11105,20 +11118,11 @@ fn cmd_media_doc(
                             "format" => fmt_lower.clone(),
                             "typeIdentifier" => type_id_for_fmt(&fmt_lower),
                             "formatOptions" => "default".to_string(),
-                            "dpiWidth" => meta
-                                .exif
-                                .get("dpiWidth")
-                                .cloned()
-                                .unwrap_or_else(|| "72.000".to_string()),
-                            "dpiHeight" => meta
-                                .exif
-                                .get("dpiHeight")
-                                .cloned()
-                                .unwrap_or_else(|| "72.000".to_string()),
-                            "samplesPerPixel" => "3".to_string(),
-                            "bitsPerSample" => "8".to_string(),
-                            "hasAlpha" => "no".to_string(),
-                            "space" => "RGB".to_string(),
+                            "dpiWidth" | "dpiHeight" => meta.exif.get(p).cloned().unwrap_or_else(|| format!("{dpi}.000")),
+                            "samplesPerPixel" => channels.to_string(),
+                            "bitsPerSample" => depth.to_string(),
+                            "hasAlpha" => if channels == 4 { "yes" } else { "no" }.into(),
+                            "space" => if meta.cs == "Gray" { "Gray" } else { "RGB" }.into(),
                             other => meta
                                 .exif
                                 .get(other)
@@ -13632,6 +13636,14 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn sips_reports_precision_and_color_space_from_graymap_data() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/gray.bin", b"P5\n# size\n3 2\n4095\n").unwrap();
+        let r = cmd_media_doc("sips", &media_args(&["-1","-g","pixelWidth","-g","pixelHeight","-g","format","-g","space","-g","bitsPerSample","-g","samplesPerPixel","gray.bin"]), "", "/", &fs);
+        assert_eq!(r.stdout, "gray.bin|pixelWidth: 3|pixelHeight: 2|format: pgm|space: Gray|bitsPerSample: 16|samplesPerPixel: 1|\n");
     }
 
     #[test]

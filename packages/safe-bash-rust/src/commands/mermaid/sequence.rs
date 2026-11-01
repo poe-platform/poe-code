@@ -15,6 +15,7 @@ struct Participant {
     id: String,
     label: String,
     actor: bool,
+    group: Option<usize>,
 }
 #[derive(Default)]
 struct Links {
@@ -87,11 +88,16 @@ fn message(text: &str) -> Option<(&str, &str, &str, Marker, bool, Option<bool>)>
     candidate
 }
 
+struct ParticipantBox {
+    label: String,
+    fill: Option<(String, [u8; 4])>,
+}
 #[derive(Default)]
 pub(in super::super) struct Sequence {
     participants: Vec<Participant>,
     messages: Vec<Message>,
     notes: Vec<Note>,
+    boxes: Vec<ParticipantBox>,
     activations: Vec<(usize, usize, bool)>,
     links: BTreeMap<String, Links>,
 }
@@ -100,6 +106,7 @@ impl Sequence {
     pub fn parse(stmts: &[Statement], limit: usize) -> Result<Option<Self>, String> {
         let mut chart = Self::default();
         let mut ids = BTreeMap::<String, usize>::new();
+        let mut open_box: Option<&Statement> = None;
         for stmt in &stmts[1..] {
             let text = stmt.text.trim_end();
             let word = text.split_ascii_whitespace().next().unwrap_or("");
@@ -127,6 +134,7 @@ impl Sequence {
                             id: id.into(),
                             label: label.unwrap_or(id).into(),
                             actor,
+                            group: open_box.map(|_| chart.boxes.len() - 1),
                         });
                         Ok(chart.participants.len() - 1)
                     }
@@ -240,7 +248,46 @@ impl Sequence {
                         label: strip_quotes(&rest[i + 1..]).into(),
                     });
                 }
-                "box" | "loop" | "opt" | "alt" | "end" | "else" => return Ok(None),
+                "box" => {
+                    if open_box.is_some() {
+                        return Err(fail("Participant boxes cannot be nested"));
+                    }
+                    let mut end = rest.find(char::is_whitespace).unwrap_or(rest.len());
+                    if let Some(i) = rest[..end].find('(') {
+                        let mut depth = 0;
+                        for (k, ch) in rest[i..].char_indices() {
+                            if ch == '(' {
+                                depth += 1;
+                            } else if ch == ')' {
+                                depth -= 1;
+                                if depth == 0 {
+                                    end = i + k + 1;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    let fill = super::styles::css_color(&rest[..end])
+                        .ok()
+                        .map(|(s, c)| (s.to_owned(), c));
+                    let label = if fill.is_some() {
+                        rest[end..].trim_ascii()
+                    } else {
+                        rest
+                    };
+                    check_label(label, stmt, text)?;
+                    chart.boxes.push(ParticipantBox {
+                        label: strip_quotes(label).into(),
+                        fill,
+                    });
+                    open_box = Some(stmt);
+                }
+                "end" => {
+                    if open_box.take().is_none() {
+                        return Err(fail("Unexpected 'end' without matching sequence block"));
+                    }
+                }
+                "loop" | "opt" | "alt" | "else" => return Ok(None),
                 _ => {
                     let Some((from, to, label, marker, dashed, activation)) = message(text) else {
                         return Err(fail(&format!(
@@ -266,6 +313,9 @@ impl Sequence {
                     });
                 }
             }
+        }
+        if let Some(stmt) = open_box {
+            return Err(stmt.error("E_SYNTAX", &stmt.text, "Unclosed participant box"));
         }
         Ok(Some(chart))
     }
@@ -513,22 +563,90 @@ impl Sequence {
                 bars.push((id, stacks[id].len(), start, (bottom - 14. - start).max(20.)));
             }
         }
-        let (width, height) = (
-            right - min_x,
-            if cards.is_empty() {
-                100.
-            } else {
-                bottom + max_h
-            },
-        );
+        let mut extents = vec![None; self.boxes.len()];
+        for (p, c) in self.participants.iter().zip(&cards) {
+            if let Some(id) = p.group {
+                let [left, r, base] = extents[id].get_or_insert([c.0, c.0 + c.1, bottom + c.2]);
+                *left = left.min(c.0);
+                *r = r.max(c.0 + c.1);
+                *base = base.max(bottom + c.2);
+            }
+        }
+        let mut min_y: f64 = 0.;
+        let mut max_y = if cards.is_empty() {
+            100.
+        } else {
+            bottom + max_h
+        };
+        for [l, r, b] in extents.iter().flatten() {
+            min_x = min_x.min(l - 16.);
+            right = right.max(r + 16.);
+            min_y = -48.;
+            max_y = max_y.max(b + 16.);
+        }
+        let (width, height) = (right - min_x, max_y - min_y);
         let dx = (padding - min_x + 0.5).floor();
-        let dy = (padding + 0.5).floor();
+        let dy = (padding - min_y + 0.5).floor();
         let mut scene = Scene {
             width: (width + padding * 2.).ceil(),
             height: (height + padding * 2.).ceil(),
             elements: vec![],
             paint: vec![],
         };
+        let mut frame_idx = 0;
+        for (id, (group, extent)) in self.boxes.into_iter().zip(extents).enumerate() {
+            let Some([left, right, base]) = extent else {
+                continue;
+            };
+            let (x, y, w, h) = (left - 16. + dx, dy - 48., right - left + 32., base + 64.);
+            let custom = group.fill.as_ref().map(|(s, c)| (s.as_str(), *c));
+            let fill = custom.unwrap_or_else(|| theme.color("groupSurface"));
+            let header = custom.unwrap_or_else(|| theme.color("groupHeaderSurface"));
+            let border = theme.color("groupBorder");
+            let (color, ink) = theme.color("text");
+            let font = &theme.font;
+            charge_attributes(
+                &mut budget,
+                &[
+                    (fill.0, 1),
+                    (header.0, 1),
+                    (border.0, 2),
+                    (font, 1),
+                    (color, 1),
+                ],
+            )?;
+            let mut el = super::groups::GroupFrame {
+                bounds: [x, y, w, h],
+                radius: 0.,
+                thickness: 1.,
+                fill,
+                header,
+                border,
+            }
+            .paint(
+                &format!("participant_box_{id}"),
+                frame_idx,
+                prefix,
+                &mut scene.paint,
+            );
+            frame_idx += 1;
+            if !group.label.is_empty() {
+                let cx = (left + right) / 2. + dx;
+                let baseline = y + 22.;
+                write!(el,r#"<text x="{cx}" y="{baseline}" fill="{color}" font-family="{font}" font-size="13" font-weight="600" letter-spacing="0.025em" text-anchor="middle">{}</text>"#,esc(&group.label)).unwrap();
+                scene.paint.push(Paint::Text {
+                    mono: false,
+                    start: cx - measure(&group.label, 13., true) / 2.,
+                    baseline,
+                    size: 13.,
+                    weight: 600,
+                    color: ink,
+                    text: group.label,
+                });
+            }
+            el.push_str("\n</g>");
+            scene.elements.push(el);
+        }
         let (strong, line_color) = theme.color("borderStrong");
         charge_attributes(&mut budget, &[(strong, cards.len())])?;
         for (x, w, h, _, _) in &cards {

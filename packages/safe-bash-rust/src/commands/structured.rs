@@ -38801,6 +38801,24 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         ]);
     }
 
+    #[test]
+    fn mmdc_groups_sequence_participants_in_colored_boxes() {
+        assert_mermaid_outputs(&[
+            ("sequenceDiagram\nbox Green Team\nparticipant Alice\nactor Bob\nend", "svg", "028f23e6839f6072223bd910a16e0b53e2accb4daf7704e7b6a900ad9a4cfe83"),
+            ("sequenceDiagram\nbox Green Team\nparticipant Alice\nactor Bob\nend", "png", "104912ff25eff70985c1fa70bbe6567c036075fbf90add350add7894cc9259ea"),
+            ("sequenceDiagram\nbox Green Team\nparticipant Alice\nactor Bob\nend", "pdf", "ff3cb2872c0b67a7b8a92ab049aebdb6387eff5d604d8f7bc0c1b4856e7e3e6d"),
+            ("sequenceDiagram\nbox rgba(10, 20, 30, 0.4) My Team\nparticipant A\nend", "svg", "82788cd288eed1c0e0616f8b2b54639c20acb7478572852d81c477a478faba97"),
+            ("sequenceDiagram\nbox rgba(10, 20, 30, 0.4) My Team\nparticipant A\nend", "png", "8c75bece1583a337db96deaca7f748d0de98e2c3d9f97c10bd4c42864203d5b0"),
+            ("sequenceDiagram\nbox rgba(10, 20, 30, 0.4) My Team\nparticipant A\nend", "pdf", "0ad7d063663dba19f94fe08ec4e506619f8ebcf2a55354c2e03fce5d33ba46f4"),
+            ("sequenceDiagram\nbox purple Team\nparticipant A\nend\nA->>B: hello", "svg", "007eb5159ca83de5dc37c0042414c035a62e6cdb0b026b1370f9b51e067cb6d2"),
+            ("sequenceDiagram\nbox purple Team\nparticipant A\nend\nA->>B: hello", "png", "e712ae90d81fb0842bf8e350db976cd0573fe8db4eadead6cede15e324eca366"),
+            ("sequenceDiagram\nbox purple Team\nparticipant A\nend\nA->>B: hello", "pdf", "b3e18ef0e96bf9dd641ba803b0acdb46502d16ce1531a87afee4fd7da0c0f8f2"),
+            ("sequenceDiagram\nbox one\nbox two", "svg", "mmdc: E_SYNTAX (line 3, column 1): Participant boxes cannot be nested\n"),
+            ("sequenceDiagram\nbox one\nparticipant X", "svg", "mmdc: E_SYNTAX (line 2, column 1): Unclosed participant box\n"),
+            ("sequenceDiagram\nparticipant A\nbox foo\nparticipant A\nend\nbox Inner\nparticipant B\nend", "svg", "add082ab58962604cfce5a4ca15f5146f85deea7358a4d08793c52c7a2554592"),
+        ]);
+    }
+
     fn assert_mermaid_outputs(cases: &[(&str, &str, &str)]) {
         let fs = MemoryVfs::new();
         for &(source, format, expected) in cases {

@@ -16,6 +16,48 @@ pub(super) struct Group {
     pub root: usize,
     pub bounds: [i32; 4],
 }
+pub(super) struct GroupFrame<'a> {
+    pub bounds: [f64; 4],
+    pub radius: f64,
+    pub thickness: f64,
+    pub fill: (&'a str, [u8; 4]),
+    pub header: (&'a str, [u8; 4]),
+    pub border: (&'a str, [u8; 4]),
+}
+impl GroupFrame<'_> {
+    pub fn paint(&self, id: &str, idx: usize, prefix: &str, paint: &mut Vec<Paint>) -> String {
+        let [x, y, w, h] = self.bounds;
+        let (radius, thickness) = (self.radius, self.thickness);
+        let ((fill, fill_rgba), (header, header_rgba), (border, stroke)) =
+            (self.fill, self.header, self.border);
+        paint.push(Paint::Box {
+            bounds: self.bounds,
+            style: BoxStyle {
+                radius,
+                fill: fill_rgba,
+                header: Some((32., header_rgba)),
+                border: stroke,
+                thickness,
+            },
+            shape: Shape::Rounded,
+            shadow: None,
+        });
+        let bottom = y + 32.;
+        let right = x + w;
+        paint.push(Paint::Path {
+            points: vec![(x, bottom), (right, bottom)],
+            fill: None,
+            stroke,
+            width: 1.,
+            dashed: false,
+        });
+        let clip = format!("{prefix}mmdc-group-clip-{idx}");
+        format!(
+            r#"<g class="mmdc-group" data-id="{}"><defs><clipPath id="{clip}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}"/></clipPath></defs><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="{fill}"/><rect x="{x}" y="{y}" width="{w}" height="32" fill="{header}" clip-path="url(#{clip})"/><line x1="{x}" y1="{bottom}" x2="{right}" y2="{bottom}" stroke="{border}" stroke-width="1"/><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{radius}" fill="none" stroke="{border}" stroke-width="{thickness}"/>"#,
+            esc(id)
+        )
+    }
+}
 impl Group {
     pub fn header(&self) -> [f64; 4] {
         let [x, y, w, _] = self.bounds;
@@ -77,32 +119,16 @@ impl Group {
         let (border, stroke) = theme.color("groupBorder");
         let (color, text_rgba) = theme.color("text");
         let font = &theme.font;
-        paint.push(Paint::Box {
-            bounds: [x.into(), y.into(), w.into(), h.into()],
-            style: BoxStyle {
-                radius: 12.,
-                fill: fill_rgba,
-                header: Some((32., header_rgba)),
-                border: stroke,
-                thickness: 1.25,
-            },
-            shape: Shape::Rounded,
-            shadow: None,
-        });
+        let mut el = GroupFrame {
+            bounds: [x, y, w, h].map(f64::from),
+            radius: 12.,
+            thickness: 1.25,
+            fill: (fill, fill_rgba),
+            header: (header, header_rgba),
+            border: (border, stroke),
+        }
+        .paint(&self.id, idx, prefix, paint);
         let bottom = y + 32;
-        let right = x + w;
-        paint.push(Paint::Path {
-            points: vec![(x.into(), bottom.into()), (right.into(), bottom.into())],
-            fill: None,
-            stroke,
-            width: 1.,
-            dashed: false,
-        });
-        let clip = format!("{prefix}mmdc-group-clip-{idx}");
-        let mut el = format!(
-            r#"<g class="mmdc-group" data-id="{}"><defs><clipPath id="{clip}"><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12"/></clipPath></defs><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="{fill}"/><rect x="{x}" y="{y}" width="{w}" height="32" fill="{header}" clip-path="url(#{clip})"/><line x1="{x}" y1="{bottom}" x2="{right}" y2="{bottom}" stroke="{border}" stroke-width="1"/><rect x="{x}" y="{y}" width="{w}" height="{h}" rx="12" fill="none" stroke="{border}" stroke-width="1.25"/>"#,
-            esc(&self.id)
-        );
         if !self.label.is_empty() {
             let mut lx = f64::from(x + 16);
             let lw = measure(&self.label, 12., true);

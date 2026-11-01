@@ -107,6 +107,9 @@ pub trait SafeBashFs: Send + Sync {
     fn mkdir_all(&self, path: &str) -> Result<(), String>;
     fn exists(&self, path: &str) -> bool;
     fn is_dir(&self, path: &str) -> bool;
+    /// Literal directory-entry lookup when a link-free memory index is available.
+    /// The caller has already resolved the parent and checked traversal access.
+    fn indexed_directory_entry(&self, _path: &str) -> Option<bool> { None }
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String>;
     fn symlink(&self, target: &str, path: &str) -> Result<(), String>;
     fn readlink(&self, path: &str) -> Result<String, String>;

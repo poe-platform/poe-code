@@ -748,6 +748,21 @@ impl SafeBashFs for MemoryVfs {
         self.stat(path).is_ok_and(|st| st.kind == VfsEntryKind::Directory)
     }
 
+    fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
+        let (prefix, _) = path.trim_end_matches('/').rsplit_once('/')?;
+        if prefix.ends_with('/') { return None; }
+        let parent = if prefix.is_empty() { "/" } else { prefix };
+        if parent == "/dev" || parent.starts_with("/dev/") || normalize_posix_path(parent) != parent {
+            return None;
+        }
+        let state = self.state.read().ok()?;
+        if !matches!(state.nodes.get(parent), Some(MemoryNode::Directory { mode, .. }) if mode & 0o500 == 0o500)
+            || state.nodes.values().any(|node| matches!(node, MemoryNode::Symlink { target, .. } if !target.starts_with("__hardlink__:"))) {
+            return None;
+        }
+        Some(state.nodes.contains_key(path.trim_end_matches('/')))
+    }
+
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {
         let norm = normalize_posix_path(path);
         let guard = self.state.read().map_err(|e| e.to_string())?;

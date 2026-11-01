@@ -1697,10 +1697,31 @@ fn cmd_mv(
     let absolute = |path: &str| if path.starts_with('/') { path.to_owned() } else { child_disp_path(cwd, path) };
     let dst_raw = eff_operands.last().unwrap();
     let dst_base = absolute(dst_raw);
-    let dst_is_dir = !no_target_dir && fs.is_dir(&dst_base);
-    if dst_raw.ends_with('/') && fs.lstat(&dst_base).is_ok_and(|st| st.kind == VfsEntryKind::File) {
-        return err_out(&format!("mv: ENOTDIR: not a directory, lstat '{dst_base}'\n"), 1);
-    }
+    let dst_is_dir = if no_target_dir {
+        false
+    } else {
+        match fs.access_path(&dst_base, true).and_then(|p| fs.stat(&p)) {
+            Ok(st) => {
+                // An implicit destination uses the production memory entry lookup.
+                // "." and ".." can resolve to directories without being listed entries.
+                let name = dst_base.trim_end_matches('/').rsplit('/').next().unwrap_or_default();
+                st.kind == VfsEntryKind::Directory && !(target_dir.is_none()
+                    && matches!(name, "." | "..")
+                    && fs.indexed_directory_entry(&dst_base) == Some(false))
+            }
+            Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => false,
+            Err(e) if e.starts_with("ENOTDIR:") || e.starts_with("ELOOP:") => {
+                if fs.access_path(&dst_base, false).and_then(|p| fs.lstat(&p))
+                    .is_ok_and(|st| st.kind == VfsEntryKind::Symlink) {
+                    false
+                } else {
+                    let error = if e.starts_with("ELOOP:") { "ELOOP: too many symbolic links encountered" } else { "ENOTDIR: not a directory" };
+                    return err_out(&format!("mv: {error}, lstat '{dst_base}'\n"), 1);
+                }
+            }
+            Err(e) => return err_out(&format!("mv: {e}, stat '{dst_base}'\n"), 1),
+        }
+    };
     if target_dir.is_some() && !dst_is_dir {
         if !fs.exists(&dst_base) && fs.lstat(&dst_base).is_err() {
             return err_out(
@@ -6723,6 +6744,41 @@ mod tests {
         assert_eq!(result.stderr, "mv: ENOTEMPTY: directory not empty, rename '/tree' -> '/dir/tree'\n");
         assert_eq!(fs.read_file("/tree/file").unwrap(), b"source");
         assert_eq!(fs.read_file("/dir/tree/file").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn mv_inspects_destination_components_before_interpreting_parent_paths() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src", b"keep").unwrap();
+        fs.write_file("/tree/file", b"existing").unwrap();
+        for (path, error) in [
+            ("tree/missing/..", "mv: ENOENT: no such file or directory, rename '/src' -> '/tree/missing/..'\n"),
+            ("tree/file/.", "mv: ENOTDIR: not a directory, lstat '/tree/file/.'\n"),
+        ] {
+            let result = cmd_mv(&args(&["src", path]), "", "/", &BTreeMap::new(), &fs);
+            assert_eq!(result.stderr, error);
+            assert_eq!(result.exit_code, 1);
+            assert_eq!(fs.read_file("/src").unwrap(), b"keep");
+        }
+    }
+
+    #[test]
+    fn mv_dot_destination_matches_memory_directory_entry_lookup() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src", b"keep").unwrap();
+        fs.mkdir_all("/tree").unwrap();
+        let args = args(&["src", "tree/."]);
+        let plain = cmd_mv(&args, "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(plain.stderr, "mv: EINVAL: invalid argument, rename '/src' -> '/tree/.'\n");
+        assert_eq!(fs.read_file("/src").unwrap(), b"keep");
+
+        let repeated = cmd_mv(&["src".into(), "tree//.".into()], "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(repeated.exit_code, 0, "{}", repeated.stderr);
+        fs.rename("/tree/src", "/src", false).unwrap();
+        fs.symlink("tree", "/link").unwrap();
+        let linked = cmd_mv(&args, "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(linked.exit_code, 0, "{}", linked.stderr);
+        assert_eq!(fs.read_file("/tree/src").unwrap(), b"keep");
     }
 
     #[test]

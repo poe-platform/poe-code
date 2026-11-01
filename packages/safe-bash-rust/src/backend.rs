@@ -72,6 +72,12 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
         self.budget.limits.max_input_bytes
     }
 
+    fn access_path(&self, path: &str, follow_final: bool) -> Result<String, String> {
+        self.budget.limits.check_path(path)?;
+        self.budget.tick_fs_op()?;
+        self.inner.access_path(path, follow_final)
+    }
+
     fn read_file(&self, path: &str) -> Result<Vec<u8>, String> {
         self.budget.limits.check_path(path)?;
         self.budget.tick_fs_op()?;
@@ -140,6 +146,10 @@ impl<'a> SafeBashFs for BudgetedFs<'a> {
 
     fn is_dir(&self, path: &str) -> bool {
         self.budget.limits.check_path(path).is_ok() && self.inner.is_dir(path)
+    }
+
+    fn indexed_directory_entry(&self, path: &str) -> Option<bool> {
+        self.inner.indexed_directory_entry(path)
     }
 
     fn list_dir(&self, path: &str) -> Result<Vec<String>, String> {

@@ -156,6 +156,7 @@ pub(super) struct Tiff<'a> {
     orientation: Option<u8>,
     limit: usize,
     compression: usize,
+    jpeg_tables: &'a [u8],
     rows_per_strip: usize,
     tile: Option<(usize, usize)>,
     white_zero: bool,
@@ -209,7 +210,7 @@ impl<'a> Tiff<'a> {
         let depth = get(258, 8);
         if !(1..=4).contains(&samples)
             || !matches!(depth, 8 | 16)
-            || !matches!(get(259, 1), 1 | 5 | 8 | 32946 | 32773)
+            || !matches!(get(259, 1), 1 | 5 | 6 | 7 | 8 | 32946 | 32773)
         {
             return Err("unsupported TIFF encoding");
         }
@@ -229,6 +230,7 @@ impl<'a> Tiff<'a> {
             orientation,
             limit,
             compression: get(259, 1),
+            jpeg_tables: field(347).map_or(&[][..], |f| f.bytes),
             rows_per_strip: get(278, height).clamp(1, height),
             white_zero: get(262, 2) == 0,
             predictor: get(317, 1) == 2,
@@ -236,6 +238,55 @@ impl<'a> Tiff<'a> {
             offsets: field(if tile.is_some() { 324 } else { 273 }),
             counts: field(if tile.is_some() { 325 } else { 279 }),
         })
+    }
+
+    fn jpeg_chunk(
+        &self,
+        input: &[u8],
+        expected: usize,
+        limit: usize,
+        work: &mut usize,
+    ) -> Result<Vec<u8>, &'static str> {
+        let limit = limit
+            .checked_sub(expected)
+            .ok_or("image exceeds memory budget")?;
+        let mut owned = Vec::new();
+        let jpeg = if self.jpeg_tables.starts_with(&[255, 216])
+            && self.jpeg_tables.len() > 4
+            && input.starts_with(&[255, 216])
+            && input.len() > 2
+        {
+            let tables = &self.jpeg_tables[2..self.jpeg_tables.len() - 2];
+            let len = tables
+                .len()
+                .checked_add(input.len())
+                .filter(|n| *n <= limit)
+                .ok_or("image exceeds memory budget")?;
+            *work = work
+                .checked_sub(len)
+                .ok_or("image decompression work limit exceeded")?;
+            owned.reserve_exact(len);
+            owned.extend_from_slice(&input[..2]);
+            owned.extend_from_slice(tables);
+            owned.extend_from_slice(&input[2..]);
+            owned.as_slice()
+        } else {
+            input
+        };
+        let h = super::image_header::jpeg(jpeg)?;
+        *work = work
+            .checked_sub(
+                (h.width as usize)
+                    .saturating_mul(h.height as usize)
+                    .saturating_mul(4),
+            )
+            .ok_or("image decompression work limit exceeded")?;
+        let im = super::jpeg_decode::decode(jpeg, limit - owned.len())?;
+        let mut bytes = vec![0; expected];
+        for (pixel, dst) in im.pixels.iter().zip(bytes.chunks_exact_mut(self.samples)) {
+            dst.copy_from_slice(&pixel[..self.samples]);
+        }
+        Ok(bytes)
     }
 
     fn row(
@@ -304,6 +355,14 @@ impl<'a> Tiff<'a> {
                     .checked_sub(n.max(expected))
                     .ok_or("image decompression work limit exceeded")?;
             }
+            if matches!(self.compression, 6 | 7) {
+                return Ok(Some(Cow::Owned(self.jpeg_chunk(
+                    &data[..n],
+                    expected,
+                    scratch,
+                    &mut work,
+                )?)));
+            }
             strip(&data[..n], self.compression, expected, scratch).map(Some)
         };
         let mut missing = [0; 4];
@@ -371,6 +430,54 @@ impl<'a> Tiff<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn jpeg_strips_share_tables_from_the_tiff_directory() {
+        let im = Raster {
+            width: 3,
+            height: 1,
+            alpha: false,
+            gray: false,
+            orientation: None,
+            density: 72,
+            pixels: vec![[200, 30, 40, 255], [9, 27, 100, 255], [88, 111, 55, 255]],
+        };
+        let jpeg = super::super::jpeg::encode(&im, 85, 72, 1 << 20).unwrap();
+        let expected = super::super::jpeg_decode::decode(&jpeg, 1 << 20)
+            .unwrap()
+            .pixels;
+        let start = jpeg.windows(2).position(|v| v == [255, 219]).unwrap();
+        let end = start + 2 + word(&jpeg[start + 2..start + 4], false) as usize;
+        let tables = [&[255, 216], &jpeg[start..end], &[255, 217]].concat();
+        let packet = [&jpeg[..start], &jpeg[end..]].concat();
+        let fields = [
+            (256u16, 4u16, 1, 3),
+            (257, 4, 1, 1),
+            (259, 4, 1, 7),
+            (277, 4, 1, 3),
+            (347, 7, tables.len() as u32, 86),
+            (273, 4, 1, 86 + tables.len() as u32),
+        ];
+        let mut bytes = b"MM\0*\0\0\0\x08".to_vec();
+        bytes.extend_from_slice(&(fields.len() as u16).to_be_bytes());
+        for (tag, ty, n, v) in fields {
+            bytes.extend_from_slice(&tag.to_be_bytes());
+            bytes.extend_from_slice(&ty.to_be_bytes());
+            bytes.extend_from_slice(&n.to_be_bytes());
+            bytes.extend_from_slice(&v.to_be_bytes());
+        }
+        bytes.extend_from_slice(&[0; 4]);
+        bytes.extend(tables);
+        bytes.extend(packet);
+        assert_eq!(
+            Tiff::parse(&bytes, 1 << 20)
+                .unwrap()
+                .decode()
+                .unwrap()
+                .pixels,
+            expected
+        );
+    }
 
     #[test]
     fn places_tiff_tiles_at_their_visible_edges() {

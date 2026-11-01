@@ -1077,31 +1077,6 @@ fn eval_jq_atom(
     if s.is_empty() || s == "." {
         return Ok(vec![input.clone()]);
     }
-    if let Some(inner) = s.strip_prefix('-')
-        && !inner.is_empty()
-    {
-        let mut out = Vec::new();
-        for v in eval_jq(inner, input, vars)? {
-            if let JVal::Number(n, _) = v {
-                out.push(JVal::Number(-n, None));
-            } else {
-                out.push(v);
-            }
-        }
-        return Ok(out);
-    }
-
-    if let Some(inner) = s.strip_suffix('?')
-        && !inner.is_empty()
-        && !inner.starts_with('.')
-    {
-        return match eval_jq(inner, input, vars) {
-            Err(e) if !e.starts_with("__jq_limit:") => Ok(Vec::new()),
-            other => other,
-        };
-    }
-
-
     if s.starts_with('[') && s.ends_with(']') && is_matching_outer_delim(s, '[', ']') {
         let inner = s[1..s.len() - 1].trim();
         if inner.is_empty() {
@@ -2551,17 +2526,6 @@ fn try_eval_jq_builtin(
                         out.push(explode_jval_merge_keys(&v));
                     }
                     return Ok(Some(out));
-                }
-                "select" => {
-                    let keep = eval_jq(arg_expr, input, vars)?
-                        .first()
-                        .map(|v| v.is_truthy())
-                        .unwrap_or(false);
-                    return Ok(Some(if keep {
-                        vec![input.clone()]
-                    } else {
-                        Vec::new()
-                    }));
                 }
                 "map" => {
                     if let JVal::Array(a) = input {

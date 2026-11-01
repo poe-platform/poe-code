@@ -3,6 +3,24 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq select, negation and optional filters preserve intermediate results", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, stdout, error] of [
+      ["7 | select((false,true,true))", "7\n7\n"],
+      ['5 | select((true,error("stop")))', "5\n", "stop"],
+      ['first(select((true,error("stop"))))', "null\n"],
+      ["-((2,true))", "-2\n", "negation requires a number"],
+      ['(-(2,error("stop")))?', "-2\n"],
+      ['(1,error("stop"))?', "1\n"],
+      ['(1,2)? | error("outside")', "", "outside"],
+    ]) {
+      const r = await bash.exec(`jq -nc -- '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [error ? 5 : 0, stdout, error ? `jq: error (at <unknown>): ${error}\n` : ""], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("yq properties retain numeric path components as keys and replace scalar parents", async () => {
   const bash = new RustWasmBash({ files: {"/workspace/app.properties": "a=1\na.1=b\na.0=x\n0=root\n"} });
   try {

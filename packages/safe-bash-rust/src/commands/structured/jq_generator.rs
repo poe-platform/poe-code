@@ -234,6 +234,17 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             })
         });
     }
+    if let Some(inner) = s.strip_prefix('-') {
+        return visit_jq(inner, input, vars, &mut |v| match v {
+            JVal::Number(n, _) => emit(JVal::Number(-n, None)),
+            _ => Err("negation requires a number".into()),
+        });
+    }
+    if let Some(inner) = s.strip_suffix('?')
+        && !inner.starts_with('.')
+    {
+        return protected(inner, input, vars, emit, |_, _| Ok(Continue(())));
+    }
     if (s.starts_with("reduce") || s.starts_with("foreach"))
         && let Some((source, variable, body)) = super::jq_parser::fold(s)
         && let Some(stages) = split_jq_top(body, ';')
@@ -281,6 +292,15 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
                 }
             }
             return Ok(Continue(()));
+        }
+        if let ("select", Some(predicate)) = (name, args) {
+            return visit_jq(predicate, input, vars, &mut |v| {
+                if v.is_truthy() {
+                    emit(input.clone())
+                } else {
+                    Ok(Continue(()))
+                }
+            });
         }
         if let Some(args) = args
             && matches!(

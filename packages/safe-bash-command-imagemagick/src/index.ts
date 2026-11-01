@@ -3729,6 +3729,7 @@ function* applyMagickLookup(image: RgbaImage, lookup: Uint8Array[]): Generator<v
 }
 function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {
     const token = tokens[start];
+    if (token === "-connected-components") throw new Error("Unsupported option: -connected-components");
     if (!["-auto-level", "-auto-gamma", "-normalize", "-contrast-stretch", "-linear-stretch", "-equalize"].includes(token ?? "")) return;
     let end = start;
     const argument = token === "-normalize" ? "2%x1%" : token === "-contrast-stretch" || token === "-linear-stretch" ? tokens[++end] ?? "0%x0%" : "";

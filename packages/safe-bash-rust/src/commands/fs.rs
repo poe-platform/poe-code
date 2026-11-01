@@ -1106,75 +1106,99 @@ fn unlink_destination(path: &str, fs: &dyn SafeBashFs) -> Result<(), String> {
     }
 }
 
-fn copy_recursive(src: &str, dst: &str, fs: &dyn SafeBashFs) -> Result<(), String> {
-    copy_recursive_ext(src, dst, fs, 'P', true)
+#[derive(Default)]
+struct CopySettings {
+    dereference: char,
+    mode: bool,
+    timestamps: bool,
+    force: bool,
+    remove_destination: bool,
 }
 
-fn copy_recursive_ext(
-    src: &str,
-    dst: &str,
-    fs: &dyn SafeBashFs,
-    deref_mode: char,
-    top: bool,
-) -> Result<(), String> {
-    let preserve_link = deref_mode == 'P' || (deref_mode == 'H' && !top);
-    if preserve_link
-        && let Ok(link_target) = fs.readlink(src)
-        && !link_target.starts_with("__hardlink__:")
-    {
-        unlink_destination(dst, fs)?;
-        return fs.symlink(&link_target, dst);
-    }
-    let is_dir_to_copy = if preserve_link {
-        fs.is_dir(src)
-            && !fs
-                .readlink(src)
-                .map(|t| !t.starts_with("__hardlink__:"))
-                .unwrap_or(false)
-    } else {
-        fs.is_dir(src)
+fn copy_error(error: &str, op: &str, path: &str) -> String {
+    let reason = if error.starts_with("ENOENT:") || error.ends_with("(os error 2)") { "ENOENT: no such file or directory" }
+        else if error.starts_with("ELOOP:") { return format!("ELOOP: too many symbolic links encountered '{path}'"); }
+        else { error.split_once(", ").map_or(error, |(reason, _)| reason) };
+    format!("{reason}, {op} '{path}'")
+}
+
+fn copy_entry(src: &str, dst: &str, fs: &dyn SafeBashFs, settings: &CopySettings, ancestors: &mut std::collections::BTreeSet<String>) -> Result<(), String> {
+    let source_entry = fs.access_path(src, false).map_err(|e| copy_error(&e, "lstat", src))?;
+    let link = fs.lstat(&source_entry).map_err(|e| copy_error(&e, "lstat", src))?;
+    let preserve_link = link.kind == VfsEntryKind::Symlink && (settings.dereference == 'P' || settings.dereference == 'H' && !ancestors.is_empty());
+    let (source, st) = if link.kind == VfsEntryKind::Symlink && !preserve_link {
+        fs.inspect_command_entry(src, true, "stat").map_err(|e| copy_error(&e, "stat", src))?
+    } else { (source_entry, link) };
+    let directory = st.kind == VfsEntryKind::Directory;
+    let replace = !directory && settings.remove_destination;
+    let entry = fs.access_path(dst, false).map_err(|e| copy_error(&e, if directory { "mkdir" } else { "writeStream" }, dst))?;
+    let existing = match fs.lstat(&entry) {
+        Ok(st) => Some(st),
+        Err(e) if e.starts_with("ENOENT:") || e.ends_with("(os error 2)") => None,
+        Err(e) => return Err(e),
     };
-    if is_dir_to_copy {
-        fs.mkdir_all(dst)?;
-        if let Ok(st) = fs.stat(src) {
-            let _ = fs.chmod(dst, st.mode);
-        }
-        for name in fs.list_dir(src)? {
-            let s_child = if src == "/" {
-                format!("/{name}")
-            } else {
-                format!("{src}/{name}")
-            };
-            let d_child = if dst == "/" {
-                format!("/{name}")
-            } else {
-                format!("{dst}/{name}")
-            };
-            copy_recursive_ext(&s_child, &d_child, fs, deref_mode, false)?;
-        }
-        Ok(())
-    } else {
-        let read_src = if !preserve_link
-            && fs
-                .readlink(src)
-                .map(|t| !t.starts_with("__hardlink__:"))
-                .unwrap_or(false)
-        {
-            canonicalize_posix_path(src, 'e', false, fs)?
-        } else {
-            src.to_string()
-        };
-        let data = fs.read_file(&read_src)?;
-        if fs.readlink(dst).is_ok() {
-            unlink_destination(dst, fs)?;
-        }
-        fs.write_file(dst, &data)?;
-        if let Ok(st) = fs.stat(&read_src) {
-            let _ = fs.chmod(dst, st.mode);
-            let _ = fs.set_mtime(dst, st.mtime_ms);
-        }
-        Ok(())
+    let (mut target, mut target_stat) = if !preserve_link && !replace && existing.as_ref().is_some_and(|st| st.kind == VfsEntryKind::Symlink) {
+        let (p, st) = fs.inspect_command_entry(dst, true, "realpath").map_err(|e| copy_error(&e, "realpath", dst))?;
+        (p, Some(st))
+    } else { (entry.clone(), existing) };
+    if target == source || target_stat.as_ref().is_some_and(|t| t.identity.is_some() && t.identity == st.identity) {
+        return Err(format!("EINVAL: source and destination are the same file '{src}' -> '{dst}'"));
     }
+    if !directory && target_stat.as_ref().is_some_and(|t| t.kind == VfsEntryKind::Directory) {
+        return Err(format!("EISDIR: illegal operation on a directory '{dst}'"));
+    }
+    if preserve_link {
+        let text = fs.readlink(&source)?;
+        if target_stat.is_some() { unlink_destination(&entry, fs)?; }
+        if fs.stat(&crate::vfs::dirname_posix_path(&entry))?.mode & 0o300 != 0o300 {
+            return Err(format!("EACCES: permission denied, symlink '{dst}'"));
+        }
+        return fs.symlink(&text, &entry);
+    }
+    if directory {
+        if crate::vfs::is_path_within(&source, &target) {
+            return Err(format!("EINVAL: cannot copy a directory into itself '{dst}'"));
+        }
+        if !ancestors.insert(source.clone()) { return Err(format!("ELOOP: too many symbolic links encountered '{src}'")); }
+        let created = target_stat.is_none();
+        let mode = st.mode & 0o777;
+        if created {
+            fs.mkdir_one(&target, mode | 0o700).map_err(|e| copy_error(&e, "mkdir", dst))?;
+        } else if target_stat.as_ref().is_some_and(|t| t.kind != VfsEntryKind::Directory) {
+            return Err(format!("ENOTDIR: not a directory '{dst}'"));
+        }
+        let copied = fs.list_dir(&source).map_err(|e| copy_error(&e, "readdir", src)).and_then(|names| {
+            for name in names {
+                copy_entry(&child_disp_path(src, &name), &child_disp_path(dst, &name), fs, settings, ancestors)?;
+            }
+            Ok(())
+        });
+        ancestors.remove(&source);
+        if created && mode & 0o700 != 0o700 || copied.is_ok() && settings.mode {
+            fs.chmod(&target, mode)?;
+        }
+        copied?;
+    } else {
+        if st.mode & 0o400 == 0 { return Err(format!("EACCES: permission denied, openReadFile '{source}'")); }
+        if replace || settings.force && target_stat.as_ref().is_some_and(|t| t.mode & 0o200 == 0 && t.mode & 0o170000 != 0o020000) {
+            if target_stat.is_some() { unlink_destination(&entry, fs)?; }
+            target = entry;
+            target_stat = None;
+        }
+        if let Some(t) = &target_stat {
+            if t.mode & 0o200 == 0 { return Err(format!("EACCES: permission denied, writeStream '{dst}'")); }
+        } else if fs.stat(&crate::vfs::dirname_posix_path(&target)).map_err(|e| copy_error(&e, "writeStream", dst))?.mode & 0o300 != 0o300 {
+            return Err(format!("EACCES: permission denied, writeStream '{dst}'"));
+        }
+        let data = fs.read_file(&source)?;
+        fs.write_file(&target, &data)?;
+        if !target_stat.as_ref().is_some_and(|t| t.mode & 0o170000 == 0o020000) {
+            let mode = if settings.mode { st.mode } else { target_stat.as_ref().map_or(st.mode, |t| t.mode) };
+            fs.chmod(&target, mode & 0o7777)?;
+        }
+    }
+    if settings.timestamps { fs.set_mtime(&target, st.mtime_ms)?; }
+    Ok(())
 }
 
 fn canonical_entry_identity(path: &str, follow: bool, fs: &dyn SafeBashFs) -> String {
@@ -1218,6 +1242,7 @@ fn cmd_cp(
         .unwrap_or_else(|| "~".to_string());
     let mut recursive = false;
     let mut deref_opt: Option<char> = None;
+    let mut settings = CopySettings::default();
     let mut remove_destination = false;
     let mut attributes_only = false;
     let mut preserve_links = false;
@@ -1247,7 +1272,7 @@ fn cmd_cp(
             } else if a == "--interactive" {
                 overwrite = Some('i');
             } else if a == "--force" {
-                // accepted
+                settings.force = true;
             } else if a == "--update" {
                 update_only = true;
             } else if a == "--link" {
@@ -1269,12 +1294,17 @@ fn cmd_cp(
                 recursive = true;
                 deref_opt = Some('P');
                 preserve_links = true;
+                settings.mode = true;
+                settings.timestamps = true;
             } else if a == "--preserve" {
-                // mode, ownership, timestamps
+                settings.mode = true;
+                settings.timestamps = true;
             } else if let Some(attrs) = a.strip_prefix("--preserve=") {
                 for attr in attrs.split(',') {
                     match attr {
-                        "mode" | "ownership" | "timestamps" => {}
+                        "mode" => settings.mode = true,
+                        "timestamps" => settings.timestamps = true,
+                        "ownership" => {}
                         "links" => preserve_links = true,
                         "all" | "context" | "xattr" => {
                             return err_out(
@@ -1312,7 +1342,9 @@ fn cmd_cp(
                     match chars[j] {
                         'n' => overwrite = Some('n'),
                         'i' => overwrite = Some('i'),
-                        'f' | 'p' | 'x' => {}
+                        'f' => settings.force = true,
+                        'p' => { settings.mode = true; settings.timestamps = true; }
+                        'x' => {}
                         'u' => update_only = true,
                         'l' => hard_link = true,
                         's' => sym_link = true,
@@ -1350,6 +1382,8 @@ fn cmd_cp(
                             recursive = true;
                             deref_opt = Some('P');
                             preserve_links = true;
+                            settings.mode = true;
+                            settings.timestamps = true;
                         }
                         'd' => {
                             deref_opt = Some('P');
@@ -1409,8 +1443,19 @@ fn cmd_cp(
         );
     }
     let deref_mode = deref_opt.unwrap_or(if recursive { 'P' } else { 'H' });
+    settings.dereference = deref_mode;
+    settings.remove_destination = remove_destination;
     let dst_raw = eff_operands.last().unwrap();
-    let dst_base = resolve_posix_path(cwd, dst_raw);
+    let absolute = |path: &str| if path.is_empty() || path.starts_with('/') { path.to_owned() } else { child_disp_path(cwd, path) };
+    let dst_operand = absolute(dst_raw);
+    let dst_base = match fs.access_path(&dst_operand, false) {
+        Ok(entry) => entry,
+        Err(e) => {
+            let op = if e.starts_with("ENOENT:") { "writeStream" } else if dst_operand.ends_with('/') { "lstat" } else { "stat" };
+            let error = if e.contains(", lstat '") && !dst_operand.contains("/../") { e } else { copy_error(&e, op, &dst_operand) };
+            return err_out(&format!("cp: {error}\n"), 1);
+        }
+    };
     let dst_is_dir = !no_target_dir && fs.is_dir(&dst_base);
     if (target_dir.is_some() || eff_operands.len() > 2) && !dst_is_dir {
         return err_out(&format!("cp: target '{dst_raw}' is not a directory\n"), 1);
@@ -1423,24 +1468,20 @@ fn cmd_cp(
     let mut copied_targets: BTreeMap<String, String> = BTreeMap::new();
 
     for src_raw in &eff_operands[..eff_operands.len() - 1] {
-        let src = resolve_posix_path(cwd, src_raw);
-        if !fs.exists(&src) && fs.lstat(&src).is_err() {
-            stderr.push_str(&format!(
-                "cp: ENOENT: no such file or directory, lstat '{src}'\n"
-            ));
-            code = 1;
-            continue;
-        }
-        let src_is_sym = fs
-            .readlink(&src)
-            .map(|t| !t.starts_with("__hardlink__:"))
-            .unwrap_or(false);
-        let preserve_top_link = src_is_sym && deref_mode == 'P';
-        let src_is_dir = if deref_mode == 'P' {
-            fs.is_dir(&src) && !src_is_sym
-        } else {
-            fs.is_dir(&src)
+        let operand = absolute(src_raw);
+        let (src, link) = match fs.inspect_command_entry(&operand, false, "lstat") {
+            Ok(v) => v,
+            Err(e) => { stderr.push_str(&format!("cp: {}\n", copy_error(&e, "lstat", &operand))); code = 1; continue; }
         };
+        let src_is_sym = link.kind == VfsEntryKind::Symlink;
+        let preserve_top_link = src_is_sym && deref_mode == 'P';
+        let (phys_src, source_stat) = if src_is_sym && !preserve_top_link {
+            match fs.inspect_command_entry(&src, true, "stat") {
+                Ok(v) => v,
+                Err(e) => { stderr.push_str(&format!("cp: {}\n", copy_error(&e, "stat", &operand))); code = 1; continue; }
+            }
+        } else { (src.clone(), link) };
+        let src_is_dir = source_stat.kind == VfsEntryKind::Directory;
         if src_is_dir && !recursive && !sym_link {
             stderr.push_str(&format!("cp: EISDIR: omitting directory (use -R) '{src}'\n"));
             code = 1;
@@ -1478,11 +1519,13 @@ fn cmd_cp(
             }
         }
         let follow_target = !preserve_top_link && !(remove_destination && !src_is_dir) && !sym_link && !hard_link;
-        let phys_src = canonical_entry_identity(&src, !preserve_top_link, fs);
-        let phys_dst = canonical_entry_identity(&target, follow_target, fs);
-        if phys_src == phys_dst {
+        let phys_dst = match fs.access_path(&target, follow_target) {
+            Ok(v) => v,
+            Err(e) => { stderr.push_str(&format!("cp: {}\n", copy_error(&e, "realpath", &target))); code = 1; continue; }
+        };
+        if phys_src == phys_dst || source_stat.identity.is_some() && fs.lstat(&phys_dst).is_ok_and(|t| t.identity == source_stat.identity) {
             stderr.push_str(&format!(
-                "cp: '{src_raw}' and '{disp_target}' are the same file\n"
+                "cp: EINVAL: source and destination are the same file '{operand}' -> '{target}'\n"
             ));
             code = 1;
             continue;
@@ -1531,9 +1574,11 @@ fn cmd_cp(
             }
         }
         if target_exists && backup_mode != BackupMode::None {
-            let _ = copy_recursive(&target, &backup_path(&target, backup_mode, &backup_suffix, fs), fs);
+            let backup = backup_path(&target, backup_mode, &backup_suffix, fs);
+            let backup_settings = CopySettings { dereference: 'P', mode: true, timestamps: true, ..Default::default() };
+            if let Err(e) = copy_entry(&target, &backup, fs, &backup_settings, &mut Default::default()) { stderr.push_str(&format!("cp: {e}\n")); code = 1; continue; }
         }
-        if target_exists && (sym_link || hard_link || remove_destination && !src_is_dir && backup_mode == BackupMode::None)
+        if target_exists && (sym_link || hard_link || attributes_only && remove_destination && !src_is_dir && backup_mode == BackupMode::None)
             && let Err(e) = unlink_destination(&target, fs)
         {
             stderr.push_str(&format!("cp: {e}\n"));
@@ -1556,7 +1601,7 @@ fn cmd_cp(
             }
             Ok(())
         } else {
-            copy_recursive_ext(&src, &target, fs, deref_mode, true)
+            copy_entry(&src, &target, fs, &settings, &mut Default::default())
         };
         match copy_res {
             Ok(()) => {
@@ -2474,7 +2519,9 @@ fn cmd_ln(
                 }
             }
             if backup_mode != BackupMode::None {
-                let _ = copy_recursive(&link_path, &backup_path(&link_path, backup_mode, &backup_suffix, fs), fs);
+                let backup = backup_path(&link_path, backup_mode, &backup_suffix, fs);
+                let backup_settings = CopySettings { dereference: 'P', mode: true, timestamps: true, ..Default::default() };
+                if let Err(e) = copy_entry(&link_path, &backup, fs, &backup_settings, &mut Default::default()) { stderr.push_str(&format!("ln: {e}\n")); code = 1; continue; }
             }
             if let Err(e) = unlink_destination(&link_path, fs) {
                 stderr.push_str(&format!("ln: {e}\n"));
@@ -6874,6 +6921,49 @@ mod tests {
         assert_eq!(failed.exit_code, 1);
         assert_eq!(fs.read_file("/to").unwrap(), b"new");
         assert_eq!(fs.read_file("/locked/file").unwrap(), b"keep");
+    }
+
+    #[test]
+    fn cp_follows_destination_links_and_only_preserves_requested_metadata() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src", b"new").unwrap();
+        fs.chmod("/src", 0o600).unwrap();
+        fs.write_file("/dst", b"old").unwrap();
+        fs.symlink("dst", "/link").unwrap();
+        fs.symlink("missing", "/dang").unwrap();
+        let copy = |flags: &[&str]| cmd_cp(&args(flags), "", "/", &BTreeMap::new(), &fs);
+        assert_eq!(copy(&["/src", "/link"]).exit_code, 0);
+        assert_eq!(fs.readlink("/link").unwrap(), "dst");
+        assert_eq!(fs.read_file("/dst").unwrap(), b"new");
+        assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, 0o644);
+        assert_eq!(copy(&["-p", "/src", "/link"]).exit_code, 0);
+        assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, 0o600);
+        assert_eq!(copy(&["/src", "/dang"]).exit_code, 1);
+        assert_eq!(fs.readlink("/dang").unwrap(), "missing");
+        assert!(!fs.exists("/missing"));
+        assert_eq!(copy(&["--remove-destination", "/src", "/dang"]).exit_code, 0);
+        assert_eq!(fs.read_file("/dang").unwrap(), b"new");
+    }
+
+    #[test]
+    fn recursive_cp_respects_existing_directory_permissions() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/src/file", b"new").unwrap();
+        fs.mkdir_all("/dst").unwrap();
+        fs.chmod("/dst", 0o500).unwrap();
+        for flag in ["-RT", "-aT"] {
+            let r = cmd_cp(&args(&[flag, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            assert_eq!(r.exit_code, 1);
+            assert!(!fs.exists("/dst/file"));
+            assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, 0o500);
+        }
+        fs.chmod("/dst", 0o750).unwrap();
+        fs.chmod("/src", 0o500).unwrap();
+        for (flag, mode) in [("-RT", 0o750), ("-aT", 0o500)] {
+            let r = cmd_cp(&args(&[flag, "/src", "/dst"]), "", "/", &BTreeMap::new(), &fs);
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            assert_eq!(fs.stat("/dst").unwrap().mode & 0o777, mode);
+        }
     }
 
     #[test]

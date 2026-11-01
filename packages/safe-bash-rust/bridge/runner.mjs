@@ -22,6 +22,10 @@ async function ensureParentDirs(fs, filePath) {
 }
 
 async function collectFiles(fs, dirPath, out) {
+  // The command has finished. Read the entire result for transfer, including
+  // inaccessible entries, while returning their original permission bits.
+  const directoryStat = await fs.lstat(dirPath);
+  await fs.chmod(dirPath, (directoryStat.mode & 0o7777) | 0o500);
   let entries = [];
   try {
     entries = await fs.readdir(dirPath);
@@ -64,6 +68,7 @@ async function collectFiles(fs, dirPath, out) {
         mode: stat.mode ?? 0o120777,
       });
     } else if (kind === "file" || (typeof stat?.isFile === "function" && stat.isFile())) {
+      await fs.chmod(fullPath, (stat.mode & 0o7777) | 0o400);
       const bytes = await fs.readFile(fullPath);
       out.push({
         path: fullPath,
@@ -95,6 +100,10 @@ async function main() {
       const bytes = Buffer.from(entry.dataBase64 || "", "base64");
       await fs.writeFile(entry.path, new Uint8Array(bytes));
     }
+  }
+  // Materialize children before applying restrictive parent permissions.
+  for (const entry of [...(req.files ?? [])].sort((left, right) => right.path.length - left.path.length)) {
+    if (entry.kind !== "symlink") await fs.chmod(entry.path, entry.mode & 0o7777);
   }
 
   const shell = new Shell({

@@ -1848,7 +1848,7 @@ pub(in super::super) fn render_mapped(
             h,
             show.iter().map(|f| (f.0, f.1)),
             options,
-            |k| Ok(show[k].2.clone()),
+            |k| Ok(seq.images[show[k].2].clone()),
             |mut im, d, b| {
                 if geometry {
                     if w.saturating_mul(h) > limit / 4 {
@@ -2646,14 +2646,15 @@ pub(in super::super) fn remux(
             .concat
             .as_deref()
             .and_then(|c| c.video.as_ref()?.get(&i))
-            .map(|v| v.visible(from, to))
-            .filter(|v| {
+            .map(|v| (v, v.visible(from, to)))
+            .filter(|(_, v)| {
                 !v.is_empty()
                     && (track.samples.is_empty()
                         || !opts.video_filters.is_empty()
                         || opts.frames.is_some_and(|n| v.len() > n as usize))
             });
-        if let Some(show) = joined {
+        if let Some((seq, show)) = joined {
+            let mut consumed = vec![false; seq.images.len()];
             let limit = opts.limit.saturating_sub(index_bytes);
             encode_video(
                 &mut track,
@@ -2667,9 +2668,9 @@ pub(in super::super) fn remux(
                     no_video: false,
                     limit,
                 },
-                |_| false,
+                |k| std::mem::replace(&mut consumed[show[k].2], true),
                 opts.fragmented,
-                |k| Ok(show[k].2.clone()),
+                |k| Ok(seq.images[show[k].2].clone()),
             )?;
             index_bytes = index_bytes
                 .saturating_add(track.samples.iter().map(|s| s.data.len()).sum::<usize>());
@@ -2863,7 +2864,7 @@ pub(in super::super) fn remux(
     if sources.len() > 1
         && let Some(decoded) = opts.concat.as_deref_mut()
     {
-        tracks = concat::join(tracks, sources, scale, opts.limit, decoded)?;
+        tracks = concat::join(tracks, sources, inputs, scale, opts.limit, decoded)?;
     }
     if opts.concat.is_none() {
         for (i, t) in tracks.iter_mut().enumerate() {

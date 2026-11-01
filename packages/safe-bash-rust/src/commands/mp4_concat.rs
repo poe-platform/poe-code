@@ -1,5 +1,5 @@
 use super::super::{atoms, child, esds, u16_at, u32_at};
-use super::{Raster, Source, Streams, Track, atom, ffmpeg_wave, frame_output};
+use super::{MediaInput, Raster, Source, Streams, Track, atom, ffmpeg_wave, frame_output};
 use std::collections::{BTreeMap, HashMap};
 
 pub(in super::super::super) struct DecodedConcat {
@@ -103,12 +103,41 @@ impl Pcm {
     }
 }
 #[derive(Default)]
-pub(super) struct VideoFrames(Vec<(f64, f64, Raster)>);
+pub(super) struct VideoFrames {
+    pub(super) images: Vec<Raster>,
+    times: Vec<(f64, f64, usize)>,
+}
 impl VideoFrames {
-    pub(super) fn visible(&self, start: f64, end: Option<f64>) -> &[(f64, f64, Raster)] {
-        let from = self.0.partition_point(|f| f.0 + f.1 <= start);
-        let until = end.map_or(self.0.len(), |t| self.0.partition_point(|f| f.0 < t));
-        &self.0[from..until.max(from)]
+    fn append(
+        &mut self,
+        offset: f64,
+        times: impl Iterator<Item = (f64, f64)>,
+        period: usize,
+        mut image: impl FnMut(usize, usize) -> Result<Raster, &'static str>,
+        remaining: &mut usize,
+    ) -> Result<(), &'static str> {
+        let base = self.images.len();
+        for (i, (pts, duration)) in times.enumerate() {
+            *remaining = remaining
+                .checked_sub(size_of::<(f64, f64, usize)>())
+                .ok_or("video frames exceed memory budget")?;
+            if i < period {
+                let im = image(i, *remaining)?;
+                *remaining = remaining
+                    .checked_sub(im.pixels.len() * 4 + size_of::<Raster>())
+                    .ok_or("video frames exceed memory budget")?;
+                self.images.push(im);
+            }
+            self.times.push((offset + pts, duration, base + i % period));
+        }
+        Ok(())
+    }
+    pub(super) fn visible(&self, start: f64, end: Option<f64>) -> &[(f64, f64, usize)] {
+        let from = self.times.partition_point(|f| f.0 + f.1 <= start);
+        let until = end.map_or(self.times.len(), |t| {
+            self.times.partition_point(|f| f.0 < t)
+        });
+        &self.times[from..until.max(from)]
     }
 }
 #[derive(Eq, PartialEq, Hash)]
@@ -183,6 +212,7 @@ impl Description {
 pub(super) fn join<'a>(
     tracks: Vec<Track<'a>>,
     sources: &[Source<'_>],
+    inputs: &[MediaInput],
     movie_scale: u32,
     limit: usize,
     retained: &mut DecodedConcat,
@@ -291,26 +321,32 @@ pub(super) fn join<'a>(
                 }
                 _ => {}
             }
-            if let Some(frames) = retained.video.as_mut() {
-                let mut retain = |pts: f64, duration: f64, image: Raster| -> Result<(), String> {
-                    remaining = remaining
-                        .checked_sub(image.pixels.len() * 4 + size_of::<(f64, f64, Raster)>())
-                        .ok_or("video frames exceed memory budget")?;
-                    frames
-                        .entry(slot)
-                        .or_default()
-                        .0
-                        .push((offset + pts, duration, image));
-                    Ok(())
-                };
-                match source {
-                    Streams::Y4m(clip) if !samples.is_empty() => {
-                        for (i, (pts, duration)) in clip.times().enumerate() {
-                            retain(pts, duration, clip.image(i))?;
-                        }
+            if let Some(frames) = retained.video.as_mut()
+                && t.kind == "video"
+                && !samples.is_empty()
+            {
+                match (source, &inputs[j]) {
+                    (Streams::Y4m(clip), _) => {
+                        frames.entry(slot).or_default().append(
+                            offset,
+                            clip.times(),
+                            clip.frames_per_copy,
+                            |i, _| Ok(clip.image(i)),
+                            &mut remaining,
+                        )?;
                     }
-                    Streams::Still(_) if !samples.is_empty() => {
-                        retain(0., 0.04, frame_output::decode_still(sources[j].0, limit)?)?;
+                    (Streams::Still(_), MediaInput::Bytes(_, bytes))
+                    | (Streams::Mp4(_), MediaInput::Bytes("image2", bytes))
+                        if !matches!(source, Streams::Mp4(v) if v[0].0.tag == b"avc1") =>
+                    {
+                        let times = (0..samples.len()).map(|i| (i as f64 / 25., 0.04));
+                        frames.entry(slot).or_default().append(
+                            offset,
+                            times,
+                            1,
+                            |_, limit| frame_output::decode_still(bytes, limit),
+                            &mut remaining,
+                        )?;
                     }
                     _ => {}
                 }

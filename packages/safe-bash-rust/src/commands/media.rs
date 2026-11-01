@@ -13908,6 +13908,22 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn ffmpeg_concat_keeps_shared_still_frames_for_export_and_encoding() {
+        let fs=MemoryVfs::new();
+        let run=|args:&[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);
+        run(&["-f","lavfi","-i","testsrc=s=8x6:r=4:d=1","a.mp4"]);
+        run(&["-i","a.mp4","a.png"]);
+        for (opts, expected) in [
+            (vec!["o.y4m"], "120ccb72bc939fbf72ed7c747fad1fc5ad4cf97097ce7be72ab59b7c5390b7b7"),
+            (vec!["-frames:v","2","o.mp4"], "9318460ff964178e4cbbc19b3b18c80169c5a70cb7eb7b731fc9a9cb6a853e3d"),
+            (vec!["-vf","hflip","-frames:v","2","o.mp4"], "1b15d5b0a8c07da551ff7fb760262024582ce48889e1cd004071ee1d1e8a71c0"),
+        ] {
+            run(&[&["-y","-stream_loop","2","-i","a.png","-i","a.mp4","-filter_complex","concat=n=2"][..],&opts].concat());
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file(&format!("/{}",opts.last().unwrap())).unwrap())),expected);
+        }
+    }
+
+    #[test]
     fn ffmpeg_exports_materialized_subtitle_packets_after_concat_or_loop() {
         let fs=MemoryVfs::new();
         let run=|args:&[&str]| assert_eq!(cmd_media_doc("ffmpeg",&media_args(args),"","/",&fs).exit_code,0);

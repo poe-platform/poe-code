@@ -49,6 +49,12 @@ impl Geometry {
 #[derive(Clone, Copy)]
 pub(super) struct Gravity(i8, i8);
 impl Gravity {
+    pub fn offset(self, x: usize, y: usize) -> (usize, usize) {
+        (
+            Self::axis(x as f64, 0., self.0) as usize,
+            Self::axis(y as f64, 0., self.1) as usize,
+        )
+    }
     pub fn parse(value: &str) -> Self {
         match value
             .to_ascii_lowercase()

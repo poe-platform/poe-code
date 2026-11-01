@@ -414,6 +414,32 @@ pub(super) fn decode(
     })
 }
 
+pub(super) fn scenes(
+    bytes: &[u8],
+    limit: usize,
+    mut visit: impl FnMut(Raster) -> Result<(), &'static str>,
+) -> Result<(), &'static str> {
+    let (w, h) = dimensions(bytes)?;
+    let mut seen = false;
+    let last = decode(bytes, true, limit, |rgba, declared_alpha| {
+        let frame = Raster {
+            width: w as usize,
+            height: h as usize,
+            density: 72,
+            alpha: declared_alpha || rgba.iter().any(|p| p[3] < 255),
+            gray: false,
+            orientation: None,
+            pixels: rgba.to_vec(),
+        };
+        seen = true;
+        visit(frame)
+    })?;
+    if !seen {
+        visit(last)?;
+    }
+    Ok(())
+}
+
 pub(super) fn edit_frames(
     bytes: &[u8],
     limit: usize,
@@ -438,16 +464,7 @@ pub(super) fn edit_frames(
     };
     let mut pixels = Vec::new();
     let mut dims = (w as usize, h as usize);
-    decode(bytes, true, limit, |rgba, declared_alpha| {
-        let mut frame = Raster {
-            width: w as usize,
-            height: h as usize,
-            density: 72,
-            alpha: declared_alpha || rgba.iter().any(|p| p[3] < 255),
-            gray: false,
-            orientation: None,
-            pixels: rgba.to_vec(),
-        };
+    scenes(bytes, limit, |mut frame| {
         transform(&mut frame)?;
         if frame.pixels.len().saturating_add(pixels.len()) > limit / 4 {
             return Err("image exceeds memory budget");

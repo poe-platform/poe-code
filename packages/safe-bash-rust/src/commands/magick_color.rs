@@ -287,6 +287,29 @@ pub(super) enum Canvas {
 }
 
 impl Canvas {
+    pub fn raster(
+        self,
+        (w, h): (u32, u32),
+        limit: usize,
+    ) -> Result<super::png_pixels::Raster, &'static str> {
+        let (width, height) = (w.max(1) as usize, h.max(1) as usize);
+        if width.saturating_mul(height) > limit / 4 {
+            return Err("image exceeds memory budget");
+        }
+        let pixels = (0..width * height)
+            .map(|i| self.pixel(i % width, i / width, width, height))
+            .collect();
+        Ok(super::png_pixels::Raster {
+            width,
+            height,
+            density: 72,
+            orientation: None,
+            gray: false,
+            alpha: true,
+            pixels,
+        })
+    }
+
     pub(super) fn parse(spec: &str) -> Option<Result<Self, String>> {
         let (kind, colors) = spec.split_once(':')?;
         Some(match kind.to_ascii_lowercase().as_str() {

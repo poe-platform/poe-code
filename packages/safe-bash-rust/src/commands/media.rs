@@ -116,6 +116,8 @@ mod gif;
 mod webp;
 #[path = "png_pixels.rs"]
 mod png_pixels;
+#[path = "magick_stack.rs"]
+mod magick_stack;
 #[path = "magick_coordinates.rs"]
 mod magick_coordinates;
 #[path = "magick_resize.rs"]
@@ -10074,6 +10076,7 @@ fn cmd_media_doc(
             let (mut delay, mut repeat) = (None, None);
             enum PixelOp<'a> { Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Gray, Flip, Flop }
             let mut ops = Vec::new();
+            let mut stack_steps=Vec::new();
             let mut kernel = Kernel::Lanczos3;
             let mut resize_spec: Option<String> = None;
             let mut crop_opt: Option<(u32, u32)> = None;
@@ -10092,12 +10095,13 @@ fn cmd_media_doc(
             while i < args.len() {
                 let arg = &args[i];
                 if i + 1 < args.len() && let Some(parsed) = Canvas::parse(arg) {
-                    if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear(); }
+                    if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
                     if arg.eq_ignore_ascii_case("null:") { size_opt = Some((1, 1)); }
                     canvas = Some((match parsed {
                         Ok(c) => c,
                         Err(e) => return err_out(&format!("magick: {e}\n"), 1),
                     },size_opt.unwrap_or((1,1))));
+                    if let Some((c,size))=canvas { stack_steps.push((ops.len(),magick_stack::Step::Canvas(c,size))); }
                     has_pseudo_input = true;
                     i += 1;
                     continue;
@@ -10171,10 +10175,12 @@ fn cmd_media_doc(
                         i += 1;
                     }
                     "-append" => {
+                        stack_steps.push((ops.len(),magick_stack::Step::Append(true,gravity,background)));
                         append_mode = Some(true);
                         i += 1;
                     }
                     "+append" => {
+                        stack_steps.push((ops.len(),magick_stack::Step::Append(false,gravity,background)));
                         append_mode = Some(false);
                         i += 1;
                     }
@@ -10223,7 +10229,8 @@ fn cmd_media_doc(
                     }
                     a if !a.starts_with('-') && !a.starts_with('+') =>
                     {
-                        if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear(); }
+                        if !is_mogrify && pos_files.is_empty() && !has_pseudo_input { ops.clear();stack_steps.clear(); }
+                        if i+1<args.len() {stack_steps.push((ops.len(),magick_stack::Step::File(a)));}
                         pos_files.push(a.to_string());
                         i += 1;
                     }
@@ -10232,48 +10239,51 @@ fn cmd_media_doc(
                     }
                 }
             }
+            let join_stack=!is_mogrify && stack_steps.iter().any(|(_,s)| matches!(s,magick_stack::Step::Append(..)));
+            let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
+                // GIFs decode to four channels even if they did not declare transparency.
+                let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
+                for op in &ops[range] {
+                    if image.width==0 || image.height==0 {
+                        match op {
+                            PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) | PixelOp::Alpha(..) => {}
+                            PixelOp::Crop(..) => return Err("internal error"),
+                            _ => return Err("Invalid stored image dimensions"),
+                        }
+                    }
+                    match op {
+                        PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
+                        PixelOp::Roll(g) => image.roll(*g),
+                        PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
+                        PixelOp::Chop(g,gravity) => image.chop(*g,*gravity),
+                        PixelOp::Shave(g) => image.shave(*g),
+                        PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
+                        PixelOp::Extent(g,gravity,bg) => {image.extent(*g,*gravity,*bg,fs.max_input_bytes())?;channels=4;},
+                        PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
+                        PixelOp::Rotate(deg,bg) => image.rotate(*deg,*bg,fs.max_input_bytes())?,
+                        PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
+                        PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
+                        PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
+                        PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
+                        PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
+                    }
+                }
+                if image.width==0 || image.height==0 {return Err("internal error");}
+                image.alpha |= matches!(channels,2|4);
+                Ok(())
+            };
             let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
                 let dest=png_pixels::destination(dest)?;
                 let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
                 let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
                 let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
-                let transform = |image: &mut png_pixels::Raster| {
-                    // GIFs decode to four channels even if they did not declare transparency.
-                    let mut channels = if gif_input { 4 } else { (if image.gray {1} else {3}) + u8::from(image.alpha) };
-                    for op in &ops {
-                        if image.width==0 || image.height==0 {
-                            match op {
-                                PixelOp::Extent(..) | PixelOp::Splice(..) | PixelOp::Roll(..) | PixelOp::Chop(..) | PixelOp::Negate(..) | PixelOp::Alpha(..) => {}
-                                PixelOp::Crop(..) => return Err("internal error"),
-                                _ => return Err("Invalid stored image dimensions"),
-                            }
-                        }
-                        match op {
-                            PixelOp::Alpha(mode,bg) => if !image.pixels.is_empty() {image.apply_alpha(mode,*bg,&mut channels);},
-                            PixelOp::Roll(g) => image.roll(*g),
-                            PixelOp::Splice(g,gravity,bg) => image.splice(*g,*gravity,*bg,fs.max_input_bytes())?,
-                            PixelOp::Chop(g,gravity) => image.chop(*g,*gravity),
-                            PixelOp::Shave(g) => image.shave(*g),
-                            PixelOp::Crop(g,gravity) => image.crop(*g,*gravity),
-                            PixelOp::Extent(g,gravity,bg) => {image.extent(*g,*gravity,*bg,fs.max_input_bytes())?;channels=4;},
-                            PixelOp::Border(g,bg) => image.border(*g,*bg,fs.max_input_bytes())?,
-                            PixelOp::Rotate(deg,bg) => image.rotate(*deg,*bg,fs.max_input_bytes())?,
-                            PixelOp::Resize(size,kernel) => image.resize(size,*kernel,fs.max_input_bytes())?,
-                            PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
-                            PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
-                            PixelOp::Flip => {image.pixels.reverse();for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();}}
-                            PixelOp::Flop => for row in image.pixels.chunks_exact_mut(image.width.max(1)){row.reverse();},
-                        }
+                let transform=|image: &mut png_pixels::Raster|apply_pixels(image,0..ops.len(),gif_input);
+                let mut image = if join_stack {
+                    match magick_stack::append(&stack_steps,ops.len(),apply_pixels,cwd,fs) {
+                        Ok(Some(image))=>image, Ok(None)=>return None, Err(e)=>return Some(fail(&e)),
                     }
-                    if image.width==0 || image.height==0 {return Err("internal error");}
-                    image.alpha |= matches!(channels,2|4);
-                    Ok(())
-                };
-                let mut image = if let Some((canvas,(w,h))) = canvas {
-                    let (width,height)=(w.max(1) as usize,h.max(1) as usize);
-                    if width.saturating_mul(height)>fs.max_input_bytes()/4 {return Some(err_out("magick: image exceeds memory budget\n",1));}
-                    let pixels = (0..width*height).map(|i|canvas.pixel(i%width,i/width,width,height)).collect();
-                    png_pixels::Raster {width,height,density:72,orientation:None,gray:false,alpha:true,pixels}
+                } else if let Some((canvas,size)) = canvas {
+                    match canvas.raster(size,fs.max_input_bytes()) { Ok(im)=>im,Err(e)=>return Some(fail(e)) }
                 } else if gif_input {
                     if dest.0 == "gif" {
                         // Extent composites each scene onto a new canvas with default timing.
@@ -10296,7 +10306,7 @@ fn cmd_media_doc(
                         Ok(im)=>im?, Err(e)=>return Some(err_out(&format!("magick: {e}\n"),1))
                     }
                 };
-                if let Err(e)=transform(&mut image){return Some(fail(e));}
+                if !join_stack && let Err(e)=transform(&mut image){return Some(fail(e));}
                 if dest.0 == "gif" && (delay.is_some() || repeat.is_some()) {
                     return Some(match gif::encode(image.width,image.height,&image.pixels,timing,fs.max_input_bytes()) {
                         Ok(data)=>png_pixels::Raster::publish_bytes(&data,dest.1,cwd,fs),
@@ -10414,7 +10424,7 @@ fn cmd_media_doc(
             }
             if let Some(out_rel) = pos_files.last() {
                 let out_full = resolve_posix_path(cwd, out_rel);
-                if canvas.is_some() && pos_files.len()==1 {
+                if join_stack || canvas.is_some() && pos_files.len()==1 {
                     if let Some(out)=raster_output("", &[], out_rel) {return out;}
                 } else if !has_pseudo_input && pos_files.len()==2 {
                     let path=pos_files[0].strip_prefix("png:").unwrap_or(&pos_files[0]);
@@ -14360,6 +14370,27 @@ mod media_unit_tests {
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
             assert_eq!(r.exit_code,0,"{options:?}: {}",r.stderr);
             assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.gif").unwrap())),hash,"{options:?}");
+        }
+    }
+
+    #[test]
+    fn magick_appends_real_canvas_file_and_animated_pixels_in_stack_order() {
+        let fs=MemoryVfs::new();
+        let run=|cmd,s:&str|cmd_media_doc(cmd,&media_args(&s.split_whitespace().collect::<Vec<_>>()),"","/",&fs);
+        assert_eq!(run("convert","-size 4x2 gradient:red-blue in.png").exit_code,0);
+        assert_eq!(run("ffmpeg","-f lavfi -i testsrc=s=3x2:r=5:d=0.5 a.gif").exit_code,0);
+        for (cmd,hash) in [
+            ("-size 3x2 xc:red -size 2x3 xc:blue -append o.png","7a7ac43a8ba70f3290a3ecae96b5c3e432ef0142979836e1f235ec99c613f3df"),
+            ("-size 3x2 xc:red -size 2x3 xc:blue -background none -gravity southeast +append o.png","c83d1712b27d2df86ccdf3248f04e8da36a957626ec21543d26a71546196aa50"),
+            ("-size 3x2 xc:red -size 2x3 xc:blue -append -negate o.png","30317c9b82302058a2042ac3efe7cb287952917de88b9dd58381fa3d9c5a48eb"),
+            ("xc:none in.png -background #12345670 -gravity center -append o.png","a7b7ea0dd9dd9cf6f49202b97933e8f0372df811bc3fcb184594a66124e6c892"),
+            ("in.png -negate -size 2x3 gradient:red-blue -append o.png","e18d6f4bd8e504025d6d50325629d49220b0939db3d77c9866e78f84b28fc421"),
+            ("in.png -negate -size 2x3 gradient:red-blue +append -resize 6x4! o.png","4d5c4f76ca92bc8cfd4135f3035db1959b8bf75a1726f3aff3e480f33d405e8f"),
+            ("a.gif -append o.png","fc0cdabed6390fdc8721ebb31913a46e790085df3ffa6707580b9d55748c0aa9"),
+            ("a.gif in.png -background none -gravity southeast +append o.png","4936c4e11d7a23d545e22f68e2c360d4d4779ed83fd4916c4d4b473828c45db8")
+        ] {
+            assert_eq!(run("convert",cmd).exit_code,0,"{cmd}");
+            assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/o.png").unwrap())),hash,"{cmd}");
         }
     }
 

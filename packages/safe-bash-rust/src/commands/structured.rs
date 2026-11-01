@@ -34830,6 +34830,7 @@ struct AstBuilder<'a> {
     language: String,
     pos_table: Vec<(usize, usize)>,
     next_id: usize,
+    control_depth: usize,
 }
 
 impl<'a> AstBuilder<'a> {
@@ -34861,6 +34862,7 @@ impl<'a> AstBuilder<'a> {
             language: language.to_string(),
             pos_table,
             next_id: 1,
+            control_depth: 0,
         }
     }
 
@@ -36176,146 +36178,159 @@ fn parse_js_var_decl(
 }
 
 fn parse_js_stmt_list(b: &mut AstBuilder<'_>, mut i: usize, end: usize) -> Result<Vec<AstCodeNode>, String> {
-    let s = b.source;
-    let bytes = s.as_bytes();
     let mut stmts = Vec::new();
     loop {
-        i = skip_ws_and_comments(s, i, end, true, true);
-        if i >= end {
-            break;
+        i = skip_ws_and_comments(b.source, i, end, true, true);
+        if i >= end { return Ok(stmts); }
+        let (stmt, next) = parse_js_statement(b, i, end)?;
+        stmts.push(stmt);
+        i = next;
+    }
+}
+
+fn parse_js_statement_body(b: &mut AstBuilder<'_>, pos: usize, end: usize) -> Result<(AstCodeNode, usize), String> {
+    let start = skip_ws_and_comments(b.source, pos, end, true, true);
+    if b.control_depth == 64 { return Err("statement nesting limit exceeded".into()); }
+    b.control_depth += 1;
+    let body = if start < end && b.source.as_bytes()[start] == b'{' {
+        parse_js_block(b, start, end)
+    } else {
+        parse_js_statement(b, start, end)
+    };
+    b.control_depth -= 1;
+    body
+}
+
+fn parse_js_statement(b: &mut AstBuilder<'_>, i: usize, end: usize) -> Result<(AstCodeNode, usize), String> {
+    let s = b.source;
+    let bytes = s.as_bytes();
+    let keyword = |start: usize, word: &str| {
+        s[start..end].starts_with(word) && (start + word.len() == end || !is_js_ident_cont(bytes[start + word.len()]))
+    };
+    if i >= end { return Err("expected statement".into()); }
+    if bytes[i] == b';' { return Ok((b.leaf(";", i, i + 1, false), i + 1)); }
+    if keyword(i, "if") || keyword(i, "while") {
+        let conditional = bytes[i] == b'i';
+        let (kw, kind) = if conditional { ("if", "IfStatement") } else { ("while", "WhileStatement") };
+        let open = skip_ws_and_comments(s, i + kw.len(), end, true, true);
+        if open >= end || bytes[open] != b'(' { return Err(format!("expected '(' after {kw}")); }
+        let close = find_matching_delim(s, open, end, b'(', b')').ok_or("unclosed condition")?;
+        let (condition, _) = parse_js_expr(b, open, close + 1)?;
+        let (body, mut after) = parse_js_statement_body(b, close + 1, end)?;
+        let mut children = vec![b.leaf(kw, i, i + kw.len(), false), condition, body];
+        let next = skip_ws_and_comments(s, after, end, true, true);
+        if conditional && keyword(next, "else") {
+            children.push(b.leaf("else", next, next + 4, false));
+            let (alternative, stop) = parse_js_statement_body(b, next + 4, end)?;
+            children.push(alternative);
+            after = stop;
         }
-        if s[i..end].starts_with("export ") || s[i..end].starts_with("export\t") {
-            let exp_kw = b.leaf("export", i, i + 6, false);
-            let inner_start = skip_ws_and_comments(s, i + 6, end, true, true);
-            if s[inner_start..end].starts_with("class ") || bytes.get(inner_start) == Some(&b'@') {
-                let class = parse_js_class_decl(b, inner_start, end)?;
-                let after = class.range.1;
-                stmts.push(b.branch("ExportDeclaration", i, after, vec![exp_kw, class]));
-                i = after;
-                continue;
-            }
-            if s[inner_start..end].starts_with("function ") || s[inner_start..end].starts_with("function\t") {
-                let (fn_decl, after_fn) = parse_js_function_decl(b, inner_start, end)?;
-                stmts.push(b.branch("ExportDeclaration", i, after_fn, vec![exp_kw, fn_decl]));
-                i = after_fn;
-                continue;
-            }
-            for kw in ["const", "let", "var"] {
-                if s[inner_start..end].starts_with(kw)
-                    && inner_start + kw.len() < end
-                    && bytes[inner_start + kw.len()].is_ascii_whitespace()
-                {
-                    let (vdecl, after_v) = parse_js_var_decl(b, inner_start, end, kw)?;
-                    stmts.push(b.branch("ExportDeclaration", i, after_v, vec![exp_kw, vdecl]));
-                    i = after_v;
-                    break;
-                }
-            }
-            if i > inner_start {
-                continue;
-            }
+        return Ok((b.branch(kind, i, after, children), after));
+    }
+    if s[i..end].starts_with("export ") || s[i..end].starts_with("export\t") {
+        let exp_kw = b.leaf("export", i, i + 6, false);
+        let inner_start = skip_ws_and_comments(s, i + 6, end, true, true);
+        if s[inner_start..end].starts_with("class ") || bytes.get(inner_start) == Some(&b'@') {
+            let class = parse_js_class_decl(b, inner_start, end)?;
+            let after = class.range.1;
+            return Ok((b.branch("ExportDeclaration", i, after, vec![exp_kw, class]), after));
         }
-        if bytes[i] == b'@' || s[i..end].starts_with("class") && bytes.get(i + 5).is_some_and(u8::is_ascii_whitespace) {
-            let class = parse_js_class_decl(b, i, end)?;
-            i = class.range.1;
-            stmts.push(class);
-            continue;
+        if s[inner_start..end].starts_with("function ") || s[inner_start..end].starts_with("function\t") {
+            let (fn_decl, after_fn) = parse_js_function_decl(b, inner_start, end)?;
+            return Ok((b.branch("ExportDeclaration", i, after_fn, vec![exp_kw, fn_decl]), after_fn));
         }
-        if s[i..end].starts_with("function ") || s[i..end].starts_with("function\t") {
-            let (fn_decl, after_fn) = parse_js_function_decl(b, i, end)?;
-            stmts.push(fn_decl);
-            i = after_fn;
-            continue;
-        }
-        let mut matched_var = false;
         for kw in ["const", "let", "var"] {
-            if s[i..end].starts_with(kw)
-                && i + kw.len() < end
-                && bytes[i + kw.len()].is_ascii_whitespace()
+            if s[inner_start..end].starts_with(kw)
+                && inner_start + kw.len() < end
+                && bytes[inner_start + kw.len()].is_ascii_whitespace()
             {
-                let (vdecl, after_v) = parse_js_var_decl(b, i, end, kw)?;
-                stmts.push(vdecl);
-                i = after_v;
-                matched_var = true;
+                let (vdecl, after_v) = parse_js_var_decl(b, inner_start, end, kw)?;
+                return Ok((b.branch("ExportDeclaration", i, after_v, vec![exp_kw, vdecl]), after_v));
+            }
+        }
+    }
+    if bytes[i] == b'@' || s[i..end].starts_with("class") && bytes.get(i + 5).is_some_and(u8::is_ascii_whitespace) {
+        let class = parse_js_class_decl(b, i, end)?;
+        let next = class.range.1;
+        return Ok((class, next));
+    }
+    if s[i..end].starts_with("function ") || s[i..end].starts_with("function\t") {
+        return parse_js_function_decl(b, i, end);
+    }
+    for kw in ["const", "let", "var"] {
+        if s[i..end].starts_with(kw)
+            && i + kw.len() < end
+            && bytes[i + kw.len()].is_ascii_whitespace()
+        {
+            return parse_js_var_decl(b, i, end, kw);
+        }
+    }
+    if keyword(i, "for") {
+        let for_kw = b.leaf("for", i, i + 3, false);
+        let spec_open = skip_ws_and_comments(s, i + 3, end, true, true);
+        if spec_open >= end || bytes[spec_open] != b'(' {
+            return Err("expected '(' after for".to_string());
+        }
+        let Some(spec_close) = find_matching_delim(s, spec_open, end, b'(', b')') else {
+            return Err("unclosed for spec".to_string());
+        };
+        let mut spec_children = vec![b.leaf("(", spec_open, spec_open + 1, false)];
+        let mut p = spec_open + 1;
+        while p < spec_close {
+            p = skip_ws_and_comments(s, p, spec_close, true, true);
+            if p >= spec_close {
                 break;
             }
-        }
-        if matched_var {
-            continue;
-        }
-        if s[i..end].starts_with("for") && (i + 3 == end || !is_js_ident_cont(bytes[i + 3])) {
-            let for_kw = b.leaf("for", i, i + 3, false);
-            let spec_open = skip_ws_and_comments(s, i + 3, end, true, true);
-            if spec_open >= end || bytes[spec_open] != b'(' {
-                return Err("expected '(' after for".to_string());
+            if bytes[p] == b';' {
+                spec_children.push(b.leaf(";", p, p + 1, false));
+                p += 1;
+                continue;
             }
-            let Some(spec_close) = find_matching_delim(s, spec_open, end, b'(', b')') else {
-                return Err("unclosed for spec".to_string());
-            };
-            let mut spec_children = vec![b.leaf("(", spec_open, spec_open + 1, false)];
-            let mut p = spec_open + 1;
-            while p < spec_close {
-                p = skip_ws_and_comments(s, p, spec_close, true, true);
-                if p >= spec_close {
-                    break;
-                }
-                if bytes[p] == b';' {
-                    spec_children.push(b.leaf(";", p, p + 1, false));
-                    p += 1;
-                    continue;
-                }
-                let mut part_end = p;
-                while part_end < spec_close && bytes[part_end] != b';' {
-                    part_end += 1;
-                }
-                let (expr, _) = parse_js_expr(b, p, part_end)?;
-                spec_children.push(expr);
-                p = part_end;
+            let mut part_end = p;
+            while part_end < spec_close && bytes[part_end] != b';' {
+                part_end += 1;
             }
-            spec_children.push(b.leaf(")", spec_close, spec_close + 1, false));
-            let for_spec = b.branch("ForSpec", spec_open, spec_close + 1, spec_children);
-            let body_open = skip_ws_and_comments(s, spec_close + 1, end, true, true);
-            let (body_node, after_body) = if body_open < end && bytes[body_open] == b'{' {
-                parse_js_block(b, body_open, end)?
-            } else {
-                return Err("expected '{' in for statement".to_string());
-            };
-            stmts.push(b.branch("ForStatement", i, after_body, vec![for_kw, for_spec, body_node]));
-            i = after_body;
-            continue;
+            let (expr, _) = parse_js_expr(b, p, part_end)?;
+            spec_children.push(expr);
+            p = part_end;
         }
-        if s[i..end].starts_with("return") && (i + 6 == end || !is_js_ident_cont(bytes[i + 6])) {
-            let ret_kw = b.leaf("return", i, i + 6, false);
-            let (stmt_end, semi_pos) = find_stmt_end(b, i + 6, end);
-            let mut children = vec![ret_kw];
-            let expr_start = skip_ws_and_comments(s, i + 6, stmt_end, true, true);
-            if expr_start < stmt_end {
-                let (expr, _) = parse_js_expr(b, expr_start, stmt_end)?;
-                children.push(expr);
-            }
-            let final_end = if let Some(sp) = semi_pos {
-                children.push(b.leaf(";", sp, sp + 1, false));
-                sp + 1
-            } else {
-                stmt_end
-            };
-            stmts.push(b.branch("ReturnStatement", i, final_end, children));
-            i = final_end;
-            continue;
+        spec_children.push(b.leaf(")", spec_close, spec_close + 1, false));
+        let for_spec = b.branch("ForSpec", spec_open, spec_close + 1, spec_children);
+        let body_open = skip_ws_and_comments(s, spec_close + 1, end, true, true);
+        let (body_node, after_body) = if body_open < end && bytes[body_open] == b'{' {
+            parse_js_block(b, body_open, end)?
+        } else {
+            return Err("expected '{' in for statement".to_string());
+        };
+        return Ok((b.branch("ForStatement", i, after_body, vec![for_kw, for_spec, body_node]), after_body));
+    }
+    if keyword(i, "return") {
+        let ret_kw = b.leaf("return", i, i + 6, false);
+        let (stmt_end, semi_pos) = find_stmt_end(b, i + 6, end);
+        let mut children = vec![ret_kw];
+        let expr_start = skip_ws_and_comments(s, i + 6, stmt_end, true, true);
+        if expr_start < stmt_end {
+            let (expr, _) = parse_js_expr(b, expr_start, stmt_end)?;
+            children.push(expr);
         }
-        let (stmt_end, semi_pos) = find_stmt_end(b, i, end);
-        let (expr, _) = parse_js_expr(b, i, stmt_end)?;
-        let mut children = vec![expr];
         let final_end = if let Some(sp) = semi_pos {
             children.push(b.leaf(";", sp, sp + 1, false));
             sp + 1
         } else {
-            children[0].range.1
+            stmt_end
         };
-        stmts.push(b.branch("ExpressionStatement", i, final_end, children));
-        i = if let Some(sp) = semi_pos { sp + 1 } else { stmt_end };
+        return Ok((b.branch("ReturnStatement", i, final_end, children), final_end));
     }
-    Ok(stmts)
+    let (stmt_end, semi_pos) = find_stmt_end(b, i, end);
+    let (expr, _) = parse_js_expr(b, i, stmt_end)?;
+    let mut children = vec![expr];
+    let final_end = if let Some(sp) = semi_pos {
+        children.push(b.leaf(";", sp, sp + 1, false));
+        sp + 1
+    } else {
+        children[0].range.1
+    };
+    Ok((b.branch("ExpressionStatement", i, final_end, children), semi_pos.map_or(stmt_end, |sp| sp + 1)))
 }
 
 fn parse_ast_code(source: &str, language: &str) -> Result<AstCodeNode, String> {
@@ -39459,6 +39474,28 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         let r = try_run_structured_command("sg", &args(&["scan", "--inline-rules", rule, "--json=compact", "-U", "input.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
         assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "[", "sg: Invalid javascript pattern: f($X +)\n"));
         assert_eq!(fs.read_file("/input.js").unwrap(), b"f(a);\n");
+    }
+
+    #[test]
+    fn ast_grep_leaves_deeply_nested_conditionals_unchanged_on_error() {
+        let fs = MemoryVfs::new();
+        for (head, tail) in [("if (x) ", ""), ("while (x) {", "}")] {
+            let source = format!("{}f(a);{}", head.repeat(1024), tail.repeat(1024));
+            fs.write_file("/deep.js", source.as_bytes()).unwrap();
+            let r = try_run_structured_command("sg", &args(&["-p", "f($X)", "-r", "g", "-U", "deep.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (2, "", "sg: statement nesting limit exceeded\n"));
+            assert_eq!(fs.read_file("/deep.js").unwrap(), source.as_bytes());
+        }
+    }
+
+    #[test]
+    fn ast_grep_matches_calls_inside_conditionals_and_while_loops() {
+        let fs = MemoryVfs::new();
+        let source = b"if (f(a)) while (b) f(c); else if (d) { f(e); } f(last);";
+        fs.write_file("/input.js", source).unwrap();
+        let r = try_run_structured_command("sg", &args(&["-p", "f($X)", "-r", "g($X)", "-U", "input.js"]), "", "/", &BTreeMap::new(), &fs).unwrap();
+        assert_eq!((r.exit_code, r.stderr.as_str()), (0, ""));
+        assert_eq!(fs.read_file("/input.js").unwrap(), b"if (g(a)) while (b) g(c); else if (d) { g(e); } g(last);");
     }
 
     #[test]

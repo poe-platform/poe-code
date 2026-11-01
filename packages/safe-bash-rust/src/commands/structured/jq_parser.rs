@@ -272,20 +272,28 @@ pub(super) fn binary(source: &str) -> Option<(&str, &str, &str)> {
 
 pub(super) enum Subscript<'a> {
     Iterate,
+    Field(&'a str),
     Index(&'a str),
     Slice(&'a str, &'a str),
 }
 
-// Find the final postfix brackets; quoted strings, object fields and nested
-// expressions may themselves contain brackets or colons.
+// Find the final field or bracket operator outside nested expressions and strings.
 pub(super) fn subscript(source: &str) -> Result<Option<(&str, Subscript<'_>)>, super::JqFault> {
-    if !source.ends_with(']') {
+    if !source.ends_with(']') && !source.contains('.') {
         return Ok(None);
     }
     let mut lexer = Lexer::new(source);
     let (mut depth, mut strings, mut count) = (0usize, 0usize, 0usize);
     let (mut open, mut colon) = (0, None);
     let mut definition = false;
+    let mut dot = None;
+    let base = |pos| {
+        if pos == 0 {
+            "."
+        } else {
+            source[..pos].trim_end()
+        }
+    };
     loop {
         let Ok(t) = lexer.next() else { return Ok(None) };
         match t.kind {
@@ -296,18 +304,39 @@ pub(super) fn subscript(source: &str) -> Result<Option<(&str, Subscript<'_>)>, s
             }
             Kind::EndQuote => {
                 strings -= 1;
+                if strings == 0
+                    && let Some(pos) = dot.take()
+                    && t.at + 1 == source.len()
+                {
+                    return Ok(Some((
+                        base(pos),
+                        Subscript::Index(source[pos + 1..].trim_start()),
+                    )));
+                }
                 continue;
             }
             _ if strings != 0 => continue,
             _ => {}
         }
+        if let Some(pos) = dot.take()
+            && t.kind == Kind::Name
+            && t.at + t.text.len() == source.len()
+        {
+            return Ok(Some((base(pos), Subscript::Field(t.text))));
+        }
+        if depth == 0 && matches!(t.text, "." | "[") {
+            count += 1;
+            if count > 128 {
+                return Err(super::JqFault::Limit("maxAstDepth"));
+            }
+        }
         match t.text {
+            "." if depth == 0 => dot = Some(t.at),
             "(" | "[" | "{" => {
                 if depth == 0 && t.text == "[" {
                     open = t.at;
                     colon = None;
                     definition = false;
-                    count += 1;
                 }
                 depth += 1;
             }
@@ -316,10 +345,7 @@ pub(super) fn subscript(source: &str) -> Result<Option<(&str, Subscript<'_>)>, s
                     return Ok(None);
                 }
                 depth -= 1;
-                if depth == 0 && t.at + 1 == source.len() && open > 0 {
-                    if count > 128 {
-                        return Err(super::JqFault::Limit("maxAstDepth"));
-                    }
+                if depth == 0 && t.text == "]" && t.at + 1 == source.len() && open > 0 {
                     let inner = &source[open + 1..t.at];
                     let op = if inner.trim().is_empty() {
                         Subscript::Iterate

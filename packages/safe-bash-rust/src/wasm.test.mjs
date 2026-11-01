@@ -3,6 +3,32 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq field access visits every base and respects optional and quoted keys", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, status, stdout, stderr] of [
+      ["{x:1} | .x", 0, "1\n", ""],
+      ["{\"if\":1} | .if", 0, "1\n", ""],
+      ["({a:1},error(\"late\")).a", 5, "1\n", "jq: error (at <unknown>): late\n"],
+      ["first(({a:1},error(\"late\")).a)", 0, "1\n", ""],
+      ["[{a:1},0,{a:3}] | .[].a?", 0, "1\n", ""],
+      ["[{a:1},0,{a:3}] | .[].a", 5, "1\n", "jq: error (at <unknown>): Cannot index number with string \"a\"\n"],
+      ["{\"#text\":4} | .\"+content\"", 0, "null\n", ""],
+      ["{\"@x\":2} | .\"+@x\"", 0, "null\n", ""],
+      ["{\"a.b\":5} | .\"a.b\"", 0, "5\n", ""],
+      ["{\"k1\":4,\"k2\":7} | .\"k\\((1,2))\"", 0, "4\n7\n", ""],
+      ["[5] | .longlonglonglonglonglonglonglonglong", 5, "", "jq: error (at <unknown>): Cannot index array with string\n"],
+      ["0 | .\"a\\\"b\"", 5, "", "jq: error (at <unknown>): Cannot index number with string \"a\\\"b\"\n"],
+      ["[{\"x\":3}] as $r | $r[0].x", 0, "3\n", ""],
+      ["def f: {v:1},error(\"late\"); first(f.v)", 0, "1\n", ""],
+      ["[{a:1},{a:2}] | (.[]).a", 0, "1\n2\n", ""],
+    ]) {
+      const r = await bash.exec(`jq -nc '${filter}'`);
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [status, stdout, stderr], filter);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("jq evaluates bracket indexes and slice bounds before each base", async () => {
   const bash = new RustWasmBash();
   try {

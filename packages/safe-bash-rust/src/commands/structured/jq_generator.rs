@@ -254,11 +254,10 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
     }
     let operand = s.strip_suffix('?').unwrap_or(s).trim_end();
     use super::jq_parser::Subscript;
-    let subscript = super::jq_parser::subscript(operand)?;
-    if operand != s && (subscript.is_some() || !operand.starts_with('.')) {
+    if operand != s {
         return protected(operand, input, vars, emit, |_, _| Ok(Continue(())));
     }
-    if let Some((base, op)) = subscript {
+    if let Some((base, op)) = super::jq_parser::subscript(s)? {
         let bases = |each: &mut dyn FnMut(&JVal) -> Flow| {
             if base == "." {
                 each(input)
@@ -267,6 +266,10 @@ pub(super) fn visit_jq(expr: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut 
             }
         };
         return match op {
+            Subscript::Field(key) => {
+                let key = JVal::Str(key.into());
+                bases(&mut |v| emit(index_value(v, &key)?.clone()))
+            }
             Subscript::Iterate => bases(&mut |v| iterate(v, emit)),
             Subscript::Index(filter) => visit_jq(filter, input, vars, &mut |key| {
                 bases(&mut |v| {
@@ -756,7 +759,7 @@ fn object(
         // Common single-valued fields need no suspended generator or object copy.
         if let Some(ref name) = literal {
             let value = match filter {
-                None => super::step_field(std::slice::from_ref(input), name, false)?.pop(),
+                None => Some(index_value(input, &JVal::Str(name.clone()))?.clone()),
                 Some(".") => Some(input.clone()),
                 Some(f)
                     if f.starts_with(['.', '$'])
@@ -797,11 +800,7 @@ fn object(
             if let Some(f) = filter {
                 visit_jq(f, input, vars, &mut extend)
             } else {
-                extend(
-                    super::step_field(std::slice::from_ref(input), &name, false)?
-                        .pop()
-                        .unwrap(),
-                )
+                extend(index_value(input, &JVal::Str(name.clone()))?.clone())
             }
         };
         return if let Some(name) = literal {

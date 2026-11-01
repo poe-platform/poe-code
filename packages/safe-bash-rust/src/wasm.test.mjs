@@ -3,6 +3,22 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("text utilities consume stdin once across operands and shell commands", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [cmd, expected] of [
+      ["wc -c - -", "      4 -\n      0 -\n      4 total\n"],
+      ["sort - -", "a\nb\n"], ["uniq", "b\na\n"], ["tac - -", "a\nb\n"],
+      ["cut -f1 - -", "b\na\n"], ["tr a x", "b\nx\n"], ["rev", "b\na\n"],
+      ["fold - -", "b\na\n"], ["fmt - -", "b a\n"], ["nl - -", "     1\tb\n     2\ta\n"],
+      ["expand - -", "b\na\n"], ["unexpand - -", "b\na\n"],
+    ]) {
+      const r = await bash.exec(cmd + "; cat", { stdin: "b\na\n" });
+      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected, ""], cmd);
+    }
+  } finally { bash.dispose(); }
+});
+
 test("cat, head and tail advance the shared stdin cursor only when they read", async () => {
   const bash = new RustWasmBash();
   try {

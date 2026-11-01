@@ -298,6 +298,12 @@ pub fn read_inputs_or_stdin(
     Ok(combined)
 }
 
+fn take_stdin_bytes(stdin: &mut String) -> Vec<u8> {
+    let bytes = stream_string_to_bytes(stdin);
+    stdin.clear();
+    bytes
+}
+
 fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut flag_n = false;
     let mut flag_b = false;
@@ -382,8 +388,7 @@ fn cmd_cat(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) 
     };
     for f in &targets {
         if f == "-" {
-            raw_bytes.extend_from_slice(&stream_string_to_bytes(stdin));
-            stdin.clear();
+            raw_bytes.extend_from_slice(&take_stdin_bytes(stdin));
         } else {
             let p = resolve_posix_path(cwd, f);
             if let Ok(st) = fs.stat(&p)
@@ -910,7 +915,7 @@ fn wc_space(point: u32, posix: bool) -> bool {
 
 fn cmd_wc(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -999,7 +1004,7 @@ fn cmd_wc(
 
     if let Some(ref f0) = files0_from {
         let f_bytes = if f0 == "-" {
-            stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f0);
             if fs.is_dir(&p) {
@@ -1251,7 +1256,7 @@ fn cmd_wc(
     for name in &names {
         let label = if has_operands { Some(name.as_str()) } else { None };
         let raw_res: Result<Vec<u8>, String> = if name == "-" {
-            Ok(stream_string_to_bytes(stdin))
+            Ok(take_stdin_bytes(stdin))
         } else {
             let p = resolve_posix_path(cwd, name);
             match fs.stat(&p) {
@@ -1827,7 +1832,7 @@ fn extract_sort_key_bytes<'a>(
 
 fn cmd_sort(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     _env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -2068,7 +2073,7 @@ fn cmd_sort(
     let mut per_file_records: Vec<Vec<Vec<u8>>> = Vec::with_capacity(names.len());
     for name in &names {
         let raw = if name == "-" {
-            crate::vfs::stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let path = resolve_posix_path(cwd, name);
             if fs.is_dir(&path) {
@@ -2294,7 +2299,7 @@ fn cmd_sort(
 
 fn cmd_uniq(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -2473,7 +2478,7 @@ fn cmd_uniq(
 
     let in_name = operands.first().map(|s| s.as_str()).unwrap_or("-");
     let raw = if in_name == "-" {
-        crate::vfs::stream_string_to_bytes(stdin)
+        take_stdin_bytes(stdin)
     } else {
         let path = resolve_posix_path(cwd, in_name);
         if fs.is_dir(&path) {
@@ -2732,7 +2737,7 @@ fn parse_cut_ranges(list: &str) -> Result<Vec<CutRange>, (String, i32)> {
 
 fn cmd_cut(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -2924,7 +2929,7 @@ fn cmd_cut(
 
     for name in &names {
         let raw = if name == "-" {
-            crate::vfs::stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let path = resolve_posix_path(cwd, name);
             if fs.is_dir(&path) {
@@ -3332,7 +3337,7 @@ fn parse_tr_character_set(
     })
 }
 
-fn cmd_tr(args: &[String], stdin: &str) -> BuiltinOutcome {
+fn cmd_tr(args: &[String], stdin: &mut String) -> BuiltinOutcome {
     let mut deleting = false;
     let mut squeezing = false;
     let mut complement = false;
@@ -3452,7 +3457,7 @@ fn cmd_tr(args: &[String], stdin: &str) -> BuiltinOutcome {
         }
     }
 
-    let raw_in = crate::vfs::stream_string_to_bytes(stdin);
+    let raw_in = take_stdin_bytes(stdin);
     let mut out_bytes: Vec<u8> = Vec::with_capacity(raw_in.len());
     let mut prev_out: Option<u8> = None;
     for &b in &raw_in {
@@ -3491,7 +3496,7 @@ fn parse_nl_positive_usize(s: &str) -> Result<usize, String> {
     }
 }
 
-fn cmd_nl(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_nl(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut header_style = "n".to_string();
     let mut body_style = "t".to_string();
     let mut footer_style = "n".to_string();
@@ -3720,16 +3725,10 @@ fn cmd_nl(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     let mut out = String::new();
     let mut stderr = String::new();
     let mut code = 0;
-    let mut stdin_consumed = false;
 
     for f in &targets {
         let raw = if f == "-" {
-            if stdin_consumed {
-                String::new()
-            } else {
-                stdin_consumed = true;
-                stdin.to_string()
-            }
+            std::mem::take(stdin)
         } else {
             let p = resolve_posix_path(cwd, f);
             match fs.read_file(&p) {
@@ -3829,7 +3828,7 @@ fn cmd_nl(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Built
     }
 }
 
-fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_tac(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut sep: Option<String> = None;
     let mut before = false;
     let mut regex_mode = false;
@@ -3909,7 +3908,7 @@ fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     let mut exit_code = 0;
     for f in &targets {
         let bytes = if f == "-" {
-            crate::vfs::stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let full = resolve_posix_path(cwd, f);
             if fs.is_dir(&full) {
@@ -4001,7 +4000,7 @@ fn cmd_tac(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
 
 fn cmd_rev(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -4055,7 +4054,7 @@ fn cmd_rev(
 
     for f in &targets {
         let bytes = if f == "-" && !literal_dash {
-            crate::vfs::stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
@@ -12064,7 +12063,7 @@ fn parse_fold_width(val: &str) -> Result<usize, String> {
 
 fn cmd_fold(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -12222,7 +12221,7 @@ fn cmd_fold(
 
     for f in &inputs {
         let raw_in = if f == "-" {
-            crate::vfs::stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
@@ -12687,7 +12686,7 @@ impl<'a> FmtFormatter<'a> {
 
 fn cmd_fmt(
     args: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     env: &BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
@@ -12911,14 +12910,9 @@ fn cmd_fmt(
     let mut out_bytes: Vec<u8> = Vec::new();
     let mut stderr = String::new();
     let mut exit_code = 0;
-    let mut stdin_done = false;
     for f in &inputs {
         let file_bytes: Vec<u8> = if f == "-" {
-            if stdin_done {
-                continue;
-            }
-            stdin_done = true;
-            crate::vfs::stream_string_to_bytes(stdin)
+            take_stdin_bytes(stdin)
         } else {
             let p = resolve_posix_path(cwd, f);
             if fs.is_dir(&p) {
@@ -15112,20 +15106,20 @@ impl ParsedTabs {
 
 fn read_expand_inputs(
     files: &[String],
-    stdin: &str,
+    stdin: &mut String,
     cwd: &str,
     fs: &dyn SafeBashFs,
     cmd_name: &str,
 ) -> (Vec<Vec<u8>>, String, i32) {
     if files.is_empty() || (files.len() == 1 && files[0] == "-") {
-        return (vec![crate::vfs::stream_string_to_bytes(stdin)], String::new(), 0);
+        return (vec![take_stdin_bytes(stdin)], String::new(), 0);
     }
     let mut chunks = Vec::new();
     let mut err_buf = String::new();
     let mut code = 0;
     for f in files {
         if f == "-" {
-            chunks.push(crate::vfs::stream_string_to_bytes(stdin));
+            chunks.push(take_stdin_bytes(stdin));
             continue;
         }
         let path = resolve_posix_path(cwd, f);
@@ -15145,7 +15139,7 @@ fn read_expand_inputs(
     (chunks, err_buf, code)
 }
 
-fn cmd_expand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_expand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut initial_only = false;
     let mut files = Vec::new();
@@ -15275,7 +15269,7 @@ fn cmd_expand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     }
 }
 
-fn cmd_unexpand(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
+fn cmd_unexpand(args: &[String], stdin: &mut String, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut tab_specs: Vec<String> = Vec::new();
     let mut all_flag = false;
     let mut has_t = false;

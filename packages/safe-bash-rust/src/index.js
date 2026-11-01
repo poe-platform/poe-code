@@ -1092,6 +1092,10 @@ export class RustWasmBash extends WasmShell {
     if (options.stderr && typeof options.stderr.write === "function" && res.stderrBytes.byteLength > 0) {
       await options.stderr.write(res.stderrBytes);
     }
+    if (options.captureOutput === false) {
+      res.stdout = res.stderr = "";
+      res.stdoutBytes = res.stderrBytes = new Uint8Array(0);
+    }
     if (this.companionFactory && !this.forceNative) {
       this._history.push({ type: "exec", script, options });
     }

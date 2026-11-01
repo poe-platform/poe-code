@@ -3,6 +3,24 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("disabling capture still delivers bytes to sinks and hides them from result hooks", async () => {
+  const bash = new RustWasmBash();
+  try {
+    const writes = [];
+    let observed;
+    const r = await bash.exec("cat; echo err >&2", {
+      captureOutput: false,
+      stdin: Uint8Array.of(0, 255),
+      stdout: { async write(bytes) { writes.push(["out", ...bytes]); } },
+      stderr: { async write(bytes) { writes.push(["err", ...bytes]); } },
+      hooks: { afterExec(_state, res) { observed = [res.stdout, res.stderr, ...res.stdoutBytes, ...res.stderrBytes]; } },
+    });
+    assert.deepEqual(writes, [["out", 0, 255], ["err", 101, 114, 114, 10]]);
+    assert.deepEqual(observed, ["", ""]);
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr, r.stdoutBytes.length, r.stderrBytes.length], [0, "", "", 0, 0]);
+  } finally { bash.dispose(); }
+});
+
 test("env and timeout leave the child's unread stdin for the caller", async () => {
   const bash = new RustWasmBash();
   try {

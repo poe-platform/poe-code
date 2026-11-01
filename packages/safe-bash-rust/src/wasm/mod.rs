@@ -510,11 +510,8 @@ pub unsafe extern "C" fn safe_bash_stat(
     let Some(sess) = map.get_mut(&id) else {
         return -1;
     };
-    let res = if follow != 0 {
-        sess.shell.fs.stat(path)
-    } else {
-        sess.shell.fs.lstat(path)
-    };
+    let fs = &sess.shell.fs;
+    let res = fs.access_path(path, follow != 0).and_then(|p| fs.lstat(&p));
     match res {
         Ok(st) => {
             let kind_code: u32 = match st.kind {
@@ -534,7 +531,12 @@ pub unsafe extern "C" fn safe_bash_stat(
             sess.last_output_buf = buf;
             sess.last_output_buf.len() as i32
         }
-        Err(_) => -1,
+        Err(e) => {
+            let code = e.split_once(':').map_or("EIO", |(code, _)| code);
+            let root = if sess.profile == Profile::Devices && !path.starts_with('/') { "/" } else { "" };
+            sess.last_output_buf = format!("{code}:{root}{path}").into_bytes();
+            -(sess.last_output_buf.len() as i32)
+        }
     }
 }
 

@@ -125,20 +125,22 @@ export class WasmFileSystem {
     return this.bash.readdir(dirPath);
   }
 
-  async stat(filePath) {
+  async stat(filePath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
-      return this.bash._companion.fs.stat(filePath);
+      return this.bash._companion.fs.stat(filePath, options);
     }
     return this.bash.stat(filePath, true);
   }
 
-  async lstat(filePath) {
+  async lstat(filePath, options) {
+    options?.signal?.throwIfAborted();
     if (this.bash._companion) {
       await this.bash._ensureCompanionSynced();
       return this.bash._companion.fs.lstat
-        ? this.bash._companion.fs.lstat(filePath)
-        : this.bash._companion.fs.stat(filePath);
+        ? this.bash._companion.fs.lstat(filePath, options)
+        : this.bash._companion.fs.stat(filePath, options);
     }
     return this.bash.stat(filePath, false);
   }
@@ -577,16 +579,18 @@ export class RustWasmBash {
     const p = this._allocBytes(encoder.encode(filePath));
     try {
       const len = this.exports.safe_bash_stat(this.sessionId, p.ptr, p.len, follow ? 1 : 0);
-      if (len < 20) {
-        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
-      }
+      if (len === -1) throw new Error("Wasm session unavailable");
       const outPtr = this.exports.safe_bash_output_ptr(this.sessionId);
+      if (len < 0) {
+        const error = decoder.decode(new Uint8Array(this.exports.memory.buffer, outPtr, -len));
+        throw fsOperationError(error, follow ? "stat" : "lstat", error.slice(error.indexOf(":") + 1));
+      }
       const view = new DataView(this.exports.memory.buffer, outPtr, len);
       const kindCode = view.getUint32(0, true);
       const size = view.getUint32(4, true);
       const mode = view.getUint32(8, true);
       const mtimeMs = Number(view.getBigUint64(12, true));
-      const type = kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
+      const type = (mode & 0o170000) === 0o020000 ? "character" : kindCode === 1 ? "directory" : kindCode === 2 ? "symlink" : "file";
       const dev = len >= 36 ? Number(view.getBigUint64(20, true)) : undefined;
       const ino = len >= 36 ? Number(view.getBigUint64(28, true)) : undefined;
       return {

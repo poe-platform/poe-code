@@ -34,7 +34,7 @@ export interface WasmFileStat {
   readonly dev?: number;
   readonly ino?: number;
   readonly identityScope?: symbol;
-  readonly type: "file" | "directory" | "symlink";
+  readonly type: "file" | "directory" | "symlink" | "character";
   readonly size: number;
   readonly mode: number;
   readonly mtime: Date;
@@ -50,8 +50,8 @@ export class WasmFileSystem {
   writeFile(filePath: string, data: string | Uint8Array, options?: { flag?: "w" | "wx" | "a" | "ax"; mode?: number; signal?: AbortSignal }): Promise<void>;
   mkdir(dirPath: string, options?: { recursive?: boolean }): Promise<void>;
   readdir(dirPath: string): Promise<string[]>;
-  stat(filePath: string): Promise<WasmFileStat>;
-  lstat(filePath: string): Promise<WasmFileStat>;
+  stat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;
+  lstat(filePath: string, options?: { signal?: AbortSignal }): Promise<WasmFileStat>;
   symlink(target: string, linkPath: string): Promise<void>;
   readlink(linkPath: string): Promise<string>;
   chmod(filePath: string, mode: number): Promise<void>;

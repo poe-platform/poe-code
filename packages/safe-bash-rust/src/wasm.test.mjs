@@ -627,3 +627,21 @@ test("stat identifies aliases, renames and replacements within one filesystem", 
     assert.notDeepEqual(key(await a.fs.stat("/original")), key(original));
   } finally { a.dispose(); b.dispose(); }
 });
+
+test("stat and lstat resolve parents before '..' and report inaccessible entries", async () => {
+  const bash = new RustWasmBash({files:{"/tree/sub/file":"data", "/tree/x":"nested", "/x":"root"}, symlinks:{"/alias":"tree/sub"}});
+  try {
+    for (const op of ["stat", "lstat"]) {
+      assert.equal((await bash.fs[op]("/alias/../x")).ino, (await bash.fs.stat("/tree/x")).ino);
+      for (const [path, code] of [["/missing/../x","ENOENT"], ["/x/","ENOTDIR"]]) {
+        await assert.rejects(bash.fs[op](path), {name:"FsError",syscall:op,path,code});
+      }
+      await assert.rejects(bash.fs[op]("/x", {signal:AbortSignal.abort()}), {name:"AbortError"});
+    }
+    await bash.fs.chmod("/tree", 0o600);
+    await assert.rejects(bash.fs.lstat("/tree/sub/file"), {code:"EACCES",syscall:"lstat"});
+    bash.mountDevices();
+    assert.equal((await bash.fs.stat("/dev/zero")).type, "character");
+    await assert.rejects(bash.fs.stat("missing"), {code:"ENOENT",syscall:"stat",path:"/missing"});
+  } finally { bash.dispose(); }
+});

@@ -157,6 +157,7 @@ pub(super) struct Tiff<'a> {
     limit: usize,
     compression: usize,
     rows_per_strip: usize,
+    tile: Option<(usize, usize)>,
     white_zero: bool,
     predictor: bool,
     offsets: Option<Field<'a>>,
@@ -209,10 +210,13 @@ impl<'a> Tiff<'a> {
         if !(1..=4).contains(&samples)
             || !matches!(depth, 8 | 16)
             || !matches!(get(259, 1), 1 | 5 | 8 | 32946 | 32773)
-            || field(324).is_some()
         {
             return Err("unsupported TIFF encoding");
         }
+        let tile = match (get(322, 0), get(323, 0)) {
+            (w, h) if w > 0 && h > 0 && field(324).is_some() => Some((w, h)),
+            _ => None,
+        };
         let (dpi, orientation) = super::image_header::exif(bytes).unwrap_or_default();
         Ok(Self {
             bytes,
@@ -228,9 +232,50 @@ impl<'a> Tiff<'a> {
             rows_per_strip: get(278, height).clamp(1, height),
             white_zero: get(262, 2) == 0,
             predictor: get(317, 1) == 2,
-            offsets: field(273),
-            counts: field(279),
+            tile,
+            offsets: field(if tile.is_some() { 324 } else { 273 }),
+            counts: field(if tile.is_some() { 325 } else { 279 }),
         })
+    }
+
+    fn row(
+        &self,
+        row: &mut [[u8; 4]],
+        mut byte: impl FnMut() -> Result<u8, &'static str>,
+    ) -> Result<(), &'static str> {
+        let mut prev = [0u16; 4];
+        for dst in row {
+            let mut pixel = [0, 0, 0, 255];
+            for c in 0..self.samples {
+                let first = byte()?;
+                let value = if self.depth == 16 {
+                    let b = [first, byte()?];
+                    if self.little {
+                        u16::from_le_bytes(b)
+                    } else {
+                        u16::from_be_bytes(b)
+                    }
+                } else {
+                    u16::from(first)
+                };
+                prev[c] = if self.predictor {
+                    prev[c].wrapping_add(value)
+                } else {
+                    value
+                };
+                pixel[c] = (prev[c] >> (self.depth - 8)) as u8;
+            }
+            if self.samples < 3 {
+                let g = if self.white_zero {
+                    255 - pixel[0]
+                } else {
+                    pixel[0]
+                };
+                pixel = [g, g, g, if self.samples == 2 { pixel[1] } else { 255 }];
+            }
+            *dst = pixel;
+        }
+        Ok(())
     }
 
     pub fn decode(&self) -> Result<Raster, &'static str> {
@@ -245,76 +290,70 @@ impl<'a> Tiff<'a> {
         });
         let mut counts = counts.values(self.little);
         let mut offsets = offsets.values(self.little);
-        let mut decoded = Cow::Borrowed(&[][..]);
-        let (mut pos, mut read) = (0usize, 0usize);
-        let stride = self
-            .width
-            .checked_mul(self.samples * usize::from(self.depth / 8))
-            .ok_or("image exceeds memory budget")?;
-        let total = stride
-            .checked_mul(self.height)
-            .ok_or("image exceeds memory budget")?;
+        let bpp = self.samples * usize::from(self.depth / 8);
         let scratch = self.limit - self.width * self.height * 4;
         let mut work = self.limit.saturating_mul(8);
-        let mut byte = || -> Result<u8, &'static str> {
-            while pos >= decoded.len() {
-                let Some(off) = offsets.next() else {
-                    return Ok(0);
-                };
-                let data = self.bytes.get(off..).unwrap_or_default();
-                let n = counts.next().unwrap_or(data.len()).min(data.len());
-                if self.compression != 1 {
-                    work = work
-                        .checked_sub(n)
-                        .ok_or("image decompression work limit exceeded")?;
-                }
-                drop(std::mem::replace(&mut decoded, Cow::Borrowed(&[])));
-                decoded = strip(
-                    &data[..n],
-                    self.compression,
-                    (total - read).min(stride * self.rows_per_strip),
-                    scratch,
-                )?;
-                pos = 0;
+        let mut next = |expected: usize| -> Result<Option<Cow<'a, [u8]>>, &'static str> {
+            let Some(off) = offsets.next() else {
+                return Ok(None);
+            };
+            let data = self.bytes.get(off..).unwrap_or_default();
+            let n = counts.next().unwrap_or(data.len()).min(data.len());
+            if self.compression != 1 {
+                work = work
+                    .checked_sub(n.max(expected))
+                    .ok_or("image decompression work limit exceeded")?;
             }
-            let v = decoded[pos];
-            pos += 1;
-            read += 1;
-            Ok(v)
+            strip(&data[..n], self.compression, expected, scratch).map(Some)
         };
-        let mut pixels = Vec::with_capacity(self.width * self.height);
-        for _ in 0..self.height {
-            let mut prev = [0u16; 4];
-            for _ in 0..self.width {
-                let mut pixel = [0, 0, 0, 255];
-                for c in 0..self.samples {
-                    let first = byte()?;
-                    let value = if self.depth == 16 {
-                        let b = [first, byte()?];
-                        if self.little {
-                            u16::from_le_bytes(b)
-                        } else {
-                            u16::from_be_bytes(b)
+        let mut missing = [0; 4];
+        self.row(std::slice::from_mut(&mut missing), || Ok(0))?;
+        let mut pixels = vec![missing; self.width * self.height];
+        if let Some((w, h)) = self.tile {
+            let stride = w.checked_mul(bpp).ok_or("image exceeds memory budget")?;
+            let expected = h.checked_mul(stride).ok_or("image exceeds memory budget")?;
+            'tiles: for y in (0..self.height).step_by(h) {
+                for x in (0..self.width).step_by(w) {
+                    let Some(data) = next(expected)? else {
+                        break 'tiles;
+                    };
+                    let cols = w.min(self.width - x);
+                    for (k, raw) in data.chunks(stride).take(h.min(self.height - y)).enumerate() {
+                        if let Some(raw) = raw.get(..cols * bpp) {
+                            let start = (y + k) * self.width + x;
+                            let mut bytes = raw.iter();
+                            self.row(&mut pixels[start..start + cols], || {
+                                Ok(*bytes.next().unwrap())
+                            })?;
                         }
-                    } else {
-                        u16::from(first)
-                    };
-                    prev[c] = if self.predictor {
-                        prev[c].wrapping_add(value)
-                    } else {
-                        value
-                    };
-                    pixel[c] = (prev[c] >> (self.depth - 8)) as u8;
+                    }
                 }
-                if self.samples < 3 {
-                    let g = if self.white_zero {
-                        255 - pixel[0]
-                    } else {
-                        pixel[0]
+            }
+        } else {
+            let total = pixels
+                .len()
+                .checked_mul(bpp)
+                .ok_or("image exceeds memory budget")?;
+            let mut decoded = Cow::Borrowed(&[][..]);
+            let (mut pos, mut read) = (0usize, 0usize);
+            let mut byte = || {
+                while pos == decoded.len() {
+                    drop(std::mem::replace(&mut decoded, Cow::Borrowed(&[])));
+                    let Some(data) =
+                        next((total - read).min(self.width * self.rows_per_strip * bpp))?
+                    else {
+                        return Ok(0);
                     };
-                    pixel = [g, g, g, if self.samples == 2 { pixel[1] } else { 255 }];
+                    decoded = data;
+                    pos = 0;
                 }
-                pixels.push(pixel);
+                let v = decoded[pos];
+                pos += 1;
+                read += 1;
+                Ok(v)
+            };
+            for row in pixels.chunks_exact_mut(self.width) {
+                self.row(row, &mut byte)?;
             }
         }
         Ok(Raster {
@@ -332,6 +371,37 @@ impl<'a> Tiff<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn places_tiff_tiles_at_their_visible_edges() {
+        let fields = [
+            (256u16, 3u32),
+            (257, 3),
+            (277, 1),
+            (262, 1),
+            (322, 2),
+            (323, 2),
+            (324, 110),
+            (325, 126),
+        ];
+        let mut b = b"MM\0*\0\0\0\x08".to_vec();
+        b.extend_from_slice(&(fields.len() as u16).to_be_bytes());
+        for (tag, v) in fields {
+            b.extend_from_slice(&tag.to_be_bytes());
+            b.extend_from_slice(&4u16.to_be_bytes());
+            b.extend_from_slice(&(if matches!(tag, 324 | 325) { 4u32 } else { 1 }).to_be_bytes());
+            b.extend_from_slice(&v.to_be_bytes());
+        }
+        for v in [0u32, 142, 146, 150, 154, 4, 4, 4, 4] {
+            b.extend_from_slice(&v.to_be_bytes());
+        }
+        b.extend_from_slice(&[1, 2, 4, 5, 3, 99, 6, 99, 7, 8, 99, 99, 9, 99, 99, 99]);
+        let image = Tiff::parse(&b, 8192).unwrap().decode().unwrap();
+        assert_eq!(
+            image.pixels,
+            [1, 2, 3, 4, 5, 6, 7, 8, 9].map(|g| [g, g, g, 255])
+        );
+    }
 
     #[test]
     fn decompresses_predictor_encoded_big_endian_strips() {

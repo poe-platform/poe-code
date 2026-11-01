@@ -3,6 +3,28 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("jq reports undefined function signatures in unused definitions and branches", async () => {
+  const bash = new RustWasmBash();
+  try {
+    for (const [filter, errors] of [
+      ["if false then foo else bar(baz) end", [["foo/0", 14], ["bar/1", 23]]],
+      ["def a: missing1; def b: missing2; missing3", [["missing2/0", 24], ["missing1/0", 7], ["missing3/0", 34]]],
+      ["def f($x): $x; f(1;2)", [["f/2", 15]]],
+      ["def unused: later; def later: 1; .", [["later/0", 12]]],
+      ["(def local: 1; local), local", [["local/0", 23]]],
+      ["empty | length(.)", [["length/1", 8]]],
+    ]) {
+      const result = await bash.exec(`jq '${filter}' /missing`);
+      const diagnostic = errors.map(([call, offset]) =>
+        `jq: error: ${call} is not defined at <top-level>, line 1:\n${filter}${" ".repeat(offset)}\n`
+      ).join("") + `jq: ${errors.length} compile error${errors.length > 1 ? "s" : ""}\n`;
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [3, "", diagnostic]);
+    }
+    const r = await bash.exec(`jq -nc 'def f: 1; def apply(f): f; [f(), apply(f)]'`);
+    assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, "[1,1]\n", ""]);
+  } finally { bash.dispose(); }
+});
+
 test("jq compiles nested modules in their own scope before opening inputs", async () => {
   const bash = new RustWasmBash({ files: {
     "/workspace/lib/base.jq": 'def pair($a;$b): [$a,$b]; def tag: "m::tag";',

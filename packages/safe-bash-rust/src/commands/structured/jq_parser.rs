@@ -195,6 +195,42 @@ impl<'a> Lexer<'a> {
     }
 }
 
+fn builtin(name: &str, arity: usize) -> bool {
+    match name {
+        "abs" | "add" | "arrays" | "ascii_downcase" | "ascii_upcase" | "booleans" | "ceil"
+        | "empty" | "env" | "explode" | "fabs" | "floor" | "from_entries" | "fromdate"
+        | "fromdateiso8601" | "fromjson" | "gmtime" | "halt" | "implode" | "infinite"
+        | "inputs" | "isfinite" | "isinfinite" | "isnan" | "iterables" | "keys"
+        | "keys_unsorted" | "leaf_paths" | "length" | "ltrim" | "max" | "min" | "mktime"
+        | "nan" | "not" | "nulls" | "numbers" | "objects" | "reverse" | "round" | "rtrim"
+        | "scalars" | "sort" | "sqrt" | "strings" | "to_entries" | "todate" | "todateiso8601"
+        | "tojson" | "tonumber" | "tostring" | "transpose" | "trim" | "type" | "unique"
+        | "utf8bytelength" | "values" => arity == 0,
+        "bsearch" | "contains" | "del" | "delpaths" | "endswith" | "getpath" | "group_by"
+        | "has" | "in" | "index" | "indices" | "inside" | "isempty" | "join" | "ltrimstr"
+        | "map" | "map_values" | "max_by" | "min_by" | "path" | "pick" | "rindex" | "rtrimstr"
+        | "select" | "sort_by" | "startswith" | "strflocaltime" | "strftime" | "strptime"
+        | "unique_by" | "walk" | "with_entries" => arity == 1,
+        "IN" | "INDEX" | "capture" | "match" | "nth" | "scan" | "split" | "splits" | "test" => {
+            (1..=2).contains(&arity)
+        }
+        "limit" | "setpath" | "until" | "while" => arity == 2,
+        "combinations" | "error" | "first" | "flatten" | "halt_error" | "last" | "paths" => {
+            (0..=1).contains(&arity)
+        }
+        "range" => (1..=3).contains(&arity),
+        "gsub" | "sub" => (2..=3).contains(&arity),
+        "all" | "any" | "recurse" => (0..=2).contains(&arity),
+        _ => false,
+    }
+}
+
+struct Missing<'a> {
+    at: usize,
+    name: Cow<'a, str>,
+    arity: usize,
+}
+
 struct Parser<'a, 'b> {
     arguments: &'b std::collections::BTreeMap<String, super::JVal>,
     lexer: Lexer<'a>,
@@ -202,6 +238,9 @@ struct Parser<'a, 'b> {
     previous: Token<'a>,
     variables: Vec<&'a str>,
     labels: Vec<&'a str>,
+    signatures: Vec<(&'a str, usize)>,
+    missing: Vec<Missing<'a>>,
+    definition_errors: Vec<Vec<Missing<'a>>>,
     depth: usize,
 }
 
@@ -257,14 +296,21 @@ impl<'a> Parser<'a, '_> {
             Kind::Quote | Kind::Number => ("LITERAL".into(), tok.at),
             _ => (format!("'{}'", tok.text), tok.at),
         };
+        let expected = if end { ", expecting end of file" } else { "" };
+        let message = self.diagnostic(
+            at,
+            &format!("syntax error, unexpected {name}{expected} (Unix shell quoting issues?)"),
+        );
+        format!("{message}\njq: 1 compile error")
+    }
+    fn diagnostic(&self, at: usize, message: &str) -> String {
         let source = self.lexer.source;
         let before = &source[..at];
         let line = 1 + before.bytes().filter(|b| *b == b'\n').count();
         let start = before.rfind('\n').map_or(0, |i| i + 1);
         let context = source[start..].split('\n').next().unwrap_or("");
         format!(
-            "error: syntax error, unexpected {name}{} (Unix shell quoting issues?) at <top-level>, line {line}:\n{context}{}\njq: 1 compile error",
-            if end { ", expecting end of file" } else { "" },
+            "error: {message} at <top-level>, line {line}:\n{context}{}",
             " ".repeat(at - start)
         )
     }
@@ -334,9 +380,11 @@ impl<'a> Parser<'a, '_> {
         }
         self.expect(if array { "]" } else { "}" })
     }
-    fn definition(&mut self) -> Result<(&'a str, Vec<String>, Range<usize>), String> {
+    fn definition(&mut self) -> Result<(Range<usize>, Vec<String>, Range<usize>), String> {
+        let name_at = self.current.at;
         let function = self.name("expected function name")?;
         let mut formal = Vec::new();
+        let sig_mark = self.signatures.len();
         let mark = self.variables.len();
         if self.accept("(")? {
             let mut params = Vec::new();
@@ -354,6 +402,8 @@ impl<'a> Parser<'a, '_> {
                 });
                 if value {
                     self.variables.push(name);
+                } else {
+                    self.signatures.push((name, 0));
                 }
                 if !self.accept(";")? {
                     break;
@@ -363,19 +413,35 @@ impl<'a> Parser<'a, '_> {
         }
         self.expect(":")?;
         let start = self.current.at;
+        let signature = (function, formal.len());
+        self.signatures.push(signature);
+        let parent_errors = std::mem::take(&mut self.missing);
         self.expr(0, false)?;
+        let errors = std::mem::replace(&mut self.missing, parent_errors);
+        if !errors.is_empty() {
+            self.definition_errors.push(errors);
+        }
+        self.signatures.truncate(sig_mark);
+        self.signatures.push(signature);
         let body = start..self.current.at;
         self.expect(";")?;
         self.variables.truncate(mark);
-        Ok((function, formal, body))
+        Ok((name_at..name_at + function.len(), formal, body))
     }
     fn expr(&mut self, min: u8, stop_comma: bool) -> Result<(), String> {
         if self.depth >= 128 {
             return Err("maxAstDepth limit exceeded".into());
         }
         self.depth += 1;
-        while self.accept("def")? {
-            self.definition()?;
+        if self.current.text == "def" {
+            let mark = self.signatures.len();
+            while self.accept("def")? {
+                self.definition()?;
+            }
+            self.expr(0, stop_comma)?;
+            self.signatures.truncate(mark);
+            self.depth -= 1;
+            return Ok(());
         }
         self.primary()?;
         loop {
@@ -522,18 +588,38 @@ impl<'a> Parser<'a, '_> {
                     }
                     self.expect("end")?;
                 }
+                "true" | "false" | "null" => {}
                 _ if tok.kind == Kind::Name => {
-                    if self.accept("::")? {
-                        self.name("expected namespace member")?;
-                    }
+                    let name = if self.accept("::")? {
+                        Cow::Owned(format!(
+                            "{}::{}",
+                            tok.text,
+                            self.name("expected namespace member")?
+                        ))
+                    } else {
+                        Cow::Borrowed(tok.text)
+                    };
+                    let mark = self.missing.len();
+                    let mut arity = 0;
                     if self.accept("(")? && !self.accept(")")? {
                         loop {
                             self.expr(0, false)?;
+                            arity += 1;
                             if !self.accept(";")? {
                                 break;
                             }
                         }
                         self.expect(")")?;
+                    }
+                    if !builtin(&name, arity) && !self.signatures.contains(&(name.as_ref(), arity))
+                    {
+                        // An unresolved outer call masks errors in its arguments.
+                        self.missing.truncate(mark);
+                        self.missing.push(Missing {
+                            at: tok.at,
+                            name,
+                            arity,
+                        });
                     }
                 }
                 _ if tok.kind == Kind::Number => {}
@@ -598,6 +684,15 @@ fn parse<'a>(
         current,
         previous: current,
         arguments: &scope.bindings,
+        signatures: scope
+            .functions
+            .iter()
+            .flat_map(|(name, overloads)| {
+                overloads.keys().map(move |&arity| (name.as_str(), arity))
+            })
+            .collect(),
+        missing: Vec::new(),
+        definition_errors: Vec::new(),
         variables: Vec::new(),
         labels: vec![],
         depth: 0,
@@ -617,10 +712,31 @@ fn parse<'a>(
             return Err(p.syntax(p.current, true));
         }
     }
+    let mut diagnostics = String::new();
+    let mut count = 0;
+    for call in p.definition_errors.iter().rev().flatten().chain(&p.missing) {
+        if count != 0 {
+            diagnostics.push_str("\njq: ");
+        }
+        diagnostics.push_str(&p.diagnostic(
+            call.at,
+            &format!("{}/{} is not defined", call.name, call.arity),
+        ));
+        if diagnostics.len() > crate::ShellLimits::default().max_output_bytes {
+            return Err("maxOutputBytes limit exceeded".into());
+        }
+        count += 1;
+    }
+    if count != 0 {
+        return Err(format!(
+            "{diagnostics}\njq: {count} compile error{}",
+            if count == 1 { "" } else { "s" }
+        ));
+    }
     let comments = p.lexer.comments;
     for (name, params, range) in definitions {
         let body = without_comments(source, range, &comments);
-        scope.define(name, params, body.trim(), scope.clone(), true);
+        scope.define(&source[name], params, body.trim(), scope.clone(), true);
     }
     Ok(without_comments(source, start..source.len(), &comments))
 }

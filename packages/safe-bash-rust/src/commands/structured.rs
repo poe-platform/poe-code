@@ -63,7 +63,7 @@ impl<'a> JqScope<'a> {
         evaluate: fn(&str, &JVal, &Self) -> Result<Vec<T>, String>,
     ) -> Result<Option<Vec<T>>, String> {
         let Some(overloads) = self.functions.get(name) else { return Ok(None) };
-        let args = arguments.map_or_else(Vec::new, |s| split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()]));
+        let args = arguments.filter(|s| !s.trim().is_empty()).map_or_else(Vec::new, |s| split_jq_top(s, ';').unwrap_or_else(|| vec![s.to_owned()]));
         let Some(filter) = overloads.get(&args.len()) else { return Ok(None) };
         let mut base = filter.scope.clone();
         if let Some(original) = &filter.recursive_name {

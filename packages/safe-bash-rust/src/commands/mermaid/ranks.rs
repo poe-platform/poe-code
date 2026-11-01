@@ -10,26 +10,38 @@ pub(super) fn place(
     if nodes.is_empty() {
         return Some((184, 144));
     }
-    let mut rank = vec![0; nodes.len()];
-    let mut pending: Vec<_> = nodes.iter().map(|n| n.from.len()).collect();
-    let mut ready: Vec<_> = (0..nodes.len()).filter(|&i| pending[i] == 0).collect();
-    let mut count = 0;
-    while let Some(i) = ready.pop() {
-        count += 1;
-        for &child in &nodes[i].to {
-            rank[child] = rank[child].max(rank[i] + 1);
-            pending[child] -= 1;
-            if pending[child] == 0 {
-                ready.push(child);
+    // Depth-first postorder excludes edges to ancestors from longest-path ranking.
+    let mut state = vec![0; nodes.len()];
+    let mut post = Vec::with_capacity(nodes.len());
+    let mut stack = Vec::new();
+    for root in 0..nodes.len() {
+        if state[root] != 0 {
+            continue;
+        }
+        state[root] = 1;
+        stack.push((root, 0));
+        while let Some((i, next)) = stack.last_mut() {
+            if let Some(&j) = nodes[*i].to.get(*next) {
+                *next += 1;
+                if state[j] == 0 {
+                    state[j] = 1;
+                    stack.push((j, 0));
+                }
+            } else {
+                state[*i] = 2;
+                post.push(*i);
+                stack.pop();
             }
         }
     }
-    if count != nodes.len()
-        || edges
-            .iter()
-            .any(|&(a, b, _, _)| a != b && rank[b] != rank[a] + 1)
-    {
-        return None;
+    let mut rank = vec![0usize; nodes.len()];
+    for &i in post.iter().rev() {
+        state[i] = 0;
+        for &j in &nodes[i].to {
+            if state[j] != 0 {
+                rank[j] = rank[j].max(rank[i] + 1);
+            }
+        }
     }
     let max_rank = *rank.iter().max()?;
     if reverse {
@@ -68,6 +80,9 @@ pub(super) fn place(
     for &(a, b, _, label) in edges {
         if !label.is_empty() {
             let r = rank[a].min(rank[b]);
+            if rank[a].abs_diff(rank[b]) != 1 {
+                return None;
+            }
             allowance[r] = allowance[r].max(if horizontal {
                 measure(label, 11.5, false) + 36.
             } else {
@@ -110,17 +125,16 @@ pub(super) fn place(
             desired.clear();
             desired.extend(layer.iter().map(|&i| {
                 let n = &nodes[i];
-                let count = n.from.len() + n.to.len();
+                let (sum, count) = n
+                    .from
+                    .iter()
+                    .chain(&n.to)
+                    .filter(|&&j| rank[i].abs_diff(rank[j]) == 1)
+                    .fold((0i64, 0), |(s, n), &j| (s + i64::from(center[j]), n + 1));
                 if count == 0 {
                     center[i]
                 } else {
-                    let sum: i64 = n
-                        .from
-                        .iter()
-                        .chain(&n.to)
-                        .map(|&j| i64::from(center[j]))
-                        .sum();
-                    (sum as f64 / count as f64 + 0.5).floor() as i32
+                    (sum as f64 / f64::from(count) + 0.5).floor() as i32
                 }
             }));
             let before: i64 = desired.iter().copied().map(i64::from).sum();
@@ -156,7 +170,11 @@ pub(super) fn place(
     }
     for (r, layer) in layers.iter().enumerate() {
         if let [i] = layer[..] {
-            let mut adj = nodes[i].from.iter().chain(&nodes[i].to);
+            let mut adj = nodes[i]
+                .from
+                .iter()
+                .chain(&nodes[i].to)
+                .filter(|&&j| rank[i].abs_diff(rank[j]) == 1);
             if let Some(&a) = adj.next()
                 && adj.all(|&other| other == a)
             {

@@ -341,27 +341,43 @@ pub(super) fn layout(
         dimensions(n, horizontal);
     }
     let (mut width, mut height) = ranks::place(&mut nodes, &edges, horizontal, reversed)?;
-    let mut shift_y = 0;
-    for node in nodes.iter().filter(|n| n.loops != 0) {
-        let clearance = 42 + (node.loops as i32 - 1) * 20;
-        if horizontal {
-            shift_y = shift_y.max(32 + clearance - node.y);
-        } else {
-            width = width.max(node.x + node.w + clearance + 32);
-        }
-    }
-    if shift_y > 0 {
-        height += shift_y;
-        for node in &mut nodes {
-            node.y += shift_y;
-        }
-    }
     let mut siblings = BTreeMap::<i32, Vec<&Node>>::new();
     for n in &nodes {
         siblings.entry(n.center(horizontal)).or_default().push(n);
     }
+    let mut waypoints = match route::waypoints(
+        &nodes, &edges, &pairs, &siblings, horizontal, reversed, limit,
+    ) {
+        Some(paths) => paths,
+        None => return Some(Err("mmdc: E_LIMIT: Work budget exceeded\n".into())),
+    };
+    let (mut min_x, mut min_y, mut max_x, mut max_y) =
+        (0_f64, 0_f64, f64::from(width), f64::from(height));
+    for &(x, y) in waypoints.iter().flatten() {
+        min_x = min_x.min(x - 36.);
+        min_y = min_y.min(y - 36.);
+        max_x = max_x.max(x + 36.);
+        max_y = max_y.max(y + 36.);
+    }
+    width = (max_x - min_x).ceil() as i32;
+    height = (max_y - min_y).ceil() as i32;
+    let (dx, dy) = ((-min_x).round() as i32, (-min_y).round() as i32);
+    if dx != 0 || dy != 0 {
+        drop(siblings);
+        for n in &mut nodes {
+            n.x += dx;
+            n.y += dy;
+        }
+        for p in waypoints.iter_mut().flatten() {
+            p.0 = route::hundredth(p.0 + f64::from(dx));
+            p.1 = route::hundredth(p.1 + f64::from(dy));
+        }
+        siblings = BTreeMap::new();
+        for n in &nodes {
+            siblings.entry(n.center(horizontal)).or_default().push(n);
+        }
+    }
     let mut intersection = None;
-    let waypoints = route::waypoints(&nodes, &edges, &pairs, &siblings, horizontal, reversed);
     let dark = theme == "dark";
     let edge = if dark { "#94a3b8" } else { "#64748b" };
     let mut elements = vec![];

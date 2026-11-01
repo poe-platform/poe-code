@@ -38327,6 +38327,8 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("flowchart BT; A-->B; A-->C; B-->D; C-->D","ab509281bda95e2f523e71c12a3ed23b63748daa1510212724af7bdd0888bc57"),
             ("flowchart RL; A-->C; B-->C","83cb129416dc992c7f8f306686eb931a206831630e3442357fc62effaa42062d"),
             ("flowchart TD; A-->B; A-->C","202553f2ea633a0d9e271faf9ed2b28de03156b50bc2de39b89f07e228e22612"),
+            ("flowchart LR; A-->B; B-->A","616d23a0332a155b767a713169510d2daf0aff0d028ad83f2af4b42c950d1c24"),
+            ("flowchart TD; A-->B-->C; A-->C","5fae7f22d9dd290e84e499c3f22eebe591df6dcbef80c37f43f382c95e6c2ce5"),
             ("graph TD; A-->B;","be35fd30b8a67472634bdde8b26c80ea5809abedeed0ad324c3a6be05c0aa38f"),
             ("flowchart TD\n A[(Data)] --> B{{Process}} --> C[[End]]\n","261c188f0d9c47a4b17ece57425c181fbda85844b8c5a09eac5d1522a50294e5"),
             ("flowchart TD\n A --x B --o C\n","0cbee13deb448336fe2afdadda3c0db3ecf8b835b022d7f50f6c74c62a9984d8")

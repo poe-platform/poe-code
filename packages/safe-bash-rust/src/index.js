@@ -1222,32 +1222,12 @@ export class RustWasmBash {
         if (umaskMatch) {
           lastUmask = parseInt(umaskMatch[1], 8);
         }
-        const prevCwd = self.state.cwd;
-        const savedEnv = [];
-        if (opts.cwd) {
-          self.setEnv("__cwd", opts.cwd);
-        }
-        if (opts.env && typeof opts.env === "object") {
-          for (const [k, v] of Object.entries(opts.env)) {
-            savedEnv.push([k, self.state.env[k]]);
-            if (v !== undefined) {
-              self.setEnv(k, String(v));
-            }
-          }
+        if (opts.cwd !== undefined) self.setEnv("__cwd", opts.cwd);
+        for (const [name, value] of Object.entries(opts.env ?? {})) {
+          self.setEnv(name, value);
         }
         const res = self.execSync(script, opts.stdin ?? "");
         lastStatus = res.exitCode;
-        if (opts.cwd) {
-          self.setEnv("__cwd", prevCwd);
-        }
-        for (const [k, oldVal] of savedEnv) {
-          if (oldVal === undefined) {
-            delete self.state.env[k];
-            self.execSync(`unset ${k}`);
-          } else {
-            self.setEnv(k, oldVal);
-          }
-        }
         if (opts.hooks?.afterExec) {
           await opts.hooks.afterExec(this.state, res);
         }

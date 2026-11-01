@@ -133,7 +133,7 @@ export class RustWasmBash {
       functions: Record<string, string>;
       rawHistory: string[];
     };
-    exec(script: string, options?: { stdin?: string | Uint8Array }): Promise<RustWasmExecResult>;
+    exec(script: string, options?: { stdin?: string | Uint8Array; cwd?: string; env?: Readonly<Record<string, string>> }): Promise<RustWasmExecResult>;
   };
   dispose(): void;
 }

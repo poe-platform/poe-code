@@ -3,6 +3,16 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+test("explicit sessions retain the working directory and environment resulting from each turn", async () => {
+  const bash = new RustWasmBash({ cwd: "/work", env: { EXISTING: "base" }, directories: ["/work/sub"] });
+  try {
+    const session = bash.createSession();
+    await session.exec("cd sub; export EXISTING=updated", { cwd: "/work", env: { EXISTING: "override", ADDED: "value" } });
+    const next = await session.exec('pwd; echo "$EXISTING/$ADDED"');
+    assert.equal(next.stdout, "/work/sub\nupdated/value\n");
+  } finally { bash.dispose(); }
+});
+
 test("symbolic links validate the parent before mutation and report the failing operand", async () => {
   const bash = new RustWasmBash({deviceView: "provided", files: {"/locked/file": "keep"}, symlinks: {"/seed/link": "absent"}});
   try {

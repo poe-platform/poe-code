@@ -95,6 +95,8 @@ mod bmp;
 mod identify;
 #[path = "netpbm.rs"]
 mod netpbm;
+#[path = "sips_properties.rs"]
+mod sips_properties;
 #[path = "png_header.rs"]
 mod png_header;
 #[path = "png_pixels.rs"]
@@ -225,7 +227,8 @@ fn read_image_meta(bytes: &[u8], path: &str) -> ImageMeta {
     meta
 }
 
-fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> (ImageMeta, u8, u8, u32) {
+fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, u8, u8, u32), &'static str> {
+    if bytes.starts_with(b"\x89PNG\r\n\x1a\n") && bytes.len() < 24 { return Err("Invalid PNG header"); }
     let mut meta = read_image_meta(bytes, path);
     let (depth, channels, dpi) = if netpbm::signature(bytes) && let Ok(im) = netpbm::Netpbm::parse(bytes, limit) {
         meta.w = im.width as u32;
@@ -248,7 +251,7 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> (ImageMeta, u8, u8,
         let alpha = matches!(color, 4 | 6) || header.transparency.is_some();
         (depth, (if gray { 1 } else { 3 }) + u8::from(alpha), header.density)
     } else { (8, 3, 72) };
-    (meta, depth, channels, dpi)
+    Ok((meta, depth, channels, dpi))
 }
 
 fn write_image_bytes(meta: &ImageMeta) -> Vec<u8> {
@@ -10773,7 +10776,14 @@ fn cmd_media_doc(
                     exit_code = 1;
                     continue;
                 }
-                let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
+                let (meta, depth, channels, dpi) = match inspect_raster(&bytes, &full, fs.max_input_bytes()) {
+                    Ok(info) => info,
+                    Err(reason) => {
+                        err_buf.push_str(&format!("identify: improper image header '{f}': {reason}\n"));
+                        exit_code = 1;
+                        continue;
+                    }
+                };
                 let display_depth = if depth < 8 { 1 } else { depth };
                 let space = if depth == 16 && meta.fmt == "PNG" { "sRGB" } else { &meta.cs };
                 if let Some(ref fmt_str) = fmt_opt {
@@ -11087,7 +11097,11 @@ fn cmd_media_doc(
                         continue;
                     }
                     let bytes = fs.read_file(&full).unwrap_or_default();
-                    let (meta, depth, channels, dpi) = inspect_raster(&bytes, &full, fs.max_input_bytes());
+                    let ((meta, depth, channels, dpi), props) = match inspect_raster(&bytes, &full, fs.max_input_bytes())
+                        .and_then(|info| Ok((info, sips_properties::read(&bytes)?))) {
+                        Ok(pair) => pair,
+                        Err(reason) => { err_out_str.push_str(&format!("Error: {f}: {reason}\n")); continue; }
+                    };
                     let fmt_lower = meta.fmt.to_ascii_lowercase();
                     let xml = get_props.iter().any(|p| p == "allxml");
                     let mut expanded_props = Vec::new();
@@ -11100,14 +11114,20 @@ fn cmd_media_doc(
                                 expanded_props.push("path");
                                 break;
                             }
-                            expanded_props.extend(meta.exif.keys().filter(|k| !k.starts_with("__")).map(String::as_str));
                         } else {
                             expanded_props.push(p.as_str());
                         }
                     }
                     let mut kvs = Vec::new();
                     for p in expanded_props {
-                        let val = match p {
+                        let val = if let Some(value) = props.get(p).filter(|_| !xml || !matches!(p, "hasAlpha" | "path")) {
+                            value.clone().unwrap_or_else(|| match (xml, p) {
+                                (false, _) => "<nil>".into(),
+                                (true, "dpiWidth" | "dpiHeight") => dpi.to_string(),
+                                (true, "pixelWidth" | "pixelHeight" | "samplesPerPixel" | "bitsPerSample") => "0".into(),
+                                _ => String::new(),
+                            })
+                        } else { match p {
                             "path" => f.to_string(),
                             "pixelWidth" => meta.w.to_string(),
                             "pixelHeight" => meta.h.to_string(),
@@ -11124,7 +11144,7 @@ fn cmd_media_doc(
                                 .get(other)
                                 .cloned()
                                 .unwrap_or_else(|| "<nil>".to_string()),
-                        };
+                        }};
                         kvs.push((p, val));
                     }
                     if xml {
@@ -13632,6 +13652,23 @@ mod media_unit_tests {
         assert_eq!((result.exit_code, result.stderr), (0, String::new()));
         let bytes = fs.read_file("/out.png").unwrap();
         assert_eq!(hex_enc(&sha256_bytes(&bytes)), "187fb90a90256b4e020a3bb214c4cac818695c75c1b1d161ef5efc7c40d20264");
+    }
+
+    #[test]
+    fn sips_reads_embedded_itxt_properties_and_rejects_a_truncated_chunk() {
+        let fs = MemoryVfs::new();
+        let mut png = pixel_png(1, 1, PngEncoding::Density(72), |_, _| [1,2,3]);
+        let data = b"safe-bash-sips\0\0\0\0\0[[\"artist\",\"Ada\"],[\"dpiWidth\",\"145.000\"]]";
+        let mut chunk = (data.len() as u32).to_be_bytes().to_vec();
+        chunk.extend_from_slice(b"iTXt");
+        chunk.extend_from_slice(data);
+        chunk.extend_from_slice(&[0;4]);
+        png.splice(33..33, chunk);
+        fs.write_file("/tag.png", &png).unwrap();
+        let run = || cmd_media_doc("sips", &media_args(&["-1","-g","artist","-g","dpiWidth","tag.png"]), "", "/", &fs);
+        assert_eq!(run().stdout, "tag.png|artist: Ada|dpiWidth: 145.000|\n");
+        fs.write_file("/tag.png", &png[..35+data.len()]).unwrap();
+        assert_eq!(run().stderr, "Error: tag.png: Invalid PNG metadata chunk\n");
     }
 
     #[test]

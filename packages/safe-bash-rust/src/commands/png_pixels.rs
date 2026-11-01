@@ -165,6 +165,7 @@ impl Raster {
                 .ok_or("image exceeds memory budget")?;
             layout.push((x, y, dx, dy, cols, rows, bytes));
         }
+        if idat.is_empty() { return Err("unexpected end of file"); }
         if idat.len() < 6
             || idat[0] & 15 != 8
             || idat[0] >> 4 > 7

@@ -1184,3 +1184,14 @@ test("mounted devices retain their creation time while the default null device u
     }
   } finally { bash.dispose(); }
 });
+
+test("chmod reports why a change was denied and leaves permissions intact", async () => {
+  const bash = new RustWasmBash({ profile: "overlay-cow-fs", files: { "/w/f": { content: "x", mode: 0o200 } } });
+  try {
+    await assert.rejects(bash.fs.chmod("/w/f", 0o600), { code: "EACCES", syscall: "overlay", path: "/w/f" });
+    await assert.rejects(bash.fs.chmod("/w/f", -1), { code: "EINVAL", syscall: "overlay", path: "/w/f" });
+    assert.equal((await bash.fs.stat("/w/f")).mode & 0o7777, 0o200);
+    bash.mountDevices();
+    await assert.rejects(bash.fs.chmod("/dev/null", 0o600), { code: "ENOTSUP", syscall: "chmod", path: "/dev/null" });
+  } finally { bash.dispose(); }
+});

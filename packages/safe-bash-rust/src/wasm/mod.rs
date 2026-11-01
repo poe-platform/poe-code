@@ -537,21 +537,30 @@ pub unsafe extern "C" fn safe_bash_chmod(
     id: u32,
     path_ptr: *const u8,
     path_len: usize,
-    mode: u32,
+    mode: f64,
+    omitted: bool,
 ) -> i32 {
-    let path = unsafe {
-        str_from_raw(path_ptr, path_len)
-    };
-    let Ok(map) = sessions().lock() else {
-        return -1;
-    };
-    let Some(sess) = map.get(&id) else {
-        return -1;
-    };
-    if sess.shell.fs.chmod(path, mode).is_ok() {
-        0
-    } else {
-        -1
+    let path = unsafe { str_from_raw(path_ptr, path_len) };
+    let Ok(mut map) = sessions().lock() else { return -1 };
+    let Some(sess) = map.get_mut(&id) else { return -1 };
+    let fs = &sess.shell.fs;
+    let mode = if omitted && sess.profile != Profile::Overlay { 0.0 } else { mode };
+    let invalid = mode.fract() != 0.0 || !(0.0..=4095.0).contains(&mode);
+    let res = (|| {
+        if invalid && sess.profile != Profile::Devices { return Err("EINVAL: invalid argument".into()); }
+        let target = fs.access_path(path, true)?;
+        if sess.profile == Profile::Devices {
+            fs.lstat(&target)?;
+            if target == "/dev" { return Err("EBUSY: resource busy or locked".into()); }
+            if target.starts_with("/dev/") { return Err("ENOTSUP: operation not supported".into()); }
+            if invalid { return Err("EINVAL: invalid argument".into()); }
+        }
+        fs.chmod(&target, mode as u32)
+    })();
+    match res {
+        Ok(()) => 0,
+        Err(e) => sess.read_error(&e, "chmod", path,
+            (sess.profile == Profile::Overlay && (invalid || path.is_empty())).then_some(path), None),
     }
 }
 

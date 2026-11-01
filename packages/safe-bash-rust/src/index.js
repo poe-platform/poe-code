@@ -711,9 +711,11 @@ export class RustWasmBash {
   chmod(filePath, mode) {
     const p = this._allocBytes(encoder.encode(filePath));
     try {
-      const rc = this.exports.safe_bash_chmod(this.sessionId, p.ptr, p.len, mode >>> 0);
+      const rc = this.exports.safe_bash_chmod(this.sessionId, p.ptr, p.len, typeof mode === "number" ? mode : NaN, mode === undefined);
+      if (rc === -1) throw new Error("Wasm session unavailable");
       if (rc < 0) {
-        throw fsErr('ENOENT', `ENOENT: no such file or directory '${filePath}'`);
+        const ptr = this.exports.safe_bash_output_ptr(this.sessionId);
+        throw readOperationError(decoder.decode(new Uint8Array(this.exports.memory.buffer, ptr, -rc)));
       }
     } finally {
       this._freeBytes(p);
